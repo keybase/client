@@ -4,21 +4,34 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"image/gif"
 	"io/ioutil"
 	"os"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
 
+	"camlistore.org/pkg/images"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/kyokomi/emoji"
+)
+
+const (
+	minShortNameLength = 2
+	maxShortNameLength = 48
+	minEmojiSize       = 512        // min size for reading mime type
+	maxEmojiSize       = 256 * 1000 // 256kb
+	minEmojiWidth      = 16
+	minEmojiHeight     = 16
+	maxEmojiWidth      = 128
+	maxEmojiHeight     = 128
 )
 
 type DevConvEmojiSource struct {
@@ -28,6 +41,9 @@ type DevConvEmojiSource struct {
 	getLock     sync.Mutex
 	aliasLookup map[string]chat1.Emoji
 	ri          func() chat1.RemoteInterface
+
+	testingCreatedSyncConv   chan struct{}
+	testingRefreshedSyncConv chan struct{}
 }
 
 var _ types.EmojiSource = (*DevConvEmojiSource)(nil)
@@ -52,12 +68,17 @@ func (s *DevConvEmojiSource) topicName(suffix *string) string {
 	return ret
 }
 
-func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias, filename string, topicNameSuffix *string, storage types.ConvConversationBackedStorage) (res chat1.EmojiRemoteSource, err error) {
+func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
+	storageConv *chat1.ConversationLocal, convID chat1.ConversationID,
+	alias, filename string, storage types.ConvConversationBackedStorage) (res chat1.EmojiRemoteSource, err error) {
 	var stored chat1.EmojiStorage
 	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
-	topicName := s.topicName(topicNameSuffix)
-	_, storageConv, err := storage.Get(ctx, uid, convID, topicName, &stored, true)
+	if storageConv != nil {
+		_, err = storage.GetFromKnownConv(ctx, uid, *storageConv, &stored)
+	} else {
+		topicName := s.topicName(nil)
+		_, storageConv, err = storage.Get(ctx, uid, convID, topicName, &stored, true)
+	}
 	if err != nil {
 		return res, err
 	}
@@ -79,42 +100,100 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID, c
 		MsgID:  *msgID,
 	})
 	stored.Mapping[alias] = res
-	return res, storage.Put(ctx, uid, convID, topicName, stored)
+	return res, storage.PutToKnownConv(ctx, uid, *storageConv, stored)
 }
 
 func (s *DevConvEmojiSource) isStockEmoji(alias string) bool {
-	_, ok := emoji.CodeMap()[":"+alias+":"]
-	if !ok {
-		_, ok = emoji.CodeMap()[":"+strings.ReplaceAll(alias, "-", "_")+":"]
-	}
-	return ok
+	alias = fmt.Sprintf(":%s:", alias)
+	alias2 := strings.ReplaceAll(alias, "-", "_")
+	return storage.EmojiExists(alias) || storage.EmojiExists(alias2)
 }
 
-func (s *DevConvEmojiSource) validateAlias(alias string) (string, error) {
-	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
-	if strings.Contains(alias, "#") {
-		return alias, errors.New("invalid character in emoji alias")
+func (s *DevConvEmojiSource) validateShortName(shortName string) (string, error) {
+	shortName = strings.ReplaceAll(shortName, ":", "") // drop any colons from alias
+	if s.isStockEmoji(shortName) {
+		return "", errors.New("cannot use existing stock emoji short name")
 	}
-	if s.isStockEmoji(alias) {
-		return alias, errors.New("cannot use existing stock emoji alias")
+	if len(shortName) > maxShortNameLength || len(shortName) < minShortNameLength {
+		return "", fmt.Errorf("short name %q (length %d) not within bounds %d,%d",
+			shortName, len(shortName), minShortNameLength, maxShortNameLength)
 	}
-	return alias, nil
+	if strings.Contains(shortName, "#") {
+		return "", errors.New("invalid character in emoji alias")
+	}
+	return shortName, nil
+}
+
+func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName, filename string) (string, error) {
+	shortName, err := s.validateShortName(shortName)
+	if err != nil {
+		return "", err
+	}
+
+	err = s.validateFile(ctx, filename)
+	if err != nil {
+		return "", err
+	}
+	return shortName, nil
+}
+
+// validateFile validates the following:
+// file size
+// dimensions
+// format
+func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) error {
+	finfo, err := attachments.StatOSOrKbfsFile(ctx, s.G().GlobalContext, filename)
+	if err != nil {
+		return err
+	}
+	if finfo.IsDir() {
+		return errors.New("invalid file type for emoji")
+	} else if finfo.Size() > maxEmojiSize || finfo.Size() < minEmojiSize {
+		return fmt.Errorf("emoji size %d not within bounds %d,%d", finfo.Size(), minEmojiSize, maxEmojiSize)
+	}
+
+	src, err := attachments.NewReadCloseResetter(ctx, s.G().GlobalContext, filename)
+	if err != nil {
+		return err
+	}
+	defer func() { src.Close() }()
+	img, _, err := images.Decode(src, nil)
+	if err != nil {
+		if err := src.Reset(); err != nil {
+			return err
+		}
+		g, err := gif.DecodeAll(src)
+		if err != nil {
+			return err
+		}
+		if len(g.Image) == 0 {
+			return errors.New("no image frames in GIF")
+		}
+		img = g.Image[0]
+	}
+	bounds := img.Bounds()
+	if bounds.Dx() > maxEmojiWidth || bounds.Dx() < minEmojiWidth ||
+		bounds.Dy() > maxEmojiHeight || bounds.Dy() < minEmojiHeight {
+		return fmt.Errorf("invalid dimensions %dx%d not within %dx%d, %dx%d",
+			bounds.Dx(), bounds.Dy(), maxEmojiWidth, maxEmojiHeight, minEmojiWidth, minEmojiHeight)
+	}
+	return nil
 }
 
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
-	if alias, err = s.validateAlias(alias); err != nil {
+	if alias, err = s.validateCustomEmoji(ctx, alias, filename); err != nil {
 		return res, err
 	}
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
-	return s.addAdvanced(ctx, uid, convID, alias, filename, nil, storage)
+	return s.addAdvanced(ctx, uid, nil, convID, alias, filename, storage)
 }
 
 func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "AddAlias")()
-	if newAlias, err = s.validateAlias(newAlias); err != nil {
+	if newAlias, err = s.validateShortName(newAlias); err != nil {
 		return res, err
 	}
 	var stored chat1.EmojiStorage
@@ -378,8 +457,6 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 	return res, nil
 }
 
-var emojiPattern = regexp.MustCompile(`(?::)([^:\s]+)(?::)`)
-
 type emojiMatch struct {
 	name     string
 	position []int
@@ -387,7 +464,7 @@ type emojiMatch struct {
 
 func (s *DevConvEmojiSource) parse(ctx context.Context, body string) (res []emojiMatch) {
 	body = utils.ReplaceQuotedSubstrings(body, false)
-	hits := emojiPattern.FindAllStringSubmatchIndex(body, -1)
+	hits := globals.EmojiPattern.FindAllStringSubmatchIndex(body, -1)
 	for _, hit := range hits {
 		if len(hit) < 4 {
 			s.Debug(ctx, "parse: malformed hit: %d", len(hit))
@@ -439,6 +516,52 @@ func (s *DevConvEmojiSource) versionMatch(ctx context.Context, uid gregor1.UID, 
 	return lhash != nil && rhash != nil && lhash.Eq(rhash)
 }
 
+func (s *DevConvEmojiSource) getCrossTeamConv(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, sourceConvID chat1.ConversationID) (res chat1.ConversationLocal, err error) {
+	baseConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		s.Debug(ctx, "getCrossTeamConv: failed to get base conv: %s", err)
+		return res, err
+	}
+	sourceConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, sourceConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		s.Debug(ctx, "getCrossTeamConv: failed to get source conv: %s", err)
+		return res, err
+	}
+	var created bool
+	topicID := chat1.TopicID(sourceConv.Info.Triple.Tlfid.Bytes())
+	s.Debug(ctx, "getCrossTeamConv: attempting conv create: sourceConvID: %s topicID: %s",
+		sourceConv.GetConvID(), topicID)
+	topicName := topicID.String()
+	if res, created, err = NewConversation(ctx, s.G(), uid, baseConv.Info.TlfName, &topicName,
+		chat1.TopicType_EMOJICROSS, baseConv.GetMembersType(), baseConv.Info.Visibility,
+		&topicID, s.ri, NewConvFindExistingNormal); err != nil {
+		if convExistsErr, ok := err.(libkb.ChatConvExistsError); ok {
+			s.Debug(ctx, "getCrossTeamConv: conv exists error received, attempting to join: %s", err)
+			if err := JoinConversation(ctx, s.G(), s.DebugLabeler, s.ri, uid, convExistsErr.ConvID); err != nil {
+				s.Debug(ctx, "getCrossTeamConv: failed to join: %s", err)
+				return res, err
+			}
+			if res, err = utils.GetVerifiedConv(ctx, s.G(), uid, convExistsErr.ConvID,
+				types.InboxSourceDataSourceAll); err != nil {
+				s.Debug(ctx, "getCrossTeamConv: failed to get conv after successful join: %s", err)
+			}
+			created = false
+		} else {
+			return res, err
+		}
+	}
+	if created {
+		s.Debug(ctx, "getCrossTeamConv: created a new sync conv: %s (topicID: %s)", res.GetConvID(), topicID)
+		if s.testingCreatedSyncConv != nil {
+			s.testingCreatedSyncConv <- struct{}{}
+		}
+	} else {
+		s.Debug(ctx, "getCrossTeamConv: using exising sync conv: %s (topicID: %s)", res.GetConvID(), topicID)
+	}
+	return res, nil
+}
+
 func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID, emoji chat1.HarvestedEmoji,
 	convID chat1.ConversationID) (res chat1.HarvestedEmoji, err error) {
 	typ, err := emoji.Source.Typ()
@@ -453,10 +576,16 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	default:
 		return res, errors.New("invalid remote source to sync")
 	}
-	suffix := convID.String()
 	var stored chat1.EmojiStorage
 	storage := s.makeStorage(chat1.TopicType_EMOJICROSS)
-	if _, _, err := storage.Get(ctx, uid, convID, s.topicName(&suffix), &stored, true); err != nil {
+	sourceConvID := emoji.Source.Message().ConvID
+	syncConv, err := s.getCrossTeamConv(ctx, uid, convID, sourceConvID)
+	if err != nil {
+		s.Debug(ctx, "syncCrossTeam: failed to get cross team conv: %s", err)
+		return res, err
+	}
+	if _, err := storage.GetFromKnownConv(ctx, uid, syncConv, &stored); err != nil {
+		s.Debug(ctx, "syncCrossTeam: failed to get from known conv: %s", err)
 		return res, err
 	}
 	if stored.Mapping == nil {
@@ -479,21 +608,23 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	} else {
 		s.Debug(ctx, "syncCrossTeam: missed mapping")
 	}
-
+	if s.testingRefreshedSyncConv != nil {
+		s.testingRefreshedSyncConv <- struct{}{}
+	}
 	// download from the original source
 	sink, err := ioutil.TempFile(os.TempDir(), "emoji")
 	if err != nil {
 		return res, err
 	}
 	defer os.Remove(sink.Name())
-	if err := attachments.Download(ctx, s.G(), uid, emoji.Source.Message().ConvID,
+	if err := attachments.Download(ctx, s.G(), uid, sourceConvID,
 		emoji.Source.Message().MsgID, sink, false, nil, s.ri); err != nil {
 		s.Debug(ctx, "syncCrossTeam: failed to download: %s", err)
 		return res, err
 	}
 
 	// add the source to the target storage area
-	newSource, err := s.addAdvanced(ctx, uid, convID, stripped, sink.Name(), &suffix, storage)
+	newSource, err := s.addAdvanced(ctx, uid, &syncConv, convID, stripped, sink.Name(), storage)
 	if err != nil {
 		return res, err
 	}
@@ -532,6 +663,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 			OnlyInTeam:      false,
 		})
 		if err != nil {
+			s.Debug(ctx, "Harvest: failed to get emojis: %s", err)
 			return res, err
 		}
 	case types.EmojiHarvestModeFast:
@@ -556,6 +688,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 					Alias:  match.name,
 					Source: emoji.RemoteSource,
 				}, convID); err != nil {
+					s.Debug(ctx, "Harvest: failed to sync cross team: %s", err)
 					return res, err
 				}
 			} else {

@@ -191,6 +191,11 @@ export type IconType =
   | 'icon-dark-email-remove-48'
   | 'icon-dark-email-remove-64'
   | 'icon-dark-email-remove-96'
+  | 'icon-dark-empty-channels-103-96'
+  | 'icon-dark-empty-people-search-112-96'
+  | 'icon-dark-empty-subteams-164-96'
+  | 'icon-dark-empty-team-small-96'
+  | 'icon-dark-empty-wot-118-96'
   | 'icon-dark-fancy-bomb-desktop-150-72'
   | 'icon-dark-fancy-bomb-mobile-226-96'
   | 'icon-dark-fancy-chat-103-x-75'
@@ -419,6 +424,11 @@ export type IconType =
   | 'icon-email-remove-48'
   | 'icon-email-remove-64'
   | 'icon-email-remove-96'
+  | 'icon-empty-channels-103-96'
+  | 'icon-empty-people-search-112-96'
+  | 'icon-empty-subteams-164-96'
+  | 'icon-empty-team-small-96'
+  | 'icon-empty-wot-118-96'
   | 'icon-encrypt-64'
   | 'icon-facebook-continue'
   | 'icon-facebook-logo-16'
@@ -516,6 +526,7 @@ export type IconType =
   | 'icon-hacker-news-logo-64'
   | 'icon-illustration-attention-64'
   | 'icon-illustration-contact-restrictions-96'
+  | 'icon-illustration-emoji-add-460-96'
   | 'icon-illustration-encrypted-116-96'
   | 'icon-illustration-exploding-messages-240'
   | 'icon-illustration-friends-96'
@@ -532,6 +543,7 @@ export type IconType =
   | 'icon-illustration-teams-180'
   | 'icon-illustration-teams-216'
   | 'icon-illustration-teams-80'
+  | 'icon-illustration-teams-96'
   | 'icon-illustration-teams-channels-460-96'
   | 'icon-illustration-teams-feature-profile-460-64'
   | 'icon-illustration-teams-subteams-460-96'
@@ -2756,6 +2768,46 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-email-remove-96.png')
     },
   },
+  'icon-dark-empty-channels-103-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-empty-channels-103-96.png')
+    },
+  },
+  'icon-dark-empty-people-search-112-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-empty-people-search-112-96.png')
+    },
+  },
+  'icon-dark-empty-subteams-164-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-empty-subteams-164-96.png')
+    },
+  },
+  'icon-dark-empty-team-small-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-empty-team-small-96.png')
+    },
+  },
+  'icon-dark-empty-wot-118-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-empty-wot-118-96.png')
+    },
+  },
   'icon-dark-fancy-bomb-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
@@ -4600,6 +4652,66 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-email-remove-96.png')
     },
   },
+  'icon-empty-channels-103-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-empty-channels-103-96',
+    get require() {
+      return require('../images/icons/icon-empty-channels-103-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-empty-channels-103-96.png')
+    },
+  },
+  'icon-empty-people-search-112-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-empty-people-search-112-96',
+    get require() {
+      return require('../images/icons/icon-empty-people-search-112-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-empty-people-search-112-96.png')
+    },
+  },
+  'icon-empty-subteams-164-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-empty-subteams-164-96',
+    get require() {
+      return require('../images/icons/icon-empty-subteams-164-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-empty-subteams-164-96.png')
+    },
+  },
+  'icon-empty-team-small-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-empty-team-small-96',
+    get require() {
+      return require('../images/icons/icon-empty-team-small-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-empty-team-small-96.png')
+    },
+  },
+  'icon-empty-wot-118-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-empty-wot-118-96',
+    get require() {
+      return require('../images/icons/icon-empty-wot-118-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-empty-wot-118-96.png')
+    },
+  },
   'icon-encrypt-64': {
     extension: 'png',
     imagesDir: 'icons',
@@ -5644,6 +5756,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-illustration-contact-restrictions-96.png')
     },
   },
+  'icon-illustration-emoji-add-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-emoji-add-460-96.png')
+    },
+  },
   'icon-illustration-encrypted-116-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -5770,6 +5890,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-teams-80.png')
+    },
+  },
+  'icon-illustration-teams-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-96.png')
     },
   },
   'icon-illustration-teams-channels-460-96': {

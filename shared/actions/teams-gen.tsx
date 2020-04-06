@@ -46,6 +46,7 @@ export const leftTeam = 'teams:leftTeam'
 export const loadTeam = 'teams:loadTeam'
 export const loadWelcomeMessage = 'teams:loadWelcomeMessage'
 export const loadedWelcomeMessage = 'teams:loadedWelcomeMessage'
+export const manageChatChannels = 'teams:manageChatChannels'
 export const reAddToTeam = 'teams:reAddToTeam'
 export const removeMember = 'teams:removeMember'
 export const removeParticipant = 'teams:removeParticipant'
@@ -60,6 +61,7 @@ export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setChannelSelected = 'teams:setChannelSelected'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
+export const setEditMemberError = 'teams:setEditMemberError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
@@ -218,6 +220,7 @@ type _LoadedWelcomeMessagePayload = {
   readonly teamID: Types.TeamID
   readonly message: RPCChatTypes.WelcomeMessageDisplay
 }
+type _ManageChatChannelsPayload = {readonly teamID: Types.TeamID}
 type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveMemberPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveParticipantPayload = {
@@ -252,6 +255,11 @@ type _SetChannelSelectedPayload = {
   readonly clearAll?: boolean
 }
 type _SetEditDescriptionErrorPayload = {readonly error: string}
+type _SetEditMemberErrorPayload = {
+  readonly error: string
+  readonly teamID: Types.TeamID
+  readonly username: string
+}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetJustFinishedAddMembersWizardPayload = {readonly justFinished: boolean}
 type _SetMemberActivityDetailsPayload = {
@@ -648,6 +656,10 @@ export const createLaunchNewTeamWizardOrModal = (
   payload: _LaunchNewTeamWizardOrModalPayload = Object.freeze({})
 ): LaunchNewTeamWizardOrModalPayload => ({payload, type: launchNewTeamWizardOrModal})
 export const createLeaveTeam = (payload: _LeaveTeamPayload): LeaveTeamPayload => ({payload, type: leaveTeam})
+export const createManageChatChannels = (payload: _ManageChatChannelsPayload): ManageChatChannelsPayload => ({
+  payload,
+  type: manageChatChannels,
+})
 export const createReAddToTeam = (payload: _ReAddToTeamPayload): ReAddToTeamPayload => ({
   payload,
   type: reAddToTeam,
@@ -675,6 +687,10 @@ export const createSetChannelCreationError = (
 export const createSetEditDescriptionError = (
   payload: _SetEditDescriptionErrorPayload
 ): SetEditDescriptionErrorPayload => ({payload, type: setEditDescriptionError})
+export const createSetEditMemberError = (payload: _SetEditMemberErrorPayload): SetEditMemberErrorPayload => ({
+  payload,
+  type: setEditMemberError,
+})
 export const createSetEmailInviteError = (
   payload: _SetEmailInviteErrorPayload
 ): SetEmailInviteErrorPayload => ({payload, type: setEmailInviteError})
@@ -945,6 +961,10 @@ export type LoadedWelcomeMessagePayload = {
   readonly payload: _LoadedWelcomeMessagePayload
   readonly type: typeof loadedWelcomeMessage
 }
+export type ManageChatChannelsPayload = {
+  readonly payload: _ManageChatChannelsPayload
+  readonly type: typeof manageChatChannels
+}
 export type ReAddToTeamPayload = {readonly payload: _ReAddToTeamPayload; readonly type: typeof reAddToTeam}
 export type RemoveMemberPayload = {readonly payload: _RemoveMemberPayload; readonly type: typeof removeMember}
 export type RemoveParticipantPayload = {
@@ -991,6 +1011,10 @@ export type SetChannelSelectedPayload = {
 export type SetEditDescriptionErrorPayload = {
   readonly payload: _SetEditDescriptionErrorPayload
   readonly type: typeof setEditDescriptionError
+}
+export type SetEditMemberErrorPayload = {
+  readonly payload: _SetEditMemberErrorPayload
+  readonly type: typeof setEditMemberError
 }
 export type SetEmailInviteErrorPayload = {
   readonly payload: _SetEmailInviteErrorPayload
@@ -1217,6 +1241,7 @@ export type Actions =
   | LoadTeamPayload
   | LoadWelcomeMessagePayload
   | LoadedWelcomeMessagePayload
+  | ManageChatChannelsPayload
   | ReAddToTeamPayload
   | RemoveMemberPayload
   | RemoveParticipantPayload
@@ -1231,6 +1256,7 @@ export type Actions =
   | SetChannelCreationErrorPayload
   | SetChannelSelectedPayload
   | SetEditDescriptionErrorPayload
+  | SetEditMemberErrorPayload
   | SetEmailInviteErrorPayload
   | SetJustFinishedAddMembersWizardPayload
   | SetMemberActivityDetailsPayload

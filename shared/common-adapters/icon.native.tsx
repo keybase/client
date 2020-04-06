@@ -69,9 +69,7 @@ const Text = React.forwardRef<NativeText, TextProps>((p, ref) => {
   const fontSizeStyle = {fontSize: p.fontSize || Shared.typeToFontSize(p.sizeType)}
 
   return (
-    // @ts-ignore TODO fix styles
     <Kb.NativeText
-      // @ts-ignore TODO fix styles
       style={[styles.text, style, fontSizeStyle, p.style]}
       allowFontScaling={false}
       ref={ref}
@@ -109,7 +107,7 @@ const Image = React.forwardRef<NativeImage, ImageProps>((p, ref) => {
     }
   }
 
-  return <Kb.NativeImage ref={ref} style={[style, pStyle]} source={p.source} resizeMode="contain" />
+  return <Kb.NativeImage ref={ref} style={[style, pStyle]} source={p.source} />
 })
 Image.displayName = 'IconImage'
 

@@ -2,7 +2,7 @@
 import Badge from './badge'
 import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
-import Icon from './icon'
+import Icon, {SizeType} from './icon'
 import WithTooltip from './with-tooltip'
 import * as React from 'react'
 import Text, {StylesTextCrossPlatform} from './text'
@@ -30,12 +30,14 @@ type WithIconProps =
     }
   | {
       icon: IconType
+      iconSizeType?: SizeType
       iconColor?: Styles.Color
       tooltip?: string
       label?: never
     }
   | {
       icon: IconType
+      iconSizeType?: SizeType
       iconColor?: Styles.Color
       tooltip?: never
       label: string
@@ -57,6 +59,7 @@ type DefaultProps = {
   onClick?: (event: React.BaseSyntheticEvent) => void
   onMouseEnter?: (e: React.MouseEvent) => void
   onMouseLeave?: (e: React.MouseEvent) => void
+  onMouseDown?: (e: React.MouseEvent) => void
   small?: boolean
   style?: Styles.StylesCrossPlatform
   subLabel?: string
@@ -167,6 +170,7 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
       onClick={onClick}
       onMouseEnter={props.onMouseEnter}
       onMouseLeave={props.onMouseLeave}
+      onMouseDown={props.onMouseDown}
       hoverColor={Styles.globalColors.transparent}
     >
       {underlay}
@@ -184,7 +188,7 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
             <Kb.Icon
               type={props.icon}
               color={props.iconColor}
-              sizeType="Default"
+              sizeType={props.iconSizeType ?? 'Default'}
               style={Styles.collapseStyles([
                 labelStyle,
                 !!props.label && styles.iconWithLabel,

@@ -368,6 +368,10 @@ func (t TopicID) String() string {
 	return hex.EncodeToString(t)
 }
 
+func (t TopicID) Eq(r TopicID) bool {
+	return bytes.Equal([]byte(t), []byte(r))
+}
+
 func (t ConversationIDTriple) Eq(other ConversationIDTriple) bool {
 	return t.Tlfid.Eq(other.Tlfid) &&
 		bytes.Equal([]byte(t.TopicID), []byte(other.TopicID)) &&
@@ -2544,6 +2548,19 @@ func (r *AddEmojiRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *AddEmojiRes) SetRateLimits(rl []RateLimit) {
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
+}
+
+func (r *AddEmojisRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *AddEmojisRes) SetRateLimits(rl []RateLimit) {
 	if len(rl) > 0 {
 		r.RateLimit = &rl[0]
 	}

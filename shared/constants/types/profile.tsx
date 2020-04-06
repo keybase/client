@@ -1,16 +1,6 @@
 import * as RPCTypes from './rpc-gen'
-import {PlatformsExpandedType} from './more'
+import {PlatformsExpandedType, WebOfTrustVerificationType} from './more'
 import {SiteIconSet} from './tracker2'
-
-// Keep in sync with keybase1 extras.go UsernameVerificationType
-export type WebOfTrustVerificationType =
-  | 'in_person'
-  | 'video'
-  | 'audio'
-  | 'proofs'
-  | 'other_chat'
-  | 'familiar'
-  | 'other'
 
 export type ProveGenericParams = {
   readonly logoBlack: SiteIconSet
@@ -20,6 +10,13 @@ export type ProveGenericParams = {
   readonly suffix: string
   readonly buttonLabel: string
 }
+
+export type WotAuthor = {
+  error: string
+  initialVerificationType: WebOfTrustVerificationType
+}
+
+export type WotAuthorQuestion = 'question1' | 'question2'
 
 export type State = {
   readonly errorCode?: number
@@ -48,4 +45,5 @@ export type State = {
   readonly username: string
   readonly usernameValid: boolean
   readonly searchShowingSuggestions: boolean
+  readonly wotAuthor: WotAuthor
 }

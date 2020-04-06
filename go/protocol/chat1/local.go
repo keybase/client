@@ -6278,6 +6278,47 @@ func (o AddEmojiRes) DeepCopy() AddEmojiRes {
 	}
 }
 
+type AddEmojisRes struct {
+	RateLimit        *RateLimit        `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	SuccessFilenames []string          `codec:"successFilenames" json:"successFilenames"`
+	FailedFilenames  map[string]string `codec:"failedFilenames" json:"failedFilenames"`
+}
+
+func (o AddEmojisRes) DeepCopy() AddEmojisRes {
+	return AddEmojisRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+		SuccessFilenames: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SuccessFilenames),
+		FailedFilenames: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.FailedFilenames),
+	}
+}
+
 type RemoveEmojiRes struct {
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
@@ -6966,6 +7007,12 @@ type AddEmojiArg struct {
 	Filename string         `codec:"filename" json:"filename"`
 }
 
+type AddEmojisArg struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	Aliases   []string       `codec:"aliases" json:"aliases"`
+	Filenames []string       `codec:"filenames" json:"filenames"`
+}
+
 type AddEmojiAliasArg struct {
 	ConvID        ConversationID `codec:"convID" json:"convID"`
 	NewAlias      string         `codec:"newAlias" json:"newAlias"`
@@ -7095,6 +7142,7 @@ type LocalInterface interface {
 	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
 	GetLastActiveAtMultiLocal(context.Context, GetLastActiveAtMultiLocalArg) (map[keybase1.TeamID]gregor1.Time, error)
 	AddEmoji(context.Context, AddEmojiArg) (AddEmojiRes, error)
+	AddEmojis(context.Context, AddEmojisArg) (AddEmojisRes, error)
 	AddEmojiAlias(context.Context, AddEmojiAliasArg) (AddEmojiRes, error)
 	RemoveEmoji(context.Context, RemoveEmojiArg) (RemoveEmojiRes, error)
 	UserEmojis(context.Context, UserEmojisArg) (UserEmojiRes, error)
@@ -8729,6 +8777,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"addEmojis": {
+				MakeArg: func() interface{} {
+					var ret [1]AddEmojisArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AddEmojisArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AddEmojisArg)(nil), args)
+						return
+					}
+					ret, err = i.AddEmojis(ctx, typedArgs[0])
+					return
+				},
+			},
 			"addEmojiAlias": {
 				MakeArg: func() interface{} {
 					var ret [1]AddEmojiAliasArg
@@ -9368,6 +9431,11 @@ func (c LocalClient) GetLastActiveAtMultiLocal(ctx context.Context, __arg GetLas
 
 func (c LocalClient) AddEmoji(ctx context.Context, __arg AddEmojiArg) (res AddEmojiRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.addEmoji", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) AddEmojis(ctx context.Context, __arg AddEmojisArg) (res AddEmojisRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.addEmojis", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

@@ -17,6 +17,7 @@ import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {indefiniteArticle} from '../../../../util/string'
+import {isOpen} from '../../../../util/keyboard'
 import AudioRecorder from '../../../audio/audio-recorder.native'
 import {
   AnimatedBox2,
@@ -25,6 +26,7 @@ import {
   runToggle,
   runRotateToggle,
 } from './platform-input-animation.native'
+import HWKeyboardEvent from 'react-native-hw-keyboard-event'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -95,6 +97,26 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
           .catch(error => this.props.onFilePickerError(new Error(error)))
         break
     }
+  }
+
+  // Enter should send a message like on desktop, when a hardware keyboard's attached.
+  private handleHardwareEnterPress = (hwKeyEvent: {pressedKey: string}) => {
+    switch (hwKeyEvent.pressedKey) {
+      case 'enter':
+        !isOpen() ? this.onSubmit() : this.insertText('\n')
+        break
+      case 'shift-enter':
+        this.insertText('\n')
+    }
+  }
+
+  componentDidMount() {
+    // @ts-ignore supplied type seems incorrect, has the onHWKeyPressed param as an object
+    HWKeyboardEvent.onHWKeyPressed(this.handleHardwareEnterPress)
+  }
+
+  componentWillUnmount() {
+    HWKeyboardEvent.removeOnHWKeyPressed()
   }
 
   private getText = () => {
@@ -264,6 +286,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
           direction="vertical"
           style={Styles.collapseStyles([
             styles.container,
+            isExploding && styles.explodingContainer,
             (this.state.expanded || this.state.animating) && {height: '100%', minHeight: 0},
           ])}
           fullWidth={true}
@@ -378,7 +401,7 @@ const Buttons = (p: ButtonsProps) => {
       alignItems="center"
       style={styles.actionContainer}
     >
-      {isEditing && <Kb.Button mode="Secondary" small={true} onClick={onCancelEditing} label="Cancel" />}
+      {isEditing && <Kb.Button small={true} onClick={onCancelEditing} label="Cancel" type="Dim" />}
       {explodingIcon}
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
       {!hasText && (
@@ -397,6 +420,8 @@ const Buttons = (p: ButtonsProps) => {
           onClick={onSubmit}
           disabled={!hasText}
           label={isEditing ? 'Save' : 'Send'}
+          labelStyle={isExploding ? styles.explodingSendBtnLabel : undefined}
+          style={isExploding ? styles.explodingSendBtn : undefined}
         />
       )}
     </Kb.Box2>
@@ -476,6 +501,15 @@ const styles = Styles.styleSheetCreate(
         borderRadius: Styles.globalMargins.mediumLarge / 2,
         height: 28,
         width: 28,
+      },
+      explodingContainer: {
+        borderTopColor: Styles.globalColors.black,
+      },
+      explodingSendBtn: {
+        backgroundColor: Styles.globalColors.black,
+      },
+      explodingSendBtnLabel: {
+        color: Styles.globalColors.white,
       },
       explodingText: {
         fontSize: 11,

@@ -4,6 +4,7 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Shim from './shim.native'
+import {getRenderDebug} from './shim.shared'
 import * as Stack from 'react-navigation-stack'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
@@ -214,7 +215,6 @@ const VanillaTabNavigator = createBottomTabNavigator(
             <></>
           ) : (
             <Kb.Text
-              // @ts-ignore expecting a literal color, not a getter
               style={Styles.collapseStyles([
                 tabStyles.label,
                 Styles.isDarkMode()
@@ -254,13 +254,14 @@ const VanillaTabNavigator = createBottomTabNavigator(
 class UnconnectedTabNavigator extends React.PureComponent<any> {
   static router = VanillaTabNavigator.router
   render() {
-    const {navigation, isDarkMode} = this.props
-    return <VanillaTabNavigator navigation={navigation} key={isDarkMode ? 'dark' : 'light'} />
+    const {navigation, isDarkMode, renderDebug} = this.props
+    const key = `${isDarkMode ? 'dark' : 'light'}: ${renderDebug ? 'd' : ''}`
+    return <VanillaTabNavigator navigation={navigation} key={key} />
   }
 }
 
 const TabNavigator = Container.connect(
-  () => ({isDarkMode: Styles.isDarkMode()}),
+  () => ({isDarkMode: Styles.isDarkMode(), renderDebug: getRenderDebug()}),
   undefined,
   (s, _, o: any) => ({
     ...s,
@@ -385,6 +386,7 @@ class RNApp extends React.PureComponent<Props> {
 
   private setNav = (n: any) => {
     this.nav = n
+    this.props.updateNavigator(n && this)
   }
 
   private onNavigationStateChange = (prevNav: any, nav: any, action: any) => {

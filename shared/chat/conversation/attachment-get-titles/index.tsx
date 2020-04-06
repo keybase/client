@@ -54,9 +54,19 @@ class GetTitles extends React.Component<Props, State> {
     }
   }
 
+  _onSubmit = (e?: React.BaseSyntheticEvent) => {
+    e && e.preventDefault()
+    this.props.onSubmit(this.state.titles)
+  }
+
   _isLast = () => {
     const numPaths = this.props.pathAndInfos.length
     return this.state.index + 1 === numPaths
+  }
+
+  // Are we trying to upload multiple?
+  _multiUpload = () => {
+    return this.props.pathAndInfos.length > 1
   }
 
   _updateTitle = (title: string) => {
@@ -118,10 +128,18 @@ class GetTitles extends React.Component<Props, State> {
               <Kb.Button fullWidth={true} type="Dim" onClick={this.props.onCancel} label="Cancel" />
             )}
             {this._isLast() ? (
-              <Kb.WaitingButton fullWidth={true} waitingKey={null} onClick={this._onNext} label="Send" />
+              <Kb.WaitingButton
+                fullWidth={!this._multiUpload()}
+                waitingKey={null}
+                onClick={this._onSubmit}
+                label="Send"
+              />
             ) : (
-              <Kb.Button fullWidth={true} onClick={this._onNext} label="Next" />
+              <Kb.Button fullWidth={!this._multiUpload()} onClick={this._onNext} label="Next" />
             )}
+            {this._multiUpload() ? (
+              <Kb.WaitingButton waitingKey={null} onClick={this._onSubmit} label="Send All" />
+            ) : null}
           </Kb.ButtonBar>
         </Kb.Box2>
       </Kb.PopupWrapper>

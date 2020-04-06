@@ -221,22 +221,26 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                     {formatDurationShort(this.props.explodingModeSeconds * 1000)}
                   </Kb.Text>
                 ) : (
-                  <Kb.Icon
-                    className="timer"
-                    colorOverride={this.props.cannotWrite ? Styles.globalColors.black_20 : null}
-                    onClick={this.props.cannotWrite ? undefined : this._toggleShowingMenu}
-                    padding="xtiny"
-                    type="iconfont-timer"
-                  />
+                  <Kb.WithTooltip tooltip="Timer">
+                    <Kb.Icon
+                      className="timer"
+                      colorOverride={this.props.cannotWrite ? Styles.globalColors.black_20 : null}
+                      onClick={this.props.cannotWrite ? undefined : this._toggleShowingMenu}
+                      padding="xtiny"
+                      type="iconfont-timer"
+                    />
+                  </Kb.WithTooltip>
                 )}
               </HoverBox>
             )}
             {this.props.isEditing && (
-              <Kb.Box onClick={this.props.onCancelEditing} style={styles.cancelEditing}>
-                <Kb.Text style={styles.cancelEditingText} type="BodySmallSemibold">
-                  Cancel
-                </Kb.Text>
-              </Kb.Box>
+              <Kb.Button
+                label="Cancel"
+                onClick={this.props.onCancelEditing}
+                small={true}
+                style={styles.cancelEditingBtn}
+                type="Dim"
+              />
             )}
             <input
               type="file"
@@ -277,22 +281,35 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
               />
             )}
             {!this.props.cannotWrite && this.props.showWalletsIcon && (
-              <WalletsIcon
-                size={16}
-                style={styles.walletsIcon}
-                conversationIDKey={this.props.conversationIDKey}
-              />
+              <Kb.WithTooltip tooltip="Lumens">
+                <WalletsIcon
+                  size={16}
+                  style={styles.walletsIcon}
+                  conversationIDKey={this.props.conversationIDKey}
+                />
+              </Kb.WithTooltip>
             )}
             {!this.props.cannotWrite && (
               <>
-                <Kb.Icon onClick={this.props.onGiphyToggle} style={styles.icon} type="iconfont-gif" />
-                <Kb.Icon
-                  color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
-                  onClick={this._emojiPickerToggle}
-                  style={styles.icon}
-                  type="iconfont-emoji"
-                />
-                <Kb.Icon onClick={this._filePickerOpen} style={styles.icon} type="iconfont-attachment" />
+                <Kb.WithTooltip tooltip="GIF">
+                  <Kb.Box style={styles.icon}>
+                    <Kb.Icon onClick={this.props.onGiphyToggle} type="iconfont-gif" />
+                  </Kb.Box>
+                </Kb.WithTooltip>
+                <Kb.WithTooltip tooltip="Emoji">
+                  <Kb.Box style={styles.icon}>
+                    <Kb.Icon
+                      color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
+                      onClick={this._emojiPickerToggle}
+                      type="iconfont-emoji"
+                    />
+                  </Kb.Box>
+                </Kb.WithTooltip>
+                <Kb.WithTooltip tooltip="Attachment">
+                  <Kb.Box style={styles.icon}>
+                    <Kb.Icon onClick={this._filePickerOpen} type="iconfont-attachment" />
+                  </Kb.Box>
+                </Kb.WithTooltip>
               </>
             )}
           </Kb.Box>
@@ -341,24 +358,8 @@ const EmojiPicker = ({
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      cancelEditing: Styles.platformStyles({
-        common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          alignSelf: 'stretch',
-          backgroundColor: Styles.globalColors.blackOrBlack,
-          borderRadius: 2,
-          justifyContent: 'center',
-          margin: 2,
-          marginRight: 0,
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
-        },
-        isElectron: {
-          ...Styles.desktopStyles.clickable,
-        },
-      }),
-      cancelEditingText: {
-        color: Styles.globalColors.whiteOrWhite,
+      cancelEditingBtn: {
+        margin: Styles.globalMargins.xtiny,
       },
       container: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -417,9 +418,10 @@ const styles = Styles.styleSheetCreate(
         display: 'none',
       },
       icon: {
-        bottom: 6,
-        marginRight: Styles.globalMargins.tiny,
-        position: 'relative',
+        alignSelf: 'flex-end',
+        marginBottom: 2,
+        marginRight: Styles.globalMargins.xtiny,
+        padding: Styles.globalMargins.xtiny,
       },
       input: Styles.platformStyles({
         isElectron: {
@@ -451,11 +453,12 @@ const styles = Styles.styleSheetCreate(
         borderWidth: 1,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.xtiny,
       },
       walletsIcon: {
         alignSelf: 'flex-end',
-        marginBottom: 6,
-        marginRight: Styles.globalMargins.tiny,
+        marginBottom: 2,
+        marginRight: Styles.globalMargins.xtiny,
       },
     } as const)
 )

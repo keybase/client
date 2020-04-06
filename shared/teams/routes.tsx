@@ -6,6 +6,7 @@ import OpenTeamWarning from './team/settings-tab/open-team-warning'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
 import TeamDeleteTeam from './delete-team/container'
 import DeleteChannel from './confirm-modals/delete-channel'
+import TeamAddEmoji from './emojis/add-emoji'
 import TeamEditChannel from './channel'
 import TeamEditTeamAvatar from '../profile/edit-avatar/container'
 import TeamEditTeamDescription from './edit-team-description'
@@ -29,6 +30,7 @@ import TeamWizardSubteamMembers from './new-team/wizard/add-subteam-members'
 import TeamAddToTeamFromWhere from './add-members-wizard/add-from-where'
 import TeamAddToTeamPhone from './add-members-wizard/add-phone'
 import TeamAddToTeamEmail from './add-members-wizard/add-email'
+import TeamAddToTeamContacts from './add-members-wizard/add-contacts.native'
 import TeamAddToTeamConfirm from './add-members-wizard/confirm'
 import Team from './team'
 import ExternalTeam from './external-team'
@@ -49,6 +51,9 @@ export const newRoutes = {
 const addWizardRoutes = {
   teamAddToTeamConfirm: {
     getScreen: (): typeof TeamAddToTeamConfirm => require('./add-members-wizard/confirm').default,
+  },
+  teamAddToTeamContacts: {
+    getScreen: (): typeof TeamAddToTeamContacts => require('./add-members-wizard/add-contacts').default,
   },
   teamAddToTeamEmail: {
     getScreen: (): typeof TeamAddToTeamEmail => require('./add-members-wizard/add-email').default,
@@ -72,6 +77,9 @@ export const newModalRoutes = {
   retentionWarning: {
     getScreen: (): typeof RetentionWarning =>
       require('./team/settings-tab/retention/warning/container').default,
+  },
+  teamAddEmoji: {
+    getScreen: (): typeof TeamAddEmoji => require('./emojis/add-emoji').default,
   },
   teamAddToChannels: {
     getScreen: (): typeof TeamAddToChannels => require('./team/member/add-to-channels').default,
@@ -131,9 +139,6 @@ export const newModalRoutes = {
   teamWizardSubteamMembers: {
     getScreen: (): typeof TeamWizardSubteamMembers =>
       require('./new-team/wizard/add-subteam-members').default,
-  },
-  teamsContactsTeamBuilder: {
-    getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },
   teamsTeamBuilder: {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,

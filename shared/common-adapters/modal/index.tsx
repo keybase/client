@@ -46,6 +46,7 @@ type Props = {
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean
   backgroundStyle?: Styles.StylesCrossPlatform
+  scrollViewRef?: React.Ref<ScrollView>
 
   // Desktop only popup overrides
   popupStyleClose?: Styles.StylesCrossPlatform
@@ -62,6 +63,7 @@ const ModalInner = (props: Props) => (
       props.children
     ) : (
       <Kb.ScrollView
+        ref={props.scrollViewRef}
         alwaysBounceVertical={false}
         style={Styles.collapseStyles([styles.scroll, props.backgroundStyle])}
         contentContainerStyle={styles.scrollContentContainer}

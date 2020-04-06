@@ -51,30 +51,46 @@ export const TabTitles: {[k in Types.CryptoSubTab]: Types.TabTitles} = {
   verifyTab: 'Verify',
 }
 
+// Update me once Saltpack works with files on mobile.
+export const infoMessage: Map<Types.Operations, string> = new Map([
+  [
+    'decrypt',
+    Platform.isMobile
+      ? 'Decrypt messages encrypted with Saltpack.'
+      : 'Decrypt any ciphertext or .encrypted.saltpack file.',
+  ],
+  ['encrypt', "Encrypt to anyone, even if they're not on Keybase yet."],
+  ['sign', 'Add your cryptographic signature to a message or file.'],
+  [
+    'verify',
+    Platform.isMobile ? 'Verify a signed message.' : 'Verify any signed text or .signed.saltpack file.',
+  ],
+])
+
 export const Tabs: Array<Types.Tab> = [
   {
-    description: 'Encrypt to anyone, even if they’re not on Keybase yet.',
+    description: infoMessage.get('encrypt') || '',
     icon: 'iconfont-lock',
     illustration: 'icon-encrypt-64',
     tab: encryptTab,
     title: TabTitles[encryptTab],
   },
   {
-    description: 'Decrypt messages encrypted with Saltpack.',
+    description: infoMessage.get('decrypt') || '',
     icon: 'iconfont-unlock',
     illustration: 'icon-decrypt-64',
     tab: decryptTab,
     title: TabTitles[decryptTab],
   },
   {
-    description: 'Add your cryptographic signature to a message.',
+    description: infoMessage.get('sign') || '',
     icon: 'iconfont-check',
     illustration: 'icon-sign-64',
     tab: signTab,
     title: TabTitles[signTab],
   },
   {
-    description: 'Verify a signed message.',
+    description: infoMessage.get('verify') || '',
     icon: 'iconfont-verify',
     illustration: 'icon-verify-64',
     tab: verifyTab,
@@ -95,13 +111,6 @@ export const Operations: {[key: string]: Types.Operations} = {
   Sign: 'sign',
   Verify: 'verify',
 }
-
-export const infoMessage: Map<Types.Operations, string> = new Map([
-  ['decrypt', ''],
-  ['encrypt', "Encrypt to anyone, even if they're not on Keybase yet."],
-  ['sign', 'Add your cryptographic signature to a message or file.'],
-  ['verify', ''],
-])
 
 export const inputPlaceholder: Map<Types.Operations, string> = new Map([
   [

@@ -31,7 +31,6 @@ class FloatingBox extends React.Component<Props, State> {
         console.warn('Non html element passed to floating box, deprecate this soon')
         let node
         try {
-          // @ts-ignore this is fine
           node = findDOMNode(attachTo)
         } catch (e) {
           logger.error(`FloatingBox: unable to find rect to attach to. Error: ${e.message}`)

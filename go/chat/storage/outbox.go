@@ -80,20 +80,6 @@ func GetOutboxIDFromURL(url string, convID chat1.ConversationID, msg chat1.Messa
 	return DeriveOutboxID([]byte(seed))
 }
 
-func createOutboxStorage(g *globals.Context, uid gregor1.UID) outboxStorage {
-	typ := g.GetEnv().GetChatOutboxStorageEngine()
-	switch typ {
-	case "db":
-		return newOutboxBaseboxStorage(g, uid)
-	case "files":
-		return newOutboxFilesStorage(g, uid)
-	case "combined":
-		return newOutboxCombinedStorage(g, uid)
-	default:
-		return newOutboxCombinedStorage(g, uid)
-	}
-}
-
 var storageReportOnce sync.Once
 
 func PendingPreviewer(p OutboxPendingPreviewFn) func(*Outbox) {
@@ -109,7 +95,7 @@ func NewMessageNotifier(n OutboxNewMessageNotifierFn) func(*Outbox) {
 }
 
 func NewOutbox(g *globals.Context, uid gregor1.UID, config ...func(*Outbox)) *Outbox {
-	st := createOutboxStorage(g, uid)
+	st := newOutboxBaseboxStorage(g, uid)
 	o := &Outbox{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.ExternalG(), "Outbox", false),

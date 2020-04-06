@@ -79,7 +79,7 @@ type Props = {
 const Wrapper = (p: Props) => {
   const {_teamID, _onView, _saveSubscriptions, selectedChatID, teamname, ...rest} = p
 
-  const channelMetas = useAllChannelMetas(_teamID)
+  const {channelMetas} = useAllChannelMetas(_teamID)
   const teamSize = Container.useSelector(state => state.teams.teamIDToMembers.get(_teamID)?.size ?? 0)
   const participantMap = Container.useSelector(state => state.chat2.participantMap)
   const [searchText, setSearchText] = React.useState('')

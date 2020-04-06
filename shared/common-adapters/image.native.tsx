@@ -7,12 +7,7 @@ const Image = ({onLoad, src, style}: Props) => (
 )
 
 const RequireImage = ({src, style}: ReqProps) => (
-  <NativeImage
-    source={src}
-    resizeMode="contain"
-    // @ts-ignore TODO fix styles
-    style={style}
-  />
+  <NativeImage source={src} resizeMode="contain" style={style} />
 )
 
 export default Image

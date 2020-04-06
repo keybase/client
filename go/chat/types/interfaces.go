@@ -100,7 +100,7 @@ type ConversationSource interface {
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	GetUnreadline(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		readMsgID chat1.MessageID) (*chat1.MessageID, error)
-	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
+	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, opts *ClearOpts) error
 	TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed, q *chat1.GetThreadQuery, superXform SupersedesTransform,
 		replyFiller ReplyFiller, maxDeletedUpTo *chat1.MessageID) ([]chat1.MessageUnboxed, error)
@@ -164,7 +164,7 @@ type InboxSource interface {
 	Suspendable
 	badges.LocalChatState
 
-	Clear(ctx context.Context, uid gregor1.UID) error
+	Clear(ctx context.Context, uid gregor1.UID, opts *ClearOpts) error
 	Read(ctx context.Context, uid gregor1.UID, localizeTyp ConversationLocalizerTyp,
 		dataSource InboxSourceDataSourceTyp, maxLocalize *int, query *chat1.GetInboxLocalQuery) (Inbox, chan AsyncInboxResult, error)
 	ReadUnverified(ctx context.Context, uid gregor1.UID, dataSource InboxSourceDataSourceTyp,
@@ -459,6 +459,7 @@ type StellarSender interface {
 
 type ConvConversationBackedStorage interface {
 	Put(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, data interface{}) error
+	PutToKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, data interface{}) error
 	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, res interface{},
 		createConvIfMissing bool) (bool, *chat1.ConversationLocal, error)
 	GetFromKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, dest interface{}) (bool, error)

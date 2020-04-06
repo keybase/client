@@ -110,6 +110,9 @@ type NotifyListener interface {
 	SaltpackOperationProgress(opType keybase1.SaltpackOperationType, filename string, bytesComplete, bytesTotal int64)
 	SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string)
 	UpdateInviteCounts(keybase1.InviteCounts)
+	TeamTreeMembershipsPartial(keybase1.TeamTreeMembership)
+	TeamTreeMembershipsDone(int)
+	WebOfTrustChanged(username string)
 }
 
 type NoopNotifyListener struct{}
@@ -252,6 +255,10 @@ func (n *NoopNotifyListener) SaltpackOperationProgress(opType keybase1.SaltpackO
 func (n *NoopNotifyListener) SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string) {
 }
 func (n *NoopNotifyListener) UpdateInviteCounts(keybase1.InviteCounts) {
+}
+func (n *NoopNotifyListener) TeamTreeMembershipsPartial(keybase1.TeamTreeMembership) {}
+func (n *NoopNotifyListener) TeamTreeMembershipsDone(int)                            {}
+func (n *NoopNotifyListener) WebOfTrustChanged(username string) {
 }
 
 type NotifyListenerID string
@@ -520,6 +527,29 @@ func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username Normaliz
 	})
 	n.runListeners(func(listener NotifyListener) {
 		listener.TrackingChanged(uid, username)
+	})
+}
+
+func (n *NotifyRouter) HandleWebOfTrustChanged(username string) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the notification type
+		if n.getNotificationChannels(id).Tracking {
+			// In the background do...
+			go func() {
+				// A send of a `WebOfTrustChanged` RPC with the user's username
+				_ = (keybase1.NotifyUsersClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).WebOfTrustChanged(context.Background(), username)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.WebOfTrustChanged(username)
 	})
 }
 
@@ -2805,5 +2835,52 @@ func (n *NotifyRouter) HandleUpdateInviteCounts(ctx context.Context, counts keyb
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.UpdateInviteCounts(counts)
+	})
+}
+
+func (n *NotifyRouter) HandleTeamTreeMembershipsPartial(ctx context.Context,
+	result keybase1.TeamTreeMembership) {
+
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				_ = (keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).TeamTreeMembershipsPartial(context.Background(),
+					keybase1.TeamTreeMembershipsPartialArg{
+						Membership: result,
+					})
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.TeamTreeMembershipsPartial(result)
+	})
+}
+
+func (n *NotifyRouter) HandleTeamTreeMembershipsDone(ctx context.Context, expectedCount int) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				_ = (keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).TeamTreeMembershipsDone(context.Background(), keybase1.TeamTreeMembershipsDoneArg{
+					ExpectedCount: expectedCount,
+				})
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.TeamTreeMembershipsDone(expectedCount)
 	})
 }

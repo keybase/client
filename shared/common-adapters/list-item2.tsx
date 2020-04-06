@@ -324,12 +324,15 @@ const getContainerStyles = (props: Props) =>
   ])
 
 const getActionStyle = (props: Props) =>
-  props.type === 'Small'
-    ? props.onlyShowActionOnHover
-      ? styles.actionSmallIsGrowOnHover
-      : styles.actionSmallNotGrowOnHover
-    : props.onlyShowActionOnHover
-    ? styles.actionLargeIsGrowOnHover
-    : styles.actionLargeNotGrowOnHover
+  Styles.collapseStyles([
+    props.type === 'Small'
+      ? props.onlyShowActionOnHover
+        ? styles.actionSmallIsGrowOnHover
+        : styles.actionSmallNotGrowOnHover
+      : props.onlyShowActionOnHover
+      ? styles.actionLargeIsGrowOnHover
+      : styles.actionLargeNotGrowOnHover,
+    !!props.height && {minHeight: props.height},
+  ])
 
 export default ListItem

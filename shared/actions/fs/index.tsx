@@ -39,7 +39,6 @@ const rpcConflictStateToConflictState = (
       const nv = rpcConflictState.normalview
       return Constants.makeConflictStateNormalView({
         localViewTlfPaths: ((nv && nv.localViews) || []).reduce<Array<Types.Path>>((arr, p) => {
-          // @ts-ignore TODO fix p.kbfs.path is a path already
           p.PathType === RPCTypes.PathType.kbfs && arr.push(Constants.rpcPathToPath(p.kbfs))
           return arr
         }, []),
@@ -1107,6 +1106,18 @@ const maybeClearCriticalUpdate = (state: Container.TypedState, action: RouteTree
   return false
 }
 
+const maybeOnFSTab = (action: RouteTreeGen.OnNavChangedPayload) => {
+  const {prev, next} = action.payload
+  const routeName = 'fsRoot'
+  const wasScreen = prev[prev.length - 1]?.routeName === routeName
+  const isScreen = next[next.length - 1]?.routeName === routeName
+
+  if (wasScreen === isScreen) {
+    return false
+  }
+  return wasScreen ? FsGen.createUserOut() : FsGen.createUserIn()
+}
+
 function* fsSaga() {
   yield* Saga.chainAction2(FsGen.upload, upload)
   yield* Saga.chainAction2(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
@@ -1170,6 +1181,7 @@ function* fsSaga() {
   yield* Saga.chainAction(FsGen.setDebugLevel, setDebugLevel)
 
   yield* Saga.chainAction2(RouteTreeGen.onNavChanged, maybeClearCriticalUpdate)
+  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeOnFSTab)
 
   yield Saga.spawn(platformSpecificSaga)
 }

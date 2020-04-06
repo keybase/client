@@ -65,7 +65,7 @@ export type InviteInfo = {
   id: string
 }
 
-export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'settings' | 'channels'
+export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'emoji' | 'settings' | 'channels'
 
 export type TypeMap = {[K in TeamRoleType]: string}
 
@@ -186,6 +186,7 @@ export type State = {
   readonly errorInAddToTeam: string
   readonly errorInChannelCreation: string
   readonly errorInEditDescription: string
+  readonly errorInEditMember: {error: string; teamID: TeamID; username: string}
   readonly errorInEditWelcomeMessage: string
   readonly errorInEmailInvite: EmailInviteError
   readonly errorInSettings: string

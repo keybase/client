@@ -1,3 +1,9 @@
+let _renderDebug = false
+export const toggleRenderDebug = () => {
+  _renderDebug = !_renderDebug
+}
+export const getRenderDebug = () => _renderDebug
+
 export const shim = (routes: any, platformWrapper: any) => {
   return Object.keys(routes).reduce((map, route) => {
     let _cached = null

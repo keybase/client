@@ -5,6 +5,7 @@ import * as Container from '../../util/container'
 import * as SettingsGen from '../../actions/settings-gen'
 import {usePhoneNumberList} from '../../teams/common'
 import * as RPCGen from '../../constants/types/rpc-gen'
+import {pluralize} from '../../util/string'
 
 const shareURL = 'https://keybase.io/download'
 const waitingKey = 'invitePeople'
@@ -110,10 +111,10 @@ const InviteFriendsModal = () => {
         ...(successCount === null
           ? []
           : [
-              <Kb.Banner
-                color="green"
-                key="success"
-              >{`Success! You invited ${successCount} friends to Keybase.`}</Kb.Banner>,
+              <Kb.Banner color="green" key="success">{`Success! You invited ${successCount} ${pluralize(
+                'friend',
+                successCount
+              )} to Keybase.`}</Kb.Banner>,
             ]),
       ]}
     >
@@ -161,7 +162,7 @@ const InviteFriendsModal = () => {
   )
 }
 
-const ShareLinkPopup = ({onClose}: {onClose: () => void}) => (
+export const ShareLinkPopup = ({onClose}: {onClose: () => void}) => (
   <Kb.MobilePopup>
     <Kb.Box2 direction="vertical" style={styles.linkPopupContainer} gap="small" fullWidth={true}>
       <Kb.Text type="Header">Share a link to Keybase</Kb.Text>

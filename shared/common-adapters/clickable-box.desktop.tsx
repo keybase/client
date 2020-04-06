@@ -86,7 +86,11 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(
         onMouseUp={onMouseUp}
         onDoubleClick={onDoubleClick}
         onClick={onClick}
-        style={collapseStyles([_containerStyle, onClick ? desktopStyles.clickable : null, style])}
+        style={collapseStyles([
+          _containerStyle,
+          onClick || props.onMouseDown ? desktopStyles.clickable : null,
+          style,
+        ])}
       >
         {underlay}
         {children}

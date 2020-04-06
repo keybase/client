@@ -23,7 +23,7 @@ type TeamTabsProps = {
 const TeamTabs = (props: TeamTabsProps) => {
   const tabs: Array<TabType<Types.TabKey>> = [
     {badgeNumber: props.resetUserCount, title: 'members' as const},
-    ...(flags.teamsRedesign && props.isBig ? [{title: 'channels' as const}] : []),
+    ...(flags.teamsRedesign && (props.isBig || props.admin) ? [{title: 'channels' as const}] : []),
     ...(props.admin && !flags.teamsRedesign
       ? [
           {
@@ -36,6 +36,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     // TODO: should we not show bots if there are no bots and you have no permissions?
     {title: 'bots' as const},
     ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
+    ...(!isMobile ? [{title: 'emoji' as const}] : []),
     {icon: isMobile ? 'iconfont-nav-settings' : undefined, title: 'settings' as const},
   ]
 

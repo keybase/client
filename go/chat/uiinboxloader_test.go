@@ -125,9 +125,12 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 			Status:         chat1.ConversationStatus_IGNORED,
 		})
 	require.NoError(t, err)
-	layout = recvLayout()
-	require.Equal(t, 1, len(layout.SmallTeams))
-	require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
+	// get two here
+	for i := 0; i < 2; i++ {
+		layout = recvLayout()
+		require.Equal(t, 1, len(layout.SmallTeams))
+		require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
+	}
 	select {
 	case <-chatUI.InboxLayoutCb:
 		require.Fail(t, "unexpected layout")

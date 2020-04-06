@@ -29,6 +29,7 @@ declare type KBElectronOpenDialogOptions = {
   allowMultiselect?: boolean
   buttonLabel?: string
   defaultPath?: string
+  filters?: Array<{extensions: Array<string>; name: string}>
   message?: string
   title?: string
 }
@@ -63,6 +64,8 @@ interface Console {
 declare var KB: {
   __dirname: string
   DEV?: any
+  /** Use this for debug logs you don't want commited **/
+  debugConsoleLog: (nope: never) => void
   electron: {
     app: {
       appPath: string

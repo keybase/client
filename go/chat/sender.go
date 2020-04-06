@@ -150,7 +150,10 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 			break
 		} else if thread.Pagination.Last && !reachedLast {
 			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v). Nuking local storage and retrying.", len(thread.Messages))
-			if err := s.G().ConvSource.Clear(ctx, conv.GetConvID(), msg.ClientHeader.Sender); err != nil {
+			if err := s.G().ConvSource.Clear(ctx, conv.GetConvID(), msg.ClientHeader.Sender, &types.ClearOpts{
+				SendLocalAdminNotification: true,
+				Reason:                     "missing prev pointer",
+			}); err != nil {
 				s.Debug(ctx, "Unable to clear conversation: %v, %v", conv.GetConvID(), err)
 				break
 			}
@@ -461,40 +464,47 @@ func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1
 
 func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat1.MessagePlaintext,
 	membersType chat1.ConversationMembersType) (topicNameState *chat1.TopicNameState, convIDs []chat1.ConversationID, err error) {
-	if msg.ClientHeader.MessageType == chat1.MessageType_METADATA {
-		tlfID := msg.ClientHeader.Conv.Tlfid
-		topicType := msg.ClientHeader.Conv.TopicType
-		newTopicName := msg.MessageBody.Metadata().ConversationTitle
-		convs, err := s.G().TeamChannelSource.GetChannelsFull(ctx, msg.ClientHeader.Sender, tlfID, topicType)
-		if err != nil {
-			return nil, nil, err
-		}
-		var validConvs []chat1.ConversationLocal
-		for _, conv := range convs {
-			// If we have a conv error consider the conv invalid. Exclude
-			// the conv from out TopicNameState forcing the client to retry.
-			if conv.Error == nil {
-				if conv.GetTopicName() == "" {
-					s.Debug(ctx, "checkTopicNameAndGetState: unnamed channel in play: %s", conv.GetConvID())
-				}
-				validConvs = append(validConvs, conv)
-				convIDs = append(convIDs, conv.GetConvID())
-			} else {
-				s.Debug(ctx, "checkTopicNameAndGetState: skipping conv: %s, will cause an error from server",
-					conv.GetConvID())
-			}
-			if conv.GetTopicName() == newTopicName {
-				return nil, nil, DuplicateTopicNameError{Conv: conv}
-			}
-		}
-
-		ts, err := GetTopicNameState(ctx, s.G(), s.DebugLabeler, validConvs,
-			msg.ClientHeader.Sender, tlfID, topicType, membersType)
-		if err != nil {
-			return nil, nil, err
-		}
-		topicNameState = &ts
+	if msg.ClientHeader.MessageType != chat1.MessageType_METADATA {
+		return topicNameState, convIDs, nil
 	}
+	tlfID := msg.ClientHeader.Conv.Tlfid
+	topicType := msg.ClientHeader.Conv.TopicType
+	switch topicType {
+	case chat1.TopicType_EMOJICROSS:
+		// skip this for this topic type
+		return topicNameState, convIDs, nil
+	default:
+	}
+	newTopicName := msg.MessageBody.Metadata().ConversationTitle
+	convs, err := s.G().TeamChannelSource.GetChannelsFull(ctx, msg.ClientHeader.Sender, tlfID, topicType)
+	if err != nil {
+		return nil, nil, err
+	}
+	var validConvs []chat1.ConversationLocal
+	for _, conv := range convs {
+		// If we have a conv error consider the conv invalid. Exclude
+		// the conv from out TopicNameState forcing the client to retry.
+		if conv.Error == nil {
+			if conv.GetTopicName() == "" {
+				s.Debug(ctx, "checkTopicNameAndGetState: unnamed channel in play: %s", conv.GetConvID())
+			}
+			validConvs = append(validConvs, conv)
+			convIDs = append(convIDs, conv.GetConvID())
+		} else {
+			s.Debug(ctx, "checkTopicNameAndGetState: skipping conv: %s, will cause an error from server",
+				conv.GetConvID())
+		}
+		if conv.GetTopicName() == newTopicName {
+			return nil, nil, DuplicateTopicNameError{Conv: conv}
+		}
+	}
+
+	ts, err := GetTopicNameState(ctx, s.G(), s.DebugLabeler, validConvs,
+		msg.ClientHeader.Sender, tlfID, topicType, membersType)
+	if err != nil {
+		return nil, nil, err
+	}
+	topicNameState = &ts
 	return topicNameState, convIDs, nil
 }
 
@@ -1187,13 +1197,16 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				s.Debug(ctx, "Send: failed because of stale previous state, trying the whole thing again")
 				if !clearedCache {
 					s.Debug(ctx, "Send: clearing inbox cache to retry stale previous state")
-					if err := s.G().InboxSource.Clear(ctx, sender); err != nil {
+					if err := s.G().InboxSource.Clear(ctx, sender, &types.ClearOpts{
+						SendLocalAdminNotification: true,
+						Reason:                     "stale previous topic state",
+					}); err != nil {
 						s.Debug(ctx, "Send: error clearing: %+v", err)
 					}
 					s.Debug(ctx, "Send: clearing conversation cache to retry stale previous state: %d convs",
 						len(prepareRes.TopicNameStateConvs))
 					for _, convID := range prepareRes.TopicNameStateConvs {
-						if err := s.G().ConvSource.Clear(ctx, convID, sender); err != nil {
+						if err := s.G().ConvSource.Clear(ctx, convID, sender, nil); err != nil {
 							s.Debug(ctx, "Send: error clearing: %v %+v", convID, err)
 						}
 					}

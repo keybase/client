@@ -479,8 +479,16 @@ func ComputeInvitelinkDisplayName(mctx libkb.MetaContext, team *Team, invite key
 	}
 
 	ikey := keyAndLabel.Invitelink().I
+	sikey, err := GenerateSIKeyInvitelink(ikey)
+	if err != nil {
+		return name, err
+	}
+	id, err := sikey.GenerateShortTeamInviteID()
+	if err != nil {
+		return name, err
+	}
 
-	url, err := GenerateInvitelinkURL(mctx, ikey)
+	url, err := GenerateInvitelinkURL(mctx, ikey, id)
 	if err != nil {
 		return name, err
 	}
@@ -686,7 +694,7 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 	}
 }
 
-func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
+func TeamTreeUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeUnverifiedArg) (res keybase1.TeamTreeResult, err error) {
 	serverList, err := getTeamsListFromServer(ctx, g, "" /* uid */, false, /* all */
 		false /* countMembers */, false /* includeImplicitTeams */, arg.Name.RootID())
 	if err != nil {

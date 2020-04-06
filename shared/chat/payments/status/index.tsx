@@ -84,17 +84,22 @@ class PaymentStatus extends React.Component<Props, State> {
         ref={this.statusRef}
         type="BodyExtrabold"
         allowFontScaling={!!this.props.allowFontScaling}
-        style={styles[this.props.status]}
         onClick={this._showPopup}
       >
         {' '}
-        {this.props.text}{' '}
-        <Kb.Icon
-          type={getIcon(this.props.status)}
-          fontSize={12}
-          boxStyle={styles.iconBoxStyle}
-          color={statusColor(this.props.status)}
-        />{' '}
+        <Kb.Text
+          type="BodyExtrabold"
+          allowFontScaling={!!this.props.allowFontScaling}
+          style={styles[this.props.status]}
+        >
+          {this.props.text}{' '}
+          <Kb.Icon
+            type={getIcon(this.props.status)}
+            fontSize={12}
+            boxStyle={styles.iconBoxStyle}
+            color={statusColor(this.props.status)}
+          />
+        </Kb.Text>{' '}
       </Kb.Text>
     )
     const popups = this.props.isSendError ? (

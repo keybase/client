@@ -1,6 +1,5 @@
 /* eslint-env jest */
 import {categories, categoryOrder, emojiNameMap, emojiIndex} from '../data'
-// @ts-ignore
 import emojidata from 'emoji-datasource'
 
 const searchIndexOmissions = [

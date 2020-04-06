@@ -391,14 +391,19 @@ const uploadAvatar = async (action: TeamsGen.UploadTeamAvatarPayload, logger: Sa
 
 const editMembership = async (state: TypedState, action: TeamsGen.EditMembershipPayload) => {
   const {teamID, username, role} = action.payload
-  await RPCTypes.teamsTeamEditMemberRpcPromise(
-    {
-      name: Constants.getTeamNameFromID(state, teamID) ?? '',
-      role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
-      username,
-    },
-    [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, username)]
-  )
+  try {
+    await RPCTypes.teamsTeamEditMemberRpcPromise(
+      {
+        name: Constants.getTeamNameFromID(state, teamID) ?? '',
+        role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
+        username,
+      },
+      [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, username)]
+    )
+  } catch (e) {
+    return TeamsGen.createSetEditMemberError({error: e.message, teamID, username})
+  }
+  return false
 }
 
 function* removeMember(_: TypedState, action: TeamsGen.RemoveMemberPayload, logger: Saga.SagaLogger) {
@@ -522,7 +527,8 @@ async function createNewTeamFromConversation(
   const me = state.config.username
 
   const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
-  const participants = participantInfo.all.filter(p => p !== me) // we will already be in as 'owner'
+  // exclude bots from the newly created team, they can be added back later.
+  const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
   const users = participants.map(assertion => ({
     assertion,
     role: assertion === me ? ('admin' as const) : ('writer' as const),
@@ -1503,6 +1509,16 @@ const startAddMembersWizard = (_: TeamsGen.StartAddMembersWizardPayload) =>
 const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
 
+const manageChatChannels = (action: TeamsGen.ManageChatChannelsPayload) =>
+  RouteTreeGen.createNavigateAppend({
+    path: [
+      {
+        props: {teamID: action.payload.teamID},
+        selected: flags.teamsRedesign ? 'teamAddToChannels' : 'chatManageChannels',
+      },
+    ],
+  })
+
 const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogger) => {
   const {teamID} = action.payload
   try {
@@ -1510,6 +1526,14 @@ const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogge
   } catch (e) {
     logger.error(e.message)
   }
+}
+
+const maybeClearBadges = (action: RouteTreeGen.OnNavChangedPayload) => {
+  const {prev, next} = action.payload
+  if (prev[2]?.routeName === Tabs.teamsTab && next[2]?.routeName !== Tabs.teamsTab) {
+    return TeamsGen.createClearNavBadges()
+  }
+  return false
 }
 
 const teamsSaga = function*() {
@@ -1569,6 +1593,7 @@ const teamsSaga = function*() {
     addTeamWithChosenChannels
   )
   yield* Saga.chainAction(TeamsGen.renameTeam, renameTeam)
+  yield* Saga.chainAction(TeamsGen.manageChatChannels, manageChatChannels)
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, badgeAppForTeams)
   yield* Saga.chainAction(GregorGen.pushState, gregorPushState)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyTeamTeamChangedByID, teamChangedByID)
@@ -1618,6 +1643,7 @@ const teamsSaga = function*() {
   )
 
   yield* Saga.chainAction(TeamsGen.teamSeen, teamSeen)
+  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeClearBadges)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

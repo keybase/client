@@ -99,6 +99,7 @@ export const makeState = (): Types.State => ({
   unfurlPromptMap: new Map(),
   unreadMap: new Map(),
   unsentTextMap: new Map(),
+  userEmojis: undefined,
   userEmojisForAutocomplete: undefined,
   userReacjis: defaultUserReacjis,
 })
@@ -601,6 +602,7 @@ export {
   getBotCommands,
   getCommands,
   getConversationIDKeyMetasToLoad,
+  getConversationLabel,
   getEffectiveRetentionPolicy,
   getGeneralChannelForBigTeam,
   getMeta,
@@ -624,8 +626,9 @@ export {
   getDeletableByDeleteHistory,
   getMapUnfurl,
   getMessageID,
-  getRequestMessageInfo,
+  getMessageStateExtras,
   getPaymentMessageInfo,
+  getRequestMessageInfo,
   hasSuccessfulInlinePayments,
   isPendingPaymentMessage,
   isSpecialMention,
@@ -638,9 +641,10 @@ export {
   makePendingAttachmentMessage,
   makePendingTextMessage,
   makeReaction,
-  messageExplodeDescriptions,
+  mergeMessage,
   messageAttachmentHasProgress,
   messageAttachmentTransferStateToProgressLabel,
+  messageExplodeDescriptions,
   nextFractionalOrdinal,
   pathToAttachmentType,
   previewSpecs,
@@ -654,7 +658,6 @@ export {
   uiPaymentInfoToChatPaymentInfo,
   uiRequestInfoToChatRequestInfo,
   upgradeMessage,
-  mergeMessage,
 } from './message'
 
 export {

@@ -250,8 +250,8 @@ export type TypedActionsMap = {
   'chat2:addToMessageMap': chat2.AddToMessageMapPayload
   'chat2:refreshMutualTeamsInConv': chat2.RefreshMutualTeamsInConvPayload
   'chat2:loadedMutualTeams': chat2.LoadedMutualTeamsPayload
-  'chat2:fetchUserEmojiForAutocomplete': chat2.FetchUserEmojiForAutocompletePayload
-  'chat2:loadedUserEmojiForAutocomplete': chat2.LoadedUserEmojiForAutocompletePayload
+  'chat2:fetchUserEmoji': chat2.FetchUserEmojiPayload
+  'chat2:loadedUserEmoji': chat2.LoadedUserEmojiPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -500,12 +500,15 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyTeamTeamRoleMapChanged': enginegen.Keybase1NotifyTeamTeamRoleMapChangedPayload
   'engine-gen:keybase1NotifyTeamAvatarUpdated': enginegen.Keybase1NotifyTeamAvatarUpdatedPayload
   'engine-gen:keybase1NotifyTeamTeamMetadataUpdate': enginegen.Keybase1NotifyTeamTeamMetadataUpdatePayload
+  'engine-gen:keybase1NotifyTeamTeamTreeMembershipsPartial': enginegen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
+  'engine-gen:keybase1NotifyTeamTeamTreeMembershipsDone': enginegen.Keybase1NotifyTeamTeamTreeMembershipsDonePayload
   'engine-gen:keybase1NotifyTeambotNewTeambotKey': enginegen.Keybase1NotifyTeambotNewTeambotKeyPayload
   'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded': enginegen.Keybase1NotifyTeambotTeambotKeyNeededPayload
   'engine-gen:keybase1NotifyTrackingTrackingChanged': enginegen.Keybase1NotifyTrackingTrackingChangedPayload
   'engine-gen:keybase1NotifyTrackingTrackingInfo': enginegen.Keybase1NotifyTrackingTrackingInfoPayload
   'engine-gen:keybase1NotifyTrackingNotifyUserBlocked': enginegen.Keybase1NotifyTrackingNotifyUserBlockedPayload
   'engine-gen:keybase1NotifyUsersUserChanged': enginegen.Keybase1NotifyUsersUserChangedPayload
+  'engine-gen:keybase1NotifyUsersWebOfTrustChanged': enginegen.Keybase1NotifyUsersWebOfTrustChangedPayload
   'engine-gen:keybase1NotifyUsersPasswordChanged': enginegen.Keybase1NotifyUsersPasswordChangedPayload
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
   'engine-gen:keybase1PgpUiOutputPGPWarning': enginegen.Keybase1PgpUiOutputPGPWarningPayload
@@ -946,6 +949,7 @@ export type TypedActionsMap = {
   'teams:setChannelCreationError': teams.SetChannelCreationErrorPayload
   'teams:setWelcomeMessageError': teams.SetWelcomeMessageErrorPayload
   'teams:setEditDescriptionError': teams.SetEditDescriptionErrorPayload
+  'teams:setEditMemberError': teams.SetEditMemberErrorPayload
   'teams:settingsError': teams.SettingsErrorPayload
   'teams:setTeamsWithChosenChannels': teams.SetTeamsWithChosenChannelsPayload
   'teams:setTeamCreationError': teams.SetTeamCreationErrorPayload
@@ -1001,6 +1005,7 @@ export type TypedActionsMap = {
   'teams:setTeamWizardChannels': teams.SetTeamWizardChannelsPayload
   'teams:setTeamWizardSubteams': teams.SetTeamWizardSubteamsPayload
   'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
+  'teams:manageChatChannels': teams.ManageChatChannelsPayload
   'teams:teamSeen': teams.TeamSeenPayload
   'teams:setActivityLevels': teams.SetActivityLevelsPayload
   'tracker2:load': tracker2.LoadPayload
@@ -1010,6 +1015,7 @@ export type TypedActionsMap = {
   'tracker2:changeFollow': tracker2.ChangeFollowPayload
   'tracker2:ignore': tracker2.IgnorePayload
   'tracker2:updateFollows': tracker2.UpdateFollowsPayload
+  'tracker2:updateWotEntries': tracker2.UpdateWotEntriesPayload
   'tracker2:getProofSuggestions': tracker2.GetProofSuggestionsPayload
   'tracker2:proofSuggestionsUpdated': tracker2.ProofSuggestionsUpdatedPayload
   'tracker2:showUser': tracker2.ShowUserPayload
@@ -1031,6 +1037,7 @@ export type TypedActionsMap = {
   'users:setUserBlocks': users.SetUserBlocksPayload
   'users:getBlockState': users.GetBlockStatePayload
   'users:updateBlockState': users.UpdateBlockStatePayload
+  'users:wotReact': users.WotReactPayload
   'users:reportUser': users.ReportUserPayload
   'waiting:incrementWaiting': waiting.IncrementWaitingPayload
   'waiting:decrementWaiting': waiting.DecrementWaitingPayload

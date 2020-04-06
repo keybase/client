@@ -9,7 +9,6 @@ const bgScroll = Styles.styledKeyframes({
   to: {transform: 'translateY(-80px)'},
 })
 
-// @ts-ignore
 const BackgroundBox = Styles.styled.div(() => ({
   animation: `${bgScroll} 2s linear infinite`,
   backgroundImage: patternImage,

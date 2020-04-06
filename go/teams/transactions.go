@@ -43,6 +43,8 @@ type AddMemberTx struct {
 	// affects given uid.
 	lastChangeForUID map[keybase1.UID]int
 
+	// Caller can set the following to affect how AddMemberTx:
+
 	// Override whether the team key is rotated.
 	SkipKeyRotation *bool
 
@@ -686,7 +688,49 @@ func (tx *AddMemberTx) AddOrInviteMemberByAssertion(ctx context.Context, asserti
 	return tx.AddOrInviteMemberCandidate(ctx, candidate, role, botSettings)
 }
 
-func (tx *AddMemberTx) ConsumeInviteByID(ctx context.Context, g *libkb.GlobalContext, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
+// CanConsumeInvite checks if invite can be used. Has to be called before
+// calling `ConsumeInviteByID` with that invite ID. Does not modify the
+// transaction. When handling team invites, it should be called before
+// `ConsumeInviteByID` to assert that invite is still useable (new-style invites
+// may be expired or exceeded).
+func (tx *AddMemberTx) CanConsumeInvite(ctx context.Context, inviteID keybase1.TeamInviteID) error {
+	invite, found := tx.team.chain().FindActiveInviteByID(inviteID)
+	if !found {
+		return fmt.Errorf("failed to find invite being used")
+	}
+
+	isNewStyle, err := IsNewStyleInvite(invite)
+	if err != nil {
+		return err
+	}
+
+	if isNewStyle {
+		// Only need to check new-style invites. Old-style invites cannot have
+		// expiration date and can always be one-time use, and wouldn't show up
+		// in `FindActiveInviteByID` (because they are not active). New-style
+		// invites always stay active.
+		alreadyUsedBeforeTransaction := len(tx.team.chain().inner.UsedInvites[inviteID])
+		alreadyUsed := alreadyUsedBeforeTransaction + tx.usedInviteCount[inviteID]
+		if invite.MaxUses.IsUsedUp(alreadyUsed) {
+			return fmt.Errorf("invite has no more uses left; so cannot add by this invite")
+		}
+
+		if invite.Etime != nil {
+			now := tx.team.G().Clock().Now()
+			etime := keybase1.FromUnixTime(*invite.Etime)
+			if now.After(etime) {
+				return fmt.Errorf("invite expired at %v which is before the current time of %v; rejecting", etime, now)
+			}
+		}
+	}
+
+	return nil
+}
+
+// ConsumeInviteByID finds a change membership payload and either sets
+// "completed invite" or adds am "used invite". `CanConsumeInvite` has to be
+// called before this function.
+func (tx *AddMemberTx) ConsumeInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
 	payload := tx.findChangeReqForUV(uv)
 	if payload == nil {
 		return fmt.Errorf("could not find uv %v in transaction", uv)
@@ -703,25 +747,12 @@ func (tx *AddMemberTx) ConsumeInviteByID(ctx context.Context, g *libkb.GlobalCon
 	}
 
 	if isNewStyle {
-		alreadyUsedBeforeTransaction := len(tx.team.chain().inner.UsedInvites[inviteID])
-		alreadyUsed := alreadyUsedBeforeTransaction + tx.usedInviteCount[inviteID]
-		if invite.MaxUses.IsUsedUp(alreadyUsed) {
-			return fmt.Errorf("invite has no more uses left; so cannot add by this invite")
-		}
-
-		if invite.Etime != nil {
-			now := g.Clock().Now()
-			etime := keybase1.FromUnixTime(*invite.Etime)
-			if now.After(etime) {
-				return fmt.Errorf("invite expired at %v which is before the current time of %v; rejecting", etime, now)
-			}
-		}
-
 		payload.UseInviteID(inviteID, uv.PercentForm())
 		tx.usedInviteCount[inviteID]++
 	} else {
 		payload.CompleteInviteID(inviteID, uv.PercentForm())
 	}
+
 	return nil
 }
 
