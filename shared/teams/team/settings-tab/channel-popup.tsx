@@ -19,7 +19,7 @@ const ChannelPopup = (props: Props) => {
   const filterLCase = filter.toLowerCase()
   const onChangeFilter = (value: string) => setFilter(value)
 
-  const channelMetas = useAllChannelMetas(teamID)
+  const {channelMetas} = useAllChannelMetas(teamID)
   const channels = [...channelMetas.values()].map(ci => ({
     channelname: ci.channelname,
     conversationIDKey: ci.conversationIDKey,

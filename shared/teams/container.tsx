@@ -56,8 +56,7 @@ const Reloadable = (props: ReloadableProps) => {
 
   const nav = Container.useSafeNavigation()
   const otherActions = {
-    onManageChat: (teamID: Types.TeamID) =>
-      dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatManageChannels'}]})),
+    onManageChat: (teamID: Types.TeamID) => dispatch(TeamsGen.createManageChatChannels({teamID})),
     onViewTeam: (teamID: Types.TeamID) =>
       dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]})),
   }

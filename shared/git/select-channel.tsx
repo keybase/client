@@ -19,7 +19,7 @@ const SelectChannel = (ownProps: OwnProps) => {
   const _selected = Container.getRouteProps(ownProps, 'selected', '')
   const repoID = Container.getRouteProps(ownProps, 'repoID', '')
 
-  const channelMetas = useAllChannelMetas(teamID)
+  const {channelMetas} = useAllChannelMetas(teamID)
   const waiting = channelMetas === null
   const channelNames = channelMetas ? [...channelMetas.values()].map(info => info.channelname) : []
 

@@ -2,7 +2,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as TeamsTypes from '../../../../constants/types/teams'
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as TeamsGen from '../../../../actions/teams-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import Joined from '.'
 import * as Container from '../../../../util/container'
@@ -21,10 +21,7 @@ export default Container.connect(
     timestamp: message.timestamp,
   }),
   dispatch => ({
-    _onManageChannels: (teamID: TeamsTypes.TeamID) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
-      ),
+    _onManageChannels: (teamID: TeamsTypes.TeamID) => dispatch(TeamsGen.createManageChatChannels({teamID})),
     _onManageNotifications: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(
         Chat2Gen.createShowInfoPanel({
