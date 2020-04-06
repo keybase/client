@@ -95,10 +95,22 @@ export type TeamMeta = {
   teamname: string
 }
 
+export type InviteLink = {
+  creatorUsername: string
+  expirationTime: number
+  id: string
+  lastJoinedUsername: string
+  maxUses: number
+  numUses: number
+  role: TeamRoleType
+  url: string
+}
+
 export type TeamDetails = {
   members: Map<string, MemberInfo>
   settings: TeamSettings2
   invites: Set<InviteInfo>
+  inviteLinks: Set<InviteLink>
   subteams: Set<TeamID>
   requests: Set<JoinRequest>
   description: string
