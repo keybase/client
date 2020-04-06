@@ -277,7 +277,7 @@ export default Container.namedConnect(
     clearInboxFilter: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
     onChannelSuggestionsTriggered: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey})),
-    onFetchEmoji: () => dispatch(Chat2Gen.createFetchUserEmojiForAutocomplete()),
+    onFetchEmoji: () => dispatch(Chat2Gen.createFetchUserEmoji({})),
     onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
     onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),

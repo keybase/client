@@ -99,6 +99,7 @@ export const makeState = (): Types.State => ({
   unfurlPromptMap: new Map(),
   unreadMap: new Map(),
   unsentTextMap: new Map(),
+  userEmojis: undefined,
   userEmojisForAutocomplete: undefined,
   userReacjis: defaultUserReacjis,
 })

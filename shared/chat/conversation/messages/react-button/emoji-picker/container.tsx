@@ -7,7 +7,6 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as TeamsTypes from '../../../../../constants/types/teams'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../../../styles'
 import * as Data from './data'
 import debounce from 'lodash/debounce'
@@ -68,37 +67,12 @@ const useSkinTone = () => {
   return {currentSkinTone, setSkinTone}
 }
 const useCustomReacji = (conversationIDKey: Types.ConversationIDKey) => {
-  const getUserEmoji = Container.useRPC(RPCChatGen.localUserEmojisRpcPromise)
-  const [customEmojiGroups, setCustomEmojiGroups] = React.useState<RPCChatGen.EmojiGroup[]>([])
-  const [waiting, setWaiting] = React.useState(true)
-
+  const customEmojiGroups = Container.useSelector(s => s.chat2.userEmojis)
+  const waiting = Container.useSelector(s => Container.anyWaiting(s, Constants.waitingKeyLoadingEmoji))
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    setWaiting(true)
-    getUserEmoji(
-      [
-        {
-          convID:
-            conversationIDKey !== Constants.noConversationIDKey
-              ? Types.keyToConversationID(conversationIDKey)
-              : null,
-          opts: {
-            getAliases: true,
-            getCreationInfo: false,
-            onlyInTeam: false,
-          },
-        },
-      ],
-      result => {
-        setCustomEmojiGroups(result.emojis.emojis ?? [])
-        setWaiting(false)
-      },
-      _ => {
-        setCustomEmojiGroups([])
-        setWaiting(false)
-      }
-    )
-  }, [conversationIDKey, getUserEmoji])
-
+    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
+  }, [conversationIDKey, dispatch])
   return {customEmojiGroups, waiting}
 }
 
