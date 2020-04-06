@@ -304,7 +304,7 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 		if s.G().EmojiSource.IsStockEmoji(name) {
 			continue
 		}
-		harvested, err := s.G().EmojiSource.Harvest(ctx, ":"+name+":", uid, chat1.ConversationID{},
+		harvested, err := s.G().EmojiSource.Harvest(ctx, name, uid, chat1.ConversationID{},
 			types.EmojiHarvestModeFast)
 		if err != nil {
 			s.Debug(ctx, "UserReacjis: failed to harvest possible custom: %s", err)

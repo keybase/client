@@ -21,7 +21,13 @@ import {memoize} from '../../util/memoize'
 import * as TeamConstants from '../teams'
 import * as TeamTypes from '../types/teams'
 
-export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
+export const defaultTopReacjis = [
+  {name: ':+1:'},
+  {name: ':-1:'},
+  {name: ':tada:'},
+  {name: ':joy:'},
+  {name: ':sunglasses:'},
+]
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
 const emptyArray: Array<unknown> = []

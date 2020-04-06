@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
+import * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import * as Data from './data'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
@@ -37,14 +38,14 @@ const getEmojiSections = memoize(
 
 const getFrequentSection = memoize(
   (
-    topReacjis: Array<string>,
+    topReacjis: Array<RPCTypes.UserReacji>,
     customEmojiGroups: Array<RPCChatGen.EmojiGroup>,
     emojisPerLine: number
   ): Section => {
     const {emojiNameMap} = _getData()
     const customEmojiIndex = getCustomEmojiIndex(customEmojiGroups)
-    const emojis = topReacjis.reduce<Array<EmojiData>>((arr, shortName) => {
-      const shortNameNoColons = shortName.replace(/:/g, '')
+    const emojis = topReacjis.reduce<Array<EmojiData>>((arr, top) => {
+      const shortNameNoColons = top.name.replace(/:/g, '')
       const emoji = emojiNameMap[shortNameNoColons] || customEmojiIndex.get(shortNameNoColons)
       if (emoji) {
         arr.push(emoji)
@@ -75,7 +76,7 @@ type Section = _Section<
 >
 
 type Props = {
-  topReacjis: Array<string>
+  topReacjis: Array<RPCTypes.UserReacji>
   filter?: string
   onChoose: (emojiStr: string) => void
   onHover?: (emoji: EmojiData) => void
@@ -158,7 +159,7 @@ const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWid
 
 const getSectionsAndBookmarks = (
   width: number,
-  topReacjis: Array<string>,
+  topReacjis: Array<RPCTypes.UserReacji>,
   customSections?: RPCChatGen.EmojiGroup[]
 ) => {
   if (!width) {
