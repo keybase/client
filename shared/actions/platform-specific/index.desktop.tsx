@@ -419,7 +419,7 @@ export const clearWatchPosition = () => {}
 export const watchPositionForMap = () => Promise.resolve(0)
 
 function* checkNav(
-  state: Container.TypedState,
+  _state: Container.TypedState,
   action: ConfigGen.DaemonHandshakePayload,
   logger: Saga.SagaLogger
 ) {

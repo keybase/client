@@ -905,7 +905,7 @@ const onPersistRoute = async () => {
 }
 
 function* checkNav(
-  state: Container.TypedState,
+  _state: Container.TypedState,
   action: ConfigGen.DaemonHandshakePayload,
   logger: Saga.SagaLogger
 ) {
