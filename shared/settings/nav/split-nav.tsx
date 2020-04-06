@@ -10,7 +10,7 @@ import {Props} from './index'
 
 const SplitNav = (props: Props) => {
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.ScrollView style={styles.container}>
       {Styles.isTablet && (
         <>
           <SettingsItem
@@ -104,7 +104,7 @@ const SplitNav = (props: Props) => {
       {/* TODO: Do something with logoutInProgress once Offline is
         removed from the settings page. */}
       <SettingsItem text="Sign out" selected={false} onClick={() => props.onTabChange(Constants.logOutTab)} />
-    </Kb.Box>
+    </Kb.ScrollView>
   )
 }
 
@@ -118,12 +118,7 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingTop: Styles.globalMargins.small,
       width: 160,
     },
-    isPhone: {
-      paddingTop: Styles.globalMargins.small,
-    },
-    isTablet: {
-      width: Styles.globalStyles.shortWidth,
-    },
+    isTablet: {maxWidth: Styles.globalStyles.shortWidth},
   }),
 }))
 
