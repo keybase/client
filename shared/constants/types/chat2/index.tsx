@@ -115,7 +115,7 @@ export type CommandStatusInfo = {
 }
 
 export type UserReacjis = {
-  topReacjis: Array<string>
+  topReacjis: Array<RPCTypes.UserReacji>
   skinTone: number
 }
 

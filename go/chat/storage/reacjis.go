@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
@@ -151,8 +153,10 @@ type reacjiDiskEntry struct {
 }
 
 type ReacjiStore struct {
+	globals.Contextified
 	sync.Mutex
 	utils.DebugLabeler
+
 	encryptedDB *encrypteddb.EncryptedDB
 }
 
@@ -172,6 +176,7 @@ func NewReacjiStore(g *globals.Context) *ReacjiStore {
 		return g.LocalChatDb
 	}
 	return &ReacjiStore{
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "ReacjiStore", false),
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
@@ -292,7 +297,37 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 	s.Lock()
 	defer s.Unlock()
 
+	customMap := make(map[string]string)
 	cache := s.populateCacheLocked(ctx, uid)
+	// resolve custom emoji
+	for name := range cache.FrequencyMap {
+		if s.G().EmojiSource.IsStockEmoji(name) {
+			continue
+		}
+		harvested, err := s.G().EmojiSource.Harvest(ctx, ":"+name+":", uid, chat1.ConversationID{},
+			types.EmojiHarvestModeFast)
+		if err != nil {
+			s.Debug(ctx, "UserReacjis: failed to harvest possible custom: %s", err)
+			delete(cache.FrequencyMap, name)
+			continue
+		}
+		if len(harvested) == 0 {
+			s.Debug(ctx, "UserReacjis: no harvest results for possible custom")
+			delete(cache.FrequencyMap, name)
+			continue
+		}
+		loadSource, err := s.G().EmojiSource.RemoteToLocalSource(ctx, harvested[0].Source, true)
+		if err != nil {
+			s.Debug(ctx, "UserReacjis: failed to convert to local source: %s", err)
+			continue
+		}
+		if !loadSource.IsHTTPSrv() {
+			s.Debug(ctx, "UserReacjis: not http srv source")
+			continue
+		}
+		customMap[name] = loadSource.Httpsrv()
+	}
+
 	// add defaults if needed so we always return some values
 	for _, el := range DefaultTopReacjis {
 		if len(cache.FrequencyMap) >= len(DefaultTopReacjis) {
@@ -316,13 +351,19 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 		}
 		return pairs[i].score > pairs[j].score
 	})
-	reacjis := make([]string, 0, len(pairs))
+	reacjis := make([]keybase1.UserReacji, 0, len(pairs))
 	for _, p := range pairs {
 		if len(reacjis) >= len(DefaultTopReacjis) && p.freq == 0 {
 			delete(cache.FrequencyMap, p.name)
 			delete(cache.MtimeMap, p.name)
 		} else {
-			reacjis = append(reacjis, p.name)
+			reacji := keybase1.UserReacji{
+				Name: p.name,
+			}
+			if addr, ok := customMap[p.name]; ok {
+				reacji.CustomAddr = &addr
+			}
+			reacjis = append(reacjis, reacji)
 		}
 	}
 

@@ -2057,7 +2057,7 @@ const onUpdateUserReacjis = (state: Container.TypedState) => {
   const reacjis: {[key: string]: number} = {}
   userReacjis.topReacjis.forEach(el => {
     i++
-    reacjis[el] = userReacjis.topReacjis.length - i
+    reacjis[el.name] = userReacjis.topReacjis.length - i
   })
 
   const {store} = require('emoji-mart')

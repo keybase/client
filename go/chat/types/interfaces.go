@@ -627,6 +627,8 @@ type EmojiSource interface {
 		emojis []chat1.HarvestedEmoji, noAnim bool) string
 	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
 		mode EmojiHarvestMode) ([]chat1.HarvestedEmoji, error)
+	IsStockEmoji(alias string) bool
+	RemoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource, noAnim bool) (chat1.EmojiLoadSource, error)
 }
 
 type ServerConnection interface {
