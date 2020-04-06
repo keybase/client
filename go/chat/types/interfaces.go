@@ -629,6 +629,18 @@ type EmojiSource interface {
 		mode EmojiHarvestMode) ([]chat1.HarvestedEmoji, error)
 }
 
+type EphemeralTracker interface {
+	Resumable
+	GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) ([]chat1.EphemeralPurgeInfo, error)
+	GetPurgeInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.EphemeralPurgeInfo, error)
+	InactivatePurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
+	SetPurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) error
+	MaybeUpdatePurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) error
+	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
+	OnLogout(libkb.MetaContext) error
+	OnDbNuke(libkb.MetaContext) error
+}
+
 type ServerConnection interface {
 	Reconnect(context.Context) (bool, error)
 	GetClient() chat1.RemoteInterface

@@ -6,184 +6,51 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
+
+func setupCommonTest(t testing.TB, name string) kbtest.ChatTestContext {
+	tc := externalstest.SetupTest(t, name, 2)
+
+	// use an insecure triplesec in tests
+	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
+		warner := func() { tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
+		isProduction := func() bool {
+			return tc.G.Env.GetRunMode() == libkb.ProductionRunMode
+		}
+		return insecureTriplesec.NewCipher(passphrase, salt, libkb.ClientTriplesecVersion, warner, isProduction)
+	}
+	ctc := kbtest.ChatTestContext{
+		TestContext: tc,
+		ChatG: &globals.ChatContext{
+			AttachmentUploader: types.DummyAttachmentUploader{},
+			Unfurler:           types.DummyUnfurler{},
+			EphemeralPurger:    types.DummyEphemeralPurger{},
+			EphemeralTracker:   types.DummyEphemeralTracker{},
+			Indexer:            types.DummyIndexer{},
+			CtxFactory:         dummyContextFactory{},
+		},
+	}
+	ctc.Context().ServerCacheVersions = NewServerVersions(ctc.Context())
+	return ctc
+}
 
 func setupStorageTest(t testing.TB, name string) (kbtest.ChatTestContext, *Storage, gregor1.UID) {
 	ctc := setupCommonTest(t, name)
 	u, err := kbtest.CreateAndSignupFakeUser("cs", ctc.TestContext.G)
 	require.NoError(t, err)
 	return ctc, New(ctc.Context(), kbtest.NewDummyAssetDeleter()), gregor1.UID(u.User.GetUID().ToBytes())
-}
-
-func randBytes(n int) []byte {
-	ret := make([]byte, n)
-	_, err := rand.Read(ret)
-	if err != nil {
-		panic(err)
-	}
-	return ret
-}
-
-func makeEdit(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnboxed {
-	msg := chat1.MessageUnboxedValid{
-		ServerHeader: chat1.MessageServerHeader{
-			MessageID: id,
-		},
-		ClientHeader: chat1.MessageClientHeaderVerified{
-			MessageType: chat1.MessageType_EDIT,
-		},
-		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
-			MessageID: supersedes,
-			Body:      "edit",
-		}),
-	}
-	return chat1.NewMessageUnboxedWithValid(msg)
-}
-
-func makeEphemeralEdit(id chat1.MessageID, supersedes chat1.MessageID, ephemeralMetadata *chat1.MsgEphemeralMetadata, now gregor1.Time) chat1.MessageUnboxed {
-	msg := makeEdit(id, supersedes)
-	mvalid := msg.Valid()
-	mvalid.ServerHeader.Ctime = now
-	mvalid.ServerHeader.Now = now
-	mvalid.ClientHeader.Rtime = now
-	mvalid.ClientHeader.EphemeralMetadata = ephemeralMetadata
-	return chat1.NewMessageUnboxedWithValid(mvalid)
-}
-
-func makeDelete(id chat1.MessageID, originalMessage chat1.MessageID, allEdits []chat1.MessageID) chat1.MessageUnboxed {
-	msg := chat1.MessageUnboxedValid{
-		ServerHeader: chat1.MessageServerHeader{
-			MessageID: id,
-		},
-		ClientHeader: chat1.MessageClientHeaderVerified{
-			MessageType: chat1.MessageType_DELETE,
-		},
-		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
-			MessageIDs: append([]chat1.MessageID{originalMessage}, allEdits...),
-		}),
-	}
-	return chat1.NewMessageUnboxedWithValid(msg)
-}
-
-func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
-	msg := chat1.MessageUnboxedValid{
-		ServerHeader: chat1.MessageServerHeader{
-			MessageID: id,
-		},
-		ClientHeader: chat1.MessageClientHeaderVerified{
-			MessageType: chat1.MessageType_TEXT,
-		},
-		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: text,
-		}),
-	}
-	return chat1.NewMessageUnboxedWithValid(msg)
-}
-
-func makeEphemeralText(id chat1.MessageID, text string, ephemeralMetadata *chat1.MsgEphemeralMetadata, now gregor1.Time) chat1.MessageUnboxed {
-	msg := makeText(id, text)
-	mvalid := msg.Valid()
-	mvalid.ServerHeader.Ctime = now
-	mvalid.ServerHeader.Now = now
-	mvalid.ClientHeader.Rtime = now
-	mvalid.ClientHeader.EphemeralMetadata = ephemeralMetadata
-	return chat1.NewMessageUnboxedWithValid(mvalid)
-}
-
-func makeHeadlineMessage(id chat1.MessageID) chat1.MessageUnboxed {
-	msg := chat1.MessageUnboxedValid{
-		ServerHeader: chat1.MessageServerHeader{
-			MessageID: id,
-		},
-		ClientHeader: chat1.MessageClientHeaderVerified{
-			MessageType: chat1.MessageType_HEADLINE,
-		},
-		MessageBody: chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{
-			Headline: "discus discuss",
-		}),
-	}
-	return chat1.NewMessageUnboxedWithValid(msg)
-}
-
-func makeDeleteHistory(id chat1.MessageID, upto chat1.MessageID) chat1.MessageUnboxed {
-	msg := chat1.MessageUnboxedValid{
-		ServerHeader: chat1.MessageServerHeader{
-			MessageID: id,
-		},
-		ClientHeader: chat1.MessageClientHeaderVerified{
-			MessageType: chat1.MessageType_DELETEHISTORY,
-		},
-		MessageBody: chat1.NewMessageBodyWithDeletehistory(chat1.MessageDeleteHistory{
-			Upto: upto,
-		}),
-	}
-	return chat1.NewMessageUnboxedWithValid(msg)
-}
-
-func makeMsgWithType(id chat1.MessageID, typ chat1.MessageType) chat1.MessageUnboxed {
-	msg := chat1.MessageUnboxedValid{
-		ServerHeader: chat1.MessageServerHeader{
-			MessageID: id,
-		},
-		ClientHeader: chat1.MessageClientHeaderVerified{
-			MessageType: typ,
-		},
-	}
-	return chat1.NewMessageUnboxedWithValid(msg)
-}
-
-func makeMsgRange(max int) (res []chat1.MessageUnboxed) {
-	for i := max; i > 0; i-- {
-		res = append(res, makeText(chat1.MessageID(i), "junk text"))
-	}
-	return res
-}
-
-func addMsgs(num int, msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
-	maxID := msgs[0].GetMessageID()
-	for i := 0; i < num; i++ {
-		msgs = append([]chat1.MessageUnboxed{makeText(chat1.MessageID(int(maxID)+i+1), "addMsgs junk text")},
-			msgs...)
-	}
-	return msgs
-}
-
-func makeConvID() chat1.ConversationID {
-	rbytes := randBytes(8)
-	return chat1.ConversationID(rbytes)
-}
-
-func makeConversation(maxID chat1.MessageID) chat1.Conversation {
-	return makeConversationAt(makeConvID(), maxID)
-}
-
-func makeConversationAt(convID chat1.ConversationID, maxID chat1.MessageID) chat1.Conversation {
-	return chat1.Conversation{
-		Metadata: chat1.ConversationMetadata{
-			ConversationID: convID,
-		},
-		ReaderInfo: &chat1.ConversationReaderInfo{
-			MaxMsgid: maxID,
-		},
-	}
-}
-
-// Sort messages by ID descending
-func sortMessagesDesc(msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
-	res := make([]chat1.MessageUnboxed, len(msgs))
-	copy(res, msgs)
-	sort.SliceStable(res, func(i, j int) bool {
-		return res[j].GetMessageID() < res[i].GetMessageID()
-	})
-	return res
 }
 
 func mustMerge(t testing.TB, storage *Storage,
@@ -201,9 +68,25 @@ func mustMerge(t testing.TB, storage *Storage,
 	return res
 }
 
+func makeMsgRange(max int) (res []chat1.MessageUnboxed) {
+	for i := max; i > 0; i-- {
+		res = append(res, MakeText(chat1.MessageID(i), "junk text"))
+	}
+	return res
+}
+
+func addMsgs(num int, msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
+	maxID := msgs[0].GetMessageID()
+	for i := 0; i < num; i++ {
+		msgs = append([]chat1.MessageUnboxed{MakeText(chat1.MessageID(int(maxID)+i+1), "addMsgs junk text")},
+			msgs...)
+	}
+	return msgs
+}
+
 func doSimpleBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 	msgs := makeMsgRange(100000)
-	conv := makeConversation(msgs[0].GetMessageID())
+	conv := MakeConversation(msgs[0].GetMessageID())
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -217,7 +100,7 @@ func doSimpleBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 
 func doCommonBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 	msgs := makeMsgRange(107)
-	conv := makeConversation(msgs[0].GetMessageID())
+	conv := MakeConversation(msgs[0].GetMessageID())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		mustMerge(b, storage, conv.Metadata.ConversationID, uid, msgs)
@@ -227,7 +110,7 @@ func doCommonBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 		// Add some msgs
 		b.StopTimer()
 		newmsgs := addMsgs(15, msgs)
-		newconv := makeConversation(newmsgs[0].GetMessageID())
+		newconv := MakeConversation(newmsgs[0].GetMessageID())
 		b.StartTimer()
 
 		mustMerge(b, storage, conv.Metadata.ConversationID, uid, newmsgs)
@@ -238,7 +121,7 @@ func doCommonBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 
 func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, len int) {
 	msgs := makeMsgRange(num)
-	conv := makeConversation(msgs[0].GetMessageID())
+	conv := MakeConversation(msgs[0].GetMessageID())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		mustMerge(b, storage, conv.Metadata.ConversationID, uid, msgs)
@@ -301,7 +184,7 @@ func TestStorageBasic(t *testing.T) {
 	defer tc.Cleanup()
 
 	msgs := makeMsgRange(10)
-	conv := makeConversation(msgs[0].GetMessageID())
+	conv := MakeConversation(msgs[0].GetMessageID())
 
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	fetchRes, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
@@ -318,7 +201,7 @@ func TestStorageLargeList(t *testing.T) {
 	defer tc.Cleanup()
 
 	msgs := makeMsgRange(1000)
-	conv := makeConversation(msgs[0].GetMessageID())
+	conv := MakeConversation(msgs[0].GetMessageID())
 
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	fetchRes, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
@@ -333,14 +216,14 @@ func TestStorageBlockBoundary(t *testing.T) {
 	tc, storage, uid := setupStorageTest(t, "block boundary")
 	defer tc.Cleanup()
 	msgs := makeMsgRange(blockSize - 1)
-	conv := makeConversation(msgs[0].GetMessageID())
+	conv := MakeConversation(msgs[0].GetMessageID())
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	fetchRes, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 	res := fetchRes.Thread
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
 	require.Equal(t, utils.PluckMUMessageIDs(msgs), utils.PluckMUMessageIDs(res.Messages))
-	appendMsg := makeText(chat1.MessageID(blockSize), "COMBOBREAKER")
+	appendMsg := MakeText(chat1.MessageID(blockSize), "COMBOBREAKER")
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, []chat1.MessageUnboxed{appendMsg})
 	conv.ReaderInfo.MaxMsgid = chat1.MessageID(blockSize)
 	fetchRes, err = storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
@@ -358,11 +241,11 @@ func TestStorageSupersedes(t *testing.T) {
 	defer tc.Cleanup()
 
 	// First test an Edit message.
-	supersedingEdit := makeEdit(chat1.MessageID(111), 6)
+	supersedingEdit := MakeEdit(chat1.MessageID(111), 6)
 
 	msgs := makeMsgRange(110)
 	msgs = append([]chat1.MessageUnboxed{supersedingEdit}, msgs...)
-	conv := makeConversation(msgs[0].GetMessageID())
+	conv := MakeConversation(msgs[0].GetMessageID())
 
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	fetchRes, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
@@ -378,7 +261,7 @@ func TestStorageSupersedes(t *testing.T) {
 
 	// Now test a delete message. This should result in the deletion of *both*
 	// the original message's body and the body of the edit above.
-	supersedingDelete := makeDelete(chat1.MessageID(112), 6, []chat1.MessageID{111})
+	supersedingDelete := MakeDelete(chat1.MessageID(112), 6, []chat1.MessageID{111})
 
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, []chat1.MessageUnboxed{supersedingDelete})
 	conv.ReaderInfo.MaxMsgid = 112
@@ -425,18 +308,18 @@ func TestStorageDeleteHistory(t *testing.T) {
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs([]types.RemoteConversation{conv}), nil))
 
 	convID := conv.GetConvID()
-	msgA := makeMsgWithType(1, chat1.MessageType_TLFNAME)
-	msgB := makeText(2, "some text")
-	msgC := makeText(3, "some text")
-	msgD := makeHeadlineMessage(4)
-	msgE := makeEdit(5, msgC.GetMessageID())
-	msgF := makeText(6, "some text")
-	msgG := makeDelete(7, msgF.GetMessageID(), nil)
-	msgH := makeText(8, "some text")
-	msgI := makeHeadlineMessage(9)
-	msgJ := makeDeleteHistory(10, msgI.GetMessageID())
-	msgK := makeDeleteHistory(11, 11)
-	msgL := makeText(12, "some text")
+	msgA := MakeMsgWithType(1, chat1.MessageType_TLFNAME)
+	msgB := MakeText(2, "some text")
+	msgC := MakeText(3, "some text")
+	msgD := MakeHeadlineMessage(4)
+	msgE := MakeEdit(5, msgC.GetMessageID())
+	msgF := MakeText(6, "some text")
+	msgG := MakeDelete(7, msgF.GetMessageID(), nil)
+	msgH := MakeText(8, "some text")
+	msgI := MakeHeadlineMessage(9)
+	msgJ := MakeDeleteHistory(10, msgI.GetMessageID())
+	msgK := MakeDeleteHistory(11, 11)
+	msgL := MakeText(12, "some text")
 
 	type expectedM struct {
 		Name         string // letter label
@@ -467,7 +350,7 @@ func TestStorageDeleteHistory(t *testing.T) {
 		if allowHoles {
 			rc = NewInsatiableResultCollector()
 		}
-		fetchRes, err := storage.Fetch(context.Background(), makeConversationAt(convID, maxMsgID), uid, rc,
+		fetchRes, err := storage.Fetch(context.Background(), MakeConversationAt(convID, maxMsgID), uid, rc,
 			nil, nil)
 		require.NoError(t, err)
 		res := fetchRes.Thread
@@ -503,7 +386,7 @@ func TestStorageDeleteHistory(t *testing.T) {
 		assertStateHelper(maxMsgID, true)
 	}
 	merge := func(msgsUnsorted []chat1.MessageUnboxed, expectedDeletedHistory bool) {
-		res := mustMerge(t, storage, convID, uid, sortMessagesDesc(msgsUnsorted))
+		res := mustMerge(t, storage, convID, uid, SortMessagesDesc(msgsUnsorted))
 		if expectedDeletedHistory {
 			require.NotNil(t, res.Expunged, "deleted history merge response")
 		} else {
@@ -602,16 +485,16 @@ func TestStorageExpunge(t *testing.T) {
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs([]types.RemoteConversation{conv}), nil))
 
 	convID := conv.GetConvID()
-	msgA := makeMsgWithType(1, chat1.MessageType_TLFNAME)
-	msgB := makeText(2, "some text")
-	msgC := makeText(3, "some text")
-	msgD := makeHeadlineMessage(4)
-	msgE := makeEdit(5, msgC.GetMessageID())
-	msgF := makeText(6, "some text")
-	msgG := makeDelete(7, msgF.GetMessageID(), nil)
-	msgH := makeText(8, "some text")
-	msgI := makeHeadlineMessage(9)
-	msgJ := makeDeleteHistory(10, msgI.GetMessageID())
+	msgA := MakeMsgWithType(1, chat1.MessageType_TLFNAME)
+	msgB := MakeText(2, "some text")
+	msgC := MakeText(3, "some text")
+	msgD := MakeHeadlineMessage(4)
+	msgE := MakeEdit(5, msgC.GetMessageID())
+	msgF := MakeText(6, "some text")
+	msgG := MakeDelete(7, msgF.GetMessageID(), nil)
+	msgH := MakeText(8, "some text")
+	msgI := MakeHeadlineMessage(9)
+	msgJ := MakeDeleteHistory(10, msgI.GetMessageID())
 
 	type expectedM struct {
 		Name         string // letter label
@@ -640,7 +523,7 @@ func TestStorageExpunge(t *testing.T) {
 	}
 	assertState := func(maxMsgID chat1.MessageID) {
 		var rc ResultCollector
-		fetchRes, err := storage.Fetch(context.Background(), makeConversationAt(convID, maxMsgID), uid, rc,
+		fetchRes, err := storage.Fetch(context.Background(), MakeConversationAt(convID, maxMsgID), uid, rc,
 			nil, nil)
 		require.NoError(t, err)
 		res := fetchRes.Thread
@@ -670,7 +553,7 @@ func TestStorageExpunge(t *testing.T) {
 		}
 	}
 	merge := func(msgsUnsorted []chat1.MessageUnboxed, expectedDeletedHistory bool) {
-		res := mustMerge(t, storage, convID, uid, sortMessagesDesc(msgsUnsorted))
+		res := mustMerge(t, storage, convID, uid, SortMessagesDesc(msgsUnsorted))
 		if expectedDeletedHistory {
 			require.NotNil(t, res.Expunged, "deleted history merge response")
 		} else {
@@ -733,7 +616,7 @@ func TestStorageMiss(t *testing.T) {
 	defer tc.Cleanup()
 
 	msgs := makeMsgRange(10)
-	conv := makeConversation(15)
+	conv := MakeConversation(15)
 
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	_, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
@@ -747,12 +630,12 @@ func TestStoragePagination(t *testing.T) {
 	defer tc.Cleanup()
 
 	msgs := makeMsgRange(300)
-	conv := makeConversation(msgs[0].GetMessageID())
+	conv := MakeConversation(msgs[0].GetMessageID())
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 
 	t.Logf("test next input")
 	tp := pager.NewThreadPager()
-	index, err := tp.MakeIndex(makeText(120, "TestStoragePagination junk text"))
+	index, err := tp.MakeIndex(MakeText(120, "TestStoragePagination junk text"))
 	require.NoError(t, err)
 	p := chat1.Pagination{
 		Num:  100,
@@ -781,7 +664,7 @@ func TestStoragePagination(t *testing.T) {
 	}
 
 	t.Logf("test prev input")
-	index, err = tp.MakeIndex(makeText(120, "TestStoragePagination junk text #2"))
+	index, err = tp.MakeIndex(MakeText(120, "TestStoragePagination junk text #2"))
 	require.NoError(t, err)
 	p = chat1.Pagination{
 		Num:      100,
@@ -818,12 +701,12 @@ func TestStorageTypeFilter(t *testing.T) {
 	defer tc.Cleanup()
 
 	textmsgs := makeMsgRange(300)
-	msgs := append(mkarray(makeMsgWithType(chat1.MessageID(301), chat1.MessageType_EDIT)), textmsgs...)
-	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(302), chat1.MessageType_TLFNAME)), msgs...)
-	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(303), chat1.MessageType_ATTACHMENT)), msgs...)
-	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), chat1.MessageType_TEXT)), msgs...)
-	textmsgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), chat1.MessageType_TEXT)), textmsgs...)
-	conv := makeConversation(msgs[0].GetMessageID())
+	msgs := append(mkarray(MakeMsgWithType(chat1.MessageID(301), chat1.MessageType_EDIT)), textmsgs...)
+	msgs = append(mkarray(MakeMsgWithType(chat1.MessageID(302), chat1.MessageType_TLFNAME)), msgs...)
+	msgs = append(mkarray(MakeMsgWithType(chat1.MessageID(303), chat1.MessageType_ATTACHMENT)), msgs...)
+	msgs = append(mkarray(MakeMsgWithType(chat1.MessageID(304), chat1.MessageType_TEXT)), msgs...)
+	textmsgs = append(mkarray(MakeMsgWithType(chat1.MessageID(304), chat1.MessageType_TEXT)), textmsgs...)
+	conv := MakeConversation(msgs[0].GetMessageID())
 
 	query := chat1.GetThreadQuery{
 		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -847,7 +730,7 @@ func TestStorageLocalMax(t *testing.T) {
 	defer tc.Cleanup()
 
 	msgs := makeMsgRange(10)
-	conv := makeConversation(15)
+	conv := MakeConversation(15)
 
 	_, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, 0,
 		nil, nil)
@@ -866,7 +749,7 @@ func TestStorageFetchMessages(t *testing.T) {
 	defer tc.Cleanup()
 
 	msgs := makeMsgRange(20)
-	conv := makeConversation(25)
+	conv := MakeConversation(25)
 
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 
@@ -896,7 +779,7 @@ func TestStorageClearMessages(t *testing.T) {
 	defer tc.Cleanup()
 
 	msgs := makeMsgRange(20)
-	conv := makeConversation(20)
+	conv := MakeConversation(20)
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 
 	ctx := context.TODO()
@@ -916,7 +799,7 @@ func TestStorageServerVersion(t *testing.T) {
 	defer tc.Cleanup()
 
 	msgs := makeMsgRange(300)
-	conv := makeConversation(msgs[0].GetMessageID())
+	conv := MakeConversation(msgs[0].GetMessageID())
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
@@ -982,10 +865,10 @@ func TestStorageMultipleEdits(t *testing.T) {
 	tc, s, uid := setupStorageTest(t, "multiEdits")
 	defer tc.Cleanup()
 
-	msgText := makeText(1, "initial")
-	edit1 := makeEdit(2, msgText.GetMessageID())
-	edit2 := makeEdit(3, msgText.GetMessageID())
-	conv := makeConversation(edit2.GetMessageID())
+	msgText := MakeText(1, "initial")
+	edit1 := MakeEdit(2, msgText.GetMessageID())
+	edit2 := MakeEdit(3, msgText.GetMessageID())
+	conv := MakeConversation(edit2.GetMessageID())
 
 	// Merge in text message
 	mustMerge(t, s, conv.GetConvID(), uid, []chat1.MessageUnboxed{msgText})

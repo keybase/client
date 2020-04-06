@@ -36,13 +36,12 @@ type Storage struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	engine           storageEngine
-	idtracker        *msgIDTracker
-	breakTracker     *breakTracker
-	delhTracker      *delhTracker
-	ephemeralTracker *ephemeralTracker
-	assetDeleter     AssetDeleter
-	clock            clockwork.Clock
+	engine       storageEngine
+	idtracker    *msgIDTracker
+	breakTracker *breakTracker
+	delhTracker  *delhTracker
+	assetDeleter AssetDeleter
+	clock        clockwork.Clock
 }
 
 type storageEngine interface {
@@ -69,15 +68,14 @@ func (d DummyAssetDeleter) DeleteAssets(ctx context.Context, uid gregor1.UID, co
 
 func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
 	return &Storage{
-		Contextified:     globals.NewContextified(g),
-		engine:           newBlockEngine(g),
-		idtracker:        newMsgIDTracker(g),
-		breakTracker:     newBreakTracker(g),
-		delhTracker:      newDelhTracker(g),
-		ephemeralTracker: newEphemeralTracker(g),
-		assetDeleter:     assetDeleter,
-		clock:            clockwork.NewRealClock(),
-		DebugLabeler:     utils.NewDebugLabeler(g.ExternalG(), "Storage", false),
+		Contextified: globals.NewContextified(g),
+		engine:       newBlockEngine(g),
+		idtracker:    newMsgIDTracker(g),
+		breakTracker: newBreakTracker(g),
+		delhTracker:  newDelhTracker(g),
+		assetDeleter: assetDeleter,
+		clock:        clockwork.NewRealClock(),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Storage", false),
 	}
 }
 
@@ -336,7 +334,7 @@ func (s *Storage) maybeNukeLocked(ctx context.Context, force bool, err Error, co
 		if err := s.idtracker.clear(convID, uid); err != nil {
 			s.Debug(ctx, "failed to clear max message storage: %s", err)
 		}
-		if err := s.ephemeralTracker.clear(uid); err != nil {
+		if err := s.G().EphemeralTracker.Clear(ctx, convID, uid); err != nil {
 			s.Debug(ctx, "failed to clear ephemeral tracker storage: %s", err)
 		}
 	}

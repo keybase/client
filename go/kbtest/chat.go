@@ -58,6 +58,9 @@ func (c ChatTestContext) Cleanup() {
 	if c.ChatG.EphemeralPurger != nil {
 		<-c.ChatG.EphemeralPurger.Stop(context.TODO())
 	}
+	if c.ChatG.EphemeralTracker != nil {
+		<-c.ChatG.EphemeralTracker.Stop(context.TODO())
+	}
 	if c.ChatG.InboxSource != nil {
 		<-c.ChatG.InboxSource.Stop(context.TODO())
 	}
