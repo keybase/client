@@ -212,7 +212,6 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
   const convID = useGeneralConversationIDKey(teamID)
   const getUserEmoji = Container.useRPC(RPCChatTypes.localUserEmojisRpcPromise)
   const [customEmoji, setCustomEmoji] = React.useState<RPCChatTypes.Emoji[]>([])
-  const [waiting, setWaiting] = React.useState(true)
 
   const [filter, setFilter] = React.useState('')
 
@@ -220,7 +219,6 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     if (!convID || convID === Chat2Constants.noConversationIDKey || !shouldActuallyLoad) {
       return
     }
-    setWaiting(true)
     getUserEmoji(
       [
         {
@@ -238,12 +236,8 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
           emojis = emojis.concat(g.emojis ?? [])
         })
         setCustomEmoji(emojis)
-        setWaiting(false)
       },
-      _ => {
-        setCustomEmoji([])
-        setWaiting(false)
-      }
+      _ => setCustomEmoji([])
     )
   }, [convID, getUserEmoji, shouldActuallyLoad])
 
@@ -272,7 +266,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     ),
   })
 
-  if (!waiting && customEmoji.length) {
+  if (customEmoji.length) {
     sections.push({
       data: ['emoji-header'],
       key: 'emoji-header',
