@@ -13,6 +13,7 @@ const load = () =>
     .add('Header long name', () => <TeamMemberHeader teamID={fakeTeamID} username="paula" />)
     .add('Header self + no name', () => <TeamMemberHeader teamID={fakeTeamID} username="andonuts" />)
     .add('Rows', () => <TeamMember {...Sb.createNavigator({teamID: fakeTeamID, username: 'jeff'})} />)
-    .add('Add to channels', () => <AddToChannels {...addToChannelsProps} />)
+    .add('Add to channels', () => <AddToChannels {...addToChannelsProps} mode="others" />)
+    .add('Add self to channels', () => <AddToChannels {...addToChannelsProps} mode="self" />)
 
 export default load

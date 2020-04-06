@@ -126,17 +126,19 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
   }
   return sections
 }
-
 export const useChannelsSections = (
   teamID: Types.TeamID,
   yourOperations: Types.TeamOperations,
   shouldActuallyLoad: boolean
 ): Array<Section> => {
   const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
-  const channelMetas = useAllChannelMetas(teamID, !isBig || !shouldActuallyLoad /* dontCallRPC */)
-  // TODO: loading state (waiting on channel hook returning loading to merge)
+  const {channelMetas, loadingChannels} = useAllChannelMetas(teamID, !shouldActuallyLoad /* dontCallRPC */)
+
   if (!isBig) {
     return [makeSingleRow('channel-empty', () => <EmptyRow type="channelsEmpty" teamID={teamID} />)]
+  }
+  if (loadingChannels) {
+    return [makeSingleRow('channel-loading', () => <LoadingRow />)]
   }
   return [
     makeSingleRow('channel-add', () => <ChannelHeaderRow teamID={teamID} />),

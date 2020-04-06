@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as MessageTypes from '../../../../../constants/types/chat2/message'
@@ -48,7 +49,7 @@ const TeamJourneyContainer = (props: Props) => {
   const dontCallRPC =
     props.message.cardType !== RPCChatTypes.JourneycardType.popularChannels &&
     props.message.cardType !== RPCChatTypes.JourneycardType.msgNoAnswer
-  const channelMetas = useAllChannelMetas(props.teamID, dontCallRPC)
+  const {channelMetas} = useAllChannelMetas(props.teamID, dontCallRPC)
   // Take the top three channels with most recent activity.
   const joinableStatuses = new Set<ChatTypes.ConversationMeta['membershipType']>([
     // keep in sync with journey_card_manager.go
@@ -210,10 +211,7 @@ const TeamJourneyConnected = Container.connect(
     ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal})),
     _onGoToChannel: (channelname: string, teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
-    _onManageChannels: (teamID: string) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
-      ),
+    _onManageChannels: (teamID: string) => dispatch(TeamsGen.createManageChatChannels({teamID})),
     _onPublishTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
     _onShowTeam: (teamID: TeamTypes.TeamID) =>
       dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),

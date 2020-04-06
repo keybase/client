@@ -447,6 +447,9 @@
       "subteams": "Array<string>"
     },
     "finishNewTeamWizard": {},
+    "manageChatChannels": {
+      "teamID": "Types.TeamID"
+    },
     "teamSeen": {
       "_description": "User has viewed this team. Clear related badges.",
       "teamID": "Types.TeamID"

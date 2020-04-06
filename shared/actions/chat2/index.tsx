@@ -856,7 +856,7 @@ const onChatShowManageChannels = (
 ) => {
   const {teamname} = action.payload.params
   const teamID = state.teams.teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
-  return RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
+  return TeamsGen.createManageChatChannels({teamID})
 }
 
 const onNewChatActivity = (
