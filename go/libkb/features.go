@@ -168,7 +168,7 @@ func (s *FeatureFlagSet) enabledInCacheRLocked(m MetaContext, f Feature) (on boo
 		return false, false
 	}
 	if m.G().Clock().Now().Before(slot.cacheUntil) {
-		m.Debug("Feature (cached) %q -> %v", f, slot.on)
+		m.G().GetVDebugLog().CLogf(m.Ctx(), VLog1, "Feature (cached) %q -> %v", f, slot.on)
 		return slot.on, true
 	}
 	return false, false

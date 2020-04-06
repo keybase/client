@@ -199,6 +199,13 @@ func (c *DelegateChatUI) ChatSearchTeamHits(ctx context.Context, arg chat1.ChatS
 	return nil
 }
 
+func (c *DelegateChatUI) ChatSearchBotHits(ctx context.Context, arg chat1.ChatSearchBotHitsArg) error {
+	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
+		return (*chatUI).ChatSearchBotHits(ctx, arg)
+	}
+	return nil
+}
+
 func (c *DelegateChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStellarDataConfirmArg) (bool, error) {
 	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
 		return (*chatUI).ChatStellarDataConfirm(ctx, arg)

@@ -30,6 +30,12 @@ func (h *FeaturedBotHandler) FeaturedBots(ctx context.Context, arg keybase1.Feat
 
 func (h *FeaturedBotHandler) Search(ctx context.Context, arg keybase1.SearchArg) (res keybase1.SearchRes, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("Search: %+v", arg), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("Search: %s", arg), func() error { return err })()
 	return teambot.NewFeaturedBotLoader(h.G()).Search(mctx, arg)
+}
+
+func (h *FeaturedBotHandler) SearchLocal(ctx context.Context, arg keybase1.SearchLocalArg) (res keybase1.SearchRes, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("SearchLocal: %s", arg), func() error { return err })()
+	return teambot.NewFeaturedBotLoader(h.G()).SearchLocal(mctx, arg)
 }

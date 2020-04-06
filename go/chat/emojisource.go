@@ -4,30 +4,45 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"image/gif"
 	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
+	"camlistore.org/pkg/images"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/kyokomi/emoji"
+)
+
+const (
+	minShortNameLength = 2
+	maxShortNameLength = 48
+	minEmojiSize       = 512        // min size for reading mime type
+	maxEmojiSize       = 256 * 1000 // 256kb
+	minEmojiWidth      = 16
+	minEmojiHeight     = 16
+	maxEmojiWidth      = 128
+	maxEmojiHeight     = 128
 )
 
 type DevConvEmojiSource struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	getLock     sync.Mutex
-	aliasLookup map[string]chat1.Emoji
-	ri          func() chat1.RemoteInterface
+	aliasLookupLock sync.Mutex
+	aliasLookup     map[string]chat1.Emoji
+	ri              func() chat1.RemoteInterface
+	encryptedDB     *encrypteddb.EncryptedDB
 
 	testingCreatedSyncConv   chan struct{}
 	testingRefreshedSyncConv chan struct{}
@@ -36,10 +51,17 @@ type DevConvEmojiSource struct {
 var _ types.EmojiSource = (*DevConvEmojiSource)(nil)
 
 func NewDevConvEmojiSource(g *globals.Context, ri func() chat1.RemoteInterface) *DevConvEmojiSource {
+	keyFn := func(ctx context.Context) ([32]byte, error) {
+		return storage.GetSecretBoxKey(ctx, g.ExternalG())
+	}
+	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
+		return g.LocalChatDb
+	}
 	return &DevConvEmojiSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "DevConvEmojiSource", false),
 		ri:           ri,
+		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
 }
 
@@ -53,6 +75,43 @@ func (s *DevConvEmojiSource) topicName(suffix *string) string {
 		ret += *suffix
 	}
 	return ret
+}
+
+func (s *DevConvEmojiSource) dbKey(uid gregor1.UID) libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBChatUserEmojis,
+		Key: uid.String(),
+	}
+}
+
+func (s *DevConvEmojiSource) getAliasLookup(ctx context.Context, uid gregor1.UID) (res map[string]chat1.Emoji, err error) {
+	s.aliasLookupLock.Lock()
+	defer s.aliasLookupLock.Unlock()
+	if s.aliasLookup != nil {
+		res = make(map[string]chat1.Emoji, len(s.aliasLookup))
+		for alias, emoji := range s.aliasLookup {
+			res[alias] = emoji
+		}
+		return res, nil
+	}
+	res = make(map[string]chat1.Emoji)
+	s.Debug(ctx, "getAliasLookup: missed alias lookup, reading from disk")
+	found, err := s.encryptedDB.Get(ctx, s.dbKey(uid), &res)
+	if err != nil {
+		return res, err
+	}
+	if !found {
+		return make(map[string]chat1.Emoji), nil
+	}
+	return res, nil
+}
+
+func (s *DevConvEmojiSource) putAliasLookup(ctx context.Context, uid gregor1.UID,
+	aliasLookup map[string]chat1.Emoji) error {
+	s.aliasLookupLock.Lock()
+	defer s.aliasLookupLock.Unlock()
+	s.aliasLookup = aliasLookup
+	return s.encryptedDB.Put(ctx, s.dbKey(uid), s.aliasLookup)
 }
 
 func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
@@ -90,29 +149,89 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 	return res, storage.PutToKnownConv(ctx, uid, *storageConv, stored)
 }
 
-func (s *DevConvEmojiSource) isStockEmoji(alias string) bool {
-	_, ok := emoji.CodeMap()[":"+alias+":"]
-	if !ok {
-		_, ok = emoji.CodeMap()[":"+strings.ReplaceAll(alias, "-", "_")+":"]
+func (s *DevConvEmojiSource) IsStockEmoji(alias string) bool {
+	if !strings.HasPrefix(alias, ":") {
+		alias = fmt.Sprintf(":%s:", alias)
 	}
-	return ok
+	alias2 := strings.ReplaceAll(alias, "-", "_")
+	return storage.EmojiExists(alias) || storage.EmojiExists(alias2)
 }
 
-func (s *DevConvEmojiSource) validateAlias(alias string) (string, error) {
-	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
-	if strings.Contains(alias, "#") {
-		return alias, errors.New("invalid character in emoji alias")
+func (s *DevConvEmojiSource) validateShortName(shortName string) (string, error) {
+	shortName = strings.ReplaceAll(shortName, ":", "") // drop any colons from alias
+	if s.IsStockEmoji(shortName) {
+		return "", errors.New("cannot use existing stock emoji short name")
 	}
-	if s.isStockEmoji(alias) {
-		return alias, errors.New("cannot use existing stock emoji alias")
+	if len(shortName) > maxShortNameLength || len(shortName) < minShortNameLength {
+		return "", fmt.Errorf("short name %q (length %d) not within bounds %d,%d",
+			shortName, len(shortName), minShortNameLength, maxShortNameLength)
 	}
-	return alias, nil
+	if strings.Contains(shortName, "#") {
+		return "", errors.New("invalid character in emoji alias")
+	}
+	return shortName, nil
+}
+
+func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName, filename string) (string, error) {
+	shortName, err := s.validateShortName(shortName)
+	if err != nil {
+		return "", err
+	}
+
+	err = s.validateFile(ctx, filename)
+	if err != nil {
+		return "", err
+	}
+	return shortName, nil
+}
+
+// validateFile validates the following:
+// file size
+// dimensions
+// format
+func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) error {
+	finfo, err := attachments.StatOSOrKbfsFile(ctx, s.G().GlobalContext, filename)
+	if err != nil {
+		return err
+	}
+	if finfo.IsDir() {
+		return errors.New("invalid file type for emoji")
+	} else if finfo.Size() > maxEmojiSize || finfo.Size() < minEmojiSize {
+		return fmt.Errorf("emoji size %d not within bounds %d,%d", finfo.Size(), minEmojiSize, maxEmojiSize)
+	}
+
+	src, err := attachments.NewReadCloseResetter(ctx, s.G().GlobalContext, filename)
+	if err != nil {
+		return err
+	}
+	defer func() { src.Close() }()
+	img, _, err := images.Decode(src, nil)
+	if err != nil {
+		if err := src.Reset(); err != nil {
+			return err
+		}
+		g, err := gif.DecodeAll(src)
+		if err != nil {
+			return err
+		}
+		if len(g.Image) == 0 {
+			return errors.New("no image frames in GIF")
+		}
+		img = g.Image[0]
+	}
+	bounds := img.Bounds()
+	if bounds.Dx() > maxEmojiWidth || bounds.Dx() < minEmojiWidth ||
+		bounds.Dy() > maxEmojiHeight || bounds.Dy() < minEmojiHeight {
+		return fmt.Errorf("invalid dimensions %dx%d not within %dx%d, %dx%d",
+			bounds.Dx(), bounds.Dy(), maxEmojiWidth, maxEmojiHeight, minEmojiWidth, minEmojiHeight)
+	}
+	return nil
 }
 
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
-	if alias, err = s.validateAlias(alias); err != nil {
+	if alias, err = s.validateCustomEmoji(ctx, alias, filename); err != nil {
 		return res, err
 	}
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
@@ -122,7 +241,7 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "AddAlias")()
-	if newAlias, err = s.validateAlias(newAlias); err != nil {
+	if newAlias, err = s.validateShortName(newAlias); err != nil {
 		return res, err
 	}
 	var stored chat1.EmojiStorage
@@ -229,7 +348,7 @@ func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID
 	return storage.Put(ctx, uid, convID, topicName, stored)
 }
 
-func (s *DevConvEmojiSource) remoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource,
+func (s *DevConvEmojiSource) RemoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource,
 	noAnim bool) (res chat1.EmojiLoadSource, err error) {
 	typ, err := remote.Typ()
 	if err != nil {
@@ -327,7 +446,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 					continue
 				}
 				var creationInfo *chat1.EmojiCreationInfo
-				source, err := s.remoteToLocalSource(ctx, storedEmoji, false)
+				source, err := s.RemoteToLocalSource(ctx, storedEmoji, false)
 				if err != nil {
 					s.Debug(ctx, "Get: skipping emoji on remote-to-local error: %s", err)
 					continue
@@ -380,9 +499,9 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, opts); err != nil {
 		return res, err
 	}
-	s.getLock.Lock()
-	defer s.getLock.Unlock()
-	s.aliasLookup = aliasLookup
+	if err := s.putAliasLookup(ctx, uid, aliasLookup); err != nil {
+		s.Debug(ctx, "Get: failed to put alias lookup: %s", err)
+	}
 	return res, nil
 }
 
@@ -577,12 +696,11 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 	ctx = globals.CtxMakeEmojiHarvester(ctx)
 	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
-	s.getLock.Lock()
-	aliasMap := make(map[string]chat1.Emoji, len(s.aliasLookup))
-	for alias, emoji := range s.aliasLookup {
-		aliasMap[alias] = emoji
+	aliasMap, err := s.getAliasLookup(ctx, uid)
+	if err != nil {
+		s.Debug(ctx, "Harvest: failed to get alias lookup: %s", err)
+		return res, err
 	}
-	s.getLock.Unlock()
 	var emojis chat1.UserEmojis
 	switch mode {
 	case types.EmojiHarvestModeNormal:
@@ -666,7 +784,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, convID c
 	isReacji := messageType == chat1.MessageType_REACTION
 	for _, match := range matches {
 		if source, ok := emojiMap[match.name]; ok {
-			localSource, err := s.remoteToLocalSource(ctx, source, noAnim)
+			localSource, err := s.RemoteToLocalSource(ctx, source, noAnim)
 			if err != nil {
 				s.Debug(ctx, "Decorate: failed to get local source: %s", err)
 				continue

@@ -854,6 +854,23 @@
     },
     {
       "type": "record",
+      "name": "UserReacji",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "customAddr"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ReacjiSkinTone",
       "fields": [],
       "typedef": "int"
@@ -865,7 +882,7 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UserReacji"
           },
           "name": "topReacjis"
         },
@@ -884,6 +901,16 @@
         "ACCEPTED_2",
         "REJECTED_3",
         "REVOKED_4"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GenericError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        }
       ]
     }
   ],

@@ -5,7 +5,6 @@ import load from '../desktop/remote/component-loader.desktop'
 import {deserialize} from './remote-serializer.desktop'
 
 load({
-  // @ts-ignore codemod issue
   child: <UnlockFolders />,
   deserialize,
   name: 'unlock-folders',

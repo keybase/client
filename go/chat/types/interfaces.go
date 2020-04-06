@@ -100,7 +100,7 @@ type ConversationSource interface {
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	GetUnreadline(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		readMsgID chat1.MessageID) (*chat1.MessageID, error)
-	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
+	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, opts *ClearOpts) error
 	TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed, q *chat1.GetThreadQuery, superXform SupersedesTransform,
 		replyFiller ReplyFiller, maxDeletedUpTo *chat1.MessageID) ([]chat1.MessageUnboxed, error)
@@ -164,7 +164,7 @@ type InboxSource interface {
 	Suspendable
 	badges.LocalChatState
 
-	Clear(ctx context.Context, uid gregor1.UID) error
+	Clear(ctx context.Context, uid gregor1.UID, opts *ClearOpts) error
 	Read(ctx context.Context, uid gregor1.UID, localizeTyp ConversationLocalizerTyp,
 		dataSource InboxSourceDataSourceTyp, maxLocalize *int, query *chat1.GetInboxLocalQuery) (Inbox, chan AsyncInboxResult, error)
 	ReadUnverified(ctx context.Context, uid gregor1.UID, dataSource InboxSourceDataSourceTyp,
@@ -627,6 +627,20 @@ type EmojiSource interface {
 		emojis []chat1.HarvestedEmoji, noAnim bool) string
 	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
 		mode EmojiHarvestMode) ([]chat1.HarvestedEmoji, error)
+	IsStockEmoji(alias string) bool
+	RemoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource, noAnim bool) (chat1.EmojiLoadSource, error)
+}
+
+type EphemeralTracker interface {
+	Resumable
+	GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) ([]chat1.EphemeralPurgeInfo, error)
+	GetPurgeInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.EphemeralPurgeInfo, error)
+	InactivatePurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
+	SetPurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) error
+	MaybeUpdatePurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) error
+	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
+	OnLogout(libkb.MetaContext) error
+	OnDbNuke(libkb.MetaContext) error
 }
 
 type ServerConnection interface {

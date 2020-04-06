@@ -66,3 +66,7 @@ declare function HeaderHoc<P extends {}>(
 ): React.ComponentType<P & HeaderHocProps>
 
 export default HeaderHoc
+
+// used in navigationOptions
+export declare class HeaderLeftArrow extends React.Component<any> {}
+export declare class HeaderLeftCancel extends React.Component<any> {}

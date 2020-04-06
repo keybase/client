@@ -33,7 +33,6 @@ const storeShowingSfmi = produce(storeCommon, draftStoreCommon => {
   draftStoreCommon.fs.sfmi.driverStatus = {...Constants.emptyDriverStatusEnabled}
 })
 const storeOthersReset = produce(storeCommon, draftStore => {
-  // @ts-ignore
   draftStore.fs.tlfs.private.set(
     'others,reset',
     Constants.makeTlf({

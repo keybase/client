@@ -988,11 +988,6 @@ func (f *JSONConfigFile) GetForceSecretStoreFile() (bool, bool) {
 	return f.GetBoolAtPath("force_less_safe_secret_store_file")
 }
 
-func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
-	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
-	return s
-}
-
 func (f *JSONConfigFile) GetRuntimeStatsEnabled() (bool, bool) {
 	return f.GetBoolAtPath("runtime_stats_enabled")
 }

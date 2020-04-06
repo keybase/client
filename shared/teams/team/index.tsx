@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as BotsGen from '../../actions/bots-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -23,6 +22,7 @@ import {
   useSubteamsSections,
   useChannelsSections,
   Section,
+  useEmojiSections,
 } from './rows'
 
 type Props = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.TabKey}>
@@ -83,7 +83,6 @@ const Team = (props: Props) => {
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const dispatch = Container.useDispatch()
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
 
   Container.useFocusEffect(
     React.useCallback(() => {
@@ -117,6 +116,7 @@ const Team = (props: Props) => {
   const invitesSections = useInvitesSections(teamID, teamDetails)
   const channelsSections = useChannelsSections(teamID, yourOperations, selectedTab === 'channels')
   const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations)
+  const emojiSections = useEmojiSections(teamID, selectedTab === 'emoji')
 
   switch (selectedTab) {
     case 'members':
@@ -139,6 +139,9 @@ const Team = (props: Props) => {
       break
     case 'subteams':
       sections.push(...subteamsSections)
+      break
+    case 'emoji':
+      sections.push(...emojiSections)
       break
   }
 
@@ -181,11 +184,6 @@ const Team = (props: Props) => {
   )
 
   return body
-  // if (flags.teamsRedesign) {
-  // return body
-  // } else {
-  // return <Kb.HeaderHocWrapper onBack={onBack}>{body}</Kb.HeaderHocWrapper>
-  // }
 }
 
 const newNavigationOptions = () => ({

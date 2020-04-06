@@ -21,6 +21,7 @@ export const makeInitialState = (): Types.State => ({
   searchShowingSuggestions: false,
   username: '',
   usernameValid: true,
+  wotAuthor: makeWotAuthor(),
 })
 
 export const makeProveGenericParams = (): Types.ProveGenericParams => ({
@@ -40,6 +41,11 @@ export const toProveGenericParams = (p: RPCGen.ProveParameters): Types.ProveGene
   subtext: p.subtext,
   suffix: p.suffix,
   title: p.title,
+})
+
+export const makeWotAuthor = (): Types.WotAuthor => ({
+  error: '',
+  initialVerificationType: 'in_person',
 })
 
 export const waitingKey = 'profile:waiting'

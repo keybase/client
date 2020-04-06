@@ -831,3 +831,45 @@ func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UI
 	convID chat1.ConversationID, mode EmojiHarvestMode) (res []chat1.HarvestedEmoji, err error) {
 	return res, err
 }
+
+func (DummyEmojiSource) IsStockEmoji(alias string) bool { return true }
+
+func (DummyEmojiSource) RemoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource, noAnim bool) (res chat1.EmojiLoadSource, err error) {
+	return res, nil
+}
+
+type ClearOpts struct {
+	SendLocalAdminNotification bool
+	Reason                     string
+}
+
+type DummyEphemeralTracker struct{}
+
+var _ EphemeralTracker = (*DummyEphemeralTracker)(nil)
+
+func (d DummyEphemeralTracker) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyEphemeralTracker) Stop(ctx context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+func (d DummyEphemeralTracker) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) ([]chat1.EphemeralPurgeInfo, error) {
+	return nil, nil
+}
+func (d DummyEphemeralTracker) GetPurgeInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.EphemeralPurgeInfo, error) {
+	return chat1.EphemeralPurgeInfo{}, nil
+}
+func (d DummyEphemeralTracker) InactivatePurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
+	return nil
+}
+func (d DummyEphemeralTracker) SetPurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) error {
+	return nil
+}
+func (d DummyEphemeralTracker) MaybeUpdatePurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) error {
+	return nil
+}
+func (d DummyEphemeralTracker) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
+	return nil
+}
+func (d DummyEphemeralTracker) OnDbNuke(mctx libkb.MetaContext) error { return nil }
+func (d DummyEphemeralTracker) OnLogout(mctx libkb.MetaContext) error { return nil }

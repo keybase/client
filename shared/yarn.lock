@@ -11073,6 +11073,11 @@ react-native-gesture-handler@1.6.1:
     invariant "^2.2.4"
     prop-types "^15.7.2"
 
+react-native-hw-keyboard-event@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/react-native-hw-keyboard-event/-/react-native-hw-keyboard-event-0.0.4.tgz#e8e7d3be78cf61bac0144066f734cdd48df88d2f"
+  integrity sha512-G8qp0nm17PHigLb/axgdF9xg51BKCG2p1AGeq//J/luLp5zNczIcQJh+nm02R1MeEUE3e53wqO4LMe0MV3raZg==
+
 react-native-iphone-x-helper@1.2.1, react-native-iphone-x-helper@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.2.1.tgz#645e2ffbbb49e80844bb4cbbe34a126fda1e6772"

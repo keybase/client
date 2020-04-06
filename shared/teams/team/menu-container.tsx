@@ -54,12 +54,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamID}: OwnProp
         path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}],
       })
     ),
-  onManageChat: () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID}, selected: 'chatManageChannels'}],
-      })
-    ),
+  onManageChat: () => dispatch(TeamsGen.createManageChatChannels({teamID})),
   onOpenFolder: (teamname: string) =>
     dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
 })

@@ -7,16 +7,12 @@ import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import invert from 'lodash/invert'
 import {Props, IconType} from './icon'
 
-class Icon extends React.PureComponent<Props, void> {
-  static defaultProps = {
-    sizeType: 'Default',
-  }
-
-  render() {
-    let color = Shared.defaultColor(this.props.type)
-    let hoverColor = Shared.defaultHoverColor(this.props.type)
-    const iconType = Shared.typeToIconMapper(this.props.type)
-
+const Icon = React.memo<Props>(
+  // @ts-ignore
+  React.forwardRef<HTMLDivElement | HTMLImageElement, Props>((props, ref) => {
+    const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
+    const {className, hint, colorOverride, padding, boxStyle} = props
+    const iconType = Shared.typeToIconMapper(type)
     if (!iconType) {
       logger.warn('Null iconType passed')
       return null
@@ -27,40 +23,39 @@ class Icon extends React.PureComponent<Props, void> {
       throw new Error('Unknown icontype passed ' + iconType)
     }
 
-    if (this.props.inheritColor) {
+    const sizeType = props.sizeType ?? 'Default'
+    const onClick = props.onClick
+      ? (e: React.BaseSyntheticEvent) => {
+          e.stopPropagation()
+          props.onClick?.(e)
+        }
+      : undefined
+
+    let color = Shared.defaultColor(type)
+    let hoverColor = Shared.defaultHoverColor(type)
+
+    if (inheritColor) {
       color = 'inherit'
       hoverColor = 'inherit'
     } else {
-      color =
-        this.props.color ||
-        color ||
-        (this.props.opacity ? Styles.globalColors.greyLight : Styles.globalColors.black_50)
+      color = props.color || color || (opacity ? Styles.globalColors.greyLight : Styles.globalColors.black_50)
       hoverColor =
-        this.props.hoverColor ||
-        hoverColor ||
-        (this.props.opacity ? Styles.globalColors.black : Styles.globalColors.black)
+        props.hoverColor || hoverColor || (opacity ? Styles.globalColors.black : Styles.globalColors.black)
     }
 
     const isFontIcon = iconMeta[iconType].isFont
     let fontSizeHint: undefined | {fontSize: number}
     // explicit
-    if (this.props.fontSize) {
-      fontSizeHint = {fontSize: this.props.fontSize}
-    } else if (this.props.sizeType) {
-      fontSizeHint = {fontSize: Shared.typeToFontSize(this.props.sizeType)}
+    if (fontSize) {
+      fontSizeHint = {fontSize: fontSize}
+    } else if (sizeType) {
+      fontSizeHint = {fontSize: Shared.typeToFontSize(sizeType)}
     }
     // in style sheet, so don't apply
     if (fontSizeHint && fontSizeHint.fontSize === 16) {
       fontSizeHint = undefined
     }
-    const onClick = this.props.onClick
-      ? (e: React.BaseSyntheticEvent) => {
-          e.stopPropagation()
-          this.props.onClick && this.props.onClick(e)
-        }
-      : null
-
-    const hasContainer = !this.props.noContainer && ((this.props.onClick && this.props.style) || isFontIcon)
+    const hasContainer = !noContainer && ((onClick && style) || isFontIcon)
 
     let iconElement: React.ReactNode = null
 
@@ -70,16 +65,17 @@ class Icon extends React.PureComponent<Props, void> {
     } else {
       const imgStyle = Styles.collapseStyles([
         Styles.desktopStyles.noSelect,
-        !hasContainer ? this.props.style : {},
+        !hasContainer ? style : {},
         onClick ? Styles.desktopStyles.clickable : {},
-        this.props.color ? {color: color} : {},
+        props.color ? {color: color} : {},
       ])
 
       iconElement = (
         <img
-          className={this.props.className}
+          className={className}
           draggable={false}
-          title={this.props.hint}
+          ref={hasContainer ? undefined : (ref as any)}
+          title={hint}
           style={imgStyle}
           onClick={onClick || undefined}
           srcSet={iconTypeToSrcSet(iconType)}
@@ -93,7 +89,7 @@ class Icon extends React.PureComponent<Props, void> {
       let inheritStyle: undefined | {color: string; hoverColor: string}
 
       // TODO get rid of this concept
-      if (this.props.inheritColor) {
+      if (props.inheritColor) {
         inheritStyle = {
           color: 'inherit',
           hoverColor: 'inherit',
@@ -101,7 +97,7 @@ class Icon extends React.PureComponent<Props, void> {
       } else {
         // invert the colors here so it reflects the colors in current theme
         const invertedColors = invert(Styles.globalColors)
-        const hoverColorName = this.props.onClick ? invertedColors[hoverColor] : null
+        const hoverColorName = onClick ? invertedColors[hoverColor] : null
         hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
         const colorName = invertedColors[color]
         if (colorName) {
@@ -109,28 +105,29 @@ class Icon extends React.PureComponent<Props, void> {
         }
       }
 
-      const style = Styles.collapseStyles([
+      const mergedStyle = Styles.collapseStyles([
         fontSizeHint,
         onClick && Styles.desktopStyles.clickable,
         inheritStyle,
-        this.props.colorOverride && {color: this.props.colorOverride},
-        this.props.style,
+        colorOverride && {color: colorOverride},
+        style,
       ])
 
       return (
         <div
+          ref={ref}
           style={Styles.collapseStyles([
             // This breaks a couple existing uses. So only apply it when padding
             // is provided for now. Eventually after we know all uses are fine,
             // we can remove the padding guard.
-            this.props.padding && styles.flex,
-            this.props.boxStyle,
+            padding && styles.flex,
+            boxStyle,
           ])}
         >
           <span
             style={Styles.collapseStyles([
-              style,
-              this.props.padding && Shared.paddingStyles[this.props.padding],
+              mergedStyle,
+              padding && Shared.paddingStyles[padding],
               typeof colorStyleName !== 'string' ? {color} : null, // For colors that are not in Styles.globalColors
             ])}
             className={Styles.classNames(
@@ -138,10 +135,10 @@ class Icon extends React.PureComponent<Props, void> {
               colorStyleName,
               hoverStyleName,
               `icon-gen-${iconType}`,
-              this.props.className
+              className
             )}
-            onMouseEnter={this.props.onMouseEnter || undefined}
-            onMouseLeave={this.props.onMouseLeave || undefined}
+            onMouseEnter={onMouseEnter || undefined}
+            onMouseLeave={onMouseLeave || undefined}
             onClick={onClick || undefined}
           >
             {iconElement}
@@ -151,8 +148,8 @@ class Icon extends React.PureComponent<Props, void> {
     } else {
       return iconElement
     }
-  }
-}
+  })
+)
 
 const imgName = (
   name: string,

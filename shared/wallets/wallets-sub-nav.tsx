@@ -1,4 +1,5 @@
 import * as Kb from '../common-adapters'
+import {LeftAction} from '../common-adapters/header-hoc'
 import * as React from 'react'
 import {
   NavigationViewProps,
@@ -63,6 +64,21 @@ class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
     return {
       header: undefined,
       headerExpandable: true,
+      headerLeft: Container.isTablet
+        ? hp => {
+            // establish if we have anything on the subnav stack, if so allow a pop
+            const subNav = hp.scene.route?.index === 1
+            const subNavDepth = subNav && (hp.scene.route.routes[1]?.index ?? 0) > 0
+            return subNavDepth ? (
+              <LeftAction
+                badgeNumber={0}
+                leftAction="back"
+                onLeftAction={navigation.pop}
+                customIconColor={hp.tintColor}
+              />
+            ) : null
+          }
+        : undefined,
       // index 0 means we're on the onboarding page, so hide the header
       headerMode: navigation.state.index === 0 ? 'none' : undefined,
       headerRightActions: require('./nav-header/container').HeaderRightActions,

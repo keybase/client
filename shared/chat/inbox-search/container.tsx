@@ -4,6 +4,7 @@ import * as Types from '../../constants/types/chat2'
 import * as Constants from '../../constants/chat2'
 import {namedConnect} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import InboxSearch from '.'
 
 type OwnProps = {
@@ -16,6 +17,12 @@ export default namedConnect(
   state => ({_inboxSearch: state.chat2.inboxSearch ?? emptySearch}),
   dispatch => ({
     onCancel: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
+    onInstallBot: (username: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {botUsername: username, navToChat: false}, selected: 'chatInstallBotPick'}],
+        })
+      ),
     onSelectConversation: (
       conversationIDKey: Types.ConversationIDKey,
       selectedIndex: number,
@@ -33,10 +40,14 @@ export default namedConnect(
     const {header} = ownProps
     const {_inboxSearch} = stateProps
     const {indexPercent, nameResults, nameResultsUnread, nameStatus, textStatus} = _inboxSearch
+    const {botsResults, botsResultsSuggested, botsStatus} = _inboxSearch
     const {openTeamsResults, openTeamsResultsSuggested, openTeamsStatus} = _inboxSearch
     const {query, selectedIndex, textResults} = _inboxSearch
-    const {onCancel, onSelectConversation} = dispatchProps
+    const {onCancel, onInstallBot, onSelectConversation} = dispatchProps
     return {
+      botsResults,
+      botsResultsSuggested,
+      botsStatus,
       header,
       indexPercent,
       nameResults: nameResults.map(r => ({
@@ -47,6 +58,7 @@ export default namedConnect(
       nameResultsUnread,
       nameStatus,
       onCancel,
+      onInstallBot,
       onSelectConversation,
       openTeamsResults,
       openTeamsResultsSuggested,

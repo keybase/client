@@ -87,10 +87,7 @@ const Timeline = ({device}) => {
 
 const DevicePage = (props: Props) => {
   const device = Container.useSelector(state => Constants.getDevice(state, props.id))
-  const canRevoke = Container.useSelector(state => {
-    const {numActive} = Constants.getDeviceCounts(state)
-    return numActive > 1
-  })
+  const canRevoke = Container.useSelector(state => Constants.getDeviceCounts(state).numActive > 1)
   const dispatch = Container.useDispatch()
   const showRevokeDevicePage = React.useCallback(
     () => dispatch(DevicesGen.createShowRevokePage({deviceID: props.id})),
@@ -123,30 +120,31 @@ const DevicePage = (props: Props) => {
   }[device.type]
 
   return (
-    <Kb.HeaderHocWrapper onBack={props.onBack}>
-      <Kb.Box2
-        alignItems="center"
-        direction="vertical"
-        gap="medium"
-        gapStart={true}
-        gapEnd={true}
-        fullWidth={true}
-        fullHeight={true}
-      >
-        <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
-        <Timeline device={device} />
-        {!device.revokedAt && (
-          <Kb.Button
-            disabled={!canRevoke}
-            type="Danger"
-            label={`Revoke this ${revokeName}`}
-            onClick={showRevokeDevicePage}
-          />
-        )}
-        {!canRevoke && <Kb.Text type="BodySmall">You can't revoke your last device.</Kb.Text>}
-      </Kb.Box2>
-    </Kb.HeaderHocWrapper>
+    <Kb.Box2
+      alignItems="center"
+      direction="vertical"
+      gap="medium"
+      gapStart={true}
+      gapEnd={true}
+      fullWidth={true}
+      fullHeight={true}
+    >
+      <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
+      <Timeline device={device} />
+      {!device.revokedAt && (
+        <Kb.Button
+          disabled={!canRevoke}
+          type="Danger"
+          label={`Revoke this ${revokeName}`}
+          onClick={showRevokeDevicePage}
+        />
+      )}
+      {!canRevoke && <Kb.Text type="BodySmall">You can't revoke your last device.</Kb.Text>}
+    </Kb.Box2>
   )
+}
+DevicePage.navigationOptions = {
+  header: undefined,
 }
 
 const styles = Styles.styleSheetCreate(

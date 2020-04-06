@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/chat2'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
@@ -13,6 +14,7 @@ import {TeamAvatar} from '../avatars'
 import Rover from './background'
 import TeamInfo from '../../profile/user/teams/teaminfo'
 import {Section as _Section} from '../../common-adapters/section-list'
+import {Bot} from '../conversation/info-panel/bot'
 
 type NameResult = {
   conversationIDKey: Types.ConversationIDKey
@@ -39,11 +41,15 @@ type SectionExtra<T> = {
 type Section<T> = _Section<T, SectionExtra<T>>
 
 export type Props = {
+  botsResults: Array<RPCTypes.FeaturedBot>
+  botsResultsSuggested: boolean
+  botsStatus: Types.InboxSearchStatus
   header?: React.ReactElement | null
   indexPercent: number
   nameResults: Array<NameResult>
   nameResultsUnread: boolean
   nameStatus: Types.InboxSearchStatus
+  onInstallBot: (username: string) => void
   onCancel: () => void
   onSelectConversation: (arg0: Types.ConversationIDKey, arg1: number, arg2: string) => void
   openTeamsResults: Array<Types.InboxSearchOpenTeamHit>
@@ -56,6 +62,8 @@ export type Props = {
 }
 
 type State = {
+  botsAll: boolean
+  botsCollapsed: boolean
   nameCollapsed: boolean
   textCollapsed: boolean
   openTeamsAll: boolean
@@ -65,7 +73,14 @@ type State = {
 const emptyUnreadPlaceholder = {conversationIDKey: '', name: '---EMPTYRESULT---', type: 'small' as const}
 
 class InboxSearch extends React.Component<Props, State> {
-  state = {nameCollapsed: false, openTeamsAll: false, openTeamsCollapsed: false, textCollapsed: false}
+  state = {
+    botsAll: false,
+    botsCollapsed: false,
+    nameCollapsed: false,
+    openTeamsAll: false,
+    openTeamsCollapsed: false,
+    textCollapsed: false,
+  }
 
   private renderOpenTeams = (h: {
     item: Types.InboxSearchOpenTeamHit
@@ -85,6 +100,15 @@ class InboxSearch extends React.Component<Props, State> {
         isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
       />
     )
+  }
+
+  private renderBots = (h: {
+    item: RPCTypes.FeaturedBot
+    section: {indexOffset: number; onSelect: any}
+    index: number
+  }) => {
+    const {item, index} = h
+    return <Bot {...item} onClick={this.props.onInstallBot} firstItem={index === 0} />
   }
 
   private renderHit = (h: {
@@ -135,12 +159,21 @@ class InboxSearch extends React.Component<Props, State> {
   private toggleOpenTeamsAll = () => {
     this.setState(s => ({openTeamsAll: !s.openTeamsAll}))
   }
+  private toggleCollapseBots = () => {
+    this.setState(s => ({botsCollapsed: !s.botsCollapsed}))
+  }
+  private toggleBotsAll = () => {
+    this.setState(s => ({botsAll: !s.botsAll}))
+  }
   private selectName = (item: NameResult, index: number) => {
     this.props.onSelectConversation(item.conversationIDKey, index, '')
     this.props.onCancel()
   }
   private selectText = (item: TextResult, index: number) => {
     this.props.onSelectConversation(item.conversationIDKey, index, item.query)
+  }
+  private selectBot = (item: RPCTypes.FeaturedBot) => {
+    this.props.onInstallBot(item.botUsername)
   }
   private renderNameHeader = (section: any) => {
     return (
@@ -170,6 +203,37 @@ class InboxSearch extends React.Component<Props, State> {
             type="BodySmallSecondaryLink"
           >
             {!this.state.openTeamsAll ? '(more)' : '(less)'}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+    )
+    return (
+      <Kb.SectionDivider
+        collapsed={section.isCollapsed}
+        label={label}
+        onToggleCollapsed={section.onCollapse}
+        showSpinner={section.status === 'inprogress'}
+      />
+    )
+  }
+
+  private getBotsResults = () => {
+    return this.state.botsAll ? this.props.botsResults : this.props.botsResults.slice(0, 3)
+  }
+  private renderBotsHeader = (section: any) => {
+    const showMore = this.props.botsResults.length > 3 && !this.state.botsCollapsed
+    const label = (
+      <Kb.Box2 direction="horizontal" gap="xtiny">
+        <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
+        {showMore && (
+          <Kb.Text
+            onClick={(e: React.BaseSyntheticEvent) => {
+              e.stopPropagation()
+              this.toggleBotsAll()
+            }}
+            type="BodySmallSecondaryLink"
+          >
+            {!this.state.botsAll ? '(more)' : '(less)'}
           </Kb.Text>
         )}
       </Kb.Box2>
@@ -222,14 +286,18 @@ class InboxSearch extends React.Component<Props, State> {
   private renderSectionHeader = ({section}: any) => {
     return section.renderHeader(section)
   }
-  private keyExtractor = (_: Types.InboxSearchOpenTeamHit | NameResult | TextResult, index: number) => index
+  private keyExtractor = (
+    _: RPCTypes.FeaturedBot | Types.InboxSearchOpenTeamHit | NameResult | TextResult,
+    index: number
+  ) => index
 
   render() {
     const nameResults: Array<NameResult> = this.state.nameCollapsed ? [] : this.props.nameResults
     const textResults = this.state.textCollapsed ? [] : this.props.textResults
     const openTeamsResults = this.state.openTeamsCollapsed ? [] : this.getOpenTeamsResults()
+    const botsResults = this.state.botsCollapsed ? [] : this.getBotsResults()
 
-    const indexOffset = openTeamsResults.length + nameResults.length
+    const indexOffset = botsResults.length + openTeamsResults.length + nameResults.length
 
     if (this.props.nameResultsUnread && !this.state.nameCollapsed && nameResults.length === 0) {
       nameResults.push(emptyUnreadPlaceholder)
@@ -258,6 +326,17 @@ class InboxSearch extends React.Component<Props, State> {
       status: this.props.openTeamsStatus,
       title: this.props.openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
     }
+    const botsSection: Section<RPCTypes.FeaturedBot> = {
+      data: botsResults,
+      indexOffset: openTeamsResults.length + nameResults.length,
+      isCollapsed: this.state.botsCollapsed,
+      onCollapse: this.toggleCollapseBots,
+      onSelect: this.selectBot,
+      renderHeader: this.renderBotsHeader,
+      renderItem: this.renderBots,
+      status: this.props.botsStatus,
+      title: this.props.botsResultsSuggested ? 'Suggested bots' : 'Featured bots',
+    }
     const messagesSection: Section<TextResult> = {
       data: textResults,
       indexOffset,
@@ -272,13 +351,19 @@ class InboxSearch extends React.Component<Props, State> {
     const sections = [
       nameSection,
       openTeamsSection,
+      botsSection,
       ...(!this.props.nameResultsUnread ? [messagesSection] : []),
     ]
 
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
         <Rover />
-        <Kb.SectionList<Section<NameResult> | Section<Types.InboxSearchOpenTeamHit> | Section<TextResult>>
+        <Kb.SectionList<
+          | Section<NameResult>
+          | Section<Types.InboxSearchOpenTeamHit>
+          | Section<RPCTypes.FeaturedBot>
+          | Section<TextResult>
+        >
           ListHeaderComponent={this.props.header}
           stickySectionHeadersEnabled={true}
           renderSectionHeader={this.renderSectionHeader}

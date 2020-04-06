@@ -799,7 +799,11 @@ func (fbo *folderBranchOps) forceStuckConflictForTesting(
 
 	// Disable updates.
 	unpauseUpdatesCh := make(chan struct{})
-	fbo.updatePauseChan <- unpauseUpdatesCh
+	select {
+	case fbo.updatePauseChan <- unpauseUpdatesCh:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 	defer func() { unpauseUpdatesCh <- struct{}{} }()
 
 	// Make a no-op revision with an empty resolutionOp. Wait for it

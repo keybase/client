@@ -25,6 +25,7 @@ export const chat1ChatUiChatInboxLayout = 'engine-gen:chat1ChatUiChatInboxLayout
 export const chat1ChatUiChatInboxUnverified = 'engine-gen:chat1ChatUiChatInboxUnverified'
 export const chat1ChatUiChatLoadGalleryHit = 'engine-gen:chat1ChatUiChatLoadGalleryHit'
 export const chat1ChatUiChatMaybeMentionUpdate = 'engine-gen:chat1ChatUiChatMaybeMentionUpdate'
+export const chat1ChatUiChatSearchBotHits = 'engine-gen:chat1ChatUiChatSearchBotHits'
 export const chat1ChatUiChatSearchConvHits = 'engine-gen:chat1ChatUiChatSearchConvHits'
 export const chat1ChatUiChatSearchDone = 'engine-gen:chat1ChatUiChatSearchDone'
 export const chat1ChatUiChatSearchHit = 'engine-gen:chat1ChatUiChatSearchHit'
@@ -179,6 +180,10 @@ export const keybase1NotifyTeamTeamDeleted = 'engine-gen:keybase1NotifyTeamTeamD
 export const keybase1NotifyTeamTeamExit = 'engine-gen:keybase1NotifyTeamTeamExit'
 export const keybase1NotifyTeamTeamMetadataUpdate = 'engine-gen:keybase1NotifyTeamTeamMetadataUpdate'
 export const keybase1NotifyTeamTeamRoleMapChanged = 'engine-gen:keybase1NotifyTeamTeamRoleMapChanged'
+export const keybase1NotifyTeamTeamTreeMembershipsDone =
+  'engine-gen:keybase1NotifyTeamTeamTreeMembershipsDone'
+export const keybase1NotifyTeamTeamTreeMembershipsPartial =
+  'engine-gen:keybase1NotifyTeamTeamTreeMembershipsPartial'
 export const keybase1NotifyTeambotNewTeambotKey = 'engine-gen:keybase1NotifyTeambotNewTeambotKey'
 export const keybase1NotifyTeambotTeambotKeyNeeded = 'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded'
 export const keybase1NotifyTrackingNotifyUserBlocked = 'engine-gen:keybase1NotifyTrackingNotifyUserBlocked'
@@ -388,6 +393,13 @@ type _Chat1ChatUiChatMaybeMentionUpdatePayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatSearchBotHitsPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam'] & {sessionID: number}
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchBotHits']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatSearchConvHitsPayload = {
@@ -1510,6 +1522,28 @@ type _Keybase1NotifyTeamTeamRoleMapChangedPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['outParam']) => void
   }
 }
+type _Keybase1NotifyTeamTeamTreeMembershipsDonePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsDone']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsDone']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifyTeamTeamTreeMembershipsPartialPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsPartial']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsPartial']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyTeambotNewTeambotKeyPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeambot.newTeambotKey']['inParam'] & {
     sessionID: number
@@ -2033,6 +2067,9 @@ export const createChat1ChatUiChatLoadGalleryHit = (
 export const createChat1ChatUiChatMaybeMentionUpdate = (
   payload: _Chat1ChatUiChatMaybeMentionUpdatePayload
 ): Chat1ChatUiChatMaybeMentionUpdatePayload => ({payload, type: chat1ChatUiChatMaybeMentionUpdate})
+export const createChat1ChatUiChatSearchBotHits = (
+  payload: _Chat1ChatUiChatSearchBotHitsPayload
+): Chat1ChatUiChatSearchBotHitsPayload => ({payload, type: chat1ChatUiChatSearchBotHits})
 export const createChat1ChatUiChatSearchConvHits = (
   payload: _Chat1ChatUiChatSearchConvHitsPayload
 ): Chat1ChatUiChatSearchConvHitsPayload => ({payload, type: chat1ChatUiChatSearchConvHits})
@@ -2541,6 +2578,18 @@ export const createKeybase1NotifyTeamTeamMetadataUpdate = (
 export const createKeybase1NotifyTeamTeamRoleMapChanged = (
   payload: _Keybase1NotifyTeamTeamRoleMapChangedPayload
 ): Keybase1NotifyTeamTeamRoleMapChangedPayload => ({payload, type: keybase1NotifyTeamTeamRoleMapChanged})
+export const createKeybase1NotifyTeamTeamTreeMembershipsDone = (
+  payload: _Keybase1NotifyTeamTeamTreeMembershipsDonePayload
+): Keybase1NotifyTeamTeamTreeMembershipsDonePayload => ({
+  payload,
+  type: keybase1NotifyTeamTeamTreeMembershipsDone,
+})
+export const createKeybase1NotifyTeamTeamTreeMembershipsPartial = (
+  payload: _Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
+): Keybase1NotifyTeamTeamTreeMembershipsPartialPayload => ({
+  payload,
+  type: keybase1NotifyTeamTeamTreeMembershipsPartial,
+})
 export const createKeybase1NotifyTeambotNewTeambotKey = (
   payload: _Keybase1NotifyTeambotNewTeambotKeyPayload
 ): Keybase1NotifyTeambotNewTeambotKeyPayload => ({payload, type: keybase1NotifyTeambotNewTeambotKey})
@@ -2811,6 +2860,10 @@ export type Chat1ChatUiChatLoadGalleryHitPayload = {
 export type Chat1ChatUiChatMaybeMentionUpdatePayload = {
   readonly payload: _Chat1ChatUiChatMaybeMentionUpdatePayload
   readonly type: typeof chat1ChatUiChatMaybeMentionUpdate
+}
+export type Chat1ChatUiChatSearchBotHitsPayload = {
+  readonly payload: _Chat1ChatUiChatSearchBotHitsPayload
+  readonly type: typeof chat1ChatUiChatSearchBotHits
 }
 export type Chat1ChatUiChatSearchConvHitsPayload = {
   readonly payload: _Chat1ChatUiChatSearchConvHitsPayload
@@ -3358,6 +3411,14 @@ export type Keybase1NotifyTeamTeamRoleMapChangedPayload = {
   readonly payload: _Keybase1NotifyTeamTeamRoleMapChangedPayload
   readonly type: typeof keybase1NotifyTeamTeamRoleMapChanged
 }
+export type Keybase1NotifyTeamTeamTreeMembershipsDonePayload = {
+  readonly payload: _Keybase1NotifyTeamTeamTreeMembershipsDonePayload
+  readonly type: typeof keybase1NotifyTeamTeamTreeMembershipsDone
+}
+export type Keybase1NotifyTeamTeamTreeMembershipsPartialPayload = {
+  readonly payload: _Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
+  readonly type: typeof keybase1NotifyTeamTeamTreeMembershipsPartial
+}
 export type Keybase1NotifyTeambotNewTeambotKeyPayload = {
   readonly payload: _Keybase1NotifyTeambotNewTeambotKeyPayload
   readonly type: typeof keybase1NotifyTeambotNewTeambotKey
@@ -3607,6 +3668,7 @@ export type Actions =
   | Chat1ChatUiChatInboxUnverifiedPayload
   | Chat1ChatUiChatLoadGalleryHitPayload
   | Chat1ChatUiChatMaybeMentionUpdatePayload
+  | Chat1ChatUiChatSearchBotHitsPayload
   | Chat1ChatUiChatSearchConvHitsPayload
   | Chat1ChatUiChatSearchDonePayload
   | Chat1ChatUiChatSearchHitPayload
@@ -3745,6 +3807,8 @@ export type Actions =
   | Keybase1NotifyTeamTeamExitPayload
   | Keybase1NotifyTeamTeamMetadataUpdatePayload
   | Keybase1NotifyTeamTeamRoleMapChangedPayload
+  | Keybase1NotifyTeamTeamTreeMembershipsDonePayload
+  | Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
   | Keybase1NotifyTeambotNewTeambotKeyPayload
   | Keybase1NotifyTeambotTeambotKeyNeededPayload
   | Keybase1NotifyTrackingNotifyUserBlockedPayload

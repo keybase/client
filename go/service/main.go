@@ -423,6 +423,7 @@ func (d *Service) startChatModules() {
 		g.ConvLoader.Start(context.Background(), uid)
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
+		g.EphemeralTracker.Start(context.Background(), uid)
 		g.InboxSource.Start(context.Background(), uid)
 		g.Indexer.Start(globals.ChatCtx(context.Background(), g,
 			keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil), uid)
@@ -442,6 +443,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) error {
 	<-d.ChatG().ConvLoader.Stop(m.Ctx())
 	<-d.ChatG().FetchRetrier.Stop(m.Ctx())
 	<-d.ChatG().EphemeralPurger.Stop(m.Ctx())
+	<-d.ChatG().EphemeralTracker.Stop(m.Ctx())
 	<-d.ChatG().InboxSource.Stop(m.Ctx())
 	<-d.ChatG().Indexer.Stop(m.Ctx())
 	<-d.ChatG().CoinFlipManager.Stop(m.Ctx())
@@ -468,10 +470,12 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	inboxSource := chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.InboxSource = inboxSource
 	d.badger.SetLocalChatState(inboxSource)
+
 	chatStorage := storage.New(g, nil)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
+
 	g.RegexpSearcher = search.NewRegexpSearcher(g)
 	g.Indexer = search.NewIndexer(g)
 	g.AddDbNukeHook(g.Indexer, "Indexer")
@@ -482,7 +486,10 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.Syncer = chatSyncer
 	g.FetchRetrier = chat.NewFetchRetrier(g)
 	g.ConvLoader = chat.NewBackgroundConvLoader(g)
-	g.EphemeralPurger = chat.NewBackgroundEphemeralPurger(g, chatStorage)
+	g.EphemeralPurger = chat.NewBackgroundEphemeralPurger(g)
+	g.EphemeralTracker = chat.NewEphemeralTracker(g)
+	g.AddLogoutHook(g.EphemeralTracker, "EphemeralTracker")
+	g.AddDbNukeHook(g.EphemeralTracker, "EphemeralTracker")
 	g.ActivityNotifier = chat.NewNotifyRouterActivityRouter(g)
 
 	// Set up push handler with the badger

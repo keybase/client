@@ -1074,6 +1074,24 @@ func (e OfflineAvailability) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
+type UserReacji struct {
+	Name       string  `codec:"name" json:"name"`
+	CustomAddr *string `codec:"customAddr,omitempty" json:"customAddr,omitempty"`
+}
+
+func (o UserReacji) DeepCopy() UserReacji {
+	return UserReacji{
+		Name: o.Name,
+		CustomAddr: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.CustomAddr),
+	}
+}
+
 type ReacjiSkinTone int
 
 func (o ReacjiSkinTone) DeepCopy() ReacjiSkinTone {
@@ -1081,19 +1099,19 @@ func (o ReacjiSkinTone) DeepCopy() ReacjiSkinTone {
 }
 
 type UserReacjis struct {
-	TopReacjis []string       `codec:"topReacjis" json:"topReacjis"`
+	TopReacjis []UserReacji   `codec:"topReacjis" json:"topReacjis"`
 	SkinTone   ReacjiSkinTone `codec:"skinTone" json:"skinTone"`
 }
 
 func (o UserReacjis) DeepCopy() UserReacjis {
 	return UserReacjis{
-		TopReacjis: (func(x []string) []string {
+		TopReacjis: (func(x []UserReacji) []UserReacji {
 			if x == nil {
 				return nil
 			}
-			ret := make([]string, len(x))
+			ret := make([]UserReacji, len(x))
 			for i, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
@@ -1135,6 +1153,16 @@ func (e WotStatusType) String() string {
 		return v
 	}
 	return fmt.Sprintf("%v", int(e))
+}
+
+type GenericError struct {
+	Message string `codec:"message" json:"message"`
+}
+
+func (o GenericError) DeepCopy() GenericError {
+	return GenericError{
+		Message: o.Message,
+	}
 }
 
 type CommonInterface interface {

@@ -15,6 +15,7 @@ import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
+import {_getNavigator} from '../../constants/router2'
 
 const {resolve} = KB.path
 const {argv, env, pid} = KB.process
@@ -417,6 +418,30 @@ export const requestAudioPermission = () => Promise.resolve()
 export const clearWatchPosition = () => {}
 export const watchPositionForMap = () => Promise.resolve(0)
 
+function* checkNav(
+  _state: Container.TypedState,
+  action: ConfigGen.DaemonHandshakePayload,
+  logger: Saga.SagaLogger
+) {
+  // have one
+  if (_getNavigator()) {
+    return
+  }
+
+  const name = 'desktopNav'
+  const {version} = action.payload
+
+  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
+  while (true) {
+    logger.info('Waiting on nav')
+    yield Saga.take(ConfigGen.setNavigator)
+    if (_getNavigator()) {
+      break
+    }
+  }
+  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
+}
+
 export function* platformConfigSaga() {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
   yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
@@ -441,6 +466,7 @@ export function* platformConfigSaga() {
   if (isWindows) {
     yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)
   }
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkNav)
 
   yield Saga.spawn(initializeUseNativeFrame)
   yield Saga.spawn(initializeNotifySound)

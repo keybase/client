@@ -464,6 +464,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.UIThreadLoader = NewUIThreadLoader(g, func() chat1.RemoteInterface { return ri })
 	g.ParticipantsSource = NewCachingParticipantSource(g, func() chat1.RemoteInterface { return ri })
 	g.EmojiSource = NewDevConvEmojiSource(g, func() chat1.RemoteInterface { return ri })
+	g.EphemeralTracker = NewEphemeralTracker(g)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -1731,7 +1732,7 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 		// make evil hello evil
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
-		require.NoError(t, tc.Context().ConvSource.Clear(context.TODO(), created.Id, uid))
+		require.NoError(t, tc.Context().ConvSource.Clear(context.TODO(), created.Id, uid, nil))
 
 		ri := ctc.as(t, users[0]).ri
 		sabRemote := messageSabotagerRemote{RemoteInterface: ri}
@@ -3210,7 +3211,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		consumeNewMsgRemote(t, listener, chat1.MessageType_EDIT)
 
 		msgIDs := []chat1.MessageID{editMsgID1, msgID1, 1}
-		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
+		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid, nil))
 		tc := ctc.world.Tcs[users[0].Username]
 		rconv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
 			types.InboxSourceDataSourceAll)
@@ -3277,7 +3278,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		deleteMsgID := mustDeleteMsg(ctx, t, ctc, users[0], conv, msgID1)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_DELETE)
 		msgIDs = []chat1.MessageID{deleteMsgID, editMsgID1, msgID1, 1}
-		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
+		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid, nil))
 
 		err = cs.PushUnboxed(ctx, rconv, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
@@ -3363,7 +3364,7 @@ func TestChatSrvGetUnreadLine(t *testing.T) {
 			readMsgID, unreadLineID chat1.MessageID) {
 			for i := 0; i < 1; i++ {
 				if i == 0 {
-					require.NoError(t, g.ConvSource.Clear(ctx, conv.Id, user.GetUID().ToBytes()))
+					require.NoError(t, g.ConvSource.Clear(ctx, conv.Id, user.GetUID().ToBytes(), nil))
 				}
 				res, err := ctc.as(t, user).chatLocalHandler().GetUnreadline(ctx,
 					chat1.GetUnreadlineArg{
@@ -3541,7 +3542,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		msg3 := msgRes.Messages[0]
 		msgIDs := []chat1.MessageID{msgID3, editMsgID2, msgID2, editMsgID1, msgID1, 1}
 
-		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
+		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid, nil))
 
 		tc := ctc.world.Tcs[users[0].Username]
 		rconv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
@@ -3647,7 +3648,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		msg1 := msgRes.Messages[0]
 		msgIDs := []chat1.MessageID{msgID2, msgID1, 1}
 
-		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
+		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid, nil))
 		rconv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
 			types.InboxSourceDataSourceAll)
 		require.NoError(t, err)
@@ -3862,7 +3863,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
 		require.NoError(t,
-			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
+			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid, nil))
 		g := ctc.world.Tcs[users[0].Username].ChatG
 		ri := ctc.as(t, users[0]).ri
 		g.UIThreadLoader.(*UIThreadLoader).SetRemoteInterface(func() chat1.RemoteInterface {
@@ -4029,7 +4030,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 			return chat1.RemoteClient{Cli: errorClient{}}
 		})
 		require.NoError(t,
-			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
+			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid, nil))
 		ri := ctc.as(t, users[0]).ri
 
 		_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
@@ -7311,7 +7312,7 @@ func TestReacjiStore(t *testing.T) {
 
 		expectedData := storage.NewReacjiInternalStorage()
 		for _, el := range storage.DefaultTopReacjis {
-			expectedData.FrequencyMap[el] = 0
+			expectedData.FrequencyMap[el.Name] = 0
 		}
 		conv := mustCreateConversationForTest(t, ctc, user, chat1.TopicType_CHAT, mt)
 		// if the user has no history we return the default list
@@ -7321,30 +7322,32 @@ func TestReacjiStore(t *testing.T) {
 		// post a bunch of reactions, we should end up with these reactions
 		// replacing the defaults sorted alphabetically (since they tie on
 		// being used once each)
-		reactionKeys := []string{
-			":a:",
-			":8ball:",
-			":3rd_place_medal:",
-			":2nd_place_medal:",
-			":1st_place_medal:",
-			":1234:",
-			":100:",
+		reactionKeys := []keybase1.UserReacji{
+			{Name: ":third_place_medal:"},
+			{Name: ":second_place_medal:"},
+			{Name: ":first_place_medal:"},
+			{Name: ":a:"},
+			{Name: ":8ball:"},
+			{Name: ":1234:"},
+			{Name: ":100:"},
 		}
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		textID := mustPostLocalForTest(t, ctc, user, conv, msg)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 		expected := keybase1.UserReacjis{}
 		for i, reaction := range reactionKeys {
-			expectedData.FrequencyMap[reaction]++
-			mustReactToMsg(ctx, t, ctc, user, conv, textID, reaction)
+			expectedData.FrequencyMap[reaction.Name]++
+			mustReactToMsg(ctx, t, ctc, user, conv, textID, reaction.Name)
 			consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
 			info := consumeReactionUpdate(t, listener)
-			expected.TopReacjis = append([]string{reaction}, expected.TopReacjis...)
+			t.Logf("DEBUG: info: %+v", info.UserReacjis)
+			expected.TopReacjis = append([]keybase1.UserReacji{reaction}, expected.TopReacjis...)
 			if i < 5 {
 				// remove defaults as user values are added
-				name := storage.DefaultTopReacjis[len(storage.DefaultTopReacjis)-i-1]
-				delete(expectedData.FrequencyMap, name)
-				expected.TopReacjis = append(expected.TopReacjis, storage.DefaultTopReacjis...)[:len(storage.DefaultTopReacjis)]
+				top := storage.DefaultTopReacjis[len(storage.DefaultTopReacjis)-i-1]
+				delete(expectedData.FrequencyMap, top.Name)
+				expected.TopReacjis = append(expected.TopReacjis,
+					storage.DefaultTopReacjis...)[:len(storage.DefaultTopReacjis)]
 			}
 			assertReacjiStore(info.UserReacjis, expected, expectedData)
 		}

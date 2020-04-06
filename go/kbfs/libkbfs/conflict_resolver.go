@@ -3442,7 +3442,8 @@ func (cr *ConflictResolver) recordFinishResolve(
 		cr.config.SubscriptionManagerPublisher().PublishChange(
 			keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 		cr.config.GetPerfLog().CDebugf(
-			ctx, "Conflict resolution failed too many times for %v", err)
+			ctx, "Conflict resolution failed too many times for %s",
+			cr.fbo.id())
 	}
 }
 

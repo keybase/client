@@ -46,7 +46,7 @@ export const dismissBottomBanner = 'chat2:dismissBottomBanner'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const editBotSettings = 'chat2:editBotSettings'
 export const enableAudioRecording = 'chat2:enableAudioRecording'
-export const fetchUserEmojiForAutocomplete = 'chat2:fetchUserEmojiForAutocomplete'
+export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const findGeneralConvIDFromTeamID = 'chat2:findGeneralConvIDFromTeamID'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
@@ -55,6 +55,7 @@ export const hideConversation = 'chat2:hideConversation'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const inboxSearch = 'chat2:inboxSearch'
+export const inboxSearchBotsResults = 'chat2:inboxSearchBotsResults'
 export const inboxSearchMoveSelectedIndex = 'chat2:inboxSearchMoveSelectedIndex'
 export const inboxSearchNameResults = 'chat2:inboxSearchNameResults'
 export const inboxSearchOpenTeamsResults = 'chat2:inboxSearchOpenTeamsResults'
@@ -72,7 +73,7 @@ export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadNextBotPage = 'chat2:loadNextBotPage'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const loadedMutualTeams = 'chat2:loadedMutualTeams'
-export const loadedUserEmojiForAutocomplete = 'chat2:loadedUserEmojiForAutocomplete'
+export const loadedUserEmoji = 'chat2:loadedUserEmoji'
 export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
@@ -274,7 +275,7 @@ type _ConversationErroredPayload = {
   readonly disallowedUsers: Array<string>
   readonly message: string
 }
-type _CreateConversationPayload = {readonly participants: Array<string>}
+type _CreateConversationPayload = {readonly highlightMessageID?: number; readonly participants: Array<string>}
 type _DeselectedConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -299,7 +300,7 @@ type _EnableAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly meteringCb: (amp: number) => void
 }
-type _FetchUserEmojiForAutocompletePayload = void
+type _FetchUserEmojiPayload = {readonly conversationIDKey?: Types.ConversationIDKey}
 type _FindGeneralConvIDFromTeamIDPayload = {readonly teamID: TeamsTypes.TeamID}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -326,6 +327,10 @@ type _InboxRefreshPayload = {
     | 'maybeKickedFromTeam'
     | 'widgetRefresh'
     | 'shareConfigSearch'
+}
+type _InboxSearchBotsResultsPayload = {
+  readonly results: Array<RPCTypes.FeaturedBot>
+  readonly suggested: boolean
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {
@@ -369,7 +374,7 @@ type _LoadedMutualTeamsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly teamIDs: Array<TeamsTypes.TeamID>
 }
-type _LoadedUserEmojiForAutocompletePayload = {readonly fetchedEmojis: RPCChatTypes.UserEmojis}
+type _LoadedUserEmojiPayload = {readonly results: RPCChatTypes.UserEmojiRes}
 type _LockAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _MarkConversationsStalePayload = {
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
@@ -506,6 +511,7 @@ type _MuteConversationPayload = {readonly conversationIDKey: Types.ConversationI
 type _NavigateToInboxPayload = void
 type _NavigateToThreadPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
+  readonly highlightMessageID?: number
   readonly reason:
     | 'focused'
     | 'clearSelected'
@@ -565,6 +571,7 @@ type _PreviewConversationPayload = {
   readonly teamname?: string
   readonly channelname?: string
   readonly conversationIDKey?: Types.ConversationIDKey
+  readonly highlightMessageID?: number
   readonly reason:
     | 'channelHeader'
     | 'manageView'
@@ -1051,6 +1058,12 @@ export const createAttachmentPasted = (payload: _AttachmentPastedPayload): Attac
   type: attachmentPasted,
 })
 /**
+ * Inbox search bot results received
+ */
+export const createInboxSearchBotsResults = (
+  payload: _InboxSearchBotsResultsPayload
+): InboxSearchBotsResultsPayload => ({payload, type: inboxSearchBotsResults})
+/**
  * Inbox search has started
  */
 export const createInboxSearchStarted = (payload: _InboxSearchStartedPayload): InboxSearchStartedPayload => ({
@@ -1192,11 +1205,11 @@ export const createInboxRefresh = (payload: _InboxRefreshPayload): InboxRefreshP
   type: inboxRefresh,
 })
 /**
- * Refresh user emoji and put it in store for autocomplete
+ * Refresh user emoji and put it in store for picker
  */
-export const createFetchUserEmojiForAutocomplete = (
-  payload: _FetchUserEmojiForAutocompletePayload
-): FetchUserEmojiForAutocompletePayload => ({payload, type: fetchUserEmojiForAutocomplete})
+export const createFetchUserEmoji = (
+  payload: _FetchUserEmojiPayload = Object.freeze({})
+): FetchUserEmojiPayload => ({payload, type: fetchUserEmoji})
 /**
  * Remove an unfurl
  */
@@ -1800,9 +1813,10 @@ export const createLoadedMutualTeams = (payload: _LoadedMutualTeamsPayload): Loa
   payload,
   type: loadedMutualTeams,
 })
-export const createLoadedUserEmojiForAutocomplete = (
-  payload: _LoadedUserEmojiForAutocompletePayload
-): LoadedUserEmojiForAutocompletePayload => ({payload, type: loadedUserEmojiForAutocomplete})
+export const createLoadedUserEmoji = (payload: _LoadedUserEmojiPayload): LoadedUserEmojiPayload => ({
+  payload,
+  type: loadedUserEmoji,
+})
 export const createLockAudioRecording = (payload: _LockAudioRecordingPayload): LockAudioRecordingPayload => ({
   payload,
   type: lockAudioRecording,
@@ -1990,9 +2004,9 @@ export type EnableAudioRecordingPayload = {
   readonly payload: _EnableAudioRecordingPayload
   readonly type: typeof enableAudioRecording
 }
-export type FetchUserEmojiForAutocompletePayload = {
-  readonly payload: _FetchUserEmojiForAutocompletePayload
-  readonly type: typeof fetchUserEmojiForAutocomplete
+export type FetchUserEmojiPayload = {
+  readonly payload: _FetchUserEmojiPayload
+  readonly type: typeof fetchUserEmoji
 }
 export type FindGeneralConvIDFromTeamIDPayload = {
   readonly payload: _FindGeneralConvIDFromTeamIDPayload
@@ -2016,6 +2030,10 @@ export type IgnorePinnedMessagePayload = {
   readonly type: typeof ignorePinnedMessage
 }
 export type InboxRefreshPayload = {readonly payload: _InboxRefreshPayload; readonly type: typeof inboxRefresh}
+export type InboxSearchBotsResultsPayload = {
+  readonly payload: _InboxSearchBotsResultsPayload
+  readonly type: typeof inboxSearchBotsResults
+}
 export type InboxSearchMoveSelectedIndexPayload = {
   readonly payload: _InboxSearchMoveSelectedIndexPayload
   readonly type: typeof inboxSearchMoveSelectedIndex
@@ -2082,9 +2100,9 @@ export type LoadedMutualTeamsPayload = {
   readonly payload: _LoadedMutualTeamsPayload
   readonly type: typeof loadedMutualTeams
 }
-export type LoadedUserEmojiForAutocompletePayload = {
-  readonly payload: _LoadedUserEmojiForAutocompletePayload
-  readonly type: typeof loadedUserEmojiForAutocomplete
+export type LoadedUserEmojiPayload = {
+  readonly payload: _LoadedUserEmojiPayload
+  readonly type: typeof loadedUserEmoji
 }
 export type LockAudioRecordingPayload = {
   readonly payload: _LockAudioRecordingPayload
@@ -2519,7 +2537,7 @@ export type Actions =
   | DismissJourneycardPayload
   | EditBotSettingsPayload
   | EnableAudioRecordingPayload
-  | FetchUserEmojiForAutocompletePayload
+  | FetchUserEmojiPayload
   | FindGeneralConvIDFromTeamIDPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
@@ -2527,6 +2545,7 @@ export type Actions =
   | HideConversationPayload
   | IgnorePinnedMessagePayload
   | InboxRefreshPayload
+  | InboxSearchBotsResultsPayload
   | InboxSearchMoveSelectedIndexPayload
   | InboxSearchNameResultsPayload
   | InboxSearchOpenTeamsResultsPayload
@@ -2545,7 +2564,7 @@ export type Actions =
   | LoadNextBotPagePayload
   | LoadOlderMessagesDueToScrollPayload
   | LoadedMutualTeamsPayload
-  | LoadedUserEmojiForAutocompletePayload
+  | LoadedUserEmojiPayload
   | LockAudioRecordingPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload

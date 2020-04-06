@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbtime"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -235,9 +237,9 @@ func (h *TeamsHandler) TeamListVerified(ctx context.Context, arg keybase1.TeamLi
 	return *x, nil
 }
 
-func (h *TeamsHandler) TeamGetSubteams(ctx context.Context, arg keybase1.TeamGetSubteamsArg) (res keybase1.SubteamListResult, err error) {
+func (h *TeamsHandler) TeamGetSubteamsUnverified(ctx context.Context, arg keybase1.TeamGetSubteamsUnverifiedArg) (res keybase1.SubteamListResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetSubteams(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetSubteamsUnverified(%s)", arg.Name), func() error { return err })()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.ListSubteamsUnverified(mctx, arg.Name)
 }
@@ -576,10 +578,10 @@ func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamI
 	return teams.IgnoreRequest(ctx, h.G().ExternalG(), arg.Name, arg.Username)
 }
 
-func (h *TeamsHandler) TeamTree(ctx context.Context, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
+func (h *TeamsHandler) TeamTreeUnverified(ctx context.Context, arg keybase1.TeamTreeUnverifiedArg) (res keybase1.TeamTreeResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, "TeamTree", func() error { return err })()
-	return teams.TeamTree(ctx, h.G().ExternalG(), arg)
+	defer h.G().CTraceTimed(ctx, "TeamTreeUnverified", func() error { return err })()
+	return teams.TeamTreeUnverified(ctx, h.G().ExternalG(), arg)
 }
 
 func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteArg) (err error) {
@@ -653,6 +655,29 @@ func (h *TeamsHandler) TeamCreateSeitanInvitelink(ctx context.Context,
 	}
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.CreateInvitelink(mctx, arg.Teamname, arg.Role, arg.MaxUses, arg.Etime)
+}
+
+func (h *TeamsHandler) TeamCreateSeitanInvitelinkWithDuration(ctx context.Context,
+	arg keybase1.TeamCreateSeitanInvitelinkWithDurationArg) (invitelink keybase1.Invitelink, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
+		return invitelink, err
+	}
+
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+
+	var etimeUnixPtr *keybase1.UnixTime
+	if arg.ExpireAfter != nil {
+		etime, err := kbtime.AddLongDuration(h.G().Clock().Now(), *arg.ExpireAfter)
+		if err != nil {
+			return invitelink, err
+		}
+		mctx.Debug("Etime from duration %q is: %s", arg.ExpireAfter, etime.String())
+		etimeUnix := keybase1.ToUnixTime(etime)
+		etimeUnixPtr = &etimeUnix
+	}
+
+	return teams.CreateInvitelink(mctx, arg.Teamname, arg.Role, arg.MaxUses, etimeUnixPtr)
 }
 
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
@@ -858,4 +883,19 @@ func (h *TeamsHandler) GetUntrustedTeamInfo(ctx context.Context, name keybase1.T
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetUntrustedTeamInfo(%s)", name), func() error { return err })()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetUntrustedTeamInfo(mctx, name)
+}
+
+func (h *TeamsHandler) LoadTeamTreeMemberships(ctx context.Context, arg keybase1.LoadTeamTreeMembershipsArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamTreeMemberships(%s, %s)", arg.TeamID, arg.Username), func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.LoadTeamTreeMemberships(mctx, arg.TeamID, arg.Username)
+}
+
+func (h *TeamsHandler) CancelLoadTeamTree(ctx context.Context, sessionID int) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CancelLoadTeamTree()"), func() error { return err })()
+
+	return fmt.Errorf("unimplemented")
 }

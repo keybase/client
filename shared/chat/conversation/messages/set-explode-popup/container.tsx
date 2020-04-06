@@ -26,10 +26,10 @@ type OwnProps = {
 
 const SetExplodePopup = Container.connect(
   (state, ownProps: OwnProps) => {
-    const meta = Constants.getMeta(state, ownProps.conversationIDKey)
+    const {conversationIDKey} = ownProps
     return {
-      items: makeItems(meta),
-      selected: Constants.getConversationExplodingMode(state, ownProps.conversationIDKey),
+      _meta: Constants.getMeta(state, conversationIDKey),
+      selected: Constants.getConversationExplodingMode(state, conversationIDKey),
     }
   },
   (dispatch, ownProps: OwnProps) => ({
@@ -38,14 +38,19 @@ const SetExplodePopup = Container.connect(
       ownProps.onAfterSelect && ownProps.onAfterSelect(seconds)
     },
   }),
-  (stateProps, dispatchProps, ownProps) => ({
-    attachTo: ownProps.attachTo,
-    items: stateProps.items,
-    onHidden: ownProps.onHidden,
-    onSelect: dispatchProps.onSelect,
-    selected: stateProps.selected,
-    visible: ownProps.visible,
-  })
+  (stateProps, dispatchProps, ownProps) => {
+    const {_meta, selected} = stateProps
+    const {onHidden, visible, attachTo} = ownProps
+    const {onSelect} = dispatchProps
+    return {
+      attachTo,
+      items: makeItems(_meta),
+      onHidden,
+      onSelect,
+      selected,
+      visible,
+    }
+  }
 )(SetExplodeTime)
 
 export default SetExplodePopup

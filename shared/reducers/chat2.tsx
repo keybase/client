@@ -245,6 +245,15 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
       inboxSearch.openTeamsStatus = 'success'
     }
   },
+  [Chat2Gen.inboxSearchBotsResults]: (draftState, action) => {
+    const {inboxSearch} = draftState
+    if (inboxSearch?.botsStatus === 'inprogress') {
+      const {results, suggested} = action.payload
+      inboxSearch.botsResultsSuggested = suggested
+      inboxSearch.botsResults = results
+      inboxSearch.botsStatus = 'success'
+    }
+  },
   [Chat2Gen.inboxSearchSetTextStatus]: (draftState, action) => {
     const {status} = action.payload
     const inboxSearch = draftState.inboxSearch ?? Constants.makeInboxSearchInfo()
@@ -285,6 +294,7 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
       inboxSearch.textResults = []
       inboxSearch.textStatus = 'inprogress'
       inboxSearch.openTeamsStatus = 'inprogress'
+      inboxSearch.botsStatus = 'inprogress'
     }
   },
   [Chat2Gen.inboxSearchNameResults]: (draftState, action) => {
@@ -1222,12 +1232,14 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {mutualTeamMap} = draftState
     mutualTeamMap.set(conversationIDKey, teamIDs)
   },
-  [Chat2Gen.loadedUserEmojiForAutocomplete]: (draftState, action) => {
-    let newEmojis: Array<RPCChatTypes.Emoji> = []
-    action.payload.fetchedEmojis.emojis?.map(group => {
+  [Chat2Gen.loadedUserEmoji]: (draftState, action) => {
+    const {results} = action.payload
+    const newEmojis: Array<RPCChatTypes.Emoji> = []
+    results.emojis.emojis?.map(group => {
       group.emojis?.forEach(e => newEmojis.push(e))
     })
     draftState.userEmojisForAutocomplete = newEmojis
+    draftState.userEmojis = results.emojis?.emojis ?? []
   },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {

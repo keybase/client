@@ -15,6 +15,7 @@ import {toByteArray} from 'base64-js'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 import {AllowedColors} from '../../common-adapters/text'
 import shallowEqual from 'shallowequal'
+import {getParticipantInfo} from '.'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -297,7 +298,14 @@ export const inboxUIItemToConversationMeta = (
   const conversationIDKey = Types.stringToConversationIDKey(i.convID)
   let pinnedMsg: PinnedMessageInfo | undefined
   if (i.pinnedMsg) {
-    const message = Message.uiMessageToMessage(state, conversationIDKey, i.pinnedMsg.message)
+    const {getLastOrdinal, username, devicename} = Message.getMessageStateExtras(state, conversationIDKey)
+    const message = Message.uiMessageToMessage(
+      conversationIDKey,
+      i.pinnedMsg.message,
+      username,
+      getLastOrdinal,
+      devicename
+    )
     if (message) {
       pinnedMsg = {
         message,
@@ -487,6 +495,21 @@ export const getRowParticipants = memoize((participants: Types.ParticipantInfo, 
     // Filter out ourselves unless it's our 1:1 conversation
     .filter((participant, _, list) => (list.length === 1 ? true : participant !== username))
 )
+
+export const getConversationLabel = (
+  state: TypedState,
+  conv: Types.ConversationMeta,
+  alwaysIncludeChannelName: boolean
+): string => {
+  if (conv.teamType === 'big') {
+    return conv.teamname + '#' + conv.channelname
+  }
+  if (conv.teamType === 'small') {
+    return alwaysIncludeChannelName ? conv.teamname + '#' + conv.channelname : conv.teamname
+  }
+  const participantInfo = getParticipantInfo(state, conv.conversationIDKey)
+  return getRowParticipants(participantInfo, '').join(',')
+}
 
 export const timestampToString = (meta: Types.ConversationMeta) =>
   formatTimeForConversationList(meta.timestamp)

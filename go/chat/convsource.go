@@ -54,12 +54,9 @@ func (s *baseConversationSource) Sign(payload []byte) ([]byte, error) {
 // DeleteAssets implements github.com/keybase/go/chat/storage/storage.AssetDeleter interface.
 func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, assets []chat1.Asset) {
-	defer s.Trace(ctx, func() error { return nil }, "DeleteAssets: %d", len(assets))()
-
 	if len(assets) == 0 {
 		return
 	}
-
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, &chat1.Pagination{Num: 0},
 		types.ConvLoaderPriorityHigh, types.ConvLoaderUnique,
@@ -370,7 +367,7 @@ func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	return chat1.ThreadView{}, storage.MissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
 }
 
-func (s *RemoteConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
+func (s *RemoteConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, opts *types.ClearOpts) error {
 	return nil
 }
 
@@ -494,10 +491,13 @@ func (s *HybridConversationSource) completeUnfurl(ctx context.Context, msg chat1
 func (s *HybridConversationSource) maybeNuke(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, err error) {
 	if utils.IsDeletedConvError(err) {
 		s.Debug(ctx, "purging caches on: %v for convID: %v, uid: %v", err, convID, uid)
-		if err := s.Clear(ctx, convID, uid); err != nil {
+		if err := s.Clear(ctx, convID, uid, &types.ClearOpts{
+			SendLocalAdminNotification: true,
+			Reason:                     "Got unexpected conversation deleted error. Cleared conv and inbox cache",
+		}); err != nil {
 			s.Debug(ctx, "unable to Clear conv: %v", err)
 		}
-		if err := s.G().InboxSource.Clear(ctx, uid); err != nil {
+		if err := s.G().InboxSource.Clear(ctx, uid, nil); err != nil {
 			s.Debug(ctx, "unable to Clear inbox: %v", err)
 		}
 		s.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "ConvSource#maybeNuke")
@@ -856,7 +856,8 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	return tv, nil
 }
 
-func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (err error) {
+func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	opts *types.ClearOpts) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Clear(%v,%v)", uid, convID)()
 	defer s.PerfTrace(ctx, func() error { return err }, "Clear(%v,%v)", uid, convID)()
 	start := time.Now()
@@ -873,10 +874,12 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 			Ctime:     keybase1.ToTime(start),
 		})
 	}()
-	if (s.G().Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(keybase1.UID(uid.String()))) && s.G().UIRouter != nil {
+	kuid := keybase1.UID(uid.String())
+	if (s.G().Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(kuid)) &&
+		s.G().UIRouter != nil && opts != nil && opts.SendLocalAdminNotification {
 		ui, err := s.G().UIRouter.GetLogUI()
 		if err == nil && ui != nil {
-			ui.Critical("Clearing conv")
+			ui.Critical("Clearing conv %s", opts.Reason)
 		}
 	}
 

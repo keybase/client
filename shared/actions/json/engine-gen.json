@@ -61,6 +61,9 @@
         "chat1ChatUiChatSearchTeamHits": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['outParam']) => void}"
         },
+        "chat1ChatUiChatSearchBotHits": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchBotHits']['outParam']) => void}"
+        },
         "chat1ChatUiChatConfirmChannelDelete": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['outParam']) => void}"
         },
@@ -465,6 +468,12 @@
         },
         "keybase1NotifyTeamTeamMetadataUpdate": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['outParam']) => void}"
+        },
+        "keybase1NotifyTeamTeamTreeMembershipsPartial": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsPartial']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsPartial']['outParam']) => void}"
+        },
+        "keybase1NotifyTeamTeamTreeMembershipsDone": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsDone']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamTreeMembershipsDone']['outParam']) => void}"
         },
         "keybase1NotifyTeambotNewTeambotKey": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeambot.newTeambotKey']['inParam'] & {sessionID: number}"

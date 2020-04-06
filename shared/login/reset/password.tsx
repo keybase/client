@@ -103,13 +103,11 @@ const EnterPassword = () => {
   )
 }
 
-// @ts-ignore
 KnowPassword.navigationOptions = {
   header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }
-// @ts-ignore
 EnterPassword.navigationOptions = {
   header: null,
   headerBottomStyle: {height: undefined},

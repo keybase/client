@@ -44,7 +44,7 @@ func (c *CtlHandler) StopService(ctx context.Context, args keybase1.StopServiceA
 func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
 	logFile, _ := c.G().Env.GetEffectiveLogFile()
 	// Redirect to log file even if not explicitly desired during service call
-	return logger.SetLogFileConfig(c.G().Env.GetLogFileConfig(logFile))
+	return logger.SetLogFileConfig(c.G().Env.GetLogFileConfig(logFile), nil)
 }
 
 func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {

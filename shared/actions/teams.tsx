@@ -527,7 +527,8 @@ async function createNewTeamFromConversation(
   const me = state.config.username
 
   const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
-  const participants = participantInfo.all.filter(p => p !== me) // we will already be in as 'owner'
+  // exclude bots from the newly created team, they can be added back later.
+  const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
   const users = participants.map(assertion => ({
     assertion,
     role: assertion === me ? ('admin' as const) : ('writer' as const),
@@ -1508,6 +1509,16 @@ const startAddMembersWizard = (_: TeamsGen.StartAddMembersWizardPayload) =>
 const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
 
+const manageChatChannels = (action: TeamsGen.ManageChatChannelsPayload) =>
+  RouteTreeGen.createNavigateAppend({
+    path: [
+      {
+        props: {teamID: action.payload.teamID},
+        selected: flags.teamsRedesign ? 'teamAddToChannels' : 'chatManageChannels',
+      },
+    ],
+  })
+
 const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogger) => {
   const {teamID} = action.payload
   try {
@@ -1582,6 +1593,7 @@ const teamsSaga = function*() {
     addTeamWithChosenChannels
   )
   yield* Saga.chainAction(TeamsGen.renameTeam, renameTeam)
+  yield* Saga.chainAction(TeamsGen.manageChatChannels, manageChatChannels)
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, badgeAppForTeams)
   yield* Saga.chainAction(GregorGen.pushState, gregorPushState)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyTeamTeamChangedByID, teamChangedByID)

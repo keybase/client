@@ -7,10 +7,8 @@ const Kb = {
   FloatingBox,
 }
 
-// @ts-ignore codemod-issue
 const FadeBox = Styles.styled.div(() => ({
   ...Styles.transition('opacity'),
-  // @ts-ignore
   '&.active': {opacity: 1},
   '&.visible': {display: 'flex', opacity: 1},
   opacity: 0,

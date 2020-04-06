@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Types from '../../constants/types/chat2'
 import * as Container from '../../util/container'
 import Normal from './normal/container'
@@ -35,10 +34,6 @@ const Conversation = (p: SwitchProps) => {
       }
   }
 
-  const dispatch = Container.useDispatch()
-
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
-
   switch (type) {
     case 'error':
       return <Error conversationIDKey={conversationIDKey} />
@@ -57,7 +52,7 @@ const Conversation = (p: SwitchProps) => {
     case 'normal':
       return <Normal conversationIDKey={conversationIDKey} />
     case 'youAreReset':
-      return <YouAreReset onBack={onBack} />
+      return <YouAreReset />
     case 'rekey':
       return <Rekey conversationIDKey={conversationIDKey} />
     default:

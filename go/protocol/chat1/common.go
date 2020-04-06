@@ -2084,6 +2084,8 @@ type SearchOpts struct {
 	ConvID            *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
 	MaxNameConvs      int             `codec:"maxNameConvs" json:"maxNameConvs"`
 	MaxTeams          int             `codec:"maxTeams" json:"maxTeams"`
+	MaxBots           int             `codec:"maxBots" json:"maxBots"`
+	SkipBotCache      bool            `codec:"skipBotCache" json:"skipBotCache"`
 }
 
 func (o SearchOpts) DeepCopy() SearchOpts {
@@ -2117,6 +2119,8 @@ func (o SearchOpts) DeepCopy() SearchOpts {
 		})(o.ConvID),
 		MaxNameConvs: o.MaxNameConvs,
 		MaxTeams:     o.MaxTeams,
+		MaxBots:      o.MaxBots,
+		SkipBotCache: o.SkipBotCache,
 	}
 }
 

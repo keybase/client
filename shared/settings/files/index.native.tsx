@@ -70,44 +70,47 @@ const Files = (props: Props) => {
     Container.anyWaiting(state, Constants.setSyncOnCellularWaitingKey)
   )
   return (
-    <Kb.HeaderHocWrapper title="Files" onBack={props.onBack} skipHeader={!Styles.isPhone}>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        alignItems={Styles.isTablet ? 'flex-start' : 'center'}
-        gap="small"
-      >
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
-          <Kb.Text type="Header">Sync</Kb.Text>
-          <Kb.Switch
-            onClick={
-              props.spaceAvailableNotificationThreshold === 0
-                ? props.onEnableSyncNotifications
-                : props.onDisableSyncNotifications
-            }
-            label="Warn when low on storage space"
-            on={props.spaceAvailableNotificationThreshold !== 0}
-            disabled={props.areSettingsLoading}
-            gapSize={Styles.globalMargins.small}
-            style={styles.switch}
-          />
-          {!!props.spaceAvailableNotificationThreshold && (
-            <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>
-          )}
-          {!!props.spaceAvailableNotificationThreshold && <ThresholdDropdown {...props} />}
-          <Kb.Switch
-            on={syncOnCellular}
-            onClick={toggleSyncOnCellular}
-            disabled={waitingToggleSyncOnCellular}
-            label="Sync files over mobile network"
-            labelSubtitle="Syncing over Wi-Fi is always on"
-            gapSize={Styles.globalMargins.small}
-            style={styles.switch}
-          />
-        </Kb.Box2>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      alignItems={Styles.isTablet ? 'flex-start' : 'center'}
+      gap="small"
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
+        <Kb.Text type="Header">Sync</Kb.Text>
+        <Kb.Switch
+          onClick={
+            props.spaceAvailableNotificationThreshold === 0
+              ? props.onEnableSyncNotifications
+              : props.onDisableSyncNotifications
+          }
+          label="Warn when low on storage space"
+          on={props.spaceAvailableNotificationThreshold !== 0}
+          disabled={props.areSettingsLoading}
+          gapSize={Styles.globalMargins.small}
+          style={styles.switch}
+        />
+        {!!props.spaceAvailableNotificationThreshold && (
+          <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>
+        )}
+        {!!props.spaceAvailableNotificationThreshold && <ThresholdDropdown {...props} />}
+        <Kb.Switch
+          on={syncOnCellular}
+          onClick={toggleSyncOnCellular}
+          disabled={waitingToggleSyncOnCellular}
+          label="Sync files over mobile network"
+          labelSubtitle="Syncing over Wi-Fi is always on"
+          gapSize={Styles.globalMargins.small}
+          style={styles.switch}
+        />
       </Kb.Box2>
-    </Kb.HeaderHocWrapper>
+    </Kb.Box2>
   )
+}
+
+Files.navigationOptions = {
+  header: undefined,
+  title: 'Files',
 }
 
 const styles = Styles.styleSheetCreate(
