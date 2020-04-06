@@ -853,16 +853,9 @@ const styles = Styles.styleSheetCreate(
       }),
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       send: Styles.platformStyles({
-        // common: {position: 'absolute'},
         isElectron: {
           pointerEvents: 'none',
-          // right: 16,
-          // top: 3,
         },
-        // isMobile: {
-        //   right: 0,
-        //   top: 0,
-        // },
       }),
       timestamp: Styles.platformStyles({
         isElectron: {
