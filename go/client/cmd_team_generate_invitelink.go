@@ -6,9 +6,11 @@ package client
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/kbtime"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -38,9 +40,9 @@ passed, does not expire.`,
 				Name:  "r, role",
 				Usage: "team role (admin, writer, reader) [required]",
 			},
-			cli.DurationFlag{
+			cli.StringFlag{
 				Name:  "d, duration",
-				Usage: "time duration until this invite expires (30m, 120h, etc.).",
+				Usage: "time duration until this invite expires (1D, 3M, 5Y, etc.).",
 			},
 			cli.IntFlag{
 				Name:  "max-uses",
@@ -77,11 +79,12 @@ func (c *CmdTeamGenerateInvitelink) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if ctx.IsSet("duration") {
-		v := ctx.Duration("duration")
-		if v <= 0 {
-			return errors.New("duration must be positive")
+		durationStr := ctx.String("duration")
+		then, err := kbtime.AddLongDuration(time.Now(), durationStr)
+		if err != nil {
+			return fmt.Errorf("failed to compute expiration date: %w", err)
 		}
-		t := keybase1.ToUnixTime(time.Now().Add(v))
+		t := keybase1.ToUnixTime(then)
 		c.Etime = &t
 	}
 

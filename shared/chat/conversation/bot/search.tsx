@@ -26,10 +26,8 @@ const SearchBotPopup = (props: Props) => {
 
   // state
   const [lastQuery, setLastQuery] = React.useState('')
-  const {featuredBotsMap, results} = Container.useSelector((state: Container.TypedState) => ({
-    featuredBotsMap: state.chat2.featuredBotsMap,
-    results: state.chat2.botSearchResults,
-  }))
+  const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
+  const results = Container.useSelector(state => state.chat2.botSearchResults)
   const waiting = Container.useAnyWaiting(
     Constants.waitingKeyBotSearchUsers,
     Constants.waitingKeyBotSearchFeatured

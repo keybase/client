@@ -8,7 +8,7 @@ import * as ChatTypes from '../../constants/types/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
-import {appendNewTeamBuilder, appendTeamsContactsTeamBuilder} from '../../actions/typed-routes'
+import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {useDefaultChannels} from '../team/settings-tab/default-channels'
@@ -155,7 +155,7 @@ const AddMoreMembers = () => {
   const nav = Container.useSafeNavigation()
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
   const onAddKeybase = () => dispatch(appendNewTeamBuilder(teamID))
-  const onAddContacts = () => dispatch(appendTeamsContactsTeamBuilder(teamID))
+  const onAddContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))
   const onAddPhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
   const onAddEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
   const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(getAttachmentRef => (

@@ -67,6 +67,7 @@ const TeamMember = (props: OwnProps) => {
   React.useEffect(() => {
     dispatch(TeamsGen.createGetMemberSubteamDetails({teamID, username}))
   }, [teamID, username, dispatch])
+  // TODO this will keep thrasing
   const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
     getSubteamsInNotIn(state, teamID, username)
   )
@@ -260,7 +261,7 @@ type SubteamInRowProps = SubteamNotInRowProps & {
   setExpanded: (b: boolean) => void
 }
 const SubteamInRow = (props: SubteamInRowProps) => {
-  const channels = useAllChannelMetas(props.subteam.id)
+  const {channelMetas, loadingChannels} = useAllChannelMetas(props.subteam.id)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -306,7 +307,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
     Constants.loadSubteamActivityWaitingKey(props.subteam.id, props.username)
   )
 
-  const channelsJoined = Array.from(channels)
+  const channelsJoined = Array.from(channelMetas)
     .map(([_, {channelname}]) => channelname)
     .join(', #')
 
@@ -424,7 +425,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                     lineClamp={4}
                     ellipsizeMode="tail"
                   >
-                    {channels.size > 0 ? `Member of #${channelsJoined}` : 'Loading channels...'}
+                    {loadingChannels ? `Member of #${channelsJoined}` : 'Loading channels...'}
                   </Kb.Text>
                 </Kb.Box2>
               )}

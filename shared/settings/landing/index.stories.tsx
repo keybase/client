@@ -20,7 +20,6 @@ const defaultPlanProps = {
 const load = () => {
   storiesOf('Settings/Landing', module)
     .add('Normal', () => (
-      // @ts-ignore plan
       <Landing
         account={{
           ...defaultAccountProps,
@@ -33,7 +32,6 @@ const load = () => {
       />
     ))
     .add('Unknown HasRandomPW', () => (
-      // @ts-ignore plan
       <Landing
         account={{
           ...defaultAccountProps,
@@ -43,7 +41,6 @@ const load = () => {
       />
     ))
     .add('Random PW', () => (
-      // @ts-ignore plan
       <Landing
         account={{
           ...defaultAccountProps,
@@ -55,7 +52,6 @@ const load = () => {
       />
     ))
     .add('No e-mail', () => (
-      // @ts-ignore plan
       <Landing
         account={{
           ...defaultAccountProps,
@@ -66,7 +62,6 @@ const load = () => {
       />
     ))
     .add('Both no-email and random pw', () => (
-      // @ts-ignore plan
       <Landing
         account={{
           ...defaultAccountProps,

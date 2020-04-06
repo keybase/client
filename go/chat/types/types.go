@@ -831,3 +831,8 @@ func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UI
 	convID chat1.ConversationID, mode EmojiHarvestMode) (res []chat1.HarvestedEmoji, err error) {
 	return res, err
 }
+
+type ClearOpts struct {
+	SendLocalAdminNotification bool
+	Reason                     string
+}

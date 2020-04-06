@@ -6,6 +6,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
@@ -75,4 +76,50 @@ func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
 	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(bob.uid, 1))
 	require.NoError(t, err)
 	require.Equal(t, role, keybase1.TeamRole_ADMIN)
+}
+
+func TestTeamInviteLinkAfterLeave(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("ali")
+	bob := tt.addUser("bob")
+
+	teamID, teamName := alice.createTeam2()
+	maxUses, err := keybase1.NewTeamInviteFiniteUses(100)
+	require.NoError(t, err)
+	etime := keybase1.ToUnixTime(time.Now().AddDate(1, 0, 0))
+	link, err := alice.teamsClient.TeamCreateSeitanInvitelink(context.TODO(), keybase1.TeamCreateSeitanInvitelinkArg{
+		Teamname: teamName.String(),
+		Role:     keybase1.TeamRole_WRITER,
+		MaxUses:  maxUses,
+		Etime:    &etime,
+	})
+	require.NoError(t, err)
+
+	t.Logf("Created team invite link: %#v", link)
+
+	bob.kickTeamRekeyd()
+	err = bob.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
+		Token: string(link.Ikey),
+	})
+	require.NoError(t, err)
+
+	alice.waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
+
+	// Bob leaves.
+	bob.leave(teamName.String())
+
+	// Make sure Bob gets different akey when accepting again.
+	clock := clockwork.NewFakeClockAt(time.Now())
+	clock.Advance(1 * time.Second)
+	bob.tc.G.SetClock(clock)
+
+	// Bob accepts the same invite again.
+	err = bob.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
+		Token: string(link.Ikey),
+	})
+	require.NoError(t, err)
+
+	alice.waitForTeamChangedGregor(teamID, keybase1.Seqno(5))
 }

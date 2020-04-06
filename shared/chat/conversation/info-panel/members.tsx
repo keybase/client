@@ -31,8 +31,8 @@ export default (props: Props) => {
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
-  const {participants} = Container.useSelector(state =>
-    Constants.getBotsAndParticipants(state, conversationIDKey)
+  const participants = Container.useSelector(
+    state => Constants.getBotsAndParticipants(state, conversationIDKey).participants
   )
   React.useEffect(() => {
     if (teamname) {

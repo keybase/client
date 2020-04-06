@@ -39,7 +39,8 @@ protocol NotifyRuntimeStats {
     USERCHAIN_3,
     TEAMCHAIN_4,
     CLEARCONV_5,
-    CLEARINBOX_6
+    CLEARINBOX_6,
+    TEAMTREELOAD_7
   }
 
   record PerfEvent {

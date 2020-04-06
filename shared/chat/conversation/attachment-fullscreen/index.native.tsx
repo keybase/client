@@ -145,7 +145,6 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
         </Kb.BoxGrow>
         <Kb.Icon
           type="iconfont-ellipsis"
-          // @ts-ignore TODO fix styles
           style={styles.headerFooter}
           color={Styles.globalColors.blueDark}
           onClick={this.props.toggleShowingMenu}

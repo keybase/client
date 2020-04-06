@@ -1,9 +1,13 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
+import * as Chat2Types from '../../../constants/types/chat2'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
+import * as Chat2Constants from '../../../constants/chat2'
 import {Section as _Section} from '../../../common-adapters/section-list'
 import flags from '../../../util/feature-flags'
 import {useAllChannelMetas} from '../../common/channel-hooks'
@@ -13,6 +17,7 @@ import {BotRow, AddBotRow} from './bot-row'
 import {RequestRow, InviteRow, InvitesEmptyRow} from './invite-row'
 import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
+import {EmojiItemRow, EmojiAddRow, EmojiHeader} from './emoji-row'
 import LoadingRow from './loading'
 import EmptyRow from './empty-row'
 
@@ -121,17 +126,19 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
   }
   return sections
 }
-
 export const useChannelsSections = (
   teamID: Types.TeamID,
   yourOperations: Types.TeamOperations,
   shouldActuallyLoad: boolean
 ): Array<Section> => {
   const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
-  const channelMetas = useAllChannelMetas(teamID, !isBig || !shouldActuallyLoad /* dontCallRPC */)
-  // TODO: loading state (waiting on channel hook returning loading to merge)
+  const {channelMetas, loadingChannels} = useAllChannelMetas(teamID, !shouldActuallyLoad /* dontCallRPC */)
+
   if (!isBig) {
     return [makeSingleRow('channel-empty', () => <EmptyRow type="channelsEmpty" teamID={teamID} />)]
+  }
+  if (loadingChannels) {
+    return [makeSingleRow('channel-loading', () => <LoadingRow />)]
   }
   return [
     makeSingleRow('channel-add', () => <ChannelHeaderRow teamID={teamID} />),
@@ -179,6 +186,100 @@ export const useSubteamsSections = (
     sections.push(makeSingleRow('subteam-none', () => <EmptyRow teamID={teamID} type="subteams" />))
   } else if (!subteams.length) {
     sections.push(makeSingleRow('subteam-none', () => <SubteamNoneRow />))
+  }
+  return sections
+}
+
+const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
+  const [conversationIDKey, setConversationIDKey] = React.useState<Chat2Types.ConversationIDKey | null>(null)
+  const generalConvID = Container.useSelector(
+    (state: Container.TypedState) => teamID && state.chat2.teamIDToGeneralConvID.get(teamID)
+  )
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    if (!conversationIDKey && teamID) {
+      if (!generalConvID) {
+        dispatch(Chat2Gen.createFindGeneralConvIDFromTeamID({teamID}))
+      } else {
+        setConversationIDKey(generalConvID)
+      }
+    }
+  }, [conversationIDKey, dispatch, generalConvID, teamID])
+  return conversationIDKey
+}
+
+export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boolean): Array<Section> => {
+  const convID = useGeneralConversationIDKey(teamID)
+  const getUserEmoji = Container.useRPC(RPCChatTypes.localUserEmojisRpcPromise)
+  const [customEmoji, setCustomEmoji] = React.useState<RPCChatTypes.Emoji[]>([])
+  const [waiting, setWaiting] = React.useState(true)
+
+  const [filter, setFilter] = React.useState('')
+
+  React.useEffect(() => {
+    setWaiting(true)
+    if (convID && shouldActuallyLoad) {
+      getUserEmoji(
+        [
+          {
+            convID: Chat2Types.keyToConversationID(convID),
+            opts: {
+              getAliases: true,
+              getCreationInfo: true,
+              onlyInTeam: true,
+            },
+          },
+        ],
+        result => {
+          let emojis: Array<RPCChatTypes.Emoji> = []
+          result.emojis.emojis?.forEach(g => {
+            emojis = emojis.concat(g.emojis ?? [])
+          })
+          setCustomEmoji(emojis)
+          setWaiting(false)
+        },
+        _ => {
+          setCustomEmoji([])
+          setWaiting(false)
+        }
+      )
+    } else {
+      setWaiting(false)
+    }
+  }, [convID, getUserEmoji, shouldActuallyLoad])
+
+  let filteredEmoji: RPCChatTypes.Emoji[] = customEmoji
+  if (filter != '') {
+    filteredEmoji = filteredEmoji.filter(e => e.alias.includes(filter.toLowerCase()))
+  }
+
+  filteredEmoji = filteredEmoji.sort((a, b) => (b.creationInfo?.time ?? 0) - (a.creationInfo?.time ?? 0))
+  const sections: Array<Section> = []
+  sections.push({
+    data: ['emoji-add'],
+    key: 'emoji-add',
+    renderItem: () => (
+      <EmojiAddRow
+        teamID={teamID}
+        convID={convID ?? Chat2Constants.noConversationIDKey}
+        filter={filter}
+        setFilter={setFilter}
+      />
+    ),
+  })
+
+  if (!waiting && customEmoji.length) {
+    sections.push({
+      data: ['emoji-header'],
+      key: 'emoji-header',
+      renderItem: () => <EmojiHeader />,
+    })
+
+    sections.push({
+      data: filteredEmoji,
+      key: 'emoji-item',
+      renderItem: ({item}) => <EmojiItemRow emoji={item} />,
+    })
   }
   return sections
 }

@@ -13,7 +13,6 @@ import * as WaitingConstants from '../constants/waiting'
 import * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
-import {useNavigationEvents} from '../util/navigation-hooks'
 import flags from '../util/feature-flags'
 
 type OwnProps = {}
@@ -49,16 +48,6 @@ type ReloadableProps = Omit<MainOwnProps, 'onManageChat' | 'onViewTeam'>
 const Reloadable = (props: ReloadableProps) => {
   const dispatch = Container.useDispatch()
   const loadTeams = React.useCallback(() => dispatch(TeamsGen.createGetTeams()), [dispatch])
-  const onClearBadges = React.useCallback(() => dispatch(TeamsGen.createClearNavBadges()), [dispatch])
-
-  // On desktop, clear the badges upon navigating away from this tab. This is more reliable than nav events.
-  React.useEffect(() => () => onClearBadges(), [onClearBadges])
-  // Since this component does not unmount on mobile, also clear badge with nav events.
-  useNavigationEvents(e => {
-    if (e.type === 'willBlur') {
-      onClearBadges()
-    }
-  })
 
   // subscribe to teams changes
   useTeamsSubscribe()
@@ -67,8 +56,7 @@ const Reloadable = (props: ReloadableProps) => {
 
   const nav = Container.useSafeNavigation()
   const otherActions = {
-    onManageChat: (teamID: Types.TeamID) =>
-      dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatManageChannels'}]})),
+    onManageChat: (teamID: Types.TeamID) => dispatch(TeamsGen.createManageChatChannels({teamID})),
     onViewTeam: (teamID: Types.TeamID) =>
       dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]})),
   }

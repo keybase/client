@@ -45,7 +45,6 @@ class List<Item> extends PureComponent<Props<Item>> {
         <View style={Styles.globalStyles.fillAbsolute}>
           <List
             bounces={this.props.bounces}
-            // @ts-ignore TODO styles
             contentContainerStyle={this.props.contentContainerStyle}
             renderItem={this._itemRender}
             data={this.props.items}

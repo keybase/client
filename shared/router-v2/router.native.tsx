@@ -215,7 +215,6 @@ const VanillaTabNavigator = createBottomTabNavigator(
             <></>
           ) : (
             <Kb.Text
-              // @ts-ignore expecting a literal color, not a getter
               style={Styles.collapseStyles([
                 tabStyles.label,
                 Styles.isDarkMode()
@@ -387,6 +386,7 @@ class RNApp extends React.PureComponent<Props> {
 
   private setNav = (n: any) => {
     this.nav = n
+    this.props.updateNavigator(n && this)
   }
 
   private onNavigationStateChange = (prevNav: any, nav: any, action: any) => {

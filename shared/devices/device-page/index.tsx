@@ -87,10 +87,7 @@ const Timeline = ({device}) => {
 
 const DevicePage = (props: Props) => {
   const device = Container.useSelector(state => Constants.getDevice(state, props.id))
-  const canRevoke = Container.useSelector(state => {
-    const {numActive} = Constants.getDeviceCounts(state)
-    return numActive > 1
-  })
+  const canRevoke = Container.useSelector(state => Constants.getDeviceCounts(state).numActive > 1)
   const dispatch = Container.useDispatch()
   const showRevokeDevicePage = React.useCallback(
     () => dispatch(DevicesGen.createShowRevokePage({deviceID: props.id})),

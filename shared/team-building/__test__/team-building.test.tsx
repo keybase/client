@@ -167,7 +167,6 @@ describe('team building list', () => {
     const sections =
       sortAndSplitRecommendations(
         tests.map(t => t.result),
-        false,
         false
       ) || []
     const sectionMap = {}

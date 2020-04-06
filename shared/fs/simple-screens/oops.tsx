@@ -106,7 +106,7 @@ const Oops = (props: OwnProps) => {
   const openParent = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
-        path: [{props: {path: Types.getPathParent(props.path)}, selected: 'main'}],
+        path: [{props: {path: Types.getPathParent(props.path)}, selected: 'fsRoot'}],
       })
     )
   switch (props.reason) {
