@@ -319,10 +319,12 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 		loadSource, err := s.G().EmojiSource.RemoteToLocalSource(ctx, harvested[0].Source, true)
 		if err != nil {
 			s.Debug(ctx, "UserReacjis: failed to convert to local source: %s", err)
+			delete(cache.FrequencyMap, name)
 			continue
 		}
 		if !loadSource.IsHTTPSrv() {
 			s.Debug(ctx, "UserReacjis: not http srv source")
+			delete(cache.FrequencyMap, name)
 			continue
 		}
 		customMap[name] = loadSource.Httpsrv()
