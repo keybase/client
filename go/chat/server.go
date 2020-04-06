@@ -2343,7 +2343,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 			numHits += len(searchHit.Hits)
 			select {
 			case <-ctx.Done():
-				return ctx.Err()
+				return nil
 			default:
 				_ = chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
 					SearchHit: searchHit,
@@ -2362,7 +2362,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		for status := range indexUICh {
 			select {
 			case <-ctx.Done():
-				return ctx.Err()
+				return nil
 			default:
 				_ = chatUI.ChatSearchIndexStatus(ctx, chat1.ChatSearchIndexStatusArg{
 					Status: status,
@@ -2381,7 +2381,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 			types.InboxSourceSearchEmptyModeUnread)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
-			return err
+			return nil
 		}
 		select {
 		case <-ctx.Done():
@@ -2406,11 +2406,11 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 			opts.MaxTeams)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get team hits: %s", err)
-			return err
+			return nil
 		}
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil
 		default:
 			_ = chatUI.ChatSearchTeamHits(ctx, chat1.UIChatSearchTeamHits{
 				Hits:             hits,
@@ -2429,11 +2429,11 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 			})
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get bot hits: %s", err)
-			return err
+			return nil
 		}
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil
 		default:
 			_ = chatUI.ChatSearchBotHits(ctx, chat1.UIChatSearchBotHits{
 				Hits:             hits.Bots,
