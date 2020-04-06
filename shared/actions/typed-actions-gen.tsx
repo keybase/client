@@ -735,6 +735,8 @@ export type TypedActionsMap = {
   'profile:updateProofText': profile.UpdateProofTextPayload
   'profile:updateSigID': profile.UpdateSigIDPayload
   'profile:updateUsername': profile.UpdateUsernamePayload
+  'profile:wotVouch': profile.WotVouchPayload
+  'profile:wotVouchSetError': profile.WotVouchSetErrorPayload
   'provision:startProvision': provision.StartProvisionPayload
   'provision:provisionError': provision.ProvisionErrorPayload
   'provision:submitUsername': provision.SubmitUsernamePayload

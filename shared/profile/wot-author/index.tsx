@@ -7,29 +7,32 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Types from '../../constants/types/tracker2'
 import {SiteIcon} from '../../profile/generic/shared'
+import * as ProfileGen from '../../actions/profile-gen'
 
 // PICNIC-1059 Keep in sync with server limit (yet to be implemented)
 const statementLimit = 700
 const otherLimit = 90
 
-type Question1Props = {
+export type Question1Props = {
   error?: string
   initialVerificationType: WebOfTrustVerificationType
-  onSubmit: (_: {
-    otherText: string
-    proofs: Array<Proof>
-    verificationType: WebOfTrustVerificationType
-  }) => void
+  onSubmit: (_: Question1Answer) => void
   proofs: Array<Proof>
   voucheeUsername: string
 }
 
-type Question2Props = {
+export type Question1Answer = {
+  otherText: string
+  proofs: Array<Proof>
+  verificationType: WebOfTrustVerificationType
+}
+
+export type Question2Props = {
   error?: string
   onBack: () => void
   onSubmit: ({statement: string}) => void
-  waiting?: boolean
   voucheeUsername: string
+  waiting?: boolean
 }
 
 type WotModalProps = {
@@ -193,7 +196,10 @@ export const Question2 = (props: Question2Props) => {
 
 const WotModal = (props: WotModalProps) => {
   const dispatch = Container.useDispatch()
-  const onClose = () => dispatch(RouteTreeGen.createClearModals())
+  const onClose = () => {
+    dispatch(ProfileGen.createWotVouchSetError({error: ''}))
+    dispatch(RouteTreeGen.createClearModals())
+  }
   return (
     <Kb.Modal
       onClose={onClose}
