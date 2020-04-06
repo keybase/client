@@ -171,14 +171,18 @@ const TabBar = (props: Props) => {
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
   const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)
 
+  const {navigate} = navigation
   // TODO move this logic into the sagas
-  const onTabClick = (tab: Tabs.AppTab) => {
-    if (selectedTab === tab) {
-      navigation.navigate(tabRoots[tab])
-    } else {
-      navigation.navigate(tab)
-    }
-  }
+  const onTabClick = React.useCallback(
+    (tab: Tabs.AppTab) => {
+      if (selectedTab === tab) {
+        navigate(tabRoots[tab])
+      } else {
+        navigate(tab)
+      }
+    },
+    [navigate, selectedTab]
+  )
 
   return username ? (
     <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
