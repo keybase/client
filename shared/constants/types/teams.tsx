@@ -64,6 +64,14 @@ export type InviteInfo = {
   username: string
   id: string
 }
+export type InviteLink = {
+  etime?: number // undefined is never
+  id: string
+  inviter: string
+  maxUses?: number // undefined is unlimited
+  role: TeamRoleType
+  url: string
+}
 
 export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'emoji' | 'settings' | 'channels'
 
@@ -99,6 +107,7 @@ export type TeamDetails = {
   members: Map<string, MemberInfo>
   settings: TeamSettings2
   invites: Set<InviteInfo>
+  inviteLinks: Set<InviteLink>
   subteams: Set<TeamID>
   requests: Set<JoinRequest>
   description: string

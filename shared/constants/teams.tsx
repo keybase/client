@@ -733,33 +733,48 @@ export const teamListToMeta = (
   )
 }
 
+type AnnotatedInvites = {invites: Array<Types.InviteInfo>; inviteLinks: Array<Types.InviteLink>}
 export const annotatedInvitesToInviteInfo = (
   invites: Array<RPCTypes.AnnotatedTeamInvite>
-): Array<Types.InviteInfo> =>
-  Object.values(invites).reduce<Array<Types.InviteInfo>>((arr, invite) => {
-    const role = teamRoleByEnum[invite.invite.role]
-    if (!role || role === 'none') {
-      return arr
-    }
+): AnnotatedInvites =>
+  Object.values(invites).reduce<AnnotatedInvites>(
+    (res, invite) => {
+      const role = teamRoleByEnum[invite.invite.role]
+      if (!role || role === 'none') {
+        return res
+      }
 
-    let username = ''
-    if (invite.invite.type.c === RPCTypes.TeamInviteCategory.sbs) {
-      username = invite.displayName
-    }
-    arr.push({
-      email: invite.invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.displayName : '',
-      id: invite.invite.id,
-      name: [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink].includes(
-        invite.invite.type.c
-      )
-        ? invite.displayName
-        : '',
-      phone: invite.invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.displayName : '',
-      role,
-      username,
-    })
-    return arr
-  }, [])
+      if (invite.invite.type.c === RPCTypes.TeamInviteCategory.invitelink) {
+        res.inviteLinks.push({
+          etime: invite.invite.etime ?? undefined,
+          id: invite.invite.id,
+          inviter: invite.inviterUsername,
+          maxUses: invite.invite.maxUses ?? undefined,
+          role,
+          url: invite.displayName,
+        })
+      } else {
+        let username = ''
+        if (invite.invite.type.c === RPCTypes.TeamInviteCategory.sbs) {
+          username = invite.displayName
+        }
+        res.invites.push({
+          email: invite.invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.displayName : '',
+          id: invite.invite.id,
+          name: [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink].includes(
+            invite.invite.type.c
+          )
+            ? invite.displayName
+            : '',
+          phone: invite.invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.displayName : '',
+          role,
+          username,
+        })
+      }
+      return res
+    },
+    {invites: [], inviteLinks: []}
+  )
 
 export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   description: '',
@@ -789,9 +804,11 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
       username,
     })
   })
+  const invites = t.invites ? annotatedInvitesToInviteInfo(t.invites) : {invites: [], inviteLinks: []}
   return {
     description: t.showcase.description ?? '',
-    invites: t.invites ? new Set(annotatedInvitesToInviteInfo(t.invites)) : new Set(),
+    invites: new Set(invites.invites),
+    inviteLinks: new Set(invites.inviteLinks),
     members,
     requests: t.joinRequests ? new Set(t.joinRequests) : new Set(),
     settings: {
