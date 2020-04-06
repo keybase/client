@@ -1,6 +1,8 @@
 import * as React from 'react'
+import * as Constants from '../../../constants/wallets'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/wallets'
 import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
@@ -70,7 +72,21 @@ const PartnerRow = (props: PartnerRowProps) => (
   </Kb.Box2>
 )
 
+const ConnectedHeader = () => {
+  const name = Container.useSelector(state => {
+    const accountID = Constants.getSelectedAccount(state)
+    return Constants.getAccount(state, accountID).name
+  })
+
+  return <AccountPageHeader accountName={name} title="Settings" />
+}
+
 class AccountSettings extends React.Component<SettingsProps> {
+  static navigationOptions = {
+    header: undefined,
+    headerTitle: () => <ConnectedHeader />,
+  }
+
   componentDidMount() {
     this.props.refresh()
   }
@@ -87,11 +103,6 @@ class AccountSettings extends React.Component<SettingsProps> {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {Styles.isMobile && <Kb.NavigationEvents onWillBlur={this.clearKey} />}
-        <Kb.HeaderHocHeader
-          customComponent={<AccountPageHeader accountName={props.name} title="Settings" />}
-          onBack={props.onBack}
-          headerStyle={styles.header}
-        />
         <Kb.ScrollView style={styles.scrollView} contentContainerStyle={{flexGrow: 1}}>
           <Kb.Box2
             direction="vertical"
@@ -331,13 +342,6 @@ const styles = Styles.styleSheetCreate(
       },
       externalPartnersText: {
         marginBottom: Styles.globalMargins.tiny,
-      },
-      header: {
-        ...(!Styles.isMobile ? {minHeight: 48} : {}),
-        backgroundColor: Styles.globalColors.white,
-        borderBottomColor: Styles.globalColors.black_10,
-        borderBottomWidth: 1,
-        borderStyle: 'solid',
       },
       icon: {marginLeft: Styles.globalMargins.xtiny},
       identity: {

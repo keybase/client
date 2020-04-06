@@ -4,6 +4,7 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import Header from './header/container'
 import Onboarding from '../onboarding/container'
 import partition from 'lodash/partition'
 import Wallet, {AssetSectionTitle, Props} from '.'
@@ -24,6 +25,14 @@ const sortAndStripTimestamps = (
 // disclaimer (from the wallet list).
 const WalletOrOnboarding = (props: Props) =>
   !props.acceptedDisclaimer ? <Onboarding nextScreen="openWallet" /> : <Wallet {...props} />
+
+WalletOrOnboarding.navigationOptions = {
+  header: () => <Header />,
+  headerStyle: {
+    height: 150,
+    width: '100%',
+  },
+}
 
 export default Container.connect(
   state => {
