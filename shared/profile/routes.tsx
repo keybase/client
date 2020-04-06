@@ -1,6 +1,5 @@
 import {newRoutes as PGPRoutes} from './pgp/routes'
 import Profile from './user/container'
-import ProfileNonUser from './non-user-profile/container'
 import ProfileAddToTeam from './add-to-team/container'
 import ProfileConfirmOrPending from './confirm-or-pending/container'
 import ProfileEdit from './edit-profile/container'
@@ -17,7 +16,6 @@ import ProfileWotAuthor from './wot-author/container'
 
 export const newRoutes = {
   profile: {getScreen: (): typeof Profile => require('./user/container').default},
-  profileNonUser: {getScreen: (): typeof ProfileNonUser => require('./non-user-profile/container').default},
 }
 
 export const newModalRoutes = {
