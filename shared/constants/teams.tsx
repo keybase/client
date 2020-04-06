@@ -925,6 +925,7 @@ export const stringifyPeople = (people: string[]): string => {
     default:
       return `${people[0]}, ${people[1]}, and ${people.length - 2} others`
   }
+}
 
 export const teamTreeMembershipValueToSparseMembership = (value) => {
   // TODO cannot put a none in here!
