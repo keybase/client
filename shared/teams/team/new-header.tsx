@@ -242,6 +242,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
             />
           ) : (
             <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
+              {/* TODO: on clicking this, actually make an invite link and copy it */}
               <Kb.CopyText text="https://keybase.io/team/link/blahblah/" />
               <Kb.Text type="BodyTiny">Adds as writer • Expires 10,000 ys</Kb.Text>
               <Kb.Text type="BodyTiny" onClick={callbacks.onManageInvites} className="hover-underline">
@@ -335,7 +336,8 @@ const useHeaderCallbacks = (teamID: TeamID) => {
         )
     : undefined
   const onEdit = nyi
-  const onManageInvites = nyi
+  const onManageInvites = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksModal'}]}))
   const onShare = nyi
 
   return {onAddSelf, onChat, onEdit, onEditAvatar, onEditDescription, onManageInvites, onRename, onShare}
