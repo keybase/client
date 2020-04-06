@@ -664,14 +664,12 @@ func (s *HybridInboxSource) markAsReadDeliverLoop(uid gregor1.UID, stopCh chan s
 	for {
 		select {
 		case <-s.readFlushCh:
-			err := s.markAsReadDeliver(ctx)
-			if err != nil {
-				return err
+			if err := s.markAsReadDeliver(ctx); err != nil {
+				s.Debug(ctx, "unable to mark as read: %v", err)
 			}
 		case <-s.G().Clock().After(s.readFlushDelay):
-			err := s.markAsReadDeliver(ctx)
-			if err != nil {
-				return err
+			if err := s.markAsReadDeliver(ctx); err != nil {
+				s.Debug(ctx, "unable to mark as read: %v", err)
 			}
 		case <-stopCh:
 			return nil

@@ -46,7 +46,8 @@ type ChatContext struct {
 	UIThreadLoader       types.UIThreadLoader             // manages loading threads for UI
 	Badger               *badges.Badger                   // app badging
 	ParticipantsSource   types.ParticipantSource          // get team participants
-	EmojiSource          types.EmojiSource                // eomoji support
+	EmojiSource          types.EmojiSource                // emoji support
+	EphemeralTracker     types.EphemeralTracker           // tracking of ephemeral msg caches
 }
 
 func (c *ChatContext) Describe() string {
@@ -84,6 +85,7 @@ func (c *ChatContext) Describe() string {
   Badger: %v,
   ParticipantSource %v,
   EmojiSource: %v
+  EphemeralTracker: %v
 }`,
 		c.CtxFactory != nil,
 		c.InboxSource != nil,
@@ -118,6 +120,7 @@ func (c *ChatContext) Describe() string {
 		c.Badger != nil,
 		c.ParticipantsSource != nil,
 		c.EmojiSource != nil,
+		c.EphemeralTracker != nil,
 	)
 }
 

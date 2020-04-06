@@ -56,4 +56,7 @@ protocol NotifyTeam {
 
   // Sent when any information on the top-level teams tab changes
   void teamMetadataUpdate() oneway;
+
+  void teamTreeMembershipsPartial(int sessionID, TeamTreeMembership membership) oneway;
+  void teamTreeMembershipsDone(int sessionID, int expectedCount) oneway;
 }

@@ -3423,6 +3423,69 @@
           "name": "role"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeMembershipValue",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "joinTime"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamTreeMembershipStatus",
+      "symbols": [
+        "OK_0",
+        "ERROR_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "TeamTreeMembershipResult",
+      "switch": {
+        "type": "TeamTreeMembershipStatus",
+        "name": "s"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "OK",
+            "def": false
+          },
+          "body": "TeamTreeMembershipValue"
+        },
+        {
+          "label": {
+            "name": "ERROR",
+            "def": false
+          },
+          "body": "GenericError"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeMembership",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "teamName"
+        },
+        {
+          "type": "TeamTreeMembershipResult",
+          "name": "result"
+        }
+      ]
     }
   ],
   "messages": {
@@ -4000,7 +4063,7 @@
       ],
       "response": null
     },
-    "teamTree": {
+    "teamTreeUnverified": {
       "request": [
         {
           "name": "sessionID",
@@ -4013,7 +4076,7 @@
       ],
       "response": "TeamTreeResult"
     },
-    "teamGetSubteams": {
+    "teamGetSubteamsUnverified": {
       "request": [
         {
           "name": "sessionID",
@@ -4527,6 +4590,32 @@
         "type": "array",
         "items": "AnnotatedSubteamMemberDetails"
       }
+    },
+    "loadTeamTreeMemberships": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "cancelLoadTeamTree": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

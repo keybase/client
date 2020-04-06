@@ -337,7 +337,7 @@ func TestTeamTree(t *testing.T) {
 			set[v.String()] = false
 		}
 
-		tree, err := teams.TeamTree(context.Background(), ann.tc.G, keybase1.TeamTreeArg{Name: teamName})
+		tree, err := teams.TeamTreeUnverified(context.Background(), ann.tc.G, keybase1.TeamTreeUnverifiedArg{Name: teamName})
 		require.NoError(t, err)
 		require.Equal(t, len(expectedTree), len(tree.Entries))
 
