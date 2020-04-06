@@ -54,12 +54,9 @@ func (s *baseConversationSource) Sign(payload []byte) ([]byte, error) {
 // DeleteAssets implements github.com/keybase/go/chat/storage/storage.AssetDeleter interface.
 func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, assets []chat1.Asset) {
-	defer s.Trace(ctx, func() error { return nil }, "DeleteAssets: %d", len(assets))()
-
 	if len(assets) == 0 {
 		return
 	}
-
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, &chat1.Pagination{Num: 0},
 		types.ConvLoaderPriorityHigh, types.ConvLoaderUnique,

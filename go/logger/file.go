@@ -33,7 +33,7 @@ type LogFileConfig struct {
 }
 
 // SetLogFileConfig sets the log file config to be used globally.
-func SetLogFileConfig(lfc *LogFileConfig) error {
+func SetLogFileConfig(lfc *LogFileConfig, blc *BufferedLoggerConfig) error {
 	globalLock.Lock()
 	defer globalLock.Unlock()
 
@@ -60,7 +60,7 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 	}
 
 	if first {
-		buf, shutdown, _ := NewAutoFlushingBufferedWriter(w, loggingFrequency)
+		buf, shutdown, _ := NewAutoFlushingBufferedWriter(w, blc)
 		w.stopFlushing = shutdown
 		fileBackend := logging.NewLogBackend(buf, "", 0)
 		logging.SetBackend(fileBackend)

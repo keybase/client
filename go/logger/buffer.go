@@ -5,13 +5,19 @@ package logger
 
 import (
 	"bufio"
-	"github.com/keybase/go-logging"
 	"io"
 	"sync"
 	"time"
+
+	"github.com/keybase/go-logging"
 )
 
 const loggingFrequency = 10 * time.Millisecond
+
+type BufferedLoggerConfig struct {
+	Frequency time.Duration
+	Size      int
+}
 
 type triggerableTimer struct {
 	C          chan struct{}
@@ -94,15 +100,25 @@ func (writer *autoFlushingBufferedWriter) backgroundFlush() {
 	}
 }
 
+func defaultBufferedLoggerConfig() *BufferedLoggerConfig {
+	return &BufferedLoggerConfig{
+		Frequency: loggingFrequency,
+		Size:      4096,
+	}
+}
+
 // NewAutoFlushingBufferedWriter returns an io.Writer that buffers its output
 // and flushes automatically after `flushFrequency`.
 func NewAutoFlushingBufferedWriter(baseWriter io.Writer,
-	flushFrequency time.Duration) (w io.Writer, shutdown chan struct{}, done chan struct{}) {
+	config *BufferedLoggerConfig) (w io.Writer, shutdown chan struct{}, done chan struct{}) {
+	if config == nil {
+		config = defaultBufferedLoggerConfig()
+	}
 	result := &autoFlushingBufferedWriter{
-		bufferedWriter: bufio.NewWriter(baseWriter),
-		backupWriter:   bufio.NewWriter(baseWriter),
-		frequency:      flushFrequency,
-		timer:          newTriggerableTimer(flushFrequency),
+		bufferedWriter: bufio.NewWriterSize(baseWriter, config.Size),
+		backupWriter:   bufio.NewWriterSize(baseWriter, config.Size),
+		frequency:      config.Frequency,
+		timer:          newTriggerableTimer(config.Frequency),
 		shutdown:       make(chan struct{}),
 		doneShutdown:   make(chan struct{}),
 	}
@@ -128,7 +144,7 @@ func (writer *autoFlushingBufferedWriter) Write(p []byte) (int, error) {
 // EnableBufferedLogging turns on buffered logging - this is a performance
 // boost at the expense of not getting all the logs in a crash.
 func EnableBufferedLogging() {
-	writer, shutdown, done := NewAutoFlushingBufferedWriter(ErrorWriter(), loggingFrequency)
+	writer, shutdown, done := NewAutoFlushingBufferedWriter(ErrorWriter(), nil)
 	stdErrLoggingShutdown = shutdown
 	stdErrLoggingShutdownDone = done
 	logBackend := logging.NewLogBackend(writer, "", 0)
