@@ -133,18 +133,13 @@ class SendIndicator extends React.Component<Props, State> {
       : statusToIcon[this.state.animationStatus]
     // There is no exploding-error state
     if (this.props.isExploding && this.state.animationStatus !== 'error') {
-      // Don't show the sent state when exploding
-      if (this.state.animationStatus === 'sent') {
-        return
-      } else {
-        animationType = `${animationType}Exploding` as Kb.AnimationType
-      }
+      animationType = `${animationType}Exploding` as Kb.AnimationType
     }
     return animationType
   }
 
   render() {
-    if (!this.state.visible) {
+    if (!this.state.visible || (this.props.isExploding && this.state.animationStatus === 'sent')) {
       return null
     }
     return (
