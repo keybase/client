@@ -3,13 +3,10 @@ package storage
 import (
 	"crypto/rand"
 	"sort"
-	"testing"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type dummyContextFactory struct{}
@@ -166,20 +163,5 @@ func SortMessagesDesc(msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
 	sort.SliceStable(res, func(i, j int) bool {
 		return res[j].GetMessageID() < res[i].GetMessageID()
 	})
-	return res
-}
-
-func MustMerge(t testing.TB, storage *Storage,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) MergeResult {
-	conv, err := NewInbox(storage.G()).GetConversation(context.Background(), uid, convID)
-	switch err.(type) {
-	case nil:
-	case MissError:
-		conv = types.NewEmptyRemoteConversation(convID)
-	default:
-		require.NoError(t, err)
-	}
-	res, err := storage.Merge(context.Background(), conv, uid, msgs)
-	require.NoError(t, err)
 	return res
 }

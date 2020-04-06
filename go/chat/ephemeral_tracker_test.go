@@ -8,11 +8,27 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
+
+func mustMerge(t testing.TB, chatStorage *storage.Storage,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) storage.MergeResult {
+	conv, err := storage.NewInbox(chatStorage.G()).GetConversation(context.Background(), uid, convID)
+	switch err.(type) {
+	case nil:
+	case storage.MissError:
+		conv = types.NewEmptyRemoteConversation(convID)
+	default:
+		require.NoError(t, err)
+	}
+	res, err := chatStorage.Merge(context.Background(), conv, uid, msgs)
+	require.NoError(t, err)
+	return res
+}
 
 func TestEphemeralPurgeTracker(t *testing.T) {
 	// Uses this conversation:
@@ -140,7 +156,7 @@ func TestEphemeralPurgeTracker(t *testing.T) {
 	msgH := storage.MakeEphemeralText(8, "some text", &chat1.MsgEphemeralMetadata{Lifetime: lifetime}, now)
 
 	t.Logf("initial merge")
-	storage.MustMerge(t, chatStorage, convID, uid, storage.SortMessagesDesc([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}))
+	mustMerge(t, chatStorage, convID, uid, storage.SortMessagesDesc([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}))
 
 	// We set the initial tracker info when we merge in
 	expectedPurgeInfo := &chat1.EphemeralPurgeInfo{
@@ -188,7 +204,7 @@ func TestEphemeralPurgeTracker(t *testing.T) {
 	// We add msgH, which is already expired, so it should get purged on entry,
 	// but our nextPurgeTime should be unchanged, since msgE's etime is still
 	// the min.
-	storage.MustMerge(t, chatStorage, convID, uid, storage.SortMessagesDesc([]chat1.MessageUnboxed{msgH}))
+	mustMerge(t, chatStorage, convID, uid, storage.SortMessagesDesc([]chat1.MessageUnboxed{msgH}))
 	verifyTrackerState(expectedPurgeInfo)
 	// H should have it's body nuked off the bat.
 	setExpected("H", msgH, false, dontCare)
