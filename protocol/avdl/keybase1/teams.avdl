@@ -1647,7 +1647,7 @@ protocol teams {
   variant TeamTreeMembershipResult switch (TeamTreeMembershipStatus s) {
     case OK: TeamTreeMembershipValue;
     case ERROR: TeamTreeError;
-  // HIDDEN is used for membership results of teams the user is not in
+    // HIDDEN is used for membership results of teams the user is not in
     case HIDDEN: void;
   }
   record TeamTreeMembership {
@@ -1657,7 +1657,7 @@ protocol teams {
     // bookkeeping params
     TeamID targetTeamID;
     string targetUsername;
-    int sessionID;
+    int guid;
   }
   record TeamTreeMembershipsDoneResult {
     int expectedCount;
@@ -1665,7 +1665,7 @@ protocol teams {
     // bookkeeping params
     TeamID targetTeamID;
     string targetUsername;
-    int sessionID;
+    int guid;
   }
   record TeamTreeInitial {
     int guid;
@@ -1704,5 +1704,5 @@ protocol teams {
   // case, there would only be 5 Partial notifications (C, E, G, H, I) instead of all 7.
   TeamTreeInitial loadTeamTreeMemberships(int sessionID, TeamID teamID, string username);
   // called when navigating out of page
-  void cancelLoadTeamTree(int sessionID);
+  void cancelLoadTeamTree(int guid);
 }

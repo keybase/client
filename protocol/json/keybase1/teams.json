@@ -3507,7 +3507,7 @@
         },
         {
           "type": "int",
-          "name": "sessionID"
+          "name": "guid"
         }
       ]
     },
@@ -3529,7 +3529,7 @@
         },
         {
           "type": "int",
-          "name": "sessionID"
+          "name": "guid"
         }
       ]
     },
@@ -4651,7 +4651,7 @@
     "cancelLoadTeamTree": {
       "request": [
         {
-          "name": "sessionID",
+          "name": "guid",
           "type": "int"
         }
       ],

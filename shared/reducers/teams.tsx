@@ -401,13 +401,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamBuildingGen.setError]: handleTeamBuilding,
   [EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial]: (draftState, action) => {
     const {membership} = action.payload.params
-    const {sessionID,targetTeamID,targetUsername} = membership
+    const {guid,targetTeamID,targetUsername} = membership
 
     const usernameMemberships = mapGetEnsureValue(draftState.teamMemberToTreeMemberships,
       targetTeamID, new Map())
 
     const newMemberships = {
-      guid: sessionID,
+      guid: guid,
       teamID: targetTeamID,
       username: targetUsername,
       memberships: [],
@@ -415,9 +415,9 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
 
     const memberships = mapGetEnsureValue(usernameMemberships, targetUsername, newMemberships)
 
-    if (memberships.guid < sessionID) {
+    if (memberships.guid < guid) {
       Object.assign(memberships, newMemberships)
-    } else if (memberships.guid > sessionID) {
+    } else if (memberships.guid > guid) {
       memberships.expectedCount = undefined;
       return //noop
     }
@@ -436,22 +436,22 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone]: (draftState, action) => {
     const {result} = action.payload.params
-    const {sessionID,targetTeamID,targetUsername,expectedCount} = result
+    const {guid,targetTeamID,targetUsername,expectedCount} = result
 
     const usernameMemberships = mapGetEnsureValue(draftState.teamMemberToTreeMemberships,
       targetTeamID, new Map())
 
     const newMemberships = {
-      guid: sessionID,
+      guid: guid,
       teamID: targetTeamID,
       username: targetUsername,
       expectedCount: expectedCount,
       memberships: [],
     }
     const memberships = mapGetEnsureValue(usernameMemberships, targetUsername, newMemberships)
-    if (memberships.guid < sessionID) {
+    if (memberships.guid < guid) {
       Object.assign(memberships, newMemberships)
-    } else if (memberships.guid > sessionID) {
+    } else if (memberships.guid > guid) {
       return // noop
     }
     memberships.expectedCount = expectedCount

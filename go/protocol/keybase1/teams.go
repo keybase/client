@@ -4024,7 +4024,7 @@ type TeamTreeMembership struct {
 	Result         TeamTreeMembershipResult `codec:"result" json:"result"`
 	TargetTeamID   TeamID                   `codec:"targetTeamID" json:"targetTeamID"`
 	TargetUsername string                   `codec:"targetUsername" json:"targetUsername"`
-	SessionID      int                      `codec:"sessionID" json:"sessionID"`
+	Guid           int                      `codec:"guid" json:"guid"`
 }
 
 func (o TeamTreeMembership) DeepCopy() TeamTreeMembership {
@@ -4033,7 +4033,7 @@ func (o TeamTreeMembership) DeepCopy() TeamTreeMembership {
 		Result:         o.Result.DeepCopy(),
 		TargetTeamID:   o.TargetTeamID.DeepCopy(),
 		TargetUsername: o.TargetUsername,
-		SessionID:      o.SessionID,
+		Guid:           o.Guid,
 	}
 }
 
@@ -4041,7 +4041,7 @@ type TeamTreeMembershipsDoneResult struct {
 	ExpectedCount  int    `codec:"expectedCount" json:"expectedCount"`
 	TargetTeamID   TeamID `codec:"targetTeamID" json:"targetTeamID"`
 	TargetUsername string `codec:"targetUsername" json:"targetUsername"`
-	SessionID      int    `codec:"sessionID" json:"sessionID"`
+	Guid           int    `codec:"guid" json:"guid"`
 }
 
 func (o TeamTreeMembershipsDoneResult) DeepCopy() TeamTreeMembershipsDoneResult {
@@ -4049,7 +4049,7 @@ func (o TeamTreeMembershipsDoneResult) DeepCopy() TeamTreeMembershipsDoneResult 
 		ExpectedCount:  o.ExpectedCount,
 		TargetTeamID:   o.TargetTeamID.DeepCopy(),
 		TargetUsername: o.TargetUsername,
-		SessionID:      o.SessionID,
+		Guid:           o.Guid,
 	}
 }
 
@@ -4434,7 +4434,7 @@ type LoadTeamTreeMembershipsArg struct {
 }
 
 type CancelLoadTeamTreeArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	Guid int `codec:"guid" json:"guid"`
 }
 
 type TeamsInterface interface {
@@ -5493,7 +5493,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]CancelLoadTeamTreeArg)(nil), args)
 						return
 					}
-					err = i.CancelLoadTeamTree(ctx, typedArgs[0].SessionID)
+					err = i.CancelLoadTeamTree(ctx, typedArgs[0].Guid)
 					return
 				},
 			},
@@ -5856,8 +5856,8 @@ func (c TeamsClient) LoadTeamTreeMemberships(ctx context.Context, __arg LoadTeam
 	return
 }
 
-func (c TeamsClient) CancelLoadTeamTree(ctx context.Context, sessionID int) (err error) {
-	__arg := CancelLoadTeamTreeArg{SessionID: sessionID}
+func (c TeamsClient) CancelLoadTeamTree(ctx context.Context, guid int) (err error) {
+	__arg := CancelLoadTeamTreeArg{Guid: guid}
 	err = c.Cli.Call(ctx, "keybase.1.teams.cancelLoadTeamTree", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

@@ -57,7 +57,7 @@ func LoadTeamTreeMembershipsWithConverter(mctx libkb.MetaContext,
 		mctx.Debug("@@@ notify FINISHED w/ count %d", expectedCount)
 
 		imctx.G().NotifyRouter.HandleTeamTreeMembershipsDone(mctx.Ctx(), keybase1.TeamTreeMembershipsDoneResult{
-			SessionID:      int(libkb.GetSessionIDOrZero(ctx)),
+			Guid:           int(libkb.GetSessionIDOrZero(ctx)),
 			TargetTeamID:   teamID,
 			TargetUsername: username,
 			ExpectedCount:  int(expectedCount),
@@ -204,7 +204,7 @@ func notifyTeamTreeMembershipResult(mctx libkb.MetaContext, targetTeamID keybase
 	res keybase1.TeamTreeMembershipResult) {
 	mctx.Debug("@@@ notifyTeamTreeMembershipResult %#v", res)
 	mctx.G().NotifyRouter.HandleTeamTreeMembershipsPartial(mctx.Ctx(), keybase1.TeamTreeMembership{
-		SessionID:      int(libkb.GetSessionIDOrZero(mctx.Ctx())),
+		Guid:           int(libkb.GetSessionIDOrZero(mctx.Ctx())),
 		TargetTeamID:   targetTeamID,
 		TargetUsername: username,
 		TeamName:       teamName.String(),
