@@ -59,7 +59,7 @@ let Conversation = (p: SwitchProps) => {
     case 'normal':
       return <Normal conversationIDKey={conversationIDKey} />
     case 'youAreReset':
-      return <YouAreReset onBack={onBack} />
+      return <YouAreReset />
     case 'rekey':
       return <Rekey conversationIDKey={conversationIDKey} />
     default:
