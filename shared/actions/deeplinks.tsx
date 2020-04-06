@@ -66,7 +66,7 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         return [
           RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {path: `/keybase/${decoded}`}, selected: 'main'}],
+            path: [{props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'}],
           }),
         ]
       } catch (e) {

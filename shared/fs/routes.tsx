@@ -7,7 +7,7 @@ import SendAttachmentToChat from './send-to-chat/attachment'
 
 const fsRoot = {getScreen: (): typeof FsRoot => require('./container').default}
 
-export const newRoutes = {fsRoot, main: fsRoot}
+export const newRoutes = {fsRoot}
 
 export const newModalRoutes = {
   barePreview: {getScreen: (): typeof BarePreview => require('./filepreview').BarePreview},

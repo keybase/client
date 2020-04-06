@@ -71,7 +71,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       dispatch(RouteTreeGen.createClearModals())
       dispatch(
         nav.safeNavigateAppendPayload({
-          path: [{props: {path: destinationParentPath}, selected: 'main'}],
+          path: [{props: {path: destinationParentPath}, selected: 'fsRoot'}],
         })
       )
     },
@@ -80,7 +80,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       dispatch(RouteTreeGen.createClearModals())
       dispatch(
         nav.safeNavigateAppendPayload({
-          path: [{props: {path: destinationParentPath}, selected: 'main'}],
+          path: [{props: {path: destinationParentPath}, selected: 'fsRoot'}],
         })
       )
     },

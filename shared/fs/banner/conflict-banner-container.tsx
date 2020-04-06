@@ -32,7 +32,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   onGoToSamePathInDifferentTlf: (tlfPath: Types.Path) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {path: Constants.rebasePathToDifferentTlf(ownProps.path, tlfPath)}, selected: 'main'}],
+        path: [
+          {props: {path: Constants.rebasePathToDifferentTlf(ownProps.path, tlfPath)}, selected: 'fsRoot'},
+        ],
       })
     ),
   onHelp: () => openUrl('https://keybase.io/docs/kbfs/understanding_kbfs#conflict-resolution'),
