@@ -78,6 +78,7 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
           ...Constants.emptyTeamDetails,
           description: 'A team for people who live in story books, or for people who like story books',
           members: new Map([
+            ['alice', {fullName: 'alice', status: 'active', type: 'admin', username: 'alice'}],
             ['jeff', {fullName: 'Jeff', status: 'active', type: 'reader', username: 'jeff'}],
             // prettier-ignore
             ['paula', {fullName: 'Paula Superlonglastnamelikereallylongforreal', status: 'active', type: 'writer', username: 'paula'}],
@@ -123,6 +124,53 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
       ...draftState.teams.teamRoleMap,
       roles: new Map([[teamID3, {implicitAdmin: false, role: 'admin'}]]),
     },
+    treeLoaderTeamIDToSparseMemberInfos: new Map([
+      [fakeTeamID, new Map([['alice', {type: 'admin'}]])],
+      [subteam1, new Map([['alice', {type: 'none'}]])],
+    ]),
+    teamMemberToTreeMemberships: new Map([
+      [
+        fakeTeamID,
+        new Map([
+          [
+            'alice',
+            {
+              targetTeamID: fakeTeamID,
+              targetUsername: 'alice',
+              expectedCount: 2,
+              memberships: [
+                {
+                  teamName: 'keybase_storybook',
+                  result: {
+                    s: 0,
+                    ok: {
+                      role: 'admin',
+                      teamID: fakeTeamID,
+                    },
+                  },
+                  targetTeamID: fakeTeamID,
+                  targetUsername: 'alice',
+                  guid: 0,
+                },
+                {
+                  teamName: 'keybase_storybook.friends',
+                  result: {
+                    s: 0,
+                    ok: {
+                      role: 'none',
+                      teamID: subteam1,
+                    },
+                  },
+                  targetTeamID: fakeTeamID,
+                  targetUsername: 'alice',
+                  guid: 0,
+                },
+              ],
+            },
+          ],
+        ]),
+      ],
+    ]),
   }
   draftState.config = {
     ...draftState.config,
