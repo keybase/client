@@ -793,6 +793,10 @@ func doInit(
 	if err != nil {
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
+	if registry := config.MetricsRegistry(); registry != nil {
+		service = NewKeybaseServiceMeasured(service, registry)
+	}
+	config.SetKeybaseService(service)
 
 	// Initialize KBPKI client (needed for KBFSOps, MD Server, and Chat).
 	k := NewKBPKIClient(config, kbfsLog)
@@ -827,11 +831,6 @@ func doInit(
 		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
 		return nil, err
 	}
-
-	if registry := config.MetricsRegistry(); registry != nil {
-		service = NewKeybaseServiceMeasured(service, registry)
-	}
-	config.SetKeybaseService(service)
 
 	kbfsOps.favs.Initialize(ctx)
 
