@@ -465,6 +465,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.ParticipantsSource = NewCachingParticipantSource(g, func() chat1.RemoteInterface { return ri })
 	g.EmojiSource = NewDevConvEmojiSource(g, func() chat1.RemoteInterface { return ri })
 	g.EphemeralTracker = NewEphemeralTracker(g)
+	g.EphemeralTracker.Start(context.TODO(), uid)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
