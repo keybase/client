@@ -17,12 +17,8 @@ export type EmojiData = {
 }
 
 export const getEmojiStr = (emoji: EmojiData, skinToneModifier?: string) => {
-  if (emoji.userEmojiRenderUrl) {
-    return emoji.short_name
-  }
-
-  if (emoji.userEmojiRenderStock) {
-    return emoji.short_name
+  if (emoji.userEmojiRenderUrl || emoji.userEmojiRenderStock) {
+    return `:${emoji.short_name}:`
   }
 
   return `:${emoji.short_name}:${skinToneModifier ?? ''}`
