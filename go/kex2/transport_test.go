@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"io"
 	"net"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -246,6 +247,12 @@ func genConnPair(t *testLogCtx, behavior int, readTimeout time.Duration) (c1 net
 	return
 }
 
+func maybeDisableTest(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip()
+	}
+}
+
 func TestHello(t *testing.T) {
 	testLogCtx, cleanup := newTestLogCtx(t)
 	defer cleanup()
@@ -331,6 +338,7 @@ func TestReadTimeout(t *testing.T) {
 }
 
 func TestReadDelayedWrite(t *testing.T) {
+	maybeDisableTest(t)
 	testLogCtx, cleanup := newTestLogCtx(t)
 	defer cleanup()
 	c1, c2, _, _ := genConnPair(testLogCtx, GoodRouter, time.Duration(0))
@@ -353,6 +361,7 @@ func TestReadDelayedWrite(t *testing.T) {
 }
 
 func TestMultipleWritesOneRead(t *testing.T) {
+	maybeDisableTest(t)
 	testLogCtx, cleanup := newTestLogCtx(t)
 	defer cleanup()
 	c1, c2, _, _ := genConnPair(testLogCtx, GoodRouter, time.Duration(0))
@@ -503,6 +512,8 @@ func TestErrAgain(t *testing.T) {
 }
 
 func TestPollLoopSuccess(t *testing.T) {
+	maybeDisableTest(t)
+
 	testLogCtx, cleanup := newTestLogCtx(t)
 	defer cleanup()
 
@@ -531,6 +542,8 @@ func TestPollLoopSuccess(t *testing.T) {
 }
 
 func TestPollLoopTimeout(t *testing.T) {
+	maybeDisableTest(t)
+
 	testLogCtx, cleanup := newTestLogCtx(t)
 	defer cleanup()
 

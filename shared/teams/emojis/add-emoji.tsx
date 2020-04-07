@@ -48,6 +48,8 @@ const useDoAddEmojis = (
             [
               {
                 aliases: emojisToAdd.map(e => e.alias),
+                // TODO add plumbing when editing an existing emoji.
+                allowOverwrite: emojisToAdd.map(() => false),
                 convID: ChatTypes.keyToConversationID(conversationIDKey),
                 filenames: emojisToAdd.map(e => e.path),
               },

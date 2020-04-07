@@ -108,7 +108,7 @@ class InboxSearch extends React.Component<Props, State> {
     index: number
   }) => {
     const {item, index} = h
-    return <Bot {...item} onClick={this.props.onInstallBot} firstItem={index === 0} />
+    return <Bot {...item} onClick={this.props.onInstallBot} firstItem={index === 0} hideHover={true} />
   }
 
   private renderHit = (h: {

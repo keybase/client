@@ -78,17 +78,17 @@ func TestEmojiSourceBasic(t *testing.T) {
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 
 	t.Logf("admin")
-	source, err := tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "party_parrot", filename)
+	source, err := tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "party_parrot", filename, false)
 	require.NoError(t, err)
-	_, err = tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "mike", filename)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, conv.Id, "mike", filename, false)
 	require.NoError(t, err)
 
 	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
 
-	_, err = tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "mike2", filename)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "mike2", filename, false)
 	require.NoError(t, err)
-	_, err = tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "party_parrot2", filename)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, teamConv.Id, "party_parrot2", filename, false)
 	require.NoError(t, err)
 
 	res, err := tc.Context().EmojiSource.Get(ctx, uid, nil, chat1.EmojiFetchOpts{
@@ -195,6 +195,39 @@ func TestEmojiSourceBasic(t *testing.T) {
 	}
 	require.True(t, checked)
 
+	t.Logf("stock alias")
+	_, err = tc.Context().EmojiSource.AddAlias(ctx, uid, conv.Id, ":my+1:", ":+1::skin-tone-0:")
+	require.NoError(t, err)
+	res, err = tc.Context().EmojiSource.Get(ctx, uid, &conv.Id, chat1.EmojiFetchOpts{
+		GetCreationInfo: true,
+		GetAliases:      true,
+	})
+	require.NoError(t, err)
+	checked = false
+	for _, group := range res.Emojis {
+		if group.Name == conv.TlfName {
+			require.Len(t, group.Emojis, 1)
+			emoji := group.Emojis[0]
+			require.Equal(t, chat1.Emoji{
+				Alias:       ":my+1:",
+				IsBig:       false,
+				IsReacji:    false,
+				IsCrossTeam: false,
+				Source:      chat1.NewEmojiLoadSourceWithStr(":+1::skin-tone-0:"),
+				RemoteSource: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+					Text:     ":+1::skin-tone-0:",
+					Username: users[0].Username,
+					Time:     gregor1.ToTime(ctc.world.Fc.Now()),
+				}),
+				CreationInfo: &chat1.EmojiCreationInfo{
+					Username: users[0].Username,
+					Time:     gregor1.ToTime(ctc.world.Fc.Now()),
+				},
+			}, emoji)
+			checked = true
+		}
+	}
+	require.True(t, checked)
 }
 
 func TestEmojiSourceCrossTeam(t *testing.T) {
@@ -273,11 +306,11 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 		chat1.ConversationMembersType_TEAM, users[2], users[3])
 
 	t.Logf("basic")
-	_, err := tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "party_parrot", filename)
+	_, err := tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "party_parrot", filename, false)
 	require.NoError(t, err)
-	_, err = tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "success-kid", filename)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "success-kid", filename, false)
 	require.NoError(t, err)
-	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "mike", filename)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "mike", filename, false)
 	require.NoError(t, err)
 
 	msgID := mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -320,12 +353,18 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	expectRefresh(false)
 
 	t.Logf("collision")
-	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "party_parrot", filename)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, sharedConv2.Id, "party_parrot", filename, false)
 	require.NoError(t, err)
 	msgID = mustPostLocalForTest(t, ctc, users[0], sharedConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: ":party_parrot#2:",
 	}))
 	checkEmoji(ctx1, t, tc1, uid1, sharedConv, msgID, "party_parrot#2")
+
+	// error on edit
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "party_parrot", filename, false)
+	require.Error(t, err)
+	_, err = tc.Context().EmojiSource.Add(ctx, uid, aloneConv.Id, "party_parrot", filename, true)
+	require.NoError(t, err)
 }
 
 type emojiTestCase struct {
@@ -390,4 +429,12 @@ func TestEmojiSourceParse(t *testing.T) {
 		res := es.parse(ctx, tc.body)
 		require.Equal(t, tc.expected, res)
 	}
+}
+
+func TestEmojiSourceIsStock(t *testing.T) {
+	es := &DevConvEmojiSource{}
+	require.True(t, es.IsStockEmoji("+1"))
+	require.True(t, es.IsStockEmoji(":+1:"))
+	require.True(t, es.IsStockEmoji(":+1::skin-tone-5:"))
+	require.False(t, es.IsStockEmoji("foo"))
 }

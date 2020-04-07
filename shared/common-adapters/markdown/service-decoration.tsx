@@ -233,8 +233,10 @@ const ServiceDecoration = (props: Props) => {
       />
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.emoji) {
-    return renderEmoji(RPCToEmojiData(parsed.emoji), parsed.emoji.isBig && !props.disableBigEmojis ? 32 : 24)
-    // we may want to add more cases here later if we decide to parse "stock" emoji with this
+    return renderEmoji(
+      RPCToEmojiData(parsed.emoji),
+      parsed.emoji.isBig && !props.disableBigEmojis ? 32 : parsed.emoji.isReacji && !Styles.isMobile ? 24 : 16
+    )
   }
   return null
 }

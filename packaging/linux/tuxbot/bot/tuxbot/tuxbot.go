@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -19,7 +18,6 @@ import (
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 	"github.com/keybase/go-keybase-chat-bot/kbchat/types/chat1"
 
-	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/subosito/gotenv"
 )
@@ -28,7 +26,6 @@ const dockerNamespace = "keybaseio/client"
 
 type Tuxbot struct {
 	chatbot.Logger
-	docker *client.Client
 
 	Name                   string
 	sendChannel            chat1.ChatChannel
@@ -290,62 +287,46 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			)
 			buildCmd.Stdout = nil
 			buildCmd.Stderr = nil
-			output, err := buildCmd.CombinedOutput()
+			buildOutput, err := buildCmd.CombinedOutput()
 			if err != nil {
 				var trimmedOutput []byte
-				if len(output) > 500 {
-					trimmedOutput = output[len(output)-500:]
+				if len(buildOutput) > 500 {
+					trimmedOutput = buildOutput[len(buildOutput)-500:]
 				} else {
-					trimmedOutput = output
+					trimmedOutput = buildOutput
 				}
 				c.Info("docker build error: %v", err)
 				c.Info("Logs:\n%s", string(trimmedOutput))
 				return
 			}
 
-			// Validate that we generated 2 images
-			var (
-				ctx         = context.Background()
-				standardTag = dockerNamespace + ":" + versionTag
-				slimTag     = dockerNamespace + ":" + versionTag + "-slim"
-				nodeTag     = dockerNamespace + ":" + versionTag + "-node"
-				nodeSlimTag = dockerNamespace + ":" + versionTag + "-node-slim"
+			// And the push!
+			pushCmd := makeCmd(
+				currentUser,
+				"./packaging/linux/docker/build.sh",
+				versionTag,
+				"nightly",
 			)
-			if !c.imageExists(ctx, standardTag) {
-				c.Info("Image %s not found. Aborting the release.", standardTag)
-				return
-			}
-			if !c.imageExists(ctx, slimTag) {
-				c.Info("Image %s not found. Aborting the release.", slimTag)
-				return
-			}
-			if !c.imageExists(ctx, nodeTag) {
-				c.Info("Image %s not found. Aborting the release.", nodeTag)
-				return
-			}
-			if !c.imageExists(ctx, nodeSlimTag) {
-				c.Info("Image %s not found. Aborting the release.", nodeSlimTag)
-				return
-			}
-
-			// We're doing a bunch of tagging here
-			if err := c.tagAndPush(ctx, [][2]string{
-				{"", standardTag},
-				{"", slimTag},
-				{"", nodeTag},
-				{"", nodeSlimTag},
-				{standardTag, dockerNamespace + ":nightly"},
-				{slimTag, dockerNamespace + ":nightly-slim"},
-				{nodeTag, dockerNamespace + ":nightly-node"},
-				{nodeSlimTag, dockerNamespace + ":nightly-node-slim"},
-			}); err != nil {
-				c.Info("Docker push aborted: %v", err)
-				return
-			}
-			c.Info(
-				"@%s Released Docker tag %s, available as the following images:\n - %s\n - %s\n - %s\n - %s",
-				msg.Sender.Username, versionTag, standardTag, slimTag, nodeTag, nodeSlimTag,
+			pushCmd.Env = append(
+				pushCmd.Env,
+				"DOCKERHUB_USERNAME="+c.dockerUsername,
+				"DOCKERHUB_PASSWORD="+c.dockerPassword,
 			)
+			pushCmd.Stdout = nil
+			pushCmd.Stderr = nil
+			pushOutput, err := pushCmd.CombinedOutput()
+			var trimmedOutput []byte
+			if len(pushOutput) > 500 {
+				trimmedOutput = pushOutput[len(pushOutput)-500:]
+			} else {
+				trimmedOutput = pushOutput
+			}
+			if err != nil {
+				c.Info("docker push error: %v", err)
+				c.Info("Logs:\n%s", string(trimmedOutput))
+				return
+			}
+			c.Info("@%s %s", msg.Sender.Username, string(pushOutput))
 		}()
 		return nil
 	case "release-docker":
@@ -356,59 +337,34 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			return nil
 		}
 
-		// Make sure that both the images exist
-		var (
-			ctx         = context.Background()
-			versionTag  = strings.Replace(args[0], "+", "-", -1)
-			standardTag = dockerNamespace + ":" + versionTag
-			slimTag     = dockerNamespace + ":" + versionTag + "-slim"
-			nodeTag     = dockerNamespace + ":" + versionTag + "-node"
-			nodeSlimTag = dockerNamespace + ":" + versionTag + "-node-slim"
-		)
-		if !c.imageExists(ctx, standardTag) {
-			c.Info("Image %s not found. Aborting.", standardTag)
-			return nil
-		}
-		if !c.imageExists(ctx, slimTag) {
-			c.Info("Image %s not found. Aborting.", slimTag)
-			return nil
-		}
-		if !c.imageExists(ctx, nodeTag) {
-			c.Info("Image %s not found. Aborting.", nodeTag)
-			return nil
-		}
-		if !c.imageExists(ctx, nodeSlimTag) {
-			c.Info("Image %s not found. Aborting.", nodeSlimTag)
-			return nil
-		}
+		versionTag := strings.Replace(args[0], "+", "-", -1)
 
-		// First part of the arg before a "-" is the proper version number
-		var (
-			tagParts     = strings.Split(versionTag, "-")
-			versionPlain = tagParts[0]
+		pushCmd := makeCmd(
+			currentUser,
+			"./packaging/linux/docker/build.sh",
+			versionTag,
+			"release",
 		)
-
-		// Promoting to a Docker release is pretty much just tagging the images
-		if err := c.tagAndPush(ctx, [][2]string{
-			{standardTag, dockerNamespace + ":stable"},
-			{standardTag, dockerNamespace + ":latest"},
-			{standardTag, dockerNamespace + ":" + versionPlain},
-			{slimTag, dockerNamespace + ":stable-slim"},
-			{slimTag, dockerNamespace + ":latest-slim"},
-			{slimTag, dockerNamespace + ":" + versionPlain + "-slim"},
-			{nodeTag, dockerNamespace + ":stable-node"},
-			{nodeTag, dockerNamespace + ":latest-node"},
-			{nodeTag, dockerNamespace + ":" + versionPlain + "-node"},
-			{nodeSlimTag, dockerNamespace + ":stable-node-slim"},
-			{nodeSlimTag, dockerNamespace + ":latest-node-slim"},
-			{nodeSlimTag, dockerNamespace + ":" + versionPlain + "-node-slim"},
-		}); err != nil {
-			c.Info("Docker push aborted: %v", err)
+		pushCmd.Env = append(
+			pushCmd.Env,
+			"DOCKERHUB_USERNAME="+c.dockerUsername,
+			"DOCKERHUB_PASSWORD="+c.dockerPassword,
+		)
+		pushCmd.Stdout = nil
+		pushCmd.Stderr = nil
+		pushOutput, err := pushCmd.CombinedOutput()
+		var trimmedOutput []byte
+		if len(pushOutput) > 500 {
+			trimmedOutput = pushOutput[len(pushOutput)-500:]
+		} else {
+			trimmedOutput = pushOutput
+		}
+		if err != nil {
+			c.Info("docker push error: %v", err)
+			c.Info("Logs:\n%s", string(trimmedOutput))
 			return nil
 		}
-		if _, err := c.API().SendMessage(c.sendChannel, fmt.Sprintf("Released %s on Docker Hub.", versionPlain)); err != nil {
-			c.Debug("unable to SendMessage: %v", err)
-		}
+		c.Info("@%s %s", msg.Sender.Username, string(pushOutput))
 		return nil
 	case "tuxjournal", "journal":
 		filename := fmt.Sprintf("/keybase/team/%s/%s-%s.txt", c.archiveTeam, command, time.Now().Format(time.RFC3339))
@@ -485,11 +441,6 @@ func main() {
 		panic(err)
 	}
 
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		panic(err)
-	}
-
 	if *infoTeam == "" || *infoChannel == "" {
 		panic(fmt.Errorf("Chat team/channel specified: infoTeam=%q; infoChannel=%q", *infoTeam, *infoChannel))
 	}
@@ -500,7 +451,6 @@ func main() {
 
 	tuxbot := Tuxbot{
 		Logger: logger,
-		docker: cli,
 
 		Name:                   *botName,
 		api:                    api,

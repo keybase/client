@@ -4,6 +4,7 @@ import * as Constants from '../../constants/provision'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner, InfoIcon} from '../common'
+import debounce from 'lodash/debounce'
 import flags from '../../util/feature-flags'
 
 type Props = {
@@ -16,6 +17,8 @@ type Props = {
 
 const EnterDevicename = (props: Props) => {
   const [deviceName, setDeviceName] = React.useState(props.initialDevicename || '')
+  const [readyToShowError, setReadyToShowError] = React.useState(false)
+  const debouncedSetReadyToShowError = debounce(ready => setReadyToShowError(ready), 1000)
   const cleanDeviceName = Constants.cleanDeviceName(deviceName)
   const normalized = cleanDeviceName.replace(Constants.normalizeDeviceRE, '')
   const disabled =
@@ -23,8 +26,12 @@ const EnterDevicename = (props: Props) => {
     normalized.length > 64 ||
     !Constants.goodDeviceRE.test(cleanDeviceName) ||
     Constants.badDeviceRE.test(cleanDeviceName)
-  const _setDeviceName = (deviceName: string) =>
+  const showDisabled = disabled && !!cleanDeviceName && readyToShowError
+  const _setDeviceName = (deviceName: string) => {
+    setReadyToShowError(false)
     setDeviceName(deviceName.replace(Constants.badDeviceChars, ''))
+    debouncedSetReadyToShowError(true)
+  }
   const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
   return (
     <SignupScreen
@@ -59,21 +66,22 @@ const EnterDevicename = (props: Props) => {
           <Kb.LabeledInput
             autoFocus={true}
             containerStyle={styles.input}
-            error={disabled}
+            error={showDisabled}
             maxLength={64}
             placeholder={Styles.isMobile ? 'Phone 1' : 'Computer 1'}
             onChangeText={_setDeviceName}
             onEnterKeyDown={onContinue}
             value={cleanDeviceName}
           />
-          {disabled && (
+          {showDisabled && readyToShowError ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>
               {Constants.deviceNameInstructions}
             </Kb.Text>
+          ) : (
+            <Kb.Text type="BodySmall" style={styles.inputSub}>
+              Your device name will be public and can not be changed in the future.
+            </Kb.Text>
           )}
-          <Kb.Text type="BodySmall" style={styles.inputSub}>
-            Your device name will be public and can not be changed in the future.
-          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     </SignupScreen>

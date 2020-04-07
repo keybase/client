@@ -4,6 +4,7 @@ import {FloatingMenu, MenuItem, MenuItems} from '../../../../../common-adapters'
 import {fileUIName, StylesCrossPlatform} from '../../../../../styles'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import ReactionItem from '../reactionitem'
 
 type Props = {
   attachTo?: () => React.Component<any> | null
@@ -19,6 +20,7 @@ type Props = {
   onInstallBot?: () => void
   onKick: () => void
   onPinMessage?: () => void
+  onReact: (emoji: string) => void
   onReply: () => void
   onSaveAttachment?: () => void
   onShareAttachment?: () => void
@@ -36,6 +38,21 @@ type Props = {
 const AttachmentPopupMenu = (props: Props) => {
   const items: MenuItems = [
     'Divider',
+    ...(props.onAddReaction
+      ? [
+          {
+            unWrapped: true,
+            view: (
+              <ReactionItem
+                onHidden={props.onHidden}
+                onReact={props.onReact}
+                showPicker={props.onAddReaction}
+              />
+            ),
+          },
+          'Divider',
+        ]
+      : []),
     ...(props.onShowInFinder
       ? [{icon: 'iconfont-finder', onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}]
       : []),
@@ -66,9 +83,6 @@ const AttachmentPopupMenu = (props: Props) => {
         ]
       : []),
     ...(props.onAllMedia ? [{icon: 'iconfont-camera', onClick: props.onAllMedia, title: 'All media'}] : []),
-    ...(props.onAddReaction
-      ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}]
-      : []),
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onPinMessage
       ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]

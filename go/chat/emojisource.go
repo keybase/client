@@ -7,9 +7,9 @@ import (
 	"image/gif"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 	"sync"
-	"time"
 
 	"camlistore.org/pkg/images"
 	"github.com/keybase/client/go/chat/attachments"
@@ -116,7 +116,7 @@ func (s *DevConvEmojiSource) putAliasLookup(ctx context.Context, uid gregor1.UID
 
 func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 	storageConv *chat1.ConversationLocal, convID chat1.ConversationID,
-	alias, filename string, storage types.ConvConversationBackedStorage) (res chat1.EmojiRemoteSource, err error) {
+	alias, filename string, allowOverwrite bool, storage types.ConvConversationBackedStorage) (res chat1.EmojiRemoteSource, err error) {
 	var stored chat1.EmojiStorage
 	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
 	if storageConv != nil {
@@ -131,6 +131,10 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 	if stored.Mapping == nil {
 		stored.Mapping = make(map[string]chat1.EmojiRemoteSource)
 	}
+	if _, ok := stored.Mapping[alias]; ok && !allowOverwrite {
+		return res, fmt.Errorf("%q already exists, must specify --allow-overwrite to edit", alias)
+	}
+
 	sender := NewBlockingSender(s.G(), NewBoxer(s.G()), s.ri)
 	_, msgID, err := attachments.NewSender(s.G()).PostFileAttachment(ctx, sender, uid,
 		storageConv.GetConvID(), storageConv.Info.TlfName, keybase1.TLFVisibility_PRIVATE, nil, filename,
@@ -150,33 +154,40 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *DevConvEmojiSource) IsStockEmoji(alias string) bool {
-	if !strings.HasPrefix(alias, ":") {
-		alias = fmt.Sprintf(":%s:", alias)
+	parts := strings.Split(alias, ":")
+	if len(parts) > 3 { // if we have a skin tone here, drop it
+		alias = fmt.Sprintf(":%s:", parts[1])
+	} else if len(parts) == 1 {
+		alias = fmt.Sprintf(":%s:", parts[0])
 	}
 	alias2 := strings.ReplaceAll(alias, "-", "_")
 	return storage.EmojiExists(alias) || storage.EmojiExists(alias2)
 }
 
-func (s *DevConvEmojiSource) validateShortName(shortName string) (string, error) {
-	shortName = strings.ReplaceAll(shortName, ":", "") // drop any colons from alias
+func (s *DevConvEmojiSource) normalizeShortName(shortName string) string {
+	return strings.ReplaceAll(shortName, ":", "") // drop any colons from alias
+}
+
+func (s *DevConvEmojiSource) validateShortName(shortName string) error {
 	if s.IsStockEmoji(shortName) {
-		return "", errors.New("cannot use existing stock emoji short name")
+		return errors.New("cannot use existing stock emoji short name")
 	}
 	if len(shortName) > maxShortNameLength || len(shortName) < minShortNameLength {
-		return "", fmt.Errorf("short name %q (length %d) not within bounds %d,%d",
+		return fmt.Errorf("short name %q (length %d) not within bounds %d,%d",
 			shortName, len(shortName), minShortNameLength, maxShortNameLength)
 	}
 	if strings.Contains(shortName, "#") {
-		return "", errors.New("invalid character in emoji alias")
+		return errors.New("invalid character in emoji alias")
 	}
-	return shortName, nil
+	return nil
 }
 
 func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName, filename string) (string, error) {
-	shortName, err := s.validateShortName(shortName)
+	err := s.validateShortName(shortName)
 	if err != nil {
 		return "", err
 	}
+	shortName = s.normalizeShortName(shortName)
 
 	err = s.validateFile(ctx, filename)
 	if err != nil {
@@ -229,19 +240,19 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 }
 
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
+	alias, filename string, allowOverwrite bool) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
 	if alias, err = s.validateCustomEmoji(ctx, alias, filename); err != nil {
 		return res, err
 	}
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
-	return s.addAdvanced(ctx, uid, nil, convID, alias, filename, storage)
+	return s.addAdvanced(ctx, uid, nil, convID, alias, filename, allowOverwrite, storage)
 }
 
 func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "AddAlias")()
-	if newAlias, err = s.validateShortName(newAlias); err != nil {
+	if err = s.validateShortName(newAlias); err != nil {
 		return res, err
 	}
 	var stored chat1.EmojiStorage
@@ -270,7 +281,8 @@ func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, conv
 			MsgID:   msgSrc.Message().MsgID,
 			IsAlias: true,
 		})
-	} else {
+		newAlias = s.normalizeShortName(newAlias)
+	} else if s.IsStockEmoji(existingAlias) {
 		username, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
 		if err != nil {
 			return res, err
@@ -278,8 +290,10 @@ func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, conv
 		res = chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
 			Text:     existingAlias,
 			Username: username.String(),
-			Time:     gregor1.ToTime(time.Now()),
+			Time:     gregor1.ToTime(s.G().GetClock().Now()),
 		})
+	} else {
+		return res, fmt.Errorf("%q is not a valid existing custom emoji or stock emoji", existingAlias)
 	}
 	stored.Mapping[newAlias] = res
 	return res, storage.Put(ctx, uid, convID, topicName, stored)
@@ -502,6 +516,11 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 	if err := s.putAliasLookup(ctx, uid, aliasLookup); err != nil {
 		s.Debug(ctx, "Get: failed to put alias lookup: %s", err)
 	}
+	for _, group := range res.Emojis {
+		sort.Slice(group.Emojis, func(i, j int) bool {
+			return group.Emojis[i].Alias < group.Emojis[j].Alias
+		})
+	}
 	return res, nil
 }
 
@@ -672,7 +691,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	}
 
 	// add the source to the target storage area
-	newSource, err := s.addAdvanced(ctx, uid, &syncConv, convID, stripped, sink.Name(), storage)
+	newSource, err := s.addAdvanced(ctx, uid, &syncConv, convID, stripped, sink.Name(), false, storage)
 	if err != nil {
 		return res, err
 	}
