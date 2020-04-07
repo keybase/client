@@ -859,9 +859,8 @@ func (h *TeamsHandler) LoadTeamTreeMembershipsAsync(ctx context.Context,
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamTreeMembershipsAsync(%s, %s, %d)",
 		arg.TeamID, arg.Username, arg.SessionID), func() error { return err })()
 
-	ctx = context.WithValue(ctx, libkb.SessionIDKey, libkb.SessionID(arg.SessionID))
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
-	loader, err := teams.NewTreeloader(mctx, arg.Username, arg.TeamID)
+	loader, err := teams.NewTreeloader(mctx, arg.Username, arg.TeamID, arg.SessionID)
 	if err != nil {
 		return res, err
 	}
@@ -876,8 +875,6 @@ func (h *TeamsHandler) CancelLoadTeamTree(ctx context.Context, sessionID int) (e
 	ctx = libkb.WithLogTag(ctx, "TM")
 	ctx = libkb.WithLogTag(ctx, "TMTREE")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CancelLoadTeamTree()"), func() error { return err })()
-
-	_ = context.WithValue(ctx, libkb.SessionIDKey, libkb.SessionID(sessionID))
 
 	return fmt.Errorf("unimplemented")
 }

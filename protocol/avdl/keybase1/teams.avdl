@@ -1709,6 +1709,10 @@ protocol teams {
   // adminship: if Alice is an admin of A and loads A.C.E, she would get a OK partial for A, but a
   // HIDDEN partial for A.C. This is a limitation that can be fixed, but is not critical since the
   // more natural flow would be for Alice to start her load from A.
+  //
+  // Because these notifications are delivered asychronously, they are tied together with
+  // a `guid`: an opaque integer that happens to be the sessionID the initial RPC was called
+  // with. Each notification for the same load will contain the same `guid`.
   TeamTreeInitial loadTeamTreeMembershipsAsync(int sessionID, TeamID teamID, string username);
   // called when navigating out of page
   void cancelLoadTeamTree(int guid);

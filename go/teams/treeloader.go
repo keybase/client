@@ -30,7 +30,7 @@ type Treeloader struct {
 var _ TreeloaderStateConverter = &Treeloader{}
 
 func NewTreeloader(mctx libkb.MetaContext, targetUsername string,
-	targetTeamID keybase1.TeamID) (*Treeloader, error) {
+	targetTeamID keybase1.TeamID, guid int) (*Treeloader, error) {
 
 	larg := libkb.NewLoadUserArgWithMetaContext(mctx).WithName(targetUsername).WithForcePoll(true)
 	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(larg)
@@ -41,7 +41,7 @@ func NewTreeloader(mctx libkb.MetaContext, targetUsername string,
 	l := &Treeloader{
 		targetUsername: targetUsername,
 		targetTeamID:   targetTeamID,
-		guid:           int(libkb.GetSessionIDOrZero(mctx.Ctx())),
+		guid:           guid,
 		targetUV:       upak.Current.ToUserVersion(),
 	}
 	l.Converter = l

@@ -2,6 +2,7 @@ package systests
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 	"testing"
 	"time"
@@ -1065,7 +1066,7 @@ type teamNotifyHandler struct {
 	teamRoleMapCh                chan keybase1.UserTeamVersion
 	metadataUpdateCh             chan struct{}
 	teamTreeMembershipsPartialCh chan keybase1.TeamTreeMembership
-	teamTreeMembershipsDoneCh    chan int
+	teamTreeMembershipsDoneCh    chan keybase1.TeamTreeMembershipsDoneResult
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
@@ -1082,7 +1083,7 @@ func newTeamNotifyHandler() *teamNotifyHandler {
 		teamRoleMapCh:                make(chan keybase1.UserTeamVersion, 100),
 		metadataUpdateCh:             make(chan struct{}, 10),
 		teamTreeMembershipsPartialCh: make(chan keybase1.TeamTreeMembership, 10),
-		teamTreeMembershipsDoneCh:    make(chan int, 10),
+		teamTreeMembershipsDoneCh:    make(chan keybase1.TeamTreeMembershipsDoneResult, 10),
 	}
 }
 
@@ -1167,7 +1168,7 @@ func (n *teamNotifyHandler) TeamTreeMembershipsPartial(ctx context.Context,
 func (n *teamNotifyHandler) TeamTreeMembershipsDone(ctx context.Context,
 	arg keybase1.TeamTreeMembershipsDoneResult) error {
 
-	n.teamTreeMembershipsDoneCh <- arg.ExpectedCount
+	n.teamTreeMembershipsDoneCh <- arg
 	return nil
 }
 
@@ -2148,7 +2149,9 @@ func loadTeamTree(t *testing.T, tmctx libkb.MetaContext, notifications *teamNoti
 	teamFailures []string) ([]keybase1.TeamTreeMembership, error) {
 	var err error
 
-	l, err := teams.NewTreeloader(tmctx, username, teamID)
+	guid := rand.Int()
+
+	l, err := teams.NewTreeloader(tmctx, username, teamID, guid)
 	if err != nil {
 		return nil, err
 	}
@@ -2171,7 +2174,8 @@ loop:
 			// notification last by the RPC layer. So we wait until all of the messages are
 			// received. Even if there were errors, we should still get exactly this many
 			// notifications in teamTreeMembershipsPartialCh.
-			expectedCount = &res
+			expectedCount = &res.ExpectedCount
+			require.Equal(t, guid, res.Guid)
 		case res := <-notifications.teamTreeMembershipsPartialCh:
 			got++
 			results = append(results, res)
@@ -2183,6 +2187,7 @@ loop:
 				require.Contains(t, teamFailures, res.TeamName,
 					"unexpectedly got an error while loading team: %s", res.Result.Error().Message)
 			}
+			require.Equal(t, guid, res.Guid)
 		case <-time.After(10 * time.Second):
 			t.Fatalf("timed out waiting for team tree notifications")
 		}

@@ -11,7 +11,6 @@ import (
 	"github.com/keybase/client/go/kbconst"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
-	context "golang.org/x/net/context"
 )
 
 const (
@@ -796,14 +795,3 @@ const (
 	// we should update the root (which will override this threshold).
 	DefaultMerkleRootFreshness = 1 * time.Minute
 )
-
-const SessionIDKey = "SessionID"
-
-type SessionID int
-
-func GetSessionIDOrZero(ctx context.Context) SessionID {
-	if v, ok := ctx.Value(SessionIDKey).(SessionID); ok {
-		return v
-	}
-	return SessionID(0)
-}
