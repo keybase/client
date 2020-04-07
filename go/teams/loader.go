@@ -503,8 +503,8 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 		switch pkgErrors.Cause(err).(type) {
 		case nil:
 			// this if clause and the ProcessedWithInviteLinks fields can be removed when diskStorageVersion is bumped to 12 or greater.
-			if !res.team.Chain.ProcessedWithInviteLinks && res.team.Chain.UserRole(arg.me).IsAdminOrAbove() {
-				l.G().Log.CDebugf(ctx, "User role is %v but ProcessedWithInviteLinks is false; retrying with forceFullReload=true", res.team.Chain.UserRole(arg.me))
+			if !res.team.Chain.ProcessedWithInviteLinks && !res.team.Name.IsImplicit() && res.team.Chain.UserRole(arg.me).IsAdminOrAbove() {
+				l.G().Log.CDebugf(ctx, "User role in %s is %v but ProcessedWithInviteLinks is false; retrying with forceFullReload=true", res.team.Name, res.team.Chain.UserRole(arg.me))
 				arg.forceFullReload = true
 				err = fmt.Errorf("Loaded team has ProcessedWithInviteLinks=false")
 				continue
