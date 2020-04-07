@@ -96,7 +96,6 @@ func (s *Storage) explodeExpiredMessages(ctx context.Context, convID chat1.Conve
 // requires msgs to be sorted by descending message ID
 func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) (purgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err Error) {
-	defer s.Trace(ctx, func() error { return err }, "ephemeralPurgeHelper convID: %v, uid: %v, numMessages %v", convID, uid, len(msgs))()
 
 	if len(msgs) == 0 {
 		return nil, nil, nil
