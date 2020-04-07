@@ -120,6 +120,15 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       })
     )
   },
+  _onReact: (message: Types.Message, emoji: string) => {
+    dispatch(
+      Chat2Gen.createToggleMessageReaction({
+        conversationIDKey: message.conversationIDKey,
+        emoji,
+        ordinal: message.ordinal,
+      })
+    )
+  },
   _onReply: (message: Types.Message) => {
     dispatch(
       Chat2Gen.createToggleReplyToMessage({
@@ -198,6 +207,7 @@ export default Container.namedConnect(
       onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
+      onReact: (emoji: string) => dispatchProps._onReact(message, emoji),
       onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,
       onReplyPrivately:
         !yourMessage && canReplyPrivately ? () => dispatchProps._onReplyPrivately(message) : undefined,
