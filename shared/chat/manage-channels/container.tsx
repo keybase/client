@@ -161,6 +161,8 @@ const Wrapper = (p: Props) => {
   )
 }
 
+Container.hoistNonReactStatic(Wrapper, ManageChannels)
+
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const teamID = Container.getRouteProps(ownProps, 'teamID', '')

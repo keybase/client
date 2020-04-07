@@ -130,6 +130,11 @@ const ManageChannels = (props: Props) => (
   </Kb.Box>
 )
 
+ManageChannels.navigationOptions = {
+  headerLeft: null,
+  headerRight: <Kb.HeaderRightDone />,
+}
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -160,10 +165,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const Wrapper = (p: Props) => (
-  <Kb.HeaderHocWrapper onBack={p.onBack}>
-    <ManageChannels {...p} onClose={undefined} />
-  </Kb.HeaderHocWrapper>
-)
-
-export default Wrapper
+export default ManageChannels
