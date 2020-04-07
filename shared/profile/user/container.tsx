@@ -51,6 +51,12 @@ const connected = Container.namedConnect(
       const followThem = Constants.followThem(state, username)
       const {followersCount, followingCount, followers, following, reason, webOfTrustEntries} = d
 
+      const mutualFollow = followThem && Constants.followsYou(state, username)
+      const hasntAlreadyVouched = (webOfTrustEntries || []).every(
+        entry => entry.attestingUser !== state.config.username
+      )
+      const promptForVouch = mutualFollow && hasntAlreadyVouched
+
       return {
         ...commonProps,
         _assertions: d.assertions,
@@ -61,6 +67,7 @@ const connected = Container.namedConnect(
         followersCount,
         following,
         followingCount,
+        promptForVouch,
         reason,
         sbsAvatarUrl: undefined,
         serviceIcon: undefined,
@@ -83,6 +90,7 @@ const connected = Container.namedConnect(
         backgroundColorType: headerBackgroundColorType(d.state, false),
         fullName: nonUserDetails.fullName,
         name,
+        promptForVouch: false,
         sbsAvatarUrl: nonUserDetails.pictureUrl || undefined,
         service,
         serviceIcon: Styles.isDarkMode() ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
@@ -154,7 +162,9 @@ const connected = Container.namedConnect(
       onAddIdentity,
       onBack: dispatchProps.onBack,
       onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : undefined,
-      onIKnowThem: stateProps.userIsYou ? undefined : () => dispatchProps._onIKnowThem(stateProps.username),
+      onIKnowThem: stateProps.promptForVouch
+        ? () => dispatchProps._onIKnowThem(stateProps.username)
+        : undefined,
       onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
       reason: stateProps.reason,
       sbsAvatarUrl: stateProps.sbsAvatarUrl,

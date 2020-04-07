@@ -44,18 +44,21 @@ const Connected = Container.connect(
           : null,
     }
   },
-  (stateProps, dispatchProps) => ({
-    attestation: stateProps.attestation,
-    attestingUser: stateProps.attestingUser,
-    onAccept: dispatchProps._onAccept,
-    onReject: dispatchProps._onReject,
-    reactWaitingKey: wotReactWaitingKey,
-    status: stateProps.status,
-    userIsYou: stateProps.userIsYou,
-    username: stateProps.username,
-    verificationType: stateProps.verificationType,
-    vouchedAt: stateProps.vouchedAt,
-  })
+  (stateProps, dispatchProps) => {
+    const noop = () => null
+    return {
+      attestation: stateProps.attestation,
+      attestingUser: stateProps.attestingUser,
+      onAccept: stateProps.userIsYou ? dispatchProps._onAccept : noop,
+      onReject: stateProps.userIsYou ? dispatchProps._onReject : noop,
+      reactWaitingKey: wotReactWaitingKey,
+      status: stateProps.status,
+      userIsYou: stateProps.userIsYou,
+      username: stateProps.username,
+      verificationType: stateProps.verificationType,
+      vouchedAt: stateProps.vouchedAt,
+    }
+  }
 )(WebOfTrust)
 
 export default Connected
