@@ -62,15 +62,17 @@ const getMemberships = (state: Container.TypedState, teamID: Types.TeamID, usern
       }
 
       const sparseMemberInfo = Constants.maybeGetSparseMembership(
-        state.teams.teamDetails, state.teams.treeLoaderTeamIDToSparseMemberInfos,
-        result.teamID, username,
+        state.teams.teamDetails,
+        state.teams.treeLoaderTeamIDToSparseMemberInfos,
+        result.teamID,
+        username
       )
 
       if (sparseMemberInfo) {
         nodesIn.push({
           role: sparseMemberInfo.type,
           lastActivity: 0,
-          ...row
+          ...row,
         })
       } else {
         nodesNotIn.push(row)
@@ -121,16 +123,13 @@ const TeamMember = (props: OwnProps) => {
     new Set<string>([teamID])
   )
 
-  const makeTitle = (label) => {
-      return (
-        <Kb.Box2
-          direction="horizontal"
-          alignItems="center"
-        >
-          { loading && <Kb.ProgressIndicator type="Small" />}
-          <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
-        </Kb.Box2>
-      )
+  const makeTitle = label => {
+    return (
+      <Kb.Box2 direction="horizontal" alignItems="center">
+        {loading && <Kb.ProgressIndicator type="Small" />}
+        <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
+      </Kb.Box2>
+    )
   }
 
   const nodesInSection: Section = {
@@ -160,9 +159,9 @@ const TeamMember = (props: OwnProps) => {
     data: nodesNotIn,
     key: 'section-add-nodes',
     renderItem: ({item, index}: {item: TeamTreeRowNotIn; index: number}) => (
-      <NodeNotInRow teamID={teamID} node={item} idx={index} username={username}/>
+      <NodeNotInRow teamID={teamID} node={item} idx={index} username={username} />
     ),
-    title: makeTitle(isMe ? "You are not in:" : `${username} is not in:`),
+    title: makeTitle(isMe ? 'You are not in:' : `${username} is not in:`),
   }
 
   const sections = [
@@ -171,51 +170,58 @@ const TeamMember = (props: OwnProps) => {
   ]
   return (
     <>
-      { (errors.length > 0 ) && (
-      <Kb.Banner color="red">
-        { loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
-        <Kb.BannerParagraph key="teamTreeErrorHeader" bannerColor="red" content={[
-          "The following teams could not be loaded. ",
-          {onClick: () => dispatch(TeamsGen.createLoadTeamTree({teamID, username})), 
-              text: 'Click to reload.'},
-        ]} />
-        <>
-      {
-        errors.map((error, idx) => {
-          if (RPCTypes.TeamTreeMembershipStatus.error != error.result.s) {
-            return (<></>)
-          }
+      {errors.length > 0 && (
+        <Kb.Banner color="red">
+          {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
+          <Kb.BannerParagraph
+            key="teamTreeErrorHeader"
+            bannerColor="red"
+            content={[
+              'The following teams could not be loaded. ',
+              {
+                onClick: () => dispatch(TeamsGen.createLoadTeamTree({teamID, username})),
+                text: 'Click to reload.',
+              },
+            ]}
+          />
+          <>
+            {errors.map((error, idx) => {
+              if (RPCTypes.TeamTreeMembershipStatus.error != error.result.s) {
+                return <></>
+              }
 
-          const failedAt = [error.teamName]
-          if (error.result.error.willSkipSubtree) {
-            failedAt.push("its nodes")
-          }
-          if (error.result.error.willSkipAncestors) {
-            failedAt.push("its parent teams")
-          }
-          var failedAtStr = ""
-          if (failedAt.length > 1) {
-            const last = failedAt.pop()
-            failedAtStr = failedAt.join(', ') + ', and ' + last
-          } else {
-            failedAtStr = failedAt[0]
-          }
-          return (
-            <Kb.BannerParagraph key={"teamTreeErrorRow" + idx.toString()} 
-              bannerColor="red" content={"• " + failedAtStr} />
-          )
-        })
-      }
-      </>
-    </Kb.Banner>
+              const failedAt = [error.teamName]
+              if (error.result.error.willSkipSubtree) {
+                failedAt.push('its nodes')
+              }
+              if (error.result.error.willSkipAncestors) {
+                failedAt.push('its parent teams')
+              }
+              var failedAtStr = ''
+              if (failedAt.length > 1) {
+                const last = failedAt.pop()
+                failedAtStr = failedAt.join(', ') + ', and ' + last
+              } else {
+                failedAtStr = failedAt[0]
+              }
+              return (
+                <Kb.BannerParagraph
+                  key={'teamTreeErrorRow' + idx.toString()}
+                  bannerColor="red"
+                  content={'• ' + failedAtStr}
+                />
+              )
+            })}
+          </>
+        </Kb.Banner>
       )}
-    <Kb.SectionList<Section>
-      stickySectionHeadersEnabled={true}
-      renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
-      sections={sections}
-      keyExtractor={item => `member:${username}:${item.teamname}`}
-    />
-</>
+      <Kb.SectionList<Section>
+        stickySectionHeadersEnabled={true}
+        renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
+        sections={sections}
+        keyExtractor={item => `member:${username}:${item.teamname}`}
+      />
+    </>
   )
 }
 
@@ -325,25 +331,28 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
         </Kb.Box2>
 
         {props.node.canAdminister && (
-        <Kb.Box2 direction="horizontal" alignSelf="center">
-          <FloatingRolePicker
-            onConfirm={() => {
-              onAdd(role)
-              setOpen(false)
-            }}
-            onSelectRole={setRole}
-            open={open}
-            onCancel={() => setOpen(false)}
-            selectedRole={role}
-            disabledRoles={disabledRoles}
-          >
-            <Kb.WaitingButton label="Add"
-              onClick={() => setOpen(!open)} small={true} style={styles.inviteButton}
-              waitingKey={onAddWaitingKey}
-            />
-          </FloatingRolePicker>
-        </Kb.Box2>
-      )}
+          <Kb.Box2 direction="horizontal" alignSelf="center">
+            <FloatingRolePicker
+              onConfirm={() => {
+                onAdd(role)
+                setOpen(false)
+              }}
+              onSelectRole={setRole}
+              open={open}
+              onCancel={() => setOpen(false)}
+              selectedRole={role}
+              disabledRoles={disabledRoles}
+            >
+              <Kb.WaitingButton
+                label="Add"
+                onClick={() => setOpen(!open)}
+                small={true}
+                style={styles.inviteButton}
+                waitingKey={onAddWaitingKey}
+              />
+            </FloatingRolePicker>
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -411,7 +420,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     .map(([_, {channelname}]) => channelname)
     .join(', #')
 
-  const rolePicker = props.node.canAdminister ?  (
+  const rolePicker = props.node.canAdminister ? (
     <FloatingRolePicker
       selectedRole={role}
       onSelectRole={setRole}
@@ -428,7 +437,9 @@ const NodeInRow = (props: NodeInRowProps) => {
         selectedRole={props.node.role}
       />
     </FloatingRolePicker>
-    ) : (<></>)
+  ) : (
+    <></>
+  )
 
   return (
     <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
@@ -482,9 +493,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     {props.node.teamname}
                   </Kb.Text>
                   {!!props.node.joinTime && (
-                    <Kb.Text type="BodySmall">
-                      Joined {formatTimeForTeamMember(props.node.joinTime)}
-                    </Kb.Text>
+                    <Kb.Text type="BodySmall">Joined {formatTimeForTeamMember(props.node.joinTime)}</Kb.Text>
                   )}
                 </Kb.Box2>
               </Kb.Box2>
@@ -529,7 +538,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   </Kb.Text>
                 </Kb.Box2>
               )}
-              {expanded && (props.node.canAdminister||isMe) && (
+              {expanded && (props.node.canAdminister || isMe) && (
                 <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
                   <Kb.Button
                     mode="Secondary"
@@ -537,22 +546,19 @@ const NodeInRow = (props: NodeInRowProps) => {
                     label="Add to channels"
                     small={true}
                   />
-                  {(!(isMe && amLastOwner)) && (
-                  <Kb.WaitingButton
-                    mode="Secondary"
-                    icon={isMe ? "iconfont-leave" : "iconfont-block"}
-                    type="Danger"
-                    onClick={onKickOut}
-                    label={isMe ? "Leave" : "Kick out"}
-                    small={true}
-                    waitingKey={onKickOutWaitingKey}
-                  />
-                  )
-                }
+                  {!(isMe && amLastOwner) && (
+                    <Kb.WaitingButton
+                      mode="Secondary"
+                      icon={isMe ? 'iconfont-leave' : 'iconfont-block'}
+                      type="Danger"
+                      onClick={onKickOut}
+                      label={isMe ? 'Leave' : 'Kick out'}
+                      small={true}
+                      waitingKey={onKickOutWaitingKey}
+                    />
+                  )}
                 </Kb.Box2>
-              )
-
-              }
+              )}
 
               {expanded && Styles.isMobile && <Kb.Box2 direction="horizontal" style={{height: 8}} />}
             </Kb.Box2>
@@ -743,7 +749,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isMobile: {paddingBottom: Styles.globalMargins.tiny},
   }),
   reloadButton: {
-    marginTop:Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
     minWidth: 56,
   },
   inviteButton: {

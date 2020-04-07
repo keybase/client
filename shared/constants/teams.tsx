@@ -700,11 +700,8 @@ export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
       })
     : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
-export const getTeamMembership = (
-  _: TypedState,
-  _2: Types.TeamID,
-  _3: string
-): Types.MemberInfo | null => null //state.teams.teamMemberToSubteams.get(teamID)?.get(username) ?? null
+export const getTeamMembership = (_: TypedState, _2: Types.TeamID, _3: string): Types.MemberInfo | null =>
+  null //state.teams.teamMemberToSubteams.get(teamID)?.get(username) ?? null
 
 export const getTeamMemberLastActivity = (
   state: TypedState,
@@ -905,7 +902,7 @@ export const stringifyPeople = (people: string[]): string => {
   }
 }
 
-export const teamTreeMembershipValueToSparseMembership = (value) => {
+export const teamTreeMembershipValueToSparseMembership = value => {
   // TODO cannot put a none in here!
   return {
     teamID: value.teamID,

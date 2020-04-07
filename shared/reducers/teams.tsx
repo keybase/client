@@ -23,10 +23,7 @@ type EngineActions =
   | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
   | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsDonePayload
 
-type Actions =
-  | TeamsGen.Actions
-  | TeamBuildingGen.Actions
-  | EngineActions
+type Actions = TeamsGen.Actions | TeamBuildingGen.Actions | EngineActions
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.resetStore]: () => {
@@ -393,10 +390,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamBuildingGen.setError]: handleTeamBuilding,
   [EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial]: (draftState, action) => {
     const {membership} = action.payload.params
-    const {guid,targetTeamID,targetUsername} = membership
+    const {guid, targetTeamID, targetUsername} = membership
 
-    const usernameMemberships = mapGetEnsureValue(draftState.teamMemberToTreeMemberships,
-      targetTeamID, new Map())
+    const usernameMemberships = mapGetEnsureValue(
+      draftState.teamMemberToTreeMemberships,
+      targetTeamID,
+      new Map()
+    )
 
     const newMemberships = {
       guid: guid,
@@ -410,7 +410,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (memberships.guid < guid) {
       Object.assign(memberships, newMemberships)
     } else if (memberships.guid > guid) {
-      memberships.expectedCount = undefined;
+      memberships.expectedCount = undefined
       return //noop
     }
 
@@ -418,8 +418,11 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
 
     if (RPCTypes.TeamTreeMembershipStatus.ok == membership.result.s) {
       const val = membership.result.ok
-      const sparseMemberInfos = mapGetEnsureValue(draftState.treeLoaderTeamIDToSparseMemberInfos,
-        val.teamID, new Map())
+      const sparseMemberInfos = mapGetEnsureValue(
+        draftState.treeLoaderTeamIDToSparseMemberInfos,
+        val.teamID,
+        new Map()
+      )
       if (RPCTypes.TeamRole.none != val.role) {
         sparseMemberInfos.set(targetUsername, Constants.teamTreeMembershipValueToSparseMembership(val))
         // infer nonmembership from not being in map
@@ -428,10 +431,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone]: (draftState, action) => {
     const {result} = action.payload.params
-    const {guid,targetTeamID,targetUsername,expectedCount} = result
+    const {guid, targetTeamID, targetUsername, expectedCount} = result
 
-    const usernameMemberships = mapGetEnsureValue(draftState.teamMemberToTreeMemberships,
-      targetTeamID, new Map())
+    const usernameMemberships = mapGetEnsureValue(
+      draftState.teamMemberToTreeMemberships,
+      targetTeamID,
+      new Map()
+    )
 
     const newMemberships = {
       guid: guid,
