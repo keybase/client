@@ -407,14 +407,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       // start over
       memberships = {
         guid,
+        memberships: [],
         targetTeamID,
         targetUsername,
-        memberships: [],
       }
+      usernameMemberships.set(targetUsername, memberships)
     }
     memberships.memberships.push(membership)
-    // need to set manually since we might've created a new members object
-    usernameMemberships.set(targetUsername, memberships)
 
     if (RPCTypes.TeamTreeMembershipStatus.ok == membership.result.s) {
       const value = membership.result.ok
@@ -445,13 +444,12 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       // start over
       memberships = {
         guid,
+        memberships: [],
         targetTeamID,
         targetUsername,
-        memberships: [],
       }
+      usernameMemberships.set(targetUsername, memberships)
     }
     memberships.expectedCount = expectedCount
-    // need to set manually since we might've created a new members object
-    usernameMemberships.set(targetUsername, memberships)
   },
 })

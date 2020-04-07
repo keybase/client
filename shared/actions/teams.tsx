@@ -17,7 +17,6 @@ import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
-import * as WaitingGen from './waiting-gen'
 import * as Router2Constants from '../constants/router2'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
@@ -1379,61 +1378,38 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
 }
 
 // See protocol/avdl/keybase1/teams.avdl:loadTeamTreeAsync for a description of this RPC.
-function* loadTeamTree(_: TypedState, action: TeamsGen.LoadTeamTreePayload, _logger: Saga.SagaLogger) {
-  yield RPCTypes.teamsLoadTeamTreeMembershipsAsyncRpcPromise(action.payload)
+const loadTeamTree = async (action: TeamsGen.LoadTeamTreePayload, _logger: Saga.SagaLogger) => {
+  await RPCTypes.teamsLoadTeamTreeMembershipsAsyncRpcPromise(action.payload)
 }
 
-function* loadTreeTeamActivity(
-  _: TypedState,
+const loadTeamTreeActivity = async (
   action: EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload,
   logger: Saga.SagaLogger
-) {
+) => {
   const {membership} = action.payload.params
-  switch (membership.result.s) {
-    case RPCTypes.TeamTreeMembershipStatus.ok: {
-      break
-    }
-    default: {
-      return
-    }
+  if (RPCTypes.TeamTreeMembershipStatus.ok !== membership.result.s) {
+    return
   }
-  const teamIDs = [membership.result.ok.teamID]
+  const teamID = membership.result.ok.teamID
   const username = membership.targetUsername
-  const targetTeamID = membership.targetTeamID
+  const key = Constants.loadTeamTreeActivityWaitingKey(teamID, username)
 
   try {
-    yield Saga.put(
-      WaitingGen.createBatchChangeWaiting({
-        changes: teamIDs.map(id => ({
-          increment: true,
-          key: Constants.loadTeamTreeActivityWaitingKey(id, username),
-        })),
-      })
+    const activityMap = await RPCChatTypes.localGetLastActiveAtMultiLocalRpcPromise(
+      {
+        teamIDs: [teamID],
+        username,
+      },
+      key
     )
-
-    const activityMap = yield RPCChatTypes.localGetLastActiveAtMultiLocalRpcPromise({
-      teamIDs: teamIDs,
-      username,
-    })
-    yield Saga.put(
+    await Saga.put(
       TeamsGen.createSetMemberActivityDetails({
         activityMap: new Map(Object.entries(activityMap)),
         username,
       })
     )
   } catch (e) {
-    logger.info(
-      `loadTreeTeamActivity: unable to get activity for tree of ${targetTeamID}:${username}: ${e.message}`
-    )
-  } finally {
-    yield Saga.put(
-      WaitingGen.createBatchChangeWaiting({
-        changes: teamIDs.map(id => ({
-          increment: false,
-          key: Constants.loadTeamTreeActivityWaitingKey(id, username),
-        })),
-      })
-    )
+    logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${e.message}`)
   }
 }
 
@@ -1600,11 +1576,8 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
   yield* Saga.chainAction(TeamsGen.setWelcomeMessage, setWelcomeMessage)
 
-  yield* Saga.chainGenerator<TeamsGen.LoadTeamTreePayload>(TeamsGen.loadTeamTree, loadTeamTree)
-  yield* Saga.chainGenerator<EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload>(
-    EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial,
-    loadTreeTeamActivity
-  )
+  yield* Saga.chainAction(TeamsGen.loadTeamTree, loadTeamTree)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial, loadTeamTreeActivity)
 
   // New team wizard
   yield* Saga.chainAction(TeamsGen.launchNewTeamWizardOrModal, launchNewTeamWizardOrModal)
