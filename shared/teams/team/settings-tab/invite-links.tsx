@@ -32,14 +32,16 @@ const InviteLinks = (props: Props) => {
       </Kb.Text>
       {mostRecentInviteLink && (
         <Kb.Box2 direction="vertical" style={styles.inviteBox} alignSelf="flex-start">
-          <Kb.CopyText text={mostRecentInviteLink.url} />
+          <Kb.Box2 direction="horizontal">
+            <Kb.CopyText text={mostRecentInviteLink.url} />
+          </Kb.Box2>
           <Kb.Text type="BodySmall">
             Invites as {mostRecentInviteLink.role} · Expires after{' '}
             {formatExpirationTimeForInviteLink(mostRecentInviteLink.expirationTime)}
           </Kb.Text>
         </Kb.Box2>
       )}
-      <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
+      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny" alignSelf="flex-start">
         <Kb.Button small={true} mode="Secondary" label="Generate invite link" onClick={onGenLink} />
         <Kb.Button small={true} mode="Secondary" label="View link history" onClick={onViewHistory} />
       </Kb.Box2>
