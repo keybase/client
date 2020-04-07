@@ -195,6 +195,39 @@ func TestEmojiSourceBasic(t *testing.T) {
 	}
 	require.True(t, checked)
 
+	t.Logf("stock alias")
+	_, err = tc.Context().EmojiSource.AddAlias(ctx, uid, conv.Id, ":my+1:", ":+1::skin-tone-0:")
+	require.NoError(t, err)
+	res, err = tc.Context().EmojiSource.Get(ctx, uid, &conv.Id, chat1.EmojiFetchOpts{
+		GetCreationInfo: true,
+		GetAliases:      true,
+	})
+	require.NoError(t, err)
+	checked = false
+	for _, group := range res.Emojis {
+		if group.Name == conv.TlfName {
+			require.Len(t, group.Emojis, 1)
+			emoji := group.Emojis[0]
+			require.Equal(t, chat1.Emoji{
+				Alias:       ":my+1:",
+				IsBig:       false,
+				IsReacji:    false,
+				IsCrossTeam: false,
+				Source:      chat1.NewEmojiLoadSourceWithStr(":+1::skin-tone-0:"),
+				RemoteSource: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+					Text:     ":+1::skin-tone-0:",
+					Username: users[0].Username,
+					Time:     gregor1.ToTime(ctc.world.Fc.Now()),
+				}),
+				CreationInfo: &chat1.EmojiCreationInfo{
+					Username: users[0].Username,
+					Time:     gregor1.ToTime(ctc.world.Fc.Now()),
+				},
+			}, emoji)
+			checked = true
+		}
+	}
+	require.True(t, checked)
 }
 
 func TestEmojiSourceCrossTeam(t *testing.T) {
