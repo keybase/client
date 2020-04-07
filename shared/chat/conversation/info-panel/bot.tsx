@@ -106,13 +106,13 @@ export const Bot = (props: BotProps) => {
   )
   return (
     <Kb.ListItem2
-      iconStyleOverride={styles.listItemIconOverride}
       containerStyleOverride={styles.listItemContainer}
       onClick={() => onClick(botUsername)}
       type="Large"
       firstItem={!!firstItem}
       icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={botUsername} />}
       hideHover={!!props.hideHover}
+      style={{backgroundColor: Styles.globalColors.white}}
       action={
         showTeamAdd ? (
           <Kb.Button type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
@@ -160,13 +160,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {marginLeft: 56},
         isMobile: {marginLeft: 81},
       }),
-      listItemContainer: {
-        paddingRight: Styles.globalMargins.tiny,
-        backgroundColor: Styles.globalColors.white,
-      },
-      listItemIconOverride: {
-        backgroundColor: Styles.globalColors.white,
-      },
+      listItemContainer: {paddingRight: Styles.globalMargins.tiny},
       row: {
         alignItems: 'center',
         flex: 1,

@@ -292,16 +292,14 @@ const getStatusIconStyle = (props: Props) =>
   props.type === 'Small' ? styles.statusIconSmall : styles.statusIconLarge
 
 const getIconStyle = (props: Props) =>
-  Styles.collapseStyles([
-    props.type === 'Small'
-      ? props.statusIcon
-        ? styles.iconSmallWithStatusIcon
-        : styles.iconSmallWithNoStatusIcon
-      : props.statusIcon
-      ? styles.iconLargeWithStatusIcon
-      : styles.iconLargeWithNoStatusIcon,
-    props.iconStyleOverride,
-  ])
+  props.iconStyleOverride ??
+  (props.type === 'Small'
+    ? props.statusIcon
+      ? styles.iconSmallWithStatusIcon
+      : styles.iconSmallWithNoStatusIcon
+    : props.statusIcon
+    ? styles.iconLargeWithStatusIcon
+    : styles.iconLargeWithNoStatusIcon)
 
 const getContainerStyles = (props: Props) =>
   Styles.collapseStyles([
