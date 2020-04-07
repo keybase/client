@@ -72,19 +72,23 @@ const InviteHistory = (props: Props) => {
       mode="DefaultFullHeight"
       noScrollView={true}
     >
-      <Kb.SectionList
-        sections={sections}
-        keyExtractor={item => item.id}
-        renderItem={({item}) => <InviteItem inviteLink={item} teamID={teamID} />}
-        renderSectionHeader={() => (
-          <Kb.Tabs
-            tabs={[{title: activeTitle}, {title: expiredTitle}]}
-            onSelect={title => setShowingExpired(title === expiredTitle)}
-            selectedTab={showingExpired ? expiredTitle : activeTitle}
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-      />
+      <Kb.BoxGrow>
+        <Kb.SectionList
+          sections={sections}
+          keyExtractor={item => item.id}
+          renderItem={({item}) => <InviteItem inviteLink={item} teamID={teamID} />}
+          renderSectionHeader={() => (
+            <Kb.Tabs
+              tabs={[{title: activeTitle}, {title: expiredTitle}]}
+              onSelect={title => setShowingExpired(title === expiredTitle)}
+              selectedTab={showingExpired ? expiredTitle : activeTitle}
+              style={styles.tabs}
+            />
+          )}
+          contentContainerStyle={styles.listContent}
+          stickySectionHeadersEnabled={true}
+        />
+      </Kb.BoxGrow>
     </Kb.Modal>
   )
 }
@@ -155,6 +159,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   listContent: {
     paddingBottom: Styles.globalMargins.small,
+  },
+  tabs: {
+    backgroundColor: Styles.globalColors.white,
   },
 }))
 
