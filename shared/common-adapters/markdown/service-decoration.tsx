@@ -238,10 +238,14 @@ const ServiceDecoration = (props: Props) => {
       return (
         <CustomEmoji
           size={
-            parsed.emoji.isBig && !props.disableBigEmojis ? 'Big' : parsed.emoji.isReacji ? 'Medium' : 'Small'
+            parsed.emoji.isBig && !props.disableBigEmojis
+              ? 'Big'
+              : parsed.emoji.isReacji && !Styles.isMobile
+              ? 'Medium'
+              : 'Small'
           }
           src={parsed.emoji.source.httpsrv}
-          alias={parsed.emoji.alias}
+          alias={!parsed.emoji.isReacji ? parsed.emoji.alias : undefined}
         />
       )
     } else if (parsed.emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str) {
