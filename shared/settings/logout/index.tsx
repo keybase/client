@@ -75,6 +75,8 @@ class LogOut extends React.Component<Props, State> {
             <Kb.Banner color="green">Your password is correct.</Kb.Banner>
           ),
         ]}
+        header={Styles.isMobile ? undefined : {title: 'Do you know your password?'}}
+        onClose={Styles.isMobile ? undefined : this.props.onCancel}
         footer={{
           content: !this.props.checkPasswordIsCorrect ? (
             <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
