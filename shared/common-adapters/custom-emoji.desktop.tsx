@@ -34,11 +34,10 @@ const CustomEmoji = (props: Props) => {
         },
       ])}
     >
-      <Kb.WithTooltip tooltip={alias ?? null}>
+      <Kb.WithTooltip tooltip={alias ?? null} containerStyle={styles.tooltipContainer}>
         <Kb.Image
           src={src}
           style={Styles.collapseStyles([
-            styles.image,
             {
               maxHeight: emojiTypes[size],
               width: emojiTypes[size],
@@ -53,15 +52,16 @@ const CustomEmoji = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      tooltipContainer: Styles.platformStyles({
+        isElectron: {
+          display: 'flex',
+          justifyContent: 'center',
+        },
+      }),
       emoji: Styles.platformStyles({
         isElectron: {
           display: 'inline-flex',
           justifyContent: 'center',
-        },
-      }),
-      image: Styles.platformStyles({
-        isElectron: {
-          display: 'inline',
           verticalAlign: 'middle',
         },
       }),
