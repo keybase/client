@@ -18,7 +18,6 @@ import (
 	"github.com/keybase/go-keybase-chat-bot/kbchat"
 	"github.com/keybase/go-keybase-chat-bot/kbchat/types/chat1"
 
-	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/subosito/gotenv"
 )
@@ -27,7 +26,6 @@ const dockerNamespace = "keybaseio/client"
 
 type Tuxbot struct {
 	chatbot.Logger
-	docker *client.Client
 
 	Name                   string
 	sendChannel            chat1.ChatChannel
@@ -443,11 +441,6 @@ func main() {
 		panic(err)
 	}
 
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		panic(err)
-	}
-
 	if *infoTeam == "" || *infoChannel == "" {
 		panic(fmt.Errorf("Chat team/channel specified: infoTeam=%q; infoChannel=%q", *infoTeam, *infoChannel))
 	}
@@ -458,7 +451,6 @@ func main() {
 
 	tuxbot := Tuxbot{
 		Logger: logger,
-		docker: cli,
 
 		Name:                   *botName,
 		api:                    api,
