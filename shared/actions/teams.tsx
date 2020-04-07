@@ -1402,14 +1402,13 @@ const loadTeamTreeActivity = async (
       },
       key
     )
-    await Saga.put(
-      TeamsGen.createSetMemberActivityDetails({
-        activityMap: new Map(Object.entries(activityMap)),
-        username,
-      })
-    )
+    return TeamsGen.createSetMemberActivityDetails({
+      activityMap: new Map(Object.entries(activityMap)),
+      username,
+    })
   } catch (e) {
     logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${e.message}`)
+    return null
   }
 }
 
