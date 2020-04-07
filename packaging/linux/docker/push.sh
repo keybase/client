@@ -42,11 +42,18 @@ if [ "$kind" = "nightly" ]; then
     instructions+=("$imageName:$tag$variant,$imageName:nightly$variant")
   done
 elif [ "$kind" = "release" ]; then
-  # Release builds end up as `$imageName:latest$variant` and `$imageName:stable$variant`
+  # Release builds end up as:
+  # - `$imageName:latest$variant`
+  # - `$imageName:stable$variant`
+  # - `$imageName:$version$variant`, where $version is the first item of a dash-split tag arg
   for variant in "${variants[@]}"; do
+    IFS='-'; read -ra tagParts <<< "$tag"
+    version="${tagParts[0]}"
+
     instructions+=(
       "$imageName:$tag$variant,$imageName:latest$variant"
       "$imageName:$tag$variant,$imageName:stable$variant"
+      "$imageName:$tag$variant,$imageName:$version$variant"
     )
   done
 fi
