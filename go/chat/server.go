@@ -60,8 +60,6 @@ type Server struct {
 	fileAttachmentDownloadCacheDir        string
 	fileAttachmentDownloadDownloadDir     string
 
-	kbfsFileEditSemaphore *semaphore.Weighted
-
 	// Only for testing
 	rc         chat1.RemoteInterface
 	mockChatUI libkb.ChatUI
@@ -79,7 +77,6 @@ func NewServer(g *globals.Context, serverConn types.ServerConnection, uiSource U
 		identNotifier:                     NewCachingIdentifyNotifier(g),
 		fileAttachmentDownloadCacheDir:    g.GetEnv().GetCacheDir(),
 		fileAttachmentDownloadDownloadDir: g.GetEnv().GetDownloadsDir(),
-		kbfsFileEditSemaphore:             semaphore.NewWeighted(100),
 	}
 }
 
@@ -755,16 +752,6 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, err
 	}
 
-	// Bound the number of KBFSFILEEDIT posts we can make concurrently.
-	if arg.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_KBFSFILEEDIT {
-		if !h.kbfsFileEditSemaphore.TryAcquire(1) {
-			// Just get out of here.
-			h.Debug(ctx, "KBFS queue full. Dropping msg for %v", arg.ConversationID)
-			return res, nil
-		}
-		defer h.kbfsFileEditSemaphore.Release(1)
-	}
-
 	// Check for any slash command hits for an execute
 	if handled, err := h.G().CommandsSource.AttemptBuiltinCommand(ctx, uid, arg.ConversationID,
 		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody, arg.ReplyTo); handled {
@@ -1062,24 +1049,6 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
-	}
-
-	// KBFSFILEEDIT msgs skip the outbox
-	if arg.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_KBFSFILEEDIT {
-		go func() {
-			bgctx := libkb.CopyTagsToBackground(ctx)
-			_, err := h.PostLocal(bgctx, chat1.PostLocalArg{
-				ConversationID:   arg.ConversationID,
-				Msg:              arg.Msg,
-				IdentifyBehavior: arg.IdentifyBehavior,
-			})
-			if err != nil {
-				h.Debug(bgctx, "Unable to PostLocal: %v", err)
-			}
-		}()
-		return chat1.PostLocalNonblockRes{
-			IdentifyFailures: identBreaks,
-		}, nil
 	}
 
 	// Clear draft
