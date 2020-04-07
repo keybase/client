@@ -94,7 +94,6 @@ export const setTeamWizardSubteams = 'teams:setTeamWizardSubteams'
 export const setTeamWizardTeamSize = 'teams:setTeamWizardTeamSize'
 export const setTeamWizardTeamType = 'teams:setTeamWizardTeamType'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
-export const setTreeMembershipGUID = 'teams:setTreeMembershipGUID'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const setWelcomeMessage = 'teams:setWelcomeMessage'
@@ -334,11 +333,6 @@ type _SetTeamWizardSubteamsPayload = {readonly subteams: Array<string>}
 type _SetTeamWizardTeamSizePayload = {readonly isBig: boolean}
 type _SetTeamWizardTeamTypePayload = {readonly teamType: Types.TeamWizardTeamType}
 type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.TeamID>}
-type _SetTreeMembershipGUIDPayload = {
-  readonly teamID: Types.TeamID
-  readonly username: string
-  readonly guid: number
-}
 type _SetUpdatedChannelNamePayload = {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -551,12 +545,6 @@ export const createStartAddMembersWizard = (
 export const createUnsubscribeTeamDetails = (
   payload: _UnsubscribeTeamDetailsPayload
 ): UnsubscribeTeamDetailsPayload => ({payload, type: unsubscribeTeamDetails})
-/**
- * Synchronously set expected guid to receive notifications on after spawning a loadTeamTreeMemberships request
- */
-export const createSetTreeMembershipGUID = (
-  payload: _SetTreeMembershipGUIDPayload
-): SetTreeMembershipGUIDPayload => ({payload, type: setTreeMembershipGUID})
 /**
  * Toggle whether invites are collapsed in the member list for this team
  */
@@ -1137,10 +1125,6 @@ export type SetTeamsWithChosenChannelsPayload = {
   readonly payload: _SetTeamsWithChosenChannelsPayload
   readonly type: typeof setTeamsWithChosenChannels
 }
-export type SetTreeMembershipGUIDPayload = {
-  readonly payload: _SetTreeMembershipGUIDPayload
-  readonly type: typeof setTreeMembershipGUID
-}
 export type SetUpdatedChannelNamePayload = {
   readonly payload: _SetUpdatedChannelNamePayload
   readonly type: typeof setUpdatedChannelName
@@ -1291,7 +1275,6 @@ export type Actions =
   | SetTeamWizardTeamSizePayload
   | SetTeamWizardTeamTypePayload
   | SetTeamsWithChosenChannelsPayload
-  | SetTreeMembershipGUIDPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
   | SetWelcomeMessageErrorPayload

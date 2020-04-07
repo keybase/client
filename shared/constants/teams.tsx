@@ -700,9 +700,6 @@ export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
       })
     : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
-export const getTeamMembership = (_: TypedState, _2: Types.TeamID, _3: string): Types.MemberInfo | null =>
-  null //state.teams.teamMemberToSubteams.get(teamID)?.get(username) ?? null
-
 export const getTeamMemberLastActivity = (
   state: TypedState,
   teamID: Types.TeamID,
@@ -902,18 +899,22 @@ export const stringifyPeople = (people: string[]): string => {
   }
 }
 
-export const teamTreeMembershipValueToSparseMembership = value => {
-  // TODO cannot put a none in here!
+export const consumeTeamTreeMembershipValue = (
+  value: RPCTypes.TeamTreeMembershipValue
+): Types.TreeloaderSparseMemberInfo => {
   return {
-    teamID: value.teamID,
-    type: teamRoleByEnum[value.role] || 'reader',
+    joinTime: value.joinTime ?? undefined,
+    type: teamRoleByEnum[value.role] || 'none',
   }
 }
 
-export const maybeGetSparseMembership = (detailsMap, sparseMembershipMap, teamID, username) => {
-  const t = detailsMap.get(teamID)
-  if (t) {
-    return t.members.get(username)
+// maybeGetSparseMemberInfo first looks in the details, which should be kept up-to-date, then looks
+// in the treeloader-powered map (which can go stale) as a backup. If it returns null, it means we
+// don't know the answer (yet). If it returns type='none', that means the user is not in the team.
+export const maybeGetSparseMemberInfo = (state: TypedState, teamID, username) => {
+  const details = state.teams.teamDetails.get(teamID)
+  if (details) {
+    return details.members.get(username) ?? {type: 'none'}
   }
-  return sparseMembershipMap.get(teamID)?.get(username)
+  return state.teams.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
 }

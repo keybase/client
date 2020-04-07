@@ -35,12 +35,12 @@ type TeamTreeRowIn = {
   role: Types.TeamRoleType
 } & TeamTreeRowNotIn
 
-const getMemberships = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
+const getMemberships = (state: Container.TypedState, targetTeamID: Types.TeamID, username: string) => {
   const errors: Array<RPCTypes.TeamTreeMembership> = []
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
   const nodesIn: Array<TeamTreeRowIn> = []
 
-  const memberships = state.teams.teamMemberToTreeMemberships.get(teamID)?.get(username)
+  const memberships = state.teams.teamMemberToTreeMemberships.get(targetTeamID)?.get(username)
   if (!memberships) {
     return {errors, nodesIn, nodesNotIn}
   }
@@ -48,29 +48,32 @@ const getMemberships = (state: Container.TypedState, teamID: Types.TeamID, usern
   for (const membership of memberships.memberships) {
     const teamname = membership.teamName
 
+    // Note that we do not directly take any information directly from the TeamTree result other
+    // than the **shape of the tree**. The other information is delegated to
+    // Constants.maybeGetSparseMemberInfo which opportunistically sources the information from the
+    // teamDetails map if present, so as to show up-to-date information.
     if (RPCTypes.TeamTreeMembershipStatus.ok == membership.result.s) {
-      const result = membership.result.ok
+      const teamID = membership.result.ok.teamID
+      const sparseMemberInfo = Constants.maybeGetSparseMemberInfo(state, teamID, username)
+      if (!sparseMemberInfo) {
+        continue
+      }
 
-      const ops = Constants.getCanPerformByID(state, result.teamID)
+      const ops = Constants.getCanPerformByID(state, teamID)
 
       const row = {
         canAdminister: ops.manageMembers,
-        joinTime: result.joinTime ?? undefined,
-        memberCount: membership.result.ok.memberCount,
-        teamID: result.teamID,
+        joinTime: sparseMemberInfo.joinTime,
+        // memberCount should always be populated because the TeamList, which is synced
+        // eagerly, provides it.
+        memberCount: Constants.getTeamMeta(state, teamID).memberCount,
+        teamID,
         teamname,
       }
 
-      const sparseMemberInfo = Constants.maybeGetSparseMembership(
-        state.teams.teamDetails,
-        state.teams.treeLoaderTeamIDToSparseMemberInfos,
-        result.teamID,
-        username
-      )
-
-      if (sparseMemberInfo) {
+      if ('none' != sparseMemberInfo.type) {
         nodesIn.push({
-          lastActivity: 0,
+          lastActivity: Constants.getTeamMemberLastActivity(state, teamID, username) || 0,
           role: sparseMemberInfo.type,
           ...row,
         })
@@ -137,7 +140,6 @@ const TeamMember = (props: OwnProps) => {
     key: 'section-nodes',
     renderItem: ({item, index}: {item: TeamTreeRowIn; index: number}) => (
       <NodeInRow
-        teamID={teamID}
         node={item}
         idx={index}
         username={username}
@@ -159,7 +161,7 @@ const TeamMember = (props: OwnProps) => {
     data: nodesNotIn,
     key: 'section-add-nodes',
     renderItem: ({item, index}: {item: TeamTreeRowNotIn; index: number}) => (
-      <NodeNotInRow teamID={teamID} node={item} idx={index} username={username} />
+      <NodeNotInRow node={item} idx={index} username={username} />
     ),
     title: makeTitle(isMe ? 'You are not in:' : `${username} is not in:`),
   }
@@ -192,7 +194,7 @@ const TeamMember = (props: OwnProps) => {
 
               const failedAt = [error.teamName]
               if (error.result.error.willSkipSubtree) {
-                failedAt.push('its nodes')
+                failedAt.push('its subteams')
               }
               if (error.result.error.willSkipAncestors) {
                 failedAt.push('its parent teams')
@@ -243,17 +245,9 @@ TeamMember.navigationOptions = (ownProps: OwnProps) => ({
   ),
 })
 
-// type BaseTeamProps = {
-//   idx: number
-//   teamNode: TeamTreeMem
-//   teamID: Types.TeamID
-//   is
-// }
-
 type NodeNotInRowProps = {
   idx: number
   node: TeamTreeRowNotIn
-  teamID: Types.TeamID
   username: string
 }
 const NodeNotInRow = (props: NodeNotInRowProps) => {
@@ -358,10 +352,9 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   )
 }
 
-type NodeInRowProps = NodeNotInRowProps & {
+type NodeInRowProps = {
   idx: number
   node: TeamTreeRowIn
-  teamID: Types.TeamID
   username: string
   expanded: boolean
   setExpanded: (b: boolean) => void

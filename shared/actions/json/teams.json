@@ -453,12 +453,6 @@
     "setActivityLevels": {
       "_description": "Set map of activity levels for all teams.",
       "levels": "Types.ActivityLevels"
-    },
-    "setTreeMembershipGUID": {
-      "_description": "Synchronously set expected guid to receive notifications on after spawning a loadTeamTreeMemberships request",
-      "teamID": "Types.TeamID",
-      "username": "string",
-      "guid": "number"
     }
   }
 }

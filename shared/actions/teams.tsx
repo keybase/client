@@ -1378,8 +1378,9 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
   ]
 }
 
+// See protocol/avdl/keybase1/teams.avdl:loadTeamTreeAsync for a description of this RPC.
 function* loadTeamTree(_: TypedState, action: TeamsGen.LoadTeamTreePayload, _logger: Saga.SagaLogger) {
-  yield RPCTypes.teamsLoadTeamTreeMembershipsRpcPromiseAsync(action.payload)
+  yield RPCTypes.teamsLoadTeamTreeMembershipsAsyncRpcPromise(action.payload)
 }
 
 function* loadTreeTeamActivity(
@@ -1387,16 +1388,12 @@ function* loadTreeTeamActivity(
   action: EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload,
   logger: Saga.SagaLogger
 ) {
-  logger.info('PARAMS ', action.payload)
   const {membership} = action.payload.params
   switch (membership.result.s) {
     case RPCTypes.TeamTreeMembershipStatus.ok: {
       break
     }
-    case RPCTypes.TeamTreeMembershipStatus.error: {
-      return
-    }
-    case RPCTypes.TeamTreeMembershipStatus.hidden: {
+    default: {
       return
     }
   }
@@ -1426,7 +1423,7 @@ function* loadTreeTeamActivity(
     )
   } catch (e) {
     logger.info(
-      `loadTreeTeamActivity: unable to get activity for tree of ${targetTeamID}:${username}: zz${e.message}`
+      `loadTreeTeamActivity: unable to get activity for tree of ${targetTeamID}:${username}: ${e.message}`
     )
   } finally {
     yield Saga.put(

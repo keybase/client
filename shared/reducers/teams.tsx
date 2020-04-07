@@ -398,35 +398,32 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       new Map()
     )
 
-    const newMemberships = {
-      guid: guid,
-      memberships: [],
-      teamID: targetTeamID,
-      username: targetUsername,
+    var memberships = usernameMemberships.get(targetUsername)
+    if (memberships && guid < memberships.guid) {
+      // noop
+      return
     }
-
-    const memberships = mapGetEnsureValue(usernameMemberships, targetUsername, newMemberships)
-
-    if (memberships.guid < guid) {
-      Object.assign(memberships, newMemberships)
-    } else if (memberships.guid > guid) {
-      memberships.expectedCount = undefined
-      return //noop
+    if (!memberships || guid > memberships.guid) {
+      // start over
+      memberships = {
+        guid,
+        targetTeamID,
+        targetUsername,
+        memberships: [],
+      }
     }
-
     memberships.memberships.push(membership)
+    // need to set manually since we might've created a new members object
+    usernameMemberships.set(targetUsername, memberships)
 
     if (RPCTypes.TeamTreeMembershipStatus.ok == membership.result.s) {
-      const val = membership.result.ok
+      const value = membership.result.ok
       const sparseMemberInfos = mapGetEnsureValue(
         draftState.treeLoaderTeamIDToSparseMemberInfos,
-        val.teamID,
+        value.teamID,
         new Map()
       )
-      if (RPCTypes.TeamRole.none != val.role) {
-        sparseMemberInfos.set(targetUsername, Constants.teamTreeMembershipValueToSparseMembership(val))
-        // infer nonmembership from not being in map
-      }
+      sparseMemberInfos.set(targetUsername, Constants.consumeTeamTreeMembershipValue(value))
     }
   },
   [EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone]: (draftState, action) => {
@@ -439,19 +436,22 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       new Map()
     )
 
-    const newMemberships = {
-      expectedCount: expectedCount,
-      guid: guid,
-      memberships: [],
-      teamID: targetTeamID,
-      username: targetUsername,
+    var memberships = usernameMemberships.get(targetUsername)
+    if (memberships && guid < memberships.guid) {
+      // noop
+      return
     }
-    const memberships = mapGetEnsureValue(usernameMemberships, targetUsername, newMemberships)
-    if (memberships.guid < guid) {
-      Object.assign(memberships, newMemberships)
-    } else if (memberships.guid > guid) {
-      return // noop
+    if (!memberships || guid > memberships.guid) {
+      // start over
+      memberships = {
+        guid,
+        targetTeamID,
+        targetUsername,
+        memberships: [],
+      }
     }
     memberships.expectedCount = expectedCount
+    // need to set manually since we might've created a new members object
+    usernameMemberships.set(targetUsername, memberships)
   },
 })

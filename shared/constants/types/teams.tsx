@@ -45,6 +45,10 @@ export type TeamSettings = {} & RPCTypes.TeamSettings
 export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
 export type MemberStatus = 'active' | 'deleted' | 'reset'
+export type TreeloaderSparseMemberInfo = {
+  joinTime?: number
+  type: MaybeTeamRoleType
+}
 export type SparseMemberInfo = {
   joinTime?: number
   type: TeamRoleType
@@ -139,8 +143,8 @@ export type AvatarCrop = {
 
 export type TeamTreeMemberships = {
   guid: number
-  teamID: TeamID
-  username: string
+  targetTeamID: TeamID
+  targetUsername: string
   expectedCount?: number
   memberships: Array<RPCTypes.TeamTreeMembership>
 }
@@ -227,7 +231,7 @@ export type State = {
   readonly teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
 
-  readonly treeLoaderTeamIDToSparseMemberInfos: Map<TeamID, Map<string, SparseMemberInfo>>
+  readonly treeLoaderTeamIDToSparseMemberInfos: Map<TeamID, Map<string, TreeloaderSparseMemberInfo>>
   readonly teamMemberToTreeMemberships: Map<TeamID, Map<string, TeamTreeMemberships>>
 
   readonly teamMemberToLastActivity: Map<TeamID, Map<string, number>>
