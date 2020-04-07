@@ -113,6 +113,50 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
         },
       ],
     ]),
+    teamMemberToTreeMemberships: new Map([
+      [
+        fakeTeamID,
+        new Map([
+          [
+            'alice',
+            {
+              expectedCount: 2,
+              guid: 0,
+              memberships: [
+                {
+                  guid: 0,
+                  result: {
+                    ok: {
+                      role: 'admin',
+                      teamID: fakeTeamID,
+                    },
+                    s: 0,
+                  },
+                  targetTeamID: fakeTeamID,
+                  targetUsername: 'alice',
+                  teamName: 'keybase_storybook',
+                },
+                {
+                  guid: 0,
+                  result: {
+                    ok: {
+                      role: 'none',
+                      teamID: subteam1,
+                    },
+                    s: 0,
+                  },
+                  targetTeamID: fakeTeamID,
+                  targetUsername: 'alice',
+                  teamName: 'keybase_storybook.friends',
+                },
+              ],
+              targetTeamID: fakeTeamID,
+              targetUsername: 'alice',
+            },
+          ],
+        ]),
+      ],
+    ]),
     teamMeta: new Map([
       [fakeTeamID, Constants.makeTeamMeta({memberCount: 32, teamname: 'keybase_storybook'})],
       [teamID2, Constants.makeTeamMeta({isOpen: true, memberCount: 11947, teamname: 'fan_club'})],
@@ -131,50 +175,6 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
     treeLoaderTeamIDToSparseMemberInfos: new Map([
       [fakeTeamID, new Map([['alice', aliceSparseMemberInfoRoot]])],
       [subteam1, new Map([['alice', aliceSparseMemberInfoSub]])],
-    ]),
-    teamMemberToTreeMemberships: new Map([
-      [
-        fakeTeamID,
-        new Map([
-          [
-            'alice',
-            {
-              guid: 0,
-              targetTeamID: fakeTeamID,
-              targetUsername: 'alice',
-              expectedCount: 2,
-              memberships: [
-                {
-                  teamName: 'keybase_storybook',
-                  result: {
-                    s: 0,
-                    ok: {
-                      role: 'admin',
-                      teamID: fakeTeamID,
-                    },
-                  },
-                  targetTeamID: fakeTeamID,
-                  targetUsername: 'alice',
-                  guid: 0,
-                },
-                {
-                  teamName: 'keybase_storybook.friends',
-                  result: {
-                    s: 0,
-                    ok: {
-                      role: 'none',
-                      teamID: subteam1,
-                    },
-                  },
-                  targetTeamID: fakeTeamID,
-                  targetUsername: 'alice',
-                  guid: 0,
-                },
-              ],
-            },
-          ],
-        ]),
-      ],
     ]),
   }
   draftState.config = {
