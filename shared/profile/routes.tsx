@@ -13,7 +13,7 @@ import ProfileProveEnterUsername from './prove-enter-username/container'
 import ProfileProveWebsiteChoice from './prove-website-choice/container'
 import ProfileRevoke from './revoke/container'
 import ProfileShowcaseTeamOffer from './showcase-team-offer/container'
-import {Question1, Question2} from './wot-author/container'
+import {Question1Wrapper, Question2Wrapper} from './wot-author'
 
 export const newRoutes = {
   profile: {getScreen: (): typeof Profile => require('./user/container').default},
@@ -49,10 +49,10 @@ export const newModalRoutes = {
     getScreen: (): typeof ProfileShowcaseTeamOffer => require('./showcase-team-offer/container').default,
   },
   profileWotAuthor: {
-    getScreen: (): typeof Question1 => require('./wot-author/container').Question1,
+    getScreen: (): typeof Question1Wrapper => require('./wot-author').Question1Wrapper,
   },
   profileWotAuthorQ2: {
-    getScreen: (): typeof Question2 => require('./wot-author/container').Question2,
+    getScreen: (): typeof Question2Wrapper => require('./wot-author').Question2Wrapper,
   },
   ...PGPRoutes,
 }
