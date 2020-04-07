@@ -754,6 +754,25 @@ func (u *userPlusDevice) proveGubbleSocial() {
 	proveGubbleUniverse(u.tc, "gubble.social", "gubble_social", u.username, u.newSecretUI())
 }
 
+func (u *userPlusDevice) revokeServiceProof(serviceType string) {
+	tctx := u.tc
+	arg := libkb.NewLoadUserArg(tctx.G).WithUID(u.uid).WithForcePoll(true)
+	user, err := libkb.LoadUser(arg)
+	require.NoError(tctx.T, err)
+	require.NotNil(tctx.T, user)
+
+	st := tctx.G.GetProofServices().GetServiceType(context.TODO(), "rooter")
+	ret := user.IDTable().GetActiveProofsFor(st)
+	require.Len(tctx.T, ret, 1)
+	sigID := ret[0].GetSigID()
+
+	revokeClient := keybase1.RevokeClient{Cli: u.teamsClient.Cli}
+	err = revokeClient.RevokeSigs(context.TODO(), keybase1.RevokeSigsArg{
+		SigIDQueries: []string{sigID.String()},
+	})
+	require.NoError(tctx.T, err)
+}
+
 func (u *userPlusDevice) track(username string) {
 	trackCmd := client.NewCmdTrackRunner(u.tc.G)
 	trackCmd.SetUser(username)
