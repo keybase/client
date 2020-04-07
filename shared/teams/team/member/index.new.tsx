@@ -42,7 +42,7 @@ const getMemberships = (state: Container.TypedState, teamID: Types.TeamID, usern
 
   const memberships = state.teams.teamMemberToTreeMemberships.get(teamID)?.get(username)
   if (!memberships) {
-    return {nodesIn, nodesNotIn, errors}
+    return {errors, nodesIn, nodesNotIn}
   }
 
   for (const membership of memberships.memberships) {
@@ -54,11 +54,11 @@ const getMemberships = (state: Container.TypedState, teamID: Types.TeamID, usern
       const ops = Constants.getCanPerformByID(state, result.teamID)
 
       const row = {
+        canAdminister: ops.manageMembers,
+        joinTime: result.joinTime ?? undefined,
+        memberCount: membership.result.ok.memberCount,
         teamID: result.teamID,
         teamname,
-        memberCount: membership.result.ok.memberCount,
-        joinTime: result.joinTime ?? undefined,
-        canAdminister: ops.manageMembers,
       }
 
       const sparseMemberInfo = Constants.maybeGetSparseMembership(
@@ -70,8 +70,8 @@ const getMemberships = (state: Container.TypedState, teamID: Types.TeamID, usern
 
       if (sparseMemberInfo) {
         nodesIn.push({
-          role: sparseMemberInfo.type,
           lastActivity: 0,
+          role: sparseMemberInfo.type,
           ...row,
         })
       } else {
@@ -82,9 +82,9 @@ const getMemberships = (state: Container.TypedState, teamID: Types.TeamID, usern
     }
   }
   return {
+    errors,
     nodesIn,
     nodesNotIn,
-    errors,
   }
 }
 
@@ -748,10 +748,6 @@ const styles = Styles.styleSheetCreate(() => ({
   headerTextContainer: Styles.platformStyles({
     isMobile: {paddingBottom: Styles.globalMargins.tiny},
   }),
-  reloadButton: {
-    marginTop: Styles.globalMargins.tiny,
-    minWidth: 56,
-  },
   inviteButton: {
     minWidth: 56,
   },
@@ -786,6 +782,10 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
+  reloadButton: {
+    marginTop: Styles.globalMargins.tiny,
+    minWidth: 56,
+  },
   roleButton: {
     paddingRight: 0,
   },

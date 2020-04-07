@@ -400,9 +400,9 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
 
     const newMemberships = {
       guid: guid,
+      memberships: [],
       teamID: targetTeamID,
       username: targetUsername,
-      memberships: [],
     }
 
     const memberships = mapGetEnsureValue(usernameMemberships, targetUsername, newMemberships)
@@ -440,11 +440,11 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     )
 
     const newMemberships = {
+      expectedCount: expectedCount,
       guid: guid,
+      memberships: [],
       teamID: targetTeamID,
       username: targetUsername,
-      expectedCount: expectedCount,
-      memberships: [],
     }
     const memberships = mapGetEnsureValue(usernameMemberships, targetUsername, newMemberships)
     if (memberships.guid < guid) {

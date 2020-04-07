@@ -223,20 +223,20 @@ const emptyState: Types.State = {
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
   teamMemberToLastActivity: new Map(),
+  teamMemberToTreeMemberships: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
   teamMetaSubscribeCount: 0,
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
   teamProfileAddList: [],
-  treeLoaderTeamIDToSparseMemberInfos: new Map(),
-  teamMemberToTreeMemberships: new Map(),
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamSelectedChannels: new Map(),
   teamSelectedMembers: new Map(),
   teamVersion: new Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
+  treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
 
 export const makeState = (s?: Partial<Types.State>): Types.State =>
