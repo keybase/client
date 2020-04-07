@@ -1702,7 +1702,15 @@ protocol teams {
   // were started at E and (for whatever reason) the load failed at C and G, then this function
   // would not attempt to load A or J, but would continue to load the rest of the tree. In this
   // case, there would only be 5 Partial notifications (C, E, G, H, I) instead of all 7.
-  TeamTreeInitial loadTeamTreeMemberships(int sessionID, TeamID teamID, string username);
+  //
+  // With regards to ancestor teams, the loading user need not necessarily be an admin of those
+  // teams in order to get results. If they are in the team, they will get a successful
+  // TeamTreeMembershipResult_OK partial; otherwise they will get a TeamTreeMembershipsResult_HIDDEN
+  // for that teamname with no role information. Note that this does not currently consider implicit
+  // adminship: if Alice is an admin of A and loads A.C.E, she would get a OK partial for A, but a
+  // HIDDEN partial for A.C. This is a limitation that can be fixed, but is not critical since the
+  // more natural flow would be for Alice to start her load from A.
+  TeamTreeInitial loadTeamTreeMembershipsAsync(int sessionID, TeamID teamID, string username);
   // called when navigating out of page
   void cancelLoadTeamTree(int guid);
 }

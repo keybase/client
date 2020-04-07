@@ -852,16 +852,20 @@ func (h *TeamsHandler) GetUntrustedTeamInfo(ctx context.Context, name keybase1.T
 	return teams.GetUntrustedTeamInfo(mctx, name)
 }
 
-func (h *TeamsHandler) LoadTeamTreeMemberships(ctx context.Context,
-	arg keybase1.LoadTeamTreeMembershipsArg) (res keybase1.TeamTreeInitial, err error) {
+func (h *TeamsHandler) LoadTeamTreeMembershipsAsync(ctx context.Context,
+	arg keybase1.LoadTeamTreeMembershipsAsyncArg) (res keybase1.TeamTreeInitial, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	ctx = libkb.WithLogTag(ctx, "TMTREE")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamTreeMemberships(%s, %s, %d)", arg.TeamID, arg.Username, arg.SessionID), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamTreeMembershipsAsync(%s, %s, %d)",
+		arg.TeamID, arg.Username, arg.SessionID), func() error { return err })()
 
 	ctx = context.WithValue(ctx, libkb.SessionIDKey, libkb.SessionID(arg.SessionID))
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
-	mctx.Warning("@@@ %d %d", arg.SessionID, libkb.GetSessionIDOrZero(ctx))
-	err = teams.LoadTeamTreeMemberships(mctx, arg.TeamID, arg.Username)
+	loader, err := teams.NewTreeloader(mctx, arg.Username, arg.TeamID)
+	if err != nil {
+		return res, err
+	}
+	err = loader.Load(mctx)
 	if err != nil {
 		return res, err
 	}
@@ -873,7 +877,7 @@ func (h *TeamsHandler) CancelLoadTeamTree(ctx context.Context, sessionID int) (e
 	ctx = libkb.WithLogTag(ctx, "TMTREE")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CancelLoadTeamTree()"), func() error { return err })()
 
-	ctx = context.WithValue(ctx, libkb.SessionIDKey, libkb.SessionID(sessionID))
+	_ = context.WithValue(ctx, libkb.SessionIDKey, libkb.SessionID(sessionID))
 
 	return fmt.Errorf("unimplemented")
 }

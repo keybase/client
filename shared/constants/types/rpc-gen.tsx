@@ -1399,10 +1399,6 @@ export type MessageTypes = {
     inParam: {readonly teamName: TeamName}
     outParam: UntrustedTeamInfo
   }
-  'keybase.1.teams.loadTeamTreeMemberships': {
-    inParam: {readonly teamID: TeamID; readonly username: String}
-    outParam: TeamTreeInitial
-  }
   'keybase.1.teams.setTarsDisabled': {
     inParam: {readonly teamID: TeamID; readonly disabled: Boolean}
     outParam: void
@@ -3864,7 +3860,6 @@ export const teamsGetTeamAndMemberShowcaseRpcPromise = (params: MessageTypes['ke
 export const teamsGetTeamIDRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetTeamRoleMapRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamRoleMap']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamRoleMap']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamRoleMap', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetUntrustedTeamInfoRpcPromise = (params: MessageTypes['keybase.1.teams.getUntrustedTeamInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getUntrustedTeamInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getUntrustedTeamInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const teamsLoadTeamTreeMembershipsRpcPromise = (params: MessageTypes['keybase.1.teams.loadTeamTreeMemberships']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.loadTeamTreeMemberships']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.loadTeamTreeMemberships', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsSetTarsDisabledRpcPromise = (params: MessageTypes['keybase.1.teams.setTarsDisabled']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.setTarsDisabled']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.setTarsDisabled', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsSetTeamMemberShowcaseRpcPromise = (params: MessageTypes['keybase.1.teams.setTeamMemberShowcase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.setTeamMemberShowcase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.setTeamMemberShowcase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsSetTeamShowcaseRpcPromise = (params: MessageTypes['keybase.1.teams.setTeamShowcase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.setTeamShowcase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.setTeamShowcase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4316,6 +4311,7 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.teams.profileTeamLoad'
 // 'keybase.1.teams.getTeamName'
 // 'keybase.1.teams.ftl'
+// 'keybase.1.teams.loadTeamTreeMembershipsAsync'
 // 'keybase.1.teams.cancelLoadTeamTree'
 // 'keybase.1.teamsUi.confirmRootTeamDelete'
 // 'keybase.1.teamsUi.confirmSubteamDelete'

@@ -4427,7 +4427,7 @@ type GetAnnotatedTeamArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
-type LoadTeamTreeMembershipsArg struct {
+type LoadTeamTreeMembershipsAsyncArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TeamID    TeamID `codec:"teamID" json:"teamID"`
 	Username  string `codec:"username" json:"username"`
@@ -4519,7 +4519,7 @@ type TeamsInterface interface {
 	Ftl(context.Context, FastTeamLoadArg) (FastTeamLoadRes, error)
 	GetTeamRoleMap(context.Context) (TeamRoleMapAndVersion, error)
 	GetAnnotatedTeam(context.Context, TeamID) (AnnotatedTeam, error)
-	LoadTeamTreeMemberships(context.Context, LoadTeamTreeMembershipsArg) (TeamTreeInitial, error)
+	LoadTeamTreeMembershipsAsync(context.Context, LoadTeamTreeMembershipsAsyncArg) (TeamTreeInitial, error)
 	CancelLoadTeamTree(context.Context, int) error
 }
 
@@ -5467,18 +5467,18 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
-			"loadTeamTreeMemberships": {
+			"loadTeamTreeMembershipsAsync": {
 				MakeArg: func() interface{} {
-					var ret [1]LoadTeamTreeMembershipsArg
+					var ret [1]LoadTeamTreeMembershipsAsyncArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]LoadTeamTreeMembershipsArg)
+					typedArgs, ok := args.(*[1]LoadTeamTreeMembershipsAsyncArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]LoadTeamTreeMembershipsArg)(nil), args)
+						err = rpc.NewTypeError((*[1]LoadTeamTreeMembershipsAsyncArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadTeamTreeMemberships(ctx, typedArgs[0])
+					ret, err = i.LoadTeamTreeMembershipsAsync(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5851,8 +5851,8 @@ func (c TeamsClient) GetAnnotatedTeam(ctx context.Context, teamID TeamID) (res A
 	return
 }
 
-func (c TeamsClient) LoadTeamTreeMemberships(ctx context.Context, __arg LoadTeamTreeMembershipsArg) (res TeamTreeInitial, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamTreeMemberships", []interface{}{__arg}, &res, 0*time.Millisecond)
+func (c TeamsClient) LoadTeamTreeMembershipsAsync(ctx context.Context, __arg LoadTeamTreeMembershipsAsyncArg) (res TeamTreeInitial, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamTreeMembershipsAsync", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

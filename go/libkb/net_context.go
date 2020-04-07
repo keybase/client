@@ -82,8 +82,5 @@ func CopyTagsToBackground(ctx context.Context) context.Context {
 			}
 		}
 	}
-	if v := ctx.Value(SessionIDKey); v != nil {
-		ret = context.WithValue(ret, SessionIDKey, v)
-	}
 	return ret
 }

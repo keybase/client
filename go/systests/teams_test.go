@@ -2144,14 +2144,18 @@ func mustCreateSubteam(t *testing.T, tc *libkb.TestContext,
 }
 
 func loadTeamTree(t *testing.T, tmctx libkb.MetaContext, notifications *teamNotifyHandler,
-	teamID keybase1.TeamID, username string, converter teams.TreeloaderStateConverter,
+	teamID keybase1.TeamID, username string, failureTeamIDs []keybase1.TeamID,
 	teamFailures []string) ([]keybase1.TeamTreeMembership, error) {
 	var err error
-	if converter == nil {
-		err = teams.LoadTeamTreeMemberships(tmctx, teamID, username)
-	} else {
-		err = teams.LoadTeamTreeMembershipsWithConverter(tmctx, teamID, username, converter)
+
+	l, err := teams.NewTreeloader(tmctx, username, teamID)
+	if err != nil {
+		return nil, err
 	}
+	if failureTeamIDs != nil {
+		l.Converter = newMockConverter(failureTeamIDs, l)
+	}
+	err = l.Load(tmctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2190,13 +2194,13 @@ loop:
 }
 
 func checkTeamTreeResults(t *testing.T, expected map[string]keybase1.TeamRole,
-	failureTeamNames []string, results []keybase1.TeamTreeMembership) {
-	require.Equal(t, len(expected)+len(failureTeamNames),
+	failureTeamNames []string, hiddenTeamNames []string, results []keybase1.TeamTreeMembership) {
+	require.Equal(t, len(expected)+len(failureTeamNames)+len(hiddenTeamNames),
 		len(results), "got right number of results back")
 	m := make(map[string]struct{})
 	for _, result := range results {
 		_, alreadyExists := m[result.TeamName]
-		require.False(t, alreadyExists, "got a duplicate got %s", result.TeamName.String())
+		require.False(t, alreadyExists, "got a duplicate got %s", result.TeamName)
 		m[result.TeamName] = struct{}{}
 		s, err := result.Result.S()
 		require.NoError(t, err)
@@ -2213,35 +2217,37 @@ func checkTeamTreeResults(t *testing.T, expected map[string]keybase1.TeamRole,
 			}
 		case keybase1.TeamTreeMembershipStatus_ERROR:
 			require.Contains(t, failureTeamNames, result.TeamName)
+		case keybase1.TeamTreeMembershipStatus_HIDDEN:
+			require.Contains(t, hiddenTeamNames, result.TeamName)
+		default:
+			t.Errorf("got an unknown result status %s", s)
 		}
 	}
 }
 
 type mockConverter struct {
 	failureTeamIDs []keybase1.TeamID
-	converter      teams.TreeloaderStateConverter
+	loader         *teams.Treeloader
 }
 
-func (m mockConverter) SigchainStateToTeamTreeMembership(mctx libkb.MetaContext,
-	s *keybase1.TeamSigChainState,
-	uv keybase1.UserVersion) (res keybase1.TeamTreeMembershipResult) {
-
+func (m mockConverter) ProcessSigchainState(mctx libkb.MetaContext,
+	teamName keybase1.TeamName, s *keybase1.TeamSigChainState) keybase1.TeamTreeMembershipResult {
 	for _, failureTeamID := range m.failureTeamIDs {
 		if failureTeamID == s.Id {
-			return teams.MakeLoadTeamTreeErrorResult(fmt.Errorf("mock failure"))
+			return m.loader.NewErrorResult(fmt.Errorf("mock failure"), teamName)
 		}
 	}
-	return m.converter.SigchainStateToTeamTreeMembership(mctx, s, uv)
+	return m.loader.ProcessSigchainState(mctx, teamName, s)
 }
 
-func newMockConverter(failureTeamIDs []keybase1.TeamID) mockConverter {
+func newMockConverter(failureTeamIDs []keybase1.TeamID, loader *teams.Treeloader) mockConverter {
 	return mockConverter{
 		failureTeamIDs: failureTeamIDs,
-		converter:      &teams.DefaultTreeloaderStateConverter{},
+		loader:         loader,
 	}
 }
 
-func TestSuperLoadTeamTreeMemberships(t *testing.T) {
+func TestLoadTeamTreeMemberships(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -2267,22 +2273,23 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 	// G: yank, whis (adm), vict
 	// H: zulu, xray
 	// I: zulu, unif
+	// Below, we generate paperkeys to set up a environment for testing the GUI integration.
 	alfa := tt.addUserWithPaper("alfa")
-	t.Logf("ALFAPAPER %s %s", alfa.username, alfa.backupKey.secret)
+	t.Logf("Generated paperkey for %s: %s", alfa.username, alfa.backupKey.secret)
 	zulu := tt.addUserWithPaper("zulu")
-	t.Logf("ZULUPAPER %s %s", zulu.username, zulu.backupKey.secret)
+	t.Logf("Generated paperkey for %s: %s", zulu.username, zulu.backupKey.secret)
 	yank := tt.addUserWithPaper("yank")
-	t.Logf("YANKPAPER %s %s", yank.username, yank.backupKey.secret)
+	t.Logf("Generated paperkey for %s: %s", yank.username, yank.backupKey.secret)
 	xray := tt.addUserWithPaper("xray")
-	t.Logf("XRAYPAPER %s %s", xray.username, xray.backupKey.secret)
+	t.Logf("Generated paperkey for %s: %s", xray.username, xray.backupKey.secret)
 	whis := tt.addUserWithPaper("whis")
-	t.Logf("WHISPAPER %s %s", whis.username, whis.backupKey.secret)
+	t.Logf("Generated paperkey for %s: %s", whis.username, whis.backupKey.secret)
 	vict := tt.addUserWithPaper("vict")
-	t.Logf("VICTPAPER %s %s", vict.username, vict.backupKey.secret)
+	t.Logf("Generated paperkey for %s: %s", vict.username, vict.backupKey.secret)
 	unif := tt.addUserWithPaper("unif")
-	t.Logf("UNIF PAPER %s %s", unif.username, unif.backupKey.secret)
+	t.Logf("UGenerated paperkey for %s: %s", unif.username, unif.backupKey.secret)
 	tang := tt.addUserWithPaper("tang")
-	t.Logf("TANGPAPER %s %s", tang.username, tang.backupKey.secret)
+	t.Logf("Generated paperkey for %s: %s", tang.username, tang.backupKey.secret)
 
 	t.Logf("Creating teams")
 	aID, aName := alfa.createTeam2()
@@ -2388,15 +2395,16 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 
 	t.Logf("happy-path table tests")
 	tsts := []struct {
-		teamID     keybase1.TeamID
-		requesters []*userPlusDevice
-		target     *userPlusDevice
-		expected   map[string]keybase1.TeamRole
+		teamID    keybase1.TeamID
+		requester *userPlusDevice
+		target    *userPlusDevice
+		hidden    []string
+		expected  map[string]keybase1.TeamRole
 	}{
 		{
-			teamID:     aID,
-			requesters: []*userPlusDevice{zulu},
-			target:     zulu,
+			teamID:    aID,
+			requester: zulu,
+			target:    zulu,
 			expected: map[string]keybase1.TeamRole{
 				aName.String(): keybase1.TeamRole_ADMIN,
 				bName.String(): keybase1.TeamRole_NONE,
@@ -2407,29 +2415,49 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 				gName.String(): keybase1.TeamRole_NONE,
 				iName.String(): keybase1.TeamRole_WRITER,
 			},
+			hidden: []string{},
 		},
 		{
-			teamID:     bID,
-			requesters: []*userPlusDevice{zulu, yank},
-			target:     zulu,
+			teamID:    bID,
+			requester: zulu,
+			target:    zulu,
 			expected: map[string]keybase1.TeamRole{
 				aName.String(): keybase1.TeamRole_ADMIN,
 				bName.String(): keybase1.TeamRole_NONE,
 			},
+			hidden: []string{},
 		},
 		{
-			teamID:     bID,
-			requesters: []*userPlusDevice{zulu, yank},
-			target:     yank,
+			teamID:    bID,
+			requester: zulu,
+			target:    yank,
 			expected: map[string]keybase1.TeamRole{
 				aName.String(): keybase1.TeamRole_NONE,
 				bName.String(): keybase1.TeamRole_ADMIN,
 			},
 		},
 		{
-			teamID:     cID,
-			requesters: []*userPlusDevice{zulu, yank},
-			target:     yank,
+			teamID:    bID,
+			requester: yank,
+			target:    zulu,
+			expected: map[string]keybase1.TeamRole{
+				bName.String(): keybase1.TeamRole_NONE,
+			},
+			hidden: []string{aName.String()},
+		},
+		{
+			teamID:    bID,
+			requester: yank,
+			target:    yank,
+			expected: map[string]keybase1.TeamRole{
+				bName.String(): keybase1.TeamRole_ADMIN,
+			},
+			hidden: []string{aName.String()},
+		},
+		{
+			teamID:    cID,
+			requester: zulu,
+			target:    yank,
 			expected: map[string]keybase1.TeamRole{
 				aName.String(): keybase1.TeamRole_NONE,
 				cName.String(): keybase1.TeamRole_ADMIN,
@@ -2441,9 +2469,23 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			},
 		},
 		{
-			teamID:     cID,
-			requesters: []*userPlusDevice{zulu, yank},
-			target:     whis,
+			teamID:    cID,
+			requester: yank,
+			target:    yank,
+			expected: map[string]keybase1.TeamRole{
+				cName.String(): keybase1.TeamRole_ADMIN,
+				dName.String(): keybase1.TeamRole_NONE,
+				eName.String(): keybase1.TeamRole_NONE,
+				fName.String(): keybase1.TeamRole_ADMIN,
+				gName.String(): keybase1.TeamRole_WRITER,
+				iName.String(): keybase1.TeamRole_NONE,
+			},
+			hidden: []string{aName.String()},
+		},
+		{
+			teamID:    cID,
+			requester: zulu,
+			target:    whis,
 			expected: map[string]keybase1.TeamRole{
 				aName.String(): keybase1.TeamRole_NONE,
 				cName.String(): keybase1.TeamRole_NONE,
@@ -2455,9 +2497,24 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			},
 		},
 		{
-			teamID:     cID,
-			requesters: []*userPlusDevice{zulu, yank},
-			target:     xray,
+			teamID:    cID,
+			requester: yank,
+			target:    whis,
+			expected: map[string]keybase1.TeamRole{
+				cName.String(): keybase1.TeamRole_NONE,
+				dName.String(): keybase1.TeamRole_NONE,
+				eName.String(): keybase1.TeamRole_NONE,
+				fName.String(): keybase1.TeamRole_NONE,
+				gName.String(): keybase1.TeamRole_ADMIN,
+				iName.String(): keybase1.TeamRole_NONE,
+			},
+			hidden: []string{aName.String()},
+		},
+
+		{
+			teamID:    cID,
+			requester: zulu,
+			target:    xray,
 			expected: map[string]keybase1.TeamRole{
 				aName.String(): keybase1.TeamRole_NONE,
 				cName.String(): keybase1.TeamRole_NONE,
@@ -2469,11 +2526,24 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			},
 		},
 		{
-			teamID:     cID,
-			requesters: []*userPlusDevice{yank},
-			target:     tang, // in no teams after reset
+			teamID:    cID,
+			requester: yank,
+			target:    xray,
 			expected: map[string]keybase1.TeamRole{
-				aName.String(): keybase1.TeamRole_NONE,
+				cName.String(): keybase1.TeamRole_NONE,
+				dName.String(): keybase1.TeamRole_ADMIN,
+				eName.String(): keybase1.TeamRole_NONE,
+				fName.String(): keybase1.TeamRole_NONE,
+				gName.String(): keybase1.TeamRole_NONE,
+				iName.String(): keybase1.TeamRole_NONE,
+			},
+			hidden: []string{aName.String()},
+		},
+		{
+			teamID:    cID,
+			requester: yank,
+			target:    tang, // in no teams after reset
+			expected: map[string]keybase1.TeamRole{
 				cName.String(): keybase1.TeamRole_NONE,
 				dName.String(): keybase1.TeamRole_NONE,
 				eName.String(): keybase1.TeamRole_NONE,
@@ -2481,89 +2551,168 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 				gName.String(): keybase1.TeamRole_NONE,
 				iName.String(): keybase1.TeamRole_NONE,
 			},
+			hidden: []string{aName.String()},
 		},
 		{
-			teamID:     dID,
-			requesters: []*userPlusDevice{zulu, yank, xray},
-			target:     zulu,
+			teamID:    dID,
+			requester: zulu,
+			target:    zulu,
 			expected: map[string]keybase1.TeamRole{
 				aName.String(): keybase1.TeamRole_ADMIN,
+				dName.String(): keybase1.TeamRole_NONE,
+				fName.String(): keybase1.TeamRole_NONE,
+			},
+			hidden: []string{cName.String()},
+		},
+		{
+			teamID:    dID,
+			requester: yank,
+			target:    zulu,
+			expected: map[string]keybase1.TeamRole{
 				cName.String(): keybase1.TeamRole_NONE,
 				dName.String(): keybase1.TeamRole_NONE,
 				fName.String(): keybase1.TeamRole_NONE,
 			},
+			hidden: []string{aName.String()},
 		},
 		{
-			teamID:     dID,
-			requesters: []*userPlusDevice{zulu, yank, xray},
-			target:     vict,
+			teamID:    dID,
+			requester: xray,
+			target:    zulu,
+			expected: map[string]keybase1.TeamRole{
+				dName.String(): keybase1.TeamRole_NONE,
+				fName.String(): keybase1.TeamRole_NONE,
+			},
+			hidden: []string{aName.String(), cName.String()},
+		},
+		{
+			teamID:    dID,
+			requester: zulu,
+			target:    vict,
 			expected: map[string]keybase1.TeamRole{
 				aName.String(): keybase1.TeamRole_NONE,
+				dName.String(): keybase1.TeamRole_NONE,
+				fName.String(): keybase1.TeamRole_NONE,
+			},
+			hidden: []string{cName.String()},
+		},
+		{
+			teamID:    dID,
+			requester: yank,
+			target:    vict,
+			expected: map[string]keybase1.TeamRole{
 				cName.String(): keybase1.TeamRole_WRITER,
 				dName.String(): keybase1.TeamRole_NONE,
 				fName.String(): keybase1.TeamRole_NONE,
 			},
+			hidden: []string{aName.String()},
 		},
 		{
-			teamID:     dID,
-			requesters: []*userPlusDevice{zulu, yank, xray},
-			target:     xray,
+			teamID:    dID,
+			requester: xray,
+			target:    vict,
+			expected: map[string]keybase1.TeamRole{
+				dName.String(): keybase1.TeamRole_NONE,
+				fName.String(): keybase1.TeamRole_NONE,
+			},
+			hidden: []string{aName.String(), cName.String()},
+		},
+		{
+			teamID:    dID,
+			requester: zulu,
+			target:    xray,
 			expected: map[string]keybase1.TeamRole{
 				aName.String(): keybase1.TeamRole_NONE,
+				dName.String(): keybase1.TeamRole_ADMIN,
+				fName.String(): keybase1.TeamRole_NONE,
+			},
+			hidden: []string{cName.String()},
+		},
+		{
+			teamID:    dID,
+			requester: yank,
+			target:    xray,
+			expected: map[string]keybase1.TeamRole{
 				cName.String(): keybase1.TeamRole_NONE,
 				dName.String(): keybase1.TeamRole_ADMIN,
 				fName.String(): keybase1.TeamRole_NONE,
 			},
+			hidden: []string{aName.String()},
 		},
 		{
-			teamID:     eID,
-			requesters: []*userPlusDevice{yank},
-			target:     vict,
+			teamID:    dID,
+			requester: xray,
+			target:    xray,
 			expected: map[string]keybase1.TeamRole{
-				aName.String(): keybase1.TeamRole_NONE,
+				dName.String(): keybase1.TeamRole_ADMIN,
+				fName.String(): keybase1.TeamRole_NONE,
+			},
+			hidden: []string{aName.String(), cName.String()},
+		},
+		{
+			teamID:    eID,
+			requester: yank,
+			target:    vict,
+			expected: map[string]keybase1.TeamRole{
 				cName.String(): keybase1.TeamRole_WRITER,
 				eName.String(): keybase1.TeamRole_WRITER,
 				gName.String(): keybase1.TeamRole_WRITER,
 				iName.String(): keybase1.TeamRole_NONE,
 			},
+			hidden: []string{aName.String()},
 		},
 		{
-			teamID:     eID,
-			requesters: []*userPlusDevice{yank},
-			target:     xray,
+			teamID:    eID,
+			requester: yank,
+			target:    xray,
 			expected: map[string]keybase1.TeamRole{
-				aName.String(): keybase1.TeamRole_NONE,
 				cName.String(): keybase1.TeamRole_NONE,
 				eName.String(): keybase1.TeamRole_NONE,
 				gName.String(): keybase1.TeamRole_NONE,
 				iName.String(): keybase1.TeamRole_NONE,
 			},
+			hidden: []string{aName.String()},
 		},
 		{
-			teamID:     gID,
-			requesters: []*userPlusDevice{whis, yank, zulu},
-			target:     whis,
+			teamID:    gID,
+			requester: whis,
+			target:    whis,
 			expected: map[string]keybase1.TeamRole{
-				aName.String(): keybase1.TeamRole_NONE,
-				cName.String(): keybase1.TeamRole_NONE,
-				eName.String(): keybase1.TeamRole_NONE,
 				gName.String(): keybase1.TeamRole_ADMIN,
 			},
+			hidden: []string{aName.String(), cName.String(), eName.String()},
+		},
+		{
+			teamID:    gID,
+			requester: yank,
+			target:    whis,
+			expected: map[string]keybase1.TeamRole{
+				cName.String(): keybase1.TeamRole_NONE,
+				gName.String(): keybase1.TeamRole_ADMIN,
+			},
+			hidden: []string{aName.String(), eName.String()},
+		},
+		{
+			teamID:    gID,
+			requester: zulu,
+			target:    whis,
+			expected: map[string]keybase1.TeamRole{
+				aName.String(): keybase1.TeamRole_NONE,
+				gName.String(): keybase1.TeamRole_ADMIN,
+			},
+			hidden: []string{cName.String(), eName.String()},
 		},
 	}
 	for idx, tst := range tsts {
 		t.Logf("Testing testcase %d", idx)
-		for _, requester := range tst.requesters {
-			name := fmt.Sprintf("requester:%s/target:%s/teamID:%s", requester.username,
-				tst.target.username, tst.teamID)
-			t.Run(name, func(t *testing.T) {
-				mctx := libkb.NewMetaContextForTest(*requester.tc)
-				results, err := loadTeamTree(t, mctx, requester.notifications,
-					tst.teamID, tst.target.username, nil, nil)
-				require.NoError(t, err)
-				checkTeamTreeResults(t, tst.expected, nil, results)
-			})
-		}
+		name := fmt.Sprintf("happy/%d", idx)
+		t.Run(name, func(t *testing.T) {
+			mctx := libkb.NewMetaContextForTest(*tst.requester.tc)
+			results, err := loadTeamTree(t, mctx, tst.requester.notifications,
+				tst.teamID, tst.target.username, nil, nil)
+			require.NoError(t, err)
+			checkTeamTreeResults(t, tst.expected, nil, tst.hidden, results)
+		})
 	}
 
 	t.Logf("error path table testing")
@@ -2573,6 +2722,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 		target            *userPlusDevice
 		failureTeamIDs    []keybase1.TeamID
 		failureTeamNames  []string
+		hidden            []string
 		expectedSuccesses map[string]keybase1.TeamRole
 	}{
 		{
@@ -2582,11 +2732,11 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			failureTeamIDs:   []keybase1.TeamID{dID, gID},
 			failureTeamNames: []string{dName.String(), gName.String()},
 			expectedSuccesses: map[string]keybase1.TeamRole{
-				aName.String(): keybase1.TeamRole_NONE,
 				cName.String(): keybase1.TeamRole_NONE,
 				eName.String(): keybase1.TeamRole_NONE,
 				iName.String(): keybase1.TeamRole_NONE,
 			},
+			hidden: []string{aName.String()},
 		},
 		{
 			teamID:           cID,
@@ -2595,13 +2745,13 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			failureTeamIDs:   []keybase1.TeamID{iID},
 			failureTeamNames: []string{iName.String()},
 			expectedSuccesses: map[string]keybase1.TeamRole{
-				aName.String(): keybase1.TeamRole_NONE,
 				cName.String(): keybase1.TeamRole_NONE,
 				dName.String(): keybase1.TeamRole_NONE,
 				eName.String(): keybase1.TeamRole_NONE,
 				fName.String(): keybase1.TeamRole_NONE,
 				gName.String(): keybase1.TeamRole_ADMIN,
 			},
+			hidden: []string{aName.String()},
 		},
 		{
 			teamID:           eID,
@@ -2614,6 +2764,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 				gName.String(): keybase1.TeamRole_ADMIN,
 				iName.String(): keybase1.TeamRole_NONE,
 			},
+			hidden: []string{},
 		},
 		{
 			teamID:           eID,
@@ -2627,6 +2778,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 				gName.String(): keybase1.TeamRole_ADMIN,
 				iName.String(): keybase1.TeamRole_NONE,
 			},
+			hidden: []string{},
 		},
 		{
 			teamID:           eID,
@@ -2639,6 +2791,7 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 				eName.String(): keybase1.TeamRole_NONE,
 				gName.String(): keybase1.TeamRole_ADMIN,
 			},
+			hidden: []string{},
 		},
 		{
 			teamID:            eID,
@@ -2647,19 +2800,19 @@ func TestSuperLoadTeamTreeMemberships(t *testing.T) {
 			failureTeamIDs:    []keybase1.TeamID{eID},
 			failureTeamNames:  []string{eName.String()},
 			expectedSuccesses: map[string]keybase1.TeamRole{},
+			hidden:            []string{},
 		},
 	}
 	for idx, tst := range errorTsts {
 		t.Logf("Testing testcase %d", idx)
-		name := fmt.Sprintf("error/requester:%s/target:%s/teamID:%s", tst.requester.username,
-			tst.target.username, tst.teamID)
+		name := fmt.Sprintf("error/%d", idx)
 		t.Run(name, func(t *testing.T) {
 			mctx := libkb.NewMetaContextForTest(*tst.requester.tc)
-			converter := newMockConverter(tst.failureTeamIDs)
 			results, err := loadTeamTree(t, mctx, tst.requester.notifications, tst.teamID,
-				tst.target.username, converter, tst.failureTeamNames)
+				tst.target.username, tst.failureTeamIDs, tst.failureTeamNames)
 			require.NoError(t, err)
-			checkTeamTreeResults(t, tst.expectedSuccesses, tst.failureTeamNames, results)
+			checkTeamTreeResults(t, tst.expectedSuccesses, tst.failureTeamNames,
+				tst.hidden, results)
 		})
 	}
 

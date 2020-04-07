@@ -1378,12 +1378,8 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
   ]
 }
 
-function* loadTeamTree(
-  _: TypedState,
-  action: TeamsGen.LoadTeamTreePayload,
-  _logger: Saga.SagaLogger
-) {
-  yield RPCTypes.teamsLoadTeamTreeMembershipsRpcPromise(action.payload)
+function* loadTeamTree(_: TypedState, action: TeamsGen.LoadTeamTreePayload, _logger: Saga.SagaLogger) {
+  yield RPCTypes.teamsLoadTeamTreeMembershipsRpcPromiseAsync(action.payload)
 }
 
 function* loadTreeTeamActivity(
@@ -1391,17 +1387,17 @@ function* loadTreeTeamActivity(
   action: EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload,
   logger: Saga.SagaLogger
 ) {
-  logger.info("PARAMS ", action.payload)
+  logger.info('PARAMS ', action.payload)
   const {membership} = action.payload.params
   switch (membership.result.s) {
     case RPCTypes.TeamTreeMembershipStatus.ok: {
-      break;
+      break
     }
     case RPCTypes.TeamTreeMembershipStatus.error: {
-      return;
+      return
     }
     case RPCTypes.TeamTreeMembershipStatus.hidden: {
-      return;
+      return
     }
   }
   const teamIDs = [membership.result.ok.teamID]
@@ -1607,10 +1603,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
   yield* Saga.chainAction(TeamsGen.setWelcomeMessage, setWelcomeMessage)
 
-  yield* Saga.chainGenerator<TeamsGen.LoadTeamTreePayload>(
-    TeamsGen.loadTeamTree,
-    loadTeamTree
-  )
+  yield* Saga.chainGenerator<TeamsGen.LoadTeamTreePayload>(TeamsGen.loadTeamTree, loadTeamTree)
   yield* Saga.chainGenerator<EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload>(
     EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial,
     loadTreeTeamActivity

@@ -4631,7 +4631,7 @@
       ],
       "response": "AnnotatedTeam"
     },
-    "loadTeamTreeMemberships": {
+    "loadTeamTreeMembershipsAsync": {
       "request": [
         {
           "name": "sessionID",
