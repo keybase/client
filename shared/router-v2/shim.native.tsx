@@ -54,7 +54,7 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
         !navigationOptions.headerTitle
       ) {
         if (isModal) {
-          usesNav2Header = !!navigationOptions.headerShown
+          usesNav2Header = navigationOptions.headerShown ?? true
         } else {
           // nothing
         }
@@ -65,6 +65,10 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
         } else {
           headerHeight = 64 + Styles.headerExtraHeight
         }
+      }
+    } else {
+      if (isModal) {
+        usesNav2Header = true
       }
     }
 

@@ -84,6 +84,16 @@ class LoginRender extends React.Component<Props, State> {
               >
                 Forgot password?
               </Kb.Text>
+              {this.props.error === 'You are offline.' && (
+                <Kb.Text
+                  type="BodySmallSecondaryLink"
+                  center={true}
+                  onClick={this.props.onShowProxySettings}
+                  style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.tiny}}
+                >
+                  Change proxy settings?
+                </Kb.Text>
+              )}
               <Kb.Text
                 style={{
                   alignSelf: 'center',

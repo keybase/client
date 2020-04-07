@@ -63,3 +63,7 @@ export const newModalRoutes = {
   },
   ...require('./recover-password/routes').newModalRoutes,
 }
+
+export const proxySettingsLoggedOut = {
+  getScreen: (): typeof ProxySettingsPopup => require('../settings/proxy/container').default,
+}

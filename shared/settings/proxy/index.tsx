@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
 // A list so the order of the elements is fixed
@@ -142,30 +143,12 @@ class ProxySettings extends React.Component<Props, State> {
   }
 }
 
-// TODO liklely use PopupWrapper
-const ProxySettingsPopup = (props: Props) => {
-  if (Styles.isMobile) {
-    return (
-      <Kb.HeaderHocWrapper onBack={props.onBack}>
-        <Kb.Box style={styles.popupBox}>
-          <Kb.Box style={styles.proxySettingPopupBox}>
-            <ProxySettings {...props} />
-          </Kb.Box>
-        </Kb.Box>
-      </Kb.HeaderHocWrapper>
-    )
-  }
-  return (
-    <Kb.PopupDialog>
-      <Kb.Box style={styles.popupBox}>
-        <Kb.BackButton onClick={props.onBack} />
-        <Kb.Box style={styles.proxySettingPopupBox}>
-          <ProxySettings {...props} />
-        </Kb.Box>
-      </Kb.Box>
-    </Kb.PopupDialog>
-  )
-}
+const ProxySettingsPopup = (props: Props) => (
+  <Kb.Box2 direction="vertical" style={styles.popup}>
+    <ProxySettings {...props} />
+  </Kb.Box2>
+)
+Container.hoistNonReactStatic(ProxySettingsPopup, ProxySettings)
 
 const styles = Styles.styleSheetCreate(() => ({
   divider: {
@@ -178,8 +161,7 @@ const styles = Styles.styleSheetCreate(() => ({
     flexWrap: 'wrap',
     marginTop: Styles.globalMargins.tiny,
   },
-  popupBox: {
-    minHeight: '40%',
+  popup: {
     padding: Styles.globalMargins.small,
   },
   proxyContainer: {

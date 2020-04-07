@@ -23,6 +23,7 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {useScreens} from 'react-native-screens'
 import {getPersistenceFunctions} from './persist.native'
 import Loading from '../login/loading'
+import {proxySettingsLoggedOut} from '../login/routes'
 
 const {createStackNavigator} = Stack
 
@@ -244,15 +245,16 @@ const VanillaTabNavigator = createBottomTabNavigator(
 )
 
 class UnconnectedTabNavigator extends React.PureComponent<any> {
+  static navigationOptions = {
+    headerShown: false,
+  }
+
   static router = VanillaTabNavigator.router
   render() {
     const {navigation, isDarkMode, renderDebug} = this.props
     const key = `${isDarkMode ? 'dark' : 'light'}: ${renderDebug ? 'd' : ''}`
     return <VanillaTabNavigator navigation={navigation} key={key} />
   }
-}
-UnconnectedTabNavigator.navigationOptions = {
-  headerShown: false,
 }
 
 const TabNavigator = Container.connect(
@@ -323,7 +325,16 @@ const LoggedInStackNavigator = createStackNavigator(
 )
 
 const LoggedOutStackNavigator = createStackNavigator(
-  {...Shim.shim(loggedOutRoutes)},
+  {
+    ...Shim.shim(loggedOutRoutes),
+    ...Shim.shim(
+      {
+        // special case, i don't want to load all modals, nav5 fixes this and we can have modals anywhere
+        proxySettingsLoggedOut,
+      },
+      true
+    ),
+  },
   {
     defaultNavigationOptions: {
       ...defaultNavigationOptions,

@@ -38,6 +38,9 @@ const LoginWrapper = (props: Props) => {
 
   const dispatch = Container.useDispatch()
 
+  const onShowProxySettings = () =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['proxySettingsLoggedOut']}))
+
   const {onLogin, loggedInMap} = props
 
   const onSubmit = React.useCallback(() => {
@@ -86,6 +89,7 @@ const LoginWrapper = (props: Props) => {
       onSignup={props.onSignup}
       onSomeoneElse={props.onSomeoneElse}
       onSubmit={onSubmit}
+      onShowProxySettings={onShowProxySettings}
       password={password}
       passwordChange={setPassword}
       selectedUser={selectedUser}

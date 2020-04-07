@@ -95,6 +95,16 @@ class Login extends React.Component<Props, State> {
                 Forgot password?
               </Kb.Text>
             </Kb.Box2>
+            {this.props.error === 'You are offline.' && (
+              <Kb.Text
+                type="BodySmallSecondaryLink"
+                center={true}
+                onClick={this.props.onShowProxySettings}
+                style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.medium}}
+              >
+                Change proxy settings?
+              </Kb.Text>
+            )}
             <Kb.Box2
               direction="vertical"
               fullWidth={true}

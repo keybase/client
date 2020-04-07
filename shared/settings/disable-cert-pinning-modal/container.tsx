@@ -6,9 +6,6 @@ import {createCertificatePinningToggled} from '../../actions/settings-gen'
 export default Container.connect(
   () => ({}),
   dispatch => ({
-    onCancel: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
     onConfirm: () => {
       dispatch(createCertificatePinningToggled({toggled: true}))
       dispatch(RouteTreeGen.createNavigateUp())
