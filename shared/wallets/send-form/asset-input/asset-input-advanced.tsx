@@ -470,7 +470,7 @@ const styles = Styles.styleSheetCreate(
       },
       pickAssetButton: Styles.platformStyles({
         isMobile: {
-          width: Styles.globalMargins.xlarge * 3,
+          //    width: Styles.globalMargins.xlarge * 3,
           //    paddingTop: Styles.globalMargins.tiny,
         },
       }),
