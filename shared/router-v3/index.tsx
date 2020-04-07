@@ -47,7 +47,6 @@ const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}
               logger.error('Nav error', e)
             }
           },
-          // TODO wrong
           getNavState: () => navRef.getRootState() ?? null,
         },
       })
@@ -82,12 +81,21 @@ const RouterV3 = () => {
           }
         }}
       >
-        <ModalStack.Navigator mode="modal" screenOptions={{headerShown: false}} initialRouteName="Tabs">
-          {[<ModalStack.Screen key="Tabs" name="Tabs" component={NavTabs} />, ...getModals()]}
+        <ModalStack.Navigator mode="modal" screenOptions={defaultModalScreenOptions} initialRouteName="Tabs">
+          {[
+            <ModalStack.Screen key="Tabs" name="Tabs" component={NavTabs} options={{headerShown: false}} />,
+            ...getModals(),
+          ]}
         </ModalStack.Navigator>
       </NavigationContainer>
     </>
   )
+}
+
+const defaultModalScreenOptions = {
+  cardStyle: {
+    backgroundColor: 'red',
+  },
 }
 
 export default RouterV3
