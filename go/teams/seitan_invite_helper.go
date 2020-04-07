@@ -1,21 +1,20 @@
 package teams
 
 import (
-	"context"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface,
+func ParseAndAcceptSeitanToken(mctx libkb.MetaContext, ui keybase1.TeamsUiInterface,
 	tok string) (wasSeitan bool, err error) {
 
 	seitanVersion, err := DeriveSeitanVersionFromToken(tok)
 	if err != nil {
 		return wasSeitan, err
 	}
-	mctx := libkb.NewMetaContext(ctx, g)
 	switch seitanVersion {
 	case SeitanVersion1:
 		wasSeitan, err = parseAndAcceptSeitanTokenV1(mctx, tok)
@@ -191,6 +190,28 @@ func postSeitanInviteLink(mctx libkb.MetaContext, acceptedSeitan acceptedSeitanI
 	return err
 }
 
+func presentInviteLinkInUI(mctx libkb.MetaContext, ui keybase1.TeamsUiInterface, inviteID SCTeamInviteID) error {
+	teamInviteID, err := inviteID.TeamInviteID()
+	if err != nil {
+		return err
+	}
+	details, err := GetInviteLinkDetails(mctx, teamInviteID)
+	if err != nil {
+		mctx.Debug("failed to get invite details for %v: %v", inviteID, err)
+		return err
+	}
+	accepted, err := ui.ConfirmInviteLinkAccept(mctx.Ctx(), keybase1.ConfirmInviteLinkAcceptArg{Details: details})
+	if err != nil {
+		mctx.Debug("failed to confirm invite link %v: %v", inviteID, err)
+		return err
+	}
+	if !accepted {
+		mctx.Debug("invite link %v not accepted", inviteID)
+		return errors.New("invite acceptance not confirmed")
+	}
+	return nil
+}
+
 func parseAndAcceptSeitanTokenInvitelink(mctx libkb.MetaContext, ui keybase1.TeamsUiInterface,
 	tok string) (wasSeitan bool, err error) {
 
@@ -206,6 +227,16 @@ func parseAndAcceptSeitanTokenInvitelink(mctx libkb.MetaContext, ui keybase1.Tea
 	if err != nil {
 		return true, err
 	}
+
+	if ui != nil {
+		err = presentInviteLinkInUI(mctx, ui, acpt.inviteID)
+		if err != nil {
+			return true, err
+		}
+	} else {
+		mctx.Debug("`ui` is nil, skipping presentInviteLinkInUI")
+	}
+
 	err = postSeitanInviteLink(mctx, acpt)
 	return true, err
 }

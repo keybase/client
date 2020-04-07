@@ -1385,11 +1385,13 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, tokenOrName string) (keybase1.TeamAcceptOrRequestResult, error) {
 	g.Log.CDebugf(ctx, "trying seitan token")
 
+	mctx := libkb.NewMetaContext(ctx, g)
+
 	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
 	maybeSeitanToken, isSeitany := ParseSeitanTokenFromPaste(tokenOrName)
 	if isSeitany {
 		g.Log.CDebugf(ctx, "found seitan-y token")
-		wasSeitan, err := ParseAndAcceptSeitanToken(ctx, g, ui, maybeSeitanToken)
+		wasSeitan, err := ParseAndAcceptSeitanToken(mctx, ui, maybeSeitanToken)
 		return keybase1.TeamAcceptOrRequestResult{WasSeitan: wasSeitan}, err
 	}
 

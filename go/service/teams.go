@@ -525,8 +525,9 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 	// log or send to server.
 	parsedToken, wasSeitany := teams.ParseSeitanTokenFromPaste(arg.Token)
 	if wasSeitany {
+		mctx := h.MetaContext(ctx)
 		ui := h.getTeamsUI(arg.SessionID)
-		_, err = teams.ParseAndAcceptSeitanToken(ctx, h.G().ExternalG(), ui, parsedToken)
+		_, err = teams.ParseAndAcceptSeitanToken(mctx, ui, parsedToken)
 		return err
 	}
 
