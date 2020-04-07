@@ -70,6 +70,7 @@ export default HeaderHoc
 // used in navigationOptions
 export declare class HeaderLeftArrow extends React.Component<any> {}
 export declare class HeaderLeftCancel extends React.Component<any> {}
+export declare class HeaderRightDone extends React.Component<{}> {}
 export declare class HeaderRight extends React.Component<{
   text: string
   style: StylesCrossPlatform

@@ -41,14 +41,7 @@ export {default as FloatingMenu} from './floating-menu'
 export {default as FloatingPicker} from './floating-picker'
 export {usePopup} from './use-popup'
 export {default as OverlayParentHOC} from './overlay/parent-hoc'
-export {
-  HeaderHocHeader,
-  HeaderHocWrapper,
-  HeaderLeftArrow,
-  HeaderLeftCancel,
-  HeaderRight,
-  HeaderRightDone,
-} from './header-hoc'
+export {HeaderHocHeader, HeaderLeftArrow, HeaderLeftCancel, HeaderRight, HeaderRightDone} from './header-hoc'
 export {PopupWrapper} from './header-or-popup'
 export {HotKey, useHotKey} from './hot-key'
 export {default as HoverHoc} from './hover-hoc'
