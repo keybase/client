@@ -117,6 +117,10 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         }
       }
       break
+    case 'invite':
+      return RouteTreeGen.createNavigateAppend({
+        path: [{props: {link: action.payload.link}, selected: 'teamInviteLinkJoin'}],
+      })
     case 'incoming-share':
       return Platform.isIOS && RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']})
     default:

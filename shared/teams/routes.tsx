@@ -13,6 +13,7 @@ import TeamEditTeamDescription from './edit-team-description'
 import TeamEditWelcomeMessage from './edit-team-welcome-message'
 import TeamInviteByEmail from './invite-by-email/container'
 import TeamInviteByContact from './invite-by-contact/container'
+import TeamInviteLinkJoin from './join-team/join-from-invite'
 import TeamJoinTeamDialog from './join-team/container'
 import TeamNewTeamDialog from './new-team/container'
 import TeamReallyLeaveTeam from './confirm-modals/really-leave-team/container'
@@ -102,6 +103,9 @@ export const newModalRoutes = {
   },
   teamInviteByEmail: {
     getScreen: (): typeof TeamInviteByEmail => require('./invite-by-email/container').default,
+  },
+  teamInviteLinkJoin: {
+    getScreen: (): typeof TeamInviteLinkJoin => require('./join-team/join-from-invite').default,
   },
   teamJoinTeamDialog: {
     getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default,
