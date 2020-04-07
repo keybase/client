@@ -245,7 +245,7 @@ func FetchWotVouches(mctx MetaContext, arg FetchWotVouchesArg) (res []keybase1.W
 		}
 		res = append(res, vouch)
 	}
-	mctx.Debug("found %d web-of-trust vouches for vouchee=%s by voucher=%s", arg.Vouchee, len(res))
+	mctx.Debug("found %d web-of-trust vouches for vouchee=%s by voucher=%s", len(res), arg.Vouchee, arg.Voucher)
 	return res, nil
 }
 
