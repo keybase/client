@@ -1,11 +1,12 @@
+import * as Container from '../../util/container'
 import * as React from 'react'
-import Text from '../text'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Styles from '../../styles'
 import BackButton from '../back-button'
 import Box from '../box'
 import Icon from '../icon'
-import * as Styles from '../../styles'
+import Text from '../text'
 import {Props, LeftActionProps} from '.'
-import {hoistNonReactStatic} from '../../util/container'
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -187,4 +188,12 @@ export const HeaderRight = ({text, onClick, style}) => (
   </Text>
 )
 
+export const HeaderRightDone = () => {
+  const dispatch = Container.useDispatch()
+  return (
+    <Text type="BodyBigLink" style={styles.action} onClick={() => dispatch(RouteTreeGen.createNavigateUp())}>
+      Done
+    </Text>
+  )
+}
 export default HeaderHoc

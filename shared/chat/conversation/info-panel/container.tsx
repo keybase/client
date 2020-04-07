@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as TeamConstants from '../../../constants/teams'
@@ -56,6 +57,11 @@ const InfoPanelConnector = (props: Props) => {
       yourRole={yourRole}
     />
   )
+}
+
+InfoPanelConnector.navigationOptions = {
+  headerLeft: null,
+  headerRight: <Kb.HeaderRightDone />,
 }
 
 export default InfoPanelConnector

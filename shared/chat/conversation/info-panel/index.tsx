@@ -150,13 +150,6 @@ export class InfoPanel extends React.PureComponent<InfoPanelProps> {
     } else {
       return (
         <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-          {Styles.isMobile && (
-            <Kb.HeaderHocHeader
-              onLeftAction={this.props.onCancel}
-              leftAction="cancel"
-              customCancelText="Done"
-            />
-          )}
           {sectionList}
         </Kb.Box2>
       )

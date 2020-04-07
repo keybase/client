@@ -130,6 +130,9 @@ module.exports = {
   get HeaderRight() {
     return require('./header-hoc').HeaderRight
   },
+  get HeaderRightDone() {
+    return require('./header-hoc').HeaderRightDone
+  },
   get HotKey() {
     return require('./hot-key').HotKey
   },

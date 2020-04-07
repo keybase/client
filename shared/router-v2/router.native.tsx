@@ -311,12 +311,12 @@ const LoggedInStackNavigator = createStackNavigator(
     bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
     cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
     defaultNavigationOptions: {
+      headerLeft: HeaderLeftCancel,
       headerTitle: hp => (
         <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
           {hp.children}
         </Kb.Text>
       ),
-      headerLeft: HeaderLeftCancel,
     },
     mode: 'modal',
   }

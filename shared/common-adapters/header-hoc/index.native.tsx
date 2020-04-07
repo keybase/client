@@ -1,13 +1,14 @@
+import * as Container from '../../util/container'
 import * as React from 'react'
-import Text from '../text'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Styles from '../../styles'
 import BackButton from '../back-button'
 import Box from '../box'
 import FloatingMenu from '../floating-menu'
 import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
-import * as Styles from '../../styles'
+import Text from '../text'
 import {Action, Props, LeftActionProps} from '.'
-import {hoistNonReactStatic} from '../../util/container'
 
 const MAX_RIGHT_ACTIONS = 3
 
@@ -248,7 +249,7 @@ function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
     </Box>
   )
 
-  hoistNonReactStatic(HeaderHocWrapper, WrappedComponent)
+  Container.hoistNonReactStatic(HeaderHocWrapper, WrappedComponent)
   return HeaderHocWrapper
 }
 
@@ -387,6 +388,14 @@ export const HeaderLeftCancel = hp =>
     />
   )
 
+export const HeaderRightDone = () => {
+  const dispatch = Container.useDispatch()
+  return (
+    <Text type="BodyBigLink" style={styles.action} onClick={() => dispatch(RouteTreeGen.createNavigateUp())}>
+      Done
+    </Text>
+  )
+}
 export const HeaderRight = ({text, onClick, style}) => (
   <Text type="BodyBigLink" style={Styles.collapseStyles([styles.action, style])} onClick={onClick}>
     {text}
