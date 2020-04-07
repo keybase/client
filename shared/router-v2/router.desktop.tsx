@@ -21,6 +21,7 @@ import Header from './header/index.desktop'
 import * as Shim from './shim.desktop'
 import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
+import {proxySettingsLoggedOut} from '../login/routes'
 
 /**
  * How this works:
@@ -182,7 +183,7 @@ const LoggedInStackNavigator = createNavigator(
   StackRouter(
     {
       Main: {screen: TabNavigator},
-      ...Shim.shim(modalRoutes),
+      ...Shim.shim(modalRoutes, true),
     },
     {}
   ),
@@ -192,7 +193,16 @@ const LoggedInStackNavigator = createNavigator(
 const LoggedOutStackNavigator = createNavigator(
   AppView,
   StackRouter(
-    {...Shim.shim(loggedOutRoutes)},
+    {
+      ...Shim.shim(loggedOutRoutes, false),
+      ...Shim.shim(
+        {
+          // special case, i don't want to load all modals, nav5 fixes this and we can have modals anywhere
+          proxySettingsLoggedOut,
+        },
+        true
+      ),
+    },
     {
       // @ts-ignore TODO add custom nav options somewhere
       defaultNavigationOptions: () => ({headerHideBorder: true}),
