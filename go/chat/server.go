@@ -759,6 +759,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	if arg.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_KBFSFILEEDIT {
 		if !h.kbfsFileEditSemaphore.TryAcquire(1) {
 			// Just get out of here.
+			h.Debug(ctx, "KBFS queue full. Dropping msg for %v", arg.ConversationID)
 			return res, nil
 		}
 		defer h.kbfsFileEditSemaphore.Release(1)
@@ -1061,6 +1062,24 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
+	}
+
+	// KBFSFILEEDIT msgs skip the outbox
+	if arg.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_KBFSFILEEDIT {
+		go func() {
+			bgctx := libkb.CopyTagsToBackground(ctx)
+			_, err := h.PostLocal(bgctx, chat1.PostLocalArg{
+				ConversationID:   arg.ConversationID,
+				Msg:              arg.Msg,
+				IdentifyBehavior: arg.IdentifyBehavior,
+			})
+			if err != nil {
+				h.Debug(bgctx, "Unable to PostLocal: %v", err)
+			}
+		}()
+		return chat1.PostLocalNonblockRes{
+			IdentifyFailures: identBreaks,
+		}, nil
 	}
 
 	// Clear draft
