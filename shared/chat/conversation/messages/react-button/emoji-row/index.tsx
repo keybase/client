@@ -5,7 +5,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import {EmojiPickerDesktop} from '../emoji-picker/container'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
-import {renderEmoji, RPCUserReacjiToEmojiData} from '../../../../../util/emoji'
+import {renderEmoji, RPCUserReacjiToEmojiDataForRender} from '../../../../../util/emoji'
 
 type Props = {
   className?: string
@@ -36,7 +36,7 @@ class HoverEmoji extends React.Component<
         hoverColor={Styles.globalColors.transparent}
         style={styles.emojiBox}
       >
-        {renderEmoji(RPCUserReacjiToEmojiData(this.props.emoji), this.state.hovering ? 22 : 18)}
+        {renderEmoji(RPCUserReacjiToEmojiDataForRender(this.props.emoji), this.state.hovering ? 22 : 18)}
       </Kb.ClickableBox>
     )
   }

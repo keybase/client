@@ -206,7 +206,12 @@ export const EmojiPickerDesktop = (props: Props) => {
           style={styles.footerContainer}
           gap="small"
         >
-          {renderEmoji(hoveredEmoji, 36, getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone))}
+          {renderEmoji(
+            hoveredEmoji,
+            36,
+            undefined,
+            getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
+          )}
           <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
             <Kb.Text type="BodyBig" lineClamp={1}>
               {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}

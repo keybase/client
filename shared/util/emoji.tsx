@@ -24,9 +24,20 @@ export const getEmojiStr = (emoji: EmojiData, skinToneModifier?: string) => {
   return `:${emoji.short_name}:${skinToneModifier ?? ''}`
 }
 
-export const renderEmoji = (emoji: EmojiData, size: number, skinToneModifier?: string) => {
+export const renderEmoji = (
+  emoji: EmojiData,
+  size: number,
+  customEmojiSize?: number,
+  skinToneModifier?: string
+) => {
   if (emoji.userEmojiRenderUrl) {
-    return <Kb.CustomEmoji size={size} src={emoji.userEmojiRenderUrl} alias={emoji.short_name} />
+    return (
+      <Kb.CustomEmoji
+        size={customEmojiSize ?? size * 0.85}
+        src={emoji.userEmojiRenderUrl}
+        alias={emoji.short_name}
+      />
+    )
   }
 
   if (emoji.userEmojiRenderStock) {
@@ -36,7 +47,7 @@ export const renderEmoji = (emoji: EmojiData, size: number, skinToneModifier?: s
   return <Kb.Emoji size={size} emojiName={`:${emoji.short_name}:${skinToneModifier ?? ''}`} />
 }
 
-export const RPCUserReacjiToEmojiData = (userReacji: RPCTypes.UserReacji): EmojiData => {
+export const RPCUserReacjiToEmojiDataForRender = (userReacji: RPCTypes.UserReacji): EmojiData => {
   return {
     category: '',
     name: null,
