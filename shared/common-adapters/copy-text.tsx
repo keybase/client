@@ -13,6 +13,7 @@ import logger from '../logger'
 type Props = {
   buttonType?: ButtonProps['type']
   containerStyle?: Styles.StylesCrossPlatform
+  disabled?: boolean
   multiline?: boolean | LineClampType
   onCopy?: () => void
   hideOnCopy?: boolean
@@ -110,7 +111,11 @@ const CopyText = (props: Props) => {
     <Box2
       ref={attachmentRef}
       direction="horizontal"
-      style={Styles.collapseStyles([styles.container, props.containerStyle])}
+      style={Styles.collapseStyles([
+        styles.container,
+        props.disabled && styles.containerDisabled,
+        props.containerStyle,
+      ])}
     >
       <Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
         {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" />}
@@ -123,7 +128,7 @@ const CopyText = (props: Props) => {
         type={props.textType || 'BodyTiny'}
         selectable={true}
         center={true}
-        style={styles.text}
+        style={Styles.collapseStyles([styles.text, props.disabled && styles.textDisabled])}
         allowHighlightText={true}
         ref={textRef}
       >
@@ -136,18 +141,20 @@ const CopyText = (props: Props) => {
           Reveal
         </Text>
       )}
-      <Button
-        type={props.buttonType || 'Default'}
-        style={styles.button}
-        onClick={copy}
-        labelContainerStyle={styles.buttonLabelContainer}
-      >
-        <Icon
-          type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
-          color={Styles.globalColors.white}
-          sizeType="Small"
-        />
-      </Button>
+      {!props.disabled && (
+        <Button
+          type={props.buttonType || 'Default'}
+          style={styles.button}
+          onClick={copy}
+          labelContainerStyle={styles.buttonLabelContainer}
+        >
+          <Icon
+            type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
+            color={Styles.globalColors.white}
+            sizeType="Small"
+          />
+        </Button>
+      )}
     </Box2>
   )
 }
@@ -195,6 +202,9 @@ const styles = Styles.styleSheetCreate(
           // minHeight: 40,
         },
       }),
+      containerDisabled: {
+        backgroundColor: Styles.globalColors.black_10,
+      },
       reveal: {
         marginLeft: Styles.globalMargins.tiny,
       },
@@ -222,6 +232,9 @@ const styles = Styles.styleSheetCreate(
           minHeight: 13,
         },
       }),
+      textDisabled: {
+        color: Styles.globalColors.black_50,
+      },
       toastText: Styles.platformStyles({
         common: {
           color: Styles.globalColors.white,

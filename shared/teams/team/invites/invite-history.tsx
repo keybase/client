@@ -101,7 +101,7 @@ const InviteItem = React.memo(
 
     return (
       <Kb.Box2 direction="vertical" style={styles.inviteContainer} gap="xtiny">
-        <Kb.CopyText text={inviteLink.url} />
+        <Kb.CopyText text={inviteLink.url} disabled={inviteLink.expired} />
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySmall">
             Invites as {inviteLink.role} • {expireText}
