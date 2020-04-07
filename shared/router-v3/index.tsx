@@ -16,36 +16,43 @@ const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}
   const {navRef} = props
   const dispatch = Container.useDispatch()
 
-  const navigator = {
-    dispatch: (a: any) => {
-      if (!navRef) {
-        throw new Error('Missing nav?')
-      }
-      navRef.dispatch(a)
-    },
-    dispatchOldAction: (old: any) => {
-      if (!navRef) {
-        throw new Error('Missing nav?')
-      }
-
-      const actions = Shared.oldActionToNewActions(old, navRef) || []
-      try {
-        actions.forEach(a => navRef.dispatch(a))
-      } catch (e) {
-        logger.error('Nav error', e)
-      }
-    },
-    // TODO wrong
-    getNavState: () => navRef?.state?.nav ?? null,
-  }
-
   // TEMP
   window.NOJIMA = navRef
   // TEMP
 
   React.useEffect(() => {
-    dispatch(ConfigGen.createSetNavigator({navigator}))
-  }, [dispatch, navigator])
+    if (!navRef) {
+      return
+    }
+    console.log('aaa disaptch setnavigation')
+    dispatch(
+      ConfigGen.createSetNavigator({
+        navigator: {
+          dispatch: (a: any) => {
+            if (!navRef) {
+              throw new Error('Missing nav?')
+            }
+            navRef.dispatch(a)
+          },
+          dispatchOldAction: (old: any) => {
+            if (!navRef) {
+              throw new Error('Missing nav?')
+            }
+
+            //TODO better typing
+            const actions: Array<any> = Shared.oldActionToNewActions(old, navRef) || []
+            try {
+              actions.forEach(a => navRef.dispatch(a))
+            } catch (e) {
+              logger.error('Nav error', e)
+            }
+          },
+          // TODO wrong
+          getNavState: () => navRef.getRootState() ?? null,
+        },
+      })
+    )
+  }, [dispatch, navRef])
 
   return null
 })
@@ -70,6 +77,7 @@ const RouterV3 = () => {
         ref={r => {
           if (!navIsSet.current) {
             navIsSet.current = true
+            console.log('aaa setting nav', r)
             setNav(r)
           }
         }}

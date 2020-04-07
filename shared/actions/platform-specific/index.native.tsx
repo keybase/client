@@ -911,20 +911,26 @@ function* checkNav(
 ) {
   // have one
   if (_getNavigator()) {
+    console.log('aaa have nav already')
     return
   }
 
   const name = 'mobileNav'
   const {version} = action.payload
 
+  console.log('aaa nav wiating')
   yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
   while (true) {
     logger.info('Waiting on nav')
+    console.log('aaa nav wiating')
     yield Saga.take(ConfigGen.setNavigator)
+    console.log('aaa nav TOOK')
     if (_getNavigator()) {
+      console.log('aaa nav BREAK')
       break
     }
   }
+  console.log('aaa nav done wait')
   yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
 }
 

@@ -115,6 +115,7 @@ const DeviceRevoke = (props: Props) => (
 DeviceRevoke.navigationOptions = {
   header: undefined,
   headerLeft: HeaderLeftCancel,
+  title: ' ',
 }
 
 const styles = Styles.styleSheetCreate(

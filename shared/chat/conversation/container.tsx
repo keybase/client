@@ -63,6 +63,9 @@ const Conversation = (p: SwitchProps) => {
 Conversation.navigationOptions = {
   headerLeft: null,
   headerTitle: () => <HeaderArea />,
+  headerTitleContainerStyle: {
+    width: '100%',
+  },
 }
 
 const ConversationMemoed = React.memo(Conversation)
