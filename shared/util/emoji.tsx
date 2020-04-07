@@ -33,7 +33,7 @@ export const renderEmoji = (
   if (emoji.userEmojiRenderUrl) {
     return (
       <Kb.CustomEmoji
-        size={customEmojiSize ?? size * 0.85}
+        size={customEmojiSize ?? size}
         src={emoji.userEmojiRenderUrl}
         alias={emoji.short_name}
       />
