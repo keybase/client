@@ -35,7 +35,7 @@ const ReactionItem = (props: Props) => {
         )
       })}
       <Kb.ClickableBox onClick={showPicker} style={styles.clickableBox}>
-        <Kb.Icon type="iconfont-reacji" fontSize={28} />
+        <Kb.Icon type="iconfont-reacji" fontSize={26} />
       </Kb.ClickableBox>
     </Kb.Box2>
   )
