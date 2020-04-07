@@ -167,7 +167,6 @@ export const AssetInputSenderAdvanced = (_: EmptyProps) => {
       )}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.senderMainContainer}>
         <LeftBlock />
-        <Kb.Box style={Styles.globalStyles.flexGrow} />
         <PickAssetButton isSender={true} />
       </Kb.Box2>
     </Kb.Box2>
@@ -249,7 +248,7 @@ export const AssetPathIntermediate = (props: AssetPathIntermediateProps) => {
           fullWidth={true}
           style={styles.intermediateExpandedContainer}
         >
-          {path.reverse().map(asset => (
+          {[...path].reverse().map(asset => (
             <Kb.Box2
               key={Types.assetDescriptionToAssetID(asset)}
               alignSelf="flex-end"
@@ -329,10 +328,9 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
   const isLoading = Container.useAnyWaiting(Constants.calculateBuildingAdvancedWaitingKey)
   return (
     <Kb.Box style={styles.pickAssetButtonOverlayOuter}>
-      <Kb.Box style={styles.pickAssetButtonOverlayInner}>
         <Kb.Box2
           direction="vertical"
-          fullHeight={true}
+          fullHeight={false}
           alignSelf="flex-start"
           alignItems="flex-end"
           style={styles.pickAssetButton}
@@ -363,7 +361,6 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
             </Kb.Text>
           )}
         </Kb.Box2>
-      </Kb.Box>
     </Kb.Box>
   )
 }
@@ -398,7 +395,7 @@ const styles = Styles.styleSheetCreate(
       },
       error: {
         color: Styles.globalColors.redDark,
-        maxWidth: '80%',
+        marginRight: Styles.globalMargins.medium,
       },
       intermediateAbsoluteBlock: {
         position: 'absolute',
@@ -472,22 +469,25 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
       },
       pickAssetButton: Styles.platformStyles({
-        common: {
-          width: Styles.globalMargins.xlarge * 3,
-        },
         isMobile: {
+          //    width: Styles.globalMargins.xlarge * 3,
           //    paddingTop: Styles.globalMargins.tiny,
         },
       }),
       // We need this to make the PickAssetButton on top of other stuff so amount
       // error can extend below it.
-      pickAssetButtonOverlayInner: {position: 'absolute', right: 0, top: 0},
-      pickAssetButtonOverlayOuter: {position: 'relative'},
+      pickAssetButtonOverlayInner: {position: 'relative'},
+      pickAssetButtonOverlayOuter: {
+        position: 'relative',         flexShrink: 0, 
+    },
       pickAssetButtonTopText: Styles.platformStyles({
         isElectron: {lineHeight: '24px'},
         isMobile: {lineHeight: 32},
       }),
-      senderMainContainer: {marginTop: Styles.globalMargins.xtiny},
+      senderMainContainer: {
+        justifyContent: "space-between",
+        marginTop: Styles.globalMargins.xtiny,
+      },
       shrink: {flexShrink: 1},
       topLabel: {
         alignItems: 'center',

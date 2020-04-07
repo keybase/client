@@ -1216,7 +1216,7 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 		if err != nil {
 			return stellar1.PaymentPathLocal{}, err
 		}
-		res.AmountError = fmt.Sprintf("Your XLM balance is not sufficient. You only have %s available to spend.", availableToSpend)
+		res.AmountError = fmt.Sprintf("Your balance is not sufficient. You only have %s available to spend.", availableToSpend)
 	}
 
 	return res, nil
