@@ -5,7 +5,6 @@ package opensearch
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -38,22 +37,6 @@ type teamRefreshResult struct {
 
 func (r *teamRefreshResult) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
-}
-
-type rankedSearchItem struct {
-	item  keybase1.TeamSearchItem
-	score float64
-}
-
-func (i rankedSearchItem) String() string {
-	description := ""
-	if i.item.Description != nil {
-		description = *i.item.Description
-	}
-	return fmt.Sprintf(
-		"Name: %s Description: %s MemberCount: %d LastActive: %v Score: %.2f isDemoted: %v",
-		i.item.Name, description, i.item.MemberCount,
-		i.item.LastActive.Time(), i.score, i.item.IsDemoted)
 }
 
 type storageItem struct {
@@ -159,24 +142,24 @@ func Local(mctx libkb.MetaContext, query string, limit int) (res []keybase1.Team
 		return res, err
 	}
 	query = strings.ToLower(query)
-	var results []*rankedSearchItem
+	var results []rankedSearchItem
 	if len(query) == 0 {
 		for index, id := range si.Suggested {
-			results = append(results, &rankedSearchItem{
+			results = append(results, rankedSearchItem{
 				item:  si.Items[id],
 				score: 100.0 + float64((len(si.Suggested) - index)),
 			})
 		}
 	} else {
 		for _, item := range si.Items {
-			score := scoreItemFromQuery(query, item)
-			if filterScore(score) {
+			rankedItem := rankedSearchItem{
+				item: item,
+			}
+			rankedItem.score = rankedItem.Score(query)
+			if FilterScore(rankedItem.score) {
 				continue
 			}
-			results = append(results, &rankedSearchItem{
-				item:  item,
-				score: score,
-			})
+			results = append(results, rankedItem)
 		}
 	}
 	sort.Slice(results, func(i, j int) bool {

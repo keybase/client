@@ -808,7 +808,7 @@ type DummyEmojiSource struct{}
 var _ EmojiSource = (*DummyEmojiSource)(nil)
 
 func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
+	alias, filename string, allowOverwrite bool) (res chat1.EmojiRemoteSource, err error) {
 	return res, err
 }
 func (DummyEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,

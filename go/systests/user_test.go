@@ -41,6 +41,10 @@ func (t teamsUI) ConfirmSubteamDelete(context.Context, keybase1.ConfirmSubteamDe
 	return true, nil
 }
 
+func (t teamsUI) ConfirmInviteLinkAccept(context.Context, keybase1.ConfirmInviteLinkAcceptArg) (bool, error) {
+	return true, nil
+}
+
 type signupUI struct {
 	baseNullUI
 	info *signupInfo

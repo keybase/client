@@ -1,6 +1,6 @@
 import {Component} from 'react'
 
-type emojiSize = 'Small' | 'Medium' | 'Big'
+type emojiSize = 'Small' | 'Medium' | 'MediumLarge' | 'Big'
 export type Props = {
   size: emojiSize
   src: string

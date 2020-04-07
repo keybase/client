@@ -54,6 +54,7 @@ const AddToChannel = (props: AddToChannelProps) => {
 type BotProps = RPCTypes.FeaturedBot & {
   description?: string
   firstItem?: boolean
+  hideHover?: boolean
   showChannelAdd?: boolean
   showTeamAdd?: boolean
   conversationIDKey?: Types.ConversationIDKey
@@ -110,6 +111,8 @@ export const Bot = (props: BotProps) => {
       type="Large"
       firstItem={!!firstItem}
       icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={botUsername} />}
+      hideHover={!!props.hideHover}
+      style={{backgroundColor: Styles.globalColors.white}}
       action={
         showTeamAdd ? (
           <Kb.Button type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />

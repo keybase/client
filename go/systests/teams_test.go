@@ -262,6 +262,10 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	})
 	require.NoError(tt.t, err)
 
+	// register fake teams UI for tests
+	err = srv.Register(keybase1.TeamsUiProtocol(&teamsUI{}))
+	require.NoError(tt.t, err)
+
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
 	u.userClient = keybase1.UserClient{Cli: cli}
 	u.stellarClient = newStellarRetryClient(cli)
@@ -499,7 +503,8 @@ func (u *userPlusDevice) acceptEmailInvite(token string) {
 }
 
 func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) keybase1.TeamAcceptOrRequestResult {
-	ret, err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tokenOrName)
+	tui := &teamsUI{}
+	ret, err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tui, tokenOrName)
 	require.NoError(u.tc.T, err)
 	return ret
 }

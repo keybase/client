@@ -1336,9 +1336,10 @@ func (c *chatServiceHandler) EmojiAddV1(ctx context.Context, opts emojiAddOption
 		return c.errReply(err)
 	}
 	res, err := chatClient.AddEmoji(ctx, chat1.AddEmojiArg{
-		ConvID:   conv.GetConvID(),
-		Alias:    opts.Alias,
-		Filename: opts.Filename,
+		ConvID:         conv.GetConvID(),
+		Alias:          opts.Alias,
+		Filename:       opts.Filename,
+		AllowOverwrite: opts.AllowOverwrite,
 	})
 	if err != nil {
 		return c.errReply(err)

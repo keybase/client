@@ -104,7 +104,6 @@ export type Props = ContactProps & {
   includeContacts: boolean
   namespace: AllowedNamespace
   onAdd: (userId: string) => void
-  onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
   onClear: () => void
@@ -392,7 +391,6 @@ class TeamBuilding extends React.PureComponent<Props> {
         onDownArrowKeyDown={this.props.onDownArrowKeyDown}
         onUpArrowKeyDown={this.props.onUpArrowKeyDown}
         onEnterKeyDown={this.props.onEnterKeyDown}
-        onBackspace={this.props.onBackspace}
         placeholder={searchPlaceholder}
         searchString={this.props.searchString}
         focusOnMount={!Styles.isMobile || this.props.selectedService !== 'keybase'}
@@ -737,7 +735,6 @@ class TeamBuilding extends React.PureComponent<Props> {
         onFinishTeamBuilding={props.onFinishTeamBuilding}
         onRemove={props.onRemove}
         teamSoFar={props.teamSoFar}
-        onBackspace={props.onBackspace}
         searchString={props.searchString}
         rolePickerProps={props.rolePickerProps}
         goButtonLabel={props.goButtonLabel}

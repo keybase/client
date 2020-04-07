@@ -42,6 +42,7 @@ func (u NullChatUI) ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndex
 }
 func (u NullChatUI) ChatSearchConvHits(context.Context, chat1.UIChatSearchConvHits) error { return nil }
 func (u NullChatUI) ChatSearchTeamHits(context.Context, chat1.UIChatSearchTeamHits) error { return nil }
+func (u NullChatUI) ChatSearchBotHits(context.Context, chat1.UIChatSearchBotHits) error   { return nil }
 func (u NullChatUI) ChatStellarShowConfirm(context.Context) error                         { return nil }
 func (u NullChatUI) ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error) {
 	return false, nil

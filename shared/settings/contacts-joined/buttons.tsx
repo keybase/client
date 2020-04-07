@@ -11,35 +11,48 @@ type FollowProps = {
 const getFollowWaitingKey = (username: string) => `settings:followButton:${username}`
 
 export const FollowButton = (props: FollowProps) => {
+  const {username} = props
   const dispatch = Container.useDispatch()
-  const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, props.username))
-  const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, props.username))
-  const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, props.username))
+  const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
+  const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, username))
+  const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, username))
+  const {guiID} = userDetails
 
   React.useEffect(() => {
-    if (!userDetails.guiID) {
+    if (!guiID) {
       dispatch(
         Tracker2Gen.createShowUser({
           asTracker: false,
           skipNav: true,
-          username: props.username,
+          username: username,
         })
       )
     }
-  }, [props.username, userDetails.guiID, dispatch])
+  }, [username, guiID, dispatch])
 
-  const onChangeFollow = (follow: boolean) =>
-    dispatch(Tracker2Gen.createChangeFollow({follow, guiID: userDetails.guiID}))
+  const onFollow = React.useCallback(() => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID})), [
+    dispatch,
+    guiID,
+  ])
+  const onUnfollow = React.useCallback(
+    () => dispatch(Tracker2Gen.createChangeFollow({follow: false, guiID})),
+    [dispatch, guiID]
+  )
+
+  const waitingKey = React.useMemo(
+    () => [getFollowWaitingKey(username), Tracker2Constants.profileLoadWaitingKey],
+    [username]
+  )
 
   return (
     <UnconnectedFollowButton
-      disabled={userDetails.username !== props.username}
+      disabled={userDetails.username !== username}
       following={followThem}
       followsYou={followsYou}
-      waitingKey={[getFollowWaitingKey(props.username), Tracker2Constants.profileLoadWaitingKey]}
+      waitingKey={waitingKey}
       small={props.small}
-      onFollow={() => onChangeFollow(true)}
-      onUnfollow={() => onChangeFollow(false)}
+      onFollow={onFollow}
+      onUnfollow={onUnfollow}
     />
   )
 }

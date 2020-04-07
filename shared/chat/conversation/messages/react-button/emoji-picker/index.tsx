@@ -226,7 +226,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         key={emoji.short_name}
       >
         {emoji.source ? (
-          <Kb.CustomEmoji size="Medium" src={emoji.source} alias={emoji.short_name} />
+          <Kb.CustomEmoji size="MediumLarge" src={emoji.source} />
         ) : (
           <Kb.Emoji size={singleEmojiWidth} emojiName={emojiStr} />
         )}

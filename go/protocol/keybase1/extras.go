@@ -2667,7 +2667,7 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 
 // TeamMaxUsesInfinite is a value for max_uses field which makes team invite
 // multiple use, with infinite number of uses.
-const TeamMaxUsesInfinite = -1
+const TeamMaxUsesInfinite = TeamInviteMaxUses(-1)
 
 func NewTeamInviteFiniteUses(maxUses int) (v TeamInviteMaxUses, err error) {
 	if maxUses <= 0 {
@@ -3916,6 +3916,15 @@ func (b FeaturedBot) Eq(o FeaturedBot) bool {
 		b.ExtendedDescription == o.ExtendedDescription &&
 		b.BotUsername == o.BotUsername &&
 		b.Owner() == o.Owner()
+}
+
+func (a SearchArg) String() string {
+	// Don't leak user's query string
+	return fmt.Sprintf("Limit: %d, Offset: %d", a.Limit, a.Offset)
+}
+func (a SearchLocalArg) String() string {
+	// Don't leak user's query string
+	return fmt.Sprintf("Limit: %d, SkipCache: %v", a.Limit, a.SkipCache)
 }
 
 func (b FeaturedBotsRes) Eq(o FeaturedBotsRes) bool {

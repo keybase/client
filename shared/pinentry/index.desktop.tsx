@@ -39,6 +39,12 @@ class Pinentry extends React.Component<Props, State> {
     }
   }
 
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.showTyping !== this.props.showTyping) {
+      this.setState({showTyping: this.props.showTyping?.defaultValue ?? false})
+    }
+  }
+
   _onCheck = (showTyping: boolean) => {
     this.setState({showTyping})
   }

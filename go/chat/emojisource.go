@@ -7,6 +7,7 @@ import (
 	"image/gif"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -116,7 +117,7 @@ func (s *DevConvEmojiSource) putAliasLookup(ctx context.Context, uid gregor1.UID
 
 func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 	storageConv *chat1.ConversationLocal, convID chat1.ConversationID,
-	alias, filename string, storage types.ConvConversationBackedStorage) (res chat1.EmojiRemoteSource, err error) {
+	alias, filename string, allowOverwrite bool, storage types.ConvConversationBackedStorage) (res chat1.EmojiRemoteSource, err error) {
 	var stored chat1.EmojiStorage
 	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
 	if storageConv != nil {
@@ -131,6 +132,10 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 	if stored.Mapping == nil {
 		stored.Mapping = make(map[string]chat1.EmojiRemoteSource)
 	}
+	if _, ok := stored.Mapping[alias]; ok && !allowOverwrite {
+		return res, fmt.Errorf("%q already exists, must specify --allow-overwrite to edit", alias)
+	}
+
 	sender := NewBlockingSender(s.G(), NewBoxer(s.G()), s.ri)
 	_, msgID, err := attachments.NewSender(s.G()).PostFileAttachment(ctx, sender, uid,
 		storageConv.GetConvID(), storageConv.Info.TlfName, keybase1.TLFVisibility_PRIVATE, nil, filename,
@@ -229,13 +234,13 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 }
 
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
+	alias, filename string, allowOverwrite bool) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
 	if alias, err = s.validateCustomEmoji(ctx, alias, filename); err != nil {
 		return res, err
 	}
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
-	return s.addAdvanced(ctx, uid, nil, convID, alias, filename, storage)
+	return s.addAdvanced(ctx, uid, nil, convID, alias, filename, allowOverwrite, storage)
 }
 
 func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -502,6 +507,11 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 	if err := s.putAliasLookup(ctx, uid, aliasLookup); err != nil {
 		s.Debug(ctx, "Get: failed to put alias lookup: %s", err)
 	}
+	for _, group := range res.Emojis {
+		sort.Slice(group.Emojis, func(i, j int) bool {
+			return group.Emojis[i].Alias < group.Emojis[j].Alias
+		})
+	}
 	return res, nil
 }
 
@@ -672,7 +682,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	}
 
 	// add the source to the target storage area
-	newSource, err := s.addAdvanced(ctx, uid, &syncConv, convID, stripped, sink.Name(), storage)
+	newSource, err := s.addAdvanced(ctx, uid, &syncConv, convID, stripped, sink.Name(), false, storage)
 	if err != nil {
 		return res, err
 	}

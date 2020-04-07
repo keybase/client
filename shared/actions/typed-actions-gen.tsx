@@ -199,6 +199,7 @@ export type TypedActionsMap = {
   'chat2:inboxSearchStarted': chat2.InboxSearchStartedPayload
   'chat2:toggleInboxSearch': chat2.ToggleInboxSearchPayload
   'chat2:inboxSearchOpenTeamsResults': chat2.InboxSearchOpenTeamsResultsPayload
+  'chat2:inboxSearchBotsResults': chat2.InboxSearchBotsResultsPayload
   'chat2:inboxSearchNameResults': chat2.InboxSearchNameResultsPayload
   'chat2:inboxSearchTextResult': chat2.InboxSearchTextResultPayload
   'chat2:inboxSearchMoveSelectedIndex': chat2.InboxSearchMoveSelectedIndexPayload
@@ -365,6 +366,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1ChatUiChatSearchIndexStatus': enginegen.Chat1ChatUiChatSearchIndexStatusPayload
   'engine-gen:chat1ChatUiChatSearchConvHits': enginegen.Chat1ChatUiChatSearchConvHitsPayload
   'engine-gen:chat1ChatUiChatSearchTeamHits': enginegen.Chat1ChatUiChatSearchTeamHitsPayload
+  'engine-gen:chat1ChatUiChatSearchBotHits': enginegen.Chat1ChatUiChatSearchBotHitsPayload
   'engine-gen:chat1ChatUiChatConfirmChannelDelete': enginegen.Chat1ChatUiChatConfirmChannelDeletePayload
   'engine-gen:chat1ChatUiChatStellarShowConfirm': enginegen.Chat1ChatUiChatStellarShowConfirmPayload
   'engine-gen:chat1ChatUiChatStellarDataConfirm': enginegen.Chat1ChatUiChatStellarDataConfirmPayload
@@ -550,6 +552,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1StreamUiWrite': enginegen.Keybase1StreamUiWritePayload
   'engine-gen:keybase1TeamsUiConfirmRootTeamDelete': enginegen.Keybase1TeamsUiConfirmRootTeamDeletePayload
   'engine-gen:keybase1TeamsUiConfirmSubteamDelete': enginegen.Keybase1TeamsUiConfirmSubteamDeletePayload
+  'engine-gen:keybase1TeamsUiConfirmInviteLinkAccept': enginegen.Keybase1TeamsUiConfirmInviteLinkAcceptPayload
   'engine-gen:keybase1UiPromptYesNo': enginegen.Keybase1UiPromptYesNoPayload
   'engine-gen:stellar1NotifyPaymentNotification': enginegen.Stellar1NotifyPaymentNotificationPayload
   'engine-gen:stellar1NotifyPaymentStatusNotification': enginegen.Stellar1NotifyPaymentStatusNotificationPayload

@@ -15,7 +15,6 @@ type CmdChatSearchBots struct {
 	libkb.Contextified
 	query string
 	limit int
-	page  int
 }
 
 func NewCmdChatSearchBotsRunner(g *libkb.GlobalContext) *CmdChatSearchBots {
@@ -40,10 +39,6 @@ func newCmdChatSearchBots(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 				Usage: fmt.Sprintf("Number of bots to display, defaults to %d", defaultFeaturedBotsLimit),
 				Value: defaultFeaturedBotsLimit,
 			},
-			cli.IntFlag{
-				Name:  "p, page",
-				Usage: "page",
-			},
 		},
 	}
 }
@@ -54,11 +49,10 @@ func (c *CmdChatSearchBots) Run() (err error) {
 		return err
 	}
 
-	offset := c.limit * c.page
-	res, err := cli.Search(context.Background(), keybase1.SearchArg{
-		Query:  c.query,
-		Limit:  c.limit,
-		Offset: offset,
+	res, err := cli.SearchLocal(context.Background(), keybase1.SearchLocalArg{
+		Query:     c.query,
+		Limit:     c.limit,
+		SkipCache: true,
 	})
 	if err != nil {
 		return err
@@ -73,7 +67,6 @@ func (c *CmdChatSearchBots) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	c.query = ctx.Args().Get(0)
 	c.limit = ctx.Int("number")
-	c.page = ctx.Int("page")
 	return nil
 }
 

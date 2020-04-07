@@ -88,6 +88,10 @@ func (r DummyChatUI) ChatSearchTeamHits(ctx context.Context, arg chat1.ChatSearc
 	return nil
 }
 
+func (r DummyChatUI) ChatSearchBotHits(ctx context.Context, arg chat1.ChatSearchBotHitsArg) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStellarDataConfirmArg) (bool, error) {
 	return true, nil
 }
