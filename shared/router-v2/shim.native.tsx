@@ -5,7 +5,7 @@ import * as Shared from './shim.shared'
 import * as Container from '../util/container'
 import {PerfWrapper} from '../util/use-perf'
 
-export const shim = (routes: any) => Shared.shim(routes, shimNewRoute)
+export const shim = (routes: any, isModal: boolean) => Shared.shim(routes, shimNewRoute, isModal)
 
 let isV8 = false
 try {
@@ -14,7 +14,7 @@ try {
   isV8 = true
 } catch (_) {}
 
-const shimNewRoute = (Original: any) => {
+const shimNewRoute = (Original: any, isModal: boolean) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
   // Also light/dark aware
   const ShimmedNew = React.memo((props: any) => {
@@ -38,6 +38,7 @@ const shimNewRoute = (Original: any) => {
     // we try and determine the  offset based on seeing if the header exists
     // this isn't perfect and likely we should move where this avoiding view is relative to the stack maybe
     // but it works for now
+    // note doesn't take into mind defaultOptions so clearly wrong
     let headerHeight: number | undefined = undefined
     let usesNav2Header = false
     if (navigationOptions) {
@@ -52,7 +53,11 @@ const shimNewRoute = (Original: any) => {
         !navigationOptions.title &&
         !navigationOptions.headerTitle
       ) {
-        // nothing
+        if (isModal) {
+          usesNav2Header = !!navigationOptions.headerShown
+        } else {
+          // nothing
+        }
       } else {
         usesNav2Header = true
         if (Styles.isIPhoneX) {

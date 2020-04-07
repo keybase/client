@@ -251,6 +251,9 @@ class UnconnectedTabNavigator extends React.PureComponent<any> {
     return <VanillaTabNavigator navigation={navigation} key={key} />
   }
 }
+UnconnectedTabNavigator.navigationOptions = {
+  headerShown: false,
+}
 
 const TabNavigator = Container.connect(
   () => ({isDarkMode: Styles.isDarkMode(), renderDebug: getRenderDebug()}),
@@ -260,9 +263,6 @@ const TabNavigator = Container.connect(
     ...o,
   })
 )(UnconnectedTabNavigator)
-TabNavigator.navigationOptions = {
-  headerShown: false,
-}
 
 const tabStyles = Styles.styleSheetCreate(
   () =>
@@ -305,7 +305,7 @@ const LoggedInStackNavigator = createStackNavigator(
       navigationOptions: {header: null},
       screen: TabNavigator,
     },
-    ...Shim.shim(modalRoutes),
+    ...Shim.shim(modalRoutes, true),
   },
   {
     bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,

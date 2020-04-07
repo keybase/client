@@ -28,6 +28,9 @@ const HoverBox = Styles.isMobile
     }))
 
 class LogOut extends React.Component<Props, State> {
+  static navigationOptions = {
+    title: Styles.isMobile ? undefined : 'Do you know your password?',
+  }
   state = {
     loggingOut: false,
     password: '',
@@ -109,15 +112,6 @@ class LogOut extends React.Component<Props, State> {
             </Kb.ButtonBar>
           ),
         }}
-        header={{
-          leftButton: Styles.isMobile ? (
-            <Kb.Text type="BodyBigLink" onClick={this.props.onCancel}>
-              Cancel
-            </Kb.Text>
-          ) : null,
-          title: !Styles.isMobile && 'Do you know your password?',
-        }}
-        onClose={this.props.onCancel}
       >
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
           {Styles.isMobile && (

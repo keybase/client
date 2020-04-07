@@ -701,4 +701,6 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
   }
 }
 
+Container.hoistNonReactStatic(StateWrapperForTeamBuilding, Connected)
+
 export default StateWrapperForTeamBuilding
