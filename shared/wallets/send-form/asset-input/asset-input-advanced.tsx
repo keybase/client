@@ -328,39 +328,39 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
   const isLoading = Container.useAnyWaiting(Constants.calculateBuildingAdvancedWaitingKey)
   return (
     <Kb.Box style={styles.pickAssetButtonOverlayOuter}>
-        <Kb.Box2
-          direction="vertical"
-          fullHeight={false}
-          alignSelf="flex-start"
-          alignItems="flex-end"
-          style={styles.pickAssetButton}
+      <Kb.Box2
+        direction="vertical"
+        fullHeight={false}
+        alignSelf="flex-start"
+        alignItems="flex-end"
+        style={styles.pickAssetButton}
+      >
+        <Kb.ClickableBox
+          onClick={!isLoading && goToPickAsset ? goToPickAsset : undefined}
+          style={!goToPickAsset || isLoading ? styles.disabled : undefined}
         >
-          <Kb.ClickableBox
-            onClick={!isLoading && goToPickAsset ? goToPickAsset : undefined}
-            style={!goToPickAsset || isLoading ? styles.disabled : undefined}
-          >
-            <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
-              <Kb.Text
-                type={asset === Constants.emptyAssetDescription ? 'HeaderExtrabold' : 'HeaderBigExtrabold'}
-                style={Styles.collapseStyles([sharedStyles.purple, styles.pickAssetButtonTopText])}
-              >
-                {asset !== Constants.emptyAssetDescription
-                  ? asset === 'native'
-                    ? 'XLM'
-                    : asset.code
-                  : 'Pick an asset'}
-              </Kb.Text>
-              <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" color={Styles.globalColors.purple} />
-            </Kb.Box2>
-          </Kb.ClickableBox>
-          {asset !== Constants.emptyAssetDescription && (
-            <Kb.Text type="BodyTiny" style={sharedStyles.purple}>
-              {asset === 'native'
-                ? 'Stellar Lumens'
-                : asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}
+          <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
+            <Kb.Text
+              type={asset === Constants.emptyAssetDescription ? 'HeaderExtrabold' : 'HeaderBigExtrabold'}
+              style={Styles.collapseStyles([sharedStyles.purple, styles.pickAssetButtonTopText])}
+            >
+              {asset !== Constants.emptyAssetDescription
+                ? asset === 'native'
+                  ? 'XLM'
+                  : asset.code
+                : 'Pick an asset'}
             </Kb.Text>
-          )}
-        </Kb.Box2>
+            <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" color={Styles.globalColors.purple} />
+          </Kb.Box2>
+        </Kb.ClickableBox>
+        {asset !== Constants.emptyAssetDescription && (
+          <Kb.Text type="BodyTiny" style={sharedStyles.purple}>
+            {asset === 'native'
+              ? 'Stellar Lumens'
+              : asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
     </Kb.Box>
   )
 }
@@ -469,6 +469,9 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
       },
       pickAssetButton: Styles.platformStyles({
+        common: {
+          maxWidth: '100%',
+        },
         isMobile: {
           //    width: Styles.globalMargins.xlarge * 3,
           //    paddingTop: Styles.globalMargins.tiny,
@@ -478,14 +481,15 @@ const styles = Styles.styleSheetCreate(
       // error can extend below it.
       pickAssetButtonOverlayInner: {position: 'relative'},
       pickAssetButtonOverlayOuter: {
-        position: 'relative',         flexShrink: 0, 
-    },
+        position: 'relative',
+        flexShrink: 0,
+      },
       pickAssetButtonTopText: Styles.platformStyles({
         isElectron: {lineHeight: '24px'},
         isMobile: {lineHeight: 32},
       }),
       senderMainContainer: {
-        justifyContent: "space-between",
+        justifyContent: 'space-between',
         marginTop: Styles.globalMargins.xtiny,
       },
       shrink: {flexShrink: 1},
