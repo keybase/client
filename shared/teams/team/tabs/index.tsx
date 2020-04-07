@@ -40,18 +40,21 @@ const TeamTabs = (props: TeamTabsProps) => {
     {icon: isMobile ? 'iconfont-nav-settings' : undefined, title: 'settings' as const},
   ]
 
+  const tabContent = (
+    <Kb.Tabs
+      clickableBoxStyle={styles.clickableBox}
+      tabs={tabs}
+      selectedTab={props.selectedTab}
+      onSelect={props.setSelectedTab}
+      style={styles.tabContainer}
+      showProgressIndicator={!isMobile && props.loading && !flags.teamsRedesign}
+      tabStyle={styles.tab}
+    />
+  )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box style={styles.container}>
-        <Kb.Tabs
-          clickableBoxStyle={styles.clickableBox}
-          tabs={tabs}
-          selectedTab={props.selectedTab}
-          onSelect={props.setSelectedTab}
-          style={styles.tabContainer}
-          showProgressIndicator={!isMobile && props.loading && !flags.teamsRedesign}
-          tabStyle={styles.tab}
-        />
+        {isMobile ? <Kb.ScrollView horizontal={true}>{tabContent}</Kb.ScrollView> : tabContent}
         {!isMobile && props.loading && flags.teamsRedesign && (
           <Kb.ProgressIndicator style={styles.inlineProgressIndicator} />
         )}
