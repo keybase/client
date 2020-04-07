@@ -155,18 +155,21 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *DevConvEmojiSource) IsStockEmoji(alias string) bool {
-	if !strings.HasPrefix(alias, ":") {
-		alias = fmt.Sprintf(":%s:", alias)
+	parts := strings.Split(alias, ":")
+	if len(parts) > 3 { // if we have a skin tone here, drop it
+		alias = fmt.Sprintf(":%s:", parts[1])
+	} else if len(parts) == 1 {
+		alias = fmt.Sprintf(":%s:", parts[0])
 	}
 	alias2 := strings.ReplaceAll(alias, "-", "_")
 	return storage.EmojiExists(alias) || storage.EmojiExists(alias2)
 }
 
 func (s *DevConvEmojiSource) validateShortName(shortName string) (string, error) {
-	shortName = strings.ReplaceAll(shortName, ":", "") // drop any colons from alias
 	if s.IsStockEmoji(shortName) {
 		return "", errors.New("cannot use existing stock emoji short name")
 	}
+	shortName = strings.ReplaceAll(shortName, ":", "") // drop any colons from alias
 	if len(shortName) > maxShortNameLength || len(shortName) < minShortNameLength {
 		return "", fmt.Errorf("short name %q (length %d) not within bounds %d,%d",
 			shortName, len(shortName), minShortNameLength, maxShortNameLength)

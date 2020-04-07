@@ -397,3 +397,11 @@ func TestEmojiSourceParse(t *testing.T) {
 		require.Equal(t, tc.expected, res)
 	}
 }
+
+func TestEmojiSourceIsStock(t *testing.T) {
+	es := &DevConvEmojiSource{}
+	require.True(t, es.IsStockEmoji("+1"))
+	require.True(t, es.IsStockEmoji(":+1:"))
+	require.True(t, es.IsStockEmoji(":+1::skin-tone-5:"))
+	require.False(t, es.IsStockEmoji("foo"))
+}
