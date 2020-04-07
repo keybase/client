@@ -190,13 +190,12 @@ const TrustlineDesktop = (props: Props) => {
   )
 }
 
-const TrustlineMobile = p => {
-  const {onDone, ...rest} = p
-  return (
-    <Kb.HeaderHocWrapper borderless={true} title="Trustlines" rightActionLabel="Done" onRightAction={onDone}>
-      <Body {...rest} />
-    </Kb.HeaderHocWrapper>
-  )
+const TrustlineMobile = p => <Body {...p} />
+TrustlineMobile.navigationOptions = {
+  headerLeft: null,
+  headerRight: <Kb.HeaderRightDone />,
+  headerStyle: {borderBottomWidth: 0},
+  title: 'Trustlines',
 }
 
 export default Styles.isMobile ? TrustlineMobile : TrustlineDesktop
