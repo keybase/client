@@ -52,17 +52,17 @@ const CustomEmoji = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      tooltipContainer: Styles.platformStyles({
-        isElectron: {
-          display: 'flex',
-          justifyContent: 'center',
-        },
-      }),
       emoji: Styles.platformStyles({
         isElectron: {
           display: 'inline-flex',
           justifyContent: 'center',
           verticalAlign: 'middle',
+        },
+      }),
+      tooltipContainer: Styles.platformStyles({
+        isElectron: {
+          display: 'flex',
+          justifyContent: 'center',
         },
       }),
     } as const)
