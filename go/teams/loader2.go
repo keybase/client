@@ -550,11 +550,12 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 		newState = &keybase1.TeamData{
 			// Name is left blank until calculateName updates it.
 			// It shall not be blank by the time it is returned from load2.
-			Subversion:                2, // see storage/std.go for more info on this
 			Name:                      keybase1.TeamName{},
+			Subversion:                2, // see storage/std.go for more info on this
 			PerTeamKeySeedsUnverified: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem),
 			ReaderKeyMasks:            make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64),
 		}
+		newState.Chain.ProcessedWithInviteLinks = true
 	} else {
 		chainState = &TeamSigChainState{inner: state.Chain, hidden: hiddenChainState}
 		newState = state
