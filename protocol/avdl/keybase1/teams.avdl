@@ -1627,7 +1627,6 @@ protocol teams {
     // last time the user joined the team
     union { null, Time } joinTime;
     TeamID teamID;
-    int memberCount;
   }
   enum TeamTreeMembershipStatus {
     OK_0,

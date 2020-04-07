@@ -204,10 +204,9 @@ func (l *Treeloader) ProcessSigchainState(mctx libkb.MetaContext, teamName keyba
 		}
 	}
 	return keybase1.NewTeamTreeMembershipResultWithOk(keybase1.TeamTreeMembershipValue{
-		Role:        role,
-		JoinTime:    joinTime,
-		TeamID:      s.Id,
-		MemberCount: len(s.GetAllUVs()),
+		Role:     role,
+		JoinTime: joinTime,
+		TeamID:   s.Id,
 	})
 }
 
