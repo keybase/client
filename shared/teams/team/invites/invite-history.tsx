@@ -32,15 +32,39 @@ const InviteHistory = (props: Props) => {
 
   const {inviteLinks} = teamDetails
   const {active, expired} = splitInviteLinks(inviteLinks)
+  const data: Array<Types.InviteLink> = showingExpired ? expired : active
   const sections: Array<Section<Types.InviteLink>> = [
     {
-      data: showingExpired ? expired : active,
+      data,
       key: 'invites',
     },
   ]
 
+  const emptyOrLoading =
+    loading || !data.length ? (
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.globalStyles.flexOne}
+        centerChildren={true}
+      >
+        {loading ? (
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" centerChildren={true}>
+            <Kb.ProgressIndicator type="Large" />
+            <Kb.Text type="BodySmall">Loading...</Kb.Text>
+          </Kb.Box2>
+        ) : (
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" centerChildren={true}>
+            <Kb.Text type="BodySmall">None yet.</Kb.Text>
+            <Kb.Button mode="Secondary" label="Generate invite link" onClick={onGenerate} />
+          </Kb.Box2>
+        )}
+      </Kb.Box2>
+    ) : null
+
   const activeTitle = `Valid (${active.length})`
   const expiredTitle = `Expired (${expired.length})`
+
   return (
     <Kb.Modal
       header={{
@@ -72,23 +96,23 @@ const InviteHistory = (props: Props) => {
       mode="DefaultFullHeight"
       noScrollView={true}
     >
-      <Kb.BoxGrow>
-        <Kb.SectionList
-          sections={sections}
-          keyExtractor={item => item.id}
-          renderItem={({item}) => <InviteItem inviteLink={item} teamID={teamID} />}
-          renderSectionHeader={() => (
-            <Kb.Tabs
-              tabs={[{title: activeTitle}, {title: expiredTitle}]}
-              onSelect={title => setShowingExpired(title === expiredTitle)}
-              selectedTab={showingExpired ? expiredTitle : activeTitle}
-              style={styles.tabs}
-            />
-          )}
-          contentContainerStyle={styles.listContent}
-          stickySectionHeadersEnabled={true}
-        />
-      </Kb.BoxGrow>
+      <Kb.Tabs
+        tabs={[{title: activeTitle}, {title: expiredTitle}]}
+        onSelect={title => setShowingExpired(title === expiredTitle)}
+        selectedTab={showingExpired ? expiredTitle : activeTitle}
+        style={styles.tabs}
+      />
+      {emptyOrLoading ?? (
+        <Kb.BoxGrow>
+          <Kb.SectionList
+            sections={sections}
+            keyExtractor={item => item.id}
+            renderItem={({item}) => <InviteItem inviteLink={item} teamID={teamID} />}
+            contentContainerStyle={styles.listContent}
+            stickySectionHeadersEnabled={true}
+          />
+        </Kb.BoxGrow>
+      )}
     </Kb.Modal>
   )
 }
