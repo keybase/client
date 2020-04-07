@@ -13,24 +13,28 @@ import {ModalTitle} from '../../common'
 
 type Props = Container.RouteProps<{teamID: Types.TeamID}>
 
-const splitInviteLinks = memoize((inviteLinks: Set<Types.InviteLink>): {
+const splitInviteLinks = memoize((inviteLinks?: Set<Types.InviteLink>): {
   active: Array<Types.InviteLink>
   expired: Array<Types.InviteLink>
-} => ({active: [...inviteLinks].filter(i => !i.expired), expired: [...inviteLinks].filter(i => i.expired)}))
+} => ({
+  active: [...(inviteLinks || [])].filter(i => !i.expired),
+  expired: [...(inviteLinks || [])].filter(i => i.expired),
+}))
 
 const InviteHistory = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   useTeamDetailsSubscribe(teamID)
-  const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
-  const loading = teamDetails === Constants.emptyTeamDetails // TODO should be a better way to check this
+  const teamDetails = Container.useSelector(s => s.teams.teamDetails.get(teamID))
+  const loading = !teamDetails
   const [showingExpired, setShowingExpired] = React.useState(false)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
-  const onGenerate = () => {} // TODO
+  const onGenerate = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksModal'}]}))
 
-  const {inviteLinks} = teamDetails
+  const inviteLinks = teamDetails?.inviteLinks
   const {active, expired} = splitInviteLinks(inviteLinks)
   const data: Array<Types.InviteLink> = showingExpired ? expired : active
   const sections: Array<Section<Types.InviteLink>> = [
@@ -122,6 +126,7 @@ const InviteItem = React.memo(
     const dispatch = Container.useDispatch()
     const yourUsername = Container.useSelector(s => s.config.username)
     const onExpire = () => dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLink.id, teamID}))
+    const waitingForExpire = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, inviteLink.id))
 
     const duration = formatDurationLong(new Date(), new Date(inviteLink.expirationTime * 1000))
     // TODO Y2K-1715 - when expired we should show how long the invite link was valid for.
@@ -129,7 +134,7 @@ const InviteItem = React.memo(
 
     return (
       <Kb.Box2 direction="vertical" style={styles.inviteContainer} gap="xtiny">
-        <Kb.CopyText text={inviteLink.url} disabled={inviteLink.expired} />
+        <Kb.CopyText text={inviteLink.url} disabled={inviteLink.expired || waitingForExpire} />
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySmall">
             Invites as {inviteLink.role} • {expireText}
@@ -142,7 +147,7 @@ const InviteItem = React.memo(
               <Kb.ConnectedUsernames
                 inline={true}
                 colorFollowing={true}
-                type="BodySmall"
+                type="BodySmallSemibold"
                 usernames={inviteLink.creatorUsername}
               />
             )}{' '}
@@ -153,16 +158,37 @@ const InviteItem = React.memo(
                 <Kb.ConnectedUsernames
                   inline={true}
                   colorFollowing={true}
-                  type="BodySmall"
+                  type="BodySmallSemibold"
                   usernames={inviteLink.lastJoinedUsername}
                 />
               </Kb.Text>
             )}
           </Kb.Text>
           {!inviteLink.expired && (
-            <Kb.Text type="BodySmallPrimaryLink" onClick={onExpire}>
-              Expire now
-            </Kb.Text>
+            <Kb.Box2
+              direction="horizontal"
+              alignSelf="flex-start"
+              alignItems="center"
+              gap="tiny"
+              style={Styles.globalStyles.positionRelative}
+            >
+              <Kb.Text
+                type={waitingForExpire ? 'BodySmall' : 'BodySmallPrimaryLink'}
+                onClick={waitingForExpire ? undefined : onExpire}
+                style={waitingForExpire ? styles.disabledText : undefined}
+              >
+                Expire now
+              </Kb.Text>
+              {waitingForExpire && (
+                <Kb.Box2
+                  direction="horizontal"
+                  centerChildren={true}
+                  style={Styles.globalStyles.fillAbsolute}
+                >
+                  <Kb.ProgressIndicator type="Small" />
+                </Kb.Box2>
+              )}
+            </Kb.Box2>
           )}
         </Kb.Box2>
       </Kb.Box2>
@@ -171,6 +197,7 @@ const InviteItem = React.memo(
 )
 
 const styles = Styles.styleSheetCreate(() => ({
+  disabledText: {opacity: 0.4},
   inviteContainer: {
     borderColor: Styles.globalColors.black_10,
     borderRadius: Styles.borderRadius,
