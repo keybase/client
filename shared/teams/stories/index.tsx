@@ -1,6 +1,7 @@
 import * as Sb from '../../stories/storybook'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 export const fakeTeamID = 'fakeTeamID'
 const teamID2 = 'faketeamID2'
@@ -43,6 +44,9 @@ const names = [
   'Marietta Edgecombe',
 ]
 export const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  const aliceSparseMemberInfoRoot: Types.TreeloaderSparseMemberInfo = {type: 'admin'}
+  const aliceSparseMemberInfoSub: Types.TreeloaderSparseMemberInfo = {type: 'none'}
+
   draftState.chat2.inboxLayout = {
     bigTeams: [
       {
@@ -125,8 +129,8 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
       roles: new Map([[teamID3, {implicitAdmin: false, role: 'admin'}]]),
     },
     treeLoaderTeamIDToSparseMemberInfos: new Map([
-      [fakeTeamID, new Map([['alice', {type: 'admin'}]])],
-      [subteam1, new Map([['alice', {type: 'none'}]])],
+      [fakeTeamID, new Map([['alice', aliceSparseMemberInfoRoot]])],
+      [subteam1, new Map([['alice', aliceSparseMemberInfoSub]])],
     ]),
     teamMemberToTreeMemberships: new Map([
       [
@@ -135,6 +139,7 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
           [
             'alice',
             {
+              guid: 0,
               targetTeamID: fakeTeamID,
               targetUsername: 'alice',
               expectedCount: 2,
