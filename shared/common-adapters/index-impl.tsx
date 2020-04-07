@@ -121,6 +121,15 @@ module.exports = {
   get HeaderHocWrapper() {
     return require('./header-hoc').HeaderHocWrapper
   },
+  get HeaderLeftArrow() {
+    return require('./header-hoc').HeaderLeftArrow
+  },
+  get HeaderLeftCancel() {
+    return require('./header-hoc').HeaderLeftCancel
+  },
+  get HeaderRight() {
+    return require('./header-hoc').HeaderRight
+  },
   get HotKey() {
     return require('./hot-key').HotKey
   },

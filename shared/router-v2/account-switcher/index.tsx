@@ -1,9 +1,13 @@
 import * as React from 'react'
-import './account-switcher.css'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Container from '../../util/container'
+import * as SettingsConstants from '../../constants/settings'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigTypes from '../../constants/types/config'
 import * as Constants from '../../constants/config'
+import './account-switcher.css'
+
 export type AccountRowItem = {
   account: ConfigTypes.ConfiguredAccount
   fullName: string
@@ -16,7 +20,6 @@ export type Props = {
   onCancel: () => void
   onProfileClick: () => void
   onSelectAccount: (username: string) => void
-  onSignOut: () => void
   username: string
   waiting: boolean
 }
@@ -116,33 +119,36 @@ const AccountsRows = (props: Props) => (
 )
 
 const AccountSwitcher = (props: Props) => (
-  <Kb.HeaderHocWrapper
-    leftAction="cancel"
-    onCancel={props.onCancel}
-    // else right isn't pushed over, will address in nav5
-    title=" "
-    rightActions={[{color: 'red', label: 'Sign out', onPress: props.onSignOut}]}
-  >
-    <Kb.ScrollView alwaysBounceVertical={false}>
-      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-        {Styles.isMobile && <MobileHeader {...props} />}
-        <Kb.Divider style={styles.divider} />
-        {Styles.isMobile ? (
+  <Kb.ScrollView alwaysBounceVertical={false}>
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+      {Styles.isMobile && <MobileHeader {...props} />}
+      <Kb.Divider style={styles.divider} />
+      {Styles.isMobile ? (
+        <AccountsRows {...props} />
+      ) : (
+        <Kb.ScrollView style={styles.desktopScrollview} className="accountSwitcherScrollView">
           <AccountsRows {...props} />
-        ) : (
-          <Kb.ScrollView style={styles.desktopScrollview} className="accountSwitcherScrollView">
-            <AccountsRows {...props} />
-          </Kb.ScrollView>
-        )}
-        {props.accountRows.length > 0 && !Styles.isMobile && <Kb.Divider style={styles.divider} />}
-      </Kb.Box2>
-    </Kb.ScrollView>
-  </Kb.HeaderHocWrapper>
+        </Kb.ScrollView>
+      )}
+      {props.accountRows.length > 0 && !Styles.isMobile && <Kb.Divider style={styles.divider} />}
+    </Kb.Box2>
+  </Kb.ScrollView>
 )
+
+const SignOut = () => {
+  const dispatch = Container.useDispatch()
+  const onSignOut = () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]}))
+  return <Kb.HeaderRight onClick={onSignOut} text="Sign out" style={{color: 'red'}} />
+}
+
+AccountSwitcher.navigationOptions = {
+  headerRight: <SignOut />,
+}
 
 export default AccountSwitcher
 
 const styles = Styles.styleSheetCreate(() => ({
+  action: {},
   buttonBox: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
   desktopScrollview: {
     width: '100%',

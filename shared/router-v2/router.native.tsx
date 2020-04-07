@@ -13,7 +13,7 @@ import * as Container from '../util/container'
 import shallowEqual from 'shallowequal'
 import logger from '../logger'
 import {IconType} from '../common-adapters/icon.constants-gen'
-import {HeaderLeftArrow} from '../common-adapters/header-hoc'
+import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
 import {Props} from './router'
 import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
@@ -260,6 +260,9 @@ const TabNavigator = Container.connect(
     ...o,
   })
 )(UnconnectedTabNavigator)
+TabNavigator.navigationOptions = {
+  headerShown: false,
+}
 
 const tabStyles = Styles.styleSheetCreate(
   () =>
@@ -298,13 +301,23 @@ const tabStyles = Styles.styleSheetCreate(
 
 const LoggedInStackNavigator = createStackNavigator(
   {
-    Main: TabNavigator,
+    Main: {
+      navigationOptions: {header: null},
+      screen: TabNavigator,
+    },
     ...Shim.shim(modalRoutes),
   },
   {
     bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
     cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
-    headerMode: 'none',
+    defaultNavigationOptions: {
+      headerTitle: hp => (
+        <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
+          {hp.children}
+        </Kb.Text>
+      ),
+      headerLeft: HeaderLeftCancel,
+    },
     mode: 'modal',
   }
 )

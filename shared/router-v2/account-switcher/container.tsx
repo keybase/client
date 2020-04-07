@@ -1,7 +1,6 @@
 import * as LoginGen from '../../actions/login-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import AccountSwitcher, {Props} from './index'
 import * as Container from '../../util/container'
@@ -32,7 +31,6 @@ export default Container.connect(
     onSelectAccountLoggedOut: (username: string) => {
       dispatch(ConfigGen.createLogoutAndTryToLogInAs({username}))
     },
-    onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
   }),
   (stateProps, dispatchProps, _: OwnProps): Props => {
     const accountRows = Constants.prepareAccountRows(stateProps.accountRows, stateProps.username)
@@ -52,7 +50,6 @@ export default Container.connect(
           ? dispatchProps.onSelectAccountLoggedIn(username)
           : dispatchProps.onSelectAccountLoggedOut(username)
       },
-      onSignOut: dispatchProps.onSignOut,
       username: stateProps.username,
       waiting: stateProps.waiting,
     }

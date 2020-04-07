@@ -181,4 +181,10 @@ export const HeaderLeftCancel = hp =>
     />
   )
 
+export const HeaderRight = ({text, onClick, style}) => (
+  <Text type="BodyBigLink" style={Styles.collapseStyles([styles.action, style])} onClick={onClick}>
+    {text}
+  </Text>
+)
+
 export default HeaderHoc
