@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../util/emoji'
 
 type Props = {
   onHidden: () => void
@@ -22,18 +23,11 @@ const ReactionItem = (props: Props) => {
   const topReacjis = _topReacjis.slice(0, 5)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-      {topReacjis.map(r => {
-        const emoji = r.customAddr ? (
-          <Kb.CustomEmoji key={'em' + r.name} alias={r.name} size="Big" src={r.customAddr} />
-        ) : (
-          <Kb.Emoji key={'em' + r.name} disableSelecting={true} size={28} emojiName={r.name} />
-        )
-        return (
-          <Kb.ClickableBox key="picker" onClick={() => onReact(r.name)} style={styles.clickableBox}>
-            {emoji}
-          </Kb.ClickableBox>
-        )
-      })}
+      {topReacjis.map(r => (
+        <Kb.ClickableBox key="picker" onClick={() => onReact(r.name)} style={styles.clickableBox}>
+          {renderEmoji(RPCUserReacjiToRenderableEmoji(r), 28)}
+        </Kb.ClickableBox>
+      ))}
       <Kb.ClickableBox onClick={showPicker} style={styles.clickableBox}>
         <Kb.Icon type="iconfont-reacji" fontSize={26} />
       </Kb.ClickableBox>

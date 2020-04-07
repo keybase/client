@@ -14,7 +14,7 @@ import Channel from '../channel-container'
 import KbfsPath from '../../fs/common/kbfs-path'
 import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text, {StylesTextCrossPlatform} from '../text'
-import {renderEmoji, RPCToEmojiData} from '../../util/emoji'
+import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../util/emoji'
 import {StyleOverride} from '.'
 import WithTooltip from '../with-tooltip'
 
@@ -234,7 +234,7 @@ const ServiceDecoration = (props: Props) => {
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.emoji) {
     return renderEmoji(
-      RPCToEmojiData(parsed.emoji),
+      emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji)),
       parsed.emoji.isBig && !props.disableBigEmojis ? 32 : parsed.emoji.isReacji && !Styles.isMobile ? 18 : 16
     )
   }

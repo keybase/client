@@ -7,7 +7,13 @@ import * as Container from '../../util/container'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
 import {EmojiPickerDesktop} from '../../chat/conversation/messages/react-button/emoji-picker/container'
-import {EmojiData, getEmojiStr, renderEmoji} from '../../util/emoji'
+import {
+  EmojiData,
+  RenderableEmoji,
+  emojiDataToRenderableEmoji,
+  getEmojiStr,
+  renderEmoji,
+} from '../../util/emoji'
 import {AliasInput, Modal} from './common'
 import useRPC from '../../util/use-rpc'
 
@@ -19,8 +25,8 @@ type Props = {
 type RoutableProps = Container.RouteProps<Props>
 
 type ChosenEmoji = {
-  emojiData: EmojiData // useful for custom emojis
-  emojiStr: string // useful with stock emojis with skintones
+  emojiStr: string
+  renderableEmoji: RenderableEmoji
 }
 
 export const AddAliasModal = (props: Props) => {
@@ -29,8 +35,8 @@ export const AddAliasModal = (props: Props) => {
   const [error, setError] = React.useState<undefined | string>(undefined)
 
   const aliasInputRef = React.useRef<AliasInput>(null)
-  const onChoose = (emojiStr: string, emojiData: EmojiData) => {
-    setEmoji({emojiData, emojiStr})
+  const onChoose = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
+    setEmoji({emojiStr, renderableEmoji})
     setAlias(
       emojiStr
         // first merge skin-tone part into name, e.g.
@@ -43,7 +49,9 @@ export const AddAliasModal = (props: Props) => {
   }
 
   React.useEffect(
-    () => props.defaultSelected && onChoose(getEmojiStr(props.defaultSelected), props.defaultSelected),
+    () =>
+      props.defaultSelected &&
+      onChoose(getEmojiStr(props.defaultSelected), emojiDataToRenderableEmoji(props.defaultSelected)),
     [props.defaultSelected]
   )
 
@@ -112,7 +120,7 @@ export const AddAliasModal = (props: Props) => {
 
 type ChooseEmojiProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
-  onChoose: (emojiStr: string, emojiData: EmojiData) => void
+  onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
 }
 const ChooseEmoji = Styles.isMobile
   ? (props: ChooseEmojiProps) => {
@@ -172,7 +180,7 @@ const SelectedEmoji = (props: SelectedEmojiProps) => {
   return (
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.emoji}>
       {props.chosen ? (
-        renderEmoji(props.chosen.emojiData, singleEmojiWidth)
+        renderEmoji(props.chosen.renderableEmoji, singleEmojiWidth)
       ) : (
         <Kb.Icon type="iconfont-emoji" fontSize={Styles.isMobile ? 20 : 16} />
       )}

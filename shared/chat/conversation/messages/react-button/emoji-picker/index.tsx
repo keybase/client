@@ -4,11 +4,18 @@ import * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import * as Data from './data'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
+import debounce from 'lodash/debounce'
 import {isMobile} from '../../../../../constants/platform'
 import chunk from 'lodash/chunk'
-import debounce from 'lodash/debounce'
 import {memoize} from '../../../../../util/memoize'
-import {getEmojiStr, renderEmoji, EmojiData, RPCToEmojiData} from '../../../../../util/emoji'
+import {
+  emojiDataToRenderableEmoji,
+  getEmojiStr,
+  renderEmoji,
+  EmojiData,
+  RenderableEmoji,
+  RPCToEmojiData,
+} from '../../../../../util/emoji'
 import {Section as _Section} from '../../../../../common-adapters/section-list'
 import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 
@@ -78,7 +85,7 @@ type Section = _Section<
 type Props = {
   topReacjis: Array<RPCTypes.UserReacji>
   filter?: string
-  onChoose: (emojiStr: string, emojiData: EmojiData) => void
+  onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
   skinTone?: Types.EmojiSkinTone
   customEmojiGroups?: RPCChatGen.EmojiGroup[]
@@ -217,15 +224,16 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
   private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
+    const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier)
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"
-        onClick={() => this.props.onChoose(getEmojiStr(emoji, skinToneModifier), emoji)}
+        onClick={() => this.props.onChoose(getEmojiStr(emoji, skinToneModifier), renderable)}
         onMouseOver={this.props.onHover && (() => this.props.onHover?.(emoji))}
         style={styles.emoji}
         key={emoji.short_name}
       >
-        {renderEmoji(emoji, singleEmojiWidth, undefined, skinToneModifier)}
+        {renderEmoji(renderable, singleEmojiWidth)}
       </Kb.ClickableBox>
     )
   }

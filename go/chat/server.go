@@ -3724,10 +3724,6 @@ func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res cha
 	res.FailedFilenames = make(map[string]string)
 	res.SuccessFilenames = make([]string, 0, len(arg.Aliases))
 	for i := range arg.Aliases {
-		if arg.Aliases[i] == "debug-test-error" {
-			res.FailedFilenames[arg.Filenames[i]] = "this is a test error"
-			continue
-		}
 		_, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Aliases[i], arg.Filenames[i], arg.AllowOverwrite[i])
 		if err != nil {
 			res.FailedFilenames[arg.Filenames[i]] = err.Error()
@@ -3752,11 +3748,6 @@ func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) 
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
-	}
-	if arg.NewAlias == "debug-test-error" {
-		return chat1.AddEmojiAliasRes{
-			ErrorString: strPtr("this is a test error"),
-		}, nil
 	}
 	if _, err := h.G().EmojiSource.AddAlias(ctx, uid, arg.ConvID, arg.NewAlias, arg.ExistingAlias); err != nil {
 		return chat1.AddEmojiAliasRes{

@@ -6,7 +6,7 @@ import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as RPCChatGen from '../../../../constants/types/rpc-chat-gen'
 import * as dateFns from 'date-fns'
-import {renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
+import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
 import useRPC from '../../../../util/use-rpc'
 import EmojiMenu from './emoji-menu'
 
@@ -63,7 +63,7 @@ const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
 
   return (
     <Kb.ListItem2
-      icon={renderEmoji(RPCToEmojiData(emoji), 32)}
+      icon={renderEmoji(emojiDataToRenderableEmoji(RPCToEmojiData(emoji)), 32)}
       type="Large"
       body={
         <Kb.Box2

@@ -15,7 +15,7 @@ import Giphy from '../../giphy/container'
 import ReplyPreview from '../../reply-preview/container'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {emojiIndex, emojiNameMap} from '../../messages/react-button/emoji-picker/data'
-import {renderEmoji, EmojiData, RPCToEmojiData} from '../../../../util/emoji'
+import {emojiDataToRenderableEmoji, renderEmoji, EmojiData, RPCToEmojiData} from '../../../../util/emoji'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
@@ -133,7 +133,7 @@ const emojiRenderer = (item: EmojiData, selected: boolean) => {
       ])}
       gap="small"
     >
-      {renderEmoji(item, 24)}
+      {renderEmoji(emojiDataToRenderableEmoji(item), 24)}
       <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
     </Kb.Box2>
   )

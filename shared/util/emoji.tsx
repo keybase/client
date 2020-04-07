@@ -24,40 +24,31 @@ export const getEmojiStr = (emoji: EmojiData, skinToneModifier?: string) => {
   return `:${emoji.short_name}:${skinToneModifier ?? ''}`
 }
 
-export const renderEmoji = (
-  emoji: EmojiData,
-  size: number,
-  customEmojiSize?: number,
-  skinToneModifier?: string
-) => {
-  if (emoji.userEmojiRenderUrl) {
+export type RenderableEmoji = {
+  aliasForCustom?: string
+  renderStock?: string
+  renderUrl?: string
+}
+
+export const renderEmoji = (emoji: RenderableEmoji, size: number, customEmojiSize?: number) => {
+  if (emoji.renderUrl) {
     return (
-      <Kb.CustomEmoji
-        size={customEmojiSize ?? size}
-        src={emoji.userEmojiRenderUrl}
-        alias={emoji.short_name}
-      />
+      <Kb.CustomEmoji size={customEmojiSize ?? size} src={emoji.renderUrl} alias={emoji.aliasForCustom} />
     )
   }
 
-  if (emoji.userEmojiRenderStock) {
-    return <Kb.Emoji size={size} emojiName={emoji.userEmojiRenderStock} />
+  if (emoji.renderStock) {
+    return <Kb.Emoji size={size} emojiName={emoji.renderStock} />
   }
 
-  return <Kb.Emoji size={size} emojiName={`:${emoji.short_name}:${skinToneModifier ?? ''}`} />
+  return null
 }
 
-export const RPCUserReacjiToEmojiDataForRender = (userReacji: RPCTypes.UserReacji): EmojiData => {
-  return {
-    category: '',
-    name: null,
-    short_name: userReacji.name,
-    short_names: [userReacji.name],
-    unified: '',
-    userEmojiRenderStock: userReacji.customAddr ? undefined : userReacji.name,
-    userEmojiRenderUrl: userReacji.customAddr || undefined,
-  }
-}
+export const RPCUserReacjiToRenderableEmoji = (userReacji: RPCTypes.UserReacji): RenderableEmoji => ({
+  aliasForCustom: userReacji.name,
+  renderStock: userReacji.customAddr ? undefined : userReacji.name,
+  renderUrl: userReacji.customAddr || undefined,
+})
 
 export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, category?: string): EmojiData {
   return {
@@ -72,3 +63,9 @@ export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, category?: string): Em
       emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str ? undefined : emoji.source.httpsrv,
   }
 }
+
+export const emojiDataToRenderableEmoji = (emoji: EmojiData, skinToneModifier?: string): RenderableEmoji => ({
+  aliasForCustom: emoji.short_name,
+  renderStock: emoji.userEmojiRenderStock ?? `:${emoji.short_name}:${skinToneModifier ?? ''}`,
+  renderUrl: emoji.userEmojiRenderUrl,
+})

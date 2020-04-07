@@ -13,14 +13,14 @@ import startCase from 'lodash/startCase'
 import debounce from 'lodash/debounce'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
-import {renderEmoji, EmojiData} from '../../../../../util/emoji'
+import {emojiDataToRenderableEmoji, renderEmoji, EmojiData, RenderableEmoji} from '../../../../../util/emoji'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
   small?: boolean
   onDidPick?: () => void
   onPickAddToMessageOrdinal?: Types.Ordinal
-  onPickAction?: (emoji: string, emojiData: EmojiData) => void
+  onPickAction?: (emoji: string, renderableEmoji: RenderableEmoji) => void
 }
 
 type RoutableProps = Container.RouteProps<Props>
@@ -30,7 +30,7 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
   const [filter, setFilter] = React.useState('')
   const dispatch = Container.useDispatch()
   const onChoose = React.useCallback(
-    (emoji: string, emojiData: EmojiData) => {
+    (emoji: string, renderableEmoji: RenderableEmoji) => {
       if (conversationIDKey !== Constants.noConversationIDKey && onPickAddToMessageOrdinal) {
         dispatch(
           Chat2Gen.createToggleMessageReaction({
@@ -40,7 +40,7 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
           })
         )
       }
-      onPickAction?.(emoji, emojiData)
+      onPickAction?.(emoji, renderableEmoji)
       onDidPick?.()
     },
     [dispatch, conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal]
@@ -207,10 +207,11 @@ export const EmojiPickerDesktop = (props: Props) => {
           gap="small"
         >
           {renderEmoji(
-            hoveredEmoji,
-            36,
-            undefined,
-            getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
+            emojiDataToRenderableEmoji(
+              hoveredEmoji,
+              getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
+            ),
+            36
           )}
           <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
             <Kb.Text type="BodyBig" lineClamp={1}>
