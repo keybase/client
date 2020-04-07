@@ -290,10 +290,9 @@ export type TypedActionsMap = {
   'config:updateMenubarWindowID': config.UpdateMenubarWindowIDPayload
   'config:copyToClipboard': config.CopyToClipboardPayload
   'config:checkForUpdate': config.CheckForUpdatePayload
-  'config:updateInfo': config.UpdateInfoPayload
-  'config:updateNow': config.UpdateNowPayload
+  'config:updateStart': config.UpdateStartPayload
   'config:openAppStore': config.OpenAppStorePayload
-  'config:updateCriticalCheckStatus': config.UpdateCriticalCheckStatusPayload
+  'config:updateInfo': config.UpdateInfoPayload
   'config:osNetworkStatusChanged': config.OsNetworkStatusChangedPayload
   'config:setDarkModePreference': config.SetDarkModePreferencePayload
   'config:setSystemDarkMode': config.SetSystemDarkModePayload

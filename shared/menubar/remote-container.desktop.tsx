@@ -82,7 +82,7 @@ export default () => {
         hideWindow()
       }}
       showInFinder={() => dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath}))}
-      updateNow={isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined}
+      updateStart={isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateStart()) : undefined}
     />
   )
 }

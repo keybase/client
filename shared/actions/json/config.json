@@ -119,13 +119,12 @@
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
     "checkForUpdate": {},
-    "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
-    "updateNow": {},
+    "updateStart": {},
     "openAppStore": {
       "_description": "Open a link to the app store"
     },
-    "updateCriticalCheckStatus": {
-      "_description": "Save critical check status",
+    "updateInfo": {
+      "_description": "Drives 'suggested' updates for: Widget, Keybase FM. And 'critical' for: red banner",
       "status": "'critical' | 'suggested' | 'ok'",
       "message": "string"
     },

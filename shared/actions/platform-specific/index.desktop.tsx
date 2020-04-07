@@ -205,13 +205,25 @@ const onConnected = () => {
   }).catch(_ => {})
 }
 
+/*
+ * This out of date flow is old and driven by the API server as follows:
+ *
+ * 1. A client will make a request to the API server via the service
+ * 2. If the client is critically out of date (different than the `pkg/check`
+ * endpoint), the API server will set an out of date header on all API
+ * responses
+ * 3. The service will parse all incoming API responses and read the out of date header - if they exist
+ * 4. The service will use the notify_session protocol to push an action to the GUI
+ * 5. This action will be run
+ *
+ * This is always a critical update and should be handled by prompting the users directly
+ */
 const onOutOfDate = (action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
   const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
   const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
   NotifyPopup('Client out of date!', {body}, 60 * 60)
-  // This is from the API server. Consider notifications from API server
-  // always critical.
-  return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
+
+  return ConfigGen.createUpdateInfo({message: upgradeMsg, status: 'critical'})
 }
 
 const prepareLogSend = async (action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
@@ -241,32 +253,11 @@ const sendWindowsKBServiceCheck = (
   }
 }
 
-function* startOutOfDateCheckLoop() {
-  while (1) {
-    try {
-      const toPut = yield checkForUpdate()
-      yield Saga.put(toPut)
-      yield Saga.delay(3600 * 1000) // 1 hr
-    } catch (err) {
-      logger.warn('error getting update info: ', err)
-      yield Saga.delay(3600 * 1000) // 1 hr
-    }
-  }
-}
-
-const checkForUpdate = async () => {
-  const {status, message} = await RPCTypes.configGetUpdateInfoRpcPromise()
-  return ConfigGen.createUpdateInfo({
-    critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
-    isOutOfDate: status !== RPCTypes.UpdateInfoStatus.upToDate,
-    message,
-  })
-}
-
-const updateNow = async () => {
+const updateStart = async () => {
   await RPCTypes.configStartUpdateIfNeededRpcPromise()
   // * If user choose to update:
   //   We'd get killed and it doesn't matter what happens here.
+  //
   // * If user hits "Ignore":
   //   Note that we ignore the snooze here, so the state shouldn't change,
   //   and we'd back to where we think we still need an update. So we could
@@ -275,7 +266,7 @@ const updateNow = async () => {
   //   and now, we'd be in a wrong state if we didn't check with the service.
   //   Since user has interacted with it, we still ask the service to make
   //   sure.
-  return ConfigGen.createCheckForUpdate()
+  return ConfigGen.createCheckForUpdate() // Handled by actions/config/index
 }
 
 // don't leak these handlers on hot load
@@ -456,8 +447,7 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
   yield* Saga.chainAction(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
   yield* Saga.chainAction(ConfigGen.copyToClipboard, copyToClipboard)
-  yield* Saga.chainAction2(ConfigGen.updateNow, updateNow)
-  yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
+  yield* Saga.chainAction2(ConfigGen.updateStart, updateStart)
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendWindowsKBServiceCheck)
   yield* Saga.chainAction2(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
   yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
@@ -474,6 +464,5 @@ export function* platformConfigSaga() {
   yield Saga.spawn(initializeInputMonitor)
   yield Saga.spawn(handleWindowFocusEvents)
   yield Saga.spawn(setupReachabilityWatcher)
-  yield Saga.spawn(startOutOfDateCheckLoop)
   yield Saga.spawn(startPowerMonitor)
 }

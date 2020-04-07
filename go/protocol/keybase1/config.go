@@ -615,47 +615,6 @@ func (o OutOfDateInfo) DeepCopy() OutOfDateInfo {
 	}
 }
 
-type UpdateInfoStatus int
-
-const (
-	UpdateInfoStatus_UP_TO_DATE             UpdateInfoStatus = 0
-	UpdateInfoStatus_NEED_UPDATE            UpdateInfoStatus = 1
-	UpdateInfoStatus_CRITICALLY_OUT_OF_DATE UpdateInfoStatus = 2
-)
-
-func (o UpdateInfoStatus) DeepCopy() UpdateInfoStatus { return o }
-
-var UpdateInfoStatusMap = map[string]UpdateInfoStatus{
-	"UP_TO_DATE":             0,
-	"NEED_UPDATE":            1,
-	"CRITICALLY_OUT_OF_DATE": 2,
-}
-
-var UpdateInfoStatusRevMap = map[UpdateInfoStatus]string{
-	0: "UP_TO_DATE",
-	1: "NEED_UPDATE",
-	2: "CRITICALLY_OUT_OF_DATE",
-}
-
-func (e UpdateInfoStatus) String() string {
-	if v, ok := UpdateInfoStatusRevMap[e]; ok {
-		return v
-	}
-	return fmt.Sprintf("%v", int(e))
-}
-
-type UpdateInfo struct {
-	Status  UpdateInfoStatus `codec:"status" json:"status"`
-	Message string           `codec:"message" json:"message"`
-}
-
-func (o UpdateInfo) DeepCopy() UpdateInfo {
-	return UpdateInfo{
-		Status:  o.Status.DeepCopy(),
-		Message: o.Message,
-	}
-}
-
 type BootstrapStatus struct {
 	Registered  bool         `codec:"registered" json:"registered"`
 	LoggedIn    bool         `codec:"loggedIn" json:"loggedIn"`
@@ -719,11 +678,13 @@ func (e UpdateInfoStatus2) String() string {
 
 type UpdateDetails struct {
 	Message string `codec:"message" json:"message"`
+	Min     string `codec:"min" json:"min"`
 }
 
 func (o UpdateDetails) DeepCopy() UpdateDetails {
 	return UpdateDetails{
 		Message: o.Message,
+		Min:     o.Min,
 	}
 }
 
@@ -938,9 +899,6 @@ type GuiGetValueArg struct {
 type CheckAPIServerOutOfDateWarningArg struct {
 }
 
-type GetUpdateInfoArg struct {
-}
-
 type StartUpdateIfNeededArg struct {
 }
 
@@ -967,8 +925,9 @@ type SetRememberPassphraseArg struct {
 }
 
 type GetUpdateInfo2Arg struct {
-	Platform *string `codec:"platform,omitempty" json:"platform,omitempty"`
-	Version  *string `codec:"version,omitempty" json:"version,omitempty"`
+	Platform              *string `codec:"platform,omitempty" json:"platform,omitempty"`
+	Version               *string `codec:"version,omitempty" json:"version,omitempty"`
+	TestSlowReleaseBypass *bool   `codec:"testSlowReleaseBypass,omitempty" json:"testSlowReleaseBypass,omitempty"`
 }
 
 type SetProxyDataArg struct {
@@ -1016,7 +975,6 @@ type ConfigInterface interface {
 	GuiGetValue(context.Context, string) (ConfigValue, error)
 	// Check whether the API server has told us we're out of date.
 	CheckAPIServerOutOfDateWarning(context.Context) (OutOfDateInfo, error)
-	GetUpdateInfo(context.Context) (UpdateInfo, error)
 	StartUpdateIfNeeded(context.Context) error
 	// Wait for client type to connect to service.
 	WaitForClient(context.Context, WaitForClientArg) (bool, error)
@@ -1024,8 +982,10 @@ type ConfigInterface interface {
 	RequestFollowingAndUnverifiedFollowers(context.Context, int) error
 	GetRememberPassphrase(context.Context, int) (bool, error)
 	SetRememberPassphrase(context.Context, SetRememberPassphraseArg) error
-	// getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
-	// you are critically out of date.
+	// getUpdateInfo2 drives three parts of the GUI
+	// 1. Widget "update available" yellow bar
+	// 2. Keybase FM "update available" green radio icon
+	// 3. Red bar in GUI for critically out of date clients
 	GetUpdateInfo2(context.Context, GetUpdateInfo2Arg) (UpdateInfo2, error)
 	SetProxyData(context.Context, ProxyData) error
 	GetProxyData(context.Context) (ProxyData, error)
@@ -1316,16 +1276,6 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					ret, err = i.CheckAPIServerOutOfDateWarning(ctx)
-					return
-				},
-			},
-			"getUpdateInfo": {
-				MakeArg: func() interface{} {
-					var ret [1]GetUpdateInfoArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.GetUpdateInfo(ctx)
 					return
 				},
 			},
@@ -1623,11 +1573,6 @@ func (c ConfigClient) CheckAPIServerOutOfDateWarning(ctx context.Context) (res O
 	return
 }
 
-func (c ConfigClient) GetUpdateInfo(ctx context.Context) (res UpdateInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo", []interface{}{GetUpdateInfoArg{}}, &res, 0*time.Millisecond)
-	return
-}
-
 func (c ConfigClient) StartUpdateIfNeeded(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.startUpdateIfNeeded", []interface{}{StartUpdateIfNeededArg{}}, nil, 0*time.Millisecond)
 	return
@@ -1662,8 +1607,10 @@ func (c ConfigClient) SetRememberPassphrase(ctx context.Context, __arg SetRememb
 	return
 }
 
-// getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
-// you are critically out of date.
+// getUpdateInfo2 drives three parts of the GUI
+// 1. Widget "update available" yellow bar
+// 2. Keybase FM "update available" green radio icon
+// 3. Red bar in GUI for critically out of date clients
 func (c ConfigClient) GetUpdateInfo2(ctx context.Context, __arg GetUpdateInfo2Arg) (res UpdateInfo2, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return

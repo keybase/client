@@ -559,12 +559,8 @@ export type MessageTypes = {
     inParam: void
     outParam: Boolean
   }
-  'keybase.1.config.getUpdateInfo': {
-    inParam: void
-    outParam: UpdateInfo
-  }
   'keybase.1.config.getUpdateInfo2': {
-    inParam: {readonly platform?: String | null; readonly version?: String | null}
+    inParam: {readonly platform?: String | null; readonly version?: String | null; readonly testSlowReleaseBypass?: Boolean | null}
     outParam: UpdateInfo2
   }
   'keybase.1.config.guiGetValue': {
@@ -2745,12 +2741,6 @@ export enum UPKLiteMinorVersion {
   v0 = 0,
 }
 
-export enum UpdateInfoStatus {
-  upToDate = 0,
-  needUpdate = 1,
-  criticallyOutOfDate = 2,
-}
-
 export enum UpdateInfoStatus2 {
   ok = 0,
   suggested = 1,
@@ -3336,8 +3326,7 @@ export type UnixTime = Long
 export type UntrustedTeamExistsResult = {readonly exists: Boolean; readonly status: StatusCode}
 export type UntrustedTeamInfo = {readonly name: TeamName; readonly inTeam: Boolean; readonly open: Boolean; readonly description: String; readonly publicAdmins?: Array<String> | null; readonly numMembers: Int; readonly publicMembers?: Array<TeamMemberRole> | null}
 export type UpPointer = {readonly ourSeqno: Seqno; readonly parentID: TeamID; readonly parentSeqno: Seqno; readonly deletion: Boolean}
-export type UpdateDetails = {readonly message: String}
-export type UpdateInfo = {readonly status: UpdateInfoStatus; readonly message: String}
+export type UpdateDetails = {readonly message: String; readonly min: String}
 export type UpdateInfo2 = {status: UpdateInfoStatus2.ok} | {status: UpdateInfoStatus2.suggested; suggested: UpdateDetails} | {status: UpdateInfoStatus2.critical; critical: UpdateDetails}
 export type UpdaterStatus = {readonly log: String}
 export type UploadState = {readonly uploadID: String; readonly targetPath: KBFSPath; readonly error?: String | null; readonly canceled: Boolean}
@@ -3744,7 +3733,6 @@ export const configGetConfigRpcPromise = (params: MessageTypes['keybase.1.config
 export const configGetProxyDataRpcPromise = (params: MessageTypes['keybase.1.config.getProxyData']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getProxyData']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getProxyData', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetRememberPassphraseRpcPromise = (params: MessageTypes['keybase.1.config.getRememberPassphrase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getRememberPassphrase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getRememberPassphrase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetUpdateInfo2RpcPromise = (params: MessageTypes['keybase.1.config.getUpdateInfo2']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getUpdateInfo2']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getUpdateInfo2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const configGetUpdateInfoRpcPromise = (params: MessageTypes['keybase.1.config.getUpdateInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getUpdateInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getUpdateInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGuiGetValueRpcPromise = (params: MessageTypes['keybase.1.config.guiGetValue']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.guiGetValue']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.guiGetValue', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGuiSetValueRpcPromise = (params: MessageTypes['keybase.1.config.guiSetValue']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.guiSetValue']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.guiSetValue', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configHelloIAmRpcPromise = (params: MessageTypes['keybase.1.config.helloIAm']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.helloIAm']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.helloIAm', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

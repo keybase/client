@@ -59,11 +59,10 @@ export const showMain = 'config:showMain'
 export const showShareActionSheet = 'config:showShareActionSheet'
 export const startHandshake = 'config:startHandshake'
 export const toggleRuntimeStats = 'config:toggleRuntimeStats'
-export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
 export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
-export const updateNow = 'config:updateNow'
+export const updateStart = 'config:updateStart'
 export const updateWindowState = 'config:updateWindowState'
 
 // Payload Types
@@ -164,21 +163,20 @@ type _ShowShareActionSheetPayload = {
 }
 type _StartHandshakePayload = void
 type _ToggleRuntimeStatsPayload = void
-type _UpdateCriticalCheckStatusPayload = {
-  readonly status: 'critical' | 'suggested' | 'ok'
-  readonly message: string
-}
 type _UpdateHTTPSrvInfoPayload = {readonly address: string; readonly token: string}
-type _UpdateInfoPayload = {
-  readonly isOutOfDate: boolean
-  readonly critical: boolean
-  readonly message?: string
-}
+type _UpdateInfoPayload = {readonly status: 'critical' | 'suggested' | 'ok'; readonly message: string}
 type _UpdateMenubarWindowIDPayload = {readonly id: number}
-type _UpdateNowPayload = void
+type _UpdateStartPayload = void
 type _UpdateWindowStatePayload = {readonly windowState: Types.WindowState}
 
 // Action Creators
+/**
+ * Drives 'suggested' updates for: Widget, Keybase FM. And 'critical' for: red banner
+ */
+export const createUpdateInfo = (payload: _UpdateInfoPayload): UpdateInfoPayload => ({
+  payload,
+  type: updateInfo,
+})
 /**
  * Intent fired with a share url
  */
@@ -199,12 +197,6 @@ export const createOpenAppStore = (payload: _OpenAppStorePayload): OpenAppStoreP
   payload,
   type: openAppStore,
 })
-/**
- * Save critical check status
- */
-export const createUpdateCriticalCheckStatus = (
-  payload: _UpdateCriticalCheckStatusPayload
-): UpdateCriticalCheckStatusPayload => ({payload, type: updateCriticalCheckStatus})
 /**
  * Sent whenever the mobile file picker encounters an error.
  */
@@ -424,14 +416,13 @@ export const createUpdateHTTPSrvInfo = (payload: _UpdateHTTPSrvInfoPayload): Upd
   payload,
   type: updateHTTPSrvInfo,
 })
-export const createUpdateInfo = (payload: _UpdateInfoPayload): UpdateInfoPayload => ({
-  payload,
-  type: updateInfo,
-})
 export const createUpdateMenubarWindowID = (
   payload: _UpdateMenubarWindowIDPayload
 ): UpdateMenubarWindowIDPayload => ({payload, type: updateMenubarWindowID})
-export const createUpdateNow = (payload: _UpdateNowPayload): UpdateNowPayload => ({payload, type: updateNow})
+export const createUpdateStart = (payload: _UpdateStartPayload): UpdateStartPayload => ({
+  payload,
+  type: updateStart,
+})
 
 // Action Payloads
 export type AndroidSharePayload = {readonly payload: _AndroidSharePayload; readonly type: typeof androidShare}
@@ -582,10 +573,6 @@ export type ToggleRuntimeStatsPayload = {
   readonly payload: _ToggleRuntimeStatsPayload
   readonly type: typeof toggleRuntimeStats
 }
-export type UpdateCriticalCheckStatusPayload = {
-  readonly payload: _UpdateCriticalCheckStatusPayload
-  readonly type: typeof updateCriticalCheckStatus
-}
 export type UpdateHTTPSrvInfoPayload = {
   readonly payload: _UpdateHTTPSrvInfoPayload
   readonly type: typeof updateHTTPSrvInfo
@@ -595,7 +582,7 @@ export type UpdateMenubarWindowIDPayload = {
   readonly payload: _UpdateMenubarWindowIDPayload
   readonly type: typeof updateMenubarWindowID
 }
-export type UpdateNowPayload = {readonly payload: _UpdateNowPayload; readonly type: typeof updateNow}
+export type UpdateStartPayload = {readonly payload: _UpdateStartPayload; readonly type: typeof updateStart}
 export type UpdateWindowStatePayload = {
   readonly payload: _UpdateWindowStatePayload
   readonly type: typeof updateWindowState
@@ -653,10 +640,9 @@ export type Actions =
   | ShowShareActionSheetPayload
   | StartHandshakePayload
   | ToggleRuntimeStatsPayload
-  | UpdateCriticalCheckStatusPayload
   | UpdateHTTPSrvInfoPayload
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
-  | UpdateNowPayload
+  | UpdateStartPayload
   | UpdateWindowStatePayload
   | {type: 'common:resetStore', payload: {}}

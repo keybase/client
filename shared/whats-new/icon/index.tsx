@@ -6,19 +6,22 @@ import {keybaseFM} from '../../constants/whats-new'
 import Popup from '../popup.desktop'
 
 type Props = {
-  color?: string
-  badgeColor?: string
-  style?: IconStyle
-  className?: string
   newRelease: boolean
+  isProfileHeader: boolean // desktop only
+  color?: string
+  className?: string
+  style?: IconStyle
   onClick?: () => void
 }
 
 type PopupProps = Props & {
   // Desktop only
+  updateAvailable: boolean
+  // Desktop only
   attachToRef: React.RefObject<Kb.Box2>
 }
 
+// Clips the rainbow background around the icon
 const realCSS = `
   .rainbowGradient {
     -webkit-background-clip: text !important;
@@ -26,92 +29,116 @@ const realCSS = `
 `
 // Forward the ref of the icon so we can attach the FloatingBox on desktop to this component
 const Icon = (props: Props) => {
-  const badgeSize = props.badgeColor ? 8 : 12
-  const badgeSizeInner = badgeSize - 4
+  const badgeSize = props.isProfileHeader ? 8 : 12
 
-  return props.newRelease ? (
-    Styles.isMobile ? (
+  if (Styles.isMobile) {
+    const colorMobile = props.newRelease ? Styles.globalColors.blue : Styles.globalColors.black_20
+    return (
       <Kb.Icon
         type="iconfont-radio"
         onClick={props.onClick}
-        color={Styles.globalColors.blue}
+        color={colorMobile}
         style={Styles.collapseStyles([{marginRight: Styles.globalMargins.small}, props.style])}
       />
-    ) : (
-      <>
-        <Kb.DesktopStyle style={realCSS} />
-        <Kb.Icon
-          type="iconfont-radio"
-          style={styles.rainbowColor}
-          className="rainbowGradient"
-          onClick={props.onClick}
-        />
+    )
+  }
+  return props.newRelease ? (
+    <>
+      <Kb.DesktopStyle style={realCSS} />
+      <Kb.Icon
+        type="iconfont-radio"
+        style={Styles.collapseStyles([styles.rainbowColor, props.style])}
+        className="rainbowGradient"
+        onClick={props.onClick}
+      />
+      {!props.isProfileHeader && (
         <Kb.Badge
           border={true}
           leftRightPadding={0}
           height={badgeSize}
-          containerStyle={Styles.collapseStyles([
-            styles.badgeContainerStyle,
-            props.badgeColor ? styles.badgePositioningAlt : styles.badgePositioning,
-          ])}
-          badgeStyle={Styles.collapseStyles([
-            styles.badgeStyles,
-            props.badgeColor
-              ? {
-                  backgroundColor: props.badgeColor,
-                  position: 'absolute',
-                }
-              : {
-                  // Manually set the innerSize of the blue circle to have a larger white border
-                  borderRadius: badgeSizeInner,
-                  height: badgeSizeInner,
-                  minWidth: badgeSizeInner,
-                },
-          ])}
+          containerStyle={Styles.collapseStyles([styles.badgeContainerStyle, styles.badgePositioning])}
+          badgeStyle={styles.badgeBlue}
         />
-      </>
-    )
-  ) : Styles.isMobile ? (
-    <Kb.Icon
-      type="iconfont-radio"
-      color={Styles.globalColors.black_20}
-      style={Styles.collapseStyles([{marginRight: Styles.globalMargins.small}, props.style])}
-    />
+      )}
+    </>
   ) : (
     // className will be hover_contained_color_$color so that should override the non-hover color set by the `color` prop.
-    <Kb.Icon type="iconfont-radio" className={props.className} color={props.color} onClick={props.onClick} />
+    <Kb.Icon
+      type="iconfont-radio"
+      className={props.className}
+      color={props.color}
+      style={props.style}
+      onClick={props.onClick}
+    />
   )
 }
 
 export const IconWithPopup = (props: PopupProps) => {
-  const {badgeColor, color, newRelease, attachToRef} = props
+  const {isProfileHeader, newRelease, updateAvailable, attachToRef} = props
   const [popupVisible, setPopupVisible] = React.useState(false)
   const baseColor = Styles.globalColors.black_50
-  const iconColor = color ? color : baseColor
-  const popupVisibleColor = color || Styles.globalColors.black
+
+  const iconColor = isProfileHeader
+    ? Styles.globalColors.white
+    : popupVisible
+    ? Styles.globalColors.black
+    : baseColor
+
+  // If we're rendering in a profile header, don't allow hovering to change the
+  // icon color - since that will make it change from black to whtie
+  const iconHoverClassname = isProfileHeader ? '' : `hover_contained_color_black`
+
+  const popupVisibleBackgroundColor = updateAvailable
+    ? isProfileHeader
+      ? // Use black_35 on all profile headers
+        ['background_color_black_35']
+      : // Otherwise green lighter
+        ['background_color_greenLighterOrGreen']
+    : popupVisible
+    ? // When popup is open fix the background of the icon to be black_10
+      ['background_color_black_10']
+    : // Otherwise let the background set on hover
+      ['hover_container', 'hover_background_color_black_10']
   return (
     <>
       <Kb.Box style={styles.iconContainerMargins}>
         <Kb.WithTooltip disabled={popupVisible} tooltip={keybaseFM} position="bottom center">
           <Kb.Box
             style={styles.iconContainer}
-            className={Styles.classNames(
-              popupVisible
-                ? ['background_color_black_10']
-                : ['hover_container', 'hover_background_color_black_10']
-            )}
+            className={Styles.classNames(popupVisibleBackgroundColor)}
             onClick={() => {
               popupVisible ? setPopupVisible(false) : !!attachToRef && setPopupVisible(true)
             }}
           >
-            <Icon
-              badgeColor={badgeColor}
-              color={popupVisible ? popupVisibleColor : iconColor}
-              className={Styles.classNames(
-                color ? `hover_contained_color_${color}` : 'hover_contained_color_black'
-              )}
-              newRelease={newRelease}
-            />
+            {updateAvailable ? (
+              <Kb.Box2 direction="horizontal">
+                <Icon
+                  isProfileHeader={isProfileHeader}
+                  newRelease={false}
+                  color={isProfileHeader ? Styles.globalColors.white : Styles.globalColors.greenDarkOrBlack}
+                  className={Styles.classNames({
+                    [`hover_background_color_${Styles.globalColors.black_35}`]: isProfileHeader,
+                    [`hover_background_color_${Styles.globalColors.greenDark}`]: !isProfileHeader,
+                  })}
+                  style={styles.updateAvailable}
+                />
+                <Kb.Text
+                  type="BodySmallSuccess"
+                  style={
+                    isProfileHeader ? styles.updateAvailableTextProfileHeader : styles.updateAvailableText
+                  }
+                >
+                  Update available
+                </Kb.Text>
+              </Kb.Box2>
+            ) : (
+              <Icon
+                isProfileHeader={isProfileHeader}
+                color={iconColor}
+                className={iconHoverClassname}
+                newRelease={newRelease}
+              />
+            )}
           </Kb.Box>
         </Kb.WithTooltip>
       </Kb.Box>
@@ -130,19 +157,19 @@ export const IconWithPopup = (props: PopupProps) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  badgeBlue: {
+    backgroundColor: Styles.globalColors.blue,
+    // Manually set the innerSize of the blue circle to have a larger white border
+    borderRadius: Styles.globalMargins.tiny,
+    height: Styles.globalMargins.tiny,
+    minWidth: Styles.globalMargins.tiny,
+  },
   badgeContainerStyle: {
     position: 'absolute',
   },
   badgePositioning: {
     right: -1,
     top: 1,
-  },
-  badgePositioningAlt: {
-    right: 1,
-    top: 3,
-  },
-  badgeStyles: {
-    backgroundColor: Styles.globalColors.blue,
   },
   iconContainer: Styles.platformStyles({
     common: {
@@ -173,5 +200,14 @@ const styles = Styles.styleSheetCreate(() => ({
         'linear-gradient(to top, #ff0000, rgba(255, 216, 0, 0.94) 19%, #27c400 40%, #0091ff 60%, #b000ff 80%, #ff0098)',
     },
   }),
+  updateAvailable: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
+  updateAvailableText: {
+    color: Styles.globalColors.greenDarkOrBlack,
+  },
+  updateAvailableTextProfileHeader: {
+    color: Styles.globalColors.white,
+  },
 }))
 export default Icon
