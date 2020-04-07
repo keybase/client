@@ -7002,15 +7002,17 @@ type GetLastActiveAtMultiLocalArg struct {
 }
 
 type AddEmojiArg struct {
-	ConvID   ConversationID `codec:"convID" json:"convID"`
-	Alias    string         `codec:"alias" json:"alias"`
-	Filename string         `codec:"filename" json:"filename"`
+	ConvID         ConversationID `codec:"convID" json:"convID"`
+	Alias          string         `codec:"alias" json:"alias"`
+	Filename       string         `codec:"filename" json:"filename"`
+	AllowOverwrite bool           `codec:"allowOverwrite" json:"allowOverwrite"`
 }
 
 type AddEmojisArg struct {
-	ConvID    ConversationID `codec:"convID" json:"convID"`
-	Aliases   []string       `codec:"aliases" json:"aliases"`
-	Filenames []string       `codec:"filenames" json:"filenames"`
+	ConvID         ConversationID `codec:"convID" json:"convID"`
+	Aliases        []string       `codec:"aliases" json:"aliases"`
+	Filenames      []string       `codec:"filenames" json:"filenames"`
+	AllowOverwrite []bool         `codec:"allowOverwrite" json:"allowOverwrite"`
 }
 
 type AddEmojiAliasArg struct {

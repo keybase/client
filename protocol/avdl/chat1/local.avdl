@@ -1385,20 +1385,20 @@ protocol local {
   record AddEmojiRes {
     union { null, RateLimit } rateLimit;
   }
-  AddEmojiRes addEmoji(ConversationID convID, string alias, string filename);
+  AddEmojiRes addEmoji(ConversationID convID, string alias, string filename, boolean allowOverwrite);
   record AddEmojisRes {
     union { null, RateLimit } rateLimit;
     array<string> successFilenames;
     map<string, string> failedFilenames; // filename => error message
   }
-  AddEmojisRes addEmojis(ConversationID convID, array<string> aliases, array<string> filenames);
+  AddEmojisRes addEmojis(ConversationID convID, array<string> aliases, array<string> filenames, array<boolean> allowOverwrite);
   AddEmojiRes addEmojiAlias(ConversationID convID, string newAlias, string existingAlias);
    record RemoveEmojiRes {
     union { null, RateLimit } rateLimit;
   }
   RemoveEmojiRes removeEmoji(ConversationID convID, string alias);
   record UserEmojiRes {
-    UserEmojis emojis; 
+    UserEmojis emojis;
     union { null, RateLimit } rateLimit;
   }
   record EmojiFetchOpts {

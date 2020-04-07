@@ -5996,6 +5996,10 @@
         {
           "name": "filename",
           "type": "string"
+        },
+        {
+          "name": "allowOverwrite",
+          "type": "boolean"
         }
       ],
       "response": "AddEmojiRes"
@@ -6018,6 +6022,13 @@
           "type": {
             "type": "array",
             "items": "string"
+          }
+        },
+        {
+          "name": "allowOverwrite",
+          "type": {
+            "type": "array",
+            "items": "boolean"
           }
         }
       ],

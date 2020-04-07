@@ -1095,6 +1095,7 @@ type emojiAddOptionsV1 struct {
 	Channel         ChatChannel
 	ConversationID  chat1.ConvIDStr `json:"conversation_id"`
 	Alias, Filename string
+	AllowOverwrite  bool `json:"allow_overwrite"`
 }
 
 func (r emojiAddOptionsV1) Check() error {

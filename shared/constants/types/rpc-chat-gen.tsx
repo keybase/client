@@ -308,7 +308,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.local.addEmojis': {
-    inParam: {readonly convID: ConversationID; readonly aliases?: Array<String> | null; readonly filenames?: Array<String> | null}
+    inParam: {readonly convID: ConversationID; readonly aliases?: Array<String> | null; readonly filenames?: Array<String> | null; readonly allowOverwrite?: Array<Boolean> | null}
     outParam: AddEmojisRes
   }
   'chat.1.local.addTeamMemberAfterReset': {

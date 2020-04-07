@@ -15,6 +15,7 @@ type CmdChatAddEmoji struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	alias, filename  string
+	allowOverwrite   bool
 }
 
 func newCmdChatAddEmoji(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -25,6 +26,12 @@ func newCmdChatAddEmoji(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Action: func(c *cli.Context) {
 			cmd := &CmdChatAddEmoji{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "emoji-add", c)
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "allow-overwrite",
+				Usage: "Allow editing of an existing emoji.",
+			},
 		},
 	}
 }
@@ -39,6 +46,7 @@ func (c *CmdChatAddEmoji) ParseArgv(ctx *cli.Context) error {
 	c.alias = ctx.Args()[1]
 	c.filename = ctx.Args()[2]
 	c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName)
+	c.allowOverwrite = ctx.Bool("allow-overwrite")
 	if err != nil {
 		return err
 	}
@@ -64,9 +72,10 @@ func (c *CmdChatAddEmoji) Run() error {
 		return err
 	}
 	_, err = resolver.ChatClient.AddEmoji(ctx, chat1.AddEmojiArg{
-		ConvID:   conversation.GetConvID(),
-		Alias:    c.alias,
-		Filename: c.filename,
+		ConvID:         conversation.GetConvID(),
+		Alias:          c.alias,
+		Filename:       c.filename,
+		AllowOverwrite: c.allowOverwrite,
 	})
 	if err != nil {
 		return err
