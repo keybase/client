@@ -102,13 +102,7 @@ func NewDeliverer(g *globals.Context, sender types.Sender, serverConn types.Serv
 		serverConn:       serverConn,
 	}
 
-	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
-		d.Stop(mctx.Ctx())
-		return nil
-	})
-
 	d.identNotifier.ResetOnGUIConnect()
-
 	return d
 }
 
@@ -661,18 +655,17 @@ func (s *Deliverer) kbfsDeliverLoop(shutdownCh chan struct{}) error {
 	bgctx := context.Background()
 	s.Debug(bgctx, "deliverLoop: starting non blocking sender kbfs deliver loop: uid: %s",
 		s.outbox.GetUID())
-	for obr := range s.kbfsDeliverQueue {
+	for {
 		select {
 		case <-shutdownCh:
 			s.Debug(bgctx, "deliverLoop: shutting down outbox deliver loop: uid: %s", s.outbox.GetUID())
 			return nil
-		default:
-		}
-		if _, _, err := s.sender.Send(bgctx, obr.ConvID, obr.Msg, 0, nil, nil, nil); err != nil {
-			s.Debug(bgctx, "Unable to deliver msg: %v", err)
+		case obr := <-s.kbfsDeliverQueue:
+			if _, _, err := s.sender.Send(bgctx, obr.ConvID, obr.Msg, 0, nil, nil, nil); err != nil {
+				s.Debug(bgctx, "Unable to deliver msg: %v", err)
+			}
 		}
 	}
-	return nil
 }
 
 func (s *Deliverer) deliverLoop(shutdownCh chan struct{}) error {
