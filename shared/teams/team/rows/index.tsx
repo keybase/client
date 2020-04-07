@@ -267,11 +267,13 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
   })
 
   if (customEmoji.length) {
-    sections.push({
-      data: ['emoji-header'],
-      key: 'emoji-header',
-      renderItem: () => <EmojiHeader />,
-    })
+    if (!Styles.isMobile) {
+      sections.push({
+        data: ['emoji-header'],
+        key: 'emoji-header',
+        renderItem: () => <EmojiHeader />,
+      })
+    }
 
     sections.push({
       data: filteredEmoji,

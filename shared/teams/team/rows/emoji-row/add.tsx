@@ -41,8 +41,20 @@ const AddEmoji = ({teamID, convID, filter, reloadEmojis, setFilter}: OwnProps) =
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>
       <Kb.Box2 direction="horizontal" gap="tiny">
-        <Kb.Button mode="Secondary" label="Add emoji" onClick={onAddEmoji} small={true} />
-        <Kb.Button mode="Secondary" label="Add alias" onClick={onAddAlias} small={true} />
+        <Kb.Button
+          mode="Secondary"
+          label="Add emoji"
+          onClick={onAddEmoji}
+          small={true}
+          style={styles.headerButton}
+        />
+        <Kb.Button
+          mode="Secondary"
+          label="Add alias"
+          onClick={onAddAlias}
+          small={true}
+          style={styles.headerButton}
+        />
       </Kb.Box2>
       {!Styles.isMobile && (
         <Kb.SearchFilter
@@ -66,6 +78,11 @@ const styles = Styles.styleSheetCreate(() => ({
     justifyContent: 'space-between',
   },
   filterInput: {maxWidth: 148},
+  headerButton: Styles.platformStyles({
+    isMobile: {
+      flexGrow: 1,
+    },
+  }),
   text: {padding: Styles.globalMargins.xtiny},
 }))
 

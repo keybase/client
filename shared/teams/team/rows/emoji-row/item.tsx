@@ -74,12 +74,12 @@ const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
           gap="small"
         >
           <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
-          {emoji.creationInfo && (
+          {!Styles.isMobile && emoji.creationInfo && (
             <Kb.Text type="Body" style={styles.date}>
               {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
             </Kb.Text>
           )}
-          {emoji.creationInfo && (
+          {!Styles.isMobile && emoji.creationInfo && (
             <Kb.NameWithIcon
               horizontal={true}
               username={emoji.creationInfo.username}
