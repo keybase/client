@@ -48,7 +48,10 @@ func TestEphemeralPurgeTracker(t *testing.T) {
 	u := world.GetUsers()[0]
 	uid := gregor1.UID(u.GetUID().ToBytes())
 	// we manually run purging in this
+	<-g.Indexer.Stop(context.TODO())
+	<-g.ConvLoader.Stop(context.TODO())
 	<-g.EphemeralPurger.Stop(context.TODO())
+	g.EphemeralPurger = types.DummyEphemeralPurger{}
 	g.EphemeralTracker = NewEphemeralTracker(g)
 	clock := clockwork.NewFakeClockAt(time.Now())
 	chatStorage := storage.New(g, tc.ChatG.ConvSource)
