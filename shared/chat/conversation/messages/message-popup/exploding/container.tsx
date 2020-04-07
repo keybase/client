@@ -12,7 +12,7 @@ import {isIOS} from '../../../../../constants/platform'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
-import {MenuItem, MenuItems} from '../../../../../common-adapters'
+import {MenuItems} from '../../../../../common-adapters'
 import openURL from '../../../../../util/open-url'
 import ReactionItem from '../reactionitem'
 
