@@ -9,11 +9,11 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../styles'
 import * as Data from './data'
-import debounce from 'lodash/debounce'
 import startCase from 'lodash/startCase'
+import debounce from 'lodash/debounce'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
-import {expandAlias, EmojiData} from '../../../../../util/emoji'
+import {renderEmoji, EmojiData} from '../../../../../util/emoji'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -206,22 +206,10 @@ export const EmojiPickerDesktop = (props: Props) => {
           style={styles.footerContainer}
           gap="small"
         >
-          {hoveredEmoji.source ? (
-            <Kb.CustomEmoji size="Big" src={hoveredEmoji.source} alias={hoveredEmoji.short_name} />
-          ) : (
-            <Kb.Emoji
-              size={36}
-              emojiName={expandAlias(
-                hoveredEmoji,
-                getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
-              )}
-            />
-          )}
+          {renderEmoji(hoveredEmoji, 36, getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone))}
           <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
             <Kb.Text type="BodyBig" lineClamp={1}>
-              {hoveredEmoji.source
-                ? hoveredEmoji.short_name
-                : startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
+              {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
             </Kb.Text>
             <Kb.Text type="BodySmall" lineClamp={1}>
               {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}

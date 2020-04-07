@@ -7,7 +7,7 @@ import * as Container from '../../util/container'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
 import {EmojiPickerDesktop} from '../../chat/conversation/messages/react-button/emoji-picker/container'
-import {EmojiData} from '../../util/emoji'
+import {EmojiData, getEmojiStr, renderEmoji} from '../../util/emoji'
 import {AliasInput, Modal} from './common'
 import useRPC from '../../util/use-rpc'
 
@@ -43,12 +43,7 @@ export const AddAliasModal = (props: Props) => {
   }
 
   React.useEffect(
-    () =>
-      props.defaultSelected &&
-      onChoose(
-        props.defaultSelected.aliasTo ?? `:${props.defaultSelected.short_name}:`,
-        props.defaultSelected
-      ),
+    () => props.defaultSelected && onChoose(getEmojiStr(props.defaultSelected), props.defaultSelected),
     [props.defaultSelected]
   )
 
@@ -177,15 +172,7 @@ const SelectedEmoji = (props: SelectedEmojiProps) => {
   return (
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.emoji}>
       {props.chosen ? (
-        props.chosen.emojiData.source ? (
-          <Kb.CustomEmoji
-            size="Medium"
-            src={props.chosen.emojiData.source}
-            alias={props.chosen.emojiData.short_name}
-          />
-        ) : (
-          <Kb.Emoji size={singleEmojiWidth} emojiName={props.chosen.emojiStr} />
-        )
+        renderEmoji(props.chosen.emojiData, singleEmojiWidth)
       ) : (
         <Kb.Icon type="iconfont-emoji" fontSize={Styles.isMobile ? 20 : 16} />
       )}

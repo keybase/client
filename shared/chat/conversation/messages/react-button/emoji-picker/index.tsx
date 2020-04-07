@@ -8,7 +8,7 @@ import {isMobile} from '../../../../../constants/platform'
 import chunk from 'lodash/chunk'
 import debounce from 'lodash/debounce'
 import {memoize} from '../../../../../util/memoize'
-import {expandAlias, EmojiData, RPCToEmojiData} from '../../../../../util/emoji'
+import {getEmojiStr, renderEmoji, EmojiData, RPCToEmojiData} from '../../../../../util/emoji'
 import {Section as _Section} from '../../../../../common-adapters/section-list'
 import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 
@@ -216,20 +216,16 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   }
 
   private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
-    const emojiStr = expandAlias(emoji, getSkinToneModifierStrIfAvailable(emoji, skinTone))
+    const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"
-        onClick={() => this.props.onChoose(emojiStr, emoji)}
+        onClick={() => this.props.onChoose(getEmojiStr(emoji, skinToneModifier), emoji)}
         onMouseOver={this.props.onHover && (() => this.props.onHover?.(emoji))}
         style={styles.emoji}
         key={emoji.short_name}
       >
-        {emoji.source ? (
-          <Kb.CustomEmoji size="Medium" src={emoji.source} alias={emoji.short_name} />
-        ) : (
-          <Kb.Emoji size={singleEmojiWidth} emojiName={emojiStr} />
-        )}
+        {renderEmoji(emoji, singleEmojiWidth, skinToneModifier)}
       </Kb.ClickableBox>
     )
   }

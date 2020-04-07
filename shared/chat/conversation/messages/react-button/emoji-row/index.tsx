@@ -5,6 +5,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import {EmojiPickerDesktop} from '../emoji-picker/container'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import {renderEmoji, RPCUserReacjiToEmojiData} from '../../../../../util/emoji'
 
 type Props = {
   className?: string
@@ -26,7 +27,6 @@ class HoverEmoji extends React.Component<
   _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
   _setNotHovering = () => this.setState(s => (s.hovering ? {hovering: false} : null))
   render() {
-    //      KB.debugConsoleLog({songgao: 'HoverEmoji', emoji: this.props.emoji})
     return (
       <Kb.ClickableBox
         onClick={this.props.onClick}
@@ -36,19 +36,7 @@ class HoverEmoji extends React.Component<
         hoverColor={Styles.globalColors.transparent}
         style={styles.emojiBox}
       >
-        {this.props.emoji.customAddr ? (
-          <Kb.CustomEmoji
-            alias={this.props.emoji.name}
-            src={this.props.emoji.customAddr}
-            size={this.state.hovering ? 'Medium' : 'Small'}
-          />
-        ) : (
-          <Kb.Emoji
-            disableSelecting={true}
-            size={this.state.hovering ? 22 : 18}
-            emojiName={this.props.emoji.name}
-          />
-        )}
+        {renderEmoji(RPCUserReacjiToEmojiData(this.props.emoji), this.state.hovering ? 22 : 18)}
       </Kb.ClickableBox>
     )
   }
