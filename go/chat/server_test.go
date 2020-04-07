@@ -185,6 +185,14 @@ func (g *gregorTestConnection) DismissItem(ctx context.Context, cli gregor1.Inco
 	return gregor1.IncomingClient{Cli: g.cli}.ConsumeMessage(ctx, msg.(gregor1.Message))
 }
 
+func (g *gregorTestConnection) DismissCategory(ctx context.Context, cat gregor1.Category) error {
+	msg, err := grutils.FormMessageForDismissCategory(ctx, g.uid, cat)
+	if err != nil {
+		return err
+	}
+	return gregor1.IncomingClient{Cli: g.cli}.ConsumeMessage(ctx, msg.(gregor1.Message))
+}
+
 func (g *gregorTestConnection) InjectItem(ctx context.Context, cat string, body []byte,
 	dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
 	msg, err := grutils.FormMessageForInjectItem(ctx, g.uid, cat, body, dtime)

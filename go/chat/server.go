@@ -3777,3 +3777,13 @@ func (h *Server) UserEmojis(ctx context.Context, arg chat1.UserEmojisArg) (res c
 	res.Emojis, err = h.G().EmojiSource.Get(ctx, uid, arg.ConvID, arg.Opts)
 	return res, err
 }
+
+func (h *Server) ToggleEmojiAnimations(ctx context.Context, enabled bool) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "ToggleEmojiAnimations")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	return h.G().EmojiSource.ToggleAnimations(ctx, uid, enabled)
+}
