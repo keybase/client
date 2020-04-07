@@ -5,6 +5,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/teams'
+import {Success} from '.'
 
 type NoDetails = 'NODETAILS'
 const noDetails: NoDetails = 'NODETAILS'
@@ -20,24 +21,37 @@ const JoinFromInvite = (props: Props) => {
   const [clickedJoin, setClickedJoin] = React.useState(false)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const error = Container.useSelector(state => state.teams.errorInTeamJoin)
+
+  const onNavUp = () => dispatch(nav.safeNavigateUpPayload())
+  const onDecide = (accept: boolean) => dispatch(TeamsGen.createRespondToInviteLink({accept}))
   const onJoinTeam = () => {
     setClickedJoin(true)
-    dispatch(TeamsGen.createRespondToInviteLink({accept: true}))
+    onDecide(true)
   }
   const onClose = () => {
-    dispatch(TeamsGen.createRespondToInviteLink({accept: false}))
-    dispatch(nav.safeNavigateUpPayload())
+    onDecide(true)
+    onNavUp()
   }
+
   const rpcWaiting = Container.useAnyWaiting(Constants.joinTeamWaitingKey)
   const waiting = rpcWaiting && clickedJoin
   const wasWaiting = Container.usePrevious(waiting)
-  React.useEffect(() => {
-    if (wasWaiting && !waiting) {
-      dispatch(nav.safeNavigateUpPayload())
-    }
-  }, [waiting, wasWaiting, nav, dispatch])
+  const showSuccess = wasWaiting && !waiting && !error
 
-  const body = (
+  const body = showSuccess ? (
+    <Kb.Box2
+      direction="vertical"
+      style={styles.center}
+      fullWidth={true}
+      fullHeight={true}
+      gap="small"
+      centerChildren={true}
+    >
+      <Success teamname={teamname} />
+      <Kb.Button type="Dim" label="Close" onClick={onNavUp} style={styles.button} waiting={waiting} />
+    </Kb.Box2>
+  ) : (
     <Kb.Box2
       centerChildren={true}
       direction="vertical"
@@ -47,7 +61,12 @@ const JoinFromInvite = (props: Props) => {
       style={styles.body}
     >
       <Kb.Box style={styles.avatar}>
-        <Kb.Avatar size={96} teamname={teamname} isTeam={true} imageOverrideUrl={details.teamAvatars['96']} />
+        <Kb.Avatar
+          size={96}
+          teamname={teamname}
+          isTeam={true}
+          imageOverrideUrl={details.teamAvatars['square_192']}
+        />
         {details.teamIsOpen && (
           <Kb.Box2
             direction="horizontal"
@@ -65,8 +84,15 @@ const JoinFromInvite = (props: Props) => {
         {details.teamDesc}
       </Kb.Text>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.buttonBar}>
-        <Kb.Button type="Success" label="Join team" onClick={onJoinTeam} style={styles.button} />
+        <Kb.Button
+          type="Success"
+          label="Join team"
+          onClick={onJoinTeam}
+          style={styles.button}
+          waiting={waiting}
+        />
       </Kb.Box2>
+      {error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       <Kb.Box style={Styles.globalStyles.flexOne} />
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
         <Kb.Avatar
@@ -123,6 +149,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       buttonBar: {justifyContent: 'center', paddingTop: Styles.globalMargins.small},
+      center: {justifyContent: 'center'},
       description: Styles.platformStyles({
         isElectron: {width: 460},
         isMobile: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),

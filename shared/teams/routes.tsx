@@ -67,8 +67,31 @@ const addWizardRoutes = {
   },
 }
 
+const newTeamWizardRoutes = {
+  teamWizard1TeamPurpose: {
+    getScreen: (): typeof TeamWizardTeamPurpose => require('./new-team/wizard/team-purpose').default,
+  },
+  teamWizard2TeamInfo: {
+    getScreen: (): typeof TeamWizardTeamInfo => require('./new-team/wizard/new-team-info').default,
+  },
+  teamWizard4TeamSize: {
+    getScreen: (): typeof TeamWizardTeamSize => require('./new-team/wizard/make-big-team').default,
+  },
+  teamWizard5Channels: {
+    getScreen: (): typeof TeamWizardChannels => require('./new-team/wizard/create-channels').default,
+  },
+  teamWizard6Subteams: {
+    getScreen: (): typeof TeamWizardSubteams => require('./new-team/wizard/create-subteams').default,
+  },
+  teamWizardSubteamMembers: {
+    getScreen: (): typeof TeamWizardSubteamMembers =>
+      require('./new-team/wizard/add-subteam-members').default,
+  },
+}
+
 export const newModalRoutes = {
   ...addWizardRoutes,
+  ...newTeamWizardRoutes,
   contactRestricted: {
     getScreen: (): typeof ContactRestricted => require('../team-building/contact-restricted').default,
   },
@@ -125,25 +148,6 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamReallyRemoveMember => require('./confirm-modals/confirm-kick-out').default,
   },
   teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
-  teamWizard1TeamPurpose: {
-    getScreen: (): typeof TeamWizardTeamPurpose => require('./new-team/wizard/team-purpose').default,
-  },
-  teamWizard2TeamInfo: {
-    getScreen: (): typeof TeamWizardTeamInfo => require('./new-team/wizard/new-team-info').default,
-  },
-  teamWizard4TeamSize: {
-    getScreen: (): typeof TeamWizardTeamSize => require('./new-team/wizard/make-big-team').default,
-  },
-  teamWizard5Channels: {
-    getScreen: (): typeof TeamWizardChannels => require('./new-team/wizard/create-channels').default,
-  },
-  teamWizard6Subteams: {
-    getScreen: (): typeof TeamWizardSubteams => require('./new-team/wizard/create-subteams').default,
-  },
-  teamWizardSubteamMembers: {
-    getScreen: (): typeof TeamWizardSubteamMembers =>
-      require('./new-team/wizard/add-subteam-members').default,
-  },
   teamsTeamBuilder: {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },
