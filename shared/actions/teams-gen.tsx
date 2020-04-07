@@ -52,6 +52,7 @@ export const removeMember = 'teams:removeMember'
 export const removeParticipant = 'teams:removeParticipant'
 export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
+export const respondToInviteLink = 'teams:respondToInviteLink'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setActivityLevels = 'teams:setActivityLevels'
@@ -234,6 +235,7 @@ type _RemovePendingInvitePayload = {
   readonly inviteID?: string
 }
 type _RenameTeamPayload = {readonly oldName: string; readonly newName: string}
+type _RespondToInviteLinkPayload = {readonly accept: boolean}
 type _SaveChannelMembershipPayload = {
   readonly teamID: Types.TeamID
   readonly oldChannelState: Types.ChannelMembershipState
@@ -675,6 +677,9 @@ export const createRemoveParticipant = (payload: _RemoveParticipantPayload): Rem
 export const createRemovePendingInvite = (
   payload: _RemovePendingInvitePayload
 ): RemovePendingInvitePayload => ({payload, type: removePendingInvite})
+export const createRespondToInviteLink = (
+  payload: _RespondToInviteLinkPayload
+): RespondToInviteLinkPayload => ({payload, type: respondToInviteLink})
 export const createSaveChannelMembership = (
   payload: _SaveChannelMembershipPayload
 ): SaveChannelMembershipPayload => ({payload, type: saveChannelMembership})
@@ -976,6 +981,10 @@ export type RemovePendingInvitePayload = {
   readonly type: typeof removePendingInvite
 }
 export type RenameTeamPayload = {readonly payload: _RenameTeamPayload; readonly type: typeof renameTeam}
+export type RespondToInviteLinkPayload = {
+  readonly payload: _RespondToInviteLinkPayload
+  readonly type: typeof respondToInviteLink
+}
 export type SaveChannelMembershipPayload = {
   readonly payload: _SaveChannelMembershipPayload
   readonly type: typeof saveChannelMembership
@@ -1247,6 +1256,7 @@ export type Actions =
   | RemoveParticipantPayload
   | RemovePendingInvitePayload
   | RenameTeamPayload
+  | RespondToInviteLinkPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload
   | SetActivityLevelsPayload

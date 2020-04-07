@@ -3512,6 +3512,7 @@ type InviteLinkDetails struct {
 	InviterUID        UID                        `codec:"inviterUID" json:"inviterUID"`
 	InviterUsername   string                     `codec:"inviterUsername" json:"inviterUsername"`
 	InviterResetOrDel bool                       `codec:"inviterResetOrDel" json:"inviterResetOrDel"`
+	TeamIsOpen        bool                       `codec:"teamIsOpen" json:"teamIsOpen"`
 	TeamID            TeamID                     `codec:"teamID" json:"teamID"`
 	TeamDesc          string                     `codec:"teamDesc" json:"teamDesc"`
 	TeamName          TeamName                   `codec:"teamName" json:"teamName"`
@@ -3525,6 +3526,7 @@ func (o InviteLinkDetails) DeepCopy() InviteLinkDetails {
 		InviterUID:        o.InviterUID.DeepCopy(),
 		InviterUsername:   o.InviterUsername,
 		InviterResetOrDel: o.InviterResetOrDel,
+		TeamIsOpen:        o.TeamIsOpen,
 		TeamID:            o.TeamID.DeepCopy(),
 		TeamDesc:          o.TeamDesc,
 		TeamName:          o.TeamName.DeepCopy(),

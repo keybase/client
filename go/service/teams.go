@@ -548,8 +548,14 @@ func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg 
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return res, err
 	}
-
 	ui := h.getTeamsUI(arg.SessionID)
+
+	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
+	maybeSeitan, keepSecret := teams.ParseSeitanTokenFromPaste(arg.TokenOrName)
+	if keepSecret {
+		_, err = teams.ParseAndAcceptSeitanToken(ctx, h.G().ExternalG(), ui, maybeSeitan)
+		return keybase1.TeamAcceptOrRequestResult{WasSeitan: true, WasToken: true}, err
+	}
 	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), ui, arg.TokenOrName)
 }
 

@@ -299,7 +299,7 @@
   "keybase.1.teams.setTarsDisabled": {"promise": true},
   "keybase.1.teams.setTeamMemberShowcase": {"promise": true},
   "keybase.1.teams.setTeamShowcase": {"promise": true},
-  "keybase.1.teams.teamAcceptInviteOrRequestAccess": {"promise": true},
+  "keybase.1.teams.teamAcceptInviteOrRequestAccess": {"engineSaga": true, "promise": true},
   "keybase.1.teams.teamAddEmailsBulk": {"promise": true},
   "keybase.1.teams.teamAddMember": {"promise": true},
   "keybase.1.teams.teamAddMembersMultiRole": {"promise": true},

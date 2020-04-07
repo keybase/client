@@ -3,20 +3,39 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Constants from '../../constants/teams'
 
-type Props = Container.RouteProps<{link: string[]}>
+type NoDetails = 'NODETAILS'
+const noDetails: NoDetails = 'NODETAILS'
+type Props = Container.RouteProps<{details: RPCTypes.InviteLinkDetails | NoDetails}>
 
 const JoinFromInvite = (props: Props) => {
+  const details = Container.getRouteProps(props, 'details', noDetails)
+  if (details === noDetails || !details.teamName.parts) {
+    throw new Error('Details or teamname not passed to invite join modal')
+  }
+  const teamname = details.teamName.parts.join('.')
+
+  const [clickedJoin, setClickedJoin] = React.useState(false)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onJoinTeam = () => {}
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
-  const teamname = 'gameofthrones'
-  const memberCount = 1023
-  const description =
-    'A team for fans of Game of Thrones. This is to show the max-width on the team description (460px). Ellipsis after three lines of description. This is a third line blah blah blah blah blah blah blah blah blah blah. This is a third line blah blah blah blah blah blah blah blah blah blah. This is a third line blah blah blah blah blah blah blah blah blah blah.'
-  const inviterUsername = 'adamjspooner'
-  const isOpen = true
+  const onJoinTeam = () => {
+    setClickedJoin(true)
+    dispatch(TeamsGen.createRespondToInviteLink({accept: true}))
+  }
+  const onClose = () => {
+    dispatch(TeamsGen.createRespondToInviteLink({accept: false}))
+    dispatch(nav.safeNavigateUpPayload())
+  }
+  const rpcWaiting = Container.useAnyWaiting(Constants.joinTeamWaitingKey)
+  const waiting = rpcWaiting && clickedJoin
+  const wasWaiting = Container.usePrevious(waiting)
+  React.useEffect(() => {
+    if (wasWaiting && !waiting) {
+      dispatch(nav.safeNavigateUpPayload())
+    }
+  }, [waiting, wasWaiting, nav, dispatch])
 
   const body = (
     <Kb.Box2
@@ -28,8 +47,8 @@ const JoinFromInvite = (props: Props) => {
       style={styles.body}
     >
       <Kb.Box style={styles.avatar}>
-        <Kb.Avatar size={96} teamname={teamname} isTeam={true} />
-        {isOpen && (
+        <Kb.Avatar size={96} teamname={teamname} isTeam={true} imageOverrideUrl={details.teamAvatars['96']} />
+        {details.teamIsOpen && (
           <Kb.Box2
             direction="horizontal"
             style={styles.meta}
@@ -41,9 +60,9 @@ const JoinFromInvite = (props: Props) => {
         )}
       </Kb.Box>
       <Kb.Text type="Header">Join {teamname}</Kb.Text>
-      <Kb.Text type="BodySmall">{memberCount.toLocaleString()} members</Kb.Text>
+      <Kb.Text type="BodySmall">{details.teamNumMembers.toLocaleString()} members</Kb.Text>
       <Kb.Text type="Body" lineClamp={3} style={styles.description}>
-        {description}
+        {details.teamDesc}
       </Kb.Text>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.buttonBar}>
         <Kb.Button type="Success" label="Join team" onClick={onJoinTeam} style={styles.button} />
@@ -52,10 +71,14 @@ const JoinFromInvite = (props: Props) => {
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
         <Kb.Avatar
           size={16}
-          username={inviterUsername}
+          username={details.inviterUsername}
           borderColor={Styles.isMobile ? Styles.globalColors.white : undefined}
         />
-        <Kb.ConnectedUsernames type="BodySmallBold" usernames={[inviterUsername]} colorFollowing={true} />
+        <Kb.ConnectedUsernames
+          type="BodySmallBold"
+          usernames={[details.inviterUsername]}
+          colorFollowing={true}
+        />
         <Kb.Text type="BodySmall"> invited you.</Kb.Text>
       </Kb.Box2>
       {Styles.isMobile && (

@@ -3025,6 +3025,10 @@
           "name": "inviterResetOrDel"
         },
         {
+          "type": "boolean",
+          "name": "teamIsOpen"
+        },
+        {
           "type": "TeamID",
           "name": "teamID"
         },
