@@ -10,7 +10,7 @@ type Props = {
 }
 
 const ReactionItem = (props: Props) => {
-  const topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis.slice(0, 5))
+  const _topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
   const onReact = (emoji: string) => {
     props.onReact(emoji)
     props.onHidden()
@@ -19,6 +19,7 @@ const ReactionItem = (props: Props) => {
     props.showPicker()
     props.onHidden()
   }
+  const topReacjis = _topReacjis.slice(0, 5)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
       {topReacjis.map(r => {
