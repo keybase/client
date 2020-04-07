@@ -4,12 +4,11 @@ import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
 import * as Styles from '../../../styles'
-import * as dateFns from 'date-fns'
+import {formatExpirationTimeForInviteLink} from '../../../util/timestamp'
 
 type Props = {
   teamID: Types.TeamID
 }
-const formatNicely = (etime: number) => (etime === 0 ? 'after 10,000 ys' : dateFns.formatDistanceToNow(etime))
 
 const InviteLinks = (props: Props) => {
   const {teamID} = props
@@ -32,11 +31,11 @@ const InviteLinks = (props: Props) => {
         Invite people to the team by sharing {mostRecentInviteLink ? 'this link:' : 'a link.'}
       </Kb.Text>
       {mostRecentInviteLink && (
-        <Kb.Box2 direction="vertical" style={styles.inviteBox}>
+        <Kb.Box2 direction="vertical" style={styles.inviteBox} alignSelf="flex-start">
           <Kb.CopyText text={mostRecentInviteLink.url} />
           <Kb.Text type="BodySmall">
-            Invites as {mostRecentInviteLink.role} · Expires{' '}
-            {formatNicely(mostRecentInviteLink.expirationTime)}
+            Invites as {mostRecentInviteLink.role} · Expires after{' '}
+            {formatExpirationTimeForInviteLink(mostRecentInviteLink.expirationTime)}
           </Kb.Text>
         </Kb.Box2>
       )}
@@ -58,6 +57,8 @@ const styles = Styles.styleSheetCreate(
         borderRadius: 4,
         borderStyle: 'solid',
         borderWidth: 1,
+        marginBottom: Styles.globalMargins.xtiny,
+        padding: Styles.globalMargins.tiny,
       },
     } as const)
 )
