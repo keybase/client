@@ -54,6 +54,7 @@ const AddToChannel = (props: AddToChannelProps) => {
 type BotProps = RPCTypes.FeaturedBot & {
   description?: string
   firstItem?: boolean
+  hideHover?: boolean
   showChannelAdd?: boolean
   showTeamAdd?: boolean
   conversationIDKey?: Types.ConversationIDKey
@@ -105,11 +106,13 @@ export const Bot = (props: BotProps) => {
   )
   return (
     <Kb.ListItem2
+      iconStyleOverride={styles.listItemIconOverride}
       containerStyleOverride={styles.listItemContainer}
       onClick={() => onClick(botUsername)}
       type="Large"
       firstItem={!!firstItem}
       icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={botUsername} />}
+      hideHover={!!props.hideHover}
       action={
         showTeamAdd ? (
           <Kb.Button type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
@@ -157,7 +160,13 @@ const styles = Styles.styleSheetCreate(
         isElectron: {marginLeft: 56},
         isMobile: {marginLeft: 81},
       }),
-      listItemContainer: {paddingRight: Styles.globalMargins.tiny},
+      listItemContainer: {
+        paddingRight: Styles.globalMargins.tiny,
+        backgroundColor: Styles.globalColors.white,
+      },
+      listItemIconOverride: {
+        backgroundColor: Styles.globalColors.white,
+      },
       row: {
         alignItems: 'center',
         flex: 1,
