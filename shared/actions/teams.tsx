@@ -1392,7 +1392,7 @@ const loadTeamTreeActivity = async (
   }
   const teamID = membership.result.ok.teamID
   const username = membership.targetUsername
-  const key = Constants.loadTeamTreeActivityWaitingKey(teamID, username)
+  const waitingKey = Constants.loadTeamTreeActivityWaitingKey(teamID, username)
 
   try {
     const activityMap = await RPCChatTypes.localGetLastActiveAtMultiLocalRpcPromise(
@@ -1400,7 +1400,7 @@ const loadTeamTreeActivity = async (
         teamIDs: [teamID],
         username,
       },
-      key
+      waitingKey
     )
     return TeamsGen.createSetMemberActivityDetails({
       activityMap: new Map(Object.entries(activityMap)),

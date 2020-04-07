@@ -129,8 +129,8 @@ const TeamMember = (props: OwnProps) => {
   const makeTitle = label => {
     return (
       <Kb.Box2 direction="horizontal" alignItems="center">
-        {loading && <Kb.ProgressIndicator type="Small" />}
         <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
+        {loading && <Kb.ProgressIndicator type="Small" />}
       </Kb.Box2>
     )
   }
