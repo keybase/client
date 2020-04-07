@@ -469,17 +469,13 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
       },
       pickAssetButton: Styles.platformStyles({
-        common: {
-          maxWidth: '100%',
-        },
         isMobile: {
-          //    width: Styles.globalMargins.xlarge * 3,
+          width: Styles.globalMargins.xlarge * 3,
           //    paddingTop: Styles.globalMargins.tiny,
         },
       }),
       // We need this to make the PickAssetButton on top of other stuff so amount
       // error can extend below it.
-      pickAssetButtonOverlayInner: {position: 'relative'},
       pickAssetButtonOverlayOuter: {
         position: 'relative',
         flexShrink: 0,
