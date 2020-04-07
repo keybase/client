@@ -8,6 +8,7 @@ import * as Container from '../../util/container'
 import * as FsTypes from '../../constants/types/fs'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
+import {AliasInput, Modal} from './common'
 import {pluralize} from '../../util/string'
 import useRPC from '../../util/use-rpc'
 import pickFiles from '../../util/pick-files'
@@ -17,6 +18,7 @@ const pickEmojisPromise = () => pickFiles('Select emoji images to upload')
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
+  onChange?: () => void
   teamID: TeamsTypes.TeamID // not supported yet
 }
 type RoutableProps = Container.RouteProps<Props>
@@ -31,7 +33,8 @@ const useDoAddEmojis = (
   conversationIDKey: ChatTypes.ConversationIDKey,
   emojisToAdd: Array<EmojiToAdd>,
   setErrors: (errors: Map<string, string>) => void,
-  removeFilePath: (toRemove: Set<string> | string) => void
+  removeFilePath: (toRemove: Set<string> | string) => void,
+  onChange?: () => void
 ) => {
   const dispatch = Container.useDispatch()
   const addEmojisRpc = useRPC(RPCChatGen.localAddEmojisRpcPromise)
@@ -56,6 +59,7 @@ const useDoAddEmojis = (
 
               if (!failedFilenamesKeys.length) {
                 dispatch(RouteTreeGen.createClearModals())
+                onChange?.()
               }
 
               res.successFilenames && removeFilePath(new Set(res.successFilenames))
@@ -77,7 +81,7 @@ const useDoAddEmojis = (
   return {bannerError, doAddEmojis, waitingAddEmojis}
 }
 
-const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey) => {
+const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () => void) => {
   const [filePaths, setFilePaths] = React.useState<Array<string>>([])
 
   const [aliasMap, setAliasMap] = React.useState(new Map<string, string>())
@@ -124,7 +128,8 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey) => {
     conversationIDKey,
     emojisToAdd,
     setErrors,
-    removeFilePath
+    removeFilePath,
+    onChange
   )
 
   return {
@@ -138,16 +143,19 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey) => {
   }
 }
 
-const debug = false
+const debug = true
 
 export const AddEmojiModal = (props: Props) => {
   const {addFiles, bannerError, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} = useStuff(
-    props.conversationIDKey
+    props.conversationIDKey,
+    props.onChange
   )
   const pick = () => pickEmojisPromise().then(addFiles)
   return !emojisToAdd.length ? (
     <Modal
-      bannerError=""
+      title="Add emoji"
+      bannerImage="icon-illustration-emoji-add-460-96"
+      desktopHeight={537}
       footerButtonLabel={Styles.isMobile ? 'Choose Images' : debug ? 'Add for debug' : undefined}
       footerButtonOnClick={
         Styles.isMobile
@@ -161,7 +169,10 @@ export const AddEmojiModal = (props: Props) => {
     </Modal>
   ) : (
     <Modal
+      title="Add emoji"
       bannerError={bannerError}
+      bannerImage="icon-illustration-emoji-add-460-96"
+      desktopHeight={537}
       footerButtonLabel="Add emoji"
       footerButtonOnClick={doAddEmojis}
       footerButtonWaiting={waitingAddEmojis}
@@ -179,70 +190,8 @@ export default (routableProps: RoutableProps) => {
     ChatConstants.noConversationIDKey
   )
   const teamID = Container.getRouteProps(routableProps, 'teamID', TeamsTypes.noTeamID)
-  return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} />
-}
-
-type ModalProps = {
-  bannerError: string
-  children: React.ReactNode
-  footerButtonLabel?: string
-  footerButtonOnClick?: () => void
-  footerButtonWaiting?: boolean
-  backButtonOnClick?: () => void
-}
-
-const Modal = (props: ModalProps) => {
-  const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
-  return (
-    <Kb.PopupWrapper onCancel={onCancel} title="Add emoji">
-      <Kb.Box2
-        direction="vertical"
-        fullHeight={Styles.isMobile}
-        fullWidth={Styles.isMobile}
-        style={styles.container}
-      >
-        {!Styles.isMobile && (
-          <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.headerContainer}>
-            {props.backButtonOnClick && (
-              <Kb.Icon
-                type="iconfont-arrow-left"
-                boxStyle={styles.backButton}
-                onClick={props.backButtonOnClick}
-              />
-            )}
-            <Kb.Text type="Header">Add emoji</Kb.Text>
-          </Kb.Box2>
-        )}
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer}>
-          <Kb.Icon type="icon-illustration-emoji-add-460-96" noContainer={true} style={styles.bannerImage} />
-          {!!props.bannerError && (
-            <Kb.Banner color="red" style={styles.bannerError}>
-              {props.bannerError}
-            </Kb.Banner>
-          )}
-        </Kb.Box2>
-        {props.children}
-        {props.footerButtonLabel && props.footerButtonOnClick && (
-          <Kb.Box2
-            direction="vertical"
-            centerChildren={true}
-            style={styles.footerContainer}
-            gap="small"
-            fullWidth={true}
-          >
-            <Kb.Button
-              mode="Primary"
-              label={props.footerButtonLabel}
-              fullWidth={true}
-              onClick={props.footerButtonOnClick}
-              waiting={props.footerButtonWaiting}
-            />
-          </Kb.Box2>
-        )}
-      </Kb.Box2>
-    </Kb.PopupWrapper>
-  )
+  const onChange = Container.getRouteProps(routableProps, 'onChange', undefined)
+  return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} onChange={onChange} />
 }
 
 const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
@@ -348,31 +297,23 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
     </Kb.Box2>
   ) : (
     <Kb.Box2
-      direction="vertical"
+      direction="horizontal"
+      gap="xsmall"
       fullWidth={true}
-      gap="xxtiny"
       style={Styles.collapseStyles([
         styles.emojiToAddRow,
         item.emojiToAdd.error && styles.emojiToAddRowWithError,
       ])}
     >
-      <Kb.Box2 direction="horizontal" gap="xsmall" fullWidth={true}>
-        <Kb.Box style={styles.emojiToAddImageContainer}>
-          <Kb.Image src={item.emojiToAdd.path} style={styles.emojiToAddImage} />
-        </Kb.Box>
-        <Kb.NewInput
-          error={!!item.emojiToAdd.error}
-          textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
-          value={`:${item.emojiToAdd.alias}:`}
-          containerStyle={styles.aliasInput}
-          onChangeText={newText => item.emojiToAdd.onChangeAlias(newText.replace(/:/g, ''))}
-        />
-      </Kb.Box2>
-      {!!item.emojiToAdd.error && (
-        <Kb.Text type="BodySmallError" style={styles.errorText}>
-          {item.emojiToAdd.error}
-        </Kb.Text>
-      )}
+      <Kb.Box style={styles.emojiToAddImageContainer}>
+        <Kb.Image src={item.emojiToAdd.path} style={styles.emojiToAddImage} />
+      </Kb.Box>
+      <AliasInput
+        error={item.emojiToAdd.error}
+        alias={item.emojiToAdd.alias}
+        onChangeAlias={item.emojiToAdd.onChangeAlias}
+        small={true}
+      />
     </Kb.Box2>
   )
 
@@ -460,54 +401,6 @@ const styles = Styles.styleSheetCreate(() => ({
       width: Styles.globalMargins.large,
     },
   }),
-  aliasInput: Styles.platformStyles({
-    common: {
-      flexGrow: 1,
-      height: '100%',
-    },
-    isElectron: {
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-  }),
-  backButton: {
-    left: Styles.globalMargins.xsmall,
-    position: 'absolute',
-  },
-  bannerContainer: {
-    height: Styles.globalMargins.xlarge + Styles.globalMargins.mediumLarge,
-    position: 'relative',
-  },
-  bannerError: Styles.platformStyles({
-    common: {
-      position: 'absolute',
-    },
-  }),
-  bannerImage: Styles.platformStyles({
-    common: {
-      height: '100%',
-      width: '100%',
-    },
-    isElectron: {
-      objectFit: 'cover',
-    },
-    isMobile: {
-      resizeMode: 'cover',
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      position: 'relative',
-    },
-    isElectron: {
-      height: 537,
-      width: 400,
-    },
-  }),
   contentContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexGrow,
@@ -568,27 +461,6 @@ const styles = Styles.styleSheetCreate(() => ({
   emojiToAddRowWithError: {
     height: emojiToAddRowHeightWithError,
   },
-  errorText: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.mediumLarge + Styles.globalMargins.xsmall,
-    },
-    isMobile: {
-      marginLeft: Styles.globalMargins.large + Styles.globalMargins.xsmall,
-    },
-  }),
-  footerContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-    },
-    isMobile: {
-      padding: Styles.globalMargins.small,
-    },
-  }),
-  headerContainer: Styles.platformStyles({
-    isElectron: {
-      height: Styles.globalMargins.large + Styles.globalMargins.tiny,
-    },
-  }),
   textChooseAlias: {
     marginBottom: Styles.globalMargins.tiny,
   },

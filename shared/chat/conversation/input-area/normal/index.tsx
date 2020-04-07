@@ -15,7 +15,7 @@ import Giphy from '../../giphy/container'
 import ReplyPreview from '../../reply-preview/container'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {emojiIndex, emojiNameMap} from '../../messages/react-button/emoji-picker/data'
-import {EmojiData, RPCToEmojiData} from '../../../../util/emoji'
+import {emojiDataToRenderableEmoji, renderEmoji, EmojiData, RPCToEmojiData} from '../../../../util/emoji'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
@@ -120,26 +120,24 @@ const suggestorKeyExtractors = {
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 
-const emojiRenderer = (item: EmojiData, selected: boolean) => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={true}
-    style={Styles.collapseStyles([
-      styles.suggestionBase,
-      {
-        backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-      },
-    ])}
-    gap="small"
-  >
-    {item.source ? (
-      <Kb.CustomEmoji size="MediumLarge" src={item.source} />
-    ) : (
-      <Kb.Emoji emojiName={item.short_name} size={24} />
-    )}
-    <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
-  </Kb.Box2>
-)
+const emojiRenderer = (item: EmojiData, selected: boolean) => {
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={Styles.collapseStyles([
+        styles.suggestionBase,
+        {
+          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
+        },
+      ])}
+      gap="small"
+    >
+      {renderEmoji(emojiDataToRenderableEmoji(item), 24)}
+      <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
+    </Kb.Box2>
+  )
+}
 const emojiTransformer = (emoji: EmojiData, _: unknown, tData: TransformerData, preview: boolean) => {
   return standardTransformer(`:${emoji.short_name}:`, tData, preview)
 }
@@ -375,7 +373,7 @@ class Input extends React.Component<InputProps, InputState> {
     emojiData = emojiData.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
 
     if (this.props.userEmojis) {
-      let userEmoji = this.props.userEmojis
+      const userEmoji = this.props.userEmojis
         .filter(emoji => emoji.alias.toLowerCase().includes(filter))
         .map(emoji => RPCToEmojiData(emoji))
       emojiData = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(emojiData)

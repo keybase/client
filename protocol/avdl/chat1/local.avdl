@@ -1400,21 +1400,30 @@ protocol local {
     union { null, RateLimit } rateLimit;
   }
   AddEmojiRes addEmoji(ConversationID convID, string alias, string filename, boolean allowOverwrite);
+
   record AddEmojisRes {
     union { null, RateLimit } rateLimit;
     array<string> successFilenames;
     map<string, string> failedFilenames; // filename => error message
   }
   AddEmojisRes addEmojis(ConversationID convID, array<string> aliases, array<string> filenames, array<boolean> allowOverwrite);
-  AddEmojiRes addEmojiAlias(ConversationID convID, string newAlias, string existingAlias);
-   record RemoveEmojiRes {
+
+  record AddEmojiAliasRes {
+    union { null, RateLimit } rateLimit;
+    union {null, string} errorString;
+  }
+  AddEmojiAliasRes addEmojiAlias(ConversationID convID, string newAlias, string existingAlias);
+
+  record RemoveEmojiRes {
     union { null, RateLimit } rateLimit;
   }
   RemoveEmojiRes removeEmoji(ConversationID convID, string alias);
+
   record UserEmojiRes {
     UserEmojis emojis;
     union { null, RateLimit } rateLimit;
   }
+
   record EmojiFetchOpts {
     boolean getCreationInfo;
     boolean getAliases;

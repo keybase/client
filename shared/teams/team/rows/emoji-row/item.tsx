@@ -1,35 +1,69 @@
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as ChatTypes from '../../../../constants/types/chat2'
+import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
+import * as RPCChatGen from '../../../../constants/types/rpc-chat-gen'
 import * as dateFns from 'date-fns'
+import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
+import useRPC from '../../../../util/use-rpc'
 import EmojiMenu from './emoji-menu'
+
 type OwnProps = {
+  conversationIDKey: ChatTypes.ConversationIDKey
   emoji: RPCChatTypes.Emoji
+  reloadEmojis: () => void
 }
 
-const ItemRow = ({emoji}: OwnProps) => {
+const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
+  const emojiData = RPCToEmojiData(emoji)
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const onAddAlias = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [
+          {
+            props: {conversationIDKey, defaultSelected: emojiData, onChange: reloadEmojis},
+            selected: 'teamAddEmojiAlias',
+          },
+        ],
+      })
+    )
+
+  const canManageEmoji = true
+  const removeRpc = useRPC(RPCChatGen.localRemoveEmojiRpcPromise)
+  const doRemove = canManageEmoji
+    ? () => {
+        removeRpc(
+          [
+            {
+              alias: emojiData.short_name,
+              convID: ChatTypes.keyToConversationID(conversationIDKey),
+            },
+          ],
+          () => reloadEmojis(),
+          err => {
+            throw err
+          }
+        )
+      }
+    : undefined
+
   const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <EmojiMenu
       attachTo={attachTo}
-      canManageEmoji={true}
       visible={showingPopup}
-      onEditAlias={() => null}
-      onAddAlias={() => null}
-      onRemove={() => null}
+      onAddAlias={onAddAlias}
+      onRemove={doRemove}
       onHidden={() => setShowingPopup(false)}
     />
   ))
 
   return (
     <Kb.ListItem2
-      icon={
-        emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.httpsrv ? (
-          <Kb.CustomEmoji size="Big" src={emoji.source.httpsrv} />
-        ) : (
-          <Kb.Emoji emojiName={emoji.source.str} size={32} />
-        )
-      }
+      icon={renderEmoji(emojiDataToRenderableEmoji(RPCToEmojiData(emoji)), 32)}
       type="Large"
       body={
         <Kb.Box2

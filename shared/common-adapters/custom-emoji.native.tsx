@@ -12,13 +12,6 @@ const Kb = {
   WithTooltip,
 }
 
-const emojiTypes = {
-  Big: 32,
-  Medium: 24,
-  MediumLarge: 24,
-  Small: 20,
-}
-
 const CustomEmoji = (props: Props) => {
   const {size, src} = props
   return (
@@ -26,8 +19,8 @@ const CustomEmoji = (props: Props) => {
       <Kb.Image
         src={src}
         style={{
-          height: emojiTypes[size],
-          width: emojiTypes[size],
+          height: size,
+          width: size,
         }}
       />
     </Kb.Box2>

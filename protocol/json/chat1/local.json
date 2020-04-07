@@ -4030,6 +4030,26 @@
     },
     {
       "type": "record",
+      "name": "AddEmojiAliasRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "errorString"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "RemoveEmojiRes",
       "fields": [
         {
@@ -6058,7 +6078,7 @@
           "type": "string"
         }
       ],
-      "response": "AddEmojiRes"
+      "response": "AddEmojiAliasRes"
     },
     "removeEmoji": {
       "request": [
