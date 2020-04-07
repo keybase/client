@@ -309,6 +309,11 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 				versionTag,
 				"nightly",
 			)
+			pushCmd.Env = append(
+				pushCmd.Env,
+				"DOCKERHUB_USERNAME="+c.dockerUsername,
+				"DOCKERHUB_PASSWORD="+c.dockerPassword,
+			)
 			pushCmd.Stdout = nil
 			pushCmd.Stderr = nil
 			pushOutput, err := pushCmd.CombinedOutput()
@@ -341,6 +346,11 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			"./packaging/linux/docker/build.sh",
 			versionTag,
 			"release",
+		)
+		pushCmd.Env = append(
+			pushCmd.Env,
+			"DOCKERHUB_USERNAME="+c.dockerUsername,
+			"DOCKERHUB_PASSWORD="+c.dockerPassword,
 		)
 		pushCmd.Stdout = nil
 		pushCmd.Stderr = nil
