@@ -7,6 +7,7 @@ import * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {memoize} from '../../../util/memoize'
 import {Section} from '../../../common-adapters/section-list'
+import {formatDurationLong} from '../../../util/timestamp'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 
@@ -93,12 +94,17 @@ const InviteItem = React.memo(
     const dispatch = Container.useDispatch()
     const yourUsername = Container.useSelector(s => s.config.username)
     const onExpire = () => dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLink.id, teamID}))
+
+    const duration = formatDurationLong(new Date(), new Date(inviteLink.expirationTime * 1000))
+    // TODO Y2K-1715 - when expired we should show how long the invite link was valid for.
+    const expireText = inviteLink.expired ? `Expired ${duration} ago` : `Expires in ${duration}`
+
     return (
       <Kb.Box2 direction="vertical" style={styles.inviteContainer} gap="xtiny">
         <Kb.CopyText text={inviteLink.url} />
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySmall">
-            Invites as {inviteLink.role} • Expires at {inviteLink.expirationTime}
+            Invites as {inviteLink.role} • {expireText}
           </Kb.Text>
           <Kb.Text type="BodySmall">
             Created by{' '}
@@ -125,9 +131,11 @@ const InviteItem = React.memo(
               </Kb.Text>
             )}
           </Kb.Text>
-          <Kb.Text type="BodySmallPrimaryLink" onClick={onExpire}>
-            Expire now
-          </Kb.Text>
+          {!inviteLink.expired && (
+            <Kb.Text type="BodySmallPrimaryLink" onClick={onExpire}>
+              Expire now
+            </Kb.Text>
+          )}
         </Kb.Box2>
       </Kb.Box2>
     )
