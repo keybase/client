@@ -1381,15 +1381,9 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
 function* loadTeamTree(
   _: TypedState,
   action: TeamsGen.LoadTeamTreePayload,
-  logger: Saga.SagaLogger
+  _logger: Saga.SagaLogger
 ) {
-  const {teamID, username} = action.payload
-
-  // Spawn a request to the service.
-  yield RPCTypes.teamsLoadTeamTreeMembershipsRpcPromise({
-    teamID,
-    username,
-  })
+  yield RPCTypes.teamsLoadTeamTreeMembershipsRpcPromise(action.payload)
 }
 
 function* loadTreeTeamActivity(

@@ -2144,7 +2144,7 @@ func mustCreateSubteam(t *testing.T, tc *libkb.TestContext,
 }
 
 func loadTeamTree(t *testing.T, tmctx libkb.MetaContext, notifications *teamNotifyHandler,
-	teamID keybase1.TeamID, username string, converter teams.ITreeloaderStateConverter,
+	teamID keybase1.TeamID, username string, converter teams.TreeloaderStateConverter,
 	teamFailures []string) ([]keybase1.TeamTreeMembership, error) {
 	var err error
 	if converter == nil {
@@ -2195,9 +2195,9 @@ func checkTeamTreeResults(t *testing.T, expected map[string]keybase1.TeamRole,
 		len(results), "got right number of results back")
 	m := make(map[string]struct{})
 	for _, result := range results {
-		_, alreadyExists := m[result.TeamName.String()]
+		_, alreadyExists := m[result.TeamName]
 		require.False(t, alreadyExists, "got a duplicate got %s", result.TeamName.String())
-		m[result.TeamName.String()] = struct{}{}
+		m[result.TeamName] = struct{}{}
 		s, err := result.Result.S()
 		require.NoError(t, err)
 

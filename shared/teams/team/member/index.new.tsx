@@ -31,19 +31,18 @@ type TeamTreeRowNotIn = {
   canAdminister: boolean
 }
 type TeamTreeRowIn = {
-  key: string
   lastActivity: number
   role: Types.TeamRoleType
 } & TeamTreeRowNotIn
 
-const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
+const getMemberships = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
   const errors: Array<RPCTypes.TeamTreeMembership> = []
-  const subteamsNotIn: Array<TeamTreeRowNotIn> = []
-  const subteamsIn: Array<TeamTreeRowIn> = []
+  const nodesNotIn: Array<TeamTreeRowNotIn> = []
+  const nodesIn: Array<TeamTreeRowIn> = []
 
   const memberships = state.teams.teamMemberToTreeMemberships.get(teamID)?.get(username)
   if (!memberships) {
-    return {subteamsIn, subteamsNotIn, errors}
+    return {nodesIn, nodesNotIn, errors}
   }
 
   for (const membership of memberships.memberships) {
@@ -68,22 +67,21 @@ const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, u
       )
 
       if (sparseMemberInfo) {
-        subteamsIn.push({
+        nodesIn.push({
           role: sparseMemberInfo.type,
-          key: `member:${username}:${teamname}`,
           lastActivity: 0,
           ...row
         })
       } else {
-        subteamsNotIn.push(row)
+        nodesNotIn.push(row)
       }
     } else if (RPCTypes.TeamTreeMembershipStatus.error == membership.result.s) {
       errors.push(membership)
     }
   }
   return {
-    subteamsIn,
-    subteamsNotIn,
+    nodesIn,
+    nodesNotIn,
     errors,
   }
 }
@@ -115,8 +113,8 @@ const TeamMember = (props: OwnProps) => {
     dispatch(TeamsGen.createLoadTeamTree({teamID, username}))
   }, [teamID, username, dispatch])
   // TODO this will keep thrasing
-  const {subteamsIn, subteamsNotIn, errors} = Container.useSelector(state =>
-    getSubteamsInNotIn(state, teamID, username)
+  const {nodesIn, nodesNotIn, errors} = Container.useSelector(state =>
+    getMemberships(state, teamID, username)
   )
 
   const [expandedSet, setExpandedSet] = React.useState(
@@ -135,16 +133,14 @@ const TeamMember = (props: OwnProps) => {
       )
   }
 
-  const subteamsInSection: Section = {
-    data: subteamsIn,
-    key: 'section-subteams',
+  const nodesInSection: Section = {
+    data: nodesIn,
+    key: 'section-nodes',
     renderItem: ({item, index}: {item: TeamTreeRowIn; index: number}) => (
-      <SubteamInRow
+      <NodeInRow
         teamID={teamID}
-        subteam={item}
-        membership={item}
+        node={item}
         idx={index}
-        isMe={isMe}
         username={username}
         expanded={expandedSet.has(item.teamID)}
         setExpanded={newExpanded => {
@@ -160,18 +156,18 @@ const TeamMember = (props: OwnProps) => {
     title: makeTitle(isMe ? 'You are in:' : `${username} is in:`),
   }
 
-  const subteamsNotInSection = {
-    data: subteamsNotIn,
-    key: 'section-add-subteams',
+  const nodesNotInSection = {
+    data: nodesNotIn,
+    key: 'section-add-nodes',
     renderItem: ({item, index}: {item: TeamTreeRowNotIn; index: number}) => (
-      <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} isMe={isMe}/>
+      <NodeNotInRow teamID={teamID} node={item} idx={index} username={username}/>
     ),
     title: makeTitle(isMe ? "You are not in:" : `${username} is not in:`),
   }
 
   const sections = [
-    ...(subteamsIn.length > 0 ? [subteamsInSection] : []),
-    ...(subteamsNotIn.length > 0 ? [subteamsNotInSection] : []),
+    ...(nodesIn.length > 0 ? [nodesInSection] : []),
+    ...(nodesNotIn.length > 0 ? [nodesNotInSection] : []),
   ]
   return (
     <>
@@ -192,7 +188,7 @@ const TeamMember = (props: OwnProps) => {
 
           const failedAt = [error.teamName]
           if (error.result.error.willSkipSubtree) {
-            failedAt.push("its subteams")
+            failedAt.push("its nodes")
           }
           if (error.result.error.willSkipAncestors) {
             failedAt.push("its parent teams")
@@ -241,22 +237,28 @@ TeamMember.navigationOptions = (ownProps: OwnProps) => ({
   ),
 })
 
-type SubteamNotInRowProps = {
+// type BaseTeamProps = {
+//   idx: number
+//   teamNode: TeamTreeMem
+//   teamID: Types.TeamID
+//   is
+// }
+
+type NodeNotInRowProps = {
   idx: number
-  subteam: TeamTreeRowNotIn
+  node: TeamTreeRowNotIn
   teamID: Types.TeamID
-  isMe: boolean
   username: string
 }
-const SubteamNotInRow = (props: SubteamNotInRowProps) => {
+const NodeNotInRow = (props: NodeNotInRowProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onAddWaitingKey = Constants.addMemberWaitingKey(props.subteam.teamID, props.username)
+  const onAddWaitingKey = Constants.addMemberWaitingKey(props.node.teamID, props.username)
   const onAdd = (role: Types.TeamRoleType) =>
     dispatch(
       TeamsGen.createAddToTeam({
         sendChatNotification: true,
-        teamID: props.subteam.teamID,
+        teamID: props.node.teamID,
         users: [{assertion: props.username, role}],
       })
     )
@@ -264,27 +266,27 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
     () =>
       dispatch(
         nav.safeNavigateAppendPayload({
-          path: [{props: {teamID: props.subteam.teamID}, selected: 'team'}],
+          path: [{props: {teamID: props.node.teamID}, selected: 'team'}],
         })
       ),
-    [props.subteam.teamID, dispatch, nav]
+    [props.node.teamID, dispatch, nav]
   )
 
   const disabledRoles = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, props.subteam.teamID, props.username)
+    Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
   )
 
   const [role, setRole] = React.useState<Types.TeamRoleType>('writer')
   const [open, setOpen] = React.useState(false)
 
-  const memberCount = props.subteam.memberCount ?? -1
+  const memberCount = props.node.memberCount ?? -1
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowCollapsedFixedHeight}>
       {props.idx !== 0 && <Kb.Divider />}
 
       {/* Placed here so that it doesn't generate any gaps */}
-      <TeamDetailsSubscriber teamID={props.subteam.teamID} />
+      <TeamDetailsSubscriber teamID={props.node.teamID} />
 
       <Kb.Box2
         direction="horizontal"
@@ -303,7 +305,7 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
             styles.contentCollapsedFixedHeight,
           ])}
         >
-          <Kb.Avatar teamname={props.subteam.teamname} size={32} />
+          <Kb.Avatar teamname={props.node.teamname} size={32} />
           <Kb.Box2
             direction="vertical"
             alignItems="flex-start"
@@ -314,7 +316,7 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
             ])}
           >
             <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
-              {props.subteam.teamname}
+              {props.node.teamname}
             </Kb.Text>
             <Kb.Text type="BodySmall">
               {memberCount.toLocaleString()} {pluralize('member', memberCount)}
@@ -322,7 +324,7 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
           </Kb.Box2>
         </Kb.Box2>
 
-        {props.subteam.canAdminister && (
+        {props.node.canAdminister && (
         <Kb.Box2 direction="horizontal" alignSelf="center">
           <FloatingRolePicker
             onConfirm={() => {
@@ -347,13 +349,16 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
   )
 }
 
-type SubteamInRowProps = SubteamNotInRowProps & {
+type NodeInRowProps = NodeNotInRowProps & {
+  idx: number
+  node: TeamTreeRowIn
+  teamID: Types.TeamID
+  username: string
   expanded: boolean
-  membership: TeamTreeRowIn
   setExpanded: (b: boolean) => void
 }
-const SubteamInRow = (props: SubteamInRowProps) => {
-  const {channelMetas, loadingChannels} = useAllChannelMetas(props.subteam.teamID)
+const NodeInRow = (props: NodeInRowProps) => {
+  const {channelMetas, loadingChannels} = useAllChannelMetas(props.node.teamID)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -362,50 +367,51 @@ const SubteamInRow = (props: SubteamInRowProps) => {
       nav.safeNavigateAppendPayload({
         path: [
           {
-            props: {teamID: props.subteam.teamID, username: props.username},
+            props: {teamID: props.node.teamID, username: props.username},
             selected: 'teamAddToChannels',
           },
         ],
       })
     )
-  const onKickOutWaitingKey = Constants.removeMemberWaitingKey(props.subteam.teamID, props.username)
+  const onKickOutWaitingKey = Constants.removeMemberWaitingKey(props.node.teamID, props.username)
   const onKickOut = () =>
-    dispatch(TeamsGen.createRemoveMember({teamID: props.subteam.teamID, username: props.username}))
+    dispatch(TeamsGen.createRemoveMember({teamID: props.node.teamID, username: props.username}))
 
   const openTeam = React.useCallback(
     () =>
       dispatch(
         nav.safeNavigateAppendPayload({
-          path: [{props: {teamID: props.subteam.teamID}, selected: 'team'}],
+          path: [{props: {teamID: props.node.teamID}, selected: 'team'}],
         })
       ),
-    [props.subteam.teamID, dispatch, nav]
+    [props.node.teamID, dispatch, nav]
   )
 
   const {expanded, setExpanded} = props
 
-  const [role, setRole] = React.useState<Types.TeamRoleType>(props.membership.role)
+  const [role, setRole] = React.useState<Types.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
   const onChangeRole = (role: Types.TeamRoleType) => {
-    dispatch(TeamsGen.createEditMembership({role, teamID: props.subteam.teamID, username: props.username}))
+    dispatch(TeamsGen.createEditMembership({role, teamID: props.node.teamID, username: props.username}))
     setOpen(false)
   }
   const disabledRoles = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, props.subteam.teamID, props.username)
+    Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
   )
-  const amLastOwner = Container.useSelector(state => Constants.isLastOwner(state, props.subteam.teamID))
+  const amLastOwner = Container.useSelector(state => Constants.isLastOwner(state, props.node.teamID))
+  const isMe = props.username == Container.useSelector(state => state.config.username)
   const changingRole = Container.useAnyWaiting(
-    Constants.editMembershipWaitingKey(props.subteam.teamID, props.username)
+    Constants.editMembershipWaitingKey(props.node.teamID, props.username)
   )
   const loadingActivity = Container.useAnyWaiting(
-    Constants.loadteamTreeActivityWaitingKey(props.subteam.teamID, props.username)
+    Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 
   const channelsJoined = Array.from(channelMetas)
     .map(([_, {channelname}]) => channelname)
     .join(', #')
 
-  const rolePicker = props.subteam.canAdminister ?  (
+  const rolePicker = props.node.canAdminister ?  (
     <FloatingRolePicker
       selectedRole={role}
       onSelectRole={setRole}
@@ -419,7 +425,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
         containerStyle={Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
         loading={changingRole}
         onClick={() => setOpen(true)}
-        selectedRole={props.membership.role}
+        selectedRole={props.node.role}
       />
     </FloatingRolePicker>
     ) : (<></>)
@@ -430,7 +436,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
         {props.idx !== 0 && <Kb.Divider />}
 
         {/* Placed here so that it doesn't generate any gaps */}
-        <TeamDetailsSubscriber teamID={props.subteam.teamID} />
+        <TeamDetailsSubscriber teamID={props.node.teamID} />
 
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
           <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.expandIcon])}>
@@ -462,7 +468,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                   expanded && styles.membershipContentExpanded,
                 ])}
               >
-                <Kb.Avatar teamname={props.subteam.teamname} size={32} />
+                <Kb.Avatar teamname={props.node.teamname} size={32} />
                 <Kb.Box2
                   direction="vertical"
                   alignItems="flex-start"
@@ -473,11 +479,11 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                   ])}
                 >
                   <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
-                    {props.subteam.teamname}
+                    {props.node.teamname}
                   </Kb.Text>
-                  {!!props.membership.joinTime && (
+                  {!!props.node.joinTime && (
                     <Kb.Text type="BodySmall">
-                      Joined {formatTimeForTeamMember(props.membership.joinTime)}
+                      Joined {formatTimeForTeamMember(props.node.joinTime)}
                     </Kb.Text>
                   )}
                 </Kb.Box2>
@@ -493,8 +499,8 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                   <Kb.Text type="BodySmall">
                     {loadingActivity
                       ? 'Loading activity...'
-                      : props.membership.lastActivity
-                      ? `Active ${formatTimeRelativeToNow(props.membership.lastActivity)}`
+                      : props.node.lastActivity
+                      ? `Active ${formatTimeRelativeToNow(props.node.lastActivity)}`
                       : 'No activity'}
                   </Kb.Text>
                 </Kb.Box2>
@@ -523,7 +529,7 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                   </Kb.Text>
                 </Kb.Box2>
               )}
-              {expanded && (props.subteam.canAdminister||props.isMe) && (
+              {expanded && (props.node.canAdminister||isMe) && (
                 <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
                   <Kb.Button
                     mode="Secondary"
@@ -531,13 +537,13 @@ const SubteamInRow = (props: SubteamInRowProps) => {
                     label="Add to channels"
                     small={true}
                   />
-                  {(!(props.isMe && amLastOwner)) && (
+                  {(!(isMe && amLastOwner)) && (
                   <Kb.WaitingButton
                     mode="Secondary"
-                    icon={props.isMe ? "iconfont-leave" : "iconfont-block"}
+                    icon={isMe ? "iconfont-leave" : "iconfont-block"}
                     type="Danger"
                     onClick={onKickOut}
-                    label={props.isMe ? "Leave" : "Kick out"}
+                    label={isMe ? "Leave" : "Kick out"}
                     small={true}
                     waitingKey={onKickOutWaitingKey}
                   />

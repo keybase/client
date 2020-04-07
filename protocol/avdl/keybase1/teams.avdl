@@ -1632,7 +1632,7 @@ protocol teams {
   enum TeamTreeMembershipStatus {
     OK_0,
     ERROR_1,
-  HIDDEN_2
+    HIDDEN_2
   }
   record TeamTreeError {
     string message;
@@ -1654,7 +1654,7 @@ protocol teams {
     string teamName;
     TeamTreeMembershipResult result;
 
-    // bookkeeping params
+    // bookkeeping params; 'target' refers to the initial request
     TeamID targetTeamID;
     string targetUsername;
     int guid;
@@ -1662,7 +1662,7 @@ protocol teams {
   record TeamTreeMembershipsDoneResult {
     int expectedCount;
 
-    // bookkeeping params
+    // bookkeeping params; 'target' refers to the initial request
     TeamID targetTeamID;
     string targetUsername;
     int guid;
