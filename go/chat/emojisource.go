@@ -7,6 +7,7 @@ import (
 	"image/gif"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -501,6 +502,11 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 	}
 	if err := s.putAliasLookup(ctx, uid, aliasLookup); err != nil {
 		s.Debug(ctx, "Get: failed to put alias lookup: %s", err)
+	}
+	for _, group := range res.Emojis {
+		sort.Slice(group.Emojis, func(i, j int) bool {
+			return group.Emojis[i].Alias < group.Emojis[j].Alias
+		})
 	}
 	return res, nil
 }
