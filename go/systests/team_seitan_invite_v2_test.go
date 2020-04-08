@@ -10,6 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Parametrized high-level tests (using team service API and gregor handler)
+// for Seitan V1 and Seitan V2.
+
 func TestTeamInviteSeitanHappy(t *testing.T) {
 	testTeamInviteSeitanHappy(t, false /* implicitAdmin */, teams.SeitanVersion1)
 	testTeamInviteSeitanHappy(t, false /* implicitAdmin */, teams.SeitanVersion2)
@@ -100,6 +103,14 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanVersion t
 	require.Len(t, details.AnnotatedActiveInvites, 0)
 }
 
+func TestTeamInviteSeitanPuklessV1(t *testing.T) {
+	testTeamInviteSeitanPukless(t, teams.SeitanVersion1)
+}
+
+func TestTeamInviteSeitanPuklessV2(t *testing.T) {
+	testTeamInviteSeitanPukless(t, teams.SeitanVersion2)
+}
+
 func testTeamInviteSeitanPukless(t *testing.T, seitanVersion teams.SeitanVersion) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -165,12 +176,4 @@ func testTeamInviteSeitanPukless(t *testing.T, seitanVersion teams.SeitanVersion
 	role, err := teamObj.MemberRole(context.Background(), cass.userVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_WRITER, role)
-}
-
-func TestTeamInviteSeitanPuklessV1(t *testing.T) {
-	testTeamInviteSeitanPukless(t, teams.SeitanVersion1)
-}
-
-func TestTeamInviteSeitanPuklessV2(t *testing.T) {
-	testTeamInviteSeitanPukless(t, teams.SeitanVersion2)
 }

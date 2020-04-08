@@ -428,7 +428,6 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 	require.NoError(t, err)
 
 	teamName, teamID := createTeam2(tc)
-
 	t.Logf("Created team %q", teamName.String())
 
 	token, err := CreateSeitanTokenV2(context.Background(), tc.G,
@@ -453,11 +452,12 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 	sikey2, err := ikey2.GenerateSIKey()
 	require.NoError(t, err)
 	now := keybase1.ToTime(time.Now())
-	_, maliciousPayload, err := sikey2.GenerateSignature(user2.GetUID(), user2.EldestSeqno, inviteID, now)
+	badSig, badEncoded, err := sikey2.GenerateSignature(user2.GetUID(), user2.EldestSeqno, inviteID, now)
 	require.NoError(t, err)
 
 	err = postSeitanV2(tc.MetaContext(), acceptedSeitanV2{
-		encoded:  maliciousPayload,
+		sig:      badSig,
+		encoded:  badEncoded,
 		now:      now,
 		inviteID: SCTeamInviteID(inviteID),
 	})
@@ -475,7 +475,7 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 			InviteID:    teamInviteID,
 			Uid:         user2.GetUID(),
 			EldestSeqno: user2.EldestSeqno,
-			Akey:        keybase1.SeitanAKey(maliciousPayload),
+			Akey:        keybase1.SeitanAKey(badEncoded),
 			Role:        keybase1.TeamRole_WRITER,
 			UnixCTime:   int64(now),
 		}},
