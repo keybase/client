@@ -129,7 +129,7 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 		stored.Mapping = make(map[string]chat1.EmojiRemoteSource)
 	}
 	if _, ok := stored.Mapping[alias]; ok && !allowOverwrite {
-		return res, fmt.Errorf("%q already exists, must specify --allow-overwrite to edit", alias)
+		return res, errors.New("alias already exists, must specify --allow-overwrite to edit")
 	}
 
 	sender := NewBlockingSender(s.G(), NewBoxer(s.G()), s.ri)
@@ -170,8 +170,8 @@ func (s *DevConvEmojiSource) validateShortName(shortName string) error {
 		return errors.New("cannot use existing stock emoji short name")
 	}
 	if len(shortName) > maxShortNameLength || len(shortName) < minShortNameLength {
-		return fmt.Errorf("short name %q (length %d) not within bounds %d,%d",
-			shortName, len(shortName), minShortNameLength, maxShortNameLength)
+		return fmt.Errorf("short name (length %d) not within bounds %d,%d",
+			len(shortName), minShortNameLength, maxShortNameLength)
 	}
 	if strings.Contains(shortName, "#") {
 		return errors.New("invalid character in emoji alias")
@@ -281,7 +281,7 @@ func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, conv
 			Time:     gregor1.ToTime(s.G().GetClock().Now()),
 		})
 	} else {
-		return res, fmt.Errorf("%q is not a valid existing custom emoji or stock emoji", existingAlias)
+		return res, fmt.Errorf("alias is not a valid existing custom emoji or stock emoji")
 	}
 	if stored.Mapping == nil {
 		stored.Mapping = make(map[string]chat1.EmojiRemoteSource)
