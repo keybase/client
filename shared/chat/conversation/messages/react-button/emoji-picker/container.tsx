@@ -9,17 +9,20 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../styles'
 import * as Data from './data'
-import debounce from 'lodash/debounce'
 import startCase from 'lodash/startCase'
+import debounce from 'lodash/debounce'
 import SkinTonePicker from './skin-tone-picker'
-import EmojiPicker, {addSkinToneIfAvailable} from '.'
-import {EmojiData} from '../../../../../util/emoji'
+import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
+import {emojiDataToRenderableEmoji, renderEmoji, EmojiData, RenderableEmoji} from '../../../../../util/emoji'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  hideFrequentEmoji?: boolean
+  small?: boolean
+  onlyTeamCustomEmoji?: boolean
   onDidPick?: () => void
   onPickAddToMessageOrdinal?: Types.Ordinal
-  onPickAction?: (emoji: string) => void
+  onPickAction?: (emoji: string, renderableEmoji: RenderableEmoji) => void
 }
 
 type RoutableProps = Container.RouteProps<Props>
@@ -28,8 +31,8 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
   const topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
   const [filter, setFilter] = React.useState('')
   const dispatch = Container.useDispatch()
-  const onAddReaction = React.useCallback(
-    (emoji: string) => {
+  const onChoose = React.useCallback(
+    (emoji: string, renderableEmoji: RenderableEmoji) => {
       if (conversationIDKey !== Constants.noConversationIDKey && onPickAddToMessageOrdinal) {
         dispatch(
           Chat2Gen.createToggleMessageReaction({
@@ -39,14 +42,14 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
           })
         )
       }
-      onPickAction?.(emoji)
+      onPickAction?.(emoji, renderableEmoji)
       onDidPick?.()
     },
     [dispatch, conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal]
   )
   return {
     filter,
-    onAddReaction,
+    onChoose,
     setFilter,
     topReacjis,
   }
@@ -66,13 +69,13 @@ const useSkinTone = () => {
   )
   return {currentSkinTone, setSkinTone}
 }
-const useCustomReacji = (conversationIDKey: Types.ConversationIDKey) => {
+const useCustomReacji = (conversationIDKey: Types.ConversationIDKey, onlyInTeam: boolean | undefined) => {
   const customEmojiGroups = Container.useSelector(s => s.chat2.userEmojis)
   const waiting = Container.useSelector(s => Container.anyWaiting(s, Constants.waitingKeyLoadingEmoji))
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey, onlyInTeam}))
+  }, [conversationIDKey, dispatch, onlyInTeam])
   return {customEmojiGroups, waiting}
 }
 
@@ -90,8 +93,8 @@ const goToAddEmoji = (dispatch: Container.Dispatch, conversationIDKey: Types.Con
 }
 
 const WrapperMobile = (props: Props) => {
-  const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
-  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
+  const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
+  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey, props.onlyTeamCustomEmoji)
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
   const {currentSkinTone, setSkinTone} = useSkinTone()
@@ -123,11 +126,12 @@ const WrapperMobile = (props: Props) => {
       <EmojiPicker
         topReacjis={topReacjis}
         filter={filter}
-        onChoose={onAddReaction}
-        customSections={customEmojiGroups}
+        onChoose={onChoose}
+        customEmojiGroups={customEmojiGroups}
         waitingForEmoji={waiting}
         width={width}
         skinTone={currentSkinTone}
+        hideFrequentEmoji={props.hideFrequentEmoji ?? false}
       />
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.footerContainer}>
         <SkinTonePicker
@@ -136,7 +140,7 @@ const WrapperMobile = (props: Props) => {
           setSkinTone={setSkinTone}
         />
         <Kb.Box style={Styles.globalStyles.flexOne} />
-        {!skinTonePickerExpanded && (
+        {!props.small && !skinTonePickerExpanded && (
           <Kb.Button
             mode="Secondary"
             small={true}
@@ -151,10 +155,10 @@ const WrapperMobile = (props: Props) => {
 }
 
 export const EmojiPickerDesktop = (props: Props) => {
-  const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
+  const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
-  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
+  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey, props.onlyTeamCustomEmoji)
   const dispatch = Container.useDispatch()
   const addEmoji = () => {
     props.onDidPick?.()
@@ -163,7 +167,11 @@ export const EmojiPickerDesktop = (props: Props) => {
 
   return (
     <Kb.Box
-      style={Styles.collapseStyles([styles.containerDesktop, styles.contain])}
+      style={Styles.collapseStyles([
+        styles.containerDesktop,
+        styles.contain,
+        props.small && styles.containerDesktopSmall,
+      ])}
       onClick={e => e.stopPropagation()}
       gap="tiny"
     >
@@ -186,37 +194,41 @@ export const EmojiPickerDesktop = (props: Props) => {
       <EmojiPicker
         topReacjis={topReacjis}
         filter={filter}
-        onChoose={onAddReaction}
+        onChoose={onChoose}
         onHover={setHoveredEmoji}
         width={336}
         skinTone={currentSkinTone}
-        customSections={customEmojiGroups}
+        customEmojiGroups={customEmojiGroups}
         waitingForEmoji={waiting}
+        hideFrequentEmoji={props.hideFrequentEmoji ?? false}
       />
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        alignItems="center"
-        style={styles.footerContainer}
-        gap="small"
-      >
-        {hoveredEmoji.source ? (
-          <Kb.CustomEmoji size="Big" src={hoveredEmoji.source} alias={hoveredEmoji.short_name} />
-        ) : (
-          <Kb.Emoji size={36} emojiName={addSkinToneIfAvailable(hoveredEmoji, currentSkinTone)} />
-        )}
-        <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
-          <Kb.Text type="BodyBig" lineClamp={1}>
-            {hoveredEmoji.source
-              ? hoveredEmoji.short_name
-              : startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
-          </Kb.Text>
-          <Kb.Text type="BodySmall" lineClamp={1}>
-            {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
-          </Kb.Text>
+      {!props.small && (
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems="center"
+          style={styles.footerContainer}
+          gap="small"
+        >
+          {renderEmoji(
+            emojiDataToRenderableEmoji(
+              hoveredEmoji,
+              getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
+            ),
+            36,
+            false
+          )}
+          <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+            <Kb.Text type="BodyBig" lineClamp={1}>
+              {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
+            </Kb.Text>
+            <Kb.Text type="BodySmall" lineClamp={1}>
+              {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
+            </Kb.Text>
+          </Kb.Box2>
+          <Kb.Button mode="Secondary" label="Add emoji" onClick={addEmoji} style={styles.addEmojiButton} />
         </Kb.Box2>
-        <Kb.Button mode="Secondary" label="Add emoji" onClick={addEmoji} style={styles.addEmojiButton} />
-      </Kb.Box2>
+      )}
     </Kb.Box>
   )
 }
@@ -249,6 +261,10 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 336,
         minHeight: 561,
         width: 336,
+      },
+      containerDesktopSmall: {
+        height: 250,
+        minHeight: 250,
       },
       footerContainer: Styles.platformStyles({
         common: {
@@ -289,6 +305,7 @@ export const Routable = (routableProps: RoutableProps) => {
     'conversationIDKey',
     Constants.noConversationIDKey
   )
+  const small = Container.getRouteProps(routableProps, 'small', undefined)
   const onPickAction = Container.getRouteProps(routableProps, 'onPickAction', undefined)
   const onPickAddToMessageOrdinal = Container.getRouteProps(
     routableProps,
@@ -307,6 +324,7 @@ export const Routable = (routableProps: RoutableProps) => {
   return (
     <WrapperMobile
       conversationIDKey={conversationIDKey}
+      small={small}
       onPickAction={onPickAction}
       onPickAddToMessageOrdinal={onPickAddToMessageOrdinal}
       onDidPick={onDidPick}

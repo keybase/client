@@ -185,6 +185,14 @@ func (g *gregorTestConnection) DismissItem(ctx context.Context, cli gregor1.Inco
 	return gregor1.IncomingClient{Cli: g.cli}.ConsumeMessage(ctx, msg.(gregor1.Message))
 }
 
+func (g *gregorTestConnection) DismissCategory(ctx context.Context, cat gregor1.Category) error {
+	msg, err := grutils.FormMessageForDismissCategory(ctx, g.uid, cat)
+	if err != nil {
+		return err
+	}
+	return gregor1.IncomingClient{Cli: g.cli}.ConsumeMessage(ctx, msg.(gregor1.Message))
+}
+
 func (g *gregorTestConnection) InjectItem(ctx context.Context, cat string, body []byte,
 	dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
 	msg, err := grutils.FormMessageForInjectItem(ctx, g.uid, cat, body, dtime)
@@ -464,6 +472,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.UIThreadLoader = NewUIThreadLoader(g, func() chat1.RemoteInterface { return ri })
 	g.ParticipantsSource = NewCachingParticipantSource(g, func() chat1.RemoteInterface { return ri })
 	g.EmojiSource = NewDevConvEmojiSource(g, func() chat1.RemoteInterface { return ri })
+	g.EphemeralTracker = NewEphemeralTracker(g)
+	g.EphemeralTracker.Start(context.TODO(), uid)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -7311,7 +7321,7 @@ func TestReacjiStore(t *testing.T) {
 
 		expectedData := storage.NewReacjiInternalStorage()
 		for _, el := range storage.DefaultTopReacjis {
-			expectedData.FrequencyMap[el] = 0
+			expectedData.FrequencyMap[el.Name] = 0
 		}
 		conv := mustCreateConversationForTest(t, ctc, user, chat1.TopicType_CHAT, mt)
 		// if the user has no history we return the default list
@@ -7321,30 +7331,32 @@ func TestReacjiStore(t *testing.T) {
 		// post a bunch of reactions, we should end up with these reactions
 		// replacing the defaults sorted alphabetically (since they tie on
 		// being used once each)
-		reactionKeys := []string{
-			":a:",
-			":8ball:",
-			":3rd_place_medal:",
-			":2nd_place_medal:",
-			":1st_place_medal:",
-			":1234:",
-			":100:",
+		reactionKeys := []keybase1.UserReacji{
+			{Name: ":third_place_medal:"},
+			{Name: ":second_place_medal:"},
+			{Name: ":first_place_medal:"},
+			{Name: ":a:"},
+			{Name: ":8ball:"},
+			{Name: ":1234:"},
+			{Name: ":100:"},
 		}
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		textID := mustPostLocalForTest(t, ctc, user, conv, msg)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 		expected := keybase1.UserReacjis{}
 		for i, reaction := range reactionKeys {
-			expectedData.FrequencyMap[reaction]++
-			mustReactToMsg(ctx, t, ctc, user, conv, textID, reaction)
+			expectedData.FrequencyMap[reaction.Name]++
+			mustReactToMsg(ctx, t, ctc, user, conv, textID, reaction.Name)
 			consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
 			info := consumeReactionUpdate(t, listener)
-			expected.TopReacjis = append([]string{reaction}, expected.TopReacjis...)
+			t.Logf("DEBUG: info: %+v", info.UserReacjis)
+			expected.TopReacjis = append([]keybase1.UserReacji{reaction}, expected.TopReacjis...)
 			if i < 5 {
 				// remove defaults as user values are added
-				name := storage.DefaultTopReacjis[len(storage.DefaultTopReacjis)-i-1]
-				delete(expectedData.FrequencyMap, name)
-				expected.TopReacjis = append(expected.TopReacjis, storage.DefaultTopReacjis...)[:len(storage.DefaultTopReacjis)]
+				top := storage.DefaultTopReacjis[len(storage.DefaultTopReacjis)-i-1]
+				delete(expectedData.FrequencyMap, top.Name)
+				expected.TopReacjis = append(expected.TopReacjis,
+					storage.DefaultTopReacjis...)[:len(storage.DefaultTopReacjis)]
 			}
 			assertReacjiStore(info.UserReacjis, expected, expectedData)
 		}

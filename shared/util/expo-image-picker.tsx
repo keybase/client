@@ -62,3 +62,10 @@ export const launchImageLibraryAsync = (
     )
   )
 }
+export type ImagePickerResult = ImagePicker.ImagePickerResult
+export type ImageInfo = {
+  uri: string
+  width: number
+  height: number
+  type?: 'image' | 'video'
+}

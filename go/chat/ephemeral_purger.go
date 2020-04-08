@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -115,9 +114,8 @@ type BackgroundEphemeralPurger struct {
 	// used to prevent concurrent modifications to `pq`
 	queueLock sync.Mutex
 
-	uid     gregor1.UID
-	pq      *priorityQueue
-	storage *storage.Storage
+	uid gregor1.UID
+	pq  *priorityQueue
 
 	started    bool
 	shutdownCh chan struct{}
@@ -129,11 +127,10 @@ type BackgroundEphemeralPurger struct {
 
 var _ types.EphemeralPurger = (*BackgroundEphemeralPurger)(nil)
 
-func NewBackgroundEphemeralPurger(g *globals.Context, storage *storage.Storage) *BackgroundEphemeralPurger {
+func NewBackgroundEphemeralPurger(g *globals.Context) *BackgroundEphemeralPurger {
 	return &BackgroundEphemeralPurger{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "BackgroundEphemeralPurger", false),
-		storage:      storage,
 		delay:        500 * time.Millisecond,
 		clock:        clockwork.NewRealClock(),
 	}
@@ -236,7 +233,7 @@ func (b *BackgroundEphemeralPurger) initQueue(ctx context.Context) {
 	b.pq = newPriorityQueue()
 	heap.Init(b.pq)
 
-	allPurgeInfo, err := b.storage.GetAllPurgeInfo(ctx, b.uid)
+	allPurgeInfo, err := b.G().EphemeralTracker.GetAllPurgeInfo(ctx, b.uid)
 	if err != nil {
 		b.Debug(ctx, "unable to get purgeInfo: %v", allPurgeInfo)
 	}

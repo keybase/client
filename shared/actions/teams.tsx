@@ -58,7 +58,7 @@ const showTeamAfterCreation = (action: TeamsGen.TeamCreatedPayload) => {
       ? []
       : [
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
+            path: [{props: {createdTeam: true, teamID}, selected: 'profileEditAvatar'}],
           }),
         ]),
   ]
@@ -558,7 +558,7 @@ const loadTeam = async (state: TypedState, action: TeamsGen.LoadTeamPayload, log
 
   try {
     const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
-    return TeamsGen.createTeamLoaded({details: Constants.annotatedTeamToDetails(team), teamID})
+    return TeamsGen.createTeamLoaded({team, teamID})
   } catch (e) {
     logger.error(e.message)
     return
@@ -679,30 +679,31 @@ function* getTeams(
   }
 }
 
-const getActivityForTeams = async (
-  action: TeamsGen.GetTeamsPayload | ConfigGen.LoadOnStartPayload,
-  logger: Saga.SagaLogger
-) => {
-  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
-    return
-  }
+const getActivityForTeams = async (_: TeamsGen.GetActivityForTeamsPayload, logger: Saga.SagaLogger) => {
   try {
     const results = await RPCChatTypes.localGetLastActiveForTeamsRpcPromise()
-    const teams = new Map(
-      Object.entries(results.teams).map(([teamID, status]) => [
-        teamID,
-        Constants.lastActiveStatusToActivityLevel[status],
-      ])
+    const teams = Object.entries(results.teams).reduce<Map<Types.TeamID, Types.ActivityLevel>>(
+      (res, [teamID, status]) => {
+        if (status === RPCChatTypes.LastActiveStatus.none) {
+          return res
+        }
+        res.set(teamID, Constants.lastActiveStatusToActivityLevel[status])
+        return res
+      },
+      new Map()
     )
-    const channels = new Map(
-      Object.entries(results.channels).map(([conversationIDKey, status]) => [
-        conversationIDKey,
-        Constants.lastActiveStatusToActivityLevel[status],
-      ])
-    )
-    return TeamsGen.createSetActivityLevels({levels: {channels, teams}})
+    const channels = Object.entries(results.channels).reduce<
+      Map<ChatTypes.ConversationIDKey, Types.ActivityLevel>
+    >((res, [conversationIDKey, status]) => {
+      if (status === RPCChatTypes.LastActiveStatus.none) {
+        return res
+      }
+      res.set(conversationIDKey, Constants.lastActiveStatusToActivityLevel[status])
+      return res
+    }, new Map())
+    return TeamsGen.createSetActivityLevels({levels: {channels, loaded: true, teams}})
   } catch (e) {
-    logger.error(e)
+    logger.warn(e)
   }
   return
 }
@@ -1428,12 +1429,12 @@ const startNewTeamWizard = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard1TeamPurpose'}]})
 const setTeamWizardTeamType = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
-const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescriptionPayload) =>
+const setTeamWizardNameDescription = () =>
   RouteTreeGen.createNavigateAppend({
     path: [
       {
-        props: {createdTeam: true, teamname: action.payload.teamname, wizard: true},
-        selected: 'teamEditTeamAvatar',
+        props: {createdTeam: true, teamID: Types.newTeamWizardTeamID, wizard: true},
+        selected: 'profileEditAvatar',
       },
     ],
   })
@@ -1506,7 +1507,7 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<
     ConfigGen.LoadOnStartPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload
   >([ConfigGen.loadOnStart, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams)
-  yield* Saga.chainAction([ConfigGen.loadOnStart, TeamsGen.getTeams], getActivityForTeams)
+  yield* Saga.chainAction(TeamsGen.getActivityForTeams, getActivityForTeams)
   yield* Saga.chainGenerator<TeamsGen.SaveChannelMembershipPayload>(
     TeamsGen.saveChannelMembership,
     saveChannelMembership

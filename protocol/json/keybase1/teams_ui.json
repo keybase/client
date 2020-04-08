@@ -28,6 +28,19 @@
         }
       ],
       "response": "boolean"
+    },
+    "confirmInviteLinkAccept": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "details",
+          "type": "InviteLinkDetails"
+        }
+      ],
+      "response": "boolean"
     }
   },
   "namespace": "keybase.1"

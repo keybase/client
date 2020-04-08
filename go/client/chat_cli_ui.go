@@ -307,15 +307,29 @@ func (c *ChatCLIUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearch
 }
 
 func (c *ChatCLIUI) ChatSearchTeamHits(ctx context.Context, arg chat1.ChatSearchTeamHitsArg) error {
-	if c.noOutput {
+	if c.noOutput || len(arg.Hits.Hits) == 0 {
 		return nil
 	}
+	_ = c.terminal.Output("\n")
 	for _, hit := range arg.Hits.Hits {
 		_ = c.terminal.Output(fmt.Sprintf("Team: %s found with matching name\n", hit.Name))
 		if !hit.InTeam {
 			_ = c.terminal.Output(fmt.Sprintf("\tYou can join this open team with `keybase team request-access %s`\n", hit.Name))
 		}
 	}
+	_ = c.terminal.Output("\n")
+	return nil
+}
+
+func (c *ChatCLIUI) ChatSearchBotHits(ctx context.Context, arg chat1.ChatSearchBotHitsArg) error {
+	if c.noOutput || len(arg.Hits.Hits) == 0 {
+		return nil
+	}
+	_ = c.terminal.Output("\nTo add a bot see `keybase chat add-bot-member --help`\n")
+	for _, hit := range arg.Hits.Hits {
+		_ = c.terminal.Output(fmt.Sprintf("\tBot: %s found with matching name\n", hit.DisplayName()))
+	}
+	_ = c.terminal.Output("\n")
 	return nil
 }
 

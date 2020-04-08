@@ -980,6 +980,8 @@ func (b MessageBody) SearchableText() string {
 		return b.Flip().Text
 	case MessageType_UNFURL:
 		return b.Unfurl().SearchableText()
+	case MessageType_SYSTEM:
+		return b.System().String()
 	default:
 		return ""
 	}
@@ -2561,6 +2563,19 @@ func (r *AddEmojisRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *AddEmojisRes) SetRateLimits(rl []RateLimit) {
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
+}
+
+func (r *AddEmojiAliasRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *AddEmojiAliasRes) SetRateLimits(rl []RateLimit) {
 	if len(rl) > 0 {
 		r.RateLimit = &rl[0]
 	}

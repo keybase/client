@@ -7,8 +7,8 @@ import RetentionWarning from './team/settings-tab/retention/warning/container'
 import TeamDeleteTeam from './delete-team/container'
 import DeleteChannel from './confirm-modals/delete-channel'
 import TeamAddEmoji from './emojis/add-emoji'
+import TeamAddEmojiAlias from './emojis/add-alias'
 import TeamEditChannel from './channel'
-import TeamEditTeamAvatar from '../profile/edit-avatar/container'
 import TeamEditTeamDescription from './edit-team-description'
 import TeamEditWelcomeMessage from './edit-team-welcome-message'
 import TeamInviteByEmail from './invite-by-email/container'
@@ -32,6 +32,7 @@ import TeamAddToTeamPhone from './add-members-wizard/add-phone'
 import TeamAddToTeamEmail from './add-members-wizard/add-email'
 import TeamAddToTeamContacts from './add-members-wizard/add-contacts.native'
 import TeamAddToTeamConfirm from './add-members-wizard/confirm'
+import TeamInviteHistory from './team/invites/invite-history'
 import Team from './team'
 import ExternalTeam from './external-team'
 import flags from '../util/feature-flags'
@@ -81,6 +82,9 @@ export const newModalRoutes = {
   teamAddEmoji: {
     getScreen: (): typeof TeamAddEmoji => require('./emojis/add-emoji').default,
   },
+  teamAddEmojiAlias: {
+    getScreen: (): typeof TeamAddEmojiAlias => require('./emojis/add-alias').default,
+  },
   teamAddToChannels: {
     getScreen: (): typeof TeamAddToChannels => require('./team/member/add-to-channels').default,
   },
@@ -88,9 +92,6 @@ export const newModalRoutes = {
     getScreen: (): typeof DeleteChannel => require('./confirm-modals/delete-channel').default,
   },
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
-  teamEditTeamAvatar: {
-    getScreen: (): typeof TeamEditTeamAvatar => require('../profile/edit-avatar/container').default,
-  },
   teamEditTeamDescription: {
     getScreen: (): typeof TeamEditTeamDescription => require('./edit-team-description').default,
   },
@@ -102,6 +103,9 @@ export const newModalRoutes = {
   },
   teamInviteByEmail: {
     getScreen: (): typeof TeamInviteByEmail => require('./invite-by-email/container').default,
+  },
+  teamInviteHistory: {
+    getScreen: (): typeof TeamInviteHistory => require('./team/invites/invite-history').default,
   },
   teamJoinTeamDialog: {
     getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default,

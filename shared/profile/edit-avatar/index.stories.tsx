@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import * as Types from '../../constants/types/teams'
 import EditAvatar from '.'
 
 const provider = Sb.createPropProviderWithCommon()
@@ -12,9 +11,9 @@ const props = {
   onSave: Sb.action('onSave'),
   onSkip: Sb.action('onSkip'),
   submitting: false,
-  teamID: Types.noTeamID,
+  type: 'profile' as const,
   waitingKey: 'dummyWaitingKey',
-  wizard: false,
+  wizard: false as const,
 }
 
 const load = () => {

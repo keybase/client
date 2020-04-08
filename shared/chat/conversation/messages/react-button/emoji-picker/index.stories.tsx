@@ -1,11 +1,12 @@
 import * as React from 'react'
+import * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import {Box, Box2, NewInput} from '../../../../../common-adapters'
 import {action, storiesOf} from '../../../../../stories/storybook'
 import ChooseEmoji from '.'
 import {defaultTopReacjis} from '../../../../../constants/chat2'
 
 class WithFilter extends React.Component<
-  {topReacjis: Array<string>},
+  {topReacjis: Array<RPCTypes.UserReacji>},
   {
     filter: string
   }
@@ -20,6 +21,7 @@ class WithFilter extends React.Component<
           width={300}
           filter={this.state.filter}
           topReacjis={this.props.topReacjis}
+          hideFrequentEmoji={false}
         />
       </Box2>
     )
@@ -30,7 +32,12 @@ const load = () =>
   storiesOf('Chat/Emoji picker', module)
     .addDecorator(story => <Box style={{height: 400, overflow: 'hidden', width: 300}}>{story()}</Box>)
     .add('Default', () => (
-      <ChooseEmoji onChoose={action('onChoose')} width={300} topReacjis={defaultTopReacjis} />
+      <ChooseEmoji
+        onChoose={action('onChoose')}
+        width={300}
+        topReacjis={defaultTopReacjis}
+        hideFrequentEmoji={false}
+      />
     ))
     .add('Custom filter', () => <WithFilter topReacjis={defaultTopReacjis} />)
     .add('No top reacjis', () => <WithFilter topReacjis={[]} />)

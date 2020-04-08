@@ -101,10 +101,23 @@ export type TeamMeta = {
   teamname: string
 }
 
+export type InviteLink = {
+  creatorUsername: string
+  expirationTime: number // unix time
+  expired: boolean
+  id: string
+  lastJoinedUsername: string
+  maxUses: number
+  numUses: number
+  role: TeamRoleType
+  url: string
+}
+
 export type TeamDetails = {
   members: Map<string, MemberInfo>
   settings: TeamSettings2
   invites: Set<InviteInfo>
+  inviteLinks: Set<InviteLink>
   subteams: Set<TeamID>
   requests: Set<JoinRequest>
   description: string
@@ -188,6 +201,7 @@ export type ChannelNameID = {
 export type ActivityLevels = {
   channels: Map<ConversationIDKey, ActivityLevel>
   teams: Map<TeamID, ActivityLevel>
+  loaded: boolean
 }
 
 export type State = {

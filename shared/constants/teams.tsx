@@ -186,7 +186,7 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
 export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, username: ''}
 
 const emptyState: Types.State = {
-  activityLevels: {channels: new Map(), teams: new Map()},
+  activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
@@ -726,42 +726,65 @@ export const teamListToMeta = (
   )
 }
 
-export const annotatedInvitesToInviteInfo = (
-  invites: Array<RPCTypes.AnnotatedTeamInvite>
-): Array<Types.InviteInfo> =>
-  Object.values(invites).reduce<Array<Types.InviteInfo>>((arr, invite) => {
-    const role = teamRoleByEnum[invite.invite.role]
-    if (!role || role === 'none') {
-      return arr
-    }
+type InviteDetails = {inviteLinks: Set<Types.InviteLink>; invites: Set<Types.InviteInfo>}
+const annotatedInvitesToInviteDetails = (
+  invitesData: Array<RPCTypes.AnnotatedTeamInvite> = []
+): InviteDetails =>
+  invitesData.reduce<InviteDetails>(
+    (invitesAndLinks, invite) => {
+      const {invites, inviteLinks} = invitesAndLinks
+      const role = teamRoleByEnum[invite.invite.role]
+      if (!role || role === 'none') {
+        return invitesAndLinks
+      }
 
-    let username = ''
-    if (invite.invite.type.c === RPCTypes.TeamInviteCategory.sbs) {
-      username = invite.displayName
-    }
-    arr.push({
-      email: invite.invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.displayName : '',
-      id: invite.invite.id,
-      name: [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink].includes(
-        invite.invite.type.c
-      )
-        ? invite.displayName
-        : '',
-      phone: invite.invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.displayName : '',
-      role,
-      username,
-    })
-    return arr
-  }, [])
+      if (invite.invite.type.c === RPCTypes.TeamInviteCategory.invitelink) {
+        const lastJoinedUsername = invite.usedInvites
+          ? invite.usedInvites[invite.usedInvites.length - 1]?.username
+          : ''
+        inviteLinks.add({
+          creatorUsername: invite.inviterUsername,
+          expirationTime: invite.invite.etime ?? 0,
+          expired: Date.now() / 1000 > (invite.invite.etime ?? 0), // TODO Y2K-1715 get from invite
+          id: invite.invite.id,
+          lastJoinedUsername,
+          maxUses: invite.invite.maxUses ?? 0,
+          numUses: invite.usedInvites?.length ?? 0,
+          role,
+          url: invite.displayName,
+        })
+      } else {
+        let username = ''
+        if (invite.invite.type.c === RPCTypes.TeamInviteCategory.sbs) {
+          username = invite.displayName
+        }
+        invites.add({
+          email: invite.invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.displayName : '',
+          id: invite.invite.id,
+          name: [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink].includes(
+            invite.invite.type.c
+          )
+            ? invite.displayName
+            : '',
+          phone: invite.invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.displayName : '',
+          role,
+          username,
+        })
+      }
+      return invitesAndLinks
+    },
+    {inviteLinks: new Set(), invites: new Set()}
+  )
 
-export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
+export const emptyTeamDetails: Types.TeamDetails = {
   description: '',
+  inviteLinks: new Set(),
   invites: new Set(),
   members: new Map(),
   requests: new Set(),
   settings: {open: false, openJoinAs: 'reader', tarsDisabled: false, teamShowcased: false},
   subteams: new Set(),
-} as Types.TeamDetails)
+}
 
 export const emptyTeamSettings = Object.freeze(emptyTeamDetails.settings)
 
@@ -783,8 +806,8 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
     })
   })
   return {
+    ...annotatedInvitesToInviteDetails(t.invites ?? undefined),
     description: t.showcase.description ?? '',
-    invites: t.invites ? new Set(annotatedInvitesToInviteInfo(t.invites)) : new Set(),
     members,
     requests: t.joinRequests ? new Set(t.joinRequests) : new Set(),
     settings: {

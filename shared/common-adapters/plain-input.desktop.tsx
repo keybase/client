@@ -315,7 +315,7 @@ const StyledTextArea = Styles.styled.textarea<'textarea'>(
       '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
       '&::-webkit-input-placeholder': {
         ...placeholderStyle,
-        color: props.placeholderColor || Styles.globalColors.black_50,
+        color: props.placeholderColor || Styles.globalColors.black_35,
       },
       '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
     }
@@ -330,7 +330,7 @@ const StyledInput = Styles.styled.input<'input'>(
       '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
       '&::-webkit-input-placeholder': {
         ...placeholderStyle,
-        color: props.placeholderColor || Styles.globalColors.black_50,
+        color: props.placeholderColor || Styles.globalColors.black_35,
       },
       '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
     }

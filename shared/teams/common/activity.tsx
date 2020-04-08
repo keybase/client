@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as TeamsGen from '../../actions/teams-gen'
 
 type Props = {title: string; teamID: Types.TeamID}
 
@@ -48,7 +49,7 @@ export const ModalTitle = ({title, teamID}: Props) => {
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
       <Kb.Avatar
         size={32}
-        teamname={teamname}
+        teamname={teamname === 'New team' ? '' : teamname}
         style={styles.avatar}
         isTeam={true}
         imageOverrideUrl={isNewTeamWizard ? avatarFilepath : undefined}
@@ -62,6 +63,23 @@ export const ModalTitle = ({title, teamID}: Props) => {
       </Kb.Box2>
     </Kb.Box2>
   )
+}
+
+/**
+ * Ensure activity levels are loaded
+ * @param forceLoad force a reload even if they're already loaded.
+ */
+export const useActivityLevels = (forceLoad?: boolean) => {
+  const dispatch = Container.useDispatch()
+  const activityLevelsLoaded = Container.useSelector(s => s.teams.activityLevels.loaded)
+  // keep whether we've triggered a load so we only do it once.
+  const triggeredLoad = React.useRef(false)
+  React.useEffect(() => {
+    if ((!activityLevelsLoaded || forceLoad) && !triggeredLoad.current) {
+      dispatch(TeamsGen.createGetActivityForTeams())
+      triggeredLoad.current = true
+    }
+  }, [dispatch, activityLevelsLoaded, forceLoad])
 }
 
 const styles = Styles.styleSheetCreate(() => ({

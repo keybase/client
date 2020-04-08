@@ -1563,6 +1563,7 @@ function* threadSearch(
           convID: Types.keyToConversationID(conversationIDKey),
           isRegex: false,
           matchMentions: false,
+          maxBots: 0,
           maxConvsHit: 0,
           maxConvsSearched: 0,
           maxHits: 1000,
@@ -1574,6 +1575,7 @@ function* threadSearch(
           sentBefore: 0,
           sentBy: '',
           sentTo: '',
+          skipBotCache: false,
         },
         query: query.stringValue(),
       },
@@ -1705,6 +1707,14 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
       })
     )
 
+  const onBotsHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam']) =>
+    Saga.put(
+      Chat2Gen.createInboxSearchBotsResults({
+        results: resp.hits.hits || [],
+        suggested: resp.hits.suggestedMatches,
+      })
+    )
+
   const onTextHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
     const {convID, convName, hits, query, teamType: tt, time} = resp.searchHit
     return Saga.put(
@@ -1729,6 +1739,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
   try {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
+        'chat.1.chatUi.chatSearchBotHits': onBotsHits,
         'chat.1.chatUi.chatSearchConvHits': onConvHits,
         'chat.1.chatUi.chatSearchInboxDone': onDone,
         'chat.1.chatUi.chatSearchInboxHit': onTextHit,
@@ -1744,6 +1755,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
           beforeContext: 0,
           isRegex: false,
           matchMentions: false,
+          maxBots: 10,
           maxConvsHit: Constants.inboxSearchMaxTextResults,
           maxConvsSearched: 0,
           maxHits: Constants.inboxSearchMaxTextMessages,
@@ -1758,6 +1770,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
           sentBefore: 0,
           sentBy: '',
           sentTo: '',
+          skipBotCache: false,
         },
         query: query.stringValue(),
       },
@@ -2057,7 +2070,7 @@ const onUpdateUserReacjis = (state: Container.TypedState) => {
   const reacjis: {[key: string]: number} = {}
   userReacjis.topReacjis.forEach(el => {
     i++
-    reacjis[el] = userReacjis.topReacjis.length - i
+    reacjis[el.name] = userReacjis.topReacjis.length - i
   })
 
   const {store} = require('emoji-mart')
@@ -2474,7 +2487,7 @@ const refreshMutualTeamsInConv = async (
 }
 
 const fetchUserEmoji = async (action: Chat2Gen.FetchUserEmojiPayload) => {
-  const {conversationIDKey} = action.payload
+  const {conversationIDKey, onlyInTeam} = action.payload
   const results = await RPCChatTypes.localUserEmojisRpcPromise(
     {
       convID:
@@ -2484,7 +2497,7 @@ const fetchUserEmoji = async (action: Chat2Gen.FetchUserEmojiPayload) => {
       opts: {
         getAliases: true,
         getCreationInfo: false,
-        onlyInTeam: false,
+        onlyInTeam: onlyInTeam ?? false,
       },
     },
     Constants.waitingKeyLoadingEmoji

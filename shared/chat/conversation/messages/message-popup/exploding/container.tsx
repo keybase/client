@@ -14,6 +14,7 @@ import {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
 import {MenuItems} from '../../../../../common-adapters'
 import openURL from '../../../../../util/open-url'
+import ReactionItem from '../reactionitem'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -136,6 +137,15 @@ export default Container.connect(
         })
       )
     },
+    _onReact: (emoji: string) => {
+      dispatch(
+        Chat2Gen.createToggleMessageReaction({
+          conversationIDKey: ownProps.message.conversationIDKey,
+          emoji,
+          ordinal: ownProps.message.ordinal,
+        })
+      )
+    },
     _onReply: () =>
       dispatch(
         Chat2Gen.createToggleReplyToMessage({
@@ -193,10 +203,17 @@ export default Container.connect(
     if (Container.isMobile) {
       // 'Add a reaction' is an option on mobile
       items.push({
-        icon: 'iconfont-reacji',
-        onClick: dispatchProps._onAddReaction,
-        title: 'Add a reaction',
+        title: 'Reactions',
+        unWrapped: true,
+        view: (
+          <ReactionItem
+            onHidden={ownProps.onHidden}
+            onReact={dispatchProps._onReact}
+            showPicker={dispatchProps._onAddReaction}
+          />
+        ),
       })
+      items.push('Divider')
     }
     if (message.type === 'attachment') {
       if (Container.isMobile) {

@@ -428,12 +428,17 @@ protocol chatUi {
     array<keybase1.TeamSearchItem> hits;
     boolean suggestedMatches;
   }
+  record UIChatSearchBotHits {
+    array<keybase1.FeaturedBot> hits;
+    boolean suggestedMatches;
+  }
   void chatSearchInboxStart(int sessionID);
   void chatSearchInboxHit(int sessionID, ChatSearchInboxHit searchHit);
   void chatSearchInboxDone(int sessionID, ChatSearchInboxDone res);
   void chatSearchIndexStatus(int sessionID, ChatSearchIndexStatus status);
   void chatSearchConvHits(int sessionID, UIChatSearchConvHits hits);
   void chatSearchTeamHits(int sessionID, UIChatSearchTeamHits hits);
+  void chatSearchBotHits(int sessionID, UIChatSearchBotHits hits);
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 

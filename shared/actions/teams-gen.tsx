@@ -31,6 +31,7 @@ export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const finishAddMembersWizard = 'teams:finishAddMembersWizard'
 export const finishNewTeamWizard = 'teams:finishNewTeamWizard'
+export const getActivityForTeams = 'teams:getActivityForTeams'
 export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
@@ -180,6 +181,7 @@ type _EditMembershipPayload = {
 type _EditTeamDescriptionPayload = {readonly teamID: Types.TeamID; readonly description: string}
 type _FinishAddMembersWizardPayload = void
 type _FinishNewTeamWizardPayload = void
+type _GetActivityForTeamsPayload = void
 type _GetMembersPayload = {readonly teamID: Types.TeamID}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID}
@@ -362,7 +364,7 @@ type _TeamCreatedPayload = {
   readonly teamID: Types.TeamID
   readonly teamname: string
 }
-type _TeamLoadedPayload = {readonly teamID: Types.TeamID; readonly details: Types.TeamDetails}
+type _TeamLoadedPayload = {readonly teamID: Types.TeamID; readonly team: RPCTypes.AnnotatedTeam}
 type _TeamSeenPayload = {readonly teamID: Types.TeamID}
 type _TeamSetMemberSelectedPayload = {
   readonly teamID: Types.TeamID
@@ -409,6 +411,12 @@ export const createAddMembersWizardSetDefaultChannels = (
 export const createUnsubscribeTeamList = (
   payload: _UnsubscribeTeamListPayload
 ): UnsubscribeTeamListPayload => ({payload, type: unsubscribeTeamList})
+/**
+ * Fetch activity levels.
+ */
+export const createGetActivityForTeams = (
+  payload: _GetActivityForTeamsPayload
+): GetActivityForTeamsPayload => ({payload, type: getActivityForTeams})
 /**
  * Gets the team retention policy and stores in `state.entities.teams.teamIDToRetentionPolicy`.
  */
@@ -476,7 +484,7 @@ export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSu
   type: setSubteamFilter,
 })
 /**
- * Set map of activity levels for all teams.
+ * Set map of activity levels for all teams and channels.
  */
 export const createSetActivityLevels = (payload: _SetActivityLevelsPayload): SetActivityLevelsPayload => ({
   payload,
@@ -912,6 +920,10 @@ export type FinishNewTeamWizardPayload = {
   readonly payload: _FinishNewTeamWizardPayload
   readonly type: typeof finishNewTeamWizard
 }
+export type GetActivityForTeamsPayload = {
+  readonly payload: _GetActivityForTeamsPayload
+  readonly type: typeof getActivityForTeams
+}
 export type GetMembersPayload = {readonly payload: _GetMembersPayload; readonly type: typeof getMembers}
 export type GetTeamProfileAddListPayload = {
   readonly payload: _GetTeamProfileAddListPayload
@@ -1212,6 +1224,7 @@ export type Actions =
   | EditTeamDescriptionPayload
   | FinishAddMembersWizardPayload
   | FinishNewTeamWizardPayload
+  | GetActivityForTeamsPayload
   | GetMembersPayload
   | GetTeamProfileAddListPayload
   | GetTeamRetentionPolicyPayload

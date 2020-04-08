@@ -6,6 +6,8 @@
 - [the "slim" variant](https://github.com/keybase/client/blob/master/packaging/linux/docker/slim/Dockerfile)
 - [the "node" variant (standard image based on an LTS release of Node)](https://github.com/keybase/client/blob/master/packaging/linux/docker/node/Dockerfile)
 - [the "node-slim" variant (slim image based on an LTS release of Node)](https://github.com/keybase/client/blob/master/packaging/linux/docker/node-slim/Dockerfile)
+- [the "python" variant (standard image based on Python 3.8)](https://github.com/keybase/client/blob/master/packaging/linux/docker/python/Dockerfile)
+- [the "python-slim" variant (slim image based on Python 3.8)](https://github.com/keybase/client/blob/master/packaging/linux/docker/python-slim/Dockerfile)
 
 ## Quick reference
 

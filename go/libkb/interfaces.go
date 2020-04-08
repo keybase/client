@@ -437,6 +437,7 @@ type ChatUI interface {
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
 	ChatSearchConvHits(context.Context, chat1.UIChatSearchConvHits) error
 	ChatSearchTeamHits(context.Context, chat1.UIChatSearchTeamHits) error
+	ChatSearchBotHits(context.Context, chat1.UIChatSearchBotHits) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
@@ -556,6 +557,7 @@ type GregorState interface {
 		dtime gregor1.TimeOrOffset) (res gregor1.MsgID, err error)
 	InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error)
 	DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error
+	DismissCategory(ctx context.Context, cat gregor1.Category) error
 	LocalDismissItem(ctx context.Context, id gregor.MsgID) error
 }
 

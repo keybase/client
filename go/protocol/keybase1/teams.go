@@ -3507,6 +3507,43 @@ func (o BulkRes) DeepCopy() BulkRes {
 	}
 }
 
+type InviteLinkDetails struct {
+	InviteID          TeamInviteID               `codec:"inviteID" json:"inviteID"`
+	InviterUID        UID                        `codec:"inviterUID" json:"inviterUID"`
+	InviterUsername   string                     `codec:"inviterUsername" json:"inviterUsername"`
+	InviterResetOrDel bool                       `codec:"inviterResetOrDel" json:"inviterResetOrDel"`
+	TeamID            TeamID                     `codec:"teamID" json:"teamID"`
+	TeamDesc          string                     `codec:"teamDesc" json:"teamDesc"`
+	TeamName          TeamName                   `codec:"teamName" json:"teamName"`
+	TeamNumMembers    int                        `codec:"teamNumMembers" json:"teamNumMembers"`
+	TeamAvatars       map[AvatarFormat]AvatarUrl `codec:"teamAvatars" json:"teamAvatars"`
+}
+
+func (o InviteLinkDetails) DeepCopy() InviteLinkDetails {
+	return InviteLinkDetails{
+		InviteID:          o.InviteID.DeepCopy(),
+		InviterUID:        o.InviterUID.DeepCopy(),
+		InviterUsername:   o.InviterUsername,
+		InviterResetOrDel: o.InviterResetOrDel,
+		TeamID:            o.TeamID.DeepCopy(),
+		TeamDesc:          o.TeamDesc,
+		TeamName:          o.TeamName.DeepCopy(),
+		TeamNumMembers:    o.TeamNumMembers,
+		TeamAvatars: (func(x map[AvatarFormat]AvatarUrl) map[AvatarFormat]AvatarUrl {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[AvatarFormat]AvatarUrl, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.TeamAvatars),
+	}
+}
+
 type ImplicitTeamUserSet struct {
 	KeybaseUsers    []string          `codec:"keybaseUsers" json:"keybaseUsers"`
 	UnresolvedUsers []SocialAssertion `codec:"unresolvedUsers" json:"unresolvedUsers"`
@@ -4288,6 +4325,18 @@ type TeamCreateSeitanInvitelinkArg struct {
 	Etime     *UnixTime         `codec:"etime,omitempty" json:"etime,omitempty"`
 }
 
+type TeamCreateSeitanInvitelinkWithDurationArg struct {
+	SessionID   int               `codec:"sessionID" json:"sessionID"`
+	Teamname    string            `codec:"teamname" json:"teamname"`
+	Role        TeamRole          `codec:"role" json:"role"`
+	MaxUses     TeamInviteMaxUses `codec:"maxUses" json:"maxUses"`
+	ExpireAfter *string           `codec:"expireAfter,omitempty" json:"expireAfter,omitempty"`
+}
+
+type GetInviteLinkDetailsArg struct {
+	InviteID TeamInviteID `codec:"inviteID" json:"inviteID"`
+}
+
 type TeamAddEmailsBulkArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      string   `codec:"name" json:"name"`
@@ -4469,6 +4518,8 @@ type TeamsInterface interface {
 	TeamCreateSeitanToken(context.Context, TeamCreateSeitanTokenArg) (SeitanIKey, error)
 	TeamCreateSeitanTokenV2(context.Context, TeamCreateSeitanTokenV2Arg) (SeitanIKeyV2, error)
 	TeamCreateSeitanInvitelink(context.Context, TeamCreateSeitanInvitelinkArg) (Invitelink, error)
+	TeamCreateSeitanInvitelinkWithDuration(context.Context, TeamCreateSeitanInvitelinkWithDurationArg) (Invitelink, error)
+	GetInviteLinkDetails(context.Context, TeamInviteID) (InviteLinkDetails, error)
 	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) (BulkRes, error)
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
@@ -5075,6 +5126,36 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"teamCreateSeitanInvitelinkWithDuration": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamCreateSeitanInvitelinkWithDurationArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamCreateSeitanInvitelinkWithDurationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamCreateSeitanInvitelinkWithDurationArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamCreateSeitanInvitelinkWithDuration(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getInviteLinkDetails": {
+				MakeArg: func() interface{} {
+					var ret [1]GetInviteLinkDetailsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetInviteLinkDetailsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetInviteLinkDetailsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInviteLinkDetails(ctx, typedArgs[0].InviteID)
+					return
+				},
+			},
 			"teamAddEmailsBulk": {
 				MakeArg: func() interface{} {
 					var ret [1]TeamAddEmailsBulkArg
@@ -5667,6 +5748,17 @@ func (c TeamsClient) TeamCreateSeitanTokenV2(ctx context.Context, __arg TeamCrea
 
 func (c TeamsClient) TeamCreateSeitanInvitelink(ctx context.Context, __arg TeamCreateSeitanInvitelinkArg) (res Invitelink, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanInvitelink", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) TeamCreateSeitanInvitelinkWithDuration(ctx context.Context, __arg TeamCreateSeitanInvitelinkWithDurationArg) (res Invitelink, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanInvitelinkWithDuration", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) GetInviteLinkDetails(ctx context.Context, inviteID TeamInviteID) (res InviteLinkDetails, err error) {
+	__arg := GetInviteLinkDetailsArg{InviteID: inviteID}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getInviteLinkDetails", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

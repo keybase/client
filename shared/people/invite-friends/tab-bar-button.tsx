@@ -52,7 +52,7 @@ const InviteFriends = () => {
         <Kb.Icon type="iconfont-envelope" sizeType="Small" color={Styles.globalColors.blueDarkerOrBlack_85} />
         <Kb.Text type="BodySmallBold" style={styles.counter}>
           {inviteCounts.inviteCount.toLocaleString()}{' '}
-          {inviteCounts.showFire ? <Kb.Emoji emojiName="fire" size={12} /> : null}
+          {inviteCounts.showFire ? <Kb.Emoji emojiName=":fire:" size={12} /> : null}
         </Kb.Text>
       </Kb.Box2>
     )
@@ -95,7 +95,7 @@ const InviteFriends = () => {
                 ) : null}
                 {inviteCounts.showFire ? (
                   <Kb.Text type="BodySmall" style={styles.tooltip}>
-                    Keybase servers are on fire! <Kb.Emoji emojiName="fire" size={12} />
+                    Keybase servers are on fire! <Kb.Emoji emojiName=":fire:" size={12} />
                   </Kb.Text>
                 ) : null}
               </Kb.Box2>

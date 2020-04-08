@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=keybaseio/client:latest
 FROM $BASE_IMAGE AS base
 
-FROM node:10.16.3-jessie
+FROM node:12.16.1-buster
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \

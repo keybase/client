@@ -103,9 +103,16 @@ type SearchArg struct {
 	Offset int    `codec:"offset" json:"offset"`
 }
 
+type SearchLocalArg struct {
+	Query     string `codec:"query" json:"query"`
+	Limit     int    `codec:"limit" json:"limit"`
+	SkipCache bool   `codec:"skipCache" json:"skipCache"`
+}
+
 type FeaturedBotInterface interface {
 	FeaturedBots(context.Context, FeaturedBotsArg) (FeaturedBotsRes, error)
 	Search(context.Context, SearchArg) (SearchRes, error)
+	SearchLocal(context.Context, SearchLocalArg) (SearchRes, error)
 }
 
 func FeaturedBotProtocol(i FeaturedBotInterface) rpc.Protocol {
@@ -142,6 +149,21 @@ func FeaturedBotProtocol(i FeaturedBotInterface) rpc.Protocol {
 					return
 				},
 			},
+			"searchLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]SearchLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SearchLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SearchLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SearchLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -157,5 +179,10 @@ func (c FeaturedBotClient) FeaturedBots(ctx context.Context, __arg FeaturedBotsA
 
 func (c FeaturedBotClient) Search(ctx context.Context, __arg SearchArg) (res SearchRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.featuredBot.search", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c FeaturedBotClient) SearchLocal(ctx context.Context, __arg SearchLocalArg) (res SearchRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.featuredBot.searchLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

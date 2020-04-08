@@ -4,6 +4,7 @@ import * as Kb from '../../../../../common-adapters'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
+import ReactionItem from '../reactionitem'
 
 type Props = {
   attachTo?: () => React.Component<any> | null
@@ -22,6 +23,7 @@ type Props = {
   onInstallBot?: () => void
   onKick: () => void
   onPinMessage?: () => void
+  onReact: (emoji: string) => void
   onReply?: () => void
   onReplyPrivately?: () => void
   onViewProfile?: () => void
@@ -43,6 +45,21 @@ type Props = {
 const TextPopupMenu = (props: Props) => {
   const items: Kb.MenuItems = [
     ...(props.showDivider ? (['Divider'] as const) : []),
+    ...(props.onAddReaction
+      ? [
+          {
+            unWrapped: true,
+            view: (
+              <ReactionItem
+                onHidden={props.onHidden}
+                onReact={props.onReact}
+                showPicker={props.onAddReaction}
+              />
+            ),
+          },
+          'Divider',
+        ]
+      : []),
     ...(props.onViewMap
       ? [{icon: 'iconfont-location', onClick: props.onViewMap, title: 'View on Google Maps'}]
       : []),
@@ -63,9 +80,6 @@ const TextPopupMenu = (props: Props) => {
             title: 'Install bot in another team or chat',
           },
         ]
-      : []),
-    ...(props.onAddReaction
-      ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}]
       : []),
     ...(props.onCopy ? [{icon: 'iconfont-clipboard', onClick: props.onCopy, title: 'Copy text'}] : []),
     ...(props.onCopyLink

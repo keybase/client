@@ -282,7 +282,9 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.ConvLoader = convLoader
 	g.ConvLoader.Start(context.TODO(), uid)
 
-	purger := NewBackgroundEphemeralPurger(g, chatStorage)
+	g.EphemeralTracker = NewEphemeralTracker(g)
+	g.EphemeralTracker.Start(context.TODO(), uid)
+	purger := NewBackgroundEphemeralPurger(g)
 	purger.SetClock(world.Fc)
 	g.EphemeralPurger = purger
 	g.EphemeralPurger.Start(context.TODO(), uid)

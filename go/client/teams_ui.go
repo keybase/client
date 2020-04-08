@@ -47,3 +47,17 @@ func (t *TeamsUI) ConfirmSubteamDelete(ctx context.Context, arg keybase1.Confirm
 	}
 	return strings.TrimSpace(response) == confirm, nil
 }
+
+func (t *TeamsUI) ConfirmInviteLinkAccept(ctx context.Context, arg keybase1.ConfirmInviteLinkAcceptArg) (bool, error) {
+	term := t.G().UI.GetTerminalUI()
+
+	term.Printf("%v invited to join team %v (%v members).\n", arg.Details.InviterUsername, arg.Details.TeamName, arg.Details.TeamNumMembers)
+	if len(arg.Details.TeamDesc) > 0 {
+		term.Printf("team description: %v\n", arg.Details.TeamDesc)
+	}
+	if arg.Details.InviterResetOrDel {
+		_, _ = term.PrintfUnescaped(ColorString(t.G(), "bold", "\nWARNING: %v deleted or reset their account since this invite was created.\n\n", arg.Details.InviterUsername))
+	}
+	err := term.PromptForConfirmation(fmt.Sprintf("Do you want to join team %v?", arg.Details.TeamName))
+	return err == nil, err
+}

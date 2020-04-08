@@ -203,6 +203,10 @@ export type MessageTypes = {
     inParam: {readonly teamName: String; readonly channel: String; readonly info: UIMaybeMentionInfo}
     outParam: void
   }
+  'chat.1.chatUi.chatSearchBotHits': {
+    inParam: {readonly hits: UIChatSearchBotHits}
+    outParam: void
+  }
   'chat.1.chatUi.chatSearchConvHits': {
     inParam: {readonly hits: UIChatSearchConvHits}
     outParam: void
@@ -303,8 +307,12 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID; readonly username: String; readonly botSettings?: Keybase1.TeamBotSettings | null; readonly role: Keybase1.TeamRole}
     outParam: void
   }
+  'chat.1.local.addEmojiAlias': {
+    inParam: {readonly convID: ConversationID; readonly newAlias: String; readonly existingAlias: String}
+    outParam: AddEmojiAliasRes
+  }
   'chat.1.local.addEmojis': {
-    inParam: {readonly convID: ConversationID; readonly aliases?: Array<String> | null; readonly filenames?: Array<String> | null}
+    inParam: {readonly convID: ConversationID; readonly aliases?: Array<String> | null; readonly filenames?: Array<String> | null; readonly allowOverwrite?: Array<Boolean> | null}
     outParam: AddEmojisRes
   }
   'chat.1.local.addTeamMemberAfterReset': {
@@ -535,6 +543,10 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID; readonly username: String}
     outParam: void
   }
+  'chat.1.local.removeEmoji': {
+    inParam: {readonly convID: ConversationID; readonly alias: String}
+    outParam: RemoveEmojiRes
+  }
   'chat.1.local.requestInboxLayout': {
     inParam: {readonly reselectMode: InboxLayoutReselectMode}
     outParam: void
@@ -606,6 +618,10 @@ export type MessageTypes = {
   'chat.1.local.simpleSearchInboxConvNames': {
     inParam: {readonly query: String}
     outParam: Array<SimpleSearchInboxConvNamesHit> | null
+  }
+  'chat.1.local.toggleEmojiAnimations': {
+    inParam: {readonly enabled: Boolean}
+    outParam: void
   }
   'chat.1.local.toggleMessageCollapse': {
     inParam: {readonly convID: ConversationID; readonly msgID: MessageID; readonly collapse: Boolean}
@@ -1122,6 +1138,7 @@ export enum UnfurlType {
   maps = 3,
 }
 export type AddBotConvSearchHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null}
+export type AddEmojiAliasRes = {readonly rateLimit?: RateLimit | null; readonly errorString?: String | null}
 export type AddEmojiRes = {readonly rateLimit?: RateLimit | null}
 export type AddEmojisRes = {readonly rateLimit?: RateLimit | null; readonly successFilenames?: Array<String> | null; readonly failedFilenames: {[key: string]: String}}
 export type AdvertiseBotCommandsLocalRes = {readonly rateLimits?: Array<RateLimit> | null}
@@ -1202,7 +1219,7 @@ export type DeviceInfo = {readonly deviceID: Keybase1.DeviceID; readonly deviceD
 export type DownloadAttachmentLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type DownloadFileAttachmentLocalRes = {readonly filePath: String; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type EditTarget = {readonly messageID?: MessageID | null; readonly outboxID?: OutboxID | null}
-export type Emoji = {readonly alias: String; readonly isBig: Boolean; readonly isReacji: Boolean; readonly isCrossTeam: Boolean; readonly source: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource; readonly creationInfo?: EmojiCreationInfo | null}
+export type Emoji = {readonly alias: String; readonly isBig: Boolean; readonly isReacji: Boolean; readonly isCrossTeam: Boolean; readonly source: EmojiLoadSource; readonly noAnimSource: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource; readonly creationInfo?: EmojiCreationInfo | null}
 export type EmojiContent = {readonly alias: String; readonly isCrossTeam: Boolean; readonly convID?: ConvIDStr | null; readonly messageID?: MessageID | null}
 export type EmojiCreationInfo = {readonly username: String; readonly time: Gregor1.Time}
 export type EmojiFetchOpts = {readonly getCreationInfo: Boolean; readonly getAliases: Boolean; readonly onlyInTeam: Boolean}
@@ -1403,7 +1420,7 @@ export type S3Params = {readonly bucket: String; readonly objectKey: String; rea
 export type SealedData = {readonly v: Int; readonly e: Bytes; readonly n: Bytes}
 export type SearchInboxRes = {readonly offline: Boolean; readonly res?: ChatSearchInboxResults | null; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type SearchInboxResOutput = {readonly results?: ChatSearchInboxResults | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null; readonly rateLimits?: Array<RateLimitRes> | null}
-export type SearchOpts = {readonly isRegex: Boolean; readonly sentBy: String; readonly sentTo: String; readonly matchMentions: Boolean; readonly sentBefore: Gregor1.Time; readonly sentAfter: Gregor1.Time; readonly maxHits: Int; readonly maxMessages: Int; readonly beforeContext: Int; readonly afterContext: Int; readonly initialPagination?: Pagination | null; readonly reindexMode: ReIndexingMode; readonly maxConvsSearched: Int; readonly maxConvsHit: Int; readonly convID?: ConversationID | null; readonly maxNameConvs: Int; readonly maxTeams: Int}
+export type SearchOpts = {readonly isRegex: Boolean; readonly sentBy: String; readonly sentTo: String; readonly matchMentions: Boolean; readonly sentBefore: Gregor1.Time; readonly sentAfter: Gregor1.Time; readonly maxHits: Int; readonly maxMessages: Int; readonly beforeContext: Int; readonly afterContext: Int; readonly initialPagination?: Pagination | null; readonly reindexMode: ReIndexingMode; readonly maxConvsSearched: Int; readonly maxConvsHit: Int; readonly convID?: ConversationID | null; readonly maxNameConvs: Int; readonly maxTeams: Int; readonly maxBots: Int; readonly skipBotCache: Boolean}
 export type SearchRegexpRes = {readonly offline: Boolean; readonly hits?: Array<ChatSearchHit> | null; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type SendRes = {readonly message: String; readonly messageID?: MessageID | null; readonly outboxID?: OutboxID | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null; readonly rateLimits?: Array<RateLimitRes> | null}
 export type SenderPrepareOptions = {readonly skipTopicNameState: Boolean; readonly replyTo?: MessageID | null}
@@ -1460,6 +1477,7 @@ export type UIBotCommandsUpdateStatus = {typ: UIBotCommandsUpdateStatusTyp.uptod
 export type UIChannelNameMention = {readonly name: String; readonly convID: ConvIDStr}
 export type UIChatPayment = {readonly username: String; readonly fullName: String; readonly xlmAmount: String; readonly error?: String | null; readonly displayAmount?: String | null}
 export type UIChatPaymentSummary = {readonly xlmTotal: String; readonly displayTotal: String; readonly payments?: Array<UIChatPayment> | null}
+export type UIChatSearchBotHits = {readonly hits?: Array<Keybase1.FeaturedBot> | null; readonly suggestedMatches: Boolean}
 export type UIChatSearchConvHit = {readonly convID: ConvIDStr; readonly teamType: TeamType; readonly name: String; readonly mtime: Gregor1.Time}
 export type UIChatSearchConvHits = {readonly hits?: Array<UIChatSearchConvHit> | null; readonly unreadMatches: Boolean}
 export type UIChatSearchTeamHits = {readonly hits?: Array<Keybase1.TeamSearchItem> | null; readonly suggestedMatches: Boolean}
@@ -1552,6 +1570,7 @@ export type IncomingCallMapType = {
   'chat.1.chatUi.chatSearchIndexStatus'?: (params: MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatSearchConvHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatSearchTeamHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatSearchBotHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatConfirmChannelDelete'?: (params: MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatStellarShowConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatStellarDataConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1615,6 +1634,7 @@ export type CustomResponseIncomingCallMap = {
   'chat.1.chatUi.chatSearchIndexStatus'?: (params: MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatSearchConvHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchConvHits']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatSearchTeamHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchTeamHits']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatSearchBotHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchBotHits']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatConfirmChannelDelete'?: (params: MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatStellarShowConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatStellarDataConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['outParam']) => void}) => IncomingReturn
@@ -1635,6 +1655,7 @@ export type CustomResponseIncomingCallMap = {
 }
 export const localAddBotConvSearchRpcPromise = (params: MessageTypes['chat.1.local.addBotConvSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addBotConvSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addBotConvSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAddBotMemberRpcPromise = (params: MessageTypes['chat.1.local.addBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localAddEmojiAliasRpcPromise = (params: MessageTypes['chat.1.local.addEmojiAlias']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addEmojiAlias']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addEmojiAlias', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAddEmojisRpcPromise = (params: MessageTypes['chat.1.local.addEmojis']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addEmojis']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addEmojis', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAddTeamMemberAfterResetRpcPromise = (params: MessageTypes['chat.1.local.addTeamMemberAfterReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToConv']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToConv']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1697,6 +1718,7 @@ export const localPreviewConversationByIDLocalRpcPromise = (params: MessageTypes
 export const localProfileChatSearchRpcPromise = (params: MessageTypes['chat.1.local.profileChatSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.profileChatSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.profileChatSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRefreshParticipantsRpcPromise = (params: MessageTypes['chat.1.local.refreshParticipants']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.refreshParticipants']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.refreshParticipants', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveBotMemberRpcPromise = (params: MessageTypes['chat.1.local.removeBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localRemoveEmojiRpcPromise = (params: MessageTypes['chat.1.local.removeEmoji']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeEmoji']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeEmoji', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxLayoutRpcPromise = (params: MessageTypes['chat.1.local.requestInboxLayout']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxLayout']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxLayout', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxSmallIncreaseRpcPromise = (params: MessageTypes['chat.1.local.requestInboxSmallIncrease']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallIncrease']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallIncrease', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxSmallResetRpcPromise = (params: MessageTypes['chat.1.local.requestInboxSmallReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1717,6 +1739,7 @@ export const localSetGlobalAppNotificationSettingsLocalRpcPromise = (params: Mes
 export const localSetTeamRetentionLocalRpcPromise = (params: MessageTypes['chat.1.local.setTeamRetentionLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setTeamRetentionLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setTeamRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetWelcomeMessageRpcPromise = (params: MessageTypes['chat.1.local.setWelcomeMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setWelcomeMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setWelcomeMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSimpleSearchInboxConvNamesRpcPromise = (params: MessageTypes['chat.1.local.simpleSearchInboxConvNames']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.simpleSearchInboxConvNames']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.simpleSearchInboxConvNames', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localToggleEmojiAnimationsRpcPromise = (params: MessageTypes['chat.1.local.toggleEmojiAnimations']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.toggleEmojiAnimations']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.toggleEmojiAnimations', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localToggleMessageCollapseRpcPromise = (params: MessageTypes['chat.1.local.toggleMessageCollapse']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.toggleMessageCollapse']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.toggleMessageCollapse', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUnboxMobilePushNotificationRpcPromise = (params: MessageTypes['chat.1.local.unboxMobilePushNotification']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.unboxMobilePushNotification']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.unboxMobilePushNotification', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUnpinMessageRpcPromise = (params: MessageTypes['chat.1.local.unpinMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.unpinMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.unpinMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1743,6 +1766,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.chatUi.chatSearchIndexStatus'
 // 'chat.1.chatUi.chatSearchConvHits'
 // 'chat.1.chatUi.chatSearchTeamHits'
+// 'chat.1.chatUi.chatSearchBotHits'
 // 'chat.1.chatUi.chatConfirmChannelDelete'
 // 'chat.1.chatUi.chatStellarShowConfirm'
 // 'chat.1.chatUi.chatStellarDataConfirm'
@@ -1784,9 +1808,8 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.teamIDFromTLFName'
 // 'chat.1.local.getRecentJoinsLocal'
 // 'chat.1.local.getLastActiveAtLocal'
+// 'chat.1.local.getParticipants'
 // 'chat.1.local.addEmoji'
-// 'chat.1.local.addEmojiAlias'
-// 'chat.1.local.removeEmoji'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

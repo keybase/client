@@ -54,12 +54,12 @@ func awsStringSign4(key string, date string, region string, service string, toSi
 		ret := f.Sum(nil)
 		return ret
 	}
-	kSecret := []byte("AWS4" + key)
-	kDate := mac(kSecret, []byte(date))
-	kRegion := mac(kDate, []byte(region))
-	kService := mac(kRegion, []byte(service))
-	kSigning := mac(kService, []byte("aws4_request"))
-	signedString := mac(kSigning, []byte(toSign))
+	keySecret := []byte("AWS4" + key)
+	keyDate := mac(keySecret, []byte(date))
+	keyRegion := mac(keyDate, []byte(region))
+	keyService := mac(keyRegion, []byte(service))
+	keySigning := mac(keyService, []byte("aws4_request"))
+	signedString := mac(keySigning, []byte(toSign))
 	return hex.EncodeToString(signedString)
 
 }
@@ -79,7 +79,7 @@ func s3put(src io.Reader, bucket string, name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	where := fmt.Sprintf("(fetch with: ```curl -s -o - https://%s.s3.amazonaws.com/%s | zcat -d```)", bucket, name)
+	where := fmt.Sprintf("(fetch with: ```curl -s -o - https://%s.s3.amazonaws.com/%s | zcat -d | less```)", bucket, name)
 	return where, nil
 }
 

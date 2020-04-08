@@ -1238,14 +1238,14 @@ func parseAndAcceptSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, to
 
 }
 
-func parseAndAcceptSeitanTokenInvitelink(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
+func parseAndAcceptSeitanTokenInvitelink(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, tok string) (wasSeitan bool, err error) {
 	seitan, err := ParseIKeyInvitelinkFromString(tok)
 	if err != nil {
 		g.Log.CDebugf(ctx, "ParseIKeyInvitelinkFromString error: %s", err)
 		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
 		return false, libkb.TeamInviteBadTokenError{}
 	}
-	err = AcceptSeitanInvitelink(ctx, g, seitan)
+	err = AcceptSeitanInvitelink(ctx, g, ui, seitan)
 	if err != nil {
 		return false, err
 	}
@@ -1253,7 +1253,7 @@ func parseAndAcceptSeitanTokenInvitelink(ctx context.Context, g *libkb.GlobalCon
 
 }
 
-func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
+func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, tok string) (wasSeitan bool, err error) {
 	seitanVersion, err := ParseSeitanVersion(tok)
 	if err != nil {
 		return wasSeitan, err
@@ -1264,7 +1264,7 @@ func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok 
 	case SeitanVersion2:
 		wasSeitan, err = parseAndAcceptSeitanTokenV2(ctx, g, tok)
 	case SeitanVersionInvitelink:
-		wasSeitan, err = parseAndAcceptSeitanTokenInvitelink(ctx, g, tok)
+		wasSeitan, err = parseAndAcceptSeitanTokenInvitelink(ctx, g, ui, tok)
 	default:
 		wasSeitan = false
 		err = errors.New("Invalid SeitanVersion")
@@ -1350,6 +1350,7 @@ func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey
 }
 
 func AcceptSeitanInvitelink(ctx context.Context, g *libkb.GlobalContext,
+	ui keybase1.TeamsUiInterface,
 	ikey keybase1.SeitanIKeyInvitelink) error {
 	mctx := libkb.NewMetaContext(ctx, g)
 	uv, err := g.GetMeUV(ctx)
@@ -1374,6 +1375,25 @@ func AcceptSeitanInvitelink(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	g.Log.CDebugf(ctx, "seitan invite ID: %v", inviteID)
+
+	teamInviteID, err := inviteID.TeamInviteID()
+	if err != nil {
+		return err
+	}
+	details, err := GetInviteLinkDetails(mctx, teamInviteID)
+	if err != nil {
+		g.Log.CDebugf(ctx, "failed to get invite details for %v: %v", inviteID, err)
+		return err
+	}
+	accepted, err := ui.ConfirmInviteLinkAccept(mctx.Ctx(), keybase1.ConfirmInviteLinkAcceptArg{Details: details})
+	if err != nil {
+		g.Log.CDebugf(ctx, "failed to confirm invite link %v: %v", inviteID, err)
+		return err
+	}
+	if !accepted {
+		g.Log.CDebugf(ctx, "invite link %v not accepted", inviteID)
+		return errors.New("invite acceptance not confirmed")
+	}
 
 	arg := apiArg("team/seitan_invitelink")
 	arg.Args.Add("akey", libkb.S{Val: encoded})
@@ -1550,14 +1570,14 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 	return ret, err
 }
 
-func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) (keybase1.TeamAcceptOrRequestResult, error) {
+func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, tokenOrName string) (keybase1.TeamAcceptOrRequestResult, error) {
 	g.Log.CDebugf(ctx, "trying seitan token")
 
 	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
 	maybeSeitan, keepSecret := ParseSeitanTokenFromPaste(tokenOrName)
 	if keepSecret {
 		g.Log.CDebugf(ctx, "found seitan-ish token")
-		wasSeitan, err := ParseAndAcceptSeitanToken(ctx, g, maybeSeitan)
+		wasSeitan, err := ParseAndAcceptSeitanToken(ctx, g, ui, maybeSeitan)
 		return keybase1.TeamAcceptOrRequestResult{WasSeitan: wasSeitan}, err
 	}
 

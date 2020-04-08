@@ -575,6 +575,10 @@ func (f *FakeGregorState) PeekDismissedIDs() []gregor.MsgID {
 	return f.dismissedIDs
 }
 
+func (f *FakeGregorState) DismissCategory(ctx context.Context, cat gregor1.Category) error {
+	return nil
+}
+
 type TestUIDMapper struct {
 	ul UPAKLoader
 }

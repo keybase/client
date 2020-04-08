@@ -1511,6 +1511,10 @@ export type MessageTypes = {
     inParam: {readonly teamname: String; readonly filename: String; readonly crop?: ImageCropRect | null; readonly sendChatNotification: Boolean}
     outParam: void
   }
+  'keybase.1.teamsUi.confirmInviteLinkAccept': {
+    inParam: {readonly details: InviteLinkDetails}
+    outParam: Boolean
+  }
   'keybase.1.teamsUi.confirmRootTeamDelete': {
     inParam: {readonly teamName: String}
     outParam: Boolean
@@ -2995,6 +2999,7 @@ export type InstallResult = {readonly componentResults?: Array<ComponentResult> 
 export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly serviceMap: {[key: string]: String}}
 export type InviteCounts = {readonly inviteCount: Int; readonly percentageChange: Double; readonly showNumInvites: Boolean; readonly showFire: Boolean}
+export type InviteLinkDetails = {readonly inviteID: TeamInviteID; readonly inviterUID: UID; readonly inviterUsername: String; readonly inviterResetOrDel: Boolean; readonly teamID: TeamID; readonly teamDesc: String; readonly teamName: TeamName; readonly teamNumMembers: Int; readonly teamAvatars: {[key: string]: AvatarUrl}}
 export type Invitelink = {readonly ikey: SeitanIKeyInvitelink; readonly url: String}
 export type KBFSArchivedParam = {KBFSArchivedType: KBFSArchivedType.revision; revision: KBFSRevision} | {KBFSArchivedType: KBFSArchivedType.time; time: Time} | {KBFSArchivedType: KBFSArchivedType.timeString; timeString: String} | {KBFSArchivedType: KBFSArchivedType.relTimeString; relTimeString: String}
 export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam; readonly identifyBehavior?: TLFIdentifyBehavior | null}
@@ -3363,7 +3368,8 @@ export type UserPlusAllKeys = {readonly base: UserPlusKeys; readonly pgpKeys?: A
 export type UserPlusKeys = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly deviceKeys?: Array<PublicKey> | null; readonly revokedDeviceKeys?: Array<RevokedKey> | null; readonly pgpKeyCount: Int; readonly uvv: UserVersionVector; readonly deletedDeviceKeys?: Array<PublicKey> | null; readonly perUserKeys?: Array<PerUserKey> | null; readonly resets?: Array<ResetSummary> | null}
 export type UserPlusKeysV2 = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly perUserKeys?: Array<PerUserKey> | null; readonly deviceKeys: {[key: string]: PublicKeyV2NaCl}; readonly pgpKeys: {[key: string]: PublicKeyV2PGPSummary}; readonly stellarAccountID?: String | null; readonly remoteTracks: {[key: string]: RemoteTrack}; readonly reset?: ResetSummary | null; readonly unstubbed: Boolean}
 export type UserPlusKeysV2AllIncarnations = {readonly current: UserPlusKeysV2; readonly pastIncarnations?: Array<UserPlusKeysV2> | null; readonly uvv: UserVersionVector; readonly seqnoLinkIDs: {[key: string]: LinkID}; readonly minorVersion: UPK2MinorVersion; readonly stale: Boolean}
-export type UserReacjis = {readonly topReacjis?: Array<String> | null; readonly skinTone: ReacjiSkinTone}
+export type UserReacji = {readonly name: String; readonly customAddr?: String | null; readonly customAddrNoAnim?: String | null}
+export type UserReacjis = {readonly topReacjis?: Array<UserReacji> | null; readonly skinTone: ReacjiSkinTone}
 export type UserRolePair = {readonly assertion: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null}
 export type UserSettings = {readonly emails?: Array<Email> | null; readonly phoneNumbers?: Array<UserPhoneNumber> | null}
 export type UserSummary = {readonly uid: UID; readonly username: String; readonly fullName: String; readonly linkID?: LinkID | null}
@@ -3529,6 +3535,7 @@ export type IncomingCallMapType = {
   'keybase.1.streamUi.write'?: (params: MessageTypes['keybase.1.streamUi.write']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: MessageTypes['keybase.1.teamsUi.confirmRootTeamDelete']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.teamsUi.confirmSubteamDelete'?: (params: MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.teamsUi.confirmInviteLinkAccept'?: (params: MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.ui.promptYesNo'?: (params: MessageTypes['keybase.1.ui.promptYesNo']['inParam'] & {sessionID: number}) => IncomingReturn
 }
 
@@ -3661,6 +3668,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.streamUi.write'?: (params: MessageTypes['keybase.1.streamUi.write']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.streamUi.write']['outParam']) => void}) => IncomingReturn
   'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: MessageTypes['keybase.1.teamsUi.confirmRootTeamDelete']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.teamsUi.confirmRootTeamDelete']['outParam']) => void}) => IncomingReturn
   'keybase.1.teamsUi.confirmSubteamDelete'?: (params: MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['outParam']) => void}) => IncomingReturn
+  'keybase.1.teamsUi.confirmInviteLinkAccept'?: (params: MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['outParam']) => void}) => IncomingReturn
   'keybase.1.ui.promptYesNo'?: (params: MessageTypes['keybase.1.ui.promptYesNo']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.ui.promptYesNo']['outParam']) => void}) => IncomingReturn
 }
 export const SimpleFSSimpleFSCancelDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCancelDownload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3991,6 +3999,7 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.emails.setVisibilityAllEmail'
 // 'keybase.1.emails.getEmails'
 // 'keybase.1.favorite.getFavorites'
+// 'keybase.1.featuredBot.searchLocal'
 // 'keybase.1.fs.List'
 // 'keybase.1.git.putGitMetadata'
 // 'keybase.1.git.deleteGitMetadata'
@@ -4302,6 +4311,8 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.teams.teamGetSubteamsUnverified'
 // 'keybase.1.teams.teamCreateSeitanToken'
 // 'keybase.1.teams.teamCreateSeitanInvitelink'
+// 'keybase.1.teams.teamCreateSeitanInvitelinkWithDuration'
+// 'keybase.1.teams.getInviteLinkDetails'
 // 'keybase.1.teams.lookupImplicitTeam'
 // 'keybase.1.teams.lookupOrCreateImplicitTeam'
 // 'keybase.1.teams.loadTeamPlusApplicationKeys'
@@ -4318,6 +4329,7 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.teams.ftl'
 // 'keybase.1.teamsUi.confirmRootTeamDelete'
 // 'keybase.1.teamsUi.confirmSubteamDelete'
+// 'keybase.1.teamsUi.confirmInviteLinkAccept'
 // 'keybase.1.teamSearch.teamSearch'
 // 'keybase.1.test.test'
 // 'keybase.1.test.testCallback'

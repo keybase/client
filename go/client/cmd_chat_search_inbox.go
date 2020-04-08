@@ -175,6 +175,7 @@ func (c *CmdChatSearchInbox) ParseArgv(ctx *cli.Context) (err error) {
 	c.namesOnly = ctx.Bool("names-only")
 	c.opts.MaxNameConvs = 10
 	c.opts.MaxTeams = 3
+	c.opts.MaxBots = 3
 
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())
 	return nil

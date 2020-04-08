@@ -21,7 +21,13 @@ import {memoize} from '../../util/memoize'
 import * as TeamConstants from '../teams'
 import * as TeamTypes from '../types/teams'
 
-export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
+export const defaultTopReacjis = [
+  {name: ':+1:'},
+  {name: ':-1:'},
+  {name: ':tada:'},
+  {name: ':joy:'},
+  {name: ':sunglasses:'},
+]
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
 const emptyArray: Array<unknown> = []
@@ -116,6 +122,9 @@ export const inboxSearchMaxNameResults = 7
 export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
 
 export const makeInboxSearchInfo = (): Types.InboxSearchInfo => ({
+  botsResults: [],
+  botsResultsSuggested: false,
+  botsStatus: 'initial',
   indexPercent: 0,
   nameResults: [],
   nameResultsUnread: false,
@@ -170,8 +179,8 @@ export const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingIn
 }
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
-  const {selectedIndex, nameResults, openTeamsResults, textResults} = inboxSearch
-  const firstTextResultIdx = openTeamsResults.length + nameResults.length
+  const {selectedIndex, nameResults, botsResults, openTeamsResults, textResults} = inboxSearch
+  const firstTextResultIdx = botsResults.length + openTeamsResults.length + nameResults.length
   const firstOpenTeamResultIdx = nameResults.length
 
   if (selectedIndex < firstOpenTeamResultIdx) {

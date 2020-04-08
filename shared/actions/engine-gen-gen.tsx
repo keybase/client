@@ -25,6 +25,7 @@ export const chat1ChatUiChatInboxLayout = 'engine-gen:chat1ChatUiChatInboxLayout
 export const chat1ChatUiChatInboxUnverified = 'engine-gen:chat1ChatUiChatInboxUnverified'
 export const chat1ChatUiChatLoadGalleryHit = 'engine-gen:chat1ChatUiChatLoadGalleryHit'
 export const chat1ChatUiChatMaybeMentionUpdate = 'engine-gen:chat1ChatUiChatMaybeMentionUpdate'
+export const chat1ChatUiChatSearchBotHits = 'engine-gen:chat1ChatUiChatSearchBotHits'
 export const chat1ChatUiChatSearchConvHits = 'engine-gen:chat1ChatUiChatSearchConvHits'
 export const chat1ChatUiChatSearchDone = 'engine-gen:chat1ChatUiChatSearchDone'
 export const chat1ChatUiChatSearchHit = 'engine-gen:chat1ChatUiChatSearchHit'
@@ -234,6 +235,7 @@ export const keybase1StreamUiClose = 'engine-gen:keybase1StreamUiClose'
 export const keybase1StreamUiRead = 'engine-gen:keybase1StreamUiRead'
 export const keybase1StreamUiReset = 'engine-gen:keybase1StreamUiReset'
 export const keybase1StreamUiWrite = 'engine-gen:keybase1StreamUiWrite'
+export const keybase1TeamsUiConfirmInviteLinkAccept = 'engine-gen:keybase1TeamsUiConfirmInviteLinkAccept'
 export const keybase1TeamsUiConfirmRootTeamDelete = 'engine-gen:keybase1TeamsUiConfirmRootTeamDelete'
 export const keybase1TeamsUiConfirmSubteamDelete = 'engine-gen:keybase1TeamsUiConfirmSubteamDelete'
 export const keybase1UiPromptYesNo = 'engine-gen:keybase1UiPromptYesNo'
@@ -392,6 +394,13 @@ type _Chat1ChatUiChatMaybeMentionUpdatePayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatSearchBotHitsPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam'] & {sessionID: number}
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchBotHits']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatSearchConvHitsPayload = {
@@ -1936,6 +1945,17 @@ type _Keybase1StreamUiWritePayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.streamUi.write']['outParam']) => void
   }
 }
+type _Keybase1TeamsUiConfirmInviteLinkAcceptPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['outParam']
+    ) => void
+  }
+}
 type _Keybase1TeamsUiConfirmRootTeamDeletePayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmRootTeamDelete']['inParam'] & {
     sessionID: number
@@ -2059,6 +2079,9 @@ export const createChat1ChatUiChatLoadGalleryHit = (
 export const createChat1ChatUiChatMaybeMentionUpdate = (
   payload: _Chat1ChatUiChatMaybeMentionUpdatePayload
 ): Chat1ChatUiChatMaybeMentionUpdatePayload => ({payload, type: chat1ChatUiChatMaybeMentionUpdate})
+export const createChat1ChatUiChatSearchBotHits = (
+  payload: _Chat1ChatUiChatSearchBotHitsPayload
+): Chat1ChatUiChatSearchBotHitsPayload => ({payload, type: chat1ChatUiChatSearchBotHits})
 export const createChat1ChatUiChatSearchConvHits = (
   payload: _Chat1ChatUiChatSearchConvHitsPayload
 ): Chat1ChatUiChatSearchConvHitsPayload => ({payload, type: chat1ChatUiChatSearchConvHits})
@@ -2741,6 +2764,9 @@ export const createKeybase1StreamUiReset = (
 export const createKeybase1StreamUiWrite = (
   payload: _Keybase1StreamUiWritePayload
 ): Keybase1StreamUiWritePayload => ({payload, type: keybase1StreamUiWrite})
+export const createKeybase1TeamsUiConfirmInviteLinkAccept = (
+  payload: _Keybase1TeamsUiConfirmInviteLinkAcceptPayload
+): Keybase1TeamsUiConfirmInviteLinkAcceptPayload => ({payload, type: keybase1TeamsUiConfirmInviteLinkAccept})
 export const createKeybase1TeamsUiConfirmRootTeamDelete = (
   payload: _Keybase1TeamsUiConfirmRootTeamDeletePayload
 ): Keybase1TeamsUiConfirmRootTeamDeletePayload => ({payload, type: keybase1TeamsUiConfirmRootTeamDelete})
@@ -2849,6 +2875,10 @@ export type Chat1ChatUiChatLoadGalleryHitPayload = {
 export type Chat1ChatUiChatMaybeMentionUpdatePayload = {
   readonly payload: _Chat1ChatUiChatMaybeMentionUpdatePayload
   readonly type: typeof chat1ChatUiChatMaybeMentionUpdate
+}
+export type Chat1ChatUiChatSearchBotHitsPayload = {
+  readonly payload: _Chat1ChatUiChatSearchBotHitsPayload
+  readonly type: typeof chat1ChatUiChatSearchBotHits
 }
 export type Chat1ChatUiChatSearchConvHitsPayload = {
   readonly payload: _Chat1ChatUiChatSearchConvHitsPayload
@@ -3588,6 +3618,10 @@ export type Keybase1StreamUiWritePayload = {
   readonly payload: _Keybase1StreamUiWritePayload
   readonly type: typeof keybase1StreamUiWrite
 }
+export type Keybase1TeamsUiConfirmInviteLinkAcceptPayload = {
+  readonly payload: _Keybase1TeamsUiConfirmInviteLinkAcceptPayload
+  readonly type: typeof keybase1TeamsUiConfirmInviteLinkAccept
+}
 export type Keybase1TeamsUiConfirmRootTeamDeletePayload = {
   readonly payload: _Keybase1TeamsUiConfirmRootTeamDeletePayload
   readonly type: typeof keybase1TeamsUiConfirmRootTeamDelete
@@ -3653,6 +3687,7 @@ export type Actions =
   | Chat1ChatUiChatInboxUnverifiedPayload
   | Chat1ChatUiChatLoadGalleryHitPayload
   | Chat1ChatUiChatMaybeMentionUpdatePayload
+  | Chat1ChatUiChatSearchBotHitsPayload
   | Chat1ChatUiChatSearchConvHitsPayload
   | Chat1ChatUiChatSearchDonePayload
   | Chat1ChatUiChatSearchHitPayload
@@ -3839,6 +3874,7 @@ export type Actions =
   | Keybase1StreamUiReadPayload
   | Keybase1StreamUiResetPayload
   | Keybase1StreamUiWritePayload
+  | Keybase1TeamsUiConfirmInviteLinkAcceptPayload
   | Keybase1TeamsUiConfirmRootTeamDeletePayload
   | Keybase1TeamsUiConfirmSubteamDeletePayload
   | Keybase1UiPromptYesNoPayload

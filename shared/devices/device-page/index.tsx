@@ -110,40 +110,41 @@ const DevicePage = (props: Props) => {
   const revokeName = {
     backup: 'paper key',
     desktop: 'computer',
-    mobile: 'phone',
+    mobile: 'device',
   }[device.type]
 
   const metaTwo = {
     backup: 'Paper key',
     desktop: 'Computer',
-    mobile: 'Phone',
+    mobile: 'Device',
   }[device.type]
 
   return (
-    <Kb.HeaderHocWrapper onBack={props.onBack}>
-      <Kb.Box2
-        alignItems="center"
-        direction="vertical"
-        gap="medium"
-        gapStart={true}
-        gapEnd={true}
-        fullWidth={true}
-        fullHeight={true}
-      >
-        <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
-        <Timeline device={device} />
-        {!device.revokedAt && (
-          <Kb.Button
-            disabled={!canRevoke}
-            type="Danger"
-            label={`Revoke this ${revokeName}`}
-            onClick={showRevokeDevicePage}
-          />
-        )}
-        {!canRevoke && <Kb.Text type="BodySmall">You can't revoke your last device.</Kb.Text>}
-      </Kb.Box2>
-    </Kb.HeaderHocWrapper>
+    <Kb.Box2
+      alignItems="center"
+      direction="vertical"
+      gap="medium"
+      gapStart={true}
+      gapEnd={true}
+      fullWidth={true}
+      fullHeight={true}
+    >
+      <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
+      <Timeline device={device} />
+      {!device.revokedAt && (
+        <Kb.Button
+          disabled={!canRevoke}
+          type="Danger"
+          label={`Revoke this ${revokeName}`}
+          onClick={showRevokeDevicePage}
+        />
+      )}
+      {!canRevoke && <Kb.Text type="BodySmall">You can't revoke your last device.</Kb.Text>}
+    </Kb.Box2>
   )
+}
+DevicePage.navigationOptions = {
+  header: undefined,
 }
 
 const styles = Styles.styleSheetCreate(

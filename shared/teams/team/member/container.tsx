@@ -4,7 +4,6 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
-import * as Kb from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {TeamMember, MemberProps} from '.'
 import * as Constants from '../../../constants/teams'
@@ -22,6 +21,9 @@ type Props = MemberProps & {
 }
 
 export class TeamMemberStateWrapper extends React.Component<Props, State> {
+  static navigationOptions = {
+    header: undefined,
+  }
   state = {
     rolePickerOpen: false,
     selectedRole: null,
@@ -29,20 +31,18 @@ export class TeamMemberStateWrapper extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.HeaderHocWrapper onBack={this.props.onBack}>
-        <TeamMember
-          {...this.props}
-          isRolePickerOpen={this.state.rolePickerOpen}
-          onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
-          onEditMembership={() => this.setState({rolePickerOpen: true})}
-          onConfirmRolePicker={role => {
-            this.props.onEditRole(role)
-            this.setState({rolePickerOpen: false})
-          }}
-          onSelectRole={selectedRole => this.setState({selectedRole})}
-          selectedRole={this.state.selectedRole}
-        />
-      </Kb.HeaderHocWrapper>
+      <TeamMember
+        {...this.props}
+        isRolePickerOpen={this.state.rolePickerOpen}
+        onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
+        onEditMembership={() => this.setState({rolePickerOpen: true})}
+        onConfirmRolePicker={role => {
+          this.props.onEditRole(role)
+          this.setState({rolePickerOpen: false})
+        }}
+        onSelectRole={selectedRole => this.setState({selectedRole})}
+        selectedRole={this.state.selectedRole}
+      />
     )
   }
 }

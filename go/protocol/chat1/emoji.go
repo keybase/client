@@ -276,6 +276,7 @@ type Emoji struct {
 	IsReacji     bool               `codec:"isReacji" json:"isReacji"`
 	IsCrossTeam  bool               `codec:"isCrossTeam" json:"isCrossTeam"`
 	Source       EmojiLoadSource    `codec:"source" json:"source"`
+	NoAnimSource EmojiLoadSource    `codec:"noAnimSource" json:"noAnimSource"`
 	RemoteSource EmojiRemoteSource  `codec:"remoteSource" json:"remoteSource"`
 	CreationInfo *EmojiCreationInfo `codec:"creationInfo,omitempty" json:"creationInfo,omitempty"`
 }
@@ -287,6 +288,7 @@ func (o Emoji) DeepCopy() Emoji {
 		IsReacji:     o.IsReacji,
 		IsCrossTeam:  o.IsCrossTeam,
 		Source:       o.Source.DeepCopy(),
+		NoAnimSource: o.NoAnimSource.DeepCopy(),
 		RemoteSource: o.RemoteSource.DeepCopy(),
 		CreationInfo: (func(x *EmojiCreationInfo) *EmojiCreationInfo {
 			if x == nil {

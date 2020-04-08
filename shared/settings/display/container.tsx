@@ -7,6 +7,7 @@ import {DarkModePreference} from '../../styles/dark-mode'
 type OwnProps = {}
 export default Container.connect(
   state => ({
+    allowAnimatedEmojis: state.config.allowAnimatedEmojis,
     darkModePreference: state.config.darkModePreference,
   }),
   dispatch => ({

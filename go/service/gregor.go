@@ -1683,17 +1683,11 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 	)()
 	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
-	dismissal, err := grutils.TemplateMessage(g.currentUID())
+	dismissal, err := grutils.FormMessageForDismissCategory(ctx, g.currentUID(), category)
 	if err != nil {
 		return err
 	}
 
-	dismissal.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
-		Ranges_: []gregor1.MsgRange{
-			{
-				Category_: category,
-			}},
-	}
 	gcli, err := g.getGregorCli()
 	if err != nil {
 		return err

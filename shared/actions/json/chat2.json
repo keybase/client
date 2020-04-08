@@ -697,6 +697,11 @@
       "results": "Array<Types.InboxSearchOpenTeamHit>",
       "suggested": "boolean"
     },
+    "inboxSearchBotsResults": {
+      "_description": "Inbox search bot results received",
+      "results": "Array<RPCTypes.FeaturedBot>",
+      "suggested": "boolean"
+    },
     "inboxSearchNameResults": {
       "_description": "Inbox search name results received",
       "results": "Array<Types.InboxSearchConvHit>",
@@ -939,7 +944,8 @@
     },
     "fetchUserEmoji": {
       "_description": "Refresh user emoji and put it in store for picker",
-      "conversationIDKey?": "Types.ConversationIDKey"
+      "conversationIDKey?": "Types.ConversationIDKey",
+      "onlyInTeam?": "boolean"
     },
     "loadedUserEmoji": {
       "results": "RPCChatTypes.UserEmojiRes"

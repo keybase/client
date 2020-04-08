@@ -85,7 +85,19 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
   },
   [TeamsGen.teamLoaded]: (draftState, action) => {
-    const {teamID, details} = action.payload
+    const {teamID, team} = action.payload
+    const maybeMeta = draftState.teamMeta.get(teamID)
+    if (maybeMeta && maybeMeta.teamname !== team.name) {
+      if (team.name.includes('.')) {
+        // subteam name changed. store loaded name
+        maybeMeta.teamname = team.name
+      } else {
+        // bad. teamlist lied to us about the teamname
+        throw new Error('Team name mismatch! Please report this error.')
+      }
+    }
+
+    const details = Constants.annotatedTeamToDetails(team)
     draftState.teamDetails.set(teamID, details)
   },
   [TeamsGen.setTeamVersion]: (draftState, action) => {

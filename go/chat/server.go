@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/teams/opensearch"
 	"github.com/keybase/pipeliner"
@@ -2329,95 +2330,118 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		res.IdentifyFailures = identBreaks
 		return res, nil
 	}
+	eg := errgroup.Group{}
 
 	// stream hits back to client UI
 	hitUICh := make(chan chat1.ChatSearchInboxHit, 10)
-	hitUIDone := make(chan struct{})
-	numHits := 0
-	go func() {
-		defer close(hitUIDone)
+	var numHits int
+	eg.Go(func() error {
 		if !doSearch {
-			return
+			return nil
 		}
 		for searchHit := range hitUICh {
 			numHits += len(searchHit.Hits)
 			select {
 			case <-ctx.Done():
-				return
+				return nil
 			default:
 				_ = chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
 					SearchHit: searchHit,
 				})
 			}
 		}
-	}()
+		return nil
+	})
+
 	// stream index status back to client UI
 	indexUICh := make(chan chat1.ChatSearchIndexStatus, 10)
-	indexUIDone := make(chan struct{})
-	go func() {
-		defer close(indexUIDone)
+	eg.Go(func() error {
 		if !doSearch {
-			return
+			return nil
 		}
 		for status := range indexUICh {
 			select {
 			case <-ctx.Done():
-				return
+				return nil
 			default:
 				_ = chatUI.ChatSearchIndexStatus(ctx, chat1.ChatSearchIndexStatusArg{
 					Status: status,
 				})
 			}
 		}
-	}()
+		return nil
+	})
 
 	// send up conversation name matches
-	convUIDone := make(chan struct{})
-	go func() {
-		defer close(convUIDone)
+	eg.Go(func() error {
 		if opts.MaxNameConvs == 0 {
-			return
+			return nil
 		}
 		convHits, err := h.G().InboxSource.Search(ctx, uid, query, opts.MaxNameConvs,
 			types.InboxSourceSearchEmptyModeUnread)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
-		} else {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				_ = chatUI.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{
-					Hits:          utils.PresentRemoteConversationsAsSearchHits(convHits, username),
-					UnreadMatches: len(query) == 0,
-				})
-			}
+			return nil
 		}
-	}()
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			_ = chatUI.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{
+				Hits:          utils.PresentRemoteConversationsAsSearchHits(convHits, username),
+				UnreadMatches: len(query) == 0,
+			})
+		}
+		return nil
+	})
 
 	// send up team name matches
-	teamUIDone := make(chan struct{})
-	go func() {
-		defer close(teamUIDone)
+	g := h.G().ExternalG()
+	mctx := libkb.NewMetaContext(ctx, g)
+	eg.Go(func() error {
 		if opts.MaxTeams == 0 {
-			return
+			return nil
 		}
-		teamHits, err := opensearch.Local(libkb.NewMetaContext(ctx, h.G().ExternalG()), query,
+		hits, err := opensearch.Local(mctx, query,
 			opts.MaxTeams)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get team hits: %s", err)
-		} else {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				_ = chatUI.ChatSearchTeamHits(ctx, chat1.UIChatSearchTeamHits{
-					Hits:             teamHits,
-					SuggestedMatches: len(query) == 0,
-				})
-			}
+			return nil
 		}
-	}()
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			_ = chatUI.ChatSearchTeamHits(ctx, chat1.UIChatSearchTeamHits{
+				Hits:             hits,
+				SuggestedMatches: len(query) == 0,
+			})
+		}
+		return nil
+	})
+
+	eg.Go(func() error {
+		hits, err := teambot.NewFeaturedBotLoader(g).SearchLocal(
+			mctx, keybase1.SearchLocalArg{
+				Query:     query,
+				Limit:     opts.MaxBots,
+				SkipCache: opts.SkipBotCache,
+			})
+		if err != nil {
+			h.Debug(ctx, "SearchInbox: failed to get bot hits: %s", err)
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			_ = chatUI.ChatSearchBotHits(ctx, chat1.UIChatSearchBotHits{
+				Hits:             hits.Bots,
+				SuggestedMatches: len(query) == 0,
+			})
+		}
+		return nil
+	})
 
 	var searchRes *chat1.ChatSearchInboxResults
 	if doSearch {
@@ -2430,10 +2454,10 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 			return res, err
 		}
 	}
-	<-hitUIDone
-	<-indexUIDone
-	<-convUIDone
-	<-teamUIDone
+
+	if err := eg.Wait(); err != nil {
+		h.Debug(ctx, "unable to wait for search: %v")
+	}
 
 	var doneRes chat1.ChatSearchInboxDone
 	if searchRes != nil {
@@ -3622,6 +3646,24 @@ func (h *Server) RefreshParticipants(ctx context.Context, convID chat1.Conversat
 	return nil
 }
 
+func (h *Server) GetParticipants(ctx context.Context, convID chat1.ConversationID) (participants []chat1.ConversationLocalParticipant, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetParticipants")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return nil, err
+	}
+	uids, err := h.G().ParticipantsSource.Get(ctx, uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return nil, err
+	}
+	participants, err = h.G().ParticipantsSource.GetParticipantsFromUids(ctx, uids)
+	if err != nil {
+		return nil, err
+	}
+	return participants, nil
+}
+
 func (h *Server) GetLastActiveAtLocal(ctx context.Context, arg chat1.GetLastActiveAtLocalArg) (lastActiveAt gregor1.Time, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetLastActiveAtLocal")()
@@ -3680,7 +3722,7 @@ func (h *Server) AddEmoji(ctx context.Context, arg chat1.AddEmojiArg) (res chat1
 	if err != nil {
 		return res, err
 	}
-	if _, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename); err != nil {
+	if _, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Alias, arg.Filename, arg.AllowOverwrite); err != nil {
 		return res, err
 	}
 	return res, nil
@@ -3700,11 +3742,7 @@ func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res cha
 	res.FailedFilenames = make(map[string]string)
 	res.SuccessFilenames = make([]string, 0, len(arg.Aliases))
 	for i := range arg.Aliases {
-		if arg.Aliases[i] == "debug-test-error" {
-			res.FailedFilenames[arg.Filenames[i]] = "this is a test error"
-			continue
-		}
-		_, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Aliases[i], arg.Filenames[i])
+		_, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Aliases[i], arg.Filenames[i], arg.AllowOverwrite[i])
 		if err != nil {
 			res.FailedFilenames[arg.Filenames[i]] = err.Error()
 		} else {
@@ -3714,7 +3752,14 @@ func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res cha
 	return res, nil
 }
 
-func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) (res chat1.AddEmojiRes, err error) {
+func strPtr(str string) *string {
+	if len(str) > 0 {
+		return &str
+	}
+	return nil
+}
+
+func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) (res chat1.AddEmojiAliasRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "AddEmojiAlias")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
@@ -3723,7 +3768,9 @@ func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) 
 		return res, err
 	}
 	if _, err := h.G().EmojiSource.AddAlias(ctx, uid, arg.ConvID, arg.NewAlias, arg.ExistingAlias); err != nil {
-		return res, err
+		return chat1.AddEmojiAliasRes{
+			ErrorString: strPtr(err.Error()),
+		}, nil
 	}
 	return res, nil
 }
@@ -3752,4 +3799,14 @@ func (h *Server) UserEmojis(ctx context.Context, arg chat1.UserEmojisArg) (res c
 	}
 	res.Emojis, err = h.G().EmojiSource.Get(ctx, uid, arg.ConvID, arg.Opts)
 	return res, err
+}
+
+func (h *Server) ToggleEmojiAnimations(ctx context.Context, enabled bool) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "ToggleEmojiAnimations")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	return h.G().EmojiSource.ToggleAnimations(ctx, uid, enabled)
 }

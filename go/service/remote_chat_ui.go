@@ -120,6 +120,13 @@ func (r *RemoteChatUI) ChatSearchTeamHits(ctx context.Context, arg chat1.UIChatS
 	})
 }
 
+func (r *RemoteChatUI) ChatSearchBotHits(ctx context.Context, arg chat1.UIChatSearchBotHits) error {
+	return r.cli.ChatSearchBotHits(ctx, chat1.ChatSearchBotHitsArg{
+		SessionID: r.sessionID,
+		Hits:      arg,
+	})
+}
+
 func (r *RemoteChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIChatPaymentSummary) (bool, error) {
 	return r.cli.ChatStellarDataConfirm(ctx, chat1.ChatStellarDataConfirmArg{
 		SessionID: r.sessionID,

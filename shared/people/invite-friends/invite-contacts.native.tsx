@@ -104,10 +104,10 @@ const InviteContacts = () => {
         <Kb.Banner color="red">{contactsErrorMessage ?? rpcErrorMessage}</Kb.Banner>
       )}
       {successCount ? (
-        <Kb.Banner color="green">{`Success! You invited ${successCount} ${pluralize(
+        <Kb.Banner color="green" style={styles.banner}>{`Yeeha! You invited ${successCount} ${pluralize(
           'contact',
           successCount
-        )} to Keybase.`}</Kb.Banner>
+        )}.`}</Kb.Banner>
       ) : loading ? (
         <Kb.ProgressIndicator type="Huge" />
       ) : (
@@ -135,6 +135,11 @@ const InviteContacts = () => {
 export default InviteContacts
 
 const styles = Styles.styleSheetCreate(() => ({
+  banner: {
+    position: 'absolute',
+    top: 47,
+    zIndex: 1,
+  },
   disabledLink: {
     opacity: 0.5,
   },

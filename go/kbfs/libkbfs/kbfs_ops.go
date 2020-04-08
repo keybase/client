@@ -1910,6 +1910,11 @@ func (fs *KBFSOpsStandard) ForceStuckConflictForTesting(
 		Tlf:    tlfID,
 		Branch: data.MasterBranch,
 	})
+	// Make sure the FBO is initialized.
+	_, _, _, err := fbo.getRootNode(ctx)
+	if err != nil {
+		return err
+	}
 	return fbo.forceStuckConflictForTesting(ctx)
 }
 

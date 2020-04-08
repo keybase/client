@@ -802,13 +802,19 @@ func (d DummyParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID
 func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) {
 }
+func (d DummyParticipantSource) GetParticipantsFromUids(
+	ctx context.Context,
+	uids []gregor1.UID,
+) ([]chat1.ConversationLocalParticipant, error) {
+	return nil, nil
+}
 
 type DummyEmojiSource struct{}
 
 var _ EmojiSource = (*DummyEmojiSource)(nil)
 
 func (DummyEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	alias, filename string) (res chat1.EmojiRemoteSource, err error) {
+	alias, filename string, allowOverwrite bool) (res chat1.EmojiRemoteSource, err error) {
 	return res, err
 }
 func (DummyEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -823,8 +829,8 @@ func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.
 	opts chat1.EmojiFetchOpts) (chat1.UserEmojis, error) {
 	return chat1.UserEmojis{}, nil
 }
-func (DummyEmojiSource) Decorate(ctx context.Context, body string, convID chat1.ConversationID,
-	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji, noAnim bool) string {
+func (DummyEmojiSource) Decorate(ctx context.Context, body string, uid gregor1.UID,
+	convID chat1.ConversationID, messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	return body
 }
 func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
@@ -832,7 +838,49 @@ func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UI
 	return res, err
 }
 
+func (DummyEmojiSource) IsStockEmoji(alias string) bool { return true }
+
+func (DummyEmojiSource) RemoteToLocalSource(ctx context.Context, uid gregor1.UID,
+	remote chat1.EmojiRemoteSource) (source chat1.EmojiLoadSource, noAnimSource chat1.EmojiLoadSource, err error) {
+	return source, noAnimSource, nil
+}
+
+func (DummyEmojiSource) ToggleAnimations(ctx context.Context, uid gregor1.UID, enabled bool) error {
+	return nil
+}
+
 type ClearOpts struct {
 	SendLocalAdminNotification bool
 	Reason                     string
 }
+
+type DummyEphemeralTracker struct{}
+
+var _ EphemeralTracker = (*DummyEphemeralTracker)(nil)
+
+func (d DummyEphemeralTracker) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyEphemeralTracker) Stop(ctx context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+func (d DummyEphemeralTracker) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) ([]chat1.EphemeralPurgeInfo, error) {
+	return nil, nil
+}
+func (d DummyEphemeralTracker) GetPurgeInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.EphemeralPurgeInfo, error) {
+	return chat1.EphemeralPurgeInfo{}, nil
+}
+func (d DummyEphemeralTracker) InactivatePurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
+	return nil
+}
+func (d DummyEphemeralTracker) SetPurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) error {
+	return nil
+}
+func (d DummyEphemeralTracker) MaybeUpdatePurgeInfo(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) error {
+	return nil
+}
+func (d DummyEphemeralTracker) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
+	return nil
+}
+func (d DummyEphemeralTracker) OnDbNuke(mctx libkb.MetaContext) error { return nil }
+func (d DummyEphemeralTracker) OnLogout(mctx libkb.MetaContext) error { return nil }

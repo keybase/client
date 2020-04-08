@@ -2,17 +2,27 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
-type AnimationStatus = 'encrypting' | 'error' | 'sending' | 'sent'
+type AnimationStatus =
+  | 'encrypting'
+  | 'encryptingExploding'
+  | 'error'
+  | 'sending'
+  | 'sendingExploding'
+  | 'sent'
 const statusToIcon: {[K in AnimationStatus]: Kb.AnimationType} = {
   encrypting: 'messageStatusEncrypting',
+  encryptingExploding: 'messageStatusEncryptingExploding',
   error: 'messageStatusError',
   sending: 'messageStatusSending',
+  sendingExploding: 'messageStatusSendingExploding',
   sent: 'messageStatusSent',
 }
 const statusToIconDark: {[K in AnimationStatus]: Kb.AnimationType} = {
   encrypting: 'darkMessageStatusEncrypting',
+  encryptingExploding: 'darkMessageStatusEncryptingExploding',
   error: 'darkMessageStatusError',
   sending: 'darkMessageStatusSending',
+  sendingExploding: 'darkMessageStatusSendingExploding',
   sent: 'darkMessageStatusSent',
 }
 
@@ -22,6 +32,7 @@ const sentTimeout = 400
 const shownEncryptingSet = new Set()
 
 type Props = {
+  isExploding: boolean
   sent: boolean
   failed: boolean
   id?: number
@@ -116,17 +127,24 @@ class SendIndicator extends React.Component<Props, State> {
     this.sentTimeoutID && clearTimeout(this.sentTimeoutID)
   }
 
+  private animationType = () => {
+    let animationType = Styles.isDarkMode()
+      ? statusToIconDark[this.state.animationStatus]
+      : statusToIcon[this.state.animationStatus]
+    // There is no exploding-error state
+    if (this.props.isExploding && this.state.animationStatus !== 'error') {
+      animationType = `${animationType}Exploding` as Kb.AnimationType
+    }
+    return animationType
+  }
+
   render() {
-    if (!this.state.visible) {
+    if (!this.state.visible || (this.props.isExploding && this.state.animationStatus === 'sent')) {
       return null
     }
     return (
       <Kb.Animation
-        animationType={
-          Styles.isDarkMode()
-            ? statusToIconDark[this.state.animationStatus]
-            : statusToIcon[this.state.animationStatus]
-        }
+        animationType={this.animationType()}
         className="sendingStatus"
         containerStyle={this.props.style}
         style={Styles.collapseStyles([
@@ -143,13 +161,13 @@ const styles = Styles.styleSheetCreate(
     ({
       animation: Styles.platformStyles({
         common: {
-          height: 24,
-          width: 36,
+          height: 20,
+          width: 20,
         },
         isMobile: {
           backgroundColor: Styles.globalColors.white,
-          height: 32,
-          width: 48,
+          height: 24,
+          width: 24,
         },
       }),
       invisible: {opacity: 0},

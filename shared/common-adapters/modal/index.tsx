@@ -44,7 +44,7 @@ type Props = {
   fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
   mode: 'Default' | 'DefaultFullHeight' | 'Wide'
   mobileStyle?: Styles.StylesCrossPlatform
-  noScrollView?: boolean
+  noScrollView?: boolean // content must push footer to bottom with this on.
   backgroundStyle?: Styles.StylesCrossPlatform
   scrollViewRef?: React.Ref<ScrollView>
 

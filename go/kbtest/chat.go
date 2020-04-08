@@ -58,6 +58,9 @@ func (c ChatTestContext) Cleanup() {
 	if c.ChatG.EphemeralPurger != nil {
 		<-c.ChatG.EphemeralPurger.Stop(context.TODO())
 	}
+	if c.ChatG.EphemeralTracker != nil {
+		<-c.ChatG.EphemeralTracker.Stop(context.TODO())
+	}
 	if c.ChatG.InboxSource != nil {
 		<-c.ChatG.InboxSource.Stop(context.TODO())
 	}
@@ -1238,6 +1241,10 @@ func (c *ChatUI) ChatSearchConvHits(ctx context.Context, hits chat1.UIChatSearch
 }
 
 func (c *ChatUI) ChatSearchTeamHits(ctx context.Context, hits chat1.UIChatSearchTeamHits) error {
+	return nil
+}
+
+func (c *ChatUI) ChatSearchBotHits(ctx context.Context, hits chat1.UIChatSearchBotHits) error {
 	return nil
 }
 
