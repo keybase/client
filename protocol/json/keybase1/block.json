@@ -439,8 +439,7 @@
           "type": "boolean"
         }
       ],
-      "response": "BlockQuotaInfo",
-      "compression_type": "gzip"
+      "response": "BlockQuotaInfo"
     },
     "getTeamQuotaInfo2": {
       "request": [
@@ -453,13 +452,13 @@
           "type": "boolean"
         }
       ],
-      "response": "BlockQuotaInfo",
-      "compression_type": "gzip"
+      "response": "BlockQuotaInfo"
     },
     "blockPing": {
       "request": [],
       "response": "BlockPingResponse"
     }
   },
-  "namespace": "keybase.1"
+  "namespace": "keybase.1",
+  "compression_type": "gzip"
 }

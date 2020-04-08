@@ -1,4 +1,5 @@
 @namespace("keybase.1")
+@compression_type("gzip")
 
 protocol block {
   import idl "backend_common.avdl";
@@ -103,10 +104,8 @@ protocol block {
     int64 gitLimit;
   }
 
-  @compression_type("gzip")
   BlockQuotaInfo getUserQuotaInfo2(boolean includeFolders);
 
-  @compression_type("gzip")
   BlockQuotaInfo getTeamQuotaInfo2(TeamID tid, boolean includeFolders);
 
   BlockPingResponse blockPing();
