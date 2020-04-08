@@ -1828,6 +1828,9 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 		return nil
 	}
 	body := msgBody.TextForDecoration()
+	if len(body) == 0 {
+		return nil
+	}
 	switch typ {
 	case chat1.MessageType_TEXT:
 		// Payment decorations
