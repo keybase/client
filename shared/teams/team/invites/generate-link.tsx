@@ -1,15 +1,18 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
+import * as TeamsGen from '../../../actions/teams-gen'
 import * as Styles from '../../../styles'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {ModalTitle} from '../../common'
 import {FloatingRolePicker} from '../../role-picker'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {pluralize} from '../../../util/string'
+import {formatDurationLong} from '../../../util/timestamp'
 
-type LinkStatus = 'none' | 'active' | 'expired'
+type Props = Container.RouteProps<{teamID: Types.TeamID}>
 
 type RolePickerProps = {
   isRolePickerOpen: boolean
@@ -50,18 +53,73 @@ const InviteRolePicker = (props: RolePickerProps) => {
   )
 }
 
-const GenerateLinkModal = () => {
+const InviteItem = ({inviteLink, teamID}: {inviteLink: Types.InviteLink; teamID: Types.TeamID}) => {
+  const dispatch = Container.useDispatch()
+  const onExpire = () => dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLink.id, teamID}))
+  const waitingForExpire = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, inviteLink.id))
+
+  const duration = formatDurationLong(new Date(), new Date(inviteLink.expirationTime * 1000))
+  const expireText = inviteLink.expired ? `Expired` : `Expires in ${duration}`
+
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inviteContainer} gap="xtiny">
+      <Kb.CopyText text={inviteLink.url} disabled={inviteLink.expired || waitingForExpire} />
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Text type="BodySmall">
+          Invites as {inviteLink.role} • {expireText}
+        </Kb.Text>
+
+        {!inviteLink.expired && (
+          <Kb.Box2
+            direction="horizontal"
+            alignSelf="flex-start"
+            alignItems="center"
+            gap="tiny"
+            style={Styles.globalStyles.positionRelative}
+          >
+            <Kb.Text
+              type={waitingForExpire ? 'BodySmall' : 'BodySmallPrimaryLink'}
+              onClick={waitingForExpire ? undefined : onExpire}
+              style={waitingForExpire ? styles.disabledText : undefined}
+            >
+              Expire now
+            </Kb.Text>
+            {waitingForExpire && (
+              <Kb.Box2 direction="horizontal" centerChildren={true} style={Styles.globalStyles.fillAbsolute}>
+                <Kb.ProgressIndicator type="Small" />
+              </Kb.Box2>
+            )}
+          </Kb.Box2>
+        )}
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+}
+
+const GenerateLinkModal = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const linkStatus = 'active'
-  const teamID = Types.newTeamWizardTeamID
-  const teamname = Container.useSelector(s => s.teams.newTeamWizard.name)
+  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
   const onGenerate = () => undefined
+
+  // TODO: Generate actual invite link
+  const inviteLink = {
+    creatorUsername: 'danielw68',
+    expirationTime: 1582848000,
+    expired: false,
+    id: '1',
+    lastJoinedUsername: 'bob',
+    maxUses: 12,
+    numUses: 1,
+    role: 'reader' as Types.TeamRoleType,
+    url: 'https://keybase.io/SsiDfoiw',
+  }
 
   const validityItemOneUse = (
     <Kb.Text type="BodySemibold" style={styles.dropdownButton}>
@@ -100,7 +158,7 @@ const GenerateLinkModal = () => {
     teamRole: teamRole,
   }
 
-  if (linkStatus != 'none') {
+  if (inviteLink != null) {
     return (
       <Kb.Modal
         onClose={onClose}
@@ -115,8 +173,11 @@ const GenerateLinkModal = () => {
         allowOverflow={true}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-          {linkStatus == 'active' && <Kb.Icon type="icon-illustration-teams-invite-links-green-460-96" />}
-          {linkStatus == 'expired' && <Kb.Icon type="icon-illustration-teams-invite-links-grey-460-96" />}
+          {inviteLink.expired ? (
+            <Kb.Icon type="icon-illustration-teams-invite-links-grey-460-96" />
+          ) : (
+            <Kb.Icon type="icon-illustration-teams-invite-links-green-460-96" />
+          )}
         </Kb.Box2>
         <Kb.Box2
           direction="vertical"
@@ -128,9 +189,9 @@ const GenerateLinkModal = () => {
             Here is your link. Share it cautiously as anyone who has it can join the team.
           </Kb.Text>
 
-          {linkStatus == 'expired' && (
-            <Kb.Text type="BodySmallSemiboldPrimaryLink">Generate a new link</Kb.Text>
-          )}
+          <InviteItem inviteLink={inviteLink} teamID={teamID} />
+
+          {inviteLink.expired && <Kb.Text type="BodySmallSemiboldPrimaryLink">Generate a new link</Kb.Text>}
         </Kb.Box2>
       </Kb.Modal>
     )
@@ -201,6 +262,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {minHeight: 326},
     isMobile: {...Styles.globalStyles.flexOne},
   }),
+  disabledText: {opacity: 0.4},
   dropdownButton: {
     alignSelf: 'center',
     paddingLeft: Styles.globalMargins.xsmall,
@@ -225,6 +287,14 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   input: {...Styles.padding(Styles.globalMargins.xsmall)},
+  inviteContainer: {
+    borderColor: Styles.globalColors.black_10,
+    borderRadius: Styles.borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    marginTop: Styles.globalMargins.small,
+    padding: Styles.globalMargins.tiny,
+  },
   rowTitle: {
     marginBottom: Styles.globalMargins.xtiny,
     marginTop: Styles.globalMargins.tiny,
