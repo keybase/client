@@ -95,7 +95,7 @@ const InviteFriendsModal = () => {
                 <Kb.Text type="BodySmall" center={true}>
                   or share a link:
                 </Kb.Text>
-                <Kb.CopyText textType="BodySmallSemibold" text={shareURL} />
+                <Kb.CopyText text={shareURL} />
               </Kb.Box2>
             )}
           </Kb.Box2>
@@ -116,12 +116,19 @@ const InviteFriendsModal = () => {
                 color="green"
                 key="success"
                 style={styles.banner}
-              >{`Yeeha! You invited ${successCount} ${pluralize('friend', successCount)}.`}</Kb.Banner>,
+              >{`Yeehaw! You invited ${successCount} ${pluralize('friend', successCount)}.`}</Kb.Banner>,
             ]),
       ]}
     >
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} alignItems="center" style={styles.container}>
-        <Kb.Icon type="icon-illustration-invite-friends-460-96" />
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          centerChildren={true}
+          style={styles.illustrationContainer}
+        >
+          <Kb.Icon type="icon-illustration-invite-friends-460-96" />
+        </Kb.Box2>
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.content}>
           <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'xtiny' : 'tiny'} fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">By email address (separate with commas)</Kb.Text>
@@ -168,7 +175,7 @@ export const ShareLinkPopup = ({onClose}: {onClose: () => void}) => (
   <Kb.MobilePopup>
     <Kb.Box2 direction="vertical" style={styles.linkPopupContainer} gap="small" fullWidth={true}>
       <Kb.Text type="Header">Share a link to Keybase</Kb.Text>
-      <Kb.CopyText textType="BodySmallSemibold" text={shareURL} shareSheet={true} />
+      <Kb.CopyText text={shareURL} shareSheet={true} />
       <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={onClose} />
     </Kb.Box2>
   </Kb.MobilePopup>
@@ -186,6 +193,10 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   content: {
     ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),
+  },
+  illustrationContainer: {
+    backgroundColor: Styles.globalColors.purpleLight,
+    overflow: 'hidden',
   },
   linkPopupContainer: {
     ...Styles.padding(Styles.globalMargins.small),
