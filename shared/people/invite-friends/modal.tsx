@@ -94,7 +94,7 @@ const InviteFriendsModal = () => {
                 <Kb.Text type="BodySmall" center={true}>
                   or share a link:
                 </Kb.Text>
-                <Kb.CopyText textType="BodySemibold" text={shareURL} />
+                <Kb.CopyText textType="BodySmallSemibold" text={shareURL} />
               </Kb.Box2>
             )}
           </Kb.Box2>
@@ -180,12 +180,11 @@ const styles = Styles.styleSheetCreate(() => ({
   content: {
     ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),
   },
-  illustration: Styles.platformStyles({isElectron: {width: '100%'}}),
   linkPopupContainer: {
-    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.tiny),
+    ...Styles.padding(Styles.globalMargins.small),
   },
   shareALink: {
-    ...Styles.padding(10, 0),
+    ...Styles.padding(Styles.globalMargins.tiny, 0),
     width: '100%',
   },
 }))

@@ -142,11 +142,7 @@ const CopyText = (props: Props) => {
         onClick={copy}
         labelContainerStyle={styles.buttonLabelContainer}
       >
-        <Icon
-          type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
-          color={Styles.globalColors.white}
-          sizeType="Small"
-        />
+        <Icon type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'} color={Styles.globalColors.white} />
       </Button>
     </Box2>
   )
@@ -158,6 +154,8 @@ const styles = Styles.styleSheetCreate(
     ({
       button: Styles.platformStyles({
         common: {
+          borderTopLeftRadius: 0,
+          borderBottomLeftRadius: 0,
           alignSelf: 'stretch',
           height: undefined,
           marginLeft: 'auto',
@@ -167,10 +165,12 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           display: 'flex',
+          minHeight: 32,
           paddingBottom: Styles.globalMargins.xtiny,
           paddingTop: Styles.globalMargins.xtiny,
         },
         isMobile: {
+          minHeight: 40,
           paddingBottom: Styles.globalMargins.tiny,
           paddingTop: Styles.globalMargins.tiny,
         },
