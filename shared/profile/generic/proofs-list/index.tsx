@@ -111,7 +111,6 @@ class ProofsList extends React.Component<Props, State> {
               <Kb.PlainInput
                 autoFocus={true}
                 placeholder={`Search ${this.props.providers.length} platforms`}
-                placeholderColor={Styles.globalColors.black_50}
                 flexable={true}
                 multiline={false}
                 onChangeText={this._onSetFilter}
