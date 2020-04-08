@@ -266,7 +266,7 @@ func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, conv
 		if stored.Mapping == nil {
 			return res, false
 		}
-		existingSource, ok := stored.Mapping[existingAlias]
+		existingSource, ok := stored.Mapping[strings.Trim(existingAlias, ":")]
 		if !ok {
 			return res, false
 		}

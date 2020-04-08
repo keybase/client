@@ -4030,6 +4030,26 @@
     },
     {
       "type": "record",
+      "name": "AddEmojiAliasRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "errorString"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "RemoveEmojiRes",
       "fields": [
         {
@@ -4157,7 +4177,8 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "NonblockFetchRes"
+      "response": "NonblockFetchRes",
+      "timeout_msec": 30000
     },
     "getUnreadline": {
       "request": [
@@ -4341,7 +4362,8 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "PostLocalNonblockRes"
+      "response": "PostLocalNonblockRes",
+      "timeout_msec": 30000
     },
     "postTextNonblock": {
       "request": [
@@ -4395,7 +4417,8 @@
           ]
         }
       ],
-      "response": "PostLocalNonblockRes"
+      "response": "PostLocalNonblockRes",
+      "timeout_msec": 30000
     },
     "postDeleteNonblock": {
       "request": [
@@ -4431,7 +4454,8 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "PostLocalNonblockRes"
+      "response": "PostLocalNonblockRes",
+      "timeout_msec": 30000
     },
     "postEditNonblock": {
       "request": [
@@ -4471,7 +4495,8 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "PostLocalNonblockRes"
+      "response": "PostLocalNonblockRes",
+      "timeout_msec": 30000
     },
     "postReactionNonblock": {
       "request": [
@@ -4511,7 +4536,8 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "PostLocalNonblockRes"
+      "response": "PostLocalNonblockRes",
+      "timeout_msec": 30000
     },
     "postHeadlineNonblock": {
       "request": [
@@ -4547,7 +4573,8 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "PostLocalNonblockRes"
+      "response": "PostLocalNonblockRes",
+      "timeout_msec": 30000
     },
     "postHeadline": {
       "request": [
@@ -4608,7 +4635,8 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "PostLocalNonblockRes"
+      "response": "PostLocalNonblockRes",
+      "timeout_msec": 30000
     },
     "postMetadata": {
       "request": [
@@ -4847,7 +4875,8 @@
           "type": "MessageID"
         }
       ],
-      "response": "PostLocalNonblockRes"
+      "response": "PostLocalNonblockRes",
+      "timeout_msec": 30000
     },
     "getNextAttachmentMessageLocal": {
       "request": [
@@ -6049,7 +6078,7 @@
           "type": "string"
         }
       ],
-      "response": "AddEmojiRes"
+      "response": "AddEmojiAliasRes"
     },
     "removeEmoji": {
       "request": [

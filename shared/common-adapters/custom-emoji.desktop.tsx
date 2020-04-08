@@ -13,13 +13,6 @@ const Kb = {
   WithTooltip,
 }
 
-const emojiTypes = {
-  Big: 32,
-  Medium: 18,
-  MediumLarge: 26,
-  Small: 16,
-}
-
 const CustomEmoji = (props: Props) => {
   const {size, src, alias} = props
   return (
@@ -29,8 +22,8 @@ const CustomEmoji = (props: Props) => {
       style={Styles.collapseStyles([
         styles.emoji,
         {
-          height: emojiTypes[size],
-          width: emojiTypes[size],
+          height: size,
+          width: size,
         },
       ])}
     >
@@ -39,8 +32,8 @@ const CustomEmoji = (props: Props) => {
           src={src}
           style={Styles.collapseStyles([
             {
-              maxHeight: emojiTypes[size],
-              width: emojiTypes[size],
+              maxHeight: size,
+              width: size,
             },
           ])}
         />

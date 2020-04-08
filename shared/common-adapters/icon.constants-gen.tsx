@@ -527,6 +527,7 @@ export type IconType =
   | 'icon-illustration-attention-64'
   | 'icon-illustration-contact-restrictions-96'
   | 'icon-illustration-emoji-add-460-96'
+  | 'icon-illustration-emoji-alias-460-96'
   | 'icon-illustration-encrypted-116-96'
   | 'icon-illustration-exploding-messages-240'
   | 'icon-illustration-friends-96'
@@ -5762,6 +5763,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-emoji-add-460-96.png')
+    },
+  },
+  'icon-illustration-emoji-alias-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-emoji-alias-460-96.png')
     },
   },
   'icon-illustration-encrypted-116-96': {

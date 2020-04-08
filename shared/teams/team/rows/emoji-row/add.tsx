@@ -9,9 +9,10 @@ type OwnProps = {
   teamID: Types.TeamID
   convID: ChatTypes.ConversationIDKey
   filter: string
+  reloadEmojis: () => void
   setFilter: (filter: string) => void
 }
-const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
+const AddEmoji = ({teamID, convID, filter, reloadEmojis, setFilter}: OwnProps) => {
   const nav = Container.useSafeNavigation()
   const dispatch = Container.useDispatch()
   const onAddEmoji = () =>
@@ -19,13 +20,23 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
       nav.safeNavigateAppendPayload({
         path: [
           {
-            props: {conversationIDKey: convID, teamID},
+            props: {conversationIDKey: convID, onChange: reloadEmojis, teamID},
             selected: 'teamAddEmoji',
           },
         ],
       })
     )
-  const onAddAlias = () => {}
+  const onAddAlias = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [
+          {
+            props: {conversationIDKey: convID, onChange: reloadEmojis},
+            selected: 'teamAddEmojiAlias',
+          },
+        ],
+      })
+    )
   // clear filter on unmount
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>
