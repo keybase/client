@@ -28,7 +28,6 @@ export default Container.namedConnect(
     location: stateProps.location,
     onCancel: dispatchProps.onCancel,
     onSubmit: dispatchProps.onSubmit,
-    title: 'Edit Profile',
   }),
   'EditProfile'
 )(EditProfile)

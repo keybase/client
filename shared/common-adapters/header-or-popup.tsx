@@ -4,6 +4,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import {HeaderHocWrapper, Props as HeaderHocProps} from './header-hoc'
 import PopupDialog, {Props as PopupDialogProps} from './popup-dialog'
 
+/** TODO deprecate **/
 export const PopupWrapper = (props: PopupDialogProps & HeaderHocProps & {children: React.ReactNode}) => {
   if (Container.isMobile) {
     const {children, ...rest} = props

@@ -46,7 +46,7 @@ const SelectChannel = (ownProps: OwnProps) => {
 
   // TODO: this modal could use a little bit of love
   return (
-    <Kb.PopupWrapper>
+    <Kb.PopupDialogDesktop>
       <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
         <Kb.Box style={styles.container}>
           <Kb.Text type="Header">Select a channel</Kb.Text>
@@ -65,7 +65,7 @@ const SelectChannel = (ownProps: OwnProps) => {
           <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
         </Kb.Box>
       </Kb.ScrollView>
-    </Kb.PopupWrapper>
+    </Kb.PopupDialogDesktop>
   )
 }
 

@@ -13,13 +13,13 @@ type KeybaseLinkErrorBodyProps = {
 export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
   const bannerColor = props.isError ? 'red' : 'green'
   return (
-    <Kb.PopupWrapper onCancel={props.onCancel} customCancelText="Close">
+    <Kb.PopupDialogDesktop>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.Banner color={bannerColor}>
           <Kb.BannerParagraph bannerColor={bannerColor} content={props.message} selectable={true} />
         </Kb.Banner>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </Kb.PopupDialogDesktop>
   )
 }
 

@@ -9,7 +9,6 @@ type Props = {
   bio: string
   fullname: string
   location: string
-  title: string
   onCancel: () => void
   onSubmit: (bio: string, fullname: string, location: string) => void
 }
@@ -21,6 +20,9 @@ type State = {
 }
 
 class EditProfile extends React.Component<Props, State> {
+  static navigationOptions = {
+    title: 'Edit Profile',
+  }
   constructor(props: Props) {
     super(props)
     this.state = {
@@ -30,7 +32,7 @@ class EditProfile extends React.Component<Props, State> {
     }
   }
 
-  _disabled = () => {
+  private disabled = () => {
     return (
       (this.state.bio === this.props.bio &&
         this.state.fullname === this.props.fullname &&
@@ -39,18 +41,18 @@ class EditProfile extends React.Component<Props, State> {
     )
   }
 
-  _updateFullname = fullname => this.setState({fullname})
-  _updateBio = bio => this.setState({bio})
-  _updateLocation = location => this.setState({location})
+  private updateFullname = (fullname: string) => this.setState({fullname})
+  private updateBio = (bio: string) => this.setState({bio})
+  private updateLocation = (location: string) => this.setState({location})
 
-  _submit = () => {
+  private submit = () => {
     this.props.onSubmit(this.state.bio, this.state.fullname, this.state.location)
   }
 
   // TODO use NewInput when that supports better border radius changes
   render() {
     return (
-      <Kb.PopupWrapper onCancel={this.props.onCancel} title={this.props.title}>
+      <Kb.PopupDialogDesktop>
         <Kb.ScrollView>
           <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
             {Styles.isMobile ? null : (
@@ -63,7 +65,7 @@ class EditProfile extends React.Component<Props, State> {
                 value={this.state.fullname}
                 placeholder="Full name"
                 autoFocus={true}
-                onChangeText={this._updateFullname}
+                onChangeText={this.updateFullname}
               />
             </Kb.RoundedBox>
             <Kb.RoundedBox side="middle">
@@ -73,28 +75,28 @@ class EditProfile extends React.Component<Props, State> {
                 multiline={true}
                 rowsMin={7}
                 rowsMax={7}
-                onChangeText={this._updateBio}
+                onChangeText={this.updateBio}
               />
             </Kb.RoundedBox>
             <Kb.RoundedBox side="bottom">
               <Kb.PlainInput
                 value={this.state.location}
                 placeholder="Location"
-                onChangeText={this._updateLocation}
-                onEnterKeyDown={this._submit}
+                onChangeText={this.updateLocation}
+                onEnterKeyDown={this.submit}
               />
             </Kb.RoundedBox>
             <Kb.Box2 direction="vertical" style={styles.gap} />
             <Kb.WaitingButton
               waitingKey={Constants.waitingKey}
               label="Save"
-              disabled={this._disabled()}
-              onClick={this._submit}
+              disabled={this.disabled()}
+              onClick={this.submit}
             />
             {this.state.bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}
           </Kb.Box2>
         </Kb.ScrollView>
-      </Kb.PopupWrapper>
+      </Kb.PopupDialogDesktop>
     )
   }
 }
