@@ -298,8 +298,8 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
 
       const state = {
         allowFontScaling,
-        paragraphTextClassName,
         markdownMeta: this.props.meta,
+        paragraphTextClassName,
         styleOverride,
       }
 
