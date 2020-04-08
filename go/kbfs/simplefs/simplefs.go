@@ -3338,8 +3338,7 @@ func (k *SimpleFS) SimpleFSGetFilesTabBadge(ctx context.Context) (
 	keybase1.FilesTabBadge, error) {
 	ctx, cancel := context.WithTimeout(ctx, kbfsOpsWaitTimeout)
 	defer cancel()
-	if err := k.waitForKBFSOps(
-		ctx); err != nil {
+	if err := k.waitForKBFSOps(ctx); err != nil {
 		return 0, err
 	}
 	return k.config.KBFSOps().GetBadge(ctx)
