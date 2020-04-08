@@ -306,7 +306,7 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.memberPill}>
         <Kb.Avatar size={16} username={props.assertion} />
         <Kb.ConnectedUsernames
-          type="BodySemibold"
+          type="BodyBold"
           inline={true}
           lineClamp={1}
           usernames={[props.assertion]}
