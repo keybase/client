@@ -9,7 +9,7 @@ import * as Types from '../../constants/types/teams'
 import {memoize} from '../../util/memoize'
 import flags from '../../util/feature-flags'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
-import SelectionPopup from '../common/selection-popup'
+import {SelectionPopup, useActivityLevels} from '../common'
 import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
 import TeamTabs from './tabs/container'
 import NewTeamHeader from './new-header'
@@ -89,6 +89,7 @@ const Team = (props: Props) => {
   useTeamsSubscribe()
   useTeamDetailsSubscribe(teamID)
   useLoadFeaturedBots(teamDetails, selectedTab === 'bots' /* shouldLoad */)
+  useActivityLevels()
 
   // Sections
   const headerSection = {
