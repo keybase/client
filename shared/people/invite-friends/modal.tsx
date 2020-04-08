@@ -103,7 +103,7 @@ const InviteFriendsModal = () => {
       banners={[
         ...(error
           ? [
-              <Kb.Banner color="red" key="error">
+              <Kb.Banner color="red" key="error" style={styles.banner}>
                 {error}
               </Kb.Banner>,
             ]
@@ -166,13 +166,18 @@ export const ShareLinkPopup = ({onClose}: {onClose: () => void}) => (
   <Kb.MobilePopup>
     <Kb.Box2 direction="vertical" style={styles.linkPopupContainer} gap="small" fullWidth={true}>
       <Kb.Text type="Header">Share a link to Keybase</Kb.Text>
-      <Kb.CopyText text={shareURL} shareSheet={true} />
+      <Kb.CopyText textType="BodySmallSemibold" text={shareURL} shareSheet={true} />
       <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={onClose} />
     </Kb.Box2>
   </Kb.MobilePopup>
 )
 
 const styles = Styles.styleSheetCreate(() => ({
+  banner: {
+    position: 'absolute',
+    top: 47,
+    zIndex: 1,
+  },
   container: {
     backgroundColor: Styles.globalColors.blueGrey,
     flex: 1,
