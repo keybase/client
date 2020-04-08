@@ -53,13 +53,16 @@ export const renderEmoji = (
   return null
 }
 
-export const RPCUserReacjiToRenderableEmoji = (userReacji: RPCTypes.UserReacji): RenderableEmoji => ({
+export const RPCUserReacjiToRenderableEmoji = (
+  userReacji: RPCTypes.UserReacji,
+  noAnim: boolean
+): RenderableEmoji => ({
   aliasForCustom: userReacji.name,
   renderStock: userReacji.customAddr ? undefined : userReacji.name,
-  renderUrl: userReacji.customAddr || undefined,
+  renderUrl: noAnim ? userReacji.customAddrNoAnim || undefined : userReacji.customAddr || undefined,
 })
 
-export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, category?: string): EmojiData {
+export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, noAnim: boolean, category?: string): EmojiData {
   return {
     category: category ?? '',
     name: null,
@@ -69,7 +72,11 @@ export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, category?: string): Em
     userEmojiRenderStock:
       emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str ? emoji.source.str : undefined,
     userEmojiRenderUrl:
-      emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str ? undefined : emoji.source.httpsrv,
+      emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str
+        ? undefined
+        : noAnim && emoji.noAnimSource.typ === RPCChatTypes.EmojiLoadSourceTyp.httpsrv
+        ? emoji.noAnimSource.httpsrv
+        : emoji.source.httpsrv,
   }
 }
 

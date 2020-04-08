@@ -18,7 +18,7 @@ type OwnProps = {
 }
 
 const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis}: OwnProps) => {
-  const emojiData = RPCToEmojiData(emoji)
+  const emojiData = RPCToEmojiData(emoji, false)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onAddAlias = () =>
@@ -64,7 +64,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis}: OwnProps) 
 
   return (
     <Kb.ListItem2
-      icon={renderEmoji(emojiDataToRenderableEmoji(RPCToEmojiData(emoji)), 32, false)}
+      icon={renderEmoji(emojiDataToRenderableEmoji(RPCToEmojiData(emoji, false)), 32, false)}
       type="Large"
       body={
         <Kb.Box2

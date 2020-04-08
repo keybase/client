@@ -1740,7 +1740,7 @@ func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, uid gr
 		var desc chat1.UIReactionDesc
 		if shouldDecorate {
 			desc.Decorated = g.EmojiSource.Decorate(ctx, key, uid,
-				convID, chat1.MessageType_REACTION, msg.Emojis, false)
+				convID, chat1.MessageType_REACTION, msg.Emojis)
 		}
 		desc.Users = make(map[string]chat1.Reaction)
 		for username, reaction := range value {
@@ -1800,7 +1800,7 @@ func PresentDecoratedSnippet(ctx context.Context, g *globals.Context, body strin
 	uid gregor1.UID, convID chat1.ConversationID, msgType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	body = EscapeForDecorate(ctx, body)
 	body = EscapeShrugs(ctx, body)
-	return g.EmojiSource.Decorate(ctx, body, uid, convID, msgType, emojis, true)
+	return g.EmojiSource.Decorate(ctx, body, uid, convID, msgType, emojis)
 }
 
 func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
@@ -1820,7 +1820,7 @@ func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, ui
 		return nil
 	}
 	body = PresentDecoratedTextNoMentions(ctx, body)
-	body = g.EmojiSource.Decorate(ctx, body, uid, convID, typ, msg.Emojis, false)
+	body = g.EmojiSource.Decorate(ctx, body, uid, convID, typ, msg.Emojis)
 	return &body
 }
 
@@ -1854,7 +1854,7 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
 
 	// Emojis
-	body = g.EmojiSource.Decorate(ctx, body, uid, convID, typ, msg.Emojis, false)
+	body = g.EmojiSource.Decorate(ctx, body, uid, convID, typ, msg.Emojis)
 
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,
