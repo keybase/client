@@ -211,7 +211,8 @@ export const EmojiPickerDesktop = (props: Props) => {
               hoveredEmoji,
               getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
             ),
-            36
+            36,
+            false
           )}
           <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
             <Kb.Text type="BodyBig" lineClamp={1}>

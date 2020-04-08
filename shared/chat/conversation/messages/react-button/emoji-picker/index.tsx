@@ -233,7 +233,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         style={styles.emoji}
         key={emoji.short_name}
       >
-        {renderEmoji(renderable, singleEmojiWidth)}
+        {renderEmoji(renderable, singleEmojiWidth, false)}
       </Kb.ClickableBox>
     )
   }
