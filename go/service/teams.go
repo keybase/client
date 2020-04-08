@@ -8,6 +8,7 @@ package service
 import (
 	"fmt"
 	"github.com/go-errors/errors"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"time"
 
 	"github.com/keybase/client/go/kbtime"
@@ -95,18 +96,13 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 		}
 	}
 
-	// TODO: create chat channels
-	/*
-		for channel in teamInfo.ChatChannels:
-			localNewConversationLocal(
-			  identifyBehavior: keybase1.TLFIdentifyBehavior.chatGui,
-			  membersType: chat1.ConversationMembersType.team,
-			  tlfName: teamname,
-			  tlfVisibility: keybase1.TLFVisibility.private,
-			  topicName: channel,
-			  topicType: chat1.TopicType.chat
-			)
-	*/
+	for _, topicName := range teamInfo.ChatChannels {
+		_, _, err = h.G().ChatHelper.NewConversation(ctx, gregor1.UID(h.G().GetMyUID().ToBytes()), teamInfo.Name,
+			&topicName, chat1.TopicType_CHAT, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
 	for _, subteamName := range teamInfo.Subteams {
 		name := teamInfo.Name + "." + subteamName
 		_, err = h.TeamCreate(ctx, keybase1.TeamCreateArg{SessionID: arg.SessionID, Name: name})
@@ -114,18 +110,23 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 			errs = append(errs, err)
 		}
 	}
-	arg4 := keybase1.TeamAddMembersMultiRoleArg{
-		SessionID:            arg.SessionID,
-		TeamID:               teamID,
-		Users:                teamInfo.Users,
-		SendChatNotification: false,
-		EmailInviteMessage:   teamInfo.EmailInviteMessage,
-	}
 
-	// TODO: do something with unadded users
-	_, err = h.TeamAddMembersMultiRole(ctx, arg4)
-	if err != nil {
-		errs = append(errs, err)
+	if len(teamInfo.Users) > 0 {
+		arg4 := keybase1.TeamAddMembersMultiRoleArg{
+			SessionID:            arg.SessionID,
+			TeamID:               teamID,
+			Users:                teamInfo.Users,
+			SendChatNotification: false,
+			EmailInviteMessage:   teamInfo.EmailInviteMessage,
+		}
+
+		unaddedUsers, err := h.TeamAddMembersMultiRole(ctx, arg4)
+		if err != nil {
+			errs = append(errs, err)
+		}
+		if unaddedUsers.NotAdded != nil {
+			errs = append(errs, fmt.Errorf("could not add members to team: %v", unaddedUsers.NotAdded))
+		}
 	}
 	if errs == nil {
 		return teamID, nil
