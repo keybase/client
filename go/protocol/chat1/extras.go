@@ -3162,7 +3162,7 @@ func TeamToChatMemberDetails(teamMembers []keybase1.TeamMemberDetails) (chatMemb
 	chatMembers = make([]ChatMemberDetails, len(teamMembers))
 	for i, teamMember := range teamMembers {
 		chatMembers[i] = ChatMemberDetails{
-			Uv:       teamMember.Uv,
+			Uid:      teamMember.Uv.Uid,
 			Username: teamMember.Username,
 			FullName: teamMember.FullName,
 		}

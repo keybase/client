@@ -736,7 +736,7 @@
   }
 
   record ChatMemberDetails {
-    keybase1.UserVersion uv;
+    keybase1.UID uid;
     string username;
     keybase1.FullName fullName;
   }

@@ -2549,14 +2549,14 @@ func (e LastActiveStatus) String() string {
 }
 
 type ChatMemberDetails struct {
-	Uv       keybase1.UserVersion `codec:"uv" json:"uv"`
-	Username string               `codec:"username" json:"username"`
-	FullName keybase1.FullName    `codec:"fullName" json:"fullName"`
+	Uid      keybase1.UID      `codec:"uid" json:"uid"`
+	Username string            `codec:"username" json:"username"`
+	FullName keybase1.FullName `codec:"fullName" json:"fullName"`
 }
 
 func (o ChatMemberDetails) DeepCopy() ChatMemberDetails {
 	return ChatMemberDetails{
-		Uv:       o.Uv.DeepCopy(),
+		Uid:      o.Uid.DeepCopy(),
 		Username: o.Username,
 		FullName: o.FullName.DeepCopy(),
 	}

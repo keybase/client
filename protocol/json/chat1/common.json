@@ -1948,8 +1948,8 @@
       "name": "ChatMemberDetails",
       "fields": [
         {
-          "type": "keybase1.UserVersion",
-          "name": "uv"
+          "type": "keybase1.UID",
+          "name": "uid"
         },
         {
           "type": "string",
