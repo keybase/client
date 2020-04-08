@@ -559,7 +559,7 @@ const loadTeam = async (state: TypedState, action: TeamsGen.LoadTeamPayload, log
 
   try {
     const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
-    return TeamsGen.createTeamLoaded({details: Constants.annotatedTeamToDetails(team), teamID})
+    return TeamsGen.createTeamLoaded({team, teamID})
   } catch (e) {
     logger.error(e.message)
     return

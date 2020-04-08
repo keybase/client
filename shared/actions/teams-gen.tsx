@@ -367,7 +367,7 @@ type _TeamCreatedPayload = {
   readonly teamID: Types.TeamID
   readonly teamname: string
 }
-type _TeamLoadedPayload = {readonly teamID: Types.TeamID; readonly details: Types.TeamDetails}
+type _TeamLoadedPayload = {readonly teamID: Types.TeamID; readonly team: RPCTypes.AnnotatedTeam}
 type _TeamSeenPayload = {readonly teamID: Types.TeamID}
 type _TeamSetMemberSelectedPayload = {
   readonly teamID: Types.TeamID
