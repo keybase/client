@@ -31,13 +31,14 @@ const AvatarUploadWrapper = (props: Props) => {
     } catch (e) {
       setImageError(e)
     }
-  }, [setImageError, setSelectedImage, navUp])
+  }, [setImageError, setSelectedImage, navUp, props.wizard])
 
+  const noImage = !image
   React.useEffect(() => {
-    if (!props.wizard && !image) {
+    if (!props.wizard && noImage) {
       onChooseNewAvatar()
     }
-  }, [!image, props.wizard, onChooseNewAvatar])
+  }, [noImage, props.wizard, onChooseNewAvatar])
 
   const combinedError = error || imageError
 
