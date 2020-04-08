@@ -57,12 +57,12 @@ export const HeaderTitle = Container.connect(
     }
   },
   (dispatch, {teamID}: OwnProps) => ({
-    onEditAvatar: (teamname: string) =>
+    onEditAvatar: () =>
       // On mobile we show the image picker first before opening the dialog. This
       // is a desktop-only component right now, so just do this.
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {sendChatNotification: true, teamname}, selected: 'teamEditTeamAvatar'}],
+          path: [{props: {sendChatNotification: true, teamID}, selected: 'profileEditAvatar'}],
         })
       ),
     onEditDescription: () =>
@@ -77,9 +77,7 @@ export const HeaderTitle = Container.connect(
   (stateProps, dispatchProps) => ({
     description: stateProps.description,
     members: stateProps.members,
-    onEditAvatar: stateProps._canEditDescAvatar
-      ? () => dispatchProps.onEditAvatar(stateProps.teamname)
-      : undefined,
+    onEditAvatar: stateProps._canEditDescAvatar ? dispatchProps.onEditAvatar : undefined,
     onEditDescription: stateProps._canEditDescAvatar ? dispatchProps.onEditDescription : undefined,
     onRename: stateProps._canRenameTeam ? () => dispatchProps.onRename(stateProps.teamname) : undefined,
     role: stateProps.role,
