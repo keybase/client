@@ -85,7 +85,7 @@ func (c *CmdWotVouch) Run() error {
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
-	arg := keybase1.WotVouchArg{
+	arg := keybase1.WotVouchCLIArg{
 		Assertion:  c.Assertion,
 		VouchTexts: []string{c.Message},
 		Confidence: c.Confidence,
@@ -94,7 +94,7 @@ func (c *CmdWotVouch) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.WotVouch(context.Background(), arg)
+	return cli.WotVouchCLI(context.Background(), arg)
 }
 
 func (c *CmdWotVouch) GetUsage() libkb.Usage {

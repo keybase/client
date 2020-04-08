@@ -1,11 +1,11 @@
-import * as Constants from '../../constants/tracker2'
-import * as Container from '../../util/container'
 import Profile2, {BackgroundColorType} from '.'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
+import * as Constants from '../../constants/tracker2'
 import * as Types from '../../constants/types/tracker2'
+import * as Styles from '../../styles'
+import * as Container from '../../util/container'
 
 export type OwnProps = Container.RouteProps<{username: string}>
 
@@ -98,9 +98,9 @@ const connected = Container.namedConnect(
   },
   dispatch => ({
     _onEditAvatar: () => dispatch(ProfileGen.createEditAvatar()),
-    _onIKnowThem: (username: string) =>
+    _onIKnowThem: (username: string, guiID: string) =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileWotAuthor'}]})
+        RouteTreeGen.createNavigateAppend({path: [{props: {username, guiID}, selected: 'profileWotAuthor'}]})
       ),
     _onReload: (username: string, isYou: boolean, state: Types.DetailsState) => {
       if (state !== 'valid') {
@@ -163,7 +163,11 @@ const connected = Container.namedConnect(
       onAddIdentity,
       onBack: dispatchProps.onBack,
       onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : undefined,
-      onIKnowThem: promptForVouch ? () => dispatchProps._onIKnowThem(stateProps.username) : undefined,
+      // xxx TODO there is more to onIKnowThem/promptForVouch than #23546. See `details` conditions in actions/profile/index.tsx:wotVouch
+      // xxx additional conditions could disable the button.
+      onIKnowThem: promptForVouch
+        ? () => dispatchProps._onIKnowThem(stateProps.username, stateProps.guiID)
+        : undefined,
       onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
       reason: stateProps.reason,
       sbsAvatarUrl: stateProps.sbsAvatarUrl,
