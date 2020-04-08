@@ -260,9 +260,9 @@ const styles = Styles.styleSheetCreate(
           wordBreak: 'break-all',
         },
         isMobile: {
+          color: Styles.globalColors.black_50,
           fontSize: 15,
           lineHeight: 19,
-          color: Styles.globalColors.black_50,
         },
       }),
       right: Styles.platformStyles({
