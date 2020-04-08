@@ -84,6 +84,7 @@ const InviteFriendsModal = () => {
           <Kb.Box2 direction="vertical" gap="medium" fullWidth={true}>
             <Kb.WaitingButton
               fullWidth={true}
+              type="Success"
               label="Send invite"
               disabled={disabled}
               waitingKey={waitingKey}
