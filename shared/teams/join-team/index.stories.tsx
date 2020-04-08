@@ -1,15 +1,20 @@
 import React from 'react'
 import * as Sb from '../../stories/storybook'
-import JoinTeamFromInvite from './join-from-invite'
-import {store} from '../stories'
+import JoinTeamFromInvite, {Props} from './join-from-invite'
+import {fakeTeamID, store} from '../stories'
 
-const props = Sb.createNavigator({
+const props: Props = Sb.createNavigator({
   details: {
+    inviteID: '',
+    inviterUID: '',
+    inviterResetOrDel: false,
+    teamAvatars: {},
     inviterUsername: 'adamjspooner',
     teamDesc:
       'A team for fans of Game of Thrones. This is to show the max-width on the team description (460px). Ellipsis after three lines of description. This is a third line blah blah blah blah blah blah blah blah blah blah. This is a third line blah blah blah blah blah blah blah blah blah blah. This is a third line blah blah blah blah blah blah blah blah blah blah.',
+    teamID: fakeTeamID,
     teamIsOpen: true,
-    teamName: 'gameofthrones',
+    teamName: {parts: ['gameofthrones']},
     teamNumMembers: 1023,
   },
 })

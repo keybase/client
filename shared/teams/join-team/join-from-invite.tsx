@@ -9,7 +9,7 @@ import {Success} from '.'
 
 type NoDetails = 'NODETAILS'
 const noDetails: NoDetails = 'NODETAILS'
-type Props = Container.RouteProps<{details: RPCTypes.InviteLinkDetails | NoDetails}>
+export type Props = Container.RouteProps<{details: RPCTypes.InviteLinkDetails | NoDetails}>
 
 const JoinFromInvite = (props: Props) => {
   const details = Container.getRouteProps(props, 'details', noDetails)
