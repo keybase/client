@@ -2487,7 +2487,7 @@ const refreshMutualTeamsInConv = async (
 }
 
 const fetchUserEmoji = async (action: Chat2Gen.FetchUserEmojiPayload) => {
-  const {conversationIDKey} = action.payload
+  const {conversationIDKey, onlyInTeam} = action.payload
   const results = await RPCChatTypes.localUserEmojisRpcPromise(
     {
       convID:
@@ -2497,7 +2497,7 @@ const fetchUserEmoji = async (action: Chat2Gen.FetchUserEmojiPayload) => {
       opts: {
         getAliases: true,
         getCreationInfo: false,
-        onlyInTeam: false,
+        onlyInTeam: onlyInTeam ?? false,
       },
     },
     Constants.waitingKeyLoadingEmoji

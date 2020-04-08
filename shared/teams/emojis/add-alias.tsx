@@ -88,9 +88,9 @@ export const AddAliasModal = (props: Props) => {
   return (
     <Modal
       bannerImage="icon-illustration-emoji-alias-460-96"
-      title="Add alias"
+      title="Add an alias"
       desktopHeight={395}
-      footerButtonLabel="Add alias"
+      footerButtonLabel="Add an alias"
       footerButtonOnClick={doAddAlias}
       footerButtonWaiting={addAliasWaiting}
     >
@@ -132,7 +132,9 @@ const ChooseEmoji = Styles.isMobile
               {
                 props: {
                   conversationIDKey: props.conversationIDKey,
+                  hideFrequentEmoji: true,
                   onPickAction: props.onChoose,
+                  onlyTeamCustomEmoji: true,
                   small: true,
                 },
                 selected: 'chatChooseEmoji',
@@ -153,9 +155,11 @@ const ChooseEmoji = Styles.isMobile
         >
           <EmojiPickerDesktop
             conversationIDKey={props.conversationIDKey}
+            hideFrequentEmoji={true}
             small={true}
             onPickAction={props.onChoose}
             onDidPick={() => setShowingPopup(false)}
+            onlyTeamCustomEmoji={true}
           />
         </Kb.FloatingBox>
       ))
