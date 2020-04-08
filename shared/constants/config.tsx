@@ -114,6 +114,7 @@ export const getRemoteWindowPropsCount = (state: Types.State, component: string,
 }
 
 export const initialState: Types.State = {
+  allowAnimatedEmojis: true,
   androidShare: undefined,
   appFocused: true,
   appFocusedCount: 0,

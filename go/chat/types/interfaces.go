@@ -623,12 +623,13 @@ type EmojiSource interface {
 		newAlias, existingAlias string) (chat1.EmojiRemoteSource, error)
 	Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias string) error
 	Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, opts chat1.EmojiFetchOpts) (chat1.UserEmojis, error)
-	Decorate(ctx context.Context, body string, convID chat1.ConversationID, messageType chat1.MessageType,
-		emojis []chat1.HarvestedEmoji, noAnim bool) string
+	Decorate(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
+		messageType chat1.MessageType, emojis []chat1.HarvestedEmoji, noAnim bool) string
 	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
 		mode EmojiHarvestMode) ([]chat1.HarvestedEmoji, error)
 	IsStockEmoji(alias string) bool
-	RemoteToLocalSource(ctx context.Context, remote chat1.EmojiRemoteSource, noAnim bool) (chat1.EmojiLoadSource, error)
+	RemoteToLocalSource(ctx context.Context, uid gregor1.UID, remote chat1.EmojiRemoteSource, noAnim bool) (chat1.EmojiLoadSource, error)
+	ToggleAnimations(ctx context.Context, uid gregor1.UID, enabled bool) error
 }
 
 type EphemeralTracker interface {

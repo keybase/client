@@ -322,7 +322,7 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 			delete(cache.FrequencyMap, name)
 			continue
 		}
-		loadSource, err := s.G().EmojiSource.RemoteToLocalSource(ctx, harvested[0].Source, true)
+		loadSource, err := s.G().EmojiSource.RemoteToLocalSource(ctx, uid, harvested[0].Source, true)
 		if err != nil {
 			s.Debug(ctx, "UserReacjis: failed to convert to local source: %s", err)
 			delete(cache.FrequencyMap, name)

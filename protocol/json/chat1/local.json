@@ -6108,6 +6108,15 @@
         }
       ],
       "response": "UserEmojiRes"
+    },
+    "toggleEmojiAnimations": {
+      "request": [
+        {
+          "name": "enabled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"
