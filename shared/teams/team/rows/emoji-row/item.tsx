@@ -13,10 +13,11 @@ import EmojiMenu from './emoji-menu'
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
   emoji: RPCChatTypes.Emoji
+  firstItem: boolean
   reloadEmojis: () => void
 }
 
-const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
+const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -74,12 +75,12 @@ const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
           gap="small"
         >
           <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
-          {emoji.creationInfo && (
+          {!Styles.isMobile && emoji.creationInfo && (
             <Kb.Text type="Body" style={styles.date}>
               {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
             </Kb.Text>
           )}
-          {emoji.creationInfo && (
+          {!Styles.isMobile && emoji.creationInfo && (
             <Kb.NameWithIcon
               horizontal={true}
               username={emoji.creationInfo.username}
@@ -100,7 +101,7 @@ const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
           </Kb.Box2>
         </Kb.Box2>
       }
-      firstItem={false}
+      firstItem={firstItem}
     />
   )
 }
