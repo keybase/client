@@ -284,7 +284,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
         </Text>
       )
     }
-    const {allowFontScaling, styleOverride = {}} = this.props
+    const {allowFontScaling, styleOverride = {}, paragraphTextClassName} = this.props
     let parseTree: Array<SimpleMarkdown.SingleASTNode>
     let output: SimpleMarkdown.Output<any>
     try {
@@ -298,6 +298,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
 
       const state = {
         allowFontScaling,
+        paragraphTextClassName,
         markdownMeta: this.props.meta,
         styleOverride,
       }
@@ -319,11 +320,17 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
       )
     }
     const inner = this.props.serviceOnly ? (
-      <Text type="Body" style={this.props.style} lineClamp={this.props.lineClamp}>
+      <Text
+        className={this.props.paragraphTextClassName}
+        type="Body"
+        style={this.props.style}
+        lineClamp={this.props.lineClamp}
+      >
         {output}
       </Text>
     ) : this.props.preview ? (
       <Text
+        className={this.props.paragraphTextClassName}
         type={Styles.isMobile ? 'Body' : 'BodySmall'}
         style={Styles.collapseStyles([
           markdownStyles.neutralPreviewStyle,
@@ -343,6 +350,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
       inner
     ) : (
       <Text
+        className={this.props.paragraphTextClassName}
         type="Body"
         lineClamp={this.props.lineClamp}
         style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}

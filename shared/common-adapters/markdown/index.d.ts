@@ -48,6 +48,7 @@ export type Props = {
   lineClamp?: LineClampType
   selectable?: boolean // desktop - applies to outer container only
   smallStandaloneEmoji?: boolean // don't increase font size for a standalone emoji
+  paragraphTextClassName?: string
   preview?: boolean // if true render a simplified version
   serviceOnly?: boolean // only render stuff from the service
 
