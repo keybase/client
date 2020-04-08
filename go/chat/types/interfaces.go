@@ -615,6 +615,7 @@ type ParticipantSource interface {
 		dataSource InboxSourceDataSourceTyp) chan ParticipantResult
 	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		dataSource InboxSourceDataSourceTyp)
+	GetParticipantsFromUids(ctx context.Context, uids []gregor1.UID) ([]chat1.ConversationLocalParticipant, error)
 }
 
 type EmojiSource interface {

@@ -802,6 +802,12 @@ func (d DummyParticipantSource) GetNonblock(ctx context.Context, uid gregor1.UID
 func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) {
 }
+func (d DummyParticipantSource) GetParticipantsFromUids(
+	ctx context.Context,
+	uids []gregor1.UID,
+) ([]chat1.ConversationLocalParticipant, error) {
+	return nil, nil
+}
 
 type DummyEmojiSource struct{}
 
