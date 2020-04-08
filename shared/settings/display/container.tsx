@@ -1,4 +1,5 @@
 import * as ConfigGen from '../../actions/config-gen'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import Display from '.'
@@ -7,6 +8,7 @@ import {DarkModePreference} from '../../styles/dark-mode'
 type OwnProps = {}
 export default Container.connect(
   state => ({
+    allowAnimatedEmojis: state.config.allowAnimatedEmojis,
     darkModePreference: state.config.darkModePreference,
   }),
   dispatch => ({
