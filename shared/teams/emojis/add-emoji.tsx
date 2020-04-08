@@ -189,58 +189,57 @@ type ModalProps = {
   backButtonOnClick?: () => void
 }
 
-const Modal = (props: ModalProps) => {
-  const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
-  return (
-    <Kb.PopupWrapper onCancel={onCancel} title="Add emoji">
-      <Kb.Box2
-        direction="vertical"
-        fullHeight={Styles.isMobile}
-        fullWidth={Styles.isMobile}
-        style={styles.container}
-      >
-        {!Styles.isMobile && (
-          <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.headerContainer}>
-            {props.backButtonOnClick && (
-              <Kb.Icon
-                type="iconfont-arrow-left"
-                boxStyle={styles.backButton}
-                onClick={props.backButtonOnClick}
-              />
-            )}
-            <Kb.Text type="Header">Add emoji</Kb.Text>
-          </Kb.Box2>
-        )}
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer}>
-          <Kb.Icon type="icon-illustration-emoji-add-460-96" noContainer={true} style={styles.bannerImage} />
-          {!!props.bannerError && (
-            <Kb.Banner color="red" style={styles.bannerError}>
-              {props.bannerError}
-            </Kb.Banner>
-          )}
-        </Kb.Box2>
-        {props.children}
-        {props.footerButtonLabel && props.footerButtonOnClick && (
-          <Kb.Box2
-            direction="vertical"
-            centerChildren={true}
-            style={styles.footerContainer}
-            gap="small"
-            fullWidth={true}
-          >
-            <Kb.Button
-              mode="Primary"
-              label={props.footerButtonLabel}
-              fullWidth={true}
-              onClick={props.footerButtonOnClick}
-              waiting={props.footerButtonWaiting}
+const Modal = (props: ModalProps) => (
+  <Kb.PopupDialogDesktop closeType="clearModals">
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={Styles.isMobile}
+      fullWidth={Styles.isMobile}
+      style={styles.container}
+    >
+      {!Styles.isMobile && (
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.headerContainer}>
+          {props.backButtonOnClick && (
+            <Kb.Icon
+              type="iconfont-arrow-left"
+              boxStyle={styles.backButton}
+              onClick={props.backButtonOnClick}
             />
-          </Kb.Box2>
+          )}
+          <Kb.Text type="Header">Add emoji</Kb.Text>
+        </Kb.Box2>
+      )}
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer}>
+        <Kb.Icon type="icon-illustration-emoji-add-460-96" noContainer={true} style={styles.bannerImage} />
+        {!!props.bannerError && (
+          <Kb.Banner color="red" style={styles.bannerError}>
+            {props.bannerError}
+          </Kb.Banner>
         )}
       </Kb.Box2>
-    </Kb.PopupWrapper>
-  )
+      {props.children}
+      {props.footerButtonLabel && props.footerButtonOnClick && (
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          style={styles.footerContainer}
+          gap="small"
+          fullWidth={true}
+        >
+          <Kb.Button
+            mode="Primary"
+            label={props.footerButtonLabel}
+            fullWidth={true}
+            onClick={props.footerButtonOnClick}
+            waiting={props.footerButtonWaiting}
+          />
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
+  </Kb.PopupDialogDesktop>
+)
+Modal.navigationOptions = {
+  title: 'Add emoji',
 }
 
 const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {

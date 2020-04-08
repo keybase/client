@@ -2,13 +2,10 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 const WhatIsStellarModal = () => {
-  const dispatch = Container.useDispatch()
-  const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
   return (
-    <Kb.PopupWrapper onCancel={onClose} customCancelText="Close" borderless={true}>
+    <Kb.PopupDialogDesktop>
       <Kb.ScrollView>
         <Kb.Box2 direction="vertical" style={styles.container}>
           <Kb.Icon
@@ -58,8 +55,12 @@ Here’s everything that makes Stellar powerful:`}
           </Kb.Text>
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.PopupWrapper>
+    </Kb.PopupDialogDesktop>
   )
+}
+WhatIsStellarModal.navigationOptions = {
+  headerLeft: null,
+  headerRight: <Kb.HeaderRightDone />,
 }
 
 const styles = Styles.styleSheetCreate(

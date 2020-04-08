@@ -91,7 +91,7 @@ const ShowcaseTeamOfferHeader = () => (
 const ShowcaseTeamOffer = (props: Props) => {
   useTeamsSubscribe()
   return (
-    <Kb.PopupWrapper onCancel={props.onCancel} title="Feature your teams" customCancelText="Close">
+    <Kb.PopupDialogDesktop>
       <Kb.Box2 direction="vertical" style={styles.container}>
         {!Styles.isMobile && <ShowcaseTeamOfferHeader />}
         <Kb.ScrollView>
@@ -113,8 +113,11 @@ const ShowcaseTeamOffer = (props: Props) => {
           ))}
         </Kb.ScrollView>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </Kb.PopupDialogDesktop>
   )
+}
+ShowcaseTeamOffer.navigationOptions = {
+  title: 'Feature your teams',
 }
 
 const styles = Styles.styleSheetCreate(
