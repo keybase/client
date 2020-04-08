@@ -37,7 +37,8 @@ const (
 	defaultBlockCacheBlockSize      int    = 4 * opt.MiB
 	defaultBlockCacheCapacity       int    = 8 * opt.MiB
 	evictionConsiderationFactor     int    = 3
-	defaultNumBlocksToEvict         int    = 10
+	minNumBlocksToEvictInBatch      int    = 10
+	maxNumBlocksToEvictInBatch      int    = 500
 	defaultNumBlocksToEvictOnClear  int    = 100
 	defaultNumUnmarkedBlocksToCheck int    = 100
 	defaultClearTickerDuration             = 1 * time.Second
@@ -645,7 +646,26 @@ func (cache *DiskBlockCacheLocal) Get(
 	return buf, serverHalf, md.PrefetchStatus(), err
 }
 
-func (cache *DiskBlockCacheLocal) evictUntilBytesAvailable(
+// numBlocksToEvict estimates the number of blocks to evict to make
+// enough room for new blocks, based on the average block size in the
+// cache.
+func (cache *DiskBlockCacheLocal) numBlocksToEvictLocked(
+	bytesAvailable int64) int {
+	if cache.numBlocks <= 0 || bytesAvailable > 0 {
+		return minNumBlocksToEvictInBatch
+	}
+
+	bytesPerBlock := int(cache.getCurrBytes()) / cache.numBlocks
+	toEvict := -int(bytesAvailable) / bytesPerBlock
+	if toEvict < minNumBlocksToEvictInBatch {
+		return minNumBlocksToEvictInBatch
+	} else if toEvict > maxNumBlocksToEvictInBatch {
+		return maxNumBlocksToEvictInBatch
+	}
+	return toEvict
+}
+
+func (cache *DiskBlockCacheLocal) evictUntilBytesAvailableLocked(
 	ctx context.Context, encodedLen int64) (hasEnoughSpace bool, err error) {
 	if !cache.useLimiter() {
 		return true, nil
@@ -668,7 +688,8 @@ func (cache *DiskBlockCacheLocal) evictUntilBytesAvailable(
 			return true, nil
 		}
 		cache.log.CDebugf(ctx, "Need more bytes. Available: %d", bytesAvailable)
-		numRemoved, _, err := cache.evictLocked(ctx, defaultNumBlocksToEvict)
+		numRemoved, _, err := cache.evictLocked(
+			ctx, cache.numBlocksToEvictLocked(bytesAvailable))
 		if err != nil {
 			return false, err
 		}
@@ -722,7 +743,8 @@ func (cache *DiskBlockCacheLocal) Put(
 				return data.CachePutCacheFullError{BlockID: blockID}
 			}
 		} else {
-			hasEnoughSpace, err := cache.evictUntilBytesAvailable(ctx, encodedLen)
+			hasEnoughSpace, err := cache.evictUntilBytesAvailableLocked(
+				ctx, encodedLen)
 			if err != nil {
 				return err
 			}
