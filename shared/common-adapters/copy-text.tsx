@@ -120,7 +120,7 @@ const CopyText = (props: Props) => {
       </Toast>
       <Text
         lineClamp={lineClamp}
-        type={props.textType || 'BodyTiny'}
+        type={props.textType || 'BodySmallSemibold'}
         selectable={true}
         center={true}
         style={styles.text}
