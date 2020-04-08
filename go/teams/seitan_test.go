@@ -283,7 +283,7 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 	inviteID, err := sikey.GenerateTeamInviteID()
 	require.NoError(t, err)
 
-	ikey2, err := GenerateIKey()
+	ikey2, err := GenerateIKey() // ikey2 is not the ikey from token.
 	require.NoError(t, err)
 	sikey2, err := ikey2.GenerateSIKey()
 	require.NoError(t, err)
