@@ -314,7 +314,9 @@ func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybas
 	return h.G().GetOutOfDateInfo(), nil
 }
 
-func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, error) {
+func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (res keybase1.UpdateInfo, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("GetUpdateInfo", func() error { return err })()
 	outOfDateInfo := h.G().GetOutOfDateInfo()
 	if len(outOfDateInfo.UpgradeTo) != 0 {
 		// This is from the API server. Consider client critically out of date
@@ -326,7 +328,6 @@ func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, 
 	}
 	needUpdate, err := install.GetNeedUpdate() // This is from the updater.
 	if err != nil {
-		h.G().Log.Errorf("Error calling updater: %s", err)
 		return keybase1.UpdateInfo{
 			Status: keybase1.UpdateInfoStatus_UP_TO_DATE,
 		}, err
