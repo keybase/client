@@ -162,7 +162,8 @@ func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID
 
 	var resp TeamInviteLinkDetails
 	if err = mctx.G().API.GetDecode(mctx, arg, &resp); err != nil {
-		// the server knows about invite ids (but not keys), so it is fine to put this in the log.
+		// The server knows about invite IDs (but not keys), so it is fine to
+		// put this in the log.
 		mctx.Debug("GetInviteLinkDetails: failed to get team invite details for %v: %s", inviteID, err)
 		return info, err
 	}

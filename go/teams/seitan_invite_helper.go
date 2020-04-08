@@ -13,7 +13,7 @@ func ParseAndAcceptSeitanToken(mctx libkb.MetaContext, ui keybase1.TeamsUiInterf
 
 	seitanVersion, err := DeriveSeitanVersionFromToken(tok)
 	if err != nil {
-		return wasSeitan, err
+		return false, err
 	}
 	switch seitanVersion {
 	case SeitanVersion1:
@@ -190,6 +190,9 @@ func postSeitanInviteLink(mctx libkb.MetaContext, acceptedSeitan acceptedSeitanI
 	return err
 }
 
+// presentInviteLinkInUI calls the TeamsUI ConfirmInviteLinkAccept which should
+// present a modal or CLI prompt for the user, where they can confirm or
+// decline accepting the invite.
 func presentInviteLinkInUI(mctx libkb.MetaContext, ui keybase1.TeamsUiInterface, inviteID SCTeamInviteID) error {
 	teamInviteID, err := inviteID.TeamInviteID()
 	if err != nil {

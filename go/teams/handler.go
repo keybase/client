@@ -707,33 +707,31 @@ func verifySeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 }
 
 func verifySeitanSingleV1(key keybase1.SeitanIKey, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+	// We repeat the steps that user does when they request access using the
+	// invite ID and see if we get the same answer for the same parameters (UV
+	// and unixCTime).
 	ikey := SeitanIKey(key)
-	sikey, err := ikey.GenerateSIKey()
+	uv := keybase1.UserVersion{
+		Uid:         seitan.Uid,
+		EldestSeqno: seitan.EldestSeqno,
+	}
+	ourAccept, err := generateAcceptanceSeitanV1(ikey, uv, seitan.UnixCTime)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to generate acceptance key to test: %w", err)
 	}
 
-	inviteID, err := sikey.GenerateTeamInviteID()
-	if err != nil {
-		return err
-	}
-
-	if !inviteID.Eq(invite.Id) {
+	if !ourAccept.inviteID.Eq(invite.Id) {
 		return errors.New("invite ID mismatch (seitan)")
 	}
 
-	akey, _, err := sikey.GenerateAcceptanceKey(seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
-	if err != nil {
-		return err
-	}
-
-	// Decode given AKey to be able to do secure hash comparison.
+	// Decode AKey received from the user to be able to do secure hash
+	// comparison.
 	decodedAKey, err := base64.StdEncoding.DecodeString(string(seitan.Akey))
 	if err != nil {
 		return err
 	}
 
-	if !libkb.SecureByteArrayEq(akey, decodedAKey) {
+	if !libkb.SecureByteArrayEq(ourAccept.akey, decodedAKey) {
 		return fmt.Errorf("did not end up with the same AKey")
 	}
 
@@ -741,19 +739,24 @@ func verifySeitanSingleV1(key keybase1.SeitanIKey, invite keybase1.TeamInvite, s
 }
 
 func verifySeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+	// Do the public key signature verification. Signature coming from the user
+	// is encoded in seitan.Akey. Recreate message using UV and ctime, then
+	// verify signature.
 	pubKey, err := ImportSeitanPubKey(key)
 	if err != nil {
 		return err
 	}
 
+	// For V2 the server responds with sig in the akey field.
 	var sig SeitanSig
-	decodedSig, err := base64.StdEncoding.DecodeString(string(seitan.Akey)) // For V2 the server responds with sig in the akey field
+	decodedSig, err := base64.StdEncoding.DecodeString(string(seitan.Akey))
 	if err != nil || len(sig) != len(decodedSig) {
 		return errors.New("Signature length verification failed (seitan)")
 	}
 	copy(sig[:], decodedSig)
 
-	now := keybase1.Time(seitan.UnixCTime) // For V2 this is ms since the epoch, not seconds
+	// For V2 this is ms since the epoch, not seconds (line in V1 or InviteLink)
+	now := keybase1.Time(seitan.UnixCTime)
 	// NOTE: Since we are re-serializing the values from seitan here to
 	// generate the message, if we want to change the fields present in the
 	// signature in the future, old clients will not be compatible.
@@ -787,7 +790,8 @@ func verifySeitanSingleInvitelink(ctx context.Context, g *libkb.GlobalContext, i
 		return errors.New("invite ID mismatch (seitan invitelink)")
 	}
 
-	// Decode given AKey to be able to do secure hash comparison.
+	// Decode AKey received from the user to be able to do secure hash
+	// comparison.
 	decodedAKey, err := base64.StdEncoding.DecodeString(string(seitan.Akey))
 	if err != nil {
 		return err
