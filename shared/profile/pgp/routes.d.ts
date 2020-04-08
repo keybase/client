@@ -1,1 +1,1 @@
-export declare const newRoutes: {}
+export declare const newModalRoutes: {}

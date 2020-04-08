@@ -1,14 +1,16 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import {CloseType} from '../common-adapters/header-or-popup'
 
 type Props = React.PropsWithChildren<{
+  closeType?: CloseType
   onCancel?: () => void
   skipButton?: boolean
 }>
 
-const Modal = ({children, onCancel, skipButton}: Props) => (
-  <Kb.PopupWrapper onCancel={onCancel}>
+const Modal = ({children, onCancel, skipButton, closeType}: Props) => (
+  <Kb.PopupDialogDesktop onBack={onCancel} closeType={closeType}>
     <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="vertical" style={styles.content} fullWidth={true} alignItems="center">
         {children}
@@ -19,7 +21,7 @@ const Modal = ({children, onCancel, skipButton}: Props) => (
         </Kb.Box2>
       )}
     </Kb.Box2>
-  </Kb.PopupWrapper>
+  </Kb.PopupDialogDesktop>
 )
 
 const styles = Styles.styleSheetCreate(

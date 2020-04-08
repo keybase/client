@@ -17,11 +17,32 @@ export const PopupWrapper = (props: PopupDialogProps & HeaderHocProps & {childre
   }
 }
 
-type Props = {children: React.ReactNode}
+export type CloseType = 'onBack' | 'clearModals' | 'none'
+type Props = {children: React.ReactNode; closeType?: CloseType; onBack?: () => void}
 export const PopupDialogDesktop: (p: Props) => React.ReactElement = Container.isMobile
   ? (props: Props) => props.children as React.ReactElement
   : (props: Props) => {
       const dispatch = Container.useDispatch()
       const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
-      return <PopupDialog onClose={onBack}>{props.children}</PopupDialog>
+      const onClearModals = () => dispatch(RouteTreeGen.createClearModals())
+      let onClose: undefined | (() => void)
+
+      if (props.onBack) {
+        onClose = props.onBack
+      } else {
+        switch (props.closeType) {
+          case 'onBack':
+            onClose = onBack
+            break
+          case 'clearModals':
+            onClose = onClearModals
+            break
+          case 'none':
+            onClose = undefined
+            break
+          default:
+            onClose = onBack
+        }
+      }
+      return <PopupDialog onClose={onClose}>{props.children}</PopupDialog>
     }

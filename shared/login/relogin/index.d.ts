@@ -2,21 +2,22 @@ import {Component} from 'react'
 import {ConfiguredAccount} from '../../constants/types/config'
 
 export type Props = {
-  users: Array<ConfiguredAccount>
-  onForgotPassword: () => void
-  onSignup: () => void
-  onSomeoneElse: () => void
   error: string
   needPassword: boolean
+  onFeedback: () => void
+  onForgotPassword: () => void
+  onLogin: (user: string, password: string) => void
+  onShowProxySettings: () => void
+  onSignup: () => void
+  onSomeoneElse: () => void
+  onSubmit: () => void
   password: string
-  showTyping: boolean
+  passwordChange: (password: string) => void
   selectedUser: string
   selectedUserChange: (selectedUser: string) => void
-  passwordChange: (password: string) => void
+  showTyping: boolean
   showTypingChange: (typingChange: boolean) => void
-  onSubmit: () => void
-  onFeedback: () => void
-  onLogin: (user: string, password: string) => void
+  users: Array<ConfiguredAccount>
 }
 
 export default class Login extends Component<Props> {}

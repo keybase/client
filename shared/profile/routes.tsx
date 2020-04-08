@@ -1,4 +1,4 @@
-import {newRoutes as PGPRoutes} from './pgp/routes'
+import {newModalRoutes as PGPRoutes} from './pgp/routes'
 import Profile from './user/container'
 import ProfileAddToTeam from './add-to-team/container'
 import ProfileConfirmOrPending from './confirm-or-pending/container'

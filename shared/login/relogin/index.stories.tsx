@@ -13,6 +13,7 @@ const commonProps: Props = {
   onFeedback: Sb.action('onFeedback'),
   onForgotPassword: Sb.action('onForgotPassword'),
   onLogin: Sb.action('onLogin'),
+  onShowProxySettings: Sb.action('onShowProxySettings'),
   onSignup: Sb.action('onSignup'),
   onSomeoneElse: Sb.action('onSomeoneElse'),
   onSubmit: Sb.action('onSubmit'),

@@ -6,7 +6,7 @@ import {PerfWrapper} from '../util/use-perf'
 
 export const shim = (routes: any, isModal: boolean) => Shared.shim(routes, shimNewRoute, isModal)
 
-const shimNewRoute = (Original: any, isModal: boolean) => {
+const shimNewRoute = (Original: any, _isModal: boolean) => {
   const ShimmedNew = React.memo((props: any) => {
     const original = <Original {...props} />
     let body = original

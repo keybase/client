@@ -137,7 +137,7 @@ const BlankScreen = () => null
 const VanillaTabNavigator = createBottomTabNavigator(
   tabs.reduce(
     (map, tab) => {
-      const Stack = createStackNavigator(Shim.shim(routes), {
+      const Stack = createStackNavigator(Shim.shim(routes, false), {
         bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
         cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
         defaultNavigationOptions,
@@ -326,7 +326,7 @@ const LoggedInStackNavigator = createStackNavigator(
 
 const LoggedOutStackNavigator = createStackNavigator(
   {
-    ...Shim.shim(loggedOutRoutes),
+    ...Shim.shim(loggedOutRoutes, false),
     ...Shim.shim(
       {
         // special case, i don't want to load all modals, nav5 fixes this and we can have modals anywhere

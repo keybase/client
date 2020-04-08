@@ -3,7 +3,7 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import Modal from '../modal'
 
 type OwnProps = {}
@@ -21,13 +21,13 @@ type State = {
 export class Finished extends React.Component<Props, State> {
   state = {shouldStoreKeyOnServer: false}
 
-  _onCheckToggle(shouldStoreKeyOnServer: boolean) {
+  private onCheckToggle(shouldStoreKeyOnServer: boolean) {
     this.setState({shouldStoreKeyOnServer})
   }
 
   render() {
     return (
-      <Modal>
+      <Modal closeType="none">
         <Kb.Box2 direction="vertical" alignItems="center" gap="tiny">
           <Kb.PlatformIcon platform="pgp" overlay="icon-proof-success" />
           <Kb.Text type="Header">Here is your unique public key!</Kb.Text>
@@ -40,7 +40,7 @@ export class Finished extends React.Component<Props, State> {
           {this.props.promptShouldStoreKeyOnServer && (
             <Kb.Box2 direction="vertical">
               <Kb.Checkbox
-                onCheck={newVal => this._onCheckToggle(newVal)}
+                onCheck={newVal => this.onCheckToggle(newVal)}
                 checked={this.state.shouldStoreKeyOnServer}
                 label="Store encrypted private key on Keybase's server"
               />
@@ -87,13 +87,13 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default namedConnect(
+export default Container.namedConnect(
   state => ({
     pgpKeyString: state.profile.pgpPublicKey || 'Error getting public key...',
     promptShouldStoreKeyOnServer: state.profile.promptShouldStoreKeyOnServer,
   }),
   dispatch => ({
-    onDone: shouldStoreKeyOnServer => {
+    onDone: (shouldStoreKeyOnServer: boolean) => {
       dispatch(ProfileGen.createFinishedWithKeyGen({shouldStoreKeyOnServer}))
       dispatch(RouteTreeGen.createClearModals())
     },

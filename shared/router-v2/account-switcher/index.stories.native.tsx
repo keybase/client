@@ -31,7 +31,6 @@ const props: Props = {
   onCancel: Sb.action('onCancel'),
   onProfileClick: Sb.action('onProfileClick'),
   onSelectAccount: Sb.action('onSelectAccount'),
-  onSignOut: Sb.action('onSignOut'),
   username: 'alice',
   waiting: false,
 }
