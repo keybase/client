@@ -56,7 +56,8 @@ const filterAndSectionContacts = memoize((contacts: Contact[], search: string): 
 })
 
 type Props = {
-  disabled?: boolean
+  emailsDisabled?: boolean
+  phonesDisabled?: boolean
   ListHeaderComponent?: React.ComponentProps<typeof Kb.SectionList>['ListHeaderComponent']
   onSelect: (contact: Contact, checked: boolean) => void
   search: string
@@ -129,7 +130,7 @@ const ContactsList = (props: Props) => {
           item={item}
           index={index}
           onSelect={onSelectForRows}
-          disabled={props.disabled}
+          disabled={item.type === 'email' ? props.emailsDisabled : props.phonesDisabled}
           selected={
             item.type === 'email'
               ? props.selectedEmails.has(item.value)

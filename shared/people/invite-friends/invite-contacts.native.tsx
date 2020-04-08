@@ -52,6 +52,8 @@ const InviteContacts = () => {
   const placeholderText = loading ? '' : `Search ${contacts.length.toLocaleString()} contacts`
 
   const disabled = !!successCount
+  const emailsDisabled = disabled || !!selectedPhones.size
+  const phonesDisabled = disabled || !!selectedEmails.size
   const onSelectContact = (contact: Contact, checked: boolean) => {
     if (contact.type === 'phone') {
       if (checked) {
@@ -121,7 +123,8 @@ const InviteContacts = () => {
         />
       )}
       <ContactsList
-        disabled={disabled}
+        emailsDisabled={emailsDisabled}
+        phonesDisabled={phonesDisabled}
         ListHeaderComponent={ListHeaderComponent}
         onSelect={onSelectContact}
         search={search}
