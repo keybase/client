@@ -63,7 +63,7 @@ const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
 
   return (
     <Kb.ListItem2
-      icon={renderEmoji(emojiDataToRenderableEmoji(RPCToEmojiData(emoji)), 32)}
+      icon={renderEmoji(emojiDataToRenderableEmoji(RPCToEmojiData(emoji)), 32, false)}
       type="Large"
       body={
         <Kb.Box2

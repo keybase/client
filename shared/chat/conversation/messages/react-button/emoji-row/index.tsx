@@ -36,7 +36,7 @@ class HoverEmoji extends React.Component<
         hoverColor={Styles.globalColors.transparent}
         style={styles.emojiBox}
       >
-        {renderEmoji(RPCUserReacjiToRenderableEmoji(this.props.emoji), this.state.hovering ? 22 : 18)}
+        {renderEmoji(RPCUserReacjiToRenderableEmoji(this.props.emoji), this.state.hovering ? 22 : 18, false)}
       </Kb.ClickableBox>
     )
   }
