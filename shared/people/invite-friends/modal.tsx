@@ -112,15 +112,16 @@ const InviteFriendsModal = () => {
         ...(successCount === null
           ? []
           : [
-              <Kb.Banner color="green" key="success">{`Success! You invited ${successCount} ${pluralize(
-                'friend',
-                successCount
-              )} to Keybase.`}</Kb.Banner>,
+              <Kb.Banner
+                color="green"
+                key="success"
+                style={styles.banner}
+              >{`Yeeha! You invited ${successCount} ${pluralize('friend', successCount)}.`}</Kb.Banner>,
             ]),
       ]}
     >
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} alignItems="center" style={styles.container}>
-        <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.illustration} />
+        <Kb.Icon type="icon-illustration-invite-friends-460-96" />
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.content}>
           <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'xtiny' : 'tiny'} fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">By email address (separate with commas)</Kb.Text>
