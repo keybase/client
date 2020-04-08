@@ -459,7 +459,7 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 		sig:      badSig,
 		encoded:  badEncoded,
 		now:      now,
-		inviteID: SCTeamInviteID(inviteID),
+		inviteID: inviteID,
 	})
 	require.NoError(t, err)
 
