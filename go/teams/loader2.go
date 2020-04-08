@@ -555,7 +555,6 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 			PerTeamKeySeedsUnverified: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem),
 			ReaderKeyMasks:            make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64),
 		}
-		newState.Chain.ProcessedWithInviteLinks = true
 	} else {
 		chainState = &TeamSigChainState{inner: state.Chain, hidden: hiddenChainState}
 		newState = state
