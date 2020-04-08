@@ -180,7 +180,7 @@ const SelectedEmoji = (props: SelectedEmojiProps) => {
   return (
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.emoji}>
       {props.chosen ? (
-        renderEmoji(props.chosen.renderableEmoji, singleEmojiWidth)
+        renderEmoji(props.chosen.renderableEmoji, singleEmojiWidth, false)
       ) : (
         <Kb.Icon type="iconfont-emoji" fontSize={Styles.isMobile ? 20 : 16} />
       )}

@@ -443,6 +443,11 @@ const routeToInitialScreen = (state: Container.TypedState) => {
 
   if (routeToInitialScreenOnce) {
     if (state.config.loggedIn) {
+      // already logged in?
+      if (Router2.getVisiblePath()?.[0]?.routeName === 'loggedIn') {
+        return false
+      }
+
       // don't jump to a screen, just ensure you're logged in / out state is correct
       return [
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
@@ -580,8 +585,14 @@ const maybeLoadAppLink = (state: Container.TypedState) => {
   ]
 }
 
-const emitInitialLoggedIn = (state: Container.TypedState) =>
-  state.config.loggedIn && ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: true})
+let _emitInitialLoggedInOnce = false
+const emitInitialLoggedIn = (state: Container.TypedState) => {
+  if (_emitInitialLoggedInOnce) {
+    return false
+  }
+  _emitInitialLoggedInOnce = true
+  return state.config.loggedIn && ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: true})
+}
 
 function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHandshakePayload) {
   yield Saga.put(

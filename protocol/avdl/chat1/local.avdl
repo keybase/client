@@ -1430,4 +1430,5 @@ protocol local {
     boolean onlyInTeam;
   }
   UserEmojiRes userEmojis(EmojiFetchOpts opts, union { null, ConversationID } convID);
+  void toggleEmojiAnimations(boolean enabled);
 }

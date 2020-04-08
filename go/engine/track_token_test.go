@@ -463,6 +463,10 @@ func (d *FakeGregorState) DismissItem(ctx context.Context, cli gregor1.IncomingI
 	return nil
 }
 
+func (d *FakeGregorState) DismissCategory(ct context.Context, cat gregor1.Category) error {
+	return nil
+}
+
 func (d *FakeGregorState) LocalDismissItem(ctx context.Context, id gregor.MsgID) error {
 	return nil
 }

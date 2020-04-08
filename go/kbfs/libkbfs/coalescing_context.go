@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"reflect"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -17,6 +18,7 @@ type CoalescingContext struct {
 	doneCh   chan struct{}
 	mutateCh chan context.Context
 	selects  []reflect.SelectCase
+	start    sync.Once
 }
 
 const (
@@ -81,7 +83,6 @@ func NewCoalescingContext(parent context.Context) (*CoalescingContext, context.C
 		},
 	}
 	ctx.appendContext(parent)
-	go ctx.loop()
 	cancelFunc := func() {
 		select {
 		case <-closeCh:
@@ -92,6 +93,12 @@ func NewCoalescingContext(parent context.Context) (*CoalescingContext, context.C
 	return ctx, cancelFunc
 }
 
+func (ctx *CoalescingContext) startLoop() {
+	ctx.start.Do(func() {
+		go ctx.loop()
+	})
+}
+
 // Deadline overrides the default parent's Deadline().
 func (ctx *CoalescingContext) Deadline() (time.Time, bool) {
 	return time.Time{}, false
@@ -100,12 +107,14 @@ func (ctx *CoalescingContext) Deadline() (time.Time, bool) {
 // Done returns a channel that is closed when the CoalescingContext is
 // canceled.
 func (ctx *CoalescingContext) Done() <-chan struct{} {
+	ctx.startLoop()
 	return ctx.doneCh
 }
 
 // Err returns context.Canceled if the CoalescingContext has been canceled, and
 // nil otherwise.
 func (ctx *CoalescingContext) Err() error {
+	ctx.startLoop()
 	select {
 	case <-ctx.doneCh:
 		return context.Canceled
@@ -116,6 +125,7 @@ func (ctx *CoalescingContext) Err() error {
 
 // AddContext adds a context to the set of contexts that we're waiting on.
 func (ctx *CoalescingContext) AddContext(other context.Context) error {
+	ctx.startLoop()
 	select {
 	case ctx.mutateCh <- other:
 		return nil

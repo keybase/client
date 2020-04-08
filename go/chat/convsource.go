@@ -1116,7 +1116,8 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 		reactionUpdates := []chat1.ReactionUpdate{}
 		for _, msg := range msgs {
 			if msg.IsValid() {
-				d := utils.PresentDecoratedReactionMap(ctx, s.G(), convID, msg.Valid(), msg.Valid().Reactions)
+				d := utils.PresentDecoratedReactionMap(ctx, s.G(), uid, convID, msg.Valid(),
+					msg.Valid().Reactions)
 				reactionUpdates = append(reactionUpdates, chat1.ReactionUpdate{
 					Reactions:   d,
 					TargetMsgID: msg.GetMessageID(),
