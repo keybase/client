@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -83,6 +84,16 @@ func (c *CmdChatListMembers) Run() (err error) {
 
 	if c.topicName != "" && c.topicName != "general" {
 		details = keybase1.FilterTeamDetailsForMembers(convMembers, details)
+	}
+
+	if c.json {
+		b, err := json.MarshalIndent(chat1.TeamToChatMembersDetails(details.Members), "", "    ")
+		if err != nil {
+			return err
+		}
+		dui := c.G().UI.GetDumbOutputUI()
+		_, err = dui.Printf(string(b) + "\n")
+		return err
 	}
 
 	renderer := newTeamMembersRenderer(c.G(), c.json, false /*showInviteID*/)
