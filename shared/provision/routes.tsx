@@ -24,3 +24,5 @@ export const newRoutes = {
 
 // No modal routes while not logged in. More plumbing would be necessary to add them, so there is not
 // an empty newModalRoutes here.
+// NOTE: devices/routes currently makes modal versions of these routes with the same names (a violation really)
+// TODO change change

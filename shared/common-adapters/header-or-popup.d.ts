@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Styles from '../styles'
 export type Props = {
   onCancel?: (() => void) | null
@@ -7,4 +8,5 @@ export type Props = {
 
 export declare function HeaderOrPopupWithHeader<P>(WrappedComponent: P): P
 declare function HeaderOrPopup<P>(WrappedComponent: P): P
+export declare function PopupDialogDesktop(p: {children: React.ReactNode}): React.ReactElement
 export default HeaderOrPopup
