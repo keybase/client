@@ -54,6 +54,27 @@ const InviteContacts = () => {
   const disabled = !!successCount
   const emailsDisabled = disabled || !!selectedPhones.size
   const phonesDisabled = disabled || !!selectedEmails.size
+
+  const anyPhonesSelected = !!selectedPhones.size
+  const anyEmailsSelected = !!selectedEmails.size
+  const [anySelected, setAnySelected] = React.useState(false)
+  React.useEffect(() => {
+    const newAnySelected = anyPhonesSelected || anyEmailsSelected
+    if (newAnySelected !== anySelected) {
+      // this RAF is a hack so we don't animate the list items changing enabled <-> disabled
+      requestAnimationFrame(() => {
+        setAnySelected(newAnySelected)
+        Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
+      })
+    }
+  }, [anyPhonesSelected, anyEmailsSelected, anySelected])
+  const disabledTooltip =
+    emailsDisabled || phonesDisabled
+      ? `You can't select both email addresses and phone numbers. To select ${
+          anyEmailsSelected ? 'phone numbers' : 'email addresses'
+        }, click Unselect and start again.`
+      : undefined
+
   const onSelectContact = (contact: Contact, checked: boolean) => {
     if (contact.type === 'phone') {
       if (checked) {
@@ -70,6 +91,10 @@ const InviteContacts = () => {
       }
       setSelectedEmails(new Set(selectedEmails))
     }
+  }
+  const onUnselect = () => {
+    setSelectedPhones(new Set())
+    setSelectedEmails(new Set())
   }
   return (
     <Kb.Modal
@@ -113,18 +138,27 @@ const InviteContacts = () => {
       ) : loading ? (
         <Kb.ProgressIndicator type="Huge" />
       ) : (
-        <Kb.SearchFilter
-          size="small"
-          onChange={setSearch}
-          value={search}
-          placeholderText={placeholderText}
-          placeholderCentered={true}
-          icon="iconfont-search"
-        />
+        <Kb.Box2 direction="horizontal" gapEnd={true} alignItems="center">
+          <Kb.SearchFilter
+            size="small"
+            onChange={setSearch}
+            value={search}
+            placeholderText={placeholderText}
+            placeholderCentered={true}
+            style={Styles.globalStyles.flexOne}
+            icon="iconfont-search"
+          />
+          {anySelected && (
+            <Kb.Text type="BodyPrimaryLink" onClick={onUnselect} style={styles.unselect}>
+              Unselect
+            </Kb.Text>
+          )}
+        </Kb.Box2>
       )}
       <ContactsList
         emailsDisabled={emailsDisabled}
         phonesDisabled={phonesDisabled}
+        disabledTooltip={disabledTooltip}
         ListHeaderComponent={ListHeaderComponent}
         onSelect={onSelectContact}
         search={search}
@@ -149,4 +183,5 @@ const styles = Styles.styleSheetCreate(() => ({
   iconBox: {
     alignSelf: 'center',
   },
+  unselect: {marginRight: Styles.globalMargins.xsmall},
 }))
