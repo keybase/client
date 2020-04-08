@@ -49,10 +49,11 @@ const connected = Container.namedConnect(
     if (!notAUser) {
       // Keybase user
       const followThem = Constants.followThem(state, username)
-      const {followersCount, followingCount, followers, following, reason, webOfTrustEntries} = d
+      const {followersCount, followingCount, followers, following, reason} = d
+      const webOfTrustEntries = (d.webOfTrustEntries || []).filter(entry => Types.showableWotEntry(entry))
 
       const mutualFollow = followThem && Constants.followsYou(state, username)
-      const hasntAlreadyVouched = (webOfTrustEntries || []).every(
+      const hasntAlreadyVouched = webOfTrustEntries.every(
         entry => entry.attestingUser !== state.config.username
       )
       const promptForVouch = mutualFollow && hasntAlreadyVouched
