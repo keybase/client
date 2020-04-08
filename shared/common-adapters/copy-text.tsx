@@ -164,9 +164,9 @@ const styles = Styles.styleSheetCreate(
     ({
       button: Styles.platformStyles({
         common: {
-          borderTopLeftRadius: 0,
-          borderBottomLeftRadius: 0,
           alignSelf: 'stretch',
+          borderBottomLeftRadius: 0,
+          borderTopLeftRadius: 0,
           height: undefined,
           marginLeft: 'auto',
           minWidth: undefined,
