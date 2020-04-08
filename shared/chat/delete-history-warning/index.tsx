@@ -45,6 +45,8 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         backgroundColor: Styles.globalColors.white,
         justifyContent: 'center',
+        marginLeft: 'auto',
+        marginRight: 'auto',
         maxWidth: 560,
         padding: Styles.globalMargins.small,
       },

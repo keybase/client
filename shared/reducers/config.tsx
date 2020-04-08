@@ -5,6 +5,7 @@ import * as ChatConstants from '../constants/chat2'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as DevicesGen from '../actions/devices-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
+import * as GregorGen from '../actions/gregor-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import * as Container from '../util/container'
@@ -20,6 +21,7 @@ type Actions =
   | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
   | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
+  | GregorGen.PushStatePayload
 
 export default Container.makeReducer<Actions, Types.State>(Constants.initialState, {
   [DevicesGen.revoked]: (draftState, action) => {
@@ -339,5 +341,9 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
         type: RPCTypes.IncomingShareType.text,
       }
     }
+  },
+  [GregorGen.pushState]: (draftState, action) => {
+    const items = action.payload.state
+    draftState.allowAnimatedEmojis = !items.find(i => i.item && i.item.category === 'emojianimations')
   },
 })

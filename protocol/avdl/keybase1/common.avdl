@@ -400,6 +400,7 @@ protocol Common {
   record UserReacji {
     string name;
     union { null, string } customAddr;
+    union { null, string } customAddrNoAnim;
   }
 
   // Primarily used in chat but defined here to avoid a circular import

@@ -15,6 +15,7 @@ import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import flags from '../../util/feature-flags'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
+import {formatExpirationTimeForInviteLink} from '../../util/timestamp'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
   const dispatch = Container.useDispatch()
@@ -96,6 +97,10 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const justFinishedAddWizard = Container.useSelector(s => s.teams.addMembersWizard.justFinished)
   const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
+
+  const inviteLinks = details.inviteLinks ? [...details.inviteLinks] : []
+  // TODO: how to get the most recent nonexpired link
+  const mostRecentInviteLink = inviteLinks.length ? inviteLinks[0] : undefined
 
   const callbacks = useHeaderCallbacks(teamID)
 
@@ -228,26 +233,30 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         <AddPeopleButton teamID={props.teamID} />
         {flags.teamInvites && (
           <Kb.Text type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'}>
-            {Styles.isMobile ? 'or' : 'or share a link:'}
+            {mostRecentInviteLink ? 'or share a link:' : 'or'}
           </Kb.Text>
         )}
         {flags.teamInvites &&
-          (Styles.isMobile ? (
-            <Kb.Button
-              label="Generate invite link"
-              onClick={callbacks.onManageInvites}
-              style={Styles.globalStyles.flexGrow}
-              mode="Secondary"
-              fullWidth={true}
-            />
-          ) : (
+          (mostRecentInviteLink ? (
             <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
-              <Kb.CopyText text="https://keybase.io/team/link/blahblah/" />
-              <Kb.Text type="BodyTiny">Adds as writer • Expires 10,000 ys</Kb.Text>
+              <Kb.Box2 direction="horizontal">
+                <Kb.CopyText text={mostRecentInviteLink.url} />
+              </Kb.Box2>
+              <Kb.Text type="BodySmall">
+                Invites as {mostRecentInviteLink.role} · Expires{' '}
+                {formatExpirationTimeForInviteLink(mostRecentInviteLink.expirationTime)}
+              </Kb.Text>
               <Kb.Text type="BodyTiny" onClick={callbacks.onManageInvites} className="hover-underline">
                 Manage invite links
               </Kb.Text>
             </Kb.Box2>
+          ) : (
+            <Kb.Button
+              label="Generate invite link"
+              onClick={callbacks.onGenerateLink}
+              mode="Secondary"
+              fullWidth={true}
+            />
           ))}
       </Kb.Box2>
     )
@@ -316,9 +325,7 @@ const useHeaderCallbacks = (teamID: TeamID) => {
     ? () =>
         dispatch(
           nav.safeNavigateAppendPayload({
-            path: [
-              {props: {sendChatNotification: true, teamname: meta.teamname}, selected: 'teamEditTeamAvatar'},
-            ],
+            path: [{props: {sendChatNotification: true, teamID}, selected: 'profileEditAvatar'}],
           })
         )
     : undefined
@@ -335,10 +342,23 @@ const useHeaderCallbacks = (teamID: TeamID) => {
         )
     : undefined
   const onEdit = nyi
-  const onManageInvites = nyi
+  const onManageInvites = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteHistory'}]}))
+  const onGenerateLink = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksModal'}]}))
   const onShare = nyi
 
-  return {onAddSelf, onChat, onEdit, onEditAvatar, onEditDescription, onManageInvites, onRename, onShare}
+  return {
+    onAddSelf,
+    onChat,
+    onEdit,
+    onEditAvatar,
+    onEditDescription,
+    onGenerateLink,
+    onManageInvites,
+    onRename,
+    onShare,
+  }
 }
 
 const styles = Styles.styleSheetCreate(
@@ -355,7 +375,6 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           borderRadius: 4,
-          height: 165,
           marginBottom: Styles.globalMargins.xsmall,
           marginRight: Styles.globalMargins.small,
           marginTop: Styles.globalMargins.tiny,

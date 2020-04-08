@@ -59,7 +59,7 @@ const showTeamAfterCreation = (action: TeamsGen.TeamCreatedPayload) => {
       ? []
       : [
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
+            path: [{props: {createdTeam: true, teamID}, selected: 'profileEditAvatar'}],
           }),
         ]),
   ]
@@ -577,7 +577,7 @@ const loadTeam = async (state: TypedState, action: TeamsGen.LoadTeamPayload, log
 
   try {
     const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
-    return TeamsGen.createTeamLoaded({details: Constants.annotatedTeamToDetails(team), teamID})
+    return TeamsGen.createTeamLoaded({team, teamID})
   } catch (e) {
     logger.error(e.message)
     return
@@ -1490,12 +1490,12 @@ const startNewTeamWizard = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard1TeamPurpose'}]})
 const setTeamWizardTeamType = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
-const setTeamWizardNameDescription = (action: TeamsGen.SetTeamWizardNameDescriptionPayload) =>
+const setTeamWizardNameDescription = () =>
   RouteTreeGen.createNavigateAppend({
     path: [
       {
-        props: {createdTeam: true, teamname: action.payload.teamname, wizard: true},
-        selected: 'teamEditTeamAvatar',
+        props: {createdTeam: true, teamID: Types.newTeamWizardTeamID, wizard: true},
+        selected: 'profileEditAvatar',
       },
     ],
   })

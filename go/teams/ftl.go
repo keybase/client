@@ -185,8 +185,6 @@ func (f *FastTeamChainLoader) loadOneAttempt(m libkb.MetaContext, arg keybase1.F
 // verification via hash-comparison.
 func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, unverifiedName keybase1.TeamName, parent *keybase1.UpPointer, bottomSubteam keybase1.TeamID, forceRefresh bool) (res keybase1.TeamName, err error) {
 
-	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#verifyTeamNameViaParentLoad(%s,%s)", id, unverifiedName), func() error { return err })()
-
 	if parent == nil {
 		if !unverifiedName.IsRootTeam() {
 			return res, NewBadNameError("expected a root team")
@@ -1300,7 +1298,6 @@ func makeState(arg fastLoadArg, s *keybase1.FastTeamData) *keybase1.FastTeamData
 }
 
 func (f *FastTeamChainLoader) hiddenPackage(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) (hp *hidden.LoaderPackage, err error) {
-	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#hiddenPackage(%+v)", arg), func() error { return err })()
 	hp, err = hidden.NewLoaderPackage(m, arg.ID,
 		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration, role keybase1.TeamRole, err error) {
 			// Always return TeamRole_NONE since ftl does not have access to

@@ -3316,9 +3316,31 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 	}, nil
 }
 
+const kbfsOpsWaitDuration = 200 * time.Millisecond
+const kbfsOpsWaitTimeout = 4 * time.Second
+
+func (k *SimpleFS) waitForKBFSOps(ctx context.Context) error {
+	for {
+		if k.config.KBFSOps() != nil {
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			time.Sleep(kbfsOpsWaitDuration)
+		}
+	}
+}
+
 // SimpleFSGetFilesTabBadge implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetFilesTabBadge(ctx context.Context) (
 	keybase1.FilesTabBadge, error) {
+	ctx, cancel := context.WithTimeout(ctx, kbfsOpsWaitTimeout)
+	defer cancel()
+	if err := k.waitForKBFSOps(ctx); err != nil {
+		return 0, err
+	}
 	return k.config.KBFSOps().GetBadge(ctx)
 }
 

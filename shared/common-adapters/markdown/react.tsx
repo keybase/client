@@ -329,6 +329,7 @@ const reactComponentsForMarkdownType = {
         styleOverride={state.styleOverride}
         styles={markdownStyles}
         disableBigEmojis={false}
+        disableEmojiAnimation={false}
       />
     ),
   },
@@ -456,6 +457,7 @@ const previewOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
           styleOverride={state.styleOverride}
           styles={markdownStyles as any}
           disableBigEmojis={true}
+          disableEmojiAnimation={true}
         />
       ),
     },
@@ -488,6 +490,7 @@ const serviceOnlyOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
           styleOverride={state.styleOverride}
           styles={markdownStyles as any}
           disableBigEmojis={true}
+          disableEmojiAnimation={true}
         />
       ),
     },

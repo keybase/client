@@ -43,6 +43,8 @@ export const updateProofText = 'profile:updateProofText'
 export const updateSigID = 'profile:updateSigID'
 export const updateUsername = 'profile:updateUsername'
 export const uploadAvatar = 'profile:uploadAvatar'
+export const wotVouch = 'profile:wotVouch'
+export const wotVouchSetError = 'profile:wotVouchSetError'
 
 // Payload Types
 type _AddProofPayload = {readonly platform: string; readonly reason: 'appLink' | 'profile'}
@@ -88,6 +90,14 @@ type _UpdateProofTextPayload = {readonly proof: string}
 type _UpdateSigIDPayload = {readonly sigID?: RPCTypes.SigID}
 type _UpdateUsernamePayload = {readonly username: string}
 type _UploadAvatarPayload = {readonly filename: string; readonly crop?: RPCTypes.ImageCropRect}
+type _WotVouchPayload = {
+  readonly username: string
+  readonly verificationType: string
+  readonly statement: string
+  readonly otherText: string
+  readonly proofs: Array<RPCTypes.WotProof>
+}
+type _WotVouchSetErrorPayload = {readonly error: string}
 
 // Action Creators
 /**
@@ -230,6 +240,11 @@ export const createUploadAvatar = (payload: _UploadAvatarPayload): UploadAvatarP
   payload,
   type: uploadAvatar,
 })
+export const createWotVouch = (payload: _WotVouchPayload): WotVouchPayload => ({payload, type: wotVouch})
+export const createWotVouchSetError = (payload: _WotVouchSetErrorPayload): WotVouchSetErrorPayload => ({
+  payload,
+  type: wotVouchSetError,
+})
 
 // Action Payloads
 export type AddProofPayload = {readonly payload: _AddProofPayload; readonly type: typeof addProof}
@@ -347,6 +362,11 @@ export type UpdateUsernamePayload = {
   readonly type: typeof updateUsername
 }
 export type UploadAvatarPayload = {readonly payload: _UploadAvatarPayload; readonly type: typeof uploadAvatar}
+export type WotVouchPayload = {readonly payload: _WotVouchPayload; readonly type: typeof wotVouch}
+export type WotVouchSetErrorPayload = {
+  readonly payload: _WotVouchSetErrorPayload
+  readonly type: typeof wotVouchSetError
+}
 
 // All Actions
 // prettier-ignore
@@ -388,4 +408,6 @@ export type Actions =
   | UpdateSigIDPayload
   | UpdateUsernamePayload
   | UploadAvatarPayload
+  | WotVouchPayload
+  | WotVouchSetErrorPayload
   | {type: 'common:resetStore', payload: {}}

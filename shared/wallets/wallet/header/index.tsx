@@ -89,7 +89,7 @@ const Header = (props: Props) => {
       style={Styles.collapseStyles([
         styles.container,
         {paddingTop: insets.top},
-        acceptedDisclaimer && {height: 150},
+        acceptedDisclaimer && {height: 150 + insets.top / 2},
       ])}
     >
       {nameAndInfo}

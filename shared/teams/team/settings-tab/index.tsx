@@ -14,6 +14,7 @@ import RetentionPicker from './retention/container'
 import * as Styles from '../../../styles'
 import flags from '../../../util/feature-flags'
 import DefaultChannels from './default-channels'
+import InviteLinks from './invite-links'
 
 type Props = {
   canShowcase: boolean
@@ -353,62 +354,69 @@ export class Settings extends React.Component<Props, State> {
             entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
         )}
-        {flags.teamsRedesign && this.props.isBigTeam && (
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <DefaultChannels teamID={this.props.teamID} />
-          </Kb.Box2>
-        )}
-        {flags.teamsRedesign &&
-          this.props.yourOperations.editTeamDescription &&
-          (this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
-            <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
-              <Kb.Box>
-                <Kb.Text style={styles.header} type="BodySmallSemibold">
-                  Welcome message
-                </Kb.Text>
-              </Kb.Box>
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.welcomeMessageCard}>
-                <Kb.Box2 direction="horizontal" style={styles.welcomeMessageBorder} />
-                <Kb.Box2
-                  alignItems="flex-start"
-                  direction="vertical"
-                  style={styles.welcomeMessageContainer}
-                  fullWidth={true}
-                >
-                  {this.props.waitingForWelcomeMessage ? (
-                    <Kb.ProgressIndicator type="Small" style={styles.spinner} />
-                  ) : (
-                    this.props.welcomeMessage && (
-                      <TeamJourney
-                        actions={[]}
-                        teamname={this.props.teamname}
-                        conversationIDKey=""
-                        image="icon-illustration-welcome-96"
-                        onAuthorClick={() => {}}
-                        onDismiss={() => {}}
-                        textComponent={renderWelcomeMessage(
-                          this.props.welcomeMessage!,
-                          false /* cannotWrite */
-                        )}
-                        deactivateButtons={true}
-                        mode="team-settings"
-                      />
-                    )
-                  )}
-                </Kb.Box2>
-              </Kb.Box2>
-              {!this.props.waitingForWelcomeMessage && this.props.welcomeMessage && (
-                <Kb.Box2 direction="vertical" alignSelf="flex-start">
-                  <Kb.Button
-                    label="Edit"
-                    onClick={this.props.onEditWelcomeMessage}
-                    small={true}
-                    mode="Secondary"
-                  />
-                </Kb.Box2>
-              )}
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" gapStart={true}>
+          {flags.teamsRedesign && this.props.isBigTeam && (
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <DefaultChannels teamID={this.props.teamID} />
             </Kb.Box2>
           )}
+          {flags.teamInvites && (
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <InviteLinks teamID={this.props.teamID} />
+            </Kb.Box2>
+          )}
+          {flags.teamsRedesign &&
+            this.props.yourOperations.editTeamDescription &&
+            (this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
+              <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
+                <Kb.Box>
+                  <Kb.Text style={styles.header} type="BodySmallSemibold">
+                    Welcome message
+                  </Kb.Text>
+                </Kb.Box>
+                <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.welcomeMessageCard}>
+                  <Kb.Box2 direction="horizontal" style={styles.welcomeMessageBorder} />
+                  <Kb.Box2
+                    alignItems="flex-start"
+                    direction="vertical"
+                    style={styles.welcomeMessageContainer}
+                    fullWidth={true}
+                  >
+                    {this.props.waitingForWelcomeMessage ? (
+                      <Kb.ProgressIndicator type="Small" style={styles.spinner} />
+                    ) : (
+                      this.props.welcomeMessage && (
+                        <TeamJourney
+                          actions={[]}
+                          teamname={this.props.teamname}
+                          conversationIDKey=""
+                          image="icon-illustration-welcome-96"
+                          onAuthorClick={() => {}}
+                          onDismiss={() => {}}
+                          textComponent={renderWelcomeMessage(
+                            this.props.welcomeMessage!,
+                            false /* cannotWrite */
+                          )}
+                          deactivateButtons={true}
+                          mode="team-settings"
+                        />
+                      )
+                    )}
+                  </Kb.Box2>
+                </Kb.Box2>
+                {!this.props.waitingForWelcomeMessage && this.props.welcomeMessage && (
+                  <Kb.Box2 direction="vertical" alignSelf="flex-start">
+                    <Kb.Button
+                      label="Edit"
+                      onClick={this.props.onEditWelcomeMessage}
+                      small={true}
+                      mode="Secondary"
+                    />
+                  </Kb.Box2>
+                )}
+              </Kb.Box2>
+            )}
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -460,7 +468,6 @@ const styles = styleSheetCreate(() => ({
   teamPadding: {paddingTop: globalMargins.small},
   welcomeMessage: {
     paddingRight: globalMargins.small,
-    paddingTop: globalMargins.small,
   },
   welcomeMessageBorder: {
     alignSelf: 'stretch',

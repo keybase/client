@@ -146,4 +146,10 @@ export default Container.makeReducer<ProfileGen.Actions, Types.State>(initialSta
   [ProfileGen.submitZcashAddress]: draftState => {
     updateUsername(draftState)
   },
+  [ProfileGen.wotVouch]: draftState => {
+    draftState.wotAuthorError = ''
+  },
+  [ProfileGen.wotVouchSetError]: (draftState, action) => {
+    draftState.wotAuthorError = action.payload.error
+  },
 })

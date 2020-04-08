@@ -21,7 +21,7 @@ export const makeInitialState = (): Types.State => ({
   searchShowingSuggestions: false,
   username: '',
   usernameValid: true,
-  wotAuthor: makeWotAuthor(),
+  wotAuthorError: '',
 })
 
 export const makeProveGenericParams = (): Types.ProveGenericParams => ({
@@ -43,14 +43,10 @@ export const toProveGenericParams = (p: RPCGen.ProveParameters): Types.ProveGene
   title: p.title,
 })
 
-export const makeWotAuthor = (): Types.WotAuthor => ({
-  error: '',
-  initialVerificationType: 'in_person',
-})
-
 export const waitingKey = 'profile:waiting'
 export const uploadAvatarWaitingKey = 'profile:uploadAvatar'
 export const blockUserWaitingKey = 'profile:blockUser'
+export const wotAuthorWaitingKey = 'profile:wotAuthor'
 export const maxProfileBioChars = 255
 export const AVATAR_SIZE = 128
 export const BACK_ZINDEX = 12

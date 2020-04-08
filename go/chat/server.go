@@ -3724,10 +3724,6 @@ func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res cha
 	res.FailedFilenames = make(map[string]string)
 	res.SuccessFilenames = make([]string, 0, len(arg.Aliases))
 	for i := range arg.Aliases {
-		if arg.Aliases[i] == "debug-test-error" {
-			res.FailedFilenames[arg.Filenames[i]] = "this is a test error"
-			continue
-		}
 		_, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Aliases[i], arg.Filenames[i], arg.AllowOverwrite[i])
 		if err != nil {
 			res.FailedFilenames[arg.Filenames[i]] = err.Error()
@@ -3738,7 +3734,14 @@ func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res cha
 	return res, nil
 }
 
-func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) (res chat1.AddEmojiRes, err error) {
+func strPtr(str string) *string {
+	if len(str) > 0 {
+		return &str
+	}
+	return nil
+}
+
+func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) (res chat1.AddEmojiAliasRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "AddEmojiAlias")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
@@ -3747,7 +3750,9 @@ func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) 
 		return res, err
 	}
 	if _, err := h.G().EmojiSource.AddAlias(ctx, uid, arg.ConvID, arg.NewAlias, arg.ExistingAlias); err != nil {
-		return res, err
+		return chat1.AddEmojiAliasRes{
+			ErrorString: strPtr(err.Error()),
+		}, nil
 	}
 	return res, nil
 }
@@ -3776,4 +3781,14 @@ func (h *Server) UserEmojis(ctx context.Context, arg chat1.UserEmojisArg) (res c
 	}
 	res.Emojis, err = h.G().EmojiSource.Get(ctx, uid, arg.ConvID, arg.Opts)
 	return res, err
+}
+
+func (h *Server) ToggleEmojiAnimations(ctx context.Context, enabled bool) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "ToggleEmojiAnimations")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	return h.G().EmojiSource.ToggleAnimations(ctx, uid, enabled)
 }

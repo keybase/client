@@ -6319,6 +6319,30 @@ func (o AddEmojisRes) DeepCopy() AddEmojisRes {
 	}
 }
 
+type AddEmojiAliasRes struct {
+	RateLimit   *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	ErrorString *string    `codec:"errorString,omitempty" json:"errorString,omitempty"`
+}
+
+func (o AddEmojiAliasRes) DeepCopy() AddEmojiAliasRes {
+	return AddEmojiAliasRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+		ErrorString: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ErrorString),
+	}
+}
+
 type RemoveEmojiRes struct {
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
@@ -7031,6 +7055,10 @@ type UserEmojisArg struct {
 	ConvID *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
 }
 
+type ToggleEmojiAnimationsArg struct {
+	Enabled bool `codec:"enabled" json:"enabled"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -7145,9 +7173,10 @@ type LocalInterface interface {
 	GetLastActiveAtMultiLocal(context.Context, GetLastActiveAtMultiLocalArg) (map[keybase1.TeamID]gregor1.Time, error)
 	AddEmoji(context.Context, AddEmojiArg) (AddEmojiRes, error)
 	AddEmojis(context.Context, AddEmojisArg) (AddEmojisRes, error)
-	AddEmojiAlias(context.Context, AddEmojiAliasArg) (AddEmojiRes, error)
+	AddEmojiAlias(context.Context, AddEmojiAliasArg) (AddEmojiAliasRes, error)
 	RemoveEmoji(context.Context, RemoveEmojiArg) (RemoveEmojiRes, error)
 	UserEmojis(context.Context, UserEmojisArg) (UserEmojiRes, error)
+	ToggleEmojiAnimations(context.Context, bool) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -8839,6 +8868,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"toggleEmojiAnimations": {
+				MakeArg: func() interface{} {
+					var ret [1]ToggleEmojiAnimationsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ToggleEmojiAnimationsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ToggleEmojiAnimationsArg)(nil), args)
+						return
+					}
+					err = i.ToggleEmojiAnimations(ctx, typedArgs[0].Enabled)
+					return
+				},
+			},
 		},
 	}
 }
@@ -8853,7 +8897,7 @@ func (c LocalClient) GetThreadLocal(ctx context.Context, __arg GetThreadLocalArg
 }
 
 func (c LocalClient) GetThreadNonblock(ctx context.Context, __arg GetThreadNonblockArg) (res NonblockFetchRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getThreadNonblock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.local.getThreadNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
 	return
 }
 
@@ -8910,32 +8954,32 @@ func (c LocalClient) GenerateOutboxID(ctx context.Context) (res OutboxID, err er
 }
 
 func (c LocalClient) PostLocalNonblock(ctx context.Context, __arg PostLocalNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postLocalNonblock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.local.postLocalNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
 	return
 }
 
 func (c LocalClient) PostTextNonblock(ctx context.Context, __arg PostTextNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postTextNonblock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.local.postTextNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
 	return
 }
 
 func (c LocalClient) PostDeleteNonblock(ctx context.Context, __arg PostDeleteNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postDeleteNonblock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.local.postDeleteNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
 	return
 }
 
 func (c LocalClient) PostEditNonblock(ctx context.Context, __arg PostEditNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postEditNonblock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.local.postEditNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
 	return
 }
 
 func (c LocalClient) PostReactionNonblock(ctx context.Context, __arg PostReactionNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postReactionNonblock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.local.postReactionNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
 	return
 }
 
 func (c LocalClient) PostHeadlineNonblock(ctx context.Context, __arg PostHeadlineNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postHeadlineNonblock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.local.postHeadlineNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
 	return
 }
 
@@ -8945,7 +8989,7 @@ func (c LocalClient) PostHeadline(ctx context.Context, __arg PostHeadlineArg) (r
 }
 
 func (c LocalClient) PostMetadataNonblock(ctx context.Context, __arg PostMetadataNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postMetadataNonblock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.local.postMetadataNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
 	return
 }
 
@@ -9007,7 +9051,7 @@ func (c LocalClient) PostFileAttachmentLocal(ctx context.Context, __arg PostFile
 }
 
 func (c LocalClient) PostFileAttachmentLocalNonblock(ctx context.Context, __arg PostFileAttachmentLocalNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocalNonblock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocalNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
 	return
 }
 
@@ -9441,7 +9485,7 @@ func (c LocalClient) AddEmojis(ctx context.Context, __arg AddEmojisArg) (res Add
 	return
 }
 
-func (c LocalClient) AddEmojiAlias(ctx context.Context, __arg AddEmojiAliasArg) (res AddEmojiRes, err error) {
+func (c LocalClient) AddEmojiAlias(ctx context.Context, __arg AddEmojiAliasArg) (res AddEmojiAliasRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.addEmojiAlias", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
@@ -9453,5 +9497,11 @@ func (c LocalClient) RemoveEmoji(ctx context.Context, __arg RemoveEmojiArg) (res
 
 func (c LocalClient) UserEmojis(ctx context.Context, __arg UserEmojisArg) (res UserEmojiRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.userEmojis", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ToggleEmojiAnimations(ctx context.Context, enabled bool) (err error) {
+	__arg := ToggleEmojiAnimationsArg{Enabled: enabled}
+	err = c.Cli.Call(ctx, "chat.1.local.toggleEmojiAnimations", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

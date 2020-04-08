@@ -14,8 +14,7 @@ import Channel from '../channel-container'
 import KbfsPath from '../../fs/common/kbfs-path'
 import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text, {StylesTextCrossPlatform} from '../text'
-import CustomEmoji from '../custom-emoji'
-import Emoji from '../emoji'
+import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../util/emoji'
 import {StyleOverride} from '.'
 import WithTooltip from '../with-tooltip'
 
@@ -115,6 +114,7 @@ export type Props = {
   styleOverride: StyleOverride
   styles: {[K in string]: StylesTextCrossPlatform}
   disableBigEmojis: boolean
+  disableEmojiAnimation: boolean
 }
 
 const ServiceDecoration = (props: Props) => {
@@ -234,25 +234,15 @@ const ServiceDecoration = (props: Props) => {
       />
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.emoji) {
-    if (parsed.emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.httpsrv) {
-      return (
-        <CustomEmoji
-          size={
-            parsed.emoji.isBig && !props.disableBigEmojis ? 'Big' : parsed.emoji.isReacji ? 'Medium' : 'Small'
-          }
-          src={parsed.emoji.source.httpsrv}
-          alias={parsed.emoji.alias}
-        />
-      )
-    } else if (parsed.emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str) {
-      return (
-        <Emoji
-          emojiName={parsed.emoji.source.str}
-          size={parsed.emoji.isBig && !props.disableBigEmojis ? 32 : 24}
-        />
-      )
-    }
-    // we may want to add more cases here later if we decide to parse "stock" emoji with this
+    return renderEmoji(
+      emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji, props.disableEmojiAnimation)),
+      parsed.emoji.isBig && !props.disableBigEmojis
+        ? 32
+        : parsed.emoji.isReacji && !Styles.isMobile
+        ? 18
+        : 16,
+      parsed.emoji.isReacji
+    )
   }
   return null
 }

@@ -9,7 +9,7 @@ protocol wot {
   record UsernameVerificationType {}
 
   // One of the vouchee's proofs.
-  // Why not SigID? SigID doesn't uniquely identify old proofs.
+  // Why not SigID? Because SigID doesn't uniquely identify old proofs.
   record WotProof {
     @jsonkey("proof_type")
     ProofType proofType;

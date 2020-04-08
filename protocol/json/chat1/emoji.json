@@ -173,6 +173,10 @@
           "name": "source"
         },
         {
+          "type": "EmojiLoadSource",
+          "name": "noAnimSource"
+        },
+        {
           "type": "EmojiRemoteSource",
           "name": "remoteSource"
         },

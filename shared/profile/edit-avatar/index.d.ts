@@ -1,12 +1,26 @@
 import {Component} from 'react'
-import {ImagePickerResult} from 'expo-image-picker'
+import {ImageInfo} from '../../util/expo-image-picker'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/teams'
 
-export type Props = {
+type TeamProps = {
   createdTeam?: boolean
+  teamID: Types.TeamID
+  teamname: string
+  type: 'team'
+  wizard: boolean
+  onSkip: () => void
+}
+type ProfileProps = {
+  createdTeam?: false
+  onSkip?: undefined
+  type: 'profile'
+  wizard?: false
+}
+
+export type Props = {
   error: string
-  image?: ImagePickerResult
+  image?: ImageInfo
   onBack: () => void
   onClose: () => void
   onSave: (
@@ -16,13 +30,9 @@ export type Props = {
     offsetLeft?: number,
     offsetTop?: number
   ) => void
-  onSkip: () => void
   sendChatNotification?: boolean
   submitting: boolean
-  teamID: Types.TeamID
-  teamname?: string
   waitingKey: string
-  wizard: boolean
-}
+} & (TeamProps | ProfileProps)
 
 export default class Render extends Component<Props> {}

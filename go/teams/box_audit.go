@@ -414,7 +414,6 @@ func (a *BoxAuditor) BoxAuditRandomTeam(mctx libkb.MetaContext) (attempt *keybas
 
 func (a *BoxAuditor) IsInJail(mctx libkb.MetaContext, teamID keybase1.TeamID) (inJail bool, err error) {
 	mctx = a.initMctx(mctx)
-	defer mctx.TraceTimed(fmt.Sprintf("IsInJail(%s)", teamID), func() error { return err })()
 
 	if !ShouldRunBoxAudit(mctx) {
 		mctx.Debug("Box auditor feature flagged off or not logged in; not IsInJailing...")
@@ -431,19 +430,15 @@ func (a *BoxAuditor) IsInJail(mctx libkb.MetaContext, teamID keybase1.TeamID) (i
 		// Fall through to disk if the LRU is corrupted
 	}
 
-	mctx.Debug("Jail cache miss; continuing to disk")
-
 	jail, err := a.maybeGetJail(mctx)
 	if err != nil {
 		return false, err
 	}
 	if jail == nil {
-		mctx.Debug("Jail does not exist on disk; adding to LRU")
 		a.getJailLRU().Add(teamID, false)
 		return false, nil
 	}
 	_, ok = jail.TeamIDs[teamID]
-	mctx.Debug("Jail exists on disk, forwarding state to LRU")
 	a.getJailLRU().Add(teamID, ok)
 	return ok, nil
 }

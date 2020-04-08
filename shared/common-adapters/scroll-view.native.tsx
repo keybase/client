@@ -4,7 +4,6 @@ import {ScrollView} from 'react-native'
 // changes this behavior: https://github.com/facebook/react-native/issues/4087
 class BetterScrollView extends ScrollView {
   static defaultProps = {
-    keyboardDismissMode: 'on-drag',
     keyboardShouldPersistTaps: 'handled',
   }
 }
