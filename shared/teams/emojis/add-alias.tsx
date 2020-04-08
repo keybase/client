@@ -102,12 +102,18 @@ export const AddAliasModal = (props: Props) => {
             <ChooseEmoji conversationIDKey={props.conversationIDKey} onChoose={onChoose} />
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          gap="tiny"
+          style={Styles.collapseStyles([!emoji && styles.opacity40])}
+        >
           <Kb.Text type="BodySemibold">Enter an alias:</Kb.Text>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.aliasInputContainer}>
             <AliasInput
               ref={aliasInputRef}
               error={error}
+              disabled={!emoji}
               alias={alias}
               onChangeAlias={setAlias}
               onEnterKeyDown={doAddAlias}
@@ -225,6 +231,9 @@ const styles = Styles.styleSheetCreate(() => ({
     borderRadius: Styles.globalMargins.xtiny,
     height: emojiWidthWithPadding,
     width: emojiWidthWithPadding,
+  },
+  opacity40: {
+    opacity: 0.4,
   },
 }))
 

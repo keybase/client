@@ -6,6 +6,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type AliasInputProps = {
   error?: string
+  disabled?: boolean
   alias: string
   onChangeAlias: (alias: string) => void
   onRemove?: () => void
@@ -34,11 +35,12 @@ export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
   }
   render() {
     return (
-      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} gap="xxtiny">
-        <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} gap="tiny" alignItems="center">
+      <Kb.Box2 direction="vertical" style={styles.aliasInputContainer} gap="xxtiny">
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
           <Kb.NewInput
             ref={this.inputRef}
             error={!!this.props.error}
+            disabled={this.props.disabled}
             textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
             value={`:${this.props.alias}:`}
             containerStyle={Styles.collapseStyles([
@@ -58,7 +60,11 @@ export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
             </Kb.ClickableBox>
           )}
         </Kb.Box2>
-        {!!this.props.error && <Kb.Text type="BodySmallError">{this.props.error}</Kb.Text>}
+        {!!this.props.error && (
+          <Kb.Text type="BodySmallError" lineClamp={1}>
+            {this.props.error}
+          </Kb.Text>
+        )}
       </Kb.Box2>
     )
   }
@@ -142,14 +148,17 @@ const styles = Styles.styleSheetCreate(() => ({
       height: '100%',
     },
     isElectron: {
+      height: Styles.globalMargins.mediumLarge,
       paddingLeft: Styles.globalMargins.xsmall,
       paddingRight: Styles.globalMargins.xsmall,
     },
     isMobile: {
+      height: Styles.globalMargins.large,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
     },
   }),
+  aliasInputContainer: {...Styles.globalStyles.flexGrow, flexShrink: 1, overflow: 'hidden'},
   aliasInputLarge: Styles.platformStyles({
     common: {
       paddingLeft: Styles.globalMargins.small,

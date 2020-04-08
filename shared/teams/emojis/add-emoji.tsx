@@ -395,7 +395,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
 }
 
 const emojiToAddRowHeightNoError = Styles.isMobile ? 48 : 40
-const emojiToAddRowHeightWithError = Styles.isMobile ? 64 : 58
+const emojiToAddRowHeightWithError = Styles.isMobile ? 70 : 58
 
 const styles = Styles.styleSheetCreate(() => ({
   addEmojiIconContainer: Styles.platformStyles({
