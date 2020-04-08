@@ -15,3 +15,17 @@ export const PopupWrapper = (props: PopupDialogProps & HeaderHocProps & {childre
     )
   }
 }
+
+export const PopupDialogDesktop = (
+  props: PopupDialogProps & HeaderHocProps & {children: React.ReactNode}
+) => {
+  if (isMobile) {
+    return props.children
+  } else {
+    return (
+      <PopupDialog onClose={props.onCancel} styleClipContainer={props.styleClipContainer}>
+        {props.children}
+      </PopupDialog>
+    )
+  }
+}

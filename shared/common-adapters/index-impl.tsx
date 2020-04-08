@@ -226,6 +226,9 @@ module.exports = {
   get PopupDialog() {
     return require('./popup-dialog').default
   },
+  get PopupDialogDesktop() {
+    return require('./header-or-popup').PopupDialogDesktop
+  },
   get PopupDialogHoc() {
     return require('./popup-dialog-hoc').default
   },

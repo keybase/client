@@ -12,6 +12,7 @@ export type HocExtractProps = {
 
 export type WithoutPopupProps<P> = P extends HocExtractProps ? Omit<P, keyof HocExtractProps> : P
 
+/** TODO deprecate **/
 function popupDialogHoc<P extends {}>(
   Component: React.ComponentType<Omit<P, keyof HocExtractProps>>
 ): React.ComponentType<P & HocExtractProps> {

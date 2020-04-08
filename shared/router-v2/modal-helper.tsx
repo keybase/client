@@ -21,6 +21,7 @@ function Modal<P extends {}>(
   )(withPopup)
 }
 
+/** TODO deprecate **/
 export function modalizeRoute<T extends Route>(route: T) {
   if (isMobile) {
     return route
