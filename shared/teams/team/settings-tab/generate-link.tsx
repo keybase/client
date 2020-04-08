@@ -9,6 +9,8 @@ import {FloatingRolePicker} from '../../role-picker'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {pluralize} from '../../../util/string'
 
+type LinkStatus = 'none' | 'active' | 'expired'
+
 type RolePickerProps = {
   isRolePickerOpen: boolean
   onCancelRolePicker: () => void
@@ -52,6 +54,7 @@ const GenerateLinkModal = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
+  const linkStatus = 'active'
   const teamID = Types.newTeamWizardTeamID
   const teamname = Container.useSelector(s => s.teams.newTeamWizard.name)
 
@@ -97,6 +100,42 @@ const GenerateLinkModal = () => {
     teamRole: teamRole,
   }
 
+  if (linkStatus != 'none') {
+    return (
+      <Kb.Modal
+        onClose={onClose}
+        header={{
+          leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
+          title: <ModalTitle teamID={teamID} title="Share an invite link" />,
+        }}
+        footer={{
+          content: <Kb.Button fullWidth={true} label="Close" onClick={onGenerate} type="Dim" />,
+          hideBorder: true,
+        }}
+        allowOverflow={true}
+      >
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
+          {linkStatus == 'active' && <Kb.Icon type="icon-illustration-teams-invite-links-green-460-96" />}
+          {linkStatus == 'expired' && <Kb.Icon type="icon-illustration-teams-invite-links-grey-460-96" />}
+        </Kb.Box2>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={styles.body}
+          gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        >
+          <Kb.Text type="Body" style={styles.infoText}>
+            Here is your link. Share it cautiously as anyone who has it can join the team.
+          </Kb.Text>
+
+          {linkStatus == 'expired' && (
+            <Kb.Text type="BodySmallSemiboldPrimaryLink">Generate a new link</Kb.Text>
+          )}
+        </Kb.Box2>
+      </Kb.Modal>
+    )
+  }
+
   return (
     <Kb.Modal
       onClose={onClose}
@@ -104,7 +143,10 @@ const GenerateLinkModal = () => {
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Share an invite link" />,
       }}
-      footer={{content: <Kb.Button fullWidth={true} label="Generate invite link" onClick={onGenerate} />}}
+      footer={{
+        content: <Kb.Button fullWidth={true} label="Generate invite link" onClick={onGenerate} />,
+        hideBorder: true,
+      }}
       allowOverflow={true}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
