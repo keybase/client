@@ -102,10 +102,6 @@ const load = () => {
         ]}
       />
     ))
-
-  Sb.storiesOf('Teams/Settings generate invite link', module).add('Generate link', () => (
-    <GenerateLinkModal />
-  ))
 }
 
 export default load
