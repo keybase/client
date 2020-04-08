@@ -267,7 +267,6 @@ const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.S
 class TeamBuilding extends React.PureComponent<Props> {
   static navigationOptions = {
     header: null,
-    headerShown: false,
   }
 
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined

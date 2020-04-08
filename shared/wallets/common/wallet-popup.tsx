@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import AccountPageHeader from './account-page-header'
+import {HeaderHocWrapper} from '../../common-adapters/header-hoc'
 
 // WalletPopup - wraps all stellar modals except for the send / request forms.
 //
@@ -26,10 +27,23 @@ type WalletPopupProps = {
   safeAreaViewTopStyle?: Styles.StylesCrossPlatform
 }
 
+// TODO use Modal or similar
+const PopupWrapper = (props: any) => {
+  if (Styles.isMobile) {
+    const {children, ...rest} = props
+    return <HeaderHocWrapper {...rest}>{children}</HeaderHocWrapper>
+  } else {
+    return (
+      <Kb.PopupDialog onClose={props.onCancel} styleClipContainer={props.styleClipContainer}>
+        {props.children}
+      </Kb.PopupDialog>
+    )
+  }
+}
 const WalletPopup = (props: WalletPopupProps) => {
   const onBack = props.backButtonType === 'back' ? props.onExit : undefined // Displays back button on desktop
   return (
-    <Kb.PopupWrapper
+    <PopupWrapper
       customCancelText={props.backButtonType === 'close' ? 'Close' : ''}
       customComponent={
         props.headerTitle && <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
@@ -77,8 +91,11 @@ const WalletPopup = (props: WalletPopupProps) => {
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </PopupWrapper>
   )
+}
+WalletPopup.navigationOptions = {
+  header: null,
 }
 
 const styles = Styles.styleSheetCreate(() => ({

@@ -33,6 +33,7 @@ const SendRequestForm = (props: Props) => (
   </Root>
 )
 SendRequestForm.navigationOptions = {
+  header: null,
   safeAreaStyle: {
     backgroundColor: Styles.globalColors.purpleDark,
   },
