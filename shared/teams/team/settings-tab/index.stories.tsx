@@ -6,7 +6,6 @@ import {globalStyles} from '../../../styles'
 import {Settings} from '.'
 import ChannelPopup from './channel-popup'
 import {fakeTeamID, store} from '../../stories'
-import GenerateLinkModal from './generate-link'
 
 const commonProps = {
   canShowcase: true,
