@@ -558,5 +558,6 @@
       "response": null
     }
   },
-  "namespace": "keybase.1"
+  "namespace": "keybase.1",
+  "compression_type": "gzip"
 }
