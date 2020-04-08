@@ -84,6 +84,7 @@ const InviteFriendsModal = () => {
           <Kb.Box2 direction="vertical" gap="medium" fullWidth={true}>
             <Kb.WaitingButton
               fullWidth={true}
+              type="Success"
               label="Send invite"
               disabled={disabled}
               waitingKey={waitingKey}
@@ -94,7 +95,7 @@ const InviteFriendsModal = () => {
                 <Kb.Text type="BodySmall" center={true}>
                   or share a link:
                 </Kb.Text>
-                <Kb.CopyText textType="BodySemibold" text={shareURL} />
+                <Kb.CopyText text={shareURL} />
               </Kb.Box2>
             )}
           </Kb.Box2>
@@ -103,7 +104,7 @@ const InviteFriendsModal = () => {
       banners={[
         ...(error
           ? [
-              <Kb.Banner color="red" key="error">
+              <Kb.Banner color="red" key="error" style={styles.banner}>
                 {error}
               </Kb.Banner>,
             ]
@@ -111,15 +112,23 @@ const InviteFriendsModal = () => {
         ...(successCount === null
           ? []
           : [
-              <Kb.Banner color="green" key="success">{`Success! You invited ${successCount} ${pluralize(
-                'friend',
-                successCount
-              )} to Keybase.`}</Kb.Banner>,
+              <Kb.Banner
+                color="green"
+                key="success"
+                style={styles.banner}
+              >{`Yeehaw! You invited ${successCount} ${pluralize('friend', successCount)}.`}</Kb.Banner>,
             ]),
       ]}
     >
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} alignItems="center" style={styles.container}>
-        <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.illustration} />
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          centerChildren={true}
+          style={styles.illustrationContainer}
+        >
+          <Kb.Icon type="icon-illustration-invite-friends-460-96" />
+        </Kb.Box2>
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.content}>
           <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'xtiny' : 'tiny'} fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">By email address (separate with commas)</Kb.Text>
@@ -173,6 +182,11 @@ export const ShareLinkPopup = ({onClose}: {onClose: () => void}) => (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
+  banner: {
+    position: 'absolute',
+    top: 47,
+    zIndex: 1,
+  },
   container: {
     backgroundColor: Styles.globalColors.blueGrey,
     flex: 1,
@@ -180,12 +194,15 @@ const styles = Styles.styleSheetCreate(() => ({
   content: {
     ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),
   },
-  illustration: Styles.platformStyles({isElectron: {width: '100%'}}),
+  illustrationContainer: {
+    backgroundColor: Styles.globalColors.purpleLight,
+    overflow: 'hidden',
+  },
   linkPopupContainer: {
-    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.tiny),
+    ...Styles.padding(Styles.globalMargins.small),
   },
   shareALink: {
-    ...Styles.padding(10, 0),
+    ...Styles.padding(Styles.globalMargins.tiny, 0),
     width: '100%',
   },
 }))
