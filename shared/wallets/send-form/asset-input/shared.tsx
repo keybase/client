@@ -101,9 +101,9 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       inputContainer: {
-        flexShrink: 1,
         alignItems: 'flex-start',
         borderWidth: 0,
+        flexShrink: 1,
         paddingLeft: 0,
         paddingTop: 0,
       },
