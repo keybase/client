@@ -97,8 +97,8 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
           return {deduplicated, set}
         },
         {
-          deduplicated: [],
-          set: new Set(filePaths),
+          deduplicated: [] as Array<string>,
+          set: new Set<string>(filePaths),
         }
       ).deduplicated
       setAliasMap(

@@ -8,7 +8,7 @@ type AliasInputProps = {
   error?: string
   alias: string
   onChangeAlias: (alias: string) => void
-  onRemove: () => void
+  onRemove?: () => void
   onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
   small: boolean
 }
@@ -52,9 +52,11 @@ export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
             onEnterKeyDown={this.props.onEnterKeyDown}
             onFocus={this.onFocus}
           />
-          <Kb.ClickableBox onClick={this.props.onRemove} style={styles.removeBox}>
-            <Kb.Icon type="iconfont-remove" />
-          </Kb.ClickableBox>
+          {this.props.onRemove && (
+            <Kb.ClickableBox onClick={this.props.onRemove} style={styles.removeBox}>
+              <Kb.Icon type="iconfont-remove" />
+            </Kb.ClickableBox>
+          )}
         </Kb.Box2>
         {!!this.props.error && <Kb.Text type="BodySmallError">{this.props.error}</Kb.Text>}
       </Kb.Box2>
