@@ -462,7 +462,7 @@ type ConvConversationBackedStorage interface {
 	PutToKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, data interface{}) error
 	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, res interface{},
 		createConvIfMissing bool) (bool, *chat1.ConversationLocal, error)
-	GetFromKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, dest interface{}) (bool, error)
+	GetFromKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, dest interface{}) (bool, chat1.MessageID, error)
 }
 
 type UserConversationBackedStorage interface {

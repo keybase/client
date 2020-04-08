@@ -36,10 +36,12 @@ type DevConvEmojiSource struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	aliasLookupLock sync.Mutex
-	aliasLookup     map[string]chat1.Emoji
-	ri              func() chat1.RemoteInterface
-	encryptedDB     *encrypteddb.EncryptedDB
+	storageValidationLock sync.Mutex
+	storageValidation     map[chat1.ConvIDStr]chat1.MessageID
+	aliasLookupLock       sync.Mutex
+	aliasLookup           map[string]chat1.Emoji
+	ri                    func() chat1.RemoteInterface
+	encryptedDB           *encrypteddb.EncryptedDB
 
 	testingCreatedSyncConv   chan struct{}
 	testingRefreshedSyncConv chan struct{}
@@ -55,10 +57,11 @@ func NewDevConvEmojiSource(g *globals.Context, ri func() chat1.RemoteInterface) 
 		return g.LocalChatDb
 	}
 	return &DevConvEmojiSource{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "DevConvEmojiSource", false),
-		ri:           ri,
-		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
+		Contextified:      globals.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g.ExternalG(), "DevConvEmojiSource", false),
+		ri:                ri,
+		encryptedDB:       encrypteddb.New(g.ExternalG(), dbFn, keyFn),
+		storageValidation: make(map[chat1.ConvIDStr]chat1.MessageID),
 	}
 }
 
@@ -74,9 +77,9 @@ func (s *DevConvEmojiSource) topicName(suffix *string) string {
 	return ret
 }
 
-func (s *DevConvEmojiSource) dbKey(uid gregor1.UID) libkb.DbKey {
+func (s *DevConvEmojiSource) aliasDbKey(uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
-		Typ: libkb.DBChatUserEmojis,
+		Typ: libkb.DBChatUserEmojisAliases,
 		Key: uid.String(),
 	}
 }
@@ -93,7 +96,7 @@ func (s *DevConvEmojiSource) getAliasLookup(ctx context.Context, uid gregor1.UID
 	}
 	res = make(map[string]chat1.Emoji)
 	s.Debug(ctx, "getAliasLookup: missed alias lookup, reading from disk")
-	found, err := s.encryptedDB.Get(ctx, s.dbKey(uid), &res)
+	found, err := s.encryptedDB.Get(ctx, s.aliasDbKey(uid), &res)
 	if err != nil {
 		return res, err
 	}
@@ -108,7 +111,86 @@ func (s *DevConvEmojiSource) putAliasLookup(ctx context.Context, uid gregor1.UID
 	s.aliasLookupLock.Lock()
 	defer s.aliasLookupLock.Unlock()
 	s.aliasLookup = aliasLookup
-	return s.encryptedDB.Put(ctx, s.dbKey(uid), s.aliasLookup)
+	return s.encryptedDB.Put(ctx, s.aliasDbKey(uid), s.aliasLookup)
+}
+
+func (s *DevConvEmojiSource) storageValidationDbKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBChatUserEmojisValidation,
+		Key: fmt.Sprintf("%v:%v", uid, convID),
+	}
+}
+
+func (s *DevConvEmojiSource) getValidatedMsgID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (msgID chat1.MessageID, err error) {
+	s.storageValidationLock.Lock()
+	defer s.storageValidationLock.Unlock()
+	if msgID, ok := s.storageValidation[convID.ConvIDStr()]; ok {
+		return msgID, nil
+	}
+	found, err := s.G().GetKVStore().GetInto(&msgID, s.storageValidationDbKey(uid, convID))
+	if err != nil {
+		return 0, err
+	} else if !found {
+		return 0, nil
+	}
+	s.storageValidation[convID.ConvIDStr()] = msgID
+	return msgID, nil
+}
+
+func (s *DevConvEmojiSource) putValidatedMsgID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgID chat1.MessageID) error {
+	s.storageValidationLock.Lock()
+	defer s.storageValidationLock.Unlock()
+	err := s.G().GetKVStore().PutObj(s.storageValidationDbKey(uid, convID), nil, msgID)
+	if err != nil {
+		return err
+	}
+	s.storageValidation[convID.ConvIDStr()] = msgID
+	return nil
+}
+
+func (s *DevConvEmojiSource) validateStorage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	latestMsgID chat1.MessageID, storage chat1.EmojiStorage) (modifiedStorage bool, err error) {
+	latestValidatedID, err := s.getValidatedMsgID(ctx, uid, convID)
+	if err != nil {
+		return false, err
+	}
+	// we've already validated the storage for this msg id.
+	if latestValidatedID == latestMsgID {
+		return false, nil
+	}
+	defer s.Trace(ctx, func() error { return err }, "validateStorage: latestMsgID %d, latestValidatedID: %d, convID: %v", latestValidatedID, latestMsgID, convID)()
+	for alias, storedEmoji := range storage.Mapping {
+		if err := s.validateShortName(alias); err != nil {
+			s.Debug(ctx, "validateStorage: purging invalid alias: %v", err)
+			modifiedStorage = true
+			delete(storage.Mapping, alias)
+		}
+		if storedEmoji.IsAlias() {
+			continue
+		}
+		typ, err := storedEmoji.Typ()
+		if err != nil {
+			return false, err
+		}
+		switch typ {
+		case chat1.EmojiRemoteSourceTyp_MESSAGE:
+			msg := storedEmoji.Message()
+			asset, err := attachments.AssetFromMessage(ctx, s.G(), uid, msg.ConvID, msg.MsgID, false)
+			if err != nil {
+				return false, err
+			}
+			if len(asset.Path) == 0 {
+				continue
+			}
+			if asset.Size > maxEmojiSize || asset.Size < minEmojiSize {
+				s.Debug(ctx, "emoji size %d not within bounds %d,%d", asset.Size, minEmojiSize, maxEmojiSize)
+				modifiedStorage = true
+				delete(storage.Mapping, alias)
+			}
+		default:
+		}
+	}
+	return modifiedStorage, s.putValidatedMsgID(ctx, uid, convID, latestMsgID)
 }
 
 func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
@@ -117,7 +199,7 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 	var stored chat1.EmojiStorage
 	alias = strings.ReplaceAll(alias, ":", "") // drop any colons from alias
 	if storageConv != nil {
-		_, err = storage.GetFromKnownConv(ctx, uid, *storageConv, &stored)
+		_, _, err = storage.GetFromKnownConv(ctx, uid, *storageConv, &stored)
 	} else {
 		topicName := s.topicName(nil)
 		_, storageConv, err = storage.Get(ctx, uid, convID, topicName, &stored, true)
@@ -471,7 +553,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 		}
 		for _, conv := range convs {
 			var stored chat1.EmojiStorage
-			found, err := storage.GetFromKnownConv(ctx, uid, conv, &stored)
+			found, latestMsgID, err := storage.GetFromKnownConv(ctx, uid, conv, &stored)
 			if err != nil {
 				s.Debug(ctx, "Get: failed to read from known conv: %s", err)
 				continue
@@ -479,6 +561,18 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 			if !found {
 				s.Debug(ctx, "Get: no stored info for: %s", conv.GetConvID())
 				continue
+			}
+			wasModified, err := s.validateStorage(ctx, uid, conv.GetConvID(), latestMsgID, stored)
+			if err != nil {
+				s.Debug(ctx, "Get: unable to validate storage: %v", err)
+				return
+			}
+			// We sanitized the storage input, post the new result
+			if wasModified {
+				if err := storage.PutToKnownConv(ctx, uid, conv, stored); err != nil {
+					s.Debug(ctx, "Get: unable to write storage after modification: %v", err)
+					return
+				}
 			}
 			group := chat1.EmojiGroup{
 				Name: conv.Info.TlfName,
@@ -680,7 +774,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 		s.Debug(ctx, "syncCrossTeam: failed to get cross team conv: %s", err)
 		return res, err
 	}
-	if _, err := storage.GetFromKnownConv(ctx, uid, syncConv, &stored); err != nil {
+	if _, _, err := storage.GetFromKnownConv(ctx, uid, syncConv, &stored); err != nil {
 		s.Debug(ctx, "syncCrossTeam: failed to get from known conv: %s", err)
 		return res, err
 	}

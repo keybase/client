@@ -36,16 +36,6 @@ func NewConvDevConversationBackedStorage(g *globals.Context, topicType chat1.Top
 
 func (s *ConvDevConversationBackedStorage) getMembersType(conv chat1.ConversationLocal) chat1.ConversationMembersType {
 	return conv.GetMembersType()
-	/*
-		TODO: might need this, not sure
-		mt := conv.GetMembersType()
-		switch mt {
-		case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-			return chat1.ConversationMembersType_IMPTEAMNATIVE
-		default:
-			return mt
-		}
-	*/
 }
 
 func (s *ConvDevConversationBackedStorage) PutToKnownConv(ctx context.Context, uid gregor1.UID,
@@ -109,42 +99,42 @@ func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.
 }
 
 func (s *ConvDevConversationBackedStorage) GetFromKnownConv(ctx context.Context, uid gregor1.UID,
-	conv chat1.ConversationLocal, dest interface{}) (found bool, err error) {
+	conv chat1.ConversationLocal, dest interface{}) (found bool, latestMsgID chat1.MessageID, err error) {
 	defer s.Trace(ctx, func() error { return err }, "GetFromKnownConv(%s)", conv.GetConvID())()
 	tv, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, &chat1.Pagination{Num: 1})
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 	if len(tv.Messages) == 0 {
-		return false, nil
+		return false, 0, nil
 	}
 	msg := tv.Messages[0]
 	if !msg.IsValid() {
-		return false, nil
+		return false, 0, nil
 	}
 	body := msg.Valid().MessageBody
 	if !body.IsType(chat1.MessageType_TEXT) {
-		return false, nil
+		return false, 0, nil
 	}
 
 	if conv.GetMembersType() == chat1.ConversationMembersType_TEAM && s.adminOnly {
 		if conv.ConvSettings == nil || conv.ConvSettings.MinWriterRoleInfo == nil {
-			return false, NewDevStorageAdminOnlyError("no conversation settings")
+			return false, 0, NewDevStorageAdminOnlyError("no conversation settings")
 		}
 		if conv.ConvSettings.MinWriterRoleInfo.Role != keybase1.TeamRole_ADMIN {
-			return false, NewDevStorageAdminOnlyError("minWriterRole was not admin")
+			return false, 0, NewDevStorageAdminOnlyError("minWriterRole was not admin")
 		}
 	}
 	if err = json.Unmarshal([]byte(body.Text().Body), dest); err != nil {
-		return false, err
+		return false, 0, err
 	}
 	if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.ri, uid, conv.GetConvID()); err != nil {
-		return false, err
+		return false, 0, err
 	}
-	return true, nil
+	return true, msg.GetMessageID(), nil
 }
 
 func (s *ConvDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
@@ -174,6 +164,6 @@ func (s *ConvDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.
 		}
 		conv = &newconv
 	}
-	found, err = s.GetFromKnownConv(ctx, uid, *conv, dest)
+	found, _, err = s.GetFromKnownConv(ctx, uid, *conv, dest)
 	return found, conv, err
 }
