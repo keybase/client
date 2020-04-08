@@ -761,10 +761,10 @@ func verifySeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 	// generate the message, if we want to change the fields present in the
 	// signature in the future, old clients will not be compatible.
 	msg, err := GenerateSeitanSignatureMessage(seitan.Uid, seitan.EldestSeqno, SCTeamInviteID(seitan.InviteID), now)
-
 	if err != nil {
 		return err
 	}
+
 	err = VerifySeitanSignatureMessage(pubKey, msg, sig)
 	if err != nil {
 		return err
