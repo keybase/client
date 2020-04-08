@@ -92,6 +92,7 @@ type RemoteConversationMetadata struct {
 	Snippet            string                  `codec:"s"`
 	SnippetDecoration  chat1.SnippetDecoration `codec:"d"`
 	Headline           string                  `codec:"h"`
+	HeadlineEmojis     []chat1.HarvestedEmoji  `codec:"e"`
 	WriterNames        []string                `codec:"w"`
 	FullNamesForSearch []*string               `codec:"f"`
 	ResetParticipants  []string                `codec:"r"`
@@ -103,11 +104,13 @@ func (m RemoteConversationMetadata) DeepCopy() (res RemoteConversationMetadata) 
 	res.Snippet = m.Snippet
 	res.SnippetDecoration = m.SnippetDecoration
 	res.Headline = m.Headline
+	res.HeadlineEmojis = make([]chat1.HarvestedEmoji, len(m.HeadlineEmojis))
+	copy(res.HeadlineEmojis, m.HeadlineEmojis)
 	res.WriterNames = make([]string, len(m.WriterNames))
-	res.FullNamesForSearch = make([]*string, len(m.FullNamesForSearch))
-	res.ResetParticipants = make([]string, len(m.ResetParticipants))
 	copy(res.WriterNames, m.WriterNames)
+	res.FullNamesForSearch = make([]*string, len(m.FullNamesForSearch))
 	copy(res.FullNamesForSearch, m.FullNamesForSearch)
+	res.ResetParticipants = make([]string, len(m.ResetParticipants))
 	copy(res.ResetParticipants, m.ResetParticipants)
 	return res
 }

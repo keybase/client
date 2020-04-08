@@ -595,22 +595,15 @@ func (s *BlockingSender) handleEmojis(ctx context.Context, uid gregor1.UID,
 		s.Debug(ctx, "handleEmojis: failed to get body type: %s", err)
 		return msg, nil
 	}
-	var body string
-	switch typ {
-	case chat1.MessageType_TEXT:
-		body = msg.MessageBody.Text().Body
-	case chat1.MessageType_REACTION:
-		body = msg.MessageBody.Reaction().Body
-	case chat1.MessageType_EDIT:
-		body = msg.MessageBody.Edit().Body
-	default:
+	body := msg.MessageBody.TextForDecoration()
+	if len(body) == 0 {
 		return msg, nil
 	}
 	emojis, err := s.G().EmojiSource.Harvest(ctx, body, uid, convID, types.EmojiHarvestModeNormal)
 	if err != nil {
 		return msg, err
 	}
-	ct := make(map[string]chat1.HarvestedEmoji)
+	ct := make(map[string]chat1.HarvestedEmoji, len(emojis))
 	for _, emoji := range emojis {
 		ct[emoji.Alias] = emoji
 	}
@@ -641,6 +634,30 @@ func (s *BlockingSender) handleEmojis(ctx context.Context, uid gregor1.UID,
 		return chat1.MessagePlaintext{
 			ClientHeader:       msg.ClientHeader,
 			MessageBody:        chat1.NewMessageBodyWithEdit(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}, nil
+	case chat1.MessageType_REQUESTPAYMENT:
+		newBody := msg.MessageBody.Requestpayment().DeepCopy()
+		newBody.Emojis = ct
+		return chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithRequestpayment(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}, nil
+	case chat1.MessageType_ATTACHMENT:
+		newBody := msg.MessageBody.Attachment().DeepCopy()
+		newBody.Emojis = ct
+		return chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithAttachment(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}, nil
+	case chat1.MessageType_HEADLINE:
+		newBody := msg.MessageBody.Headline().DeepCopy()
+		newBody.Emojis = ct
+		return chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithHeadline(newBody),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
 		}, nil
 	}
@@ -1451,13 +1468,7 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 			}
 
 			// fill in emojis
-			var emojiText string
-			switch obr.MessageType() {
-			case chat1.MessageType_TEXT:
-				emojiText = obr.Msg.MessageBody.Text().Body
-			case chat1.MessageType_REACTION:
-				emojiText = obr.Msg.MessageBody.Reaction().Body
-			}
+			emojiText := obr.Msg.MessageBody.TextForDecoration()
 			if len(emojiText) > 0 {
 				if obr.Msg.Emojis, err = s.G().EmojiSource.Harvest(ctx, emojiText,
 					uid, convID, types.EmojiHarvestModeFast); err != nil {

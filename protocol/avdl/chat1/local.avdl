@@ -82,6 +82,7 @@ protocol local {
 
   record MessageHeadline {
     string headline;
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageFlip {
@@ -201,6 +202,7 @@ protocol local {
     boolean uploaded;            // true if assets have been uploaded   (V2)
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageAttachmentUploaded {
@@ -235,6 +237,7 @@ protocol local {
   record MessageRequestPayment {
     stellar1.KeybaseRequestID requestID;
     string note;
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageUnfurl {
@@ -601,6 +604,7 @@ protocol local {
     string tlfName;
     string topicName;
     string headline;
+    array<HarvestedEmoji> headlineEmojis;
     union { null, MessageUnboxed } snippetMsg;
     union { null, ConversationPinnedMessage } pinnedMsg;
     union { null, string } draft;

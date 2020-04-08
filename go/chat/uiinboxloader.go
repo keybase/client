@@ -128,7 +128,7 @@ func (h *UIInboxLoader) presentUnverifiedInbox(ctx context.Context, convs []type
 				rawConv.Conv.GetConvID())
 			continue
 		}
-		res.Items = append(res.Items, utils.PresentRemoteConversation(ctx, h.G(), rawConv))
+		res.Items = append(res.Items, utils.PresentRemoteConversation(ctx, h.G(), h.uid, rawConv))
 	}
 	res.Offline = offline
 	return res, err
@@ -237,7 +237,7 @@ func (h *UIInboxLoader) flushFailed(r failedResponse) {
 	if err == nil {
 		if err := ui.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 			ConvID: r.Conv.GetConvID(),
-			Error:  utils.PresentConversationErrorLocal(ctx, h.G(), *r.Conv.Error),
+			Error:  utils.PresentConversationErrorLocal(ctx, h.G(), h.uid, *r.Conv.Error),
 		}); err != nil {
 			h.Debug(ctx, "flushFailed: failed to send failed conv: %s", err)
 		}

@@ -1301,24 +1301,13 @@ func (b *Boxer) getEmojis(ctx context.Context, topicType chat1.TopicType, body c
 	if topicType != chat1.TopicType_CHAT {
 		return nil
 	}
-	typ, err := body.MessageType()
-	if err != nil {
+	emojis := body.GetEmojis()
+	if emojis == nil {
 		return nil
 	}
-	makeList := func(m map[string]chat1.HarvestedEmoji) (l []chat1.HarvestedEmoji) {
-		l = make([]chat1.HarvestedEmoji, 0, len(m))
-		for _, e := range m {
-			l = append(l, e)
-		}
-		return l
-	}
-	switch typ {
-	case chat1.MessageType_TEXT:
-		return makeList(body.Text().Emojis)
-	case chat1.MessageType_REACTION:
-		return makeList(body.Reaction().Emojis)
-	case chat1.MessageType_EDIT:
-		return makeList(body.Edit().Emojis)
+	res = make([]chat1.HarvestedEmoji, 0, len(emojis))
+	for _, emoji := range emojis {
+		res = append(res, emoji)
 	}
 	return res
 }
