@@ -295,6 +295,9 @@ func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, conv
 	} else {
 		return res, fmt.Errorf("%q is not a valid existing custom emoji or stock emoji", existingAlias)
 	}
+	if stored.Mapping == nil {
+		stored.Mapping = make(map[string]chat1.EmojiRemoteSource)
+	}
 	stored.Mapping[newAlias] = res
 	return res, storage.Put(ctx, uid, convID, topicName, stored)
 }
