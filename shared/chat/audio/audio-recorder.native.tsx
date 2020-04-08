@@ -348,7 +348,8 @@ const AudioButton = (props: ButtonProps) => {
         <Kb.NativeAnimated.View
           style={{
             position: 'absolute',
-            right: 48,
+            right: 44,
+            top: -4,
             transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
           }}
         >
