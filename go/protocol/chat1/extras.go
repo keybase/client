@@ -980,6 +980,8 @@ func (b MessageBody) SearchableText() string {
 		return b.Flip().Text
 	case MessageType_UNFURL:
 		return b.Unfurl().SearchableText()
+	case MessageType_SYSTEM:
+		return b.System().String()
 	default:
 		return ""
 	}
