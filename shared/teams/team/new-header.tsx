@@ -10,7 +10,7 @@ import TeamMenu from './menu-container'
 import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import capitalize from 'lodash/capitalize'
-import {Activity} from '../common'
+import {Activity, useActivityLevels} from '../common'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import flags from '../../util/feature-flags'
 import * as TeamsGen from '../../actions/teams-gen'
@@ -95,6 +95,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const details = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const justFinishedAddWizard = Container.useSelector(s => s.teams.addMembersWizard.justFinished)
+  useActivityLevels()
   const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
 

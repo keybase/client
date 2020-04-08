@@ -188,7 +188,7 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
 export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, username: ''}
 
 const emptyState: Types.State = {
-  activityLevels: {channels: new Map(), teams: new Map()},
+  activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',

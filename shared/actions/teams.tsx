@@ -680,30 +680,31 @@ function* getTeams(
   }
 }
 
-const getActivityForTeams = async (
-  action: TeamsGen.GetTeamsPayload | ConfigGen.LoadOnStartPayload,
-  logger: Saga.SagaLogger
-) => {
-  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
-    return
-  }
+const getActivityForTeams = async (_: TeamsGen.GetActivityForTeamsPayload, logger: Saga.SagaLogger) => {
   try {
     const results = await RPCChatTypes.localGetLastActiveForTeamsRpcPromise()
-    const teams = new Map(
-      Object.entries(results.teams).map(([teamID, status]) => [
-        teamID,
-        Constants.lastActiveStatusToActivityLevel[status],
-      ])
+    const teams = Object.entries(results.teams).reduce<Map<Types.TeamID, Types.ActivityLevel>>(
+      (res, [teamID, status]) => {
+        if (status === RPCChatTypes.LastActiveStatus.none) {
+          return res
+        }
+        res.set(teamID, Constants.lastActiveStatusToActivityLevel[status])
+        return res
+      },
+      new Map()
     )
-    const channels = new Map(
-      Object.entries(results.channels).map(([conversationIDKey, status]) => [
-        conversationIDKey,
-        Constants.lastActiveStatusToActivityLevel[status],
-      ])
-    )
-    return TeamsGen.createSetActivityLevels({levels: {channels, teams}})
+    const channels = Object.entries(results.channels).reduce<
+      Map<ChatTypes.ConversationIDKey, Types.ActivityLevel>
+    >((res, [conversationIDKey, status]) => {
+      if (status === RPCChatTypes.LastActiveStatus.none) {
+        return res
+      }
+      res.set(conversationIDKey, Constants.lastActiveStatusToActivityLevel[status])
+      return res
+    }, new Map())
+    return TeamsGen.createSetActivityLevels({levels: {channels, loaded: true, teams}})
   } catch (e) {
-    logger.error(e)
+    logger.warn(e)
   }
   return
 }
@@ -1550,7 +1551,7 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<
     ConfigGen.LoadOnStartPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload
   >([ConfigGen.loadOnStart, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams)
-  yield* Saga.chainAction([ConfigGen.loadOnStart, TeamsGen.getTeams], getActivityForTeams)
+  yield* Saga.chainAction(TeamsGen.getActivityForTeams, getActivityForTeams)
   yield* Saga.chainGenerator<TeamsGen.SaveChannelMembershipPayload>(
     TeamsGen.saveChannelMembership,
     saveChannelMembership
