@@ -129,7 +129,7 @@ func (p *ProvisionalLoginContext) Keyring(m MetaContext) (ret *SKBKeyringFile, e
 		return nil, NewNoUsernameError()
 	}
 	p.M().Debug("Account: loading keyring for %s", p.username)
-	ret, err = LoadSKBKeyring(p.username, p.M().G())
+	ret, err = LoadSKBKeyring(p.M(), p.username)
 	if err != nil {
 		return nil, err
 	}

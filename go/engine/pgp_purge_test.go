@@ -62,7 +62,7 @@ func TestPGPPurgeRemove(t *testing.T) {
 	}
 
 	kr := libkb.NewSKBKeyringFile(tc.G, libkb.NewNormalizedUsername(u.Username))
-	if err := kr.LoadAndIndex(); err != nil {
+	if err := kr.LoadAndIndex(m.Ctx()); err != nil {
 		t.Fatal(err)
 	}
 	if kr.HasPGPKeys() {

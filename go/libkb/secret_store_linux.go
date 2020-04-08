@@ -8,7 +8,7 @@ package libkb
 func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 	g := mctx.G()
 	sfile := NewSecretStoreFile(g.Env.GetDataDir())
-	sfile.notifyCreate = func(name NormalizedUsername) { notifySecretStoreCreate(g, name) }
+	sfile.notifyCreate = func(name NormalizedUsername) { notifySecretStoreCreate(mctx, name) }
 	ssecretservice := NewSecretStoreRevokableSecretService()
 
 	if mctx.G().Env.GetForceLinuxKeyring() {

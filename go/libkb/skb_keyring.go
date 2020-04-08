@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	context "golang.org/x/net/context"
 )
 
 type SKBKeyringFile struct {
@@ -35,10 +36,10 @@ func NewSKBKeyringFile(g *GlobalContext, un NormalizedUsername) *SKBKeyringFile 
 	}
 }
 
-func (k *SKBKeyringFile) Load() (err error) {
+func (k *SKBKeyringFile) Load(ctx context.Context) (err error) {
 	k.Lock()
 	defer k.Unlock()
-	return k.loadLocked()
+	return k.loadLocked(ctx)
 }
 
 func (k *SKBKeyringFile) Username() NormalizedUsername {
@@ -119,15 +120,15 @@ func decodeSKBPacketList(r io.Reader, g *GlobalContext) ([]*SKB, error) {
 	return skbs, nil
 }
 
-func (k *SKBKeyringFile) loadLocked() (err error) {
-	k.G().Log.Debug("+ Loading SKB keyring: %s", k.filename)
+func (k *SKBKeyringFile) loadLocked(ctx context.Context) (err error) {
+	k.G().Log.CDebugf(ctx, "+ Loading SKB keyring: %s", k.filename)
 
 	file, err := os.OpenFile(k.filename, os.O_RDONLY, 0)
 	if err != nil {
 		if os.IsNotExist(err) {
-			k.G().Log.Debug("| Keybase secret keyring doesn't exist: %s", k.filename)
+			k.G().Log.CDebugf(ctx, "| Keybase secret keyring doesn't exist: %s", k.filename)
 		} else {
-			k.G().Log.Warning("Error opening %s: %s", k.filename, err)
+			k.G().Log.CWarningf(ctx, "Error opening %s: %s", k.filename, err)
 
 			MobilePermissionDeniedCheck(k.G(), err, fmt.Sprintf("skb keyring: %s", k.filename))
 		}
@@ -148,7 +149,7 @@ func (k *SKBKeyringFile) loadLocked() (err error) {
 
 	k.Blocks = skbs
 
-	k.G().Log.Debug("- Loaded SKB keyring: %s -> %s", k.filename, ErrToOk(err))
+	k.G().Log.CDebugf(ctx, "- Loaded SKB keyring: %s -> %s", k.filename, ErrToOk(err))
 	return nil
 }
 
@@ -357,10 +358,10 @@ func (k *SKBKeyringFile) lookupByKidLocked(kid keybase1.KID) *SKB {
 	return ret
 }
 
-func (k *SKBKeyringFile) LoadAndIndex() error {
+func (k *SKBKeyringFile) LoadAndIndex(ctx context.Context) error {
 	k.Lock()
 	defer k.Unlock()
-	err := k.loadLocked()
+	err := k.loadLocked(ctx)
 	if err == nil {
 		err = k.indexLocked()
 	}

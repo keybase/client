@@ -99,7 +99,7 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) (err error) {
 	}
 	m.Debug("Got LKS full")
 
-	secretStore := libkb.NewSecretStore(m.G(), me.GetNormalizedName())
+	secretStore := libkb.NewSecretStore(m, me.GetNormalizedName())
 	m.Debug("Got secret store")
 
 	// Extract the LKS secret

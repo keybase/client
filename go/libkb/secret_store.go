@@ -100,9 +100,10 @@ func (s *SecretStoreImp) SetOptions(mctx MetaContext, options *SecretStoreOption
 // NewSecretStore returns a SecretStore interface that is only used for
 // a short period of time (i.e. one function block).  Multiple calls to RetrieveSecret()
 // will only call the underlying store.RetrieveSecret once.
-func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
-	store := g.SecretStore()
+func NewSecretStore(m MetaContext, username NormalizedUsername) SecretStore {
+	store := m.G().SecretStore()
 	if store != nil {
+		m.Debug("NewSecretStore: reifying SecretStoreImp for %q", username)
 		return &SecretStoreImp{
 			username: username,
 			store:    store,
