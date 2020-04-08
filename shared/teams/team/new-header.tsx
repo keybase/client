@@ -233,13 +233,15 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         <AddPeopleButton teamID={props.teamID} />
         {flags.teamInvites && (
           <Kb.Text type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'}>
-            {Styles.isMobile ? 'or' : 'or share a link:'}
+            {mostRecentInviteLink ? 'or share a link:' : 'or'}
           </Kb.Text>
         )}
         {flags.teamInvites &&
           (mostRecentInviteLink ? (
             <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
-              <Kb.CopyText text={mostRecentInviteLink.url} />
+              <Kb.Box2 direction="horizontal">
+                <Kb.CopyText text={mostRecentInviteLink.url} />
+              </Kb.Box2>
               <Kb.Text type="BodySmall">
                 Invites as {mostRecentInviteLink.role} · Expires{' '}
                 {formatExpirationTimeForInviteLink(mostRecentInviteLink.expirationTime)}
@@ -252,7 +254,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
             <Kb.Button
               label="Generate invite link"
               onClick={callbacks.onGenerateLink}
-              style={Styles.globalStyles.flexGrow}
               mode="Secondary"
               fullWidth={true}
             />
@@ -376,7 +377,6 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           borderRadius: 4,
-          height: 165,
           marginBottom: Styles.globalMargins.xsmall,
           marginRight: Styles.globalMargins.small,
           marginTop: Styles.globalMargins.tiny,
