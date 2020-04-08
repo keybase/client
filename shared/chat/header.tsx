@@ -231,6 +231,9 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           alignItems: 'baseline',
         },
+        isTablet: {
+          alignItems: 'baseline',
+        },
       }),
       headerTitle: Styles.platformStyles({
         common: {
@@ -251,8 +254,16 @@ const styles = Styles.styleSheetCreate(
           fontSize: 13,
           lineHeight: 17,
         },
-        isElectron: {wordBreak: 'break-all'},
-        isMobile: {color: Styles.globalColors.black_50},
+        isElectron: {
+          fontSize: 13,
+          lineHeight: 17,
+          wordBreak: 'break-all',
+        },
+        isMobile: {
+          fontSize: 15,
+          lineHeight: 19,
+          color: Styles.globalColors.black_50,
+        },
       }),
       right: Styles.platformStyles({
         common: {
