@@ -824,7 +824,7 @@ func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.
 	return chat1.UserEmojis{}, nil
 }
 func (DummyEmojiSource) Decorate(ctx context.Context, body string, uid gregor1.UID,
-	convID chat1.ConversationID, messageType chat1.MessageType, emojis []chat1.HarvestedEmoji, noAnim bool) string {
+	convID chat1.ConversationID, messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	return body
 }
 func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
@@ -835,8 +835,8 @@ func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UI
 func (DummyEmojiSource) IsStockEmoji(alias string) bool { return true }
 
 func (DummyEmojiSource) RemoteToLocalSource(ctx context.Context, uid gregor1.UID,
-	remote chat1.EmojiRemoteSource, noAnim bool) (res chat1.EmojiLoadSource, err error) {
-	return res, nil
+	remote chat1.EmojiRemoteSource) (source chat1.EmojiLoadSource, noAnimSource chat1.EmojiLoadSource, err error) {
+	return source, noAnimSource, nil
 }
 
 func (DummyEmojiSource) ToggleAnimations(ctx context.Context, uid gregor1.UID, enabled bool) error {

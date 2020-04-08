@@ -866,6 +866,13 @@
             "string"
           ],
           "name": "customAddr"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "customAddrNoAnim"
         }
       ]
     },

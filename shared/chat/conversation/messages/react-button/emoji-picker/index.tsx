@@ -109,7 +109,7 @@ const emojiGroupsToEmojiArrayArray = (
   emojiGroups.map(emojiGroup => ({
     emojis:
       emojiGroup.emojis
-        ?.map(e => RPCToEmojiData(e))
+        ?.map(e => RPCToEmojiData(e, false))
         .sort((a, b) => a.short_name.localeCompare(b.short_name)) || [],
     name: emojiGroup.name,
   }))

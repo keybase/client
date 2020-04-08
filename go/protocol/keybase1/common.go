@@ -1075,8 +1075,9 @@ func (e OfflineAvailability) String() string {
 }
 
 type UserReacji struct {
-	Name       string  `codec:"name" json:"name"`
-	CustomAddr *string `codec:"customAddr,omitempty" json:"customAddr,omitempty"`
+	Name             string  `codec:"name" json:"name"`
+	CustomAddr       *string `codec:"customAddr,omitempty" json:"customAddr,omitempty"`
+	CustomAddrNoAnim *string `codec:"customAddrNoAnim,omitempty" json:"customAddrNoAnim,omitempty"`
 }
 
 func (o UserReacji) DeepCopy() UserReacji {
@@ -1089,6 +1090,13 @@ func (o UserReacji) DeepCopy() UserReacji {
 			tmp := (*x)
 			return &tmp
 		})(o.CustomAddr),
+		CustomAddrNoAnim: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.CustomAddrNoAnim),
 	}
 }
 

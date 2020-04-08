@@ -25,7 +25,7 @@ const ReactionItem = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
       {topReacjis.map(r => (
         <Kb.ClickableBox key="picker" onClick={() => onReact(r.name)} style={styles.clickableBox}>
-          {renderEmoji(RPCUserReacjiToRenderableEmoji(r), 28, false)}
+          {renderEmoji(RPCUserReacjiToRenderableEmoji(r, true), 28, false)}
         </Kb.ClickableBox>
       ))}
       <Kb.ClickableBox onClick={showPicker} style={styles.clickableBox}>

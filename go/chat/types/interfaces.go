@@ -624,11 +624,11 @@ type EmojiSource interface {
 	Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias string) error
 	Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, opts chat1.EmojiFetchOpts) (chat1.UserEmojis, error)
 	Decorate(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
-		messageType chat1.MessageType, emojis []chat1.HarvestedEmoji, noAnim bool) string
+		messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string
 	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
 		mode EmojiHarvestMode) ([]chat1.HarvestedEmoji, error)
 	IsStockEmoji(alias string) bool
-	RemoteToLocalSource(ctx context.Context, uid gregor1.UID, remote chat1.EmojiRemoteSource, noAnim bool) (chat1.EmojiLoadSource, error)
+	RemoteToLocalSource(ctx context.Context, uid gregor1.UID, remote chat1.EmojiRemoteSource) (chat1.EmojiLoadSource, chat1.EmojiLoadSource, error)
 	ToggleAnimations(ctx context.Context, uid gregor1.UID, enabled bool) error
 }
 
