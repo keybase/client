@@ -5,6 +5,7 @@ import {isIOS, isTablet} from '../../constants/platform'
 import {Props} from '.'
 import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {ModalTitle} from '../../teams/common'
+import * as Container from '../../util/container'
 
 type WrappedProps = {
   onChooseNewAvatar: () => void
@@ -14,16 +15,29 @@ const AvatarUploadWrapper = (props: Props) => {
   const {image, error, ...rest} = props
   const [selectedImage, setSelectedImage] = React.useState(image)
   const [imageError, setImageError] = React.useState('')
-  const onChooseNewAvatar = async () => {
+
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const navUp = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+
+  const onChooseNewAvatar = React.useCallback(async () => {
     try {
       const result = await launchImageLibraryAsync('photo')
       if (!result.cancelled) {
         setSelectedImage(result)
+      } else if (!props.wizard) {
+        navUp()
       }
     } catch (e) {
       setImageError(e)
     }
-  }
+  }, [setImageError, setSelectedImage, navUp])
+
+  React.useEffect(() => {
+    if (!props.wizard && !image) {
+      onChooseNewAvatar()
+    }
+  }, [!image, props.wizard, onChooseNewAvatar])
 
   const combinedError = error || imageError
 
