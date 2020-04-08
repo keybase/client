@@ -4,6 +4,7 @@ import {Box2} from './box'
 import Text from './text'
 import WithTooltip from './with-tooltip'
 import {Props} from './custom-emoji'
+import {FastImage} from './native-image.native'
 
 const Kb = {
   Box2,
@@ -16,8 +17,8 @@ const CustomEmoji = (props: Props) => {
   const {size, src} = props
   return (
     <Kb.Box2 direction="horizontal">
-      <Kb.Image
-        src={src}
+      <FastImage
+        source={{uri: src}}
         style={{
           height: size,
           width: size,
