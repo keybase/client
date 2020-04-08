@@ -870,11 +870,3 @@ func (h *TeamsHandler) LoadTeamTreeMembershipsAsync(ctx context.Context,
 	}
 	return keybase1.TeamTreeInitial{Guid: arg.SessionID}, nil
 }
-
-func (h *TeamsHandler) CancelLoadTeamTree(ctx context.Context, sessionID int) (err error) {
-	ctx = libkb.WithLogTag(ctx, "TM")
-	ctx = libkb.WithLogTag(ctx, "TMTREE")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CancelLoadTeamTree()"), func() error { return err })()
-
-	return fmt.Errorf("unimplemented")
-}

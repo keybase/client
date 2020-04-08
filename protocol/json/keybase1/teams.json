@@ -4643,15 +4643,6 @@
         }
       ],
       "response": "TeamTreeInitial"
-    },
-    "cancelLoadTeamTree": {
-      "request": [
-        {
-          "name": "guid",
-          "type": "int"
-        }
-      ],
-      "response": null
     }
   },
   "namespace": "keybase.1"

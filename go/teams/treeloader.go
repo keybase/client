@@ -63,10 +63,10 @@ func (l *Treeloader) Load(mctx libkb.MetaContext) error {
 	l.targetTeamName = target.Name()
 
 	// Load rest of team tree asynchronously.
-	go func() {
+	go func(start time.Time, targetChainState *TeamSigChainState) {
 		imctx := mctx.BackgroundWithLogTags()
-		expectedCount := l.loadRecursive(imctx, l.targetTeamID, l.targetTeamName)
-		l.notifyDone(mctx, int(expectedCount))
+		expectedCount := l.loadRecursive(imctx, l.targetTeamID, l.targetTeamName, targetChainState)
+		l.notifyDone(imctx, int(expectedCount))
 
 		imctx.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
 			EventType: keybase1.PerfEventType_TEAMTREELOAD,
@@ -74,27 +74,32 @@ func (l *Treeloader) Load(mctx libkb.MetaContext) error {
 				expectedCount, l.targetTeamName),
 			Ctime: keybase1.ToTime(start),
 		})
-	}()
+	}(start, target.chain())
 
 	return nil
 }
 
 func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	teamName keybase1.TeamName) (expectedCount int32) {
+	teamName keybase1.TeamName, targetChainState *TeamSigChainState) (expectedCount int32) {
 	defer mctx.TraceTimed(fmt.Sprintf("Treeloader.loadRecursive(%s, %s, %s)",
 		l.targetTeamName, l.targetUV, l.targetUsername), func() error { return nil })()
 
-	np := l.getPosition(teamName)
-
-	// Load this team first
-	team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
+	// If it is the initial call, the caller passes in the sigchain state so we don't need to reload
+	// it. Otherwise, do a team load.
 	var result keybase1.TeamTreeMembershipResult
-	if err != nil {
-		result = l.NewErrorResult(err, teamName)
+	var subteams []keybase1.TeamIDAndName
+	if targetChainState != nil {
+		result = l.Converter.ProcessSigchainState(mctx, teamName, &targetChainState.inner)
+		subteams = targetChainState.ListSubteams()
 	} else {
-		result = l.Converter.ProcessSigchainState(mctx, teamName, &team.chain().inner)
+		team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
+		if err != nil {
+			result = l.NewErrorResult(err, teamName)
+		} else {
+			result = l.Converter.ProcessSigchainState(mctx, teamName, &team.chain().inner)
+			subteams = team.chain().ListSubteams()
+		}
 	}
-
 	expectedCount = 1
 	l.notifyPartial(mctx, teamName, result)
 	s, _ := result.S()
@@ -102,6 +107,8 @@ func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamI
 		mctx.Debug("Treeloader.loadRecursive: short-circuiting load due to failure: %+v", result)
 		return expectedCount
 	}
+
+	np := l.getPosition(teamName)
 
 	eg, ctx := errgroup.WithContext(mctx.Ctx())
 	mctx = mctx.WithContext(ctx)
@@ -117,11 +124,11 @@ func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamI
 	// Load subtree
 	// Because we load parents before children, the child's load can use the cached parent's team
 	// so we only make one team/get per team.
-	for _, idAndName := range team.chain().ListSubteams() {
+	for _, idAndName := range subteams {
 		idAndName := idAndName
 		// This is unbounded but assuming subteam spread isn't too high, should be ok.
 		eg.Go(func() error {
-			incr := l.loadRecursive(mctx, idAndName.Id, idAndName.Name)
+			incr := l.loadRecursive(mctx, idAndName.Id, idAndName.Name, nil)
 			mctx.Debug("Treeloader.loadRecursive: loaded %d teams from subtree", incr)
 			atomic.AddInt32(&expectedCount, incr)
 			return nil
@@ -139,7 +146,10 @@ func (l *Treeloader) loadAncestors(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 	handleAncestor := func(t keybase1.TeamSigChainState, ancestorTeamName keybase1.TeamName) error {
 		result := l.Converter.ProcessSigchainState(mctx, ancestorTeamName, &t)
-		s, _ := result.S()
+		s, err := result.S()
+		if err != nil {
+			return fmt.Errorf("failed to get result status: %w", err)
+		}
 		// Short-circuit ancestor load if this resulted in an error, to keep symmetry with behavior
 		// if the ancestor team load failed. We can continue if the result was HIDDEN. The switch
 		// statement below will catch the error and send a notification.
@@ -187,7 +197,6 @@ func (l *Treeloader) ProcessSigchainState(mctx libkb.MetaContext, teamName keyba
 		meUV, err := mctx.G().GetMeUV(mctx.Ctx())
 		// Should never get an error here since we're logged in.
 		if err != nil || s.UserRole(meUV) == keybase1.TeamRole_NONE {
-			mctx.Warning("@@@ We're gonna hide...teamName=%s, np=%#v, err=%s", teamName, np, err)
 			return keybase1.NewTeamTreeMembershipResultWithHidden()
 		}
 	}

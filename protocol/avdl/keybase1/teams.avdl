@@ -1637,7 +1637,6 @@ protocol teams {
     string message;
     // willSkipSubtree is true if loading of the subtree rooted at the team associated
     // with this error was cancelled due to this error.
-    // is reached loading an ancestor team.
     boolean willSkipSubtree;
     // willSkipAncestors is true if loading of the ancestor chain of the team associated
     // with this error was cancelled due to this error.
@@ -1714,6 +1713,4 @@ protocol teams {
   // a `guid`: an opaque integer that happens to be the sessionID the initial RPC was called
   // with. Each notification for the same load will contain the same `guid`.
   TeamTreeInitial loadTeamTreeMembershipsAsync(int sessionID, TeamID teamID, string username);
-  // called when navigating out of page
-  void cancelLoadTeamTree(int guid);
 }

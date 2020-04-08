@@ -4316,7 +4316,6 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.teams.profileTeamLoad'
 // 'keybase.1.teams.getTeamName'
 // 'keybase.1.teams.ftl'
-// 'keybase.1.teams.cancelLoadTeamTree'
 // 'keybase.1.teamsUi.confirmRootTeamDelete'
 // 'keybase.1.teamsUi.confirmSubteamDelete'
 // 'keybase.1.teamSearch.teamSearch'

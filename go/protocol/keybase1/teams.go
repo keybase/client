@@ -4431,10 +4431,6 @@ type LoadTeamTreeMembershipsAsyncArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
-type CancelLoadTeamTreeArg struct {
-	Guid int `codec:"guid" json:"guid"`
-}
-
 type TeamsInterface interface {
 	GetUntrustedTeamInfo(context.Context, TeamName) (UntrustedTeamInfo, error)
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
@@ -4518,7 +4514,6 @@ type TeamsInterface interface {
 	GetTeamRoleMap(context.Context) (TeamRoleMapAndVersion, error)
 	GetAnnotatedTeam(context.Context, TeamID) (AnnotatedTeam, error)
 	LoadTeamTreeMembershipsAsync(context.Context, LoadTeamTreeMembershipsAsyncArg) (TeamTreeInitial, error)
-	CancelLoadTeamTree(context.Context, int) error
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -5480,21 +5475,6 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
-			"cancelLoadTeamTree": {
-				MakeArg: func() interface{} {
-					var ret [1]CancelLoadTeamTreeArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]CancelLoadTeamTreeArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]CancelLoadTeamTreeArg)(nil), args)
-						return
-					}
-					err = i.CancelLoadTeamTree(ctx, typedArgs[0].Guid)
-					return
-				},
-			},
 		},
 	}
 }
@@ -5851,11 +5831,5 @@ func (c TeamsClient) GetAnnotatedTeam(ctx context.Context, teamID TeamID) (res A
 
 func (c TeamsClient) LoadTeamTreeMembershipsAsync(ctx context.Context, __arg LoadTeamTreeMembershipsAsyncArg) (res TeamTreeInitial, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamTreeMembershipsAsync", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c TeamsClient) CancelLoadTeamTree(ctx context.Context, guid int) (err error) {
-	__arg := CancelLoadTeamTreeArg{Guid: guid}
-	err = c.Cli.Call(ctx, "keybase.1.teams.cancelLoadTeamTree", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
