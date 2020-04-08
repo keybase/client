@@ -7,6 +7,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/go-errors/errors"
 	"time"
 
 	"github.com/keybase/client/go/kbtime"
@@ -58,6 +59,83 @@ func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateAr
 		return res, err
 	}
 	return h.TeamCreateWithSettings(ctx, arg2)
+}
+
+func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCreateFancyArg) (teamID keybase1.TeamID,
+	err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	teamInfo := arg.TeamInfo
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamCreateFancy(%s)", teamInfo.Name), func() error { return err })()
+
+	arg2 := keybase1.TeamCreateWithSettingsArg{
+		Name:        teamInfo.Name,
+		SessionID:   arg.SessionID,
+		Settings:    teamInfo.OpenSettings,
+		JoinSubteam: teamInfo.JoinSubteam,
+	}
+	teamCreateRes, err := h.TeamCreateWithSettings(ctx, arg2)
+	teamID = teamCreateRes.TeamID
+	if err != nil {
+		return teamID, err
+	}
+	var errs []error
+
+	err = teams.SetTeamShowcase(ctx, h.G().ExternalG(), teamID, &teamInfo.Showcase, &teamInfo.Description, &teamInfo.Showcase)
+	if err != nil {
+		errs = append(errs, err)
+	}
+	if teamInfo.Avatar != nil {
+		avatar := teamInfo.Avatar
+		arg3 := keybase1.UploadTeamAvatarArg{Teamname: teamInfo.Name, Filename: avatar.AvatarFilename,
+			Crop: avatar.Crop, SendChatNotification: false}
+		err = teams.ChangeTeamAvatar(mctx, arg3)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	// TODO: create chat channels
+	/*
+		for channel in teamInfo.ChatChannels:
+			localNewConversationLocal(
+			  identifyBehavior: keybase1.TLFIdentifyBehavior.chatGui,
+			  membersType: chat1.ConversationMembersType.team,
+			  tlfName: teamname,
+			  tlfVisibility: keybase1.TLFVisibility.private,
+			  topicName: channel,
+			  topicType: chat1.TopicType.chat
+			)
+	*/
+	for _, subteamName := range teamInfo.Subteams {
+		name := teamInfo.Name + "." + subteamName
+		_, err = h.TeamCreate(ctx, keybase1.TeamCreateArg{SessionID: arg.SessionID, Name: name})
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	arg4 := keybase1.TeamAddMembersMultiRoleArg{
+		SessionID:            arg.SessionID,
+		TeamID:               teamID,
+		Users:                teamInfo.Users,
+		SendChatNotification: false,
+		EmailInviteMessage:   teamInfo.EmailInviteMessage,
+	}
+
+	// TODO: do something with unadded users
+	_, err = h.TeamAddMembersMultiRole(ctx, arg4)
+	if err != nil {
+		errs = append(errs, err)
+	}
+	if errs == nil {
+		return teamID, nil
+	}
+	combinedErrString := ""
+	for _, err := range errs {
+		combinedErrString += ", " + err.Error()
+	}
+	return teamID, errors.New(combinedErrString)
+
 }
 
 func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.TeamCreateWithSettingsArg) (res keybase1.TeamCreateResult, err error) {
