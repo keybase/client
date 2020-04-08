@@ -386,7 +386,7 @@ export default Container.makeReducer<
     draftState.newTeamRequests = action.payload.newTeamRequests
   },
   [TeamsGen.setActivityLevels]: (draftState, action) => {
-    draftState.activityLevels = action.payload.levels
+    draftState.activityLevels = {...action.payload.levels, loaded: true}
   },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params

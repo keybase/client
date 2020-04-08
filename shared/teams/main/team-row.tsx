@@ -20,6 +20,7 @@ const TeamRow = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  // useActivityLevels in ../container ensures these are loaded
   const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
 
   const onViewTeam = () =>
