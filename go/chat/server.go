@@ -3646,6 +3646,33 @@ func (h *Server) RefreshParticipants(ctx context.Context, convID chat1.Conversat
 	return nil
 }
 
+func (h *Server) GetParticipants(ctx context.Context, convID chat1.ConversationID) (participants []chat1.ConversationLocalParticipant, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetParticipants")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return nil, err
+	}
+	uids, err := h.G().ParticipantsSource.Get(ctx, uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return nil, err
+	}
+	kuids := make([]keybase1.UID, 0, len(uids))
+	participants = make([]chat1.ConversationLocalParticipant, 0, len(uids))
+	for _, uid := range uids {
+		kuids = append(kuids, keybase1.UID(uid.String()))
+	}
+	rows, err := h.G().UIDMapper.MapUIDsToUsernamePackages(ctx, h.G(), kuids, time.Hour*24,
+		time.Minute, true)
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		participants = append(participants, utils.UsernamePackageToParticipant(row))
+	}
+	return participants, nil
+}
+
 func (h *Server) GetLastActiveAtLocal(ctx context.Context, arg chat1.GetLastActiveAtLocalArg) (lastActiveAt gregor1.Time, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetLastActiveAtLocal")()

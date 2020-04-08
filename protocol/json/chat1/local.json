@@ -6012,6 +6012,18 @@
         "keys": "keybase1.TeamID"
       }
     },
+    "getParticipants": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ConversationLocalParticipant"
+      }
+    },
     "addEmoji": {
       "request": [
         {

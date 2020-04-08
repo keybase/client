@@ -7025,6 +7025,10 @@ type GetLastActiveAtMultiLocalArg struct {
 	Username string            `codec:"username" json:"username"`
 }
 
+type GetParticipantsArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type AddEmojiArg struct {
 	ConvID         ConversationID `codec:"convID" json:"convID"`
 	Alias          string         `codec:"alias" json:"alias"`
@@ -7171,6 +7175,7 @@ type LocalInterface interface {
 	RefreshParticipants(context.Context, ConversationID) error
 	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
 	GetLastActiveAtMultiLocal(context.Context, GetLastActiveAtMultiLocalArg) (map[keybase1.TeamID]gregor1.Time, error)
+	GetParticipants(context.Context, ConversationID) ([]ConversationLocalParticipant, error)
 	AddEmoji(context.Context, AddEmojiArg) (AddEmojiRes, error)
 	AddEmojis(context.Context, AddEmojisArg) (AddEmojisRes, error)
 	AddEmojiAlias(context.Context, AddEmojiAliasArg) (AddEmojiAliasRes, error)
@@ -8793,6 +8798,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getParticipants": {
+				MakeArg: func() interface{} {
+					var ret [1]GetParticipantsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetParticipantsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetParticipantsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetParticipants(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
 			"addEmoji": {
 				MakeArg: func() interface{} {
 					var ret [1]AddEmojiArg
@@ -9472,6 +9492,12 @@ func (c LocalClient) GetLastActiveAtLocal(ctx context.Context, __arg GetLastActi
 
 func (c LocalClient) GetLastActiveAtMultiLocal(ctx context.Context, __arg GetLastActiveAtMultiLocalArg) (res map[keybase1.TeamID]gregor1.Time, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveAtMultiLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetParticipants(ctx context.Context, convID ConversationID) (res []ConversationLocalParticipant, err error) {
+	__arg := GetParticipantsArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.getParticipants", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

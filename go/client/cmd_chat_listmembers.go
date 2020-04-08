@@ -81,7 +81,7 @@ func (c *CmdChatListMembers) Run() (err error) {
 		return err
 	}
 
-	if len(convMembers) > 0 {
+	if c.topicName != "" && c.topicName != "general" {
 		details = keybase1.FilterTeamDetailsForMembers(convMembers, details)
 	}
 
@@ -111,7 +111,17 @@ func (c *CmdChatListMembers) getUntrustedConvMemberList(ctx context.Context) ([]
 	if len(inboxRes.Conversations) > 1 {
 		return nil, fmt.Errorf("ambiguous channel description, more than one conversation matches")
 	}
-	return inboxRes.Conversations[0].AllNames(), nil
+
+	participants, err := chatClient.GetParticipants(ctx, inboxRes.Conversations[0].GetConvID())
+	if err != nil {
+		return nil, err
+	}
+	usernames := make([]string, len(participants))
+	for i, participant := range participants {
+		usernames[i] = participant.Username
+	}
+
+	return usernames, nil
 }
 
 func (c *CmdChatListMembers) ParseArgv(ctx *cli.Context) (err error) {

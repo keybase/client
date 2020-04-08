@@ -1395,6 +1395,8 @@ protocol local {
   gregor1.Time getLastActiveAtLocal(keybase1.TeamID teamID, string username);
   map<keybase1.TeamID, gregor1.Time> getLastActiveAtMultiLocal(array<keybase1.TeamID> teamIDs, string username);
 
+  array<ConversationLocalParticipant> getParticipants(ConversationID convID);
+
   // Emoji
   record AddEmojiRes {
     union { null, RateLimit } rateLimit;
