@@ -3657,18 +3657,9 @@ func (h *Server) GetParticipants(ctx context.Context, convID chat1.ConversationI
 	if err != nil {
 		return nil, err
 	}
-	kuids := make([]keybase1.UID, 0, len(uids))
-	participants = make([]chat1.ConversationLocalParticipant, 0, len(uids))
-	for _, uid := range uids {
-		kuids = append(kuids, keybase1.UID(uid.String()))
-	}
-	rows, err := h.G().UIDMapper.MapUIDsToUsernamePackages(ctx, h.G(), kuids, time.Hour*24,
-		time.Minute, true)
+	participants, err = h.G().ParticipantsSource.GetParticipantsFromUids(ctx, uids)
 	if err != nil {
 		return nil, err
-	}
-	for _, row := range rows {
-		participants = append(participants, utils.UsernamePackageToParticipant(row))
 	}
 	return participants, nil
 }
