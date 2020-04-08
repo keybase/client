@@ -286,6 +286,14 @@
         {
           "type": "string",
           "name": "headline"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "emojis"
         }
       ]
     },
@@ -689,6 +697,14 @@
             "items": "KnownTeamMention"
           },
           "name": "teamMentions"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "emojis"
         }
       ]
     },
@@ -800,6 +816,14 @@
         {
           "type": "string",
           "name": "note"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "emojis"
         }
       ]
     },
@@ -1871,6 +1895,13 @@
         {
           "type": "string",
           "name": "headline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "HarvestedEmoji"
+          },
+          "name": "headlineEmojis"
         },
         {
           "type": [

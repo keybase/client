@@ -962,6 +962,19 @@ func (b MessageBody) IsType(typ MessageType) bool {
 	return btyp == typ
 }
 
+func (b MessageBody) TextForDecoration() string {
+	typ, err := b.MessageType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case MessageType_HEADLINE:
+		return b.Headline().Headline
+	default:
+		return b.SearchableText()
+	}
+}
+
 func (b MessageBody) SearchableText() string {
 	typ, err := b.MessageType()
 	if err != nil {
@@ -982,6 +995,29 @@ func (b MessageBody) SearchableText() string {
 		return b.Unfurl().SearchableText()
 	default:
 		return ""
+	}
+}
+
+func (b MessageBody) GetEmojis() map[string]HarvestedEmoji {
+	typ, err := b.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case MessageType_TEXT:
+		return b.Text().Emojis
+	case MessageType_REACTION:
+		return b.Reaction().Emojis
+	case MessageType_EDIT:
+		return b.Edit().Emojis
+	case MessageType_REQUESTPAYMENT:
+		return b.Requestpayment().Emojis
+	case MessageType_ATTACHMENT:
+		return b.Attachment().Emojis
+	case MessageType_HEADLINE:
+		return b.Headline().Emojis
+	default:
+		return nil
 	}
 }
 

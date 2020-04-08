@@ -1326,7 +1326,7 @@ func PresentRemoteConversationAsBigTeamChannelRow(ctx context.Context, rc types.
 	return res
 }
 
-func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
+func PresentRemoteConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
 	var tlfName string
 	rawConv := rc.Conv
 	latest, err := PickLatestMessageSummary(rawConv, nil)
@@ -1360,9 +1360,10 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 		chat1.NewConversationCommandGroupsWithBuiltin(g.CommandsSource.GetBuiltinCommandType(ctx, rc))
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
-			ChannelName:       rc.LocalMetadata.TopicName,
-			Headline:          rc.LocalMetadata.Headline,
-			HeadlineDecorated: DecorateWithLinks(ctx, EscapeForDecorate(ctx, rc.LocalMetadata.Headline)),
+			ChannelName: rc.LocalMetadata.TopicName,
+			Headline:    rc.LocalMetadata.Headline,
+			HeadlineDecorated: DecorateWithLinks(ctx, PresentDecoratedSnippet(ctx, g, rc.LocalMetadata.Headline, uid, rc.GetConvID(),
+				chat1.MessageType_HEADLINE, rc.LocalMetadata.HeadlineEmojis)),
 			Snippet:           rc.LocalMetadata.Snippet,
 			SnippetDecoration: rc.LocalMetadata.SnippetDecoration,
 			WriterNames:       rc.LocalMetadata.WriterNames,
@@ -1376,9 +1377,10 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	return res
 }
 
-func PresentRemoteConversations(ctx context.Context, g *globals.Context, rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
+func PresentRemoteConversations(ctx context.Context, g *globals.Context, uid gregor1.UID, rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
+	res = make([]chat1.UnverifiedInboxUIItem, 0, len(rcs))
 	for _, rc := range rcs {
-		res = append(res, PresentRemoteConversation(ctx, g, rc))
+		res = append(res, PresentRemoteConversation(ctx, g, uid, rc))
 	}
 	return res
 }
@@ -1404,16 +1406,17 @@ func PresentRemoteConversationAsSearchHit(conv types.RemoteConversation, usernam
 }
 
 func PresentRemoteConversationsAsSearchHits(convs []types.RemoteConversation, username string) (res []chat1.UIChatSearchConvHit) {
+	res = make([]chat1.UIChatSearchConvHit, 0, len(convs))
 	for _, c := range convs {
 		res = append(res, PresentRemoteConversationAsSearchHit(c, username))
 	}
 	return res
 }
 
-func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawConv chat1.ConversationErrorLocal) (res chat1.InboxUIItemError) {
+func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, uid gregor1.UID, rawConv chat1.ConversationErrorLocal) (res chat1.InboxUIItemError) {
 	res.Message = rawConv.Message
 	res.RekeyInfo = rawConv.RekeyInfo
-	res.RemoteConv = PresentRemoteConversation(ctx, g, types.RemoteConversation{
+	res.RemoteConv = PresentRemoteConversation(ctx, g, uid, types.RemoteConversation{
 		Conv:      rawConv.RemoteConv,
 		ConvIDStr: rawConv.RemoteConv.GetConvID().ConvIDStr(),
 	})
@@ -1433,6 +1436,7 @@ func getParticipantType(username string) chat1.UIParticipantType {
 }
 
 func PresentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
+	participants = make([]chat1.UIParticipant, 0, len(rawParticipants))
 	for _, p := range rawParticipants {
 		participantType := getParticipantType(p.Username)
 		participants = append(participants, chat1.UIParticipant{
@@ -1465,7 +1469,8 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 		GetConvSnippet(ctx, g, uid, rawConv, g.GetEnv().GetUsername().String())
 	res.Channel = rawConv.Info.TopicName
 	res.Headline = rawConv.Info.Headline
-	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
+	res.HeadlineDecorated = DecorateWithLinks(ctx, PresentDecoratedSnippet(ctx, g, rawConv.Info.Headline, uid,
+		rawConv.GetConvID(), chat1.MessageType_HEADLINE, rawConv.Info.HeadlineEmojis))
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
@@ -1805,20 +1810,11 @@ func PresentDecoratedSnippet(ctx context.Context, g *globals.Context, body strin
 
 func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessagePlaintext) *string {
-	msgBody := msg.MessageBody
-	typ, err := msgBody.MessageType()
+	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		return nil
 	}
-	var body string
-	switch typ {
-	case chat1.MessageType_TEXT:
-		body = msgBody.Text().Body
-	case chat1.MessageType_REACTION:
-		body = msgBody.Reaction().Body
-	default:
-		return nil
-	}
+	body := msg.MessageBody.TextForDecoration()
 	body = PresentDecoratedTextNoMentions(ctx, body)
 	body = g.EmojiSource.Decorate(ctx, body, uid, convID, typ, msg.Emojis)
 	return &body
@@ -1831,31 +1827,17 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	if err != nil {
 		return nil
 	}
-	var body string
-	var payments []chat1.TextPayment
+	body := msgBody.TextForDecoration()
 	switch typ {
 	case chat1.MessageType_TEXT:
-		body = msgBody.Text().Body
-		payments = msgBody.Text().Payments
-	case chat1.MessageType_FLIP:
-		body = msgBody.Flip().Text
-	case chat1.MessageType_REQUESTPAYMENT:
-		body = msgBody.Requestpayment().Note
-	case chat1.MessageType_ATTACHMENT:
-		body = msgBody.Attachment().Object.Title
+		// Payment decorations
+		body = g.StellarSender.DecorateWithPayments(ctx, body, msgBody.Text().Payments)
 	case chat1.MessageType_SYSTEM:
 		body = systemMsgPresentText(ctx, uid, msg)
-	default:
-		return nil
 	}
 	body = PresentDecoratedTextNoMentions(ctx, body)
-
-	// Payment decorations
-	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
-
 	// Emojis
 	body = g.EmojiSource.Decorate(ctx, body, uid, convID, typ, msg.Emojis)
-
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,
 		msg.ChannelNameMentions)
