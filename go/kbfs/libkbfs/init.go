@@ -784,7 +784,8 @@ func doInit(
 
 	kbfsLog := config.MakeLogger("")
 
-	// Initialize Keybase service connection
+	// Initialize Keybase service connection. This needs to happen before
+	// KBPKI client.
 	if keybaseServiceCn == nil {
 		keybaseServiceCn = keybaseDaemon{}
 	}
@@ -793,6 +794,10 @@ func doInit(
 	if err != nil {
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
+	if registry := config.MetricsRegistry(); registry != nil {
+		service = NewKeybaseServiceMeasured(service, registry)
+	}
+	config.SetKeybaseService(service)
 
 	// Initialize KBPKI client (needed for KBFSOps, MD Server, and Chat).
 	k := NewKBPKIClient(config, kbfsLog)
@@ -813,9 +818,6 @@ func doInit(
 	config.SetKeyManager(NewKeyManagerStandard(config))
 	config.SetMDOps(NewMDOpsStandard(config))
 
-	// Enable the disk limiter before the keybase service, since if
-	// that service receives a logged-in event it will create a disk
-	// block cache, which requires the disk limiter.
 	config.SetDiskBlockCacheFraction(getCacheFrac(
 		ctx, kbCtx, params.DiskBlockCacheFraction,
 		defaultDiskBlockCacheFraction, configBlockCacheDiskMaxFracStr, log))
@@ -827,11 +829,6 @@ func doInit(
 		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
 		return nil, err
 	}
-
-	if registry := config.MetricsRegistry(); registry != nil {
-		service = NewKeybaseServiceMeasured(service, registry)
-	}
-	config.SetKeybaseService(service)
 
 	kbfsOps.favs.Initialize(ctx)
 

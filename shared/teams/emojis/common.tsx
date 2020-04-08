@@ -91,7 +91,7 @@ export const Modal = (props: ModalProps) => {
                 onClick={props.backButtonOnClick}
               />
             )}
-            <Kb.Text type="Header">Add emoji</Kb.Text>
+            <Kb.Text type="Header">{props.title}</Kb.Text>
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer}>
