@@ -23,11 +23,14 @@ type Props = {
 }
 type RoutableProps = Container.RouteProps<Props>
 
-const filePathToDefaultAlias = (path: string) => {
-  const name = FsTypes.getLocalPathName(path)
-  const lastDot = name.lastIndexOf('.')
-  return kebabCase(lastDot > 0 ? name.slice(0, lastDot) : name)
-}
+// don't prefill on mobile since it's always a long random string.
+const filePathToDefaultAlias = Styles.isMobile
+  ? () => ''
+  : (path: string) => {
+      const name = FsTypes.getLocalPathName(path)
+      const lastDot = name.lastIndexOf('.')
+      return kebabCase(lastDot > 0 ? name.slice(0, lastDot) : name)
+    }
 
 const useDoAddEmojis = (
   conversationIDKey: ChatTypes.ConversationIDKey,
