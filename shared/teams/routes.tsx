@@ -4,6 +4,7 @@ import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
 import OpenTeamWarning from './team/settings-tab/open-team-warning'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
+import GenerateLinkModal from './team/invites/generate-link'
 import TeamDeleteTeam from './delete-team/container'
 import DeleteChannel from './confirm-modals/delete-channel'
 import TeamAddEmoji from './emojis/add-emoji'
@@ -97,6 +98,9 @@ export const newModalRoutes = {
   },
   teamEditWelcomeMessage: {
     getScreen: (): typeof TeamEditWelcomeMessage => require('./edit-team-welcome-message').default,
+  },
+  teamInviteLinksModal: {
+    getScreen: (): typeof GenerateLinkModal => require('./team/invites/generate-link').default,
   },
   teamInviteByContact: {
     getScreen: (): typeof TeamInviteByContact => require('./invite-by-contact/container').default,
