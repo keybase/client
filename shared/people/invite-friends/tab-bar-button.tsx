@@ -95,7 +95,7 @@ const InviteFriends = () => {
                 ) : null}
                 {inviteCounts.showFire ? (
                   <Kb.Text type="BodySmall" style={styles.tooltip}>
-                    Keybase servers are on fire! <Kb.Emoji emojiName="fire" size={12} />
+                    Keybase servers are on fire! <Kb.Emoji emojiName=":fire:" size={12} />
                   </Kb.Text>
                 ) : null}
               </Kb.Box2>
