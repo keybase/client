@@ -732,7 +732,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 	}
 
 	// add the source to the target storage area
-	newSource, err := s.addAdvanced(ctx, uid, &syncConv, convID, stripped, sink.Name(), false, storage)
+	newSource, err := s.addAdvanced(ctx, uid, &syncConv, convID, stripped, sink.Name(), true, storage)
 	if err != nil {
 		return res, err
 	}
