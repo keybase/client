@@ -5,6 +5,8 @@ import {WebOfTrustVerificationType} from '../../../constants/types/more'
 import {wotReactWaitingKey} from '../../../constants/users'
 import {WotReactionType, WotStatusType} from '../../../constants/types/rpc-gen'
 
+const noop = () => null
+
 type OwnProps = {
   webOfTrustAttestation: {
     attestation: string
@@ -45,7 +47,6 @@ const Connected = Container.connect(
     }
   },
   (stateProps, dispatchProps) => {
-    const noop = () => null
     return {
       attestation: stateProps.attestation,
       attestingUser: stateProps.attestingUser,

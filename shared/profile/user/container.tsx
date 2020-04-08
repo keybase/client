@@ -49,14 +49,12 @@ const connected = Container.namedConnect(
     if (!notAUser) {
       // Keybase user
       const followThem = Constants.followThem(state, username)
-      const {followersCount, followingCount, followers, following, reason} = d
-      const webOfTrustEntries = (d.webOfTrustEntries || []).filter(entry => Types.showableWotEntry(entry))
+      const {followersCount, followingCount, followers, following, reason, webOfTrustEntries = []} = d
+      const filteredWot = webOfTrustEntries.filter(Constants.showableWotEntry)
 
       const mutualFollow = followThem && Constants.followsYou(state, username)
-      const hasntAlreadyVouched = webOfTrustEntries.every(
-        entry => entry.attestingUser !== state.config.username
-      )
-      const promptForVouch = mutualFollow && hasntAlreadyVouched
+      const hasNotAlreadyVouched = filteredWot.every(entry => entry.attestingUser !== state.config.username)
+      const promptForVouch = mutualFollow && hasNotAlreadyVouched
 
       return {
         ...commonProps,
@@ -73,7 +71,7 @@ const connected = Container.namedConnect(
         sbsAvatarUrl: undefined,
         serviceIcon: undefined,
         title: username,
-        webOfTrustEntries,
+        webOfTrustEntries: filteredWot,
       }
     } else {
       // SBS profile. But `nonUserDetails` might not have arrived yet,

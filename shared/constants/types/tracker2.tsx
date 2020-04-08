@@ -94,11 +94,6 @@ export type WebOfTrustEntry = {
   vouchedAt: number
 }
 
-export const showableWotEntry = (entry: WebOfTrustEntry): boolean => {
-  // when suggestions are implemented, we'll also want to show rejected entries that have a suggestion
-  return entry.status in [RPCTypes.WotStatusType.accepted, RPCTypes.WotStatusType.proposed]
-}
-
 export type State = {
   readonly usernameToDetails: Map<string, Details>
   readonly usernameToNonUserDetails: Map<string, NonUserDetails>
