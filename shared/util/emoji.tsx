@@ -30,10 +30,19 @@ export type RenderableEmoji = {
   renderUrl?: string
 }
 
-export const renderEmoji = (emoji: RenderableEmoji, size: number, customEmojiSize?: number) => {
+export const renderEmoji = (
+  emoji: RenderableEmoji,
+  size: number,
+  isReacji: boolean,
+  customEmojiSize?: number
+) => {
   if (emoji.renderUrl) {
     return (
-      <Kb.CustomEmoji size={customEmojiSize ?? size} src={emoji.renderUrl} alias={emoji.aliasForCustom} />
+      <Kb.CustomEmoji
+        size={customEmojiSize ?? size}
+        src={emoji.renderUrl}
+        alias={!isReacji ? emoji.aliasForCustom : undefined}
+      />
     )
   }
 

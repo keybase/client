@@ -83,6 +83,7 @@
   "chat.1.local.setTeamRetentionLocal": {"promise": true},
   "chat.1.local.setWelcomeMessage": {"promise": true},
   "chat.1.local.simpleSearchInboxConvNames": {"promise": true},
+  "chat.1.local.toggleEmojiAnimations": {"promise": true},
   "chat.1.local.toggleMessageCollapse": {"promise": true},
   "chat.1.local.unboxMobilePushNotification": {"promise": true},
   "chat.1.local.unpinMessage": {"promise": true},

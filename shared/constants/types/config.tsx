@@ -31,6 +31,7 @@ export type WindowState = {
 }
 
 export type State = {
+  allowAnimatedEmojis: boolean
   androidShare?:
     | {
         type: RPCTypes.IncomingShareType.file

@@ -13,7 +13,7 @@ export type SectionListRenderItem<ItemT, ExtraT> = (info: {
  * items, and ExtraT is for any extra stuff that is in the section, e.g. a title
  * used by renderSectionHeader
  */
-export type Section<ItemT, ExtraT> = {
+export type Section<ItemT, ExtraT = {}> = {
   data: ReadonlyArray<ItemT>
   key?: React.Key
   renderItem?: SectionListRenderItem<ItemT, ExtraT>

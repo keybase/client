@@ -17,7 +17,9 @@ import {emojiDataToRenderableEmoji, renderEmoji, EmojiData, RenderableEmoji} fro
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  hideFrequentEmoji?: boolean
   small?: boolean
+  onlyTeamCustomEmoji?: boolean
   onDidPick?: () => void
   onPickAddToMessageOrdinal?: Types.Ordinal
   onPickAction?: (emoji: string, renderableEmoji: RenderableEmoji) => void
@@ -67,13 +69,13 @@ const useSkinTone = () => {
   )
   return {currentSkinTone, setSkinTone}
 }
-const useCustomReacji = (conversationIDKey: Types.ConversationIDKey) => {
+const useCustomReacji = (conversationIDKey: Types.ConversationIDKey, onlyInTeam: boolean | undefined) => {
   const customEmojiGroups = Container.useSelector(s => s.chat2.userEmojis)
   const waiting = Container.useSelector(s => Container.anyWaiting(s, Constants.waitingKeyLoadingEmoji))
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey, onlyInTeam}))
+  }, [conversationIDKey, dispatch, onlyInTeam])
   return {customEmojiGroups, waiting}
 }
 
@@ -92,7 +94,7 @@ const goToAddEmoji = (dispatch: Container.Dispatch, conversationIDKey: Types.Con
 
 const WrapperMobile = (props: Props) => {
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
-  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
+  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey, props.onlyTeamCustomEmoji)
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
   const {currentSkinTone, setSkinTone} = useSkinTone()
@@ -129,6 +131,7 @@ const WrapperMobile = (props: Props) => {
         waitingForEmoji={waiting}
         width={width}
         skinTone={currentSkinTone}
+        hideFrequentEmoji={props.hideFrequentEmoji ?? false}
       />
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.footerContainer}>
         <SkinTonePicker
@@ -155,7 +158,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
-  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey)
+  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey, props.onlyTeamCustomEmoji)
   const dispatch = Container.useDispatch()
   const addEmoji = () => {
     props.onDidPick?.()
@@ -197,6 +200,7 @@ export const EmojiPickerDesktop = (props: Props) => {
         skinTone={currentSkinTone}
         customEmojiGroups={customEmojiGroups}
         waitingForEmoji={waiting}
+        hideFrequentEmoji={props.hideFrequentEmoji ?? false}
       />
       {!props.small && (
         <Kb.Box2
@@ -211,7 +215,8 @@ export const EmojiPickerDesktop = (props: Props) => {
               hoveredEmoji,
               getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
             ),
-            36
+            36,
+            false
           )}
           <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
             <Kb.Text type="BodyBig" lineClamp={1}>

@@ -619,6 +619,10 @@ export type MessageTypes = {
     inParam: {readonly query: String}
     outParam: Array<SimpleSearchInboxConvNamesHit> | null
   }
+  'chat.1.local.toggleEmojiAnimations': {
+    inParam: {readonly enabled: Boolean}
+    outParam: void
+  }
   'chat.1.local.toggleMessageCollapse': {
     inParam: {readonly convID: ConversationID; readonly msgID: MessageID; readonly collapse: Boolean}
     outParam: void
@@ -1735,6 +1739,7 @@ export const localSetGlobalAppNotificationSettingsLocalRpcPromise = (params: Mes
 export const localSetTeamRetentionLocalRpcPromise = (params: MessageTypes['chat.1.local.setTeamRetentionLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setTeamRetentionLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setTeamRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetWelcomeMessageRpcPromise = (params: MessageTypes['chat.1.local.setWelcomeMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setWelcomeMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setWelcomeMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSimpleSearchInboxConvNamesRpcPromise = (params: MessageTypes['chat.1.local.simpleSearchInboxConvNames']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.simpleSearchInboxConvNames']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.simpleSearchInboxConvNames', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localToggleEmojiAnimationsRpcPromise = (params: MessageTypes['chat.1.local.toggleEmojiAnimations']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.toggleEmojiAnimations']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.toggleEmojiAnimations', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localToggleMessageCollapseRpcPromise = (params: MessageTypes['chat.1.local.toggleMessageCollapse']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.toggleMessageCollapse']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.toggleMessageCollapse', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUnboxMobilePushNotificationRpcPromise = (params: MessageTypes['chat.1.local.unboxMobilePushNotification']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.unboxMobilePushNotification']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.unboxMobilePushNotification', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUnpinMessageRpcPromise = (params: MessageTypes['chat.1.local.unpinMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.unpinMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.unpinMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

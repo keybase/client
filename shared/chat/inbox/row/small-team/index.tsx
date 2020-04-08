@@ -119,7 +119,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 style={Styles.collapseStyles([
                   Styles.globalStyles.flexBoxColumn,
                   styles.flexOne,
-                  {justifyContent: props.hasBottomLine ? 'flex-end' : 'center'},
+                  props.hasBottomLine ? styles.withBottomLine : styles.withoutBottomLine,
                 ])}
               >
                 <SimpleTopLine
@@ -210,6 +210,11 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isElectron: Styles.desktopStyles.clickable,
   }),
+  withBottomLine: {
+    justifyContent: 'flex-end',
+    paddingBottom: Styles.globalMargins.xxtiny,
+  },
+  withoutBottomLine: {justifyContent: 'center'},
 }))
 
 export {SmallTeam}

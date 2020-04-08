@@ -7055,6 +7055,10 @@ type UserEmojisArg struct {
 	ConvID *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
 }
 
+type ToggleEmojiAnimationsArg struct {
+	Enabled bool `codec:"enabled" json:"enabled"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -7172,6 +7176,7 @@ type LocalInterface interface {
 	AddEmojiAlias(context.Context, AddEmojiAliasArg) (AddEmojiAliasRes, error)
 	RemoveEmoji(context.Context, RemoveEmojiArg) (RemoveEmojiRes, error)
 	UserEmojis(context.Context, UserEmojisArg) (UserEmojiRes, error)
+	ToggleEmojiAnimations(context.Context, bool) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -8863,6 +8868,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"toggleEmojiAnimations": {
+				MakeArg: func() interface{} {
+					var ret [1]ToggleEmojiAnimationsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ToggleEmojiAnimationsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ToggleEmojiAnimationsArg)(nil), args)
+						return
+					}
+					err = i.ToggleEmojiAnimations(ctx, typedArgs[0].Enabled)
+					return
+				},
+			},
 		},
 	}
 }
@@ -9477,5 +9497,11 @@ func (c LocalClient) RemoveEmoji(ctx context.Context, __arg RemoveEmojiArg) (res
 
 func (c LocalClient) UserEmojis(ctx context.Context, __arg UserEmojisArg) (res UserEmojiRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.userEmojis", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ToggleEmojiAnimations(ctx context.Context, enabled bool) (err error) {
+	__arg := ToggleEmojiAnimationsArg{Enabled: enabled}
+	err = c.Cli.Call(ctx, "chat.1.local.toggleEmojiAnimations", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

@@ -170,6 +170,30 @@ const backToProfile = (state: TypedState) => [
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
 ]
 
+const wotVouch = async (action: ProfileGen.WotVouchPayload, logger: Saga.SagaLogger) => {
+  const {otherText, proofs, statement, username, verificationType} = action.payload
+  try {
+    await RPCTypes.wotWotVouchRpcPromise(
+      {
+        assertion: username,
+        confidence: {
+          other: otherText,
+          proofs,
+          usernameVerifiedVia: verificationType,
+        },
+        vouchTexts: [statement],
+      },
+      Constants.wotAuthorWaitingKey
+    )
+  } catch (e) {
+    logger.warn('Error from wotVouch:', e)
+    return ProfileGen.createWotVouchSetError({
+      error: e.desc || `There was an error submitting the claim.`,
+    })
+  }
+  return [ProfileGen.createWotVouchSetError({error: ''}), RouteTreeGen.createClearModals()]
+}
+
 function* _profileSaga() {
   yield* Saga.chainAction2(ProfileGen.submitRevokeProof, submitRevokeProof)
   yield* Saga.chainAction(ProfileGen.submitBlockUser, submitBlockUser)
@@ -182,6 +206,7 @@ function* _profileSaga() {
   yield* Saga.chainAction(ProfileGen.showUserProfile, showUserProfile)
   yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
   yield* Saga.chainAction2(ProfileGen.hideStellar, hideStellar)
+  yield* Saga.chainAction(ProfileGen.wotVouch, wotVouch)
 }
 
 function* profileSaga() {

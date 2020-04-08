@@ -85,6 +85,7 @@ type Section = _Section<
 type Props = {
   topReacjis: Array<RPCTypes.UserReacji>
   filter?: string
+  hideFrequentEmoji: boolean
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
   skinTone?: Types.EmojiSkinTone
@@ -167,6 +168,7 @@ const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWid
 const getSectionsAndBookmarks = (
   width: number,
   topReacjis: Array<RPCTypes.UserReacji>,
+  hideTopReacjis: boolean,
   customEmojiGroups?: RPCChatGen.EmojiGroup[]
 ) => {
   if (!width) {
@@ -177,7 +179,7 @@ const getSectionsAndBookmarks = (
   const sections: Array<Section> = []
   const bookmarks: Array<Bookmark> = []
 
-  if (topReacjis.length) {
+  if (topReacjis.length && !hideTopReacjis) {
     const frequentSection = getFrequentSection(topReacjis, customEmojiGroups || emptyArray, emojisPerLine)
     bookmarks.push({
       coveredSectionKeys: new Set([frequentSection.key]),
@@ -233,7 +235,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         style={styles.emoji}
         key={emoji.short_name}
       >
-        {renderEmoji(renderable, singleEmojiWidth)}
+        {renderEmoji(renderable, singleEmojiWidth, false)}
       </Kb.ClickableBox>
     )
   }
@@ -303,6 +305,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     const {bookmarks, sections} = getSectionsAndBookmarks(
       this.props.width,
       this.props.topReacjis,
+      this.props.hideFrequentEmoji,
       this.props.customEmojiGroups
     )
     const emojisPerLine = getEmojisPerLine(this.props.width)

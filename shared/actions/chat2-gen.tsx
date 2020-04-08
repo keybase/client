@@ -300,7 +300,10 @@ type _EnableAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly meteringCb: (amp: number) => void
 }
-type _FetchUserEmojiPayload = {readonly conversationIDKey?: Types.ConversationIDKey}
+type _FetchUserEmojiPayload = {
+  readonly conversationIDKey?: Types.ConversationIDKey
+  readonly onlyInTeam?: boolean
+}
 type _FindGeneralConvIDFromTeamIDPayload = {readonly teamID: TeamsTypes.TeamID}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey

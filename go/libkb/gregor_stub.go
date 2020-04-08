@@ -34,3 +34,7 @@ func (n nullGregorState) DismissItem(ctx context.Context, cli gregor1.IncomingIn
 func (n nullGregorState) LocalDismissItem(ctx context.Context, id gregor.MsgID) error {
 	return nil
 }
+
+func (n nullGregorState) DismissCategory(ctx context.Context, cat gregor1.Category) error {
+	return nil
+}

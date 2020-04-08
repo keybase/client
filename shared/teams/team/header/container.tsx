@@ -42,10 +42,10 @@ export default Container.connect(
     },
     _onChat: (teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
-    _onEditIcon: (teamname: string, image?: ImagePicker.ImagePickerResult) =>
+    _onEditIcon: (image?: ImagePicker.ImagePickerResult) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {image, sendChatNotification: true, teamname}, selected: 'teamEditTeamAvatar'}],
+          path: [{props: {image, sendChatNotification: true, teamID}, selected: 'profileEditAvatar'}],
         })
       ),
     _onRename: (teamname: string) =>
@@ -67,8 +67,7 @@ export default Container.connect(
     onAddSelf: () => dispatchProps._onAddSelf(stateProps._you),
     onChat: () => dispatchProps._onChat(stateProps.teamname),
     onEditDescription: dispatchProps.onEditDescription,
-    onEditIcon: (image?: ImagePicker.ImagePickerResult) =>
-      dispatchProps._onEditIcon(stateProps.teamname, image),
+    onEditIcon: dispatchProps._onEditIcon,
     onFilePickerError: dispatchProps.onFilePickerError,
     onRename: stateProps._canRenameTeam ? () => dispatchProps._onRename(stateProps.teamname) : null,
     openTeam: stateProps.openTeam,
