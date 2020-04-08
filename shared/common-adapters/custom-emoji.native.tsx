@@ -6,15 +6,13 @@ import {Box2} from './box'
 
 const CustomEmoji = (props: Props) => {
   const {size, src} = props
+  const dimensions = {
+    height: size,
+    width: size,
+  }
   return (
-    <Box2 direction="vertical" style={Styles.collapseStyles([{height: size}, styles.container])}>
-      <FastImage
-        source={{uri: src}}
-        style={{
-          height: size,
-          width: size,
-        }}
-      />
+    <Box2 direction="vertical" style={Styles.collapseStyles([dimensions, styles.container])}>
+      <FastImage source={{uri: src}} style={dimensions} />
     </Box2>
   )
 }
