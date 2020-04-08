@@ -132,7 +132,9 @@ const ChooseEmoji = Styles.isMobile
               {
                 props: {
                   conversationIDKey: props.conversationIDKey,
+                  hideFrequentEmoji: true,
                   onPickAction: props.onChoose,
+                  onlyTeamCustomEmoji: true,
                   small: true,
                 },
                 selected: 'chatChooseEmoji',
@@ -153,9 +155,11 @@ const ChooseEmoji = Styles.isMobile
         >
           <EmojiPickerDesktop
             conversationIDKey={props.conversationIDKey}
+            hideFrequentEmoji={true}
             small={true}
             onPickAction={props.onChoose}
             onDidPick={() => setShowingPopup(false)}
+            onlyTeamCustomEmoji={true}
           />
         </Kb.FloatingBox>
       ))

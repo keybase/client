@@ -944,7 +944,8 @@
     },
     "fetchUserEmoji": {
       "_description": "Refresh user emoji and put it in store for picker",
-      "conversationIDKey?": "Types.ConversationIDKey"
+      "conversationIDKey?": "Types.ConversationIDKey",
+      "onlyInTeam?": "boolean"
     },
     "loadedUserEmoji": {
       "results": "RPCChatTypes.UserEmojiRes"
