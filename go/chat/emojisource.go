@@ -29,10 +29,6 @@ const (
 	maxShortNameLength = 48
 	minEmojiSize       = 512        // min size for reading mime type
 	maxEmojiSize       = 256 * 1000 // 256kb
-	minEmojiWidth      = 16
-	minEmojiHeight     = 16
-	maxEmojiWidth      = 128
-	maxEmojiHeight     = 128
 )
 
 type DevConvEmojiSource struct {
@@ -198,7 +194,6 @@ func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName,
 
 // validateFile validates the following:
 // file size
-// dimensions
 // format
 func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) error {
 	finfo, err := attachments.StatOSOrKbfsFile(ctx, s.G().GlobalContext, filename)
@@ -216,8 +211,7 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 		return err
 	}
 	defer func() { src.Close() }()
-	img, _, err := images.Decode(src, nil)
-	if err != nil {
+	if _, _, err = images.Decode(src, nil); err != nil {
 		if err := src.Reset(); err != nil {
 			return err
 		}
@@ -228,13 +222,6 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 		if len(g.Image) == 0 {
 			return errors.New("no image frames in GIF")
 		}
-		img = g.Image[0]
-	}
-	bounds := img.Bounds()
-	if bounds.Dx() > maxEmojiWidth || bounds.Dx() < minEmojiWidth ||
-		bounds.Dy() > maxEmojiHeight || bounds.Dy() < minEmojiHeight {
-		return fmt.Errorf("invalid dimensions %dx%d not within %dx%d, %dx%d",
-			bounds.Dx(), bounds.Dy(), maxEmojiWidth, maxEmojiHeight, minEmojiWidth, minEmojiHeight)
 	}
 	return nil
 }
