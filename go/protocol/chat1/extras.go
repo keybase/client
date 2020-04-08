@@ -968,6 +968,8 @@ func (b MessageBody) TextForDecoration() string {
 		return ""
 	}
 	switch typ {
+	case MessageType_REACTION:
+		return b.Reaction().Body
 	case MessageType_HEADLINE:
 		return b.Headline().Headline
 	default:
