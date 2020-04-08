@@ -138,6 +138,7 @@ const markdownStyles = Styles.styleSheetCreate(
 const EmojiIfExists = React.memo(
   (
     props: EmojiProps & {
+      paragraphTextClassName?: string
       style?: any
       allowFontScaling?: boolean
       lineClamp?: LineClampType
@@ -148,7 +149,12 @@ const EmojiIfExists = React.memo(
     return exists ? (
       <Emoji emojiName={emojiNameLower} size={props.size} allowFontScaling={props.allowFontScaling} />
     ) : (
-      <Markdown style={props.style} lineClamp={props.lineClamp} allowFontScaling={props.allowFontScaling}>
+      <Markdown
+        paragraphTextClassName={props.paragraphTextClassName}
+        style={props.style}
+        lineClamp={props.lineClamp}
+        allowFontScaling={props.allowFontScaling}
+      >
         {props.emojiName}
       </Markdown>
     )
@@ -306,6 +312,7 @@ const reactComponentsForMarkdownType = {
       state: SimpleMarkdown.State
     ) => (
       <Text
+        className={state.paragraphTextClassName}
         type="Body"
         key={state.key}
         style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride.paragraph])}
