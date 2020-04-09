@@ -3674,6 +3674,15 @@ func (s TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
 	return res
 }
 
+func (s TeamSigChainState) GetAllUVs() (res []UserVersion) {
+	for uv := range s.UserLog {
+		if s.UserRole(uv) != TeamRole_NONE {
+			res = append(res, uv)
+		}
+	}
+	return res
+}
+
 func (h *HiddenTeamChain) IsStale() bool {
 	if h == nil {
 		return false
