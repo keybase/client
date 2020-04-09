@@ -8,6 +8,7 @@ import ContactsList, {
   EnableContactsPopup,
 } from '../../teams/common/contacts-list.native'
 import openSMS from '../../util/sms'
+import {composeAsync} from 'expo-mail-composer'
 
 const waitingKey = 'inviteContacts'
 
@@ -15,6 +16,7 @@ const ListHeaderComponent = () => (
   <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.iconBox} />
 )
 
+const messageSubject = "Let's chat on Keybase?"
 const messageBody = `Let's chat privately on Keybase:
 https://keybase.io/install
 It's free and secure.`
@@ -34,8 +36,7 @@ const onComposeMessage = ({
   if (phones) {
     return openSMS(phones, messageBody)
   }
-  // emails TODO Y2K-1755
-  return Promise.resolve()
+  return composeAsync({body: messageBody, recipients: emails, subject: messageSubject}).then(() => undefined)
 }
 
 const InviteContacts = () => {
@@ -69,8 +70,14 @@ const InviteContacts = () => {
         await onComposeMessage({emails: [...selectedEmails]})
         navUp()
       }
-    } catch {
-      setError('Something went wrong.')
+    } catch (e) {
+      if (anyEmailsSelected && Styles.isIOS) {
+        setError(
+          'Something went wrong. For this feature to work, you need at least one Mail account enabled in settings.'
+        )
+      } else {
+        setError('Something went wrong.')
+      }
     }
   }
   const placeholderText = loading ? '' : `Search ${contacts.length.toLocaleString()} contacts`
