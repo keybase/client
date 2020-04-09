@@ -15,7 +15,7 @@ const CustomEmoji = (props: Props) => {
       direction="vertical"
       style={Styles.collapseStyles([dimensions, styles.container, !!props.addTopMargin && styles.topMargin])}
     >
-      <FastImage source={{uri: src}} style={dimensions} />
+      <FastImage source={{uri: src}} style={dimensions} resizeMode={FastImage.resizeMode.contain} />
     </Box2>
   )
 }
