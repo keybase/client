@@ -232,7 +232,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 
 	t.Logf("alias decorate test")
 	msgID = mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "yes! :mike:",
+		Body: "yes! :my+1:",
 	}))
 
 	msg, err := tc.Context().ConvSource.GetMessage(ctx, conv.Id, uid, msgID, nil, nil, true)
