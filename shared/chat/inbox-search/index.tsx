@@ -423,7 +423,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         fullWidth={true}
         ref={popupAnchor}
         centerChildren={true}
-        className="background_color_blueGrey hover_background_color_blueGreyDark"
+        className="background_color_white hover_background_color_blueGreyDark"
         style={Styles.collapseStyles([
           styles.openTeamContainer,
           {
