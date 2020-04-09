@@ -420,8 +420,11 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
       },
       emoji: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
         borderRadius: 2,
-        padding: emojiPadding,
+        height: emojiWidthWithPadding,
+        justifyContent: 'center',
         width: emojiWidthWithPadding,
       },
       emojiPlaceholder: {
