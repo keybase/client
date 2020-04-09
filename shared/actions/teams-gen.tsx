@@ -31,6 +31,7 @@ export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const finishAddMembersWizard = 'teams:finishAddMembersWizard'
 export const finishNewTeamWizard = 'teams:finishNewTeamWizard'
+export const generateInviteLink = 'teams:generateInviteLink'
 export const getMemberSubteamDetails = 'teams:getMemberSubteamDetails'
 export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
@@ -181,6 +182,12 @@ type _EditMembershipPayload = {
 type _EditTeamDescriptionPayload = {readonly teamID: Types.TeamID; readonly description: string}
 type _FinishAddMembersWizardPayload = void
 type _FinishNewTeamWizardPayload = void
+type _GenerateInviteLinkPayload = {
+  readonly teamname: string
+  readonly role: Types.TeamRoleType
+  readonly maxUses: number
+  readonly expireAfter?: string
+}
 type _GetMemberSubteamDetailsPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _GetMembersPayload = {readonly teamID: Types.TeamID}
 type _GetTeamProfileAddListPayload = {readonly username: string}
@@ -631,6 +638,10 @@ export const createEditTeamDescription = (
 export const createFinishNewTeamWizard = (
   payload: _FinishNewTeamWizardPayload
 ): FinishNewTeamWizardPayload => ({payload, type: finishNewTeamWizard})
+export const createGenerateInviteLink = (payload: _GenerateInviteLinkPayload): GenerateInviteLinkPayload => ({
+  payload,
+  type: generateInviteLink,
+})
 export const createGetMemberSubteamDetails = (
   payload: _GetMemberSubteamDetailsPayload
 ): GetMemberSubteamDetailsPayload => ({payload, type: getMemberSubteamDetails})
@@ -918,6 +929,10 @@ export type FinishAddMembersWizardPayload = {
 export type FinishNewTeamWizardPayload = {
   readonly payload: _FinishNewTeamWizardPayload
   readonly type: typeof finishNewTeamWizard
+}
+export type GenerateInviteLinkPayload = {
+  readonly payload: _GenerateInviteLinkPayload
+  readonly type: typeof generateInviteLink
 }
 export type GetMemberSubteamDetailsPayload = {
   readonly payload: _GetMemberSubteamDetailsPayload
@@ -1226,6 +1241,7 @@ export type Actions =
   | EditTeamDescriptionPayload
   | FinishAddMembersWizardPayload
   | FinishNewTeamWizardPayload
+  | GenerateInviteLinkPayload
   | GetMemberSubteamDetailsPayload
   | GetMembersPayload
   | GetTeamProfileAddListPayload

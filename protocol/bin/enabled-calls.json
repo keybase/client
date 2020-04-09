@@ -307,6 +307,7 @@
   "keybase.1.teams.teamAddMember": {"promise": true},
   "keybase.1.teams.teamAddMembersMultiRole": {"promise": true},
   "keybase.1.teams.teamCreate": {"promise": true},
+  "keybase.1.teams.teamCreateSeitanInvitelinkWithDuration": {"promise": true},
   "keybase.1.teams.teamCreateSeitanTokenV2": {"promise": true},
   "keybase.1.teams.teamDelete": {"engineSaga": true, "promise": true},
   "keybase.1.teams.teamEditMember": {"promise": true},

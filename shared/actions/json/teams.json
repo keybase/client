@@ -140,6 +140,12 @@
       "fullName": "string",
       "loadingKey?": "string"
     },
+    "generateInviteLink": {
+      "teamname": "string",
+      "role": "Types.TeamRoleType",
+      "maxUses": "number",
+      "expireAfter?": "string"
+    },
     "joinTeam": {
       "teamname": "string"
     },

@@ -99,9 +99,6 @@ export const newModalRoutes = {
   teamEditWelcomeMessage: {
     getScreen: (): typeof TeamEditWelcomeMessage => require('./edit-team-welcome-message').default,
   },
-  teamInviteLinksModal: {
-    getScreen: (): typeof GenerateLinkModal => require('./team/invites/generate-link').default,
-  },
   teamInviteByContact: {
     getScreen: (): typeof TeamInviteByContact => require('./invite-by-contact/container').default,
   },
@@ -110,6 +107,9 @@ export const newModalRoutes = {
   },
   teamInviteHistory: {
     getScreen: (): typeof TeamInviteHistory => require('./team/invites/invite-history').default,
+  },
+  teamInviteLinksModal: {
+    getScreen: (): typeof GenerateLinkModal => require('./team/invites/generate-link').default,
   },
   teamJoinTeamDialog: {
     getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default,

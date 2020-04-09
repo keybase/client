@@ -4,13 +4,13 @@ import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
+import * as RPCGen from '../../../constants/types/rpc-gen'
 import * as Styles from '../../../styles'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {ModalTitle} from '../../common'
 import {FloatingRolePicker} from '../../role-picker'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {pluralize} from '../../../util/string'
-import {formatDurationLong} from '../../../util/timestamp'
 
 type Props = Container.RouteProps<{teamID: Types.TeamID}>
 
@@ -53,12 +53,29 @@ const InviteRolePicker = (props: RolePickerProps) => {
   )
 }
 
-const InviteItem = ({inviteLink, teamID}: {inviteLink: Types.InviteLink; teamID: Types.TeamID}) => {
-  const dispatch = Container.useDispatch()
-  const onExpire = () => dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLink.id, teamID}))
-  const waitingForExpire = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, inviteLink.id))
+const InviteItem = ({
+  duration,
+  inviteLink,
+  onExpireCallback,
+  teamID,
+}: {
+  duration: string
+  inviteLink: Types.InviteLink
+  onExpireCallback: () => void
+  teamID: Types.TeamID
+}) => {
+  const teamDetails = Container.useSelector(s => s.teams.teamDetails.get(teamID))
+  const inviteLinks = teamDetails?.inviteLinks
+  const inviteLinkID = [...(inviteLinks || [])].filter(i => i.url == inviteLink?.url)[0]?.id
 
-  const duration = formatDurationLong(new Date(), new Date(inviteLink.expirationTime * 1000))
+  const dispatch = Container.useDispatch()
+  const onExpire = () => {
+    onExpireCallback()
+    dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLinkID, teamID}))
+    inviteLink.expired = true
+  }
+  const waitingForExpire = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, inviteLinkID))
+
   const expireText = inviteLink.expired ? `Expired` : `Expires in ${duration}`
 
   return (
@@ -96,6 +113,8 @@ const InviteItem = ({inviteLink, teamID}: {inviteLink: Types.InviteLink; teamID:
   )
 }
 
+const waitingKey = 'generateInviteLink'
+
 const GenerateLinkModal = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -106,33 +125,18 @@ const GenerateLinkModal = (props: Props) => {
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
-  const onGenerate = () => undefined
-
-  // TODO: Generate actual invite link
-  const inviteLink = {
-    creatorUsername: 'danielw68',
-    expirationTime: 1582848000,
-    expired: false,
-    id: '1',
-    lastJoinedUsername: 'bob',
-    maxUses: 12,
-    numUses: 1,
-    role: 'reader' as Types.TeamRoleType,
-    url: 'https://keybase.io/SsiDfoiw',
-  }
-
   const validityItemOneUse = (
     <Kb.Text type="BodySemibold" style={styles.dropdownButton}>
       Expires after one use
     </Kb.Text>
   )
   const validityItemYear = (
-    <Kb.Text type="BodySemibold" style={styles.dropdownButton}>
+    <Kb.Text key="1 Y" type="BodySemibold" style={styles.dropdownButton}>
       Expires after one year
     </Kb.Text>
   )
   const validityItemForever = (
-    <Kb.Text type="BodySemibold" style={styles.dropdownButton}>
+    <Kb.Text key="10000 Y" type="BodySemibold" style={styles.dropdownButton}>
       Expires after 10,000 years
     </Kb.Text>
   )
@@ -140,6 +144,49 @@ const GenerateLinkModal = (props: Props) => {
 
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [teamRole, setTeamRole] = React.useState('reader' as Types.TeamRoleType)
+  const [inviteLink, setInviteLink] = React.useState<Types.InviteLink | null>(null)
+  const [inviteDuration, setInviteDuration] = React.useState('')
+
+  const onExpire = () => {
+    if (inviteLink != null) {
+      inviteLink.expired = true
+    }
+  }
+
+  const generateLinkRPC = Container.useRPC(RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
+  const onGenerate = () => {
+    const expireAfter = validity == validityItemOneUse ? undefined : (validity.key as string)
+    const maxUses = expireAfter == null ? 1 : -1
+    setInviteDuration(
+      expireAfter == null ? 'one use' : validity == validityItemYear ? 'one year' : '10,000 years'
+    )
+
+    generateLinkRPC(
+      [
+        {
+          teamname,
+          role: RPCGen.TeamRole[teamRole],
+          maxUses,
+          expireAfter,
+        },
+        waitingKey,
+      ],
+      r => {
+        setInviteLink({
+          creatorUsername: '',
+          expirationTime: 1000000000,
+          expired: false,
+          id: '1',
+          lastJoinedUsername: '',
+          maxUses: 1,
+          numUses: 1,
+          role: teamRole,
+          url: r.url,
+        })
+      },
+      () => {}
+    )
+  }
 
   const rolePickerProps = {
     disabledReasonsForRolePicker: {
@@ -167,7 +214,14 @@ const GenerateLinkModal = (props: Props) => {
           title: <ModalTitle teamID={teamID} title="Share an invite link" />,
         }}
         footer={{
-          content: <Kb.Button fullWidth={true} label="Close" onClick={onGenerate} type="Dim" />,
+          content: (
+            <Kb.Button
+              fullWidth={true}
+              label="Close"
+              onClick={inviteLink.expired ? onClose : onGenerate}
+              type="Dim"
+            />
+          ),
           hideBorder: true,
         }}
         allowOverflow={true}
@@ -189,7 +243,12 @@ const GenerateLinkModal = (props: Props) => {
             Here is your link. Share it cautiously as anyone who has it can join the team.
           </Kb.Text>
 
-          <InviteItem inviteLink={inviteLink} teamID={teamID} />
+          <InviteItem
+            duration={inviteDuration}
+            inviteLink={inviteLink}
+            onExpireCallback={onExpire}
+            teamID={teamID}
+          />
 
           {inviteLink.expired && <Kb.Text type="BodySmallSemiboldPrimaryLink">Generate a new link</Kb.Text>}
         </Kb.Box2>
