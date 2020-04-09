@@ -32,6 +32,8 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis}: OwnProps) 
         ],
       })
     )
+  const isStockAlias = emoji.remoteSource.typ === RPCChatTypes.EmojiRemoteSourceTyp.stockalias
+  const doAddAlias = !isStockAlias ? onAddAlias : undefined
 
   const canManageEmoji = true
   const removeRpc = useRPC(RPCChatGen.localRemoveEmojiRpcPromise)
@@ -51,12 +53,11 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis}: OwnProps) 
         )
       }
     : undefined
-
   const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <EmojiMenu
       attachTo={attachTo}
       visible={showingPopup}
-      onAddAlias={onAddAlias}
+      onAddAlias={doAddAlias}
       onRemove={doRemove}
       onHidden={() => setShowingPopup(false)}
     />
@@ -89,16 +90,18 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis}: OwnProps) 
               containerStyle={styles.username}
             />
           )}
-          <Kb.Box2 direction="horizontal">
-            {popup}
-            <Kb.Button
-              icon="iconfont-ellipsis"
-              mode="Secondary"
-              type="Dim"
-              onClick={() => setShowingPopup(!showingPopup)}
-              ref={popupAnchor}
-            />
-          </Kb.Box2>
+          {doRemove || doAddAlias ? (
+            <Kb.Box2 direction="horizontal">
+              {popup}
+              <Kb.Button
+                icon="iconfont-ellipsis"
+                mode="Secondary"
+                type="Dim"
+                onClick={() => setShowingPopup(!showingPopup)}
+                ref={popupAnchor}
+              />
+            </Kb.Box2>
+          ) : null}
         </Kb.Box2>
       }
       firstItem={firstItem}
