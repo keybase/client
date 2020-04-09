@@ -152,14 +152,6 @@ func (h *TeamsHandler) GetAnnotatedTeam(ctx context.Context, arg keybase1.TeamID
 	return teams.GetAnnotatedTeam(ctx, h.G().ExternalG(), arg)
 }
 
-func (h *TeamsHandler) GetUserSubteamMemberships(ctx context.Context, arg keybase1.GetUserSubteamMembershipsArg) (res []keybase1.AnnotatedSubteamMemberDetails, err error) {
-	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetUserSubteamMemberships(%s, %s)", arg.TeamID, arg.Username), func() error { return err })()
-
-	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
-	return teams.GetUserSubteamMemberships(mctx, arg.TeamID, arg.Username)
-}
-
 func (h *TeamsHandler) teamGet(ctx context.Context, details keybase1.TeamDetails, teamDescriptor string) (keybase1.TeamDetails, error) {
 	if details.Settings.Open {
 		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", teamDescriptor)
@@ -889,19 +881,23 @@ func (h *TeamsHandler) GetUntrustedTeamInfo(ctx context.Context, name keybase1.T
 	return teams.GetUntrustedTeamInfo(mctx, name)
 }
 
-func (h *TeamsHandler) LoadTeamTreeMemberships(ctx context.Context, arg keybase1.LoadTeamTreeMembershipsArg) (err error) {
+func (h *TeamsHandler) LoadTeamTreeMembershipsAsync(ctx context.Context,
+	arg keybase1.LoadTeamTreeMembershipsAsyncArg) (res keybase1.TeamTreeInitial, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamTreeMemberships(%s, %s)", arg.TeamID, arg.Username), func() error { return err })()
+	ctx = libkb.WithLogTag(ctx, "TMTREE")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamTreeMembershipsAsync(%s, %s, %d)",
+		arg.TeamID, arg.Username, arg.SessionID), func() error { return err })()
 
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
-	return teams.LoadTeamTreeMemberships(mctx, arg.TeamID, arg.Username)
-}
-
-func (h *TeamsHandler) CancelLoadTeamTree(ctx context.Context, sessionID int) (err error) {
-	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CancelLoadTeamTree()"), func() error { return err })()
-
-	return fmt.Errorf("unimplemented")
+	loader, err := teams.NewTreeloader(mctx, arg.Username, arg.TeamID, arg.SessionID)
+	if err != nil {
+		return res, err
+	}
+	err = loader.Load(mctx)
+	if err != nil {
+		return res, err
+	}
+	return keybase1.TeamTreeInitial{Guid: arg.SessionID}, nil
 }
 
 func (h *TeamsHandler) GetInviteLinkDetails(ctx context.Context, inviteID keybase1.TeamInviteID) (details keybase1.InviteLinkDetails, err error) {

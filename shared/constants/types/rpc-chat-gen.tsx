@@ -535,6 +535,10 @@ export type MessageTypes = {
     inParam: {readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: {[key: string]: ProfileSearchConvStats}
   }
+  'chat.1.local.putReacjiSkinTone': {
+    inParam: {readonly skinTone: Keybase1.ReacjiSkinTone}
+    outParam: Keybase1.UserReacjis
+  }
   'chat.1.local.refreshParticipants': {
     inParam: {readonly convID: ConversationID}
     outParam: void
@@ -1719,6 +1723,7 @@ export const localPostTextNonblockRpcPromise = (params: MessageTypes['chat.1.loc
 export const localPostTextNonblockRpcSaga = (p: {params: MessageTypes['chat.1.local.postTextNonblock']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.postTextNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localPreviewConversationByIDLocalRpcPromise = (params: MessageTypes['chat.1.local.previewConversationByIDLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.previewConversationByIDLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.previewConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localProfileChatSearchRpcPromise = (params: MessageTypes['chat.1.local.profileChatSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.profileChatSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.profileChatSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localPutReacjiSkinToneRpcPromise = (params: MessageTypes['chat.1.local.putReacjiSkinTone']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.putReacjiSkinTone']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.putReacjiSkinTone', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRefreshParticipantsRpcPromise = (params: MessageTypes['chat.1.local.refreshParticipants']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.refreshParticipants']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.refreshParticipants', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveBotMemberRpcPromise = (params: MessageTypes['chat.1.local.removeBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveEmojiRpcPromise = (params: MessageTypes['chat.1.local.removeEmoji']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeEmoji']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeEmoji', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1803,7 +1808,6 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
-// 'chat.1.local.putReacjiSkinTone'
 // 'chat.1.local.loadFlip'
 // 'chat.1.local.advertiseBotCommandsLocal'
 // 'chat.1.local.listBotCommandsLocal'

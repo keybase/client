@@ -20,6 +20,9 @@ PODS:
   - EXImagePicker (7.0.0):
     - UMCore
     - UMFileSystemInterface
+  - EXMailComposer (7.0.0):
+    - UMCore
+    - UMFileSystemInterface
   - EXPermissions (7.0.0):
     - UMCore
     - UMPermissionsInterface
@@ -330,6 +333,7 @@ DEPENDENCIES:
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXHaptics (from `../node_modules/expo-haptics/ios`)
   - EXImagePicker (from `../node_modules/expo-image-picker/ios`)
+  - EXMailComposer (from `../node_modules/expo-mail-composer/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - EXSMS (from `../node_modules/expo-sms/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
@@ -420,6 +424,9 @@ EXTERNAL SOURCES:
   EXImagePicker:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-image-picker/ios"
+  EXMailComposer:
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-mail-composer/ios"
   EXPermissions:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-permissions/ios"
@@ -553,6 +560,7 @@ SPEC CHECKSUMS:
   EXFileSystem: 7e53a2c30a2eb6987ba6d5158ab908f947523228
   EXHaptics: 9279b288e4bd10ca159442269790492a8819f917
   EXImagePicker: 63549baa9487f4b99c03163c5639ddede4c7be4e
+  EXMailComposer: b6d374488db559e4e5a84e5a96b17c0cb246cb89
   EXPermissions: df10ad83df2f6b647aec304619354f8ab48d5f63
   EXSMS: c5df5f35228de7f1f4b16da5e53f48af63b768e4
   FBLazyVector: aaeaf388755e4f29cd74acbc9e3b8da6d807c37f

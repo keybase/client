@@ -44,6 +44,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     daemonHandshakeState: draftState.daemonHandshakeState,
     daemonHandshakeVersion: draftState.daemonHandshakeVersion,
     daemonHandshakeWaiters: draftState.daemonHandshakeWaiters,
+    darkModePreference: draftState.darkModePreference,
     defaultUsername: draftState.defaultUsername,
     logoutHandshakeVersion: draftState.logoutHandshakeVersion,
     logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,

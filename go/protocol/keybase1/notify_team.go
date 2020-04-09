@@ -103,13 +103,11 @@ type TeamMetadataUpdateArg struct {
 }
 
 type TeamTreeMembershipsPartialArg struct {
-	SessionID  int                `codec:"sessionID" json:"sessionID"`
 	Membership TeamTreeMembership `codec:"membership" json:"membership"`
 }
 
 type TeamTreeMembershipsDoneArg struct {
-	SessionID     int `codec:"sessionID" json:"sessionID"`
-	ExpectedCount int `codec:"expectedCount" json:"expectedCount"`
+	Result TeamTreeMembershipsDoneResult `codec:"result" json:"result"`
 }
 
 type NotifyTeamInterface interface {
@@ -122,8 +120,8 @@ type NotifyTeamInterface interface {
 	TeamRoleMapChanged(context.Context, UserTeamVersion) error
 	AvatarUpdated(context.Context, AvatarUpdatedArg) error
 	TeamMetadataUpdate(context.Context) error
-	TeamTreeMembershipsPartial(context.Context, TeamTreeMembershipsPartialArg) error
-	TeamTreeMembershipsDone(context.Context, TeamTreeMembershipsDoneArg) error
+	TeamTreeMembershipsPartial(context.Context, TeamTreeMembership) error
+	TeamTreeMembershipsDone(context.Context, TeamTreeMembershipsDoneResult) error
 }
 
 func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
@@ -271,7 +269,7 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]TeamTreeMembershipsPartialArg)(nil), args)
 						return
 					}
-					err = i.TeamTreeMembershipsPartial(ctx, typedArgs[0])
+					err = i.TeamTreeMembershipsPartial(ctx, typedArgs[0].Membership)
 					return
 				},
 			},
@@ -286,7 +284,7 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]TeamTreeMembershipsDoneArg)(nil), args)
 						return
 					}
-					err = i.TeamTreeMembershipsDone(ctx, typedArgs[0])
+					err = i.TeamTreeMembershipsDone(ctx, typedArgs[0].Result)
 					return
 				},
 			},
@@ -348,12 +346,14 @@ func (c NotifyTeamClient) TeamMetadataUpdate(ctx context.Context) (err error) {
 	return
 }
 
-func (c NotifyTeamClient) TeamTreeMembershipsPartial(ctx context.Context, __arg TeamTreeMembershipsPartialArg) (err error) {
+func (c NotifyTeamClient) TeamTreeMembershipsPartial(ctx context.Context, membership TeamTreeMembership) (err error) {
+	__arg := TeamTreeMembershipsPartialArg{Membership: membership}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamTreeMembershipsPartial", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
-func (c NotifyTeamClient) TeamTreeMembershipsDone(ctx context.Context, __arg TeamTreeMembershipsDoneArg) (err error) {
+func (c NotifyTeamClient) TeamTreeMembershipsDone(ctx context.Context, result TeamTreeMembershipsDoneResult) (err error) {
+	__arg := TeamTreeMembershipsDoneArg{Result: result}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamTreeMembershipsDone", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
