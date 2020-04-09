@@ -63,8 +63,7 @@ func (l *Treeloader) Load(mctx libkb.MetaContext) error {
 	l.targetTeamName = target.Name()
 
 	// Load rest of team tree asynchronously.
-	go func(start time.Time, targetChainState *TeamSigChainState) {
-		imctx := mctx.BackgroundWithLogTags()
+	go func(imctx libkb.MetaContext, start time.Time, targetChainState *TeamSigChainState) {
 		expectedCount := l.loadRecursive(imctx, l.targetTeamID, l.targetTeamName, targetChainState)
 		l.notifyDone(imctx, int(expectedCount))
 
@@ -74,7 +73,7 @@ func (l *Treeloader) Load(mctx libkb.MetaContext) error {
 				expectedCount, l.targetTeamName),
 			Ctime: keybase1.ToTime(start),
 		})
-	}(start, target.chain())
+	}(mctx.BackgroundWithLogTags(), start, target.chain())
 
 	return nil
 }
