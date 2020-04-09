@@ -877,7 +877,7 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 	return chat1.NewMessageBodyWithText(newBody), nil
 }
 
-var quickReactionPatterm = regexp.MustCompile(`(?:^\+:)([^\s]+)(?::)$`)
+var quickReactionPattern = regexp.MustCompile(`(?:^\+:)([^\s]+)(?::)$`)
 
 func (h *Server) isQuickReaction(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	body string) (reaction string, msgID chat1.MessageID, ok bool) {
@@ -885,7 +885,7 @@ func (h *Server) isQuickReaction(ctx context.Context, uid gregor1.UID, convID ch
 	if !(strings.HasPrefix(body, "+:") && strings.HasSuffix(body, ":")) {
 		return "", 0, false
 	}
-	hits := quickReactionPatterm.FindStringSubmatch(body)
+	hits := quickReactionPattern.FindStringSubmatch(body)
 	if len(hits) < 2 {
 		return "", 0, false
 	}
