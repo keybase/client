@@ -6,16 +6,11 @@ import {GoButtonLabel} from '../constants/types/team-building'
 export type Props = {
   onClick: () => void
   label: GoButtonLabel
+  waitingKey: string | null
 }
 
-const Go = (props: {label: GoButtonLabel}) => (
-  <Kb.Text type="BodyBig" style={styles.go}>
-    {props.label}
-  </Kb.Text>
-)
-
 const GoButton = (props: Props) => (
-  <Kb.ClickableBox onClick={() => props.onClick()} style={styles.container}>
+  <Kb.Box style={styles.container}>
     <Kb.WithTooltip
       tooltip={
         <Kb.Box2 direction="horizontal">
@@ -30,26 +25,26 @@ const GoButton = (props: Props) => (
       }
       containerStyle={styles.goTooltipIconContainer}
     >
-      <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
-        <Go label={props.label} />
-      </Kb.Box2>
+      <Kb.WaitingButton
+        type="Success"
+        narrow={true}
+        label={props.label}
+        onClick={props.onClick}
+        style={styles.button}
+        waitingKey={props.waitingKey}
+      />
     </Kb.WithTooltip>
-  </Kb.ClickableBox>
+  </Kb.Box>
 )
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.green,
-      ...Styles.globalStyles.rounded,
-      marginLeft: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      marginBottom: Styles.globalMargins.tiny,
-      marginTop: Styles.globalMargins.tiny,
-      width: 62,
-    },
-  }),
+  button: {
+    height: '100%',
+  },
+  container: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
   go: Styles.platformStyles({
     common: {color: Styles.globalColors.white},
     isElectron: {lineHeight: 40},
