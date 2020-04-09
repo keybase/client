@@ -20,6 +20,7 @@ type RolePickerProps = {
   onConfirmRolePicker: (role: Types.TeamRoleType) => void
   onOpenRolePicker: () => void
   onSelectRole: (role: Types.TeamRoleType) => void
+  selectedRole: Types.TeamRoleType
   teamRole: Types.TeamRoleType
   disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string}
 }
@@ -32,7 +33,7 @@ const InviteRolePicker = (props: RolePickerProps) => {
   return (
     <FloatingRolePicker
       confirmLabel={`Let in as ${pluralize(props.teamRole)}`}
-      selectedRole={props.teamRole}
+      selectedRole={props.selectedRole}
       onSelectRole={props.onSelectRole}
       floatingContainerStyle={styles.floatingRolePicker}
       onConfirm={props.onConfirmRolePicker}
@@ -115,6 +116,16 @@ const InviteItem = ({
 
 const waitingKey = 'generateInviteLink'
 
+const validityOneUse = 'Expires after one use'
+const validityOneYear = 'Expires after one year'
+const validityForever = 'Expires after 10,000 years'
+
+const validityValuesMap = {
+  [validityForever]: '10000 Y',
+  [validityOneUse]: undefined,
+  [validityOneYear]: '1 Y',
+}
+
 const GenerateLinkModal = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -125,27 +136,28 @@ const GenerateLinkModal = (props: Props) => {
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
-  const validityItemOneUse = (
-    <Kb.Text type="BodySemibold" style={styles.dropdownButton}>
-      Expires after one use
-    </Kb.Text>
-  )
-  const validityItemYear = (
-    <Kb.Text key="1 Y" type="BodySemibold" style={styles.dropdownButton}>
-      Expires after one year
-    </Kb.Text>
-  )
-  const validityItemForever = (
-    <Kb.Text key="10000 Y" type="BodySemibold" style={styles.dropdownButton}>
-      Expires after 10,000 years
-    </Kb.Text>
-  )
-  const [validity, setValidity] = React.useState(validityItemYear)
-
+  const [validity, setValidity] = React.useState(validityOneYear)
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [teamRole, setTeamRole] = React.useState('reader' as Types.TeamRoleType)
+  const [selectedRole, setSelectedRole] = React.useState('reader' as Types.TeamRoleType)
   const [inviteLink, setInviteLink] = React.useState<Types.InviteLink | null>(null)
   const [inviteDuration, setInviteDuration] = React.useState('')
+
+  const menuItems = [
+    {onClick: () => setValidity(validityOneUse), title: validityOneUse},
+    {onClick: () => setValidity(validityOneYear), title: validityOneYear},
+    {onClick: () => setValidity(validityForever), title: validityForever},
+  ]
+
+  const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      closeOnSelect={true}
+      items={menuItems}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
+    />
+  ))
 
   const onExpire = () => {
     if (inviteLink != null) {
@@ -155,10 +167,10 @@ const GenerateLinkModal = (props: Props) => {
 
   const generateLinkRPC = Container.useRPC(RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
   const onGenerate = () => {
-    const expireAfter = validity == validityItemOneUse ? undefined : (validity.key as string)
+    const expireAfter = validityValuesMap[validity]
     const maxUses = expireAfter == null ? 1 : -1
     setInviteDuration(
-      expireAfter == null ? 'one use' : validity == validityItemYear ? 'one year' : '10,000 years'
+      expireAfter == null ? 'one use' : validity == validityOneYear ? 'one year' : '10,000 years'
     )
 
     generateLinkRPC(
@@ -199,9 +211,11 @@ const GenerateLinkModal = (props: Props) => {
     onCancelRolePicker: () => setRolePickerOpen(false),
     onConfirmRolePicker: () => {
       setRolePickerOpen(false)
+      setTeamRole(selectedRole)
     },
     onOpenRolePicker: () => setRolePickerOpen(true),
-    onSelectRole: (role: Types.TeamRoleType) => setTeamRole(role),
+    onSelectRole: (role: Types.TeamRoleType) => setSelectedRole(role),
+    selectedRole: selectedRole,
     teamRole: teamRole,
   }
 
@@ -214,17 +228,11 @@ const GenerateLinkModal = (props: Props) => {
           title: <ModalTitle teamID={teamID} title="Share an invite link" />,
         }}
         footer={{
-          content: (
-            <Kb.Button
-              fullWidth={true}
-              label="Close"
-              onClick={inviteLink.expired ? onClose : onGenerate}
-              type="Dim"
-            />
-          ),
+          content: <Kb.Button fullWidth={true} label={'Close'} onClick={onClose} type="Dim" />,
           hideBorder: true,
         }}
         allowOverflow={true}
+        mode="DefaultFullHeight"
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
           {inviteLink.expired ? (
@@ -250,7 +258,11 @@ const GenerateLinkModal = (props: Props) => {
             teamID={teamID}
           />
 
-          {inviteLink.expired && <Kb.Text type="BodySmallSemiboldPrimaryLink">Generate a new link</Kb.Text>}
+          {inviteLink.expired && (
+            <Kb.Text type="BodySmallSemiboldPrimaryLink" onClick={() => setInviteLink(null)}>
+              Generate a new link
+            </Kb.Text>
+          )}
         </Kb.Box2>
       </Kb.Modal>
     )
@@ -264,10 +276,18 @@ const GenerateLinkModal = (props: Props) => {
         title: <ModalTitle teamID={teamID} title="Share an invite link" />,
       }}
       footer={{
-        content: <Kb.Button fullWidth={true} label="Generate invite link" onClick={onGenerate} />,
+        content: (
+          <Kb.WaitingButton
+            fullWidth={true}
+            label="Generate invite link"
+            onClick={onGenerate}
+            waitingKey={waitingKey}
+          />
+        ),
         hideBorder: true,
       }}
       allowOverflow={true}
+      mode="DefaultFullHeight"
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
         <Kb.Icon type="icon-illustration-teams-invite-links-blue-460-96" />
@@ -282,15 +302,18 @@ const GenerateLinkModal = (props: Props) => {
           Invite people to {teamname} by sharing a link:
         </Kb.Text>
 
-        <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} fullWidth={true}>
+        <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} fullWidth={true} ref={popupAnchor}>
           <Kb.Text type="BodySmall" style={styles.rowTitle}>
             Validity
           </Kb.Text>
-          <Kb.Dropdown
-            items={[validityItemOneUse, validityItemYear, validityItemForever]}
-            selected={validity}
-            onChanged={setValidity}
+          {popup}
+          <InlineDropdown
+            label={validity}
+            onPress={toggleShowingPopup}
+            textWrapperType="BodySemibold"
+            containerStyle={styles.dropdownStyle}
             style={styles.dropdownStyle}
+            selectedStyle={styles.inlineSelectedStyle}
           />
         </Kb.Box2>
 
@@ -306,10 +329,6 @@ const GenerateLinkModal = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  addButton: Styles.platformStyles({
-    isElectron: {width: 42},
-    isMobile: {width: 47},
-  }),
   banner: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
@@ -318,7 +337,6 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
     },
-    isElectron: {minHeight: 326},
     isMobile: {...Styles.globalStyles.flexOne},
   }),
   disabledText: {opacity: 0.4},
@@ -332,10 +350,7 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: 0,
   },
   floatingRolePicker: Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      top: -20,
-    },
+    isElectron: {},
   }),
   infoText: {
     marginBottom: Styles.globalMargins.xsmall,

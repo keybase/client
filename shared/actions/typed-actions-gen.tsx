@@ -936,7 +936,6 @@ export type TypedActionsMap = {
   'teams:deleteTeam': teams.DeleteTeamPayload
   'teams:inviteToTeamByEmail': teams.InviteToTeamByEmailPayload
   'teams:inviteToTeamByPhone': teams.InviteToTeamByPhonePayload
-  'teams:generateInviteLink': teams.GenerateInviteLinkPayload
   'teams:joinTeam': teams.JoinTeamPayload
   'teams:launchNewTeamWizardOrModal': teams.LaunchNewTeamWizardOrModalPayload
   'teams:leaveTeam': teams.LeaveTeamPayload

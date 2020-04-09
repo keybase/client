@@ -31,7 +31,6 @@ export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const finishAddMembersWizard = 'teams:finishAddMembersWizard'
 export const finishNewTeamWizard = 'teams:finishNewTeamWizard'
-export const generateInviteLink = 'teams:generateInviteLink'
 export const getActivityForTeams = 'teams:getActivityForTeams'
 export const getMemberSubteamDetails = 'teams:getMemberSubteamDetails'
 export const getMembers = 'teams:getMembers'
@@ -183,12 +182,6 @@ type _EditMembershipPayload = {
 type _EditTeamDescriptionPayload = {readonly teamID: Types.TeamID; readonly description: string}
 type _FinishAddMembersWizardPayload = void
 type _FinishNewTeamWizardPayload = void
-type _GenerateInviteLinkPayload = {
-  readonly teamname: string
-  readonly role: Types.TeamRoleType
-  readonly maxUses: number
-  readonly expireAfter?: string
-}
 type _GetActivityForTeamsPayload = void
 type _GetMemberSubteamDetailsPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _GetMembersPayload = {readonly teamID: Types.TeamID}
@@ -646,10 +639,6 @@ export const createEditTeamDescription = (
 export const createFinishNewTeamWizard = (
   payload: _FinishNewTeamWizardPayload
 ): FinishNewTeamWizardPayload => ({payload, type: finishNewTeamWizard})
-export const createGenerateInviteLink = (payload: _GenerateInviteLinkPayload): GenerateInviteLinkPayload => ({
-  payload,
-  type: generateInviteLink,
-})
 export const createGetMemberSubteamDetails = (
   payload: _GetMemberSubteamDetailsPayload
 ): GetMemberSubteamDetailsPayload => ({payload, type: getMemberSubteamDetails})
@@ -937,10 +926,6 @@ export type FinishAddMembersWizardPayload = {
 export type FinishNewTeamWizardPayload = {
   readonly payload: _FinishNewTeamWizardPayload
   readonly type: typeof finishNewTeamWizard
-}
-export type GenerateInviteLinkPayload = {
-  readonly payload: _GenerateInviteLinkPayload
-  readonly type: typeof generateInviteLink
 }
 export type GetActivityForTeamsPayload = {
   readonly payload: _GetActivityForTeamsPayload
@@ -1253,7 +1238,6 @@ export type Actions =
   | EditTeamDescriptionPayload
   | FinishAddMembersWizardPayload
   | FinishNewTeamWizardPayload
-  | GenerateInviteLinkPayload
   | GetActivityForTeamsPayload
   | GetMemberSubteamDetailsPayload
   | GetMembersPayload
