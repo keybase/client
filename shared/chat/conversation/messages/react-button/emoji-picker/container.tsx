@@ -15,6 +15,8 @@ import debounce from 'lodash/debounce'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
 import {emojiDataToRenderableEmoji, renderEmoji, EmojiData, RenderableEmoji} from '../../../../../util/emoji'
+import useRPC from '../../../../../util/use-rpc'
+import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -57,17 +59,31 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
 }
 
 let lastSetSkinTone: undefined | Types.EmojiSkinTone = undefined
+
 // This can only be used in one place at a time for now since when it's changed
 // it doesn't cause other hook instances to update.
 const useSkinTone = () => {
-  const [currentSkinTone, _setSkinTone] = React.useState(lastSetSkinTone)
-  const setSkinTone = React.useCallback(
-    (skinTone: undefined | Types.EmojiSkinTone) => {
-      lastSetSkinTone = skinTone
-      _setSkinTone(skinTone)
-    },
-    [_setSkinTone]
+  lastSetSkinTone = Types.EmojiSkinToneFromRPC(
+    Container.useSelector(state => state.chat2.userReacjis.skinTone)
   )
+  const [currentSkinTone, _setSkinTone] = React.useState(lastSetSkinTone)
+  const rpc = useRPC(RPCChatGen.localPutReacjiSkinToneRpcPromise)
+  const setSkinTone = (emojiSkinTone: undefined | Types.EmojiSkinTone) => {
+    rpc(
+      [
+        {
+          skinTone: Types.EmojiSkinToneToRPC(emojiSkinTone),
+        },
+      ],
+      _ => {
+        lastSetSkinTone = emojiSkinTone
+        _setSkinTone(emojiSkinTone)
+      },
+      err => {
+        throw err
+      }
+    )
+  }
   return {currentSkinTone, setSkinTone}
 }
 const useCustomReacji = (conversationIDKey: Types.ConversationIDKey, onlyInTeam: boolean | undefined) => {

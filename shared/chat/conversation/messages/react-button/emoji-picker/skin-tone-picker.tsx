@@ -11,22 +11,6 @@ const skinTones: Array<undefined | Types.EmojiSkinTone> = [
   '1F3FE',
   '1F3FF',
 ]
-const skinToneToDotColor = (skinTone: undefined | Types.EmojiSkinTone): string => {
-  switch (skinTone) {
-    case undefined:
-      return '#ffc93a'
-    case '1F3FB':
-      return '#fadcbc'
-    case '1F3FC':
-      return '#e1bb95'
-    case '1F3FD':
-      return '#bf9068'
-    case '1F3FE':
-      return '#9b643d'
-    case '1F3FF':
-      return '#5a4539'
-  }
-}
 
 const circle = (skinTone: undefined | Types.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
   return (
@@ -36,7 +20,7 @@ const circle = (skinTone: undefined | Types.EmojiSkinTone, isExpanded: boolean, 
         style={Styles.collapseStyles([
           !isExpanded && styles.circleCollapsed,
           isExpanded && styles.circleExpanded,
-          {backgroundColor: skinToneToDotColor(skinTone)},
+          {backgroundColor: Types.SkinToneToDotColor(skinTone)},
         ])}
       ></Kb.Box>
     </Kb.Box>
