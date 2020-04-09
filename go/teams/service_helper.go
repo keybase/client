@@ -1085,9 +1085,12 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 			return libkb.NotFoundError{Msg: fmt.Sprintf(
 				"user %q is not a member of team %q", username, t.Name())}
 		}
+
+		removePermanently := t.IsOpen() ||
+			t.WasMostRecentlyAddedByInvitelink(existingUV)
 		req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 		opts := ChangeMembershipOptions{
-			Permanent:       t.IsOpen(), // Ban for open teams only.
+			Permanent:       removePermanently,
 			SkipKeyRotation: t.CanSkipKeyRotation(),
 		}
 		return t.ChangeMembershipWithOptions(ctx, req, opts)
