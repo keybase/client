@@ -342,7 +342,7 @@ func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID
 	}
 	delete(stored.Mapping, alias)
 	// take out any aliases
-	if source.IsMessage() {
+	if source.IsMessage() && !source.Message().IsAlias {
 		for existingAlias, existingSource := range stored.Mapping {
 			if existingSource.IsMessage() && existingSource.Message().IsAlias &&
 				existingSource.Message().MsgID == source.Message().MsgID {
