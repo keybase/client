@@ -408,7 +408,7 @@ func (s *LKSec) Decrypt(m MetaContext, src []byte) (res []byte, gen PassphraseGe
 	res, ok = secretbox.Open(nil, data, nonce, s.secret.f)
 	if !ok {
 		secretHash := sha256.New()
-		secretHash.Write((*s.secret.f)[:])
+		_, _ = secretHash.Write((*s.secret.f)[:])
 		m.Debug("secretbox.Open failed: used a secret of length %d", len(s.secret.f))
 		m.Debug("secretbox.Open failed: used secret of hash prefix %x and nonce prefix %x",
 			secretHash.Sum(nil)[:4], nonce[:4])
