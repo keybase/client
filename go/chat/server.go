@@ -890,7 +890,6 @@ func (h *Server) isQuickReaction(ctx context.Context, uid gregor1.UID, convID ch
 		return "", 0, false
 	}
 	tryStock := func() (string, bool) {
-		h.Debug(ctx, "isQuickReaction: trying stock: %s", hits[1])
 		if h.G().EmojiSource.IsStockEmoji(hits[1]) {
 			return ":" + hits[1] + ":", true
 		}
