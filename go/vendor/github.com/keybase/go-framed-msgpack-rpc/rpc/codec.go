@@ -36,7 +36,7 @@ func newFramedMsgpackEncoder(maxFrameLength int32, writer io.Writer) *framedMsgp
 		maxFrameLength:   maxFrameLength,
 		handle:           newCodecMsgpackHandle(),
 		writer:           writer,
-		writeCh:          make(chan writeBundle),
+		writeCh:          make(chan writeBundle, 100),
 		doneCh:           make(chan struct{}),
 		closedCh:         make(chan struct{}),
 		compressorCacher: newCompressorCacher(),
@@ -138,11 +138,13 @@ func (e *framedMsgpackEncoder) writerLoop() {
 			close(e.closedCh)
 			return
 		case write := <-e.writeCh:
-			if write.sn != nil {
-				write.sn()
-			}
-			_, err := e.writer.Write(write.bytes)
-			write.ch <- err
+			go func() {
+				if write.sn != nil {
+					write.sn()
+				}
+				_, err := e.writer.Write(write.bytes)
+				write.ch <- err
+			}()
 		}
 	}
 }

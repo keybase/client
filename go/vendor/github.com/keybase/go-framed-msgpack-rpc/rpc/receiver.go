@@ -40,9 +40,9 @@ func newReceiveHandler(enc *framedMsgpackEncoder, protHandler *protocolHandler,
 		stopCh:      make(chan struct{}),
 		closedCh:    make(chan struct{}),
 
-		taskBeginCh:  make(chan *task),
-		taskCancelCh: make(chan SeqNumber),
-		taskEndCh:    make(chan SeqNumber),
+		taskBeginCh:  make(chan *task, 100),
+		taskCancelCh: make(chan SeqNumber, 100),
+		taskEndCh:    make(chan SeqNumber, 100),
 
 		log: l,
 	}

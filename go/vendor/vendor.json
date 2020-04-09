@@ -842,16 +842,16 @@
 			"revisionTime": "2020-01-23T00:39:47Z"
 		},
 		{
-			"checksumSHA1": "qhkwhuKIYzEZmHMtGsegm0v7KKE=",
+			"checksumSHA1": "RHlDr1HWqVTG8+vX6C3/UHKc5l8=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "26e5d1ace9c88d9794d620b1201b3f43939ae617",
-			"revisionTime": "2020-03-11T21:12:34Z"
+			"revision": "b54267aa94cbd56feee160e888288b9ea805d0ac",
+			"revisionTime": "2020-04-07T18:32:38Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc/resinit",
-			"revision": "75365dbf0a0dc44e878da70ecc8376182106ed71",
-			"revisionTime": "2020-02-20T20:58:49Z"
+			"revision": "b54267aa94cbd56feee160e888288b9ea805d0ac",
+			"revisionTime": "2020-04-07T18:32:38Z"
 		},
 		{
 			"checksumSHA1": "cVToVAflSUcimfMfrEGACvPChH0=",
