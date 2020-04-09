@@ -85,7 +85,7 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 
 	m := NewMetaContextForTest(tc)
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret(m)
 		if err != nil {
 			tc.T.Fatal(err)
@@ -152,7 +152,7 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 	}
 
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret(m)
 		if err == nil {
 			tc.T.Errorf("Unexpectedly got secret %v", secret)
@@ -237,7 +237,7 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 
 	m := NewMetaContextForTest(tc)
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret(m)
 		if err != nil {
 			tc.T.Fatal(err)
@@ -286,7 +286,7 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 	}
 
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret(m)
 		if err == nil {
 			tc.T.Errorf("Unexpectedly got secret %v", secret)
@@ -339,7 +339,7 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 	}
 
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(tc.MetaContext(), fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret(NewMetaContextForTest(tc))
 		if err != nil {
 			tc.T.Fatal(err)
@@ -388,7 +388,7 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 	}
 
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret(NewMetaContextForTest(tc))
 		if err == nil {
 			tc.T.Errorf("Unexpectedly got secret %v", secret)

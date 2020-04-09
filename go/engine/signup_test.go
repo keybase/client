@@ -195,8 +195,9 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	fu := NewFakeUserOrBust(t, "se")
+	mctx := tc.MetaContext()
 
-	secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+	secretStore := libkb.NewSecretStore(mctx, fu.NormalizedUsername())
 	if secretStore == nil {
 		t.Skip("No SecretStore on this platform")
 	}
@@ -210,8 +211,7 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 	arg.StoreSecret = true
 	s := SignupFakeUserWithArg(tc, fu, arg)
 
-	m := NewMetaContextForTest(tc)
-	secret, err := s.lks.GetSecret(m)
+	secret, err := s.lks.GetSecret(mctx)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -283,7 +283,7 @@ func StoreSecretAfterLoginWithOptions(m MetaContext, n NormalizedUsername, uid k
 func StoreSecretAfterLoginWithLKSWithOptions(m MetaContext, n NormalizedUsername, lks *LKSec, options *SecretStoreOptions) (err error) {
 	defer m.Trace("StoreSecretAfterLoginWithLKSWithOptions", func() error { return err })()
 
-	secretStore := NewSecretStore(m.G(), n)
+	secretStore := NewSecretStore(m, n)
 	if secretStore == nil {
 		m.Debug("not storing secret; no secret store available")
 		return nil
