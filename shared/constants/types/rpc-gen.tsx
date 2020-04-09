@@ -2250,6 +2250,15 @@ export enum Reachable {
   no = 2,
 }
 
+export enum ReacjiSkinTone {
+  none = 0,
+  skintone1 = 1,
+  skintone2 = 2,
+  skintone3 = 3,
+  skintone4 = 4,
+  skintone5 = 5,
+}
+
 export enum RekeyEventType {
   none = 0,
   notLoggedIn = 1,
@@ -3127,7 +3136,6 @@ export type PublicKeyV2NaCl = {readonly base: PublicKeyV2Base; readonly parent?:
 export type PublicKeyV2PGPSummary = {readonly base: PublicKeyV2Base; readonly fingerprint: PGPFingerprint; readonly identities?: Array<PGPIdentity> | null}
 export type RawPhoneNumber = String
 export type Reachability = {readonly reachable: Reachable}
-export type ReacjiSkinTone = Int
 export type ReadArgs = {readonly opID: OpID; readonly path: Path; readonly offset: Long; readonly size: Int}
 export type ReaderKeyMask = {readonly application: TeamApplication; readonly generation: PerTeamKeyGeneration; readonly mask: MaskB64}
 export type ReferenceCountRes = {readonly counts?: Array<BlockIdCount> | null}
