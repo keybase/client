@@ -7,25 +7,38 @@ import {Position} from '../../common-adapters/relative-popup-hoc.types'
 import {TeamRoleType} from '../../constants/types/teams'
 import {StylesCrossPlatform} from '../../styles/css'
 // Controls the ordering of the role picker
-const orderedRoles = ['owner', 'admin', 'writer', 'reader'] as const
+const orderedRoles = ['owner', 'admin', 'writer', 'reader', 'setIndividually'] as const
 
 // TODO include bot roles in here; this is short term to allow bots to show up in the gui
-type Role = Exclude<TeamRoleType, 'bot' | 'restrictedbot'>
-const filterRole = (r: TeamRoleType | null | undefined): Role | null =>
-  r === 'bot' || r === 'restrictedbot' || !r ? null : r
+type BaseRole = Exclude<TeamRoleType, 'bot' | 'restrictedbot'>
+type Role<IncludeSetIndividually> = IncludeSetIndividually extends true
+  ? BaseRole | 'setIndividually'
+  : BaseRole
+
+type MaybeTeamRoleType<IncludeSetIndividually> =
+  | TeamRoleType
+  | null
+  | undefined
+  | (IncludeSetIndividually extends true ? 'setIndividually' : undefined)
+
+function filterRole<IncludeSetIndividually extends boolean>(
+  r: MaybeTeamRoleType<IncludeSetIndividually>
+): Role<IncludeSetIndividually> | null {
+  return r === 'bot' || r === 'restrictedbot' || !r ? null : (r as Role<IncludeSetIndividually> | null)
+}
 
 type DisabledReason = string
 
-export type Props = {
-  disabledRoles?: {[K in Role]?: DisabledReason}
-  headerText?: string
+export type Props<IncludeSetIndividually extends boolean> = {
+  disabledRoles?: {[K in Role<IncludeSetIndividually>]?: DisabledReason}
   onCancel?: () => void // If provided, a cancel button will appear
-  onConfirm: (selectedRole: Role) => void
+  onConfirm: (selectedRole: Role<IncludeSetIndividually>) => void
   confirmLabel?: string // Defaults to "Make ${selectedRole}"
-  onSelectRole: (role: Role) => void
+  onSelectRole: (role: Role<IncludeSetIndividually>) => void
   footerComponent?: React.ReactNode
-  presetRole?: TeamRoleType | null
-  selectedRole?: TeamRoleType | null
+  presetRole?: MaybeTeamRoleType<IncludeSetIndividually> | null
+  selectedRole?: MaybeTeamRoleType<IncludeSetIndividually> | null
+  includeSetIndividually?: IncludeSetIndividually extends true ? boolean : false
   waiting?: boolean
 }
 
@@ -38,14 +51,14 @@ type RoleRowProps = {
   onSelect?: () => void
 }
 
-const RoleRow = (p: RoleRowProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.row}>
+const RoleRow = (p: RoleRowProps) => {
+  const row = (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowChild}>
       <Kb.Box2
         direction="horizontal"
         alignItems="center"
         fullWidth={true}
-        style={p.disabledReason ? styles.disabledRow : undefined}
+        style={Styles.collapseStyles([p.disabledReason ? styles.disabledRow : undefined, styles.rowPadding])}
       >
         <Kb.RadioButton
           label=""
@@ -56,13 +69,39 @@ const RoleRow = (p: RoleRowProps) => (
         {p.icon}
         {p.title}
       </Kb.Box2>
-      <Kb.Box style={p.disabledReason ? undefined : styles.rowBody}>
-        {p.body}
-        {p.disabledReason}
-      </Kb.Box>
+      <Kb.Animated to={{paddingTop: p.selected ? 0 : 16}}>
+        {style => (
+          <Kb.Box2
+            style={Styles.collapseStyles([styles.rowBody, style])}
+            direction="vertical"
+            gap="xxtiny"
+            gapStart={true}
+          >
+            {p.body}
+          </Kb.Box2>
+        )}
+      </Kb.Animated>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      alignItems="flex-start"
+      style={p.selected ? styles.rowSelected : styles.row}
+    >
+      {p.disabledReason ? (
+        <Kb.WithTooltip tooltip={p.disabledReason} showOnPressMobile={true}>
+          {/* Why is this tooltip the wrong color */}
+          {row}
+        </Kb.WithTooltip>
+      ) : (
+        row
+      )}
+    </Kb.Box2>
+  )
+}
 
 type RolesMetaInfo = {
   cans: Array<string>
@@ -70,7 +109,7 @@ type RolesMetaInfo = {
   extra?: Array<string>
   icon: React.ReactNode | null
 }
-const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
+const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
   switch (infoForRole) {
     case 'admin':
       return {
@@ -135,6 +174,12 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
         ],
         icon: null,
       }
+    case 'setIndividually':
+      return {
+        cans: [],
+        cants: [],
+        icon: null,
+      }
     default:
       throw new Error(`Unexpected role: ${infoForRole}`)
   }
@@ -156,36 +201,36 @@ const roleAbilities = (
       }
     >
       <Kb.Icon
-        type={canDo ? 'iconfont-check' : 'iconfont-close'}
+        type={canDo ? 'iconfont-check' : 'iconfont-block'}
         sizeType="Tiny"
         style={Styles.isMobile ? styles.abilityCheck : undefined}
         boxStyle={!Styles.isMobile ? styles.abilityCheck : undefined}
-        color={canDo ? Styles.globalColors.green : Styles.globalColors.red}
+        color={canDo ? Styles.globalColors.green : Styles.globalColors.black_50}
       />
-      <Kb.Text type="BodySmall">{ability}</Kb.Text>
+      <Kb.Text type="BodySmall" style={canDo ? styles.canText : undefined}>
+        {ability}
+      </Kb.Text>
     </Kb.Box2>
   ))
 }
 
-const roleElementHelper = (selectedRole: Role | null) =>
+const roleElementHelper = <IncludeSetIndividually extends boolean>(
+  includeSetIndividually: IncludeSetIndividually
+) =>
   orderedRoles
-    .map(role => [role, rolesMetaInfo(role as Role)])
-    .map(([role, info]) => {
-      // Using as to avoid lots of ts-ignore
-      const roleInfo = info as RolesMetaInfo
+    .filter(r => includeSetIndividually || r !== 'setIndividually')
+    .map(role => {
+      const roleInfo = rolesMetaInfo(role)
       return {
-        body:
-          selectedRole === role
-            ? [
-                roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0),
-                roleAbilities(roleInfo.cants, false, true),
-              ]
-            : undefined,
+        body: [
+          roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0),
+          roleAbilities(roleInfo.cants, false, true),
+        ],
         icon: roleInfo.icon,
         role,
         title: (
           <Kb.Text type="BodyBig" style={styles.text}>
-            {capitalize(role as string)}
+            {role === 'setIndividually' ? 'Set Individually' : capitalize(role as string)}
           </Kb.Text>
         ),
       }
@@ -197,24 +242,12 @@ const disabledTextHelper = (text: string) => (
   </Kb.Text>
 )
 
-const headerTextHelper = (text: string | undefined) =>
-  !!text && (
-    <>
-      <Kb.Text type="BodySmall" style={styles.headerText}>
-        {text}
-      </Kb.Text>
-      <Kb.Divider />
-    </>
-  )
-
 const footerButtonsHelper = (
-  onCancel: undefined | (() => void),
   onConfirm: undefined | (() => void),
   confirmLabel: string,
   waiting: boolean | undefined
 ) => (
   <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
-    {!!onCancel && <Kb.Button type="Dim" label="Cancel" onClick={onCancel} disabled={waiting} />}
     <Kb.Button
       fullWidth={true}
       disabled={!onConfirm}
@@ -225,45 +258,69 @@ const footerButtonsHelper = (
   </Kb.ButtonBar>
 )
 
-const confirmLabelHelper = (presetRole: Role | null, selectedRole: Role | null): string => {
+const confirmLabelHelper = <IncludeSetIndividually extends boolean>(
+  presetRole: Role<IncludeSetIndividually> | null,
+  selectedRole: Role<IncludeSetIndividually> | null
+): string => {
   const label = selectedRole && selectedRole.toLowerCase()
   if (label && presetRole === selectedRole) {
     return `Saved`
   }
 
-  return label ? `Make ${label}` : `Pick a role`
+  const makeLabel = selectedRole === 'setIndividually' ? 'Set Individually' : `Make ${label}`
+  return label ? makeLabel : `Pick a role`
 }
 
-const RolePicker = (props: Props) => {
+const Header = () => (
+  <Kb.Box2 direction="horizontal" style={styles.header}>
+    <Kb.Text type="Header">Pick a role</Kb.Text>
+  </Kb.Box2>
+)
+
+const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<IncludeSetIndividually>) => {
   const selectedRole = filterRole(props.selectedRole || props.presetRole)
   return (
-    <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container}>
-      {headerTextHelper(props.headerText)}
+    <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container} fullHeight={Styles.isMobile}>
+      {!Styles.isMobile && <Header />}
+      {!Styles.isMobile && <Kb.Divider />}
       {map(
-        roleElementHelper(selectedRole || null),
+        roleElementHelper(props.includeSetIndividually ?? false),
         ({role, ...nodeMap}: {[K in string]: React.ReactNode}): React.ReactNode => {
           // Using as to avoid lots of ts-ignore.
-          const disabledRole = role as Role
+          const disabledRole = role as Role<IncludeSetIndividually>
           const disabled = props.disabledRoles && props.disabledRoles[disabledRole]
           const onSelect = disabled ? undefined : () => props.onSelectRole(disabledRole)
           return (
-            <Kb.ClickableBox key={role as string} onClick={onSelect}>
-              <RoleRow
-                selected={selectedRole === role}
-                title={nodeMap.title}
-                body={nodeMap.body}
-                icon={nodeMap.icon}
-                onSelect={onSelect}
-                disabledReason={disabled ? disabledTextHelper(disabled) : undefined}
-              />
-            </Kb.ClickableBox>
+            <Kb.Animated
+              to={
+                Styles.isMobile
+                  ? {flexGrow: selectedRole === role ? 1 : 0, height: 56}
+                  : {height: selectedRole === role ? 160 : 42}
+              }
+            >
+              {style => (
+                <Kb.ClickableBox
+                  key={role as string}
+                  onClick={onSelect}
+                  style={Styles.collapseStyles([styles.roleRow, style])}
+                >
+                  <RoleRow
+                    selected={selectedRole === role}
+                    title={nodeMap.title}
+                    body={nodeMap.body}
+                    icon={nodeMap.icon}
+                    onSelect={onSelect}
+                    disabledReason={disabled ? disabledTextHelper(disabled!) : undefined}
+                  />
+                </Kb.ClickableBox>
+              )}
+            </Kb.Animated>
           )
         }
       ).map((row, i, arr) => [row, i === arr.length - 1 ? null : <Kb.Divider key={i} />])}
       <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
         {props.footerComponent}
         {footerButtonsHelper(
-          props.onCancel,
           selectedRole && props.selectedRole !== props.presetRole
             ? () => selectedRole && props.onConfirm(selectedRole)
             : undefined,
@@ -279,14 +336,15 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       abilityCheck: Styles.platformStyles({
-        common: {
-          paddingRight: Styles.globalMargins.tiny,
-        },
         isElectron: {
+          paddingRight: Styles.globalMargins.xtiny,
           paddingTop: 6,
         },
-        isMobile: {paddingTop: 4},
+        isMobile: {paddingRight: Styles.globalMargins.tiny, paddingTop: 4},
       }),
+      canText: {
+        color: Styles.globalColors.black,
+      },
       checkIcon: {
         left: -24,
         paddingTop: 2,
@@ -294,6 +352,7 @@ const styles = Styles.styleSheetCreate(
       },
       checkbox: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+        flexGrow: 0,
       },
       container: Styles.platformStyles({
         common: {
@@ -316,7 +375,7 @@ const styles = Styles.styleSheetCreate(
         opacity: 0.4,
       },
       footer: {
-        flexGrow: 2,
+        flexGrow: 0,
         justifyContent: 'flex-end',
         paddingBottom: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.tiny,
@@ -326,18 +385,24 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
       },
-      headerText: {
-        alignSelf: 'center',
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+      header: {
+        padding: Styles.globalMargins.xsmall,
       },
+      opaqueContainer: Styles.platformStyles({
+        isMobile: {
+          backgroundColor: Styles.globalColors.white,
+          paddingTop: 10,
+        },
+      }),
       radioButton: Styles.platformStyles({
         isMobile: {paddingRight: Styles.globalMargins.tiny},
       }),
       roleIcon: {
         paddingRight: Styles.globalMargins.xtiny,
       },
+      roleRow: {overflow: 'hidden'},
       row: {
+        backgroundColor: Styles.globalColors.blueGreyLight,
         position: 'relative',
       },
       rowBody: Styles.platformStyles({
@@ -362,6 +427,14 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.small,
         },
       }),
+      rowPadding: Styles.platformStyles({
+        isElectron: {
+          paddingTop: Styles.globalMargins.xtiny,
+        },
+      }),
+      rowSelected: {
+        position: 'relative',
+      },
       scroll: {
         backgroundColor: Styles.globalColors.white,
       },
@@ -372,24 +445,24 @@ const styles = Styles.styleSheetCreate(
 )
 
 // Helper to use this as a floating box
-export type FloatingProps = {
+export type FloatingProps<T extends boolean> = {
   position?: Position
   children?: React.ReactNode
   floatingContainerStyle?: StylesCrossPlatform
   open: boolean
-} & Props
+} & Props<T>
 
-export class FloatingRolePicker extends React.Component<FloatingProps, {ref: Kb.Box | null}> {
+export class FloatingRolePicker<IncludeSetIndividually extends boolean = false> extends React.Component<
+  FloatingProps<IncludeSetIndividually>,
+  {ref: Kb.Box | null}
+> {
   state = {ref: null}
   _returnRef = () => this.state.ref
   _setRef = (ref: Kb.Box | null) => this.setState({ref})
   render() {
     const {position, children, open, floatingContainerStyle, onCancel, ...props} = this.props
-    const picker = <RolePicker {...props} onCancel={Styles.isMobile ? undefined : onCancel} />
-    const wrappedPicker = Styles.isMobile ? (
-      <Kb.ScrollView style={styles.scroll}>{picker}</Kb.ScrollView>
-    ) : (
-      picker
+    const picker = (
+      <RolePicker<IncludeSetIndividually> {...props} onCancel={Styles.isMobile ? undefined : onCancel} />
     )
     return (
       <>
@@ -402,11 +475,15 @@ export class FloatingRolePicker extends React.Component<FloatingProps, {ref: Kb.
             onHidden={onCancel}
             hideKeyboard={true}
           >
-            <Kb.Box2 direction="vertical" fullHeight={Styles.isMobile} style={floatingContainerStyle}>
+            <Kb.Box2
+              direction="vertical"
+              fullHeight={Styles.isMobile}
+              style={Styles.collapseStyles([floatingContainerStyle, styles.opaqueContainer])}
+            >
               {Styles.isMobile && (
                 <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" title="Pick a role" />
               )}
-              {wrappedPicker}
+              {picker}
             </Kb.Box2>
           </Kb.FloatingBox>
         )}
@@ -427,10 +504,13 @@ export const sendNotificationFooter = (
 )
 
 // Helper for navigating roles with keyboard arrows
-export const nextRoleDown = (currentRole: Role): Role =>
-  orderedRoles[(orderedRoles.indexOf(currentRole) + 1) % orderedRoles.length]
-export const nextRoleUp = (currentRole: Role): Role =>
-  orderedRoles[(orderedRoles.length + (orderedRoles.indexOf(currentRole) - 1)) % orderedRoles.length]
+// as because convincing TS that the last element of the array is a different type is hard
+export const nextRoleDown = (currentRole: Role<false>): Role<false> =>
+  orderedRoles[(orderedRoles.indexOf(currentRole) + 1) % (orderedRoles.length - 1)] as Role<false>
+export const nextRoleUp = (currentRole: Role<false>): Role<false> =>
+  orderedRoles[
+    (orderedRoles.length + (orderedRoles.indexOf(currentRole) - 1)) % (orderedRoles.length - 1)
+  ] as Role<false>
 
 export const roleIconMap = {
   admin: 'iconfont-crown-admin',

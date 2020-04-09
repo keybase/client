@@ -79,7 +79,7 @@ export type RolePickerProps = {
   showRolePicker: boolean
   changeShowRolePicker: (showRolePicker: boolean) => void
   selectedRole: TeamRoleType
-  disabledRoles: OriginalRolePickerProps['disabledRoles']
+  disabledRoles: OriginalRolePickerProps<false>['disabledRoles']
 }
 
 type ContactProps = {

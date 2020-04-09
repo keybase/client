@@ -174,7 +174,7 @@ export type AddMembersWizardState = {
   addingMembers: Array<AddingMember>
   defaultChannels: Array<ChannelNameID> | undefined // undefined -> unchanged from default
   justFinished: boolean
-  role: TeamRoleType | undefined // undefined -> role set individually
+  role: TeamRoleType | 'setIndividually'
   teamID: TeamID
 }
 

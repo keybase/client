@@ -363,7 +363,7 @@
     },
     "setAddMembersWizardRole": {
       "_description": "Set the role for the add members wizard.",
-      "role": ["Types.TeamRoleType", "undefined"]
+      "role": ["Types.TeamRoleType", "'setIndividually'"]
     },
     "setAddMembersWizardIndividualRole": {
       "_description": "Set the role for a pending member in the add member wizard.",
