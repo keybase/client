@@ -403,7 +403,6 @@ protocol Common {
   }
 
   // Primarily used in chat but defined here to avoid a circular import
-  // identifiers come from emoji-mart datasource
   enum ReacjiSkinTone {
     NONE_0,
     SKINTONE1_1,
