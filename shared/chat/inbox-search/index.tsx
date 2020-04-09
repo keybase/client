@@ -107,8 +107,18 @@ class InboxSearch extends React.Component<Props, State> {
     section: {indexOffset: number; onSelect: any}
     index: number
   }) => {
-    const {item, index} = h
-    return <Bot {...item} onClick={this.props.onInstallBot} firstItem={index === 0} hideHover={true} />
+    const {item, index, section} = h
+    const realIndex = index + section.indexOffset
+    return (
+      <Bot
+        {...item}
+        className="hover_background_color_blueGreyDark"
+        onClick={this.props.onInstallBot}
+        firstItem={index === 0}
+        hideHover={true}
+        isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+      />
+    )
   }
 
   private renderHit = (h: {

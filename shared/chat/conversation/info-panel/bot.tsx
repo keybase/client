@@ -52,9 +52,11 @@ const AddToChannel = (props: AddToChannelProps) => {
 }
 
 type BotProps = RPCTypes.FeaturedBot & {
+  className?: string
   description?: string
   firstItem?: boolean
   hideHover?: boolean
+  isSelected?: boolean
   showChannelAdd?: boolean
   showTeamAdd?: boolean
   conversationIDKey?: Types.ConversationIDKey
@@ -73,10 +75,12 @@ export const Bot = (props: BotProps) => {
     }
   }, [dispatch, botUsername, conversationIDKey, showChannelAdd])
 
+  const textColorStyle = {color: props.isSelected ? Styles.globalColors.white : Styles.globalColors.black}
+
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
       {description !== '' && (
-        <Kb.Text type="BodySmall" lineClamp={1} onClick={() => onClick(botUsername)}>
+        <Kb.Text type="BodySmall" lineClamp={1} onClick={() => onClick(botUsername)} style={textColorStyle}>
           {description}
         </Kb.Text>
       )}
@@ -85,13 +89,15 @@ export const Bot = (props: BotProps) => {
 
   const usernameDisplay = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-      <Kb.Text type="BodySmall" lineClamp={1}>
-        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black}}>
+      <Kb.Text type="BodySmall" lineClamp={1} style={textColorStyle}>
+        <Kb.Text type="BodySmallSemibold" style={textColorStyle}>
           {botAlias || botUsername}
         </Kb.Text>
-        <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
+        <Kb.Text type="BodySmall" style={textColorStyle}>
+          &nbsp;• by&nbsp;
+        </Kb.Text>
         {ownerTeam ? (
-          <Kb.Text type="BodySmall">{`${ownerTeam}`}</Kb.Text>
+          <Kb.Text type="BodySmall" style={textColorStyle}>{`${ownerTeam}`}</Kb.Text>
         ) : (
           <Kb.ConnectedUsernames
             inline={true}
@@ -106,13 +112,14 @@ export const Bot = (props: BotProps) => {
   )
   return (
     <Kb.ListItem2
+      className={props.className}
       containerStyleOverride={styles.listItemContainer}
       onClick={() => onClick(botUsername)}
       type="Large"
       firstItem={!!firstItem}
       icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={botUsername} />}
       hideHover={!!props.hideHover}
-      style={{backgroundColor: Styles.globalColors.white}}
+      style={{backgroundColor: props.isSelected ? Styles.globalColors.blue : Styles.globalColors.white}}
       action={
         showTeamAdd ? (
           <Kb.Button type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />

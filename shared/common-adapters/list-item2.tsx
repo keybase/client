@@ -16,6 +16,7 @@ const Kb = {
 // List item following stylesheet specs. TODO deprecate list-item.*.js
 
 type Props = {
+  className?: string
   type: 'Small' | 'Large'
   icon?: React.ReactNode
   statusIcon?: React.ReactNode
@@ -46,7 +47,7 @@ const ListItem = (props: Props) => (
     ])}
   >
     <Kb.Box2
-      className={Styles.classNames({
+      className={Styles.classNames(props.className, {
         listItem2: !props.hideHover,
       })}
       direction="horizontal"
