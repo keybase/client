@@ -458,6 +458,13 @@
     //           appropriate crypt keys.
     @mpackkey("b") @jsonkey("b")
     union { null, gregor1.UID } botUID;
+
+    // [V1, V2]: Missing
+    // [V3, V4]: Specifies which stellar transaction ID is associated with the
+    // message, if any, to do server-side validation of the transaction
+    // notification.
+    @mpackkey("t") @jsonkey("t")
+    union { null, stellar1.TransactionID} txID;
   }
 
   record MessageClientHeaderVerified {
