@@ -2,6 +2,7 @@
 
   import idl "../gregor1" as gregor1;
   import idl "../keybase1" as keybase1;
+  import idl "../stellar1" as stellar1;
 
   @typedef("bytes")  record ThreadID {}
   @typedef("uint") @lint("ignore") record MessageID {}

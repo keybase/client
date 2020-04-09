@@ -10,6 +10,11 @@
       "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
+    },
+    {
+      "path": "../stellar1",
+      "type": "idl",
+      "import_as": "stellar1"
     }
   ],
   "types": [
