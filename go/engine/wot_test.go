@@ -153,13 +153,8 @@ func TestWebOfTrustPending(t *testing.T) {
 	t.Log("alice sees one pending vouch")
 	vouches, err = libkb.FetchWotVouches(mctxB, libkb.FetchWotVouchesArg{Vouchee: aliceName})
 	require.NoError(t, err)
-	// TODO: alex will uncomment this imminently
-	// require.Empty(t, vouches)
-	t.Log("bob sees no vouches for Alice")
-	vouches, err = libkb.FetchWotVouches(mctxB, libkb.FetchWotVouchesArg{Vouchee: aliceName, Voucher: bobName})
-	require.NoError(t, err)
 	require.Equal(t, 1, len(vouches))
-	t.Log("bob sees pending vouch for Alice")
+	t.Log("bob also sees his pending vouch for Alice")
 
 	tcCharlie := SetupEngineTest(t, "wot")
 	defer tcCharlie.Cleanup()
@@ -349,9 +344,9 @@ func TestWebOfTrustReject(t *testing.T) {
 
 	vouches, err = libkb.FetchWotVouches(mctxB, libkb.FetchWotVouchesArg{Vouchee: aliceName})
 	require.NoError(t, err)
-	// TODO: alex will uncomment this imminently
-	// require.Equal(t, 0, len(vouches))
-	t.Log("bob cannot see it")
+	require.Equal(t, 1, len(vouches))
+	require.Equal(t, keybase1.WotStatusType_REJECTED, vouches[0].Status)
+	t.Log("bob can also see it as rejected")
 }
 
 func TestWebOfTrustRevoke(t *testing.T) {
