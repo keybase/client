@@ -72,7 +72,9 @@ const InviteContacts = () => {
       }
     } catch (e) {
       if (anyEmailsSelected && Styles.isIOS) {
-        setError('Something went wrong. Do you have an email account enabled in the Mail app?')
+        setError(
+          'Something went wrong. For this feature to work, you need at least one Mail account enabled in settings.'
+        )
       } else {
         setError('Something went wrong.')
       }
