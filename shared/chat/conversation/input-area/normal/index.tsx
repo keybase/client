@@ -369,9 +369,6 @@ class Input extends React.Component<InputProps, InputState> {
       }
     })
 
-    // sort stock emoji by sort order
-    emojiData = emojiData.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-
     if (this.props.userEmojis) {
       const userEmoji = this.props.userEmojis
         .filter(emoji => emoji.alias.toLowerCase().includes(filter))
