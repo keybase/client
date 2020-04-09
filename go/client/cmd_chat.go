@@ -48,6 +48,10 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdChatSearchBots(cl, g),
 		newCmdChatClearCommands(cl, g),
 		newCmdChatConvInfo(cl, g),
+		newCmdChatAddEmoji(cl, g),
+		newCmdChatAddEmojiAlias(cl, g),
+		newCmdChatListEmoji(cl, g),
+		newCmdChatRemoveEmoji(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificChatCommands(cl, g)...)
 	sort.Sort(cli.ByName(subcommands))
