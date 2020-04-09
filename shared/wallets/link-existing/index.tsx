@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Container from '../../util/container'
 import EnterKey from './enter-key'
 import {EnterName, WalletPopup} from '../common'
 import {ValidationState} from '../../constants/types/wallets'
@@ -32,6 +33,9 @@ type LinkWalletState = {
 }
 
 class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
+  static navigationOptions = {
+    header: null,
+  }
   state = {view: this.props.view || 'key'}
   _onViewChange = (view: View) => this.setState(s => (s.view !== view ? {view} : null))
 
@@ -183,6 +187,8 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
     )
   }
 }
+
+Container.hoistNonReactStatic(Wrapper, LinkWallet)
 
 export {Wrapper}
 export default LinkWallet

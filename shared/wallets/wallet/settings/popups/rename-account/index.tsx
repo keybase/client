@@ -21,6 +21,9 @@ type State = {
 }
 
 class RenameAccountPopup extends React.Component<Props, State> {
+  static navigationOptions = {
+    header: null,
+  }
   state = {name: this.props.initialName}
 
   _disabled = () => !this.state.name || this.state.name === this.props.initialName

@@ -17,6 +17,9 @@ type OnboardingState = {
 }
 
 class Onboarding extends React.Component<OnboardingProps, OnboardingState> {
+  static navigationOptions = {
+    header: null,
+  }
   state = {seenIntro: false}
   _seenIntro = () => {
     this.setState({seenIntro: true})

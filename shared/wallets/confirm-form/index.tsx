@@ -92,6 +92,12 @@ const ConfirmSend = (props: ConfirmSendProps) => {
     </Kb.MaybePopup>
   )
 }
+ConfirmSend.navigationOptions = {
+  header: null,
+  safeAreaStyle: {
+    backgroundColor: Styles.globalColors.purpleDark,
+  },
+}
 const styles = Styles.styleSheetCreate(() => ({
   backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
   button: {

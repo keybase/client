@@ -55,6 +55,9 @@ const RemoveAccountPopup = (props: Props) => {
     </WalletPopup>
   )
 }
+RemoveAccountPopup.navigationOptions = {
+  header: null,
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   flexOne: {flex: 1},

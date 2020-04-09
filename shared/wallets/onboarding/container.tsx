@@ -38,8 +38,10 @@ const ConnectedOnboarding = Container.connect(
 // A wrapper to harmonize the type of OwnProps between the
 // routed case and <Onboarding /> case.
 type RoutedOnboardingProps = Container.RouteProps<OwnProps>
-export const RoutedOnboarding = (ownProps: RoutedOnboardingProps) => (
+const RoutedOnboarding = (ownProps: RoutedOnboardingProps) => (
   <ConnectedOnboarding nextScreen={Container.getRouteProps(ownProps, 'nextScreen', 'openWallet')} />
 )
+Container.hoistNonReactStatic(RoutedOnboarding, ConnectedOnboarding)
 
+export {RoutedOnboarding}
 export default ConnectedOnboarding

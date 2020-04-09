@@ -20,6 +20,9 @@ type State = {
 }
 
 class CreateAccount extends React.Component<Props, State> {
+  static navigationOptions = {
+    header: null,
+  }
   state = {name: ''}
   _onNameChange = name => this.setState({name})
   _onDone = () => (this._disabled() || this.props.waiting ? undefined : this.props.onDone(this.state.name))

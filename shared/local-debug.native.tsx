@@ -108,6 +108,11 @@ if (nativeBridge.serverConfig) {
   } catch (e) {}
 }
 
+KB.debugConsoleLog('TEMP')
+config.printRPC = false
+config.enableActionLogging = false
+config.enableStoreLogging = false
+
 export const {
   allowMultipleInstances,
   enableActionLogging,

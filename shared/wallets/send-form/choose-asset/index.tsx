@@ -20,6 +20,9 @@ export type Props = {
 }
 
 class ChooseAsset extends React.Component<Props> {
+  static navigationOptions = {
+    header: null,
+  }
   componentDidMount() {
     this.props.onRefresh()
   }

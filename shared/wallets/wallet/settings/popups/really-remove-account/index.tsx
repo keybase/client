@@ -104,6 +104,12 @@ const ReallyRemoveAccountPopup = (props: Props) => {
     </WalletPopup>
   )
 }
+ReallyRemoveAccountPopup.navigationOptions = {
+  header: null,
+  safeAreaStyle: {
+    backgroundColor: Styles.globalColors.yellow,
+  },
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   background: Styles.platformStyles({

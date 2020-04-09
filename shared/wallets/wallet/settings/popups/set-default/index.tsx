@@ -59,6 +59,9 @@ const SetDefaultAccountPopup = (props: Props) => {
     </WalletPopup>
   )
 }
+SetDefaultAccountPopup.navigationOptions = {
+  header: null,
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   avatar: Styles.platformStyles({

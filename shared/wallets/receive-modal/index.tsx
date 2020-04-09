@@ -70,6 +70,9 @@ const ReceiveModal = (props: Props) => (
     </Kb.Box2>
   </Kb.Modal>
 )
+ReceiveModal.navigationOptions = {
+  header: null,
+}
 
 const Addresses = ({federatedAddress, stellarAddress}: AddressesProps) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>

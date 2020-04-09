@@ -138,6 +138,9 @@ const PickAsset = (props: Props) => {
     </Kb.MaybePopup>
   )
 }
+PickAsset.navigationOptions = {
+  header: null,
+}
 
 export default PickAsset
 
