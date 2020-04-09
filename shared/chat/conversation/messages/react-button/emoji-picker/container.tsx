@@ -5,6 +5,7 @@ import {LayoutEvent} from '../../../../../common-adapters/box'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as TeamsTypes from '../../../../../constants/types/teams'
+import * as Teams from '../../../../../constants/teams'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../styles'
@@ -92,6 +93,14 @@ const goToAddEmoji = (dispatch: Container.Dispatch, conversationIDKey: Types.Con
   )
 }
 
+const useCanManageEmoji = (conversationIDKey: Types.ConversationIDKey) => {
+  const meta = Container.useSelector(s => Constants.getMeta(s, conversationIDKey))
+  const canManageEmoji = Container.useSelector(
+    s => !meta.teamname || Teams.getCanPerformByID(s, meta.teamID).manageEmojis
+  )
+  return canManageEmoji
+}
+
 const WrapperMobile = (props: Props) => {
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey, props.onlyTeamCustomEmoji)
@@ -102,6 +111,8 @@ const WrapperMobile = (props: Props) => {
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
   const addEmoji = () => goToAddEmoji(dispatch, props.conversationIDKey)
+  const canManageEmoji = useCanManageEmoji(props.conversationIDKey)
+
   return (
     <Kb.Box2
       direction="vertical"
@@ -140,7 +151,7 @@ const WrapperMobile = (props: Props) => {
           setSkinTone={setSkinTone}
         />
         <Kb.Box style={Styles.globalStyles.flexOne} />
-        {!props.small && !skinTonePickerExpanded && (
+        {!props.small && !skinTonePickerExpanded && canManageEmoji && (
           <Kb.Button
             mode="Secondary"
             small={true}
@@ -159,6 +170,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey, props.onlyTeamCustomEmoji)
+  const canManageEmoji = useCanManageEmoji(props.conversationIDKey)
   const dispatch = Container.useDispatch()
   const addEmoji = () => {
     props.onDidPick?.()
@@ -226,7 +238,9 @@ export const EmojiPickerDesktop = (props: Props) => {
               {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
             </Kb.Text>
           </Kb.Box2>
-          <Kb.Button mode="Secondary" label="Add emoji" onClick={addEmoji} style={styles.addEmojiButton} />
+          {canManageEmoji && (
+            <Kb.Button mode="Secondary" label="Add emoji" onClick={addEmoji} style={styles.addEmojiButton} />
+          )}
         </Kb.Box2>
       )}
     </Kb.Box>
