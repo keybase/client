@@ -480,17 +480,9 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 	defer r.Trace(ctx, func() error { return nil }, "serveAttachment")()
 
-	var preview, noAnim, isEmoji bool
-	if "true" == req.URL.Query().Get("prev") {
-		preview = true
-	}
-	if "true" == req.URL.Query().Get("noanim") {
-		noAnim = true
-	}
-	if "true" == req.URL.Query().Get("isemoji") {
-		isEmoji = true
-	}
-
+	preview := "true" == req.URL.Query().Get("prev")
+	noAnim := "true" == req.URL.Query().Get("noanim")
+	isEmoji := "true" == req.URL.Query().Get("isemoji")
 	key := req.URL.Query().Get("key")
 	r.Lock()
 	pairInt, ok := r.urlMap.Get(key)
@@ -514,7 +506,7 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 		return
 	}
 	if isEmoji && !r.G().EmojiSource.IsValidSize(asset.Size) {
-		r.makeError(ctx, w, http.StatusBadRequest, "emoji asset not sized correctly: %v", fmt.Errorf("emoji incorrectly sized: %d", asset.Size))
+		r.makeError(ctx, w, http.StatusBadRequest, "%v", fmt.Errorf("emoji incorrectly sized: %d", asset.Size))
 		return
 	}
 
