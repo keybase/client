@@ -972,6 +972,9 @@ func (b MessageBody) TextForDecoration() string {
 		return b.Reaction().Body
 	case MessageType_HEADLINE:
 		return b.Headline().Headline
+	case MessageType_ATTACHMENT:
+		// Exclude the filename for text decoration.
+		return b.Attachment().Object.Title
 	default:
 		return b.SearchableText()
 	}
