@@ -45,7 +45,6 @@ const InviteFriends = () => {
   )
 
   let inviteCounter: React.ReactNode = null
-  let firstTooltipLine = ''
   if (inviteCounts?.showNumInvites) {
     inviteCounter = (
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
@@ -56,8 +55,8 @@ const InviteFriends = () => {
         </Kb.Text>
       </Kb.Box2>
     )
-    firstTooltipLine = `${inviteCounts.inviteCount.toLocaleString()} friends invited in the last 24 hours.`
   }
+  const tooltipMarkdown = <Kb.Markdown style={styles.tooltip}>{inviteCounts?.tooltipMarkdown}</Kb.Markdown>
 
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.mobileContainer}>
@@ -65,7 +64,7 @@ const InviteFriends = () => {
       {inviteButton}
       {inviteCounter ? (
         <Kb.Box2 direction="horizontal" style={styles.inviteCounterBox}>
-          <Kb.WithTooltip tooltip={firstTooltipLine} showOnPressMobile={true}>
+          <Kb.WithTooltip tooltip={tooltipMarkdown} showOnPressMobile={true}>
             {inviteCounter}
           </Kb.WithTooltip>
         </Kb.Box2>
@@ -82,27 +81,7 @@ const InviteFriends = () => {
       <Kb.Box2 direction="vertical" gap="xsmall" style={styles.container} className="invite-friends-big">
         {inviteButton}
         {!!inviteCounter && inviteCounts && (
-          <Kb.WithTooltip
-            tooltip={
-              <Kb.Box2 direction="vertical" alignItems="flex-start">
-                <Kb.Text type="BodySmall" style={styles.tooltip}>
-                  {firstTooltipLine}
-                </Kb.Text>
-                {inviteCounts.percentageChange > 0 ? (
-                  <Kb.Text type="BodySmall" style={styles.tooltip}>
-                    That's {inviteCounts.percentageChange}% more than yesterday.
-                  </Kb.Text>
-                ) : null}
-                {inviteCounts.showFire ? (
-                  <Kb.Text type="BodySmall" style={styles.tooltip}>
-                    Keybase servers are on fire! <Kb.Emoji emojiName=":fire:" size={12} />
-                  </Kb.Text>
-                ) : null}
-              </Kb.Box2>
-            }
-          >
-            {inviteCounter}
-          </Kb.WithTooltip>
+          <Kb.WithTooltip tooltip={tooltipMarkdown}>{inviteCounter}</Kb.WithTooltip>
         )}
       </Kb.Box2>
       <Kb.ClickableBox
