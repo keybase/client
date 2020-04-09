@@ -138,7 +138,7 @@ func (r *AttachmentHTTPSrv) getURL(ctx context.Context, prefix string, payload i
 }
 
 func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	preview, noAnim bool) string {
+	preview, noAnim, isEmoji bool) string {
 	r.Lock()
 	defer r.Unlock()
 	defer r.Trace(ctx, func() error { return nil }, "GetURL(%s,%d)", convID, msgID)()
@@ -146,7 +146,7 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 		ConvID: convID,
 		MsgID:  msgID,
 	})
-	url += fmt.Sprintf("&prev=%v&noanim=%v", preview, noAnim)
+	url += fmt.Sprintf("&prev=%v&noanim=%v&isemoji=%v", preview, noAnim, isEmoji)
 	r.Debug(ctx, "GetURL: handler URL: convID: %s msgID: %d %s", convID, msgID, url)
 	return url
 }
@@ -479,15 +479,19 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 
 func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 	defer r.Trace(ctx, func() error { return nil }, "serveAttachment")()
-	key := req.URL.Query().Get("key")
-	preview := false
-	noAnim := false
+
+	var preview, noAnim, isEmoji bool
 	if "true" == req.URL.Query().Get("prev") {
 		preview = true
 	}
 	if "true" == req.URL.Query().Get("noanim") {
 		noAnim = true
 	}
+	if "true" == req.URL.Query().Get("isemoji") {
+		isEmoji = true
+	}
+
+	key := req.URL.Query().Get("key")
 	r.Lock()
 	pairInt, ok := r.urlMap.Get(key)
 	r.Unlock()
@@ -499,6 +503,7 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 	pair := pairInt.(chat1.ConversationIDMessageIDPair)
 	uid := gregor1.UID(r.G().Env.GetUID().ToBytes())
 	r.Debug(ctx, "serveAttachment: convID: %s msgID: %d", pair.ConvID, pair.MsgID)
+
 	asset, err := attachments.AssetFromMessage(ctx, r.G(), uid, pair.ConvID, pair.MsgID, preview)
 	if err != nil {
 		r.makeError(ctx, w, http.StatusInternalServerError, "failed to get asset: %s", err)
@@ -508,8 +513,12 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 		r.makeError(ctx, w, http.StatusNotFound, "attachment not uploaded yet, no path")
 		return
 	}
-	size := asset.Size
-	r.Debug(ctx, "serveAttachment: setting content-type: %s sz: %d", asset.MimeType, size)
+	if isEmoji && !r.G().EmojiSource.IsValidSize(asset.Size) {
+		r.makeError(ctx, w, http.StatusBadRequest, "emoji asset not sized correctly: %v", fmt.Errorf("emoji incorrectly sized: %d", asset.Size))
+		return
+	}
+
+	r.Debug(ctx, "serveAttachment: setting content-type: %s sz: %d", asset.MimeType, asset.Size)
 	w.Header().Set("Content-Type", asset.MimeType)
 	if r.shouldServeContent(ctx, asset, req) {
 		if r.serveVideoHostPage(ctx, w, req) {
