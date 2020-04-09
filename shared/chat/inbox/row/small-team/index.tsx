@@ -94,7 +94,11 @@ class SmallTeam extends React.PureComponent<Props, State> {
       >
         <SmallTeamBox
           {...clickProps}
-          style={Styles.collapseStyles([{backgroundColor: this._backgroundColor()}, styles.container])}
+          className="background_color_blueGrey hover_background_color_blueGreyDark"
+          style={Styles.collapseStyles([
+            styles.container,
+            this.props.isSelected && {backgroundColor: Styles.globalColors.blue},
+          ])}
         >
           <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank])}>
             {props.teamname ? (

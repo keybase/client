@@ -116,10 +116,10 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
           direction="horizontal"
           fullWidth={true}
           centerChildren={true}
-          className="hover_background_color_blueGreyDark"
+          className="background_color_blueGrey hover_background_color_blueGreyDark"
           style={Styles.collapseStyles([
             styles.filteredRow,
-            {backgroundColor: this.props.isSelected ? Styles.globalColors.blue : Styles.globalColors.white},
+            this.props.isSelected && {backgroundColor: Styles.globalColors.blue},
           ])}
           onMouseLeave={this._onMouseLeave}
           onMouseOver={this._onMouseOver}

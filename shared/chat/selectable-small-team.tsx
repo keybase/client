@@ -35,6 +35,12 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
 
   _onMouseLeave = () => this.setState({isHovered: false})
   _onMouseOver = () => this.setState({isHovered: true})
+  _backgroundColor = () =>
+    this.props.isSelected
+      ? Styles.globalColors.blue
+      : this.state.isHovered
+      ? Styles.globalColors.blueGreyDark
+      : Styles.globalColors.white
 
   render() {
     const props = this.props
@@ -55,12 +61,10 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
           direction="horizontal"
           fullWidth={true}
           fullHeight={true}
-          className={Styles.classNames('hover_background_color_blueGreyDark', {
-            background_color_blue: props.isSelected,
-          })}
+          className="background_color_blueGrey hover_background_color_blueGreyDark"
           style={Styles.collapseStyles([
             styles.rowContainer,
-            {backgroundColor: this.props.isSelected ? Styles.globalColors.blue : Styles.globalColors.white},
+            this.props.isSelected && {backgroundColor: Styles.globalColors.blue},
           ])}
           onMouseLeave={this._onMouseLeave}
           onMouseOver={this._onMouseOver}
