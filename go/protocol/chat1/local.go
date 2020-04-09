@@ -6313,8 +6313,21 @@ func (o LastActiveStatusAll) DeepCopy() LastActiveStatusAll {
 	}
 }
 
+type EmojiError struct {
+	Clidisplay string `codec:"clidisplay" json:"clidisplay"`
+	Uidisplay  string `codec:"uidisplay" json:"uidisplay"`
+}
+
+func (o EmojiError) DeepCopy() EmojiError {
+	return EmojiError{
+		Clidisplay: o.Clidisplay,
+		Uidisplay:  o.Uidisplay,
+	}
+}
+
 type AddEmojiRes struct {
-	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	RateLimit *RateLimit  `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Error     *EmojiError `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 func (o AddEmojiRes) DeepCopy() AddEmojiRes {
@@ -6326,13 +6339,20 @@ func (o AddEmojiRes) DeepCopy() AddEmojiRes {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.RateLimit),
+		Error: (func(x *EmojiError) *EmojiError {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Error),
 	}
 }
 
 type AddEmojisRes struct {
-	RateLimit        *RateLimit        `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
-	SuccessFilenames []string          `codec:"successFilenames" json:"successFilenames"`
-	FailedFilenames  map[string]string `codec:"failedFilenames" json:"failedFilenames"`
+	RateLimit        *RateLimit            `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	SuccessFilenames []string              `codec:"successFilenames" json:"successFilenames"`
+	FailedFilenames  map[string]EmojiError `codec:"failedFilenames" json:"failedFilenames"`
 }
 
 func (o AddEmojisRes) DeepCopy() AddEmojisRes {
@@ -6355,14 +6375,14 @@ func (o AddEmojisRes) DeepCopy() AddEmojisRes {
 			}
 			return ret
 		})(o.SuccessFilenames),
-		FailedFilenames: (func(x map[string]string) map[string]string {
+		FailedFilenames: (func(x map[string]EmojiError) map[string]EmojiError {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[string]string, len(x))
+			ret := make(map[string]EmojiError, len(x))
 			for k, v := range x {
 				kCopy := k
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret[kCopy] = vCopy
 			}
 			return ret
@@ -6371,8 +6391,8 @@ func (o AddEmojisRes) DeepCopy() AddEmojisRes {
 }
 
 type AddEmojiAliasRes struct {
-	RateLimit   *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
-	ErrorString *string    `codec:"errorString,omitempty" json:"errorString,omitempty"`
+	RateLimit *RateLimit  `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Error     *EmojiError `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 func (o AddEmojiAliasRes) DeepCopy() AddEmojiAliasRes {
@@ -6384,13 +6404,13 @@ func (o AddEmojiAliasRes) DeepCopy() AddEmojiAliasRes {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.RateLimit),
-		ErrorString: (func(x *string) *string {
+		Error: (func(x *EmojiError) *EmojiError {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.ErrorString),
+		})(o.Error),
 	}
 }
 
