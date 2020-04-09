@@ -2,9 +2,11 @@ package uidmap
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
@@ -123,4 +125,83 @@ func TestServiceMapLookupEmpty(t *testing.T) {
 		// should not hit the API due to freshness parameter.
 		require.Equal(t, 0, timeoutAPI.callCount)
 	}
+}
+
+type mockAPI struct {
+	libkb.API
+	t       *testing.T
+	results map[keybase1.UID]libkb.UserServiceSummary
+}
+
+func (m *mockAPI) PostDecodeCtx(ctx context.Context, arg libkb.APIArg, resp libkb.APIResponseWrapper) error {
+	require.Equal(m.t, "user/service_maps", arg.Endpoint)
+
+	ps := reflect.ValueOf(resp)
+	elem := ps.Elem()
+	field := elem.FieldByName("ServiceMaps")
+	field.Set(reflect.ValueOf(m.results))
+
+	m.t.Logf("mockAPI is returning for user/service_maps: %s", spew.Sdump(m.results))
+	return nil
+}
+
+func TestServiceMapBecomesEmpty(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestLookup", 1)
+	defer tc.Cleanup()
+
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(fakeClock)
+
+	now := keybase1.ToTime(fakeClock.Now())
+
+	results := make(map[keybase1.UID]libkb.UserServiceSummary)
+	sumsum := make(libkb.UserServiceSummary)
+	sumsum["twitter"] = "tracy"
+	sumsum["github"] = "tracerz"
+	results[tTracy] = sumsum
+	apiMock := &mockAPI{nil, t, results}
+
+	tc.G.API = apiMock
+
+	const freshness = 24 * time.Hour
+	serviceMapper := NewServiceSummaryMap(10)
+	uids := []keybase1.UID{tTracy}
+	pkgs := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
+		freshness, DefaultNetworkBudget)
+
+	require.Len(t, pkgs, 1)
+	require.Contains(t, pkgs, tTracy)
+	require.True(t, pkgs[tTracy].CachedAt >= now)
+	require.Equal(t, sumsum, pkgs[tTracy].ServiceMap)
+
+	// Now the service returns empty service map because someone has revoked
+	// all their proofs (or reset).
+
+	fakeClock.Advance(30 * time.Hour)
+
+	// Server returns empty result because user's proofs are all gone.
+	results = make(map[keybase1.UID]libkb.UserServiceSummary)
+	apiMock.results = results
+
+	// Do a normal call with network budget to allow for cache refresh.
+	pkgs = serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
+		freshness, DefaultNetworkBudget)
+
+	var nilMap libkb.UserServiceSummary
+
+	require.Len(t, pkgs, 1)
+	require.Contains(t, pkgs, tTracy)
+	require.True(t, pkgs[tTracy].CachedAt >= now)
+	require.Equal(t, nilMap, pkgs[tTracy].ServiceMap)
+
+	fakeClock.Advance(1 * time.Hour)
+
+	// Now do a call without network budget to force read from cache.
+	pkgs = serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
+		freshness, DisallowNetworkBudget)
+
+	require.Len(t, pkgs, 1)
+	require.Contains(t, pkgs, tTracy)
+	require.True(t, pkgs[tTracy].CachedAt >= now)
+	require.Equal(t, nilMap, pkgs[tTracy].ServiceMap)
 }

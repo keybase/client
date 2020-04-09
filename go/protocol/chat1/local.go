@@ -359,12 +359,25 @@ func (o MessageDelete) DeepCopy() MessageDelete {
 }
 
 type MessageHeadline struct {
-	Headline string `codec:"headline" json:"headline"`
+	Headline string                    `codec:"headline" json:"headline"`
+	Emojis   map[string]HarvestedEmoji `codec:"emojis" json:"emojis"`
 }
 
 func (o MessageHeadline) DeepCopy() MessageHeadline {
 	return MessageHeadline{
 		Headline: o.Headline,
+		Emojis: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]HarvestedEmoji, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 
@@ -973,13 +986,14 @@ func (o MessageDeleteHistory) DeepCopy() MessageDeleteHistory {
 }
 
 type MessageAttachment struct {
-	Object       Asset              `codec:"object" json:"object"`
-	Preview      *Asset             `codec:"preview,omitempty" json:"preview,omitempty"`
-	Previews     []Asset            `codec:"previews" json:"previews"`
-	Metadata     []byte             `codec:"metadata" json:"metadata"`
-	Uploaded     bool               `codec:"uploaded" json:"uploaded"`
-	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
-	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
+	Object       Asset                     `codec:"object" json:"object"`
+	Preview      *Asset                    `codec:"preview,omitempty" json:"preview,omitempty"`
+	Previews     []Asset                   `codec:"previews" json:"previews"`
+	Metadata     []byte                    `codec:"metadata" json:"metadata"`
+	Uploaded     bool                      `codec:"uploaded" json:"uploaded"`
+	UserMentions []KnownUserMention        `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention        `codec:"teamMentions" json:"teamMentions"`
+	Emojis       map[string]HarvestedEmoji `codec:"emojis" json:"emojis"`
 }
 
 func (o MessageAttachment) DeepCopy() MessageAttachment {
@@ -1032,6 +1046,18 @@ func (o MessageAttachment) DeepCopy() MessageAttachment {
 			}
 			return ret
 		})(o.TeamMentions),
+		Emojis: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]HarvestedEmoji, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 
@@ -1151,12 +1177,25 @@ func (o MessageSendPayment) DeepCopy() MessageSendPayment {
 type MessageRequestPayment struct {
 	RequestID stellar1.KeybaseRequestID `codec:"requestID" json:"requestID"`
 	Note      string                    `codec:"note" json:"note"`
+	Emojis    map[string]HarvestedEmoji `codec:"emojis" json:"emojis"`
 }
 
 func (o MessageRequestPayment) DeepCopy() MessageRequestPayment {
 	return MessageRequestPayment{
 		RequestID: o.RequestID.DeepCopy(),
 		Note:      o.Note,
+		Emojis: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]HarvestedEmoji, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Emojis),
 	}
 }
 
@@ -3388,26 +3427,27 @@ func (o ConversationPinnedMessage) DeepCopy() ConversationPinnedMessage {
 }
 
 type ConversationInfoLocal struct {
-	Id            ConversationID                 `codec:"id" json:"id"`
-	Triple        ConversationIDTriple           `codec:"triple" json:"triple"`
-	TlfName       string                         `codec:"tlfName" json:"tlfName"`
-	TopicName     string                         `codec:"topicName" json:"topicName"`
-	Headline      string                         `codec:"headline" json:"headline"`
-	SnippetMsg    *MessageUnboxed                `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
-	PinnedMsg     *ConversationPinnedMessage     `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
-	Draft         *string                        `codec:"draft,omitempty" json:"draft,omitempty"`
-	Visibility    keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
-	IsDefaultConv bool                           `codec:"isDefaultConv" json:"isDefaultConv"`
-	Status        ConversationStatus             `codec:"status" json:"status"`
-	MembersType   ConversationMembersType        `codec:"membersType" json:"membersType"`
-	MemberStatus  ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
-	TeamType      TeamType                       `codec:"teamType" json:"teamType"`
-	Existence     ConversationExistence          `codec:"existence" json:"existence"`
-	Version       ConversationVers               `codec:"version" json:"version"`
-	LocalVersion  LocalConversationVers          `codec:"localVersion" json:"localVersion"`
-	Participants  []ConversationLocalParticipant `codec:"participants" json:"participants"`
-	FinalizeInfo  *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
-	ResetNames    []string                       `codec:"resetNames" json:"resetNames"`
+	Id             ConversationID                 `codec:"id" json:"id"`
+	Triple         ConversationIDTriple           `codec:"triple" json:"triple"`
+	TlfName        string                         `codec:"tlfName" json:"tlfName"`
+	TopicName      string                         `codec:"topicName" json:"topicName"`
+	Headline       string                         `codec:"headline" json:"headline"`
+	HeadlineEmojis []HarvestedEmoji               `codec:"headlineEmojis" json:"headlineEmojis"`
+	SnippetMsg     *MessageUnboxed                `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
+	PinnedMsg      *ConversationPinnedMessage     `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
+	Draft          *string                        `codec:"draft,omitempty" json:"draft,omitempty"`
+	Visibility     keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
+	IsDefaultConv  bool                           `codec:"isDefaultConv" json:"isDefaultConv"`
+	Status         ConversationStatus             `codec:"status" json:"status"`
+	MembersType    ConversationMembersType        `codec:"membersType" json:"membersType"`
+	MemberStatus   ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
+	TeamType       TeamType                       `codec:"teamType" json:"teamType"`
+	Existence      ConversationExistence          `codec:"existence" json:"existence"`
+	Version        ConversationVers               `codec:"version" json:"version"`
+	LocalVersion   LocalConversationVers          `codec:"localVersion" json:"localVersion"`
+	Participants   []ConversationLocalParticipant `codec:"participants" json:"participants"`
+	FinalizeInfo   *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	ResetNames     []string                       `codec:"resetNames" json:"resetNames"`
 }
 
 func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
@@ -3417,6 +3457,17 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 		TlfName:   o.TlfName,
 		TopicName: o.TopicName,
 		Headline:  o.Headline,
+		HeadlineEmojis: (func(x []HarvestedEmoji) []HarvestedEmoji {
+			if x == nil {
+				return nil
+			}
+			ret := make([]HarvestedEmoji, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.HeadlineEmojis),
 		SnippetMsg: (func(x *MessageUnboxed) *MessageUnboxed {
 			if x == nil {
 				return nil
@@ -7025,6 +7076,10 @@ type GetLastActiveAtMultiLocalArg struct {
 	Username string            `codec:"username" json:"username"`
 }
 
+type GetParticipantsArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type AddEmojiArg struct {
 	ConvID         ConversationID `codec:"convID" json:"convID"`
 	Alias          string         `codec:"alias" json:"alias"`
@@ -7171,6 +7226,7 @@ type LocalInterface interface {
 	RefreshParticipants(context.Context, ConversationID) error
 	GetLastActiveAtLocal(context.Context, GetLastActiveAtLocalArg) (gregor1.Time, error)
 	GetLastActiveAtMultiLocal(context.Context, GetLastActiveAtMultiLocalArg) (map[keybase1.TeamID]gregor1.Time, error)
+	GetParticipants(context.Context, ConversationID) ([]ConversationLocalParticipant, error)
 	AddEmoji(context.Context, AddEmojiArg) (AddEmojiRes, error)
 	AddEmojis(context.Context, AddEmojisArg) (AddEmojisRes, error)
 	AddEmojiAlias(context.Context, AddEmojiAliasArg) (AddEmojiAliasRes, error)
@@ -8793,6 +8849,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getParticipants": {
+				MakeArg: func() interface{} {
+					var ret [1]GetParticipantsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetParticipantsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetParticipantsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetParticipants(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
 			"addEmoji": {
 				MakeArg: func() interface{} {
 					var ret [1]AddEmojiArg
@@ -9472,6 +9543,12 @@ func (c LocalClient) GetLastActiveAtLocal(ctx context.Context, __arg GetLastActi
 
 func (c LocalClient) GetLastActiveAtMultiLocal(ctx context.Context, __arg GetLastActiveAtMultiLocalArg) (res map[keybase1.TeamID]gregor1.Time, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveAtMultiLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetParticipants(ctx context.Context, convID ConversationID) (res []ConversationLocalParticipant, err error) {
+	__arg := GetParticipantsArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.getParticipants", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

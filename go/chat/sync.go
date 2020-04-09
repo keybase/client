@@ -314,7 +314,7 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 		rc.LocalMetadata = md
 		itemsByTopicType[c.GetTopicType()] = append(itemsByTopicType[c.GetTopicType()],
 			chat1.ChatSyncIncrementalConv{
-				Conv:        utils.PresentRemoteConversation(ctx, s.G(), rc),
+				Conv:        utils.PresentRemoteConversation(ctx, s.G(), uid, rc),
 				ShouldUnbox: shouldUnboxMap[c.GetConvID().ConvIDStr()],
 			})
 	}

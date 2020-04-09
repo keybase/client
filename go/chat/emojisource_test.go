@@ -209,11 +209,12 @@ func TestEmojiSourceBasic(t *testing.T) {
 			require.Len(t, group.Emojis, 1)
 			emoji := group.Emojis[0]
 			require.Equal(t, chat1.Emoji{
-				Alias:       ":my+1:",
-				IsBig:       false,
-				IsReacji:    false,
-				IsCrossTeam: false,
-				Source:      chat1.NewEmojiLoadSourceWithStr(":+1::skin-tone-0:"),
+				Alias:        ":my+1:",
+				IsBig:        false,
+				IsReacji:     false,
+				IsCrossTeam:  false,
+				Source:       chat1.NewEmojiLoadSourceWithStr(":+1::skin-tone-0:"),
+				NoAnimSource: chat1.NewEmojiLoadSourceWithStr(":+1::skin-tone-0:"),
 				RemoteSource: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
 					Text:     ":+1::skin-tone-0:",
 					Username: users[0].Username,

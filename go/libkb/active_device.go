@@ -711,7 +711,7 @@ func (a *ActiveDevice) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
 		return nil, NewNoUsernameError()
 	}
 	m.Debug("Account: loading keyring for %s", un)
-	ret, err = LoadSKBKeyring(un, m.G())
+	ret, err = LoadSKBKeyring(m, un)
 	if err != nil {
 		return nil, err
 	}

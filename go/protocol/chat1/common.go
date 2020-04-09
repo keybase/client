@@ -2548,6 +2548,100 @@ func (e LastActiveStatus) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
+type ChatMemberDetails struct {
+	Uid      keybase1.UID      `codec:"uid" json:"uid"`
+	Username string            `codec:"username" json:"username"`
+	FullName keybase1.FullName `codec:"fullName" json:"fullName"`
+}
+
+func (o ChatMemberDetails) DeepCopy() ChatMemberDetails {
+	return ChatMemberDetails{
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+		FullName: o.FullName.DeepCopy(),
+	}
+}
+
+type ChatMembersDetails struct {
+	Owners         []ChatMemberDetails `codec:"owners" json:"owners"`
+	Admins         []ChatMemberDetails `codec:"admins" json:"admins"`
+	Writers        []ChatMemberDetails `codec:"writers" json:"writers"`
+	Readers        []ChatMemberDetails `codec:"readers" json:"readers"`
+	Bots           []ChatMemberDetails `codec:"bots" json:"bots"`
+	RestrictedBots []ChatMemberDetails `codec:"restrictedBots" json:"restrictedBots"`
+}
+
+func (o ChatMembersDetails) DeepCopy() ChatMembersDetails {
+	return ChatMembersDetails{
+		Owners: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Owners),
+		Admins: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Admins),
+		Writers: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Writers),
+		Readers: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Readers),
+		Bots: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Bots),
+		RestrictedBots: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RestrictedBots),
+	}
+}
+
 type CommonInterface interface {
 }
 

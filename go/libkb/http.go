@@ -36,6 +36,10 @@ type I struct {
 	Val int
 }
 
+type I64 struct {
+	Val int64
+}
+
 type U struct {
 	Val uint64
 }
@@ -62,6 +66,7 @@ func NewHTTPArgs() HTTPArgs {
 
 func (s S) String() string    { return s.Val }
 func (i I) String() string    { return strconv.Itoa(i.Val) }
+func (i I64) String() string  { return strconv.FormatInt(i.Val, 10) }
 func (u U) String() string    { return strconv.FormatUint(u.Val, 10) }
 func (h UHex) String() string { return fmt.Sprintf("%016x", h.Val) }
 func (b B) String() string {

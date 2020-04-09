@@ -76,7 +76,7 @@ class GetTitles extends React.Component<Props, State> {
   }
 
   render() {
-    const {info, path} = this.props.pathAndInfos[this.state.index]
+    const {info, path} = this.props.pathAndInfos[this.state.index] ?? {}
     const titleHint = 'Add a caption...'
     if (!info) return null
 

@@ -1,6 +1,7 @@
 import * as Sb from '../../stories/storybook'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 export const fakeTeamID = 'fakeTeamID'
 const teamID2 = 'faketeamID2'
@@ -43,6 +44,9 @@ const names = [
   'Marietta Edgecombe',
 ]
 export const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  const aliceSparseMemberInfoRoot: Types.TreeloaderSparseMemberInfo = {type: 'admin'}
+  const aliceSparseMemberInfoSub: Types.TreeloaderSparseMemberInfo = {type: 'none'}
+
   draftState.chat2.inboxLayout = {
     bigTeams: [
       {
@@ -60,6 +64,7 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
         ['3', 'active'],
         ['9', 'recently'],
       ]),
+      loaded: true,
       teams: new Map([
         [fakeTeamID, 'none'],
         [teamID2, 'recently'],
@@ -91,6 +96,7 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
             },
           ]),
           members: new Map([
+            ['alice', {fullName: 'alice', status: 'active', type: 'admin', username: 'alice'}],
             ['jeff', {fullName: 'Jeff', status: 'active', type: 'reader', username: 'jeff'}],
             // prettier-ignore
             ['paula', {fullName: 'Paula Superlonglastnamelikereallylongforreal', status: 'active', type: 'writer', username: 'paula'}],
@@ -121,6 +127,50 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
         },
       ],
     ]),
+    teamMemberToTreeMemberships: new Map([
+      [
+        fakeTeamID,
+        new Map([
+          [
+            'alice',
+            {
+              expectedCount: 2,
+              guid: 0,
+              memberships: [
+                {
+                  guid: 0,
+                  result: {
+                    ok: {
+                      role: 'admin',
+                      teamID: fakeTeamID,
+                    },
+                    s: 0,
+                  },
+                  targetTeamID: fakeTeamID,
+                  targetUsername: 'alice',
+                  teamName: 'keybase_storybook',
+                },
+                {
+                  guid: 0,
+                  result: {
+                    ok: {
+                      role: 'none',
+                      teamID: subteam1,
+                    },
+                    s: 0,
+                  },
+                  targetTeamID: fakeTeamID,
+                  targetUsername: 'alice',
+                  teamName: 'keybase_storybook.friends',
+                },
+              ],
+              targetTeamID: fakeTeamID,
+              targetUsername: 'alice',
+            },
+          ],
+        ]),
+      ],
+    ]),
     teamMeta: new Map([
       [fakeTeamID, Constants.makeTeamMeta({memberCount: 32, teamname: 'keybase_storybook'})],
       [teamID2, Constants.makeTeamMeta({isOpen: true, memberCount: 11947, teamname: 'fan_club'})],
@@ -136,6 +186,10 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
       ...draftState.teams.teamRoleMap,
       roles: new Map([[teamID3, {implicitAdmin: false, role: 'admin'}]]),
     },
+    treeLoaderTeamIDToSparseMemberInfos: new Map([
+      [fakeTeamID, new Map([['alice', aliceSparseMemberInfoRoot]])],
+      [subteam1, new Map([['alice', aliceSparseMemberInfoSub]])],
+    ]),
   }
   draftState.config = {
     ...draftState.config,

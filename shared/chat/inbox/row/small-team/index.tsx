@@ -181,8 +181,8 @@ const styles = Styles.styleSheetCreate(() => ({
       height: RowSizes.smallRowHeight,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.xtiny,
+      paddingRight: Styles.globalMargins.xtiny,
     },
   }),
   conversationRow: {

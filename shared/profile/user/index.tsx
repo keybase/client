@@ -403,11 +403,13 @@ class User extends React.Component<Props, State> {
 
   _renderWebOfTrust = ({item}) =>
     item.type === 'IKnowThem' ? (
-      <Kb.Box2 key="iknowthem" direction="horizontal" fullWidth={true} style={styles.knowThemBox}>
-        <Kb.Button key="iknowthembtn" onClick={this.props.onIKnowThem} type="Default" label={item.text}>
-          <Kb.Icon type="iconfont-proof-good" style={styles.knowThemIcon} />
-        </Kb.Button>
-      </Kb.Box2>
+      this.props.onIKnowThem && (
+        <Kb.Box2 key="iknowthem" direction="horizontal" fullWidth={true} style={styles.knowThemBox}>
+          <Kb.Button key="iknowthembtn" onClick={this.props.onIKnowThem} type="Default" label={item.text}>
+            <Kb.Icon type="iconfont-proof-good" style={styles.knowThemIcon} />
+          </Kb.Button>
+        </Kb.Box2>
+      )
     ) : (
       <WebOfTrust webOfTrustAttestation={item} username={this.props.username} />
     )

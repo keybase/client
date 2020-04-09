@@ -962,6 +962,24 @@ func (b MessageBody) IsType(typ MessageType) bool {
 	return btyp == typ
 }
 
+func (b MessageBody) TextForDecoration() string {
+	typ, err := b.MessageType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case MessageType_REACTION:
+		return b.Reaction().Body
+	case MessageType_HEADLINE:
+		return b.Headline().Headline
+	case MessageType_ATTACHMENT:
+		// Exclude the filename for text decoration.
+		return b.Attachment().Object.Title
+	default:
+		return b.SearchableText()
+	}
+}
+
 func (b MessageBody) SearchableText() string {
 	typ, err := b.MessageType()
 	if err != nil {
@@ -980,8 +998,33 @@ func (b MessageBody) SearchableText() string {
 		return b.Flip().Text
 	case MessageType_UNFURL:
 		return b.Unfurl().SearchableText()
+	case MessageType_SYSTEM:
+		return b.System().String()
 	default:
 		return ""
+	}
+}
+
+func (b MessageBody) GetEmojis() map[string]HarvestedEmoji {
+	typ, err := b.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case MessageType_TEXT:
+		return b.Text().Emojis
+	case MessageType_REACTION:
+		return b.Reaction().Emojis
+	case MessageType_EDIT:
+		return b.Edit().Emojis
+	case MessageType_REQUESTPAYMENT:
+		return b.Requestpayment().Emojis
+	case MessageType_ATTACHMENT:
+		return b.Attachment().Emojis
+	case MessageType_HEADLINE:
+		return b.Headline().Emojis
+	default:
+		return nil
 	}
 }
 
@@ -3156,4 +3199,27 @@ func (r EmojiLoadSource) IsHTTPSrv() bool {
 		return false
 	}
 	return typ == EmojiLoadSourceTyp_HTTPSRV
+}
+
+func TeamToChatMemberDetails(teamMembers []keybase1.TeamMemberDetails) (chatMembers []ChatMemberDetails) {
+	chatMembers = make([]ChatMemberDetails, len(teamMembers))
+	for i, teamMember := range teamMembers {
+		chatMembers[i] = ChatMemberDetails{
+			Uid:      teamMember.Uv.Uid,
+			Username: teamMember.Username,
+			FullName: teamMember.FullName,
+		}
+	}
+	return chatMembers
+}
+
+func TeamToChatMembersDetails(details keybase1.TeamMembersDetails) ChatMembersDetails {
+	return ChatMembersDetails{
+		Owners:         TeamToChatMemberDetails(details.Owners),
+		Admins:         TeamToChatMemberDetails(details.Admins),
+		Writers:        TeamToChatMemberDetails(details.Writers),
+		Readers:        TeamToChatMemberDetails(details.Readers),
+		Bots:           TeamToChatMemberDetails(details.Bots),
+		RestrictedBots: TeamToChatMemberDetails(details.RestrictedBots),
+	}
 }

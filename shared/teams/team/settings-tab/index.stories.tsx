@@ -39,6 +39,7 @@ const commonProps = {
     leaveTeam: true,
     listFirst: true,
     manageBots: true,
+    manageEmojis: true,
     manageMembers: true,
     manageSubteams: true,
     pinMessage: true,
