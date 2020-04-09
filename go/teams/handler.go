@@ -809,7 +809,7 @@ func verifySeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 	}
 	copy(sig[:], decodedSig)
 
-	// For V2 this is ms since the epoch, not seconds (line in V1 or InviteLink)
+	// For V2 this is ms since the epoch, not seconds (like in V1 or InviteLink)
 	now := keybase1.Time(seitan.UnixCTime)
 	// NOTE: Since we are re-serializing the values from seitan here to
 	// generate the message, if we want to change the fields present in the

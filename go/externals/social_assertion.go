@@ -48,7 +48,7 @@ type staticAssertionContext struct {
 }
 
 // MakeStaticAssertionContext returns an AssertionContext that does not require
-// access to GlobalContext, but it does not understand parametrized proofs. So
+// access to GlobalContext, but it does not understand parameterized proofs. So
 // only static assertions that are hardcoded in the client are valid according
 // to this context.
 func MakeStaticAssertionContext(ctx context.Context) libkb.AssertionContext {

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Parametrized high-level tests (using team service API and gregor handler)
+// Parameterized high-level tests (using team service API and gregor handler)
 // for Seitan V1 and Seitan V2.
 
 func TestTeamInviteSeitanHappy(t *testing.T) {
