@@ -15,11 +15,9 @@ const ListHeaderComponent = () => (
   <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.iconBox} />
 )
 
-const messageBody = `
-  Let's chat privately on Keybase:
-  https://keybase.io/install
-  It's free and secure.
-`
+const messageBody = `Let's chat privately on Keybase:
+https://keybase.io/install
+It's free and secure.`
 
 // Doesn't return anything about the status of the message.
 // Resolves if we succeeded in opening composer, rejects otherwise
