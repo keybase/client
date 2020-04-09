@@ -229,6 +229,19 @@ func TestEmojiSourceBasic(t *testing.T) {
 		}
 	}
 	require.True(t, checked)
+
+	t.Logf("alias decorate test")
+	msgID = mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "yes! :mike:",
+	}))
+
+	msg, err := tc.Context().ConvSource.GetMessage(ctx, conv.Id, uid, msgID, nil, nil, true)
+	require.NoError(t, err)
+	require.True(t, msg.IsValid())
+	uimsg := utils.PresentMessageUnboxed(ctx, tc.Context(), msg, uid, conv.Id)
+	require.True(t, uimsg.IsValid())
+	require.NotNil(t, uimsg.Valid().DecoratedTextBody)
+	require.Equal(t, "yes! :+1::skin-tone-0:", *uimsg.Valid().DecoratedTextBody)
 }
 
 func TestEmojiSourceCrossTeam(t *testing.T) {

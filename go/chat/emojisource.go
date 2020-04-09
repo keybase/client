@@ -843,7 +843,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 				continue
 			}
 			if typ == chat1.EmojiLoadSourceTyp_STR {
-				// Instead of decorating aliases, just replace them with
+				// Instead of decorating aliases, just replace them with the alias string
 				strDecoration := source.Str()
 				length := match.position[1] - match.position[0]
 				added := len(strDecoration) - length
