@@ -19,7 +19,7 @@ type Props = {
   vouchedAt: number
 }
 
-const entry = (props: Props) => (
+const entry = (props: Props, statusStatement: string) => (
   <>
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.Box2 direction="vertical" style={styles.avatarContainer} centerChildren={true}>
@@ -31,6 +31,9 @@ const entry = (props: Props) => (
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer} centerChildren={false}>
+        <Kb.Text style={styles.attestationText} type="BodySmall">
+          {statusStatement}
+        </Kb.Text>
         <Kb.Text style={styles.attestationText} type="Body">
           {props.attestation}
         </Kb.Text>
@@ -81,13 +84,10 @@ const entry = (props: Props) => (
 const WebOfTrust = (props: Props) => {
   switch (props.status) {
     case WotStatusType.proposed: {
-      if (props.userIsYou) {
-        return entry(props)
-      }
-      return null
+      return entry(props, props.userIsYou ? 'Pending your approval:' : 'You proposed:')
     }
     case WotStatusType.accepted: {
-      return entry(props)
+      return entry(props, 'Accepted:')
     }
     default: {
       return null

@@ -32,6 +32,7 @@ export const editTeamDescription = 'teams:editTeamDescription'
 export const finishAddMembersWizard = 'teams:finishAddMembersWizard'
 export const finishNewTeamWizard = 'teams:finishNewTeamWizard'
 export const generateInviteLink = 'teams:generateInviteLink'
+export const getActivityForTeams = 'teams:getActivityForTeams'
 export const getMemberSubteamDetails = 'teams:getMemberSubteamDetails'
 export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
@@ -188,6 +189,7 @@ type _GenerateInviteLinkPayload = {
   readonly maxUses: number
   readonly expireAfter?: string
 }
+type _GetActivityForTeamsPayload = void
 type _GetMemberSubteamDetailsPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _GetMembersPayload = {readonly teamID: Types.TeamID}
 type _GetTeamProfileAddListPayload = {readonly username: string}
@@ -422,6 +424,12 @@ export const createUnsubscribeTeamList = (
   payload: _UnsubscribeTeamListPayload
 ): UnsubscribeTeamListPayload => ({payload, type: unsubscribeTeamList})
 /**
+ * Fetch activity levels.
+ */
+export const createGetActivityForTeams = (
+  payload: _GetActivityForTeamsPayload
+): GetActivityForTeamsPayload => ({payload, type: getActivityForTeams})
+/**
  * Gets the team retention policy and stores in `state.entities.teams.teamIDToRetentionPolicy`.
  */
 export const createGetTeamRetentionPolicy = (
@@ -488,7 +496,7 @@ export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSu
   type: setSubteamFilter,
 })
 /**
- * Set map of activity levels for all teams.
+ * Set map of activity levels for all teams and channels.
  */
 export const createSetActivityLevels = (payload: _SetActivityLevelsPayload): SetActivityLevelsPayload => ({
   payload,
@@ -934,6 +942,10 @@ export type GenerateInviteLinkPayload = {
   readonly payload: _GenerateInviteLinkPayload
   readonly type: typeof generateInviteLink
 }
+export type GetActivityForTeamsPayload = {
+  readonly payload: _GetActivityForTeamsPayload
+  readonly type: typeof getActivityForTeams
+}
 export type GetMemberSubteamDetailsPayload = {
   readonly payload: _GetMemberSubteamDetailsPayload
   readonly type: typeof getMemberSubteamDetails
@@ -1242,6 +1254,7 @@ export type Actions =
   | FinishAddMembersWizardPayload
   | FinishNewTeamWizardPayload
   | GenerateInviteLinkPayload
+  | GetActivityForTeamsPayload
   | GetMemberSubteamDetailsPayload
   | GetMembersPayload
   | GetTeamProfileAddListPayload

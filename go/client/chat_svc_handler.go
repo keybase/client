@@ -1299,12 +1299,21 @@ func (c *chatServiceHandler) ListMembersV1(ctx context.Context, opts listMembers
 		return c.errReply(err)
 	}
 
-	// filter the member list down to the specific conversation members based on the server-trust list
-	if conv.Info.TopicName != "" && opts.Channel.TopicName != "general" {
-		details = keybase1.FilterTeamDetailsForMembers(conv.AllNames(), details)
+	participants, err := chatClient.GetParticipants(ctx, conv.GetConvID())
+	if err != nil {
+		return c.errReply(err)
+	}
+	usernames := make([]string, len(participants))
+	for i, participant := range participants {
+		usernames[i] = participant.Username
 	}
 
-	return Reply{Result: details}
+	// filter the member list down to the specific conversation members based on the server-trust list
+	if conv.Info.TopicName != "" && opts.Channel.TopicName != "general" {
+		details = keybase1.FilterTeamDetailsForMembers(usernames, details)
+	}
+
+	return Reply{Result: chat1.TeamToChatMembersDetails(details.Members)}
 }
 
 func (c *chatServiceHandler) EmojiRemoveV1(ctx context.Context, opts emojiRemoveOptionsV1) Reply {

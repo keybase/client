@@ -186,6 +186,7 @@ export type ChannelNameID = {
 export type ActivityLevels = {
   channels: Map<ConversationIDKey, ActivityLevel>
   teams: Map<TeamID, ActivityLevel>
+  loaded: boolean
 }
 
 export type State = {

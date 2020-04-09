@@ -16,7 +16,7 @@ type OwnProps = Container.RouteProps<{
   username?: string
 }>
 
-const Connect = Container.connect(
+export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const teamname = Container.getRouteProps(ownProps, 'team', undefined)
     const waitingForLeave = teamname ? Container.anyWaiting(state, leaveTeamWaitingKey(teamname)) : false
@@ -126,6 +126,4 @@ const Connect = Container.connect(
       }
     },
   })
-)
-
-export default Connect(BlockModal)
+)(BlockModal)

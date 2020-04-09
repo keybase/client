@@ -60,6 +60,7 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
         ['3', 'active'],
         ['9', 'recently'],
       ]),
+      loaded: true,
       teams: new Map([
         [fakeTeamID, 'none'],
         [teamID2, 'recently'],

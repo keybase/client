@@ -94,7 +94,7 @@ const searchUsersAndTeamsAndTeamChannels = memoize(
 const suggestorToMarker = {
   channels: '#',
   commands: /(!|\/)/,
-  emoji: ':',
+  emoji: /(\+?):/,
   // 'users' is for @user, @team, and @team#channel
   users: /((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
 }
@@ -138,8 +138,8 @@ const emojiRenderer = (item: EmojiData, selected: boolean) => {
     </Kb.Box2>
   )
 }
-const emojiTransformer = (emoji: EmojiData, _: unknown, tData: TransformerData, preview: boolean) => {
-  return standardTransformer(`:${emoji.short_name}:`, tData, preview)
+const emojiTransformer = (emoji: EmojiData, marker: string, tData: TransformerData, preview: boolean) => {
+  return standardTransformer(`${marker}${emoji.short_name}:`, tData, preview)
 }
 
 type InputState = {
@@ -369,13 +369,10 @@ class Input extends React.Component<InputProps, InputState> {
       }
     })
 
-    // sort stock emoji by sort order
-    emojiData = emojiData.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-
     if (this.props.userEmojis) {
       const userEmoji = this.props.userEmojis
         .filter(emoji => emoji.alias.toLowerCase().includes(filter))
-        .map(emoji => RPCToEmojiData(emoji))
+        .map(emoji => RPCToEmojiData(emoji, false))
       emojiData = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(emojiData)
     }
 

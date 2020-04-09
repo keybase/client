@@ -8,6 +8,6 @@ package libkb
 func NewSecretStoreAll(m MetaContext) SecretStoreAll {
 	g := m.G()
 	s := NewSecretStoreFile(g.Env.GetDataDir())
-	s.notifyCreate = func(name NormalizedUsername) { notifySecretStoreCreate(g, name) }
+	s.notifyCreate = func(name NormalizedUsername) { notifySecretStoreCreate(m, name) }
 	return s
 }

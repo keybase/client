@@ -4,6 +4,8 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
+import * as Teams from '../../../../constants/teams'
+import * as TeamTypes from '../../../../constants/types/teams'
 import * as RPCChatGen from '../../../../constants/types/rpc-chat-gen'
 import * as dateFns from 'date-fns'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
@@ -13,13 +15,17 @@ import EmojiMenu from './emoji-menu'
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
   emoji: RPCChatTypes.Emoji
+  firstItem: boolean
   reloadEmojis: () => void
+  teamID: TeamTypes.TeamID
 }
 
-const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
-  const emojiData = RPCToEmojiData(emoji)
+const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: OwnProps) => {
+  const emojiData = RPCToEmojiData(emoji, false)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
+
   const onAddAlias = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
@@ -31,8 +37,9 @@ const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
         ],
       })
     )
+  const isStockAlias = emoji.remoteSource.typ === RPCChatTypes.EmojiRemoteSourceTyp.stockalias
+  const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
-  const canManageEmoji = true
   const removeRpc = useRPC(RPCChatGen.localRemoveEmojiRpcPromise)
   const doRemove = canManageEmoji
     ? () => {
@@ -50,12 +57,11 @@ const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
         )
       }
     : undefined
-
   const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <EmojiMenu
       attachTo={attachTo}
       visible={showingPopup}
-      onAddAlias={onAddAlias}
+      onAddAlias={doAddAlias}
       onRemove={doRemove}
       onHidden={() => setShowingPopup(false)}
     />
@@ -63,7 +69,7 @@ const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
 
   return (
     <Kb.ListItem2
-      icon={renderEmoji(emojiDataToRenderableEmoji(RPCToEmojiData(emoji)), 32, false)}
+      icon={renderEmoji(emojiDataToRenderableEmoji(RPCToEmojiData(emoji, false)), 32, false)}
       type="Large"
       body={
         <Kb.Box2
@@ -74,12 +80,12 @@ const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
           gap="small"
         >
           <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
-          {emoji.creationInfo && (
+          {!Styles.isMobile && emoji.creationInfo && (
             <Kb.Text type="Body" style={styles.date}>
               {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
             </Kb.Text>
           )}
-          {emoji.creationInfo && (
+          {!Styles.isMobile && emoji.creationInfo && (
             <Kb.NameWithIcon
               horizontal={true}
               username={emoji.creationInfo.username}
@@ -88,19 +94,22 @@ const ItemRow = ({conversationIDKey, emoji, reloadEmojis}: OwnProps) => {
               containerStyle={styles.username}
             />
           )}
-          <Kb.Box2 direction="horizontal">
+          <Kb.Box2
+            direction="horizontal"
+            style={Styles.collapseStyles([!canManageEmoji ? {opacity: 0} : null])}
+          >
             {popup}
             <Kb.Button
               icon="iconfont-ellipsis"
               mode="Secondary"
               type="Dim"
-              onClick={() => setShowingPopup(!showingPopup)}
+              onClick={canManageEmoji ? () => setShowingPopup(!showingPopup) : undefined}
               ref={popupAnchor}
             />
           </Kb.Box2>
         </Kb.Box2>
       }
-      firstItem={false}
+      firstItem={firstItem}
     />
   )
 }

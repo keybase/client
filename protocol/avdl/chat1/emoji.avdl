@@ -54,6 +54,7 @@ protocol emoji {
     boolean isReacji;
     boolean isCrossTeam;
     EmojiLoadSource source;
+    EmojiLoadSource noAnimSource;
     EmojiRemoteSource remoteSource;
     union { null, EmojiCreationInfo } creationInfo;
   }

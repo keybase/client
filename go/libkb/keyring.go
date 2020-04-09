@@ -46,13 +46,13 @@ func (g *GlobalContext) SKBFilenameForUser(un NormalizedUsername) string {
 	return strings.Replace(tmp, token, un.String(), -1)
 }
 
-func LoadSKBKeyring(un NormalizedUsername, g *GlobalContext) (*SKBKeyringFile, error) {
+func LoadSKBKeyring(m MetaContext, un NormalizedUsername) (*SKBKeyringFile, error) {
 	if un.IsNil() {
 		return nil, NewNoUsernameError()
 	}
 
-	skbfile := NewSKBKeyringFile(g, un)
-	err := skbfile.LoadAndIndex()
+	skbfile := NewSKBKeyringFile(m.G(), un)
+	err := skbfile.LoadAndIndex(m.Ctx())
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func LoadSKBKeyring(un NormalizedUsername, g *GlobalContext) (*SKBKeyringFile, e
 }
 
 func LoadSKBKeyringFromMetaContext(m MetaContext) (*SKBKeyringFile, error) {
-	return LoadSKBKeyring(m.CurrentUsername(), m.G())
+	return LoadSKBKeyring(m, m.CurrentUsername())
 }
 
 func StatSKBKeyringMTime(un NormalizedUsername, g *GlobalContext) (mtime time.Time, err error) {
@@ -423,7 +423,7 @@ func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(m MetaContext, arg SecretKeyProm
 	var secretStore SecretStore
 	if arg.Ska.Me != nil {
 		skb.SetUID(arg.Ska.Me.GetUID())
-		secretStore = NewSecretStore(m.G(), arg.Ska.Me.GetNormalizedName())
+		secretStore = NewSecretStore(m, arg.Ska.Me.GetNormalizedName())
 	}
 	if key, err = skb.PromptAndUnlock(m, arg, secretStore, arg.Ska.Me); err != nil {
 		return nil, nil, err

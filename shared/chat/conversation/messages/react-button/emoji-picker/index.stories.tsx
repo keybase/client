@@ -17,10 +17,12 @@ class WithFilter extends React.Component<
       <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <NewInput onChangeText={filter => this.setState({filter})} />
         <ChooseEmoji
+          addEmoji={action('addEmoji')}
           onChoose={action('onChoose')}
           width={300}
           filter={this.state.filter}
           topReacjis={this.props.topReacjis}
+          hideFrequentEmoji={false}
         />
       </Box2>
     )
@@ -31,7 +33,13 @@ const load = () =>
   storiesOf('Chat/Emoji picker', module)
     .addDecorator(story => <Box style={{height: 400, overflow: 'hidden', width: 300}}>{story()}</Box>)
     .add('Default', () => (
-      <ChooseEmoji onChoose={action('onChoose')} width={300} topReacjis={defaultTopReacjis} />
+      <ChooseEmoji
+        addEmoji={action('addEmoji')}
+        onChoose={action('onChoose')}
+        width={300}
+        topReacjis={defaultTopReacjis}
+        hideFrequentEmoji={false}
+      />
     ))
     .add('Custom filter', () => <WithFilter topReacjis={defaultTopReacjis} />)
     .add('No top reacjis', () => <WithFilter topReacjis={[]} />)

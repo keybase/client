@@ -13,6 +13,7 @@ import * as WaitingConstants from '../constants/waiting'
 import * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
+import {useActivityLevels} from './common'
 import flags from '../util/feature-flags'
 
 type OwnProps = {}
@@ -51,6 +52,8 @@ const Reloadable = (props: ReloadableProps) => {
 
   // subscribe to teams changes
   useTeamsSubscribe()
+  // reload activity levels
+  useActivityLevels(true)
 
   const headerActions = useHeaderActions()
 

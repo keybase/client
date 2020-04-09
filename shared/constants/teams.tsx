@@ -188,7 +188,7 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
 export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, username: ''}
 
 const emptyState: Types.State = {
-  activityLevels: {channels: new Map(), teams: new Map()},
+  activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
@@ -257,6 +257,7 @@ export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
   joinTeam: false,
   listFirst: false,
   manageBots: false,
+  manageEmojis: false,
   manageMembers: false,
   manageSubteams: false,
   pinMessage: false,
@@ -876,6 +877,7 @@ const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Types.Team
     joinTeam: role === 'none' && implicitAdmin,
     listFirst: implicitAdmin,
     manageBots: isAdminOrAbove || implicitAdmin,
+    manageEmojis: isWriterOrAbove,
     manageMembers: isAdminOrAbove || implicitAdmin,
     manageSubteams: isAdminOrAbove || implicitAdmin,
     pinMessage: isWriterOrAbove,

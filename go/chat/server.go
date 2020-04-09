@@ -877,9 +877,78 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 	return chat1.NewMessageBodyWithText(newBody), nil
 }
 
+var quickReactionPattern = regexp.MustCompile(`(?:^\+:)([^\s]+)(?::)$`)
+
+func (h *Server) isQuickReaction(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	body string) (reaction string, msgID chat1.MessageID, ok bool) {
+	body = strings.TrimSpace(body)
+	if !(strings.HasPrefix(body, "+:") && strings.HasSuffix(body, ":")) {
+		return "", 0, false
+	}
+	hits := quickReactionPattern.FindStringSubmatch(body)
+	if len(hits) < 2 {
+		return "", 0, false
+	}
+	tryStock := func() (string, bool) {
+		if h.G().EmojiSource.IsStockEmoji(hits[1]) {
+			return ":" + hits[1] + ":", true
+		}
+		return "", false
+	}
+	tryCustom := func() (string, bool) {
+		emojis, err := h.G().EmojiSource.Harvest(ctx, body, uid, convID, types.EmojiHarvestModeFast)
+		if err != nil {
+			h.Debug(ctx, "isQuickReaction: failed to harvest: %s", err)
+			return "", false
+		}
+		if len(emojis) != 1 {
+			return "", false
+		}
+		return ":" + emojis[0].Alias + ":", true
+	}
+	var hit *string
+	if reaction, ok = tryStock(); ok {
+		hit = new(string)
+		*hit = reaction
+	}
+	if hit == nil {
+		if reaction, ok = tryCustom(); ok {
+			hit = new(string)
+			*hit = reaction
+		}
+	}
+	if hit == nil {
+		return "", 0, false
+	}
+	conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		h.Debug(ctx, "isQuickReaction: failed to get conv: %s", err)
+		return "", 0, false
+	}
+	return *hit, conv.MaxVisibleMsgID(), true
+}
+
 func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostTextNonblock")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	reaction, msgID, ok := h.isQuickReaction(ctx, uid, arg.ConversationID, arg.Body)
+	if ok {
+		h.Debug(ctx, "PostTextNonblock: detected quick reaction")
+		return h.PostReactionNonblock(ctx, chat1.PostReactionNonblockArg{
+			ConversationID:   arg.ConversationID,
+			TlfName:          arg.TlfName,
+			TlfPublic:        arg.TlfPublic,
+			Supersedes:       msgID,
+			Body:             reaction,
+			OutboxID:         arg.OutboxID,
+			ClientPrev:       arg.ClientPrev,
+			IdentifyBehavior: arg.IdentifyBehavior,
+		})
+	}
 
 	var parg chat1.PostLocalNonblockArg
 	parg.SessionID = arg.SessionID
@@ -3644,6 +3713,24 @@ func (h *Server) RefreshParticipants(ctx context.Context, convID chat1.Conversat
 	}
 	h.G().ParticipantsSource.GetWithNotifyNonblock(ctx, uid, convID, types.InboxSourceDataSourceAll)
 	return nil
+}
+
+func (h *Server) GetParticipants(ctx context.Context, convID chat1.ConversationID) (participants []chat1.ConversationLocalParticipant, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetParticipants")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return nil, err
+	}
+	uids, err := h.G().ParticipantsSource.Get(ctx, uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return nil, err
+	}
+	participants, err = h.G().ParticipantsSource.GetParticipantsFromUids(ctx, uids)
+	if err != nil {
+		return nil, err
+	}
+	return participants, nil
 }
 
 func (h *Server) GetLastActiveAtLocal(ctx context.Context, arg chat1.GetLastActiveAtLocalArg) (lastActiveAt gregor1.Time, err error) {

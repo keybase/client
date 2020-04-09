@@ -3237,6 +3237,10 @@
         {
           "type": "boolean",
           "name": "manageBots"
+        },
+        {
+          "type": "boolean",
+          "name": "manageEmojis"
         }
       ]
     },

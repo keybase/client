@@ -740,6 +740,8 @@ export type TypedActionsMap = {
   'profile:updateProofText': profile.UpdateProofTextPayload
   'profile:updateSigID': profile.UpdateSigIDPayload
   'profile:updateUsername': profile.UpdateUsernamePayload
+  'profile:wotVouch': profile.WotVouchPayload
+  'profile:wotVouchSetError': profile.WotVouchSetErrorPayload
   'provision:startProvision': provision.StartProvisionPayload
   'provision:provisionError': provision.ProvisionErrorPayload
   'provision:submitUsername': provision.SubmitUsernamePayload
@@ -1011,6 +1013,7 @@ export type TypedActionsMap = {
   'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
   'teams:manageChatChannels': teams.ManageChatChannelsPayload
   'teams:teamSeen': teams.TeamSeenPayload
+  'teams:getActivityForTeams': teams.GetActivityForTeamsPayload
   'teams:setActivityLevels': teams.SetActivityLevelsPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload

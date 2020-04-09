@@ -388,7 +388,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(m libkb.MetaContext) ([]
 		return nil, err
 	}
 
-	secretRetriever := libkb.NewSecretStore(c.G(), c.me.GetNormalizedName())
+	secretRetriever := libkb.NewSecretStore(m, c.me.GetNormalizedName())
 
 	for _, block := range blocks {
 		parg := m.SecretKeyPromptArg(libkb.SecretKeyArg{}, "passphrase change")
@@ -416,7 +416,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeysLossy(m libkb.MetaContext
 		return nil, 0, err
 	}
 
-	secretRetriever := libkb.NewSecretStore(c.G(), c.me.GetNormalizedName())
+	secretRetriever := libkb.NewSecretStore(m, c.me.GetNormalizedName())
 
 	for _, block := range blocks {
 		key, err := block.UnlockNoPrompt(m, secretRetriever)

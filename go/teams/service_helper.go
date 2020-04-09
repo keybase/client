@@ -1207,199 +1207,11 @@ func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInte
 	})
 }
 
-func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) error {
+func AcceptServerTrustInvite(ctx context.Context, g *libkb.GlobalContext, token string) error {
 	mctx := libkb.NewMetaContext(ctx, g)
 	arg := apiArg("team/token")
 	arg.Args.Add("token", libkb.S{Val: token})
 	_, err := mctx.G().API.Post(mctx, arg)
-	return err
-}
-
-func parseAndAcceptSeitanTokenV1(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
-	seitan, err := ParseIKeyFromString(tok)
-	if err != nil {
-		g.Log.CDebugf(ctx, "ParseIKeyFromString error: %s", err)
-		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
-		return false, libkb.TeamInviteBadTokenError{}
-	}
-	err = AcceptSeitan(ctx, g, seitan)
-	return true, err
-}
-
-func parseAndAcceptSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, tok string) (wasSeitan bool, err error) {
-	seitan, err := ParseIKeyV2FromString(tok)
-	if err != nil {
-		g.Log.CDebugf(ctx, "ParseIKeyV2FromString error: %s", err)
-		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
-		return false, libkb.TeamInviteBadTokenError{}
-	}
-	err = AcceptSeitanV2(ctx, g, seitan)
-	return true, err
-
-}
-
-func parseAndAcceptSeitanTokenInvitelink(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, tok string) (wasSeitan bool, err error) {
-	seitan, err := ParseIKeyInvitelinkFromString(tok)
-	if err != nil {
-		g.Log.CDebugf(ctx, "ParseIKeyInvitelinkFromString error: %s", err)
-		g.Log.CDebugf(ctx, "returning TeamInviteBadToken instead")
-		return false, libkb.TeamInviteBadTokenError{}
-	}
-	err = AcceptSeitanInvitelink(ctx, g, ui, seitan)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-
-}
-
-func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, tok string) (wasSeitan bool, err error) {
-	seitanVersion, err := ParseSeitanVersion(tok)
-	if err != nil {
-		return wasSeitan, err
-	}
-	switch seitanVersion {
-	case SeitanVersion1:
-		wasSeitan, err = parseAndAcceptSeitanTokenV1(ctx, g, tok)
-	case SeitanVersion2:
-		wasSeitan, err = parseAndAcceptSeitanTokenV2(ctx, g, tok)
-	case SeitanVersionInvitelink:
-		wasSeitan, err = parseAndAcceptSeitanTokenInvitelink(ctx, g, ui, tok)
-	default:
-		wasSeitan = false
-		err = errors.New("Invalid SeitanVersion")
-	}
-	return wasSeitan, err
-}
-
-func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
-	mctx := libkb.NewMetaContext(ctx, g)
-	uv, err := g.GetMeUV(ctx)
-	if err != nil {
-		return err
-	}
-
-	sikey, err := ikey.GenerateSIKey()
-	if err != nil {
-		return err
-	}
-
-	inviteID, err := sikey.GenerateTeamInviteID()
-	if err != nil {
-		return err
-	}
-
-	unixNow := time.Now().Unix()
-	_, encoded, err := sikey.GenerateAcceptanceKey(uv.Uid, uv.EldestSeqno, unixNow)
-	if err != nil {
-		return err
-	}
-
-	g.Log.CDebugf(ctx, "seitan invite ID: %v", inviteID)
-
-	arg := apiArg("team/seitan")
-	arg.Args.Add("akey", libkb.S{Val: encoded})
-	arg.Args.Add("now", libkb.HTTPTime{Val: keybase1.Time(unixNow)})
-	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
-	_, err = mctx.G().API.Post(mctx, arg)
-	return err
-}
-
-func ProcessSeitanV2(ikey SeitanIKeyV2, uv keybase1.UserVersion, kbtime keybase1.Time) (sig string,
-	inviteID SCTeamInviteID, err error) {
-
-	sikey, err := ikey.GenerateSIKey()
-	if err != nil {
-		return sig, inviteID, err
-	}
-
-	inviteID, err = sikey.GenerateTeamInviteID()
-	if err != nil {
-		return sig, inviteID, err
-	}
-
-	_, encoded, err := sikey.GenerateSignature(uv.Uid, uv.EldestSeqno, inviteID, kbtime)
-	if err != nil {
-		return sig, inviteID, err
-	}
-
-	return encoded, inviteID, nil
-}
-
-func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKeyV2) error {
-	mctx := libkb.NewMetaContext(ctx, g)
-	uv, err := g.GetMeUV(ctx)
-	if err != nil {
-		return err
-	}
-
-	now := keybase1.ToTime(time.Now())
-	encoded, inviteID, err := ProcessSeitanV2(ikey, uv, now)
-	if err != nil {
-		return err
-	}
-
-	g.Log.CDebugf(ctx, "seitan invite ID: %v", inviteID)
-
-	arg := apiArg("team/seitan_v2")
-	arg.Args.Add("sig", libkb.S{Val: encoded})
-	arg.Args.Add("now", libkb.HTTPTime{Val: now})
-	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
-	_, err = mctx.G().API.Post(mctx, arg)
-	return err
-}
-
-func AcceptSeitanInvitelink(ctx context.Context, g *libkb.GlobalContext,
-	ui keybase1.TeamsUiInterface,
-	ikey keybase1.SeitanIKeyInvitelink) error {
-	mctx := libkb.NewMetaContext(ctx, g)
-	uv, err := g.GetMeUV(ctx)
-	if err != nil {
-		return err
-	}
-
-	sikey, err := GenerateSIKeyInvitelink(ikey)
-	if err != nil {
-		return err
-	}
-
-	inviteID, err := sikey.GenerateTeamInviteID()
-	if err != nil {
-		return err
-	}
-
-	now := time.Now()
-	_, encoded, err := GenerateSeitanInvitelinkAcceptanceKey(sikey[:], uv.Uid, uv.EldestSeqno, now.Unix())
-	if err != nil {
-		return err
-	}
-
-	g.Log.CDebugf(ctx, "seitan invite ID: %v", inviteID)
-
-	teamInviteID, err := inviteID.TeamInviteID()
-	if err != nil {
-		return err
-	}
-	details, err := GetInviteLinkDetails(mctx, teamInviteID)
-	if err != nil {
-		g.Log.CDebugf(ctx, "failed to get invite details for %v: %v", inviteID, err)
-		return err
-	}
-	accepted, err := ui.ConfirmInviteLinkAccept(mctx.Ctx(), keybase1.ConfirmInviteLinkAcceptArg{Details: details})
-	if err != nil {
-		g.Log.CDebugf(ctx, "failed to confirm invite link %v: %v", inviteID, err)
-		return err
-	}
-	if !accepted {
-		g.Log.CDebugf(ctx, "invite link %v not accepted", inviteID)
-		return errors.New("invite acceptance not confirmed")
-	}
-
-	arg := apiArg("team/seitan_invitelink")
-	arg.Args.Add("akey", libkb.S{Val: encoded})
-	arg.Args.Add("unix_timestamp", libkb.U{Val: uint64(now.Unix())})
-	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
-	_, err = mctx.G().API.Post(mctx, arg)
 	return err
 }
 
@@ -1573,16 +1385,18 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, tokenOrName string) (keybase1.TeamAcceptOrRequestResult, error) {
 	g.Log.CDebugf(ctx, "trying seitan token")
 
+	mctx := libkb.NewMetaContext(ctx, g)
+
 	// If token looks at all like Seitan, don't pass to functions that might log or send to server.
-	maybeSeitan, keepSecret := ParseSeitanTokenFromPaste(tokenOrName)
-	if keepSecret {
-		g.Log.CDebugf(ctx, "found seitan-ish token")
-		wasSeitan, err := ParseAndAcceptSeitanToken(ctx, g, ui, maybeSeitan)
+	maybeSeitanToken, isSeitany := ParseSeitanTokenFromPaste(tokenOrName)
+	if isSeitany {
+		g.Log.CDebugf(ctx, "found seitan-y token")
+		wasSeitan, err := ParseAndAcceptSeitanToken(mctx, ui, maybeSeitanToken)
 		return keybase1.TeamAcceptOrRequestResult{WasSeitan: wasSeitan}, err
 	}
 
 	g.Log.CDebugf(ctx, "trying email-style invite")
-	err := AcceptInvite(ctx, g, tokenOrName)
+	err := AcceptServerTrustInvite(ctx, g, tokenOrName)
 	if err == nil {
 		return keybase1.TeamAcceptOrRequestResult{
 			WasToken: true,
@@ -2093,6 +1907,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.ChangeTarsDisabled = isAdmin || isImplicitAdmin
 	ret.EditTeamDescription = isAdmin || isImplicitAdmin
 	ret.ManageBots = isAdmin || isImplicitAdmin
+	ret.ManageEmojis = isWriter
 	ret.SetMemberShowcase, err = canMemberShowcase()
 	if err != nil {
 		return ret, err

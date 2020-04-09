@@ -137,7 +137,8 @@ this device's keys. To do that from another device, use 'keybase device remove'.
 	}
 
 	// If the user has PGP secret keys in the SKBKeyring, print an additional warning.
-	keyring, err := libkb.LoadSKBKeyring(libkb.NewNormalizedUsername(username), c.G())
+	mctx := libkb.NewMetaContextTODO(c.G())
+	keyring, err := libkb.LoadSKBKeyring(mctx, libkb.NewNormalizedUsername(username))
 	if err != nil {
 		return "", err
 	}

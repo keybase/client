@@ -129,7 +129,7 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 		stored.Mapping = make(map[string]chat1.EmojiRemoteSource)
 	}
 	if _, ok := stored.Mapping[alias]; ok && !allowOverwrite {
-		return res, fmt.Errorf("%q already exists, must specify --allow-overwrite to edit", alias)
+		return res, errors.New("alias already exists, must specify --allow-overwrite to edit")
 	}
 
 	sender := NewBlockingSender(s.G(), NewBoxer(s.G()), s.ri)
@@ -170,8 +170,8 @@ func (s *DevConvEmojiSource) validateShortName(shortName string) error {
 		return errors.New("cannot use existing stock emoji short name")
 	}
 	if len(shortName) > maxShortNameLength || len(shortName) < minShortNameLength {
-		return fmt.Errorf("short name %q (length %d) not within bounds %d,%d",
-			shortName, len(shortName), minShortNameLength, maxShortNameLength)
+		return fmt.Errorf("short name (length %d) not within bounds %d,%d",
+			len(shortName), minShortNameLength, maxShortNameLength)
 	}
 	if strings.Contains(shortName, "#") {
 		return errors.New("invalid character in emoji alias")
@@ -281,7 +281,7 @@ func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, conv
 			Time:     gregor1.ToTime(s.G().GetClock().Now()),
 		})
 	} else {
-		return res, fmt.Errorf("%q is not a valid existing custom emoji or stock emoji", existingAlias)
+		return res, fmt.Errorf("alias is not a valid existing custom emoji or stock emoji")
 	}
 	if stored.Mapping == nil {
 		stored.Mapping = make(map[string]chat1.EmojiRemoteSource)
@@ -342,7 +342,7 @@ func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID
 	}
 	delete(stored.Mapping, alias)
 	// take out any aliases
-	if source.IsMessage() {
+	if source.IsMessage() && !source.Message().IsAlias {
 		for existingAlias, existingSource := range stored.Mapping {
 			if existingSource.IsMessage() && existingSource.Message().IsAlias &&
 				existingSource.Message().MsgID == source.Message().MsgID {
@@ -387,24 +387,24 @@ func (s *DevConvEmojiSource) ToggleAnimations(ctx context.Context, uid gregor1.U
 }
 
 func (s *DevConvEmojiSource) RemoteToLocalSource(ctx context.Context, uid gregor1.UID,
-	remote chat1.EmojiRemoteSource, noAnim bool) (res chat1.EmojiLoadSource, err error) {
+	remote chat1.EmojiRemoteSource) (source chat1.EmojiLoadSource, noAnimSource chat1.EmojiLoadSource, err error) {
 	typ, err := remote.Typ()
 	if err != nil {
-		return res, err
+		return source, noAnimSource, err
 	}
-	if !noAnim {
-		// check global config as well
-		noAnim = s.animationsDisabled(ctx, uid)
-	}
+	noAnim := s.animationsDisabled(ctx, uid)
 	switch typ {
 	case chat1.EmojiRemoteSourceTyp_MESSAGE:
 		msg := remote.Message()
-		url := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false, noAnim)
-		return chat1.NewEmojiLoadSourceWithHttpsrv(url), nil
+		sourceURL := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false, noAnim)
+		noAnimSourceURL := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false, true)
+		return chat1.NewEmojiLoadSourceWithHttpsrv(sourceURL),
+			chat1.NewEmojiLoadSourceWithHttpsrv(noAnimSourceURL), nil
 	case chat1.EmojiRemoteSourceTyp_STOCKALIAS:
-		return chat1.NewEmojiLoadSourceWithStr(remote.Stockalias().Text), nil
+		ret := chat1.NewEmojiLoadSourceWithStr(remote.Stockalias().Text)
+		return ret, ret, nil
 	default:
-		return res, errors.New("unknown remote source for local source")
+		return source, noAnimSource, errors.New("unknown remote source for local source")
 	}
 }
 
@@ -488,7 +488,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 					continue
 				}
 				var creationInfo *chat1.EmojiCreationInfo
-				source, err := s.RemoteToLocalSource(ctx, uid, storedEmoji, false)
+				source, noAnimSource, err := s.RemoteToLocalSource(ctx, uid, storedEmoji)
 				if err != nil {
 					s.Debug(ctx, "Get: skipping emoji on remote-to-local error: %s", err)
 					continue
@@ -505,6 +505,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 				emoji := chat1.Emoji{
 					Alias:        alias,
 					Source:       source,
+					NoAnimSource: noAnimSource,
 					RemoteSource: storedEmoji,
 					IsCrossTeam:  isCrossTeam,
 					CreationInfo: creationInfo,
@@ -805,7 +806,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 }
 
 func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid gregor1.UID,
-	convID chat1.ConversationID, messageType chat1.MessageType, emojis []chat1.HarvestedEmoji, noAnim bool) string {
+	convID chat1.ConversationID, messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	if len(emojis) == 0 {
 		return body
 	}
@@ -831,7 +832,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 	isReacji := messageType == chat1.MessageType_REACTION
 	for _, match := range matches {
 		if source, ok := emojiMap[match.name]; ok {
-			localSource, err := s.RemoteToLocalSource(ctx, uid, source, noAnim)
+			source, noAnimSource, err := s.RemoteToLocalSource(ctx, uid, source)
 			if err != nil {
 				s.Debug(ctx, "Decorate: failed to get local source: %s", err)
 				continue
@@ -839,10 +840,11 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 			body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
 				match.position[1]-match.position[0],
 				chat1.NewUITextDecorationWithEmoji(chat1.Emoji{
-					IsBig:    bigEmoji,
-					IsReacji: isReacji,
-					Alias:    match.name,
-					Source:   localSource,
+					IsBig:        bigEmoji,
+					IsReacji:     isReacji,
+					Alias:        match.name,
+					Source:       source,
+					NoAnimSource: noAnimSource,
 				}))
 			offset += added
 		}

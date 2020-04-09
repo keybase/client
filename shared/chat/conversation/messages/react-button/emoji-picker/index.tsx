@@ -71,6 +71,7 @@ const singleEmojiWidth = isMobile ? 32 : 26
 const emojiPadding = 5
 const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
 const maxEmojiSearchResults = 50
+const notFoundHeight = 224
 
 type Row = {emojis: Array<EmojiData>; key: string}
 type Section = _Section<
@@ -83,8 +84,10 @@ type Section = _Section<
 >
 
 type Props = {
+  addEmoji: () => void
   topReacjis: Array<RPCTypes.UserReacji>
   filter?: string
+  hideFrequentEmoji: boolean
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
   skinTone?: Types.EmojiSkinTone
@@ -109,7 +112,7 @@ const emojiGroupsToEmojiArrayArray = (
   emojiGroups.map(emojiGroup => ({
     emojis:
       emojiGroup.emojis
-        ?.map(e => RPCToEmojiData(e))
+        ?.map(e => RPCToEmojiData(e, false))
         .sort((a, b) => a.short_name.localeCompare(b.short_name)) || [],
     name: emojiGroup.name,
   }))
@@ -167,6 +170,7 @@ const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWid
 const getSectionsAndBookmarks = (
   width: number,
   topReacjis: Array<RPCTypes.UserReacji>,
+  hideTopReacjis: boolean,
   customEmojiGroups?: RPCChatGen.EmojiGroup[]
 ) => {
   if (!width) {
@@ -177,7 +181,7 @@ const getSectionsAndBookmarks = (
   const sections: Array<Section> = []
   const bookmarks: Array<Bookmark> = []
 
-  if (topReacjis.length) {
+  if (topReacjis.length && !hideTopReacjis) {
     const frequentSection = getFrequentSection(topReacjis, customEmojiGroups || emptyArray, emojisPerLine)
     bookmarks.push({
       coveredSectionKeys: new Set([frequentSection.key]),
@@ -210,6 +214,12 @@ const getSectionsAndBookmarks = (
     })
     bookmarks.push(bookmark)
   }
+
+  sections.push({
+    data: [],
+    key: 'not-found',
+    title: 'not-found',
+  })
 
   return {bookmarks, sections}
 }
@@ -299,10 +309,26 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     200
   )
 
+  private makeNotFound = () => (
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.notFoundContainer}>
+      <Kb.Icon type="icon-empty-emoji-126-96" />
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+        <Kb.Text type="BodySmall" center={true}>
+          Still haven’t found what you’re
+        </Kb.Text>
+        <Kb.Text type="BodySmall" center={true}>
+          looking for?
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.Button mode="Secondary" label="Add custom emoji" small={true} onClick={this.props.addEmoji} />
+    </Kb.Box2>
+  )
+
   render() {
     const {bookmarks, sections} = getSectionsAndBookmarks(
       this.props.width,
       this.props.topReacjis,
+      this.props.hideFrequentEmoji,
       this.props.customEmojiGroups
     )
     const emojisPerLine = getEmojisPerLine(this.props.width)
@@ -318,24 +344,21 @@ class EmojiPicker extends React.PureComponent<Props, State> {
       // so I'm not adding a ScrollView here. If we increase that later check
       // if this can sometimes overflow the screen here & add a ScrollView
       return (
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          centerChildren={true}
-          style={Styles.globalStyles.flexGrow}
-          alignItems="flex-start"
-        >
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
-          >
-            {this.getSectionHeader('Search results')}
-            {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
-            {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
-              makeEmojiPlaceholder(index)
-            )}
+        <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexGrow}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} alignItems="flex-start">
+            <Kb.Box2
+              direction="horizontal"
+              fullWidth={true}
+              style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
+            >
+              {this.getSectionHeader('Search results')}
+              {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
+              {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
+                makeEmojiPlaceholder(index)
+              )}
+            </Kb.Box2>
           </Kb.Box2>
+          {this.makeNotFound()}
         </Kb.Box2>
       )
     }
@@ -354,14 +377,18 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           <Kb.SectionList
             ref={this.sectionListRef}
             getItemHeight={() => emojiWidthWithPadding}
-            getSectionHeaderHeight={() => 32}
+            getSectionHeaderHeight={sectionIndex =>
+              sections[sectionIndex].key === 'not-found' ? notFoundHeight : 32
+            }
             keyboardShouldPersistTaps="handled"
             initialNumToRender={14}
             sections={sections}
             onSectionChange={this.onSectionChange}
             stickySectionHeadersEnabled={Styles.isMobile}
             renderItem={({item}: {item: Row; index: number}) => this.getEmojiRow(item, emojisPerLine)}
-            renderSectionHeader={({section}) => this.getSectionHeader(section.title)}
+            renderSectionHeader={({section}) =>
+              section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)
+            }
           />
         </Kb.Box2>
       </>
@@ -393,8 +420,11 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
       },
       emoji: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
         borderRadius: 2,
-        padding: emojiPadding,
+        height: emojiWidthWithPadding,
+        justifyContent: 'center',
         width: emojiWidthWithPadding,
       },
       emojiPlaceholder: {
@@ -407,6 +437,11 @@ const styles = Styles.styleSheetCreate(
       },
       flexWrap: {
         flexWrap: 'wrap',
+      },
+      notFoundContainer: {
+        height: notFoundHeight,
+        justifyContent: 'space-between',
+        ...Styles.padding(Styles.globalMargins.medium, 0),
       },
       sectionHeader: {
         alignItems: 'center',
