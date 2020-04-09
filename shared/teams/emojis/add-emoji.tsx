@@ -91,14 +91,27 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
 
   const addFiles = React.useCallback(
     (paths: Array<string>) => {
+      const pathsToAdd = paths.reduce(
+        ({deduplicated, set}, path) => {
+          if (!set.has(path)) {
+            set.add(path)
+            deduplicated.push(path)
+          }
+          return {deduplicated, set}
+        },
+        {
+          deduplicated: [] as Array<string>,
+          set: new Set<string>(filePaths),
+        }
+      ).deduplicated
       setAliasMap(
-        paths.reduce(
+        pathsToAdd.reduce(
           (map: Map<string, string>, path) =>
             map.get(path) ? map : new Map([...map, [path, filePathToDefaultAlias(path)]]),
           aliasMap
         )
       )
-      setFilePaths([...filePaths, ...paths])
+      setFilePaths([...filePaths, ...pathsToAdd])
     },
     [filePaths, aliasMap, setFilePaths]
   )
@@ -106,10 +119,10 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
 
   const removeFilePath = React.useCallback(
     (toRemove: Set<string> | string) =>
-      setFilePaths(filePaths =>
+      setFilePaths(fps =>
         typeof toRemove === 'string'
-          ? filePaths.filter(filePath => toRemove !== filePath)
-          : filePaths.filter(filePath => !toRemove.has(filePath))
+          ? fps.filter(filePath => toRemove !== filePath)
+          : fps.filter(filePath => !toRemove.has(filePath))
       ),
     [setFilePaths]
   )
@@ -122,9 +135,10 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
         alias: aliasMap.get(path) || '',
         error: errors.get(path) || '',
         onChangeAlias: (newAlias: string) => setAliasMap(new Map([...aliasMap, [path, newAlias]])),
+        onRemove: () => removeFilePath(path),
         path,
       })),
-    [errors, filePaths, aliasMap]
+    [errors, filePaths, aliasMap, removeFilePath]
   )
 
   const {bannerError, doAddEmojis, waitingAddEmojis} = useDoAddEmojis(
@@ -146,8 +160,6 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
   }
 }
 
-const debug = true
-
 export const AddEmojiModal = (props: Props) => {
   const {addFiles, bannerError, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} = useStuff(
     props.conversationIDKey,
@@ -159,14 +171,8 @@ export const AddEmojiModal = (props: Props) => {
       title="Add emoji"
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
-      footerButtonLabel={Styles.isMobile ? 'Choose Images' : debug ? 'Add for debug' : undefined}
-      footerButtonOnClick={
-        Styles.isMobile
-          ? pick
-          : debug
-          ? () => addFiles([...Array(20).keys()].map(() => '/private/tmp/hot-potato.gif'))
-          : undefined
-      }
+      footerButtonLabel={Styles.isMobile ? 'Choose Images' : undefined}
+      footerButtonOnClick={Styles.isMobile ? pick : undefined}
     >
       <AddEmojiPrompt addFiles={addFiles} />
     </Modal>
@@ -272,6 +278,7 @@ type EmojiToAdd = {
   alias: string
   error: string
   onChangeAlias: (newAlias: string) => void
+  onRemove: () => void
   path: string
 }
 
@@ -315,6 +322,7 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
         error={item.emojiToAdd.error}
         alias={item.emojiToAdd.alias}
         onChangeAlias={item.emojiToAdd.onChangeAlias}
+        onRemove={item.emojiToAdd.onRemove}
         small={true}
       />
     </Kb.Box2>
@@ -382,7 +390,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
 }
 
 const emojiToAddRowHeightNoError = Styles.isMobile ? 48 : 40
-const emojiToAddRowHeightWithError = Styles.isMobile ? 64 : 56
+const emojiToAddRowHeightWithError = Styles.isMobile ? 70 : 58
 
 const styles = Styles.styleSheetCreate(() => ({
   addEmojiIconContainer: Styles.platformStyles({
