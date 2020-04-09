@@ -252,13 +252,17 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 		return NewEmojiValidationErrorSimple(err, "unable to open file")
 	}
 	if finfo.IsDir() {
-		return NewEmojiValidationErrorJustError(errors.New("unable to use a directory for an emoji"))
+		return NewEmojiValidationErrorJustError(errors.New("unable to use a directory"))
 	} else if finfo.Size() > maxEmojiSize {
-		err := fmt.Errorf("emoji filesize too large, must be less than %s", humanize.Bytes(maxEmojiSize))
-		return NewEmojiValidationErrorJustError(err)
+		err := errors.New("filesize too large")
+		return NewEmojiValidationError(err,
+			fmt.Sprintf("emoji filesize too large, must be less than %s", humanize.Bytes(maxEmojiSize)),
+			err.Error())
 	} else if finfo.Size() < minEmojiSize {
-		err := fmt.Errorf("emoji filesize too small, must be greater than %s", humanize.Bytes(minEmojiSize))
-		return NewEmojiValidationErrorJustError(err)
+		err := errors.New("filesize too big")
+		return NewEmojiValidationError(err,
+			fmt.Sprintf("emoji filesize too small, must be greater than %s", humanize.Bytes(minEmojiSize)),
+			err.Error())
 	}
 
 	src, err := attachments.NewReadCloseResetter(ctx, s.G().GlobalContext, filename)
