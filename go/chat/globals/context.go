@@ -2,6 +2,7 @@ package globals
 
 import (
 	"context"
+	"sync"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
@@ -21,6 +22,7 @@ type localizerCancelableKeyTyp int
 type messageSkipsKeyTyp int
 type unboxModeKeyTyp int
 type emojiHarvesterKeyTyp int
+type ctxMutexKeyTyp int
 
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
@@ -33,6 +35,7 @@ var localizerCancelableKey localizerCancelableKeyTyp
 var messageSkipsKey messageSkipsKeyTyp
 var unboxModeKey unboxModeKeyTyp
 var emojiHarvesterKey emojiHarvesterKeyTyp
+var ctxMutexKey ctxMutexKeyTyp
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
@@ -92,29 +95,44 @@ func CtxModifyIdentifyNotifier(ctx context.Context, notifier types.IdentifyNotif
 
 func CtxAddRateLimit(ctx context.Context, rl []chat1.RateLimit) {
 	val := ctx.Value(rlKey)
-	if existingRL, ok := val.(map[string]chat1.RateLimit); ok {
-		for _, r := range rl {
-			existingRL[r.Name] = r
+	if l, ok := val.(sync.RWMutex); ok {
+		l.Lock()
+		defer l.Unlock()
+		val = ctx.Value(rlKey)
+		if existingRL, ok := val.(map[string]chat1.RateLimit); ok {
+			for _, r := range rl {
+				existingRL[r.Name] = r
+			}
 		}
 	}
 }
 
 func CtxRateLimits(ctx context.Context) (res []chat1.RateLimit) {
 	val := ctx.Value(rlKey)
-	if existingRL, ok := val.(map[string]chat1.RateLimit); ok {
-		for _, rl := range existingRL {
-			res = append(res, rl)
+	if l, ok := val.(sync.RWMutex); ok {
+		l.RLock()
+		defer l.RUnlock()
+		val := ctx.Value(rlKey)
+		if existingRL, ok := val.(map[string]chat1.RateLimit); ok {
+			for _, rl := range existingRL {
+				res = append(res, rl)
+			}
 		}
 	}
 	return res
 }
 
 func CtxAddMessageCacheSkips(ctx context.Context, convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
-	val := ctx.Value(messageSkipsKey)
-	if existingSkips, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); ok {
-		existingSkips[convID.ConvIDStr()] = MessageCacheSkip{
-			ConvID: convID,
-			Msgs:   append(existingSkips[convID.ConvIDStr()].Msgs, msgs...),
+	val := ctx.Value(rlKey)
+	if l, ok := val.(sync.RWMutex); ok {
+		l.Lock()
+		defer l.Unlock()
+		val := ctx.Value(messageSkipsKey)
+		if existingSkips, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); ok {
+			existingSkips[convID.ConvIDStr()] = MessageCacheSkip{
+				ConvID: convID,
+				Msgs:   append(existingSkips[convID.ConvIDStr()].Msgs, msgs...),
+			}
 		}
 	}
 }
@@ -125,10 +143,15 @@ type MessageCacheSkip struct {
 }
 
 func CtxMessageCacheSkips(ctx context.Context) (res []MessageCacheSkip) {
-	val := ctx.Value(messageSkipsKey)
-	if existingSkips, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); ok {
-		for _, skips := range existingSkips {
-			res = append(res, skips)
+	val := ctx.Value(rlKey)
+	if l, ok := val.(sync.RWMutex); ok {
+		l.RLock()
+		defer l.RUnlock()
+		val := ctx.Value(messageSkipsKey)
+		if existingSkips, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); ok {
+			for _, skips := range existingSkips {
+				res = append(res, skips)
+			}
 		}
 	}
 	return res
@@ -237,6 +260,10 @@ func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 	val = res.Value(upKey)
 	if _, ok := val.(types.UPAKFinder); !ok {
 		res = context.WithValue(res, upKey, g.CtxFactory.NewUPAKFinder())
+	}
+	val = res.Value(ctxMutexKey)
+	if _, ok := val.(sync.RWMutex); !ok {
+		res = context.WithValue(res, ctxMutexKey, sync.RWMutex{})
 	}
 	val = res.Value(rlKey)
 	if _, ok := val.(map[string]chat1.RateLimit); !ok {
