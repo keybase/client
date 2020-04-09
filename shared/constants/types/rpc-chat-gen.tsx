@@ -1138,9 +1138,9 @@ export enum UnfurlType {
   maps = 3,
 }
 export type AddBotConvSearchHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null}
-export type AddEmojiAliasRes = {readonly rateLimit?: RateLimit | null; readonly errorString?: String | null}
-export type AddEmojiRes = {readonly rateLimit?: RateLimit | null}
-export type AddEmojisRes = {readonly rateLimit?: RateLimit | null; readonly successFilenames?: Array<String> | null; readonly failedFilenames: {[key: string]: String}}
+export type AddEmojiAliasRes = {readonly rateLimit?: RateLimit | null; readonly error?: EmojiError | null}
+export type AddEmojiRes = {readonly rateLimit?: RateLimit | null; readonly error?: EmojiError | null}
+export type AddEmojisRes = {readonly rateLimit?: RateLimit | null; readonly successFilenames?: Array<String> | null; readonly failedFilenames: {[key: string]: EmojiError}}
 export type AdvertiseBotCommandsLocalRes = {readonly rateLimits?: Array<RateLimit> | null}
 export type AdvertiseBotCommandsRes = {readonly rateLimit?: RateLimit | null}
 export type AdvertiseCommandAPIParam = {readonly typ: String; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName: String}
@@ -1224,6 +1224,7 @@ export type EditTarget = {readonly messageID?: MessageID | null; readonly outbox
 export type Emoji = {readonly alias: String; readonly isBig: Boolean; readonly isReacji: Boolean; readonly isCrossTeam: Boolean; readonly source: EmojiLoadSource; readonly noAnimSource: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource; readonly creationInfo?: EmojiCreationInfo | null}
 export type EmojiContent = {readonly alias: String; readonly isCrossTeam: Boolean; readonly convID?: ConvIDStr | null; readonly messageID?: MessageID | null}
 export type EmojiCreationInfo = {readonly username: String; readonly time: Gregor1.Time}
+export type EmojiError = {readonly clidisplay: String; readonly uidisplay: String}
 export type EmojiFetchOpts = {readonly getCreationInfo: Boolean; readonly getAliases: Boolean; readonly onlyInTeam: Boolean}
 export type EmojiGroup = {readonly name: String; readonly emojis?: Array<Emoji> | null}
 export type EmojiLoadSource = {typ: EmojiLoadSourceTyp.httpsrv; httpsrv: String} | {typ: EmojiLoadSourceTyp.str; str: String}
