@@ -1044,6 +1044,7 @@ export type TypedActionsMap = {
   'users:updateBio': users.UpdateBioPayload
   'users:setUserBlocks': users.SetUserBlocksPayload
   'users:getBlockState': users.GetBlockStatePayload
+  'users:submitRevokeVouch': users.SubmitRevokeVouchPayload
   'users:updateBlockState': users.UpdateBlockStatePayload
   'users:wotReact': users.WotReactPayload
   'users:reportUser': users.ReportUserPayload

@@ -6,6 +6,8 @@ import * as UsersGen from './users-gen'
 import * as TeamBuildingGen from './team-building-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/users'
+import * as TrackerConstants from '../constants/tracker2'
+import * as Tracker2Gen from './tracker2-gen'
 import {TypedState} from '../util/container'
 import logger from '../logger'
 import {RPCError} from 'util/errors'
@@ -70,6 +72,26 @@ const refreshBlockList = async (action: TeamBuildingGen.SearchResultsLoadedPaylo
     usernames: action.payload.users.map(u => u.serviceMap['keybase'] || '').filter(Boolean),
   })
 
+const submitRevokeVouch = async (_: TypedState, action: UsersGen.SubmitRevokeVouchPayload) => {
+  try {
+    await RPCTypes.revokeRevokeSigsRpcPromise(
+      {sigIDQueries: [action.payload.proofID]},
+      Constants.wotReactWaitingKey
+    )
+    return Tracker2Gen.createLoad({
+      assertion: action.payload.voucheeName,
+      forceDisplay: false,
+      fromDaemon: false,
+      guiID: TrackerConstants.generateGUIID(),
+      ignoreCache: false,
+      inTracker: false,
+      reason: '',
+    })
+  } catch (e) {
+    logger.info('error revoking vouch', e)
+  }
+}
+
 const wotReact = async (action: UsersGen.WotReactPayload) => {
   await RPCTypes.wotWotReactRpcPromise(action.payload, Constants.wotReactWaitingKey)
 }
@@ -81,6 +103,7 @@ function* usersSaga() {
   yield* Saga.chainAction(UsersGen.getBlockState, getBlockState)
   yield* Saga.chainAction(UsersGen.reportUser, reportUser)
   yield* Saga.chainAction(UsersGen.wotReact, wotReact)
+  yield* Saga.chainAction2(UsersGen.submitRevokeVouch, submitRevokeVouch)
   yield* Saga.chainAction(TeamBuildingGen.searchResultsLoaded, refreshBlockList)
 }
 

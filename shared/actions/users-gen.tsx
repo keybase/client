@@ -8,6 +8,7 @@ export const getBio = 'users:getBio'
 export const getBlockState = 'users:getBlockState'
 export const reportUser = 'users:reportUser'
 export const setUserBlocks = 'users:setUserBlocks'
+export const submitRevokeVouch = 'users:submitRevokeVouch'
 export const updateBio = 'users:updateBio'
 export const updateBlockState = 'users:updateBlockState'
 export const updateBrokenState = 'users:updateBrokenState'
@@ -25,6 +26,7 @@ type _ReportUserPayload = {
   readonly convID: string | null
 }
 type _SetUserBlocksPayload = {readonly blocks: Array<RPCTypes.UserBlockArg>}
+type _SubmitRevokeVouchPayload = {readonly proofID: string; readonly voucheeName: string}
 type _UpdateBioPayload = {readonly userCard: RPCTypes.UserCard; readonly username: string}
 type _UpdateBlockStatePayload = {
   readonly blocks: Array<{username: string; chatBlocked: boolean; followBlocked: boolean}>
@@ -66,6 +68,13 @@ export const createUpdateBlockState = (payload: _UpdateBlockStatePayload): Updat
  * Sets user bio for use in one-on-one conversations
  */
 export const createUpdateBio = (payload: _UpdateBioPayload): UpdateBioPayload => ({payload, type: updateBio})
+/**
+ * revoke an attestation you previously made
+ */
+export const createSubmitRevokeVouch = (payload: _SubmitRevokeVouchPayload): SubmitRevokeVouchPayload => ({
+  payload,
+  type: submitRevokeVouch,
+})
 export const createGetBio = (payload: _GetBioPayload): GetBioPayload => ({payload, type: getBio})
 export const createUpdateBrokenState = (payload: _UpdateBrokenStatePayload): UpdateBrokenStatePayload => ({
   payload,
@@ -87,6 +96,10 @@ export type ReportUserPayload = {readonly payload: _ReportUserPayload; readonly 
 export type SetUserBlocksPayload = {
   readonly payload: _SetUserBlocksPayload
   readonly type: typeof setUserBlocks
+}
+export type SubmitRevokeVouchPayload = {
+  readonly payload: _SubmitRevokeVouchPayload
+  readonly type: typeof submitRevokeVouch
 }
 export type UpdateBioPayload = {readonly payload: _UpdateBioPayload; readonly type: typeof updateBio}
 export type UpdateBlockStatePayload = {
@@ -110,6 +123,7 @@ export type Actions =
   | GetBlockStatePayload
   | ReportUserPayload
   | SetUserBlocksPayload
+  | SubmitRevokeVouchPayload
   | UpdateBioPayload
   | UpdateBlockStatePayload
   | UpdateBrokenStatePayload
