@@ -2,6 +2,7 @@ package teams
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"testing"
@@ -264,7 +265,7 @@ func TestTeamInviteMaxUsesUnit(t *testing.T) {
 
 func makeTestSCForInviteLink() SCTeamInvite {
 	return SCTeamInvite{
-		Type: "seitan_invite_token",
+		Type: "invitelink",
 		Name: keybase1.TeamInviteName("test"),
 		ID:   NewInviteID(),
 	}
@@ -366,6 +367,31 @@ func TestTeamPlayerInviteLinksImplicitTeam(t *testing.T) {
 	requirePrecheckError(t, err)
 	require.Contains(t, err.Error(), "is new-style in implicit team")
 	require.Contains(t, err.Error(), inviteID)
+}
+
+func TestTeamPlayerNoInvitelinksForAdmins(t *testing.T) {
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	section := makeTestSCTeamSection(team)
+	invite := makeTestSCForInviteLink()
+	maxUses := keybase1.TeamInviteMaxUses(100)
+	invite.MaxUses = &maxUses
+	inviteID := invite.ID
+	section.Invites = &SCTeamInvites{
+		Admins: &[]SCTeamInvite{invite},
+	}
+	_, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		section, me, nil /* merkleRoot */)
+	requirePrecheckError(t, err)
+
+	var ie InviteError
+	require.True(t, errors.As(err, &ie))
+	require.Equal(t, inviteID, ie.id)
+
+	var ile InvitelinkBadRoleError
+	require.True(t, errors.As(err, &ile))
+	require.Equal(t, keybase1.TeamRole_ADMIN, ile.role)
 }
 
 func TestTeamPlayerInviteLinkBadAdds(t *testing.T) {
