@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"camlistore.org/pkg/images"
+	"github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -31,6 +32,40 @@ const (
 	maxEmojiSize       = 256 * 1000 // 256kb
 	animationKey       = "emojianimations"
 )
+
+type EmojiValidationError struct {
+	Underlying error
+	CLIDisplay string
+	UIDisplay  string
+}
+
+func (e *EmojiValidationError) Error() string {
+	return e.Underlying.Error()
+}
+
+func NewEmojiValidationError(err error, cliDisplay, uiDisplay string) *EmojiValidationError {
+	return &EmojiValidationError{
+		Underlying: err,
+		CLIDisplay: cliDisplay,
+		UIDisplay:  uiDisplay,
+	}
+}
+
+func NewEmojiValidationErrorSimple(err error, display string) *EmojiValidationError {
+	return &EmojiValidationError{
+		Underlying: err,
+		CLIDisplay: display,
+		UIDisplay:  display,
+	}
+}
+
+func NewEmojiValidationErrorJustError(err error) *EmojiValidationError {
+	return &EmojiValidationError{
+		Underlying: err,
+		CLIDisplay: err.Error(),
+		UIDisplay:  err.Error(),
+	}
+}
 
 type DevConvEmojiSource struct {
 	globals.Contextified
@@ -165,21 +200,25 @@ func (s *DevConvEmojiSource) normalizeShortName(shortName string) string {
 	return strings.ReplaceAll(shortName, ":", "") // drop any colons from alias
 }
 
-func (s *DevConvEmojiSource) validateShortName(shortName string) error {
+func (s *DevConvEmojiSource) validateShortName(shortName string) *EmojiValidationError {
 	if s.IsStockEmoji(shortName) {
-		return errors.New("cannot use existing stock emoji short name")
+		return NewEmojiValidationErrorJustError(errors.New("cannot use existing stock emoji short name"))
 	}
-	if len(shortName) > maxShortNameLength || len(shortName) < minShortNameLength {
-		return fmt.Errorf("short name (length %d) not within bounds %d,%d",
-			len(shortName), minShortNameLength, maxShortNameLength)
+	if len(shortName) > maxShortNameLength {
+		return NewEmojiValidationErrorJustError(fmt.Errorf("short name is too long, must be less than %d",
+			maxShortNameLength))
+	}
+	if len(shortName) < minShortNameLength {
+		return NewEmojiValidationErrorJustError(fmt.Errorf("short name is too short, must be greater than %d",
+			minShortNameLength))
 	}
 	if strings.Contains(shortName, "#") {
-		return errors.New("invalid character in emoji alias")
+		return NewEmojiValidationErrorJustError(errors.New("invalid character in emoji alias"))
 	}
 	return nil
 }
 
-func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName, filename string) (string, error) {
+func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName, filename string) (string, *EmojiValidationError) {
 	err := s.validateShortName(shortName)
 	if err != nil {
 		return "", err
@@ -196,32 +235,38 @@ func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName,
 // validateFile validates the following:
 // file size
 // format
-func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) error {
+func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) *EmojiValidationError {
 	finfo, err := attachments.StatOSOrKbfsFile(ctx, s.G().GlobalContext, filename)
 	if err != nil {
-		return err
+		return NewEmojiValidationErrorSimple(err, "unable to open file")
 	}
 	if finfo.IsDir() {
-		return errors.New("invalid file type for emoji")
-	} else if finfo.Size() > maxEmojiSize || finfo.Size() < minEmojiSize {
-		return fmt.Errorf("emoji size %d not within bounds %d,%d", finfo.Size(), minEmojiSize, maxEmojiSize)
+		return NewEmojiValidationErrorJustError(errors.New("unable to use a directory for an emoji"))
+	} else if finfo.Size() > maxEmojiSize {
+		err := fmt.Errorf("emoji filesize too large, must be less than %s", humanize.Bytes(maxEmojiSize))
+		return NewEmojiValidationErrorJustError(err)
+	} else if finfo.Size() < minEmojiSize {
+		err := fmt.Errorf("emoji filesize too small, must be greater than %s", humanize.Bytes(minEmojiSize))
+		return NewEmojiValidationErrorJustError(err)
 	}
 
 	src, err := attachments.NewReadCloseResetter(ctx, s.G().GlobalContext, filename)
 	if err != nil {
-		return err
+		return NewEmojiValidationErrorSimple(err, "failed to process file")
 	}
 	defer func() { src.Close() }()
 	if _, _, err = images.Decode(src, nil); err != nil {
+		s.Debug(ctx, "validateFile: failed to decode image: %s", err)
 		if err := src.Reset(); err != nil {
-			return err
+			return NewEmojiValidationErrorSimple(err, "failed to process file")
 		}
 		g, err := gif.DecodeAll(src)
 		if err != nil {
-			return err
+			s.Debug(ctx, "validateFile: failed to decode gif: %s", err)
+			return NewEmojiValidationErrorSimple(err, "invalid image file")
 		}
 		if len(g.Image) == 0 {
-			return errors.New("no image frames in GIF")
+			return NewEmojiValidationErrorJustError(errors.New("no image frames in GIF"))
 		}
 	}
 	return nil
