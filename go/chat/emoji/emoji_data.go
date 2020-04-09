@@ -4,14 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 )
 
-// NOTE when update shared/package.json when updating this version
-const emojiDataJSONURL = "https://github.com/iamcal/emoji-data/raw/v4.1.0/emoji.json"
+const emojiDataJSONPath = "../../../shared/node_modules/emoji-datasource/emoji.json"
 
 // EmojiData json parse struct
 type EmojiData struct {
@@ -35,13 +33,7 @@ func UnifiedToChar(unified string) (string, error) {
 }
 
 func createEmojiDataCodeMap() (map[string]string, map[string][]string, error) {
-	res, err := http.Get(emojiDataJSONURL)
-	if err != nil {
-		return nil, nil, err
-	}
-	defer res.Body.Close()
-
-	emojiFile, err := ioutil.ReadAll(res.Body)
+    emojiFile, err := ioutil.ReadFile(emojiDataJSONPath)
 	if err != nil {
 		return nil, nil, err
 	}
