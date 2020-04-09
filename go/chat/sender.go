@@ -600,12 +600,12 @@ func (s *BlockingSender) handleEmojis(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return msg, err
 	}
+	if len(emojis) == 0 {
+		return msg, nil
+	}
 	ct := make(map[string]chat1.HarvestedEmoji, len(emojis))
 	for _, emoji := range emojis {
 		ct[emoji.Alias] = emoji
-	}
-	if len(ct) == 0 {
-		return msg, nil
 	}
 	s.Debug(ctx, "handleEmojis: found %d emojis", len(ct))
 	switch typ {

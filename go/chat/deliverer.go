@@ -139,15 +139,7 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 			} else {
 				obr.ReplyTo = &msg
 			}
-
-			// fill in emojis
-			var emojiText string
-			switch obr.MessageType() {
-			case chat1.MessageType_TEXT:
-				emojiText = obr.Msg.MessageBody.Text().Body
-			case chat1.MessageType_REACTION:
-				emojiText = obr.Msg.MessageBody.Reaction().Body
-			}
+			emojiText := obr.Msg.MessageBody.TextForDecoration()
 			if len(emojiText) > 0 {
 				if obr.Msg.Emojis, err = s.G().EmojiSource.Harvest(ctx, emojiText,
 					uid, convID, types.EmojiHarvestModeFast); err != nil {
