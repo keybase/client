@@ -241,7 +241,8 @@ const ServiceDecoration = (props: Props) => {
         : parsed.emoji.isReacji && !Styles.isMobile
         ? 18
         : 16,
-      parsed.emoji.isReacji
+      parsed.emoji.isReacji,
+      true
     )
   }
   return null

@@ -135,6 +135,7 @@ const WrapperMobile = (props: Props) => {
         />
       </Kb.Box2>
       <EmojiPicker
+        addEmoji={addEmoji}
         topReacjis={topReacjis}
         filter={filter}
         onChoose={onChoose}
@@ -204,6 +205,7 @@ export const EmojiPickerDesktop = (props: Props) => {
         <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
       </Kb.Box2>
       <EmojiPicker
+        addEmoji={addEmoji}
         topReacjis={topReacjis}
         filter={filter}
         onChoose={onChoose}

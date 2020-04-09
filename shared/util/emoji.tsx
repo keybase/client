@@ -34,6 +34,7 @@ export const renderEmoji = (
   emoji: RenderableEmoji,
   size: number,
   isReacji: boolean,
+  addTopMarginToCustom?: boolean,
   customEmojiSize?: number
 ) => {
   if (emoji.renderUrl) {
@@ -42,6 +43,7 @@ export const renderEmoji = (
         size={customEmojiSize ?? size}
         src={emoji.renderUrl}
         alias={!isReacji ? emoji.aliasForCustom : undefined}
+        addTopMargin={addTopMarginToCustom}
       />
     )
   }

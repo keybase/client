@@ -17,6 +17,7 @@ class WithFilter extends React.Component<
       <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <NewInput onChangeText={filter => this.setState({filter})} />
         <ChooseEmoji
+          addEmoji={action('addEmoji')}
           onChoose={action('onChoose')}
           width={300}
           filter={this.state.filter}
@@ -33,6 +34,7 @@ const load = () =>
     .addDecorator(story => <Box style={{height: 400, overflow: 'hidden', width: 300}}>{story()}</Box>)
     .add('Default', () => (
       <ChooseEmoji
+        addEmoji={action('addEmoji')}
         onChoose={action('onChoose')}
         width={300}
         topReacjis={defaultTopReacjis}
