@@ -40,10 +40,16 @@ type EmojiValidationError struct {
 }
 
 func (e *EmojiValidationError) Error() string {
+	if e == nil || e.Underlying == nil {
+		return ""
+	}
 	return e.Underlying.Error()
 }
 
 func (e *EmojiValidationError) Export() *chat1.EmojiError {
+	if e == nil {
+		return nil
+	}
 	return &chat1.EmojiError{
 		Clidisplay: e.CLIDisplay,
 		Uidisplay:  e.UIDisplay,
@@ -208,7 +214,7 @@ func (s *DevConvEmojiSource) normalizeShortName(shortName string) string {
 	return strings.ReplaceAll(shortName, ":", "") // drop any colons from alias
 }
 
-func (s *DevConvEmojiSource) validateShortName(shortName string) *EmojiValidationError {
+func (s *DevConvEmojiSource) validateShortName(shortName string) error {
 	if s.IsStockEmoji(shortName) {
 		return NewEmojiValidationErrorJustError(errors.New("cannot use existing stock emoji name"))
 	}
@@ -229,7 +235,7 @@ func (s *DevConvEmojiSource) validateShortName(shortName string) *EmojiValidatio
 	return nil
 }
 
-func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName, filename string) (string, *EmojiValidationError) {
+func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName, filename string) (string, error) {
 	err := s.validateShortName(shortName)
 	if err != nil {
 		return "", err
@@ -246,7 +252,7 @@ func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName,
 // validateFile validates the following:
 // file size
 // format
-func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) *EmojiValidationError {
+func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) error {
 	finfo, err := attachments.StatOSOrKbfsFile(ctx, s.G().GlobalContext, filename)
 	if err != nil {
 		return NewEmojiValidationErrorSimple(err, "unable to open file")
