@@ -102,7 +102,7 @@ const ContactRow = React.memo(
           item.pictureUri ? (
             <Kb.NativeImage style={styles.thumbnail} source={{uri: item.pictureUri}} />
           ) : (
-            undefined
+            <Kb.Avatar size={32} username="" />
           )
         }
       />
