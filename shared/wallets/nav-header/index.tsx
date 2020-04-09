@@ -17,10 +17,8 @@ type HeaderTitleProps = {
 
 export const HeaderTitle = (props: HeaderTitleProps) =>
   props.noDisclaimer ? null : (
-    <Kb.Box2 direction="horizontal" gap={Styles.isTablet ? 'small' : undefined} style={styles.accountArea}>
-      <Kb.Box2 alignItems="flex-end" direction="horizontal" style={styles.left}>
-        <AddAccount />
-      </Kb.Box2>
+    <Kb.Box2 direction="horizontal" style={styles.accountArea} fullWidth={true}>
+      <Kb.Box2 alignItems="flex-end" direction="horizontal" style={styles.left}></Kb.Box2>
       <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
         {props.loading ? (
           <Kb.ProgressIndicator type="Small" style={styles.loading} />
@@ -122,8 +120,8 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {...Styles.desktopStyles.windowDraggingClickable},
         isTablet: {
-          maxWidth: 180,
-          minWidth: 180,
+          maxWidth: 240,
+          minWidth: 240,
         },
       }),
       loading: {
