@@ -17,7 +17,7 @@ type HeaderTitleProps = {
 
 export const HeaderTitle = (props: HeaderTitleProps) =>
   props.noDisclaimer ? null : (
-    <Kb.Box2 direction="horizontal" style={styles.accountArea} fullWidth={true}>
+    <Kb.Box2 direction="horizontal" style={styles.accountArea}>
       <Kb.Box2 alignItems="flex-end" direction="horizontal" style={styles.left}></Kb.Box2>
       <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
         {props.loading ? (
