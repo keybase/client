@@ -160,8 +160,6 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
   }
 }
 
-const debug = true
-
 export const AddEmojiModal = (props: Props) => {
   const {addFiles, bannerError, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} = useStuff(
     props.conversationIDKey,
@@ -173,14 +171,8 @@ export const AddEmojiModal = (props: Props) => {
       title="Add emoji"
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
-      footerButtonLabel={Styles.isMobile ? 'Choose Images' : debug ? 'Add for debug' : undefined}
-      footerButtonOnClick={
-        Styles.isMobile
-          ? pick
-          : debug
-          ? () => addFiles([...Array(20).keys()].map(() => '/private/tmp/hot-potato.gif'))
-          : undefined
-      }
+      footerButtonLabel={Styles.isMobile ? 'Choose Images' : undefined}
+      footerButtonOnClick={Styles.isMobile ? pick : undefined}
     >
       <AddEmojiPrompt addFiles={addFiles} />
     </Modal>
