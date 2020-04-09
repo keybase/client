@@ -158,9 +158,7 @@ const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
       ...emojiIndex
         // @ts-ignore type wrong?
         .search(filter, {maxResults: maxEmojiSearchResults})
-        .map((res: {id: string}) => emojiNameMap[res.id])
-        // MUST sort this so its stable
-        .sort((a: any, b: any) => a.sort_order - b.sort_order),
+        .map((res: {id: string}) => emojiNameMap[res.id]),
     ]
   }
 }
