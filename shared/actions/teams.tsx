@@ -309,7 +309,10 @@ const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
           role: RPCTypes.TeamRole[role],
         })),
       },
-      Constants.addMemberWaitingKey(teamID, ...users.map(({assertion}) => assertion))
+      [
+        Constants.teamWaitingKey(teamID),
+        Constants.addMemberWaitingKey(teamID, ...users.map(({assertion}) => assertion)),
+      ]
     )
     if (res.notAdded && res.notAdded.length > 0) {
       const usernames = res.notAdded.map(elem => elem.username)

@@ -681,9 +681,10 @@ const load = () => {
             username: 'marcopolo',
           },
         ]}
+        waitingKey={null}
       />
     ))
-    .add('Go Button', () => <GoButton label="Start" onClick={Sb.action('onClick')} />)
+    .add('Go Button', () => <GoButton label="Start" onClick={Sb.action('onClick')} waitingKey={null} />)
 
   Sb.storiesOf('Team-Building/User Bubble', module)
     .addDecorator(provider)

@@ -29,7 +29,7 @@ export default connect(
       fullName: state.config.username === username ? 'You' : info.fullName,
       roleType: info.type,
       status: info.status,
-      teamID: teamID,
+      teamID,
       teamname,
       username: info.username,
       waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamID, username)),

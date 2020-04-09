@@ -23,6 +23,7 @@ type Props = {
   searchString: string
   rolePickerProps?: RolePickerProps
   goButtonLabel?: GoButtonLabel
+  waitingKey: string | null
 }
 
 const formatNameForUserBubble = (u: SelectedUser) => {
@@ -129,10 +130,15 @@ const TeamBox = (props: Props) => {
               <GoButton
                 label={props.goButtonLabel ?? 'Add'}
                 onClick={() => props.rolePickerProps && props.rolePickerProps.changeShowRolePicker(true)}
+                waitingKey={props.waitingKey}
               />
             </FloatingRolePicker>
           ) : (
-            <GoButton label={props.goButtonLabel ?? 'Start'} onClick={props.onFinishTeamBuilding} />
+            <GoButton
+              label={props.goButtonLabel ?? 'Start'}
+              onClick={props.onFinishTeamBuilding}
+              waitingKey={props.waitingKey}
+            />
           ))}
       </Kb.Box2>
     </Kb.Box2>
