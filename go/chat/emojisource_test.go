@@ -229,19 +229,35 @@ func TestEmojiSourceBasic(t *testing.T) {
 		}
 	}
 	require.True(t, checked)
+}
 
-	t.Logf("alias decorate test")
-	msgID = mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "yes! :my+1:",
-	}))
+func TestEmojiAliasDecorate(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestEmojiSourceBasic", 1)
+	defer ctc.cleanup()
 
-	msg, err := tc.Context().ConvSource.GetMessage(ctx, conv.Id, uid, msgID, nil, nil, true)
-	require.NoError(t, err)
-	require.True(t, msg.IsValid())
-	uimsg := utils.PresentMessageUnboxed(ctx, tc.Context(), msg, uid, conv.Id)
-	require.True(t, uimsg.IsValid())
-	require.NotNil(t, uimsg.Valid().DecoratedTextBody)
-	require.Equal(t, "yes! :+1::skin-tone-0:", *uimsg.Valid().DecoratedTextBody)
+	users := ctc.users()
+	uid := users[0].User.GetUID().ToBytes()
+	tc := ctc.world.Tcs[users[0].Username]
+	ctx := ctc.as(t, users[0]).startCtx
+
+	source := tc.Context().EmojiSource.(*DevConvEmojiSource)
+	decoratedText := source.Decorate(ctx, "this is a test! :my+1: <- thumbs up", uid, chat1.ConversationID{}, chat1.MessageType_TEXT, []chat1.HarvestedEmoji{
+		{
+			Alias:       "my+1",
+			IsBig:       false,
+			IsCrossTeam: false,
+			Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+				Text:     ":+1::skin-tone-0:",
+				Username: users[0].Username,
+				Time:     gregor1.ToTime(ctc.world.Fc.Now()),
+			}),
+		},
+	})
+
+	require.Equal(t, "this is a test! :+1::skin-tone-0: <- thumbs up", decoratedText)
+
 }
 
 func TestEmojiSourceCrossTeam(t *testing.T) {
