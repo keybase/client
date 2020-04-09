@@ -106,9 +106,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   cover: {
     ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.globalStyles.fillAbsolute,
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_50OrBlack_60,
     justifyContent: 'center',
     paddingBottom: Styles.globalMargins.small,
     paddingLeft: Styles.globalMargins.large,
@@ -117,14 +115,13 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   coverTabBarShim: {
     ...Styles.globalStyles.flexBoxRow,
-    ...Styles.globalStyles.fillAbsolute,
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_50OrBlack_60,
     justifyContent: 'center',
     paddingBottom: Styles.globalMargins.small,
     paddingLeft: 0,
     paddingRight: 0,
     paddingTop: Styles.globalMargins.large,
+    width: '100%',
   },
 }))
 

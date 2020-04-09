@@ -266,6 +266,13 @@ const FilteredServiceTabBar = (
 const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
 
 class TeamBuilding extends React.PureComponent<Props> {
+  static navigationOptions = {
+    modalStyle: {
+      alignItems: 'flex-start',
+      // backgroundColor: undefined,
+      ...Styles.padding(Styles.globalMargins.mediumLarge, 0, Styles.globalMargins.large),
+    },
+  }
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
 
   sectionListRef = React.createRef<Kb.SectionList<any>>()
@@ -924,13 +931,6 @@ const styles = Styles.styleSheetCreate(
           ...Styles.padding(0, Styles.globalMargins.xsmall),
         },
       }),
-      peoplePopupStyleCover: Styles.platformStyles({
-        isElectron: {
-          alignItems: 'flex-start',
-          backgroundColor: 'initial',
-          ...Styles.padding(Styles.globalMargins.mediumLarge, 0, Styles.globalMargins.large),
-        },
-      }),
       searchHint: {
         paddingLeft: Styles.globalMargins.xlarge,
         paddingRight: Styles.globalMargins.xlarge,
@@ -958,7 +958,6 @@ const styles = Styles.styleSheetCreate(
 const peopleModalProps: Partial<React.ComponentProps<typeof Kb.Modal>> = {
   popupStyleClose: styles.peoplePopupStyleClose,
   popupStyleContainer: styles.peoplePopupStyleContainer,
-  popupStyleCover: styles.peoplePopupStyleCover,
   popupTabBarShim: true,
 }
 

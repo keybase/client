@@ -38,121 +38,121 @@ import OutOfDate from '../app/out-of-date'
 const noScreenProps = {}
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top
-class AppView extends React.PureComponent<NavigationViewProps<any>> {
-  render() {
-    const navigation = this.props.navigation
-    const index = navigation.state.index
-    const activeRootKey = navigation.state.routes[index].key
-    const descriptor = this.props.descriptors[activeRootKey]
-    const childNav = descriptor.navigation
-    const selectedTab = nameToTab[descriptor.state.routeName]
-    // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
-    const direction = descriptor.options.headerTransparent ? 'vertical' : 'verticalReverse'
-    const activeIndex = getActiveIndex(navigation.state)
-    const activeKey = getActiveKey(navigation.state)
+const AppView = React.memo((props: NavigationViewProps<any>) => {
+  const {navigation, descriptors} = props
+  const {state} = navigation
+  const {index, routes} = state
+  const {key} = routes[index]
+  const descriptor = descriptors[key]
+  const {navigation: childNav, state: childState, options} = descriptor
+  const {routeName} = childState
+  const selectedTab = nameToTab[routeName]
+  // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
+  const direction = options.headerTransparent ? 'vertical' : 'verticalReverse'
+  const activeIndex = getActiveIndex(state)
+  const activeKey = getActiveKey(state)
 
-    const sceneView = (
-      <SceneView
-        navigation={childNav}
-        component={descriptor.getComponent()}
-        screenProps={this.props.screenProps || noScreenProps}
-      />
-    )
-    // if the header is transparent this needs to be on the same layer
-    const scene = descriptor.options.headerTransparent ? (
-      <Kb.Box2 direction="vertical" style={styles.transparentSceneUnderHeader}>
-        {sceneView}
-      </Kb.Box2>
-    ) : (
-      <Kb.BoxGrow style={styles.sceneContainer}>{sceneView}</Kb.BoxGrow>
-    )
+  const sceneView = (
+    <SceneView
+      navigation={childNav}
+      component={descriptor.getComponent()}
+      screenProps={props.screenProps || noScreenProps}
+    />
+  )
+  // if the header is transparent this needs to be on the same layer
+  const scene = descriptor.options.headerTransparent ? (
+    <Kb.Box2 direction="vertical" style={styles.transparentSceneUnderHeader}>
+      {sceneView}
+    </Kb.Box2>
+  ) : (
+    <Kb.BoxGrow style={styles.sceneContainer}>{sceneView}</Kb.BoxGrow>
+  )
 
-    return (
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <Kb.Box2
-          direction={direction}
-          fullHeight={true}
-          style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
-        >
-          {scene}
-          <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
-            {/*
+  return (
+    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+      <Kb.Box2
+        direction={direction}
+        fullHeight={true}
+        style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
+      >
+        {scene}
+        <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
+          {/*
           // @ts-ignore Header typing not finished yet */}
-            <Header
-              loggedIn={!!selectedTab}
-              options={descriptor.options}
-              onPop={() => childNav.goBack(activeKey)}
-              allowBack={activeIndex !== 0}
-            />
-          </Kb.Box2>
+          <Header
+            loggedIn={!!selectedTab}
+            options={descriptor.options}
+            onPop={() => childNav.goBack(activeKey)}
+            allowBack={activeIndex !== 0}
+          />
         </Kb.Box2>
       </Kb.Box2>
-    )
-  }
-}
+    </Kb.Box2>
+  )
+})
 
-class ModalView extends React.PureComponent<NavigationViewProps<any>> {
-  render() {
-    const navigation = this.props.navigation
-    const index = navigation.state.index
-    const activeKey = navigation.state.routes[index].key
-    const descriptor = this.props.descriptors[activeKey]
-    const childNav = descriptor.navigation
+const ModalView = React.memo((props: NavigationViewProps<any>) => {
+  const {navigation, descriptors} = props
+  const {state} = navigation
+  const {index, routes} = state
+  const {key} = routes[index]
+  const descriptor = descriptors[key]
+  const {navigation: childNav} = descriptor
 
-    // We render the app below us
-    const appKey = this.props.navigation.state.routes[0].key
-    const appNav = this.props.navigation.getChildNavigation(appKey)
-    const appDescriptor = this.props.descriptors[appKey]
+  // We render the app below us
+  const appKey = routes[0].key
+  const appNav = navigation.getChildNavigation(appKey)
+  const appDescriptor = descriptors[appKey]
 
-    // TODO we might want all the click handling / grey background stuff handled by the routing
-    return (
-      <>
-        <SceneView
-          key="AppLayer"
-          navigation={appNav}
-          component={appDescriptor.getComponent()}
-          screenProps={this.props.screenProps || noScreenProps}
-        />
-        {index > 0 && (
-          <Kb.Box2 direction="vertical" style={styles.modalContainer}>
-            <SceneView
-              key="ModalLayer"
-              navigation={childNav}
-              component={descriptor.getComponent()}
-              screenProps={this.props.screenProps || noScreenProps}
-            />
-          </Kb.Box2>
-        )}
-        <GlobalError />
-        <OutOfDate />
-      </>
-    )
-  }
-}
+  const Component = descriptor.getComponent()
+  const modalStyle = Component?.navigationOptions?.modalStyle
 
-class TabView extends React.PureComponent<NavigationViewProps<any>> {
-  render() {
-    const navigation = this.props.navigation
-    const index = navigation.state.index
-    const activeKey = navigation.state.routes[index].key
-    const descriptor = this.props.descriptors[activeKey]
-    const childNav = descriptor.navigation
-    const selectedTab = descriptor.state.routeName
-    const sceneView = (
+  return (
+    <>
       <SceneView
-        navigation={childNav}
-        component={descriptor.getComponent()}
-        screenProps={this.props.screenProps || noScreenProps}
+        key="AppLayer"
+        navigation={appNav}
+        component={appDescriptor.getComponent()}
+        screenProps={props.screenProps || noScreenProps}
       />
-    )
-    return (
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <TabBar navigation={navigation} selectedTab={selectedTab as Tabs.AppTab} />
-        {sceneView}
-      </Kb.Box2>
-    )
-  }
-}
+      {index > 0 && (
+        <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.modalContainer, modalStyle])}>
+          <SceneView
+            key="ModalLayer"
+            navigation={childNav}
+            component={Component}
+            screenProps={props.screenProps || noScreenProps}
+          />
+        </Kb.Box2>
+      )}
+      <GlobalError />
+      <OutOfDate />
+    </>
+  )
+})
+
+const TabView = React.memo((props: NavigationViewProps<any>) => {
+  const {navigation, descriptors} = props
+  const {state} = navigation
+  const {index, routes} = state
+  const {key} = routes[index]
+  const descriptor = descriptors[key]
+  const {navigation: childNav, state: childState} = descriptor
+  const {routeName} = childState
+  const sceneView = (
+    <SceneView
+      navigation={childNav}
+      component={descriptor.getComponent()}
+      screenProps={props.screenProps || noScreenProps}
+    />
+  )
+  return (
+    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+      <TabBar navigation={navigation} selectedTab={routeName as Tabs.AppTab} />
+      {sceneView}
+    </Kb.Box2>
+  )
+})
 
 const tabs = Shared.desktopTabs
 
@@ -364,7 +364,10 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
-      modalContainer: {...Styles.globalStyles.fillAbsolute},
+      modalContainer: {
+        ...Styles.globalStyles.fillAbsolute,
+        backgroundColor: 'rgba(255,0,0,0.2)', // Styles.globalColors.black_50OrBlack_60,
+      },
       sceneContainer: {flexDirection: 'column'},
       transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
     } as const)

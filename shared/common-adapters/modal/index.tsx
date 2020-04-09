@@ -41,7 +41,6 @@ type Props = {
   header?: HeaderProps
   onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
-  fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
   mode: 'Default' | 'DefaultFullHeight' | 'Wide'
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean // content must push footer to bottom with this on.
@@ -51,7 +50,6 @@ type Props = {
   // Desktop only popup overrides
   popupStyleClose?: Styles.StylesCrossPlatform
   popupStyleContainer?: Styles.StylesCrossPlatform
-  popupStyleCover?: Styles.StylesCrossPlatform
   popupTabBarShim?: boolean
 }
 
@@ -71,13 +69,11 @@ const ModalInner = (props: Props) => (
         {props.children}
       </Kb.ScrollView>
     )}
-    {!!props.footer && (
-      <Footer {...props.footer} wide={props.mode === 'Wide'} fullscreen={!!props.fullscreen} />
-    )}
+    {!!props.footer && <Footer {...props.footer} wide={props.mode === 'Wide'} />}
   </>
 )
 const Modal = (props: Props) =>
-  Styles.isMobile || props.fullscreen ? (
+  Styles.isMobile ? (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
       <ModalInner {...props} />
     </Kb.Box2>
@@ -90,7 +86,6 @@ const Modal = (props: Props) =>
       ])}
       styleClose={props.popupStyleClose}
       styleContainer={props.popupStyleContainer}
-      styleCover={props.popupStyleCover}
       tabBarShim={props.popupTabBarShim}
     >
       <ModalInner {...props} />
@@ -208,7 +203,7 @@ export const useModalHeaderTitleAndCancel = (title: string, onCancel: () => void
     [title, onCancel]
   )
 
-const Footer = (props: FooterProps & {fullscreen: boolean; wide: boolean}) => (
+const Footer = (props: FooterProps & {wide: boolean}) => (
   <Kb.Box2
     centerChildren={true}
     direction="vertical"
@@ -216,7 +211,6 @@ const Footer = (props: FooterProps & {fullscreen: boolean; wide: boolean}) => (
     style={Styles.collapseStyles([
       styles.footer,
       props.wide && styles.footerWide,
-      props.fullscreen && styles.footerFullscreen,
       !props.hideBorder && styles.footerBorder,
       props.style,
     ])}
