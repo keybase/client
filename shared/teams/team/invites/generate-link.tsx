@@ -164,10 +164,10 @@ const GenerateLinkModal = (props: Props) => {
     generateLinkRPC(
       [
         {
-          teamname,
-          role: RPCGen.TeamRole[teamRole],
-          maxUses,
           expireAfter,
+          maxUses,
+          role: RPCGen.TeamRole[teamRole],
+          teamname,
         },
         waitingKey,
       ],
