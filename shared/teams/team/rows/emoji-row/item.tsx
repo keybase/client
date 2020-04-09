@@ -4,6 +4,8 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
+import * as Teams from '../../../../constants/teams'
+import * as TeamTypes from '../../../../constants/types/teams'
 import * as RPCChatGen from '../../../../constants/types/rpc-chat-gen'
 import * as dateFns from 'date-fns'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
@@ -15,12 +17,15 @@ type OwnProps = {
   emoji: RPCChatTypes.Emoji
   firstItem: boolean
   reloadEmojis: () => void
+  teamID: TeamTypes.TeamID
 }
 
-const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis}: OwnProps) => {
+const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
+
   const onAddAlias = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
@@ -32,8 +37,9 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis}: OwnProps) 
         ],
       })
     )
+  const isStockAlias = emoji.remoteSource.typ === RPCChatTypes.EmojiRemoteSourceTyp.stockalias
+  const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
-  const canManageEmoji = true
   const removeRpc = useRPC(RPCChatGen.localRemoveEmojiRpcPromise)
   const doRemove = canManageEmoji
     ? () => {
@@ -51,12 +57,11 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis}: OwnProps) 
         )
       }
     : undefined
-
   const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <EmojiMenu
       attachTo={attachTo}
       visible={showingPopup}
-      onAddAlias={onAddAlias}
+      onAddAlias={doAddAlias}
       onRemove={doRemove}
       onHidden={() => setShowingPopup(false)}
     />
@@ -89,13 +94,16 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis}: OwnProps) 
               containerStyle={styles.username}
             />
           )}
-          <Kb.Box2 direction="horizontal">
+          <Kb.Box2
+            direction="horizontal"
+            style={Styles.collapseStyles([!canManageEmoji ? {opacity: 0} : null])}
+          >
             {popup}
             <Kb.Button
               icon="iconfont-ellipsis"
               mode="Secondary"
               type="Dim"
-              onClick={() => setShowingPopup(!showingPopup)}
+              onClick={canManageEmoji ? () => setShowingPopup(!showingPopup) : undefined}
               ref={popupAnchor}
             />
           </Kb.Box2>

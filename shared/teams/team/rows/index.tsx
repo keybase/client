@@ -284,6 +284,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
           firstItem={Styles.isMobile && index === 0}
           conversationIDKey={convID ?? Chat2Constants.noConversationIDKey}
           reloadEmojis={doGetUserEmoji}
+          teamID={teamID}
         />
       ),
     })

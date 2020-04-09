@@ -1504,6 +1504,7 @@ protocol teams {
     boolean deleteTeam;
     boolean pinMessage;
     boolean manageBots;
+    boolean manageEmojis;
   }
 
   record ProfileTeamLoadRes {
