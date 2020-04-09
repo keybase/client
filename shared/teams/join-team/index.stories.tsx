@@ -6,10 +6,10 @@ import {fakeTeamID, store} from '../stories'
 const props: Props = Sb.createNavigator({
   details: {
     inviteID: '',
-    inviterUID: '',
     inviterResetOrDel: false,
-    teamAvatars: {},
+    inviterUID: '',
     inviterUsername: 'adamjspooner',
+    teamAvatars: {},
     teamDesc:
       'A team for fans of Game of Thrones. This is to show the max-width on the team description (460px). Ellipsis after three lines of description. This is a third line blah blah blah blah blah blah blah blah blah blah. This is a third line blah blah blah blah blah blah blah blah blah blah. This is a third line blah blah blah blah blah blah blah blah blah blah.',
     teamID: fakeTeamID,

@@ -128,11 +128,11 @@ export const newModalRoutes = {
   teamInviteByEmail: {
     getScreen: (): typeof TeamInviteByEmail => require('./invite-by-email/container').default,
   },
-  teamInviteLinkJoin: {
-    getScreen: (): typeof TeamInviteLinkJoin => require('./join-team/join-from-invite').default,
-  },
   teamInviteHistory: {
     getScreen: (): typeof TeamInviteHistory => require('./team/invites/invite-history').default,
+  },
+  teamInviteLinkJoin: {
+    getScreen: (): typeof TeamInviteLinkJoin => require('./join-team/join-from-invite').default,
   },
   teamJoinTeamDialog: {
     getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default,
