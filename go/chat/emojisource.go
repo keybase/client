@@ -171,7 +171,8 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 		stored.Mapping = make(map[string]chat1.EmojiRemoteSource)
 	}
 	if _, ok := stored.Mapping[alias]; ok && !allowOverwrite {
-		return res, errors.New("alias already exists, must specify --allow-overwrite to edit")
+		return res, NewEmojiValidationError(errors.New("alias already exists"),
+			"alias already exists, must specify --allow-overwrite to edit", "alias already exists")
 	}
 
 	sender := NewBlockingSender(s.G(), NewBoxer(s.G()), s.ri)
@@ -209,18 +210,21 @@ func (s *DevConvEmojiSource) normalizeShortName(shortName string) string {
 
 func (s *DevConvEmojiSource) validateShortName(shortName string) *EmojiValidationError {
 	if s.IsStockEmoji(shortName) {
-		return NewEmojiValidationErrorJustError(errors.New("cannot use existing stock emoji short name"))
+		return NewEmojiValidationErrorJustError(errors.New("cannot use existing stock emoji name"))
 	}
 	if len(shortName) > maxShortNameLength {
-		return NewEmojiValidationErrorJustError(fmt.Errorf("short name is too long, must be less than %d",
-			maxShortNameLength))
+		err := errors.New("name is too long")
+		return NewEmojiValidationError(err, fmt.Sprintf("name is too long, must be less than %d",
+			maxShortNameLength), err.Error())
 	}
 	if len(shortName) < minShortNameLength {
-		return NewEmojiValidationErrorJustError(fmt.Errorf("short name is too short, must be greater than %d",
-			minShortNameLength))
+		err := errors.New("name is too short")
+		return NewEmojiValidationError(err,
+			fmt.Sprintf("short name is too short, must be greater than %d", minShortNameLength),
+			err.Error())
 	}
 	if strings.Contains(shortName, "#") {
-		return NewEmojiValidationErrorJustError(errors.New("invalid character in emoji alias"))
+		return NewEmojiValidationErrorJustError(errors.New("invalid character in name"))
 	}
 	return nil
 }

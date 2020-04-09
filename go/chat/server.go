@@ -3792,7 +3792,7 @@ func (h *Server) getEmojiError(err error) *chat1.EmojiError {
 	}
 	return &chat1.EmojiError{
 		Clidisplay: err.Error(),
-		Uidisplay:  err.Error(),
+		Uidisplay:  "unknown error",
 	}
 }
 
