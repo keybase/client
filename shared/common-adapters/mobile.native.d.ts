@@ -22,3 +22,4 @@ export {
   TapGestureHandler,
 }
 export {default as ZoomableImage} from './zoomable-image.native'
+export {LayoutAnimation} from 'react-native'
