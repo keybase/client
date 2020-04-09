@@ -198,6 +198,7 @@ export const TeamMemberRow = (props: Props) => {
       </Kb.Box2>
     )
 
+    const canEnterMemberPage = props.youCanManageMembers && active
     return (
       <Kb.ListItem2
         action={anySelected ? null : actions}
@@ -210,7 +211,7 @@ export const TeamMemberRow = (props: Props) => {
         body={body}
         firstItem={props.firstItem}
         style={selected ? styles.selected : undefined}
-        onClick={anySelected ? () => onSelect(!selected) : props.onClick}
+        onClick={anySelected ? () => onSelect(!selected) : canEnterMemberPage ? props.onClick : undefined}
       />
     )
   }

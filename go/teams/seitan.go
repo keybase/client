@@ -320,3 +320,31 @@ func (sikey SeitanSIKey) GenerateAcceptanceKey(uid keybase1.UID, eldestSeqno key
 	}
 	return generateAcceptanceKey(akeyPayload, sikey[:])
 }
+
+// IsSeitany is a very conservative check of whether a given string looks like
+// a Seitan token. We want to err on the side of considering strings Seitan
+// tokens, since we don't mistakenly want to send botched Seitan tokens to the
+// server.
+func IsSeitany(s string) bool {
+	return len(s) > seitanEncodedIKeyInvitelinkPlusOffset && strings.IndexByte(s, '+') > 1
+}
+
+// DeriveSeitanVersionFromToken returns possible seitan version based on the
+// token. Different seitan versions have '+' characters at different position
+// signifying version number. This function returning successfully does not mean
+// that token is correct, valid, seitan. But returning an error means that token
+// is definitely not a correct seitan token.
+func DeriveSeitanVersionFromToken(token string) (version SeitanVersion, err error) {
+	switch {
+	case !IsSeitany(token):
+		return 0, errors.New("Invalid token, not seitan-y")
+	case token[seitanEncodedIKeyPlusOffset] == '+':
+		return SeitanVersion1, nil
+	case token[seitanEncodedIKeyV2PlusOffset] == '+':
+		return SeitanVersion2, nil
+	case token[seitanEncodedIKeyInvitelinkPlusOffset] == '+':
+		return SeitanVersionInvitelink, nil
+	default:
+		return 0, errors.New("Invalid token, invalid '+' position")
+	}
+}

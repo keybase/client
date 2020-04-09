@@ -413,13 +413,9 @@
       "activityMap": "Map<Types.TeamID, number>",
       "username": "string"
     },
-    "getMemberSubteamDetails": {
+    "loadTeamTree": {
       "teamID": "Types.TeamID",
       "username": "string"
-    },
-    "setMemberSubteamDetails": {
-      "username": "string",
-      "memberships": "Map<Types.TeamID, Types.MemberInfoWithLastActivity>"
     },
     "startNewTeamWizard": {},
     "setTeamWizardTeamType": {

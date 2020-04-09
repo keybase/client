@@ -535,6 +535,10 @@ export type MessageTypes = {
     inParam: {readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: {[key: string]: ProfileSearchConvStats}
   }
+  'chat.1.local.putReacjiSkinTone': {
+    inParam: {readonly skinTone: Keybase1.ReacjiSkinTone}
+    outParam: Keybase1.UserReacjis
+  }
   'chat.1.local.refreshParticipants': {
     inParam: {readonly convID: ConversationID}
     outParam: void
@@ -1165,6 +1169,8 @@ export type ChannelNameMention = {readonly convID: ConversationID; readonly topi
 export type ChatActivity = {activityType: ChatActivityType.incomingMessage; incomingMessage: IncomingMessage} | {activityType: ChatActivityType.readMessage; readMessage: ReadMessageInfo} | {activityType: ChatActivityType.newConversation; newConversation: NewConversationInfo} | {activityType: ChatActivityType.setStatus; setStatus: SetStatusInfo} | {activityType: ChatActivityType.failedMessage; failedMessage: FailedMessageInfo} | {activityType: ChatActivityType.membersUpdate; membersUpdate: MembersUpdateInfo} | {activityType: ChatActivityType.setAppNotificationSettings; setAppNotificationSettings: SetAppNotificationSettingsInfo} | {activityType: ChatActivityType.teamtype; teamtype: TeamTypeInfo} | {activityType: ChatActivityType.expunge; expunge: ExpungeInfo} | {activityType: ChatActivityType.ephemeralPurge; ephemeralPurge: EphemeralPurgeNotifInfo} | {activityType: ChatActivityType.reactionUpdate; reactionUpdate: ReactionUpdateNotif} | {activityType: ChatActivityType.messagesUpdated; messagesUpdated: MessagesUpdated} | {activityType: ChatActivityType.reserved}
 export type ChatChannel = {readonly name: String; readonly public: Boolean; readonly membersType: String; readonly topicType: String; readonly topicName: String}
 export type ChatList = {readonly conversations?: Array<ConvSummary> | null; readonly offline: Boolean; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null; readonly rateLimits?: Array<RateLimitRes> | null}
+export type ChatMemberDetails = {readonly uid: Keybase1.UID; readonly username: String; readonly fullName: Keybase1.FullName}
+export type ChatMembersDetails = {readonly owners?: Array<ChatMemberDetails> | null; readonly admins?: Array<ChatMemberDetails> | null; readonly writers?: Array<ChatMemberDetails> | null; readonly readers?: Array<ChatMemberDetails> | null; readonly bots?: Array<ChatMemberDetails> | null; readonly restrictedBots?: Array<ChatMemberDetails> | null}
 export type ChatMessage = {readonly body: String}
 export type ChatSearchHit = {readonly beforeMessages?: Array<UIMessage> | null; readonly hitMessage: UIMessage; readonly afterMessages?: Array<UIMessage> | null; readonly matches?: Array<ChatSearchMatch> | null}
 export type ChatSearchInboxDone = {readonly numHits: Int; readonly numConvs: Int; readonly percentIndexed: Int; readonly delegated: Boolean}
@@ -1716,6 +1722,7 @@ export const localPostTextNonblockRpcPromise = (params: MessageTypes['chat.1.loc
 export const localPostTextNonblockRpcSaga = (p: {params: MessageTypes['chat.1.local.postTextNonblock']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.postTextNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localPreviewConversationByIDLocalRpcPromise = (params: MessageTypes['chat.1.local.previewConversationByIDLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.previewConversationByIDLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.previewConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localProfileChatSearchRpcPromise = (params: MessageTypes['chat.1.local.profileChatSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.profileChatSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.profileChatSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localPutReacjiSkinToneRpcPromise = (params: MessageTypes['chat.1.local.putReacjiSkinTone']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.putReacjiSkinTone']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.putReacjiSkinTone', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRefreshParticipantsRpcPromise = (params: MessageTypes['chat.1.local.refreshParticipants']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.refreshParticipants']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.refreshParticipants', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveBotMemberRpcPromise = (params: MessageTypes['chat.1.local.removeBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveEmojiRpcPromise = (params: MessageTypes['chat.1.local.removeEmoji']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeEmoji']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeEmoji', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1800,7 +1807,6 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
-// 'chat.1.local.putReacjiSkinTone'
 // 'chat.1.local.loadFlip'
 // 'chat.1.local.advertiseBotCommandsLocal'
 // 'chat.1.local.listBotCommandsLocal'

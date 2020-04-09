@@ -101,7 +101,7 @@ func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, device
 }
 
 func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, mode LoadUnlockedDeviceKeysMode) (uv keybase1.UserVersion, sib GenericKey, sub GenericKey, deviceName string, err error) {
-	defer m.Trace("LoadUnlockedDeviceKeys", func() error { return err })()
+	defer m.Trace(fmt.Sprintf("LoadUnlockedDeviceKeys(uid=%q)", uid), func() error { return err })()
 
 	// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
 	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional()
@@ -144,13 +144,13 @@ func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.D
 
 	// load the keyring file
 	username := NewNormalizedUsername(upak.Current.Username)
-	kr, err := LoadSKBKeyring(username, m.G())
+	kr, err := LoadSKBKeyring(m, username)
 	if err != nil {
 		m.Debug("BootstrapActiveDevice: error loading keyring for %s: %s", username, err)
 		return uv, nil, nil, deviceName, err
 	}
 
-	secretStore := NewSecretStore(m.G(), username)
+	secretStore := NewSecretStore(m, username)
 	sib, err = loadAndUnlockKey(m, kr, secretStore, uid, sibkeyKID)
 	if err != nil {
 		return uv, nil, nil, deviceName, err

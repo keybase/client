@@ -5,47 +5,47 @@
 
 package libkb
 
-func notifySecretStoreCreate(g *GlobalContext, username NormalizedUsername) {
-	g.Log.Debug("got secret store file notifyCreate")
+func notifySecretStoreCreate(mctx MetaContext, username NormalizedUsername) {
+	mctx.Debug("got secret store file notifyCreate")
 
 	// check leveldb for existence of notification dismissal
-	dbobj, found, err := g.LocalDb.GetRaw(DbKeyNotificationDismiss(NotificationDismissPGPPrefix, username))
+	dbobj, found, err := mctx.G().LocalDb.GetRaw(DbKeyNotificationDismiss(NotificationDismissPGPPrefix, username))
 	if err != nil {
-		g.Log.Debug("notifySecretStoreCreate: localDb.GetRaw error: %s", err)
+		mctx.Debug("notifySecretStoreCreate: localDb.GetRaw error: %s", err)
 		return
 	}
 	if found && string(dbobj) == NotificationDismissPGPValue {
-		g.Log.Debug("notifySecretStoreCreate: %s already dismissed", NotificationDismissPGPPrefix)
+		mctx.Debug("notifySecretStoreCreate: %s already dismissed", NotificationDismissPGPPrefix)
 		return
 	}
 
 	// check keyring for pgp keys
 	// can't use the keyring in LoginState because this could be called
 	// within a LoginState request.
-	kr, err := LoadSKBKeyring(username, g)
+	kr, err := LoadSKBKeyring(mctx, username)
 	if err != nil {
-		g.Log.Debug("LoadSKBKeyring error: %s", err)
+		mctx.Debug("LoadSKBKeyring error: %s", err)
 		return
 	}
 	blocks, err := kr.AllPGPBlocks()
 	if err != nil {
-		g.Log.Debug("keyring.AllPGPBlocks error: %s", err)
+		mctx.Debug("keyring.AllPGPBlocks error: %s", err)
 		return
 	}
 
 	if len(blocks) == 0 {
-		g.Log.Debug("notifySecretStoreCreate: no pgp blocks in keyring")
+		mctx.Debug("notifySecretStoreCreate: no pgp blocks in keyring")
 		return
 	}
 
 	// pgp blocks exist, send a notification
-	g.Log.Debug("user has pgp blocks in keyring, sending notification")
-	if g.NotifyRouter != nil {
-		g.NotifyRouter.HandlePGPKeyInSecretStoreFile()
+	mctx.Debug("user has pgp blocks in keyring, sending notification")
+	if mctx.G().NotifyRouter != nil {
+		mctx.G().NotifyRouter.HandlePGPKeyInSecretStoreFile()
 	}
 
 	// also log a warning (so CLI users see it)
-	g.Log.Info(pgpStorageWarningText)
+	mctx.Info(pgpStorageWarningText)
 
 	// Note: a separate RPC, callable by CLI or electron, will dismiss
 	// this warning by inserting into leveldb.

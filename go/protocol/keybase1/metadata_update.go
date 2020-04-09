@@ -99,17 +99,17 @@ type MetadataUpdateClient struct {
 }
 
 func (c MetadataUpdateClient) MetadataUpdate(ctx context.Context, __arg MetadataUpdateArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.metadataUpdate.metadataUpdate", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadataUpdate.metadataUpdate", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataUpdateClient) FolderNeedsRekey(ctx context.Context, __arg FolderNeedsRekeyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.metadataUpdate.folderNeedsRekey", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadataUpdate.folderNeedsRekey", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataUpdateClient) FoldersNeedRekey(ctx context.Context, requests []RekeyRequest) (err error) {
 	__arg := FoldersNeedRekeyArg{Requests: requests}
-	err = c.Cli.Call(ctx, "keybase.1.metadataUpdate.foldersNeedRekey", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadataUpdate.foldersNeedRekey", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }

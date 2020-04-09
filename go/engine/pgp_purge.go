@@ -97,7 +97,7 @@ func (e *PGPPurge) KeyFiles() []string {
 }
 
 func (e *PGPPurge) exportBlocks(m libkb.MetaContext, blocks []*libkb.SKB) error {
-	sstore := libkb.NewSecretStore(e.G(), e.me.GetNormalizedName())
+	sstore := libkb.NewSecretStore(m, e.me.GetNormalizedName())
 	promptArg := libkb.SecretKeyPromptArg{
 		SecretUI: m.UIs().SecretUI,
 		Reason:   "export private PGP key",
