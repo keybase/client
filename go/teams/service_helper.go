@@ -1763,10 +1763,6 @@ func CreateSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, teamname s
 func CreateInvitelink(mctx libkb.MetaContext, teamname string,
 	role keybase1.TeamRole, maxUses keybase1.TeamInviteMaxUses,
 	etime *keybase1.UnixTime) (invitelink keybase1.Invitelink, err error) {
-	if role.IsAdminOrAbove() {
-		return invitelink, errors.New("cannot create invitelink to add as admin")
-	}
-
 	t, err := GetForTeamManagementByStringName(mctx.Ctx(), mctx.G(), teamname, true)
 	if err != nil {
 		return invitelink, err
