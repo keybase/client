@@ -128,6 +128,9 @@ const ReportOptions = (props: ReportOptionsProps) => {
 type Item = 'topStuff' | {username: string}
 
 class BlockModal extends React.PureComponent<Props, State> {
+  static navigationOptions = {
+    header: null,
+  }
   state: State = {
     blockTeam: true,
     finishClicked: false,

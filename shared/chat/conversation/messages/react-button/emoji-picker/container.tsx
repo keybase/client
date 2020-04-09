@@ -149,6 +149,9 @@ const WrapperMobile = (props: Props) => {
     </Kb.Box2>
   )
 }
+WrapperMobile.navigationOptions = {
+  header: null,
+}
 
 export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onAddReaction, setFilter, topReacjis} = useReacji(props)
@@ -313,3 +316,4 @@ export const Routable = (routableProps: RoutableProps) => {
     />
   )
 }
+Container.hoistNonReactStatic(Routable, WrapperMobile)

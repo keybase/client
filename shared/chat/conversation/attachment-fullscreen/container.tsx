@@ -109,6 +109,7 @@ const Connected = (props: OwnProps) => {
 }
 
 Connected.navigationOptions = {
+  header: null,
   safeAreaStyle: {
     backgroundColor: 'black', // true black
   },

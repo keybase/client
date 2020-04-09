@@ -16,6 +16,9 @@ type Props = {
 const invalidChars = /[^a-zA-Z0-9_]/
 
 class RenameTeam extends React.Component<Props, {error: string; newName: string}> {
+  static navigationOptions = {
+    title: 'Rename subteam',
+  }
   state = {error: '', newName: ''}
   _prefix = ''
   _originalName = ''
@@ -69,7 +72,7 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
 
   render() {
     return (
-      <Kb.PopupWrapper onCancel={this.props.onCancel} title="Rename subteam">
+      <Kb.PopupDialogDesktop onBack={this.props.onCancel}>
         <Kb.Box2 alignItems="center" direction="vertical" style={styles.container} fullWidth={true}>
           <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium" gapStart={true}>
             <Kb.Avatar teamname={this.props.teamname} size={Styles.isMobile ? 64 : 48} />
@@ -140,7 +143,7 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
             />
           </Kb.ButtonBar>
         </Kb.Box2>
-      </Kb.PopupWrapper>
+      </Kb.PopupDialogDesktop>
     )
   }
 }

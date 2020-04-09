@@ -447,4 +447,11 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
+const index = 11
+setTimeout(() => {
+  const path = [Object.keys(modalRoutes)[index]]
+  KB.debugConsoleLog('aaa', path[0])
+  DEBUGStore.dispatch({type: 'route-tree:navigateAppend', payload: {path}})
+}, 1500)
+
 export default RNApp

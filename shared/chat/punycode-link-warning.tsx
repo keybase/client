@@ -35,5 +35,6 @@ const PunycodeLinkWarning = (props: PunycodeLinkWarningProps) => {
     />
   )
 }
+PunycodeLinkWarning.navigationOptions = {header: null}
 
 export default PunycodeLinkWarning

@@ -50,5 +50,6 @@ const ConfirmBotRemove = (props: Props) => {
     />
   )
 }
-
+ConfirmBotRemove.navigationOptions = {header: null}
+Container.hoistNonReactStatic(ConfirmBotRemoveLoader, ConfirmBotRemove)
 export default ConfirmBotRemoveLoader

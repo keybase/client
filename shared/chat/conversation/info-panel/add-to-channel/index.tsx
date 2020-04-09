@@ -92,7 +92,7 @@ class AddToChannel extends React.Component<Props, State> {
   render() {
     const items = this.props.users.map(u => ({...u, selected: this.state.selected.has(u.username)}))
     return (
-      <Kb.PopupWrapper onCancel={this.props.onCancel}>
+      <Kb.PopupDialogDesktop onBack={this.props.onCancel}>
         <Kb.Box2
           alignItems="center"
           direction="vertical"
@@ -146,7 +146,7 @@ class AddToChannel extends React.Component<Props, State> {
             </Kb.Box2>
           )}
         </Kb.Box2>
-      </Kb.PopupWrapper>
+      </Kb.PopupDialogDesktop>
     )
   }
 }
