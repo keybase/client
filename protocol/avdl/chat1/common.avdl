@@ -734,4 +734,19 @@
     ACTIVE_1,
     RECENTLY_ACTIVE_2
   }
+
+  record ChatMemberDetails {
+    keybase1.UID uid;
+    string username;
+    keybase1.FullName fullName;
+  }
+
+  record ChatMembersDetails {
+    array<ChatMemberDetails> owners;
+    array<ChatMemberDetails> admins;
+    array<ChatMemberDetails> writers;
+    array<ChatMemberDetails> readers;
+    array<ChatMemberDetails> bots;
+    array<ChatMemberDetails> restrictedBots;
+  }
 }

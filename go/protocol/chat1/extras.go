@@ -3197,3 +3197,26 @@ func (r EmojiLoadSource) IsHTTPSrv() bool {
 	}
 	return typ == EmojiLoadSourceTyp_HTTPSRV
 }
+
+func TeamToChatMemberDetails(teamMembers []keybase1.TeamMemberDetails) (chatMembers []ChatMemberDetails) {
+	chatMembers = make([]ChatMemberDetails, len(teamMembers))
+	for i, teamMember := range teamMembers {
+		chatMembers[i] = ChatMemberDetails{
+			Uid:      teamMember.Uv.Uid,
+			Username: teamMember.Username,
+			FullName: teamMember.FullName,
+		}
+	}
+	return chatMembers
+}
+
+func TeamToChatMembersDetails(details keybase1.TeamMembersDetails) ChatMembersDetails {
+	return ChatMembersDetails{
+		Owners:         TeamToChatMemberDetails(details.Owners),
+		Admins:         TeamToChatMemberDetails(details.Admins),
+		Writers:        TeamToChatMemberDetails(details.Writers),
+		Readers:        TeamToChatMemberDetails(details.Readers),
+		Bots:           TeamToChatMemberDetails(details.Bots),
+		RestrictedBots: TeamToChatMemberDetails(details.RestrictedBots),
+	}
+}

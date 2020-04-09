@@ -1942,6 +1942,72 @@
         "ACTIVE_1",
         "RECENTLY_ACTIVE_2"
       ]
+    },
+    {
+      "type": "record",
+      "name": "ChatMemberDetails",
+      "fields": [
+        {
+          "type": "keybase1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "keybase1.FullName",
+          "name": "fullName"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatMembersDetails",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "owners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "admins"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "readers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatMemberDetails"
+          },
+          "name": "restrictedBots"
+        }
+      ]
     }
   ],
   "messages": {},

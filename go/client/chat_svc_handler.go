@@ -1313,7 +1313,7 @@ func (c *chatServiceHandler) ListMembersV1(ctx context.Context, opts listMembers
 		details = keybase1.FilterTeamDetailsForMembers(usernames, details)
 	}
 
-	return Reply{Result: details}
+	return Reply{Result: chat1.TeamToChatMembersDetails(details.Members)}
 }
 
 func (c *chatServiceHandler) EmojiRemoveV1(ctx context.Context, opts emojiRemoveOptionsV1) Reply {
