@@ -8,7 +8,6 @@ import (
 	"github.com/keybase/clockwork"
 
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -38,7 +37,7 @@ func TestTeamInviteStubbing(t *testing.T) {
 	inviteLink, err := CreateInvitelink(tc.MetaContext(), teamname, keybase1.TeamRole_READER, maxUses, nil /* etime */)
 	require.NoError(t, err)
 
-	wasSeitan, err := ParseAndAcceptSeitanToken(context.TODO(), tc2.G, &teamsUI{}, inviteLink.Ikey.String())
+	wasSeitan, err := ParseAndAcceptSeitanToken(tc2.MetaContext(), &teamsUI{}, inviteLink.Ikey.String())
 	require.NoError(t, err)
 	require.True(t, wasSeitan)
 
@@ -139,21 +138,12 @@ func TestSeitanHandleExceededInvite(t *testing.T) {
 	// Accept the link as user2.
 	kbtest.LogoutAndLoginAs(tc, user2)
 
-	sikey, err := GenerateSIKeyInvitelink(invLink.Ikey)
-	require.NoError(t, err)
-	inviteID, err := sikey.GenerateTeamInviteID()
-	require.NoError(t, err)
-
-	now := clock.Now()
 	uv := user2.GetUserVersion()
-	_, encoded, err := GenerateSeitanInvitelinkAcceptanceKey(sikey[:], uv.Uid, uv.EldestSeqno, now.Unix())
+	unixNow := clock.Now().Unix()
+	accepted, err := generateAcceptanceSeitanInviteLink(invLink.Ikey, uv, unixNow)
 	require.NoError(t, err)
 
-	apiArg := apiArg("team/seitan_invitelink")
-	apiArg.Args.Add("akey", libkb.S{Val: encoded})
-	apiArg.Args.Add("unix_timestamp", libkb.U{Val: uint64(now.Unix())})
-	apiArg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
-	_, err = tc.G.API.Post(tc.MetaContext(), apiArg)
+	err = postSeitanInviteLink(tc.MetaContext(), accepted)
 	require.NoError(t, err)
 
 	// Login as admin, call HandleTeamSeitan with a message as it would have
@@ -163,12 +153,12 @@ func TestSeitanHandleExceededInvite(t *testing.T) {
 		TeamID: teamID,
 		Seitans: []keybase1.TeamSeitanRequest{
 			{
-				InviteID:    keybase1.TeamInviteID(inviteID),
+				InviteID:    keybase1.TeamInviteID(accepted.inviteID),
 				Uid:         uv.Uid,
 				EldestSeqno: uv.EldestSeqno,
-				Akey:        keybase1.SeitanAKey(encoded),
+				Akey:        keybase1.SeitanAKey(accepted.encoded),
 				Role:        keybase1.TeamRole_READER,
-				UnixCTime:   now.Unix(),
+				UnixCTime:   unixNow,
 			},
 		},
 	}
