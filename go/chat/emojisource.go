@@ -837,6 +837,22 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 				s.Debug(ctx, "Decorate: failed to get local source: %s", err)
 				continue
 			}
+			typ, err := source.Typ()
+			if err != nil {
+				s.Debug(ctx, "Decorate: failed to get load source type: %s", err)
+				continue
+			}
+			if typ == chat1.EmojiLoadSourceTyp_STR {
+				// Instead of decorating aliases, just replace them with
+				strDecoration := source.Str()
+				length := match.position[1] - match.position[0]
+				added := len(strDecoration) - length
+				decorationOffset := match.position[0] + offset
+				body = fmt.Sprintf("%s%s%s", body[:decorationOffset], strDecoration, body[decorationOffset+length:])
+				offset += added
+				continue
+			}
+
 			body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
 				match.position[1]-match.position[0],
 				chat1.NewUITextDecorationWithEmoji(chat1.Emoji{
