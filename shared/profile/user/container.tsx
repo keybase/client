@@ -54,6 +54,11 @@ const connected = Container.namedConnect(
       const {followersCount, followingCount, followers, following, reason, webOfTrustEntries} = d
       const mutualFollow = followThem && Constants.followsYou(state, username)
 
+      const filteredWot = (webOfTrustEntries ?? []).filter(Constants.showableWotEntry)
+      const hasAlreadyVouched = filteredWot.some(entry => entry.attestingUser === myName)
+      const vouchShowButton = mutualFollow && !hasAlreadyVouched
+      const vouchDisableButton = !vouchShowButton || d.state !== 'valid' || d.resetBrokeTrack
+
       return {
         ...commonProps,
         _assertions: d.assertions,
@@ -64,11 +69,12 @@ const connected = Container.namedConnect(
         followersCount,
         following,
         followingCount,
-        mutualFollow,
         reason,
         sbsAvatarUrl: undefined,
         serviceIcon: undefined,
         title: username,
+        vouchShowButton,
+        vouchDisableButton,
         webOfTrustEntries: webOfTrustEntries || [],
       }
     } else {
@@ -86,12 +92,13 @@ const connected = Container.namedConnect(
         ...commonProps,
         backgroundColorType: headerBackgroundColorType(d.state, false),
         fullName: nonUserDetails.fullName,
-        mutualFollow: false,
         name,
         sbsAvatarUrl: nonUserDetails.pictureUrl || undefined,
         service,
         serviceIcon: Styles.isDarkMode() ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
         title,
+        vouchShowButton: false,
+        vouchDisableButton: true,
         webOfTrustEntries: [],
       }
     }
@@ -143,10 +150,6 @@ const connected = Container.namedConnect(
       assertionKeys = []
     }
 
-    const filteredWot = stateProps.webOfTrustEntries.filter(Constants.showableWotEntry)
-    const hasNotAlreadyVouched = filteredWot.every(entry => entry.attestingUser !== stateProps.myName)
-    const promptForVouch = stateProps.mutualFollow && hasNotAlreadyVouched
-
     return {
       assertionKeys,
       backgroundColorType: stateProps.backgroundColorType,
@@ -163,11 +166,10 @@ const connected = Container.namedConnect(
       onAddIdentity,
       onBack: dispatchProps.onBack,
       onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : undefined,
-      // xxx TODO there is more to onIKnowThem/promptForVouch than #23546. See `details` conditions in actions/profile/index.tsx:wotVouch
-      // xxx additional conditions could disable the button.
-      onIKnowThem: promptForVouch
-        ? () => dispatchProps._onIKnowThem(stateProps.username, stateProps.guiID)
-        : undefined,
+      onIKnowThem:
+        stateProps.vouchShowButton && !stateProps.vouchDisableButton
+          ? () => dispatchProps._onIKnowThem(stateProps.username, stateProps.guiID)
+          : undefined,
       onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
       reason: stateProps.reason,
       sbsAvatarUrl: stateProps.sbsAvatarUrl,
@@ -180,7 +182,9 @@ const connected = Container.namedConnect(
       title: stateProps.title,
       userIsYou: stateProps.userIsYou,
       username: stateProps.username,
-      webOfTrustEntries: filteredWot,
+      vouchShowButton: stateProps.vouchShowButton,
+      vouchDisableButton: stateProps.vouchDisableButton,
+      webOfTrustEntries: stateProps.webOfTrustEntries,
     }
   },
   'Profile2'
