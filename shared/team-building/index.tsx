@@ -267,10 +267,13 @@ const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.S
 
 class TeamBuilding extends React.PureComponent<Props> {
   static navigationOptions = {
-    modalAvoidTabs: true,
-    modalStyle: {
-      alignItems: 'flex-start',
-      backgroundColor: undefined,
+    modal2: true,
+    modal2AvoidTabs: true,
+    modal2ClearCover: true,
+    modal2Style: {
+      alignSelf: 'flex-start',
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
       paddingTop: Styles.globalMargins.mediumLarge,
     },
   }
@@ -797,7 +800,7 @@ class TeamBuilding extends React.PureComponent<Props> {
     )
 
     return (
-      <Kb.Modal
+      <Kb.Modal2
         onClose={props.onClose}
         header={this.modalHeader()}
         allowOverflow={true}
@@ -806,7 +809,7 @@ class TeamBuilding extends React.PureComponent<Props> {
         {...(props.namespace === 'people' ? peopleModalProps : {})}
       >
         {body}
-      </Kb.Modal>
+      </Kb.Modal2>
     )
   }
 }
@@ -929,7 +932,6 @@ const styles = Styles.styleSheetCreate(
       peoplePopupStyleContainer: Styles.platformStyles({
         isElectron: {
           width: '100%',
-          ...Styles.padding(0, Styles.globalMargins.xsmall),
         },
       }),
       searchHint: {
@@ -957,9 +959,7 @@ const styles = Styles.styleSheetCreate(
 )
 
 const peopleModalProps: Partial<React.ComponentProps<typeof Kb.Modal>> = {
-  popupStyleClose: styles.peoplePopupStyleClose,
   popupStyleContainer: styles.peoplePopupStyleContainer,
-  popupTabBarShim: true,
 }
 
 export default TeamBuilding

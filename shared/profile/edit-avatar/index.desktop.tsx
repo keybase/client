@@ -443,7 +443,6 @@ class EditAvatar extends React.Component<Props, State> {
       )
     }
 
-    KB.debugConsoleLog('TODO mose move cover etc')
     return (
       <Kb.MaybePopup
         onClose={this.props.onClose}
@@ -454,7 +453,7 @@ class EditAvatar extends React.Component<Props, State> {
             cursor: this.state.dragging ? '-webkit-grabbing' : 'default',
           },
         ])}
-        // onMouseMove={this.onMouseMove}
+        onMouseMove={this.onMouseMove}
       >
         {!!this.props.error && (
           <Kb.Banner color="red">

@@ -1,12 +1,12 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '../styles'
 import {LayoutChangeEvent} from 'react-native'
-import PopupDialog from '../popup-dialog'
-import ScrollView from '../scroll-view'
-import {Box2, Box} from '../box'
-import BoxGrow from '../box-grow'
-import Text from '../text'
-import {useTimeout} from '../use-timers'
+import PopupDialog2 from './popup-dialog2'
+import ScrollView from './scroll-view'
+import {Box2, Box} from './box'
+import BoxGrow from './box-grow'
+import Text from './text'
+import {useTimeout} from './use-timers'
 
 const Kb = {
   Box,
@@ -41,23 +41,21 @@ type Props = {
   header?: HeaderProps
   onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
-  fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
   mode: 'Default' | 'DefaultFullHeight' | 'Wide'
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean // content must push footer to bottom with this on.
-  backgroundStyle?: Styles.StylesCrossPlatform
+  // backgroundStyle?: Styles.StylesCrossPlatform
   scrollViewRef?: React.Ref<ScrollView>
 
   // Desktop only popup overrides
-  popupStyleClose?: Styles.StylesCrossPlatform
+  // popupStyleClose?: Styles.StylesCrossPlatform
   popupStyleContainer?: Styles.StylesCrossPlatform
-  popupStyleCover?: Styles.StylesCrossPlatform
-  popupTabBarShim?: boolean
+  // popupTabBarShim?: boolean
 }
 
-const ModalInner = (props: Props) => (
+const Modal2Inner = (props: Props) => (
   <>
-    {!!props.header && <Header {...props.header} />}
+    {!!props.header && <Header2 {...props.header} />}
     {!!props.banners && props.banners}
     {props.noScrollView ? (
       props.children
@@ -65,44 +63,37 @@ const ModalInner = (props: Props) => (
       <Kb.ScrollView
         ref={props.scrollViewRef}
         alwaysBounceVertical={false}
-        style={Styles.collapseStyles([styles.scroll, props.backgroundStyle])}
+        style={styles.scroll}
         contentContainerStyle={styles.scrollContentContainer}
       >
         {props.children}
       </Kb.ScrollView>
     )}
-    {!!props.footer && (
-      <Footer {...props.footer} wide={props.mode === 'Wide'} fullscreen={!!props.fullscreen} />
-    )}
+    {!!props.footer && <Footer {...props.footer} wide={props.mode === 'Wide'} />}
   </>
 )
 
-/** TODO being deprecated. if you change this change modal2 and talk to #frontend **/
-const Modal = (props: Props) =>
-  Styles.isMobile || props.fullscreen ? (
+/** Used by the router and not for public consumption **/
+const Modal2 = (props: Props) =>
+  Styles.isMobile ? (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
-      <ModalInner {...props} />
+      <Modal2Inner {...props} />
     </Kb.Box2>
   ) : (
-    <PopupDialog
-      onClose={props.onClose}
-      styleClipContainer={Styles.collapseStyles([
-        clipContainerStyles[props.mode],
-        props.allowOverflow && styles.overflowVisible,
-      ])}
-      styleClose={props.popupStyleClose}
-      styleContainer={props.popupStyleContainer}
-      styleCover={props.popupStyleCover}
-      tabBarShim={props.popupTabBarShim}
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      fullHeight={true}
+      style={Styles.collapseStyles([clipContainerStyles[props.mode], props.popupStyleContainer])}
     >
-      <ModalInner {...props} />
-    </PopupDialog>
+      <Modal2Inner {...props} />
+    </Kb.Box2>
   )
-Modal.defaultProps = {
+Modal2.defaultProps = {
   mode: 'Default',
 }
 
-const Header = (props: HeaderProps) => {
+const Header2 = (props: HeaderProps) => {
   // On native, let the header sides layout for 100ms to measure which is wider.
   // Then, set this as the `width` of the sides and let the center expand.
   const [measured, setMeasured] = React.useState(false)
@@ -210,7 +201,7 @@ export const useModalHeaderTitleAndCancel = (title: string, onCancel: () => void
     [title, onCancel]
   )
 
-const Footer = (props: FooterProps & {fullscreen: boolean; wide: boolean}) => (
+const Footer = (props: FooterProps & {wide: boolean}) => (
   <Kb.Box2
     centerChildren={true}
     direction="vertical"
@@ -218,7 +209,6 @@ const Footer = (props: FooterProps & {fullscreen: boolean; wide: boolean}) => (
     style={Styles.collapseStyles([
       styles.footer,
       props.wide && styles.footerWide,
-      props.fullscreen && styles.footerFullscreen,
       !props.hideBorder && styles.footerBorder,
       props.style,
     ])}
@@ -240,6 +230,14 @@ const styles = Styles.styleSheetCreate(() => {
     borderBottomWidth: 1,
     borderStyle: 'solid' as const,
   }
+
+  const modeCommon = Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.boxShadow,
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: Styles.borderRadius,
+    },
+  })
 
   return {
     footer: Styles.platformStyles({
@@ -299,23 +297,23 @@ const styles = Styles.styleSheetCreate(() => {
       justifyContent: 'center',
     },
     modeDefault: Styles.platformStyles({
+      common: {...modeCommon},
       isElectron: {
         maxHeight: 560,
-        overflow: 'hidden',
         width: 400,
       },
     }),
     modeDefaultFullHeight: Styles.platformStyles({
+      common: {...modeCommon},
       isElectron: {
         height: 560,
-        overflow: 'hidden',
         width: 400,
       },
     }),
     modeWide: Styles.platformStyles({
+      common: {...modeCommon},
       isElectron: {
         height: 400,
-        overflow: 'hidden',
         width: 560,
       },
     }),
@@ -343,5 +341,6 @@ const clipContainerStyles: {[k in Props['mode']]: Styles.StylesCrossPlatform} = 
   Wide: styles.modeWide,
 }
 
-export default Modal
-export {Header}
+export default Modal2
+export {Header2}
+

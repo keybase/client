@@ -176,11 +176,11 @@ const load = () => {
         {filler}
       </Modal>
     ))
-    // .add('Fullscreen', () => (
-    // <Modal header={{title: "I'm way up here"}} fullscreen={true}>
-    // {filler}
-    // </Modal>
-    // ))
+    .add('Fullscreen', () => (
+      <Modal header={{title: "I'm way up here"}} fullscreen={true}>
+        {filler}
+      </Modal>
+    ))
     .add('Icon', () => (
       <Modal header={{icon: <Kb.Icon type="iconfont-gear" sizeType="Big" />}}>{filler}</Modal>
     ))

@@ -45,6 +45,7 @@ const ConfirmReset = (_: Props) => {
   return (
     <Kb.Modal
       header={Styles.isMobile ? {title: 'Account reset'} : undefined}
+      fullscreen={true}
       footer={{
         content: (
           <Kb.ButtonBar direction="column" fullWidth={true} style={styles.buttonBar}>

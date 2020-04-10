@@ -109,7 +109,7 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
   const Component = descriptor.getComponent()
   // @ts-ignore
   const navigationOptions = Component?.navigationOptions
-  const {modalStyle, modalAvoidTabs} = navigationOptions ?? {}
+  const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover} = navigationOptions ?? {}
 
   const popRef = React.useRef(navigation.pop)
   React.useEffect(() => {
@@ -147,6 +147,45 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
     setMouseDownY(mouseResetValue)
   }, [index])
 
+  let modal: React.ReactNode = null
+
+  if (index > 0) {
+    if (modal2) {
+      modal = (
+        <Kb.Box2
+          key="background"
+          direction="horizontal"
+          style={Styles.collapseStyles([styles.modal2Container, modal2ClearCover && styles.modal2ClearCover])}
+          onMouseDown={onMouseDown as any}
+          onMouseUp={onMouseUp as any}
+        >
+          {modal2AvoidTabs && (
+            <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
+          )}
+          <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.modal2Style, modal2Style])}>
+            <SceneView
+              key="ModalLayer"
+              navigation={childNav}
+              component={Component}
+              screenProps={props.screenProps || noScreenProps}
+            />
+          </Kb.Box2>
+        </Kb.Box2>
+      )
+    } else {
+      modal = (
+        <Kb.Box2 key="background" direction="vertical" style={styles.modalContainer}>
+          <SceneView
+            key="ModalLayer"
+            navigation={childNav}
+            component={Component}
+            screenProps={props.screenProps || noScreenProps}
+          />
+        </Kb.Box2>
+      )
+    }
+  }
+
   return (
     <>
       <SceneView
@@ -155,23 +194,7 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
         component={appDescriptor.getComponent()}
         screenProps={props.screenProps || noScreenProps}
       />
-      {index > 0 && (
-        <Kb.Box2
-          key="background"
-          direction="vertical"
-          style={Styles.collapseStyles([styles.modalContainer, modalStyle])}
-          className={Styles.classNames({modalAvoidTabs})}
-          onMouseDown={onMouseDown as any}
-          onMouseUp={onMouseUp as any}
-        >
-          <SceneView
-            key="ModalLayer"
-            navigation={childNav}
-            component={Component}
-            screenProps={props.screenProps || noScreenProps}
-          />
-        </Kb.Box2>
-      )}
+      {modal}
       <GlobalError />
       <OutOfDate />
     </>
@@ -411,9 +434,17 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
-      modalContainer: {
+      modal2Container: {
         ...Styles.globalStyles.fillAbsolute,
         backgroundColor: 'rgba(255,0,0,0.2)', // Styles.globalColors.black_50OrBlack_60,
+      },
+      modal2Style: {
+        flexGrow: 1,
+      },
+      modal2AvoidTabs: {backgroundColor: undefined, height: 0},
+      modal2ClearCover: {backgroundColor: undefined},
+      modalContainer: {
+        ...Styles.globalStyles.fillAbsolute,
       },
       sceneContainer: {flexDirection: 'column'},
       transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
