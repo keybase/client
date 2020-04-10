@@ -276,7 +276,7 @@ class TeamBuilding extends React.PureComponent<Props> {
       paddingRight: Styles.globalMargins.xsmall,
       paddingTop: Styles.globalMargins.mediumLarge,
     },
-    modal2Type: 'DefaultFullHeight',
+    modal2Type: 'DefaultFullWidth',
   }
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
 

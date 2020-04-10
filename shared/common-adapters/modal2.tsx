@@ -41,7 +41,7 @@ type Props = {
   header?: HeaderProps
   onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
-  mode: 'Default' | 'DefaultFullHeight' | 'Wide'
+  mode: 'Default' | 'DefaultFullHeight' | 'Wide' | 'DefaultFullWidth'
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean // content must push footer to bottom with this on.
   // backgroundStyle?: Styles.StylesCrossPlatform
@@ -310,6 +310,13 @@ const styles = Styles.styleSheetCreate(() => {
         width: 400,
       },
     }),
+    modeDefaultFullWidth: Styles.platformStyles({
+      common: {...modeCommon},
+      isElectron: {
+        height: 560,
+        width: '100%',
+      },
+    }),
     modeWide: Styles.platformStyles({
       common: {...modeCommon},
       isElectron: {
@@ -338,6 +345,7 @@ const styles = Styles.styleSheetCreate(() => {
 const clipContainerStyles: {[k in Props['mode']]: Styles.StylesCrossPlatform} = {
   Default: styles.modeDefault,
   DefaultFullHeight: styles.modeDefaultFullHeight,
+  DefaultFullWidth: styles.modeDefaultFullWidth,
   Wide: styles.modeWide,
 }
 
