@@ -15,7 +15,7 @@ import (
 type WotVouchArg struct {
 	Vouchee    keybase1.UserVersion
 	Confidence keybase1.Confidence
-	VouchTexts []string
+	VouchText  string
 }
 
 // WotVouch is an engine.
@@ -117,7 +117,7 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	if err := statement.SetKey("confidence", confidenceJw); err != nil {
 		return err
 	}
-	if err := statement.SetKey("vouch_text", libkb.JsonwStringArray(e.arg.VouchTexts)); err != nil {
+	if err := statement.SetKey("vouch_text", libkb.NewString(e.arg.VouchText)); err != nil {
 		return err
 	}
 	expansions, sum, err := libkb.EmbedExpansionObj(statement)

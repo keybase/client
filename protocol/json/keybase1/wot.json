@@ -110,11 +110,8 @@
           "name": "voucherUsername"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "vouchTexts"
+          "type": "string",
+          "name": "vouchText"
         },
         {
           "type": "Time",
@@ -138,19 +135,12 @@
           "type": "int"
         },
         {
-          "name": "username",
+          "name": "assertion",
           "type": "string"
         },
         {
-          "name": "guiID",
-          "type": "Identify3GUIID"
-        },
-        {
-          "name": "vouchTexts",
-          "type": {
-            "type": "array",
-            "items": "string"
-          }
+          "name": "vouchText",
+          "type": "string"
         },
         {
           "name": "confidence",
@@ -170,11 +160,8 @@
           "type": "string"
         },
         {
-          "name": "vouchTexts",
-          "type": {
-            "type": "array",
-            "items": "string"
-          }
+          "name": "vouchText",
+          "type": "string"
         },
         {
           "name": "confidence",

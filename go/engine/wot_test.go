@@ -44,7 +44,7 @@ func TestWebOfTrustVouch(t *testing.T) {
 	arg := &WotVouchArg{
 		Vouchee:    fu2.User.ToUserVersion(),
 		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
-		VouchTexts: []string{"alice is awesome"},
+		VouchText:  "alice is awesome",
 	}
 
 	eng := NewWotVouch(tc1.G, arg)
@@ -68,7 +68,7 @@ func TestWebOfTrustVouch(t *testing.T) {
 	arg = &WotVouchArg{
 		Vouchee:    uv,
 		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
-		VouchTexts: []string{"bob is nice"},
+		VouchText:  "bob is nice",
 	}
 	eng = NewWotVouch(tc1.G, arg)
 	err = RunEngine2(mctx, eng)
@@ -82,7 +82,7 @@ func TestWebOfTrustVouch(t *testing.T) {
 	// make an fu1 -> fu3 attest with confidence stuff
 	arg = &WotVouchArg{
 		Vouchee:    fu3.User.ToUserVersion(),
-		VouchTexts: []string{"charlie rocks"},
+		VouchText:  "charlie rocks",
 		Confidence: confidence,
 	}
 	eng = NewWotVouch(tc1.G, arg)
@@ -130,11 +130,11 @@ func TestWebOfTrustPending(t *testing.T) {
 	t.Log("bob sees no vouches for Alice")
 
 	firstVouch := "alice is wondibar but i don't have much confidence"
-	vouchTexts := []string{firstVouch}
+	vouchText := []string{firstVouch}
 	arg := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
 		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
-		VouchTexts: vouchTexts,
+		VouchText:  vouchText,
 	}
 	eng := NewWotVouch(tcBob.G, arg)
 	err = RunEngine2(mctxB, eng)
@@ -148,7 +148,7 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
 	require.Equal(t, bobName, bobVouch.VoucherUsername)
 	require.Equal(t, aliceName, bobVouch.VoucheeUsername)
-	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
+	require.Equal(t, vouchText, bobVouch.VouchText)
 	require.NotNil(t, bobVouch.Confidence)
 	require.EqualValues(t, keybase1.UsernameVerificationType_OTHER_CHAT, bobVouch.Confidence.UsernameVerifiedVia)
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, bobVouch.Status)
@@ -172,10 +172,10 @@ func TestWebOfTrustPending(t *testing.T) {
 
 	charlieName := charlie.User.GetName()
 
-	vouchTexts = []string{"alice is wondibar and doug agrees"}
+	vouchText = "alice is wondibar and doug agrees"
 	arg = &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
-		VouchTexts: vouchTexts,
+		VouchText:  vouchText,
 		Confidence: confidence,
 	}
 	eng = NewWotVouch(tcCharlie.G, arg)
@@ -231,10 +231,10 @@ func TestWebOfTrustAccept(t *testing.T) {
 	aliceName := alice.User.GetName()
 	bobName := bob.User.GetName()
 
-	vouchTexts := []string{"alice is wondibar and doug agrees"}
+	vouchText := "alice is wondibar and doug agrees"
 	argV := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
-		VouchTexts: vouchTexts,
+		VouchText:  vouchText,
 		Confidence: confidence,
 	}
 	engV := NewWotVouch(tcBob.G, argV)
@@ -250,7 +250,7 @@ func TestWebOfTrustAccept(t *testing.T) {
 	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
 	require.Equal(t, bobName, bobVouch.VoucherUsername)
 	require.Equal(t, aliceName, bobVouch.VoucheeUsername)
-	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
+	require.Equal(t, vouchText, bobVouch.VouchText)
 	t.Log("alice fetches one pending vouch")
 
 	argR := &WotReactArg{
@@ -269,7 +269,7 @@ func TestWebOfTrustAccept(t *testing.T) {
 	vouch := vouches[0]
 	require.Equal(t, keybase1.WotStatusType_ACCEPTED, vouch.Status)
 	require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
-	require.Equal(t, vouchTexts, vouch.VouchTexts)
+	require.Equal(t, vouchText, vouch.VouchText)
 	require.EqualValues(t, confidence, *vouch.Confidence)
 
 	vouches, err = libkb.FetchWotVouches(mctxB, libkb.FetchWotVouchesArg{Vouchee: aliceName})
@@ -278,7 +278,7 @@ func TestWebOfTrustAccept(t *testing.T) {
 	vouch = vouches[0]
 	require.Equal(t, keybase1.WotStatusType_ACCEPTED, vouch.Status)
 	require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
-	require.Equal(t, vouchTexts, vouch.VouchTexts)
+	require.Equal(t, vouchText, vouch.VouchText)
 	require.EqualValues(t, confidence, *vouch.Confidence)
 }
 
@@ -305,11 +305,11 @@ func TestWebOfTrustReject(t *testing.T) {
 
 	aliceName := alice.User.GetName()
 
-	vouchTexts := []string{"alice is wondibar"}
+	vouchText := []string{"alice is wondibar"}
 	argV := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
 		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
-		VouchTexts: vouchTexts,
+		VouchText:  vouchText,
 	}
 	engV := NewWotVouch(tcBob.G, argV)
 	err = RunEngine2(mctxB, engV)
@@ -322,7 +322,7 @@ func TestWebOfTrustReject(t *testing.T) {
 	bobVouch := vouches[0]
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, bobVouch.Status)
 	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
-	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
+	require.Equal(t, vouchText, bobVouch.VouchText)
 	t.Log("alice fetches one pending vouch")
 
 	argR := &WotReactArg{
@@ -341,7 +341,7 @@ func TestWebOfTrustReject(t *testing.T) {
 	vouch := vouches[0]
 	require.Equal(t, keybase1.WotStatusType_REJECTED, vouch.Status)
 	require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
-	require.Equal(t, vouchTexts, vouch.VouchTexts)
+	require.Equal(t, vouchText, vouch.VouchText)
 	require.NotNil(t, vouch.Confidence)
 	require.EqualValues(t, keybase1.UsernameVerificationType_OTHER_CHAT, bobVouch.Confidence.UsernameVerifiedVia)
 	t.Log("alice can see it as rejected")
@@ -385,10 +385,10 @@ func TestWebOfTrustRevoke(t *testing.T) {
 	t.Log("alice and bob follow each other")
 
 	bobVouchesForAlice := func(version int) {
-		vouchTexts := []string{fmt.Sprintf("alice is wondibar v%d", version)}
+		vouchText := []string{fmt.Sprintf("alice is wondibar v%d", version)}
 		arg := &WotVouchArg{
 			Vouchee:    alice.User.ToUserVersion(),
-			VouchTexts: vouchTexts,
+			VouchText:  vouchText,
 			Confidence: confidence,
 		}
 		eng := NewWotVouch(tcBob.G, arg)
@@ -422,7 +422,7 @@ func TestWebOfTrustRevoke(t *testing.T) {
 		require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
 		require.Equal(t, alice.User.GetUID(), vouch.Vouchee.Uid)
 		expectedVouchText := []string{fmt.Sprintf("alice is wondibar v%d", version)}
-		require.Equal(t, expectedVouchText, vouch.VouchTexts)
+		require.Equal(t, expectedVouchText, vouch.VouchText)
 		require.NotNil(t, vouch.Confidence)
 		return vouch
 	}
@@ -600,11 +600,11 @@ func TestWebOfTrustSigBug(t *testing.T) {
 
 	// bob vouches for alice
 	firstVouch := "alice is wondibar cause we texted"
-	vouchTexts := []string{firstVouch}
+	vouchText := []string{firstVouch}
 	argV := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
 		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
-		VouchTexts: vouchTexts,
+		VouchText:  vouchText,
 	}
 	engV := NewWotVouch(tcBob.G, argV)
 	err = RunEngine2(mctxB, engV)

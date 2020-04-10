@@ -54,7 +54,7 @@ func (h *WebOfTrustHandler) WotVouch(ctx context.Context, arg keybase1.WotVouchA
 			EldestSeqno: outcome.EldestSeqno,
 		},
 		Confidence: arg.Confidence,
-		VouchTexts: arg.VouchTexts,
+		VouchText:  arg.VouchText,
 	}))
 }
 
@@ -96,7 +96,7 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 	return engine.RunEngine2(mctx, engine.NewWotVouch(h.G(), &engine.WotVouchArg{
 		Vouchee:    idRes.Upk.Current.ToUserVersion(),
 		Confidence: arg.Confidence,
-		VouchTexts: arg.VouchTexts,
+		VouchText:  arg.VouchText,
 	}))
 }
 
