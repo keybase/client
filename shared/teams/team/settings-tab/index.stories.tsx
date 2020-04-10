@@ -31,6 +31,7 @@ const commonProps = {
     createChannel: true,
     deleteChannel: true,
     deleteChatHistory: true,
+    deleteOtherEmojis: true,
     deleteOtherMessages: true,
     deleteTeam: true,
     editChannelDescription: true,
