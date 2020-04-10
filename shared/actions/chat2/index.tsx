@@ -2535,11 +2535,19 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     return false
   }
 
+  const currentPath = Router2Constants.getVisiblePath()
+  const modalPath = Router2Constants.getModalStack()
+  const mainPath = Router2Constants.getMainStack()
+
+  const modalClearAction = modalPath.length > 0 ? [RouteTreeGen.createClearModals()] : []
+  const tabSwitchAction =
+    mainPath[1]?.routeName !== Tabs.chatTab ? [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})] : []
+
   // we select the chat tab and change the params
   if (Constants.isSplit) {
     return [
-      RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-      RouteTreeGen.createClearModals(),
+      ...tabSwitchAction,
+      ...modalClearAction,
       RouteTreeGen.createSetParams({key: 'chatRoot', params: {conversationIDKey}}),
       RouteTreeGen.createNavUpToScreen({routeName: Constants.threadRouteName}),
     ]
@@ -2547,7 +2555,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     // immediately switch stack to an inbox | thread stack
     if (reason === 'push' || reason === 'savedLastState') {
       return [
-        RouteTreeGen.createClearModals(),
+        ...modalClearAction,
         RouteTreeGen.createResetStack({
           actions: [
             RouteTreeGen.createNavigateAppend({
@@ -2557,14 +2565,15 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
           index: 1,
           tab: Tabs.chatTab,
         }),
-        RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+        ...tabSwitchAction,
       ]
     } else {
       // looking at the pending / waiting screen
       const replace =
         visibleRouteName === Constants.threadRouteName && !Constants.isValidConversationIDKey(visibleConvo)
       return [
-        RouteTreeGen.createClearModals(),
+        ...modalClearAction,
+        ...tabSwitchAction,
         RouteTreeGen.createNavigateAppend({
           path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
           replace,
