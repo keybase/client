@@ -32,7 +32,8 @@ const AddFromWhere = () => {
 
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
   const newTeam: boolean = teamID === Types.newTeamWizardTeamID
-  const error = Container.useSelector(s => (newTeam ? s.teams.newTeamWizard.error : undefined))
+  // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
+  const createTeamError = Container.useSelector(s => (newTeam ? s.teams.newTeamWizard.error : undefined))
 
   const onClose = () => dispatch(TeamsGen.createCancelAddMembersWizard())
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
@@ -45,10 +46,10 @@ const AddFromWhere = () => {
       allowOverflow={true}
       onClose={onClose}
       banners={
-        error
+        createTeamError
           ? [
               <Kb.Banner color="red" key="err">
-                {error}
+                {createTeamError}
               </Kb.Banner>,
             ]
           : []
