@@ -751,7 +751,7 @@ protocol teams {
 
     // Invites that have been canceled using team.invite link with
     // 'cancel' field.
-    map<TeamInviteID,TeamInvite> canceledInvites;
+    map<TeamInviteID,TeamInviteCanceledLogPoint> canceledInvites;
 
     // Invite uses. If an invite can be used multiple times, usedInvite
     // field is used, and this usage is saved here.
@@ -809,6 +809,13 @@ protocol teams {
     UserVersion uv;
     // index into TeamSigChainState.userLog[uv][]
     int logPoint;
+  }
+
+  record TeamInviteCanceledLogPoint {
+    // When did the team.invite link with `cancel` field happen.
+    SignatureMetadata sigMeta;
+    // Invite being canceled
+    TeamInvite invite;
   }
 
   // A subteam got this name at this point in time.

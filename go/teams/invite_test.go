@@ -765,6 +765,7 @@ func TestTeamPlayerCancelingInvites(t *testing.T) {
 		teamSectionForInvite, me, nil /* merkleRoot */)
 	require.NoError(t, err)
 
+	// TODO: Actually check CanceledInvite value, sigMeta etc.
 	require.Len(t, state.inner.CanceledInvites, 1)
 	require.Contains(t, state.inner.CanceledInvites, keybase1.TeamInviteID(inviteID1))
 	require.Len(t, state.inner.ActiveInvites, 1)

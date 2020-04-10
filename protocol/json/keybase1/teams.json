@@ -1616,7 +1616,7 @@
         {
           "type": {
             "type": "map",
-            "values": "TeamInvite",
+            "values": "TeamInviteCanceledLogPoint",
             "keys": "TeamInviteID"
           },
           "name": "canceledInvites"
@@ -1739,6 +1739,20 @@
         {
           "type": "int",
           "name": "logPoint"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamInviteCanceledLogPoint",
+      "fields": [
+        {
+          "type": "SignatureMetadata",
+          "name": "sigMeta"
+        },
+        {
+          "type": "TeamInvite",
+          "name": "invite"
         }
       ]
     },

@@ -1888,7 +1888,7 @@ type TeamSigChainState struct {
 	StubbedLinks            map[Seqno]bool                                    `codec:"stubbedLinks" json:"stubbedLinks"`
 	ActiveInvites           map[TeamInviteID]TeamInvite                       `codec:"activeInvites" json:"activeInvites"`
 	ObsoleteInvites         map[TeamInviteID]TeamInvite                       `codec:"obsoleteInvites" json:"obsoleteInvites"`
-	CanceledInvites         map[TeamInviteID]TeamInvite                       `codec:"canceledInvites" json:"canceledInvites"`
+	CanceledInvites         map[TeamInviteID]TeamInviteCanceledLogPoint       `codec:"canceledInvites" json:"canceledInvites"`
 	UsedInvites             map[TeamInviteID][]TeamUsedInviteLogPoint         `codec:"usedInvites" json:"usedInvites"`
 	Open                    bool                                              `codec:"open" json:"open"`
 	OpenTeamJoinAs          TeamRole                                          `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
@@ -2035,11 +2035,11 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.ObsoleteInvites),
-		CanceledInvites: (func(x map[TeamInviteID]TeamInvite) map[TeamInviteID]TeamInvite {
+		CanceledInvites: (func(x map[TeamInviteID]TeamInviteCanceledLogPoint) map[TeamInviteID]TeamInviteCanceledLogPoint {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[TeamInviteID]TeamInvite, len(x))
+			ret := make(map[TeamInviteID]TeamInviteCanceledLogPoint, len(x))
 			for k, v := range x {
 				kCopy := k.DeepCopy()
 				vCopy := v.DeepCopy()
@@ -2179,6 +2179,18 @@ func (o TeamUsedInviteLogPoint) DeepCopy() TeamUsedInviteLogPoint {
 	return TeamUsedInviteLogPoint{
 		Uv:       o.Uv.DeepCopy(),
 		LogPoint: o.LogPoint,
+	}
+}
+
+type TeamInviteCanceledLogPoint struct {
+	SigMeta SignatureMetadata `codec:"sigMeta" json:"sigMeta"`
+	Invite  TeamInvite        `codec:"invite" json:"invite"`
+}
+
+func (o TeamInviteCanceledLogPoint) DeepCopy() TeamInviteCanceledLogPoint {
+	return TeamInviteCanceledLogPoint{
+		SigMeta: o.SigMeta.DeepCopy(),
+		Invite:  o.Invite.DeepCopy(),
 	}
 }
 

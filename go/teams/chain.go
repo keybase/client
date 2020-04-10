@@ -480,12 +480,19 @@ func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite) {
 	t.inner.ActiveInvites[i.Id] = i
 }
 
-func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID) {
+func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID, sigMeta keybase1.SignatureMetadata) {
+	// Like it or not, but this is how peak go looks like:
+	var invite keybase1.TeamInvite
+	var found bool
 	// Has to be in one of the maps.
-	if inv, ok := t.inner.ActiveInvites[i]; ok {
-		t.inner.CanceledInvites[i] = inv
-	} else if inv, ok := t.inner.ObsoleteInvites[i]; ok {
-		t.inner.CanceledInvites[i] = inv
+	if invite, found = t.inner.ActiveInvites[i]; found {
+	} else if invite, found = t.inner.ObsoleteInvites[i]; found {
+	}
+	if found {
+		t.inner.CanceledInvites[i] = keybase1.TeamInviteCanceledLogPoint{
+			SigMeta: sigMeta,
+			Invite:  invite,
+		}
 	}
 
 	// TODO: Is invalid TeamInviteID fine here?
@@ -1075,14 +1082,15 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				StubbedLinks:            make(map[keybase1.Seqno]bool),
 				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				CanceledInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				CanceledInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInviteCanceledLogPoint),
 				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLogPoint),
 				TlfLegacyUpgrade:        make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
 			}}
 
-		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
+		sigMeta := payload.SignatureMetadata()
+		t.updateMembership(&res.newState, roleUpdates, sigMeta)
 
 		if team.Invites != nil {
 			if isImplicit {
@@ -1095,7 +1103,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				if err != nil {
 					return res, err
 				}
-				t.updateInvites(&res.newState, additions, cancelations)
+				t.updateInvites(&res.newState, additions, cancelations, sigMeta)
 			} else {
 				return res, fmt.Errorf("invites not allowed in root link")
 			}
@@ -1257,12 +1265,13 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		}
 
 		moveState()
-		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
+		sigMeta := payload.SignatureMetadata()
+		t.updateMembership(&res.newState, roleUpdates, sigMeta)
 
 		if err := t.completeInvites(&res.newState, team.CompletedInvites); err != nil {
 			return res, fmt.Errorf("illegal completed_invites: %s", err)
 		}
-		t.obsoleteInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
+		t.obsoleteInvites(&res.newState, roleUpdates, sigMeta)
 
 		if err := t.useInvites(&res.newState, roleUpdates, team.UsedInvites); err != nil {
 			return res, fmt.Errorf("illegal used_invites: %s", err)
@@ -1683,7 +1692,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		}
 
 		moveState()
-		t.updateInvites(&res.newState, additions, cancelations)
+		t.updateInvites(&res.newState, additions, cancelations, payload.SignatureMetadata())
 	case libkb.LinkTypeSettings:
 		err = enforce(LinkRules{
 			Admin:    TristateOptional,
@@ -2196,14 +2205,14 @@ func (t *teamSigchainPlayer) updateMembership(stateToUpdate *TeamSigChainState, 
 	}
 }
 
-func (t *teamSigchainPlayer) updateInvites(stateToUpdate *TeamSigChainState, additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID) {
+func (t *teamSigchainPlayer) updateInvites(stateToUpdate *TeamSigChainState, additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, sigMeta keybase1.SignatureMetadata) {
 	for _, invites := range additions {
 		for _, invite := range invites {
 			stateToUpdate.informNewInvite(invite)
 		}
 	}
 	for _, cancelation := range cancelations {
-		stateToUpdate.informCanceledInvite(cancelation)
+		stateToUpdate.informCanceledInvite(cancelation, sigMeta)
 	}
 }
 
