@@ -155,7 +155,10 @@ func (s *DevConvEmojiSource) putAliasLookup(ctx context.Context, uid gregor1.UID
 	aliasLookup map[string]chat1.Emoji, opts chat1.EmojiFetchOpts) error {
 	s.aliasLookupLock.Lock()
 	defer s.aliasLookupLock.Unlock()
-	s.aliasLookup = aliasLookup
+	// set this if it is blank, or a full fetch
+	if !opts.OnlyInTeam || s.aliasLookup == nil {
+		s.aliasLookup = aliasLookup
+	}
 	// only commit to disk if this is a full lookup
 	if !opts.OnlyInTeam {
 		return s.encryptedDB.Put(ctx, s.dbKey(uid), s.aliasLookup)
