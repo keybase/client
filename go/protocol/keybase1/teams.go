@@ -1888,6 +1888,7 @@ type TeamSigChainState struct {
 	StubbedLinks            map[Seqno]bool                                    `codec:"stubbedLinks" json:"stubbedLinks"`
 	ActiveInvites           map[TeamInviteID]TeamInvite                       `codec:"activeInvites" json:"activeInvites"`
 	ObsoleteInvites         map[TeamInviteID]TeamInvite                       `codec:"obsoleteInvites" json:"obsoleteInvites"`
+	CanceledInvites         map[TeamInviteID]TeamInvite                       `codec:"canceledInvites" json:"canceledInvites"`
 	UsedInvites             map[TeamInviteID][]TeamUsedInviteLogPoint         `codec:"usedInvites" json:"usedInvites"`
 	Open                    bool                                              `codec:"open" json:"open"`
 	OpenTeamJoinAs          TeamRole                                          `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
@@ -2034,6 +2035,18 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.ObsoleteInvites),
+		CanceledInvites: (func(x map[TeamInviteID]TeamInvite) map[TeamInviteID]TeamInvite {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TeamInviteID]TeamInvite, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.CanceledInvites),
 		UsedInvites: (func(x map[TeamInviteID][]TeamUsedInviteLogPoint) map[TeamInviteID][]TeamUsedInviteLogPoint {
 			if x == nil {
 				return nil

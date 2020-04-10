@@ -749,6 +749,10 @@ protocol teams {
     // were obsoleted by a ChangeMembership link.
     map<TeamInviteID,TeamInvite> obsoleteInvites;
 
+    // Invites that have been canceled using team.invite link with
+    // 'cancel' field.
+    map<TeamInviteID,TeamInvite> canceledInvites;
+
     // Invite uses. If an invite can be used multiple times, usedInvite
     // field is used, and this usage is saved here.
     map<TeamInviteID,array<TeamUsedInviteLogPoint>> usedInvites;
@@ -1411,7 +1415,7 @@ protocol teams {
   }
 
   record InviteLinkDetails{
-      TeamInviteID inviteID; 
+      TeamInviteID inviteID;
       UID inviterUID;
       string inviterUsername;
       boolean inviterResetOrDel;

@@ -481,6 +481,17 @@ func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite) {
 }
 
 func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID) {
+	// Has to be in one of the maps.
+	if inv, ok := t.inner.ActiveInvites[i]; ok {
+		t.inner.CanceledInvites[i] = inv
+	} else if inv, ok := t.inner.ObsoleteInvites[i]; ok {
+		t.inner.CanceledInvites[i] = inv
+	}
+
+	// TODO: Is invalid TeamInviteID fine here?
+	// TODO: Is canceling one TeamInviteID twice fine? Server ensures
+	// that Invite ID is unique.
+
 	delete(t.inner.ActiveInvites, i)
 	delete(t.inner.ObsoleteInvites, i)
 }
@@ -1064,6 +1075,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				StubbedLinks:            make(map[keybase1.Seqno]bool),
 				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				CanceledInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLogPoint),
 				TlfLegacyUpgrade:        make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),

@@ -713,3 +713,75 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 	// this would be the wrong log point: testUV did not accept invite at that point
 	require.Equal(t, 0, state.inner.UsedInvites[inviteID][0].LogPoint)
 }
+
+func TestTeamPlayerCancelingInvites(t *testing.T) {
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	// Make two invites.
+
+	teamSectionForInvite := makeTestSCTeamSection(team)
+	sectionInvite := makeTestSCForInviteLink()
+
+	maxUses := keybase1.TeamInviteMaxUses(100)
+	sectionInvite.MaxUses = &maxUses
+	inviteID1 := sectionInvite.ID
+	teamSectionForInvite.Invites = &SCTeamInvites{
+		Readers: &[]SCTeamInvite{sectionInvite},
+	}
+
+	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+
+	require.Len(t, state.inner.ActiveInvites, 1)
+	require.Contains(t, state.inner.ActiveInvites, keybase1.TeamInviteID(inviteID1))
+	require.Len(t, state.inner.ObsoleteInvites, 0)
+
+	sectionInvite = SCTeamInvite{
+		Type: "rooter",
+		Name: keybase1.TeamInviteName("t_alice_t"),
+		ID:   NewInviteID(),
+	}
+	inviteID2 := sectionInvite.ID
+	teamSectionForInvite.Invites = &SCTeamInvites{
+		Writers: &[]SCTeamInvite{sectionInvite},
+	}
+
+	state, err = appendSigToState(t, team, state, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+
+	require.Len(t, state.inner.ActiveInvites, 2)
+	require.Contains(t, state.inner.ActiveInvites, keybase1.TeamInviteID(inviteID1))
+	require.Contains(t, state.inner.ActiveInvites, keybase1.TeamInviteID(inviteID2))
+	require.Len(t, state.inner.ObsoleteInvites, 0)
+
+	// Cancel first invite
+	teamSectionForInvite.Invites = &SCTeamInvites{
+		Cancel: &[]SCTeamInviteID{inviteID1},
+	}
+	state, err = appendSigToState(t, team, state, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+
+	require.Len(t, state.inner.CanceledInvites, 1)
+	require.Contains(t, state.inner.CanceledInvites, keybase1.TeamInviteID(inviteID1))
+	require.Len(t, state.inner.ActiveInvites, 1)
+	require.Contains(t, state.inner.ActiveInvites, keybase1.TeamInviteID(inviteID2))
+	require.Len(t, state.inner.ObsoleteInvites, 0)
+
+	// Cancel second invite
+	teamSectionForInvite.Invites = &SCTeamInvites{
+		Cancel: &[]SCTeamInviteID{inviteID2},
+	}
+	state, err = appendSigToState(t, team, state, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+
+	require.Len(t, state.inner.CanceledInvites, 2)
+	require.Contains(t, state.inner.CanceledInvites, keybase1.TeamInviteID(inviteID1))
+	require.Contains(t, state.inner.CanceledInvites, keybase1.TeamInviteID(inviteID2))
+	require.Len(t, state.inner.ActiveInvites, 0)
+	require.Len(t, state.inner.ObsoleteInvites, 0)
+}

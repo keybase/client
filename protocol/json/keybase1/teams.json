@@ -1616,6 +1616,14 @@
         {
           "type": {
             "type": "map",
+            "values": "TeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "canceledInvites"
+        },
+        {
+          "type": {
+            "type": "map",
             "values": {
               "type": "array",
               "items": "TeamUsedInviteLogPoint"
