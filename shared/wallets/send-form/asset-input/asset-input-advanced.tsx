@@ -333,7 +333,6 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
         fullHeight={false}
         alignSelf="flex-start"
         alignItems="flex-end"
-        style={styles.pickAssetButton}
       >
         <Kb.ClickableBox
           onClick={!isLoading && goToPickAsset ? goToPickAsset : undefined}
@@ -468,17 +467,8 @@ const styles = Styles.styleSheetCreate(
       noShrink: {
         flexShrink: 0,
       },
-      pickAssetButton: Styles.platformStyles({
-        isMobile: {
-          //    width: Styles.globalMargins.xlarge * 3,
-          //    paddingTop: Styles.globalMargins.tiny,
-        },
-      }),
-      // We need this to make the PickAssetButton on top of other stuff so amount
-      // error can extend below it.
       pickAssetButtonOverlayOuter: {
         flexShrink: 0,
-        position: 'relative',
       },
       pickAssetButtonTopText: Styles.platformStyles({
         isElectron: {lineHeight: '24px'},
