@@ -86,7 +86,7 @@ export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, noAnim: boolean, categ
 export const emojiDataToRenderableEmoji = (
   emoji: EmojiData,
   skinToneModifier?: string,
-  skinToneKey?: string
+  skinToneKey?: Chat2Types.EmojiSkinTone
 ): RenderableEmoji => ({
   aliasForCustom: emoji.short_name,
   renderStock: emoji.userEmojiRenderStock ?? `:${emoji.short_name}:${skinToneModifier ?? ''}`,
@@ -94,6 +94,7 @@ export const emojiDataToRenderableEmoji = (
   unicodeStock:
     emoji.unified &&
     String.fromCodePoint(
+      // @ts-ignore
       ...(skinToneModifier && skinToneKey ? emoji.skin_variations?.[skinToneKey].unified : emoji.unified)
         .split('-')
         .map((str: string) => Number.parseInt(str, 16))

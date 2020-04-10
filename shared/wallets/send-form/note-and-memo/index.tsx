@@ -87,11 +87,6 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
     })
   }
 
-  _emojiPickerOnClick = emoji => {
-    this._insertEmoji(emoji.native)
-    this._emojiPickerToggle()
-  }
-
   render() {
     return (
       <>

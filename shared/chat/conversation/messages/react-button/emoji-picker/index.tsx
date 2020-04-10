@@ -236,10 +236,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"
-        onClick={() => {
-          KB.debugConsoleLog({songgao: 'emoji-picker', emoji})
-          this.props.onChoose(getEmojiStr(emoji, skinToneModifier), renderable)
-        }}
+        onClick={() => this.props.onChoose(getEmojiStr(emoji, skinToneModifier), renderable)}
         onMouseOver={this.props.onHover && (() => this.props.onHover?.(emoji))}
         style={styles.emoji}
         key={emoji.short_name}
