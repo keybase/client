@@ -2,6 +2,7 @@
 
   import idl "../gregor1" as gregor1;
   import idl "../keybase1" as keybase1;
+  import idl "../stellar1" as stellar1;
 
   @typedef("bytes")  record ThreadID {}
   @typedef("uint") @lint("ignore") record MessageID {}
@@ -458,6 +459,13 @@
     //           appropriate crypt keys.
     @mpackkey("b") @jsonkey("b")
     union { null, gregor1.UID } botUID;
+
+    // [V1, V2]: Missing
+    // [V3, V4]: Specifies which stellar transaction ID is associated with the
+    // message, if any, to do server-side validation of the transaction
+    // notification.
+    @mpackkey("t") @jsonkey("t")
+    union { null, stellar1.TransactionID} txID;
   }
 
   record MessageClientHeaderVerified {
