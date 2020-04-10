@@ -213,6 +213,8 @@ func TestEmojiSourceBasic(t *testing.T) {
 				IsBig:        false,
 				IsReacji:     false,
 				IsCrossTeam:  false,
+				IsAlias:      true,
+				Teamname:     &conv.TlfName,
 				Source:       chat1.NewEmojiLoadSourceWithStr(":+1::skin-tone-0:"),
 				NoAnimSource: chat1.NewEmojiLoadSourceWithStr(":+1::skin-tone-0:"),
 				RemoteSource: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
