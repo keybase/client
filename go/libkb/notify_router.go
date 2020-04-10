@@ -952,6 +952,10 @@ func (n *NotifyRouter) HandleDeviceCloneNotification(newClones int) {
 	n.G().Log.Debug("- Sent device clone notification")
 }
 
+func (n *NotifyRouter) HasClientType(clientType keybase1.ClientType) bool {
+	return n.cm.HasClientType(clientType)
+}
+
 func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType chat1.TopicType) bool {
 	switch topicType {
 	case chat1.TopicType_CHAT:

@@ -70,7 +70,9 @@ func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.U
 		if !act.DisplayDesktopNotification && act.Conv != nil &&
 			act.Conv.TeamType == chat1.TeamType_COMPLEX &&
 			!n.G().Syncer.IsSelectedConversation(act.ConvID) &&
-			act.Conv.ReadMsgID+100 < act.Conv.MaxVisibleMsgID {
+			act.Conv.ReadMsgID+100 < act.Conv.MaxVisibleMsgID &&
+			// Only skip these notifications for GUI clients
+			!n.G().NotifyRouter.HasClientType(keybase1.ClientType_CLI) {
 			n.Debug(ctx, "skipping UI notification %v for %v", typ, act.ConvID)
 			return
 		}
