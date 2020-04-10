@@ -43,6 +43,7 @@ const useDoAddEmojis = (
   const addEmojisRpc = useRPC(RPCChatGen.localAddEmojisRpcPromise)
   const [waitingAddEmojis, setWaitingAddEmojis] = React.useState(false)
   const [bannerError, setBannerError] = React.useState('')
+  const clearBannerError = React.useCallback(() => setBannerError(''), [setBannerError])
   const doAddEmojis =
     conversationIDKey !== ChatConstants.noConversationIDKey
       ? () => {
@@ -66,7 +67,7 @@ const useDoAddEmojis = (
               }
 
               res.successFilenames && removeFilePath(new Set(res.successFilenames))
-              setErrors(new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key]])))
+              setErrors(new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key].uidisplay])))
               setBannerError(
                 `Failed to add ${failedFilenamesKeys.length} ${pluralize(
                   'emojis',
@@ -81,7 +82,7 @@ const useDoAddEmojis = (
           )
         }
       : undefined
-  return {bannerError, doAddEmojis, waitingAddEmojis}
+  return {bannerError, clearBannerError, doAddEmojis, waitingAddEmojis}
 }
 
 const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () => void) => {
@@ -141,17 +142,22 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
     [errors, filePaths, aliasMap, removeFilePath]
   )
 
-  const {bannerError, doAddEmojis, waitingAddEmojis} = useDoAddEmojis(
+  const {bannerError, clearBannerError, doAddEmojis, waitingAddEmojis} = useDoAddEmojis(
     conversationIDKey,
     emojisToAdd,
     setErrors,
     removeFilePath,
     onChange
   )
+  const clearErrors = React.useCallback(() => {
+    clearBannerError()
+    setErrors(new Map<string, string>())
+  }, [clearBannerError, setErrors])
 
   return {
     addFiles,
     bannerError,
+    clearErrors,
     clearFiles,
     doAddEmojis,
     emojisToAdd,
@@ -161,10 +167,15 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
 }
 
 export const AddEmojiModal = (props: Props) => {
-  const {addFiles, bannerError, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} = useStuff(
-    props.conversationIDKey,
-    props.onChange
-  )
+  const {
+    addFiles,
+    bannerError,
+    clearErrors,
+    clearFiles,
+    doAddEmojis,
+    emojisToAdd,
+    waitingAddEmojis,
+  } = useStuff(props.conversationIDKey, props.onChange)
   const pick = () => pickEmojisPromise().then(addFiles)
   return !emojisToAdd.length ? (
     <Modal
@@ -185,7 +196,10 @@ export const AddEmojiModal = (props: Props) => {
       footerButtonLabel="Add emoji"
       footerButtonOnClick={doAddEmojis}
       footerButtonWaiting={waitingAddEmojis}
-      backButtonOnClick={clearFiles}
+      backButtonOnClick={() => {
+        clearErrors()
+        clearFiles()
+      }}
     >
       <AddEmojiAliasAndConfirm addFiles={addFiles} emojisToAdd={emojisToAdd} />
     </Modal>

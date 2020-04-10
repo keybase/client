@@ -4020,6 +4020,20 @@
     },
     {
       "type": "record",
+      "name": "EmojiError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "clidisplay"
+        },
+        {
+          "type": "string",
+          "name": "uidisplay"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AddEmojiRes",
       "fields": [
         {
@@ -4028,6 +4042,13 @@
             "RateLimit"
           ],
           "name": "rateLimit"
+        },
+        {
+          "type": [
+            null,
+            "EmojiError"
+          ],
+          "name": "error"
         }
       ]
     },
@@ -4052,7 +4073,7 @@
         {
           "type": {
             "type": "map",
-            "values": "string",
+            "values": "EmojiError",
             "keys": "string"
           },
           "name": "failedFilenames"
@@ -4073,9 +4094,9 @@
         {
           "type": [
             null,
-            "string"
+            "EmojiError"
           ],
-          "name": "errorString"
+          "name": "error"
         }
       ]
     },

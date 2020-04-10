@@ -1640,31 +1640,52 @@ protocol teams {
 
   AnnotatedTeam getAnnotatedTeam(TeamID teamID);
 
-  record AnnotatedSubteamMemberDetails {
-    TeamName teamName;
-    TeamID teamID;
-    TeamMemberDetails details;
-    TeamRole role;
-  }
-  array<AnnotatedSubteamMemberDetails> getUserSubteamMemberships(TeamID teamID, string username);
-
   // For member page
   record TeamTreeMembershipValue {
     TeamRole role;
     // last time the user joined the team
     union { null, Time } joinTime;
+    TeamID teamID;
   }
   enum TeamTreeMembershipStatus {
     OK_0,
-    ERROR_1
+    ERROR_1,
+    HIDDEN_2
+  }
+  record TeamTreeError {
+    string message;
+    // willSkipSubtree is true if loading of the subtree rooted at the team associated
+    // with this error was cancelled due to this error.
+    boolean willSkipSubtree;
+    // willSkipAncestors is true if loading of the ancestor chain of the team associated
+    // with this error was cancelled due to this error.
+    boolean willSkipAncestors;
   }
   variant TeamTreeMembershipResult switch (TeamTreeMembershipStatus s) {
     case OK: TeamTreeMembershipValue;
-    case ERROR: GenericError;
+    case ERROR: TeamTreeError;
+    // HIDDEN is used for membership results of teams the user is not in
+    case HIDDEN: void;
   }
   record TeamTreeMembership {
-    TeamName teamName;
+    string teamName;
     TeamTreeMembershipResult result;
+
+    // bookkeeping params; 'target' refers to the initial request
+    TeamID targetTeamID;
+    string targetUsername;
+    int guid;
+  }
+  record TeamTreeMembershipsDoneResult {
+    int expectedCount;
+
+    // bookkeeping params; 'target' refers to the initial request
+    TeamID targetTeamID;
+    string targetUsername;
+    int guid;
+  }
+  record TeamTreeInitial {
+    int guid;
   }
   // loadTeamTreeMemberships takes a teamID and a username and asynchronously spawns notifications
   // indicating the role of the user in each of the teams of the partial tree wrt the teamID.  The
@@ -1698,7 +1719,17 @@ protocol teams {
   // were started at E and (for whatever reason) the load failed at C and G, then this function
   // would not attempt to load A or J, but would continue to load the rest of the tree. In this
   // case, there would only be 5 Partial notifications (C, E, G, H, I) instead of all 7.
-  void loadTeamTreeMemberships(int sessionID, TeamID teamID, string username);
-  // called when navigating out of page
-  void cancelLoadTeamTree(int sessionID);
+  //
+  // With regards to ancestor teams, the loading user need not necessarily be an admin of those
+  // teams in order to get results. If they are in the team, they will get a successful
+  // TeamTreeMembershipResult_OK partial; otherwise they will get a TeamTreeMembershipsResult_HIDDEN
+  // for that teamname with no role information. Note that this does not currently consider implicit
+  // adminship: if Alice is an admin of A and loads A.C.E, she would get a OK partial for A, but a
+  // HIDDEN partial for A.C. This is a limitation that can be fixed, but is not critical since the
+  // more natural flow would be for Alice to start her load from A.
+  //
+  // Because these notifications are delivered asychronously, they are tied together with
+  // a `guid`: an opaque integer that happens to be the sessionID the initial RPC was called
+  // with. Each notification for the same load will contain the same `guid`.
+  TeamTreeInitial loadTeamTreeMembershipsAsync(int sessionID, TeamID teamID, string username);
 }

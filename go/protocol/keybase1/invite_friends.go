@@ -14,6 +14,7 @@ type InviteCounts struct {
 	PercentageChange float64 `codec:"percentageChange" json:"percentageChange"`
 	ShowNumInvites   bool    `codec:"showNumInvites" json:"showNumInvites"`
 	ShowFire         bool    `codec:"showFire" json:"showFire"`
+	TooltipMarkdown  string  `codec:"tooltipMarkdown" json:"tooltipMarkdown"`
 }
 
 func (o InviteCounts) DeepCopy() InviteCounts {
@@ -22,6 +23,7 @@ func (o InviteCounts) DeepCopy() InviteCounts {
 		PercentageChange: o.PercentageChange,
 		ShowNumInvites:   o.ShowNumInvites,
 		ShowFire:         o.ShowFire,
+		TooltipMarkdown:  o.TooltipMarkdown,
 	}
 }
 

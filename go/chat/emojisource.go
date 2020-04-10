@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"camlistore.org/pkg/images"
+	"github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -31,6 +32,53 @@ const (
 	maxEmojiSize       = 256 * 1000 // 256kb
 	animationKey       = "emojianimations"
 )
+
+type EmojiValidationError struct {
+	Underlying error
+	CLIDisplay string
+	UIDisplay  string
+}
+
+func (e *EmojiValidationError) Error() string {
+	if e == nil || e.Underlying == nil {
+		return ""
+	}
+	return e.Underlying.Error()
+}
+
+func (e *EmojiValidationError) Export() *chat1.EmojiError {
+	if e == nil {
+		return nil
+	}
+	return &chat1.EmojiError{
+		Clidisplay: e.CLIDisplay,
+		Uidisplay:  e.UIDisplay,
+	}
+}
+
+func NewEmojiValidationError(err error, cliDisplay, uiDisplay string) *EmojiValidationError {
+	return &EmojiValidationError{
+		Underlying: err,
+		CLIDisplay: cliDisplay,
+		UIDisplay:  uiDisplay,
+	}
+}
+
+func NewEmojiValidationErrorSimple(err error, display string) *EmojiValidationError {
+	return &EmojiValidationError{
+		Underlying: err,
+		CLIDisplay: display,
+		UIDisplay:  display,
+	}
+}
+
+func NewEmojiValidationErrorJustError(err error) *EmojiValidationError {
+	return &EmojiValidationError{
+		Underlying: err,
+		CLIDisplay: err.Error(),
+		UIDisplay:  err.Error(),
+	}
+}
 
 type DevConvEmojiSource struct {
 	globals.Contextified
@@ -129,7 +177,8 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 		stored.Mapping = make(map[string]chat1.EmojiRemoteSource)
 	}
 	if _, ok := stored.Mapping[alias]; ok && !allowOverwrite {
-		return res, errors.New("alias already exists, must specify --allow-overwrite to edit")
+		return res, NewEmojiValidationError(errors.New("alias already exists"),
+			"alias already exists, must specify --allow-overwrite to edit", "alias already exists")
 	}
 
 	sender := NewBlockingSender(s.G(), NewBoxer(s.G()), s.ri)
@@ -167,14 +216,21 @@ func (s *DevConvEmojiSource) normalizeShortName(shortName string) string {
 
 func (s *DevConvEmojiSource) validateShortName(shortName string) error {
 	if s.IsStockEmoji(shortName) {
-		return errors.New("cannot use existing stock emoji short name")
+		return NewEmojiValidationErrorJustError(errors.New("cannot use existing stock emoji name"))
 	}
-	if len(shortName) > maxShortNameLength || len(shortName) < minShortNameLength {
-		return fmt.Errorf("short name (length %d) not within bounds %d,%d",
-			len(shortName), minShortNameLength, maxShortNameLength)
+	if len(shortName) > maxShortNameLength {
+		err := errors.New("name is too long")
+		return NewEmojiValidationError(err, fmt.Sprintf("name is too long, must be less than %d",
+			maxShortNameLength), err.Error())
+	}
+	if len(shortName) < minShortNameLength {
+		err := errors.New("name is too short")
+		return NewEmojiValidationError(err,
+			fmt.Sprintf("short name is too short, must be greater than %d", minShortNameLength),
+			err.Error())
 	}
 	if strings.Contains(shortName, "#") {
-		return errors.New("invalid character in emoji alias")
+		return NewEmojiValidationErrorJustError(errors.New("invalid character in name"))
 	}
 	return nil
 }
@@ -199,29 +255,39 @@ func (s *DevConvEmojiSource) validateCustomEmoji(ctx context.Context, shortName,
 func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) error {
 	finfo, err := attachments.StatOSOrKbfsFile(ctx, s.G().GlobalContext, filename)
 	if err != nil {
-		return err
+		return NewEmojiValidationErrorSimple(err, "unable to open file")
 	}
 	if finfo.IsDir() {
-		return errors.New("invalid file type for emoji")
-	} else if !s.IsValidSize(finfo.Size()) {
-		return fmt.Errorf("emoji size %d not within bounds %d,%d", finfo.Size(), minEmojiSize, maxEmojiSize)
+		return NewEmojiValidationErrorJustError(errors.New("unable to use a directory"))
+	} else if finfo.Size() > maxEmojiSize {
+		err := errors.New("file too large")
+		return NewEmojiValidationError(err,
+			fmt.Sprintf("emoji filesize too large, must be less than %s", humanize.Bytes(maxEmojiSize)),
+			err.Error())
+	} else if finfo.Size() < minEmojiSize {
+		err := errors.New("file too small")
+		return NewEmojiValidationError(err,
+			fmt.Sprintf("emoji filesize too small, must be greater than %s", humanize.Bytes(minEmojiSize)),
+			err.Error())
 	}
 
 	src, err := attachments.NewReadCloseResetter(ctx, s.G().GlobalContext, filename)
 	if err != nil {
-		return err
+		return NewEmojiValidationErrorSimple(err, "failed to process file")
 	}
 	defer func() { src.Close() }()
 	if _, _, err = images.Decode(src, nil); err != nil {
+		s.Debug(ctx, "validateFile: failed to decode image: %s", err)
 		if err := src.Reset(); err != nil {
-			return err
+			return NewEmojiValidationErrorSimple(err, "failed to process file")
 		}
 		g, err := gif.DecodeAll(src)
 		if err != nil {
-			return err
+			s.Debug(ctx, "validateFile: failed to decode gif: %s", err)
+			return NewEmojiValidationErrorSimple(err, "invalid image file")
 		}
 		if len(g.Image) == 0 {
-			return errors.New("no image frames in GIF")
+			return NewEmojiValidationErrorJustError(errors.New("no image frames in GIF"))
 		}
 	}
 	return nil
@@ -806,7 +872,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 }
 
 func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid gregor1.UID,
-	convID chat1.ConversationID, messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	if len(emojis) == 0 {
 		return body
 	}
@@ -837,6 +903,23 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 				s.Debug(ctx, "Decorate: failed to get local source: %s", err)
 				continue
 			}
+			typ, err := source.Typ()
+			if err != nil {
+				s.Debug(ctx, "Decorate: failed to get load source type: %s", err)
+				continue
+			}
+			if typ == chat1.EmojiLoadSourceTyp_STR {
+				// Instead of decorating aliases, just replace them with the alias string
+				strDecoration := source.Str()
+				length := match.position[1] - match.position[0]
+				added := len(strDecoration) - length
+				decorationOffset := match.position[0] + offset
+				body = fmt.Sprintf("%s%s%s", body[:decorationOffset], strDecoration,
+					body[decorationOffset+length:])
+				offset += added
+				continue
+			}
+
 			body, added = utils.DecorateBody(ctx, body, match.position[0]+offset,
 				match.position[1]-match.position[0],
 				chat1.NewUITextDecorationWithEmoji(chat1.Emoji{

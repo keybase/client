@@ -158,9 +158,7 @@ const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
       ...emojiIndex
         // @ts-ignore type wrong?
         .search(filter, {maxResults: maxEmojiSearchResults})
-        .map((res: {id: string}) => emojiNameMap[res.id])
-        // MUST sort this so its stable
-        .sort((a: any, b: any) => a.sort_order - b.sort_order),
+        .map((res: {id: string}) => emojiNameMap[res.id]),
     ]
   }
 }
@@ -344,21 +342,25 @@ class EmojiPicker extends React.PureComponent<Props, State> {
       // so I'm not adding a ScrollView here. If we increase that later check
       // if this can sometimes overflow the screen here & add a ScrollView
       return (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexGrow}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} alignItems="flex-start">
-            <Kb.Box2
-              direction="horizontal"
-              fullWidth={true}
-              style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
-            >
-              {this.getSectionHeader('Search results')}
-              {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
-              {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
-                makeEmojiPlaceholder(index)
-              )}
-            </Kb.Box2>
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          centerChildren={true}
+          alignItems="flex-start"
+          style={Styles.globalStyles.flexGrow}
+        >
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
+          >
+            {this.getSectionHeader('Search results')}
+            {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
+            {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
+              makeEmojiPlaceholder(index)
+            )}
+            {this.makeNotFound()}
           </Kb.Box2>
-          {this.makeNotFound()}
         </Kb.Box2>
       )
     }
