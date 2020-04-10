@@ -59,14 +59,12 @@ const useDoAddEmojis = (
               },
             ],
             res => {
-              const failedFilenamesKeys = Object.keys(res.failedFilenames || {})
-
-              if (!failedFilenamesKeys.length) {
-                dispatch(RouteTreeGen.createClearModals())
+              if (res.successFilenames?.length) {
                 onChange?.()
+                removeFilePath(new Set(res.successFilenames))
               }
-
-              res.successFilenames && removeFilePath(new Set(res.successFilenames))
+              const failedFilenamesKeys = Object.keys(res.failedFilenames || {})
+              !failedFilenamesKeys.length && dispatch(RouteTreeGen.createClearModals())
               setErrors(new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key].uidisplay])))
               setBannerError(
                 `Failed to add ${failedFilenamesKeys.length} ${pluralize(
