@@ -328,12 +328,7 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
   const isLoading = Container.useAnyWaiting(Constants.calculateBuildingAdvancedWaitingKey)
   return (
     <Kb.Box style={styles.pickAssetButtonOverlayOuter}>
-      <Kb.Box2
-        direction="vertical"
-        fullHeight={false}
-        alignSelf="flex-start"
-        alignItems="flex-end"
-      >
+      <Kb.Box2 direction="vertical" fullHeight={false} alignSelf="flex-start" alignItems="flex-end">
         <Kb.ClickableBox
           onClick={!isLoading && goToPickAsset ? goToPickAsset : undefined}
           style={!goToPickAsset || isLoading ? styles.disabled : undefined}
