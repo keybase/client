@@ -5,13 +5,13 @@ import {collapseStyles, globalColors, isMobile} from '../styles'
 
 type Props = {
   onClose: () => void
-  onMouseUp?: (e: React.MouseEvent) => void
-  onMouseDown?: (e: React.MouseEvent) => void
-  onMouseMove?: (e: React.MouseEvent) => void
+  // onMouseUp?: (e: React.MouseEvent) => void
+  // onMouseDown?: (e: React.MouseEvent) => void
+  // onMouseMove?: (e: React.MouseEvent) => void
   children: React.ReactNode
   cover?: boolean
-  styleCover?: any
   styleClipContainer?: any
+  styleCover?: any
   styleContainer?: any
 }
 
@@ -20,9 +20,9 @@ const MaybePopup = isMobile
   : (props: Props) => (
       <PopupDialog
         onClose={props.onClose}
-        onMouseUp={props.onMouseUp}
-        onMouseDown={props.onMouseDown}
-        onMouseMove={props.onMouseMove}
+        // onMouseUp={props.onMouseUp}
+        // onMouseDown={props.onMouseDown}
+        // onMouseMove={props.onMouseMove}
         styleCover={collapseStyles([props.cover && _styleCover, props.styleCover])}
         styleContainer={props.cover ? {..._styleContainer, ...props.styleContainer} : {}}
         styleClipContainer={props.styleClipContainer}

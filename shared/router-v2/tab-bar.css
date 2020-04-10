@@ -1,3 +1,6 @@
+.modalAvoidTabs {
+  padding-left: 160px;
+}
 .tab-container {
   background-color: #3663ea;
   flex-shrink: 0;
@@ -104,6 +107,9 @@
   }
 }
 @media all and (max-width: 800px) and (min-width: 0px) {
+  .modalAvoidTabs {
+    padding-left: 80px;
+  }
   .tab-container {
     width: 80px;
   }

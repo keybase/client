@@ -86,7 +86,7 @@ const Modal = (props: Props) =>
       ])}
       styleClose={props.popupStyleClose}
       styleContainer={props.popupStyleContainer}
-      tabBarShim={props.popupTabBarShim}
+      // tabBarShim={props.popupTabBarShim}
     >
       <ModalInner {...props} />
     </PopupDialog>

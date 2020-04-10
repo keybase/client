@@ -169,14 +169,15 @@ const Body = (props: BodyProps) => {
 
 const TrustlineDesktop = (props: Props) => {
   const {onDone, ...rest} = props
-  const [searchFilterFocused, setSearchFilterFocused] = React.useState(false)
+  // const [searchFilterFocused, setSearchFilterFocused] = React.useState(false)
+  KB.debugConsoleLog('TODO immuneToEscape')
   return (
-    <Kb.PopupDialog onClose={onDone} immuneToEscape={searchFilterFocused}>
+    <Kb.PopupDialog onClose={onDone}>
       <Kb.Box2 direction="vertical" style={styles.containerDesktop}>
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.headerDesktop}>
           <Kb.Text type="Header">Trustlines</Kb.Text>
         </Kb.Box2>
-        <Body {...rest} onFocusChange={setSearchFilterFocused} />
+        <Body {...rest} /> {/*onFocusChange={setSearchFilterFocused} />*/}
         <Kb.Divider />
         <Kb.Button
           type="Default"

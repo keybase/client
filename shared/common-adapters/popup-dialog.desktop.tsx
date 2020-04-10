@@ -1,74 +1,74 @@
 import * as React from 'react'
 import Box from './box'
 import Icon from './icon'
-import {EscapeHandler} from '../util/key-event-handler.desktop'
+// import {EscapeHandler} from '../util/key-event-handler.desktop'
 import * as Styles from '../styles'
 import {Props} from './popup-dialog'
-import ModalTabBarShim from './modal-tab-bar-shim'
+// import ModalTabBarShim from './modal-tab-bar-shim'
 
-function stopBubbling(ev) {
-  ev.stopPropagation()
-}
+// function stopBubbling(ev) {
+// ev.stopPropagation()
+// }
 
 export function PopupDialog({
   children,
   onClose,
-  onMouseUp,
-  onMouseDown,
-  onMouseMove,
+  // onMouseUp,
+  // onMouseDown,
+  // onMouseMove,
   fill,
-  immuneToEscape,
-  styleCover,
+  // immuneToEscape,
+  // styleCover,
   styleContainer,
   styleClose,
   styleClipContainer,
-  tabBarShim, // Move out of the way the nav column.
-  allowClipBubbling,
-}: Props) {
-  const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
+}: // tabBarShim, // Move out of the way the nav column.
+// allowClipBubbling,
+Props) {
+  // const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
   return (
-    <EscapeHandler onESC={!immuneToEscape ? onClose || null : null}>
+    // <EscapeHandler onESC={!immuneToEscape ? onClose || null : null}>
+    // <Box
+    // style={Styles.collapseStyles([tabBarShim ? styles.coverTabBarShim : styles.cover, styleCover])}
+    // onMouseUp={(e: React.MouseEvent) => {
+    // if (mouseDownOnCover) {
+    // onClose && onClose()
+    // }
+    // onMouseUp && onMouseUp(e)
+    // }}
+    // onMouseDown={(e: React.MouseEvent) => {
+    // setMouseDownOnCover(true)
+    // onMouseDown && onMouseDown(e)
+    // }}
+    // onMouseMove={onMouseMove}
+    // >
+    // {tabBarShim && <ModalTabBarShim />}
+    <Box
+      style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}
+      onMouseDown={(e: React.BaseSyntheticEvent) => {
+        // setMouseDownOnCover(false)
+        e.stopPropagation()
+      }}
+      onMouseUp={(e: React.BaseSyntheticEvent) => e.stopPropagation()}
+    >
+      {onClose && (
+        <Icon
+          type="iconfont-close"
+          style={Styles.collapseStyles([styles.close, styleClose])}
+          color={Styles.globalColors.whiteOrWhite_75}
+          onClick={onClose}
+          hoverColor={Styles.globalColors.white_40OrWhite_40}
+        />
+      )}
       <Box
-        style={Styles.collapseStyles([tabBarShim ? styles.coverTabBarShim : styles.cover, styleCover])}
-        onMouseUp={(e: React.MouseEvent) => {
-          if (mouseDownOnCover) {
-            onClose && onClose()
-          }
-          onMouseUp && onMouseUp(e)
-        }}
-        onMouseDown={(e: React.MouseEvent) => {
-          setMouseDownOnCover(true)
-          onMouseDown && onMouseDown(e)
-        }}
-        onMouseMove={onMouseMove}
+        style={Styles.collapseStyles([styles.clipContainer, styleClipContainer])}
+        // onClick={allowClipBubbling ? undefined : stopBubbling}
       >
-        {tabBarShim && <ModalTabBarShim />}
-        <Box
-          style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}
-          onMouseDown={(e: React.BaseSyntheticEvent) => {
-            setMouseDownOnCover(false)
-            e.stopPropagation()
-          }}
-          onMouseUp={(e: React.BaseSyntheticEvent) => e.stopPropagation()}
-        >
-          {onClose && (
-            <Icon
-              type="iconfont-close"
-              style={Styles.collapseStyles([styles.close, styleClose])}
-              color={Styles.globalColors.whiteOrWhite_75}
-              onClick={onClose}
-              hoverColor={Styles.globalColors.white_40OrWhite_40}
-            />
-          )}
-          <Box
-            style={Styles.collapseStyles([styles.clipContainer, styleClipContainer])}
-            onClick={allowClipBubbling ? undefined : stopBubbling}
-          >
-            {children}
-          </Box>
-        </Box>
+        {children}
       </Box>
-    </EscapeHandler>
+    </Box>
+    // </Box>
+    // </EscapeHandler>
   )
 }
 

@@ -56,7 +56,7 @@ function useDarkSubscription() {
       )
       return () => {
         if (subscriptionId && Electron.remote.systemPreferences.unsubscribeNotification) {
-          Electron.systemPreferences.unsubscribeNotification(subscriptionId || -1)
+          Electron.remote.systemPreferences.unsubscribeNotification(subscriptionId || -1)
         }
       }
     } else {

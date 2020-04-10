@@ -91,6 +91,8 @@ const AppView = React.memo((props: NavigationViewProps<any>) => {
   )
 })
 
+const mouseResetValue = -9999
+const mouseDistanceThreshold = 5
 const ModalView = React.memo((props: NavigationViewProps<any>) => {
   const {navigation, descriptors} = props
   const {state} = navigation
@@ -105,7 +107,45 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
   const appDescriptor = descriptors[appKey]
 
   const Component = descriptor.getComponent()
-  const modalStyle = Component?.navigationOptions?.modalStyle
+  // @ts-ignore
+  const navigationOptions = Component?.navigationOptions
+  const {modalStyle, modalAvoidTabs} = navigationOptions ?? {}
+
+  const popRef = React.useRef(navigation.pop)
+  React.useEffect(() => {
+    popRef.current = navigation.pop
+  }, [navigation])
+
+  // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
+  // window around to count
+  const [mouseDownX, setMouseDownX] = React.useState(mouseResetValue)
+  const [mouseDownY, setMouseDownY] = React.useState(mouseResetValue)
+  const onMouseDown = React.useCallback(
+    (e: React.MouseEvent) => {
+      const {screenX, screenY} = e.nativeEvent
+      setMouseDownX(screenX)
+      setMouseDownY(screenY)
+    },
+    [setMouseDownX, setMouseDownY]
+  )
+  const onMouseUp = React.useCallback(
+    (e: React.MouseEvent) => {
+      const {screenX, screenY} = e.nativeEvent
+      const delta = Math.abs(screenX - mouseDownX) + Math.abs(screenY - mouseDownY)
+      const dismiss = delta < mouseDistanceThreshold
+      setMouseDownX(mouseResetValue)
+      setMouseDownY(mouseResetValue)
+      if (dismiss) {
+        popRef.current?.()
+      }
+    },
+    [setMouseDownX, setMouseDownY, mouseDownX, mouseDownY]
+  )
+  // if the modals change clear this value
+  React.useEffect(() => {
+    setMouseDownX(mouseResetValue)
+    setMouseDownY(mouseResetValue)
+  }, [index])
 
   return (
     <>
@@ -116,7 +156,14 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
         screenProps={props.screenProps || noScreenProps}
       />
       {index > 0 && (
-        <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.modalContainer, modalStyle])}>
+        <Kb.Box2
+          key="background"
+          direction="vertical"
+          style={Styles.collapseStyles([styles.modalContainer, modalStyle])}
+          className={Styles.classNames({modalAvoidTabs})}
+          onMouseDown={onMouseDown as any}
+          onMouseUp={onMouseUp as any}
+        >
           <SceneView
             key="ModalLayer"
             navigation={childNav}

@@ -267,10 +267,11 @@ const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.S
 
 class TeamBuilding extends React.PureComponent<Props> {
   static navigationOptions = {
+    modalAvoidTabs: true,
     modalStyle: {
       alignItems: 'flex-start',
-      // backgroundColor: undefined,
-      ...Styles.padding(Styles.globalMargins.mediumLarge, 0, Styles.globalMargins.large),
+      backgroundColor: undefined,
+      paddingTop: Styles.globalMargins.mediumLarge,
     },
   }
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
