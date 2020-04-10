@@ -24,34 +24,7 @@ const SettingsRender = (props: Props) => {
   React.useEffect(() => {
     loadHasRandomPW()
   }, [loadHasRandomPW])
-  return (
-    <Box style={styles.container}>
-      <Box style={styles.row}>
-        <SettingsNav
-          badgeNumbers={props.badgeNumbers}
-          contactsLabel={props.contactsLabel}
-          logoutInProgress={props.logoutInProgress}
-          selectedTab={props.selectedTab}
-          onTabChange={props.onTabChange}
-          onLogout={props.onLogout}
-          hasRandomPW={props.hasRandomPW || null}
-        />
-        <Box style={styles.overflowRow}>{props.children}</Box>
-      </Box>
-    </Box>
-  )
-}
-SettingsRender.navigationOptions = {
-  header: null,
-}
-
-const PhoneRender = (props: Props) => {
-  const {loadHasRandomPW} = props
-  React.useEffect(() => {
-    loadHasRandomPW()
-  }, [loadHasRandomPW])
-
-  return (
+  const SettingsNavComponent = (
     <SettingsNav
       badgeNotifications={props.badgeNotifications}
       badgeNumbers={props.badgeNumbers}
@@ -63,12 +36,25 @@ const PhoneRender = (props: Props) => {
       hasRandomPW={props.hasRandomPW || null}
     />
   )
+  return Container.isPhone ? (
+    SettingsNavComponent
+  ) : (
+    <Box style={styles.container}>
+      <Box style={styles.row}>
+        {SettingsNavComponent}
+        <Box style={styles.overflowRow}>{props.children}</Box>
+      </Box>
+    </Box>
+  )
 }
-
-PhoneRender.navigationOptions = {
-  header: undefined,
-  title: 'More',
-}
+SettingsRender.navigationOptions = Container.isPhone
+  ? {
+      header: undefined,
+      title: 'More',
+    }
+  : {
+      header: null,
+    }
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
@@ -93,4 +79,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Container.isPhone ? PhoneRender : SettingsRender
+export default SettingsRender
