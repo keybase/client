@@ -870,7 +870,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		}
 
 		// Handle cross team emoji
-		if msg, err = s.handleEmojis(ctx, uid, convID, msg, conv.Info.Triple.TopicType); err != nil {
+		if msg, err = s.handleEmojis(ctx, uid, convID, msg, conv.GetTopicType()); err != nil {
 			s.Debug(ctx, "Prepare: error processing cross team emoji: %s", err)
 			return res, err
 		}
@@ -882,29 +882,35 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 			return res, err
 		}
 
-		// If no ephemeral data set, then let's double check to make sure no exploding policy
-		// or Gregor state should set it
-		if msg.EphemeralMetadata() == nil && chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) {
-			s.Debug(ctx, "Prepare: attempting to set ephemeral policy from conversation")
-			elf, err := utils.EphemeralLifetimeFromConv(ctx, s.G(), *conv)
-			if err != nil {
-				s.Debug(ctx, "Prepare: failed to get ephemeral lifetime from conv: %s", err)
-				elf = nil
+		if !conv.GetTopicType().EphemeralAllowed() {
+			if msg.EphemeralMetadata() != nil {
+				return res, errors.New("emoji messages cannot be ephemeral")
 			}
-			if elf != nil {
-				s.Debug(ctx, "Prepare: setting ephemeral lifetime from conv: %v", *elf)
-				msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-					Lifetime: *elf,
+		} else {
+			// If no ephemeral data set, then let's double check to make sure no exploding policy
+			// or Gregor state should set it
+			if msg.EphemeralMetadata() == nil && chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) {
+				s.Debug(ctx, "Prepare: attempting to set ephemeral policy from conversation")
+				elf, err := utils.EphemeralLifetimeFromConv(ctx, s.G(), *conv)
+				if err != nil {
+					s.Debug(ctx, "Prepare: failed to get ephemeral lifetime from conv: %s", err)
+					elf = nil
+				}
+				if elf != nil {
+					s.Debug(ctx, "Prepare: setting ephemeral lifetime from conv: %v", *elf)
+					msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+						Lifetime: *elf,
+					}
 				}
 			}
-		}
 
-		metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
-		if err != nil {
-			s.Debug(ctx, "Prepare: error getting superseder ephemeral metadata: %s", err)
-			return res, err
+			metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
+			if err != nil {
+				s.Debug(ctx, "Prepare: error getting superseder ephemeral metadata: %s", err)
+				return res, err
+			}
+			msg.ClientHeader.EphemeralMetadata = metadata
 		}
-		msg.ClientHeader.EphemeralMetadata = metadata
 	}
 
 	// Make sure it is a proper length
