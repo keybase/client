@@ -37,9 +37,14 @@ const orderTeamsImpl = (
   teams: Map<string, Types.TeamMeta>,
   newRequests: Map<Types.TeamID, Set<string>>,
   sortOrder: Types.TeamListSort,
-  activityLevels: Types.ActivityLevels
-): Array<Types.TeamMeta> =>
-  [...teams.values()].sort((a, b) => {
+  activityLevels: Types.ActivityLevels,
+  filter: string
+): Array<Types.TeamMeta> => {
+  const filterLC = filter.toLowerCase().trim()
+  const teamsFiltered = filter
+    ? [...teams.values()].filter(meta => meta.teamname.toLowerCase().includes(filterLC))
+    : [...teams.values()]
+  return teamsFiltered.sort((a, b) => {
     const sizeDiff = (newRequests.get(b.id)?.size ?? 0) - (newRequests.get(a.id)?.size ?? 0)
     if (sizeDiff != 0) return sizeDiff
     const nameCompare = a.teamname.localeCompare(b.teamname)
@@ -55,6 +60,7 @@ const orderTeamsImpl = (
         return nameCompare
     }
   })
+}
 
 const orderTeams = memoize(orderTeamsImpl)
 
@@ -87,12 +93,12 @@ const Reloadable = (props: ReloadableProps) => {
 
 const TeamsFilter = () => {
   const dispatch = Container.useDispatch()
-  const filter = Container.useSelector(s => s.teams.teamListFilter)
+  const filterValue = Container.useSelector(s => s.teams.teamListFilter)
   const numTeams = Container.useSelector(s => s.teams.teamMeta.size)
   const setFilter = (filter: string) => dispatch(TeamsGen.createSetTeamListFilterSort({filter}))
   return numTeams >= 20 ? (
     <Kb.SearchFilter
-      value={filter}
+      value={filterValue}
       valueControlled={true}
       onChange={setFilter}
       size="small"
@@ -124,6 +130,7 @@ const Connected = Container.connect(
     _teams: state.teams.teamMeta,
     activityLevels: state.teams.activityLevels,
     deletedTeams: state.teams.deletedTeams,
+    filter: state.teams.teamListFilter,
     loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
     newTeamRequests: state.teams.newTeamRequests,
     newTeams: state.teams.newTeams,
@@ -152,7 +159,8 @@ const Connected = Container.connect(
       stateProps._teams,
       stateProps.newTeamRequests,
       stateProps.sortOrder,
-      stateProps.activityLevels
+      stateProps.activityLevels,
+      stateProps.filter
     ),
     ...dispatchProps,
   })
