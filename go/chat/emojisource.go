@@ -152,11 +152,18 @@ func (s *DevConvEmojiSource) getAliasLookup(ctx context.Context, uid gregor1.UID
 }
 
 func (s *DevConvEmojiSource) putAliasLookup(ctx context.Context, uid gregor1.UID,
-	aliasLookup map[string]chat1.Emoji) error {
+	aliasLookup map[string]chat1.Emoji, opts chat1.EmojiFetchOpts) error {
 	s.aliasLookupLock.Lock()
 	defer s.aliasLookupLock.Unlock()
-	s.aliasLookup = aliasLookup
-	return s.encryptedDB.Put(ctx, s.dbKey(uid), s.aliasLookup)
+	// set this if it is blank, or a full fetch
+	if !opts.OnlyInTeam || s.aliasLookup == nil {
+		s.aliasLookup = aliasLookup
+	}
+	// only commit to disk if this is a full lookup
+	if !opts.OnlyInTeam {
+		return s.encryptedDB.Put(ctx, s.dbKey(uid), s.aliasLookup)
+	}
+	return nil
 }
 
 func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
@@ -611,7 +618,7 @@ func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *c
 	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, opts); err != nil {
 		return res, err
 	}
-	if err := s.putAliasLookup(ctx, uid, aliasLookup); err != nil {
+	if err := s.putAliasLookup(ctx, uid, aliasLookup, opts); err != nil {
 		s.Debug(ctx, "Get: failed to put alias lookup: %s", err)
 	}
 	for _, group := range res.Emojis {
