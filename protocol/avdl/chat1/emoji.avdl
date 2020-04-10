@@ -53,6 +53,7 @@ protocol emoji {
     boolean isBig;
     boolean isReacji;
     boolean isCrossTeam;
+    boolean isAlias;
     EmojiLoadSource source;
     EmojiLoadSource noAnimSource;
     EmojiRemoteSource remoteSource;
