@@ -5,6 +5,7 @@ import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
+import * as Styles from '../styles'
 import Teams, {OwnProps as MainOwnProps} from './main'
 import {HeaderRightActions} from './main/header'
 import openURL from '../util/open-url'
@@ -84,10 +85,36 @@ const Reloadable = (props: ReloadableProps) => {
   )
 }
 
+const TeamsFilter = () => {
+  const dispatch = Container.useDispatch()
+  const filter = Container.useSelector(s => s.teams.teamListFilter)
+  const numTeams = Container.useSelector(s => s.teams.teamMeta.size)
+  const setFilter = (filter: string) => dispatch(TeamsGen.createSetTeamListFilterSort({filter}))
+  return numTeams >= 20 ? (
+    <Kb.SearchFilter
+      value={filter}
+      valueControlled={true}
+      onChange={setFilter}
+      size="small"
+      placeholderText="Filter"
+      hotkey="k"
+      icon="iconfont-filter"
+      style={filterStyles.filter}
+    />
+  ) : null
+}
+const filterStyles = Styles.styleSheetCreate(() => ({
+  filter: {
+    alignSelf: 'flex-end',
+    marginBottom: Styles.globalMargins.xtiny,
+    marginRight: Styles.globalMargins.xsmall,
+  },
+}))
+
 Reloadable.navigationOptions = {
   header: undefined,
-  // This will be a filter box eventually
-  headerRightActions: flags.teamsRedesign ? undefined : () => <ConnectedHeaderRightActions />,
+  headerRightActions:
+    flags.teamsRedesign && !Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
   title: 'Teams',
 }
 
