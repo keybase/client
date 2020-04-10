@@ -575,6 +575,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 					RemoteSource: storedEmoji,
 					IsCrossTeam:  isCrossTeam,
 					CreationInfo: creationInfo,
+					IsAlias:      storedEmoji.IsAlias(),
 				}
 				if seen, ok := seenAliases[alias]; ok {
 					seenAliases[alias]++
@@ -897,8 +898,8 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 	added := 0
 	isReacji := messageType == chat1.MessageType_REACTION
 	for _, match := range matches {
-		if source, ok := emojiMap[match.name]; ok {
-			source, noAnimSource, err := s.RemoteToLocalSource(ctx, uid, source)
+		if remoteSource, ok := emojiMap[match.name]; ok {
+			source, noAnimSource, err := s.RemoteToLocalSource(ctx, uid, remoteSource)
 			if err != nil {
 				s.Debug(ctx, "Decorate: failed to get local source: %s", err)
 				continue
@@ -928,6 +929,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 					Alias:        match.name,
 					Source:       source,
 					NoAnimSource: noAnimSource,
+					IsAlias:      remoteSource.IsAlias(),
 				}))
 			offset += added
 		}

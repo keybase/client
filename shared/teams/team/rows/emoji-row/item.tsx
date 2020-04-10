@@ -64,6 +64,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
       onAddAlias={doAddAlias}
       onRemove={doRemove}
       onHidden={() => setShowingPopup(false)}
+      isAlias={emoji.isAlias}
     />
   ))
 
