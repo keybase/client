@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as PropProviders from './prop-providers'
 import {TypedState} from '../reducers'
+import {RouteProps} from '../route-tree/render-route'
+
 export type SelectorMap = {[K in string]: (arg0: any) => any | Object}
 
 export class Story {
@@ -12,7 +14,7 @@ export declare function storiesOf(name: string, module: any): Story
 export declare function action(name: string): any
 export declare function perfDecorator(copiesToRender?: number): () => React.ReactNode
 export declare function scrollViewDecorator(): Function
-export declare function createNavigator(props: Object): any
+export declare function createNavigator<T>(props: T): RouteProps<T>
 export declare function createStoreWithCommon(): TypedState
 export declare function createPropProvider(
   ...maps: SelectorMap[]

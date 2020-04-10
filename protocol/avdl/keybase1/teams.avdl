@@ -1415,6 +1415,7 @@ protocol teams {
       UID inviterUID;
       string inviterUsername;
       boolean inviterResetOrDel;
+      boolean teamIsOpen;
       TeamID teamID;
       string teamDesc;
       TeamName teamName;

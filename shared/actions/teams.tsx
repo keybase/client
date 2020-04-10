@@ -63,7 +63,21 @@ const showTeamAfterCreation = (action: TeamsGen.TeamCreatedPayload) => {
         ]),
   ]
 }
-
+function promptInviteLinkJoin(
+  params: RPCTypes.MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'],
+  response: {result: (boolean) => void}
+) {
+  return Saga.callUntyped(function*() {
+    yield Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: params, selected: 'teamInviteLinkJoin'}],
+        replace: true,
+      })
+    )
+    const action: TeamsGen.RespondToInviteLinkPayload = yield Saga.take(TeamsGen.respondToInviteLink)
+    response.result(action.payload.accept)
+  })
+}
 function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
   const {teamname} = action.payload
   yield Saga.all([
@@ -71,10 +85,14 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
     Saga.put(TeamsGen.createSetTeamJoinSuccess({open: false, success: false, teamname: ''})),
   ])
   try {
-    const result: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise> = yield Saga.callUntyped(
-      RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise,
-      {tokenOrName: teamname}
-    )
+    const result = yield RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcSaga({
+      customResponseIncomingCallMap: {
+        'keybase.1.teamsUi.confirmInviteLinkAccept': promptInviteLinkJoin,
+      },
+      incomingCallMap: {},
+      params: {tokenOrName: teamname},
+      waitingKey: Constants.joinTeamWaitingKey,
+    })
 
     // Success
     yield Saga.put(
