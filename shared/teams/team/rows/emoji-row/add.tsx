@@ -79,7 +79,10 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.blueGrey,
     justifyContent: 'space-between',
   },
-  filterInput: {maxWidth: 148},
+  filterInput: {
+    marginRight: Styles.globalMargins.tiny,
+    maxWidth: 148,
+  },
   headerButton: Styles.platformStyles({
     isMobile: {
       flexGrow: 1,
