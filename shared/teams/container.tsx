@@ -34,12 +34,25 @@ const useHeaderActions = (): HeaderActionProps => {
 
 const orderTeamsImpl = (
   teams: Map<string, Types.TeamMeta>,
-  newRequests: Map<Types.TeamID, Set<string>>
+  newRequests: Map<Types.TeamID, Set<string>>,
+  sortOrder: Types.TeamListSort,
+  activityLevels: Types.ActivityLevels
 ): Array<Types.TeamMeta> =>
   [...teams.values()].sort((a, b) => {
     const sizeDiff = (newRequests.get(b.id)?.size ?? 0) - (newRequests.get(a.id)?.size ?? 0)
     if (sizeDiff != 0) return sizeDiff
-    return a.teamname.localeCompare(b.teamname)
+    const nameCompare = a.teamname.localeCompare(b.teamname)
+    switch (sortOrder) {
+      case 'role':
+        return Constants.compareTeamRoles(a.role, b.role) || nameCompare
+      case 'activity': {
+        const activityA = activityLevels.teams.get(a.id)
+        const activityB = activityLevels.teams.get(b.id)
+        return Constants.compareActivityLevels(activityA, activityB) || nameCompare
+      }
+      default:
+        return nameCompare
+    }
   })
 
 const orderTeams = memoize(orderTeamsImpl)
@@ -82,11 +95,13 @@ const Connected = Container.connect(
   (state: Container.TypedState) => ({
     _teamresetusers: state.teams.teamIDToResetUsers || new Map(),
     _teams: state.teams.teamMeta,
+    activityLevels: state.teams.activityLevels,
     deletedTeams: state.teams.deletedTeams,
     loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
     newTeamRequests: state.teams.newTeamRequests,
     newTeams: state.teams.newTeams,
     sawChatBanner: state.teams.sawChatBanner || false,
+    sortOrder: state.teams.teamListSort,
   }),
   (dispatch: Container.TypedDispatch) => ({
     onHideChatBanner: () =>
@@ -106,7 +121,12 @@ const Connected = Container.connect(
     newTeams: stateProps.newTeams,
     sawChatBanner: stateProps.sawChatBanner,
     teamresetusers: stateProps._teamresetusers,
-    teams: orderTeams(stateProps._teams, stateProps.newTeamRequests),
+    teams: orderTeams(
+      stateProps._teams,
+      stateProps.newTeamRequests,
+      stateProps.sortOrder,
+      stateProps.activityLevels
+    ),
     ...dispatchProps,
   })
 )(Reloadable)
