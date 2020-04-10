@@ -33,7 +33,7 @@ func UnifiedToChar(unified string) (string, error) {
 }
 
 func createEmojiDataCodeMap() (map[string]string, map[string][]string, error) {
-    emojiFile, err := ioutil.ReadFile(emojiDataJSONPath)
+	emojiFile, err := ioutil.ReadFile(emojiDataJSONPath)
 	if err != nil {
 		return nil, nil, err
 	}
