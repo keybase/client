@@ -87,7 +87,7 @@ func (c *CmdWotVouch) Run() error {
 	}
 	arg := keybase1.WotVouchCLIArg{
 		Assertion:  c.Assertion,
-		VouchText:  []string{c.Message},
+		VouchText:  c.Message,
 		Confidence: c.Confidence,
 	}
 	cli, err := GetWebOfTrustClient(c.G())

@@ -130,11 +130,10 @@ func TestWebOfTrustPending(t *testing.T) {
 	t.Log("bob sees no vouches for Alice")
 
 	firstVouch := "alice is wondibar but i don't have much confidence"
-	vouchText := []string{firstVouch}
 	arg := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
 		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
-		VouchText:  vouchText,
+		VouchText:  firstVouch,
 	}
 	eng := NewWotVouch(tcBob.G, arg)
 	err = RunEngine2(mctxB, eng)
@@ -148,7 +147,7 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
 	require.Equal(t, bobName, bobVouch.VoucherUsername)
 	require.Equal(t, aliceName, bobVouch.VoucheeUsername)
-	require.Equal(t, vouchText, bobVouch.VouchText)
+	require.Equal(t, firstVouch, bobVouch.VouchText)
 	require.NotNil(t, bobVouch.Confidence)
 	require.EqualValues(t, keybase1.UsernameVerificationType_OTHER_CHAT, bobVouch.Confidence.UsernameVerifiedVia)
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, bobVouch.Status)
@@ -172,7 +171,7 @@ func TestWebOfTrustPending(t *testing.T) {
 
 	charlieName := charlie.User.GetName()
 
-	vouchText = "alice is wondibar and doug agrees"
+	vouchText := "alice is wondibar and doug agrees"
 	arg = &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
 		VouchText:  vouchText,
@@ -305,7 +304,7 @@ func TestWebOfTrustReject(t *testing.T) {
 
 	aliceName := alice.User.GetName()
 
-	vouchText := []string{"alice is wondibar"}
+	vouchText := "alice is wondibar"
 	argV := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
 		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
@@ -385,7 +384,7 @@ func TestWebOfTrustRevoke(t *testing.T) {
 	t.Log("alice and bob follow each other")
 
 	bobVouchesForAlice := func(version int) {
-		vouchText := []string{fmt.Sprintf("alice is wondibar v%d", version)}
+		vouchText := fmt.Sprintf("alice is wondibar v%d", version)
 		arg := &WotVouchArg{
 			Vouchee:    alice.User.ToUserVersion(),
 			VouchText:  vouchText,
@@ -600,11 +599,10 @@ func TestWebOfTrustSigBug(t *testing.T) {
 
 	// bob vouches for alice
 	firstVouch := "alice is wondibar cause we texted"
-	vouchText := []string{firstVouch}
 	argV := &WotVouchArg{
 		Vouchee:    alice.User.ToUserVersion(),
 		Confidence: keybase1.Confidence{UsernameVerifiedVia: keybase1.UsernameVerificationType_OTHER_CHAT},
-		VouchText:  vouchText,
+		VouchText:  firstVouch,
 	}
 	engV := NewWotVouch(tcBob.G, argV)
 	err = RunEngine2(mctxB, engV)
