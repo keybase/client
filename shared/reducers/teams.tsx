@@ -107,9 +107,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       Constants.ratchetTeamVersion(version, draftState.teamVersion.get(teamID))
     )
   },
-  [TeamsGen.setTeamCanPerform]: (draftState, action) => {
-    draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
-  },
   [TeamsGen.setEmailInviteError]: (draftState, action) => {
     if (!action.payload.malformed.length && !action.payload.message) {
       draftState.errorInEmailInvite = Constants.emptyEmailInviteError
