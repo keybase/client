@@ -71,7 +71,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
   ))
 
   return (
-    <Kb.Box style={Styles.padding(0, Styles.globalMargins.small)}>
+    <Kb.Box style={styles.outerContainer}>
       <Kb.ListItem2
         type="Small"
         body={
@@ -131,10 +131,17 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      alias: {
-        marginLeft: Styles.globalMargins.large - Styles.globalMargins.tiny,
-        marginRight: 'auto',
-      },
+      alias: Styles.platformStyles({
+        common: {
+          marginRight: 'auto',
+        },
+        isElectron: {
+          marginLeft: Styles.globalMargins.large - Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          marginLeft: Styles.globalMargins.small,
+        },
+      }),
       container: {
         justifyContent: 'flex-end',
       },
@@ -142,6 +149,9 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 130,
         width: 130,
       },
+      outerContainer: Styles.platformStyles({
+        isElectron: Styles.padding(0, Styles.globalMargins.small),
+      }),
       username: {
         maxWidth: 210,
         width: 210,
