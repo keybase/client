@@ -425,6 +425,7 @@ export type IconType =
   | 'icon-email-remove-48'
   | 'icon-email-remove-64'
   | 'icon-email-remove-96'
+  | 'icon-emoji-keybase'
   | 'icon-emoji-nycto-a'
   | 'icon-emoji-nycto-b'
   | 'icon-emoji-nycto-c'
@@ -4687,6 +4688,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-email-remove-96.png')
+    },
+  },
+  'icon-emoji-keybase': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-keybase.png')
     },
   },
   'icon-emoji-nycto-a': {
