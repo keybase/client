@@ -872,7 +872,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 }
 
 func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid gregor1.UID,
-	convID chat1.ConversationID, messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	if len(emojis) == 0 {
 		return body
 	}
@@ -914,7 +914,8 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 				length := match.position[1] - match.position[0]
 				added := len(strDecoration) - length
 				decorationOffset := match.position[0] + offset
-				body = fmt.Sprintf("%s%s%s", body[:decorationOffset], strDecoration, body[decorationOffset+length:])
+				body = fmt.Sprintf("%s%s%s", body[:decorationOffset], strDecoration,
+					body[decorationOffset+length:])
 				offset += added
 				continue
 			}

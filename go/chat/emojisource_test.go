@@ -298,8 +298,7 @@ func TestEmojiSourceAliasDecorate(t *testing.T) {
 		},
 	}
 	for _, testCase := range testCases {
-		output := source.Decorate(ctx, testCase.input, uid, chat1.ConversationID{},
-			chat1.MessageType_TEXT, testCase.emojis)
+		output := source.Decorate(ctx, testCase.input, uid, chat1.MessageType_TEXT, testCase.emojis)
 		require.Equal(t, testCase.output, output)
 	}
 }
