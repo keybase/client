@@ -119,8 +119,8 @@ const validityValuesMap = {
 const GenerateLinkModal = (props: Props) => {
   const [validity, setValidity] = React.useState(validityOneYear)
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
-  const [teamRole, setTeamRole] = React.useState('reader' as Types.TeamRoleType)
-  const [selectedRole, setSelectedRole] = React.useState('reader' as Types.TeamRoleType)
+  const [teamRole, setTeamRole] = React.useState<Types.TeamRoleType>('reader')
+  const [selectedRole, setSelectedRole] = React.useState<Types.TeamRoleType>('reader')
   const [inviteDuration, setInviteDuration] = React.useState('')
   const [inviteLinkURL, setInviteLinkURL] = React.useState('')
 
