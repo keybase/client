@@ -56,13 +56,10 @@ helpers.rootLinuxNode(env, {
             defaultValue: '',
             description: 'The project name of the upstream kbweb build',
         ),
-        string(
-            name: 'gregorProjectName',
-            defaultValue: '',
-            description: 'The project name of the upstream gregor build',
-        ),
     ]),
   ])
+
+  def kbwebProjectName = env.kbwebProjectName
 
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
@@ -108,24 +105,6 @@ helpers.rootLinuxNode(env, {
           },
           pull_mysql: {
             mysqlImage.pull()
-          },
-          pull_gregor: {
-            if (cause == "upstream" && kbwebProjectName != '') {
-                retry(3) {
-                    step([$class: 'CopyArtifact',
-                            projectName: "${kbwebProjectName}",
-                            filter: 'kbgregor.tar.gz',
-                            fingerprintArtifacts: true,
-                            selector: [$class: 'TriggeredBuildSelector',
-                                allowUpstreamDependencies: false,
-                                fallbackToLastSuccessful: false,
-                                upstreamFilterStrategy: 'UseGlobalSetting'],
-                            target: '.'])
-                    sh "gunzip -c kbgregor.tar.gz | docker load"
-                }
-            } else {
-                gregorImage.pull()
-            }
           },
           pull_kbweb: {
             if (cause == "upstream" && kbwebProjectName != '') {
