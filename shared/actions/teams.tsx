@@ -1530,7 +1530,7 @@ const finishNewTeamWizard = async (state: TypedState) => {
   }
 }
 
-const finishedNewTeamWizard = (action: TeamsGen.FinishedAddMembersWizardPayload) => [
+const finishedNewTeamWizard = (action: TeamsGen.FinishedNewTeamWizardPayload) => [
   RouteTreeGen.createClearModals(),
   RouteTreeGen.createNavigateAppend({path: [{props: {teamID: action.payload.teamID}, selected: 'team'}]}),
 ]
