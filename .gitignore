@@ -63,6 +63,7 @@ shared/android/keybaselib/keybaselib-sources.jar
 shared/android/app/.idea/
 shared/android/captures
 shared/android/app/local.properties
+shared/android/app/src/main/java/io/keybase/ossifrage/generated/BasePackageList.java
 
 browser/node_modules
 browser/js/bundle.js
