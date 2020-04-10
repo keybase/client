@@ -307,8 +307,6 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   const [role, setRole] = React.useState<Types.TeamRoleType>('writer')
   const [open, setOpen] = React.useState(false)
 
-  const memberCount = props.node.memberCount ?? -1
-
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowCollapsedFixedHeight}>
       {props.idx !== 0 && <Kb.Divider />}
@@ -344,7 +342,9 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
               {props.node.teamname}
             </Kb.Text>
             <Kb.Text type="BodySmall">
-              {memberCount.toLocaleString()} {pluralize('member', memberCount)}
+              {props.node.memberCount
+                ? `${props.node.memberCount.toLocaleString()} ${pluralize('member', props.node.memberCount)}`
+                : 'Loading members...'}
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
