@@ -372,6 +372,7 @@ export default Container.makeReducer<
   },
   [TeamsGen.finishedNewTeamWizard]: draftState => {
     draftState.newTeamWizard = Constants.newTeamWizardEmptyState
+    draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
   },
   [TeamsGen.addMembersWizardSetDefaultChannels]: (draftState, action) => {
     const {toAdd, toRemove} = action.payload

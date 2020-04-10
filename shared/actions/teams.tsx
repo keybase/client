@@ -1524,15 +1524,16 @@ const finishNewTeamWizard = async (state: TypedState) => {
   }
   try {
     const teamID = await RPCTypes.teamsTeamCreateFancyRpcPromise({teamInfo}, Constants.teamCreationWaitingKey)
-    return [
-      TeamsGen.createFinishedNewTeamWizard(),
-      TeamsGen.createFinishedAddMembersWizard(),
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}),
-    ]
+    return TeamsGen.createFinishedNewTeamWizard({teamID})
   } catch (e) {
     return TeamsGen.createSetTeamWizardError({error: e.message})
   }
 }
+
+const finishedNewTeamWizard = (action: TeamsGen.FinishedAddMembersWizardPayload) => [
+  RouteTreeGen.createClearModals(),
+  RouteTreeGen.createNavigateAppend({path: [{props: {teamID: action.payload.teamID}, selected: 'team'}]}),
+]
 
 const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
@@ -1662,6 +1663,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.setTeamWizardChannels, setTeamWizardChannels)
   yield* Saga.chainAction(TeamsGen.setTeamWizardSubteams, setTeamWizardSubteams)
   yield* Saga.chainAction2(TeamsGen.finishNewTeamWizard, finishNewTeamWizard)
+  yield* Saga.chainAction(TeamsGen.finishedNewTeamWizard, finishedNewTeamWizard)
 
   // Add members wizard
   yield* Saga.chainAction(TeamsGen.startAddMembersWizard, startAddMembersWizard)

@@ -183,7 +183,7 @@ type _EditMembershipPayload = {
 type _EditTeamDescriptionPayload = {readonly teamID: Types.TeamID; readonly description: string}
 type _FinishNewTeamWizardPayload = void
 type _FinishedAddMembersWizardPayload = void
-type _FinishedNewTeamWizardPayload = void
+type _FinishedNewTeamWizardPayload = {readonly teamID: Types.TeamID}
 type _GetMemberSubteamDetailsPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _GetMembersPayload = {readonly teamID: Types.TeamID}
 type _GetTeamProfileAddListPayload = {readonly username: string}
@@ -413,7 +413,7 @@ export const createAddMembersWizardSetDefaultChannels = (
   payload: _AddMembersWizardSetDefaultChannelsPayload = Object.freeze({})
 ): AddMembersWizardSetDefaultChannelsPayload => ({payload, type: addMembersWizardSetDefaultChannels})
 /**
- * Clear new team wizard state.
+ * Clear new team wizard state and nav to team.
  */
 export const createFinishedNewTeamWizard = (
   payload: _FinishedNewTeamWizardPayload

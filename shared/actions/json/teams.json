@@ -390,7 +390,8 @@
       "_description": "Nav away from add members wizard and clear related state."
     },
     "finishedNewTeamWizard": {
-      "_description": "Clear new team wizard state."
+      "_description": "Clear new team wizard state and nav to team.",
+      "teamID": "Types.TeamID"
     },
     "setJustFinishedAddMembersWizard": {
       "justFinished": "boolean"

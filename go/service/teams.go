@@ -124,7 +124,7 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 		if err != nil {
 			errs = append(errs, err)
 		}
-		if unaddedUsers.NotAdded != nil {
+		if len(unaddedUsers.NotAdded) > 0 {
 			errs = append(errs, fmt.Errorf("could not add members to team: %v", unaddedUsers.NotAdded))
 		}
 	}
