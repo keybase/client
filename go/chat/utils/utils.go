@@ -1627,7 +1627,7 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 		}
 		if hasFullURL {
 			var cached bool
-			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false, false)
+			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false, false, false)
 			cached, err = g.AttachmentURLSrv.GetAttachmentFetcher().IsAssetLocal(ctx, asset)
 			if err != nil {
 				cached = false
@@ -1635,7 +1635,7 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 			info.FullUrlCached = cached
 		}
 		if hasPreviewURL {
-			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true, false)
+			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true, false, false)
 		}
 		atyp, err := asset.Metadata.AssetType()
 		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && strings.HasPrefix(info.MimeType, "video") {

@@ -462,8 +462,8 @@ func (s *DevConvEmojiSource) RemoteToLocalSource(ctx context.Context, uid gregor
 	switch typ {
 	case chat1.EmojiRemoteSourceTyp_MESSAGE:
 		msg := remote.Message()
-		sourceURL := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false, noAnim)
-		noAnimSourceURL := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false, true)
+		sourceURL := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false, noAnim, true)
+		noAnimSourceURL := s.G().AttachmentURLSrv.GetURL(ctx, msg.ConvID, msg.MsgID, false, true, true)
 		return chat1.NewEmojiLoadSourceWithHttpsrv(sourceURL),
 			chat1.NewEmojiLoadSourceWithHttpsrv(noAnimSourceURL), nil
 	case chat1.EmojiRemoteSourceTyp_STOCKALIAS:
@@ -933,4 +933,8 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 		}
 	}
 	return body
+}
+
+func (s *DevConvEmojiSource) IsValidSize(size int64) bool {
+	return size <= maxEmojiSize && size >= minEmojiSize
 }
