@@ -64,9 +64,7 @@ const InviteItem = ({
   teamID: Types.TeamID
 }) => {
   const dispatch = Container.useDispatch()
-  const onExpire = () => {
-    dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLink.id, teamID}))
-  }
+  const onExpire = () => dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLink.id, teamID}))
   const waitingForExpire = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, inviteLink.id))
 
   const expireText = inviteLink.expired ? `Expired` : `Expires in ${duration}`
@@ -134,7 +132,7 @@ const GenerateLinkModal = (props: Props) => {
   useTeamDetailsSubscribe(teamID)
   const teamDetails = Container.useSelector(s => s.teams.teamDetails.get(teamID))
   const inviteLinks = teamDetails?.inviteLinks
-  const inviteLink = [...(inviteLinks || [])].filter(i => i.url == inviteLinkURL)[0]
+  const inviteLink = [...(inviteLinks || [])].find(i => i.url == inviteLinkURL)
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
