@@ -34,7 +34,7 @@ export type RenderableEmoji = {
 export const renderEmoji = (
   emoji: RenderableEmoji,
   size: number,
-  isReacji: boolean,
+  showTooltip: boolean,
   addTopMarginToCustom?: boolean,
   customEmojiSize?: number
 ) => {
@@ -43,7 +43,7 @@ export const renderEmoji = (
       <Kb.CustomEmoji
         size={customEmojiSize ?? size}
         src={emoji.renderUrl}
-        alias={!isReacji ? emoji.aliasForCustom : undefined}
+        alias={showTooltip ? emoji.aliasForCustom : undefined}
         addTopMargin={addTopMarginToCustom}
       />
     )
