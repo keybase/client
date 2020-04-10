@@ -356,6 +356,17 @@ func IsDeletableByDeleteHistory(typ MessageType) bool {
 	return true
 }
 
+func (t TopicType) EphemeralAllowed() bool {
+	switch t {
+	case TopicType_KBFSFILEEDIT,
+		TopicType_EMOJI,
+		TopicType_EMOJICROSS:
+		return false
+	default:
+		return true
+	}
+}
+
 func (t TopicType) String() string {
 	s, ok := TopicTypeRevMap[t]
 	if ok {
