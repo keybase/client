@@ -2535,7 +2535,6 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     return false
   }
 
-  const currentPath = Router2Constants.getVisiblePath()
   const modalPath = Router2Constants.getModalStack()
   const mainPath = Router2Constants.getMainStack()
 
