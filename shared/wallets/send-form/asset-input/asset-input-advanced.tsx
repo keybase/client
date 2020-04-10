@@ -81,7 +81,7 @@ const LeftBlock = (_: EmptyProps) => {
 
   if (hasTrivialPath) {
     return (
-      <Kb.Box2 direction="vertical" alignItems="flex-start">
+      <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.shrink}>
         <Kb.Text
           type="HeaderBigExtrabold"
           style={builtPaymentAdvanced.amountError ? styles.error : undefined}
@@ -110,7 +110,7 @@ const LeftBlock = (_: EmptyProps) => {
     )
   } else if (builtPaymentAdvanced.sourceDisplay) {
     return (
-      <Kb.Box2 direction="vertical" alignItems="flex-start">
+      <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.shrink}>
         {builtPaymentAdvanced.amountError ? (
           <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
             {builtPaymentAdvanced.amountError}
