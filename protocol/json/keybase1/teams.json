@@ -3228,6 +3228,10 @@
         },
         {
           "type": "boolean",
+          "name": "deleteOtherEmojis"
+        },
+        {
+          "type": "boolean",
           "name": "deleteOtherMessages"
         },
         {

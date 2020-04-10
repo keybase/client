@@ -232,7 +232,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
   private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
-    const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier)
+    const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"

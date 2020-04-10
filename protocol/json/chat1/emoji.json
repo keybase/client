@@ -169,6 +169,10 @@
           "name": "isCrossTeam"
         },
         {
+          "type": "boolean",
+          "name": "isAlias"
+        },
+        {
           "type": "EmojiLoadSource",
           "name": "source"
         },

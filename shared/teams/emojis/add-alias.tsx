@@ -71,8 +71,8 @@ export const AddAliasModal = (props: Props) => {
           ],
           res => {
             setAddAliasWaiting(false)
-            if (res.errorString) {
-              setError(res.errorString)
+            if (res.error) {
+              setError(res.error.uidisplay)
               return
             }
             dispatch(RouteTreeGen.createClearModals())

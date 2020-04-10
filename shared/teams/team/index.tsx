@@ -6,6 +6,7 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
+import CustomTitle from './custom-title/container'
 import {memoize} from '../../util/memoize'
 import flags from '../../util/feature-flags'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
@@ -193,6 +194,11 @@ Team.navigationOptions = flags.teamsRedesign
       header: undefined,
       headerExpandable: true,
       headerHideBorder: true,
+      headerRight: Container.isMobile ? (
+        <CustomTitle teamID={Container.getRouteProps(props, 'teamID', '')} />
+      ) : (
+        undefined
+      ),
       headerRightActions: Container.isMobile
         ? undefined
         : () => <HeaderRightActions teamID={Container.getRouteProps(props, 'teamID', '')} />,

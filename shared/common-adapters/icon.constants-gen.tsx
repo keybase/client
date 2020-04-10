@@ -549,6 +549,9 @@ export type IconType =
   | 'icon-illustration-teams-96'
   | 'icon-illustration-teams-channels-460-96'
   | 'icon-illustration-teams-feature-profile-460-64'
+  | 'icon-illustration-teams-invite-links-blue-460-96'
+  | 'icon-illustration-teams-invite-links-green-460-96'
+  | 'icon-illustration-teams-invite-links-grey-460-96'
   | 'icon-illustration-teams-subteams-460-96'
   | 'icon-illustration-welcome-96'
   | 'icon-illustration-wot-460-96'
@@ -5945,6 +5948,30 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-teams-feature-profile-460-64.png')
+    },
+  },
+  'icon-illustration-teams-invite-links-blue-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-invite-links-blue-460-96.png')
+    },
+  },
+  'icon-illustration-teams-invite-links-green-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-invite-links-green-460-96.png')
+    },
+  },
+  'icon-illustration-teams-invite-links-grey-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-invite-links-grey-460-96.png')
     },
   },
   'icon-illustration-teams-subteams-460-96': {

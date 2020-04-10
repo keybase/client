@@ -24,8 +24,10 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
   const emojiData = RPCToEmojiData(emoji, false)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const username = Container.useSelector(s => s.config.username)
   const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
-
+  const deleteOtherEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
+  const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
   const onAddAlias = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
@@ -41,7 +43,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
   const removeRpc = useRPC(RPCChatGen.localRemoveEmojiRpcPromise)
-  const doRemove = canManageEmoji
+  const doRemove = canRemove
     ? () => {
         removeRpc(
           [
@@ -64,6 +66,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
       onAddAlias={doAddAlias}
       onRemove={doRemove}
       onHidden={() => setShowingPopup(false)}
+      isAlias={emoji.isAlias}
     />
   ))
 

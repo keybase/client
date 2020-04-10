@@ -250,7 +250,6 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     filteredEmoji = filteredEmoji.filter(e => e.alias.includes(filter.toLowerCase()))
   }
 
-  filteredEmoji = filteredEmoji.sort((a, b) => (b.creationInfo?.time ?? 0) - (a.creationInfo?.time ?? 0))
   const sections: Array<Section> = []
   sections.push({
     data: ['emoji-add'],

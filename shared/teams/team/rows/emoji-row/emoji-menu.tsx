@@ -7,6 +7,7 @@ type Props = {
   onRemove?: () => void
   onHidden: () => void
   visible: boolean
+  isAlias: boolean
 }
 
 const EmojiMenu = (props: Props) => {
@@ -25,7 +26,7 @@ const EmojiMenu = (props: Props) => {
             danger: true,
             icon: 'iconfont-remove',
             onClick: props.onRemove,
-            title: 'Delete emoji',
+            title: props.isAlias ? 'Delete alias' : 'Delete emoji',
           } as const,
         ]
       : []),

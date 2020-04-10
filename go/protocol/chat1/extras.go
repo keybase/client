@@ -975,6 +975,8 @@ func (b MessageBody) TextForDecoration() string {
 	case MessageType_ATTACHMENT:
 		// Exclude the filename for text decoration.
 		return b.Attachment().Object.Title
+	case MessageType_REQUESTPAYMENT:
+		return ""
 	default:
 		return b.SearchableText()
 	}
@@ -1017,8 +1019,6 @@ func (b MessageBody) GetEmojis() map[string]HarvestedEmoji {
 		return b.Reaction().Emojis
 	case MessageType_EDIT:
 		return b.Edit().Emojis
-	case MessageType_REQUESTPAYMENT:
-		return b.Requestpayment().Emojis
 	case MessageType_ATTACHMENT:
 		return b.Attachment().Emojis
 	case MessageType_HEADLINE:
