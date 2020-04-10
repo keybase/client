@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
 import Header from './header'
 import Banner from './banner'
-import NoTeamsPlaceholder from './no-teams-placeholder'
+import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
 import {memoize} from '../../util/memoize'
 import {pluralize} from '../../util/string'
@@ -103,7 +103,7 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
   )
 })
 
-const TeamBigButtons = (props: HeaderProps) => (
+const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny">
     <Kb.ClickableBox
       style={styles.bigButton}
@@ -128,13 +128,19 @@ const TeamBigButtons = (props: HeaderProps) => (
         <Kb.Icon type="icon-illustration-teams-96" />
       </Kb.Box2>
     </Kb.ClickableBox>
+    {props.empty && !Styles.isMobile && (
+      <Kb.Text type="BodySmall" style={styles.emptyNote}>
+        Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual friends to
+        large communities.
+      </Kb.Text>
+    )}
   </Kb.Box2>
 )
 
 const getMembersText = (count: number) => (count === -1 ? '' : `${count} ${pluralize('member', count)}`)
 
 type Row = {key: React.Key} & (
-  | {type: '_banner' | '_placeholder' | '_buttons'}
+  | {type: '_banner' | '_buttons' | '_footer'}
   | {team: DeletedTeam; type: 'deletedTeam'}
   | {team: Types.TeamMeta; type: 'team'}
 )
@@ -154,7 +160,7 @@ class Teams extends React.PureComponent<Props, State> {
         : [{key: '_banner', type: '_banner' as const}]),
       ...deletedTeams.map(dt => ({key: 'deletedTeam' + dt.teamName, team: dt, type: 'deletedTeam' as const})),
       ...teams.map(team => ({key: team.id, team, type: 'team' as const})),
-      ...(teams.length === 0 ? [{key: '_placeholder', type: '_placeholder' as const}] : []),
+      ...(teams.length === 0 || flags.teamsRedesign ? [{key: '_footer', type: '_footer' as const}] : []),
     ]
   )
 
@@ -170,10 +176,16 @@ class Teams extends React.PureComponent<Props, State> {
     switch (item.type) {
       case '_banner':
         return <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this.onHideChatBanner} />
-      case '_placeholder':
-        return <NoTeamsPlaceholder />
+      case '_footer':
+        return <TeamsFooter empty={this.props.teams.length === 0} />
       case '_buttons':
-        return <TeamBigButtons onCreateTeam={this.props.onCreateTeam} onJoinTeam={this.props.onJoinTeam} />
+        return (
+          <TeamBigButtons
+            onCreateTeam={this.props.onCreateTeam}
+            onJoinTeam={this.props.onJoinTeam}
+            empty={this.props.teams.length === 0}
+          />
+        )
       case 'deletedTeam': {
         const {deletedBy, teamName} = item.team
         return (
@@ -221,7 +233,7 @@ class Teams extends React.PureComponent<Props, State> {
   render() {
     const renderHeader = Styles.isMobile && !flags.teamsRedesign
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {renderHeader && (
           <Header
             loaded={this.props.loaded}
@@ -232,6 +244,7 @@ class Teams extends React.PureComponent<Props, State> {
         <Kb.List
           items={this.teamsAndExtras(this.props.deletedTeams, this.props.teams)}
           renderItem={this.renderItem}
+          style={Styles.globalStyles.fullHeight}
         />
       </Kb.Box2>
     )
@@ -261,6 +274,8 @@ const styles = Styles.styleSheetCreate(
           width: 140,
         },
       }),
+      container: {backgroundColor: Styles.globalColors.blueGrey},
+      emptyNote: Styles.padding(60, 42, Styles.globalMargins.medium, Styles.globalMargins.medium),
       kerning: {letterSpacing: 0.2},
       maxWidth: {maxWidth: '100%'},
       openMeta: {alignSelf: 'center'},
