@@ -1500,6 +1500,7 @@ protocol teams {
     boolean listFirst;
     boolean changeTarsDisabled;
     boolean deleteChatHistory;
+    boolean deleteOtherEmojis;
     boolean deleteOtherMessages;
     boolean deleteTeam;
     boolean pinMessage;

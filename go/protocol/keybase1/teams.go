@@ -3654,6 +3654,7 @@ type TeamOperation struct {
 	ListFirst              bool `codec:"listFirst" json:"listFirst"`
 	ChangeTarsDisabled     bool `codec:"changeTarsDisabled" json:"changeTarsDisabled"`
 	DeleteChatHistory      bool `codec:"deleteChatHistory" json:"deleteChatHistory"`
+	DeleteOtherEmojis      bool `codec:"deleteOtherEmojis" json:"deleteOtherEmojis"`
 	DeleteOtherMessages    bool `codec:"deleteOtherMessages" json:"deleteOtherMessages"`
 	DeleteTeam             bool `codec:"deleteTeam" json:"deleteTeam"`
 	PinMessage             bool `codec:"pinMessage" json:"pinMessage"`
@@ -3683,6 +3684,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		ListFirst:              o.ListFirst,
 		ChangeTarsDisabled:     o.ChangeTarsDisabled,
 		DeleteChatHistory:      o.DeleteChatHistory,
+		DeleteOtherEmojis:      o.DeleteOtherEmojis,
 		DeleteOtherMessages:    o.DeleteOtherMessages,
 		DeleteTeam:             o.DeleteTeam,
 		PinMessage:             o.PinMessage,
