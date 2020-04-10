@@ -245,7 +245,8 @@ export const EmojiPickerDesktop = (props: Props) => {
           {renderEmoji(
             emojiDataToRenderableEmoji(
               hoveredEmoji,
-              getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
+              getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone),
+              currentSkinTone
             ),
             36,
             false

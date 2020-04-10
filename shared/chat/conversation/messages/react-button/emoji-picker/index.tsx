@@ -232,11 +232,14 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
   private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
-    const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier)
+    const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"
-        onClick={() => this.props.onChoose(getEmojiStr(emoji, skinToneModifier), renderable)}
+        onClick={() => {
+          KB.debugConsoleLog({songgao: 'emoji-picker', emoji})
+          this.props.onChoose(getEmojiStr(emoji, skinToneModifier), renderable)
+        }}
         onMouseOver={this.props.onHover && (() => this.props.onHover?.(emoji))}
         style={styles.emoji}
         key={emoji.short_name}

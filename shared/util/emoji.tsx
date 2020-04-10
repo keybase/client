@@ -26,6 +26,7 @@ export const getEmojiStr = (emoji: EmojiData, skinToneModifier?: string) => {
 
 export type RenderableEmoji = {
   aliasForCustom?: string
+  unicodeStock?: string
   renderStock?: string
   renderUrl?: string
 }
@@ -82,8 +83,19 @@ export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, noAnim: boolean, categ
   }
 }
 
-export const emojiDataToRenderableEmoji = (emoji: EmojiData, skinToneModifier?: string): RenderableEmoji => ({
+export const emojiDataToRenderableEmoji = (
+  emoji: EmojiData,
+  skinToneModifier?: string,
+  skinToneKey?: string
+): RenderableEmoji => ({
   aliasForCustom: emoji.short_name,
   renderStock: emoji.userEmojiRenderStock ?? `:${emoji.short_name}:${skinToneModifier ?? ''}`,
   renderUrl: emoji.userEmojiRenderUrl,
+  unicodeStock:
+    emoji.unified &&
+    String.fromCodePoint(
+      ...(skinToneModifier && skinToneKey ? emoji.skin_variations?.[skinToneKey].unified : emoji.unified)
+        .split('-')
+        .map((str: string) => Number.parseInt(str, 16))
+    ),
 })
