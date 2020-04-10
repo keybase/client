@@ -9,7 +9,6 @@ import * as FsTypes from '../../constants/types/fs'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
 import {AliasInput, Modal} from './common'
-import {pluralize} from '../../util/string'
 import useRPC from '../../util/use-rpc'
 import pickFiles from '../../util/pick-files'
 import kebabCase from 'lodash/kebabCase'
@@ -66,12 +65,7 @@ const useDoAddEmojis = (
               const failedFilenamesKeys = Object.keys(res.failedFilenames || {})
               !failedFilenamesKeys.length && dispatch(RouteTreeGen.createClearModals())
               setErrors(new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key].uidisplay])))
-              setBannerError(
-                `Failed to add ${failedFilenamesKeys.length} ${pluralize(
-                  'emojis',
-                  failedFilenamesKeys.length
-                )}.`
-              )
+              setBannerError(`Failed to add ${failedFilenamesKeys.length} emoji.`)
               setWaitingAddEmojis(false)
             },
             err => {
@@ -379,7 +373,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
       onDrop={onDrop}
     >
       <Kb.Text style={styles.textChooseAlias} type="BodySmall">
-        Choose aliases for these emojis:
+        {items.length > 1 ? 'Choose aliases for these emoji:' : 'Choose an alias for this emoji:'}
       </Kb.Text>
       <Kb.BoxGrow>
         <Kb.List2
