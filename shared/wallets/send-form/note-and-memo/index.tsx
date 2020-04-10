@@ -117,6 +117,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
                 onHidden={() => this.setState({emojiPickerOpen: false})}
               >
                 <EmojiPickerDesktop
+                  disableCustomEmoji={false}
                   conversationIDKey={ChatConstants.noConversationIDKey}
                   onPickAction={this._insertEmoji}
                   onDidPick={this._emojiPickerToggle}
