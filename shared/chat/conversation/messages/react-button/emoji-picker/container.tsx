@@ -20,6 +20,7 @@ import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  disableCustomEmoji?: boolean
   hideFrequentEmoji?: boolean
   small?: boolean
   onlyTeamCustomEmoji?: boolean
@@ -88,14 +89,18 @@ const useSkinTone = () => {
   }
   return {currentSkinTone, setSkinTone}
 }
-const useCustomReacji = (conversationIDKey: Types.ConversationIDKey, onlyInTeam: boolean | undefined) => {
+const useCustomReacji = (
+  conversationIDKey: Types.ConversationIDKey,
+  onlyInTeam: boolean | undefined,
+  disabled?: boolean
+) => {
   const customEmojiGroups = Container.useSelector(s => s.chat2.userEmojis)
   const waiting = Container.useSelector(s => Container.anyWaiting(s, Constants.waitingKeyLoadingEmoji))
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey, onlyInTeam}))
-  }, [conversationIDKey, dispatch, onlyInTeam])
-  return {customEmojiGroups, waiting}
+    !disabled && dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey, onlyInTeam}))
+  }, [conversationIDKey, disabled, dispatch, onlyInTeam])
+  return disabled ? {customEmojiGroups: undefined, waiting: false} : {customEmojiGroups, waiting}
 }
 
 const goToAddEmoji = (dispatch: Container.Dispatch, conversationIDKey: Types.ConversationIDKey) => {
@@ -121,7 +126,11 @@ const useCanManageEmoji = (conversationIDKey: Types.ConversationIDKey) => {
 
 const WrapperMobile = (props: Props) => {
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
-  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey, props.onlyTeamCustomEmoji)
+  const {waiting, customEmojiGroups} = useCustomReacji(
+    props.conversationIDKey,
+    props.onlyTeamCustomEmoji,
+    props.disableCustomEmoji
+  )
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
   const {currentSkinTone, setSkinTone} = useSkinTone()
@@ -188,7 +197,11 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
-  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey, props.onlyTeamCustomEmoji)
+  const {waiting, customEmojiGroups} = useCustomReacji(
+    props.conversationIDKey,
+    props.onlyTeamCustomEmoji,
+    props.disableCustomEmoji
+  )
   const canManageEmoji = useCanManageEmoji(props.conversationIDKey)
   const dispatch = Container.useDispatch()
   const addEmoji = () => {
@@ -245,7 +258,8 @@ export const EmojiPickerDesktop = (props: Props) => {
           {renderEmoji(
             emojiDataToRenderableEmoji(
               hoveredEmoji,
-              getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
+              getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone),
+              currentSkinTone
             ),
             36,
             false
