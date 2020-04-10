@@ -392,6 +392,15 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setActivityLevels]: (draftState, action) => {
     draftState.activityLevels = action.payload.levels
   },
+  [TeamsGen.setTeamListFilterSort]: (draftState, action) => {
+    const {filter, sortOrder} = action.payload
+    if (filter !== undefined) {
+      draftState.teamListFilter = filter
+    }
+    if (sortOrder !== undefined) {
+      draftState.teamListSort = sortOrder
+    }
+  },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
     draftState.teamIDToWelcomeMessage.set(teamID, message)
