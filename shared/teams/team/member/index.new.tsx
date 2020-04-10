@@ -50,6 +50,7 @@ const getMemberships = (
   return results
 }
 
+type TreeMembershipOK = {s: RPCTypes.TeamTreeMembershipStatus.ok; ok: RPCTypes.TeamTreeMembershipValue}
 const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   const errors: Array<RPCTypes.TeamTreeMembership> = []
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
@@ -68,7 +69,7 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   const teamIDs: Array<Types.TeamID> =
     memberships?.memberships
       .filter(m => m.result.s === RPCTypes.TeamTreeMembershipStatus.ok)
-      .map(m => m.result.ok.teamID) ?? []
+      .map(m => (m.result as TreeMembershipOK).ok.teamID) ?? []
   const upToDateSparseMemberInfos = Container.useSelector(
     state => getMemberships(state, teamIDs, username),
     isEqual // Since this makes a new map every time, do a deep equality comparison to see if it actually changed
