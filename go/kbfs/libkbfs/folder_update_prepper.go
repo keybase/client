@@ -990,8 +990,9 @@ func (fup *folderUpdatePrepper) setChildrenNodes(
 			ctx, libkb.VLog1, "Creating child node for name %s for parent %v",
 			name, pnode.BlockPointer)
 		childPath := data.Path{
-			FolderBranch: p.FolderBranch,
-			Path:         make([]data.PathNode, indexInPath+2),
+			FolderBranch:    p.FolderBranch,
+			Path:            make([]data.PathNode, indexInPath+2),
+			ChildObfuscator: p.Path[indexInPath].Name.Obfuscator(),
 		}
 		copy(childPath.Path[0:indexInPath+1], p.Path[0:indexInPath+1])
 		childPath.Path[indexInPath+1] = data.PathNode{Name: name}
