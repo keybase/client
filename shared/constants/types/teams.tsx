@@ -165,16 +165,18 @@ export type NewTeamWizardState = {
   parentTeamID?: TeamID
 }
 
+export type AddingMemberTeamRoleType = 'owner' | 'admin' | 'reader' | 'writer'
+
 export type AddingMember = {
   assertion: string
-  role: TeamRoleType
+  role: AddingMemberTeamRoleType
   note?: string // note is for imp tofu assertions that got turned into usernames. It doesn't go to the server but it displays to the user in the confirm screen.
 }
 export type AddMembersWizardState = {
   addingMembers: Array<AddingMember>
   defaultChannels: Array<ChannelNameID> | undefined // undefined -> unchanged from default
   justFinished: boolean
-  role: TeamRoleType | 'setIndividually'
+  role: AddingMemberTeamRoleType | 'setIndividually'
   teamID: TeamID
 }
 

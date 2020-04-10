@@ -1,13 +1,14 @@
 import * as React from 'react'
+import {useSpring, animated} from 'react-spring'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import map from 'lodash/map'
 import capitalize from 'lodash/capitalize'
 import {Position} from '../../common-adapters/relative-popup-hoc.types'
 import {TeamRoleType} from '../../constants/types/teams'
 import {StylesCrossPlatform} from '../../styles/css'
+
 // Controls the ordering of the role picker
-const orderedRoles = ['owner', 'admin', 'writer', 'reader', 'setIndividually'] as const
+const orderedRoles: Array<Role<true>> = ['owner', 'admin', 'writer', 'reader', 'setIndividually']
 
 // TODO include bot roles in here; this is short term to allow bots to show up in the gui
 type BaseRole = Exclude<TeamRoleType, 'bot' | 'restrictedbot'>
@@ -15,14 +16,14 @@ type Role<IncludeSetIndividually> = IncludeSetIndividually extends true
   ? BaseRole | 'setIndividually'
   : BaseRole
 
-type MaybeTeamRoleType<IncludeSetIndividually> =
+type MaybeRole<IncludeSetIndividually> =
   | TeamRoleType
   | null
   | undefined
   | (IncludeSetIndividually extends true ? 'setIndividually' : undefined)
 
 function filterRole<IncludeSetIndividually extends boolean>(
-  r: MaybeTeamRoleType<IncludeSetIndividually>
+  r: MaybeRole<IncludeSetIndividually>
 ): Role<IncludeSetIndividually> | null {
   return r === 'bot' || r === 'restrictedbot' || !r ? null : (r as Role<IncludeSetIndividually> | null)
 }
@@ -36,18 +37,18 @@ export type Props<IncludeSetIndividually extends boolean> = {
   confirmLabel?: string // Defaults to "Make ${selectedRole}"
   onSelectRole: (role: Role<IncludeSetIndividually>) => void
   footerComponent?: React.ReactNode
-  presetRole?: MaybeTeamRoleType<IncludeSetIndividually> | null
-  selectedRole?: MaybeTeamRoleType<IncludeSetIndividually> | null
+  presetRole?: MaybeRole<IncludeSetIndividually> | null
+  selectedRole?: MaybeRole<IncludeSetIndividually> | null
   includeSetIndividually?: IncludeSetIndividually extends true ? boolean : false
   waiting?: boolean
 }
 
 type RoleRowProps = {
   body: React.ReactNode
-  disabledReason: React.ReactNode | null
+  disabledReason?: string
   icon: React.ReactNode | null
   selected: boolean
-  title: React.ReactNode
+  title: string
   onSelect?: () => void
 }
 
@@ -67,20 +68,18 @@ const RoleRow = (p: RoleRowProps) => {
           selected={p.selected}
         />
         {p.icon}
-        {p.title}
+        <Kb.Text type="BodyBig" style={styles.text}>
+          {p.title}
+        </Kb.Text>
       </Kb.Box2>
-      <Kb.Animated to={{paddingTop: p.selected ? 0 : 16}}>
-        {style => (
-          <Kb.Box2
-            style={Styles.collapseStyles([styles.rowBody, style])}
-            direction="vertical"
-            gap="xxtiny"
-            gapStart={true}
-          >
-            {p.body}
-          </Kb.Box2>
-        )}
-      </Kb.Animated>
+      <Kb.Box2
+        style={Styles.collapseStyles([styles.rowBody])}
+        direction="vertical"
+        gap="xxtiny"
+        gapStart={true}
+      >
+        {!p.disabledReason && p.body}
+      </Kb.Box2>
     </Kb.Box2>
   )
 
@@ -93,13 +92,47 @@ const RoleRow = (p: RoleRowProps) => {
     >
       {p.disabledReason ? (
         <Kb.WithTooltip tooltip={p.disabledReason} showOnPressMobile={true}>
-          {/* Why is this tooltip the wrong color */}
           {row}
         </Kb.WithTooltip>
       ) : (
         row
       )}
     </Kb.Box2>
+  )
+}
+
+type RoleRowWrapperProps = {
+  selected: boolean
+  onSelect?: () => void
+  disabledReason?: string
+  role: Role<true>
+}
+const RoleRowWrapper = (props: RoleRowWrapperProps) => {
+  const {role, selected, onSelect, disabledReason} = props
+  const roleInfo = rolesMetaInfo(role)
+
+  // @ts-ignore spring is confused that I'm animating different things on desktop vs mobile
+  const style = useSpring({
+    ...(Styles.isMobile ? {flexGrow: selected ? 1 : 0} : {height: selected ? 160 : 42}),
+    config: {tension: Styles.isMobile ? 215 : 230},
+  })
+  const AnimatedClickableBox = animated(Kb.ClickableBox)
+
+  return (
+    <AnimatedClickableBox onClick={onSelect} style={Styles.collapseStyles([styles.roleRow, style])}>
+      <Kb.Divider />
+      <RoleRow
+        selected={selected}
+        title={role === 'setIndividually' ? 'Set Individually' : capitalize(role as string)}
+        body={[
+          roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0),
+          roleAbilities(roleInfo.cants, false, true),
+        ]}
+        icon={roleInfo.icon}
+        onSelect={onSelect}
+        disabledReason={disabledReason}
+      />
+    </AnimatedClickableBox>
   )
 }
 
@@ -214,34 +247,6 @@ const roleAbilities = (
   ))
 }
 
-const roleElementHelper = <IncludeSetIndividually extends boolean>(
-  includeSetIndividually: IncludeSetIndividually
-) =>
-  orderedRoles
-    .filter(r => includeSetIndividually || r !== 'setIndividually')
-    .map(role => {
-      const roleInfo = rolesMetaInfo(role)
-      return {
-        body: [
-          roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0),
-          roleAbilities(roleInfo.cants, false, true),
-        ],
-        icon: roleInfo.icon,
-        role,
-        title: (
-          <Kb.Text type="BodyBig" style={styles.text}>
-            {role === 'setIndividually' ? 'Set Individually' : capitalize(role as string)}
-          </Kb.Text>
-        ),
-      }
-    })
-
-const disabledTextHelper = (text: string) => (
-  <Kb.Text type="BodySmall" style={styles.text}>
-    {text}
-  </Kb.Text>
-)
-
 const footerButtonsHelper = (
   onConfirm: undefined | (() => void),
   confirmLabel: string,
@@ -258,10 +263,7 @@ const footerButtonsHelper = (
   </Kb.ButtonBar>
 )
 
-const confirmLabelHelper = <IncludeSetIndividually extends boolean>(
-  presetRole: Role<IncludeSetIndividually> | null,
-  selectedRole: Role<IncludeSetIndividually> | null
-): string => {
+const confirmLabelHelper = (presetRole: Role<any> | null, selectedRole: Role<any> | null): string => {
   const label = selectedRole && selectedRole.toLowerCase()
   if (label && presetRole === selectedRole) {
     return `Saved`
@@ -279,45 +281,27 @@ const Header = () => (
 
 const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<IncludeSetIndividually>) => {
   const selectedRole = filterRole(props.selectedRole || props.presetRole)
+  // as because convincing TS that filtering this makes it a different type is hard
+  const roles = orderedRoles.filter(r => props.includeSetIndividually || r !== 'setIndividually') as Array<
+    Role<IncludeSetIndividually>
+  >
   return (
     <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container} fullHeight={Styles.isMobile}>
       {!Styles.isMobile && <Header />}
-      {!Styles.isMobile && <Kb.Divider />}
-      {map(
-        roleElementHelper(props.includeSetIndividually ?? false),
-        ({role, ...nodeMap}: {[K in string]: React.ReactNode}): React.ReactNode => {
-          // Using as to avoid lots of ts-ignore.
-          const disabledRole = role as Role<IncludeSetIndividually>
-          const disabled = props.disabledRoles && props.disabledRoles[disabledRole]
-          const onSelect = disabled ? undefined : () => props.onSelectRole(disabledRole)
-          return (
-            <Kb.Animated
-              to={
-                Styles.isMobile
-                  ? {flexGrow: selectedRole === role ? 1 : 0, height: 56}
-                  : {height: selectedRole === role ? 160 : 42}
-              }
-            >
-              {style => (
-                <Kb.ClickableBox
-                  key={role as string}
-                  onClick={onSelect}
-                  style={Styles.collapseStyles([styles.roleRow, style])}
-                >
-                  <RoleRow
-                    selected={selectedRole === role}
-                    title={nodeMap.title}
-                    body={nodeMap.body}
-                    icon={nodeMap.icon}
-                    onSelect={onSelect}
-                    disabledReason={disabled ? disabledTextHelper(disabled!) : undefined}
-                  />
-                </Kb.ClickableBox>
-              )}
-            </Kb.Animated>
-          )
-        }
-      ).map((row, i, arr) => [row, i === arr.length - 1 ? null : <Kb.Divider key={i} />])}
+      {roles.map(role => {
+        const disabled = props.disabledRoles ? props.disabledRoles[role as string] : undefined
+        const onSelect = disabled ? undefined : () => props.onSelectRole(role)
+        return (
+          <RoleRowWrapper
+            key={role as string}
+            role={role}
+            disabledReason={disabled}
+            onSelect={onSelect}
+            selected={selectedRole === role}
+          />
+        )
+      })}
+
       <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
         {props.footerComponent}
         {footerButtonsHelper(
@@ -400,12 +384,14 @@ const styles = Styles.styleSheetCreate(
       roleIcon: {
         paddingRight: Styles.globalMargins.xtiny,
       },
-      roleRow: {overflow: 'hidden'},
+      roleRow: Styles.platformStyles({common: {overflow: 'hidden'}, isMobile: {height: 56}}),
       row: {
         backgroundColor: Styles.globalColors.blueGreyLight,
         position: 'relative',
       },
       rowBody: Styles.platformStyles({
+        // To push the body out of the zone visible when deselected
+        common: {paddingTop: 6},
         // Width of the radio button. Used to align text with title
         isElectron: {
           paddingLeft: 22,

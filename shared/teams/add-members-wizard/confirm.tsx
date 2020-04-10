@@ -185,12 +185,12 @@ const AddMoreMembers = () => {
     </>
   )
 }
-type RoleType = 'owner' | 'admin' | 'reader' | 'writer' | 'setIndividually'
+type RoleType = Types.AddingMemberTeamRoleType | 'setIndividually'
+
 const RoleSelector = ({memberCount}: {memberCount: number}) => {
   const dispatch = Container.useDispatch()
   const [showingMenu, setShowingMenu] = React.useState(false)
-  // as because bot roles
-  const storeRole: RoleType = Container.useSelector(s => s.teams.addMembersWizard.role) as RoleType
+  const storeRole = Container.useSelector(s => s.teams.addMembersWizard.role)
   const [role, setRole] = React.useState<RoleType>(storeRole)
   const onSelectRole = (newRole: RoleType) => setRole(newRole)
   const onConfirmRole = (newRole: RoleType) => {
@@ -209,7 +209,7 @@ const RoleSelector = ({memberCount}: {memberCount: number}) => {
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
         confirmLabel="Save"
-        includeSetIndividually={!Styles.isMobile}
+        includeSetIndividually={!Styles.isMobile && (memberCount > 1 || storeRole === 'setIndividually')}
       >
         <Kb.InlineDropdown
           textWrapperType="BodySmallSemibold"
