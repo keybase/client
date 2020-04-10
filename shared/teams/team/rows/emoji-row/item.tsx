@@ -71,49 +71,60 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
   ))
 
   return (
-    <Kb.ListItem2
-      icon={renderEmoji(emojiDataToRenderableEmoji(RPCToEmojiData(emoji, false)), 32, false)}
-      type="Large"
-      body={
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          alignItems="center"
-          style={styles.container}
-          gap="small"
-        >
-          <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
-          {!Styles.isMobile && emoji.creationInfo && (
-            <Kb.Text type="Body" style={styles.date}>
-              {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
-            </Kb.Text>
-          )}
-          {!Styles.isMobile && emoji.creationInfo && (
-            <Kb.NameWithIcon
-              horizontal={true}
-              username={emoji.creationInfo.username}
-              size="small"
-              avatarSize={24}
-              containerStyle={styles.username}
-            />
-          )}
+    <Kb.Box style={Styles.padding(0, Styles.globalMargins.small)}>
+      <Kb.ListItem2
+        type="Small"
+        body={
           <Kb.Box2
             direction="horizontal"
-            style={Styles.collapseStyles([!canManageEmoji ? {opacity: 0} : null])}
+            fullWidth={true}
+            alignItems="center"
+            style={styles.container}
+            gap="small"
           >
-            {popup}
-            <Kb.Button
-              icon="iconfont-ellipsis"
-              mode="Secondary"
-              type="Dim"
-              onClick={canManageEmoji ? () => setShowingPopup(!showingPopup) : undefined}
-              ref={popupAnchor}
-            />
+            {renderEmoji(
+              emojiDataToRenderableEmoji(RPCToEmojiData(emoji, false)),
+              Styles.isMobile ? 32 : 26,
+              false
+            )}
+            <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
+            {!Styles.isMobile && emoji.creationInfo && (
+              <Kb.Text type="Body" style={styles.date}>
+                {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
+              </Kb.Text>
+            )}
+            {!Styles.isMobile && emoji.creationInfo && (
+              <Kb.NameWithIcon
+                colorFollowing={true}
+                colorBroken={true}
+                horizontal={true}
+                username={emoji.creationInfo.username}
+                size="small"
+                avatarSize={16}
+                containerStyle={styles.username}
+              />
+            )}
+            <Kb.Box2
+              direction="horizontal"
+              style={Styles.collapseStyles([!canManageEmoji ? {opacity: 0} : null])}
+            >
+              {popup}
+              <Kb.Button
+                icon="iconfont-ellipsis"
+                mode="Secondary"
+                type="Dim"
+                onClick={canManageEmoji ? () => setShowingPopup(!showingPopup) : undefined}
+                ref={popupAnchor}
+                small={true}
+              />
+            </Kb.Box2>
           </Kb.Box2>
-        </Kb.Box2>
-      }
-      firstItem={firstItem}
-    />
+        }
+        firstItem={firstItem}
+        fullDivider={true}
+        height={Styles.isMobile ? 48 : 42}
+      />
+    </Kb.Box>
   )
 }
 
@@ -121,6 +132,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       alias: {
+        marginLeft: Styles.globalMargins.large - Styles.globalMargins.tiny,
         marginRight: 'auto',
       },
       container: {
