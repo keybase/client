@@ -633,14 +633,6 @@ func (s *BlockingSender) handleEmojis(ctx context.Context, uid gregor1.UID,
 			MessageBody:        chat1.NewMessageBodyWithEdit(newBody),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
 		}, nil
-	case chat1.MessageType_REQUESTPAYMENT:
-		newBody := msg.MessageBody.Requestpayment().DeepCopy()
-		newBody.Emojis = ct
-		return chat1.MessagePlaintext{
-			ClientHeader:       msg.ClientHeader,
-			MessageBody:        chat1.NewMessageBodyWithRequestpayment(newBody),
-			SupersedesOutboxID: msg.SupersedesOutboxID,
-		}, nil
 	case chat1.MessageType_ATTACHMENT:
 		newBody := msg.MessageBody.Attachment().DeepCopy()
 		newBody.Emojis = ct

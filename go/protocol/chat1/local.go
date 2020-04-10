@@ -1177,25 +1177,12 @@ func (o MessageSendPayment) DeepCopy() MessageSendPayment {
 type MessageRequestPayment struct {
 	RequestID stellar1.KeybaseRequestID `codec:"requestID" json:"requestID"`
 	Note      string                    `codec:"note" json:"note"`
-	Emojis    map[string]HarvestedEmoji `codec:"emojis" json:"emojis"`
 }
 
 func (o MessageRequestPayment) DeepCopy() MessageRequestPayment {
 	return MessageRequestPayment{
 		RequestID: o.RequestID.DeepCopy(),
 		Note:      o.Note,
-		Emojis: (func(x map[string]HarvestedEmoji) map[string]HarvestedEmoji {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[string]HarvestedEmoji, len(x))
-			for k, v := range x {
-				kCopy := k
-				vCopy := v.DeepCopy()
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.Emojis),
 	}
 }
 

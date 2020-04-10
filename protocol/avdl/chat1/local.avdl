@@ -237,7 +237,6 @@ protocol local {
   record MessageRequestPayment {
     stellar1.KeybaseRequestID requestID;
     string note;
-    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageUnfurl {
