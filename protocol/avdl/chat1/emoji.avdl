@@ -58,6 +58,7 @@ protocol emoji {
     EmojiLoadSource noAnimSource;
     EmojiRemoteSource remoteSource;
     union { null, EmojiCreationInfo } creationInfo;
+    union { null, string } teamname;
   }
 
   record EmojiGroup {

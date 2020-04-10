@@ -190,6 +190,13 @@
             "EmojiCreationInfo"
           ],
           "name": "creationInfo"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "teamname"
         }
       ]
     },

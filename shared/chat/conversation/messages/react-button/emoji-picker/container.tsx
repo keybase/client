@@ -264,14 +264,25 @@ export const EmojiPickerDesktop = (props: Props) => {
             36,
             false
           )}
-          <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
-            <Kb.Text type="BodyBig" lineClamp={1}>
-              {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
-            </Kb.Text>
-            <Kb.Text type="BodySmall" lineClamp={1}>
-              {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
-            </Kb.Text>
-          </Kb.Box2>
+          {hoveredEmoji.teamname ? (
+            <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+              <Kb.Text type="BodyBig" lineClamp={1}>
+                {':' + hoveredEmoji.short_name + ':'}
+              </Kb.Text>
+              <Kb.Text type="BodySmall" lineClamp={1}>
+                from <Kb.Text type="BodySmallSemibold">{hoveredEmoji.teamname}</Kb.Text>
+              </Kb.Text>
+            </Kb.Box2>
+          ) : (
+            <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+              <Kb.Text type="BodyBig" lineClamp={1}>
+                {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
+              </Kb.Text>
+              <Kb.Text type="BodySmall" lineClamp={1}>
+                {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
+              </Kb.Text>
+            </Kb.Box2>
+          )}
           {canManageEmoji && (
             <Kb.Button mode="Secondary" label="Add emoji" onClick={addEmoji} style={styles.addEmojiButton} />
           )}

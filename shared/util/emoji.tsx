@@ -11,6 +11,7 @@ export type EmojiData = {
   short_names: Array<string>
   sort_order?: number
   skin_variations?: {[K in Chat2Types.EmojiSkinTone]: Object}
+  teamname?: string
   unified: string
   userEmojiRenderStock?: string
   userEmojiRenderUrl?: string
@@ -71,6 +72,7 @@ export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, noAnim: boolean, categ
     name: null,
     short_name: emoji.alias,
     short_names: [emoji.alias],
+    teamname: emoji.teamname ?? undefined,
     unified: '',
     userEmojiRenderStock:
       emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str ? emoji.source.str : undefined,
