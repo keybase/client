@@ -94,7 +94,7 @@ func CtxModifyIdentifyNotifier(ctx context.Context, notifier types.IdentifyNotif
 }
 
 func CtxAddRateLimit(ctx context.Context, rl []chat1.RateLimit) {
-	val := ctx.Value(rlKey)
+	val := ctx.Value(ctxMutexKey)
 	if l, ok := val.(sync.RWMutex); ok {
 		l.Lock()
 		defer l.Unlock()
@@ -108,11 +108,11 @@ func CtxAddRateLimit(ctx context.Context, rl []chat1.RateLimit) {
 }
 
 func CtxRateLimits(ctx context.Context) (res []chat1.RateLimit) {
-	val := ctx.Value(rlKey)
+	val := ctx.Value(ctxMutexKey)
 	if l, ok := val.(sync.RWMutex); ok {
 		l.RLock()
 		defer l.RUnlock()
-		val := ctx.Value(rlKey)
+		val = ctx.Value(rlKey)
 		if existingRL, ok := val.(map[string]chat1.RateLimit); ok {
 			for _, rl := range existingRL {
 				res = append(res, rl)
@@ -123,11 +123,11 @@ func CtxRateLimits(ctx context.Context) (res []chat1.RateLimit) {
 }
 
 func CtxAddMessageCacheSkips(ctx context.Context, convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
-	val := ctx.Value(rlKey)
+	val := ctx.Value(ctxMutexKey)
 	if l, ok := val.(sync.RWMutex); ok {
 		l.Lock()
 		defer l.Unlock()
-		val := ctx.Value(messageSkipsKey)
+		val = ctx.Value(messageSkipsKey)
 		if existingSkips, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); ok {
 			existingSkips[convID.ConvIDStr()] = MessageCacheSkip{
 				ConvID: convID,
@@ -143,11 +143,11 @@ type MessageCacheSkip struct {
 }
 
 func CtxMessageCacheSkips(ctx context.Context) (res []MessageCacheSkip) {
-	val := ctx.Value(rlKey)
+	val := ctx.Value(ctxMutexKey)
 	if l, ok := val.(sync.RWMutex); ok {
 		l.RLock()
 		defer l.RUnlock()
-		val := ctx.Value(messageSkipsKey)
+		val = ctx.Value(messageSkipsKey)
 		if existingSkips, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); ok {
 			for _, skips := range existingSkips {
 				res = append(res, skips)
