@@ -975,6 +975,8 @@ func (b MessageBody) TextForDecoration() string {
 	case MessageType_ATTACHMENT:
 		// Exclude the filename for text decoration.
 		return b.Attachment().Object.Title
+	case MessageType_REQUESTPAYMENT:
+		return ""
 	default:
 		return b.SearchableText()
 	}
