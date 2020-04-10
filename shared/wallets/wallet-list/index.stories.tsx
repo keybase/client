@@ -32,6 +32,10 @@ const mockWallets = {
 }
 
 const WalletRowProvider = mockWallets => ({
+  WalletAddAccount: () => ({
+    onAddNew: Sb.action('onAddNew'),
+    onLinkExisting: Sb.action('onLinkExisting'),
+  }),
   WalletRow: ({accountID}) => {
     const mockWallet = mockWallets[accountID]
     return (
