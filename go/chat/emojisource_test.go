@@ -231,10 +231,15 @@ func TestEmojiSourceBasic(t *testing.T) {
 	require.True(t, checked)
 }
 
-func TestEmojiAliasDecorate(t *testing.T) {
+type emojiAliasTestCase struct {
+	input, output string
+	emojis        []chat1.HarvestedEmoji
+}
+
+func TestEmojiSourceAliasDecorate(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
-	ctc := makeChatTestContext(t, "TestEmojiSourceBasic", 1)
+	ctc := makeChatTestContext(t, "TestEmojiSourceAliasDecorate", 1)
 	defer ctc.cleanup()
 
 	users := ctc.users()
@@ -243,21 +248,60 @@ func TestEmojiAliasDecorate(t *testing.T) {
 	ctx := ctc.as(t, users[0]).startCtx
 
 	source := tc.Context().EmojiSource.(*DevConvEmojiSource)
-	decoratedText := source.Decorate(ctx, "this is a test! :my+1: <- thumbs up", uid, chat1.ConversationID{}, chat1.MessageType_TEXT, []chat1.HarvestedEmoji{
+	testCases := []emojiAliasTestCase{
 		{
-			Alias:       "my+1",
-			IsBig:       false,
-			IsCrossTeam: false,
-			Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
-				Text:     ":+1::skin-tone-0:",
-				Username: users[0].Username,
-				Time:     gregor1.ToTime(ctc.world.Fc.Now()),
-			}),
+			input:  "this is a test! :my+1: <- thumbs up",
+			output: "this is a test! :+1::skin-tone-0: <- thumbs up",
+			emojis: []chat1.HarvestedEmoji{
+				{
+					Alias: "my+1",
+					Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+						Text: ":+1::skin-tone-0:",
+					}),
+				}},
 		},
-	})
-
-	require.Equal(t, "this is a test! :+1::skin-tone-0: <- thumbs up", decoratedText)
-
+		{
+			input:  ":my+1: <- :nothing: dksjdksdj :: :alias:",
+			output: ":+1::skin-tone-0: <- :nothing: dksjdksdj :: :karen:",
+			emojis: []chat1.HarvestedEmoji{
+				{
+					Alias: "my+1",
+					Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+						Text: ":+1::skin-tone-0:",
+					}),
+				},
+				{
+					Alias: "alias",
+					Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+						Text: ":karen:",
+					}),
+				},
+			},
+		},
+		{
+			input:  ":nothing: dskjdksdjs ::: :my+1: <- :nothing: dksjdksdj :: :alias: !!",
+			output: ":nothing: dskjdksdjs ::: :+1::skin-tone-0: <- :nothing: dksjdksdj :: :karen: !!",
+			emojis: []chat1.HarvestedEmoji{
+				{
+					Alias: "my+1",
+					Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+						Text: ":+1::skin-tone-0:",
+					}),
+				},
+				{
+					Alias: "alias",
+					Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+						Text: ":karen:",
+					}),
+				},
+			},
+		},
+	}
+	for _, testCase := range testCases {
+		output := source.Decorate(ctx, testCase.input, uid, chat1.ConversationID{},
+			chat1.MessageType_TEXT, testCase.emojis)
+		require.Equal(t, testCase.output, output)
+	}
 }
 
 func TestEmojiSourceCrossTeam(t *testing.T) {
