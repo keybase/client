@@ -568,6 +568,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 						*creationInfo = ci
 					}
 				}
+				teamname := conv.Info.TlfName
 				emoji := chat1.Emoji{
 					Alias:        alias,
 					Source:       source,
@@ -576,6 +577,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 					IsCrossTeam:  isCrossTeam,
 					CreationInfo: creationInfo,
 					IsAlias:      storedEmoji.IsAlias(),
+					Teamname:     &teamname,
 				}
 				if seen, ok := seenAliases[alias]; ok {
 					seenAliases[alias]++

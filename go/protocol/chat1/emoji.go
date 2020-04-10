@@ -280,6 +280,7 @@ type Emoji struct {
 	NoAnimSource EmojiLoadSource    `codec:"noAnimSource" json:"noAnimSource"`
 	RemoteSource EmojiRemoteSource  `codec:"remoteSource" json:"remoteSource"`
 	CreationInfo *EmojiCreationInfo `codec:"creationInfo,omitempty" json:"creationInfo,omitempty"`
+	Teamname     *string            `codec:"teamname,omitempty" json:"teamname,omitempty"`
 }
 
 func (o Emoji) DeepCopy() Emoji {
@@ -299,6 +300,13 @@ func (o Emoji) DeepCopy() Emoji {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.CreationInfo),
+		Teamname: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Teamname),
 	}
 }
 
