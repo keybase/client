@@ -37,14 +37,17 @@ export const VersionTitle = ({title}: {title: string}) => (
 export const Current = ({seen}: VersionProps) => {
   return (
     <Version>
-      <NewFeatureRow image="release-5.3.0-ipad" noSeparator={true} seen={seen}>
+      <NewFeatureRow image="release-5.4.0-emoji" noSeparator={true} seen={seen}>
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmall" allowFontScaling={true}>
             Browse your image library
           </Kb.Text>
-          <Kb.Text type="BodySmall" allowFontScaling={true}>
-            And unleash that cute little pony <Kb.Icon type="icon-keybase-logo-16" />
-          </Kb.Text>
+          <Kb.Box2 direction="horizontal" style={styles.ponyAlignment}>
+            <Kb.Text type="BodySmall" allowFontScaling={true}>
+              And unleash that cute little pony
+            </Kb.Text>
+            <Kb.Icon type="release-5.4.0-pony" style={styles.ponyIcon} />
+          </Kb.Box2>
           <Kb.Text type="BodySmall" allowFontScaling={true}>
             Keybase supports custom emoji{' '}
             <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":sparkles:" />
@@ -174,6 +177,11 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: Styles.globalMargins.xtiny,
     },
   }),
+  ponyAlignment: {
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+  },
+  ponyIcon: {marginLeft: Styles.globalMargins.tiny},
   roundedImage: Styles.platformStyles({
     common: {
       borderColor: Styles.globalColors.grey,
