@@ -7,6 +7,7 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import * as RPCGen from '../../../constants/types/rpc-gen'
 import * as Styles from '../../../styles'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 import {FloatingRolePicker} from '../../role-picker'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
@@ -35,7 +36,6 @@ const InviteRolePicker = (props: RolePickerProps) => {
       confirmLabel={`Let in as ${pluralize(props.teamRole)}`}
       selectedRole={props.selectedRole}
       onSelectRole={props.onSelectRole}
-      floatingContainerStyle={styles.floatingRolePicker}
       onConfirm={props.onConfirmRolePicker}
       onCancel={props.onCancelRolePicker}
       position="bottom center"
@@ -57,25 +57,17 @@ const InviteRolePicker = (props: RolePickerProps) => {
 const InviteItem = ({
   duration,
   inviteLink,
-  onExpireCallback,
   teamID,
 }: {
   duration: string
   inviteLink: Types.InviteLink
-  onExpireCallback: () => void
   teamID: Types.TeamID
 }) => {
-  const teamDetails = Container.useSelector(s => s.teams.teamDetails.get(teamID))
-  const inviteLinks = teamDetails?.inviteLinks
-  const inviteLinkID = [...(inviteLinks || [])].filter(i => i.url == inviteLink?.url)[0]?.id
-
   const dispatch = Container.useDispatch()
   const onExpire = () => {
-    onExpireCallback()
-    dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLinkID, teamID}))
-    inviteLink.expired = true
+    dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLink.id, teamID}))
   }
-  const waitingForExpire = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, inviteLinkID))
+  const waitingForExpire = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, inviteLink.id))
 
   const expireText = inviteLink.expired ? `Expired` : `Expires in ${duration}`
 
@@ -127,21 +119,25 @@ const validityValuesMap = {
 }
 
 const GenerateLinkModal = (props: Props) => {
+  const [validity, setValidity] = React.useState(validityOneYear)
+  const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
+  const [teamRole, setTeamRole] = React.useState('reader' as Types.TeamRoleType)
+  const [selectedRole, setSelectedRole] = React.useState('reader' as Types.TeamRoleType)
+  const [inviteDuration, setInviteDuration] = React.useState('')
+  const [inviteLinkURL, setInviteLinkURL] = React.useState('')
+
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
+  useTeamDetailsSubscribe(teamID)
+  const teamDetails = Container.useSelector(s => s.teams.teamDetails.get(teamID))
+  const inviteLinks = teamDetails?.inviteLinks
+  const inviteLink = [...(inviteLinks || [])].filter(i => i.url == inviteLinkURL)[0]
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
-
-  const [validity, setValidity] = React.useState(validityOneYear)
-  const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
-  const [teamRole, setTeamRole] = React.useState('reader' as Types.TeamRoleType)
-  const [selectedRole, setSelectedRole] = React.useState('reader' as Types.TeamRoleType)
-  const [inviteLink, setInviteLink] = React.useState<Types.InviteLink | null>(null)
-  const [inviteDuration, setInviteDuration] = React.useState('')
 
   const menuItems = [
     {onClick: () => setValidity(validityOneUse), title: validityOneUse},
@@ -158,12 +154,6 @@ const GenerateLinkModal = (props: Props) => {
       visible={showingPopup}
     />
   ))
-
-  const onExpire = () => {
-    if (inviteLink != null) {
-      inviteLink.expired = true
-    }
-  }
 
   const generateLinkRPC = Container.useRPC(RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
   const onGenerate = () => {
@@ -183,19 +173,7 @@ const GenerateLinkModal = (props: Props) => {
         },
         waitingKey,
       ],
-      r => {
-        setInviteLink({
-          creatorUsername: '',
-          expirationTime: 1000000000,
-          expired: false,
-          id: '1',
-          lastJoinedUsername: '',
-          maxUses: 1,
-          numUses: 1,
-          role: teamRole,
-          url: r.url,
-        })
-      },
+      r => setInviteLinkURL(r.url),
       () => {}
     )
   }
@@ -219,7 +197,7 @@ const GenerateLinkModal = (props: Props) => {
     teamRole: teamRole,
   }
 
-  if (inviteLink != null) {
+  if (inviteLink != null || inviteLink != undefined) {
     return (
       <Kb.Modal
         onClose={onClose}
@@ -251,15 +229,10 @@ const GenerateLinkModal = (props: Props) => {
             Here is your link. Share it cautiously as anyone who has it can join the team.
           </Kb.Text>
 
-          <InviteItem
-            duration={inviteDuration}
-            inviteLink={inviteLink}
-            onExpireCallback={onExpire}
-            teamID={teamID}
-          />
+          <InviteItem duration={inviteDuration} inviteLink={inviteLink} teamID={teamID} />
 
           {inviteLink.expired && (
-            <Kb.Text type="BodySmallSemiboldPrimaryLink" onClick={() => setInviteLink(null)}>
+            <Kb.Text type="BodySmallSemiboldPrimaryLink" onClick={() => setInviteLinkURL('')}>
               Generate a new link
             </Kb.Text>
           )}
@@ -349,9 +322,6 @@ const styles = Styles.styleSheetCreate(() => ({
     flexGrow: 1,
     paddingRight: 0,
   },
-  floatingRolePicker: Styles.platformStyles({
-    isElectron: {},
-  }),
   infoText: {
     marginBottom: Styles.globalMargins.xsmall,
   },
