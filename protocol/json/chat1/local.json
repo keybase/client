@@ -816,14 +816,6 @@
         {
           "type": "string",
           "name": "note"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "HarvestedEmoji",
-            "keys": "string"
-          },
-          "name": "emojis"
         }
       ]
     },
