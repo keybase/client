@@ -863,8 +863,9 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 	currOriginal := unmergedOriginal
 	currPath := unmergedPath
 	mergedPath := data.Path{
-		FolderBranch: unmergedPath.FolderBranch,
-		Path:         nil, // fill in backwards, and reverse at the end
+		FolderBranch:    unmergedPath.FolderBranch,
+		Path:            nil, // fill in backwards, and reverse at the end
+		ChildObfuscator: cr.fbo.makeObfuscator(),
 	}
 
 	// First find the earliest merged parent.
@@ -1136,6 +1137,7 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 			Path: []data.PathNode{
 				{BlockPointer: unmergedChain.mostRecent},
 			},
+			ChildObfuscator: cr.fbo.makeObfuscator(),
 		}
 		chainsToSearchFor[mergedChain.mostRecent] =
 			append(chainsToSearchFor[mergedChain.mostRecent],
@@ -1793,8 +1795,9 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 				mergedLen := len(mergedPath.Path)
 				pLen := mergedLen + unmergedWalkBack
 				p := data.Path{
-					FolderBranch: mergedPath.FolderBranch,
-					Path:         make([]data.PathNode, pLen),
+					FolderBranch:    mergedPath.FolderBranch,
+					Path:            make([]data.PathNode, pLen),
+					ChildObfuscator: cr.fbo.makeObfuscator(),
 				}
 				unmergedStart := len(unmergedPath.Path) -
 					unmergedWalkBack
@@ -2359,6 +2362,7 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 		}
 	}
 
+	cr.log.CDebugf(ctx, "putTopBlock: %s", name)
 	err = blocks.putTopBlock(ctx, mergedMostRecent, name, fblock)
 	if err != nil {
 		return data.BlockPointer{}, err
@@ -2511,6 +2515,7 @@ func (cr *ConflictResolver) doOneAction(
 						FolderBranch: mergedPath.FolderBranch,
 						Path: []data.PathNode{{
 							BlockPointer: newPtr, Name: mergedPath.TailName()}},
+						ChildObfuscator: cr.fbo.makeObfuscator(),
 					}
 					uDir = cr.fbo.blocks.newDirDataWithDBMLocked(
 						lState, newPath, chargedTo,
@@ -2806,6 +2811,7 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 							FolderBranch: cr.fbo.folderBranch,
 							Path: []data.PathNode{{
 								BlockPointer: chain.mostRecent}},
+							ChildObfuscator: cr.fbo.makeObfuscator(),
 						})
 						added = true
 					}
@@ -2933,8 +2939,9 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 		// Reset the resolved path
 		newPathLen := len(parentPath.Path) + len(resolvedPath.Path) - i
 		newResolvedPath := data.Path{
-			FolderBranch: resolvedPath.FolderBranch,
-			Path:         make([]data.PathNode, newPathLen),
+			FolderBranch:    resolvedPath.FolderBranch,
+			Path:            make([]data.PathNode, newPathLen),
+			ChildObfuscator: cr.fbo.makeObfuscator(),
 		}
 		copy(newResolvedPath.Path[:len(parentPath.Path)], parentPath.Path)
 		copy(newResolvedPath.Path[len(parentPath.Path):], resolvedPath.Path[i:])
