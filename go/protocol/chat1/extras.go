@@ -1019,8 +1019,6 @@ func (b MessageBody) GetEmojis() map[string]HarvestedEmoji {
 		return b.Reaction().Emojis
 	case MessageType_EDIT:
 		return b.Edit().Emojis
-	case MessageType_REQUESTPAYMENT:
-		return b.Requestpayment().Emojis
 	case MessageType_ATTACHMENT:
 		return b.Attachment().Emojis
 	case MessageType_HEADLINE:
