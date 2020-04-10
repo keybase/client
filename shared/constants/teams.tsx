@@ -190,7 +190,6 @@ const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
-  canPerform: new Map(),
   channelSelectedMembers: new Map(),
   deletedTeams: [],
   errorInAddToTeam: '',
