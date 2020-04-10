@@ -276,6 +276,7 @@ class TeamBuilding extends React.PureComponent<Props> {
       paddingRight: Styles.globalMargins.xsmall,
       paddingTop: Styles.globalMargins.mediumLarge,
     },
+    modal2Type: 'DefaultFullHeight',
   }
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
 
@@ -799,18 +800,9 @@ class TeamBuilding extends React.PureComponent<Props> {
       </Kb.Box2>
     )
 
-    return (
-      <Kb.Modal2
-        onClose={props.onClose}
-        header={this.modalHeader()}
-        allowOverflow={true}
-        noScrollView={true}
-        mode="DefaultFullHeight"
-        {...(props.namespace === 'people' ? peopleModalProps : {})}
-      >
-        {body}
-      </Kb.Modal2>
-    )
+    // TODO header
+    // <Kb.Modal2 header={this.modalHeader()} mode="DefaultFullHeight">
+    return body
   }
 }
 
@@ -929,11 +921,6 @@ const styles = Styles.styleSheetCreate(
         ...Styles.padding(Styles.globalMargins.small),
       },
       peoplePopupStyleClose: Styles.platformStyles({isElectron: {display: 'none'}}),
-      peoplePopupStyleContainer: Styles.platformStyles({
-        isElectron: {
-          width: '100%',
-        },
-      }),
       searchHint: {
         paddingLeft: Styles.globalMargins.xlarge,
         paddingRight: Styles.globalMargins.xlarge,
@@ -957,9 +944,5 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
-
-const peopleModalProps: Partial<React.ComponentProps<typeof Kb.Modal>> = {
-  popupStyleContainer: styles.peoplePopupStyleContainer,
-}
 
 export default TeamBuilding

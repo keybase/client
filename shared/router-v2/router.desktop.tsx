@@ -109,7 +109,7 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
   const Component = descriptor.getComponent()
   // @ts-ignore
   const navigationOptions = Component?.navigationOptions
-  const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover} = navigationOptions ?? {}
+  const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover, modal2Type} = navigationOptions ?? {}
 
   const popRef = React.useRef(navigation.pop)
   React.useEffect(() => {
@@ -163,12 +163,14 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
             <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
           )}
           <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.modal2Style, modal2Style])}>
-            <SceneView
-              key="ModalLayer"
-              navigation={childNav}
-              component={Component}
-              screenProps={props.screenProps || noScreenProps}
-            />
+            <Kb.Modal2 mode={modal2Type}>
+              <SceneView
+                key="ModalLayer"
+                navigation={childNav}
+                component={Component}
+                screenProps={props.screenProps || noScreenProps}
+              />
+            </Kb.Modal2>
           </Kb.Box2>
         </Kb.Box2>
       )

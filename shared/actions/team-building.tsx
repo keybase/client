@@ -103,6 +103,8 @@ const search = async (state: TypedState, {payload: {namespace, includeContacts}}
   })
 }
 
+const cancelTeamBuilding = () => {}
+
 const fetchUserRecs = async (
   state: TypedState,
   {payload: {namespace, includeContacts}}: SearchOrRecAction
@@ -144,10 +146,34 @@ export function filterForNs<S, A, L, R>(
 const makeCustomResetStore = () =>
   TeamBuildingTypes.allowedNamespace.map(namespace => TeamBuildingGen.createTbResetStore({namespace}))
 
+const maybeCancelTeamBuilding = (namespace: TeamBuildingTypes.AllowedNamespace) => (
+  action: RouteTreeGen.OnNavChangedPayload
+) => {
+  const {prev, next} = action.payload
+
+  const namespaceToRoute = new Map([
+    ['chat2', 'chatNewChat'],
+    ['crypto', 'cryptoTeamBuilder'],
+    ['teams', 'teamsTeamBuilder'],
+    ['people', 'peopleTeamBuilder'],
+    ['wallets', 'walletTeamBuilder'],
+  ])
+
+  const wasTeamBuilding = namespaceToRoute.get(namespace) === prev[prev.length - 1]?.routeName
+  if (wasTeamBuilding) {
+    // team building or modal on top of that still
+    const isTeamBuilding = next[prev.length - 1] === prev[prev.length - 1]
+    if (!isTeamBuilding) {
+      return TeamBuildingGen.createCancelTeamBuilding({namespace})
+    }
+  }
+}
+
 export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
   yield* Saga.chainAction2(TeamBuildingGen.resetStore, makeCustomResetStore)
   yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
   yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
+  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeCancelTeamBuilding(namespace))
   // Navigation, before creating
   yield* Saga.chainAction2(
     [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],
