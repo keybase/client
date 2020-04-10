@@ -144,7 +144,7 @@ export const Question2Wrapper = (
       ProfileGen.createWotVouch({
         otherText,
         guiID,
-        proofs: proofs,
+        proofs,
         statement,
         username: voucheeUsername,
         verificationType,

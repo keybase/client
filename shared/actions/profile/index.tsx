@@ -171,7 +171,7 @@ const backToProfile = (state: TypedState) => [
 ]
 
 const wotVouch = async (state: TypedState, action: ProfileGen.WotVouchPayload, logger: Saga.SagaLogger) => {
-  const { guiID, otherText, proofs, statement, username, verificationType, } = action.payload
+  const {guiID, otherText, proofs, statement, username, verificationType} = action.payload
   const details = state.tracker2.usernameToDetails.get(username)
   if (!details) {
     return ProfileGen.createWotVouchSetError({error: 'Missing user details.'})
@@ -189,7 +189,7 @@ const wotVouch = async (state: TypedState, action: ProfileGen.WotVouchPayload, l
           usernameVerifiedVia: verificationType,
         },
         guiID,
-        username: username,
+        username,
         vouchTexts: [statement],
       },
       Constants.wotAuthorWaitingKey

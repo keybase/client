@@ -6,6 +6,7 @@ import * as Constants from '../../constants/tracker2'
 import * as Types from '../../constants/types/tracker2'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import {memoize} from '../../util/memoize'
 
 export type OwnProps = Container.RouteProps<{username: string}>
 
@@ -18,6 +19,11 @@ const headerBackgroundColorType = (state: Types.DetailsState, followThem: boolea
     return followThem ? 'green' : 'blue'
   }
 }
+
+const filterWebOfTrustEntries = memoize(
+  (webOfTrustEntries: Array<Types.WebOfTrustEntry> | undefined): Array<Types.WebOfTrustEntry> =>
+    webOfTrustEntries ? webOfTrustEntries.filter(Constants.showableWotEntry) : []
+)
 
 const connected = Container.namedConnect(
   (state, ownProps: OwnProps) => {
@@ -54,7 +60,7 @@ const connected = Container.namedConnect(
       const {followersCount, followingCount, followers, following, reason, webOfTrustEntries} = d
       const mutualFollow = followThem && Constants.followsYou(state, username)
 
-      const filteredWot = (webOfTrustEntries ?? []).filter(Constants.showableWotEntry)
+      const filteredWot = filterWebOfTrustEntries(webOfTrustEntries)
       const hasAlreadyVouched = filteredWot.some(entry => entry.attestingUser === myName)
       const vouchShowButton = mutualFollow && !hasAlreadyVouched
       const vouchDisableButton = !vouchShowButton || d.state !== 'valid' || d.resetBrokeTrack
@@ -75,7 +81,7 @@ const connected = Container.namedConnect(
         title: username,
         vouchShowButton,
         vouchDisableButton,
-        webOfTrustEntries: webOfTrustEntries || [],
+        webOfTrustEntries: filteredWot || [],
       }
     } else {
       // SBS profile. But `nonUserDetails` might not have arrived yet,
