@@ -1,5 +1,7 @@
 FROM golang:1.13.10-alpine3.11 AS builder
 
+RUN apk add --update --no-cache gnupg bash build-base
+
 ARG SOURCE_COMMIT=unknown
 
 ARG SIGNING_FINGERPRINT
@@ -25,7 +27,7 @@ RUN chmod +x /binaries/amd64/usr/bin/keybase \
 FROM alpine:3.11
 LABEL maintainer="Keybase <admin@keybase.io>"
 
-RUN apk add --update --no-cache gnupg2 procps ca-certificates bash
+RUN apk add --update --no-cache gnupg procps ca-certificates bash
 
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
@@ -48,7 +50,7 @@ RUN gpg --import /gosu_key.asc \
 COPY packaging/linux/docker/standard/entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
-RUN useradd --create-home --shell /bin/bash keybase
+RUN adduser -s /bin/bash keybase
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.cache/keybase" ]
 
 COPY --from=builder /binaries/amd64/usr/bin/keybase /usr/bin/keybase

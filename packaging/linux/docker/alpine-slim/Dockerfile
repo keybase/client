@@ -1,11 +1,11 @@
-ARG BASE_IMAGE=keybaseio/client:latest
+ARG BASE_IMAGE=keybaseio/client:alpine
 
 FROM $BASE_IMAGE AS base
 
 FROM alpine:3.11
 LABEL maintainer="Keybase <admin@keybase.io>"
 
-RUN apk add --update --no-cache gnupg2 procps ca-certificates bash
+RUN apk add --update --no-cache gnupg procps ca-certificates bash
 
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
@@ -28,7 +28,7 @@ RUN gpg --import /gosu_key.asc \
 COPY packaging/linux/docker/slim/entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
-RUN useradd --create-home --shell /bin/bash keybase
+RUN adduser -s /bin/bash keybase
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.cache/keybase" ]
 
 COPY --from=base /usr/bin/keybase /usr/bin/keybase

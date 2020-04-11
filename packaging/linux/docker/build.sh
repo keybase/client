@@ -23,10 +23,10 @@ readarray -t variants <<< "$(jq -r '.variants | keys | .[]' "$config_file")"
 
 # We assume that the JSON file is correctly ordered
 for variant in "${variants[@]}"; do
-  baseKey="$(jq -r ".variants.\"$variant\".base" "$config_file")"
+  base_variant="$(jq -r ".variants.\"$variant\".base" "$config_file")"
   dockerfile="$(jq -r ".variants.\"$variant\".dockerfile" "$config_file")"
 
-  if [ "$baseKey" = "null" ]; then
+  if [ "$base_variant" = "null" ]; then
     sudo docker build \
       --pull \
       --build-arg SOURCE_COMMIT="$source_commit" \
@@ -37,7 +37,7 @@ for variant in "${variants[@]}"; do
   else
     sudo docker build \
       --pull \
-      --build-arg BASE_IMAGE="$image_name:$tag" \
+      --build-arg BASE_IMAGE="$image_name:$tag$base_variant" \
       -f "$client_dir/$dockerfile" \
       -t "$image_name:$tag" \
       "$client_dir"
