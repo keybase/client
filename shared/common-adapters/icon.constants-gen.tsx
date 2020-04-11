@@ -1123,6 +1123,8 @@ export type IconType =
   | 'release-5.2.0-crypto'
   | 'release-5.3.0-ipad'
   | 'release-5.3.0-open-teams'
+  | 'release-5.4.0-emoji'
+  | 'release-5.4.0-pony'
 
 export const iconMeta: {[k in IconType]: IconMeta} = {
   'icon-GPG-export': {
@@ -10602,6 +10604,22 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/releases/release-5.3.0-open-teams.png')
+    },
+  },
+  'release-5.4.0-emoji': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.4.0-emoji.png')
+    },
+  },
+  'release-5.4.0-pony': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.4.0-pony.png')
     },
   },
 }
