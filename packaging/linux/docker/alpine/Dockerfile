@@ -50,7 +50,7 @@ RUN gpg --import /gosu_key.asc \
 COPY packaging/linux/docker/standard/entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
-RUN adduser -s /bin/bash keybase
+RUN adduser --disabled-password --gecos "" --shell /bin/bash keybase
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.cache/keybase" ]
 
 COPY --from=builder /binaries/amd64/usr/bin/keybase /usr/bin/keybase

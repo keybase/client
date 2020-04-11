@@ -22,7 +22,7 @@
     },
     "-alpine-slim": {
       "dockerfile": "packaging/linux/docker/alpine-slim/Dockerfile",
-      "base": "alpine"
+      "base": "-alpine"
     },
 
     "-node": {

@@ -32,14 +32,13 @@ for variant in "${variants[@]}"; do
       --build-arg SOURCE_COMMIT="$source_commit" \
       --build-arg SIGNING_FINGERPRINT="$code_signing_fingerprint" \
       -f "$client_dir/$dockerfile" \
-      -t "$image_name:$tag" \
+      -t "$image_name:$tag$variant" \
       "$client_dir"
   else
     sudo docker build \
-      --pull \
       --build-arg BASE_IMAGE="$image_name:$tag$base_variant" \
       -f "$client_dir/$dockerfile" \
-      -t "$image_name:$tag" \
+      -t "$image_name:$tag$variant" \
       "$client_dir"
   fi
 done
