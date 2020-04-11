@@ -1,6 +1,6 @@
 {
   "_c": "Base image of the name",
-  "imageName": "keybaseio/client",
+  "image_name": "keybaseio/client",
 
   "_c": "Variant definitions",
   "variants": {

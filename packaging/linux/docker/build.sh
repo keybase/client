@@ -23,8 +23,8 @@ readarray -t variants <<< "$(jq -r '.variants | keys | .[]' "$config_file")"
 
 # We assume that the JSON file is correctly ordered
 for variant in "${variants[@]}"; do
-  baseKey="$(jq -r ".variants.\"$variant\".base" config.json)"
-  dockerfile="$(jq -r ".variants.\"$variant\".dockerfile" config.json)"
+  baseKey="$(jq -r ".variants.\"$variant\".base" "$config_file")"
+  dockerfile="$(jq -r ".variants.\"$variant\".dockerfile" "$config_file")"
 
   if [ "$baseKey" = "null" ]; then
     sudo docker build \
