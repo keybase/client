@@ -68,6 +68,7 @@ const SplitNav = (props: Props) => {
         onClick={() => props.onTabChange(Constants.fsTab)}
       />
       <SettingsItem
+        badgeNumber={props.badgeNotifications ? 1 : 0}
         text="Notifications"
         selected={props.selectedTab === Constants.notificationsTab}
         onClick={() => props.onTabChange(Constants.notificationsTab)}
