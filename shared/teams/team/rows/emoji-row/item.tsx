@@ -106,14 +106,14 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
             )}
             <Kb.Box2
               direction="horizontal"
-              style={Styles.collapseStyles([!canManageEmoji ? {opacity: 0} : null])}
+              style={Styles.collapseStyles([!(doAddAlias || doRemove) ? {opacity: 0} : null])}
             >
               {popup}
               <Kb.Button
                 icon="iconfont-ellipsis"
                 mode="Secondary"
                 type="Dim"
-                onClick={canManageEmoji ? () => setShowingPopup(!showingPopup) : undefined}
+                onClick={() => setShowingPopup(!showingPopup)}
                 ref={popupAnchor}
                 small={true}
               />
