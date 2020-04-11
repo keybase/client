@@ -93,20 +93,22 @@ const AppView = React.memo((props: NavigationViewProps<any>) => {
 
 const mouseResetValue = -9999
 const mouseDistanceThreshold = 5
+
 const ModalView = React.memo((props: NavigationViewProps<any>) => {
   const {navigation, descriptors} = props
   const {state} = navigation
   const {index, routes} = state
   const {key} = routes[index]
   const descriptor = descriptors[key]
-  const {navigation: childNav} = descriptor
+  const {navigation: childNav, getComponent, state: childState} = descriptor
+  const {params} = childState
 
   // We render the app below us
   const appKey = routes[0].key
   const appNav = navigation.getChildNavigation(appKey)
   const appDescriptor = descriptors[appKey]
 
-  const Component = descriptor.getComponent()
+  const Component = getComponent()
   // @ts-ignore
   const navigationOptions = Component?.navigationOptions
   const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover, modal2Type} = navigationOptions ?? {}
@@ -163,14 +165,14 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
             <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
           )}
           <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.modal2Style, modal2Style])}>
-            <Kb.Modal2 mode={modal2Type}>
+            <Kb.Box2 direction="vertical" style={modalModeToStyle.get(modal2Type ?? 'Default')}>
               <SceneView
                 key="ModalLayer"
                 navigation={childNav}
                 component={Component}
                 screenProps={props.screenProps || noScreenProps}
               />
-            </Kb.Modal2>
+            </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
       )
@@ -419,6 +421,13 @@ const createElectronApp = Component => {
 
 const ElectronApp: any = createElectronApp(RootStackNavigator)
 
+const modalModeCommon = Styles.platformStyles({
+  isElectron: {
+    ...Styles.desktopStyles.boxShadow,
+    backgroundColor: Styles.globalColors.white,
+    borderRadius: Styles.borderRadius,
+  },
+})
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -436,21 +445,54 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
+      modal2AvoidTabs: {backgroundColor: undefined, height: 0},
+      modal2ClearCover: {backgroundColor: undefined},
       modal2Container: {
         ...Styles.globalStyles.fillAbsolute,
         backgroundColor: 'rgba(255,0,0,0.2)', // Styles.globalColors.black_50OrBlack_60,
       },
-      modal2Style: {
-        flexGrow: 1,
-      },
-      modal2AvoidTabs: {backgroundColor: undefined, height: 0},
-      modal2ClearCover: {backgroundColor: undefined},
+      modal2Style: {flexGrow: 1},
       modalContainer: {
         ...Styles.globalStyles.fillAbsolute,
       },
+      modalModeDefault: Styles.platformStyles({
+        common: {...modalModeCommon},
+        isElectron: {
+          maxHeight: 560,
+          width: 400,
+        },
+      }),
+      modalModeDefaultFullHeight: Styles.platformStyles({
+        common: {...modalModeCommon},
+        isElectron: {
+          height: 560,
+          width: 400,
+        },
+      }),
+      modalModeDefaultFullWidth: Styles.platformStyles({
+        common: {...modalModeCommon},
+        isElectron: {
+          height: 560,
+          width: '100%',
+        },
+      }),
+      modalModeWide: Styles.platformStyles({
+        common: {...modalModeCommon},
+        isElectron: {
+          height: 400,
+          width: 560,
+        },
+      }),
       sceneContainer: {flexDirection: 'column'},
       transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
     } as const)
 )
+
+const modalModeToStyle = new Map([
+  ['Default', styles.modalModeDefault],
+  ['DefaultFullHeight', styles.modalModeDefaultFullHeight],
+  ['DefaultFullWidth', styles.modalModeDefaultFullWidth],
+  ['Wide', styles.modalModeWide],
+])
 
 export default ElectronApp

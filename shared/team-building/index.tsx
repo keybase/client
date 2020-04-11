@@ -759,50 +759,48 @@ class TeamBuilding extends React.PureComponent<Props> {
     const showContactsBanner =
       Styles.isMobile && (!props.filterServices || props.filterServices.includes('phone'))
 
-    const body = (
-      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
-        {teamBox &&
-          (Styles.isMobile ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              {teamBox}
-            </Kb.Box2>
-          ) : (
-            teamBox
-          ))}
-        {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
-        {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
-          <Kb.Text type="BodySmall">
-            Add up to 14 more people. Need more?
-            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
-              {' '}
-              Make it a team.
+    return (
+      <Kb.Modal2 header={this.modalHeader()}>
+        <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
+          {teamBox &&
+            (Styles.isMobile ? (
+              <Kb.Box2 direction="horizontal" fullWidth={true}>
+                {teamBox}
+              </Kb.Box2>
+            ) : (
+              teamBox
+            ))}
+          {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
+          {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
+            <Kb.Text type="BodySmall">
+              Add up to 14 more people. Need more?
+              <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
+                {' '}
+                Make it a team.
+              </Kb.Text>
             </Kb.Text>
-          </Kb.Text>
-        )}
-        {(props.namespace !== 'people' || Styles.isMobile) && (
-          <FilteredServiceTabBar
-            filterServices={props.filterServices}
-            selectedService={props.selectedService}
-            onChangeService={props.onChangeService}
-            serviceResultCount={props.serviceResultCount}
-            showServiceResultCount={props.showServiceResultCount}
-            offset={this.offset}
-          />
-        )}
-        {showContactsBanner && (
-          <ContactsBanner
-            {...props}
-            onRedoSearch={() => props.onChangeText(props.searchString)}
-            onRedoRecs={props.fetchUserRecs}
-          />
-        )}
-        {content}
-      </Kb.Box2>
+          )}
+          {(props.namespace !== 'people' || Styles.isMobile) && (
+            <FilteredServiceTabBar
+              filterServices={props.filterServices}
+              selectedService={props.selectedService}
+              onChangeService={props.onChangeService}
+              serviceResultCount={props.serviceResultCount}
+              showServiceResultCount={props.showServiceResultCount}
+              offset={this.offset}
+            />
+          )}
+          {showContactsBanner && (
+            <ContactsBanner
+              {...props}
+              onRedoSearch={() => props.onChangeText(props.searchString)}
+              onRedoRecs={props.fetchUserRecs}
+            />
+          )}
+          {content}
+        </Kb.Box2>
+      </Kb.Modal2>
     )
-
-    // TODO header
-    // <Kb.Modal2 header={this.modalHeader()} mode="DefaultFullHeight">
-    return body
   }
 }
 

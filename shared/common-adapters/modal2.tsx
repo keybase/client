@@ -53,45 +53,34 @@ type Props = {
   // popupTabBarShim?: boolean
 }
 
-const Modal2Inner = (props: Props) => (
-  <>
-    {!!props.header && <Header2 {...props.header} />}
-    {!!props.banners && props.banners}
-    {props.noScrollView ? (
-      props.children
-    ) : (
-      <Kb.ScrollView
-        ref={props.scrollViewRef}
-        alwaysBounceVertical={false}
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContentContainer}
-      >
-        {props.children}
-      </Kb.ScrollView>
-    )}
-    {!!props.footer && <Footer {...props.footer} wide={props.mode === 'Wide'} />}
-  </>
-)
+const Modal2 = (props: Props) => {
+  const {footer, header, banners, children, mode = 'Default'} = props
+  return (
+    <>
+      {!!header && <Header2 {...header} />}
+      {!!banners && banners}
+      {children}
+      {!!footer && <Footer {...footer} wide={mode === 'Wide'} />}
+    </>
+  )
+}
 
 /** Used by the router and not for public consumption **/
-const Modal2 = (props: Props) =>
-  Styles.isMobile ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
-      <Modal2Inner {...props} />
-    </Kb.Box2>
-  ) : (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      fullHeight={true}
-      style={Styles.collapseStyles([clipContainerStyles[props.mode], props.popupStyleContainer])}
-    >
-      <Modal2Inner {...props} />
-    </Kb.Box2>
-  )
-Modal2.defaultProps = {
-  mode: 'Default',
-}
+// const Modal2 = (props: Props) =>
+// Styles.isMobile ? (
+// <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
+// <Modal2Inner {...props} />
+// </Kb.Box2>
+// ) : (
+// <Kb.Box2
+// direction="vertical"
+// fullWidth={true}
+// fullHeight={true}
+// style={Styles.collapseStyles([clipContainerStyles[props.mode], props.popupStyleContainer])}
+// >
+// <Modal2Inner {...props} />
+// </Kb.Box2>
+// )
 
 const Header2 = (props: HeaderProps) => {
   // On native, let the header sides layout for 100ms to measure which is wider.
@@ -231,13 +220,13 @@ const styles = Styles.styleSheetCreate(() => {
     borderStyle: 'solid' as const,
   }
 
-  const modeCommon = Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: Styles.borderRadius,
-    },
-  })
+  // const modeCommon = Styles.platformStyles({
+  // isElectron: {
+  // ...Styles.desktopStyles.boxShadow,
+  // backgroundColor: Styles.globalColors.white,
+  // borderRadius: Styles.borderRadius,
+  // },
+  // })
 
   return {
     footer: Styles.platformStyles({
@@ -296,34 +285,6 @@ const styles = Styles.styleSheetCreate(() => {
       flex: 1,
       justifyContent: 'center',
     },
-    modeDefault: Styles.platformStyles({
-      common: {...modeCommon},
-      isElectron: {
-        maxHeight: 560,
-        width: 400,
-      },
-    }),
-    modeDefaultFullHeight: Styles.platformStyles({
-      common: {...modeCommon},
-      isElectron: {
-        height: 560,
-        width: 400,
-      },
-    }),
-    modeDefaultFullWidth: Styles.platformStyles({
-      common: {...modeCommon},
-      isElectron: {
-        height: 560,
-        width: '100%',
-      },
-    }),
-    modeWide: Styles.platformStyles({
-      common: {...modeCommon},
-      isElectron: {
-        height: 400,
-        width: 560,
-      },
-    }),
     overflowVisible: {overflow: 'visible'},
     scroll: Styles.platformStyles({
       isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
@@ -342,12 +303,12 @@ const styles = Styles.styleSheetCreate(() => {
   }
 })
 
-const clipContainerStyles: {[k in Props['mode']]: Styles.StylesCrossPlatform} = {
-  Default: styles.modeDefault,
-  DefaultFullHeight: styles.modeDefaultFullHeight,
-  DefaultFullWidth: styles.modeDefaultFullWidth,
-  Wide: styles.modeWide,
-}
+// const clipContainerStyles: {[k in Props['mode']]: Styles.StylesCrossPlatform} = {
+// Default: styles.modeDefault,
+// DefaultFullHeight: styles.modeDefaultFullHeight,
+// DefaultFullWidth: styles.modeDefaultFullWidth,
+// Wide: styles.modeWide,
+// }
 
 export default Modal2
 export {Header2}
