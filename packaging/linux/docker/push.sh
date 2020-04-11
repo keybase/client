@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+here="$(dirname "${BASH_SOURCE[0]}")"
+client_dir="$(git -C "$here" rev-parse --show-toplevel)"
+
 # Force correct usage
 if [ -z "${1:-}" ] || [ "${2:-}" != "nightly" ] && [ "${2:-}" != "release" ]; then
   echo "FAIL: Invalid arguments"
@@ -14,18 +17,10 @@ kind="$2"
 trap "docker logout || true" ERR
 docker login --username "$DOCKERHUB_USERNAME" --password-stdin <<< "$DOCKERHUB_PASSWORD" &> /dev/null
 
-# Base name of the image
-imageName="keybaseio/client"
-
-# An array with all the image variants
-variants=(
-  ''
-  '-slim'
-  '-node'
-  '-node-slim'
-  '-python'
-  '-python-slim'
-)
+# Load up all the config we need
+configFile="$client_dir/packaging/linux/docker/config.json"
+imageName="$(jq -r '.imageName' "$configFile")"
+readarray -t variants <<< "$(jq -r '.variants | keys | .[]' "$configFile")"
 
 # Instructions is an array of strings, where the value has the format of `[src],[target]`.
 # The [target] part can be empty, which makes it a simple push.
@@ -47,7 +42,7 @@ elif [ "$kind" = "release" ]; then
   # - `$imageName:stable$variant`
   # - `$imageName:$version$variant`, where $version is the first item of a dash-split tag arg
   for variant in "${variants[@]}"; do
-    IFS='-'; read -ra tagParts <<< "$tag"
+    IFS='-' read -ra tagParts <<< "$tag"
     version="${tagParts[0]}"
 
     instructions+=(

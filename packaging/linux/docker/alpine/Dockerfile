@@ -1,4 +1,4 @@
-FROM golang:1.13.10-buster AS builder
+FROM golang:1.13.10-alpine3.11 AS builder
 
 ARG SOURCE_COMMIT=unknown
 
@@ -22,12 +22,10 @@ RUN chmod +x /binaries/amd64/usr/bin/keybase \
     && chmod +x /binaries/amd64/usr/bin/kbfsfuse \
     && chmod +x /binaries/amd64/usr/bin/git-remote-keybase
 
-FROM debian:buster
+FROM alpine:3.11
 LABEL maintainer="Keybase <admin@keybase.io>"
 
-RUN apt-get update \
-    && apt-get install -y gnupg2 procps ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --update --no-cache gnupg2 procps ca-certificates
 
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini

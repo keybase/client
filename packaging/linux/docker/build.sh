@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -Eeuxo pipefail
 
 here="$(dirname "${BASH_SOURCE[0]}")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
@@ -13,47 +13,33 @@ code_signing_fingerprint="$("$here/../fingerprint.sh")"
 gpg_tempfile="$client_dir/.docker/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
-# Clear all existing base images
-sudo docker rmi golang:1.13.7-stretch || true
-sudo docker rmi debian:stretch || true
-
-# Build all variants
-sudo docker build \
-  --build-arg SOURCE_COMMIT="$source_commit" \
-  --build-arg SIGNING_FINGERPRINT="$code_signing_fingerprint" \
-  -f "$client_dir/packaging/linux/docker/standard/Dockerfile" \
-  -t "keybaseio/client:$tag" \
-  "$client_dir"
-
-sudo docker build \
-  --build-arg BASE_IMAGE="keybaseio/client:$tag" \
-  -f "$client_dir/packaging/linux/docker/slim/Dockerfile" \
-  -t "keybaseio/client:$tag-slim" \
-  "$client_dir"
-
-sudo docker build \
-  --build-arg BASE_IMAGE="keybaseio/client:$tag" \
-  -f "$client_dir/packaging/linux/docker/node/Dockerfile" \
-  -t "keybaseio/client:$tag-node" \
-  "$client_dir"
-
-sudo docker build \
-  --build-arg BASE_IMAGE="keybaseio/client:$tag" \
-  -f "$client_dir/packaging/linux/docker/node-slim/Dockerfile" \
-  -t "keybaseio/client:$tag-node-slim" \
-  "$client_dir"
-
-sudo docker build \
-  --build-arg BASE_IMAGE="keybaseio/client:$tag" \
-  -f "$client_dir/packaging/linux/docker/python/Dockerfile" \
-  -t "keybaseio/client:$tag-python" \
-  "$client_dir"
-
-sudo docker build \
-  --build-arg BASE_IMAGE="keybaseio/client:$tag" \
-  -f "$client_dir/packaging/linux/docker/python-slim/Dockerfile" \
-  -t "keybaseio/client:$tag-python-slim" \
-  "$client_dir"
-
 # Don't store any secrets in the repo dir
-rm -r "$client_dir/.docker" || true
+trap "rm -r ""$client_dir/.docker"" || true" ERR
+
+# Load up all the config we need now, the rest will be resolved as needed
+configFile="$client_dir/packaging/linux/docker/config.json"
+imageName="$(jq -r '.imageName' "$configFile")"
+readarray -t variants <<< "$(jq -r '.variants | keys | .[]' "$configFile")"
+
+# We assume that the JSON file is correctly ordered
+for variant in "${variants[@]}"; do
+  baseKey="$(jq -r ".variants.\"$variant\".base" config.json)"
+  dockerfile="$(jq -r ".variants.\"$variant\".dockerfile" config.json)"
+
+  if [ "$baseKey" = "null" ]; then
+    sudo docker build \
+      --pull \
+      --build-arg SOURCE_COMMIT="$source_commit" \
+      --build-arg SIGNING_FINGERPRINT="$code_signing_fingerprint" \
+      -f "$client_dir/$dockerfile" \
+      -t "$imageName:$tag" \
+      "$client_dir"
+  else
+    sudo docker build \
+      --pull \
+      --build-arg BASE_IMAGE="$imageName:$tag" \
+      -f "$client_dir/$dockerfile" \
+      -t "$imageName:$tag" \
+      "$client_dir"
+  fi
+done
