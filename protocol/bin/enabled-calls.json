@@ -294,6 +294,7 @@
   "keybase.1.signup.inviteRequest": {"promise": true},
   "keybase.1.signup.signup": {"engineSaga": true},
   "keybase.1.teams.getAnnotatedTeam": {"promise": true},
+  "keybase.1.teams.getInviteLinkDetails": {"promise": true},
   "keybase.1.teams.getTarsDisabled": {"promise": true},
   "keybase.1.teams.getTeamAndMemberShowcase": {"promise": true},
   "keybase.1.teams.getTeamID": {"promise": true},

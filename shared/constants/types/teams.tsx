@@ -204,6 +204,12 @@ export type ActivityLevels = {
   loaded: boolean
 }
 
+export type TeamInviteState = {
+  inviteID: string
+  inviteKey: string
+  inviteDetails?: RPCTypes.InviteLinkDetails
+}
+
 export type State = {
   readonly activityLevels: ActivityLevels
   readonly addMembersWizard: AddMembersWizardState
@@ -258,4 +264,6 @@ export type State = {
   readonly newTeamRequests: Map<TeamID, Set<string>>
   readonly teamBuilding: TeamBuildingSubState
   readonly newTeamWizard: NewTeamWizardState
+
+  readonly teamInviteDetails: TeamInviteState
 }

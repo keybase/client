@@ -464,4 +464,12 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     }
     memberships.expectedCount = expectedCount
   },
+  [TeamsGen.openInviteLink]: (draftState, action) => {
+    draftState.teamInviteDetails.inviteDetails = undefined
+    draftState.teamInviteDetails.inviteID = action.payload.inviteID
+    draftState.teamInviteDetails.inviteKey = action.payload.inviteKey
+  },
+  [TeamsGen.updateInviteLinkDetails]: (draftState, action) => {
+    draftState.teamInviteDetails.inviteDetails = action.payload.details
+  },
 })

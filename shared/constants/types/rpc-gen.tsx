@@ -1379,6 +1379,10 @@ export type MessageTypes = {
     inParam: {readonly teamID: TeamID}
     outParam: AnnotatedTeam
   }
+  'keybase.1.teams.getInviteLinkDetails': {
+    inParam: {readonly inviteID: TeamInviteID}
+    outParam: InviteLinkDetails
+  }
   'keybase.1.teams.getTarsDisabled': {
     inParam: {readonly teamID: TeamID}
     outParam: Boolean
@@ -3879,6 +3883,7 @@ export const signupGetInvitationCodeRpcPromise = (params: MessageTypes['keybase.
 export const signupInviteRequestRpcPromise = (params: MessageTypes['keybase.1.signup.inviteRequest']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.signup.inviteRequest']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.signup.inviteRequest', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const signupSignupRpcSaga = (p: {params: MessageTypes['keybase.1.signup.signup']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.signup.signup', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const teamsGetAnnotatedTeamRpcPromise = (params: MessageTypes['keybase.1.teams.getAnnotatedTeam']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getAnnotatedTeam']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getAnnotatedTeam', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsGetInviteLinkDetailsRpcPromise = (params: MessageTypes['keybase.1.teams.getInviteLinkDetails']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getInviteLinkDetails']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getInviteLinkDetails', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetTarsDisabledRpcPromise = (params: MessageTypes['keybase.1.teams.getTarsDisabled']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTarsDisabled']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTarsDisabled', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetTeamAndMemberShowcaseRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamAndMemberShowcase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamAndMemberShowcase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamAndMemberShowcase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetTeamIDRpcPromise = (params: MessageTypes['keybase.1.teams.getTeamID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTeamID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTeamID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4325,7 +4330,6 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.teams.teamGetSubteamsUnverified'
 // 'keybase.1.teams.teamCreateSeitanToken'
 // 'keybase.1.teams.teamCreateSeitanInvitelink'
-// 'keybase.1.teams.getInviteLinkDetails'
 // 'keybase.1.teams.lookupImplicitTeam'
 // 'keybase.1.teams.lookupOrCreateImplicitTeam'
 // 'keybase.1.teams.loadTeamPlusApplicationKeys'

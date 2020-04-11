@@ -41,7 +41,6 @@ async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
     return TeamsGen.createSetTeamCreationError({error: error.desc})
   }
 }
-
 const showTeamAfterCreation = (action: TeamsGen.TeamCreatedPayload) => {
   const {teamID, teamname} = action.payload
   if (action.payload.fromChat) {
@@ -63,17 +62,18 @@ const showTeamAfterCreation = (action: TeamsGen.TeamCreatedPayload) => {
         ]),
   ]
 }
+
+const openInviteLink = (_: TeamsGen.OpenInviteLinkPayload) => {
+  return RouteTreeGen.createNavigateAppend({
+    path: ['teamInviteLinkJoin'],
+  })
+}
 function promptInviteLinkJoin(
   params: RPCTypes.MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'],
   response: {result: (boolean) => void}
 ) {
   return Saga.callUntyped(function*() {
-    yield Saga.put(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: params, selected: 'teamInviteLinkJoin'}],
-        replace: true,
-      })
-    )
+    yield Saga.put(TeamsGen.createUpdateInviteLinkDetails({details: params.details}))
     const action: TeamsGen.RespondToInviteLinkPayload = yield Saga.take(TeamsGen.respondToInviteLink)
     response.result(action.payload.accept)
   })
@@ -108,6 +108,24 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
         ? 'Sorry, that team name or token is not valid.'
         : error.desc
     yield Saga.put(TeamsGen.createSetTeamJoinError({error: desc}))
+  }
+}
+const requestInviteLinkDetails = async (state: TypedState, _: TeamsGen.RequestInviteLinkDetailsPayload) => {
+  try {
+    const details = await RPCTypes.teamsGetInviteLinkDetailsRpcPromise({
+      inviteID: state.teams.teamInviteDetails.inviteID,
+    })
+    return TeamsGen.createUpdateInviteLinkDetails({
+      details,
+    })
+  } catch (error) {
+    const desc =
+      error.code === RPCTypes.StatusCode.scteaminvitebadtoken
+        ? 'Sorry, that invite token is not valid.'
+        : error.desc
+    return TeamsGen.createSetTeamJoinError({
+      error: desc,
+    })
   }
 }
 
@@ -1521,7 +1539,11 @@ const teamsSaga = function*() {
   yield* Saga.chainAction2(TeamsGen.leftTeam, leftTeam)
   yield* Saga.chainAction(TeamsGen.createNewTeam, createNewTeam)
   yield* Saga.chainAction(TeamsGen.teamCreated, showTeamAfterCreation)
+
   yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam)
+  yield* Saga.chainAction(TeamsGen.openInviteLink, openInviteLink)
+  yield* Saga.chainAction2(TeamsGen.requestInviteLinkDetails, requestInviteLinkDetails)
+
   yield* Saga.chainAction2(TeamsGen.loadTeam, loadTeam)
   yield* Saga.chainAction(TeamsGen.getMembers, getMembers)
   yield* Saga.chainAction2(TeamsGen.createNewTeamFromConversation, createNewTeamFromConversation)
