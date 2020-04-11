@@ -18,9 +18,9 @@ trap "docker logout || true" ERR
 docker login --username "$DOCKERHUB_USERNAME" --password-stdin <<< "$DOCKERHUB_PASSWORD" &> /dev/null
 
 # Load up all the config we need
-configFile="$client_dir/packaging/linux/docker/config.json"
-imageName="$(jq -r '.imageName' "$configFile")"
-readarray -t variants <<< "$(jq -r '.variants | keys | .[]' "$configFile")"
+config_file="$client_dir/packaging/linux/docker/config.json"
+image_name="$(jq -r '.image_name' "$config_file")"
+readarray -t variants <<< "$(jq -r '.variants | keys | .[]' "$config_file")"
 
 # Instructions is an array of strings, where the value has the format of `[src],[target]`.
 # The [target] part can be empty, which makes it a simple push.
@@ -28,27 +28,27 @@ instructions=()
 
 # We always push the base tags.
 for variant in "${variants[@]}"; do
-  instructions+=("$imageName:$tag$variant,")
+  instructions+=("$image_name:$tag$variant,")
 done
 
 if [ "$kind" = "nightly" ]; then
-  # Nightly builds also get released as `$imageName:nightly$variant`
+  # Nightly builds also get released as `$image_name:nightly$variant`
   for variant in "${variants[@]}"; do
-    instructions+=("$imageName:$tag$variant,$imageName:nightly$variant")
+    instructions+=("$image_name:$tag$variant,$image_name:nightly$variant")
   done
 elif [ "$kind" = "release" ]; then
   # Release builds end up as:
-  # - `$imageName:latest$variant`
-  # - `$imageName:stable$variant`
-  # - `$imageName:$version$variant`, where $version is the first item of a dash-split tag arg
+  # - `$image_name:latest$variant`
+  # - `$image_name:stable$variant`
+  # - `$image_name:$version$variant`, where $version is the first item of a dash-split tag arg
   for variant in "${variants[@]}"; do
     IFS='-' read -ra tagParts <<< "$tag"
     version="${tagParts[0]}"
 
     instructions+=(
-      "$imageName:$tag$variant,$imageName:latest$variant"
-      "$imageName:$tag$variant,$imageName:stable$variant"
-      "$imageName:$tag$variant,$imageName:$version$variant"
+      "$image_name:$tag$variant,$image_name:latest$variant"
+      "$image_name:$tag$variant,$image_name:stable$variant"
+      "$image_name:$tag$variant,$image_name:$version$variant"
     )
   done
 fi

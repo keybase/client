@@ -17,9 +17,9 @@ gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 trap "rm -r ""$client_dir/.docker"" || true" ERR
 
 # Load up all the config we need now, the rest will be resolved as needed
-configFile="$client_dir/packaging/linux/docker/config.json"
-imageName="$(jq -r '.imageName' "$configFile")"
-readarray -t variants <<< "$(jq -r '.variants | keys | .[]' "$configFile")"
+config_file="$client_dir/packaging/linux/docker/config.json"
+image_name="$(jq -r '.image_name' "$config_file")"
+readarray -t variants <<< "$(jq -r '.variants | keys | .[]' "$config_file")"
 
 # We assume that the JSON file is correctly ordered
 for variant in "${variants[@]}"; do
@@ -32,14 +32,14 @@ for variant in "${variants[@]}"; do
       --build-arg SOURCE_COMMIT="$source_commit" \
       --build-arg SIGNING_FINGERPRINT="$code_signing_fingerprint" \
       -f "$client_dir/$dockerfile" \
-      -t "$imageName:$tag" \
+      -t "$image_name:$tag" \
       "$client_dir"
   else
     sudo docker build \
       --pull \
-      --build-arg BASE_IMAGE="$imageName:$tag" \
+      --build-arg BASE_IMAGE="$image_name:$tag" \
       -f "$client_dir/$dockerfile" \
-      -t "$imageName:$tag" \
+      -t "$image_name:$tag" \
       "$client_dir"
   fi
 done
