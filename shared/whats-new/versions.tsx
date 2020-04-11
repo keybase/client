@@ -49,7 +49,7 @@ export const Current = ({seen}: VersionProps) => {
             <Kb.Icon type="release-5.4.0-pony" style={styles.ponyIcon} />
           </Kb.Box2>
           <Kb.Text type="BodySmall" allowFontScaling={true}>
-            Keybase supports custom emoji{' '}
+            Keybase now supports custom emoji{' '}
             <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":sparkles:" />
           </Kb.Text>
         </Kb.Box2>
