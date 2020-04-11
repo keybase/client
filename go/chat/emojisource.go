@@ -223,21 +223,21 @@ func (s *DevConvEmojiSource) normalizeShortName(shortName string) string {
 
 func (s *DevConvEmojiSource) validateShortName(shortName string) error {
 	if s.IsStockEmoji(shortName) {
-		return NewEmojiValidationErrorJustError(errors.New("cannot use existing stock emoji name"))
+		return NewEmojiValidationErrorJustError(errors.New("alias already exists"))
 	}
 	if len(shortName) > maxShortNameLength {
-		err := errors.New("name is too long")
-		return NewEmojiValidationError(err, fmt.Sprintf("name is too long, must be less than %d",
+		err := errors.New("alias is too long")
+		return NewEmojiValidationError(err, fmt.Sprintf("alias is too long, must be less than %d",
 			maxShortNameLength), err.Error())
 	}
 	if len(shortName) < minShortNameLength {
-		err := errors.New("name is too short")
+		err := errors.New("alias is too short")
 		return NewEmojiValidationError(err,
-			fmt.Sprintf("short name is too short, must be greater than %d", minShortNameLength),
+			fmt.Sprintf("alias is too short, must be greater than %d", minShortNameLength),
 			err.Error())
 	}
 	if strings.Contains(shortName, "#") {
-		return NewEmojiValidationErrorJustError(errors.New("invalid character in name"))
+		return NewEmojiValidationErrorJustError(errors.New("invalid character in alias"))
 	}
 	return nil
 }
