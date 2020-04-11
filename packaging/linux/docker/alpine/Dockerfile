@@ -25,7 +25,7 @@ RUN chmod +x /binaries/amd64/usr/bin/keybase \
 FROM alpine:3.11
 LABEL maintainer="Keybase <admin@keybase.io>"
 
-RUN apk add --update --no-cache gnupg2 procps ca-certificates
+RUN apk add --update --no-cache gnupg2 procps ca-certificates bash
 
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
