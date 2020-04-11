@@ -8,9 +8,13 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
 
+type Props = {
+  onContinue?: () => void
+}
+
 const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
 
-const CreateChannel = () => {
+const CreateChannel = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
@@ -35,8 +39,9 @@ const CreateChannel = () => {
     setChannels([...channels])
   }
 
-  const onContinue = () =>
-    dispatch(TeamsGen.createSetTeamWizardChannels({channels: channels.filter(c => !!c)}))
+  const onContinue = props.onContinue
+    ? props.onContinue
+    : () => dispatch(TeamsGen.createSetTeamWizardChannels({channels: channels.filter(c => !!c)}))
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
@@ -70,7 +75,7 @@ const CreateChannel = () => {
           <ChannelInput key={idx} onChange={setChannel(idx)} value={value} onClear={() => onClear(idx)} />
         ))}
         <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
-        {numChannels === 0 && (
+        {numChannels === 0 && ( // TODO: Y2K-1700 change this text if props.onContinue is passed in
           <Kb.Text type="BodySmall" style={styles.noChannelsText}>
             Your team will be a simple conversation. You can always make it a big team later by adding
             channels.
