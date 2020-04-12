@@ -11031,8 +11031,8 @@ react-native-safe-modules@^1.0.0:
 
 "react-native-screens@^1.0.0 || ^1.0.0-alpha", "react-native-screens@git://github.com/keybase/react-native-screens#keybase-changes-off-alpha-23":
   version "1.0.0-alpha.23"
-  uid "8800f92ef1d263c616699290f87c31a74e40075f"
-  resolved "git://github.com/keybase/react-native-screens#8800f92ef1d263c616699290f87c31a74e40075f"
+  uid ff0d94e859e5dd171c24ed52d1a9dd633625a024
+  resolved "git://github.com/keybase/react-native-screens#ff0d94e859e5dd171c24ed52d1a9dd633625a024"
   dependencies:
     debounce "^1.2.0"
 
