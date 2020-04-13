@@ -430,7 +430,10 @@ const NodeInRow = (props: NodeInRowProps) => {
         selectedRole={role}
         onSelectRole={setRole}
         onConfirm={onChangeRole}
-        onCancel={() => setOpen(false)}
+        onCancel={() => {
+          setRole(props.node.role)
+          setOpen(false)
+        }}
         position="top right"
         open={open}
         disabledRoles={disabledRoles}
