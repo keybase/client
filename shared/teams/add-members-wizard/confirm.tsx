@@ -29,6 +29,12 @@ const AddMembersConfirm = () => {
       addingMembers.findIndex(member => !member.assertion.endsWith('@email')) === -1,
     [addingMembers]
   )
+  const emailsAndPhones = React.useMemo(
+    () =>
+      addingMembers.length > 0 &&
+      addingMembers.some(m => m.assertion.endsWith('@email') || m.assertion.endsWith('@phone')),
+    [addingMembers]
+  )
   const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
 
   const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
@@ -115,7 +121,7 @@ const AddMembersConfirm = () => {
           <AddingMembers />
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.controls}>
             <AddMoreMembers />
-            <RoleSelector memberCount={addingMembers.length} />
+            <RoleSelector memberCount={addingMembers.length} emailsAndPhones={emailsAndPhones} />
           </Kb.Box2>
         </Kb.Box2>
         {isBigTeam && <DefaultChannels teamID={teamID} />}
@@ -187,7 +193,20 @@ const AddMoreMembers = () => {
 }
 type RoleType = Types.AddingMemberTeamRoleType | 'setIndividually'
 
-const RoleSelector = ({memberCount}: {memberCount: number}) => {
+const disabledRolesForEmailsPhones = {
+  owner: null,
+  admin: 'Some invitees cannot be added as admins. Only Keybase users can be added as admins.',
+}
+const disabledRolesForPhoneEmailIndividual = {
+  owner: null,
+  admin: 'Only Keybase users can be added as admins',
+}
+
+type RoleSelectorProps = {
+  emailsAndPhones: boolean
+  memberCount: number
+}
+const RoleSelector = ({emailsAndPhones, memberCount}: RoleSelectorProps) => {
   const dispatch = Container.useDispatch()
   const [showingMenu, setShowingMenu] = React.useState(false)
   const storeRole = Container.useSelector(s => s.teams.addMembersWizard.role)
@@ -210,6 +229,7 @@ const RoleSelector = ({memberCount}: {memberCount: number}) => {
         onConfirm={onConfirmRole}
         confirmLabel="Save"
         includeSetIndividually={!Styles.isMobile && (memberCount > 1 || storeRole === 'setIndividually')}
+        disabledRoles={emailsAndPhones ? disabledRolesForEmailsPhones : undefined}
       >
         <Kb.InlineDropdown
           textWrapperType="BodySmallSemibold"
@@ -276,6 +296,7 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
       s.teams.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ??
       (role === 'setIndividually' ? 'writer' : role)
   )
+  const isPhoneEmail = props.assertion.endsWith('@phone') || props.assertion.endsWith('@email')
   const showDropdown = role === 'setIndividually'
   const [showingMenu, setShowingMenu] = React.useState(false)
   const [rolePickerRole, setRole] = React.useState(individualRole)
@@ -318,6 +339,7 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
             onSelectRole={onSelectRole}
             onConfirm={onConfirmRole}
             confirmLabel={`Add as ${rolePickerRole}`}
+            disabledRoles={isPhoneEmail ? disabledRolesForPhoneEmailIndividual : undefined}
           >
             <Kb.InlineDropdown
               textWrapperType="BodySmallSemibold"

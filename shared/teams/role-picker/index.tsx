@@ -28,7 +28,7 @@ function filterRole<IncludeSetIndividually extends boolean>(
   return r === 'bot' || r === 'restrictedbot' || !r ? null : (r as Role<IncludeSetIndividually> | null)
 }
 
-type DisabledReason = string
+type DisabledReason = string | null // null means don't show it at all
 
 export type Props<IncludeSetIndividually extends boolean> = {
   disabledRoles?: {[K in Role<IncludeSetIndividually>]?: DisabledReason}
@@ -290,6 +290,9 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
       {!Styles.isMobile && <Header />}
       {roles.map(role => {
         const disabled = props.disabledRoles ? props.disabledRoles[role as string] : undefined
+        if (disabled === null) {
+          return null
+        }
         const onSelect = disabled ? undefined : () => props.onSelectRole(role)
         return (
           <RoleRowWrapper
