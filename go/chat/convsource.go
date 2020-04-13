@@ -729,7 +729,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Store locally (just warn on error, don't abort the whole thing)
-	if err = s.mergeMaybeNotify(ctx, rconv, uid, thread.Messages, reason); err != nil {
+	if err = s.mergeMaybeNotify(ctx, unboxConv, uid, thread.Messages, reason); err != nil {
 		s.Debug(ctx, "Pull: unable to commit thread locally: convID: %s uid: %s", convID, uid)
 	}
 
