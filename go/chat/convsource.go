@@ -501,7 +501,7 @@ func (s *HybridConversationSource) maybeNuke(ctx context.Context, convID chat1.C
 			s.Debug(ctx, "unable to Clear inbox: %v", ierr)
 		}
 		s.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "ConvSource#maybeNuke")
-		err = nil
+		*err = nil
 	}
 }
 

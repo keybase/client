@@ -537,7 +537,7 @@ func (s *HybridInboxSource) maybeNuke(ctx context.Context, uid gregor1.UID, conv
 			}
 		}
 		s.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "InboxSource#maybeNuke")
-		err = nil
+		*err = nil
 	}
 }
 
