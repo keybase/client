@@ -87,7 +87,12 @@ export const Question1Wrapper = (
       proofs = sortBy(
         Array.from(assertions, ([_, assertion]) => assertion),
         x => x.priority
-      ).flatMap(x => (x.wotProof && x.state === 'valid' ? [{...x, wotProof: x.wotProof}] : []))
+      ).reduce<Array<Proof>>((acc, x) => {
+        if (x.wotProof && x.state === 'valid') {
+          acc.push({...x, wotProof: x.wotProof})
+        }
+        return acc
+      }, [])
     }
   } else {
     error = `Proofs not loaded: ${trackerUsername} != ${voucheeUsername}`

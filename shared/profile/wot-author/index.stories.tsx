@@ -279,8 +279,14 @@ const sampleAssertions = {
 }
 /* eslint-enable sort-keys */
 
-const sampleProofs: Proof[] = sortBy(Object.values(sampleAssertions), x => x.priority).flatMap((x: any) =>
-  x.wotProof && x.state === 'valid' ? [{...x, wotProof: x.wotProof}] : []
+const sampleProofs: Proof[] = sortBy(Object.values(sampleAssertions), x => x.priority).reduce<Array<Proof>>(
+  (acc, x: any) => {
+    if (x.wotProof && x.state === 'valid') {
+      acc.push({...x, wotProof: x.wotProof})
+    }
+    return acc
+  },
+  []
 )
 
 const storyProofs: Proof[] = [
