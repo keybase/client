@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -211,4 +212,26 @@ func TestInboxSourceLocalOnly(t *testing.T) {
 	attempt(types.InboxSourceDataSourceLocalOnly, false)
 	attempt(types.InboxSourceDataSourceAll, true)
 	attempt(types.InboxSourceDataSourceLocalOnly, true)
+}
+
+func TestChatConversationDeleted(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+		ctc := makeChatTestContext(t, "TestChatConversationDeleted", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+		ctx := context.TODO()
+		uid := gregor1.UID(users[0].User.GetUID().ToBytes())
+		ctc.as(t, users[0])
+		g := ctc.world.Tcs[users[0].Username].Context()
+		_, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, types.InboxSourceDataSourceRemoteOnly, nil,
+			&chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{chat1.ConversationID("dead")},
+			})
+		require.NoError(t, err)
+	})
 }
