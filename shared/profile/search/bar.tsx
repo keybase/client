@@ -20,7 +20,7 @@ const ProfileSearch = (props: Props) => {
       iconColor={color}
       onChange={() => {}}
       onFocus={onSearch}
-      placeholderColor={Styles.globalColors.redDark}
+      placeholderColor={color}
       placeholderText={`Search${Styles.isMobile ? '' : ' people'}`}
       size="full-width"
       style={Styles.collapseStyles([styles.filter, props.style])}

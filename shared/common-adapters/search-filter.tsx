@@ -414,7 +414,6 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 16,
   },
   textNegative: {
-    backgroundColor: Styles.globalColors.red,
     color: Styles.globalColors.white,
   },
 }))
