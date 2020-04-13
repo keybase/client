@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Animation from './animation'
+import {AllowedColors} from './text'
 import Box, {Box2} from './box'
 import ClickableBox from './clickable-box'
 import NewInput from './new-input'
@@ -26,12 +27,14 @@ const Kb = {
 
 type Props = {
   icon?: IconType | null
+  iconColor?: AllowedColors
   focusOnMount?: boolean
   size: 'small' | 'full-width' // only affects desktop (https://zpl.io/aMW5AG3)
   negative?: boolean
   onChange: (text: string) => void
   placeholderText: string
   placeholderCentered?: boolean
+  placeholderColor?: AllowedColors
   style?: Styles.StylesCrossPlatform | null
   valueControlled?: boolean
   value?: string
