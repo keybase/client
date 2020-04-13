@@ -230,21 +230,20 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
         isElectron: {height: 20},
-        isMobile: {height: 24},
+        isMobile: {height: 20},
       }),
       countdown: Styles.platformStyles({
         common: {color: Styles.globalColors.white, fontWeight: 'bold'},
         isElectron: {fontSize: 9, letterSpacing: -0.2, lineHeight: 13},
-        isMobile: {fontSize: 10, letterSpacing: -0.2, lineHeight: 14},
+        isMobile: {fontSize: 9, letterSpacing: -0.2, lineHeight: 13},
       }),
-      countdownContainer: Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        isElectron: {borderRadius: 10, height: 20, width: 20},
-        isMobile: {borderRadius: 14, height: 24, width: 24},
-      }),
+      countdownContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 10,
+        height: 20,
+        width: 20,
+      },
       countdownContainerHighlighted: {
         backgroundColor: Styles.globalColors.blackOrBlack,
       },
