@@ -58,7 +58,7 @@ const standardEmojiPattern = /^:([^:])+:$/
 
 const ReactButton = (props: Props) => {
   const text = props.decorated.length ? props.decorated : props.emoji
-  const isStandardEmoji = !!text.match(standardEmojiPattern)
+  const isStandardEmoji = !!props.emoji.match(standardEmojiPattern)
   return (
     <ButtonBox
       noEffect={false}
