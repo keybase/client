@@ -10,6 +10,7 @@ import {ModalTitle} from '../../common'
 
 type Props = {
   onSubmitChannels?: (channels: Array<string>) => void
+  teamID?: Types.TeamID
 }
 
 const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
@@ -18,7 +19,7 @@ const CreateChannel = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const teamID = Types.newTeamWizardTeamID
+  const teamID = props.teamID || Types.newTeamWizardTeamID
   const initialChannels = Container.useSelector(s => s.teams.newTeamWizard.channels) ?? [
     'hellos',
     'random',

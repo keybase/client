@@ -21,5 +21,5 @@ export default (props: Props) => {
         })
       )
     )
-  return <CreateChannels onSubmitChannels={onSubmitChannels} />
+  return <CreateChannels onSubmitChannels={onSubmitChannels} teamID={teamID} />
 }
