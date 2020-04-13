@@ -933,7 +933,6 @@ export type IconType =
   | 'iconfont-attachment'
   | 'iconfont-basketball'
   | 'iconfont-block'
-  | 'iconfont-block-user'
   | 'iconfont-bomb'
   | 'iconfont-boom'
   | 'iconfont-bot'
@@ -975,7 +974,6 @@ export type IconType =
   | 'iconfont-exclamation'
   | 'iconfont-expand'
   | 'iconfont-file'
-  | 'iconfont-file-note'
   | 'iconfont-film'
   | 'iconfont-filter'
   | 'iconfont-finder'
@@ -988,6 +986,7 @@ export type IconType =
   | 'iconfont-folder-private'
   | 'iconfont-folder-private-me'
   | 'iconfont-folder-public'
+  | 'iconfont-folder-public-me'
   | 'iconfont-folder-up'
   | 'iconfont-gear'
   | 'iconfont-gif'
@@ -1031,19 +1030,7 @@ export type IconType =
   | 'iconfont-nav-2-settings'
   | 'iconfont-nav-2-teams'
   | 'iconfont-nav-2-wallets'
-  | 'iconfont-nav-chat'
-  | 'iconfont-nav-devices'
-  | 'iconfont-nav-files'
-  | 'iconfont-nav-folders'
-  | 'iconfont-nav-git'
-  | 'iconfont-nav-more'
-  | 'iconfont-nav-people'
-  | 'iconfont-nav-settings'
-  | 'iconfont-nav-teams'
-  | 'iconfont-nav-wallets'
   | 'iconfont-new'
-  | 'iconfont-notifications-desktop'
-  | 'iconfont-notifications-mobile'
   | 'iconfont-number-pad'
   | 'iconfont-open-browser'
   | 'iconfont-password'
@@ -1065,9 +1052,6 @@ export type IconType =
   | 'iconfont-radio'
   | 'iconfont-radio-update'
   | 'iconfont-reacji'
-  | 'iconfont-reacji-heart'
-  | 'iconfont-reacji-sheep'
-  | 'iconfont-reacji-wave'
   | 'iconfont-refresh'
   | 'iconfont-reload'
   | 'iconfont-remove'
@@ -1077,6 +1061,7 @@ export type IconType =
   | 'iconfont-root'
   | 'iconfont-search'
   | 'iconfont-share'
+  | 'iconfont-share-android'
   | 'iconfont-shh'
   | 'iconfont-skull'
   | 'iconfont-spade'
@@ -1088,19 +1073,17 @@ export type IconType =
   | 'iconfont-team-join'
   | 'iconfont-team-leave'
   | 'iconfont-text-code'
-  | 'iconfont-thin-arrow-left'
-  | 'iconfont-thin-arrow-right'
   | 'iconfont-thunderbolt'
   | 'iconfont-time'
   | 'iconfont-time-reversed'
   | 'iconfont-timer'
   | 'iconfont-trash'
-  | 'iconfont-tweet'
   | 'iconfont-typing'
   | 'iconfont-unhide'
   | 'iconfont-unlock'
   | 'iconfont-upload'
   | 'iconfont-upload-2'
+  | 'iconfont-user-block'
   | 'iconfont-usercard'
   | 'iconfont-verify'
   | 'iconfont-video-library'
@@ -9611,11 +9594,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-block-user': {
-    charCode: 0xe9a4,
-    gridSize: 16,
-    isFont: true,
-  },
   'iconfont-bomb': {
     charCode: 0xe908,
     gridSize: 16,
@@ -9821,11 +9799,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-file-note': {
-    charCode: 0xe91d,
-    gridSize: 16,
-    isFont: true,
-  },
   'iconfont-film': {
     charCode: 0xe9a9,
     gridSize: 16,
@@ -9882,6 +9855,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: true,
   },
   'iconfont-folder-public': {
+    charCode: 0xe926,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-folder-public-me': {
     charCode: 0xe927,
     gridSize: 16,
     isFont: true,
@@ -10101,68 +10079,8 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 24,
     isFont: true,
   },
-  'iconfont-nav-chat': {
-    charCode: 0xe93c,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-devices': {
-    charCode: 0xe93d,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-files': {
-    charCode: 0xe93e,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-folders': {
-    charCode: 0xe93f,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-git': {
-    charCode: 0xe940,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-more': {
-    charCode: 0xe941,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-people': {
-    charCode: 0xe942,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-settings': {
-    charCode: 0xe943,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-teams': {
-    charCode: 0xe944,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-wallets': {
-    charCode: 0xe945,
-    gridSize: 24,
-    isFont: true,
-  },
   'iconfont-new': {
     charCode: 0xe946,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-notifications-desktop': {
-    charCode: 0xe947,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-notifications-mobile': {
-    charCode: 0xe948,
     gridSize: 16,
     isFont: true,
   },
@@ -10271,21 +10189,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-reacji-heart': {
-    charCode: 0xe952,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-reacji-sheep': {
-    charCode: 0xe953,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-reacji-wave': {
-    charCode: 0xe954,
-    gridSize: 16,
-    isFont: true,
-  },
   'iconfont-refresh': {
     charCode: 0xe956,
     gridSize: 16,
@@ -10328,6 +10231,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-share': {
     charCode: 0xe9aa,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-share-android': {
+    charCode: 0xe9c0,
     gridSize: 16,
     isFont: true,
   },
@@ -10386,16 +10294,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-thin-arrow-left': {
-    charCode: 0xe96b,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-thin-arrow-right': {
-    charCode: 0xe96c,
-    gridSize: 16,
-    isFont: true,
-  },
   'iconfont-thunderbolt': {
     charCode: 0xe960,
     gridSize: 16,
@@ -10421,11 +10319,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-tweet': {
-    charCode: 0xe965,
-    gridSize: 16,
-    isFont: true,
-  },
   'iconfont-typing': {
     charCode: 0xe9b7,
     gridSize: 16,
@@ -10448,6 +10341,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-upload-2': {
     charCode: 0xe966,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-user-block': {
+    charCode: 0xe9a4,
     gridSize: 16,
     isFont: true,
   },

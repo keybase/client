@@ -43,7 +43,6 @@
 .icon-gen-iconfont-ellipsis::before {content: "\e91a";}
 .icon-gen-iconfont-emoji::before {content: "\e91b";}
 .icon-gen-iconfont-exclamation::before {content: "\e91c";}
-.icon-gen-iconfont-file-note::before {content: "\e91d";}
 .icon-gen-iconfont-finder::before {content: "\e91e";}
 .icon-gen-iconfont-fire::before {content: "\e91f";}
 .icon-gen-iconfont-folder-downloads::before {content: "\e920";}
@@ -52,7 +51,8 @@
 .icon-gen-iconfont-folder-open::before {content: "\e923";}
 .icon-gen-iconfont-folder-private::before {content: "\e924";}
 .icon-gen-iconfont-folder-private-me::before {content: "\e925";}
-.icon-gen-iconfont-folder-public::before {content: "\e927";}
+.icon-gen-iconfont-folder-public::before {content: "\e926";}
+.icon-gen-iconfont-folder-public-me::before {content: "\e927";}
 .icon-gen-iconfont-folder-up::before {content: "\e928";}
 .icon-gen-iconfont-gear::before {content: "\e929";}
 .icon-gen-iconfont-hamburger::before {content: "\e92a";}
@@ -73,19 +73,7 @@
 .icon-gen-iconfont-link::before {content: "\e939";}
 .icon-gen-iconfont-lock::before {content: "\e93a";}
 .icon-gen-iconfont-mention::before {content: "\e93b";}
-.icon-gen-iconfont-nav-chat::before {content: "\e93c";}
-.icon-gen-iconfont-nav-devices::before {content: "\e93d";}
-.icon-gen-iconfont-nav-files::before {content: "\e93e";}
-.icon-gen-iconfont-nav-folders::before {content: "\e93f";}
-.icon-gen-iconfont-nav-git::before {content: "\e940";}
-.icon-gen-iconfont-nav-more::before {content: "\e941";}
-.icon-gen-iconfont-nav-people::before {content: "\e942";}
-.icon-gen-iconfont-nav-settings::before {content: "\e943";}
-.icon-gen-iconfont-nav-teams::before {content: "\e944";}
-.icon-gen-iconfont-nav-wallets::before {content: "\e945";}
 .icon-gen-iconfont-new::before {content: "\e946";}
-.icon-gen-iconfont-notifications-desktop::before {content: "\e947";}
-.icon-gen-iconfont-notifications-mobile::before {content: "\e948";}
 .icon-gen-iconfont-open-browser::before {content: "\e949";}
 .icon-gen-iconfont-people::before {content: "\e94a";}
 .icon-gen-iconfont-proof-broken::before {content: "\e94b";}
@@ -95,9 +83,6 @@
 .icon-gen-iconfont-qr-code::before {content: "\e94f";}
 .icon-gen-iconfont-question-mark::before {content: "\e950";}
 .icon-gen-iconfont-reacji::before {content: "\e951";}
-.icon-gen-iconfont-reacji-heart::before {content: "\e952";}
-.icon-gen-iconfont-reacji-sheep::before {content: "\e953";}
-.icon-gen-iconfont-reacji-wave::before {content: "\e954";}
 .icon-gen-iconfont-stellar-request::before {content: "\e955";}
 .icon-gen-iconfont-refresh::before {content: "\e956";}
 .icon-gen-iconfont-remove::before {content: "\e957";}
@@ -114,14 +99,11 @@
 .icon-gen-iconfont-time-reversed::before {content: "\e962";}
 .icon-gen-iconfont-timer::before {content: "\e963";}
 .icon-gen-iconfont-trash::before {content: "\e964";}
-.icon-gen-iconfont-tweet::before {content: "\e965";}
 .icon-gen-iconfont-upload-2::before {content: "\e966";}
 .icon-gen-iconfont-upload::before {content: "\e967";}
 .icon-gen-iconfont-usercard::before {content: "\e968";}
 .icon-gen-iconfont-wrenches::before {content: "\e969";}
 .icon-gen-iconfont-return::before {content: "\e96a";}
-.icon-gen-iconfont-thin-arrow-left::before {content: "\e96b";}
-.icon-gen-iconfont-thin-arrow-right::before {content: "\e96c";}
 .icon-gen-iconfont-contact-card::before {content: "\e96d";}
 .icon-gen-iconfont-contact-book::before {content: "\e96e";}
 .icon-gen-iconfont-identity-stellar::before {content: "\e96f";}
@@ -177,7 +159,7 @@
 .icon-gen-iconfont-coin-flip::before {content: "\e9a1";}
 .icon-gen-iconfont-location::before {content: "\e9a2";}
 .icon-gen-iconfont-pause::before {content: "\e9a3";}
-.icon-gen-iconfont-block-user::before {content: "\e9a4";}
+.icon-gen-iconfont-user-block::before {content: "\e9a4";}
 .icon-gen-iconfont-rip::before {content: "\e9a5";}
 .icon-gen-iconfont-hourglass::before {content: "\e9a6";}
 .icon-gen-iconfont-person::before {content: "\e9a7";}
@@ -205,4 +187,5 @@
 .icon-gen-iconfont-checkbox::before {content: "\e9bd";}
 .icon-gen-iconfont-flag::before {content: "\e9be";}
 .icon-gen-iconfont-copy::before {content: "\e9bf";}
+.icon-gen-iconfont-share-android::before {content: "\e9c0";}
 
