@@ -36,14 +36,18 @@ const useTabsState = (
   teamID: Types.TeamID,
   providedTab?: Types.TabKey
 ): [Types.TabKey, (t: Types.TabKey) => void] => {
+  const dispatch = Container.useDispatch()
   const defaultSelectedTab = lastSelectedTabs[teamID] ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<Types.TabKey>(defaultSelectedTab)
   const setSelectedTab = React.useCallback(
     t => {
       lastSelectedTabs[teamID] = t
+      if (selectedTab === 'settings' && t !== 'settings') {
+        dispatch(TeamsGen.createSettingsError({error: ''}))
+      }
       _setSelectedTab(t)
     },
-    [teamID, _setSelectedTab]
+    [teamID, selectedTab, dispatch]
   )
 
   const prevTeamID = Container.usePrevious(teamID)
