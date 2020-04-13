@@ -11,8 +11,11 @@ const CustomEmoji = (props: Props) => {
     width: size,
   }
   return (
-    <Box2 direction="vertical" style={Styles.collapseStyles([dimensions, styles.container])}>
-      <FastImage source={{uri: src}} style={dimensions} />
+    <Box2
+      direction="vertical"
+      style={Styles.collapseStyles([dimensions, styles.container, !!props.addTopMargin && styles.topMargin])}
+    >
+      <FastImage source={{uri: src}} style={dimensions} resizeMode={FastImage.resizeMode.contain} />
     </Box2>
   )
 }
@@ -20,6 +23,8 @@ const CustomEmoji = (props: Props) => {
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     justifyContent: 'flex-end',
+  },
+  topMargin: {
     marginTop: Styles.globalMargins.tiny,
   },
 }))

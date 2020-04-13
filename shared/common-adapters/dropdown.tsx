@@ -121,20 +121,21 @@ type InlineDropdownProps = {
   onPress: () => void
   style?: Styles.StylesCrossPlatform
   loading?: boolean
+  selectedStyle?: Styles.StylesCrossPlatform
 } & (
   | {
       textWrapperType: null
       label: React.ReactElement
     }
   | {
-      textWrapperType: 'Body' | 'BodySmall' | 'BodySmallSemibold'
+      textWrapperType: 'Body' | 'BodySemibold' | 'BodySmall' | 'BodySmallSemibold'
       label: string
     }
 )
 
 export const InlineDropdown = (props: InlineDropdownProps) => {
   const selected = (
-    <Box2 direction="horizontal" style={styles.inlineSelected}>
+    <Box2 direction="horizontal" style={Styles.collapseStyles([styles.inlineSelected, props.selectedStyle])}>
       {props.textWrapperType ? <Text type={props.textWrapperType}>{props.label}</Text> : props.label}
     </Box2>
   )

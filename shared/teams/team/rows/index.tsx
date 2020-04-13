@@ -250,7 +250,6 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     filteredEmoji = filteredEmoji.filter(e => e.alias.includes(filter.toLowerCase()))
   }
 
-  filteredEmoji = filteredEmoji.sort((a, b) => (b.creationInfo?.time ?? 0) - (a.creationInfo?.time ?? 0))
   const sections: Array<Section> = []
   sections.push({
     data: ['emoji-add'],
@@ -281,7 +280,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
       renderItem: ({item, index}) => (
         <EmojiItemRow
           emoji={item}
-          firstItem={Styles.isMobile && index === 0}
+          firstItem={index === 0}
           conversationIDKey={convID ?? Chat2Constants.noConversationIDKey}
           reloadEmojis={doGetUserEmoji}
           teamID={teamID}

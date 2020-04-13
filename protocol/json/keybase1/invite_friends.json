@@ -26,6 +26,10 @@
         {
           "type": "boolean",
           "name": "showFire"
+        },
+        {
+          "type": "string",
+          "name": "tooltipMarkdown"
         }
       ]
     },

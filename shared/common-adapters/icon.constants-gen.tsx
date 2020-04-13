@@ -192,6 +192,7 @@ export type IconType =
   | 'icon-dark-email-remove-64'
   | 'icon-dark-email-remove-96'
   | 'icon-dark-empty-channels-103-96'
+  | 'icon-dark-empty-emoji-126-96'
   | 'icon-dark-empty-people-search-112-96'
   | 'icon-dark-empty-subteams-164-96'
   | 'icon-dark-empty-team-small-96'
@@ -424,7 +425,35 @@ export type IconType =
   | 'icon-email-remove-48'
   | 'icon-email-remove-64'
   | 'icon-email-remove-96'
+  | 'icon-emoji-keybase'
+  | 'icon-emoji-nycto-a'
+  | 'icon-emoji-nycto-b'
+  | 'icon-emoji-nycto-c'
+  | 'icon-emoji-nycto-d'
+  | 'icon-emoji-nycto-e'
+  | 'icon-emoji-nycto-f'
+  | 'icon-emoji-nycto-g'
+  | 'icon-emoji-nycto-h'
+  | 'icon-emoji-nycto-i'
+  | 'icon-emoji-nycto-j'
+  | 'icon-emoji-nycto-k'
+  | 'icon-emoji-nycto-l'
+  | 'icon-emoji-nycto-m'
+  | 'icon-emoji-nycto-n'
+  | 'icon-emoji-nycto-o'
+  | 'icon-emoji-nycto-p'
+  | 'icon-emoji-nycto-q'
+  | 'icon-emoji-nycto-r'
+  | 'icon-emoji-nycto-s'
+  | 'icon-emoji-nycto-t'
+  | 'icon-emoji-nycto-u'
+  | 'icon-emoji-nycto-v'
+  | 'icon-emoji-nycto-w'
+  | 'icon-emoji-nycto-x'
+  | 'icon-emoji-nycto-y'
+  | 'icon-emoji-nycto-z'
   | 'icon-empty-channels-103-96'
+  | 'icon-empty-emoji-126-96'
   | 'icon-empty-people-search-112-96'
   | 'icon-empty-subteams-164-96'
   | 'icon-empty-team-small-96'
@@ -547,6 +576,9 @@ export type IconType =
   | 'icon-illustration-teams-96'
   | 'icon-illustration-teams-channels-460-96'
   | 'icon-illustration-teams-feature-profile-460-64'
+  | 'icon-illustration-teams-invite-links-blue-460-96'
+  | 'icon-illustration-teams-invite-links-green-460-96'
+  | 'icon-illustration-teams-invite-links-grey-460-96'
   | 'icon-illustration-teams-subteams-460-96'
   | 'icon-illustration-welcome-96'
   | 'icon-illustration-wot-460-96'
@@ -1091,6 +1123,8 @@ export type IconType =
   | 'release-5.2.0-crypto'
   | 'release-5.3.0-ipad'
   | 'release-5.3.0-open-teams'
+  | 'release-5.4.0-emoji'
+  | 'release-5.4.0-pony'
 
 export const iconMeta: {[k in IconType]: IconMeta} = {
   'icon-GPG-export': {
@@ -2775,6 +2809,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-empty-channels-103-96.png')
+    },
+  },
+  'icon-dark-empty-emoji-126-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-empty-emoji-126-96.png')
     },
   },
   'icon-dark-empty-people-search-112-96': {
@@ -4653,6 +4695,222 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-email-remove-96.png')
     },
   },
+  'icon-emoji-keybase': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-keybase.png')
+    },
+  },
+  'icon-emoji-nycto-a': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-a.png')
+    },
+  },
+  'icon-emoji-nycto-b': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-b.png')
+    },
+  },
+  'icon-emoji-nycto-c': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-c.png')
+    },
+  },
+  'icon-emoji-nycto-d': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-d.png')
+    },
+  },
+  'icon-emoji-nycto-e': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-e.png')
+    },
+  },
+  'icon-emoji-nycto-f': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-f.png')
+    },
+  },
+  'icon-emoji-nycto-g': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-g.png')
+    },
+  },
+  'icon-emoji-nycto-h': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-h.png')
+    },
+  },
+  'icon-emoji-nycto-i': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-i.png')
+    },
+  },
+  'icon-emoji-nycto-j': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-j.png')
+    },
+  },
+  'icon-emoji-nycto-k': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-k.png')
+    },
+  },
+  'icon-emoji-nycto-l': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-l.png')
+    },
+  },
+  'icon-emoji-nycto-m': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-m.png')
+    },
+  },
+  'icon-emoji-nycto-n': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-n.png')
+    },
+  },
+  'icon-emoji-nycto-o': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-o.png')
+    },
+  },
+  'icon-emoji-nycto-p': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-p.png')
+    },
+  },
+  'icon-emoji-nycto-q': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-q.png')
+    },
+  },
+  'icon-emoji-nycto-r': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-r.png')
+    },
+  },
+  'icon-emoji-nycto-s': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-s.png')
+    },
+  },
+  'icon-emoji-nycto-t': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-t.png')
+    },
+  },
+  'icon-emoji-nycto-u': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-u.png')
+    },
+  },
+  'icon-emoji-nycto-v': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-v.png')
+    },
+  },
+  'icon-emoji-nycto-w': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-w.png')
+    },
+  },
+  'icon-emoji-nycto-x': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-x.png')
+    },
+  },
+  'icon-emoji-nycto-y': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-y.png')
+    },
+  },
+  'icon-emoji-nycto-z': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-z.png')
+    },
+  },
   'icon-empty-channels-103-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -4663,6 +4921,18 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-empty-channels-103-96.png')
+    },
+  },
+  'icon-empty-emoji-126-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-empty-emoji-126-96',
+    get require() {
+      return require('../images/icons/icon-empty-emoji-126-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-empty-emoji-126-96.png')
     },
   },
   'icon-empty-people-search-112-96': {
@@ -5923,6 +6193,30 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-teams-feature-profile-460-64.png')
+    },
+  },
+  'icon-illustration-teams-invite-links-blue-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-invite-links-blue-460-96.png')
+    },
+  },
+  'icon-illustration-teams-invite-links-green-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-invite-links-green-460-96.png')
+    },
+  },
+  'icon-illustration-teams-invite-links-grey-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-invite-links-grey-460-96.png')
     },
   },
   'icon-illustration-teams-subteams-460-96': {
@@ -10310,6 +10604,22 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/releases/release-5.3.0-open-teams.png')
+    },
+  },
+  'release-5.4.0-emoji': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.4.0-emoji.png')
+    },
+  },
+  'release-5.4.0-pony': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.4.0-pony.png')
     },
   },
 }

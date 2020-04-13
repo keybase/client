@@ -45,3 +45,63 @@ func TestLoadingUserCachesServiceMap(t *testing.T) {
 	require.Equal(t, "t_tracy", tracyPkg.ServiceMap["rooter"])
 	require.Equal(t, "tacovontaco", tracyPkg.ServiceMap["twitter"])
 }
+
+func TestServiceMapRevokedProofs(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+
+	getPkgs := func() map[keybase1.UID]libkb.UserServiceSummaryPackage {
+		return bob.tc.G.ServiceMapper.MapUIDsToServiceSummaries(
+			context.Background(),
+			bob.tc.G,
+			[]keybase1.UID{alice.uid},
+			time.Duration(0),             // never stale
+			uidmap.DisallowNetworkBudget, // no network calls
+		)
+	}
+
+	// We got nothing on first try because we've never loaded the user and we
+	// disallow network in MapUIDsToServiceSummaries.
+	pkgs := getPkgs()
+	require.Len(t, pkgs, 0)
+
+	loadUser := func() {
+		arg := libkb.NewLoadUserArg(bob.tc.G).WithName(alice.username)
+		user, err := libkb.LoadUser(arg)
+		require.NoError(t, err)
+		require.Equal(t, alice.uid, user.GetUID())
+	}
+
+	// Try again, after loading user.
+	loadUser()
+	pkgs = getPkgs()
+	require.Contains(t, pkgs, alice.uid)
+	require.Len(t, pkgs[alice.uid].ServiceMap, 0) // no proofs yet
+
+	// Alice proves
+	alice.proveRooter()
+	alice.proveGubbleSocial()
+
+	// Reload user and try again
+	loadUser()
+	pkgs = getPkgs()
+	require.Contains(t, pkgs, alice.uid)
+	alicePkg := pkgs[alice.uid]
+	require.Len(t, alicePkg.ServiceMap, 2)
+	require.Equal(t, alice.username, alicePkg.ServiceMap["gubble.social"])
+	require.Equal(t, alice.username, alicePkg.ServiceMap["rooter"])
+
+	// Alice revokes
+	alice.revokeServiceProof("rooter")
+
+	loadUser()
+	pkgs = getPkgs()
+	require.Contains(t, pkgs, alice.uid)
+	alicePkg = pkgs[alice.uid]
+	require.Len(t, alicePkg.ServiceMap, 1)
+	require.Equal(t, alice.username, alicePkg.ServiceMap["gubble.social"])
+	require.NotContains(t, alicePkg.ServiceMap, "rooter")
+}

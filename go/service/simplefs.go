@@ -510,8 +510,8 @@ func (s *SimpleFSHandler) SimpleFSClearConflictState(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	ctx, cancel := s.wrapContextWithTimeout(ctx)
-	defer cancel()
+	// No timeouts since this can be a long operation if the folder is
+	// large or the disk is slow, and this is a synchronous operation.
 	return cli.SimpleFSClearConflictState(ctx, path)
 }
 
@@ -522,8 +522,8 @@ func (s *SimpleFSHandler) SimpleFSFinishResolvingConflict(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	ctx, cancel := s.wrapContextWithTimeout(ctx)
-	defer cancel()
+	// No timeouts since this can be a long operation if the folder is
+	// large or the disk is slow, and this is a synchronous operation.
 	return cli.SimpleFSFinishResolvingConflict(ctx, path)
 }
 

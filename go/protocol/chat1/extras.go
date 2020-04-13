@@ -356,6 +356,17 @@ func IsDeletableByDeleteHistory(typ MessageType) bool {
 	return true
 }
 
+func (t TopicType) EphemeralAllowed() bool {
+	switch t {
+	case TopicType_KBFSFILEEDIT,
+		TopicType_EMOJI,
+		TopicType_EMOJICROSS:
+		return false
+	default:
+		return true
+	}
+}
+
 func (t TopicType) String() string {
 	s, ok := TopicTypeRevMap[t]
 	if ok {
@@ -975,6 +986,8 @@ func (b MessageBody) TextForDecoration() string {
 	case MessageType_ATTACHMENT:
 		// Exclude the filename for text decoration.
 		return b.Attachment().Object.Title
+	case MessageType_REQUESTPAYMENT:
+		return ""
 	default:
 		return b.SearchableText()
 	}
@@ -1017,8 +1030,6 @@ func (b MessageBody) GetEmojis() map[string]HarvestedEmoji {
 		return b.Reaction().Emojis
 	case MessageType_EDIT:
 		return b.Edit().Emojis
-	case MessageType_REQUESTPAYMENT:
-		return b.Requestpayment().Emojis
 	case MessageType_ATTACHMENT:
 		return b.Attachment().Emojis
 	case MessageType_HEADLINE:

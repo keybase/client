@@ -277,3 +277,221 @@ func TestIsSeitanyAndAlphabetCoverage(t *testing.T) {
 	verifyCoverage(ikeyV1Gen)
 	verifyCoverage(ikeyV2Gen)
 }
+
+func TestTeamHandleMultipleSeitans(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+
+	users := make([]*kbtest.FakeUser, 4)
+	for i := range users {
+		u, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+		require.NoError(t, err)
+		kbtest.Logout(tc)
+		users[i] = u
+	}
+
+	ann, bee, dan, mel := users[0], users[1], users[2], users[3]
+	err := ann.Login(tc.G)
+	require.NoError(t, err)
+
+	teamName, teamID := createTeam2(tc)
+	t.Logf("Created team %s", teamName.String())
+
+	_, err = AddMember(context.TODO(), tc.G, teamName.String(), dan.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.NoError(t, err)
+
+	addSeitanV2 := func(F, N string, role keybase1.TeamRole) keybase1.SeitanIKeyV2 {
+		label := keybase1.NewSeitanKeyLabelWithSms(keybase1.SeitanKeyLabelSms{
+			F: F,
+			N: N,
+		})
+		ikeyV2, err := CreateSeitanTokenV2(context.TODO(), tc.G, teamName.String(), role, label)
+		require.NoError(t, err)
+		return ikeyV2
+	}
+
+	tokenForBee := addSeitanV2("bee", "123", keybase1.TeamRole_WRITER)
+	tokenForDan := addSeitanV2("dan", "555", keybase1.TeamRole_READER)
+	anotherToken := addSeitanV2("someone", "666", keybase1.TeamRole_READER)
+
+	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name:      teamName.String(),
+		NeedAdmin: true,
+	})
+	require.NoError(t, err)
+
+	invites := teamObj.GetActiveAndObsoleteInvites()
+	require.Len(t, invites, 3)
+	for _, invite := range invites {
+		invtype, err := invite.Type.C()
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamInviteCategory_SEITAN, invtype)
+	}
+
+	acceptSeitan := func(u *kbtest.FakeUser, ikey keybase1.SeitanIKeyV2, bad bool) keybase1.TeamSeitanRequest {
+		kbtest.LogoutAndLoginAs(tc, u)
+
+		uv := u.GetUserVersion()
+		now := keybase1.ToTime(time.Now())
+		accepted, err := generateAcceptanceSeitanV2(SeitanIKeyV2(ikey), uv, now)
+		require.NoError(t, err)
+
+		if bad {
+			// Ruin the acceptance sig so request is no longer valid
+			accepted.sig[0] ^= 0xF0
+			accepted.sig[1] ^= 0x0F
+			accepted.encoded = base64.StdEncoding.EncodeToString(accepted.sig[:])
+		}
+
+		// We need to send this request so HandleTeamSeitan links can
+		// do completed_invites, otherwise server will reject these.
+		err = postSeitanV2(tc.MetaContext(), accepted)
+		require.NoError(t, err)
+
+		return keybase1.TeamSeitanRequest{
+			InviteID:    keybase1.TeamInviteID(accepted.inviteID),
+			Uid:         uv.Uid,
+			EldestSeqno: uv.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(accepted.encoded),
+			UnixCTime:   int64(now),
+		}
+	}
+
+	msg := keybase1.TeamSeitanMsg{
+		TeamID: teamID,
+		Seitans: []keybase1.TeamSeitanRequest{
+			acceptSeitan(bee, tokenForBee, false /* bad */),
+			acceptSeitan(dan, tokenForDan, false /* bad */),
+			acceptSeitan(mel, anotherToken, true /* bad */),
+		},
+	}
+
+	kbtest.LogoutAndLoginAs(tc, ann)
+	err = HandleTeamSeitan(context.Background(), tc.G, msg)
+	require.NoError(t, err)
+
+	teamObj, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name:      teamName.String(),
+		NeedAdmin: true,
+	})
+	require.NoError(t, err)
+
+	// Ann is still an owner
+	role, err := teamObj.MemberRole(context.Background(), ann.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_OWNER, role)
+
+	// Bee got added as a writer
+	role, err = teamObj.MemberRole(context.Background(), bee.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, role)
+
+	// Dan stayed writer
+	role, err = teamObj.MemberRole(context.Background(), dan.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, role)
+
+	// Mel didn't get in
+	role, err = teamObj.MemberRole(context.Background(), mel.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_NONE, role)
+
+	// And invite that Mel tried (and failed) to use is still there.
+	require.Equal(t, 1, teamObj.NumActiveInvites(), "NumActiveInvites")
+	allInvites := teamObj.GetActiveAndObsoleteInvites()
+	require.Len(t, allInvites, 1)
+	for _, invite := range allInvites {
+		// Ignore errors, we went through this path before in seitan
+		// processing and acceptance.
+		sikey, _ := SeitanIKeyV2(anotherToken).GenerateSIKey()
+		inviteID, _ := sikey.GenerateTeamInviteID()
+		require.EqualValues(t, inviteID, invite.Id)
+		invtype, err := invite.Type.C()
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamInviteCategory_SEITAN, invtype)
+	}
+}
+
+func TestTeamInviteSeitanV2Failures(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+
+	user2, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	kbtest.Logout(tc)
+
+	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	teamName, teamID := createTeam2(tc)
+	t.Logf("Created team %q", teamName.String())
+
+	token, err := CreateSeitanTokenV2(context.Background(), tc.G,
+		teamName.String(), keybase1.TeamRole_WRITER, keybase1.SeitanKeyLabel{})
+	require.NoError(t, err)
+
+	t.Logf("Created token %q", token)
+
+	kbtest.LogoutAndLoginAs(tc, user2)
+
+	// Generate invitation id, but make Signature with different IKey.
+	// Simulate "replay attack" or similar.
+	ikey, err := ParseIKeyV2FromString(string(token))
+	require.NoError(t, err)
+	sikey, err := ikey.GenerateSIKey()
+	require.NoError(t, err)
+	inviteID, err := sikey.GenerateTeamInviteID()
+	require.NoError(t, err)
+
+	ikey2, err := GenerateIKeyV2() // ikey2 is not the ikey from token.
+	require.NoError(t, err)
+	sikey2, err := ikey2.GenerateSIKey()
+	require.NoError(t, err)
+	now := keybase1.ToTime(time.Now())
+	badSig, badEncoded, err := sikey2.GenerateSignature(user2.GetUID(), user2.EldestSeqno, inviteID, now)
+	require.NoError(t, err)
+
+	err = postSeitanV2(tc.MetaContext(), acceptedSeitanV2{
+		sig:      badSig,
+		encoded:  badEncoded,
+		now:      now,
+		inviteID: inviteID,
+	})
+	require.NoError(t, err)
+
+	teamInviteID, err := inviteID.TeamInviteID()
+	require.NoError(t, err)
+
+	t.Logf("handle synthesized rekeyd command")
+	kbtest.LogoutAndLoginAs(tc, admin)
+
+	msg := keybase1.TeamSeitanMsg{
+		TeamID: teamID,
+		Seitans: []keybase1.TeamSeitanRequest{{
+			InviteID:    teamInviteID,
+			Uid:         user2.GetUID(),
+			EldestSeqno: user2.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(badEncoded),
+			Role:        keybase1.TeamRole_WRITER,
+			UnixCTime:   int64(now),
+		}},
+	}
+	err = HandleTeamSeitan(context.Background(), tc.G, msg)
+	// Seitan handler does not fail, but ignores the request.
+	require.NoError(t, err)
+
+	t.Logf("invite should still be there")
+	t0, err := GetTeamByNameForTest(context.Background(), tc.G, teamName.String(), false /* public */, true /* needAdmin */)
+	require.NoError(t, err)
+	require.Equal(t, 1, t0.NumActiveInvites(), "invite should still be active")
+	require.EqualValues(t, t0.CurrentSeqno(), 2)
+
+	t.Logf("user should not be in team")
+	role, err := t0.MemberRole(context.Background(), user2.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_NONE, role, "user role")
+}
