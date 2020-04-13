@@ -4094,7 +4094,7 @@ type testKBFSOpsMemFSNode struct {
 	fs billy.Filesystem
 }
 
-func (n testKBFSOpsMemFSNode) GetFS(_ context.Context) billy.Filesystem {
+func (n testKBFSOpsMemFSNode) GetFS(_ context.Context) NodeFSReadOnly {
 	return n.fs
 }
 
