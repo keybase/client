@@ -27,7 +27,7 @@ for variant in "${variants[@]}"; do
   dockerfile="$(jq -r ".variants.\"$variant\".dockerfile" "$config_file")"
 
   if [ "$base_variant" = "null" ]; then
-    sudo docker build \
+    docker build \
       --pull \
       --build-arg SOURCE_COMMIT="$source_commit" \
       --build-arg SIGNING_FINGERPRINT="$code_signing_fingerprint" \
@@ -35,7 +35,7 @@ for variant in "${variants[@]}"; do
       -t "$image_name:$tag$variant" \
       "$client_dir"
   else
-    sudo docker build \
+    docker build \
       --build-arg BASE_IMAGE="$image_name:$tag$base_variant" \
       -f "$client_dir/$dockerfile" \
       -t "$image_name:$tag$variant" \
