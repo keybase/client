@@ -298,6 +298,27 @@ func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase
 	return t.chain().GetUserRole(uv)
 }
 
+func (t *Team) WasMostRecentlyAddedByInvitelink(uv keybase1.UserVersion) bool {
+	chain := t.chain().inner
+	logPoints, ok := chain.UserLog[uv]
+	if !ok {
+		return false
+	}
+	latestLogPointAddedAtIdx := len(logPoints) - 1
+	for _, usedInvites := range chain.UsedInvites {
+		for _, usedInvite := range usedInvites {
+			if usedInvite.Uv == uv {
+				invitelinkLogPointAddedAtIdx := usedInvite.LogPoint
+				if invitelinkLogPointAddedAtIdx == latestLogPointAddedAtIdx {
+					return true
+				}
+				// don't exit early otherwise, since there might be a newer invite
+			}
+		}
+	}
+	return false
+}
+
 func (t *Team) myRole(ctx context.Context) (keybase1.TeamRole, error) {
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {

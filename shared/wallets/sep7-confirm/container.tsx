@@ -6,12 +6,13 @@ import SEP7Confirm from '.'
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _inputURI: state.wallets.sep7ConfirmURI,
+  builtPaymentAdvancedWaitingKey: Constants.calculateBuildingAdvancedWaitingKey,
   loading: !state.wallets.sep7ConfirmInfo,
   sep7ConfirmFromQR: state.wallets.sep7ConfirmFromQR,
   sep7ConfirmInfo: state.wallets.sep7ConfirmInfo,
   sep7ConfirmPath: state.wallets.sep7ConfirmPath,
   sep7SendError: state.wallets.sep7SendError,
-  waitingKey: Constants.sep7WaitingKey,
+  sep7WaitingKey: Constants.sep7WaitingKey,
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
@@ -29,8 +30,10 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
       amount: null,
       assetCode: '',
       availableToSendNative: '',
+      builtPaymentAdvancedWaitingKey: stateProps.builtPaymentAdvancedWaitingKey,
       callbackURL: null,
       displayAmountFiat: '',
+      findPathError: stateProps.sep7ConfirmPath.findPathError,
       fromQRCode: false,
       loading: true,
       memo: null,
@@ -46,6 +49,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
       path: stateProps.sep7ConfirmPath,
       recipient: null,
       sendError: stateProps.sep7SendError,
+      sep7WaitingKey: stateProps.sep7WaitingKey,
       signed: null,
       summary: {
         fee: '',
@@ -54,7 +58,6 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
         operations: [],
         source: '',
       },
-      waitingKey: stateProps.waitingKey,
     }
   }
   const {
@@ -73,6 +76,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
   } = stateProps.sep7ConfirmInfo
   const sendError = stateProps.sep7SendError
   const path = stateProps.sep7ConfirmPath
+  const {findPathError} = path
   const rawOp = stateProps.sep7ConfirmInfo.operation
   const fromQRCode = stateProps.sep7ConfirmFromQR
   const operation = rawOp === 'pay' ? ('pay' as const) : rawOp === 'tx' ? ('tx' as const) : ('' as const)
@@ -85,8 +89,10 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
     amount,
     assetCode,
     availableToSendNative,
+    builtPaymentAdvancedWaitingKey: stateProps.builtPaymentAdvancedWaitingKey,
     callbackURL,
     displayAmountFiat,
+    findPathError,
     fromQRCode,
     loading: stateProps.loading,
     memo,
@@ -102,8 +108,8 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
     path,
     recipient,
     sendError,
+    sep7WaitingKey: stateProps.sep7WaitingKey,
     signed,
     summary,
-    waitingKey: stateProps.waitingKey,
   }
 })(SEP7Confirm)

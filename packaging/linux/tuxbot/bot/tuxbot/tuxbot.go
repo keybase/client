@@ -285,11 +285,13 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 				"./packaging/linux/docker/build.sh",
 				trimmedVersionOutput,
 			)
-			buildCmd.Stdout = nil
-			buildCmd.Stderr = nil
-			buildOutput, err := buildCmd.CombinedOutput()
-			if err != nil {
-				var trimmedOutput []byte
+			/*
+				buildCmd.Stdout = nil
+				buildCmd.Stderr = nil
+			*/
+			//buildOutput, err := buildCmd.CombinedOutput()
+			if err := buildCmd.Run(); err != nil {
+				/*var trimmedOutput []byte
 				if len(buildOutput) > 500 {
 					trimmedOutput = buildOutput[len(buildOutput)-500:]
 				} else {
@@ -297,6 +299,11 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 				}
 				c.Info("docker build error: %v", err)
 				c.Info("Logs:\n%s", string(trimmedOutput))
+				*/
+				c.Info("failed to build error %s", err)
+				if _, err := c.API().SendMessage(c.sendChannel, "!tuxjournal"); err != nil {
+					c.Info("failed to tuxjournal error: %s", err)
+				}
 				return
 			}
 
