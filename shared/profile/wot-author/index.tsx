@@ -142,8 +142,8 @@ export const Question2Wrapper = (
     const {otherText, proofs, verificationType} = question1Answer
     dispatch(
       ProfileGen.createWotVouch({
-        otherText,
         guiID,
+        otherText,
         proofs,
         statement,
         username: voucheeUsername,
