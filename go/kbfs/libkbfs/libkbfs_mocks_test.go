@@ -3612,10 +3612,10 @@ func (mr *MockNodeMockRecorder) GetBlockID() *gomock.Call {
 }
 
 // GetFS mocks base method.
-func (m *MockNode) GetFS(arg0 context.Context) go_billy_v4.Filesystem {
+func (m *MockNode) GetFS(arg0 context.Context) NodeFSReadOnly {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFS", arg0)
-	ret0, _ := ret[0].(go_billy_v4.Filesystem)
+	ret0, _ := ret[0].(NodeFSReadOnly)
 	return ret0
 }
 

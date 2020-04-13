@@ -136,7 +136,7 @@ func (n *nodeStandard) Unwrap() Node {
 	return n
 }
 
-func (n *nodeStandard) GetFS(_ context.Context) billy.Filesystem {
+func (n *nodeStandard) GetFS(_ context.Context) NodeFSReadOnly {
 	return nil
 }
 
