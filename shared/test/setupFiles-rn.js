@@ -6,7 +6,7 @@ jest.mock('react-native', () =>
   jest.fn().mockImplementation(() => ({
     NativeModules: {
       NativeEventEmitter: jest.fn(),
-      ReanimatedModule: {},
+      ReanimatedModule: jest.fn(),
     },
   }))
 )
