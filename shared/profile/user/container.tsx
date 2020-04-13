@@ -79,8 +79,8 @@ const connected = Container.namedConnect(
         sbsAvatarUrl: undefined,
         serviceIcon: undefined,
         title: username,
-        vouchShowButton,
         vouchDisableButton,
+        vouchShowButton,
         webOfTrustEntries: filteredWot || [],
       }
     } else {
@@ -103,8 +103,8 @@ const connected = Container.namedConnect(
         service,
         serviceIcon: Styles.isDarkMode() ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
         title,
-        vouchShowButton: false,
         vouchDisableButton: true,
+        vouchShowButton: false,
         webOfTrustEntries: [],
       }
     }
@@ -113,7 +113,9 @@ const connected = Container.namedConnect(
     _onEditAvatar: () => dispatch(ProfileGen.createEditAvatar()),
     _onIKnowThem: (username: string, guiID: string) =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {username, guiID}, selected: 'profileWotAuthor'}]})
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {guiID, username}, selected: 'profileWotAuthor'}],
+        })
       ),
     _onReload: (username: string, isYou: boolean, state: Types.DetailsState) => {
       if (state !== 'valid') {
@@ -188,8 +190,8 @@ const connected = Container.namedConnect(
       title: stateProps.title,
       userIsYou: stateProps.userIsYou,
       username: stateProps.username,
-      vouchShowButton: stateProps.vouchShowButton,
       vouchDisableButton: stateProps.vouchDisableButton,
+      vouchShowButton: stateProps.vouchShowButton,
       webOfTrustEntries: stateProps.webOfTrustEntries,
     }
   },
