@@ -25,6 +25,7 @@ import {
   Section,
   useEmojiSections,
 } from './rows'
+import isEqual from 'lodash/isEqual'
 
 type Props = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.TabKey}>
 
@@ -84,7 +85,7 @@ const Team = (props: Props) => {
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID), isEqual)
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const dispatch = Container.useDispatch()
