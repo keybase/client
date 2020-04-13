@@ -8,14 +8,14 @@ import {SignOutputBanner} from './common'
 const operation = Constants.Operations.Sign
 
 export const SignInput = () => (
-  <>
+  <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.inputDesktopMaxHeight}>
     <OperationBanner operation={operation} />
     <Input operation={operation} />
-  </>
+  </Kb.Box2>
 )
 
 export const SignOutput = () => (
-  <Kb.Box2 direction="vertical" fullHeight={true}>
+  <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.outputDesktopMaxHeight}>
     <SignOutputBanner />
     <SignedSender operation={operation} />
     <OperationOutput operation={operation} />
