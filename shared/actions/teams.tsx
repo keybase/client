@@ -1060,7 +1060,10 @@ const updateTopic = async (state: TypedState, action: TeamsGen.UpdateTopicPayloa
     tlfPublic: false,
   }
 
-  await RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.teamWaitingKey(teamID))
+  await RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.updateChannelNameWaitingKey(teamID))
+  if (!flags.teamsRedesign) {
+    return RouteTreeGen.createNavUpToScreen({routeName: 'chatManageChannels'})
+  }
   return []
 }
 
