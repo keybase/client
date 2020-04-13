@@ -25,7 +25,7 @@ export const categoryIcons = {
   Flags: 'iconfont-flag',
   'Food & Drink': 'iconfont-apple',
   Objects: 'iconfont-music',
-  'Smileys & People': 'iconfont-emoji',
+  'Smileys & People': 'iconfont-emoji-solid',
   Symbols: 'iconfont-checkbox',
   'Travel & Places': 'iconfont-airplane',
 }
