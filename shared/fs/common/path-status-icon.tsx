@@ -25,7 +25,7 @@ function getIcon(status: Types.LocalConflictStatus | Types.NonUploadStaticSyncSt
     case Types.LocalConflictStatus:
       return 'iconfont-exclamation'
     case Types.NonUploadStaticSyncStatus.Unknown:
-      return 'iconfont-question-mark'
+      return 'iconfont-circle'
   }
 }
 
