@@ -444,7 +444,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   private cachedMenuStyles = new Map<string, Styles.StylesCrossPlatform>()
   private menuAreaStyle = (exploded: boolean, exploding: boolean) => {
-    const commonWidth = 24
+    const commonWidth = 20
     const iconSizes = [
       this.props.isRevoked ? commonWidth : 0, // revoked
       this.props.showCoinsIcon ? commonWidth : 0, // coin stack
