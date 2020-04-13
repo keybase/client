@@ -417,7 +417,7 @@ const Buttons = (p: ButtonsProps) => {
           disabled={!hasText}
           label={isEditing ? 'Save' : 'Send'}
           labelStyle={isExploding ? styles.explodingSendBtnLabel : undefined}
-          style={isExploding ? styles.explodingSendBtn : undefined}
+          style={isExploding ? styles.explodingSendBtn : styles.sendBtn}
         />
       )}
     </Kb.Box2>
@@ -508,6 +508,7 @@ const styles = Styles.styleSheetCreate(
       },
       explodingSendBtn: {
         backgroundColor: Styles.globalColors.black,
+        marginRight: Styles.globalMargins.tiny,
       },
       explodingSendBtnLabel: {
         color: Styles.globalColors.white,
@@ -557,6 +558,9 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
+      },
+      sendBtn: {
+        marginRight: Styles.globalMargins.tiny,
       },
     } as const)
 )
