@@ -40,7 +40,8 @@ const load = () => {
     .add('Header', () => (
       <Header onCreateTeam={Sb.action('onCreateTeam')} onJoinTeam={Sb.action('onJoinTeam')} loaded={true} />
     ))
-    .add('No teams placeholder', () => <TeamsFooter />)
+    .add('No teams placeholder', () => <TeamsFooter empty={false} />)
+    .add('Empty footer', () => <TeamsFooter empty={true} />)
     .add('TeamList', () => (
       <Box style={{display: 'flex', flexDirection: 'column', height: '100%', maxWidth: 320}}>
         <TeamList

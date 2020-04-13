@@ -21,14 +21,18 @@ const TeamsFooter = (props: {empty: boolean}) => {
       ) : flags.teamsRedesign ? (
         <>
           {props.empty && (
-            <Kb.Text type="BodySmall" style={styles.empty}>
-              You are not a part of any team,
-            </Kb.Text>
+            <Kb.Box2 direction="vertical" alignItems="center" gap="tiny" style={styles.empty}>
+              <Kb.Box style={Styles.globalStyles.flexOne} />
+              <Kb.Box>
+                <Kb.Icon type="icon-dark-empty-lone-wolf-116-96" />
+              </Kb.Box>
+              <Kb.Text type="BodySmall">You are not a part of any team, lone wolf.</Kb.Text>
+              <Kb.Box style={Styles.globalStyles.flexOne} />
+            </Kb.Box2>
           )}
-          {props.empty && <Kb.Text type="BodySmall">lone wolf.</Kb.Text>}
           <Kb.Box style={Styles.globalStyles.flexOne} />
           {(Styles.isMobile || !props.empty) && (
-            <Kb.Text type="BodySmall">
+            <Kb.Text type="BodySmall" center={true}>
               Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual
               friends to large communities.
             </Kb.Text>
@@ -56,11 +60,14 @@ const styles = Styles.styleSheetCreate(() => ({
   container: flags.teamsRedesign
     ? Styles.platformStyles({
         isElectron: Styles.padding(Styles.globalMargins.large),
-        isMobile: Styles.padding(
-          Styles.globalMargins.medium,
-          Styles.globalMargins.medium,
-          Styles.globalMargins.small
-        ),
+        isMobile: {
+          ...Styles.padding(
+            Styles.globalMargins.medium,
+            Styles.globalMargins.small,
+            Styles.globalMargins.small
+          ),
+          flex: 1,
+        },
       })
     : {
         paddingBottom: Styles.globalMargins.large,
@@ -69,8 +76,8 @@ const styles = Styles.styleSheetCreate(() => ({
         paddingTop: Styles.globalMargins.large,
       },
   empty: Styles.platformStyles({
-    isElectron: {paddingTop: 120},
-    isMobile: {paddingTop: 80},
+    isElectron: {paddingTop: 80},
+    isMobile: {flex: 1, paddingBottom: Styles.globalMargins.small},
   }),
 }))
 
