@@ -37,7 +37,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     {title: 'bots' as const},
     ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
     {title: 'emoji' as const},
-    {icon: isMobile ? 'iconfont-nav-settings' : undefined, title: 'settings' as const},
+    {icon: isMobile ? 'iconfont-gear' : undefined, title: 'settings' as const},
   ]
 
   const tabContent = (

@@ -21,7 +21,7 @@ const SplitNav = (props: Props) => {
             badgeNumber={props.badgeNumbers.get(TabConstants.cryptoTab)}
           />
           <SettingsItem
-            icon="iconfont-nav-git"
+            icon="iconfont-nav-2-git"
             text="Git"
             selected={props.selectedTab === Constants.gitTab}
             onClick={() => props.onTabChange(Constants.gitTab)}
@@ -29,7 +29,7 @@ const SplitNav = (props: Props) => {
           />
           <SettingsItem
             text="Devices"
-            icon="iconfont-nav-devices"
+            icon="iconfont-nav-2-devices"
             selected={props.selectedTab === Constants.devicesTab}
             onClick={() => props.onTabChange(Constants.devicesTab)}
             badgeNumber={props.badgeNumbers.get(TabConstants.devicesTab)}
