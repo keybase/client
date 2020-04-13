@@ -1,0 +1,38 @@
+module.exports = {
+  coverageDirectory: './coverage',
+  modulePaths: ['<rootDir>/desktop/node_modules'],
+  modulePathIgnorePatterns: ['<rootDir>/.tsOut'],
+  transformIgnorePatterns: [
+    'node_modules/(?!universalify|fs-extra|react-native|react-redux|react-gateway|@storybook|@react-navigation)',
+  ],
+  setupFiles: ['<rootDir>/node_modules/react-native/jest/setup.js', '<rootDir>/test/setupFiles-rn.js'],
+  setupFilesAfterEnv: ['<rootDir>/test/setupTestFrameworkScriptFile-rn.js'],
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.tsOut/'],
+  preset: 'react-native',
+  rootDir: '..',
+  snapshotSerializers: ['jest-emotion'],
+  timers: 'fake',
+  moduleNameMapper: require('../mocks').jestReplacements,
+  moduleFileExtensions: [
+    'js',
+    'json',
+    'ts',
+    'tsx',
+    'jsx',
+    'node',
+    'native.js',
+    'native.tsx',
+    'ios.tsx',
+    'android.tsx',
+  ],
+  transform: {
+    '^.+\\.(js|ts|tsx)$': ['babel-jest', {configFile: './babel.config.js'}],
+  },
+  roots: ['.'],
+  globals: {
+    __DEV__: true,
+    __STORYBOOK__: true,
+    __STORYSHOT__: true,
+  },
+  verbose: true,
+}
