@@ -66,7 +66,7 @@ export const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = {
   addPhoneNumber: 'Add number',
   annoncementPlaceholder: '',
   avatarTeam: 'Edit team avatar',
-  avatarUser: 'Edit avatar',
+  avatarUser: 'Upload avatar',
   bio: 'Edit Profile',
   chat: 'Start a chat',
   device: isMobile ? 'Get the download link' : 'Get the app',

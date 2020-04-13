@@ -29,7 +29,7 @@ const avatarTeamTaskProps = {
 
 const avatarUserTaskProps = {
   badged: true,
-  buttons: defaultButtons('Edit avatar'),
+  buttons: defaultButtons('Upload avatar'),
   icon: 'icon-onboarding-user-avatar-48',
   instructions: 'Change your photo from within the Keybase app.',
 } as const
