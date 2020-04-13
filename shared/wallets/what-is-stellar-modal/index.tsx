@@ -76,6 +76,9 @@ const styles = Styles.styleSheetCreate(
           marginRight: Styles.globalMargins.mediumLarge,
           marginTop: Styles.globalMargins.xsmall,
         },
+        isTablet: {
+          width: 560,
+        },
       }),
       header: {
         alignSelf: 'center',
