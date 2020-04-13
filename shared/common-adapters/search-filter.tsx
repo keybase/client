@@ -156,7 +156,11 @@ class SearchFilter extends React.PureComponent<Props, State> {
     return !Styles.isMobile && this.props.size === 'full-width' ? 'Default' : 'Small'
   }
   private iconColor() {
-    return this.props.negative ? Styles.globalColors.white_75 : Styles.globalColors.black_50
+    return this.props.iconColor
+      ? this.props.iconColor
+      : this.props.negative
+      ? Styles.globalColors.white_75
+      : Styles.globalColors.black_50
   }
   private leftIcon() {
     return (
@@ -199,7 +203,13 @@ class SearchFilter extends React.PureComponent<Props, State> {
         hideBorder={true}
         containerStyle={styles.inputContainer}
         style={Styles.collapseStyles([styles.input, !!this.props.negative && styles.textNegative])}
-        placeholderColor={this.props.negative ? Styles.globalColors.white_75 : ''}
+        placeholderColor={
+          this.props.placeholderColor
+            ? this.props.placeholderColor
+            : this.props.negative
+            ? Styles.globalColors.white_75
+            : ''
+        }
       />
     )
   }
@@ -404,6 +414,7 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 16,
   },
   textNegative: {
+    backgroundColor: Styles.globalColors.red,
     color: Styles.globalColors.white,
   },
 }))
