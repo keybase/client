@@ -138,10 +138,10 @@ func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, 
 		actor(s.simpleSource.LoadTeams), batcher, reset, 100*time.Millisecond, false,
 	)
 	usersStaleBatch, _ := libkb.ThrottleBatch(
-		actor(s.simpleSource.LoadUsers), batcher, reset, 2000*time.Millisecond, false,
+		actor(s.simpleSource.LoadUsers), batcher, reset, 5000*time.Millisecond, false,
 	)
 	teamsStaleBatch, _ := libkb.ThrottleBatch(
-		actor(s.simpleSource.LoadTeams), batcher, reset, 2000*time.Millisecond, false,
+		actor(s.simpleSource.LoadTeams), batcher, reset, 5000*time.Millisecond, false,
 	)
 	s.usersMissBatch = usersMissBatch
 	s.teamsMissBatch = teamsMissBatch
