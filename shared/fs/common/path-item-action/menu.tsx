@@ -188,7 +188,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
   return items.length ? ['Divider' as const, ...items] : items
 }
 
-export default (props: Props) => {
+const PathItemActionMenu = (props: Props) => {
   Kbfs.useFsFileContext(props.path)
   const {downloadID, downloadIntent} = Container.useSelector(state => state.fs.pathItemActionMenu)
   const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
@@ -221,3 +221,4 @@ export default (props: Props) => {
     />
   )
 }
+export default PathItemActionMenu

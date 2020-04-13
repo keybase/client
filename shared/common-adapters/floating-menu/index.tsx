@@ -30,7 +30,7 @@ export type Props = {
   visible: boolean
 }
 
-export default (props: Props) => {
+const FloatingMenu = (props: Props) => {
   if (!props.visible) {
     return null
   }
@@ -58,3 +58,4 @@ export default (props: Props) => {
     </Overlay>
   )
 }
+export default FloatingMenu

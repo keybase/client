@@ -10,10 +10,11 @@ type Props = {
   timestamp: number
 }
 
-export default (props: Props) => (
+const SystemLeftMessage = (props: Props) => (
   <UserNotice>
     <Kb.Text type="BodySmall">{`left ${
       props.isBigTeam ? `#${props.channelname}` : props.teamname
     }.`}</Kb.Text>
   </UserNotice>
 )
+export default SystemLeftMessage

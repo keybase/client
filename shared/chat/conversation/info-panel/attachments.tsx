@@ -648,8 +648,8 @@ export const useAttachmentSections = (
   return sections
 }
 
-export default (p: Props) => {
-  const sections = useAttachmentSections(p, true, false)
+const Attachments = (p: Props) => {
+  const sections = useAttachmentSections(p, true /* loadImmediately */, false /* flexWrap */)
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
@@ -659,3 +659,4 @@ export default (p: Props) => {
     />
   )
 }
+export default Attachments
