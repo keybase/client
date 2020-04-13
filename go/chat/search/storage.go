@@ -484,7 +484,6 @@ func (s *store) deleteOldVersions(ctx context.Context, keyFn func(int) (libkb.Db
 			s.Debug(ctx, "unable to get key for version %d, %v", version, err)
 			continue
 		}
-		s.Debug(ctx, "cleaning old version %d: for key %v", version, key)
 		if err := s.G().LocalChatDb.Delete(key); err != nil {
 			s.Debug(ctx, "deleteOldVersions: failed to delete key: %s", err)
 		}
