@@ -235,6 +235,7 @@ const VanillaTabNavigator = createBottomTabNavigator(
       },
       // else keyboard avoiding is racy on ios and won't work correctly
       keyboardHidesTabBar: Styles.isAndroid,
+      labelPosition: 'beside-icon',
       showLabel: Styles.isTablet,
       get style() {
         return {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest}
