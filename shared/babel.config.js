@@ -3,6 +3,8 @@ let isElectron = null
 let isReactNative = null
 
 module.exports = function(api /*: any */) {
+  console.log('aaaa babel config', api.env())
+
   if (api.env() === 'test') {
     return {
       plugins: [
