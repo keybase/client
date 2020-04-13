@@ -28,9 +28,7 @@ func newCmdTeamGenerateInvitelink(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 	return cli.Command{
 		Name:         "generate-invitelink",
 		ArgumentHelp: "<team name>",
-		Usage: `Generate an invite link that you can send via iMessage or similar.
-If neither max-uses nor infinite-uses is passed, defaults to one-time-use. If duration is not
-passed, does not expire.`,
+		Usage:        "Generate an invite link that you can send via iMessage or similar.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamGenerateInvitelinkRunner(g)
 			cl.ChooseCommand(cmd, "generate-invitelink", c)
@@ -145,5 +143,9 @@ func (c *CmdTeamGenerateInvitelink) GetUsage() libkb.Usage {
 	}
 }
 
-const teamGenerateInvitelinkDoc = `"keybase generate-invitelink" allows you to create a multi-use,
-possibly expiring link that someone can use to join a team.`
+const teamGenerateInvitelinkDoc = `
+"keybase generate-invitelink" allows you to create a multi-use, possibly
+expiring link that someone can use to join a team.
+
+If neither max-uses nor infinite-uses is passed, defaults to one-time-use.
+If duration is not passed, does not expire.`
