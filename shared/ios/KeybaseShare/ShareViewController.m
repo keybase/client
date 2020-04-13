@@ -27,7 +27,6 @@ const BOOL isSimulator = NO;
 @property UIAlertController* alert;
 @property NSString* attributedContentText;
 @property NSUInteger unprocessed;
-@property NSLock *lock;
 @end
 
 @implementation ShareViewController
@@ -70,7 +69,7 @@ const BOOL isSimulator = NO;
     return [self isWebURL:a];
   }];
   if (item) {
-   [res addObject:item];
+    [res addObject:item];
   }
   if ([res count] == 0) {
     item = [self firstSatisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
@@ -92,7 +91,7 @@ const BOOL isSimulator = NO;
 }
 
 - (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
+  [super didReceiveMemoryWarning];
 }
 
 - (void) openApp {
@@ -107,25 +106,22 @@ const BOOL isSimulator = NO;
   }
 }
 
-- (void) startProcessing:(NSInteger)items {
+- (void) startProcessingAlreadyInMainThread:(NSInteger)items {
   self.unprocessed = items;
-  self.lock = [[NSLock alloc] init];
 }
 
-- (void) completeRequest {
+- (void) completeRequestAlreadyInMainThread {
   [self writeManifest];
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self.alert dismissViewControllerAnimated:true completion:^{
-      [self.extensionContext completeRequestReturningItems:nil completionHandler:^(BOOL expired) {
-        [self openApp];
-      }];
+  [self.alert dismissViewControllerAnimated:true completion:^{
+    [self.extensionContext completeRequestReturningItems:nil completionHandler:^(BOOL expired) {
+      [self openApp];
     }];
-  });
+  }];
 }
 
-- (void) completeProcessingItemLocked {
+- (void) completeProcessingItemAlreadyInMainThread {
   if(--self.unprocessed > 0) { return; }
-  [self completeRequest];
+  [self completeRequestAlreadyInMainThread];
 }
 
 - (NSURL *)getIncomingShareFolder {
@@ -161,45 +157,45 @@ const BOOL isSimulator = NO;
 }
 
 - (void)completeItemAndAppendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL {
-  [self.lock lock];
-  [self.manifest addObject: @{
-    @"type": type,
-    @"originalPath":[originalFileURL absoluteURL].path,
-  }];
-  [self completeProcessingItemLocked];
-  [self.lock unlock];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.manifest addObject: @{
+      @"type": type,
+      @"originalPath":[originalFileURL absoluteURL].path,
+    }];
+    [self completeProcessingItemAlreadyInMainThread];
+  });
 }
 
 - (void)completeItemAndAppendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL content:(NSString*)content {
-  [self.lock lock];
-  [self.manifest addObject: @{
-    @"type": type,
-    @"originalPath":[originalFileURL absoluteURL].path,
-    @"content": content,
-  }];
-  [self completeProcessingItemLocked];
-  [self.lock unlock];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.manifest addObject: @{
+      @"type": type,
+      @"originalPath":[originalFileURL absoluteURL].path,
+      @"content": content,
+    }];
+    [self completeProcessingItemAlreadyInMainThread];
+  });
 }
 
 - (void)completeItemAndAppendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL scaledFileURL:(NSURL*)scaledFileURL thumbnailFileURL:(NSURL*)thumbnailFileURL {
-  [self.lock lock];
-  [self.manifest addObject: @{
-    @"type": type,
-    @"originalPath":[originalFileURL absoluteURL].path,
-    @"scaledPath":[scaledFileURL absoluteURL].path,
-    @"thumbnailPath":[thumbnailFileURL absoluteURL].path,
-  }];
-  [self completeProcessingItemLocked];
-  [self.lock unlock];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.manifest addObject: @{
+      @"type": type,
+      @"originalPath":[originalFileURL absoluteURL].path,
+      @"scaledPath":[scaledFileURL absoluteURL].path,
+      @"thumbnailPath":[thumbnailFileURL absoluteURL].path,
+    }];
+    [self completeProcessingItemAlreadyInMainThread];
+  });
 }
 
 - (void)completeItemAndAppendManifestAndLogErrorWithText:(NSString*)text error:(NSError*)error {
-  [self.lock lock];
-  [self.manifest addObject:@{
-    @"error": [NSString stringWithFormat:@"%@: %@", text, error != nil ? error : @"<empty>"],
-  }];
-  [self completeProcessingItemLocked];
-  [self.lock unlock];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.manifest addObject:@{
+      @"error": [NSString stringWithFormat:@"%@: %@", text, error != nil ? error : @"<empty>"],
+    }];
+    [self completeProcessingItemAlreadyInMainThread];
+  });
 }
 
 - (NSError *)writeManifest {
@@ -290,7 +286,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
     
     BOOL hasImage = [item hasItemConformingToTypeIdentifier:@"public.image"];
     BOOL hasVideo = [item hasItemConformingToTypeIdentifier:@"public.movie"];
-
+    
     // Check for no URL (it might have not been possible for the OS to give us one)
     if (url == nil) {
       if (hasImage) {
@@ -301,7 +297,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
       }
       return;
     }
-
+    
     NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
     [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
     if (error != nil) {
@@ -341,31 +337,31 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
 
 - (void)showProgressView {
   self.alert = [UIAlertController
-                              alertControllerWithTitle:@"Working on it"
-                              message:@"Preparing content for sharing into Keybase."
-                              preferredStyle:UIAlertControllerStyleAlert];
+                alertControllerWithTitle:@"Working on it"
+                message:@"Preparing content for sharing into Keybase."
+                preferredStyle:UIAlertControllerStyleAlert];
   UIActivityIndicatorView* spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
   [spinner setTranslatesAutoresizingMaskIntoConstraints:NO];
   [self.alert.view addConstraints:@[
-       [NSLayoutConstraint constraintWithItem:spinner
-                                    attribute:NSLayoutAttributeCenterX
-                                    relatedBy:NSLayoutRelationEqual
-                                       toItem:self.alert.view
-                                    attribute:NSLayoutAttributeCenterX
-                                   multiplier:1 constant:0],
-       [NSLayoutConstraint constraintWithItem:spinner
-                                    attribute:NSLayoutAttributeCenterY
-                                    relatedBy:NSLayoutRelationEqual
-                                       toItem:self.alert.view
-                                    attribute:NSLayoutAttributeCenterY
-                                   multiplier:1 constant:40],
-       [NSLayoutConstraint constraintWithItem:self.alert.view
-                                    attribute:NSLayoutAttributeBottom
-                                    relatedBy:NSLayoutRelationEqual
-                                       toItem:spinner
-                                    attribute:NSLayoutAttributeBottom
-                                   multiplier:1 constant:10]
-       ]
+    [NSLayoutConstraint constraintWithItem:spinner
+                                 attribute:NSLayoutAttributeCenterX
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:self.alert.view
+                                 attribute:NSLayoutAttributeCenterX
+                                multiplier:1 constant:0],
+    [NSLayoutConstraint constraintWithItem:spinner
+                                 attribute:NSLayoutAttributeCenterY
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:self.alert.view
+                                 attribute:NSLayoutAttributeCenterY
+                                multiplier:1 constant:40],
+    [NSLayoutConstraint constraintWithItem:self.alert.view
+                                 attribute:NSLayoutAttributeBottom
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:spinner
+                                 attribute:NSLayoutAttributeBottom
+                                multiplier:1 constant:10]
+  ]
    ];
   
   [self.alert.view addSubview:spinner];
@@ -388,10 +384,10 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
 - (void)viewDidLoad {
   NSArray* items = [self getSendableAttachments];
   if ([items count] == 0) {
-    [self completeRequest];
+    [self completeRequestAlreadyInMainThread];
     return;
   }
-  [self startProcessing:[items count]];
+  [self startProcessingAlreadyInMainThread:[items count]];
   [self showProgressView];
   [self ensureManifestAndPayloadFolder];
   for (int i = 0; i < [items count]; i++) {
