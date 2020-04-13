@@ -84,7 +84,7 @@ const ReactButton = (props: Props) => {
       >
         <Box2 direction="horizontal" style={styles.emojiWrapper}>
           <EmojiIfExists
-            paragraphTextClassName={isStandardEmoji ? 'noLineHeight' : undefined}
+            paragraphTextClassName={Styles.classNames({noLineHeight: isStandardEmoji})}
             size={Styles.isMobile ? 16 : 18}
             lineClamp={1}
             emojiName={text}
