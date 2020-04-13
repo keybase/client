@@ -81,7 +81,7 @@ const connected = Container.namedConnect(
         title: username,
         vouchDisableButton,
         vouchShowButton,
-        webOfTrustEntries: filteredWot || [],
+        webOfTrustEntries: filteredWot,
       }
     } else {
       // SBS profile. But `nonUserDetails` might not have arrived yet,
