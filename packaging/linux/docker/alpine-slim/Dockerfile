@@ -1,12 +1,11 @@
-ARG BASE_IMAGE=keybaseio/client:latest
+ARG BASE_IMAGE=keybaseio/client:alpine
+
 FROM $BASE_IMAGE AS base
 
-FROM node:12.16.2-buster
+FROM alpine:3.11
 LABEL maintainer="Keybase <admin@keybase.io>"
 
-RUN apt-get update \
-    && apt-get install -y gnupg2 procps ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --update --no-cache gnupg procps ca-certificates bash
 
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
@@ -26,18 +25,13 @@ RUN gpg --import /gosu_key.asc \
     && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
     && chmod +x /usr/local/bin/gosu
 
-COPY --from=base /usr/bin/entrypoint.sh /usr/bin/entrypoint.sh
+COPY packaging/linux/docker/slim/entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
-RUN usermod -l keybase -d /home/keybase -m node \
-    && groupmod -n keybase node
+RUN adduser --disabled-password --gecos "" --shell /bin/bash keybase
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.cache/keybase" ]
 
 COPY --from=base /usr/bin/keybase /usr/bin/keybase
 COPY --from=base /usr/bin/keybase.sig /usr/bin/keybase.sig
-COPY --from=base /usr/bin/kbfsfuse /usr/bin/kbfsfuse
-COPY --from=base /usr/bin/kbfsfuse.sig /usr/bin/kbfsfuse.sig
-COPY --from=base /usr/bin/git-remote-keybase /usr/bin/git-remote-keybase
-COPY --from=base /usr/bin/git-remote-keybase.sig /usr/bin/git-remote-keybase.sig
 
 ENTRYPOINT ["/tini", "--", "entrypoint.sh"]

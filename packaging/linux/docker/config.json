@@ -1,0 +1,46 @@
+{
+  "_c": "Base image of the name",
+  "image_name": "keybaseio/client",
+
+  "_c": "Variant definitions",
+  "variants": {
+    "": {
+      "_c": "Path to the Dockerfile relative to the project's root",
+      "dockerfile": "packaging/linux/docker/standard/Dockerfile",
+
+      "_c": "`null` if it has no dependencies, otherwise the key of the image its based on",
+      "base": null
+    },
+    "-slim": {
+      "dockerfile": "packaging/linux/docker/slim/Dockerfile",
+      "base": ""
+    },
+
+    "-alpine": {
+      "dockerfile": "packaging/linux/docker/alpine/Dockerfile",
+      "base": null
+    },
+    "-alpine-slim": {
+      "dockerfile": "packaging/linux/docker/alpine-slim/Dockerfile",
+      "base": "-alpine"
+    },
+
+    "-node": {
+      "dockerfile": "packaging/linux/docker/node/Dockerfile",
+      "base": ""
+    },
+    "-node-slim": {
+      "dockerfile": "packaging/linux/docker/node-slim/Dockerfile",
+      "base": ""
+    },
+
+    "-python": {
+      "dockerfile": "packaging/linux/docker/python/Dockerfile",
+      "base": ""
+    },
+    "-python-slim": {
+      "dockerfile": "packaging/linux/docker/python-slim/Dockerfile",
+      "base": ""
+    }
+  }
+}
