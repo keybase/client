@@ -80,6 +80,62 @@ func (uhfn *updateHistoryFileNode) FillCacheDuration(d *time.Duration) {
 	*d = 0
 }
 
+type profileNode struct {
+	libkbfs.Node
+
+	config libkbfs.Config
+	name   string
+}
+
+var _ libkbfs.Node = (*profileNode)(nil)
+
+func (pn *profileNode) GetFile(ctx context.Context) billy.File {
+	fs := NewProfileFS(pn.config)
+	f, err := fs.Open(pn.name)
+	if err != nil {
+		return nil
+	}
+	return f
+}
+
+func (pn *profileNode) FillCacheDuration(d *time.Duration) {
+	// Suggest kindly that no one should cache this node, since it
+	// could change each time it's read.
+	*d = 0
+}
+
+type profileListNode struct {
+	libkbfs.Node
+
+	config libkbfs.Config
+}
+
+var _ libkbfs.Node = (*profileListNode)(nil)
+
+func (pln *profileListNode) ShouldCreateMissedLookup(
+	ctx context.Context, name data.PathPartString) (
+	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString,
+	data.BlockPointer) {
+	namePlain := name.Plaintext()
+
+	fs := NewProfileFS(pln.config)
+	fi, err := fs.Lstat(namePlain)
+	if err != nil {
+		return pln.Node.ShouldCreateMissedLookup(ctx, name)
+	}
+
+	return true, ctx, data.FakeFile, fi, data.PathPartString{}, data.ZeroPtr
+}
+
+func (pln *profileListNode) WrapChild(child libkbfs.Node) libkbfs.Node {
+	child = pln.Node.WrapChild(child)
+	return &profileNode{child, pln.config, child.GetBasename().Plaintext()}
+}
+
+func (pln *profileListNode) GetFS(ctx context.Context) libkbfs.NodeFSReadOnly {
+	return NewProfileFS(pln.config)
+}
+
 // specialFileNode is a Node wrapper around a TLF node, that causes
 // special files to be fake-created when they are accessed.
 type specialFileNode struct {
@@ -94,6 +150,7 @@ var _ libkbfs.Node = (*specialFileNode)(nil)
 var perTlfWrappedNodeNames = map[string]bool{
 	StatusFileName:        true,
 	UpdateHistoryFileName: true,
+	ProfileListDirName:    true,
 }
 
 var perTlfWrappedNodePrefixes = []string{
@@ -214,6 +271,10 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 		f := sfn.GetFile(ctx)
 		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
 			data.PathPartString{}, data.ZeroPtr
+	case plain == ProfileListDirName:
+		return true, ctx, data.FakeDir,
+			&wrappedReadFileInfo{plain, 0, sfn.config.Clock().Now(), true},
+			data.PathPartString{}, data.ZeroPtr
 	case strings.HasPrefix(plain, UpdateHistoryFileName):
 		uhfn := sfn.newUpdateHistoryFileNode(nil, plain)
 		if uhfn == nil {
@@ -268,6 +329,11 @@ func (sfn *specialFileNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 			fb:     sfn.GetFolderBranch(),
 			config: sfn.config,
 			log:    sfn.log,
+		}
+	case name == ProfileListDirName:
+		return &profileListNode{
+			Node:   &libkbfs.ReadonlyNode{Node: child},
+			config: sfn.config,
 		}
 	case strings.HasPrefix(name, UpdateHistoryFileName):
 		uhfn := sfn.newUpdateHistoryFileNode(child, name)

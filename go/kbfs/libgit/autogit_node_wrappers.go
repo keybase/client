@@ -176,7 +176,7 @@ func (rdn *repoDirNode) ShouldCreateMissedLookup(
 
 }
 
-func (rdn *repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
+func (rdn *repoDirNode) GetFS(ctx context.Context) libkbfs.NodeFSReadOnly {
 	ctx = libkbfs.CtxWithRandomIDReplayable(
 		ctx, ctxAutogitIDKey, ctxAutogitOpID, rdn.am.log)
 	_, b, err := rdn.am.GetBrowserForRepo(
@@ -281,7 +281,7 @@ type autogitRootNode struct {
 
 var _ libkbfs.Node = (*autogitRootNode)(nil)
 
-func (arn autogitRootNode) GetFS(ctx context.Context) billy.Filesystem {
+func (arn autogitRootNode) GetFS(ctx context.Context) libkbfs.NodeFSReadOnly {
 	ctx = libkbfs.CtxWithRandomIDReplayable(
 		ctx, ctxAutogitIDKey, ctxAutogitOpID, arn.am.log)
 	return &wrappedRepoList{arn.fs.WithContext(ctx)}
