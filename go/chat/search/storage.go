@@ -477,8 +477,8 @@ func aliasKeyWithVersion(ctx context.Context, dat string, version int,
 
 // deleteOldVersions purges old disk structures so we don't error out on msg
 // pack decode or strand indexes with ephemeral content.
-func (s *store) deleteOldVersions(ctx context.Context, keyFn func(int) (libkb.DbKey, error), maxVersion int) {
-	for version := 1; version < maxVersion; version++ {
+func (s *store) deleteOldVersions(ctx context.Context, keyFn func(int) (libkb.DbKey, error), minVersion, maxVersion int) {
+	for version := minVersion; version < maxVersion; version++ {
 		key, err := keyFn(version)
 		if err != nil {
 			s.Debug(ctx, "unable to get key for version %d, %v", version, err)
@@ -494,21 +494,21 @@ func (s *store) deleteOldMetadataVersions(ctx context.Context, convID chat1.Conv
 	keyFn := func(version int) (libkb.DbKey, error) {
 		return metadataKeyWithVersion(s.uid, convID, version), nil
 	}
-	s.deleteOldVersions(ctx, keyFn, mdDiskVersion)
+	s.deleteOldVersions(ctx, keyFn, 3, mdDiskVersion)
 }
 
 func (s *store) deleteOldTokenVersions(ctx context.Context, convID chat1.ConversationID, token string) {
 	keyFn := func(version int) (libkb.DbKey, error) {
 		return tokenKeyWithVersion(ctx, s.uid, convID, token, version, s.keyFn)
 	}
-	s.deleteOldVersions(ctx, keyFn, tokenDiskVersion)
+	s.deleteOldVersions(ctx, keyFn, 1, tokenDiskVersion)
 }
 
 func (s *store) deleteOldAliasVersions(ctx context.Context, alias string) {
 	keyFn := func(version int) (libkb.DbKey, error) {
 		return aliasKeyWithVersion(ctx, alias, version, s.keyFn)
 	}
-	s.deleteOldVersions(ctx, keyFn, aliasDiskVersion)
+	s.deleteOldVersions(ctx, keyFn, 1, aliasDiskVersion)
 }
 
 func (s *store) GetHits(ctx context.Context, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
