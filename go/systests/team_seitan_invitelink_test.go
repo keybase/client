@@ -13,6 +13,7 @@ import (
 )
 
 func TestTeamInviteSeitanInvitelinkHappy(t *testing.T) {
+	t.Skip()
 	testTeamInviteSeitanInvitelinkHappy(t, false /* implicitAdmin */)
 	testTeamInviteSeitanInvitelinkHappy(t, true /* implicitAdmin */)
 }
