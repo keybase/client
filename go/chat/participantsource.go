@@ -171,24 +171,34 @@ func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, ui
 		convIDStr := convID.ConvIDStr()
 		ch := s.G().ParticipantsSource.GetNonblock(ctx, uid, convID, dataSource)
 		for r := range ch {
-			uids := r.Uids
-			kuids := make([]keybase1.UID, 0, len(uids))
-			participants := make([]chat1.ConversationLocalParticipant, 0, len(uids))
-			for _, uid := range uids {
-				kuids = append(kuids, keybase1.UID(uid.String()))
-			}
-			rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
-				time.Minute, true)
+			participants, err := s.GetParticipantsFromUids(ctx, r.Uids)
 			if err != nil {
 				s.Debug(ctx, "GetWithNotifyNonblock: failed to map uids: %s", err)
 				continue
-			}
-			for _, row := range rows {
-				participants = append(participants, utils.UsernamePackageToParticipant(row))
 			}
 			s.notify(map[chat1.ConvIDStr][]chat1.UIParticipant{
 				convIDStr: utils.PresentConversationParticipantsLocal(ctx, participants),
 			})
 		}
 	}(globals.BackgroundChatCtx(ctx, s.G()))
+}
+
+func (s *CachingParticipantSource) GetParticipantsFromUids(
+	ctx context.Context,
+	uids []gregor1.UID,
+) (participants []chat1.ConversationLocalParticipant, err error) {
+	kuids := make([]keybase1.UID, 0, len(uids))
+	for _, uid := range uids {
+		kuids = append(kuids, keybase1.UID(uid.String()))
+	}
+	rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
+		time.Minute, true)
+	if err != nil {
+		return nil, err
+	}
+	participants = make([]chat1.ConversationLocalParticipant, 0, len(uids))
+	for _, row := range rows {
+		participants = append(participants, utils.UsernamePackageToParticipant(row))
+	}
+	return participants, nil
 }

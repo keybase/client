@@ -143,6 +143,9 @@
     "joinTeam": {
       "teamname": "string"
     },
+    "respondToInviteLink": {
+      "accept": "boolean"
+    },
     "launchNewTeamWizardOrModal": {
       "subteamOf?": "Types.TeamID"
     },
@@ -417,13 +420,9 @@
       "activityMap": "Map<Types.TeamID, number>",
       "username": "string"
     },
-    "getMemberSubteamDetails": {
+    "loadTeamTree": {
       "teamID": "Types.TeamID",
       "username": "string"
-    },
-    "setMemberSubteamDetails": {
-      "username": "string",
-      "memberships": "Map<Types.TeamID, Types.MemberInfoWithLastActivity>"
     },
     "startNewTeamWizard": {},
     "setTeamWizardTeamType": {
@@ -461,8 +460,11 @@
       "_description": "User has viewed this team. Clear related badges.",
       "teamID": "Types.TeamID"
     },
+    "getActivityForTeams": {
+      "_description": "Fetch activity levels."
+    },
     "setActivityLevels": {
-      "_description": "Set map of activity levels for all teams.",
+      "_description": "Set map of activity levels for all teams and channels.",
       "levels": "Types.ActivityLevels"
     }
   }

@@ -14,6 +14,20 @@ export type Props = {
   onJoinTeam: (name: string) => void
 }
 
+export const Success = (props: {teamname: string}) => (
+  <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
+    <Kb.Icon type="icon-illustration-welcome-96" />
+    {!!props.teamname && (
+      <Kb.Text center={true} type="Header">
+        You’ve joined {props.teamname}!
+      </Kb.Text>
+    )}
+    <Kb.Text center={true} type="Body">
+      The team may take a tiny while to appear as an admin needs to come online. But you’re in.
+    </Kb.Text>
+  </Kb.Box2>
+)
+
 const JoinTeam = (props: Props) => {
   const [name, _setName] = React.useState(props.initialTeamname ?? '')
   const setName = (n: string) => _setName(n.toLowerCase())
@@ -62,17 +76,7 @@ const JoinTeam = (props: Props) => {
       {props.success ? (
         <Kb.Box2 alignItems="center" direction="horizontal" fullHeight={true} fullWidth={true}>
           {props.open ? (
-            <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
-              <Kb.Icon type="icon-illustration-welcome-96" />
-              {!!props.successTeamName && (
-                <Kb.Text center={true} type="Header">
-                  You’ve joined {props.successTeamName}!
-                </Kb.Text>
-              )}
-              <Kb.Text center={true} type="Body">
-                The team may take a tiny while to appear as an admin needs to come online. But you’re in.
-              </Kb.Text>
-            </Kb.Box2>
+            <Success teamname={props.successTeamName ?? 'the team'} />
           ) : (
             <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
               <Kb.Icon

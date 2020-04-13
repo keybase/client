@@ -854,6 +854,12 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
 			case chat1.MessageType_HEADLINE:
 				conversationLocal.Info.Headline = body.Headline().Headline
+				emojis := body.Headline().Emojis
+				headlineEmojis := make([]chat1.HarvestedEmoji, 0, len(emojis))
+				for _, emoji := range emojis {
+					headlineEmojis = append(headlineEmojis, emoji)
+				}
+				conversationLocal.Info.HeadlineEmojis = headlineEmojis
 			case chat1.MessageType_PIN:
 				pinnedMsg, pinnerUsername, valid, err := s.getPinnedMsg(ctx, uid, conversationRemote, mm)
 				if err != nil {

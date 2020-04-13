@@ -374,43 +374,39 @@ const Buttons = (p: ButtonsProps) => {
     )
 
   const explodingIcon = !isEditing && !cannotWrite && (
-    <Kb.NativeTouchableWithoutFeedback onPress={toggleShowingMenu}>
-      <Kb.Box style={styles.explodingWrapper}>
-        {isExploding ? (
-          <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
-            <Kb.Text type="BodyTinyBold" negative={true} style={styles.explodingText}>
-              {formatDurationShort(explodingModeSeconds * 1000)}
-            </Kb.Text>
-          </Kb.Box2>
-        ) : (
-          <Kb.Icon
-            color={isExploding ? Styles.globalColors.black : null}
-            type="iconfont-timer"
-            fontSize={22}
-          />
-        )}
-      </Kb.Box>
-    </Kb.NativeTouchableWithoutFeedback>
+    <Kb.ClickableBox style={styles.explodingWrapper} onClick={toggleShowingMenu}>
+      {isExploding ? (
+        <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
+          <Kb.Text type="BodyTinyBold" negative={true} style={styles.explodingText}>
+            {formatDurationShort(explodingModeSeconds * 1000)}
+          </Kb.Text>
+        </Kb.Box2>
+      ) : (
+        <Kb.Icon color={isExploding ? Styles.globalColors.black : null} type="iconfont-timer" fontSize={22} />
+      )}
+    </Kb.ClickableBox>
   )
 
   return (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      gap="small"
-      alignItems="center"
-      style={styles.actionContainer}
-    >
-      {isEditing && <Kb.Button small={true} onClick={onCancelEditing} label="Cancel" type="Dim" />}
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.actionContainer}>
+      {isEditing && (
+        <Kb.Button
+          style={styles.editingButton}
+          small={true}
+          onClick={onCancelEditing}
+          label="Cancel"
+          type="Dim"
+        />
+      )}
       {explodingIcon}
+      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-reacji" />
+      <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
       {!hasText && (
-        <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end">
-          <Kb.Icon onClick={openEmojiPicker} type="iconfont-reacji" />
-          <Kb.Icon onClick={insertMentionMarker} type="iconfont-mention" />
-          <Kb.Icon onClick={openFilePicker} type="iconfont-camera" />
-          <AudioRecorder conversationIDKey={conversationIDKey} />
-          <Kb.Icon onClick={openMoreMenu} type="iconfont-add" />
+        <Kb.Box2 direction="horizontal" alignItems="flex-end">
+          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" />
+          <AudioRecorder conversationIDKey={conversationIDKey} iconStyle={styles.audioRecorderIconStyle} />
+          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" />
         </Kb.Box2>
       )}
       {hasText && (
@@ -471,9 +467,10 @@ const styles = Styles.styleSheetCreate(
     ({
       actionContainer: {
         flexShrink: 0,
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
         minHeight: 32,
+      },
+      audioRecorderIconStyle: {
+        padding: Styles.globalMargins.tiny,
       },
       container: {
         alignItems: 'center',
@@ -485,7 +482,10 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         minHeight: 1,
         overflow: 'hidden',
-        padding: Styles.globalMargins.tiny,
+        ...Styles.padding(Styles.globalMargins.tiny, 0),
+      },
+      editingButton: {
+        marginRight: Styles.globalMargins.tiny,
       },
       editingTabStyle: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -500,6 +500,7 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.black,
         borderRadius: Styles.globalMargins.mediumLarge / 2,
         height: 28,
+        margin: Styles.globalMargins.xtiny,
         width: 28,
       },
       explodingContainer: {
@@ -516,8 +517,11 @@ const styles = Styles.styleSheetCreate(
         lineHeight: 16,
       },
       explodingWrapper: {
-        height: 30,
-        width: 30,
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        height: 38,
+        justifyContent: 'center',
+        width: 36,
       },
       iconBottom: {
         bottom: 0,
@@ -548,6 +552,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       inputContainer: {
+        ...Styles.padding(0, Styles.globalMargins.tiny),
         flexGrow: 1,
         flexShrink: 1,
         maxHeight: '100%',

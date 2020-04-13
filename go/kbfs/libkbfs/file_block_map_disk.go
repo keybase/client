@@ -13,12 +13,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+type fileBlockMapDiskInfo struct {
+	pps data.PathPartString
+	ptr data.BlockPointer
+}
+
 // fileBlockMapDisk tracks block info while making a revision, by
 // using a disk-based block cache.
 type fileBlockMapDisk struct {
 	dirtyBcache *DirtyBlockCacheDisk
 	kmd         libkey.KeyMetadata
-	ptrs        map[data.BlockPointer]map[data.PathPartString]data.BlockPointer
+	ptrs        map[data.BlockPointer]map[string]fileBlockMapDiskInfo
 }
 
 var _ fileBlockMap = (*fileBlockMapDisk)(nil)
@@ -28,7 +33,7 @@ func newFileBlockMapDisk(
 	return &fileBlockMapDisk{
 		dirtyBcache: dirtyBcache,
 		kmd:         kmd,
-		ptrs:        make(map[data.BlockPointer]map[data.PathPartString]data.BlockPointer),
+		ptrs:        make(map[data.BlockPointer]map[string]fileBlockMapDiskInfo),
 	}
 }
 
@@ -51,11 +56,11 @@ func (fbmd *fileBlockMapDisk) putTopBlock(
 
 	ptrMap, ok := fbmd.ptrs[parentPtr]
 	if !ok {
-		ptrMap = make(map[data.PathPartString]data.BlockPointer)
+		ptrMap = make(map[string]fileBlockMapDiskInfo)
 		fbmd.ptrs[parentPtr] = ptrMap
 	}
 
-	ptrMap[childName] = ptr
+	ptrMap[childName.Plaintext()] = fileBlockMapDiskInfo{childName, ptr}
 	return nil
 }
 
@@ -66,13 +71,13 @@ func (fbmd *fileBlockMapDisk) GetTopBlock(
 	if !ok {
 		return nil, errors.Errorf("No such parent %s", parentPtr)
 	}
-	ptr, ok := ptrMap[childName]
+	info, ok := ptrMap[childName.Plaintext()]
 	if !ok {
 		return nil, errors.Errorf(
 			"No such name %s in parent %s", childName, parentPtr)
 	}
 	block, err := fbmd.dirtyBcache.Get(
-		ctx, fbmd.kmd.TlfID(), ptr, data.MasterBranch)
+		ctx, fbmd.kmd.TlfID(), info.ptr, data.MasterBranch)
 	if err != nil {
 		return nil, err
 	}
@@ -92,8 +97,8 @@ func (fbmd *fileBlockMapDisk) getFilenames(
 		return nil, nil
 	}
 	names = make([]data.PathPartString, 0, len(ptrMap))
-	for name := range ptrMap {
-		names = append(names, name)
+	for _, info := range ptrMap {
+		names = append(names, info.pps)
 	}
 	return names, nil
 }

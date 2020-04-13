@@ -6,6 +6,7 @@ import * as Types from '../constants/types/teams'
 import * as Container from '../util/container'
 import {editTeambuildingDraft} from './team-building'
 import {mapGetEnsureValue} from '../util/map'
+import * as RPCTypes from '../constants/types/rpc-gen'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -16,13 +17,15 @@ const handleTeamBuilding = (draftState: Container.Draft<Types.State>, action: Te
   }
 }
 
-export default Container.makeReducer<
-  | TeamsGen.Actions
-  | TeamBuildingGen.Actions
+type EngineActions =
   | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload
-  | EngineGen.Chat1NotifyChatChatWelcomeMessageLoadedPayload,
-  Types.State
->(initialState, {
+  | EngineGen.Chat1NotifyChatChatWelcomeMessageLoadedPayload
+  | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
+  | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsDonePayload
+
+type Actions = TeamsGen.Actions | TeamBuildingGen.Actions | EngineActions
+
+export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.resetStore]: () => {
     return initialState
   },
@@ -96,7 +99,6 @@ export default Container.makeReducer<
 
     const details = Constants.annotatedTeamToDetails(team)
     draftState.teamDetails.set(teamID, details)
-    draftState.teamMemberToSubteams.set(teamID, details.members)
   },
   [TeamsGen.setTeamVersion]: (draftState, action) => {
     const {teamID, version} = action.payload
@@ -274,14 +276,6 @@ export default Container.makeReducer<
   [TeamsGen.setWelcomeMessage]: (draftState, _) => {
     draftState.errorInEditWelcomeMessage = ''
   },
-  [TeamsGen.setMemberSubteamDetails]: (draftState, action) => {
-    action.payload.memberships.forEach((info, teamID) => {
-      if (!draftState.teamMemberToSubteams.has(teamID)) {
-        draftState.teamMemberToSubteams.set(teamID, new Map())
-      }
-      draftState.teamMemberToSubteams.get(teamID)?.set(info.username, info)
-    })
-  },
   [TeamsGen.setMemberActivityDetails]: (draftState, action) => {
     action.payload.activityMap.forEach((lastActivity, teamID) => {
       if (!draftState.teamMemberToLastActivity.has(teamID)) {
@@ -416,4 +410,68 @@ export default Container.makeReducer<
   [TeamBuildingGen.changeSendNotification]: handleTeamBuilding,
   [TeamBuildingGen.finishTeamBuilding]: handleTeamBuilding,
   [TeamBuildingGen.setError]: handleTeamBuilding,
+  [EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial]: (draftState, action) => {
+    const {membership} = action.payload.params
+    const {guid, targetTeamID, targetUsername} = membership
+
+    const usernameMemberships = mapGetEnsureValue(
+      draftState.teamMemberToTreeMemberships,
+      targetTeamID,
+      new Map()
+    )
+
+    var memberships = usernameMemberships.get(targetUsername)
+    if (memberships && guid < memberships.guid) {
+      // noop
+      return
+    }
+    if (!memberships || guid > memberships.guid) {
+      // start over
+      memberships = {
+        guid,
+        memberships: [],
+        targetTeamID,
+        targetUsername,
+      }
+      usernameMemberships.set(targetUsername, memberships)
+    }
+    memberships.memberships.push(membership)
+
+    if (RPCTypes.TeamTreeMembershipStatus.ok == membership.result.s) {
+      const value = membership.result.ok
+      const sparseMemberInfos = mapGetEnsureValue(
+        draftState.treeLoaderTeamIDToSparseMemberInfos,
+        value.teamID,
+        new Map()
+      )
+      sparseMemberInfos.set(targetUsername, Constants.consumeTeamTreeMembershipValue(value))
+    }
+  },
+  [EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone]: (draftState, action) => {
+    const {result} = action.payload.params
+    const {guid, targetTeamID, targetUsername, expectedCount} = result
+
+    const usernameMemberships = mapGetEnsureValue(
+      draftState.teamMemberToTreeMemberships,
+      targetTeamID,
+      new Map()
+    )
+
+    var memberships = usernameMemberships.get(targetUsername)
+    if (memberships && guid < memberships.guid) {
+      // noop
+      return
+    }
+    if (!memberships || guid > memberships.guid) {
+      // start over
+      memberships = {
+        guid,
+        memberships: [],
+        targetTeamID,
+        targetUsername,
+      }
+      usernameMemberships.set(targetUsername, memberships)
+    }
+    memberships.expectedCount = expectedCount
+  },
 })

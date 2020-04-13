@@ -11,17 +11,22 @@ import (
 	"github.com/pkg/errors"
 )
 
+type fileBlockMapMemoryInfo struct {
+	pps   data.PathPartString
+	block *data.FileBlock
+}
+
 // fileBlockMapMemory is an internal structure to track file block
 // data in memory when putting blocks.
 type fileBlockMapMemory struct {
-	blocks map[data.BlockPointer]map[data.PathPartString]*data.FileBlock
+	blocks map[data.BlockPointer]map[string]fileBlockMapMemoryInfo
 }
 
 var _ fileBlockMap = (*fileBlockMapMemory)(nil)
 
 func newFileBlockMapMemory() *fileBlockMapMemory {
 	return &fileBlockMapMemory{
-		blocks: make(map[data.BlockPointer]map[data.PathPartString]*data.FileBlock),
+		blocks: make(map[data.BlockPointer]map[string]fileBlockMapMemoryInfo),
 	}
 }
 
@@ -30,10 +35,10 @@ func (fbmm *fileBlockMapMemory) putTopBlock(
 	childName data.PathPartString, topBlock *data.FileBlock) error {
 	nameMap, ok := fbmm.blocks[parentPtr]
 	if !ok {
-		nameMap = make(map[data.PathPartString]*data.FileBlock)
+		nameMap = make(map[string]fileBlockMapMemoryInfo)
 		fbmm.blocks[parentPtr] = nameMap
 	}
-	nameMap[childName] = topBlock
+	nameMap[childName.Plaintext()] = fileBlockMapMemoryInfo{childName, topBlock}
 	return nil
 }
 
@@ -44,12 +49,12 @@ func (fbmm *fileBlockMapMemory) GetTopBlock(
 	if !ok {
 		return nil, errors.Errorf("No such parent %s", parentPtr)
 	}
-	block, ok := nameMap[childName]
+	info, ok := nameMap[childName.Plaintext()]
 	if !ok {
 		return nil, errors.Errorf(
 			"No such name %s in parent %s", childName, parentPtr)
 	}
-	return block, nil
+	return info.block, nil
 }
 
 func (fbmm *fileBlockMapMemory) getFilenames(
@@ -60,8 +65,8 @@ func (fbmm *fileBlockMapMemory) getFilenames(
 		return nil, nil
 	}
 	names = make([]data.PathPartString, 0, len(nameMap))
-	for name := range nameMap {
-		names = append(names, name)
+	for _, info := range nameMap {
+		names = append(names, info.pps)
 	}
 	return names, nil
 }

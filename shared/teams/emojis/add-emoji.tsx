@@ -9,7 +9,6 @@ import * as FsTypes from '../../constants/types/fs'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
 import {AliasInput, Modal} from './common'
-import {pluralize} from '../../util/string'
 import useRPC from '../../util/use-rpc'
 import pickFiles from '../../util/pick-files'
 import kebabCase from 'lodash/kebabCase'
@@ -23,11 +22,14 @@ type Props = {
 }
 type RoutableProps = Container.RouteProps<Props>
 
-const filePathToDefaultAlias = (path: string) => {
-  const name = FsTypes.getLocalPathName(path)
-  const lastDot = name.lastIndexOf('.')
-  return kebabCase(lastDot > 0 ? name.slice(0, lastDot) : name)
-}
+// don't prefill on mobile since it's always a long random string.
+const filePathToDefaultAlias = Styles.isMobile
+  ? () => ''
+  : (path: string) => {
+      const name = FsTypes.getLocalPathName(path)
+      const lastDot = name.lastIndexOf('.')
+      return kebabCase(lastDot > 0 ? name.slice(0, lastDot) : name)
+    }
 
 const useDoAddEmojis = (
   conversationIDKey: ChatTypes.ConversationIDKey,
@@ -40,6 +42,7 @@ const useDoAddEmojis = (
   const addEmojisRpc = useRPC(RPCChatGen.localAddEmojisRpcPromise)
   const [waitingAddEmojis, setWaitingAddEmojis] = React.useState(false)
   const [bannerError, setBannerError] = React.useState('')
+  const clearBannerError = React.useCallback(() => setBannerError(''), [setBannerError])
   const doAddEmojis =
     conversationIDKey !== ChatConstants.noConversationIDKey
       ? () => {
@@ -55,21 +58,14 @@ const useDoAddEmojis = (
               },
             ],
             res => {
-              const failedFilenamesKeys = Object.keys(res.failedFilenames || {})
-
-              if (!failedFilenamesKeys.length) {
-                dispatch(RouteTreeGen.createClearModals())
+              if (res.successFilenames?.length) {
                 onChange?.()
+                removeFilePath(new Set(res.successFilenames))
               }
-
-              res.successFilenames && removeFilePath(new Set(res.successFilenames))
-              setErrors(new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key]])))
-              setBannerError(
-                `Failed to add ${failedFilenamesKeys.length} ${pluralize(
-                  'emojis',
-                  failedFilenamesKeys.length
-                )}.`
-              )
+              const failedFilenamesKeys = Object.keys(res.failedFilenames || {})
+              !failedFilenamesKeys.length && dispatch(RouteTreeGen.createClearModals())
+              setErrors(new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key].uidisplay])))
+              setBannerError(`Failed to add ${failedFilenamesKeys.length} emoji.`)
               setWaitingAddEmojis(false)
             },
             err => {
@@ -78,7 +74,7 @@ const useDoAddEmojis = (
           )
         }
       : undefined
-  return {bannerError, doAddEmojis, waitingAddEmojis}
+  return {bannerError, clearBannerError, doAddEmojis, waitingAddEmojis}
 }
 
 const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () => void) => {
@@ -88,14 +84,27 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
 
   const addFiles = React.useCallback(
     (paths: Array<string>) => {
+      const pathsToAdd = paths.reduce(
+        ({deduplicated, set}, path) => {
+          if (!set.has(path)) {
+            set.add(path)
+            deduplicated.push(path)
+          }
+          return {deduplicated, set}
+        },
+        {
+          deduplicated: [] as Array<string>,
+          set: new Set<string>(filePaths),
+        }
+      ).deduplicated
       setAliasMap(
-        paths.reduce(
+        pathsToAdd.reduce(
           (map: Map<string, string>, path) =>
             map.get(path) ? map : new Map([...map, [path, filePathToDefaultAlias(path)]]),
           aliasMap
         )
       )
-      setFilePaths([...filePaths, ...paths])
+      setFilePaths([...filePaths, ...pathsToAdd])
     },
     [filePaths, aliasMap, setFilePaths]
   )
@@ -103,10 +112,10 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
 
   const removeFilePath = React.useCallback(
     (toRemove: Set<string> | string) =>
-      setFilePaths(filePaths =>
+      setFilePaths(fps =>
         typeof toRemove === 'string'
-          ? filePaths.filter(filePath => toRemove !== filePath)
-          : filePaths.filter(filePath => !toRemove.has(filePath))
+          ? fps.filter(filePath => toRemove !== filePath)
+          : fps.filter(filePath => !toRemove.has(filePath))
       ),
     [setFilePaths]
   )
@@ -119,22 +128,28 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
         alias: aliasMap.get(path) || '',
         error: errors.get(path) || '',
         onChangeAlias: (newAlias: string) => setAliasMap(new Map([...aliasMap, [path, newAlias]])),
+        onRemove: () => removeFilePath(path),
         path,
       })),
-    [errors, filePaths, aliasMap]
+    [errors, filePaths, aliasMap, removeFilePath]
   )
 
-  const {bannerError, doAddEmojis, waitingAddEmojis} = useDoAddEmojis(
+  const {bannerError, clearBannerError, doAddEmojis, waitingAddEmojis} = useDoAddEmojis(
     conversationIDKey,
     emojisToAdd,
     setErrors,
     removeFilePath,
     onChange
   )
+  const clearErrors = React.useCallback(() => {
+    clearBannerError()
+    setErrors(new Map<string, string>())
+  }, [clearBannerError, setErrors])
 
   return {
     addFiles,
     bannerError,
+    clearErrors,
     clearFiles,
     doAddEmojis,
     emojisToAdd,
@@ -143,27 +158,24 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
   }
 }
 
-const debug = true
-
 export const AddEmojiModal = (props: Props) => {
-  const {addFiles, bannerError, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} = useStuff(
-    props.conversationIDKey,
-    props.onChange
-  )
+  const {
+    addFiles,
+    bannerError,
+    clearErrors,
+    clearFiles,
+    doAddEmojis,
+    emojisToAdd,
+    waitingAddEmojis,
+  } = useStuff(props.conversationIDKey, props.onChange)
   const pick = () => pickEmojisPromise().then(addFiles)
   return !emojisToAdd.length ? (
     <Modal
       title="Add emoji"
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
-      footerButtonLabel={Styles.isMobile ? 'Choose Images' : debug ? 'Add for debug' : undefined}
-      footerButtonOnClick={
-        Styles.isMobile
-          ? pick
-          : debug
-          ? () => addFiles([...Array(20).keys()].map(() => '/private/tmp/hot-potato.gif'))
-          : undefined
-      }
+      footerButtonLabel={Styles.isMobile ? 'Choose Images' : undefined}
+      footerButtonOnClick={Styles.isMobile ? pick : undefined}
     >
       <AddEmojiPrompt addFiles={addFiles} />
     </Modal>
@@ -176,7 +188,10 @@ export const AddEmojiModal = (props: Props) => {
       footerButtonLabel="Add emoji"
       footerButtonOnClick={doAddEmojis}
       footerButtonWaiting={waitingAddEmojis}
-      backButtonOnClick={clearFiles}
+      backButtonOnClick={() => {
+        clearErrors()
+        clearFiles()
+      }}
     >
       <AddEmojiAliasAndConfirm addFiles={addFiles} emojisToAdd={emojisToAdd} />
     </Modal>
@@ -269,6 +284,7 @@ type EmojiToAdd = {
   alias: string
   error: string
   onChangeAlias: (newAlias: string) => void
+  onRemove: () => void
   path: string
 }
 
@@ -312,6 +328,7 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
         error={item.emojiToAdd.error}
         alias={item.emojiToAdd.alias}
         onChangeAlias={item.emojiToAdd.onChangeAlias}
+        onRemove={item.emojiToAdd.onRemove}
         small={true}
       />
     </Kb.Box2>
@@ -356,7 +373,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
       onDrop={onDrop}
     >
       <Kb.Text style={styles.textChooseAlias} type="BodySmall">
-        Choose aliases for these emojis:
+        {items.length > 1 ? 'Choose aliases for these emoji:' : 'Choose an alias for this emoji:'}
       </Kb.Text>
       <Kb.BoxGrow>
         <Kb.List2
@@ -379,7 +396,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
 }
 
 const emojiToAddRowHeightNoError = Styles.isMobile ? 48 : 40
-const emojiToAddRowHeightWithError = Styles.isMobile ? 64 : 56
+const emojiToAddRowHeightWithError = Styles.isMobile ? 70 : 60
 
 const styles = Styles.styleSheetCreate(() => ({
   addEmojiIconContainer: Styles.platformStyles({

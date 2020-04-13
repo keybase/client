@@ -73,6 +73,7 @@ const ReactButton = (props: Props) => (
     <Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny" style={styles.container}>
       <Box2 direction="horizontal" style={styles.emojiWrapper}>
         <EmojiIfExists
+          paragraphTextClassName="noLineHeight"
           size={Styles.isMobile ? 16 : 18}
           lineClamp={1}
           emojiName={props.decorated.length ? props.decorated : props.emoji}

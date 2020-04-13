@@ -82,6 +82,7 @@ protocol local {
 
   record MessageHeadline {
     string headline;
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageFlip {
@@ -201,6 +202,7 @@ protocol local {
     boolean uploaded;            // true if assets have been uploaded   (V2)
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
+    map<string, HarvestedEmoji> emojis;
   }
 
   record MessageAttachmentUploaded {
@@ -601,6 +603,7 @@ protocol local {
     string tlfName;
     string topicName;
     string headline;
+    array<HarvestedEmoji> headlineEmojis;
     union { null, MessageUnboxed } snippetMsg;
     union { null, ConversationPinnedMessage } pinnedMsg;
     union { null, string } draft;
@@ -1395,22 +1398,29 @@ protocol local {
   gregor1.Time getLastActiveAtLocal(keybase1.TeamID teamID, string username);
   map<keybase1.TeamID, gregor1.Time> getLastActiveAtMultiLocal(array<keybase1.TeamID> teamIDs, string username);
 
+  array<ConversationLocalParticipant> getParticipants(ConversationID convID);
+
   // Emoji
+  record EmojiError {
+    string clidisplay;
+    string uidisplay;
+  }
   record AddEmojiRes {
     union { null, RateLimit } rateLimit;
+    union {null, EmojiError} error;
   }
   AddEmojiRes addEmoji(ConversationID convID, string alias, string filename, boolean allowOverwrite);
 
   record AddEmojisRes {
     union { null, RateLimit } rateLimit;
     array<string> successFilenames;
-    map<string, string> failedFilenames; // filename => error message
+    map<string, EmojiError> failedFilenames; // filename => error message
   }
   AddEmojisRes addEmojis(ConversationID convID, array<string> aliases, array<string> filenames, array<boolean> allowOverwrite);
 
   record AddEmojiAliasRes {
     union { null, RateLimit } rateLimit;
-    union {null, string} errorString;
+    union {null, EmojiError} error;
   }
   AddEmojiAliasRes addEmojiAlias(ConversationID convID, string newAlias, string existingAlias);
 

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -1369,6 +1370,7 @@ type MessageClientHeader struct {
 	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
 	PairwiseMacs      map[keybase1.KID][]byte  `codec:"pm" json:"pm"`
 	BotUID            *gregor1.UID             `codec:"b,omitempty" json:"b,omitempty"`
+	TxID              *stellar1.TransactionID  `codec:"t,omitempty" json:"t,omitempty"`
 }
 
 func (o MessageClientHeader) DeepCopy() MessageClientHeader {
@@ -1468,6 +1470,13 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.BotUID),
+		TxID: (func(x *stellar1.TransactionID) *stellar1.TransactionID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TxID),
 	}
 }
 
@@ -2546,6 +2555,100 @@ func (e LastActiveStatus) String() string {
 		return v
 	}
 	return fmt.Sprintf("%v", int(e))
+}
+
+type ChatMemberDetails struct {
+	Uid      keybase1.UID      `codec:"uid" json:"uid"`
+	Username string            `codec:"username" json:"username"`
+	FullName keybase1.FullName `codec:"fullName" json:"fullName"`
+}
+
+func (o ChatMemberDetails) DeepCopy() ChatMemberDetails {
+	return ChatMemberDetails{
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+		FullName: o.FullName.DeepCopy(),
+	}
+}
+
+type ChatMembersDetails struct {
+	Owners         []ChatMemberDetails `codec:"owners" json:"owners"`
+	Admins         []ChatMemberDetails `codec:"admins" json:"admins"`
+	Writers        []ChatMemberDetails `codec:"writers" json:"writers"`
+	Readers        []ChatMemberDetails `codec:"readers" json:"readers"`
+	Bots           []ChatMemberDetails `codec:"bots" json:"bots"`
+	RestrictedBots []ChatMemberDetails `codec:"restrictedBots" json:"restrictedBots"`
+}
+
+func (o ChatMembersDetails) DeepCopy() ChatMembersDetails {
+	return ChatMembersDetails{
+		Owners: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Owners),
+		Admins: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Admins),
+		Writers: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Writers),
+		Readers: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Readers),
+		Bots: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Bots),
+		RestrictedBots: (func(x []ChatMemberDetails) []ChatMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RestrictedBots),
+	}
 }
 
 type CommonInterface interface {

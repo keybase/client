@@ -151,6 +151,9 @@ module.exports = {
   get LabeledInput() {
     return Index.LabeledInput
   },
+  get LayoutAnimation() {
+    return require('react-native').LayoutAnimation
+  },
   get List() {
     return Index.List
   },

@@ -2,7 +2,6 @@ package teams
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -26,27 +25,6 @@ const seitanEncodedIKeyV2PlusOffset = 6
 
 // "Invite Key Version 2"
 type SeitanIKeyV2 string
-
-// IsSeitany is a very conservative check of whether a given string looks
-// like a Seitan token. We want to err on the side of considering strings
-// Seitan tokens, since we don't mistakenly want to send botched Seitan
-// tokens to the server.
-func IsSeitany(s string) bool {
-	return len(s) > seitanEncodedIKeyInvitelinkPlusOffset && strings.IndexByte(s, '+') > 1
-}
-
-func ParseSeitanVersion(s string) (version SeitanVersion, err error) {
-	if !IsSeitany(s) {
-		return version, errors.New("Invalid token, not seitany")
-	} else if s[seitanEncodedIKeyPlusOffset] == '+' {
-		return SeitanVersion1, nil
-	} else if s[seitanEncodedIKeyV2PlusOffset] == '+' {
-		return SeitanVersion2, nil
-	} else if s[seitanEncodedIKeyInvitelinkPlusOffset] == '+' {
-		return SeitanVersionInvitelink, nil
-	}
-	return version, errors.New("Invalid token, invalid '+' position")
-}
 
 func GenerateIKeyV2() (ikey SeitanIKeyV2, err error) {
 	str, err := generateIKey(SeitanEncodedIKeyLength, seitanEncodedIKeyV2PlusOffset)

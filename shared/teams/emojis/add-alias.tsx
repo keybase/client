@@ -71,8 +71,8 @@ export const AddAliasModal = (props: Props) => {
           ],
           res => {
             setAddAliasWaiting(false)
-            if (res.errorString) {
-              setError(res.errorString)
+            if (res.error) {
+              setError(res.error.uidisplay)
               return
             }
             dispatch(RouteTreeGen.createClearModals())
@@ -102,16 +102,24 @@ export const AddAliasModal = (props: Props) => {
             <ChooseEmoji conversationIDKey={props.conversationIDKey} onChoose={onChoose} />
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          gap="tiny"
+          style={Styles.collapseStyles([!emoji && styles.opacity40])}
+        >
           <Kb.Text type="BodySemibold">Enter an alias:</Kb.Text>
-          <AliasInput
-            ref={aliasInputRef}
-            error={error}
-            alias={alias}
-            onChangeAlias={setAlias}
-            onEnterKeyDown={doAddAlias}
-            small={false}
-          />
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <AliasInput
+              ref={aliasInputRef}
+              error={error}
+              disabled={!emoji}
+              alias={alias}
+              onChangeAlias={setAlias}
+              onEnterKeyDown={doAddAlias}
+              small={false}
+            />
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     </Modal>
@@ -215,6 +223,9 @@ const styles = Styles.styleSheetCreate(() => ({
     borderRadius: Styles.globalMargins.xtiny,
     height: emojiWidthWithPadding,
     width: emojiWidthWithPadding,
+  },
+  opacity40: {
+    opacity: 0.4,
   },
 }))
 

@@ -3,6 +3,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
+import * as TeamConstants from '../constants/teams'
 import TeamBox from './team-box'
 import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
@@ -738,6 +739,7 @@ class TeamBuilding extends React.PureComponent<Props> {
         searchString={props.searchString}
         rolePickerProps={props.rolePickerProps}
         goButtonLabel={props.goButtonLabel}
+        waitingKey={props.teamID ? TeamConstants.teamWaitingKey(props.teamID) : null}
       />
     )
 

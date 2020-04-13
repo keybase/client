@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 31
+const inboxVersion = 32
 
 type InboxFlushMode int
 
@@ -465,6 +465,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			Name:              convLocal.Info.TlfName,
 			TopicName:         topicName,
 			Headline:          convLocal.Info.Headline,
+			HeadlineEmojis:    convLocal.Info.HeadlineEmojis,
 			Snippet:           snippet,
 			SnippetDecoration: snippetDecoration,
 		}

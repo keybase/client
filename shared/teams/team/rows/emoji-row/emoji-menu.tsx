@@ -3,25 +3,30 @@ import * as Kb from '../../../../common-adapters'
 
 type Props = {
   attachTo?: () => React.Component<any> | null
-  onAddAlias: () => void
+  onAddAlias?: () => void
   onRemove?: () => void
   onHidden: () => void
   visible: boolean
+  isAlias: boolean
 }
 
 const EmojiMenu = (props: Props) => {
   const items: Kb.MenuItems = [
-    {
-      onClick: props.onAddAlias,
-      title: 'Add alias',
-    },
+    ...(props.onAddAlias
+      ? [
+          {
+            onClick: props.onAddAlias,
+            title: 'Add alias',
+          },
+        ]
+      : []),
     ...(props.onRemove
       ? [
           {
             danger: true,
             icon: 'iconfont-remove',
             onClick: props.onRemove,
-            title: 'Delete emoji',
+            title: props.isAlias ? 'Delete alias' : 'Delete emoji',
           } as const,
         ]
       : []),

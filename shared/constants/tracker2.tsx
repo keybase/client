@@ -212,3 +212,7 @@ export const guiIDToUsername = (state: Types.State, guiID: string) => {
   const det = [...state.usernameToDetails.values()].find(d => d.guiID === guiID)
   return det ? det.username : null
 }
+
+// when suggestions are implemented, we'll probably want to show rejected entries if they have a suggestion
+export const showableWotEntry = (entry: Types.WebOfTrustEntry): boolean =>
+  entry.status in [RPCTypes.WotStatusType.accepted, RPCTypes.WotStatusType.proposed]

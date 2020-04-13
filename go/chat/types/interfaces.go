@@ -401,7 +401,7 @@ type AttachmentFetcher interface {
 
 type AttachmentURLSrv interface {
 	GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-		preview, noAnim bool) string
+		preview, noAnim, isEmoji bool) string
 	GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string
 	GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset) string
 	GetGiphyURL(ctx context.Context, giphyURL string) string
@@ -615,6 +615,7 @@ type ParticipantSource interface {
 		dataSource InboxSourceDataSourceTyp) chan ParticipantResult
 	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		dataSource InboxSourceDataSourceTyp)
+	GetParticipantsFromUids(ctx context.Context, uids []gregor1.UID) ([]chat1.ConversationLocalParticipant, error)
 }
 
 type EmojiSource interface {
@@ -623,13 +624,14 @@ type EmojiSource interface {
 		newAlias, existingAlias string) (chat1.EmojiRemoteSource, error)
 	Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, alias string) error
 	Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, opts chat1.EmojiFetchOpts) (chat1.UserEmojis, error)
-	Decorate(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
-		messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string
+	Decorate(ctx context.Context, body string, uid gregor1.UID, messageType chat1.MessageType,
+		emojis []chat1.HarvestedEmoji) string
 	Harvest(ctx context.Context, body string, uid gregor1.UID, convID chat1.ConversationID,
 		mode EmojiHarvestMode) ([]chat1.HarvestedEmoji, error)
 	IsStockEmoji(alias string) bool
 	RemoteToLocalSource(ctx context.Context, uid gregor1.UID, remote chat1.EmojiRemoteSource) (chat1.EmojiLoadSource, chat1.EmojiLoadSource, error)
 	ToggleAnimations(ctx context.Context, uid gregor1.UID, enabled bool) error
+	IsValidSize(size int64) bool
 }
 
 type EphemeralTracker interface {

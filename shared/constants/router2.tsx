@@ -39,6 +39,15 @@ const findModalRoute = (s: NavState) => {
 
   return loggedInOut.routes ? loggedInOut.routes.slice(1) : []
 }
+const findMainRoute = (s: NavState) => {
+  if (!s) return []
+  const loggedInOut = s.routes && s.routes[s.index]
+  if (!loggedInOut || !(loggedInOut.routeName === 'loggedIn' || loggedInOut.routeName === 'loggedOut')) {
+    return []
+  }
+
+  return _getStackPathHelper([], loggedInOut)
+}
 
 // this returns the full path as seen from a stack. So if you pop you'll go up
 // this path stack
@@ -91,6 +100,10 @@ export const getVisiblePath = () => {
   return findVisibleRoute([], _navigator.getNavState())
 }
 
+export const getMainStack = () => {
+  if (!_navigator) return []
+  return findMainRoute(_navigator.getNavState())
+}
 export const getModalStack = () => {
   if (!_navigator) return []
   return findModalRoute(_navigator.getNavState())

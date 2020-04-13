@@ -149,6 +149,7 @@ type TeamInviteLinkDetails struct {
 	TeamName          string                                       `json:"team_name"`
 	TeamNumMembers    int                                          `json:"team_num_members"`
 	TeamAvatars       map[keybase1.AvatarFormat]keybase1.AvatarUrl `json:"team_avatars"`
+	TeamIsOpen        bool                                         `json:"team_is_open"`
 }
 
 func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID) (info keybase1.InviteLinkDetails, err error) {
@@ -162,7 +163,8 @@ func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID
 
 	var resp TeamInviteLinkDetails
 	if err = mctx.G().API.GetDecode(mctx, arg, &resp); err != nil {
-		// the server knows about invite ids (but not keys), so it is fine to put this in the log.
+		// The server knows about invite IDs (but not keys), so it is fine to
+		// put this in the log.
 		mctx.Debug("GetInviteLinkDetails: failed to get team invite details for %v: %s", inviteID, err)
 		return info, err
 	}
@@ -182,5 +184,6 @@ func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID
 		TeamDesc:          resp.TeamDescription,
 		TeamNumMembers:    resp.TeamNumMembers,
 		TeamAvatars:       resp.TeamAvatars,
+		TeamIsOpen:        resp.TeamIsOpen,
 	}, nil
 }

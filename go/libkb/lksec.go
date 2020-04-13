@@ -6,6 +6,7 @@ package libkb
 import (
 	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -406,6 +407,11 @@ func (s *LKSec) Decrypt(m MetaContext, src []byte) (res []byte, gen PassphraseGe
 	data, nonce := splitCiphertext(src)
 	res, ok = secretbox.Open(nil, data, nonce, s.secret.f)
 	if !ok {
+		secretHash := sha256.New()
+		_, _ = secretHash.Write((*s.secret.f)[:])
+		m.Debug("secretbox.Open failed: used a secret of length %d", len(s.secret.f))
+		m.Debug("secretbox.Open failed: used secret of hash prefix %x and nonce prefix %x",
+			secretHash.Sum(nil)[:4], nonce[:4])
 		m.Debug("secretbox.Open failed: attempting recovery")
 		return s.attemptBug3964Recovery(m, data, nonce)
 	}

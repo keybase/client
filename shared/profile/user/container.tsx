@@ -23,8 +23,9 @@ const connected = Container.namedConnect(
   (state, ownProps: OwnProps) => {
     const username = Container.getRouteProps(ownProps, 'username', '')
     const d = Constants.getDetails(state, username)
+    const myName = state.config.username
     const notAUser = d.state === 'notAUserYet'
-    const userIsYou = username === state.config.username
+    const userIsYou = username === myName
 
     const commonProps = {
       _assertions: undefined,
@@ -38,6 +39,7 @@ const connected = Container.namedConnect(
       fullName: '',
       guiID: d.guiID,
       hidFromFollowers: d.hidFromFollowers,
+      myName,
       name: '',
       reason: d.reason,
       service: '',
@@ -50,6 +52,7 @@ const connected = Container.namedConnect(
       // Keybase user
       const followThem = Constants.followThem(state, username)
       const {followersCount, followingCount, followers, following, reason, webOfTrustEntries} = d
+      const mutualFollow = followThem && Constants.followsYou(state, username)
 
       return {
         ...commonProps,
@@ -61,11 +64,12 @@ const connected = Container.namedConnect(
         followersCount,
         following,
         followingCount,
+        mutualFollow,
         reason,
         sbsAvatarUrl: undefined,
         serviceIcon: undefined,
         title: username,
-        webOfTrustEntries,
+        webOfTrustEntries: webOfTrustEntries || [],
       }
     } else {
       // SBS profile. But `nonUserDetails` might not have arrived yet,
@@ -82,6 +86,7 @@ const connected = Container.namedConnect(
         ...commonProps,
         backgroundColorType: headerBackgroundColorType(d.state, false),
         fullName: nonUserDetails.fullName,
+        mutualFollow: false,
         name,
         sbsAvatarUrl: nonUserDetails.pictureUrl || undefined,
         service,
@@ -138,6 +143,10 @@ const connected = Container.namedConnect(
       assertionKeys = []
     }
 
+    const filteredWot = stateProps.webOfTrustEntries.filter(Constants.showableWotEntry)
+    const hasNotAlreadyVouched = filteredWot.every(entry => entry.attestingUser !== stateProps.myName)
+    const promptForVouch = stateProps.mutualFollow && hasNotAlreadyVouched
+
     return {
       assertionKeys,
       backgroundColorType: stateProps.backgroundColorType,
@@ -154,7 +163,7 @@ const connected = Container.namedConnect(
       onAddIdentity,
       onBack: dispatchProps.onBack,
       onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : undefined,
-      onIKnowThem: stateProps.userIsYou ? undefined : () => dispatchProps._onIKnowThem(stateProps.username),
+      onIKnowThem: promptForVouch ? () => dispatchProps._onIKnowThem(stateProps.username) : undefined,
       onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
       reason: stateProps.reason,
       sbsAvatarUrl: stateProps.sbsAvatarUrl,
@@ -167,7 +176,7 @@ const connected = Container.namedConnect(
       title: stateProps.title,
       userIsYou: stateProps.userIsYou,
       username: stateProps.username,
-      webOfTrustEntries: stateProps.webOfTrustEntries || [],
+      webOfTrustEntries: filteredWot,
     }
   },
   'Profile2'

@@ -20,6 +20,7 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
 // Add granularity as necessary
 export const teamsLoadedWaitingKey = 'teams:loaded'
 export const teamsAccessRequestWaitingKey = 'teams:accessRequests'
+export const joinTeamWaitingKey = 'teams:joinTeam'
 export const teamWaitingKey = (teamID: Types.TeamID) => `team:${teamID}`
 
 export const setMemberPublicityWaitingKey = (teamID: Types.TeamID) => `teamMemberPub:${teamID}`
@@ -52,10 +53,8 @@ export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${te
 export const teamRenameWaitingKey = 'teams:rename'
 export const loadWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `loadWelcomeMessage:${teamID}`
 export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcomeMessage:${teamID}`
-export const loadSubteamMembershipsWaitingKey = (teamID: Types.TeamID, username: string) =>
-  `loadSubteamMemberships:${teamID};${username}`
-export const loadSubteamActivityWaitingKey = (teamID: Types.TeamID, username: string) =>
-  `loadSubteamActivity:${teamID};${username}`
+export const loadTeamTreeActivityWaitingKey = (teamID: Types.TeamID, username: string) =>
+  `loadTeamTreeActivity:${teamID};${username}`
 export const editMembershipWaitingKey = (teamID: Types.TeamID, username: string) =>
   `editMembership:${teamID};${username}`
 export const updateChannelNameWaitingKey = (teamID: Types.TeamID) => `updateChannelName:${teamID}`
@@ -188,7 +187,7 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
 export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, username: ''}
 
 const emptyState: Types.State = {
-  activityLevels: {channels: new Map(), teams: new Map()},
+  activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
@@ -225,7 +224,7 @@ const emptyState: Types.State = {
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
   teamMemberToLastActivity: new Map(),
-  teamMemberToSubteams: new Map(),
+  teamMemberToTreeMemberships: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
   teamMetaSubscribeCount: 0,
@@ -238,6 +237,7 @@ const emptyState: Types.State = {
   teamVersion: new Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
+  treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
 
 export const makeState = (s?: Partial<Types.State>): Types.State =>
@@ -250,6 +250,7 @@ export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
   createChannel: false,
   deleteChannel: false,
   deleteChatHistory: false,
+  deleteOtherEmojis: false,
   deleteOtherMessages: false,
   deleteTeam: false,
   editChannelDescription: false,
@@ -257,6 +258,7 @@ export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
   joinTeam: false,
   listFirst: false,
   manageBots: false,
+  manageEmojis: false,
   manageMembers: false,
   manageSubteams: false,
   pinMessage: false,
@@ -701,12 +703,6 @@ export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
       })
     : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
 
-export const getTeamMembership = (
-  state: TypedState,
-  teamID: Types.TeamID,
-  username: string
-): Types.MemberInfo | null => state.teams.teamMemberToSubteams.get(teamID)?.get(username) ?? null
-
 export const getTeamMemberLastActivity = (
   state: TypedState,
   teamID: Types.TeamID,
@@ -827,20 +823,6 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
   }
 }
 
-export const subteamDetailsToMemberInfo = (
-  username: string,
-  t: RPCTypes.AnnotatedSubteamMemberDetails
-): Types.MemberInfo => {
-  const maybeRole = teamRoleByEnum[t.role]
-  return {
-    fullName: t.details.fullName,
-    joinTime: t.details.joinTime || undefined,
-    status: rpcMemberStatusToStatus[t.details.status],
-    type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
-    username,
-  }
-}
-
 export const canShowcase = (state: TypedState, teamID: Types.TeamID) => {
   const role = getRole(state, teamID)
   return getTeamMeta(state, teamID).allowPromote || role === 'admin' || role === 'owner'
@@ -869,6 +851,7 @@ const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Types.Team
     createChannel: isWriterOrAbove,
     deleteChannel: isAdminOrAbove,
     deleteChatHistory: isAdminOrAbove,
+    deleteOtherEmojis: isAdminOrAbove,
     deleteOtherMessages: isAdminOrAbove,
     deleteTeam: role === 'owner' || implicitAdmin, // role = owner for root teams, otherwise implicitAdmin
     editChannelDescription: isWriterOrAbove,
@@ -876,6 +859,7 @@ const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Types.Team
     joinTeam: role === 'none' && implicitAdmin,
     listFirst: implicitAdmin,
     manageBots: isAdminOrAbove || implicitAdmin,
+    manageEmojis: isWriterOrAbove,
     manageMembers: isAdminOrAbove || implicitAdmin,
     manageSubteams: isAdminOrAbove || implicitAdmin,
     pinMessage: isWriterOrAbove,
@@ -896,26 +880,6 @@ export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Type
 
 export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
   deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
-
-export const getSubteamsInNotIn = (state: TypedState, teamID: Types.TeamID, username: string) => {
-  const subteamsAll = getTeamDetails(state, teamID).subteams
-  const subteamsNotIn: Array<Types.TeamMeta> = []
-  const subteamsIn: Array<Types.TeamMeta> = []
-  subteamsAll.forEach(subteamID => {
-    const subteamDetails = getTeamDetails(state, subteamID)
-    const subteamMeta = getTeamMeta(state, subteamID)
-    const memberInSubteam = subteamDetails.members.has(username)
-    if (memberInSubteam) {
-      subteamsIn.push(subteamMeta)
-    } else {
-      subteamsNotIn.push(subteamMeta)
-    }
-  })
-  return {
-    subteamsIn,
-    subteamsNotIn,
-  }
-}
 
 // Don't allow version to roll back
 export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: Types.TeamVersion) =>
@@ -961,4 +925,24 @@ export const stringifyPeople = (people: string[]): string => {
     default:
       return `${people[0]}, ${people[1]}, and ${people.length - 2} others`
   }
+}
+
+export const consumeTeamTreeMembershipValue = (
+  value: RPCTypes.TeamTreeMembershipValue
+): Types.TreeloaderSparseMemberInfo => {
+  return {
+    joinTime: value.joinTime ?? undefined,
+    type: teamRoleByEnum[value.role] || 'none',
+  }
+}
+
+// maybeGetSparseMemberInfo first looks in the details, which should be kept up-to-date, then looks
+// in the treeloader-powered map (which can go stale) as a backup. If it returns null, it means we
+// don't know the answer (yet). If it returns type='none', that means the user is not in the team.
+export const maybeGetSparseMemberInfo = (state: TypedState, teamID, username) => {
+  const details = state.teams.teamDetails.get(teamID)
+  if (details) {
+    return details.members.get(username) ?? {type: 'none'}
+  }
+  return state.teams.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
 }

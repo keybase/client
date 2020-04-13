@@ -78,7 +78,7 @@ class SelectOtherDevice extends React.Component<Props> {
         title={
           this.props.passwordRecovery
             ? 'Recover password'
-            : `Authorize this ${Styles.isMobile ? 'phone' : 'computer'}`
+            : `Authorize this ${Styles.isMobile ? 'device' : 'computer'}`
         }
         contentContainerStyle={Styles.padding(0)}
       >

@@ -342,13 +342,9 @@ func (t TeamSigChainState) GetAllUVsWithUID(uid keybase1.UID) (res []keybase1.Us
 }
 
 func (t TeamSigChainState) GetAllUVs() (res []keybase1.UserVersion) {
-	for uv := range t.inner.UserLog {
-		if t.getUserRole(uv) != keybase1.TeamRole_NONE {
-			res = append(res, uv)
-		}
-	}
-	return res
+	return t.inner.GetAllUVs()
 }
+
 func (t TeamSigChainState) GetLatestPerTeamKey(mctx libkb.MetaContext) (res keybase1.PerTeamKey, err error) {
 	res, _, err = t.getLatestPerTeamKeyWithMerkleSeqno(mctx)
 	return res, err

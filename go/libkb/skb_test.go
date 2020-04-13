@@ -103,7 +103,7 @@ func testPromptAndUnlock(t *testing.T, m MetaContext, skb *SKB) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true},
 	}
-	ss := NewSecretStore(m.G(), "testusername")
+	ss := NewSecretStore(m, "testusername")
 	require.NotNil(t, ss)
 	key, err := skb.PromptAndUnlock(m, parg, ss, nil)
 	require.NoError(t, err)
@@ -226,7 +226,7 @@ func TestPromptCancelCache(t *testing.T) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "passphrase"},
 	}
-	key, err := skb.PromptAndUnlock(NewMetaContextTODO(tc.G), parg, NewSecretStore(tc.G, "testusername"), nil)
+	key, err := skb.PromptAndUnlock(m, parg, NewSecretStore(m, "testusername"), nil)
 	require.NoError(t, err)
 	require.NotNil(t, key)
 }
@@ -237,7 +237,8 @@ func testErrUnlock(t *testing.T, skb *SKB, ui *TestCancelSecretUI) error {
 		SecretUI:       ui,
 		UseCancelCache: true,
 	}
-	key, err := skb.PromptAndUnlock(NewMetaContextTODO(skb.G()), parg, NewSecretStore(skb.G(), "testusername"), nil)
+	mctx := NewMetaContextTODO(skb.G())
+	key, err := skb.PromptAndUnlock(mctx, parg, NewSecretStore(mctx, "testusername"), nil)
 	require.Error(t, err)
 	require.Nil(t, key)
 	return err

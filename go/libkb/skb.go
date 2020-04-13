@@ -209,6 +209,7 @@ func (s *SKB) RawUnlockedKey() []byte {
 }
 
 func (s *SKB) unlockSecretKeyFromSecretRetriever(m MetaContext, secretRetriever SecretRetriever) (key GenericKey, err error) {
+	defer m.Trace("SKB#unlockSecretKeyFromSecretRetriever", func() error { return err })()
 	if key = s.decryptedSecret; key != nil {
 		return
 	}
@@ -354,6 +355,7 @@ func (s *SKB) lksUnlock(m MetaContext, pps *PassphraseStream, secretStorer Secre
 }
 
 func (s *SKB) lksUnlockWithSecretRetriever(m MetaContext, secretRetriever SecretRetriever) (unlocked []byte, err error) {
+	defer m.Trace("SKB#lksUnlockWithSecretRetriever", func() error { return err })()
 	secret, err := secretRetriever.RetrieveSecret(m)
 	if err != nil {
 		return
@@ -363,6 +365,9 @@ func (s *SKB) lksUnlockWithSecretRetriever(m MetaContext, secretRetriever Secret
 	}
 	lks := NewLKSecWithFullSecret(secret, s.uid)
 	unlocked, _, _, err = lks.Decrypt(m, s.Priv.Data)
+	if err != nil {
+		m.Debug("SKB#lksUnlockWithSecretRetriever: failed in lks.Decrypt with uid %q", s.uid)
+	}
 
 	return
 }
