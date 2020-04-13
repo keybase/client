@@ -1084,7 +1084,6 @@ export type IconType =
   | 'iconfont-upload'
   | 'iconfont-upload-2'
   | 'iconfont-user-block'
-  | 'iconfont-usercard'
   | 'iconfont-verify'
   | 'iconfont-video-library'
   | 'iconfont-wallet-transfer'
@@ -10346,11 +10345,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-user-block': {
     charCode: 0xe9a4,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-usercard': {
-    charCode: 0xe968,
     gridSize: 16,
     isFont: true,
   },
