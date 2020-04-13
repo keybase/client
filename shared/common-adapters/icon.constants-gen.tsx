@@ -970,8 +970,8 @@ export type IconType =
   | 'iconfont-edit'
   | 'iconfont-ellipsis'
   | 'iconfont-emoji'
-  | 'iconfont-emoji-solid'
   | 'iconfont-envelope'
+  | 'iconfont-envelope-solid'
   | 'iconfont-exclamation'
   | 'iconfont-expand'
   | 'iconfont-file'
@@ -9779,13 +9779,13 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-emoji-solid': {
-    charCode: 0xe9c1,
+  'iconfont-envelope': {
+    charCode: 0xe9b5,
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-envelope': {
-    charCode: 0xe9b5,
+  'iconfont-envelope-solid': {
+    charCode: 0xe9c2,
     gridSize: 16,
     isFont: true,
   },
