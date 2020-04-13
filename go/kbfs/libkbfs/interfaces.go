@@ -176,6 +176,15 @@ type NodeFSReadOnly interface {
 	Lstat(filename string) (os.FileInfo, error)
 	// Readlink returns the target path of link.
 	Readlink(link string) (string, error)
+	// Open opens the named file for reading. If successful, methods on the
+	// returned file can be used for reading; the associated file descriptor has
+	// mode O_RDONLY.
+	Open(filename string) (billy.File, error)
+	// OpenFile is the generalized open call; most users will use Open or Create
+	// instead. It opens the named file with specified flag (O_RDONLY etc.) and
+	// perm, (0666 etc.) if applicable. If successful, methods on the returned
+	// File can be used for I/O.
+	OpenFile(filename string, flags int, mode os.FileMode) (billy.File, error)
 }
 
 // Node represents a direct pointer to a file or directory in KBFS.

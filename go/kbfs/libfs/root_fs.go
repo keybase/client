@@ -38,7 +38,8 @@ var _ billy.Filesystem = (*RootFS)(nil)
 ///// Read-only functions:
 
 var rootWrappedNodeNames = map[string]bool{
-	StatusFileName: true,
+	StatusFileName:     true,
+	ProfileListDirName: true,
 }
 
 // Open implements the billy.Filesystem interface for RootFS.
@@ -96,6 +97,9 @@ func (rfs *RootFS) Lstat(filename string) (fi os.FileInfo, err error) {
 			log: rfs.log,
 		}
 		return wrf.GetInfo(), nil
+	case ProfileListDirName:
+		return &wrappedReadFileInfo{
+			filename, 0, rfs.config.Clock().Now(), true}, nil
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", filename))
 	}
@@ -113,11 +117,12 @@ func (rfs *RootFS) Join(elem ...string) string {
 
 // ReadDir implements the billy.Filesystem interface for RootFS.
 func (rfs *RootFS) ReadDir(p string) (fis []os.FileInfo, err error) {
-	if p == "" {
-		p = "."
-	}
-
-	if p != "." {
+	switch p {
+	case ProfileListDirName:
+		return NewProfileFS(rfs.config).ReadDir("")
+	case "", ".":
+		// Fall through.
+	default:
 		return nil, os.ErrNotExist
 	}
 
@@ -135,9 +140,12 @@ func (rfs *RootFS) Readlink(_ string) (target string, err error) {
 }
 
 // Chroot implements the billy.Filesystem interface for RootFS.
-func (rfs *RootFS) Chroot(_ string) (newFS billy.Filesystem, err error) {
-	// Don't allow chroot'ing anywhere outside of the root FS since we
-	// haven't yet implemented folderlist browsing.
+func (rfs *RootFS) Chroot(p string) (newFS billy.Filesystem, err error) {
+	if p == ProfileListDirName {
+		return dummyFSReadOnly{ProfileFS{rfs.config}}, nil
+	}
+	// Don't allow chroot'ing anywhere elsewhere outside of the root
+	// FS since we haven't yet implemented folderlist browsing.
 	return nil, errors.New("RootFS cannot chroot")
 }
 

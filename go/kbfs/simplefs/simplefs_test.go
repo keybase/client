@@ -735,7 +735,11 @@ func readRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyba
 		Size:   de.Size * 2, // Check that reading past the end works.
 	})
 	require.NoError(t, err)
-	if de.DirentType != keybase1.DirentType_SYM {
+
+	// Profile sizes are dynamic.  For now just read something from
+	// it, to test that it's not empty.
+	isProfile := strings.Contains(path.String(), libfs.ProfileListDirName)
+	if de.DirentType != keybase1.DirentType_SYM && !isProfile {
 		require.Len(t, data.Data, de.Size)
 	}
 
@@ -746,7 +750,9 @@ func readRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyba
 		Size:   de.Size,
 	})
 	require.NoError(t, err)
-	require.Len(t, dataPastEnd.Data, 0)
+	if !isProfile {
+		require.Len(t, dataPastEnd.Data, 0)
+	}
 
 	return data.Data
 }
@@ -1763,4 +1769,33 @@ func TestBadgeState(t *testing.T) {
 	require.Equal(t, keybase1.FilesTabBadge_UPLOADING_STUCK, badge)
 
 	jManager.ResumeBackgroundWork(ctx, tlfID)
+}
+
+func TestProfiles(t *testing.T) {
+	ctx := context.Background()
+	sfs := newSimpleFS(
+		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+	libfs.AddRootWrapper(sfs.config)
+
+	t.Log("Root-level profiles")
+	path := keybase1.NewPathWithKbfsPath("/" + libfs.ProfileListDirName)
+	testListWithFilterAndUsername(
+		ctx, t, sfs, path, keybase1.ListFilter_NO_FILTER, "",
+		libfs.ListProfileNames()...)
+	buf := readRemoteFile(ctx, t, sfs, pathAppend(path, "goroutine"))
+	require.NotEmpty(t, buf)
+
+	t.Log("In-TLF profiles")
+	// Create TLF first.
+	pathPriv := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `test.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	path = pathAppend(pathPriv, libfs.ProfileListDirName)
+	testListWithFilterAndUsername(
+		ctx, t, sfs, path, keybase1.ListFilter_NO_FILTER, "",
+		libfs.ListProfileNames()...)
+	buf = readRemoteFile(ctx, t, sfs, pathAppend(path, "goroutine"))
+	require.NotEmpty(t, buf)
 }
