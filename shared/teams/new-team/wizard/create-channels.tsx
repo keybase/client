@@ -9,7 +9,7 @@ import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
 
 type Props = {
-  onContinue?: () => void
+  onSubmitChannels?: (channels: Array<string>) => void
 }
 
 const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
@@ -39,13 +39,15 @@ const CreateChannel = (props: Props) => {
     setChannels([...channels])
   }
 
-  const onContinue = props.onContinue
-    ? props.onContinue
-    : () => dispatch(TeamsGen.createSetTeamWizardChannels({channels: channels.filter(c => !!c)}))
+  const filteredChannels = channels.filter(c => c.trim())
+  const onContinue = () =>
+    props.onSubmitChannels
+      ? props.onSubmitChannels(filteredChannels)
+      : dispatch(TeamsGen.createSetTeamWizardChannels({channels: filteredChannels}))
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
-  const numChannels = channels.filter(c => !!c.trim()).length
+  const numChannels = filteredChannels.length
   const continueLabel = numChannels
     ? `Continue with ${numChannels} ${pluralize('channel', numChannels)}`
     : 'Continue without channels'
