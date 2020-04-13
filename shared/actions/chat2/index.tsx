@@ -1029,7 +1029,7 @@ function* loadMoreMessages(
   let messageIDControl: RPCChatTypes.MessageIDControl | null = null
   let forceClear = false
   let forceContainsLatestCalc = false
-  let knownRemotes: Array<string> = []
+  const knownRemotes: Array<string> = []
   const centeredMessageIDs: Array<{
     conversationIDKey: Types.ConversationIDKey
     messageID: Types.MessageID
@@ -2516,6 +2516,9 @@ const navigateToInbox = (
     | TeamsGen.DeleteChannelConfirmedPayload
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
+    return
+  }
+  if (action.type === TeamsGen.leftTeam && action.payload.context !== 'chat') {
     return
   }
   return [
