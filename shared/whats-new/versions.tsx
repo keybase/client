@@ -89,7 +89,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         primaryButtonText={Styles.isMobile ? '' : 'Try it'}
         seen={seen}
       >
-        Encrypt, decrypt, sign, and verify all from within Keybase (desktop-only).{' '}
+        Encrypt, decrypt, sign, and verify all from within Keybase.{' '}
         <Kb.Emoji
           allowFontScaling={true}
           size={Styles.globalMargins.small}
