@@ -129,6 +129,7 @@ const markdownStyles = Styles.styleSheetCreate(
       }),
       textBlockStyle: Styles.platformStyles({
         isElectron: {color: 'inherit', display: 'block', fontWeight: 'inherit', ...wrapStyle},
+        isAndroid: {lineHeight: undefined},
       } as const),
       wrapStyle,
     } as const)
