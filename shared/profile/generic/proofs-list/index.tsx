@@ -68,7 +68,17 @@ class Providers extends React.Component<ProvidersProps> {
   render() {
     const filterRegexp = makeInsertMatcher(this.props.filter)
 
-    const items = this.props.providers.filter(p => filterProvider(p, filterRegexp))
+    let exact: Array<IdentityProvider> = []
+    let inexact: Array<IdentityProvider> = []
+    this.props.providers.forEach(p => {
+      if (p.name === this.props.filter) {
+        exact.push(p)
+      } else if (filterProvider(p, filterRegexp)) {
+        inexact.push(p)
+      }
+    })
+
+    const items = [...exact, ...inexact]
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.flexOne}>
