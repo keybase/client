@@ -57,7 +57,7 @@ const IOSChooseTarget = () => {
 
   return (
     <ChooseTarget
-      items={incomingShareItems || []}
+      items={incomingShareItems || emptyArray}
       erroredSendFeedback={erroredSendFeedback}
       onCancel={onCancel}
       onChat={onChat}
@@ -67,3 +67,5 @@ const IOSChooseTarget = () => {
 }
 
 export default IOSChooseTarget
+
+const emptyArray: Array<RPCTypes.IncomingShareItem> = []
