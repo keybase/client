@@ -11,11 +11,14 @@ import {ModalTitle} from '../../common'
 type Props = {
   onSubmitChannels?: (channels: Array<string>) => void
   teamID?: Types.TeamID
+  waiting?: boolean
+  banners?: Array<React.ReactNode>
 }
 
 const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
 
 const CreateChannel = (props: Props) => {
+  const {onSubmitChannels, waiting} = props
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
@@ -42,8 +45,8 @@ const CreateChannel = (props: Props) => {
 
   const filteredChannels = channels.filter(c => c.trim())
   const onContinue = () =>
-    props.onSubmitChannels
-      ? props.onSubmitChannels(filteredChannels)
+    onSubmitChannels
+      ? onSubmitChannels(filteredChannels)
       : dispatch(TeamsGen.createSetTeamWizardChannels({channels: filteredChannels}))
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
@@ -52,15 +55,19 @@ const CreateChannel = (props: Props) => {
   const continueLabel = numChannels
     ? `Continue with ${numChannels} ${pluralize('channel', numChannels)}`
     : 'Continue without channels'
+  const submitButton = (
+    <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} waiting={!!waiting} />
+  )
 
   return (
     <Kb.Modal
+      banners={props.banners}
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Create channels" />,
       }}
-      footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
+      footer={{content: submitButton}}
       allowOverflow={true}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>

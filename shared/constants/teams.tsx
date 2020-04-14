@@ -221,6 +221,7 @@ const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   channelSelectedMembers: new Map(),
+  creatingChannels: false,
   deletedTeams: [],
   errorInAddToTeam: '',
   errorInChannelCreation: '',
