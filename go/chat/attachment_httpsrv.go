@@ -141,8 +141,7 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 	preview, noAnim, isEmoji bool) string {
 	r.Lock()
 	defer r.Unlock()
-	var err error
-	defer r.Trace(ctx, &err, "GetURL(%s,%d)", convID, msgID)()
+	defer r.Trace(ctx, nil, "GetURL(%s,%d)", convID, msgID)()
 	url := r.getURL(ctx, r.attachmentPrefix, chat1.ConversationIDMessageIDPair{
 		ConvID: convID,
 		MsgID:  msgID,
