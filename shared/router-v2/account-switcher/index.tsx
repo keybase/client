@@ -103,7 +103,7 @@ const AccountRow = (props: AccountRowProps) => {
 }
 
 const AccountsRows = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.accountRows}>
     {props.accountRows.map(entry => (
       <AccountRow
         entry={entry}
@@ -143,6 +143,9 @@ const AccountSwitcher = (props: Props) => (
 export default AccountSwitcher
 
 const styles = Styles.styleSheetCreate(() => ({
+  accountRows: Styles.platformStyles({
+    isTablet: {maxWidth: Styles.globalStyles.mediumWidth},
+  }),
   buttonBox: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
   desktopScrollview: {
     width: '100%',
