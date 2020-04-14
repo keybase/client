@@ -222,6 +222,10 @@ const styles = Styles.styleSheetCreate(() => ({
     isMobile: {
       marginTop: Styles.globalMargins.tiny,
     },
+    isTablet: {
+      justifyContent: 'flex-start',
+      width: '100%',
+    },
   }),
   icon: {
     marginLeft: Styles.globalMargins.small,
