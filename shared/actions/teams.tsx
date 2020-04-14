@@ -1486,6 +1486,35 @@ const startAddMembersWizard = (_: TeamsGen.StartAddMembersWizardPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: ['teamAddToTeamFromWhere'],
   })
+const finishNewTeamWizard = async (state: TypedState) => {
+  const {name, description, open, openTeamJoinRole, showcase, addYourself} = state.teams.newTeamWizard
+  const {avatarFilename, avatarCrop, channels, subteams} = state.teams.newTeamWizard
+  const teamInfo: RPCTypes.TeamCreateFancyInfo = {
+    avatar: avatarFilename ? {avatarFilename, crop: avatarCrop?.crop} : null,
+    chatChannels: channels,
+    description,
+    joinSubteam: addYourself,
+    name,
+    openSettings: {joinAs: RPCTypes.TeamRole[openTeamJoinRole], open},
+    showcase,
+    subteams,
+    users: state.teams.addMembersWizard.addingMembers.map(member => ({
+      assertion: member.assertion,
+      role: RPCTypes.TeamRole[member.role],
+    })),
+  }
+  try {
+    const teamID = await RPCTypes.teamsTeamCreateFancyRpcPromise({teamInfo}, Constants.teamCreationWaitingKey)
+    return TeamsGen.createFinishedNewTeamWizard({teamID})
+  } catch (e) {
+    return TeamsGen.createSetTeamWizardError({error: e.message})
+  }
+}
+
+const finishedNewTeamWizard = (action: TeamsGen.FinishedNewTeamWizardPayload) => [
+  RouteTreeGen.createClearModals(),
+  RouteTreeGen.createNavigateAppend({path: [{props: {teamID: action.payload.teamID}, selected: 'team'}]}),
+]
 
 const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
@@ -1612,12 +1641,14 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.setTeamWizardTeamSize, setTeamWizardTeamSize)
   yield* Saga.chainAction(TeamsGen.setTeamWizardChannels, setTeamWizardChannels)
   yield* Saga.chainAction(TeamsGen.setTeamWizardSubteams, setTeamWizardSubteams)
+  yield* Saga.chainAction2(TeamsGen.finishNewTeamWizard, finishNewTeamWizard)
+  yield* Saga.chainAction(TeamsGen.finishedNewTeamWizard, finishedNewTeamWizard)
 
   // Add members wizard
   yield* Saga.chainAction(TeamsGen.startAddMembersWizard, startAddMembersWizard)
   yield* Saga.chainAction(TeamsGen.addMembersWizardPushMembers, addMembersWizardPushMembers)
   yield* Saga.chainAction(
-    [TeamsGen.cancelAddMembersWizard, TeamsGen.finishAddMembersWizard],
+    [TeamsGen.cancelAddMembersWizard, TeamsGen.finishedAddMembersWizard],
     navAwayFromAddMembersWizard
   )
 
