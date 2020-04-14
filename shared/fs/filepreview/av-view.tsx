@@ -8,9 +8,10 @@ type Props = {
   onUrlError?: (err: string) => void
 }
 
-export default (props: Props) => (
+const AVPreview = (props: Props) => (
   <Kb.Video url={props.url} style={styles.video} onUrlError={props.onUrlError} />
 )
+export default AVPreview
 
 const styles = Styles.styleSheetCreate(
   () =>

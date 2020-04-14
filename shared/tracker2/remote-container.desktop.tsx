@@ -21,7 +21,7 @@ const noDetails: Types.Details = {
   username: '',
 }
 
-export default () => {
+const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const dispatch = Container.useDispatch()
   const {darkMode, trackerUsername, tracker2, config} = state
@@ -72,3 +72,4 @@ export default () => {
     />
   )
 }
+export default RemoteContainer

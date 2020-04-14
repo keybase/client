@@ -9,7 +9,7 @@ export type Props = {
   suggestions: Array<FollowSuggestion>
 }
 
-export default (props: Props) => (
+const FollowSuggestions = (props: Props) => (
   <Box style={styles.container}>
     <Text type="BodySmallSemibold" style={styles.text}>
       Consider following...
@@ -33,6 +33,7 @@ export default (props: Props) => (
     </ScrollView>
   </Box>
 )
+export default FollowSuggestions
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {

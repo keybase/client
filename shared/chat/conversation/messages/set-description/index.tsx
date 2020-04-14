@@ -9,7 +9,7 @@ type Props = {
 
 const lquote = '\u201C'
 const rquote = '\u201D'
-export default (props: Props) => {
+const SetDescriptionMessage = (props: Props) => {
   const desc = props.message.newDescription.stringValue()
   return desc ? (
     <Kb.Text type="BodySmall" style={styles.text} selectable={true}>
@@ -26,6 +26,7 @@ export default (props: Props) => {
     </Kb.Text>
   )
 }
+export default SetDescriptionMessage
 
 const styles = Styles.styleSheetCreate(
   () =>

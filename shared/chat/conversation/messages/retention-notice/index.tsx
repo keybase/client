@@ -15,7 +15,7 @@ export type Props = {
 
 const iconType = Styles.isMobile ? 'icon-message-retention-48' : 'icon-message-retention-32'
 
-export default (props: Props) => {
+const RetentionNotice = (props: Props) => {
   Container.useDepChangeEffect(() => {
     props.measure && props.measure()
   }, [props.canChange, props.policy, props.teamPolicy])
@@ -39,6 +39,7 @@ export default (props: Props) => {
     </Kb.Box>
   )
 }
+export default RetentionNotice
 
 const styles = Styles.styleSheetCreate(
   () =>
