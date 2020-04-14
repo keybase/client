@@ -14,7 +14,7 @@ export type OwnProps = {
 export type Props = {
   onClick?: () => void
 } & OwnProps
-export default ({username, theme, style, allowFontScaling, onClick}: Props) => {
+const Mention = ({username, theme, style, allowFontScaling, onClick}: Props) => {
   const renderText = (onLongPress?: () => void) => (
     <Text
       type="BodyBold"
@@ -33,6 +33,7 @@ export default ({username, theme, style, allowFontScaling, onClick}: Props) => {
     <WithProfileCardPopup username={username}>{renderText}</WithProfileCardPopup>
   )
 }
+export default Mention
 
 const styles = Styles.styleSheetCreate(() => ({
   follow: {

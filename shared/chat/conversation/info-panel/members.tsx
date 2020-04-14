@@ -18,7 +18,7 @@ type Props = {
 const auditingBannerItem = 'auditing banner'
 const spinnerItem = 'spinner item'
 
-export default (props: Props) => {
+const MembersTab = (props: Props) => {
   const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
@@ -109,6 +109,7 @@ export default (props: Props) => {
     />
   )
 }
+export default MembersTab
 
 const styles = Styles.styleSheetCreate(
   () =>

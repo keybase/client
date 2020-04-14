@@ -18,7 +18,7 @@ type Props = {
   white?: boolean
 }
 
-export default (props: Props) =>
+const LoadingStateView = (props: Props) =>
   props.loading ? (
     <Kb.Box2
       direction="vertical"
@@ -37,6 +37,7 @@ export default (props: Props) =>
       {props.progress !== undefined && <Kb.ProgressBar ratio={props.progress} />}
     </Kb.Box2>
   ) : null
+export default LoadingStateView
 
 const styles = Styles.styleSheetCreate(() => ({
   loadingContainer: {

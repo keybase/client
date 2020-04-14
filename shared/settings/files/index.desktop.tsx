@@ -117,7 +117,7 @@ const FinderIntegration = (props: Props) => {
   ) : null
 }
 
-export default (props: Props) => (
+const FilesSettings = (props: Props) => (
   <>
     <RefreshDriverStatusOnMount />
     <RefreshSettings />
@@ -144,6 +144,7 @@ export default (props: Props) => (
     </Kb.Box2>
   </>
 )
+export default FilesSettings
 
 const styles = Styles.styleSheetCreate(
   () =>
