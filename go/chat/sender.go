@@ -276,9 +276,12 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 	}
 
 	// Get the one message to be deleted by ID.
-	deleteTarget, err := s.getMessage(ctx, uid, convID, deleteTargetID, false /* resolveSupersedes */)
+	deleteTarget, isValidFull, err := s.getMessage(ctx, uid, convID, deleteTargetID, false /* resolveSupersedes */)
 	if err != nil {
 		return msg, nil, nil, err
+	} else if !isValidFull {
+		// If the message is already deleted just get out of here.
+		return msg, nil, nil, nil
 	}
 	switch deleteTarget.ClientHeader.MessageType {
 	case chat1.MessageType_REACTION:
@@ -376,22 +379,22 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 }
 
 func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, err error) {
+	convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, isValidFull bool, err error) {
 	reason := chat1.GetThreadReason_PREPARE
 	messages, err := s.G().ConvSource.GetMessages(ctx, convID, uid, []chat1.MessageID{msgID},
 		&reason, nil, resolveSupersedes)
 	if err != nil {
-		return mvalid, err
+		return mvalid, false, err
 	}
 	if len(messages) == 0 {
-		return mvalid, fmt.Errorf("getMessage: message not found")
+		return mvalid, false, fmt.Errorf("getMessage: message not found")
 	}
 	if !messages[0].IsValid() {
 		st, err := messages[0].State()
-		return mvalid, fmt.Errorf("getMessage returned invalid message: msgID: %v st: %v: err %v",
+		return mvalid, false, fmt.Errorf("getMessage returned invalid message: msgID: %v st: %v: err %v",
 			msgID, st, err)
 	}
-	return messages[0].Valid(), nil
+	return messages[0].Valid(), messages[0].IsValidFull(), nil
 }
 
 // If we are superseding an ephemeral message, we have to set the
@@ -407,7 +410,7 @@ func (s *BlockingSender) getSupersederEphemeralMetadata(ctx context.Context, uid
 		return nil, nil
 	}
 
-	supersededMsg, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, false /* resolveSupersedes */)
+	supersededMsg, _, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, false /* resolveSupersedes */)
 	if err != nil {
 		return nil, err
 	}
@@ -429,7 +432,7 @@ func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1
 	}
 
 	// We could either be posting a reaction or removing one that we already posted.
-	supersededMsg, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes,
+	supersededMsg, _, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes,
 		true /* resolveSupersedes */)
 	if err != nil {
 		return clientHeader, body, err
@@ -1026,7 +1029,7 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	// Check if we are superseding a bot message. If so, just take what the
 	// superseded has. Don't automatically key for replies, run the normal checks.
 	if msg.ClientHeader.Supersedes > 0 && opts.ReplyTo == nil && convID != nil {
-		target, err := s.getMessage(ctx, uid, *convID, msg.ClientHeader.Supersedes, false /*resolveSupersedes */)
+		target, _, err := s.getMessage(ctx, uid, *convID, msg.ClientHeader.Supersedes, false /*resolveSupersedes */)
 		if err != nil {
 			return nil, err
 		}
