@@ -165,7 +165,7 @@ const AudioButton = (props: ButtonProps) => {
         Kb.NativeAnimated.timing(outerScale, {
           duration: 200,
           easing: Kb.NativeEasing.inOut(Kb.NativeEasing.ease),
-          toValue: 15,
+          toValue: Styles.isTablet ? 40 : 15,
           useNativeDriver: true,
         }),
         Kb.NativeAnimated.timing(slideTranslate, {
