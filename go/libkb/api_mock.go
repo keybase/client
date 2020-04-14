@@ -30,22 +30,125 @@ func (n *NullMockAPI) PostRaw(MetaContext, APIArg, string, io.Reader) (*APIRes, 
 }
 func (n *NullMockAPI) Delete(MetaContext, APIArg) (*APIRes, error) { return nil, nil }
 
+type APIMethodType int
+
+const (
+	MethodGet APIMethodType = iota
+	MethodGetDecode
+	MethodGetDecodeCtx
+	MethodGetResp
+	MethodPost
+	MethodPostJSON
+	MethodPostDecode
+	MethodPostDecodeCtx
+	MethodPostRaw
+	MethodDelete
+)
+
+type APIRecord struct {
+	Arg    APIArg
+	Method APIMethodType
+	// various inputs and outputs of the API interface methods.
+	Res         *APIRes
+	RespWrapper APIResponseWrapper
+	HTTPResp    *http.Response
+	Func        func()
+	S           string
+	R           io.Reader
+	Err         error
+}
+
+// FilterAPIRecords returns only the records on which the filter function outputs true
+func FilterAPIRecords(recs []APIRecord, filter func(*APIRecord) bool) (filtered []APIRecord) {
+	for _, rec := range recs {
+		if filter(&rec) {
+			filtered = append(filtered, rec)
+		}
+	}
+	return filtered
+}
+
+// APIArgRecorder forwards all its calls to the underlying API, but records all
+// the inputs and outputs to be used in tests.
 type APIArgRecorder struct {
-	*NullMockAPI
-	Args []APIArg
+	API
+	Records []APIRecord
 }
 
-func NewAPIArgRecorder() *APIArgRecorder {
-	return &APIArgRecorder{NullMockAPI: &NullMockAPI{}}
+var _ API = (*APIArgRecorder)(nil)
+
+func NewAPIArgRecorderWithNullAPI() *APIArgRecorder {
+	return NewAPIArgRecorder(&NullMockAPI{})
 }
 
-func (a *APIArgRecorder) Post(mctx MetaContext, arg APIArg) (*APIRes, error) {
-	a.Args = append(a.Args, arg)
-	return nil, nil
+func NewAPIArgRecorder(inner API) *APIArgRecorder {
+	return &APIArgRecorder{API: inner}
 }
 
 func (a *APIArgRecorder) Reset() {
-	a.Args = nil
+	a.Records = nil
+}
+
+func (a *APIArgRecorder) NumCalls() int {
+	return len(a.Records)
+}
+
+func (a *APIArgRecorder) GetFilteredRecordsAndReset(filter func(*APIRecord) bool) (filtered []APIRecord) {
+	filtered = FilterAPIRecords(a.Records, filter)
+	a.Reset()
+	return filtered
+}
+
+func (a *APIArgRecorder) Get(mctx MetaContext, arg APIArg) (*APIRes, error) {
+	res, err := a.API.Get(mctx, arg)
+	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodGet, Res: res, Err: err})
+	return res, err
+}
+func (a *APIArgRecorder) GetDecode(mctx MetaContext, arg APIArg, arw APIResponseWrapper) error {
+	err := a.API.GetDecode(mctx, arg, arw)
+	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodGetDecode, RespWrapper: arw, Err: err})
+	return err
+}
+func (a *APIArgRecorder) GetDecodeCtx(ctx context.Context, arg APIArg, arw APIResponseWrapper) error {
+	err := a.API.GetDecodeCtx(ctx, arg, arw)
+	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodGetDecodeCtx, RespWrapper: arw, Err: err})
+	return err
+}
+func (a *APIArgRecorder) GetResp(mctx MetaContext, arg APIArg) (*http.Response, func(), error) {
+	httpR, f, err := a.API.GetResp(mctx, arg)
+	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodGetResp, HTTPResp: httpR, Func: f, Err: err})
+	return httpR, f, err
+}
+func (a *APIArgRecorder) Post(mctx MetaContext, arg APIArg) (*APIRes, error) {
+	res, err := a.API.Post(mctx, arg)
+	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodPost, Res: res, Err: err})
+	return res, err
+}
+func (a *APIArgRecorder) PostJSON(mctx MetaContext, arg APIArg) (*APIRes, error) {
+	res, err := a.API.PostJSON(mctx, arg)
+	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodPostJSON, Res: res, Err: err})
+	return res, err
+}
+func (a *APIArgRecorder) PostDecode(mctx MetaContext, arg APIArg, arw APIResponseWrapper) error {
+	err := a.API.PostDecode(mctx, arg, arw)
+	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodPostDecode, RespWrapper: arw, Err: err})
+	return err
+}
+func (a *APIArgRecorder) PostDecodeCtx(ctx context.Context, arg APIArg, arw APIResponseWrapper) error {
+	err := a.API.PostDecodeCtx(ctx, arg, arw)
+	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodPostDecodeCtx, RespWrapper: arw, Err: err})
+	return err
+
+}
+func (a *APIArgRecorder) PostRaw(mctx MetaContext, arg APIArg, s string, r io.Reader) (*APIRes, error) {
+	res, err := a.API.PostRaw(mctx, arg, s, r)
+	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodPostRaw, S: s, R: r, Res: res, Err: err})
+	return res, err
+}
+func (a *APIArgRecorder) Delete(mctx MetaContext, arg APIArg) (*APIRes, error) {
+	res, err := a.API.Delete(mctx, arg)
+	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodDelete, Res: res, Err: err})
+	return res, err
 }
 
 type ErrorMockAPI struct{}

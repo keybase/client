@@ -2,12 +2,14 @@ package teams
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/keybase/clockwork"
 
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -160,8 +162,15 @@ func TestSeitanHandleExceededInvite(t *testing.T) {
 			},
 		},
 	}
+
+	API := libkb.NewAPIArgRecorder(tc.G.API)
+	tc.G.API = API
 	err = HandleTeamSeitan(context.TODO(), tc.G, msg)
 	require.NoError(t, err)
+	records := API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
+		return rec.Arg.Endpoint == "team/cancel_invite_acceptance"
+	})
+	require.Len(t, records, 0, "no invite link acceptances were rejected")
 
 	// User2 leaves team.
 	kbtest.LogoutAndLoginAs(tc, user2)
@@ -173,9 +182,20 @@ func TestSeitanHandleExceededInvite(t *testing.T) {
 	kbtest.LogoutAndLoginAs(tc, admin)
 
 	// `HandleTeamSeitan` should not return an error but skip over bad
-	// `TeamSeitanRequest`.
+	// `TeamSeitanRequest` and cancel it.
 	err = HandleTeamSeitan(context.TODO(), tc.G, msg)
 	require.NoError(t, err)
+	records = API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
+		return rec.Arg.Endpoint == "team/cancel_invite_acceptance"
+	})
+	require.Len(t, records, 1, "one invite acceptance should be rejected")
+	record := records[0]
+	// since this invite acceptance was never sent to the server, cancellation
+	// should fail, but we can still check the request args were correct
+	require.Contains(t, record.Err.Error(), "acceptance not found")
+	require.Equal(t, string(accepted.inviteID), record.Arg.Args["invite_id"].String())
+	require.Equal(t, string(uv.Uid), record.Arg.Args["uid"].String())
+	require.Equal(t, fmt.Sprintf("%v", uv.EldestSeqno), record.Arg.Args["eldest_seqno"].String())
 
 	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name:      teamName.String(),

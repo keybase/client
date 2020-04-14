@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -369,8 +370,15 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 	}
 
 	kbtest.LogoutAndLoginAs(tc, ann)
-	err = HandleTeamSeitan(context.Background(), tc.G, msg)
+
+	API := libkb.NewAPIArgRecorder(tc.G.API)
+	tc.G.API = API
+	err = HandleTeamSeitan(context.TODO(), tc.G, msg)
 	require.NoError(t, err)
+	records := API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
+		return rec.Arg.Endpoint == "team/cancel_invite_acceptance"
+	})
+	require.Len(t, records, 0, "no invite link acceptances were rejected")
 
 	teamObj, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name:      teamName.String(),
@@ -480,9 +488,15 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 			UnixCTime:   int64(now),
 		}},
 	}
-	err = HandleTeamSeitan(context.Background(), tc.G, msg)
+	API := libkb.NewAPIArgRecorder(tc.G.API)
+	tc.G.API = API
+	err = HandleTeamSeitan(context.TODO(), tc.G, msg)
 	// Seitan handler does not fail, but ignores the request.
 	require.NoError(t, err)
+	records := API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
+		return rec.Arg.Endpoint == "team/cancel_invite_acceptance"
+	})
+	require.Len(t, records, 0, "no invite link acceptances were rejected")
 
 	t.Logf("invite should still be there")
 	t0, err := GetTeamByNameForTest(context.Background(), tc.G, teamName.String(), false /* public */, true /* needAdmin */)
