@@ -59,8 +59,6 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
   }
 }
 
-// This can only be used in one place at a time for now since when it's changed
-// it doesn't cause other hook instances to update.
 const useSkinTone = () => {
   const currentSkinTone = Types.EmojiSkinToneFromRPC(
     Container.useSelector(state => state.chat2.userReacjis.skinTone)
@@ -82,6 +80,7 @@ const useSkinTone = () => {
   }
   return {currentSkinTone, setSkinTone}
 }
+
 const useCustomReacji = (
   conversationIDKey: Types.ConversationIDKey,
   onlyInTeam: boolean | undefined,
