@@ -7,6 +7,8 @@ import logger from '../../logger'
 import InviteHow from './invite-how'
 import {ShareLinkPopup} from './modal'
 
+const tooltipStyleOverride = {paragraph: styles.tooltip}
+
 const InviteFriends = () => {
   const requestInviteCounts = Container.useRPC(RPCTypes.inviteFriendsRequestInviteCountsRpcPromise)
   const inviteCounts = Container.useSelector(state => state.people.inviteCounts)
@@ -57,7 +59,7 @@ const InviteFriends = () => {
     )
   }
   const tooltipMarkdown = (
-    <Kb.Markdown styleOverride={{paragraph: styles.tooltip}}>{inviteCounts?.tooltipMarkdown}</Kb.Markdown>
+    <Kb.Markdown styleOverride={tooltipStyleOverride}>{inviteCounts?.tooltipMarkdown}</Kb.Markdown>
   )
 
   return Styles.isMobile ? (
