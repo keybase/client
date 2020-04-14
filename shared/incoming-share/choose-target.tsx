@@ -6,6 +6,7 @@ import * as FsTypes from '../constants/types/fs'
 import * as FsConstants from '../constants/fs'
 
 type Props = {
+  erroredSendFeedback?: () => void
   items: Array<RPCTypes.IncomingShareItem>
   onCancel: () => void
   onChat?: (useOriginal: boolean) => void
@@ -124,17 +125,39 @@ const getContentDescription = (props: Props) => {
 
 const ChooseTarget = (props: Props) => {
   const {onChat, onKBFS} = props
-  const originalTotalSize = props.items.reduce((bytes, item) => bytes + item.originalSize, 0)
-  const scaledTotalSize = props.items.reduce((bytes, item) => bytes + (item.scaledSize ?? 0), 0)
+  const originalTotalSize = props.items.reduce((bytes, item) => bytes + item.originalSize, 0) ?? 0
+  const scaledTotalSize = props.items.reduce((bytes, item) => bytes + (item.scaledSize ?? 0), 0) ?? 0
   const offerScaled = scaledTotalSize > 0 && scaledTotalSize < originalTotalSize
   const [useOriginalUserSelection, setUseOriginalUserSelection] = React.useState(false)
   const useOriginal = !offerScaled || useOriginalUserSelection
 
-  return !props.items.length ? (
-    <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
-      <Kb.ProgressIndicator type="Large" />
-    </Kb.Box2>
-  ) : (
+  if (props.erroredSendFeedback) {
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kb.HeaderHocHeader onCancel={props.onCancel} title="Share" />
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={styles.container}
+          gap="small"
+          centerChildren={true}
+        >
+          <Kb.Text type="BodySmall">Whoops! Something went wrong.</Kb.Text>
+        </Kb.Box2>
+        <Kb.Button label="Please let us know" style={styles.buttonBar} onClick={props.erroredSendFeedback} />
+      </Kb.Box2>
+    )
+  }
+
+  if (!props.items.length) {
+    return (
+      <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
+        <Kb.ProgressIndicator type="Large" />
+      </Kb.Box2>
+    )
+  }
+
+  return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.HeaderHocHeader onCancel={props.onCancel} title="Share" />
       <Kb.Box2
