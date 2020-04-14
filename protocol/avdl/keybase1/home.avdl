@@ -57,6 +57,7 @@ protocol home {
   /* DEPRECATED_VERIFY_ALL_EMAIL_15, */
   /* DEPRECATED_LEGACY_EMAIL_VISIBILITY_16, */
   /* DEPRECATED_ADD_EMAIL_17, */
+  /* DEPRECATED_AVATAR_USER_11, */
   enum HomeScreenTodoType {
     NONE_0,
     BIO_1,
@@ -69,7 +70,7 @@ protocol home {
     FOLDER_8,
     GIT_REPO_9,
     TEAM_SHOWCASE_10,
-    AVATAR_USER_11,
+    AVATAR_USER_23,
     AVATAR_TEAM_12,
     ADD_PHONE_NUMBER_18,
     VERIFY_ALL_PHONE_NUMBER_19,

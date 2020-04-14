@@ -1921,7 +1921,7 @@ export enum HomeScreenTodoType {
   folder = 8,
   gitRepo = 9,
   teamShowcase = 10,
-  avatarUser = 11,
+  avatarUser = 23,
   avatarTeam = 12,
   addPhoneNumber = 18,
   verifyAllPhoneNumber = 19,

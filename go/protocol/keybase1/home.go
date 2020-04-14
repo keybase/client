@@ -307,7 +307,7 @@ const (
 	HomeScreenTodoType_FOLDER                  HomeScreenTodoType = 8
 	HomeScreenTodoType_GIT_REPO                HomeScreenTodoType = 9
 	HomeScreenTodoType_TEAM_SHOWCASE           HomeScreenTodoType = 10
-	HomeScreenTodoType_AVATAR_USER             HomeScreenTodoType = 11
+	HomeScreenTodoType_AVATAR_USER             HomeScreenTodoType = 23
 	HomeScreenTodoType_AVATAR_TEAM             HomeScreenTodoType = 12
 	HomeScreenTodoType_ADD_PHONE_NUMBER        HomeScreenTodoType = 18
 	HomeScreenTodoType_VERIFY_ALL_PHONE_NUMBER HomeScreenTodoType = 19
@@ -331,7 +331,7 @@ var HomeScreenTodoTypeMap = map[string]HomeScreenTodoType{
 	"FOLDER":                  8,
 	"GIT_REPO":                9,
 	"TEAM_SHOWCASE":           10,
-	"AVATAR_USER":             11,
+	"AVATAR_USER":             23,
 	"AVATAR_TEAM":             12,
 	"ADD_PHONE_NUMBER":        18,
 	"VERIFY_ALL_PHONE_NUMBER": 19,
@@ -353,7 +353,7 @@ var HomeScreenTodoTypeRevMap = map[HomeScreenTodoType]string{
 	8:     "FOLDER",
 	9:     "GIT_REPO",
 	10:    "TEAM_SHOWCASE",
-	11:    "AVATAR_USER",
+	23:    "AVATAR_USER",
 	12:    "AVATAR_TEAM",
 	18:    "ADD_PHONE_NUMBER",
 	19:    "VERIFY_ALL_PHONE_NUMBER",
