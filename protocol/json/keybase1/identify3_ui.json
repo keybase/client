@@ -142,6 +142,13 @@
             "KID"
           ],
           "name": "kid"
+        },
+        {
+          "type": [
+            null,
+            "WotProof"
+          ],
+          "name": "wotProof"
         }
       ]
     },

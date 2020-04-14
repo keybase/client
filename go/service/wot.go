@@ -22,9 +22,46 @@ func NewWebOfTrustHandler(xp rpc.Transporter, g *libkb.GlobalContext) *WebOfTrus
 	}
 }
 
-func (h *WebOfTrustHandler) WotVouch(ctx context.Context, arg keybase1.WotVouchArg) error {
+func (h *WebOfTrustHandler) WotVouch(ctx context.Context, arg keybase1.WotVouchArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("WotVouch(%v,%v)", arg.Username, arg.GuiID), func() error { return err })()
+
+	// This wotVouch RPC does not run Identify.
+	// Because it relies on the previous Identify used to display the vouchee's profile.
+	// We must guard against a malicious server doing a last-minute reset of the vouchee to trick the voucher
+	// client into signing a statement for the post-reset user.
+	// This is guarded by locking on to the eldestSeqno from the guiID of the Identify on the profile screen.
+	state, err := mctx.G().Identify3State.Get(arg.GuiID)
+	if err != nil {
+		return err
+	}
+	if state == nil {
+		return fmt.Errorf("missing identify state")
+	}
+	outcome := state.Outcome()
+	if outcome == nil {
+		return fmt.Errorf("missing identify outcome")
+	}
+	if outcome.Username != libkb.NewNormalizedUsername(arg.Username) {
+		return fmt.Errorf("username mismatch: %v != %v", outcome.Username, libkb.NewNormalizedUsername(arg.Username))
+	}
+	mctx.Debug("vouchee from identify outcome: uid:%v eldestSeqno:%v", outcome.UID, outcome.EldestSeqno)
+
+	return engine.RunEngine2(mctx, engine.NewWotVouch(h.G(), &engine.WotVouchArg{
+		Vouchee: keybase1.UserVersion{
+			Uid:         outcome.UID,
+			EldestSeqno: outcome.EldestSeqno,
+		},
+		Confidence: arg.Confidence,
+		VouchTexts: arg.VouchTexts,
+	}))
+}
+
+func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVouchCLIArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "WOT")
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("WotVouchCLI(%v)", arg.Assertion), func() error { return err })()
 
 	upak, _, err := h.G().GetUPAKLoader().Load(libkb.NewLoadUserArg(h.G()).WithName(arg.Assertion))
 	if err != nil {
@@ -56,18 +93,10 @@ func (h *WebOfTrustHandler) WotVouch(ctx context.Context, arg keybase1.WotVouchA
 		mctx.Debug("WotVouch TrackBreaks: %+v", idRes.TrackBreaks)
 		return libkb.TrackingBrokeError{}
 	}
-	failingProofs, err := eng.ResultWotFailingProofs(mctx)
-	if err != nil {
-		return err
-	}
-	for i, proof := range failingProofs {
-		mctx.Debug("WotVouch failingProofs %v/%v %+v", i+1, len(failingProofs), proof)
-	}
 	return engine.RunEngine2(mctx, engine.NewWotVouch(h.G(), &engine.WotVouchArg{
-		Vouchee:       idRes.Upk.Current.ToUserVersion(),
-		Confidence:    arg.Confidence,
-		FailingProofs: failingProofs,
-		VouchTexts:    arg.VouchTexts,
+		Vouchee:    idRes.Upk.Current.ToUserVersion(),
+		Confidence: arg.Confidence,
+		VouchTexts: arg.VouchTexts,
 	}))
 }
 

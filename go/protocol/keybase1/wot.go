@@ -129,6 +129,14 @@ func (o WotVouch) DeepCopy() WotVouch {
 }
 
 type WotVouchArg struct {
+	SessionID  int            `codec:"sessionID" json:"sessionID"`
+	Username   string         `codec:"username" json:"username"`
+	GuiID      Identify3GUIID `codec:"guiID" json:"guiID"`
+	VouchTexts []string       `codec:"vouchTexts" json:"vouchTexts"`
+	Confidence Confidence     `codec:"confidence" json:"confidence"`
+}
+
+type WotVouchCLIArg struct {
 	SessionID  int        `codec:"sessionID" json:"sessionID"`
 	Assertion  string     `codec:"assertion" json:"assertion"`
 	VouchTexts []string   `codec:"vouchTexts" json:"vouchTexts"`
@@ -155,6 +163,7 @@ type WotFetchVouchesArg struct {
 
 type WotInterface interface {
 	WotVouch(context.Context, WotVouchArg) error
+	WotVouchCLI(context.Context, WotVouchCLIArg) error
 	WotReact(context.Context, WotReactArg) error
 	DismissWotNotifications(context.Context, DismissWotNotificationsArg) error
 	WotFetchVouches(context.Context, WotFetchVouchesArg) ([]WotVouch, error)
@@ -176,6 +185,21 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 						return
 					}
 					err = i.WotVouch(ctx, typedArgs[0])
+					return
+				},
+			},
+			"wotVouchCLI": {
+				MakeArg: func() interface{} {
+					var ret [1]WotVouchCLIArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]WotVouchCLIArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]WotVouchCLIArg)(nil), args)
+						return
+					}
+					err = i.WotVouchCLI(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -234,6 +258,11 @@ type WotClient struct {
 
 func (c WotClient) WotVouch(ctx context.Context, __arg WotVouchArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.wot.wotVouch", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c WotClient) WotVouchCLI(ctx context.Context, __arg WotVouchCLIArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotVouchCLI", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

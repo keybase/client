@@ -9,6 +9,8 @@ import * as Tracker2Types from '../../constants/types/tracker2'
 import {SiteIcon} from '../../profile/generic/shared'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import sortBy from 'lodash/sortBy'
 
 // PICNIC-1059 Keep in sync with server limit (yet to be implemented)
 const statementLimit = 700
@@ -24,7 +26,7 @@ export type Question1Props = {
 
 export type Question1Answer = {
   otherText: string
-  proofs: Array<Proof>
+  proofs: Array<RPCTypes.WotProof>
   verificationType: WebOfTrustVerificationType
 }
 
@@ -52,6 +54,7 @@ export type Proof = {
   value: string
   siteIcon?: Tracker2Types.SiteIconSet
   siteIconDarkmode?: Tracker2Types.SiteIconSet
+  wotProof: RPCTypes.WotProof
 }
 
 type Checkboxed = {
@@ -59,8 +62,14 @@ type Checkboxed = {
   onCheck: (_: boolean) => void
 }
 
-export const Question1Wrapper = (props: Container.RouteProps<{username: string}>) => {
+export const Question1Wrapper = (
+  props: Container.RouteProps<{
+    username: string
+    guiID: string
+  }>
+) => {
   const voucheeUsername = Container.getRouteProps(props, 'username', '')
+  const guiID = Container.getRouteProps(props, 'guiID', '')
   const nav = Container.useSafeNavigation()
   const dispatch = Container.useDispatch()
   let error = Container.useSelector(state => state.profile.wotAuthorError)
@@ -73,7 +82,17 @@ export const Question1Wrapper = (props: Container.RouteProps<{username: string}>
   let proofs: Proof[] = []
   if (trackerUsername === voucheeUsername) {
     if (assertions) {
-      proofs = Array.from(assertions, ([_, assertion]) => assertion).filter(x => x.type !== 'stellar')
+      // Pull proofs from the profile they were just looking at.
+      // Only take passing proofs that have a `wotProof` field filled by the service.
+      proofs = sortBy(
+        Array.from(assertions, ([_, assertion]) => assertion),
+        x => x.priority
+      ).reduce<Array<Proof>>((acc, x) => {
+        if (x.wotProof && x.state === 'valid') {
+          acc.push({...x, wotProof: x.wotProof})
+        }
+        return acc
+      }, [])
     }
   } else {
     error = `Proofs not loaded: ${trackerUsername} != ${voucheeUsername}`
@@ -81,7 +100,12 @@ export const Question1Wrapper = (props: Container.RouteProps<{username: string}>
   const onSubmit = (answer: Question1Answer) => {
     dispatch(
       nav.safeNavigateAppendPayload({
-        path: [{props: {question1Answer: answer, username: voucheeUsername}, selected: 'profileWotAuthorQ2'}],
+        path: [
+          {
+            props: {guiID, question1Answer: answer, username: voucheeUsername},
+            selected: 'profileWotAuthorQ2',
+          },
+        ],
       })
     )
   }
@@ -99,10 +123,12 @@ export const Question1Wrapper = (props: Container.RouteProps<{username: string}>
 export const Question2Wrapper = (
   props: Container.RouteProps<{
     username: string
+    guiID: string
     question1Answer: Question1Answer
   }>
 ) => {
   const voucheeUsername = Container.getRouteProps(props, 'username', '')
+  const guiID = Container.getRouteProps(props, 'guiID', '')
   const question1Answer = Container.getRoutePropsOr(props, 'question1Answer', 'error')
   const nav = Container.useSafeNavigation()
   const dispatch = Container.useDispatch()
@@ -118,11 +144,12 @@ export const Question2Wrapper = (
     if (question1Answer === 'error') {
       return
     }
-    const {otherText, verificationType} = question1Answer
+    const {otherText, proofs, verificationType} = question1Answer
     dispatch(
       ProfileGen.createWotVouch({
+        guiID,
         otherText,
-        proofs: [], // PICNIC-1087 TODO
+        proofs,
         statement,
         username: voucheeUsername,
         verificationType,
@@ -170,12 +197,7 @@ export const Question1 = (props: Question1Props) => {
   const onSubmit = () => {
     props.onSubmit({
       otherText: selectedVerificationType === 'other' ? otherText : '',
-      proofs: proofs
-        .filter(({checked}) => checked)
-        .map(proof => {
-          const {checked, onCheck, ...rest} = proof
-          return rest
-        }),
+      proofs: proofs.filter(({checked}) => checked).map(proof => proof.wotProof),
       verificationType: selectedVerificationType,
     })
   }

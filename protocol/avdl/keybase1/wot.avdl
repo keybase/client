@@ -32,7 +32,8 @@ protocol wot {
     string other;
   }
 
-  void wotVouch(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
+  void wotVouch(int sessionID, string username, Identify3GUIID guiID, array<string> vouchTexts, Confidence confidence);
+  void wotVouchCLI(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
 
   enum WotReactionType {
     ACCEPT_0,
