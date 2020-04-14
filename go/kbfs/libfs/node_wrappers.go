@@ -48,8 +48,8 @@ func (nfn *namedFileNode) FillCacheDuration(d *time.Duration) {
 }
 
 func newFolderStatusFileNode(
-	config libkbfs.Config, node libkbfs.Node,
-	fb data.FolderBranch, log logger.Logger) *namedFileNode {
+	config libkbfs.Config, node libkbfs.Node, fb data.FolderBranch,
+	log logger.Logger) *namedFileNode {
 	return &namedFileNode{
 		Node: node,
 		log:  log,
@@ -79,6 +79,19 @@ func newErrorFileNode(
 		log:    log,
 		name:   ErrorFileName,
 		reader: GetEncodedErrors(config),
+	}
+}
+
+func newTlfEditHistoryFileNode(
+	config libkbfs.Config, node libkbfs.Node, fb data.FolderBranch,
+	log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node: node,
+		log:  log,
+		name: EditHistoryName,
+		reader: func(ctx context.Context) ([]byte, time.Time, error) {
+			return GetEncodedTlfEditHistory(ctx, config, fb)
+		},
 	}
 }
 
@@ -186,6 +199,7 @@ var perTlfWrappedNodeNames = map[string]bool{
 	ProfileListDirName:    true,
 	MetricsFileName:       true,
 	ErrorFileName:         true,
+	EditHistoryName:       true,
 }
 
 var perTlfWrappedNodePrefixes = []string{
@@ -312,6 +326,12 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 		f := efn.GetFile(ctx)
 		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
 			data.PathPartString{}, data.ZeroPtr
+	case plain == EditHistoryName:
+		tehfn := newTlfEditHistoryFileNode(
+			sfn.config, nil, sfn.GetFolderBranch(), sfn.log)
+		f := tehfn.GetFile(ctx)
+		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
+			data.PathPartString{}, data.ZeroPtr
 	case plain == ProfileListDirName:
 		return true, ctx, data.FakeDir,
 			&wrappedReadFileInfo{plain, 0, sfn.config.Clock().Now(), true},
@@ -374,6 +394,10 @@ func (sfn *specialFileNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	case name == ErrorFileName:
 		return newErrorFileNode(
 			sfn.config, &libkbfs.ReadonlyNode{Node: child}, sfn.log)
+	case name == EditHistoryName:
+		return newTlfEditHistoryFileNode(
+			sfn.config, &libkbfs.ReadonlyNode{Node: child},
+			sfn.GetFolderBranch(), sfn.log)
 	case name == ProfileListDirName:
 		return &profileListNode{
 			Node:   &libkbfs.ReadonlyNode{Node: child},

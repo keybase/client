@@ -17,8 +17,7 @@ import (
 // within a TLF and outside a TLF.
 func handleCommonSpecialFile(
 	name string, fs *FS, entryValid *time.Duration) fs.Node {
-	switch name {
-	case libfs.ResetCachesFileName:
+	if name == libfs.ResetCachesFileName {
 		return &ResetCachesFile{fs}
 	}
 
@@ -88,9 +87,6 @@ func handleTLFSpecialFile(
 	}
 
 	switch name {
-	case libfs.EditHistoryName:
-		return NewTlfEditHistoryFile(folder, entryValid)
-
 	case libfs.UnstageFileName:
 		return &UnstageFile{
 			folder: folder,
