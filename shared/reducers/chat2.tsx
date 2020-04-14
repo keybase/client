@@ -313,9 +313,9 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
       const {selectedIndex} = inboxSearch
       let totalResults = inboxSearch.nameResults.length + inboxSearch.textResults.length
       if (inboxSearch.openTeamsResults)
-        totalResults += inboxSearch.openTeamsResultsExpanded ? inboxSearch.openTeamsResults.length : 3
+        totalResults += inboxSearch.openTeamsResultsAll ? inboxSearch.openTeamsResults.length : 3
       if (inboxSearch.botsResults)
-        totalResults += inboxSearch.botsResultsExpanded ? inboxSearch.botsResults.length : 3
+        totalResults += inboxSearch.botsResultsAll ? inboxSearch.botsResults.length : 3
       if (increment && selectedIndex < totalResults - 1) {
         inboxSearch.selectedIndex = selectedIndex + 1
       } else if (!increment && selectedIndex > 0) {

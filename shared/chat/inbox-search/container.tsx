@@ -35,25 +35,20 @@ export default namedConnect(
           selectedIndex,
         })
       ),
-    onToggleBotsExpanded: ({expanded}) =>
-      Chat2Gen.createInboxSearchBotsResultsExpanded({expanded: !expanded}),
+    onToggleBotsAll: ({all}) => dispatch(Chat2Gen.createInboxSearchBotsResultsAll({all: !all})),
+    onToggleOpenTeamsAll: ({all}) => dispatch(Chat2Gen.createInboxSearchOpenTeamsResultsAll({all: !all})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {header} = ownProps
     const {_inboxSearch} = stateProps
     const {indexPercent, nameResults, nameResultsUnread, nameStatus, textStatus} = _inboxSearch
-    const {botsResults, botsResultsExpanded, botsResultsSuggested, botsStatus} = _inboxSearch
-    const {
-      openTeamsResults,
-      openTeamsResultsExpanded,
-      openTeamsResultsSuggested,
-      openTeamsStatus,
-    } = _inboxSearch
+    const {botsResults, botsResultsAll, botsResultsSuggested, botsStatus} = _inboxSearch
+    const {openTeamsResults, openTeamsResultsAll, openTeamsResultsSuggested, openTeamsStatus} = _inboxSearch
     const {query, selectedIndex, textResults} = _inboxSearch
     const {onCancel, onInstallBot, onSelectConversation} = dispatchProps
     return {
       botsResults,
-      botsResultsExpanded,
+      botsResultsAll,
       botsResultsSuggested,
       botsStatus,
       header,
@@ -68,13 +63,13 @@ export default namedConnect(
       onCancel,
       onInstallBot,
       onSelectConversation,
-      onToggleBotsExpanded: () => dispatchProps.onToggleBotsExpanded({expanded: botsResultsExpanded}),
-      onToggleOpenTeamsResultsExpanded: () =>
-        dispatchProps.onToggleBotsExpanded({
-          expanded: openTeamsResultsExpanded,
+      onToggleBotsAll: () => dispatchProps.onToggleBotsAll({all: botsResultsAll}),
+      onToggleOpenTeamsAll: () =>
+        dispatchProps.onToggleOpenTeamsAll({
+          all: openTeamsResultsAll,
         }),
       openTeamsResults,
-      openTeamsResultsExpanded,
+      openTeamsResultsAll,
       openTeamsResultsSuggested,
       openTeamsStatus,
       query: query.stringValue(),

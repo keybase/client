@@ -692,9 +692,9 @@
       "_description": "Toggle inbox search view",
       "enabled": "boolean"
     },
-    "inboxSearchOpenTeamsExpanded": {
-      "_description": "Inbox search open teams expanded",
-      "expanded": "boolean"
+    "inboxSearchOpenTeamsResultsAll": {
+      "_description": "Inbox search open teams showing all",
+      "all": "boolean"
     },
     "inboxSearchOpenTeamsResults": {
       "_description": "Inbox search open teams results received",
@@ -706,9 +706,9 @@
       "results": "Array<RPCTypes.FeaturedBot>",
       "suggested": "boolean"
     },
-    "inboxSearchBotsResultsExpanded": {
-      "_description": "Inbox search bot results expanded",
-      "expanded": "boolean"
+    "inboxSearchBotsResultsAll": {
+      "_description": "Inbox search bot results showing all",
+      "all": "boolean"
     },
     "inboxSearchNameResults": {
       "_description": "Inbox search name results received",

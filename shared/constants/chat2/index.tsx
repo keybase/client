@@ -123,7 +123,7 @@ export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
 
 export const makeInboxSearchInfo = (): Types.InboxSearchInfo => ({
   botsResults: [],
-  botsResultsExpanded: false,
+  botsResultsAll: false,
   botsResultsSuggested: false,
   botsStatus: 'initial',
   indexPercent: 0,
@@ -131,7 +131,7 @@ export const makeInboxSearchInfo = (): Types.InboxSearchInfo => ({
   nameResultsUnread: false,
   nameStatus: 'initial',
   openTeamsResults: [],
-  openTeamsResultsExpanded: false,
+  openTeamsResultsAll: false,
   openTeamsResultsSuggested: false,
   openTeamsStatus: 'initial',
   query: new HiddenString(''),

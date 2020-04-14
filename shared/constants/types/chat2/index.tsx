@@ -71,14 +71,14 @@ export type InboxSearchOpenTeamHit = {
 export type InboxSearchInfo = {
   indexPercent: number
   botsResults: Array<RPCTypes.FeaturedBot>
-  botsResultsExpanded: boolean
+  botsResultsAll: boolean
   botsResultsSuggested: boolean
   botsStatus: InboxSearchStatus
   nameResults: Array<InboxSearchConvHit>
   nameResultsUnread: boolean
   nameStatus: InboxSearchStatus
   openTeamsResults: Array<InboxSearchOpenTeamHit>
-  openTeamsResultsExpanded: boolean
+  openTeamsResultsAll: boolean
   openTeamsResultsSuggested: boolean
   openTeamsStatus: InboxSearchStatus
   query: HiddenString

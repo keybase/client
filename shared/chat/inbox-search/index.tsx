@@ -43,7 +43,7 @@ type Section<T> = _Section<T, SectionExtra<T>>
 export type Props = {
   botsAll: boolean
   botsResults: Array<RPCTypes.FeaturedBot>
-  botsResultsExpanded: boolean // SPOONER: maybe rename this to All instead of Expanded
+  botsResultsAll: boolean
   botsResultsSuggested: boolean
   botsStatus: Types.InboxSearchStatus
   header?: React.ReactElement | null
@@ -54,10 +54,10 @@ export type Props = {
   onInstallBot: (username: string) => void
   onCancel: () => void
   onSelectConversation: (arg0: Types.ConversationIDKey, arg1: number, arg2: string) => void
-  onToggleBotsExpanded: () => void
-  onToggleOpenTeamsExpanded: () => void
+  onToggleBotsAll: () => void
+  onToggleOpenTeamsAll: () => void
   openTeamsResults: Array<Types.InboxSearchOpenTeamHit>
-  openTeamsResultsExplanded: boolean // SPOONER: maybe rename this to All instead of Expanded
+  openTeamsResultsAll: boolean
   openTeamsResultsSuggested: boolean
   openTeamsStatus: Types.InboxSearchStatus
   query: string
@@ -192,7 +192,7 @@ class InboxSearch extends React.Component<Props, State> {
   }
 
   private getOpenTeamsResults = () => {
-    return this.props.openTeamsResultsExplanded
+    return this.props.openTeamsResultsAll
       ? this.props.openTeamsResults
       : this.props.openTeamsResults.slice(0, 3)
   }
@@ -205,11 +205,12 @@ class InboxSearch extends React.Component<Props, State> {
           <Kb.Text
             onClick={(e: React.BaseSyntheticEvent) => {
               e.stopPropagation()
-              this.props.onToggleOpenTeamsExpanded()
+              console.log('spooner toggle teams')
+              this.props.onToggleOpenTeamsAll()
             }}
             type="BodySmallSecondaryLink"
           >
-            {!this.props.openTeamsResultsExplanded ? '(more)' : '(less)'}
+            {!this.props.openTeamsResultsAll ? '(more)' : '(less)'}
           </Kb.Text>
         )}
       </Kb.Box2>
@@ -225,7 +226,7 @@ class InboxSearch extends React.Component<Props, State> {
   }
 
   private getBotsResults = () => {
-    return this.props.botsResultsExpanded ? this.props.botsResults : this.props.botsResults.slice(0, 3)
+    return this.props.botsResultsAll ? this.props.botsResults : this.props.botsResults.slice(0, 3)
   }
   private renderBotsHeader = (section: any) => {
     const showMore = this.props.botsResults.length > 3 && !this.state.botsCollapsed
@@ -236,11 +237,12 @@ class InboxSearch extends React.Component<Props, State> {
           <Kb.Text
             onClick={(e: React.BaseSyntheticEvent) => {
               e.stopPropagation()
-              this.props.onToggleBotsExpanded()
+              console.log('spooner toggle bots')
+              this.props.onToggleBotsAll()
             }}
             type="BodySmallSecondaryLink"
           >
-            {!this.props.botsResultsExpanded ? '(more)' : '(less)'}
+            {!this.props.botsResultsAll ? '(more)' : '(less)'}
           </Kb.Text>
         )}
       </Kb.Box2>
@@ -433,10 +435,8 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         className="background_color_white hover_background_color_blueGreyDark"
         style={Styles.collapseStyles([
           styles.openTeamContainer,
-          {
-            backgroundColor: isSelected ? Styles.globalColors.blue : undefined,
-            height: rowHeight,
-          },
+          {height: rowHeight},
+          isSelected && {backgroundColor: Styles.globalColors.blue},
         ])}
         onMouseLeave={() => setHovering(false)}
         onMouseOver={() => setHovering(true)}
