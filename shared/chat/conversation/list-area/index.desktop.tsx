@@ -21,6 +21,7 @@ import throttle from 'lodash/throttle'
 import chunk from 'lodash/chunk'
 import {globalMargins} from '../../../styles/shared'
 import {memoize} from '../../../util/memoize'
+import JumpToLastRead from "./jump-to-last-read";
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -79,6 +80,15 @@ class Thread extends React.PureComponent<Props, State> {
   set lockedToBottom(l: boolean) {
     // accessor just to help debug
     this._lockedToBottom = l
+  }
+
+  private _showLastReadBox: boolean = true
+  get showLastReadBox() {
+    return this._showLastReadBox
+  }
+  set showLastReadBox(l: boolean) {
+    // accessor just to help debug
+    this._showLastReadBox = l
   }
 
   private logAll = debug
@@ -140,6 +150,15 @@ class Thread extends React.PureComponent<Props, State> {
     setTimeout(() => {
       requestAnimationFrame(actuallyScroll)
     }, 1)
+  }
+
+
+  private scrollToUnread = () => {
+    this.showLastReadBox = false
+
+    this.props.loadLastUnreadMessage()
+
+    return;
   }
 
   private scrollDown = () => {
@@ -209,7 +228,9 @@ class Thread extends React.PureComponent<Props, State> {
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this.cleanupDebounced()
       this.lockedToBottom = true
+      this.showLastReadBox = true
       this.scrollToBottom('componentDidUpdate-change-convo')
+
       return
     }
 
@@ -512,6 +533,11 @@ class Thread extends React.PureComponent<Props, State> {
       <div>Debug info: {this.isLockedToBottom() ? 'Locked to bottom' : 'Not locked to bottom'}</div>
     ) : null
 
+    const lastUnread = (this.props.lastUnreadMessageID !== this.props.lastMessageID && this.showLastReadBox === true) ?
+        (<JumpToLastRead onClick={this.scrollToUnread} style={styles.jumpToLastRead}/>) : null
+
+    if (!lastUnread) this.showLastReadBox = false
+
     return (
       <ErrorBoundary>
         {debugInfo}
@@ -522,6 +548,8 @@ class Thread extends React.PureComponent<Props, State> {
               {items}
             </div>
           </div>
+          {lastUnread}
+
           {!this.props.containsLatestMessage && this.props.messageOrdinals.length > 0 && (
             <JumpToRecent onClick={this.jumpToRecent} style={styles.jumpToRecent} />
           )}
@@ -742,6 +770,10 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
+      jumpToLastRead: {
+        bottom: 0,
+        position: 'absolute',
+      },
       jumpToRecent: {
         bottom: 0,
         position: 'absolute',
