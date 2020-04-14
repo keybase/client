@@ -35,6 +35,7 @@ type Props<TitleT extends string> = {
   style?: Styles.StylesCrossPlatform
   tabStyle?: Styles.StylesCrossPlatform
   showProgressIndicator?: boolean
+  noDividers?: boolean
 }
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -69,7 +70,9 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
               )}
               {!!tab.badgeNumber && <Kb.Badge badgeNumber={tab.badgeNumber} badgeStyle={styles.badge} />}
             </Kb.Box>
-            <Kb.Divider style={selected ? styles.dividerSelected : styles.divider} />
+            {(selected || !props.noDividers) && (
+              <Kb.Divider style={selected ? styles.dividerSelected : styles.divider} />
+            )}
           </Kb.Box2>
         </Kb.ClickableBox>
       )

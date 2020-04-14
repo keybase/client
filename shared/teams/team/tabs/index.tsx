@@ -49,16 +49,24 @@ const TeamTabs = (props: TeamTabsProps) => {
       style={styles.tabContainer}
       showProgressIndicator={!isMobile && props.loading && !flags.teamsRedesign}
       tabStyle={styles.tab}
+      noDividers={isMobile} // tab bar is full width inside a scroll view, hard to fill. We make our own dividers
     />
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box style={styles.container}>
-        {isMobile ? <Kb.ScrollView horizontal={true}>{tabContent}</Kb.ScrollView> : tabContent}
-        {!isMobile && props.loading && flags.teamsRedesign && (
-          <Kb.ProgressIndicator style={styles.inlineProgressIndicator} />
-        )}
-      </Kb.Box>
+      {isMobile ? (
+        <Kb.Box style={styles.container}>
+          <Kb.ScrollView horizontal={true}>{tabContent}</Kb.ScrollView>
+          <Kb.Divider style={styles.divider} />
+        </Kb.Box>
+      ) : (
+        <Kb.Box style={styles.container}>
+          {tabContent}
+          {props.loading && flags.teamsRedesign && (
+            <Kb.ProgressIndicator style={styles.inlineProgressIndicator} />
+          )}
+        </Kb.Box>
+      )}
       {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
     </Kb.Box2>
   )
@@ -73,6 +81,10 @@ const styles = styleSheetCreate(() => ({
   }),
   container: {
     backgroundColor: globalColors.white,
+  },
+  divider: {
+    bottom: 2,
+    minHeight: 2,
   },
   inlineProgressIndicator: {
     height: 17,
@@ -90,11 +102,14 @@ const styles = styleSheetCreate(() => ({
       paddingRight: globalMargins.tiny,
     },
   }),
-  tabContainer: {
-    backgroundColor: globalColors.white,
-    flexBasis: '100%',
-    marginTop: 0,
-  },
+  tabContainer: platformStyles({
+    common: {
+      backgroundColor: globalColors.white,
+      flexBasis: '100%',
+      marginTop: 0,
+    },
+    isMobile: {borderBottomWidth: 0},
+  }),
 }))
 
 export default TeamTabs
