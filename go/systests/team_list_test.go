@@ -116,7 +116,7 @@ func TestTeamList(t *testing.T) {
 	require.Equal(t, 1, len(details.AnnotatedActiveInvites))
 	for _, invite := range details.AnnotatedActiveInvites {
 		// There should be only one invite
-		require.EqualValues(t, rootername, invite.Invite.Name)
+		require.EqualValues(t, rootername, invite.InviteMetadata.Invite.Name)
 	}
 
 	// Examine results from TeamList (mostly MemberCount)

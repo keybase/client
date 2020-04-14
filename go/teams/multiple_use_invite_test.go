@@ -48,7 +48,7 @@ func TestTeamInviteStubbing(t *testing.T) {
 	require.NoError(t, err)
 
 	var inviteID keybase1.TeamInviteID
-	for inviteID = range teamObj.chain().inner.ActiveInvites {
+	for inviteID = range teamObj.chain().inner.InviteMetadatas {
 		break // get first invite id
 	}
 
@@ -69,8 +69,7 @@ func TestTeamInviteStubbing(t *testing.T) {
 
 	inner := teamObj.chain().inner
 	require.Len(t, inner.ActiveInvites, 0)
-	require.Len(t, inner.UsedInvites, 1)
-	require.Len(t, inner.UsedInvites[inviteID], 1)
+	require.Len(t, inner.InviteMetadatas[inviteID].UsedInvites, 1)
 
 	// User 1 makes User 2 admin
 
@@ -87,9 +86,10 @@ func TestTeamInviteStubbing(t *testing.T) {
 
 	inner = teamObj.chain().inner
 	require.Len(t, inner.ActiveInvites, 1)
-	invite, ok := inner.ActiveInvites[inviteID]
+	inviteMD, ok := inner.InviteMetadatas[inviteID]
+	invite := inviteMD.Invite
 	require.True(t, ok, "invite found loaded by user 2")
-	require.Len(t, inner.UsedInvites[inviteID], 1)
+	require.Len(t, inviteMD.UsedInvites, 1)
 
 	// See if User 2 can decrypt
 	pkey, err := SeitanDecodePKey(string(invite.Name))

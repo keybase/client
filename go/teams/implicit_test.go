@@ -185,13 +185,13 @@ func TestImplicitPukless(t *testing.T) {
 	require.Equal(t, keybase1.TeamRole_OWNER, u0Role)
 	u1Role, err := team.chain().GetUserRole(fus[1].GetUserVersion())
 	require.True(t, err != nil || u1Role == keybase1.TeamRole_NONE, "u1 should not yet be a member")
-	t.Logf("invites: %v", spew.Sdump(team.chain().inner.ActiveInvites))
+	t.Logf("invites: %v", spew.Sdump(team.chain().ActiveInvites()))
 	itype, err := TeamInviteTypeFromString(tcs[0].MetaContext(), "keybase")
 	require.NoError(t, err, "should be able to make invite type for 'keybase'")
 	invite, err := team.chain().FindActiveInvite(fus[1].GetUserVersion().TeamInviteName(), itype)
 	require.NoError(t, err, "team should have invite for the puk-less user")
 	require.Equal(t, keybase1.TeamRole_OWNER, invite.Role)
-	require.Len(t, team.chain().inner.ActiveInvites, 1, "number of invites")
+	require.Len(t, team.chain().ActiveInvites(), 1, "number of invites")
 }
 
 // Test loading an implicit team as a #reader.
@@ -313,7 +313,7 @@ func TestLookupImplicitTeamResolvedSocialAssertion(t *testing.T) {
 	require.NoError(t, err)
 	// Note: t_tracy has no PUK so she shows up as an invite.
 	require.Len(t, owners, 1)
-	require.Len(t, team.chain().inner.ActiveInvites, 1, "number of invites")
+	require.Len(t, team.chain().ActiveInvites(), 1, "number of invites")
 
 	teamDisplay, err := team.ImplicitTeamDisplayNameString(context.TODO())
 	require.NoError(t, err)

@@ -1650,7 +1650,8 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 		return err
 	}
 
-	for _, inv := range team.chain().inner.ActiveInvites {
+	for _, invMD := range team.chain().ActiveInvites() {
+		inv := invMD.Invite
 		invTypeStr, err := inv.Type.String()
 		if err != nil {
 			return err

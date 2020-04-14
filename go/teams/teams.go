@@ -116,8 +116,10 @@ func (t *Team) calculateAndCacheMemberCount(ctx context.Context) (int, error) {
 		memberUIDs[uv.Uid] = true
 	}
 
-	invites := t.chain().inner.ActiveInvites
-	for invID, invite := range invites {
+	inviteMDs := t.chain().ActiveInvites()
+	for _, inviteMD := range inviteMDs {
+		invite := inviteMD.Invite
+		invID := invite.Id
 		category, err := invite.Type.C()
 		if err != nil {
 			m.Debug("| Failed parsing invite %q in team %q: %v", invID, t.ID, err)
@@ -438,7 +440,10 @@ func (t *Team) implicitTeamDisplayName(ctx context.Context, skipConflicts bool) 
 
 	// Add the invites
 	isFullyResolved := true
-	for _, invite := range t.chain().inner.ActiveInvites {
+
+	inviteMDs := t.chain().ActiveInvites()
+	for _, inviteMD := range inviteMDs {
+		invite := inviteMD.Invite
 		invtyp, err := invite.Type.C()
 		if err != nil {
 			t.G().Log.CDebugf(ctx, "ImplicitTeamDisplayName: failed to compute type of invite: %s", err.Error())
@@ -1239,11 +1244,15 @@ func (t *Team) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.TeamInvite, k
 
 func (t *Team) GetActiveAndObsoleteInvites() (ret map[keybase1.TeamInviteID]keybase1.TeamInvite) {
 	ret = make(map[keybase1.TeamInviteID]keybase1.TeamInvite)
-	for id, invite := range t.chain().inner.ActiveInvites {
-		ret[id] = invite
-	}
-	for id, invite := range t.chain().inner.ObsoleteInvites {
-		ret[id] = invite
+	for inviteID, inviteMD := range t.chain().inner.InviteMetadatas {
+		code, err := inviteMD.Status.Code()
+		if err != nil {
+			continue
+		}
+		switch code {
+		case keybase1.TeamInviteMetadataStatusCode_ACTIVE, keybase1.TeamInviteMetadataStatusCode_OBSOLETE:
+			ret[inviteID] = inviteMD.Invite
+		}
 	}
 	return ret
 }
@@ -2691,16 +2700,17 @@ func (t *Team) refreshUIDMapper(ctx context.Context, g *libkb.GlobalContext) {
 			g.Log.CDebugf(ctx, "Error informing eldest seqno: %+v", err.Error())
 		}
 	}
-	for id, invite := range t.chain().inner.ActiveInvites {
+	for _, inviteMD := range t.chain().ActiveInvites() {
+		invite := inviteMD.Invite
 		invtype, err := invite.Type.C()
 		if err != nil {
-			g.Log.CDebugf(ctx, "Error in invite %s: %s", id, err.Error())
+			g.Log.CDebugf(ctx, "Error in invite %s: %s", invite.Id, err.Error())
 			continue
 		}
 		if invtype == keybase1.TeamInviteCategory_KEYBASE {
 			uv, err := invite.KeybaseUserVersion()
 			if err != nil {
-				g.Log.CDebugf(ctx, "Error in parsing invite %s: %s", id, err.Error())
+				g.Log.CDebugf(ctx, "Error in parsing invite %s: %s", invite.Id, err.Error())
 			}
 			_, err = g.UIDMapper.InformOfEldestSeqno(ctx, g, uv)
 			if err != nil {

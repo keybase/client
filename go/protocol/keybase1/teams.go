@@ -1767,17 +1767,18 @@ func (o TeamInvite) DeepCopy() TeamInvite {
 }
 
 type AnnotatedTeamInvite struct {
-	Metadata        TeamInviteMetadata    `codec:"metadata" json:"metadata"`
-	DisplayName     TeamInviteDisplayName `codec:"displayName" json:"displayName"`
-	InviterUsername string                `codec:"inviterUsername" json:"inviterUsername"`
-	InviteeUv       UserVersion           `codec:"inviteeUv" json:"inviteeUv"`
-	TeamName        string                `codec:"teamName" json:"teamName"`
-	Status          *TeamMemberStatus     `codec:"status,omitempty" json:"status,omitempty"`
+	InviteMetadata       TeamInviteMetadata                `codec:"inviteMetadata" json:"inviteMetadata"`
+	DisplayName          TeamInviteDisplayName             `codec:"displayName" json:"displayName"`
+	InviterUsername      string                            `codec:"inviterUsername" json:"inviterUsername"`
+	InviteeUv            UserVersion                       `codec:"inviteeUv" json:"inviteeUv"`
+	TeamName             string                            `codec:"teamName" json:"teamName"`
+	Status               *TeamMemberStatus                 `codec:"status,omitempty" json:"status,omitempty"`
+	AnnotatedUsedInvites []AnnotatedTeamUsedInviteLogPoint `codec:"annotatedUsedInvites" json:"annotatedUsedInvites"`
 }
 
 func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 	return AnnotatedTeamInvite{
-		Metadata:        o.Metadata.DeepCopy(),
+		InviteMetadata:  o.InviteMetadata.DeepCopy(),
 		DisplayName:     o.DisplayName.DeepCopy(),
 		InviterUsername: o.InviterUsername,
 		InviteeUv:       o.InviteeUv.DeepCopy(),
@@ -1789,6 +1790,17 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Status),
+		AnnotatedUsedInvites: (func(x []AnnotatedTeamUsedInviteLogPoint) []AnnotatedTeamUsedInviteLogPoint {
+			if x == nil {
+				return nil
+			}
+			ret := make([]AnnotatedTeamUsedInviteLogPoint, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.AnnotatedUsedInvites),
 	}
 }
 
@@ -1876,12 +1888,23 @@ func (o TeamInviteMetadataCancel) DeepCopy() TeamInviteMetadataCancel {
 	}
 }
 
+type TeamInviteMetadataCompleted struct {
+	TeamSigMeta TeamSignatureMetadata `codec:"teamSigMeta" json:"teamSigMeta"`
+}
+
+func (o TeamInviteMetadataCompleted) DeepCopy() TeamInviteMetadataCompleted {
+	return TeamInviteMetadataCompleted{
+		TeamSigMeta: o.TeamSigMeta.DeepCopy(),
+	}
+}
+
 type TeamInviteMetadataStatusCode int
 
 const (
 	TeamInviteMetadataStatusCode_ACTIVE    TeamInviteMetadataStatusCode = 0
 	TeamInviteMetadataStatusCode_OBSOLETE  TeamInviteMetadataStatusCode = 1
 	TeamInviteMetadataStatusCode_CANCELLED TeamInviteMetadataStatusCode = 2
+	TeamInviteMetadataStatusCode_COMPLETED TeamInviteMetadataStatusCode = 3
 )
 
 func (o TeamInviteMetadataStatusCode) DeepCopy() TeamInviteMetadataStatusCode { return o }
@@ -1890,12 +1913,14 @@ var TeamInviteMetadataStatusCodeMap = map[string]TeamInviteMetadataStatusCode{
 	"ACTIVE":    0,
 	"OBSOLETE":  1,
 	"CANCELLED": 2,
+	"COMPLETED": 3,
 }
 
 var TeamInviteMetadataStatusCodeRevMap = map[TeamInviteMetadataStatusCode]string{
 	0: "ACTIVE",
 	1: "OBSOLETE",
 	2: "CANCELLED",
+	3: "COMPLETED",
 }
 
 func (e TeamInviteMetadataStatusCode) String() string {
@@ -1908,6 +1933,7 @@ func (e TeamInviteMetadataStatusCode) String() string {
 type TeamInviteMetadataStatus struct {
 	Code__      TeamInviteMetadataStatusCode `codec:"code" json:"code"`
 	Cancelled__ *TeamInviteMetadataCancel    `codec:"cancelled,omitempty" json:"cancelled,omitempty"`
+	Completed__ *TeamInviteMetadataCompleted `codec:"completed,omitempty" json:"completed,omitempty"`
 }
 
 func (o *TeamInviteMetadataStatus) Code() (ret TeamInviteMetadataStatusCode, err error) {
@@ -1915,6 +1941,11 @@ func (o *TeamInviteMetadataStatus) Code() (ret TeamInviteMetadataStatusCode, err
 	case TeamInviteMetadataStatusCode_CANCELLED:
 		if o.Cancelled__ == nil {
 			err = errors.New("unexpected nil value for Cancelled__")
+			return ret, err
+		}
+	case TeamInviteMetadataStatusCode_COMPLETED:
+		if o.Completed__ == nil {
+			err = errors.New("unexpected nil value for Completed__")
 			return ret, err
 		}
 	}
@@ -1929,6 +1960,16 @@ func (o TeamInviteMetadataStatus) Cancelled() (res TeamInviteMetadataCancel) {
 		return
 	}
 	return *o.Cancelled__
+}
+
+func (o TeamInviteMetadataStatus) Completed() (res TeamInviteMetadataCompleted) {
+	if o.Code__ != TeamInviteMetadataStatusCode_COMPLETED {
+		panic("wrong case accessed")
+	}
+	if o.Completed__ == nil {
+		return
+	}
+	return *o.Completed__
 }
 
 func NewTeamInviteMetadataStatusWithActive() TeamInviteMetadataStatus {
@@ -1950,6 +1991,13 @@ func NewTeamInviteMetadataStatusWithCancelled(v TeamInviteMetadataCancel) TeamIn
 	}
 }
 
+func NewTeamInviteMetadataStatusWithCompleted(v TeamInviteMetadataCompleted) TeamInviteMetadataStatus {
+	return TeamInviteMetadataStatus{
+		Code__:      TeamInviteMetadataStatusCode_COMPLETED,
+		Completed__: &v,
+	}
+}
+
 func (o TeamInviteMetadataStatus) DeepCopy() TeamInviteMetadataStatus {
 	return TeamInviteMetadataStatus{
 		Code__: o.Code__.DeepCopy(),
@@ -1960,12 +2008,20 @@ func (o TeamInviteMetadataStatus) DeepCopy() TeamInviteMetadataStatus {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Cancelled__),
+		Completed__: (func(x *TeamInviteMetadataCompleted) *TeamInviteMetadataCompleted {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Completed__),
 	}
 }
 
 type TeamInviteMetadata struct {
 	Invite      TeamInvite               `codec:"invite" json:"invite"`
 	TeamSigMeta TeamSignatureMetadata    `codec:"teamSigMeta" json:"teamSigMeta"`
+	Status      TeamInviteMetadataStatus `codec:"status" json:"status"`
 	UsedInvites []TeamUsedInviteLogPoint `codec:"usedInvites" json:"usedInvites"`
 }
 
@@ -1973,6 +2029,7 @@ func (o TeamInviteMetadata) DeepCopy() TeamInviteMetadata {
 	return TeamInviteMetadata{
 		Invite:      o.Invite.DeepCopy(),
 		TeamSigMeta: o.TeamSigMeta.DeepCopy(),
+		Status:      o.Status.DeepCopy(),
 		UsedInvites: (func(x []TeamUsedInviteLogPoint) []TeamUsedInviteLogPoint {
 			if x == nil {
 				return nil

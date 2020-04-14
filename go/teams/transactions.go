@@ -399,7 +399,8 @@ func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) 
 	}
 
 	team := tx.team
-	for _, invite := range team.chain().inner.ActiveInvites {
+	for _, inviteMD := range team.chain().ActiveInvites() {
+		invite := inviteMD.Invite
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
 			if inviteUv.Uid.Equal(uv.Uid) {
 				if payload.CompletedInvites == nil {
@@ -694,10 +695,11 @@ func (tx *AddMemberTx) AddOrInviteMemberByAssertion(ctx context.Context, asserti
 // `ConsumeInviteByID` to assert that invite is still useable (new-style invites
 // may be expired or exceeded).
 func (tx *AddMemberTx) CanConsumeInvite(ctx context.Context, inviteID keybase1.TeamInviteID) error {
-	invite, found := tx.team.chain().FindActiveInviteByID(inviteID)
+	inviteMD, found := tx.team.chain().FindActiveInviteMDByID(inviteID)
 	if !found {
 		return fmt.Errorf("failed to find invite being used")
 	}
+	invite := inviteMD.Invite
 
 	isNewStyle, err := IsNewStyleInvite(invite)
 	if err != nil {
@@ -709,7 +711,7 @@ func (tx *AddMemberTx) CanConsumeInvite(ctx context.Context, inviteID keybase1.T
 		// expiration date and can always be one-time use, and wouldn't show up
 		// in `FindActiveInviteByID` (because they are not active). New-style
 		// invites always stay active.
-		alreadyUsedBeforeTransaction := len(tx.team.chain().inner.UsedInvites[inviteID])
+		alreadyUsedBeforeTransaction := len(inviteMD.UsedInvites)
 		alreadyUsed := alreadyUsedBeforeTransaction + tx.usedInviteCount[inviteID]
 		if invite.MaxUses.IsUsedUp(alreadyUsed) {
 			return fmt.Errorf("invite has no more uses left; so cannot add by this invite")
@@ -736,10 +738,11 @@ func (tx *AddMemberTx) ConsumeInviteByID(ctx context.Context, inviteID keybase1.
 		return fmt.Errorf("could not find uv %v in transaction", uv)
 	}
 
-	invite, found := tx.team.chain().FindActiveInviteByID(inviteID)
+	inviteMD, found := tx.team.chain().FindActiveInviteMDByID(inviteID)
 	if !found {
 		return fmt.Errorf("failed to find invite being used")
 	}
+	invite := inviteMD.Invite
 
 	isNewStyle, err := IsNewStyleInvite(invite)
 	if err != nil {
@@ -796,7 +799,8 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 
 	var completedInvites = map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm{}
 
-	for _, invite := range team.chain().inner.ActiveInvites {
+	for _, inviteMD := range team.chain().ActiveInvites() {
+		invite := inviteMD.Invite
 		ityp, err := invite.Type.String()
 		if err != nil {
 			return err

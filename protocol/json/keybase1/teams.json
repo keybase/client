@@ -1379,7 +1379,7 @@
       "fields": [
         {
           "type": "TeamInviteMetadata",
-          "name": "metadata"
+          "name": "inviteMetadata"
         },
         {
           "type": "TeamInviteDisplayName",
@@ -1403,6 +1403,13 @@
             "TeamMemberStatus"
           ],
           "name": "status"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AnnotatedTeamUsedInviteLogPoint"
+          },
+          "name": "annotatedUsedInvites"
         }
       ]
     },
@@ -1503,12 +1510,23 @@
       ]
     },
     {
+      "type": "record",
+      "name": "TeamInviteMetadataCompleted",
+      "fields": [
+        {
+          "type": "TeamSignatureMetadata",
+          "name": "teamSigMeta"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "TeamInviteMetadataStatusCode",
       "symbols": [
         "ACTIVE_0",
         "OBSOLETE_1",
-        "CANCELLED_2"
+        "CANCELLED_2",
+        "COMPLETED_3"
       ]
     },
     {
@@ -1539,6 +1557,13 @@
             "def": false
           },
           "body": "TeamInviteMetadataCancel"
+        },
+        {
+          "label": {
+            "name": "COMPLETED",
+            "def": false
+          },
+          "body": "TeamInviteMetadataCompleted"
         }
       ]
     },
@@ -1553,6 +1578,10 @@
         {
           "type": "TeamSignatureMetadata",
           "name": "teamSigMeta"
+        },
+        {
+          "type": "TeamInviteMetadataStatus",
+          "name": "status"
         },
         {
           "type": {
