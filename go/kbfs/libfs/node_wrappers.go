@@ -95,36 +95,20 @@ func newTlfEditHistoryFileNode(
 	}
 }
 
-var updateHistoryRevsRE = regexp.MustCompile("^\\.([0-9]+)(-([0-9]+))?$") //nolint (`\.` doesn't seem to work in single quotes)
-
-type updateHistoryFileNode struct {
-	libkbfs.Node
-
-	fb     data.FolderBranch
-	config libkbfs.Config
-	log    logger.Logger
-	start  kbfsmd.Revision
-	end    kbfsmd.Revision
-}
-
-var _ libkbfs.Node = (*updateHistoryFileNode)(nil)
-
-func (uhfn updateHistoryFileNode) GetFile(ctx context.Context) billy.File {
-	return &wrappedReadFile{
-		name: StatusFileName,
+func newUpdateHistoryFileNode(
+	config libkbfs.Config, node libkbfs.Node, fb data.FolderBranch,
+	start, end kbfsmd.Revision, log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node: node,
+		log:  log,
+		name: UpdateHistoryFileName,
 		reader: func(ctx context.Context) ([]byte, time.Time, error) {
-			return GetEncodedUpdateHistory(
-				ctx, uhfn.config, uhfn.fb, uhfn.start, uhfn.end)
+			return GetEncodedUpdateHistory(ctx, config, fb, start, end)
 		},
-		log: uhfn.log,
 	}
 }
 
-func (uhfn *updateHistoryFileNode) FillCacheDuration(d *time.Duration) {
-	// Suggest kindly that no one should cache this node, since it
-	// could change each time it's read.
-	*d = 0
-}
+var updateHistoryRevsRE = regexp.MustCompile("^\\.([0-9]+)(-([0-9]+))?$") //nolint (`\.` doesn't seem to work in single quotes)
 
 type profileNode struct {
 	libkbfs.Node
@@ -217,17 +201,12 @@ func shouldBeTlfWrappedNode(name string) bool {
 }
 
 func (sfn *specialFileNode) newUpdateHistoryFileNode(
-	node libkbfs.Node, name string) *updateHistoryFileNode {
+	node libkbfs.Node, name string) *namedFileNode {
 	revs := strings.TrimPrefix(name, UpdateHistoryFileName)
 	if revs == "" {
-		return &updateHistoryFileNode{
-			Node:   node,
-			fb:     sfn.GetFolderBranch(),
-			config: sfn.config,
-			log:    sfn.log,
-			start:  kbfsmd.RevisionInitial,
-			end:    kbfsmd.RevisionUninitialized,
-		}
+		return newUpdateHistoryFileNode(
+			sfn.config, node, sfn.GetFolderBranch(),
+			kbfsmd.RevisionInitial, kbfsmd.RevisionUninitialized, sfn.log)
 	}
 
 	matches := updateHistoryRevsRE.FindStringSubmatch(revs)
@@ -247,14 +226,9 @@ func (sfn *specialFileNode) newUpdateHistoryFileNode(
 		}
 	}
 
-	return &updateHistoryFileNode{
-		Node:   node,
-		fb:     sfn.GetFolderBranch(),
-		config: sfn.config,
-		log:    sfn.log,
-		start:  kbfsmd.Revision(start),
-		end:    kbfsmd.Revision(end),
-	}
+	return newUpdateHistoryFileNode(
+		sfn.config, node, sfn.GetFolderBranch(),
+		kbfsmd.Revision(start), kbfsmd.Revision(end), sfn.log)
 }
 
 // parseBlockPointer returns a real BlockPointer given a string.  The
