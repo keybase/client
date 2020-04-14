@@ -3036,32 +3036,27 @@ func (c Coordinate) Eq(o Coordinate) bool {
 	return c.Lat == o.Lat && c.Lon == o.Lon
 }
 
+type safeCoordinate struct {
+	Lat      float64 `codec:"lat" json:"lat"`
+	Lon      float64 `codec:"lon" json:"lon"`
+	Accuracy float64 `codec:"accuracy" json:"accuracy"`
+}
+
 func (c Coordinate) MarshalJSON() ([]byte, error) {
-	lat := c.Lat
-	lon := c.Lon
-	accuracy := c.Accuracy
-	if math.IsNaN(lat) {
-		lat = 0
+	var safe safeCoordinate
+	safe.Lat = c.Lat
+	safe.Lon = c.Lon
+	safe.Accuracy = c.Accuracy
+	if math.IsNaN(safe.Lat) {
+		safe.Lat = 0
 	}
-	if math.IsNaN(lon) {
-		lon = 0
+	if math.IsNaN(safe.Lon) {
+		safe.Lon = 0
 	}
-	if math.IsNaN(accuracy) {
-		accuracy = 0
+	if math.IsNaN(safe.Accuracy) {
+		safe.Accuracy = 0
 	}
-	mlat, err := json.Marshal(lat)
-	if err != nil {
-		return nil, err
-	}
-	mlon, err := json.Marshal(lon)
-	if err != nil {
-		return nil, err
-	}
-	maccuracy, err := json.Marshal(accuracy)
-	if err != nil {
-		return nil, err
-	}
-	return []byte(fmt.Sprintf(`{"lat":%s,"lon":%s,"accuracy":%s}`, mlat, mlon, maccuracy)), nil
+	return json.Marshal(safe)
 }
 
 // Incremented if the client hash algorithm changes. If this value is changed
@@ -3183,28 +3178,25 @@ func (m AssetMetadata) IsType(typ AssetMetadataType) bool {
 	return mtyp == typ
 }
 
+type safeAssetMetadataImage struct {
+	Width     int       `codec:"width" json:"width"`
+	Height    int       `codec:"height" json:"height"`
+	AudioAmps []float64 `codec:"audioAmps" json:"audioAmps"`
+}
+
 func (m AssetMetadataImage) MarshalJSON() ([]byte, error) {
-	amps := make([]float64, 0, len(m.AudioAmps))
+	var safe safeAssetMetadataImage
+	safe.AudioAmps = make([]float64, 0, len(m.AudioAmps))
 	for _, amp := range m.AudioAmps {
 		if math.IsNaN(amp) {
-			amps = append(amps, 0)
+			safe.AudioAmps = append(safe.AudioAmps, 0)
 		} else {
-			amps = append(amps, amp)
+			safe.AudioAmps = append(safe.AudioAmps, amp)
 		}
 	}
-	width, err := json.Marshal(m.Width)
-	if err != nil {
-		return nil, err
-	}
-	height, err := json.Marshal(m.Height)
-	if err != nil {
-		return nil, err
-	}
-	mamps, err := json.Marshal(amps)
-	if err != nil {
-		return nil, err
-	}
-	return []byte(fmt.Sprintf(`{"width":%s,"height":%s,"audioAmps":%s}`, width, height, mamps)), nil
+	safe.Width = m.Width
+	safe.Height = m.Height
+	return json.Marshal(safe)
 }
 
 func (s SnippetDecoration) ToEmoji() string {
