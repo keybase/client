@@ -21,8 +21,6 @@ func handleCommonSpecialFile(
 	switch name {
 	case libkbfs.ErrorFile:
 		return NewErrorFile(fs, entryValid)
-	case libfs.MetricsFileName:
-		return NewMetricsFile(fs, entryValid)
 	case libfs.ResetCachesFileName:
 		return &ResetCachesFile{fs}
 	}
@@ -47,6 +45,8 @@ func handleNonTLFSpecialFile(
 		// using a wrapped file system with nodes for the
 		// root/folderlist directories.
 		return ProfileList{fs.config}
+	case libfs.MetricsFileName:
+		return NewMetricsFile(fs, entryValid)
 	case libfs.HumanErrorFileName, libfs.HumanNoLoginFileName:
 		*entryValid = 0
 		return &SpecialReadFile{fs.remoteStatus.NewSpecialReadFunc}
