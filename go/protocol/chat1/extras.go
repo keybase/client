@@ -5,10 +5,12 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"hash"
+	"math"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -3034,6 +3036,34 @@ func (c Coordinate) Eq(o Coordinate) bool {
 	return c.Lat == o.Lat && c.Lon == o.Lon
 }
 
+func (c Coordinate) MarshalJSON() ([]byte, error) {
+	lat := c.Lat
+	lon := c.Lon
+	accuracy := c.Accuracy
+	if math.IsNaN(lat) {
+		lat = 0
+	}
+	if math.IsNaN(lon) {
+		lon = 0
+	}
+	if math.IsNaN(accuracy) {
+		accuracy = 0
+	}
+	mlat, err := json.Marshal(lat)
+	if err != nil {
+		return nil, err
+	}
+	mlon, err := json.Marshal(lon)
+	if err != nil {
+		return nil, err
+	}
+	maccuracy, err := json.Marshal(accuracy)
+	if err != nil {
+		return nil, err
+	}
+	return []byte(fmt.Sprintf(`{"lat":%s,"lon":%s,"accuracy":%s}`, mlat, mlon, maccuracy)), nil
+}
+
 // Incremented if the client hash algorithm changes. If this value is changed
 // be sure to add a case in the BotInfo.Hash() function.
 const ClientBotInfoHashVers BotInfoHashVers = 1
@@ -3151,6 +3181,30 @@ func (m AssetMetadata) IsType(typ AssetMetadataType) bool {
 		return false
 	}
 	return mtyp == typ
+}
+
+func (m AssetMetadataImage) MarshalJSON() ([]byte, error) {
+	amps := make([]float64, 0, len(m.AudioAmps))
+	for _, amp := range m.AudioAmps {
+		if math.IsNaN(amp) {
+			amps = append(amps, 0)
+		} else {
+			amps = append(amps, amp)
+		}
+	}
+	width, err := json.Marshal(m.Width)
+	if err != nil {
+		return nil, err
+	}
+	height, err := json.Marshal(m.Height)
+	if err != nil {
+		return nil, err
+	}
+	mamps, err := json.Marshal(amps)
+	if err != nil {
+		return nil, err
+	}
+	return []byte(fmt.Sprintf(`{"width":%s,"height":%s,"audioAmps":%s}`, width, height, mamps)), nil
 }
 
 func (s SnippetDecoration) ToEmoji() string {
