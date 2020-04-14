@@ -108,7 +108,7 @@ const TeamHeader = (props: TeamHeaderProps) => {
         <Kb.Meta
           backgroundColor={Styles.globalColors.blueGrey}
           color={Styles.globalColors.black_50}
-          icon="iconfont-people"
+          icon="iconfont-people-solid"
           iconColor={Styles.globalColors.black_20}
           title={teamHumanCount}
         />

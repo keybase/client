@@ -1043,6 +1043,7 @@ export type IconType =
   | 'iconfont-pause'
   | 'iconfont-pawprint'
   | 'iconfont-people'
+  | 'iconfont-people-solid'
   | 'iconfont-person'
   | 'iconfont-person-raisedarms'
   | 'iconfont-phone-contact'
@@ -10145,6 +10146,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-people': {
     charCode: 0xe94a,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-people-solid': {
+    charCode: 0xe9c7,
     gridSize: 16,
     isFont: true,
   },
