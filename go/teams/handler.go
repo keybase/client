@@ -666,7 +666,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	} else {
 		err = tx.Post(mctx)
 		if err != nil {
-			return err
+			return fmt.Errorf("HandleTeamSeitan: Error posting transaction: %w", err)
 		}
 
 		// Send chats
