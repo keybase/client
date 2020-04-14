@@ -14,6 +14,7 @@ type Props = {
   onSecondaryButtonClick?: () => void
   image?: IconType
   imageStyle?: Styles.StylesCrossPlatform
+  unwrapped?: boolean
 }
 
 const NewFeature = (props: Props) => {
@@ -58,9 +59,13 @@ const NewFeature = (props: Props) => {
         />
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer}>
-        <Kb.Text type="BodySmall" allowFontScaling={true}>
-          {props.children}
-        </Kb.Text>
+        {props.unwrapped ? (
+          props.children
+        ) : (
+          <Kb.Text type="BodySmall" allowFontScaling={true}>
+            {props.children}
+          </Kb.Text>
+        )}
         {props.image && (
           <Kb.Box2 direction="vertical" style={styles.imageContainer}>
             <Kb.Icon type={props.image} style={Styles.collapseStyles([styles.image, props.imageStyle])} />
