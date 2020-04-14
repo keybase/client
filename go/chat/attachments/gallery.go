@@ -12,11 +12,12 @@ import (
 )
 
 type NextMessageOptions struct {
-	BackInTime  bool
-	MessageType chat1.MessageType
-	AssetTypes  []chat1.AssetMetadataType
-	UnfurlTypes []chat1.UnfurlType
-	FilterLinks bool
+	BackInTime   bool
+	MessageType  chat1.MessageType
+	AssetTypes   []chat1.AssetMetadataType
+	UnfurlTypes  []chat1.UnfurlType
+	FilterLinks  bool
+	IncludeAudio bool
 }
 
 type Gallery struct {
@@ -36,7 +37,7 @@ func NewGallery(g *globals.Context) *Gallery {
 }
 
 func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, typMap map[chat1.MessageType]bool,
-	assetMap map[chat1.AssetMetadataType]bool, unfurlMap map[chat1.UnfurlType]bool) bool {
+	assetMap map[chat1.AssetMetadataType]bool, unfurlMap map[chat1.UnfurlType]bool, includeAudio bool) bool {
 	if !msg.IsValid() {
 		return false
 	}
@@ -56,6 +57,10 @@ func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, typMap map[chat1
 			return false
 		}
 		if len(assetMap) > 0 && !assetMap[atyp] {
+			return false
+		}
+		if !includeAudio && atyp == chat1.AssetMetadataType_VIDEO && md.Video().IsAudio {
+			// treat audio separately
 			return false
 		}
 	case chat1.MessageType_UNFURL:
@@ -210,7 +215,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 		}
 		messages := reverseFn(tv)
 		for _, m := range messages {
-			if !g.eligibleNextMessage(m, typMap, assetMap, unfurlMap) {
+			if !g.eligibleNextMessage(m, typMap, assetMap, unfurlMap, opts.IncludeAudio) {
 				continue
 			}
 			if m, err = g.getUnfurlHost(ctx, uid, convID, m); err != nil {
