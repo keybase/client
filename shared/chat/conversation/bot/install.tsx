@@ -381,7 +381,7 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const reviewButton = showReviewButton && (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={{marginTop: -Styles.globalMargins.tiny}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.reviewButton}>
       {readOnly ? (
         <Kb.Text style={{alignSelf: 'center'}} type="BodySmall">
           Ask an admin or owner to install this bot
@@ -630,6 +630,7 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 560,
     },
   }),
+  reviewButton: {marginTop: -Styles.globalMargins.tiny},
 }))
 
 export default InstallBotPopupLoader

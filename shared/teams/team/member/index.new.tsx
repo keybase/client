@@ -13,9 +13,10 @@ import {pluralize} from '../../../util/string'
 import {FloatingRolePicker} from '../../role-picker'
 import RoleButton from '../../role-button'
 import * as TeamsGen from '../../../actions/teams-gen'
-import {TeamDetailsSubscriber} from '../../subscriber'
+import {useTeamDetailsSubscribe} from '../../subscriber'
 import {formatTimeForTeamMember, formatTimeRelativeToNow} from '../../../util/timestamp'
 import {Section as _Section} from '../../../common-adapters/section-list'
+import isEqual from 'lodash/isEqual'
 
 type Props = {
   teamID: Types.TeamID
@@ -31,49 +32,76 @@ type TeamTreeRowNotIn = {
   canAdminister: boolean
 }
 type TeamTreeRowIn = {
-  lastActivity: number
   role: Types.TeamRoleType
 } & TeamTreeRowNotIn
 
-const getMemberships = (state: Container.TypedState, targetTeamID: Types.TeamID, username: string) => {
+const getMemberships = (
+  state: Container.TypedState,
+  teamIDs: Array<Types.TeamID>,
+  username: string
+): Map<Types.TeamID, Types.TreeloaderSparseMemberInfo> => {
+  const results = new Map<Types.TeamID, Types.TreeloaderSparseMemberInfo>()
+  teamIDs.forEach(teamID => {
+    const info = Constants.maybeGetSparseMemberInfo(state, teamID, username)
+    if (info) {
+      results.set(teamID, info)
+    }
+  })
+  return results
+}
+
+type TreeMembershipOK = {s: RPCTypes.TeamTreeMembershipStatus.ok; ok: RPCTypes.TeamTreeMembershipValue}
+const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   const errors: Array<RPCTypes.TeamTreeMembership> = []
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
   const nodesIn: Array<TeamTreeRowIn> = []
 
-  const memberships = state.teams.teamMemberToTreeMemberships.get(targetTeamID)?.get(username)
+  const memberships = Container.useSelector(state =>
+    state.teams.teamMemberToTreeMemberships.get(targetTeamID)?.get(username)
+  )
+  const roleMap = Container.useSelector(state => state.teams.teamRoleMap.roles)
+  const teamMetas = Container.useSelector(state => state.teams.teamMeta)
+
+  // Note that we do not directly take any information directly from the TeamTree result other
+  // than the **shape of the tree**. The other information is delegated to
+  // Constants.maybeGetSparseMemberInfo which opportunistically sources the information from the
+  // teamDetails map if present, so as to show up-to-date information.
+  const teamIDs: Array<Types.TeamID> =
+    memberships?.memberships
+      .filter(m => m.result.s === RPCTypes.TeamTreeMembershipStatus.ok)
+      .map(m => (m.result as TreeMembershipOK).ok.teamID) ?? []
+  const upToDateSparseMemberInfos = Container.useSelector(
+    state => getMemberships(state, teamIDs, username),
+    isEqual // Since this makes a new map every time, do a deep equality comparison to see if it actually changed
+  )
+
   if (!memberships) {
     return {errors, nodesIn, nodesNotIn}
   }
 
   for (const membership of memberships.memberships) {
-    const teamname = membership.teamName
+    const teamname = membership?.teamName
 
-    // Note that we do not directly take any information directly from the TeamTree result other
-    // than the **shape of the tree**. The other information is delegated to
-    // Constants.maybeGetSparseMemberInfo which opportunistically sources the information from the
-    // teamDetails map if present, so as to show up-to-date information.
-    if (RPCTypes.TeamTreeMembershipStatus.ok == membership.result.s) {
+    if (RPCTypes.TeamTreeMembershipStatus.ok === membership.result.s) {
       const teamID = membership.result.ok.teamID
-      const sparseMemberInfo = Constants.maybeGetSparseMemberInfo(state, teamID, username)
+      const sparseMemberInfo = upToDateSparseMemberInfos.get(teamID)
       if (!sparseMemberInfo) {
         continue
       }
 
-      const ops = Constants.getCanPerformByID(state, teamID)
-
+      const ops = Constants.deriveCanPerform(roleMap.get(teamID))
       const row = {
         canAdminister: ops.manageMembers,
         joinTime: sparseMemberInfo.joinTime,
         // memberCount should always be populated because the TeamList, which is synced
         // eagerly, provides it.
-        memberCount: Constants.getTeamMeta(state, teamID).memberCount,
+        memberCount: teamMetas.get(teamID)?.memberCount,
         teamID,
         teamname,
       }
 
       if ('none' != sparseMemberInfo.type) {
         nodesIn.push({
-          lastActivity: Constants.getTeamMemberLastActivity(state, teamID, username) || 0,
           role: sparseMemberInfo.type,
           ...row,
         })
@@ -117,10 +145,8 @@ const TeamMember = (props: OwnProps) => {
   React.useEffect(() => {
     dispatch(TeamsGen.createLoadTeamTree({teamID, username}))
   }, [teamID, username, dispatch])
-  // TODO this will keep thrasing
-  const {nodesIn, nodesNotIn, errors} = Container.useSelector(state =>
-    getMemberships(state, teamID, username)
-  )
+
+  const {nodesIn, nodesNotIn, errors} = useMemberships(teamID, username)
 
   const [expandedSet, setExpandedSet] = React.useState(
     new Set<string>([teamID])
@@ -128,7 +154,7 @@ const TeamMember = (props: OwnProps) => {
 
   const makeTitle = label => {
     return (
-      <Kb.Box2 direction="horizontal" alignItems="center">
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
         <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
         {loading && <Kb.ProgressIndicator type="Small" />}
       </Kb.Box2>
@@ -251,6 +277,8 @@ type NodeNotInRowProps = {
   username: string
 }
 const NodeNotInRow = (props: NodeNotInRowProps) => {
+  useTeamDetailsSubscribe(props.node.teamID)
+
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onAddWaitingKey = Constants.addMemberWaitingKey(props.node.teamID, props.username)
@@ -279,14 +307,9 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   const [role, setRole] = React.useState<Types.TeamRoleType>('writer')
   const [open, setOpen] = React.useState(false)
 
-  const memberCount = props.node.memberCount ?? -1
-
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowCollapsedFixedHeight}>
       {props.idx !== 0 && <Kb.Divider />}
-
-      {/* Placed here so that it doesn't generate any gaps */}
-      <TeamDetailsSubscriber teamID={props.node.teamID} />
 
       <Kb.Box2
         direction="horizontal"
@@ -319,7 +342,9 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
               {props.node.teamname}
             </Kb.Text>
             <Kb.Text type="BodySmall">
-              {memberCount.toLocaleString()} {pluralize('member', memberCount)}
+              {props.node.memberCount
+                ? `${props.node.memberCount.toLocaleString()} ${pluralize('member', props.node.memberCount)}`
+                : 'Loading members...'}
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
@@ -352,6 +377,21 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   )
 }
 
+const LastActivity = (props: {loading: boolean; teamID: Types.TeamID; username: string}) => {
+  const lastActivity = Container.useSelector(state =>
+    Constants.getTeamMemberLastActivity(state, props.teamID, props.username)
+  )
+
+  return (
+    <Kb.Text type="BodySmall">
+      {props.loading
+        ? 'Loading activity...'
+        : lastActivity
+        ? `Active ${formatTimeRelativeToNow(lastActivity)}`
+        : 'No activity'}
+    </Kb.Text>
+  )
+}
 type NodeInRowProps = {
   idx: number
   node: TeamTreeRowIn
@@ -360,7 +400,11 @@ type NodeInRowProps = {
   setExpanded: (b: boolean) => void
 }
 const NodeInRow = (props: NodeInRowProps) => {
-  const {channelMetas, loadingChannels} = useAllChannelMetas(props.node.teamID)
+  const {channelMetas, loadingChannels} = useAllChannelMetas(
+    props.node.teamID,
+    !props.expanded /* dontCallRPC */
+  )
+  useTeamDetailsSubscribe(props.node.teamID)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -442,9 +486,6 @@ const NodeInRow = (props: NodeInRowProps) => {
         <Kb.Box2 direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
           {props.idx !== 0 && <Kb.Divider />}
 
-          {/* Placed here so that it doesn't generate any gaps */}
-          <TeamDetailsSubscriber teamID={props.node.teamID} />
-
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
             <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.expandIcon])}>
               <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
@@ -503,13 +544,11 @@ const NodeInRow = (props: NodeInRowProps) => {
                 {expanded && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
                     <Kb.Icon type="iconfont-typing" sizeType="Small" color={Styles.globalColors.black_20} />
-                    <Kb.Text type="BodySmall">
-                      {loadingActivity
-                        ? 'Loading activity...'
-                        : props.node.lastActivity
-                        ? `Active ${formatTimeRelativeToNow(props.node.lastActivity)}`
-                        : 'No activity'}
-                    </Kb.Text>
+                    <LastActivity
+                      loading={loadingActivity}
+                      teamID={props.node.teamID}
+                      username={props.username}
+                    />
                   </Kb.Box2>
                 )}
                 {expanded && (
@@ -532,7 +571,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                       lineClamp={4}
                       ellipsizeMode="tail"
                     >
-                      {loadingChannels ? `Member of #${channelsJoined}` : 'Loading channels...'}
+                      {loadingChannels ? 'Loading channels...' : `Member of #${channelsJoined}`}
                     </Kb.Text>
                   </Kb.Box2>
                 )}
