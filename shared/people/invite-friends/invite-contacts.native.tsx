@@ -18,7 +18,7 @@ const ListHeaderComponent = () => (
 
 const messageSubject = "Let's chat on Keybase?"
 const messageBody = `Let's chat privately on Keybase:
-https://keybase.io/install
+https://keybase.io/download?invite
 It's free and secure.`
 
 // Doesn't return anything about the status of the message.
