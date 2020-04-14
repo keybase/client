@@ -186,7 +186,7 @@ const TeamJourneyConnected = Container.connect(
     const {cannotWrite, channelname, conversationIDKey, teamname, teamID} = conv
     const welcomeMessage = flags.teamsRedesign
       ? TeamConstants.getTeamWelcomeMessageByID(state, teamID)
-      : {set: false}
+      : {display: '', raw: '', set: false}
     return {
       _teamID: teamID,
       canShowcase: TeamConstants.canShowcase(state, teamID),
