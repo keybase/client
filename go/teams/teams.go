@@ -1460,7 +1460,9 @@ func (t *Team) InviteInvitelink(
 ) (ikey keybase1.SeitanIKeyInvitelink, inviteID SCTeamInviteID, err error) {
 	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), func() error { return err })()
 
-	// Experimental code: we are figuring out how to do invite links.
+	if role.IsAdminOrAbove() {
+		return ikey, inviteID, fmt.Errorf("cannot create invitelink to add as %v", role)
+	}
 
 	ikey, err = GenerateSeitanIKeyInvitelink()
 	if err != nil {
