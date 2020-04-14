@@ -71,6 +71,17 @@ func newMetricsFileNode(
 	}
 }
 
+func newErrorFileNode(
+	config libkbfs.Config, node libkbfs.Node,
+	log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node:   node,
+		log:    log,
+		name:   ErrorFileName,
+		reader: GetEncodedErrors(config),
+	}
+}
+
 var updateHistoryRevsRE = regexp.MustCompile("^\\.([0-9]+)(-([0-9]+))?$") //nolint (`\.` doesn't seem to work in single quotes)
 
 type updateHistoryFileNode struct {
@@ -174,6 +185,7 @@ var perTlfWrappedNodeNames = map[string]bool{
 	UpdateHistoryFileName: true,
 	ProfileListDirName:    true,
 	MetricsFileName:       true,
+	ErrorFileName:         true,
 }
 
 var perTlfWrappedNodePrefixes = []string{
@@ -295,6 +307,11 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 		f := mfn.GetFile(ctx)
 		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
 			data.PathPartString{}, data.ZeroPtr
+	case plain == ErrorFileName:
+		efn := newErrorFileNode(sfn.config, nil, sfn.log)
+		f := efn.GetFile(ctx)
+		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
+			data.PathPartString{}, data.ZeroPtr
 	case plain == ProfileListDirName:
 		return true, ctx, data.FakeDir,
 			&wrappedReadFileInfo{plain, 0, sfn.config.Clock().Now(), true},
@@ -353,6 +370,9 @@ func (sfn *specialFileNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 			sfn.GetFolderBranch(), sfn.log)
 	case name == MetricsFileName:
 		return newMetricsFileNode(
+			sfn.config, &libkbfs.ReadonlyNode{Node: child}, sfn.log)
+	case name == ErrorFileName:
+		return newErrorFileNode(
 			sfn.config, &libkbfs.ReadonlyNode{Node: child}, sfn.log)
 	case name == ProfileListDirName:
 		return &profileListNode{

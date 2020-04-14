@@ -52,6 +52,7 @@ var _ billy.Filesystem = (*RootFS)(nil)
 var rootWrappedNodeNames = map[string]bool{
 	StatusFileName:     true,
 	MetricsFileName:    true,
+	ErrorFileName:      true,
 	ProfileListDirName: true,
 }
 
@@ -69,6 +70,8 @@ func (rfs *RootFS) Open(filename string) (f billy.File, err error) {
 		return newStatusFileNode(rfs.config, rfs.log).GetFile(ctx), nil
 	case MetricsFileName:
 		return newMetricsFileNode(rfs.config, nil, rfs.log).GetFile(ctx), nil
+	case ErrorFileName:
+		return newErrorFileNode(rfs.config, nil, rfs.log).GetFile(ctx), nil
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", filename))
 	}
@@ -105,6 +108,9 @@ func (rfs *RootFS) Lstat(filename string) (fi os.FileInfo, err error) {
 	case MetricsFileName:
 		mfn := newMetricsFileNode(rfs.config, nil, rfs.log).GetFile(ctx)
 		return mfn.(*wrappedReadFile).GetInfo(), nil
+	case ErrorFileName:
+		efn := newErrorFileNode(rfs.config, nil, rfs.log).GetFile(ctx)
+		return efn.(*wrappedReadFile).GetInfo(), nil
 	case ProfileListDirName:
 		return &wrappedReadFileInfo{
 			filename, 0, rfs.config.Clock().Now(), true}, nil
