@@ -691,7 +691,7 @@ func rejectInviteLinkAcceptances(mctx libkb.MetaContext, requests []keybase1.Tea
 	var lastErr error
 	for _, request := range requests {
 		arg := libkb.APIArg{
-			Endpoint:    "team/cancel_invite_acceptance",
+			Endpoint:    "team/reject_invite_acceptance",
 			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"invite_id":    libkb.S{Val: string(request.InviteID)},

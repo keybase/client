@@ -168,7 +168,7 @@ func TestSeitanHandleExceededInvite(t *testing.T) {
 	err = HandleTeamSeitan(context.TODO(), tc.G, msg)
 	require.NoError(t, err)
 	records := API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
-		return rec.Arg.Endpoint == "team/cancel_invite_acceptance"
+		return rec.Arg.Endpoint == "team/reject_invite_acceptance"
 	})
 	require.Len(t, records, 0, "no invite link acceptances were rejected")
 
@@ -186,7 +186,7 @@ func TestSeitanHandleExceededInvite(t *testing.T) {
 	err = HandleTeamSeitan(context.TODO(), tc.G, msg)
 	require.NoError(t, err)
 	records = API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
-		return rec.Arg.Endpoint == "team/cancel_invite_acceptance"
+		return rec.Arg.Endpoint == "team/reject_invite_acceptance"
 	})
 	require.Len(t, records, 1, "one invite acceptance should be rejected")
 	record := records[0]

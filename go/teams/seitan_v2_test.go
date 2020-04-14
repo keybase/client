@@ -376,7 +376,7 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 	err = HandleTeamSeitan(context.TODO(), tc.G, msg)
 	require.NoError(t, err)
 	records := API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
-		return rec.Arg.Endpoint == "team/cancel_invite_acceptance"
+		return rec.Arg.Endpoint == "team/reject_invite_acceptance"
 	})
 	require.Len(t, records, 0, "no invite link acceptances were rejected")
 
@@ -494,7 +494,7 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 	// Seitan handler does not fail, but ignores the request.
 	require.NoError(t, err)
 	records := API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
-		return rec.Arg.Endpoint == "team/cancel_invite_acceptance"
+		return rec.Arg.Endpoint == "team/reject_invite_acceptance"
 	})
 	require.Len(t, records, 0, "no invite link acceptances were rejected")
 
