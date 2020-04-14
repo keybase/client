@@ -100,13 +100,13 @@ func (c *cmdWalletCancelAll) Run() (err error) {
 	}
 
 	// if c.outfile defined, append finished txIDs
-	var outfile *os.File = nil
+	var outfile *os.File
 	if len(c.outfile) > 0 {
-		outfile, err = os.OpenFile(c.outfile,
-			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		outfile, err = os.OpenFile(c.outfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			return err
 		}
+		dui.Printf("Saving progress to %s\n", c.outfile)
 		defer outfile.Close()
 	} else {
 		dui.Printf("Note: no outfile specified, so not keeping track of complete txIDs.\n")
@@ -132,8 +132,8 @@ func (c *cmdWalletCancelAll) Run() (err error) {
 
 	writeToOutfile := func(txID string) {
 		if outfile != nil {
-			if _, err := outfile.WriteString(fmt.Sprintf("%+v\n", txID)); err != nil {
-				dui.Printf("WRITE ERROR, %+v, %+v\n", txID, err.Error())
+			if _, err := outfile.WriteString(fmt.Sprintf("%s\n", txID)); err != nil {
+				dui.Printf("WRITE ERROR for tx %s: %s\n", txID, err)
 				c.stats.writeErrorCount++
 			}
 		}
@@ -222,6 +222,11 @@ func (c *cmdWalletCancelAll) getOutTxIDs() (out map[string]bool, err error) {
 
 	file, err := os.Open(c.outfile)
 	if err != nil {
+		if os.IsNotExist(err) {
+			dui := c.G().UI.GetDumbOutputUI()
+			dui.Printf("output file %q does not exist, not loading any previous progress\n", c.outfile)
+			return out, nil
+		}
 		return out, err
 	}
 	defer file.Close()

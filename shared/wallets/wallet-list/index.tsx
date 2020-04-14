@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {AccountID} from '../../constants/types/wallets'
+import AddAccount from '../nav-header/add-account'
 import WalletRow from './wallet-row/container'
 
 type AddProps = {
@@ -111,6 +112,9 @@ class WalletList extends React.Component<Props> {
         <Kb.BoxGrow>
           <Kb.List items={rows} renderItem={this._renderRow} keyProperty="key" style={this.props.style} />
         </Kb.BoxGrow>
+        <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'tiny' : 'xtiny'} style={styles.addAccount}>
+          <AddAccount />
+        </Kb.Box2>
         <WhatIsStellar onWhatIsStellar={this.props.onWhatIsStellar} />
       </>
     )
@@ -120,6 +124,21 @@ class WalletList extends React.Component<Props> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      addAccount: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          flexShrink: 0,
+          padding: Styles.globalMargins.xsmall,
+          width: '100%',
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+          backgroundColor: Styles.globalColors.fastBlank,
+          flexShrink: 0,
+          width: '100%',
+        },
+        isTablet: {backgroundColor: Styles.globalColors.transparent},
+      }),
       addContainerBox: {alignItems: 'center', height: rowHeight},
       icon: {
         height: Styles.globalMargins.mediumLarge,

@@ -56,7 +56,9 @@ const InviteFriends = () => {
       </Kb.Box2>
     )
   }
-  const tooltipMarkdown = <Kb.Markdown style={styles.tooltip}>{inviteCounts?.tooltipMarkdown}</Kb.Markdown>
+  const tooltipMarkdown = (
+    <Kb.Markdown styleOverride={tooltipStyleOverride}>{inviteCounts?.tooltipMarkdown}</Kb.Markdown>
+  )
 
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.mobileContainer}>
@@ -130,3 +132,5 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.white,
   },
 }))
+
+const tooltipStyleOverride = {paragraph: styles.tooltip}

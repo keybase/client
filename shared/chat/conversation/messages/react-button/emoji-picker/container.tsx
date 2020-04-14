@@ -15,9 +15,12 @@ import debounce from 'lodash/debounce'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
 import {emojiDataToRenderableEmoji, renderEmoji, EmojiData, RenderableEmoji} from '../../../../../util/emoji'
+import useRPC from '../../../../../util/use-rpc'
+import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  disableCustomEmoji?: boolean
   hideFrequentEmoji?: boolean
   small?: boolean
   onlyTeamCustomEmoji?: boolean
@@ -57,27 +60,47 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
 }
 
 let lastSetSkinTone: undefined | Types.EmojiSkinTone = undefined
+
 // This can only be used in one place at a time for now since when it's changed
 // it doesn't cause other hook instances to update.
 const useSkinTone = () => {
-  const [currentSkinTone, _setSkinTone] = React.useState(lastSetSkinTone)
-  const setSkinTone = React.useCallback(
-    (skinTone: undefined | Types.EmojiSkinTone) => {
-      lastSetSkinTone = skinTone
-      _setSkinTone(skinTone)
-    },
-    [_setSkinTone]
+  lastSetSkinTone = Types.EmojiSkinToneFromRPC(
+    Container.useSelector(state => state.chat2.userReacjis.skinTone)
   )
+  const [currentSkinTone, _setSkinTone] = React.useState(lastSetSkinTone)
+  // NOTE: The store does not update skin tones after put so we track the
+  // module variable `lastSetSkinTone`
+  const rpc = useRPC(RPCChatGen.localPutReacjiSkinToneRpcPromise)
+  const setSkinTone = (emojiSkinTone: undefined | Types.EmojiSkinTone) => {
+    rpc(
+      [
+        {
+          skinTone: Types.EmojiSkinToneToRPC(emojiSkinTone),
+        },
+      ],
+      _ => {
+        lastSetSkinTone = emojiSkinTone
+        _setSkinTone(emojiSkinTone)
+      },
+      err => {
+        throw err
+      }
+    )
+  }
   return {currentSkinTone, setSkinTone}
 }
-const useCustomReacji = (conversationIDKey: Types.ConversationIDKey, onlyInTeam: boolean | undefined) => {
+const useCustomReacji = (
+  conversationIDKey: Types.ConversationIDKey,
+  onlyInTeam: boolean | undefined,
+  disabled?: boolean
+) => {
   const customEmojiGroups = Container.useSelector(s => s.chat2.userEmojis)
   const waiting = Container.useSelector(s => Container.anyWaiting(s, Constants.waitingKeyLoadingEmoji))
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey, onlyInTeam}))
-  }, [conversationIDKey, dispatch, onlyInTeam])
-  return {customEmojiGroups, waiting}
+    !disabled && dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey, onlyInTeam}))
+  }, [conversationIDKey, disabled, dispatch, onlyInTeam])
+  return disabled ? {customEmojiGroups: undefined, waiting: false} : {customEmojiGroups, waiting}
 }
 
 const goToAddEmoji = (dispatch: Container.Dispatch, conversationIDKey: Types.ConversationIDKey) => {
@@ -103,7 +126,11 @@ const useCanManageEmoji = (conversationIDKey: Types.ConversationIDKey) => {
 
 const WrapperMobile = (props: Props) => {
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
-  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey, props.onlyTeamCustomEmoji)
+  const {waiting, customEmojiGroups} = useCustomReacji(
+    props.conversationIDKey,
+    props.onlyTeamCustomEmoji,
+    props.disableCustomEmoji
+  )
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width)
   const {currentSkinTone, setSkinTone} = useSkinTone()
@@ -170,7 +197,11 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
-  const {waiting, customEmojiGroups} = useCustomReacji(props.conversationIDKey, props.onlyTeamCustomEmoji)
+  const {waiting, customEmojiGroups} = useCustomReacji(
+    props.conversationIDKey,
+    props.onlyTeamCustomEmoji,
+    props.disableCustomEmoji
+  )
   const canManageEmoji = useCanManageEmoji(props.conversationIDKey)
   const dispatch = Container.useDispatch()
   const addEmoji = () => {
@@ -227,19 +258,31 @@ export const EmojiPickerDesktop = (props: Props) => {
           {renderEmoji(
             emojiDataToRenderableEmoji(
               hoveredEmoji,
-              getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
+              getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone),
+              currentSkinTone
             ),
             36,
             false
           )}
-          <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
-            <Kb.Text type="BodyBig" lineClamp={1}>
-              {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
-            </Kb.Text>
-            <Kb.Text type="BodySmall" lineClamp={1}>
-              {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
-            </Kb.Text>
-          </Kb.Box2>
+          {hoveredEmoji.teamname ? (
+            <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+              <Kb.Text type="BodyBig" lineClamp={1}>
+                {':' + hoveredEmoji.short_name + ':'}
+              </Kb.Text>
+              <Kb.Text type="BodySmall" lineClamp={1}>
+                from <Kb.Text type="BodySmallSemibold">{hoveredEmoji.teamname}</Kb.Text>
+              </Kb.Text>
+            </Kb.Box2>
+          ) : (
+            <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+              <Kb.Text type="BodyBig" lineClamp={1}>
+                {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
+              </Kb.Text>
+              <Kb.Text type="BodySmall" lineClamp={1}>
+                {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
+              </Kb.Text>
+            </Kb.Box2>
+          )}
           {canManageEmoji && (
             <Kb.Button mode="Secondary" label="Add emoji" onClick={addEmoji} style={styles.addEmojiButton} />
           )}
@@ -255,9 +298,6 @@ const styles = Styles.styleSheetCreate(
       addEmojiButton: Styles.platformStyles({
         isElectron: {
           width: 88,
-        },
-        isMobile: {
-          width: 104,
         },
       }),
       cancelContainerMobile: {

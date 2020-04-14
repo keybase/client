@@ -36,12 +36,6 @@ var (
 		"nightly",
 		"stable",
 	}
-	variants = []string{
-		"",
-		"slim",
-		"node",
-		"node-slim",
-	}
 )
 
 func isNumber(x string) bool {
@@ -117,6 +111,23 @@ func main() {
 func main2() error {
 	flag.Parse()
 
+	// Start by fetching variants
+	configRes, err := http.Get("https://raw.githubusercontent.com/keybase/client/master/packaging/linux/docker/config.json")
+	if err != nil {
+		return err
+	}
+	var cfg struct {
+		Variants map[string]interface{} `json:"variants"`
+	}
+	if err := json.NewDecoder(configRes.Body).Decode(&cfg); err != nil {
+		return err
+	}
+	variants := []string{}
+	for variant := range cfg.Variants {
+		log.Printf("Acquired variant %s", variant)
+		variants = append(variants, variant)
+	}
+
 	hub = &registry.Registry{
 		URL: "https://registry-1.docker.io",
 		Client: &http.Client{
@@ -188,7 +199,7 @@ tagLoop:
 			for _, variant := range variants {
 				fullTag := baseTag
 				if variant != "" {
-					fullTag += "-" + variant
+					fullTag += variant
 				}
 				if _, ok := existingTags[fullTag]; !ok {
 					log.Printf("Tag %v does not exist, skipping", fullTag)
@@ -214,7 +225,7 @@ tagLoop:
 			for _, variant := range variants {
 				fullTag := baseTag
 				if variant != "" {
-					fullTag += "-" + variant
+					fullTag += variant
 				}
 				if _, ok := existingTags[fullTag]; ok {
 					remainingTagsCount++

@@ -83,6 +83,7 @@ class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
       headerMode: navigation.state.index === 0 ? 'none' : undefined,
       headerRightActions: require('./nav-header/container').HeaderRightActions,
       headerTitle: require('./nav-header/container').HeaderTitle,
+      headerTitleContainerStyle: {left: 0, right: 16},
       title: 'Wallet',
     }
   }

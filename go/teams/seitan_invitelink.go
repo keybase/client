@@ -149,6 +149,7 @@ type TeamInviteLinkDetails struct {
 	TeamName          string                                       `json:"team_name"`
 	TeamNumMembers    int                                          `json:"team_num_members"`
 	TeamAvatars       map[keybase1.AvatarFormat]keybase1.AvatarUrl `json:"team_avatars"`
+	TeamIsOpen        bool                                         `json:"team_is_open"`
 }
 
 func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID) (info keybase1.InviteLinkDetails, err error) {
@@ -183,5 +184,6 @@ func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID
 		TeamDesc:          resp.TeamDescription,
 		TeamNumMembers:    resp.TeamNumMembers,
 		TeamAvatars:       resp.TeamAvatars,
+		TeamIsOpen:        resp.TeamIsOpen,
 	}, nil
 }

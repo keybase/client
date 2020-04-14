@@ -143,6 +143,9 @@
     "joinTeam": {
       "teamname": "string"
     },
+    "respondToInviteLink": {
+      "accept": "boolean"
+    },
     "launchNewTeamWizardOrModal": {
       "subteamOf?": "Types.TeamID"
     },
@@ -386,8 +389,12 @@
     "cancelAddMembersWizard": {
       "_description": "Nav away from add members wizard and clear related state."
     },
-    "finishAddMembersWizard": {
+    "finishedAddMembersWizard": {
       "_description": "Nav away from add members wizard and clear related state."
+    },
+    "finishedNewTeamWizard": {
+      "_description": "Clear new team wizard state and nav to team.",
+      "teamID": "Types.TeamID"
     },
     "setJustFinishedAddMembersWizard": {
       "justFinished": "boolean"
@@ -441,6 +448,9 @@
     },
     "setTeamWizardSubteams": {
       "subteams": "Array<string>"
+    },
+    "setTeamWizardError": {
+      "error": "string"
     },
     "finishNewTeamWizard": {},
     "manageChatChannels": {

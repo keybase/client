@@ -84,6 +84,7 @@
     "expo-contacts": "7.0.0",
     "expo-haptics": "7.0.0",
     "expo-image-picker": "7.0.0",
+    "expo-mail-composer": "7.0.0",
     "expo-permissions": "7.0.0",
     "expo-sms": "7.0.0",
     "framed-msgpack-rpc": "1.1.23",

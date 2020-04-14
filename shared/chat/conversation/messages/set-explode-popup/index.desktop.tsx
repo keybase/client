@@ -45,12 +45,11 @@ const Item = (props: ItemProps) => {
 }
 
 const SetExplodePopup = (props: Props) => {
-  const selected = props.selected || {seconds: 0, text: 'Never'}
   const listItems: MenuItems = props.items.map(it => ({
     disabled: false,
     onClick: () => props.onSelect(it.seconds),
     title: it.text,
-    view: <Item desc={it} selected={selected === it.seconds} />,
+    view: <Item desc={it} selected={props.selected === it.seconds} />,
   }))
   listItems.unshift({
     disabled: true,

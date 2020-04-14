@@ -535,6 +535,10 @@ export type MessageTypes = {
     inParam: {readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: {[key: string]: ProfileSearchConvStats}
   }
+  'chat.1.local.putReacjiSkinTone': {
+    inParam: {readonly skinTone: Keybase1.ReacjiSkinTone}
+    outParam: Keybase1.UserReacjis
+  }
   'chat.1.local.refreshParticipants': {
     inParam: {readonly convID: ConversationID}
     outParam: void
@@ -1138,9 +1142,9 @@ export enum UnfurlType {
   maps = 3,
 }
 export type AddBotConvSearchHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null}
-export type AddEmojiAliasRes = {readonly rateLimit?: RateLimit | null; readonly errorString?: String | null}
-export type AddEmojiRes = {readonly rateLimit?: RateLimit | null}
-export type AddEmojisRes = {readonly rateLimit?: RateLimit | null; readonly successFilenames?: Array<String> | null; readonly failedFilenames: {[key: string]: String}}
+export type AddEmojiAliasRes = {readonly rateLimit?: RateLimit | null; readonly error?: EmojiError | null}
+export type AddEmojiRes = {readonly rateLimit?: RateLimit | null; readonly error?: EmojiError | null}
+export type AddEmojisRes = {readonly rateLimit?: RateLimit | null; readonly successFilenames?: Array<String> | null; readonly failedFilenames: {[key: string]: EmojiError}}
 export type AdvertiseBotCommandsLocalRes = {readonly rateLimits?: Array<RateLimit> | null}
 export type AdvertiseBotCommandsRes = {readonly rateLimit?: RateLimit | null}
 export type AdvertiseCommandAPIParam = {readonly typ: String; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName: String}
@@ -1221,9 +1225,10 @@ export type DeviceInfo = {readonly deviceID: Keybase1.DeviceID; readonly deviceD
 export type DownloadAttachmentLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type DownloadFileAttachmentLocalRes = {readonly filePath: String; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type EditTarget = {readonly messageID?: MessageID | null; readonly outboxID?: OutboxID | null}
-export type Emoji = {readonly alias: String; readonly isBig: Boolean; readonly isReacji: Boolean; readonly isCrossTeam: Boolean; readonly source: EmojiLoadSource; readonly noAnimSource: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource; readonly creationInfo?: EmojiCreationInfo | null}
+export type Emoji = {readonly alias: String; readonly isBig: Boolean; readonly isReacji: Boolean; readonly isCrossTeam: Boolean; readonly isAlias: Boolean; readonly source: EmojiLoadSource; readonly noAnimSource: EmojiLoadSource; readonly remoteSource: EmojiRemoteSource; readonly creationInfo?: EmojiCreationInfo | null; readonly teamname?: String | null}
 export type EmojiContent = {readonly alias: String; readonly isCrossTeam: Boolean; readonly convID?: ConvIDStr | null; readonly messageID?: MessageID | null}
 export type EmojiCreationInfo = {readonly username: String; readonly time: Gregor1.Time}
+export type EmojiError = {readonly clidisplay: String; readonly uidisplay: String}
 export type EmojiFetchOpts = {readonly getCreationInfo: Boolean; readonly getAliases: Boolean; readonly onlyInTeam: Boolean}
 export type EmojiGroup = {readonly name: String; readonly emojis?: Array<Emoji> | null}
 export type EmojiLoadSource = {typ: EmojiLoadSourceTyp.httpsrv; httpsrv: String} | {typ: EmojiLoadSourceTyp.str; str: String}
@@ -1323,7 +1328,7 @@ export type MessageAttachment = {readonly object: Asset; readonly preview?: Asse
 export type MessageAttachmentUploaded = {readonly messageID: MessageID; readonly object: Asset; readonly previews?: Array<Asset> | null; readonly metadata: Bytes}
 export type MessageBody = {messageType: MessageType.text; text: MessageText} | {messageType: MessageType.attachment; attachment: MessageAttachment} | {messageType: MessageType.edit; edit: MessageEdit} | {messageType: MessageType.delete; delete: MessageDelete} | {messageType: MessageType.metadata; metadata: MessageConversationMetadata} | {messageType: MessageType.headline; headline: MessageHeadline} | {messageType: MessageType.attachmentuploaded; attachmentuploaded: MessageAttachmentUploaded} | {messageType: MessageType.join; join: MessageJoin} | {messageType: MessageType.leave; leave: MessageLeave} | {messageType: MessageType.system; system: MessageSystem} | {messageType: MessageType.deletehistory; deletehistory: MessageDeleteHistory} | {messageType: MessageType.reaction; reaction: MessageReaction} | {messageType: MessageType.sendpayment; sendpayment: MessageSendPayment} | {messageType: MessageType.requestpayment; requestpayment: MessageRequestPayment} | {messageType: MessageType.unfurl; unfurl: MessageUnfurl} | {messageType: MessageType.flip; flip: MessageFlip} | {messageType: MessageType.pin; pin: MessagePin} | {messageType: MessageType.none} | {messageType: MessageType.tlfname}
 export type MessageBoxed = {readonly version: MessageBoxedVersion; readonly serverHeader?: MessageServerHeader | null; readonly clientHeader: MessageClientHeader; readonly headerCiphertext: SealedData; readonly bodyCiphertext: EncryptedData; readonly verifyKey: Bytes; readonly keyGeneration: Int}
-export type MessageClientHeader = {readonly conv: ConversationIDTriple; readonly tlfName: String; readonly tlfPublic: Boolean; readonly messageType: MessageType; readonly supersedes: MessageID; readonly kbfsCryptKeysUsed?: Boolean | null; readonly deletes?: Array<MessageID> | null; readonly prev?: Array<MessagePreviousPointer> | null; readonly deleteHistory?: MessageDeleteHistory | null; readonly sender: Gregor1.UID; readonly senderDevice: Gregor1.DeviceID; readonly merkleRoot?: MerkleRoot | null; readonly outboxID?: OutboxID | null; readonly outboxInfo?: OutboxInfo | null; readonly em /* ephemeralMetadata */?: MsgEphemeralMetadata | null; readonly pm: /* pairwiseMacs */ {[key: string]: Bytes}; readonly b /* botUID */?: Gregor1.UID | null}
+export type MessageClientHeader = {readonly conv: ConversationIDTriple; readonly tlfName: String; readonly tlfPublic: Boolean; readonly messageType: MessageType; readonly supersedes: MessageID; readonly kbfsCryptKeysUsed?: Boolean | null; readonly deletes?: Array<MessageID> | null; readonly prev?: Array<MessagePreviousPointer> | null; readonly deleteHistory?: MessageDeleteHistory | null; readonly sender: Gregor1.UID; readonly senderDevice: Gregor1.DeviceID; readonly merkleRoot?: MerkleRoot | null; readonly outboxID?: OutboxID | null; readonly outboxInfo?: OutboxInfo | null; readonly em /* ephemeralMetadata */?: MsgEphemeralMetadata | null; readonly pm: /* pairwiseMacs */ {[key: string]: Bytes}; readonly b /* botUID */?: Gregor1.UID | null; readonly t /* txID */?: Stellar1.TransactionID | null}
 export type MessageClientHeaderVerified = {readonly conv: ConversationIDTriple; readonly tlfName: String; readonly tlfPublic: Boolean; readonly messageType: MessageType; readonly prev?: Array<MessagePreviousPointer> | null; readonly sender: Gregor1.UID; readonly senderDevice: Gregor1.DeviceID; readonly kbfsCryptKeysUsed?: Boolean | null; readonly merkleRoot?: MerkleRoot | null; readonly outboxID?: OutboxID | null; readonly outboxInfo?: OutboxInfo | null; readonly em /* ephemeralMetadata */?: MsgEphemeralMetadata | null; readonly rt: /* rtime */ Gregor1.Time; readonly pm: /* hasPairwiseMacs */ Boolean; readonly b /* botUID */?: Gregor1.UID | null}
 export type MessageConversationMetadata = {readonly conversationTitle: String}
 export type MessageDelete = {readonly messageIDs?: Array<MessageID> | null}
@@ -1339,7 +1344,7 @@ export type MessagePin = {readonly msgID: MessageID}
 export type MessagePlaintext = {readonly clientHeader: MessageClientHeader; readonly messageBody: MessageBody; readonly supersedesOutboxID?: OutboxID | null; readonly emojis?: Array<HarvestedEmoji> | null}
 export type MessagePreviousPointer = {readonly id: MessageID; readonly hash: Hash}
 export type MessageReaction = {readonly m: /* messageID */ MessageID; readonly b: /* body */ String; readonly t /* targetUID */?: Gregor1.UID | null; readonly e: /* emojis */ {[key: string]: HarvestedEmoji}}
-export type MessageRequestPayment = {readonly requestID: Stellar1.KeybaseRequestID; readonly note: String; readonly emojis: {[key: string]: HarvestedEmoji}}
+export type MessageRequestPayment = {readonly requestID: Stellar1.KeybaseRequestID; readonly note: String}
 export type MessageSendPayment = {readonly paymentID: Stellar1.PaymentID}
 export type MessageServerHeader = {readonly messageID: MessageID; readonly supersededBy: MessageID; readonly r /* reactionIDs */?: Array<MessageID> | null; readonly u /* unfurlIDs */?: Array<MessageID> | null; readonly replies?: Array<MessageID> | null; readonly ctime: Gregor1.Time; readonly n: /* now */ Gregor1.Time; readonly rt /* rtime */?: Gregor1.Time | null}
 export type MessageSummary = {readonly msgID: MessageID; readonly messageType: MessageType; readonly tlfName: String; readonly tlfPublic: Boolean; readonly ctime: Gregor1.Time}
@@ -1718,6 +1723,7 @@ export const localPostTextNonblockRpcPromise = (params: MessageTypes['chat.1.loc
 export const localPostTextNonblockRpcSaga = (p: {params: MessageTypes['chat.1.local.postTextNonblock']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.postTextNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localPreviewConversationByIDLocalRpcPromise = (params: MessageTypes['chat.1.local.previewConversationByIDLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.previewConversationByIDLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.previewConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localProfileChatSearchRpcPromise = (params: MessageTypes['chat.1.local.profileChatSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.profileChatSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.profileChatSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localPutReacjiSkinToneRpcPromise = (params: MessageTypes['chat.1.local.putReacjiSkinTone']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.putReacjiSkinTone']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.putReacjiSkinTone', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRefreshParticipantsRpcPromise = (params: MessageTypes['chat.1.local.refreshParticipants']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.refreshParticipants']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.refreshParticipants', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveBotMemberRpcPromise = (params: MessageTypes['chat.1.local.removeBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveEmojiRpcPromise = (params: MessageTypes['chat.1.local.removeEmoji']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeEmoji']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeEmoji', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1802,7 +1808,6 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
-// 'chat.1.local.putReacjiSkinTone'
 // 'chat.1.local.loadFlip'
 // 'chat.1.local.advertiseBotCommandsLocal'
 // 'chat.1.local.listBotCommandsLocal'

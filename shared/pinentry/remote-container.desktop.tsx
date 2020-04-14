@@ -4,7 +4,7 @@ import * as PinentryGen from '../actions/pinentry-gen'
 import Pinentry from './index.desktop'
 import {DeserializeProps} from './remote-serializer.desktop'
 
-export default () => {
+const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const dispatch = Container.useDispatch()
   return (
@@ -15,3 +15,4 @@ export default () => {
     />
   )
 }
+export default RemoteContainer

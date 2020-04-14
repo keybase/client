@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -73,6 +74,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 		func() chat1.RemoteInterface { return ri }, 1)
 	tc.ChatG.AttachmentUploader = uploader
 	filename := "./testdata/party_parrot.gif"
+	tc.ChatG.EmojiSource.(*DevConvEmojiSource).tempDir = os.TempDir()
 
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
@@ -213,6 +215,8 @@ func TestEmojiSourceBasic(t *testing.T) {
 				IsBig:        false,
 				IsReacji:     false,
 				IsCrossTeam:  false,
+				IsAlias:      true,
+				Teamname:     &conv.TlfName,
 				Source:       chat1.NewEmojiLoadSourceWithStr(":+1::skin-tone-0:"),
 				NoAnimSource: chat1.NewEmojiLoadSourceWithStr(":+1::skin-tone-0:"),
 				RemoteSource: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
@@ -229,6 +233,78 @@ func TestEmojiSourceBasic(t *testing.T) {
 		}
 	}
 	require.True(t, checked)
+}
+
+type emojiAliasTestCase struct {
+	input, output string
+	emojis        []chat1.HarvestedEmoji
+}
+
+func TestEmojiSourceAliasDecorate(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestEmojiSourceAliasDecorate", 1)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	uid := users[0].User.GetUID().ToBytes()
+	tc := ctc.world.Tcs[users[0].Username]
+	ctx := ctc.as(t, users[0]).startCtx
+
+	source := tc.Context().EmojiSource.(*DevConvEmojiSource)
+	testCases := []emojiAliasTestCase{
+		{
+			input:  "this is a test! :my+1: <- thumbs up",
+			output: "this is a test! :+1::skin-tone-0: <- thumbs up",
+			emojis: []chat1.HarvestedEmoji{
+				{
+					Alias: "my+1",
+					Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+						Text: ":+1::skin-tone-0:",
+					}),
+				}},
+		},
+		{
+			input:  ":my+1: <- :nothing: dksjdksdj :: :alias:",
+			output: ":+1::skin-tone-0: <- :nothing: dksjdksdj :: :karen:",
+			emojis: []chat1.HarvestedEmoji{
+				{
+					Alias: "my+1",
+					Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+						Text: ":+1::skin-tone-0:",
+					}),
+				},
+				{
+					Alias: "alias",
+					Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+						Text: ":karen:",
+					}),
+				},
+			},
+		},
+		{
+			input:  ":nothing: dskjdksdjs ::: :my+1: <- :nothing: dksjdksdj :: :alias: !!",
+			output: ":nothing: dskjdksdjs ::: :+1::skin-tone-0: <- :nothing: dksjdksdj :: :karen: !!",
+			emojis: []chat1.HarvestedEmoji{
+				{
+					Alias: "my+1",
+					Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+						Text: ":+1::skin-tone-0:",
+					}),
+				},
+				{
+					Alias: "alias",
+					Source: chat1.NewEmojiRemoteSourceWithStockalias(chat1.EmojiStockAlias{
+						Text: ":karen:",
+					}),
+				},
+			},
+		},
+	}
+	for _, testCase := range testCases {
+		output := source.Decorate(ctx, testCase.input, uid, chat1.MessageType_TEXT, testCase.emojis)
+		require.Equal(t, testCase.output, output)
+	}
 }
 
 func TestEmojiSourceCrossTeam(t *testing.T) {
@@ -249,6 +325,9 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	store := attachments.NewStoreTesting(tc.Context(), nil)
 	fetcher := NewRemoteAttachmentFetcher(tc.Context(), store)
 	source := tc.Context().EmojiSource.(*DevConvEmojiSource)
+	source1 := tc1.Context().EmojiSource.(*DevConvEmojiSource)
+	source.tempDir = os.TempDir()
+	source1.tempDir = os.TempDir()
 	syncCreated := make(chan struct{}, 10)
 	syncRefresh := make(chan struct{}, 10)
 	source.testingCreatedSyncConv = syncCreated

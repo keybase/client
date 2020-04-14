@@ -1928,7 +1928,7 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 				return nil, nil, err
 			}
 			if byID[id] {
-				return nil, nil, NewInviteError(fmt.Sprintf("ID %s appears twice as a cancellation", c))
+				return nil, nil, NewInviteError(id, fmt.Errorf("ID %s appears twice as a cancellation", c))
 			}
 			byID[id] = false
 			cancelations = append(cancelations, id)
@@ -1943,31 +1943,39 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 		id := res.Id
 		_, seen := byID[id]
 		if seen {
-			return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s appears twice in invite set", id))
+			return nil, nil, NewInviteError(id, fmt.Errorf("appears twice in invite set"))
 		}
 		key := keyFunc(invite.i)
 		if byName[key] {
-			return nil, nil, NewInviteError(fmt.Sprintf("Invite %s appears twice in invite set", key))
+			return nil, nil, NewInviteError(id, fmt.Errorf("invite %s appears twice in invite set", key))
 		}
 
 		isNewStyle, err := IsNewStyleInvite(res)
 		if err != nil {
-			return nil, nil, NewInviteError(fmt.Sprintf("failed to check if invite is new-style: %s", err))
+			return nil, nil, NewInviteError(id, fmt.Errorf("failed to check if invite is new-style: %s", err))
 		}
 		if isNewStyle {
 			if options.implicitTeam {
-				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s is new-style in implicit team", id))
+				return nil, nil, NewInviteError(id, fmt.Errorf("new-style in implicit team"))
 			}
 			if res.MaxUses == nil {
-				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s is new-style but has no max-uses", key))
+				return nil, nil, NewInviteError(id, fmt.Errorf("new-style but has no max-uses"))
 			}
 			if !res.MaxUses.IsValid() {
-				return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid max_uses %d", id, *res.MaxUses))
+				return nil, nil, NewInviteError(id, fmt.Errorf("invalid max_uses %d", *res.MaxUses))
 			}
 			if res.Etime != nil {
 				if *res.Etime <= 0 {
-					return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has invalid etime %d", id, *res.Etime))
+					return nil, nil, NewInviteError(id, fmt.Errorf("invalid etime %d", *res.Etime))
 				}
+			}
+		}
+
+		category, categoryErr := res.Type.C()
+		// Do not error out if there's a new invite category we don't recognize
+		if categoryErr == nil && category == keybase1.TeamInviteCategory_INVITELINK {
+			if res.Role.IsAdminOrAbove() {
+				return nil, nil, NewInviteError(id, NewInvitelinkBadRoleError(res.Role))
 			}
 		}
 

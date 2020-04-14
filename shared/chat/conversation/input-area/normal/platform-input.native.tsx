@@ -403,10 +403,10 @@ const Buttons = (p: ButtonsProps) => {
       <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
       {!hasText && (
-        <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end">
-          <Kb.Icon onClick={openFilePicker} type="iconfont-camera" />
-          <AudioRecorder conversationIDKey={conversationIDKey} />
-          <Kb.Icon onClick={openMoreMenu} type="iconfont-add" />
+        <Kb.Box2 direction="horizontal" alignItems="flex-end">
+          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" />
+          <AudioRecorder conversationIDKey={conversationIDKey} iconStyle={styles.audioRecorderIconStyle} />
+          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" />
         </Kb.Box2>
       )}
       {hasText && (
@@ -417,7 +417,7 @@ const Buttons = (p: ButtonsProps) => {
           disabled={!hasText}
           label={isEditing ? 'Save' : 'Send'}
           labelStyle={isExploding ? styles.explodingSendBtnLabel : undefined}
-          style={isExploding ? styles.explodingSendBtn : undefined}
+          style={isExploding ? styles.explodingSendBtn : styles.sendBtn}
         />
       )}
     </Kb.Box2>
@@ -467,9 +467,10 @@ const styles = Styles.styleSheetCreate(
     ({
       actionContainer: {
         flexShrink: 0,
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
         minHeight: 32,
+      },
+      audioRecorderIconStyle: {
+        padding: Styles.globalMargins.tiny,
       },
       container: {
         alignItems: 'center',
@@ -481,7 +482,7 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         minHeight: 1,
         overflow: 'hidden',
-        padding: Styles.globalMargins.tiny,
+        ...Styles.padding(Styles.globalMargins.tiny, 0),
       },
       editingButton: {
         marginRight: Styles.globalMargins.tiny,
@@ -507,6 +508,7 @@ const styles = Styles.styleSheetCreate(
       },
       explodingSendBtn: {
         backgroundColor: Styles.globalColors.black,
+        marginRight: Styles.globalMargins.tiny,
       },
       explodingSendBtnLabel: {
         color: Styles.globalColors.white,
@@ -551,10 +553,14 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       inputContainer: {
+        ...Styles.padding(0, Styles.globalMargins.tiny),
         flexGrow: 1,
         flexShrink: 1,
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
+      },
+      sendBtn: {
+        marginRight: Styles.globalMargins.tiny,
       },
     } as const)
 )

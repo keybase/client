@@ -3783,10 +3783,27 @@ func (h *Server) GetLastActiveAtMultiLocal(ctx context.Context, arg chat1.GetLas
 	return res, nil
 }
 
+func (h *Server) getEmojiError(err error) *chat1.EmojiError {
+	if err == nil {
+		return nil
+	}
+	if verr, ok := err.(*EmojiValidationError); ok {
+		return verr.Export()
+	}
+	return &chat1.EmojiError{
+		Clidisplay: err.Error(),
+		Uidisplay:  "unknown error",
+	}
+}
+
 func (h *Server) AddEmoji(ctx context.Context, arg chat1.AddEmojiArg) (res chat1.AddEmojiRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "AddEmoji")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() {
+		res.Error = h.getEmojiError(err)
+		err = nil
+	}()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
@@ -3808,12 +3825,12 @@ func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res cha
 	if len(arg.Aliases) != len(arg.Filenames) {
 		return chat1.AddEmojisRes{}, errors.New("aliases and filenames have different length")
 	}
-	res.FailedFilenames = make(map[string]string)
+	res.FailedFilenames = make(map[string]chat1.EmojiError)
 	res.SuccessFilenames = make([]string, 0, len(arg.Aliases))
 	for i := range arg.Aliases {
 		_, err := h.G().EmojiSource.Add(ctx, uid, arg.ConvID, arg.Aliases[i], arg.Filenames[i], arg.AllowOverwrite[i])
 		if err != nil {
-			res.FailedFilenames[arg.Filenames[i]] = err.Error()
+			res.FailedFilenames[arg.Filenames[i]] = *h.getEmojiError(err)
 		} else {
 			res.SuccessFilenames = append(res.SuccessFilenames, arg.Filenames[i])
 		}
@@ -3821,25 +3838,20 @@ func (h *Server) AddEmojis(ctx context.Context, arg chat1.AddEmojisArg) (res cha
 	return res, nil
 }
 
-func strPtr(str string) *string {
-	if len(str) > 0 {
-		return &str
-	}
-	return nil
-}
-
 func (h *Server) AddEmojiAlias(ctx context.Context, arg chat1.AddEmojiAliasArg) (res chat1.AddEmojiAliasRes, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "AddEmojiAlias")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() {
+		res.Error = h.getEmojiError(err)
+		err = nil
+	}()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
 	if _, err := h.G().EmojiSource.AddAlias(ctx, uid, arg.ConvID, arg.NewAlias, arg.ExistingAlias); err != nil {
-		return chat1.AddEmojiAliasRes{
-			ErrorString: strPtr(err.Error()),
-		}, nil
+		return res, err
 	}
 	return res, nil
 }

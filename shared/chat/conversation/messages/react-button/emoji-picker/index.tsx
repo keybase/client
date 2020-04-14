@@ -34,10 +34,15 @@ const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row
     key: (c && c.length && c[0] && c[0].short_name) || String(idx),
   }))
 
+// Remove those that have been obsolete and have a replacement. But it doens't
+// cover cases like :man-facepalming: vs :face_palm: even though they look
+// same.
+const removeObsolete = (emojis: Array<EmojiData>) => emojis.filter(e => !e.obsoleted_by)
+
 const getEmojiSections = memoize(
   (emojisPerLine: number): Array<Section> =>
     _getData().categories.map(c => ({
-      data: chunkEmojis(c.emojis, emojisPerLine),
+      data: chunkEmojis(removeObsolete(c.emojis), emojisPerLine),
       key: c.category,
       title: c.category,
     }))
@@ -155,10 +160,12 @@ const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
   return (filter: string): Array<EmojiData> => {
     return [
       ...customEmojiIndex.filter(filter),
-      ...emojiIndex
-        // @ts-ignore type wrong?
-        .search(filter, {maxResults: maxEmojiSearchResults})
-        .map((res: {id: string}) => emojiNameMap[res.id]),
+      ...removeObsolete(
+        emojiIndex
+          // @ts-ignore type wrong?
+          .search(filter, {maxResults: maxEmojiSearchResults})
+          .map((res: {id: string}) => emojiNameMap[res.id])
+      ),
     ]
   }
 }
@@ -232,7 +239,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
   private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
-    const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier)
+    const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"

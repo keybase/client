@@ -6,6 +6,7 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
+import CustomTitle from './custom-title/container'
 import {memoize} from '../../util/memoize'
 import flags from '../../util/feature-flags'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
@@ -24,6 +25,7 @@ import {
   Section,
   useEmojiSections,
 } from './rows'
+import isEqual from 'lodash/isEqual'
 
 type Props = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.TabKey}>
 
@@ -35,14 +37,18 @@ const useTabsState = (
   teamID: Types.TeamID,
   providedTab?: Types.TabKey
 ): [Types.TabKey, (t: Types.TabKey) => void] => {
+  const dispatch = Container.useDispatch()
   const defaultSelectedTab = lastSelectedTabs[teamID] ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<Types.TabKey>(defaultSelectedTab)
   const setSelectedTab = React.useCallback(
     t => {
       lastSelectedTabs[teamID] = t
+      if (selectedTab === 'settings' && t !== 'settings') {
+        dispatch(TeamsGen.createSettingsError({error: ''}))
+      }
       _setSelectedTab(t)
     },
-    [teamID, _setSelectedTab]
+    [teamID, selectedTab, dispatch]
   )
 
   const prevTeamID = Container.usePrevious(teamID)
@@ -79,7 +85,7 @@ const Team = (props: Props) => {
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID), isEqual)
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const dispatch = Container.useDispatch()
@@ -193,6 +199,11 @@ Team.navigationOptions = flags.teamsRedesign
       header: undefined,
       headerExpandable: true,
       headerHideBorder: true,
+      headerRight: Container.isMobile ? (
+        <CustomTitle teamID={Container.getRouteProps(props, 'teamID', '')} />
+      ) : (
+        undefined
+      ),
       headerRightActions: Container.isMobile
         ? undefined
         : () => <HeaderRightActions teamID={Container.getRouteProps(props, 'teamID', '')} />,

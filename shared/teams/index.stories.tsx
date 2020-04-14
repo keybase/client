@@ -18,6 +18,7 @@ import addMembersWizard from './add-members-wizard/index.stories'
 import channels from './channel/index.stories'
 import confirmModals from './confirm-modals/index.stories'
 import emojis from './emojis/index.stories'
+import joinFromInvite from './join-team/index.stories'
 
 const load = () => {
   main()
@@ -40,6 +41,7 @@ const load = () => {
   addMembersWizard()
   channels()
   confirmModals()
+  joinFromInvite()
 }
 
 export default load

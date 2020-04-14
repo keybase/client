@@ -153,7 +153,7 @@ const ChooseTarget = (props: Props) => {
           <Kb.Box2 direction="vertical" alignItems="flex-start">
             <Kb.RadioButton
               key="compress"
-              label={`Compress image (${FsConstants.humanizeBytes(scaledTotalSize, 1)})`}
+              label={`Compress (${FsConstants.humanizeBytes(scaledTotalSize, 1)})`}
               selected={!useOriginalUserSelection}
               onSelect={s => s && setUseOriginalUserSelection(false)}
             />

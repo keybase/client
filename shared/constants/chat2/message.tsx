@@ -1492,7 +1492,6 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'text':
     case 'attachment':
     case 'requestPayment':
-    case 'setChannelname':
     case 'setDescription':
     case 'pin':
     case 'systemAddedToTeam':
@@ -1507,6 +1506,8 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'systemNewChannel':
     case 'journeycard':
       return true
+    case 'setChannelname':
+      return message.newChannelname !== 'general'
     case 'sendPayment': {
       const paymentInfo = getPaymentMessageInfo(state, message)
       if (!paymentInfo || ['claimable', 'pending', 'canceled'].includes(paymentInfo.status)) {

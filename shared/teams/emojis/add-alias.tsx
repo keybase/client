@@ -71,8 +71,8 @@ export const AddAliasModal = (props: Props) => {
           ],
           res => {
             setAddAliasWaiting(false)
-            if (res.errorString) {
-              setError(res.errorString)
+            if (res.error) {
+              setError(res.error.uidisplay)
               return
             }
             dispatch(RouteTreeGen.createClearModals())
@@ -229,7 +229,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default (routableProps: RoutableProps) => {
+const AddEmojiAliasWrapper = (routableProps: RoutableProps) => {
   const conversationIDKey = Container.getRouteProps(
     routableProps,
     'conversationIDKey',
@@ -245,3 +245,4 @@ export default (routableProps: RoutableProps) => {
     />
   )
 }
+export default AddEmojiAliasWrapper

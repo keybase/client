@@ -20,6 +20,7 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
 // Add granularity as necessary
 export const teamsLoadedWaitingKey = 'teams:loaded'
 export const teamsAccessRequestWaitingKey = 'teams:accessRequests'
+export const joinTeamWaitingKey = 'teams:joinTeam'
 export const teamWaitingKey = (teamID: Types.TeamID) => `team:${teamID}`
 
 export const setMemberPublicityWaitingKey = (teamID: Types.TeamID) => `teamMemberPub:${teamID}`
@@ -249,6 +250,7 @@ export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
   createChannel: false,
   deleteChannel: false,
   deleteChatHistory: false,
+  deleteOtherEmojis: false,
   deleteOtherMessages: false,
   deleteTeam: false,
   editChannelDescription: false,
@@ -849,6 +851,7 @@ const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Types.Team
     createChannel: isWriterOrAbove,
     deleteChannel: isAdminOrAbove,
     deleteChatHistory: isAdminOrAbove,
+    deleteOtherEmojis: isAdminOrAbove,
     deleteOtherMessages: isAdminOrAbove,
     deleteTeam: role === 'owner' || implicitAdmin, // role = owner for root teams, otherwise implicitAdmin
     editChannelDescription: isWriterOrAbove,

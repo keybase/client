@@ -298,6 +298,27 @@ func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase
 	return t.chain().GetUserRole(uv)
 }
 
+func (t *Team) WasMostRecentlyAddedByInvitelink(uv keybase1.UserVersion) bool {
+	chain := t.chain().inner
+	logPoints, ok := chain.UserLog[uv]
+	if !ok {
+		return false
+	}
+	latestLogPointAddedAtIdx := len(logPoints) - 1
+	for _, usedInvites := range chain.UsedInvites {
+		for _, usedInvite := range usedInvites {
+			if usedInvite.Uv == uv {
+				invitelinkLogPointAddedAtIdx := usedInvite.LogPoint
+				if invitelinkLogPointAddedAtIdx == latestLogPointAddedAtIdx {
+					return true
+				}
+				// don't exit early otherwise, since there might be a newer invite
+			}
+		}
+	}
+	return false
+}
+
 func (t *Team) myRole(ctx context.Context) (keybase1.TeamRole, error) {
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
@@ -1439,7 +1460,9 @@ func (t *Team) InviteInvitelink(
 ) (ikey keybase1.SeitanIKeyInvitelink, inviteID SCTeamInviteID, err error) {
 	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), func() error { return err })()
 
-	// Experimental code: we are figuring out how to do invite links.
+	if role.IsAdminOrAbove() {
+		return ikey, inviteID, fmt.Errorf("cannot create invitelink to add as %v", role)
+	}
 
 	ikey, err = GenerateSeitanIKeyInvitelink()
 	if err != nil {

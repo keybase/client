@@ -427,7 +427,7 @@ type DummyAttachmentHTTPSrv struct{}
 var _ AttachmentURLSrv = (*DummyAttachmentHTTPSrv)(nil)
 
 func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	preview, noAnim bool) string {
+	preview, noAnim, isEmoji bool) string {
 	return ""
 }
 
@@ -833,23 +833,23 @@ func (DummyEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.
 	return chat1.UserEmojis{}, nil
 }
 func (DummyEmojiSource) Decorate(ctx context.Context, body string, uid gregor1.UID,
-	convID chat1.ConversationID, messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
+	messageType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	return body
 }
 func (DummyEmojiSource) Harvest(ctx context.Context, body string, uid gregor1.UID,
 	convID chat1.ConversationID, mode EmojiHarvestMode) (res []chat1.HarvestedEmoji, err error) {
 	return res, err
 }
-
 func (DummyEmojiSource) IsStockEmoji(alias string) bool { return true }
-
 func (DummyEmojiSource) RemoteToLocalSource(ctx context.Context, uid gregor1.UID,
 	remote chat1.EmojiRemoteSource) (source chat1.EmojiLoadSource, noAnimSource chat1.EmojiLoadSource, err error) {
 	return source, noAnimSource, nil
 }
-
 func (DummyEmojiSource) ToggleAnimations(ctx context.Context, uid gregor1.UID, enabled bool) error {
 	return nil
+}
+func (DummyEmojiSource) IsValidSize(size int64) bool {
+	return false
 }
 
 type ClearOpts struct {
