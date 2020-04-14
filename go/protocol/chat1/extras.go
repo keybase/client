@@ -3156,27 +3156,27 @@ func (m AssetMetadata) IsType(typ AssetMetadataType) bool {
 func (s SnippetDecoration) ToEmoji() string {
 	switch s {
 	case SnippetDecoration_PENDING_MESSAGE:
-		return "📤"
+		return ":outbox_tray:"
 	case SnippetDecoration_FAILED_PENDING_MESSAGE:
-		return "⚠️"
+		return ":warning:"
 	case SnippetDecoration_EXPLODING_MESSAGE:
-		return "💣"
+		return ":bomb:"
 	case SnippetDecoration_EXPLODED_MESSAGE:
-		return "💥"
+		return ":boom:"
 	case SnippetDecoration_AUDIO_ATTACHMENT:
-		return "🔊"
+		return ":loud_sound:"
 	case SnippetDecoration_VIDEO_ATTACHMENT:
-		return "🎞"
+		return ":film_frames:"
 	case SnippetDecoration_PHOTO_ATTACHMENT:
-		return "📷"
+		return ":camera:"
 	case SnippetDecoration_FILE_ATTACHMENT:
-		return "📁"
+		return ":file_folder:"
 	case SnippetDecoration_STELLAR_RECEIVED:
-		return "💰"
+		return ":bank:"
 	case SnippetDecoration_STELLAR_SENT:
-		return "🚀"
+		return ":money_with_wings:"
 	case SnippetDecoration_PINNED_MESSAGE:
-		return "📌"
+		return ":pushpin:"
 	default:
 		return ""
 	}
