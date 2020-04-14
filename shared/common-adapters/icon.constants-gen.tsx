@@ -939,7 +939,7 @@ export type IconType =
   | 'iconfont-calculate'
   | 'iconfont-calculator'
   | 'iconfont-camera'
-  | 'iconfont-camera-off'
+  | 'iconfont-camera-solid'
   | 'iconfont-campfire-burning'
   | 'iconfont-campfire-out'
   | 'iconfont-caret-down'
@@ -9624,7 +9624,7 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-camera-off': {
+  'iconfont-camera-solid': {
     charCode: 0xe90b,
     gridSize: 16,
     isFont: true,
