@@ -39,8 +39,6 @@ const styles = styleSheetCreate(() => ({
   container: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
-    position: 'absolute',
-    right: 0,
   },
   icon: {
     marginRight: globalMargins.tiny,
