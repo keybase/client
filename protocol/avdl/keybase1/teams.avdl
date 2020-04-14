@@ -683,7 +683,7 @@ protocol teams {
   }
 
   record TeamSignatureMetadata {
-    SignatureMetadta sigMeta;
+    SignatureMetadata sigMeta;
     UserVersion uv;
   }
   record TeamInviteMetadataCancel {
