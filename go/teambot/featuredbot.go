@@ -184,7 +184,7 @@ func (l *FeaturedBotLoader) syncFeaturedBots(mctx libkb.MetaContext, arg keybase
 		l.debug(mctx, "syncFeaturedBots: failed to load from server: %s", err)
 		return res, err
 	}
-	if cache != nil && !res.Eq(cache.Data) { // only write out data if it changed
+	if cache == nil || !res.Eq(cache.Data) { // only write out data if it changed
 		if err := l.storeFeaturedBots(mctx, arg, res); err != nil {
 			l.debug(mctx, "syncFeaturedBots: failed to store result: %s", err)
 			return res, err
@@ -209,7 +209,6 @@ func (l *FeaturedBotLoader) FeaturedBots(mctx libkb.MetaContext, arg keybase1.Fe
 	if err != nil {
 		l.debug(mctx, "FeaturedBots: failed to load from local storage: %s", err)
 	} else if found {
-		l.debug(mctx, "FeaturedBots: returning cached data")
 		l.G().NotifyRouter.HandleFeaturedBots(mctx.Ctx(), l.present(mctx, cache.Data.Bots), arg.Limit, arg.Offset)
 		go func() {
 			mctx = libkb.NewMetaContextBackground(l.G())
