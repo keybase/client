@@ -2028,6 +2028,7 @@ const previewConversationTeam = async (
     actions.push(
       Chat2Gen.createNavigateToThread({
         conversationIDKey: first.conversationIDKey,
+        highlightMessageID,
         reason: 'previewResolved',
       })
     )
