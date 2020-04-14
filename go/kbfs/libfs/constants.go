@@ -136,3 +136,7 @@ const DirBlockPrefix = ".kbfs_dirblock_"
 // ProfileListDirName is the name of the KBFS profile directory -- it
 // can be reached from any KBFS directory.
 const ProfileListDirName = ".kbfs_profiles"
+
+// ErrorFileName is the name of the virtual file in KBFS that should
+// contain the last reported error(s).
+var ErrorFileName = ".kbfs_error"

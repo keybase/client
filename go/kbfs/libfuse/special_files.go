@@ -11,7 +11,6 @@ import (
 
 	"bazil.org/fuse/fs"
 	"github.com/keybase/client/go/kbfs/libfs"
-	"github.com/keybase/client/go/kbfs/libkbfs"
 )
 
 // handleCommonSpecialFile handles special files that are present both
@@ -19,8 +18,6 @@ import (
 func handleCommonSpecialFile(
 	name string, fs *FS, entryValid *time.Duration) fs.Node {
 	switch name {
-	case libkbfs.ErrorFile:
-		return NewErrorFile(fs, entryValid)
 	case libfs.ResetCachesFileName:
 		return &ResetCachesFile{fs}
 	}
@@ -47,6 +44,8 @@ func handleNonTLFSpecialFile(
 		return ProfileList{fs.config}
 	case libfs.MetricsFileName:
 		return NewMetricsFile(fs, entryValid)
+	case libfs.ErrorFileName:
+		return NewErrorFile(fs, entryValid)
 	case libfs.HumanErrorFileName, libfs.HumanNoLoginFileName:
 		*entryValid = 0
 		return &SpecialReadFile{fs.remoteStatus.NewSpecialReadFunc}

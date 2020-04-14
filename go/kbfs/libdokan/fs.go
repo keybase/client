@@ -318,7 +318,7 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 
 		// This section is equivalent to
 		// handleCommonSpecialFile in libfuse.
-	case libkbfs.ErrorFile == ps[psl-1]:
+	case libfs.ErrorFileName == ps[psl-1]:
 		return oc.returnFileNoCleanup(NewErrorFile(f))
 	case libfs.MetricsFileName == ps[psl-1]:
 		return oc.returnFileNoCleanup(NewMetricsFile(f))
