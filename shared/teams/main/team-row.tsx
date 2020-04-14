@@ -51,7 +51,11 @@ const TeamRow = (props: Props) => {
       : undefined
   const crownIcon = crownIconType ? (
     <Kb.Box2 direction="vertical" style={styles.crownIconBox} centerChildren={true}>
-      <Kb.Icon type={crownIconType} sizeType="Small" style={styles.crownIcon} />
+      <Kb.Icon
+        type={crownIconType}
+        sizeType="Tiny"
+        style={Styles.collapseStyles([styles.crownIcon, teamMeta.role === 'admin' && styles.darkerAdminIcon])}
+      />
     </Kb.Box2>
   ) : null
 
@@ -169,12 +173,19 @@ const styles = Styles.styleSheetCreate(() => ({
   bodyRight: {
     flex: 0.7,
   },
-  crownIcon: {},
+  crownIcon: Styles.platformStyles({common: {fontSize: 10}, isMobile: {left: 0.5, position: 'relative'}}),
   crownIconBox: Styles.platformStyles({
-    common: {height: 14, position: 'absolute', width: 14},
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: 100,
+      height: 17,
+      position: 'absolute',
+      width: 17,
+    },
     isElectron: {bottom: -5, right: -5},
-    isMobile: {bottom: 2, right: 0},
+    isMobile: {bottom: 4, right: -5},
   }),
+  darkerAdminIcon: {color: Styles.globalColors.greyDark},
   openMeta: {
     alignSelf: 'center',
   },
