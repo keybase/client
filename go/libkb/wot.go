@@ -122,9 +122,9 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 
 	if voucheeUser == nil || voucheeUser.GetUID() != serverVouch.Vouchee {
 		// load vouchee
-		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(serverVouch.Vouchee).WithStubMode(StubModeUnstubbed))
+		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(serverVouch.Vouchee).WithPublicKeyOptional().WithStubMode(StubModeUnstubbed))
 		if err != nil {
-			return res, fmt.Errorf("error loading vouchee: %s", err.Error())
+			return res, fmt.Errorf("error loading vouchee to transform: %s", err.Error())
 		}
 	}
 
@@ -232,7 +232,7 @@ func FetchWotVouches(mctx MetaContext, arg FetchWotVouchesArg) (res []keybase1.W
 	}
 	var voucheeUser *User
 	if len(arg.Vouchee) > 0 {
-		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithName(arg.Vouchee))
+		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithName(arg.Vouchee).WithPublicKeyOptional())
 		if err != nil {
 			return nil, fmt.Errorf("error loading vouchee: %s", err.Error())
 		}

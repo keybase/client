@@ -42,6 +42,7 @@ export type Assertion = {
   timestamp: number // can be 0,
   type: string // twitter,
   value: string // bob
+  wotProof?: RPCTypes.WotProof
 }
 
 export type DetailsState = 'checking' | 'valid' | 'broken' | 'needsUpgrade' | 'error' | 'notAUserYet'

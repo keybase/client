@@ -170,17 +170,26 @@ const backToProfile = (state: TypedState) => [
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
 ]
 
-const wotVouch = async (action: ProfileGen.WotVouchPayload, logger: Saga.SagaLogger) => {
-  const {otherText, proofs, statement, username, verificationType} = action.payload
+const wotVouch = async (state: TypedState, action: ProfileGen.WotVouchPayload, logger: Saga.SagaLogger) => {
+  const {guiID, otherText, proofs, statement, username, verificationType} = action.payload
+  const details = state.tracker2.usernameToDetails.get(username)
+  if (!details) {
+    return ProfileGen.createWotVouchSetError({error: 'Missing user details.'})
+  } else if (details.state !== 'valid') {
+    return ProfileGen.createWotVouchSetError({error: `User is not in a valid state. (${details.state})`})
+  } else if (details.resetBrokeTrack) {
+    return ProfileGen.createWotVouchSetError({error: 'User has reset their account since following.'})
+  }
   try {
     await RPCTypes.wotWotVouchRpcPromise(
       {
-        assertion: username,
         confidence: {
           other: otherText,
           proofs,
           usernameVerifiedVia: verificationType,
         },
+        guiID,
+        username,
         vouchTexts: [statement],
       },
       Constants.wotAuthorWaitingKey
@@ -206,7 +215,7 @@ function* _profileSaga() {
   yield* Saga.chainAction(ProfileGen.showUserProfile, showUserProfile)
   yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
   yield* Saga.chainAction2(ProfileGen.hideStellar, hideStellar)
-  yield* Saga.chainAction(ProfileGen.wotVouch, wotVouch)
+  yield* Saga.chainAction2(ProfileGen.wotVouch, wotVouch)
 }
 
 function* profileSaga() {

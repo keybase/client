@@ -1267,3 +1267,31 @@ func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) i
 		close(cancelCh)
 	}
 }
+
+// Format a proof for web-of-trust. Does not support all proof types.
+func NewWotProof(proofType keybase1.ProofType, key, value string) (res keybase1.WotProof, err error) {
+	switch proofType {
+	case keybase1.ProofType_TWITTER, keybase1.ProofType_GITHUB, keybase1.ProofType_REDDIT,
+		keybase1.ProofType_COINBASE, keybase1.ProofType_HACKERNEWS, keybase1.ProofType_FACEBOOK,
+		keybase1.ProofType_GENERIC_SOCIAL, keybase1.ProofType_ROOTER:
+		return keybase1.WotProof{
+			ProofType: proofType,
+			Name:      key,
+			Username:  value,
+		}, nil
+	case keybase1.ProofType_GENERIC_WEB_SITE:
+		return keybase1.WotProof{
+			ProofType: proofType,
+			Protocol:  key,
+			Hostname:  value,
+		}, nil
+	case keybase1.ProofType_DNS:
+		return keybase1.WotProof{
+			ProofType: proofType,
+			Protocol:  key,
+			Domain:    value,
+		}, nil
+	default:
+		return res, fmt.Errorf("unexpected proof type: %v", proofType)
+	}
+}

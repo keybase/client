@@ -13,10 +13,9 @@ import (
 )
 
 type WotVouchArg struct {
-	Vouchee       keybase1.UserVersion
-	Confidence    keybase1.Confidence
-	FailingProofs []keybase1.WotProof
-	VouchTexts    []string
+	Vouchee    keybase1.UserVersion
+	Confidence keybase1.Confidence
+	VouchTexts []string
 }
 
 // WotVouch is an engine.
@@ -86,6 +85,7 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	}
 
 	if them.GetCurrentEldestSeqno() != e.arg.Vouchee.EldestSeqno {
+		mctx.Debug("eldest seqno mismatch: loaded %v != %v caller", them.GetCurrentEldestSeqno(), e.arg.Vouchee.EldestSeqno)
 		return errors.New("vouchee has reset, make sure you still know them")
 	}
 
@@ -116,15 +116,6 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	}
 	if err := statement.SetKey("confidence", confidenceJw); err != nil {
 		return err
-	}
-	if len(e.arg.FailingProofs) > 0 {
-		failingProofsJw, err := jsonw.WrapperFromObject(e.arg.FailingProofs)
-		if err != nil {
-			return err
-		}
-		if err := statement.SetKey("failing_proofs", failingProofsJw); err != nil {
-			return err
-		}
 	}
 	if err := statement.SetKey("vouch_text", libkb.JsonwStringArray(e.arg.VouchTexts)); err != nil {
 		return err

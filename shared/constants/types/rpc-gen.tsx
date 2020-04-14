@@ -1644,7 +1644,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.wot.wotVouch': {
-    inParam: {readonly assertion: String; readonly vouchTexts?: Array<String> | null; readonly confidence: Confidence}
+    inParam: {readonly username: String; readonly guiID: Identify3GUIID; readonly vouchTexts?: Array<String> | null; readonly confidence: Confidence}
     outParam: void
   }
 }
@@ -2993,7 +2993,7 @@ export type Identify2Res = {readonly upk: UserPlusKeys; readonly identifiedAt: T
 export type Identify2ResUPK2 = {readonly upk: UserPlusKeysV2AllIncarnations; readonly identifiedAt: Time; readonly trackBreaks?: IdentifyTrackBreaks | null}
 export type Identify3Assertion = String
 export type Identify3GUIID = String
-export type Identify3Row = {readonly guiID: Identify3GUIID; readonly key: String; readonly value: String; readonly priority: Int; readonly siteURL: String; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly siteIconFullDarkmode?: Array<SizedImage> | null; readonly proofURL: String; readonly sigID: SigID; readonly ctime: Time; readonly state: Identify3RowState; readonly metas?: Array<Identify3RowMeta> | null; readonly color: Identify3RowColor; readonly kid?: KID | null}
+export type Identify3Row = {readonly guiID: Identify3GUIID; readonly key: String; readonly value: String; readonly priority: Int; readonly siteURL: String; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly siteIconFullDarkmode?: Array<SizedImage> | null; readonly proofURL: String; readonly sigID: SigID; readonly ctime: Time; readonly state: Identify3RowState; readonly metas?: Array<Identify3RowMeta> | null; readonly color: Identify3RowColor; readonly kid?: KID | null; readonly wotProof?: WotProof | null}
 export type Identify3RowMeta = {readonly color: Identify3RowColor; readonly label: String}
 export type Identify3Summary = {readonly guiID: Identify3GUIID; readonly numProofsToCheck: Int}
 export type IdentifyKey = {readonly pgpFingerprint: Bytes; readonly KID: KID; readonly trackDiff?: TrackDiff | null; readonly breaksTracking: Boolean; readonly sigID: SigID}
@@ -4377,3 +4377,4 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.getTeamBlocks'
+// 'keybase.1.wot.wotVouchCLI'
