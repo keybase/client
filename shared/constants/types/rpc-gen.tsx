@@ -1644,7 +1644,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.wot.wotVouch': {
-    inParam: {readonly assertion: String; readonly vouchText: String; readonly confidence: Confidence}
+    inParam: {readonly username: String; readonly guiID: Identify3GUIID; readonly vouchText: String; readonly confidence: Confidence}
     outParam: void
   }
 }

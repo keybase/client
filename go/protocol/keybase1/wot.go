@@ -5,10 +5,9 @@ package keybase1
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type UsernameVerificationType string

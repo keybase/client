@@ -135,8 +135,12 @@
           "type": "int"
         },
         {
-          "name": "assertion",
+          "name": "username",
           "type": "string"
+        },
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
         },
         {
           "name": "vouchText",
