@@ -274,7 +274,9 @@ const styles = Styles.styleSheetCreate(
           width: 140,
         },
       }),
-      container: {backgroundColor: Styles.globalColors.blueGrey},
+      container: {
+        backgroundColor: flags.teamsRedesign ? Styles.globalColors.blueGrey : Styles.globalColors.white,
+      },
       emptyNote: Styles.padding(60, 42, Styles.globalMargins.medium, Styles.globalMargins.medium),
       kerning: {letterSpacing: 0.2},
       maxWidth: {maxWidth: '100%'},
