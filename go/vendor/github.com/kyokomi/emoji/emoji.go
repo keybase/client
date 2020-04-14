@@ -12,6 +12,11 @@ import (
 
 //go:generate generateEmojiCodeMap -pkg emoji
 
+// Replace Padding character for emoji.
+var (
+	ReplacePadding = " "
+)
+
 // CodeMap gets the underlying map of emoji.
 func CodeMap() map[string]string {
 	return emojiCodeMap
@@ -47,7 +52,7 @@ var flagRegexp = regexp.MustCompile(":flag-([a-z]{2}):")
 func emojize(x string) string {
 	str, ok := emojiCodeMap[x]
 	if ok {
-		return str
+		return str + ReplacePadding
 	}
 	if match := flagRegexp.FindStringSubmatch(x); len(match) == 2 {
 		return regionalIndicator(match[1][0]) + regionalIndicator(match[1][1])
