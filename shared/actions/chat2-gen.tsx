@@ -56,8 +56,10 @@ export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const inboxSearch = 'chat2:inboxSearch'
 export const inboxSearchBotsResults = 'chat2:inboxSearchBotsResults'
+export const inboxSearchBotsResultsExpanded = 'chat2:inboxSearchBotsResultsExpanded'
 export const inboxSearchMoveSelectedIndex = 'chat2:inboxSearchMoveSelectedIndex'
 export const inboxSearchNameResults = 'chat2:inboxSearchNameResults'
+export const inboxSearchOpenTeamsExpanded = 'chat2:inboxSearchOpenTeamsExpanded'
 export const inboxSearchOpenTeamsResults = 'chat2:inboxSearchOpenTeamsResults'
 export const inboxSearchSelect = 'chat2:inboxSearchSelect'
 export const inboxSearchSetIndexPercent = 'chat2:inboxSearchSetIndexPercent'
@@ -331,6 +333,7 @@ type _InboxRefreshPayload = {
     | 'widgetRefresh'
     | 'shareConfigSearch'
 }
+type _InboxSearchBotsResultsExpandedPayload = {readonly expanded: boolean}
 type _InboxSearchBotsResultsPayload = {
   readonly results: Array<RPCTypes.FeaturedBot>
   readonly suggested: boolean
@@ -340,6 +343,7 @@ type _InboxSearchNameResultsPayload = {
   readonly results: Array<Types.InboxSearchConvHit>
   readonly unread: boolean
 }
+type _InboxSearchOpenTeamsExpandedPayload = {readonly expanded: boolean}
 type _InboxSearchOpenTeamsResultsPayload = {
   readonly results: Array<Types.InboxSearchOpenTeamHit>
   readonly suggested: boolean
@@ -1061,6 +1065,12 @@ export const createAttachmentPasted = (payload: _AttachmentPastedPayload): Attac
   type: attachmentPasted,
 })
 /**
+ * Inbox search bot results expanded
+ */
+export const createInboxSearchBotsResultsExpanded = (
+  payload: _InboxSearchBotsResultsExpandedPayload
+): InboxSearchBotsResultsExpandedPayload => ({payload, type: inboxSearchBotsResultsExpanded})
+/**
  * Inbox search bot results received
  */
 export const createInboxSearchBotsResults = (
@@ -1079,6 +1089,12 @@ export const createInboxSearchStarted = (payload: _InboxSearchStartedPayload): I
 export const createInboxSearchNameResults = (
   payload: _InboxSearchNameResultsPayload
 ): InboxSearchNameResultsPayload => ({payload, type: inboxSearchNameResults})
+/**
+ * Inbox search open teams expanded
+ */
+export const createInboxSearchOpenTeamsExpanded = (
+  payload: _InboxSearchOpenTeamsExpandedPayload
+): InboxSearchOpenTeamsExpandedPayload => ({payload, type: inboxSearchOpenTeamsExpanded})
 /**
  * Inbox search open teams results received
  */
@@ -2033,6 +2049,10 @@ export type IgnorePinnedMessagePayload = {
   readonly type: typeof ignorePinnedMessage
 }
 export type InboxRefreshPayload = {readonly payload: _InboxRefreshPayload; readonly type: typeof inboxRefresh}
+export type InboxSearchBotsResultsExpandedPayload = {
+  readonly payload: _InboxSearchBotsResultsExpandedPayload
+  readonly type: typeof inboxSearchBotsResultsExpanded
+}
 export type InboxSearchBotsResultsPayload = {
   readonly payload: _InboxSearchBotsResultsPayload
   readonly type: typeof inboxSearchBotsResults
@@ -2044,6 +2064,10 @@ export type InboxSearchMoveSelectedIndexPayload = {
 export type InboxSearchNameResultsPayload = {
   readonly payload: _InboxSearchNameResultsPayload
   readonly type: typeof inboxSearchNameResults
+}
+export type InboxSearchOpenTeamsExpandedPayload = {
+  readonly payload: _InboxSearchOpenTeamsExpandedPayload
+  readonly type: typeof inboxSearchOpenTeamsExpanded
 }
 export type InboxSearchOpenTeamsResultsPayload = {
   readonly payload: _InboxSearchOpenTeamsResultsPayload
@@ -2548,9 +2572,11 @@ export type Actions =
   | HideConversationPayload
   | IgnorePinnedMessagePayload
   | InboxRefreshPayload
+  | InboxSearchBotsResultsExpandedPayload
   | InboxSearchBotsResultsPayload
   | InboxSearchMoveSelectedIndexPayload
   | InboxSearchNameResultsPayload
+  | InboxSearchOpenTeamsExpandedPayload
   | InboxSearchOpenTeamsResultsPayload
   | InboxSearchPayload
   | InboxSearchSelectPayload

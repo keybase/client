@@ -41,7 +41,9 @@ type SectionExtra<T> = {
 type Section<T> = _Section<T, SectionExtra<T>>
 
 export type Props = {
+  botsAll: boolean
   botsResults: Array<RPCTypes.FeaturedBot>
+  botsResultsExpanded: boolean // SPOONER: maybe rename this to All instead of Expanded
   botsResultsSuggested: boolean
   botsStatus: Types.InboxSearchStatus
   header?: React.ReactElement | null
@@ -52,7 +54,10 @@ export type Props = {
   onInstallBot: (username: string) => void
   onCancel: () => void
   onSelectConversation: (arg0: Types.ConversationIDKey, arg1: number, arg2: string) => void
+  onToggleBotsExpanded: () => void
+  onToggleOpenTeamsExpanded: () => void
   openTeamsResults: Array<Types.InboxSearchOpenTeamHit>
+  openTeamsResultsExplanded: boolean // SPOONER: maybe rename this to All instead of Expanded
   openTeamsResultsSuggested: boolean
   openTeamsStatus: Types.InboxSearchStatus
   query: string
@@ -62,11 +67,9 @@ export type Props = {
 }
 
 type State = {
-  botsAll: boolean
   botsCollapsed: boolean
   nameCollapsed: boolean
   textCollapsed: boolean
-  openTeamsAll: boolean
   openTeamsCollapsed: boolean
 }
 
@@ -74,10 +77,8 @@ const emptyUnreadPlaceholder = {conversationIDKey: '', name: '---EMPTYRESULT---'
 
 class InboxSearch extends React.Component<Props, State> {
   state = {
-    botsAll: false,
     botsCollapsed: false,
     nameCollapsed: false,
-    openTeamsAll: false,
     openTeamsCollapsed: false,
     textCollapsed: false,
   }
@@ -166,14 +167,8 @@ class InboxSearch extends React.Component<Props, State> {
   private toggleCollapseOpenTeams = () => {
     this.setState(s => ({openTeamsCollapsed: !s.openTeamsCollapsed}))
   }
-  private toggleOpenTeamsAll = () => {
-    this.setState(s => ({openTeamsAll: !s.openTeamsAll}))
-  }
   private toggleCollapseBots = () => {
     this.setState(s => ({botsCollapsed: !s.botsCollapsed}))
-  }
-  private toggleBotsAll = () => {
-    this.setState(s => ({botsAll: !s.botsAll}))
   }
   private selectName = (item: NameResult, index: number) => {
     this.props.onSelectConversation(item.conversationIDKey, index, '')
@@ -197,7 +192,9 @@ class InboxSearch extends React.Component<Props, State> {
   }
 
   private getOpenTeamsResults = () => {
-    return this.state.openTeamsAll ? this.props.openTeamsResults : this.props.openTeamsResults.slice(0, 3)
+    return this.props.openTeamsResultsExplanded
+      ? this.props.openTeamsResults
+      : this.props.openTeamsResults.slice(0, 3)
   }
   private renderTeamHeader = (section: any) => {
     const showMore = this.props.openTeamsResults.length > 3 && !this.state.openTeamsCollapsed
@@ -208,11 +205,11 @@ class InboxSearch extends React.Component<Props, State> {
           <Kb.Text
             onClick={(e: React.BaseSyntheticEvent) => {
               e.stopPropagation()
-              this.toggleOpenTeamsAll()
+              this.props.onToggleOpenTeamsExpanded()
             }}
             type="BodySmallSecondaryLink"
           >
-            {!this.state.openTeamsAll ? '(more)' : '(less)'}
+            {!this.props.openTeamsResultsExplanded ? '(more)' : '(less)'}
           </Kb.Text>
         )}
       </Kb.Box2>
@@ -228,7 +225,7 @@ class InboxSearch extends React.Component<Props, State> {
   }
 
   private getBotsResults = () => {
-    return this.state.botsAll ? this.props.botsResults : this.props.botsResults.slice(0, 3)
+    return this.props.botsResultsExpanded ? this.props.botsResults : this.props.botsResults.slice(0, 3)
   }
   private renderBotsHeader = (section: any) => {
     const showMore = this.props.botsResults.length > 3 && !this.state.botsCollapsed
@@ -239,11 +236,11 @@ class InboxSearch extends React.Component<Props, State> {
           <Kb.Text
             onClick={(e: React.BaseSyntheticEvent) => {
               e.stopPropagation()
-              this.toggleBotsAll()
+              this.props.onToggleBotsExpanded()
             }}
             type="BodySmallSecondaryLink"
           >
-            {!this.state.botsAll ? '(more)' : '(less)'}
+            {!this.props.botsResultsExpanded ? '(more)' : '(less)'}
           </Kb.Text>
         )}
       </Kb.Box2>

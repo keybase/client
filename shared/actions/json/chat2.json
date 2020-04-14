@@ -692,6 +692,10 @@
       "_description": "Toggle inbox search view",
       "enabled": "boolean"
     },
+    "inboxSearchOpenTeamsExpanded": {
+      "_description": "Inbox search open teams expanded",
+      "expanded": "boolean"
+    },
     "inboxSearchOpenTeamsResults": {
       "_description": "Inbox search open teams results received",
       "results": "Array<Types.InboxSearchOpenTeamHit>",
@@ -701,6 +705,10 @@
       "_description": "Inbox search bot results received",
       "results": "Array<RPCTypes.FeaturedBot>",
       "suggested": "boolean"
+    },
+    "inboxSearchBotsResultsExpanded": {
+      "_description": "Inbox search bot results expanded",
+      "expanded": "boolean"
     },
     "inboxSearchNameResults": {
       "_description": "Inbox search name results received",

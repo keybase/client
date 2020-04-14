@@ -35,17 +35,25 @@ export default namedConnect(
           selectedIndex,
         })
       ),
+    onToggleBotsExpanded: ({expanded}) =>
+      Chat2Gen.createInboxSearchBotsResultsExpanded({expanded: !expanded}),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {header} = ownProps
     const {_inboxSearch} = stateProps
     const {indexPercent, nameResults, nameResultsUnread, nameStatus, textStatus} = _inboxSearch
-    const {botsResults, botsResultsSuggested, botsStatus} = _inboxSearch
-    const {openTeamsResults, openTeamsResultsSuggested, openTeamsStatus} = _inboxSearch
+    const {botsResults, botsResultsExpanded, botsResultsSuggested, botsStatus} = _inboxSearch
+    const {
+      openTeamsResults,
+      openTeamsResultsExpanded,
+      openTeamsResultsSuggested,
+      openTeamsStatus,
+    } = _inboxSearch
     const {query, selectedIndex, textResults} = _inboxSearch
     const {onCancel, onInstallBot, onSelectConversation} = dispatchProps
     return {
       botsResults,
+      botsResultsExpanded,
       botsResultsSuggested,
       botsStatus,
       header,
@@ -60,7 +68,13 @@ export default namedConnect(
       onCancel,
       onInstallBot,
       onSelectConversation,
+      onToggleBotsExpanded: () => dispatchProps.onToggleBotsExpanded({expanded: botsResultsExpanded}),
+      onToggleOpenTeamsResultsExpanded: () =>
+        dispatchProps.onToggleBotsExpanded({
+          expanded: openTeamsResultsExpanded,
+        }),
       openTeamsResults,
+      openTeamsResultsExpanded,
       openTeamsResultsSuggested,
       openTeamsStatus,
       query: query.stringValue(),
