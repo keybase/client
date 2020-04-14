@@ -7,7 +7,7 @@ import {usePhoneNumberList} from '../../teams/common'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {pluralize} from '../../util/string'
 
-const shareURL = 'https://keybase.io/download'
+const shareURL = 'https://keybase.io/download?invite'
 const waitingKey = 'invitePeople'
 
 const InviteFriendsModal = () => {
