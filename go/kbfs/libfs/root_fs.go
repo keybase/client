@@ -30,6 +30,18 @@ func newStatusFileNode(
 	}
 }
 
+func newUserEditHistoryFileNode(
+	config libkbfs.Config, log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node: nil,
+		log:  log,
+		name: EditHistoryName,
+		reader: func(ctx context.Context) ([]byte, time.Time, error) {
+			return GetEncodedUserEditHistory(ctx, config)
+		},
+	}
+}
+
 // RootFS is a browseable (read-only) version of `/keybase`.  It
 // does not support traversal into any subdirectories.
 type RootFS struct {
@@ -53,6 +65,7 @@ var rootWrappedNodeNames = map[string]bool{
 	StatusFileName:     true,
 	MetricsFileName:    true,
 	ErrorFileName:      true,
+	EditHistoryName:    true,
 	ProfileListDirName: true,
 }
 
@@ -72,6 +85,8 @@ func (rfs *RootFS) Open(filename string) (f billy.File, err error) {
 		return newMetricsFileNode(rfs.config, nil, rfs.log).GetFile(ctx), nil
 	case ErrorFileName:
 		return newErrorFileNode(rfs.config, nil, rfs.log).GetFile(ctx), nil
+	case EditHistoryName:
+		return newUserEditHistoryFileNode(rfs.config, rfs.log).GetFile(ctx), nil
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", filename))
 	}
@@ -111,6 +126,9 @@ func (rfs *RootFS) Lstat(filename string) (fi os.FileInfo, err error) {
 	case ErrorFileName:
 		efn := newErrorFileNode(rfs.config, nil, rfs.log).GetFile(ctx)
 		return efn.(*wrappedReadFile).GetInfo(), nil
+	case EditHistoryName:
+		uehfn := newUserEditHistoryFileNode(rfs.config, rfs.log).GetFile(ctx)
+		return uehfn.(*wrappedReadFile).GetInfo(), nil
 	case ProfileListDirName:
 		return &wrappedReadFileInfo{
 			filename, 0, rfs.config.Clock().Now(), true}, nil
