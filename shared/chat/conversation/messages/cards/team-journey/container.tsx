@@ -15,6 +15,7 @@ import * as ChatTypes from '../../../../../constants/types/chat2'
 import {TeamJourney, Action} from '.'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
+import flags from '../../../../../util/feature-flags'
 
 type OwnProps = {
   message: MessageTypes.MessageJourneycard
@@ -183,6 +184,9 @@ const TeamJourneyConnected = Container.connect(
   (state, ownProps: OwnProps) => {
     const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
     const {cannotWrite, channelname, conversationIDKey, teamname, teamID} = conv
+    const welcomeMessage = flags.teamsRedesign
+      ? TeamConstants.getTeamWelcomeMessageByID(state, teamID)
+      : {display: '', raw: '', set: false}
     return {
       _teamID: teamID,
       canShowcase: TeamConstants.canShowcase(state, teamID),
@@ -191,7 +195,7 @@ const TeamJourneyConnected = Container.connect(
       conversationIDKey,
       isBigTeam: TeamConstants.isBigTeam(state, teamID),
       teamname,
-      welcomeMessage: TeamConstants.getTeamWelcomeMessageByID(state, teamID),
+      welcomeMessage,
     }
   },
   dispatch => ({

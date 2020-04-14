@@ -536,6 +536,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         return message.newChannelname === 'general' ? null : (
           <SetChannelname key="setChannelname" message={message} />
         )
+      case 'journeycard':
+        return <TeamJourney key="journey" message={message} />
       case 'deleted':
         return null
       default:
