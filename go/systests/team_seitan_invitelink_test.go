@@ -44,7 +44,7 @@ func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
 	etime := keybase1.ToUnixTime(time.Now().Add(24 * time.Hour))
 	link, err := alice.teamsClient.TeamCreateSeitanInvitelink(context.TODO(), keybase1.TeamCreateSeitanInvitelinkArg{
 		Teamname: teamName.String(),
-		Role:     keybase1.TeamRole_ADMIN,
+		Role:     keybase1.TeamRole_WRITER,
 		MaxUses:  maxUses,
 		Etime:    &etime,
 	})
@@ -56,7 +56,7 @@ func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
 	require.Len(t, details.AnnotatedActiveInvites, 1)
 	for _, aInvite := range details.AnnotatedActiveInvites {
 		invite := aInvite.Invite
-		require.Equal(t, keybase1.TeamRole_ADMIN, invite.Role)
+		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
 		tic, err := invite.Type.C()
 		require.NoError(t, err)
 		require.Equal(t, keybase1.TeamInviteCategory_INVITELINK, tic)
@@ -77,7 +77,7 @@ func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
 
 	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(bob.uid, 1))
 	require.NoError(t, err)
-	require.Equal(t, role, keybase1.TeamRole_ADMIN)
+	require.Equal(t, role, keybase1.TeamRole_WRITER)
 }
 
 func TestTeamInviteLinkAfterLeave(t *testing.T) {
