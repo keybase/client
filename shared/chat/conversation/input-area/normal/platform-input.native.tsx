@@ -382,7 +382,7 @@ const Buttons = (p: ButtonsProps) => {
           </Kb.Text>
         </Kb.Box2>
       ) : (
-        <Kb.Icon color={isExploding ? Styles.globalColors.black : null} type="iconfont-timer" fontSize={22} />
+        <Kb.Icon color={isExploding ? Styles.globalColors.black : null} type="iconfont-timer" />
       )}
     </Kb.ClickableBox>
   )
@@ -399,7 +399,7 @@ const Buttons = (p: ButtonsProps) => {
         />
       )}
       {explodingIcon}
-      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-reacji" />
+      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" />
       <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
       {!hasText && (
@@ -436,7 +436,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
           style={{
             transform: [{rotate: concat(add(45, rotate), 'deg'), scale: 0.7}],
           }}
-          color={Styles.globalColors.black_20}
+          color={Styles.globalColors.black_35}
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom}>
@@ -453,7 +453,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
               },
             ],
           }}
-          color={Styles.globalColors.black_20}
+          color={Styles.globalColors.black_35}
         />
       </Kb.Box2>
     </Kb.ClickableBox>
