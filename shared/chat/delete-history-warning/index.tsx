@@ -41,15 +41,17 @@ const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      box: {
-        alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
-        justifyContent: 'center',
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        maxWidth: 560,
-        padding: Styles.globalMargins.small,
-      },
+      box: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.white,
+          justifyContent: 'center',
+          padding: Styles.globalMargins.small,
+        },
+        isMobile: {
+          width: '100%',
+        },
+      }),
       button: Styles.platformStyles({
         isElectron: {marginLeft: Styles.globalMargins.tiny},
         isMobile: {marginTop: Styles.globalMargins.tiny},
