@@ -5,10 +5,12 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"hash"
+	"math"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -3034,6 +3036,29 @@ func (c Coordinate) Eq(o Coordinate) bool {
 	return c.Lat == o.Lat && c.Lon == o.Lon
 }
 
+type safeCoordinate struct {
+	Lat      float64 `codec:"lat" json:"lat"`
+	Lon      float64 `codec:"lon" json:"lon"`
+	Accuracy float64 `codec:"accuracy" json:"accuracy"`
+}
+
+func (c Coordinate) MarshalJSON() ([]byte, error) {
+	var safe safeCoordinate
+	safe.Lat = c.Lat
+	safe.Lon = c.Lon
+	safe.Accuracy = c.Accuracy
+	if math.IsNaN(safe.Lat) {
+		safe.Lat = 0
+	}
+	if math.IsNaN(safe.Lon) {
+		safe.Lon = 0
+	}
+	if math.IsNaN(safe.Accuracy) {
+		safe.Accuracy = 0
+	}
+	return json.Marshal(safe)
+}
+
 // Incremented if the client hash algorithm changes. If this value is changed
 // be sure to add a case in the BotInfo.Hash() function.
 const ClientBotInfoHashVers BotInfoHashVers = 1
@@ -3151,6 +3176,27 @@ func (m AssetMetadata) IsType(typ AssetMetadataType) bool {
 		return false
 	}
 	return mtyp == typ
+}
+
+type safeAssetMetadataImage struct {
+	Width     int       `codec:"width" json:"width"`
+	Height    int       `codec:"height" json:"height"`
+	AudioAmps []float64 `codec:"audioAmps" json:"audioAmps"`
+}
+
+func (m AssetMetadataImage) MarshalJSON() ([]byte, error) {
+	var safe safeAssetMetadataImage
+	safe.AudioAmps = make([]float64, 0, len(m.AudioAmps))
+	for _, amp := range m.AudioAmps {
+		if math.IsNaN(amp) {
+			safe.AudioAmps = append(safe.AudioAmps, 0)
+		} else {
+			safe.AudioAmps = append(safe.AudioAmps, amp)
+		}
+	}
+	safe.Width = m.Width
+	safe.Height = m.Height
+	return json.Marshal(safe)
 }
 
 func (s SnippetDecoration) ToEmoji() string {
