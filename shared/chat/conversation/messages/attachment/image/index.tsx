@@ -83,8 +83,8 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         <ShowToastAfterSaving transferState={this.props.transferState} />
         <Kb.Box2 direction="vertical" fullWidth={true}>
           {(!mobileImageFilename || !Styles.isMobile) && (
-            <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-              <Kb.Text type="BodyTiny">
+            <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.fileNameContainer}>
+              <Kb.Text type="BodyTiny" lineClamp={1}>
                 {mobileImageFilename ? 'Image from mobile' : this.props.fileName}
               </Kb.Text>
               <Kb.Icon
@@ -315,11 +315,13 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: Styles.globalMargins.tiny,
       },
-
       durationText: {
         color: Styles.globalColors.white,
         paddingLeft: 3,
         paddingRight: 3,
+      },
+      fileNameContainer: {
+        paddingRight: Styles.globalMargins.small,
       },
       image: {
         ...Styles.globalStyles.rounded,

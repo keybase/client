@@ -223,28 +223,24 @@ export const getLoopInterval = (diff: number) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
-        common: {
-          ...Styles.globalStyles.flexBoxRow,
-          marginLeft: Styles.globalMargins.tiny,
-          position: 'relative',
-        },
-        isElectron: {height: 20},
-        isMobile: {height: 24},
-      }),
+      container: {
+        ...Styles.globalStyles.flexBoxRow,
+        height: 20,
+        marginLeft: Styles.globalMargins.tiny,
+        position: 'relative',
+      },
       countdown: Styles.platformStyles({
         common: {color: Styles.globalColors.white, fontWeight: 'bold'},
         isElectron: {fontSize: 9, letterSpacing: -0.2, lineHeight: 13},
-        isMobile: {fontSize: 10, letterSpacing: -0.2, lineHeight: 14},
+        isMobile: {fontSize: 9, letterSpacing: -0.2, lineHeight: 13},
       }),
-      countdownContainer: Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        isElectron: {borderRadius: 10, height: 20, width: 20},
-        isMobile: {borderRadius: 14, height: 24, width: 24},
-      }),
+      countdownContainer: {
+        alignItems: 'center',
+        borderRadius: 10,
+        height: 20,
+        justifyContent: 'center',
+        width: 20,
+      },
       countdownContainerHighlighted: {
         backgroundColor: Styles.globalColors.blackOrBlack,
       },
