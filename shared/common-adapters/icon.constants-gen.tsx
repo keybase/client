@@ -950,6 +950,8 @@ export type IconType =
   | 'iconfont-circle'
   | 'iconfont-clipboard'
   | 'iconfont-clock'
+  | 'iconfont-clock-reversed'
+  | 'iconfont-clock-solid'
   | 'iconfont-close'
   | 'iconfont-cloud'
   | 'iconfont-club'
@@ -975,7 +977,9 @@ export type IconType =
   | 'iconfont-exclamation'
   | 'iconfont-expand'
   | 'iconfont-file'
+  | 'iconfont-file-solid'
   | 'iconfont-film'
+  | 'iconfont-film-solid'
   | 'iconfont-filter'
   | 'iconfont-finder'
   | 'iconfont-fire'
@@ -1043,6 +1047,7 @@ export type IconType =
   | 'iconfont-phone-contact'
   | 'iconfont-photo-library'
   | 'iconfont-pin'
+  | 'iconfont-pin-solid'
   | 'iconfont-play'
   | 'iconfont-proof-broken'
   | 'iconfont-proof-good'
@@ -1075,8 +1080,6 @@ export type IconType =
   | 'iconfont-team-leave'
   | 'iconfont-text-code'
   | 'iconfont-thunderbolt'
-  | 'iconfont-time'
-  | 'iconfont-time-reversed'
   | 'iconfont-timer'
   | 'iconfont-trash'
   | 'iconfont-typing'
@@ -9675,6 +9678,16 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: true,
   },
   'iconfont-clock': {
+    charCode: 0xe961,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-clock-reversed': {
+    charCode: 0xe962,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-clock-solid': {
     charCode: 0xe911,
     gridSize: 16,
     isFont: true,
@@ -9804,8 +9817,18 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-file-solid': {
+    charCode: 0xe9c5,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-film': {
     charCode: 0xe9a9,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-film-solid': {
+    charCode: 0xe9c4,
     gridSize: 16,
     isFont: true,
   },
@@ -10144,6 +10167,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-pin-solid': {
+    charCode: 0xe9c6,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-play': {
     charCode: 0xe99e,
     gridSize: 16,
@@ -10301,16 +10329,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-thunderbolt': {
     charCode: 0xe960,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-time': {
-    charCode: 0xe961,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-time-reversed': {
-    charCode: 0xe962,
     gridSize: 16,
     isFont: true,
   },

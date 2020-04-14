@@ -16,7 +16,7 @@ const OfflineFolder = (props: Props) => (
     <TopBar path={props.path} />
     <Kb.Box2 direction="vertical" style={styles.emptyContainer} fullWidth={true} centerChildren={true}>
       <Kb.Icon
-        type={props.syncEnabled ? 'iconfont-time' : 'iconfont-cloud'}
+        type={props.syncEnabled ? 'iconfont- clock' : 'iconfont-cloud'}
         sizeType="Huge"
         color={Styles.globalColors.black_10}
       />

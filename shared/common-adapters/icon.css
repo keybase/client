@@ -31,7 +31,7 @@
 .icon-gen-iconfont-chat::before {content: "\e90e";}
 .icon-gen-iconfont-check::before {content: "\e90f";}
 .icon-gen-iconfont-clipboard::before {content: "\e910";}
-.icon-gen-iconfont-clock::before {content: "\e911";}
+.icon-gen-iconfont-clock-solid::before {content: "\e911";}
 .icon-gen-iconfont-close::before {content: "\e912";}
 .icon-gen-iconfont-compose::before {content: "\e913";}
 .icon-gen-iconfont-crown-admin::before {content: "\e914";}
@@ -95,8 +95,8 @@
 .icon-gen-iconfont-team-leave::before {content: "\e95e";}
 .icon-gen-iconfont-text-code::before {content: "\e95f";}
 .icon-gen-iconfont-thunderbolt::before {content: "\e960";}
-.icon-gen-iconfont-time::before {content: "\e961";}
-.icon-gen-iconfont-time-reversed::before {content: "\e962";}
+.icon-gen-iconfont-clock::before {content: "\e961";}
+.icon-gen-iconfont-clock-reversed::before {content: "\e962";}
 .icon-gen-iconfont-timer::before {content: "\e963";}
 .icon-gen-iconfont-trash::before {content: "\e964";}
 .icon-gen-iconfont-upload-2::before {content: "\e966";}
@@ -188,4 +188,7 @@
 .icon-gen-iconfont-copy::before {content: "\e9bf";}
 .icon-gen-iconfont-share-android::before {content: "\e9c0";}
 .icon-gen-iconfont-envelope-solid::before {content: "\e9c2";}
+.icon-gen-iconfont-film-solid::before {content: "\e9c4";}
+.icon-gen-iconfont-file-solid::before {content: "\e9c5";}
+.icon-gen-iconfont-pin-solid::before {content: "\e9c6";}
 
