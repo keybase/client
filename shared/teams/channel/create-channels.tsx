@@ -11,6 +11,11 @@ type Props = Container.RouteProps<{teamID: TeamsTypes.TeamID}>
 export default (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', TeamsTypes.noTeamID)
   const dispatch = Container.useDispatch()
+  React.useEffect(() => () => dispatch(TeamsGen.createSetChannelCreationError({error: null})), [
+    props,
+    teamID,
+    dispatch,
+  ])
   const [waiting, error] = Container.useSelector(s => [
     s.teams.creatingChannels,
     s.teams.errorInChannelCreation,
@@ -50,7 +55,7 @@ export default (props: Props) => {
 const styles = Styles.styleSheetCreate(() => ({
   banner: {
     position: 'absolute',
-    top: 47,
+    top: 64,
     zIndex: 1,
   },
 }))
