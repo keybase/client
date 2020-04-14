@@ -23,30 +23,52 @@ import (
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
-type statusFileNode struct {
+type namedFileNode struct {
 	libkbfs.Node
 
-	fb     data.FolderBranch
-	config libkbfs.Config
 	log    logger.Logger
+	name   string
+	reader func(ctx context.Context) ([]byte, time.Time, error)
 }
 
-var _ libkbfs.Node = (*statusFileNode)(nil)
+var _ libkbfs.Node = (*namedFileNode)(nil)
 
-func (sfn *statusFileNode) GetFile(ctx context.Context) billy.File {
+func (nfn *namedFileNode) GetFile(ctx context.Context) billy.File {
 	return &wrappedReadFile{
-		name: StatusFileName,
-		reader: func(ctx context.Context) ([]byte, time.Time, error) {
-			return GetEncodedFolderStatus(ctx, sfn.config, sfn.fb)
-		},
-		log: sfn.log,
+		name:   nfn.name,
+		reader: nfn.reader,
+		log:    nfn.log,
 	}
 }
 
-func (sfn *statusFileNode) FillCacheDuration(d *time.Duration) {
+func (nfn *namedFileNode) FillCacheDuration(d *time.Duration) {
 	// Suggest kindly that no one should cache this node, since it
 	// could change each time it's read.
 	*d = 0
+}
+
+func newFolderStatusFileNode(
+	config libkbfs.Config, node libkbfs.Node,
+	fb data.FolderBranch, log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node: node,
+		log:  log,
+		name: StatusFileName,
+		reader: func(ctx context.Context) ([]byte, time.Time, error) {
+			return GetEncodedFolderStatus(ctx, config, fb)
+		},
+	}
+}
+
+func newMetricsFileNode(
+	config libkbfs.Config, node libkbfs.Node,
+	log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node:   node,
+		log:    log,
+		name:   MetricsFileName,
+		reader: GetEncodedMetrics(config),
+	}
 }
 
 var updateHistoryRevsRE = regexp.MustCompile("^\\.([0-9]+)(-([0-9]+))?$") //nolint (`\.` doesn't seem to work in single quotes)
@@ -151,6 +173,7 @@ var perTlfWrappedNodeNames = map[string]bool{
 	StatusFileName:        true,
 	UpdateHistoryFileName: true,
 	ProfileListDirName:    true,
+	MetricsFileName:       true,
 }
 
 var perTlfWrappedNodePrefixes = []string{
@@ -262,13 +285,14 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 
 	switch {
 	case plain == StatusFileName:
-		sfn := &statusFileNode{
-			Node:   nil,
-			fb:     sfn.GetFolderBranch(),
-			config: sfn.config,
-			log:    sfn.log,
-		}
+		sfn := newFolderStatusFileNode(
+			sfn.config, nil, sfn.GetFolderBranch(), sfn.log)
 		f := sfn.GetFile(ctx)
+		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
+			data.PathPartString{}, data.ZeroPtr
+	case plain == MetricsFileName:
+		mfn := newMetricsFileNode(sfn.config, nil, sfn.log)
+		f := mfn.GetFile(ctx)
 		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
 			data.PathPartString{}, data.ZeroPtr
 	case plain == ProfileListDirName:
@@ -324,12 +348,12 @@ func (sfn *specialFileNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 
 	switch {
 	case name == StatusFileName:
-		return &statusFileNode{
-			Node:   &libkbfs.ReadonlyNode{Node: child},
-			fb:     sfn.GetFolderBranch(),
-			config: sfn.config,
-			log:    sfn.log,
-		}
+		return newFolderStatusFileNode(
+			sfn.config, &libkbfs.ReadonlyNode{Node: child},
+			sfn.GetFolderBranch(), sfn.log)
+	case name == MetricsFileName:
+		return newMetricsFileNode(
+			sfn.config, &libkbfs.ReadonlyNode{Node: child}, sfn.log)
 	case name == ProfileListDirName:
 		return &profileListNode{
 			Node:   &libkbfs.ReadonlyNode{Node: child},
