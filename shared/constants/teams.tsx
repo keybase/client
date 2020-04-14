@@ -830,7 +830,7 @@ export const canShowcase = (state: TypedState, teamID: Types.TeamID) => {
 
 const _canUserPerformCache: {[key: string]: Types.TeamOperations} = {}
 const _canUserPerformCacheKey = (t: Types.TeamRoleAndDetails) => t.role + t.implicitAdmin
-const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Types.TeamOperations => {
+export const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Types.TeamOperations => {
   if (!roleAndDetails) {
     // can happen if an empty teamID was passed to a getter
     return initialCanUserPerform
