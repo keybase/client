@@ -68,7 +68,14 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       background: {backgroundColor: Styles.globalColors.blue},
-      button: {maxHeight: 40},
+      button: Styles.platformStyles({
+        common: {
+          maxHeight: 40,
+        },
+        isTablet: {
+          marginBottom: Styles.globalMargins.medium,
+        },
+      }),
       container: {
         ...Styles.globalStyles.fillAbsolute,
         backgroundColor: Styles.globalColors.blue,
