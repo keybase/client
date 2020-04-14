@@ -41,7 +41,6 @@ type SectionExtra<T> = {
 type Section<T> = _Section<T, SectionExtra<T>>
 
 export type Props = {
-  botsAll: boolean
   botsResults: Array<RPCTypes.FeaturedBot>
   botsResultsAll: boolean
   botsResultsSuggested: boolean
