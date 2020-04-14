@@ -192,7 +192,7 @@ func (s *baseConversationSource) TransformSupersedes(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed,
 	q *chat1.GetThreadQuery, superXform types.SupersedesTransform, replyFiller types.ReplyFiller,
 	maxDeletedUpTo *chat1.MessageID) (res []chat1.MessageUnboxed, err error) {
-	defer s.Trace(ctx, func() error { return err }, "TransformSupersedes")()
+	defer s.Trace(ctx, &err, "TransformSupersedes")()
 	if q == nil || !q.DisableResolveSupersedes {
 		deletePlaceholders := q != nil && q.EnableDeletePlaceholders
 		if superXform == nil {
@@ -507,7 +507,7 @@ func (s *HybridConversationSource) maybeNuke(ctx context.Context, convID chat1.C
 
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Push")()
+	defer s.Trace(ctx, &err, "Push")()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -562,7 +562,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 
 func (s *HybridConversationSource) PushUnboxed(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "PushUnboxed")()
+	defer s.Trace(ctx, &err, "PushUnboxed")()
 	convID := conv.GetConvID()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return err
@@ -587,7 +587,7 @@ func (s *HybridConversationSource) PushUnboxed(ctx context.Context, conv types.U
 func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1.UID,
 	thread *chat1.ThreadView, conv chat1.Conversation, reason chat1.GetThreadReason,
 	customRi func() chat1.RemoteInterface) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "resolveHoles")()
+	defer s.Trace(ctx, &err, "resolveHoles")()
 	var msgIDs []chat1.MessageID
 	// Gather all placeholder messages so we can go fetch them
 	for index, msg := range thread.Messages {
@@ -649,7 +649,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	uid gregor1.UID, reason chat1.GetThreadReason, customRi func() chat1.RemoteInterface,
 	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
 	ctx = libkb.WithLogTag(ctx, "PUL")
-	defer s.Trace(ctx, func() error { return err }, "Pull(%s)", convID)()
+	defer s.Trace(ctx, &err, "Pull(%s)", convID)()
 	if convID.IsNil() {
 		return chat1.ThreadView{}, errors.New("HybridConversationSource.Pull called with empty convID")
 	}
@@ -787,7 +787,7 @@ func newPullLocalResultCollector(baseRC storage.ResultCollector) *pullLocalResul
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (tv chat1.ThreadView, err error) {
 	ctx = libkb.WithLogTag(ctx, "PUL")
-	defer s.Trace(ctx, func() error { return err }, "PullLocalOnly")()
+	defer s.Trace(ctx, &err, "PullLocalOnly")()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return tv, err
 	}
@@ -859,8 +859,8 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 
 func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	opts *types.ClearOpts) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Clear(%v,%v)", uid, convID)()
-	defer s.PerfTrace(ctx, func() error { return err }, "Clear(%v,%v)", uid, convID)()
+	defer s.Trace(ctx, &err, "Clear(%v,%v)", uid, convID)()
+	defer s.PerfTrace(ctx, &err, "Clear(%v,%v)", uid, convID)()
 	start := time.Now()
 	defer func() {
 		var message string
@@ -893,7 +893,7 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason,
 	customRi func() chat1.RemoteInterface, resolveSupersedes bool) (res []chat1.MessageUnboxed, err error) {
-	defer s.Trace(ctx, func() error { return err }, "GetMessages: convID: %s msgIDs: %d",
+	defer s.Trace(ctx, &err, "GetMessages: convID: %s msgIDs: %d",
 		convID, len(msgIDs))()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return nil, err
@@ -1022,7 +1022,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 
 func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
-	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
+	defer s.Trace(ctx, &err, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
 	defer s.maybeNuke(ctx, convID, uid, &err)
 
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
@@ -1164,7 +1164,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 // Expunge from storage and maybe notify the gui of staleness
 func (s *HybridConversationSource) Expunge(ctx context.Context,
 	conv types.UnboxConversationInfo, uid gregor1.UID, expunge chat1.Expunge) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Expunge")()
+	defer s.Trace(ctx, &err, "Expunge")()
 	convID := conv.GetConvID()
 	defer s.maybeNuke(ctx, convID, uid, &err)
 	s.Debug(ctx, "Expunge: convID: %s uid: %s upto: %v", convID, uid, expunge.Upto)
@@ -1239,7 +1239,7 @@ func (s *HybridConversationSource) fetchMaybeNotify(ctx context.Context, convID 
 
 func (s *HybridConversationSource) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	purgeInfo *chat1.EphemeralPurgeInfo) (newPurgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err error) {
-	defer s.Trace(ctx, func() error { return err }, "EphemeralPurge")()
+	defer s.Trace(ctx, &err, "EphemeralPurge")()
 	defer s.maybeNuke(ctx, convID, uid, &err)
 	if newPurgeInfo, explodedMsgs, err = s.storage.EphemeralPurge(ctx, convID, uid, purgeInfo); err != nil {
 		return newPurgeInfo, explodedMsgs, err

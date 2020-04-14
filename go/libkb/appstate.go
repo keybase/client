@@ -72,7 +72,7 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
 
 func (a *MobileAppState) UpdateWithCheck(state keybase1.MobileAppState,
 	check func(keybase1.MobileAppState) bool) {
-	defer a.G().Trace(fmt.Sprintf("MobileAppState.UpdateWithCheck(%v)", state), func() error { return nil })()
+	defer a.G().Trace(fmt.Sprintf("MobileAppState.UpdateWithCheck(%v)", state), nil)()
 	a.Lock()
 	defer a.Unlock()
 	if check(a.state) {
@@ -84,7 +84,7 @@ func (a *MobileAppState) UpdateWithCheck(state keybase1.MobileAppState,
 
 // Update updates the current app state, and notifies any waiting calls from NextUpdate
 func (a *MobileAppState) Update(state keybase1.MobileAppState) {
-	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), func() error { return nil })()
+	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), nil)()
 	a.Lock()
 	defer a.Unlock()
 	a.updateLocked(state)
@@ -137,7 +137,7 @@ func (a *MobileNetState) NextUpdate(lastState *keybase1.MobileNetworkState) chan
 // Update updates the current network state, and notifies any waiting calls
 // from NextUpdate
 func (a *MobileNetState) Update(state keybase1.MobileNetworkState) {
-	defer a.G().Trace(fmt.Sprintf("MobileNetState.Update(%v)", state), func() error { return nil })()
+	defer a.G().Trace(fmt.Sprintf("MobileNetState.Update(%v)", state), nil)()
 	a.Lock()
 	defer a.Unlock()
 	if a.state != state {

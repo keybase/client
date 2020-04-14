@@ -130,8 +130,8 @@ func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bo
 	lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
 
 	m = m.WithLogTag("AUDIT")
-	defer m.TraceTimed(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
-	defer m.PerfTrace(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), &err)()
+	defer m.PerfTrace(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), &err)()
 	start := time.Now()
 	defer func() {
 		var message string
@@ -281,7 +281,7 @@ func makeHistory(history *keybase1.AuditHistory, id keybase1.TeamID) *keybase1.A
 // doPostProbes probes the sequence timeline _after_ the team was created.
 func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkleSeqno keybase1.Seqno, latestMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID,
 	hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (numProbes int, maxMerkleProbe keybase1.Seqno, probeTuples []probeTuple, err error) {
-	defer m.Trace("Auditor#doPostProbes", func() error { return err })()
+	defer m.Trace("Auditor#doPostProbes", &err)()
 
 	var low keybase1.Seqno
 	lastMaxMerkleProbe := maxMerkleProbeInAuditHistory(history)
@@ -414,7 +414,7 @@ func checkProbeHidden(m libkb.MetaContext, firstRootWithHidden keybase1.Seqno, h
 // in question was created. It selects probes from before the team was created. Each
 // probed leaf must not be occupied.
 func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkleSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (numProbes int, probeTuples []probeTuple, err error) {
-	defer m.Trace("Auditor#doPreProbes", func() error { return err })()
+	defer m.Trace("Auditor#doPreProbes", &err)()
 
 	first := m.G().GetMerkleClient().FirstExaminableHistoricalRoot(m)
 	if first == nil {
@@ -483,7 +483,7 @@ func (a *Auditor) computeProbes(m libkb.MetaContext, teamID keybase1.TeamID, pro
 }
 
 func (a *Auditor) scheduleProbes(m libkb.MetaContext, previousProbes map[keybase1.Seqno]keybase1.Probe, probeID int, left keybase1.Seqno, right keybase1.Seqno, probesInRange int, n int, probesToRetry []keybase1.Seqno) (ret []probeTuple, err error) {
-	defer m.Trace(fmt.Sprintf("Auditor#scheduleProbes(left=%d,right=%d)", left, right), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("Auditor#scheduleProbes(left=%d,right=%d)", left, right), &err)()
 	if probesInRange > n {
 		m.Debug("no more probes needed; did %d, wanted %d", probesInRange, n)
 		return nil, nil
@@ -521,7 +521,7 @@ func (a *Auditor) scheduleProbes(m libkb.MetaContext, previousProbes map[keybase
 }
 
 func (a *Auditor) lookupProbe(m libkb.MetaContext, teamID keybase1.TeamID, probe *probeTuple) (err error) {
-	defer m.Trace(fmt.Sprintf("Auditor#lookupProbe(%v,%v)", teamID, *probe), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("Auditor#lookupProbe(%v,%v)", teamID, *probe), &err)()
 	leaf, _, hiddenResp, err := m.G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m, teamID.AsUserOrTeam(), probe.merkle, hidden.ProcessHiddenResponseFunc)
 	if err != nil {
 		return err
@@ -625,7 +625,7 @@ func (a *Auditor) holdOffSinceJustCreated(m libkb.MetaContext, history *keybase1
 
 func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
 
-	defer m.Trace(fmt.Sprintf("Auditor#auditLocked(%v,%s)", id, auditMode), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("Auditor#auditLocked(%v,%s)", id, auditMode), &err)()
 
 	lru := a.getLRU()
 

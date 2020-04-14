@@ -49,7 +49,7 @@ func (p *Pegboard) TrackUPAK(mctx MetaContext, upak keybase1.UserPlusKeysV2) (er
 	if !p.enabled {
 		return nil
 	}
-	defer mctx.Trace("Pegboard.TrackUPAK", func() error { return err })()
+	defer mctx.Trace("Pegboard.TrackUPAK", &err)()
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if peg, ok := p.store[upak.Uid]; ok && peg.EldestSeqno != 0 && upak.EldestSeqno != 0 && upak.EldestSeqno < peg.EldestSeqno {

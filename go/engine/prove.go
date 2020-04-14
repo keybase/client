@@ -128,7 +128,7 @@ func (p *Prove) promptRemoteName(m libkb.MetaContext) error {
 }
 
 func (p *Prove) checkExists2(m libkb.MetaContext) (err error) {
-	defer m.Trace("Prove#CheckExists2", func() error { return err })()
+	defer m.Trace("Prove#CheckExists2", &err)()
 	if !p.serviceType.LastWriterWins() {
 		var found libkb.RemoteProofChainLink
 		for _, proof := range p.me.IDTable().GetActiveProofsFor(p.serviceType) {
@@ -395,7 +395,7 @@ func (p *Prove) SigID() keybase1.SigID {
 
 // Run runs the Prove engine, performing all steps of the proof process.
 func (p *Prove) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("ProofEngine.Run", func() error { return err })()
+	defer m.Trace("ProofEngine.Run", &err)()
 
 	stage := func(s string) {
 		m.Debug("| ProofEngine.Run() %s", s)

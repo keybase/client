@@ -222,7 +222,7 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 // where we want to get around the lazy open and make sure we can
 // use it later.
 func (l *LevelDb) ForceOpen() error {
-	return l.doWhileOpenAndNukeIfCorrupted(func() error { return nil })
+	return l.doWhileOpenAndNukeIfCorrupted(nil)
 }
 
 func (l *LevelDb) Stats() (stats string) {
@@ -297,7 +297,7 @@ func (l *LevelDb) isCorrupt(err error) bool {
 func (l *LevelDb) Clean(force bool) (err error) {
 	l.Lock()
 	defer l.Unlock()
-	defer l.G().Trace("LevelDb::Clean", func() error { return err })()
+	defer l.G().Trace("LevelDb::Clean", &err)()
 	return l.cleaner.clean(force)
 }
 
@@ -307,7 +307,7 @@ func (l *LevelDb) Nuke() (fn string, err error) {
 	// l.Close() because we'll be re-opening the database later, and it's
 	// necessary to block other doWhileOpenAndNukeIfCorrupted() calls.
 	defer l.Unlock()
-	defer l.G().Trace("LevelDb::Nuke", func() error { return err })()
+	defer l.G().Trace("LevelDb::Nuke", &err)()
 
 	// even if we can't close the db try to nuke the files directly
 	if err = l.closeLocked(); err != nil {

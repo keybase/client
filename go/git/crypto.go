@@ -74,7 +74,7 @@ func (c *Crypto) Box(ctx context.Context, plaintext []byte, teamSpec keybase1.Te
 // Unbox decrypts the given ciphertext with the given nonce, for the given generation of the
 // given team. Can return an error. Will return a non-nil plaintext on success.
 func (c *Crypto) Unbox(ctx context.Context, teamSpec keybase1.TeamIDWithVisibility, metadata *keybase1.EncryptedGitMetadata) (plaintext []byte, err error) {
-	defer c.G().CTrace(ctx, fmt.Sprintf("git.Crypto#Unbox(%s, vis:%v)", teamSpec.TeamID, teamSpec.Visibility), func() error { return err })()
+	defer c.G().CTrace(ctx, fmt.Sprintf("git.Crypto#Unbox(%s, vis:%v)", teamSpec.TeamID, teamSpec.Visibility), &err)()
 
 	if metadata.V != 1 {
 		return nil, fmt.Errorf("invalid EncryptedGitMetadata version: %d", metadata.V)

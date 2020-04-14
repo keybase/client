@@ -716,7 +716,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	uipagination *chat1.UIPagination) (err error) {
 	var pagination, resultPagination *chat1.Pagination
 	var fullErr error
-	defer t.Trace(ctx, func() error { return err }, "LoadNonblock")()
+	defer t.Trace(ctx, &err, "LoadNonblock")()
 	defer func() {
 		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
 		// Otherwise, send notice that we successfully loaded the conversation.
@@ -1039,7 +1039,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 
 func (t *UIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	reason chat1.GetThreadReason, knownRemotes []string, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res chat1.ThreadView, err error) {
-	defer t.Trace(ctx, func() error { return err }, "Load")()
+	defer t.Trace(ctx, &err, "Load")()
 	// Xlate pager control into pagination if given
 	if query != nil && query.MessageIDControl != nil {
 		pagination = t.messageIDControlToPagination(ctx, uid, convID,

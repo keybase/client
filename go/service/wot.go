@@ -159,7 +159,7 @@ func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactA
 
 func (h *WebOfTrustHandler) DismissWotNotifications(ctx context.Context, arg keybase1.DismissWotNotificationsArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("DismissWotNotifications", func() error { return err })()
+	defer mctx.Trace("DismissWotNotifications", &err)()
 
 	return libkb.DismissWotNotifications(mctx, arg.Voucher, arg.Vouchee)
 }

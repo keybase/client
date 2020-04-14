@@ -13,7 +13,7 @@ import (
 
 func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
-	defer log.Trace(ctx, func() error { return err }, "previewVideo")()
+	defer log.Trace(ctx, &err, "previewVideo")()
 	dat, duration, err := nvh.ThumbnailAndDuration(ctx, basename)
 	if err != nil {
 		return res, err

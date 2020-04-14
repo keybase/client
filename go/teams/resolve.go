@@ -75,7 +75,7 @@ func PurgeResolverTeamID(ctx context.Context, g *libkb.GlobalContext, teamID key
 func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	name string, public bool) (res keybase1.ImplicitTeamDisplayName, err error) {
 
-	defer g.CTraceTimed(ctx, fmt.Sprintf("ResolveImplicitTeamDisplayName(%v, public:%v)", name, public), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("ResolveImplicitTeamDisplayName(%v, public:%v)", name, public), &err)()
 
 	split1 := strings.SplitN(name, " ", 2) // split1: [assertions, ?conflict]
 	assertions := split1[0]
@@ -183,7 +183,7 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAssertion libkb.ResolvedAssertion) (err error) {
 
 	defer g.CTrace(ctx, fmt.Sprintf("verifyResolveResult ID user [%s] %s", resolvedAssertion.UID, resolvedAssertion.Assertion.String()),
-		func() error { return err })()
+		&err)()
 
 	if resolvedAssertion.ResolveResult.WasKBAssertion() {
 		// The resolver does not use server-trust for these sorts of assertions.

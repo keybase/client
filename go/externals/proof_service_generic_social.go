@@ -167,8 +167,9 @@ func (rc *GenericSocialProofChecker) GetTorError() libkb.ProofError { return nil
 
 func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb.SigHint, _ libkb.ProofCheckerMode,
 	pvlU keybase1.MerkleStoreEntry) (_ *libkb.SigHint, retErr libkb.ProofError) {
+	err := retErr.(error)
 	mctx = mctx.WithLogTag("PCS")
-	defer mctx.TraceTimed("GenericSocialProofChecker.CheckStatus", func() error { return retErr })()
+	defer mctx.Trace("GenericSocialProofChecker.CheckStatus", &err)()
 
 	_, sigIDBase, err := libkb.OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {

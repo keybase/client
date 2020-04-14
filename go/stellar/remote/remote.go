@@ -31,7 +31,7 @@ type ShouldCreateResult struct {
 // ShouldCreate asks the server whether to create this user's initial wallet.
 func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (res ShouldCreateResult, err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
-	defer mctx.TraceTimed("Stellar.ShouldCreate", func() error { return err })()
+	defer mctx.Trace("Stellar.ShouldCreate", &err)()
 	defer func() {
 		mctx.Debug("Stellar.ShouldCreate: (res:%+v, err:%v)", res, err != nil)
 	}()
@@ -94,7 +94,7 @@ func buildChainLinkPayload(m libkb.MetaContext, b stellar1.Bundle, me *libkb.Use
 
 // Post a bundle to the server with a chainlink.
 func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
-	defer mctx.TraceTimed("Stellar.PostWithChainlink", func() error { return err })()
+	defer mctx.Trace("Stellar.PostWithChainlink", &err)()
 
 	uid := mctx.G().ActiveDevice.UID()
 	if uid.IsNil() {
@@ -144,7 +144,7 @@ func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err
 
 // Post a bundle to the server.
 func Post(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
-	defer mctx.TraceTimed("Stellar.Post", func() error { return err })()
+	defer mctx.Trace("Stellar.Post", &err)()
 
 	err = clearBundle.CheckInvariants()
 	if err != nil {
@@ -176,7 +176,7 @@ func Post(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
 
 func fetchBundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID) (
 	b *stellar1.Bundle, bv stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, accountGens bundle.AccountPukGens, err error) {
-	defer mctx.TraceTimed("Stellar.fetchBundleForAccount", func() error { return err })()
+	defer mctx.Trace("Stellar.fetchBundleForAccount", &err)()
 
 	fetchArgs := libkb.HTTPArgs{}
 	if accountID != nil {
@@ -208,7 +208,7 @@ func fetchBundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID
 // This method is safe to be called by any of a user's devices even if one or more of
 // the accounts is marked as mobile only.
 func FetchSecretlessBundle(mctx libkb.MetaContext) (bundle *stellar1.Bundle, err error) {
-	defer mctx.TraceTimed("Stellar.FetchSecretlessBundle", func() error { return err })()
+	defer mctx.Trace("Stellar.FetchSecretlessBundle", &err)()
 
 	bundle, _, _, _, err = fetchBundleForAccount(mctx, nil)
 	return bundle, err
@@ -220,7 +220,7 @@ func FetchSecretlessBundle(mctx libkb.MetaContext) (bundle *stellar1.Bundle, err
 // an account that is mobile only. If you don't need the secrets, use
 // FetchSecretlessBundle instead.
 func FetchAccountBundle(mctx libkb.MetaContext, accountID stellar1.AccountID) (bundle *stellar1.Bundle, err error) {
-	defer mctx.TraceTimed("Stellar.FetchAccountBundle", func() error { return err })()
+	defer mctx.Trace("Stellar.FetchAccountBundle", &err)()
 
 	bundle, _, _, _, err = fetchBundleForAccount(mctx, &accountID)
 	return bundle, err
@@ -234,7 +234,7 @@ func FetchAccountBundle(mctx libkb.MetaContext, accountID stellar1.AccountID) (b
 // AccountPukGens map. FetchBundleWithGens is only for very specific usecases.
 // FetchAccountBundle and FetchSecretlessBundle are the preferred ways to pull a bundle.
 func FetchBundleWithGens(mctx libkb.MetaContext) (b *stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration, accountGens bundle.AccountPukGens, err error) {
-	defer mctx.TraceTimed("Stellar.FetchBundleWithGens", func() error { return err })()
+	defer mctx.Trace("Stellar.FetchBundleWithGens", &err)()
 
 	b, _, pukGen, _, err = fetchBundleForAccount(mctx, nil) // this bundle no account secrets
 	if err != nil {

@@ -77,7 +77,7 @@ func (h *UserHandler) ListTrackingJSON(ctx context.Context, arg keybase1.ListTra
 
 func (h *UserHandler) ListTrackersUnverified(ctx context.Context, arg keybase1.ListTrackersUnverifiedArg) (res keybase1.UserSummarySet, err error) {
 	m := libkb.NewMetaContext(ctx, h.G())
-	defer m.Trace(fmt.Sprintf("ListTrackersUnverified(assertion=%s)", arg.Assertion), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("ListTrackersUnverified(assertion=%s)", arg.Assertion), &err)()
 	eng := engine.NewListTrackersUnverifiedEngine(h.G(), engine.ListTrackersUnverifiedEngineArg{Assertion: arg.Assertion})
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
@@ -115,7 +115,7 @@ func (h *UserHandler) LoadUserByName(_ context.Context, arg keybase1.LoadUserByN
 
 func (h *UserHandler) LoadUserPlusKeysV2(ctx context.Context, arg keybase1.LoadUserPlusKeysV2Arg) (ret keybase1.UserPlusKeysV2AllIncarnations, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LUPK2")
-	defer mctx.Trace(fmt.Sprintf("UserHandler#LoadUserPlusKeysV2(%+v)", arg), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("UserHandler#LoadUserPlusKeysV2(%+v)", arg), &err)()
 
 	cacheArg := keybase1.LoadUserPlusKeysV2Arg{
 		Uid: arg.Uid,
@@ -374,7 +374,7 @@ func (h *UserHandler) GetUPAKLite(ctx context.Context, uid keybase1.UID) (ret ke
 
 func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadUserAvatarArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "US")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadUserAvatar(%s)", arg.Filename), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("UploadUserAvatar(%s)", arg.Filename), &err)()
 
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	if err := avatars.UploadImage(mctx, arg.Filename, nil /* teamname */, arg.Crop); err != nil {
@@ -385,7 +385,7 @@ func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadU
 
 func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret keybase1.ProofSuggestionsRes, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("US")
-	defer mctx.TraceTimed("ProofSuggestions", func() error { return err })()
+	defer mctx.Trace("ProofSuggestions", &err)()
 	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "ProofSuggestions", libkb.ProfileProofSuggestions)
 	defer tracer.Finish()
 	suggestions, err := h.proofSuggestionsHelper(mctx, tracer)
@@ -599,14 +599,14 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 func (h *UserHandler) FindNextMerkleRootAfterRevoke(ctx context.Context, arg keybase1.FindNextMerkleRootAfterRevokeArg) (ret keybase1.NextMerkleRootRes, err error) {
 	m := libkb.NewMetaContext(ctx, h.G())
 	m = m.WithLogTag("FNMR")
-	defer m.TraceTimed("UserHandler#FindNextMerkleRootAfterRevoke", func() error { return err })()
+	defer m.Trace("UserHandler#FindNextMerkleRootAfterRevoke", &err)()
 	return libkb.FindNextMerkleRootAfterRevoke(m, arg)
 }
 
 func (h *UserHandler) FindNextMerkleRootAfterReset(ctx context.Context, arg keybase1.FindNextMerkleRootAfterResetArg) (ret keybase1.NextMerkleRootRes, err error) {
 	m := libkb.NewMetaContext(ctx, h.G())
 	m = m.WithLogTag("FNMR")
-	defer m.TraceTimed("UserHandler#FindNextMerkleRootAfterReset", func() error { return err })()
+	defer m.Trace("UserHandler#FindNextMerkleRootAfterReset", &err)()
 	return libkb.FindNextMerkleRootAfterReset(m, arg)
 }
 
@@ -623,7 +623,7 @@ func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase
 
 func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (res *keybase1.UserCard, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("UserHandler#UserCard", func() error { return err })()
+	defer mctx.Trace("UserHandler#UserCard", &err)()
 
 	uid := libkb.GetUIDByUsername(h.G(), arg.Username)
 	if res, err = libkb.UserCard(mctx, uid, arg.UseSession); err != nil {
@@ -655,9 +655,9 @@ const blockButtonsGregorPrefix = "blockButtons."
 
 func (h *UserHandler) DismissBlockButtons(ctx context.Context, tlfID keybase1.TLFID) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(
+	defer mctx.Trace(
 		fmt.Sprintf("UserHandler#DismissBlockButtons(TLF=%s)", tlfID),
-		func() error { return err })()
+		&err)()
 
 	return h.service.gregor.DismissCategory(ctx, gregor1.Category(fmt.Sprintf("%s%s", blockButtonsGregorPrefix, tlfID.String())))
 }
@@ -696,13 +696,13 @@ func (h *UserHandler) GetTeamBlocks(ctx context.Context, sessionID int) (res []k
 
 func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("UserHandler#BlockUser: %s", username), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("UserHandler#BlockUser: %s", username), &err)()
 	return h.setUserBlock(mctx, username, true)
 }
 
 func (h *UserHandler) UnblockUser(ctx context.Context, username string) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("UserHandler#UnblockUser: %s", username), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("UserHandler#UnblockUser: %s", username), &err)()
 	return h.setUserBlock(mctx, username, false)
 }
 

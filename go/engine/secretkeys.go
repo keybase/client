@@ -43,7 +43,7 @@ func (e *SecretKeysEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *SecretKeysEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("SecretKeysEngine#Run", func() error { return err })()
+	defer m.Trace("SecretKeysEngine#Run", &err)()
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	if err != nil {

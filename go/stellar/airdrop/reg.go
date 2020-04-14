@@ -32,7 +32,7 @@ func NewClient() *Client {
 }
 
 func (a *Client) dial(m libkb.MetaContext) (conn net.Conn, err error) {
-	defer m.Trace("airdrop.Client#dial", func() error { return err })()
+	defer m.Trace("airdrop.Client#dial", &err)()
 	uri, tls, err := a.getURIAndTLS(m)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (a *Client) dial(m libkb.MetaContext) (conn net.Conn, err error) {
 }
 
 func (a *Client) getURIAndTLS(m libkb.MetaContext) (uri *rpc.FMPURI, tlsConfig *tls.Config, err error) {
-	defer m.Trace("airdrop.Client#getURIAndTLS", func() error { return err })()
+	defer m.Trace("airdrop.Client#getURIAndTLS", &err)()
 
 	rm := m.G().Env.GetRunMode()
 	s, found := libkb.MpackAPIServerLookup[rm]

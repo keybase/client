@@ -30,7 +30,7 @@ var _ keybase1.InviteFriendsInterface = (*InviteFriendsHandler)(nil)
 
 func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.InvitePeopleArg) (succeeded int, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("InviteFriendsHandler#InvitePeople", func() error { return err })()
+	defer mctx.Trace("InviteFriendsHandler#InvitePeople", &err)()
 
 	if err := assertLoggedIn(ctx, h.G()); err != nil {
 		mctx.Debug("not logged in err: %v", err)
@@ -107,14 +107,14 @@ func (h *InviteFriendsHandler) InvitePeople(ctx context.Context, arg keybase1.In
 
 func (h *InviteFriendsHandler) GetInviteCounts(ctx context.Context) (counts keybase1.InviteCounts, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("InviteFriendsHandler#GetInviteCounts", func() error { return err })()
+	defer mctx.Trace("InviteFriendsHandler#GetInviteCounts", &err)()
 
 	return invitefriends.GetCounts(mctx)
 }
 
 func (h *InviteFriendsHandler) RequestInviteCounts(ctx context.Context) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("InviteFriendsHandler#RequestInviteCounts", func() error { return err })()
+	defer mctx.Trace("InviteFriendsHandler#RequestInviteCounts", &err)()
 
 	return invitefriends.RequestNotification(mctx)
 }

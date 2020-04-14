@@ -128,7 +128,7 @@ func previewVideoBlank(ctx context.Context, log utils.DebugLabeler, src io.Reade
 
 // previewImage will resize a single-frame image.
 func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename, contentType string) (res *PreviewRes, err error) {
-	defer log.Trace(ctx, func() error { return err }, "previewImage")()
+	defer log.Trace(ctx, &err, "previewImage")()
 	// images.Decode in camlistore correctly handles exif orientation information.
 	log.Debug(ctx, "previewImage: decoding image")
 	img, _, err := images.Decode(src, nil)

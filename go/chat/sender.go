@@ -662,7 +662,7 @@ func (s *BlockingSender) getUsernamesForMentions(ctx context.Context, uid gregor
 	if conv == nil {
 		return nil, nil
 	}
-	defer s.Trace(ctx, func() error { return err }, "getParticipantsForMentions")()
+	defer s.Trace(ctx, &err, "getParticipantsForMentions")()
 	// get the conv that we will look for @ mentions in
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
@@ -1137,7 +1137,7 @@ func (s *BlockingSender) presentUIItem(ctx context.Context, uid gregor1.UID, con
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID,
 	outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
-	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
+	defer s.Trace(ctx, &err, fmt.Sprintf("Send(%s)", convID))()
 	defer utils.SuspendComponent(ctx, s.G(), s.G().InboxSource)()
 
 	// Get conversation metadata first. If we can't find it, we will just attempt to join

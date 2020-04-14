@@ -10,7 +10,7 @@ import (
 
 func AllApplicationKeys(mctx libkb.MetaContext, team Teamer,
 	application keybase1.TeamApplication, latestGen keybase1.PerTeamKeyGeneration) (res []keybase1.TeamApplicationKey, err error) {
-	defer mctx.TraceTimed("teams.AllApplicationKeys", func() error { return err })()
+	defer mctx.Trace("teams.AllApplicationKeys", &err)()
 	for gen := keybase1.PerTeamKeyGeneration(1); gen <= latestGen; gen++ {
 		appKey, err := ApplicationKeyAtGeneration(mctx, team, application, gen)
 		if err != nil {

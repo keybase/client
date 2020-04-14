@@ -316,7 +316,8 @@ var errBoxerUnavailableMessage = NewPermanentUnboxingError(errors.New("message n
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo,
 	info *types.BoxerEncryptionInfo) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
 	ctx = libkb.WithLogTag(ctx, "CHTUNBOX")
-	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
+	err := uberr.(error)
+	defer b.Trace(ctx, &err, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
 
 	// Check to see if the context has been cancelled
@@ -734,7 +735,7 @@ func (b *Boxer) memberCtime(mctx libkb.MetaContext, conv types.UnboxConversation
 
 func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxed,
 	conv types.UnboxConversationInfo, headerHash chat1.Hash) (senderKey []byte, err error) {
-	defer b.Trace(ctx, func() error { return err }, "validatePairwiseMAC")()
+	defer b.Trace(ctx, &err, "validatePairwiseMAC")()
 
 	// First, find a MAC that matches our receiving device encryption KID.
 	ourDeviceKeyNacl, err := b.G().ActiveDevice.NaclEncryptionKey()
@@ -1379,7 +1380,7 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicTy
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv types.UnboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {
-	defer b.Trace(ctx, func() error { return err }, "UnboxMessages: %s, boxed: %d", conv.GetConvID(), len(boxed))()
+	defer b.Trace(ctx, &err, "UnboxMessages: %s, boxed: %d", conv.GetConvID(), len(boxed))()
 
 	// First stamp all of the messages as received
 	now := gregor1.ToTime(b.clock.Now())
@@ -1556,7 +1557,7 @@ func (b *Boxer) GetBoxedVersion(msg chat1.MessagePlaintext) (chat1.MessageBoxedV
 func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	membersType chat1.ConversationMembersType,
 	signingKeyPair libkb.NaclSigningKeyPair, info *types.BoxerEncryptionInfo) (res chat1.MessageBoxed, err error) {
-	defer b.Trace(ctx, func() error { return err }, "BoxMessage")()
+	defer b.Trace(ctx, &err, "BoxMessage")()
 	tlfName := msg.ClientHeader.TlfName
 	if len(tlfName) == 0 {
 		return res, NewBoxingError("blank TLF name given", true)
@@ -1737,7 +1738,7 @@ func makeOnePairwiseMAC(private libkb.NaclDHKeyPrivate, public libkb.NaclDHKeyPu
 }
 
 func (b *Boxer) makeAllPairwiseMACs(ctx context.Context, headerSealed chat1.SignEncryptedData, recipients []keybase1.KID) (macs map[keybase1.KID][]byte, err error) {
-	defer b.G().CTraceTimed(ctx, fmt.Sprintf("makeAllPairwiseMACs with %d recipients", len(recipients)), func() error { return err })()
+	defer b.G().CTrace(ctx, fmt.Sprintf("makeAllPairwiseMACs with %d recipients", len(recipients)), &err)()
 
 	pairwiseMACs := map[keybase1.KID][]byte{}
 	headerHash, ierr := b.makeHeaderHash(headerSealed)

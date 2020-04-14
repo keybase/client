@@ -92,7 +92,7 @@ func (s *ConvDevConversationBackedStorage) PutToKnownConv(ctx context.Context, u
 
 func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, name string, src interface{}) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Put(%s)", name)()
+	defer s.Trace(ctx, &err, "Put(%s)", name)()
 
 	var conv chat1.ConversationLocal
 	baseConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
@@ -110,7 +110,7 @@ func (s *ConvDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.
 
 func (s *ConvDevConversationBackedStorage) GetFromKnownConv(ctx context.Context, uid gregor1.UID,
 	conv chat1.ConversationLocal, dest interface{}) (found bool, err error) {
-	defer s.Trace(ctx, func() error { return err }, "GetFromKnownConv(%s)", conv.GetConvID())()
+	defer s.Trace(ctx, &err, "GetFromKnownConv(%s)", conv.GetConvID())()
 	tv, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -149,7 +149,7 @@ func (s *ConvDevConversationBackedStorage) GetFromKnownConv(ctx context.Context,
 
 func (s *ConvDevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, name string, dest interface{}, createConvIfMissing bool) (found bool, conv *chat1.ConversationLocal, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Get(%s)", name)()
+	defer s.Trace(ctx, &err, "Get(%s)", name)()
 
 	baseConv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {

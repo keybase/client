@@ -32,7 +32,7 @@ func importResetLinkAndHash(s string) (ret *resetLinkAndHash, err error) {
 }
 
 func importResetChainFromServer(m MetaContext, jw *jsonw.Wrapper) (urc unverifiedResetChain, err error) {
-	defer m.VTrace(VLog1, "importResetChainFromServer", func() error { return err })()
+	defer m.VTrace(VLog1, "importResetChainFromServer", &err)()
 	if jw == nil || jw.IsNil() {
 		return nil, nil
 	}
@@ -97,7 +97,7 @@ func (mr *MerkleResets) verifyAndLoad(m MetaContext, urc unverifiedResetChain) (
 		return nil
 	}
 
-	defer m.VTrace(VLog1, "MerkleResets#verifyAndLoad", func() error { return err })()
+	defer m.VTrace(VLog1, "MerkleResets#verifyAndLoad", &err)()
 
 	mkerr := func(f string, a ...interface{}) error {
 		return MerkleClientError{m: fmt.Sprintf(f, a...), t: merkleErrorBadResetChain}

@@ -47,7 +47,7 @@ func (c *PassphraseCheck) SubConsumers() []libkb.UIConsumer {
 
 // Run the engine
 func (c *PassphraseCheck) Run(mctx libkb.MetaContext) (err error) {
-	defer mctx.Trace("PassphraseCheck#Run", func() error { return err })()
+	defer mctx.Trace("PassphraseCheck#Run", &err)()
 
 	passphrase := c.arg.Passphrase
 	if passphrase == "" {

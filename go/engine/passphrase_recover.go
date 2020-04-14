@@ -55,7 +55,7 @@ func (e *PassphraseRecover) SubConsumers() []libkb.UIConsumer {
 
 // Run the engine
 func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
-	defer mctx.Trace("PassphraseRecover#Run", func() error { return err })()
+	defer mctx.Trace("PassphraseRecover#Run", &err)()
 
 	// If no username was passed, ask for one
 	if e.arg.Username == "" {
@@ -131,7 +131,7 @@ func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) error {
 }
 
 func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.ComputedKeyFamily) (err error) {
-	defer mctx.Trace("PassphraseRecover#chooseDevice", func() error { return err })()
+	defer mctx.Trace("PassphraseRecover#chooseDevice", &err)()
 
 	// Reorder the devices for the list
 	devices := partitionDeviceList(ckf.GetAllActiveDevices())

@@ -14,7 +14,7 @@ import (
 
 func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamCLKRMsg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
-	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%d)", msg.TeamID, msg.Generation), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%d)", msg.TeamID, msg.Generation), &err)()
 
 	teamID := msg.TeamID
 
@@ -96,7 +96,7 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 
 func HandleOpenTeamSweepRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamOpenSweepMsg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
-	defer g.CTrace(ctx, fmt.Sprintf("HandleOpenTeamSweepRequest(teamID=%s,len(resetUsers)=%d)", msg.TeamID, len(msg.ResetUsersUntrusted)), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("HandleOpenTeamSweepRequest(teamID=%s,len(resetUsers)=%d)", msg.TeamID, len(msg.ResetUsersUntrusted)), &err)()
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          msg.TeamID,
@@ -130,7 +130,7 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 	// we go ahead and boot reset readers and writers out of the team. Key
 	// is also rotated in the process (in the same ChangeMembership link).
 	defer g.CTrace(ctx, fmt.Sprintf("sweepOpenTeamResetAndDeletedMembers(rotate=%t)", rotate),
-		func() error { return err })()
+		&err)()
 
 	// Go through resetUsersUntrusted and fetch non-cached latest
 	// EldestSeqnos/Status.
@@ -256,7 +256,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 	mctx := libkb.NewMetaContext(ctx, g)
 
 	defer mctx.Trace(fmt.Sprintf("team.handleChangeSingle [%s] (%+v, %+v)", g.Env.GetUsername(), row, change),
-		func() error { return err })()
+		&err)()
 
 	// Any errors are already logged in their respective functions.
 	_ = HintLatestSeqno(mctx, row.Id, row.LatestSeqno)
@@ -289,7 +289,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 
 func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamChangeRow, changes keybase1.TeamChangeSet) (err error) {
 	ctx = libkb.WithLogTag(ctx, "THCN")
-	defer g.CTrace(ctx, "HandleChangeNotification", func() error { return err })()
+	defer g.CTrace(ctx, "HandleChangeNotification", &err)()
 	var anyChangedMetadata bool
 	for _, row := range rows {
 		if changedMetadata, err := handleChangeSingle(ctx, g, row, changes); err != nil {
@@ -305,7 +305,7 @@ func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 }
 
 func HandleTeamMemberShowcaseChange(ctx context.Context, g *libkb.GlobalContext) (err error) {
-	defer g.CTrace(ctx, "HandleTeamMemberShowcaseChange", func() error { return err })()
+	defer g.CTrace(ctx, "HandleTeamMemberShowcaseChange", &err)()
 	g.NotifyRouter.HandleTeamMetadataUpdate(ctx)
 	return nil
 }
@@ -313,7 +313,7 @@ func HandleTeamMemberShowcaseChange(ctx context.Context, g *libkb.GlobalContext)
 func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamChangeRow) (err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	defer mctx.Trace(fmt.Sprintf("team.HandleDeleteNotification(%v)", len(rows)),
-		func() error { return err })()
+		&err)()
 
 	g.NotifyRouter.HandleTeamMetadataUpdate(ctx)
 
@@ -332,7 +332,7 @@ func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamExitRow) (err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	defer mctx.Trace(fmt.Sprintf("team.HandleExitNotification(%v)", len(rows)),
-		func() error { return err })()
+		&err)()
 
 	g.NotifyRouter.HandleTeamMetadataUpdate(ctx)
 	for _, row := range rows {
@@ -349,7 +349,7 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 func HandleNewlyAddedToTeamNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamNewlyAddedRow) (err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	defer mctx.Trace(fmt.Sprintf("team.HandleNewlyAddedToTeamNotification(%v)", len(rows)),
-		func() error { return err })()
+		&err)()
 	for _, row := range rows {
 		mctx.Debug("team.HandleNewlyAddedToTeamNotification: (%+v)", row)
 		mctx.G().NotifyRouter.HandleNewlyAddedToTeam(mctx.Ctx(), row.Id)
@@ -360,7 +360,7 @@ func HandleNewlyAddedToTeamNotification(ctx context.Context, g *libkb.GlobalCont
 
 func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSBSMsg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
-	defer g.CTrace(ctx, "HandleSBSRequest", func() error { return err })()
+	defer g.CTrace(ctx, "HandleSBSRequest", &err)()
 	for _, invitee := range msg.Invitees {
 		if err := handleSBSSingle(ctx, g, msg.TeamID, invitee); err != nil {
 			return err
@@ -370,7 +370,7 @@ func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 }
 
 func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, untrustedInviteeFromGregor keybase1.TeamInvitee) (err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("team.handleSBSSingle(teamID: %v, invitee: %+v)", teamID, untrustedInviteeFromGregor), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("team.handleSBSSingle(teamID: %v, invitee: %+v)", teamID, untrustedInviteeFromGregor), &err)()
 
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
@@ -513,7 +513,7 @@ func assertCanAcceptKeybaseInvite(ctx context.Context, g *libkb.GlobalContext, u
 
 func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamOpenReqMsg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
-	defer g.CTrace(ctx, "HandleOpenTeamAccessRequest", func() error { return err })()
+	defer g.CTrace(ctx, "HandleOpenTeamAccessRequest", &err)()
 
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
@@ -561,7 +561,7 @@ type chatSeitanRecip struct {
 
 func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSeitanMsg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
-	defer g.CTrace(ctx, "HandleTeamSeitan", func() error { return err })()
+	defer g.CTrace(ctx, "HandleTeamSeitan", &err)()
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          msg.TeamID,

@@ -146,7 +146,7 @@ func (e *PGPPushPrivate) remove(m libkb.MetaContext, fs *keybase1.SimpleFSClient
 }
 
 func (e *PGPPushPrivate) linkExists(m libkb.MetaContext, fs *keybase1.SimpleFSClient, file string) (exists bool, err error) {
-	defer m.Trace(fmt.Sprintf("linkExists(%q)", file), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("linkExists(%q)", file), &err)()
 
 	var dirent keybase1.Dirent
 	dirent, err = fs.SimpleFSStat(m.Ctx(), keybase1.SimpleFSStatArg{
@@ -216,7 +216,7 @@ func (e *PGPPushPrivate) push(m libkb.MetaContext, fp libkb.PGPFingerprint, tty 
 
 func (e *PGPPushPrivate) Run(m libkb.MetaContext) (err error) {
 
-	defer m.Trace("PGPPushPrivate#Run", func() error { return err })()
+	defer m.Trace("PGPPushPrivate#Run", &err)()
 
 	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())
 	if err != nil {
