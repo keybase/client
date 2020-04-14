@@ -323,6 +323,18 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
       }
     }
   },
+  [Chat2Gen.inboxSearchBotsResultsAll]: (draftState, action) => {
+    const {inboxSearch} = draftState
+    if (inboxSearch) {
+      inboxSearch.botsResultsAll = action.payload.all
+    }
+  },
+  [Chat2Gen.inboxSearchOpenTeamsResultsAll]: (draftState, action) => {
+    const {inboxSearch} = draftState
+    if (inboxSearch) {
+      inboxSearch.openTeamsResultsAll = action.payload.all
+    }
+  },
   [Chat2Gen.inboxSearchSelect]: (draftState, action) => {
     const {selectedIndex} = action.payload
     const {inboxSearch} = draftState
