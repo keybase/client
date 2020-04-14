@@ -299,9 +299,6 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           width: 88,
         },
-        isMobile: {
-          width: 104,
-        },
       }),
       cancelContainerMobile: {
         paddingBottom: Styles.globalMargins.tiny,
