@@ -37,8 +37,8 @@ export const VersionTitle = ({title}: {title: string}) => (
 export const Current = ({seen}: VersionProps) => {
   return (
     <Version>
-      <NewFeatureRow image="release-5.4.0-emoji" noSeparator={true} seen={seen}>
-        <Kb.Box2 direction="vertical">
+      <NewFeatureRow image="release-5.4.0-emoji" noSeparator={true} seen={seen} unwrapped={true}>
+        <Kb.Box2 alignSelf="flex-start" direction="vertical">
           <Kb.Text type="BodySmall" allowFontScaling={true}>
             Browse your image library
           </Kb.Text>
