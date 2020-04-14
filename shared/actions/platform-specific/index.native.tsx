@@ -868,8 +868,16 @@ const onEnableAudioRecording = async (
   AudioRecorder.onFinished = () => {
     logger.info('onEnableAudioRecording: recording finished')
   }
-  AudioRecorder.onProgress = (data: any) => {
-    action.payload.meteringCb(data.currentMetering)
+  AudioRecorder.onProgress = (data: {
+    currentMetering?: number
+    currentPeakMetering?: number
+    currentTime?: number
+  }) => {
+    // not supported on android
+    const {currentMetering} = data
+    if (currentMetering !== undefined && !isNaN(currentMetering)) {
+      action.payload.meteringCb(currentMetering)
+    }
   }
   logger.info('onEnableAudioRecording: setting recording info')
   return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, outboxID, path: audioPath})
