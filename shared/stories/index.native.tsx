@@ -4,12 +4,12 @@ import * as Sb from './storybook'
 import * as Kb from '../common-adapters'
 import {addDecorator} from '@storybook/react'
 import sharedStories from './shared-stories'
-// import desktopStories from './platform-stories.desktop'
+import nativeStories from './platform-stories.native'
 // Load css
 import {_setSystemIsDarkMode} from '../styles/dark-mode'
 import {View} from 'react-native'
 
-const stories = {...sharedStories}
+const stories = {...sharedStories, ...nativeStories}
 
 const filter = process.env.STORYBOOK_FILTER ? new RegExp(process.env.STORYBOOK_FILTER) : null
 

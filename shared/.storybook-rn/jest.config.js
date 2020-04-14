@@ -10,7 +10,6 @@ module.exports = {
   testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.tsOut/'],
   preset: 'react-native',
   rootDir: '..',
-  snapshotSerializers: ['jest-emotion'],
   timers: 'fake',
   moduleNameMapper: require('../mocks').jestReplacements,
   moduleFileExtensions: [
