@@ -279,22 +279,17 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   // will inspect the arguments that we have given, and will attempt to give us the attachment
   // in this form. For files, we always want a file URL, and so that is what we pass in.
   NSItemProviderCompletionHandler fileHandler = ^(NSURL* url, NSError* error) {
-    if (error != nil) {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: load error" error:error];
-      return;
-    }
-    
     BOOL hasImage = [item hasItemConformingToTypeIdentifier:@"public.image"];
     BOOL hasVideo = [item hasItemConformingToTypeIdentifier:@"public.movie"];
     
-    // Check for no URL (it might have not been possible for the OS to give us one)
-    if (url == nil) {
+    // We use the fileHandler for images because it might have not been possible for the OS to give us a URL. But if not, go through the regular imageHandler.
+    if (error != nil) {
       if (hasImage) {
         // Try to handle with our imageHandler function
         [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
-      } else {
-        [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: no url or image" error:nil];
+        return;
       }
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: no url or image" error:error];
       return;
     }
     
