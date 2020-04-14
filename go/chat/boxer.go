@@ -292,6 +292,14 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 
 var errBoxerUnavailableMessage = NewPermanentUnboxingError(errors.New("message not available"))
 
+func (b *Boxer) castInternalError(ierr types.UnboxingError) error {
+	err, ok := ierr.(error)
+	if ok {
+		return err
+	}
+	return nil
+}
+
 // UnboxMessage unboxes a chat1.MessageBoxed into a chat1.MessageUnboxed. It
 // finds the appropriate keybase1.CryptKey, decrypts the message, and verifies
 // several things:
@@ -316,9 +324,10 @@ var errBoxerUnavailableMessage = NewPermanentUnboxingError(errors.New("message n
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo,
 	info *types.BoxerEncryptionInfo) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
 	ctx = libkb.WithLogTag(ctx, "CHTUNBOX")
-	err := uberr.(error)
+	var err error
 	defer b.Trace(ctx, &err, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
+	defer func() { err = b.castInternalError(uberr) }()
 
 	// Check to see if the context has been cancelled
 	select {

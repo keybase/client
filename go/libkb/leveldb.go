@@ -222,7 +222,7 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 // where we want to get around the lazy open and make sure we can
 // use it later.
 func (l *LevelDb) ForceOpen() error {
-	return l.doWhileOpenAndNukeIfCorrupted(nil)
+	return l.doWhileOpenAndNukeIfCorrupted(func() error { return nil })
 }
 
 func (l *LevelDb) Stats() (stats string) {

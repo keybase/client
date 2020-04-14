@@ -10,8 +10,9 @@ import (
 // purgeInfo.MinUnexplodedID to the present, updating bookkeeping for the next
 // time we need to purge this conv.
 func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (newPurgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err Error) {
-	ierr := err.(error)
+	var ierr error
 	defer s.Trace(ctx, &ierr, "EphemeralPurge")()
+	defer func() { ierr = s.castInternalError(err) }()
 	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
 	defer lock.Release(ctx)
 
