@@ -89,6 +89,8 @@ type DevConvEmojiSource struct {
 	ri              func() chat1.RemoteInterface
 	encryptedDB     *encrypteddb.EncryptedDB
 
+	// testing
+	tempDir                  string
 	testingCreatedSyncConv   chan struct{}
 	testingRefreshedSyncConv chan struct{}
 }
@@ -734,6 +736,13 @@ func (s *DevConvEmojiSource) getCrossTeamConv(ctx context.Context, uid gregor1.U
 	return res, nil
 }
 
+func (s *DevConvEmojiSource) getCacheDir() string {
+	if len(s.tempDir) > 0 {
+		return s.tempDir
+	}
+	return s.G().GetCacheDir()
+}
+
 func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID, emoji chat1.HarvestedEmoji,
 	convID chat1.ConversationID) (res chat1.HarvestedEmoji, err error) {
 	typ, err := emoji.Source.Typ()
@@ -784,7 +793,7 @@ func (s *DevConvEmojiSource) syncCrossTeam(ctx context.Context, uid gregor1.UID,
 		s.testingRefreshedSyncConv <- struct{}{}
 	}
 	// download from the original source
-	sink, err := ioutil.TempFile(os.TempDir(), "emoji")
+	sink, err := ioutil.TempFile(s.getCacheDir(), "emoji")
 	if err != nil {
 		return res, err
 	}
