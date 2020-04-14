@@ -99,11 +99,13 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     }
   }
 
-  // Enter should send a message like on desktop, when a hardware keyboard's attached.
+  // Enter should send a message like on desktop, when a hardware keyboard's
+  // attached.  On Android we get "hardware" keypresses from soft keyboards,
+  // so check whether a soft keyboard's up.
   private handleHardwareEnterPress = (hwKeyEvent: {pressedKey: string}) => {
     switch (hwKeyEvent.pressedKey) {
       case 'enter':
-        !isOpen() ? this.onSubmit() : this.insertText('\n')
+        Styles.isIOS || !isOpen() ? this.onSubmit() : this.insertText('\n')
         break
       case 'shift-enter':
         this.insertText('\n')
