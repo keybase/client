@@ -53,6 +53,10 @@ func (e AppendLinkError) Error() string {
 	return fmt.Sprintf("appending %v->%v: %v", e.prevSeqno, e.l.Seqno(), e.inner)
 }
 
+func (e AppendLinkError) Unwrap() error {
+	return e.inner
+}
+
 func NewAppendLinkError(l *ChainLinkUnpacked, prevSeqno keybase1.Seqno, inner error) AppendLinkError {
 	return AppendLinkError{prevSeqno, l, inner}
 }
@@ -157,15 +161,32 @@ func (e PrevError) Error() string {
 }
 
 type InviteError struct {
-	msg string
+	id  keybase1.TeamInviteID
+	err error
 }
 
-func NewInviteError(m string) InviteError {
-	return InviteError{m}
+func NewInviteError(id keybase1.TeamInviteID, err error) InviteError {
+	return InviteError{id: id, err: err}
 }
 
 func (i InviteError) Error() string {
-	return fmt.Sprintf("Invite error: %s", i.msg)
+	return fmt.Sprintf("Invite error: Invite ID %s: %s", i.id, i.err)
+}
+
+func (i InviteError) Unwrap() error {
+	return i.err
+}
+
+type InvitelinkBadRoleError struct {
+	role keybase1.TeamRole
+}
+
+func NewInvitelinkBadRoleError(role keybase1.TeamRole) InvitelinkBadRoleError {
+	return InvitelinkBadRoleError{role: role}
+}
+
+func (i InvitelinkBadRoleError) Error() string {
+	return fmt.Sprintf("Cannot create invitelink to add invitees as %s", i.role)
 }
 
 type ResolveError struct {
@@ -355,6 +376,10 @@ func NewPrecheckAppendError(inner error) error { return PrecheckAppendError{Inne
 
 func (e PrecheckAppendError) Error() string {
 	return fmt.Sprintf("Precheck append error: %v", e.Inner)
+}
+
+func (e PrecheckAppendError) Unwrap() error {
+	return e.Inner
 }
 
 type PrecheckStructuralError struct {

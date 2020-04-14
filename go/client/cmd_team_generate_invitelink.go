@@ -36,7 +36,7 @@ func newCmdTeamGenerateInvitelink(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "r, role",
-				Usage: "team role (admin, writer, reader) [required]",
+				Usage: "team role (writer, reader) [required]",
 			},
 			cli.StringFlag{
 				Name:  "d, duration",
@@ -71,9 +71,9 @@ func (c *CmdTeamGenerateInvitelink) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	switch c.Role {
-	case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN:
+	case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
 	default:
-		return errors.New("invalid team role, please use admin, writer, or reader")
+		return errors.New("invalid team role, please use writer, or reader")
 	}
 
 	if ctx.IsSet("duration") {
