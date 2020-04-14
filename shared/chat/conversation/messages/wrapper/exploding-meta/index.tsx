@@ -223,15 +223,12 @@ export const getLoopInterval = (diff: number) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
-        common: {
-          ...Styles.globalStyles.flexBoxRow,
-          marginLeft: Styles.globalMargins.tiny,
-          position: 'relative',
-        },
-        isElectron: {height: 20},
-        isMobile: {height: 20},
-      }),
+      container: {
+        ...Styles.globalStyles.flexBoxRow,
+        height: 20,
+        marginLeft: Styles.globalMargins.tiny,
+        position: 'relative',
+      },
       countdown: Styles.platformStyles({
         common: {color: Styles.globalColors.white, fontWeight: 'bold'},
         isElectron: {fontSize: 9, letterSpacing: -0.2, lineHeight: 13},
