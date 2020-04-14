@@ -1046,6 +1046,13 @@ func (m UIMessage) IsValid() bool {
 	return false
 }
 
+func (m UIMessage) IsError() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_ERROR
+	}
+	return false
+}
+
 func (m UIMessage) IsOutbox() bool {
 	if state, err := m.State(); err == nil {
 		return state == MessageUnboxedState_OUTBOX
