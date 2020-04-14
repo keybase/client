@@ -230,7 +230,7 @@ class InfoPanelMenu extends React.Component<Props> {
       if (props.canAddPeople) {
         addPeopleItems.forEach(item => items.push(item))
       }
-      items.push({icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'})
+      items.push({icon: 'iconfont-team-leave', onClick: props.onLeaveTeam, title: 'Leave team'})
     }
 
     const header = props.hasHeader ? (
