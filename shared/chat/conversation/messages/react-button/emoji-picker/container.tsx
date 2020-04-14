@@ -59,15 +59,12 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
   }
 }
 
-let lastSetSkinTone: undefined | Types.EmojiSkinTone = undefined
-
 // This can only be used in one place at a time for now since when it's changed
 // it doesn't cause other hook instances to update.
 const useSkinTone = () => {
-  lastSetSkinTone = Types.EmojiSkinToneFromRPC(
+  const currentSkinTone = Types.EmojiSkinToneFromRPC(
     Container.useSelector(state => state.chat2.userReacjis.skinTone)
   )
-  const [currentSkinTone, _setSkinTone] = React.useState(lastSetSkinTone)
   const dispatch = Container.useDispatch()
   const rpc = useRPC(RPCChatGen.localPutReacjiSkinToneRpcPromise)
   const setSkinTone = (emojiSkinTone: undefined | Types.EmojiSkinTone) => {
@@ -77,11 +74,7 @@ const useSkinTone = () => {
           skinTone: Types.EmojiSkinToneToRPC(emojiSkinTone),
         },
       ],
-      res => {
-        lastSetSkinTone = emojiSkinTone
-        _setSkinTone(emojiSkinTone)
-        dispatch(Chat2Gen.createUpdateUserReacjis({userReacjis: res}))
-      },
+      res => dispatch(Chat2Gen.createUpdateUserReacjis({userReacjis: res})),
       err => {
         throw err
       }
