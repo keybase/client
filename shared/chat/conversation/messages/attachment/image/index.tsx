@@ -320,6 +320,9 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: 3,
         paddingRight: 3,
       },
+      fileNameContainer: {
+        paddingRight: Styles.globalMargins.small,
+      },
       image: {
         ...Styles.globalStyles.rounded,
         backgroundColor: Styles.globalColors.fastBlank,
@@ -335,9 +338,6 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
         paddingBottom: Styles.globalMargins.xtiny,
         paddingTop: Styles.globalMargins.xtiny,
-      },
-      fileNameContainer: {
-        paddingRight: Styles.globalMargins.small,
       },
       link: {
         color: Styles.globalColors.black_50,
