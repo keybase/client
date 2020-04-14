@@ -329,7 +329,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
 
 const Header = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <ProfileSearch whiteText={true} />
+    <ProfileSearch whiteText={true} style={styles.profileSearch} />
   </Kb.Box2>
 )
 
@@ -654,6 +654,7 @@ export const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   noGrow: {flexGrow: 0},
+  profileSearch: {marginTop: Styles.globalMargins.xtiny},
   proofs: Styles.platformStyles({
     isElectron: {
       alignSelf: 'flex-start',
