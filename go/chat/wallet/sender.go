@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -32,8 +33,24 @@ func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID c
 	if err != nil {
 		return parts, membersType, err
 	}
-	if parts, err = utils.GetConvParticipantUsernames(ctx, s.G(), uid, convID); err != nil {
+	allParts, err := utils.GetConvParticipantUsernames(ctx, s.G(), uid, convID)
+	if err != nil {
 		return parts, membersType, err
+	}
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		return allParts, conv.GetMembersType(), nil
+	default:
+		nameParts := strings.Split(utils.GetRemoteConvTLFName(conv), ",")
+		nameMap := make(map[string]bool, len(nameParts))
+		for _, namePart := range nameParts {
+			nameMap[namePart] = true
+		}
+		for _, part := range allParts {
+			if nameMap[part] {
+				parts = append(parts, part)
+			}
+		}
 	}
 	return parts, conv.GetMembersType(), nil
 }
@@ -83,7 +100,6 @@ func (s *Sender) getRecipientUsername(ctx context.Context, uid gregor1.UID, part
 
 func (s *Sender) validConvUsername(ctx context.Context, username string, parts []string) bool {
 	for _, p := range parts {
-		s.Debug(ctx, "part: %s", p)
 		if username == p {
 			return true
 		}
