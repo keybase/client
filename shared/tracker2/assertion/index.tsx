@@ -379,33 +379,33 @@ class Assertion extends React.PureComponent<Props, State> {
             )}
           </Kb.Text>
           <Kb.ClickableBox onClick={items ? this._toggleMenu : p.onShowProof} style={styles.statusContainer}>
-            <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
-              <Kb.WithTooltip tooltip={(p.state == 'valid' || p.state == 'revoked') && 'Check proof'}>
+            <Kb.WithTooltip tooltip={(p.state === 'valid' || p.state === 'revoked') && 'View proof'}>
+              <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
                 <Kb.Icon
                   type={stateToIcon(p.state)}
                   fontSize={20}
                   hoverColor={assertionColorToColor(p.color)}
                   color={p.isSuggestion ? Styles.globalColors.black_20 : assertionColorToColor(p.color)}
                 />
-              </Kb.WithTooltip>
-              {items ? (
-                <>
-                  <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
-                  <Kb.FloatingMenu
-                    closeOnSelect={true}
-                    visible={this.state.showingMenu}
-                    onHidden={this._hideMenu}
-                    attachTo={this._getRef}
-                    position="bottom right"
-                    containerStyle={styles.floatingMenu}
-                    header={header}
-                    items={items}
-                  />
-                </>
-              ) : (
-                <Kb.Box2 direction="vertical" />
-              )}
-            </Kb.Box2>
+                {items ? (
+                  <>
+                    <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
+                    <Kb.FloatingMenu
+                      closeOnSelect={true}
+                      visible={this.state.showingMenu}
+                      onHidden={this._hideMenu}
+                      attachTo={this._getRef}
+                      position="bottom right"
+                      containerStyle={styles.floatingMenu}
+                      header={header}
+                      items={items}
+                    />
+                  </>
+                ) : (
+                  <Kb.Box2 direction="vertical" />
+                )}
+              </Kb.Box2>
+            </Kb.WithTooltip>
           </Kb.ClickableBox>
         </Kb.Box2>
         {!!p.metas.length && (
