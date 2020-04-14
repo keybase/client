@@ -192,7 +192,9 @@ export type IconType =
   | 'icon-dark-email-remove-64'
   | 'icon-dark-email-remove-96'
   | 'icon-dark-empty-channels-103-96'
+  | 'icon-dark-empty-confused-96-96'
   | 'icon-dark-empty-emoji-126-96'
+  | 'icon-dark-empty-lone-wolf-116-96'
   | 'icon-dark-empty-people-search-112-96'
   | 'icon-dark-empty-subteams-164-96'
   | 'icon-dark-empty-team-small-96'
@@ -453,7 +455,9 @@ export type IconType =
   | 'icon-emoji-nycto-y'
   | 'icon-emoji-nycto-z'
   | 'icon-empty-channels-103-96'
+  | 'icon-empty-confused-96-96'
   | 'icon-empty-emoji-126-96'
+  | 'icon-empty-lone-wolf-116-96'
   | 'icon-empty-people-search-112-96'
   | 'icon-empty-subteams-164-96'
   | 'icon-empty-team-small-96'
@@ -2811,12 +2815,28 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-empty-channels-103-96.png')
     },
   },
+  'icon-dark-empty-confused-96-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-empty-confused-96-96.png')
+    },
+  },
   'icon-dark-empty-emoji-126-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-empty-emoji-126-96.png')
+    },
+  },
+  'icon-dark-empty-lone-wolf-116-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-empty-lone-wolf-116-96.png')
     },
   },
   'icon-dark-empty-people-search-112-96': {
@@ -4923,6 +4943,18 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-empty-channels-103-96.png')
     },
   },
+  'icon-empty-confused-96-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-empty-confused-96-96',
+    get require() {
+      return require('../images/icons/icon-empty-confused-96-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-empty-confused-96-96.png')
+    },
+  },
   'icon-empty-emoji-126-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -4933,6 +4965,18 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-empty-emoji-126-96.png')
+    },
+  },
+  'icon-empty-lone-wolf-116-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-empty-lone-wolf-116-96',
+    get require() {
+      return require('../images/icons/icon-empty-lone-wolf-116-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-empty-lone-wolf-116-96.png')
     },
   },
   'icon-empty-people-search-112-96': {
