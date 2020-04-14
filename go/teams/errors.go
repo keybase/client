@@ -53,6 +53,10 @@ func (e AppendLinkError) Error() string {
 	return fmt.Sprintf("appending %v->%v: %v", e.prevSeqno, e.l.Seqno(), e.inner)
 }
 
+func (e AppendLinkError) Unwrap() error {
+	return e.inner
+}
+
 func NewAppendLinkError(l *ChainLinkUnpacked, prevSeqno keybase1.Seqno, inner error) AppendLinkError {
 	return AppendLinkError{prevSeqno, l, inner}
 }

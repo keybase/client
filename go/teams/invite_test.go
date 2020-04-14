@@ -290,7 +290,7 @@ func TestTeamPlayerInviteMaxUses(t *testing.T) {
 		_, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 			section, me, nil /* merkleRoot */)
 		requirePrecheckError(t, err)
-		require.Contains(t, err.Error(), fmt.Sprintf("has invalid max_uses %d", v))
+		require.Contains(t, err.Error(), fmt.Sprintf("invalid max_uses %d", v))
 		require.Contains(t, err.Error(), inviteID)
 	}
 
@@ -331,7 +331,7 @@ func TestTeamPlayerEtime(t *testing.T) {
 		_, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 			section, me, nil /* merkleRoot */)
 		requirePrecheckError(t, err)
-		require.Contains(t, err.Error(), fmt.Sprintf("has invalid etime %d", v))
+		require.Contains(t, err.Error(), fmt.Sprintf("invalid etime %d", v))
 		require.Contains(t, err.Error(), inviteID)
 	}
 
@@ -365,7 +365,7 @@ func TestTeamPlayerInviteLinksImplicitTeam(t *testing.T) {
 	_, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		section, me, nil /* merkleRoot */)
 	requirePrecheckError(t, err)
-	require.Contains(t, err.Error(), "is new-style in implicit team")
+	require.Contains(t, err.Error(), "new-style in implicit team")
 	require.Contains(t, err.Error(), inviteID)
 }
 
@@ -387,7 +387,7 @@ func TestTeamPlayerNoInvitelinksForAdmins(t *testing.T) {
 
 	var ie InviteError
 	require.True(t, errors.As(err, &ie))
-	require.Equal(t, inviteID, ie.id)
+	require.Equal(t, inviteID, SCTeamInviteID(ie.id))
 
 	var ile InvitelinkBadRoleError
 	require.True(t, errors.As(err, &ile))
