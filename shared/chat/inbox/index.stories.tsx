@@ -499,7 +499,7 @@ const provider = Sb.createPropProviderWithCommon({
     fitler: p.filter,
     filterFocusCount: p.filterFocusCount,
     isLoading: false,
-    hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
+    hotkeys: ['mod+n', 'mod+k'],
     onHotkey: Sb.action('onHotkey'),
     onNewChat: Sb.action('onNewChat'),
     onSelectDown: Sb.action('onSelectDown'),

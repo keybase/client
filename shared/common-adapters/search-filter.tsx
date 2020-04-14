@@ -10,6 +10,7 @@ import ProgressIndicator from './progress-indicator'
 import Icon, {IconType} from './icon'
 import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
+import {memoize} from '../util/memoize'
 
 const Kb = {
   Animation,
@@ -137,15 +138,17 @@ class SearchFilter extends React.PureComponent<Props, State> {
       this.focusOnMount()
     }
   }
+
+  private hotKeyToHotKeys = memoize((hotkey: string) => {
+    return [`mod+${hotkey}`]
+  })
+
   private keyHandler() {
     return (
       !Styles.isMobile &&
       this.props.hotkey &&
       !this.props.onClick && (
-        <Kb.HotKey
-          onHotKey={this.onHotkey}
-          hotKeys={[(Platforms.isDarwin ? 'command+' : 'ctrl+') + this.props.hotkey]}
-        />
+        <Kb.HotKey onHotKey={this.onHotkey} hotKeys={this.hotKeyToHotKeys(this.props.hotkey)} />
       )
     )
   }

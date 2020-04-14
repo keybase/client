@@ -30,11 +30,9 @@ class Conversation extends React.PureComponent<Props> {
     })
   }
 
-  private hotKeys = [`${isDarwin ? 'command' : 'ctrl'}+f`]
-  private onHotKey = (cmd: string) => {
-    if (cmd.replace(/(command|ctrl)\+/, '') === 'f') {
-      this.props.onToggleThreadSearch()
-    }
+  private hotKeys = ['mod+f']
+  private onHotKey = () => {
+    this.props.onToggleThreadSearch()
   }
 
   render() {
