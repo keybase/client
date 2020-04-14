@@ -279,26 +279,27 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 	deleteTarget, isValidFull, err := s.getMessage(ctx, uid, convID, deleteTargetID, false /* resolveSupersedes */)
 	if err != nil {
 		return msg, nil, nil, err
-	} else if !isValidFull {
-		// If the message is already deleted just get out of here.
-		return msg, nil, nil, nil
 	}
 	switch deleteTarget.ClientHeader.MessageType {
 	case chat1.MessageType_REACTION:
 		// Don't do anything here for reactions/unfurls, they can't be edited
 		return msg, nil, nil, nil
 	case chat1.MessageType_SYSTEM:
-		msgSys := deleteTarget.MessageBody.System()
-		typ, err := msgSys.SystemType()
-		if err != nil {
-			return msg, nil, nil, err
-		}
-		if !chat1.IsSystemMsgDeletableByDelete(typ) {
-			return msg, nil, nil, fmt.Errorf("%v is not deletable", typ)
+		if isValidFull {
+			msgSys := deleteTarget.MessageBody.System()
+			typ, err := msgSys.SystemType()
+			if err != nil {
+				return msg, nil, nil, err
+			}
+			if !chat1.IsSystemMsgDeletableByDelete(typ) {
+				return msg, nil, nil, fmt.Errorf("%v is not deletable", typ)
+			}
 		}
 	case chat1.MessageType_FLIP:
-		flipConvID := deleteTarget.MessageBody.Flip().FlipConvID
-		deleteFlipConvID = &flipConvID
+		if isValidFull {
+			flipConvID := deleteTarget.MessageBody.Flip().FlipConvID
+			deleteFlipConvID = &flipConvID
+		}
 	}
 
 	// Delete all assets on the deleted message.
