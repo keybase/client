@@ -468,7 +468,7 @@ body {
 
 .hideableDropdown {
   transition: height 0.2s;
-  height: 24px;
+  height: 32px;
   overflow: hidden;
 }
 .hideableDropdown.hidden {
