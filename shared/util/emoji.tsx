@@ -7,6 +7,7 @@ import * as Chat2Types from '../constants/types/chat2'
 export type EmojiData = {
   category: string
   name: string | null
+  obsoleted_by?: string
   short_name: string
   short_names: Array<string>
   sort_order?: number

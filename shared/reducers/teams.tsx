@@ -315,6 +315,9 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamWizardSubteams]: (draftState, action) => {
     draftState.newTeamWizard.subteams = action.payload.subteams
   },
+  [TeamsGen.setTeamWizardError]: (draftState, action) => {
+    draftState.newTeamWizard.error = action.payload.error
+  },
   [TeamsGen.startAddMembersWizard]: (draftState, action) => {
     const {teamID} = action.payload
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, teamID}
@@ -355,7 +358,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.cancelAddMembersWizard]: draftState => {
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState}
   },
-  [TeamsGen.finishAddMembersWizard]: draftState => {
+  [TeamsGen.finishedAddMembersWizard]: draftState => {
+    draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
+  },
+  [TeamsGen.finishNewTeamWizard]: draftState => {
+    draftState.newTeamWizard.error = undefined
+  },
+  [TeamsGen.finishedNewTeamWizard]: draftState => {
+    draftState.newTeamWizard = Constants.newTeamWizardEmptyState
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
   },
   [TeamsGen.addMembersWizardSetDefaultChannels]: (draftState, action) => {

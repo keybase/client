@@ -8,7 +8,7 @@ type PlaceholderProps = {
   type: Types.PathType.Folder | Types.PathType.File
 }
 
-export default ({type}: PlaceholderProps) => (
+const PlaceholderRow = ({type}: PlaceholderProps) => (
   <Kb.ListItem2
     type="Small"
     firstItem={true /* we add divider in Rows */}
@@ -26,6 +26,7 @@ export default ({type}: PlaceholderProps) => (
     }
   />
 )
+export default PlaceholderRow
 
 const styles = Styles.styleSheetCreate(
   () =>

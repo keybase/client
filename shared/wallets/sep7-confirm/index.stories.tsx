@@ -22,10 +22,12 @@ const commonProps = {
   assetCode: '',
   availableToSendFiat: '$12.34 USD',
   availableToSendNative: '20 XLM',
+  builtPaymentAdvancedWaitingKey: 'false',
   callbackURL: null,
   displayAmountFiat: '$23.45 USD',
   displayAmountNative: '40 XLM',
   error: '',
+  findPathError: '',
   fromQRCode: false,
   loading: false,
   memo: '',
@@ -39,9 +41,9 @@ const commonProps = {
   path: commonPath,
   readyToSend: true,
   sendError: '',
+  sep7WaitingKey: 'false',
   userAmount: '',
   waiting: false,
-  waitingKey: 'false',
 }
 
 const payProps = {
@@ -117,6 +119,13 @@ const load = () => {
     .add('Unsigned Tx', () => <SEP7Confirm {...commonProps} {...unsignedTxProps} />)
     .add('Signed Pay with send error', () => (
       <SEP7Confirm {...commonProps} {...payProps} sendError="Your balance is too low." />
+    ))
+    .add('Find path error ', () => (
+      <SEP7Confirm
+        {...commonProps}
+        {...payProps}
+        findPathError="No path was found to convert these 2 assets. Please pick other assets."
+      />
     ))
   Sb.storiesOf('Wallets/SEP7Error', module).add('Error', () => (
     <KeybaseLinkErrorBody

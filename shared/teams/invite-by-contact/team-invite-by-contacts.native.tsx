@@ -6,6 +6,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
 import useContacts, {Contact} from '../common/use-contacts.native'
 import {ContactRowProps, InviteByContact} from './index.native'
+import {useTeamDetailsSubscribe} from '../subscriber'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.
@@ -48,6 +49,8 @@ const TeamInviteByContact = (props: Props) => {
   const {contacts, region, errorMessage} = useContacts()
   const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
   const invites = Container.useSelector(state => Constants.getTeamDetails(state, teamID).invites)
+
+  useTeamDetailsSubscribe(teamID)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()

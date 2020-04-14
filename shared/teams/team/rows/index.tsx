@@ -58,7 +58,7 @@ export const useMembersSections = (
   ]
 
   // When you're the only one in the team, still show the no-members row
-  if (meta.memberCount === 0 || (meta.memberCount === 1 && meta.role !== 'none')) {
+  if (flags.teamsRedesign && (meta.memberCount === 0 || (meta.memberCount === 1 && meta.role !== 'none'))) {
     sections.push(makeSingleRow('members-none', () => <EmptyRow teamID={teamID} type="members" />))
   }
   return sections
@@ -280,7 +280,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
       renderItem: ({item, index}) => (
         <EmojiItemRow
           emoji={item}
-          firstItem={Styles.isMobile && index === 0}
+          firstItem={index === 0}
           conversationIDKey={convID ?? Chat2Constants.noConversationIDKey}
           reloadEmojis={doGetUserEmoji}
           teamID={teamID}

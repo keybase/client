@@ -458,151 +458,157 @@ const NodeInRow = (props: NodeInRowProps) => {
     .join(', #')
 
   const rolePicker = props.node.canAdminister ? (
-    <FloatingRolePicker
-      selectedRole={role}
-      onSelectRole={setRole}
-      onConfirm={onChangeRole}
-      onCancel={() => setOpen(false)}
-      position="bottom left"
-      open={open}
-      disabledRoles={disabledRoles}
-    >
-      <RoleButton
-        containerStyle={Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
-        loading={changingRole}
-        onClick={() => setOpen(true)}
-        selectedRole={props.node.role}
-      />
-    </FloatingRolePicker>
+    <RoleButton
+      containerStyle={Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
+      loading={changingRole}
+      onClick={() => setOpen(true)}
+      selectedRole={props.node.role}
+    />
   ) : (
     <></>
   )
 
   return (
-    <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
-        {props.idx !== 0 && <Kb.Divider />}
+    <>
+      <FloatingRolePicker
+        selectedRole={role}
+        onSelectRole={setRole}
+        onConfirm={onChangeRole}
+        onCancel={() => {
+          setRole(props.node.role)
+          setOpen(false)
+        }}
+        position="top right"
+        open={open}
+        disabledRoles={disabledRoles}
+      />
+      <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
+          {props.idx !== 0 && <Kb.Divider />}
 
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
-          <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.expandIcon])}>
-            <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
-          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
+            <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.expandIcon])}>
+              <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
+            </Kb.Box2>
 
-          <Kb.Box2
-            direction="horizontal"
-            style={Styles.collapseStyles([
-              Styles.globalStyles.flexGrow,
-              !expanded && styles.contentCollapsedFixedHeight,
-              expanded && styles.membershipExpanded,
-            ])}
-          >
             <Kb.Box2
-              direction="vertical"
-              fullWidth={true}
-              alignItems="flex-start"
-              gap="tiny"
-              style={!expanded && styles.contentCollapsedFixedHeight}
+              direction="horizontal"
+              style={Styles.collapseStyles([
+                Styles.globalStyles.flexGrow,
+                !expanded && styles.contentCollapsedFixedHeight,
+                expanded && styles.membershipExpanded,
+              ])}
             >
               <Kb.Box2
-                direction="horizontal"
-                alignSelf="flex-start"
-                alignItems="center"
+                direction="vertical"
+                fullWidth={true}
+                alignItems="flex-start"
                 gap="tiny"
-                style={Styles.collapseStyles([
-                  !expanded && styles.contentCollapsedFixedHeight,
-                  expanded && styles.membershipContentExpanded,
-                ])}
+                style={!expanded && styles.contentCollapsedFixedHeight}
               >
-                <Kb.Avatar teamname={props.node.teamname} size={32} />
-                <Kb.Box2
-                  direction="vertical"
-                  alignItems="flex-start"
-                  style={Styles.collapseStyles([
-                    styles.membershipTeamText,
-                    expanded && styles.membershipTeamTextExpanded,
-                    !expanded && styles.contentCollapsedFixedHeight,
-                  ])}
-                >
-                  <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
-                    {props.node.teamname}
-                  </Kb.Text>
-                  {!!props.node.joinTime && (
-                    <Kb.Text type="BodySmall">Joined {formatTimeForTeamMember(props.node.joinTime)}</Kb.Text>
-                  )}
-                </Kb.Box2>
-              </Kb.Box2>
-              {expanded && Styles.isMobile && (
-                <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
-                  {rolePicker}
-                </Kb.Box2>
-              )}
-              {expanded && (
-                <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
-                  <Kb.Icon type="iconfont-typing" sizeType="Small" color={Styles.globalColors.black_20} />
-                  <LastActivity
-                    loading={loadingActivity}
-                    teamID={props.node.teamID}
-                    username={props.username}
-                  />
-                </Kb.Box2>
-              )}
-              {expanded && (
                 <Kb.Box2
                   direction="horizontal"
-                  gap="tiny"
                   alignSelf="flex-start"
-                  style={{justifyContent: 'center'}}
-                  fullWidth={true}
+                  alignItems="center"
+                  gap="tiny"
+                  style={Styles.collapseStyles([
+                    !expanded && styles.contentCollapsedFixedHeight,
+                    expanded && styles.membershipContentExpanded,
+                  ])}
                 >
-                  <Kb.Icon
-                    type="iconfont-hash"
-                    sizeType="Small"
-                    color={Styles.globalColors.black_20}
-                    style={styles.membershipIcon}
-                  />
-                  <Kb.Text
-                    type="BodySmall"
-                    style={Styles.globalStyles.flexOne}
-                    lineClamp={4}
-                    ellipsizeMode="tail"
+                  <Kb.Avatar teamname={props.node.teamname} size={32} />
+                  <Kb.Box2
+                    direction="vertical"
+                    alignItems="flex-start"
+                    style={Styles.collapseStyles([
+                      styles.membershipTeamText,
+                      expanded && styles.membershipTeamTextExpanded,
+                      !expanded && styles.contentCollapsedFixedHeight,
+                    ])}
                   >
-                    {loadingChannels ? 'Loading channels...' : `Member of #${channelsJoined}`}
-                  </Kb.Text>
+                    <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
+                      {props.node.teamname}
+                    </Kb.Text>
+                    {!!props.node.joinTime && (
+                      <Kb.Text type="BodySmall">
+                        Joined {formatTimeForTeamMember(props.node.joinTime)}
+                      </Kb.Text>
+                    )}
+                  </Kb.Box2>
                 </Kb.Box2>
-              )}
-              {expanded && (props.node.canAdminister || isMe) && (
-                <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
-                  <Kb.Button
-                    mode="Secondary"
-                    onClick={onAddToChannels}
-                    label="Add to channels"
-                    small={true}
-                  />
-                  {!(isMe && amLastOwner) && (
-                    <Kb.WaitingButton
-                      mode="Secondary"
-                      icon={isMe ? 'iconfont-leave' : 'iconfont-block'}
-                      type="Danger"
-                      onClick={onKickOut}
-                      label={isMe ? 'Leave' : 'Kick out'}
-                      small={true}
-                      waitingKey={onKickOutWaitingKey}
+                {expanded && Styles.isMobile && (
+                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
+                    {rolePicker}
+                  </Kb.Box2>
+                )}
+                {expanded && (
+                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
+                    <Kb.Icon type="iconfont-typing" sizeType="Small" color={Styles.globalColors.black_20} />
+                    <LastActivity
+                      loading={loadingActivity}
+                      teamID={props.node.teamID}
+                      username={props.username}
                     />
-                  )}
-                </Kb.Box2>
-              )}
+                  </Kb.Box2>
+                )}
+                {expanded && (
+                  <Kb.Box2
+                    direction="horizontal"
+                    gap="tiny"
+                    alignSelf="flex-start"
+                    style={{justifyContent: 'center'}}
+                    fullWidth={true}
+                  >
+                    <Kb.Icon
+                      type="iconfont-hash"
+                      sizeType="Small"
+                      color={Styles.globalColors.black_20}
+                      style={styles.membershipIcon}
+                    />
+                    <Kb.Text
+                      type="BodySmall"
+                      style={Styles.globalStyles.flexOne}
+                      lineClamp={4}
+                      ellipsizeMode="tail"
+                    >
+                      {loadingChannels ? 'Loading channels...' : `Member of #${channelsJoined}`}
+                    </Kb.Text>
+                  </Kb.Box2>
+                )}
+                {expanded && (props.node.canAdminister || isMe) && (
+                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
+                    <Kb.Button
+                      mode="Secondary"
+                      onClick={onAddToChannels}
+                      label="Add to channels"
+                      small={true}
+                    />
+                    {!(isMe && amLastOwner) && (
+                      <Kb.WaitingButton
+                        mode="Secondary"
+                        icon={isMe ? 'iconfont-leave' : 'iconfont-block'}
+                        type="Danger"
+                        onClick={onKickOut}
+                        label={isMe ? 'Leave' : 'Kick out'}
+                        small={true}
+                        waitingKey={onKickOutWaitingKey}
+                      />
+                    )}
+                  </Kb.Box2>
+                )}
 
-              {expanded && Styles.isMobile && <Kb.Box2 direction="horizontal" style={{height: 8}} />}
+                {expanded && Styles.isMobile && <Kb.Box2 direction="horizontal" style={{height: 8}} />}
+              </Kb.Box2>
             </Kb.Box2>
+            {!Styles.isMobile && (
+              <Kb.Box2 direction="horizontal" alignSelf={expanded ? 'flex-start' : 'center'}>
+                {rolePicker}
+              </Kb.Box2>
+            )}
           </Kb.Box2>
-          {!Styles.isMobile && (
-            <Kb.Box2 direction="horizontal" alignSelf={expanded ? 'flex-start' : 'center'}>
-              {rolePicker}
-            </Kb.Box2>
-          )}
         </Kb.Box2>
-      </Kb.Box2>
-    </Kb.ClickableBox>
+      </Kb.ClickableBox>
+    </>
   )
 }
 
@@ -823,7 +829,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   roleButtonExpanded: Styles.platformStyles({
     isElectron: {
-      marginTop: Styles.globalMargins.xsmall,
+      marginTop: 10, // does not exist as an official size
     },
   }),
   row: Styles.platformStyles({

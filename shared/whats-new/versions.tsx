@@ -37,6 +37,31 @@ export const VersionTitle = ({title}: {title: string}) => (
 export const Current = ({seen}: VersionProps) => {
   return (
     <Version>
+      <NewFeatureRow image="release-5.4.0-emoji" noSeparator={true} seen={seen} unwrapped={true}>
+        <Kb.Box2 alignSelf="flex-start" direction="vertical">
+          <Kb.Text type="BodySmall" allowFontScaling={true}>
+            Browse your image library
+          </Kb.Text>
+          <Kb.Box2 direction="horizontal" style={styles.ponyAlignment}>
+            <Kb.Text type="BodySmall" allowFontScaling={true}>
+              And unleash that cute little pony
+            </Kb.Text>
+            <Kb.Icon type="release-5.4.0-pony" style={styles.ponyIcon} />
+          </Kb.Box2>
+          <Kb.Text type="BodySmall" allowFontScaling={true}>
+            Keybase now supports custom emoji{' '}
+            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":sparkles:" />
+          </Kb.Text>
+        </Kb.Box2>
+      </NewFeatureRow>
+    </Version>
+  )
+}
+
+export const Last = ({seen}: VersionProps) => {
+  return (
+    <Version>
+      <VersionTitle title="Last release" />
       <NewFeatureRow image="release-5.3.0-ipad" noSeparator={true} seen={seen}>
         Keybase for iPad is here!{' '}
         <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":sparkles:" /> Download
@@ -50,10 +75,10 @@ export const Current = ({seen}: VersionProps) => {
   )
 }
 
-export const Last = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
+export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
   return (
     <Version>
-      <VersionTitle title="Last release" />
+      <VersionTitle title="Previous releases" />
       <NewFeatureRow
         image="release-5.2.0-crypto"
         noSeparator={true}
@@ -64,7 +89,7 @@ export const Last = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
         primaryButtonText={Styles.isMobile ? '' : 'Try it'}
         seen={seen}
       >
-        Encrypt, decrypt, sign, and verify all from within Keybase (desktop-only).{' '}
+        Encrypt, decrypt, sign, and verify all from within Keybase.{' '}
         <Kb.Emoji
           allowFontScaling={true}
           size={Styles.globalMargins.small}
@@ -82,15 +107,7 @@ export const Last = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
         Bots: you can now install bots into your conversations. Kick off a meeting with Google Meet Bot, watch
         for commits with GitHub Bot, create new issues in JIRA, and more, all without leaving Keybase.
       </NewFeatureRow>
-    </Version>
-  )
-}
-
-export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
-  return (
-    <Version>
-      <VersionTitle title="Previous releases" />
-      <NewFeatureRow noSeparator={true} seen={seen} image="release-5.1.0-blocking">
+      <NewFeatureRow seen={seen} image="release-5.1.0-blocking">
         We heard you. You can now block and report spammers from the chat conversation or from people's
         profiles.
       </NewFeatureRow>
@@ -160,6 +177,11 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: Styles.globalMargins.xtiny,
     },
   }),
+  ponyAlignment: {
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+  },
+  ponyIcon: {marginLeft: Styles.globalMargins.tiny},
   roundedImage: Styles.platformStyles({
     common: {
       borderColor: Styles.globalColors.grey,

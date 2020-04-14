@@ -51,12 +51,6 @@ Clear the team description:
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamSettingsRunner(g)
 			cl.ChooseCommand(cmd, "settings", c)
-			if c.IsSet("welcome-message") {
-				cl.SetNoStandalone()
-			}
-			if c.IsSet("reset-welcome-message") {
-				cl.SetNoStandalone()
-			}
 		},
 		Flags: []cli.Flag{
 			// Many of these are StringFlag instead of BoolFlag because BoolFlag is displeasing.
@@ -363,6 +357,9 @@ func (c *CmdTeamSettings) setDisableAccessRequests(ctx context.Context, cli keyb
 }
 
 func (c *CmdTeamSettings) setWelcomeMessage(ctx context.Context, welcomeMessage string) error {
+	if err := CheckAndStartStandaloneChat(c.G(), chat1.ConversationMembersType_TEAM); err != nil {
+		return err
+	}
 	msg := chat1.WelcomeMessage{Set: true, Raw: welcomeMessage}
 	cli, err := GetChatLocalClient(c.G())
 	if err != nil {
@@ -375,6 +372,9 @@ func (c *CmdTeamSettings) setWelcomeMessage(ctx context.Context, welcomeMessage 
 }
 
 func (c *CmdTeamSettings) resetWelcomeMessage(ctx context.Context) error {
+	if err := CheckAndStartStandaloneChat(c.G(), chat1.ConversationMembersType_TEAM); err != nil {
+		return err
+	}
 	cli, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return err
@@ -429,8 +429,9 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 		}
 	}
 
-	if c.G().Standalone {
-		dui.Printf("  Welcome message: [not available in standalone mode]\n")
+	err = CheckAndStartStandaloneChat(c.G(), chat1.ConversationMembersType_TEAM)
+	if err != nil {
+		dui.Printf("  Welcome message: [failed to start chat system, not available in standalone mode]\n")
 	} else {
 		chatCli, err := GetChatLocalClient(c.G())
 		if err != nil {
@@ -442,12 +443,13 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 		} else {
 			if msg.Set {
 				if len(msg.Raw) > 0 {
-					dui.Printf("  Welcome message: %q\n", msg.Raw)
+					dui.Printf("  Welcome message:          %q\n", msg.Raw)
 				} else {
-					dui.Printf("  Welcome message: none\n")
+					dui.Printf("  Welcome message:          none\n")
 				}
 			} else {
-				dui.Printf("  Welcome message: unset (default)\n")
+				dui.Printf("  Welcome message:          unset (default)\n")
+
 			}
 		}
 	}

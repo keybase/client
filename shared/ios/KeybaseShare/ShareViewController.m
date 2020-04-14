@@ -26,6 +26,7 @@ const BOOL isSimulator = NO;
 @property NSURL * payloadFolderURL;
 @property UIAlertController* alert;
 @property NSString* attributedContentText;
+@property NSUInteger unprocessed;
 @end
 
 @implementation ShareViewController
@@ -68,7 +69,7 @@ const BOOL isSimulator = NO;
     return [self isWebURL:a];
   }];
   if (item) {
-   [res addObject:item];
+    [res addObject:item];
   }
   if ([res count] == 0) {
     item = [self firstSatisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
@@ -90,7 +91,7 @@ const BOOL isSimulator = NO;
 }
 
 - (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
+  [super didReceiveMemoryWarning];
 }
 
 - (void) openApp {
@@ -105,16 +106,22 @@ const BOOL isSimulator = NO;
   }
 }
 
-- (void) maybeCompleteRequest:(BOOL)lastItem {
-  if (!lastItem) { return; }
+- (void) startProcessingAlreadyInMainThread:(NSInteger)items {
+  self.unprocessed = items;
+}
+
+- (void) completeRequestAlreadyInMainThread {
   [self writeManifest];
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self.alert dismissViewControllerAnimated:true completion:^{
-      [self.extensionContext completeRequestReturningItems:nil completionHandler:^(BOOL expired) {
-        [self openApp];
-      }];
+  [self.alert dismissViewControllerAnimated:true completion:^{
+    [self.extensionContext completeRequestReturningItems:nil completionHandler:^(BOOL expired) {
+      [self openApp];
     }];
-  });
+  }];
+}
+
+- (void) completeProcessingItemAlreadyInMainThread {
+  if(--self.unprocessed > 0) { return; }
+  [self completeRequestAlreadyInMainThread];
 }
 
 - (NSURL *)getIncomingShareFolder {
@@ -149,34 +156,46 @@ const BOOL isSimulator = NO;
   return [incomingShareFolderURL URLByAppendingPathComponent:@"manifest.json"];
 }
 
-- (void)appendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL {
-  [self.manifest addObject: @{
-    @"type": type,
-    @"originalPath":[originalFileURL absoluteURL].path,
-  }];
+- (void)completeItemAndAppendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.manifest addObject: @{
+      @"type": type,
+      @"originalPath":[originalFileURL absoluteURL].path,
+    }];
+    [self completeProcessingItemAlreadyInMainThread];
+  });
 }
 
-- (void)appendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL content:(NSString*)content {
-  [self.manifest addObject: @{
-    @"type": type,
-    @"originalPath":[originalFileURL absoluteURL].path,
-    @"content": content,
-  }];
+- (void)completeItemAndAppendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL content:(NSString*)content {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.manifest addObject: @{
+      @"type": type,
+      @"originalPath":[originalFileURL absoluteURL].path,
+      @"content": content,
+    }];
+    [self completeProcessingItemAlreadyInMainThread];
+  });
 }
 
-- (void)appendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL scaledFileURL:(NSURL*)scaledFileURL thumbnailFileURL:(NSURL*)thumbnailFileURL {
-  [self.manifest addObject: @{
-    @"type": type,
-    @"originalPath":[originalFileURL absoluteURL].path,
-    @"scaledPath":[scaledFileURL absoluteURL].path,
-    @"thumbnailPath":[thumbnailFileURL absoluteURL].path,
-  }];
+- (void)completeItemAndAppendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL scaledFileURL:(NSURL*)scaledFileURL thumbnailFileURL:(NSURL*)thumbnailFileURL {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.manifest addObject: @{
+      @"type": type,
+      @"originalPath":[originalFileURL absoluteURL].path,
+      @"scaledPath":[scaledFileURL absoluteURL].path,
+      @"thumbnailPath":[thumbnailFileURL absoluteURL].path,
+    }];
+    [self completeProcessingItemAlreadyInMainThread];
+  });
 }
 
-- (void)appendManifestAndLogErrorWithText:(NSString*)text error:(NSError*)error {
-  [self.manifest addObject:@{
-    @"error": [NSString stringWithFormat:@"%@: %@", text, error != nil ? error : @"<empty>"],
-  }];
+- (void)completeItemAndAppendManifestAndLogErrorWithText:(NSString*)text error:(NSError*)error {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.manifest addObject:@{
+      @"error": [NSString stringWithFormat:@"%@: %@", text, error != nil ? error : @"<empty>"],
+    }];
+    [self completeProcessingItemAlreadyInMainThread];
+  });
 }
 
 - (NSError *)writeManifest {
@@ -195,41 +214,29 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   // But if the text is short enough, we also include it in the manifest so
   // GUI can easily pre-fill it into the chat compose box.
   if (error != nil) {
-    [self appendManifestAndLogErrorWithText:@"handleText: load error" error:error];
+    [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: load error" error:error];
     return;
   }
   NSURL * originalFileURL = [self getPayloadURLFromExt:@"txt"];
   [text writeToURL:originalFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
   if (error != nil){
-    [self appendManifestAndLogErrorWithText:@"handleText: unable to write payload file" error:error];
+    [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: unable to write payload file" error:error];
     return;
   }
   if (text.length < TEXT_LENGTH_THRESHOLD) {
-    [self appendManifestType:@"text" originalFileURL:originalFileURL content:text];
+    [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL content:text];
   } else {
-    [self appendManifestType:@"text" originalFileURL:originalFileURL];
+    [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL];
   }
 }
 
-- (void) handleData:(NSData *)data type:(NSString *)type ext:(NSString *)ext {
-  NSURL * originalFileURL = [self getPayloadURLFromExt:ext];
-  BOOL OK = [data writeToURL:originalFileURL atomically:true];
-  if (!OK){
-    [self appendManifestAndLogErrorWithText:@"handleData: unable to write payload file" error:nil];
-    return;
-  }
-  [self appendManifestType:type originalFileURL:originalFileURL];
-}
-
-- (void) handleAndMaybeCompleteMediaFile:(NSURL *)url isVideo:(BOOL)isVideo lastItem:(BOOL)lastItem {
+- (void) handleAndCompleteMediaFile:(NSURL *)url isVideo:(BOOL)isVideo {
   ProcessMediaCompletion completion = ^(NSError * error, NSURL * scaled, NSURL * thumbnail) {
     if (error != nil) {
-      [self appendManifestAndLogErrorWithText:@"handleAndMaybeCompleteMediaFile" error:error];
-      [self maybeCompleteRequest:lastItem];
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleAndCompleteMediaFile" error:error];
       return;
     }
-    [self appendManifestType: isVideo ? @"video" : @"image" originalFileURL:url scaledFileURL:scaled thumbnailFileURL:thumbnail];
-    [self maybeCompleteRequest:lastItem];
+    [self completeItemAndAppendManifestType: isVideo ? @"video" : @"image" originalFileURL:url scaledFileURL:scaled thumbnailFileURL:thumbnail];
   };
   if (isVideo) {
     [MediaUtils processVideoFromOriginal:url completion:completion];
@@ -239,7 +246,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
 }
 
 // processItem will invokve the correct function on the Go side for the given attachment type.
-- (void)processItem:(NSItemProvider*)item lastItem:(BOOL)lastItem {
+- (void)processItem:(NSItemProvider*)item {
   
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
     if (self.attributedContentText != nil){
@@ -247,68 +254,64 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
     }else{
       [self handleText: url.absoluteString loadError:error];
     }
-    [self maybeCompleteRequest:lastItem];
   };
   
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
     [self handleText:text loadError:error];
-    [self maybeCompleteRequest:lastItem];
   };
   
   NSItemProviderCompletionHandler imageHandler = ^(UIImage* image, NSError* error) {
     if (error != nil) {
-      [self appendManifestAndLogErrorWithText:@"imageHandler: load error" error:error];
-      [self maybeCompleteRequest:lastItem];
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"imageHandler: load error" error:error];
       return;
     }
     NSData * imageData = UIImageJPEGRepresentation(image, .85);
     NSURL * originalFileURL = [self getPayloadURLFromExt:@"jpg"];
     BOOL OK = [imageData writeToURL:originalFileURL atomically:true];
     if (!OK){
-      [self appendManifestAndLogErrorWithText:@"handleData: unable to write payload file" error:nil];
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleData: unable to write payload file" error:nil];
       return;
     }
-    [self handleAndMaybeCompleteMediaFile:originalFileURL isVideo:false lastItem:lastItem];
+    [self handleAndCompleteMediaFile:originalFileURL isVideo:false ];
   };
   
   // The NSItemProviderCompletionHandler interface is a little tricky. The caller of our handler
   // will inspect the arguments that we have given, and will attempt to give us the attachment
   // in this form. For files, we always want a file URL, and so that is what we pass in.
   NSItemProviderCompletionHandler fileHandler = ^(NSURL* url, NSError* error) {
+    if (error != nil) {
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: load error" error:error];
+      return;
+    }
+    
     BOOL hasImage = [item hasItemConformingToTypeIdentifier:@"public.image"];
     BOOL hasVideo = [item hasItemConformingToTypeIdentifier:@"public.movie"];
-
+    
     // Check for no URL (it might have not been possible for the OS to give us one)
     if (url == nil) {
       if (hasImage) {
         // Try to handle with our imageHandler function
         [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
       } else {
-        [self maybeCompleteRequest:lastItem];
+        [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: no url or image" error:nil];
       }
       return;
     }
-    if (error != nil) {
-      [self appendManifestAndLogErrorWithText:@"fileHandler: load error" error:error];
-      [self maybeCompleteRequest:lastItem];
-      return;
-    }
+    
     NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
     [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
     if (error != nil) {
-      [self appendManifestAndLogErrorWithText:@"fileHandler: copy error" error:error];
-      [self maybeCompleteRequest:lastItem];
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: copy error" error:error];
       return;
     }
     
     
     if (hasVideo) {
-      [self handleAndMaybeCompleteMediaFile:filePayloadURL isVideo:true lastItem:lastItem];
+      [self handleAndCompleteMediaFile:filePayloadURL isVideo:true];
     } else if (hasImage) {
-      [self handleAndMaybeCompleteMediaFile:filePayloadURL isVideo:false lastItem:lastItem];
+      [self handleAndCompleteMediaFile:filePayloadURL isVideo:false];
     } else {
-      [self appendManifestType: @"file" originalFileURL:filePayloadURL];
-      [self maybeCompleteRequest:lastItem];
+      [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
     }
   };
   
@@ -328,37 +331,37 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   } else {
     [[[PushNotifier alloc] init] localNotification:@"extension" msg:@"We failed to send your message. Please try from the Keybase app."
                                         badgeCount:-1 soundName:@"default" convID:@"" typ:@"chat.extension"];
-    [self maybeCompleteRequest:lastItem];
+    [self completeItemAndAppendManifestAndLogErrorWithText:@"unknown type" error:nil];
   }
 }
 
 - (void)showProgressView {
   self.alert = [UIAlertController
-                              alertControllerWithTitle:@"Working on it"
-                              message:@"Preparing content for sharing into Keybase."
-                              preferredStyle:UIAlertControllerStyleAlert];
+                alertControllerWithTitle:@"Working on it"
+                message:@"Preparing content for sharing into Keybase."
+                preferredStyle:UIAlertControllerStyleAlert];
   UIActivityIndicatorView* spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
   [spinner setTranslatesAutoresizingMaskIntoConstraints:NO];
   [self.alert.view addConstraints:@[
-       [NSLayoutConstraint constraintWithItem:spinner
-                                    attribute:NSLayoutAttributeCenterX
-                                    relatedBy:NSLayoutRelationEqual
-                                       toItem:self.alert.view
-                                    attribute:NSLayoutAttributeCenterX
-                                   multiplier:1 constant:0],
-       [NSLayoutConstraint constraintWithItem:spinner
-                                    attribute:NSLayoutAttributeCenterY
-                                    relatedBy:NSLayoutRelationEqual
-                                       toItem:self.alert.view
-                                    attribute:NSLayoutAttributeCenterY
-                                   multiplier:1 constant:40],
-       [NSLayoutConstraint constraintWithItem:self.alert.view
-                                    attribute:NSLayoutAttributeBottom
-                                    relatedBy:NSLayoutRelationEqual
-                                       toItem:spinner
-                                    attribute:NSLayoutAttributeBottom
-                                   multiplier:1 constant:10]
-       ]
+    [NSLayoutConstraint constraintWithItem:spinner
+                                 attribute:NSLayoutAttributeCenterX
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:self.alert.view
+                                 attribute:NSLayoutAttributeCenterX
+                                multiplier:1 constant:0],
+    [NSLayoutConstraint constraintWithItem:spinner
+                                 attribute:NSLayoutAttributeCenterY
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:self.alert.view
+                                 attribute:NSLayoutAttributeCenterY
+                                multiplier:1 constant:40],
+    [NSLayoutConstraint constraintWithItem:self.alert.view
+                                 attribute:NSLayoutAttributeBottom
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:spinner
+                                 attribute:NSLayoutAttributeBottom
+                                multiplier:1 constant:10]
+  ]
    ];
   
   [self.alert.view addSubview:spinner];
@@ -381,14 +384,14 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
 - (void)viewDidLoad {
   NSArray* items = [self getSendableAttachments];
   if ([items count] == 0) {
-    [self maybeCompleteRequest:YES];
+    [self completeRequestAlreadyInMainThread];
     return;
   }
+  [self startProcessingAlreadyInMainThread:[items count]];
   [self showProgressView];
   [self ensureManifestAndPayloadFolder];
   for (int i = 0; i < [items count]; i++) {
-    BOOL lastItem = (BOOL)(i == [items count]-1);
-    [self processItem:items[i] lastItem:lastItem];
+    [self processItem:items[i]];
   }
 }
 

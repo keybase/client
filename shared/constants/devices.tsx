@@ -35,7 +35,9 @@ export const makeDevice = (d?: Partial<Types.Device>): Types.Device =>
   d ? Object.assign({...emptyDevice}, d) : emptyDevice
 
 export const devicesTabLocation = Container.isMobile
-  ? [Tabs.settingsTab, SettingsConstants.devicesTab]
+  ? Container.isTablet
+    ? [Tabs.settingsTab]
+    : [Tabs.settingsTab, SettingsConstants.devicesTab]
   : [Tabs.devicesTab]
 export const waitingKey = 'devices:devicesPage'
 

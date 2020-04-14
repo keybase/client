@@ -257,7 +257,7 @@ const Disabled = (props: Props) => {
   )
 }
 
-export default (props: Props) => {
+const SFMIBanner = (props: Props) => {
   if (!Constants.sfmiInfoLoaded(props.settings, props.driverStatus)) {
     return props.alwaysShow ? (
       <Banner
@@ -278,6 +278,7 @@ export default (props: Props) => {
       return <ThisShouldNotHappen />
   }
 }
+export default SFMIBanner
 
 const styles = Styles.styleSheetCreate(
   () =>
