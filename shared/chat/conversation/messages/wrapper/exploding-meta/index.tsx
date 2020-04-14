@@ -239,9 +239,9 @@ const styles = Styles.styleSheetCreate(
       }),
       countdownContainer: {
         alignItems: 'center',
-        justifyContent: 'center',
         borderRadius: 10,
         height: 20,
+        justifyContent: 'center',
         width: 20,
       },
       countdownContainerHighlighted: {
