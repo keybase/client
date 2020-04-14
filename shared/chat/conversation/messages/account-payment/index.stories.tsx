@@ -55,7 +55,7 @@ const sendingProps = {
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
   balanceChangeColor: globalColors.black_50,
-  icon: 'iconfont-time',
+  icon: 'iconfont-clock',
   loading: false,
   memo: ':beer:',
   pending: true,
