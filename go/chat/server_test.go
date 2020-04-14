@@ -6897,6 +6897,7 @@ func TestChatSrvStellarUI(t *testing.T) {
 }
 
 func TestChatSrvEphemeralPolicy(t *testing.T) {
+	t.Skip()
 	ctc := makeChatTestContext(t, "TestChatSrvEphemeralPolicy", 1)
 	defer ctc.cleanup()
 	users := ctc.users()
