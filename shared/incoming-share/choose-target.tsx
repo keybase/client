@@ -125,8 +125,8 @@ const getContentDescription = (props: Props) => {
 
 const ChooseTarget = (props: Props) => {
   const {onChat, onKBFS} = props
-  const originalTotalSize = props.items.reduce((bytes, item) => bytes + item.originalSize, 0) ?? 0
-  const scaledTotalSize = props.items.reduce((bytes, item) => bytes + (item.scaledSize ?? 0), 0) ?? 0
+  const originalTotalSize = props.items.reduce((bytes, item) => bytes + item.originalSize, 0)
+  const scaledTotalSize = props.items.reduce((bytes, item) => bytes + (item.scaledSize ?? 0), 0)
   const offerScaled = scaledTotalSize > 0 && scaledTotalSize < originalTotalSize
   const [useOriginalUserSelection, setUseOriginalUserSelection] = React.useState(false)
   const useOriginal = !offerScaled || useOriginalUserSelection
