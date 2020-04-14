@@ -1022,6 +1022,7 @@ export type IconType =
   | 'iconfont-mailbox'
   | 'iconfont-mention'
   | 'iconfont-mic'
+  | 'iconfont-mic-solid'
   | 'iconfont-music'
   | 'iconfont-nav-2-chat'
   | 'iconfont-nav-2-crypto'
@@ -10039,6 +10040,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-mic': {
     charCode: 0xe99d,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-mic-solid': {
+    charCode: 0xe9c3,
     gridSize: 16,
     isFont: true,
   },

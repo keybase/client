@@ -199,7 +199,7 @@ class InfoPanelMenu extends React.Component<Props> {
       }
       items.push({
         danger: true,
-        icon: 'iconfont-block-user',
+        icon: 'iconfont-user-block',
         onClick: props.onBlockConv,
         title: 'Block',
       })

@@ -39,11 +39,11 @@ const getIcon = (status: Status) => {
     case 'claimable':
       return 'iconfont-success'
     case 'pending':
-      return 'iconfont- clock'
+      return 'iconfont-clock'
     case 'error':
       return 'iconfont-remove'
     default:
-      return 'iconfont- clock'
+      return 'iconfont-clock'
   }
 }
 

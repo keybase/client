@@ -15,7 +15,7 @@ type Props = {
 function getIcon(status: Types.LocalConflictStatus | Types.NonUploadStaticSyncStatus): Kb.IconType {
   switch (status) {
     case Types.NonUploadStaticSyncStatus.AwaitingToSync:
-      return 'iconfont- clock'
+      return 'iconfont-clock'
     case Types.NonUploadStaticSyncStatus.OnlineOnly:
       return 'iconfont-cloud'
     case Types.NonUploadStaticSyncStatus.Synced:

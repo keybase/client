@@ -89,12 +89,7 @@ const ReactButton = (props: Props) => (
   </ButtonBox>
 )
 
-const iconCycle = [
-  'iconfont-reacji',
-  'iconfont-reacji-wave',
-  'iconfont-reacji-heart',
-  'iconfont-reacji-sheep',
-] as const
+const iconCycle = ['iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji'] as const
 export type NewReactionButtonProps = {
   getAttachmentRef?: () => React.Component<any> | null
   onAddReaction: (emoji: string) => void
