@@ -7,8 +7,6 @@ import logger from '../../logger'
 import InviteHow from './invite-how'
 import {ShareLinkPopup} from './modal'
 
-const tooltipStyleOverride = {paragraph: styles.tooltip}
-
 const InviteFriends = () => {
   const requestInviteCounts = Container.useRPC(RPCTypes.inviteFriendsRequestInviteCountsRpcPromise)
   const inviteCounts = Container.useSelector(state => state.people.inviteCounts)
@@ -134,3 +132,5 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.white,
   },
 }))
+
+const tooltipStyleOverride = {paragraph: styles.tooltip}
