@@ -189,7 +189,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             <Icon
               type="iconfont-reacji"
               color={Styles.globalColors.black_50}
-              fontSize={16}
+              fontSize={Styles.isMobile ? 18 : 16}
               style={styles.emojiIconWrapper}
             />
           ) : (
