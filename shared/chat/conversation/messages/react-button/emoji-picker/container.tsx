@@ -68,8 +68,7 @@ const useSkinTone = () => {
     Container.useSelector(state => state.chat2.userReacjis.skinTone)
   )
   const [currentSkinTone, _setSkinTone] = React.useState(lastSetSkinTone)
-  // NOTE: The store does not update skin tones after put so we track the
-  // module variable `lastSetSkinTone`
+  const dispatch = Container.useDispatch()
   const rpc = useRPC(RPCChatGen.localPutReacjiSkinToneRpcPromise)
   const setSkinTone = (emojiSkinTone: undefined | Types.EmojiSkinTone) => {
     rpc(
@@ -78,9 +77,10 @@ const useSkinTone = () => {
           skinTone: Types.EmojiSkinToneToRPC(emojiSkinTone),
         },
       ],
-      _ => {
+      res => {
         lastSetSkinTone = emojiSkinTone
         _setSkinTone(emojiSkinTone)
+        dispatch(Chat2Gen.createUpdateUserReacjis({userReacjis: res}))
       },
       err => {
         throw err
