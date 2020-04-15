@@ -965,7 +965,6 @@ export type TypedActionsMap = {
   'teams:setTeamRetentionPolicy': teams.SetTeamRetentionPolicyPayload
   'teams:setTeamLoadingInvites': teams.SetTeamLoadingInvitesPayload
   'teams:setTeamDetails': teams.SetTeamDetailsPayload
-  'teams:setTeamCanPerform': teams.SetTeamCanPerformPayload
   'teams:setTeamInfo': teams.SetTeamInfoPayload
   'teams:setTeamProfileAddList': teams.SetTeamProfileAddListPayload
   'teams:setTeamAccessRequestsPending': teams.SetTeamAccessRequestsPendingPayload
