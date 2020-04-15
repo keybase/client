@@ -126,7 +126,7 @@ const TeamRequestRowNew = (props: Props) => {
                 <Kb.Meta
                   title={reset ? 'locked out' : 'please decide'}
                   style={styleCharm}
-                  backgroundColor={Styles.globalColors.orange}
+                  backgroundColor={reset ? Styles.globalColors.red : Styles.globalColors.orange}
                 />
               )}
               {Styles.isMobile ? (
@@ -176,7 +176,7 @@ const TeamRequestRowNew = (props: Props) => {
           {popup}
         </Kb.Box2>
       }
-      onClick={() => onOpenProfile(username)}
+      onClick={props.isRolePickerOpen ? undefined : () => onOpenProfile(username)}
       firstItem={props.firstItem}
     />
   )
