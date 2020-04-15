@@ -42,6 +42,8 @@ export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
             error={!!this.props.error}
             disabled={this.props.disabled}
             textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
+            // android has issues with setSelection that make including colons a bad experience
+            // see https://keybase.atlassian.net/browse/TRIAGE-2680
             value={Styles.isAndroid ? this.props.alias : `:${this.props.alias}:`}
             containerStyle={Styles.collapseStyles([
               styles.aliasInput,
@@ -52,6 +54,7 @@ export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
               this.props.onChangeAlias(newText.replace(/[^a-zA-Z0-9-_+]/g, ''))
             }
             onEnterKeyDown={this.props.onEnterKeyDown}
+            // TODO: remove android exception when https://keybase.atlassian.net/browse/TRIAGE-2680 fixed
             onFocus={Styles.isAndroid ? undefined : this.onFocus}
           />
           {this.props.onRemove && (
