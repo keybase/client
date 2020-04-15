@@ -1251,7 +1251,6 @@ func (t *Team) GetActiveAndObsoleteInvites() (ret map[keybase1.TeamInviteID]keyb
 		}
 		switch code {
 		case keybase1.TeamInviteMetadataStatusCode_ACTIVE, keybase1.TeamInviteMetadataStatusCode_OBSOLETE:
-			fmt.Printf("@@@; %#v\n", inviteMD)
 			ret[inviteID] = inviteMD.Invite
 		}
 	}

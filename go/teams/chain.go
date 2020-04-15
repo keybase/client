@@ -504,12 +504,12 @@ func (t *TeamSigChainState) informCompletedInvite(i keybase1.TeamInviteID,
 	t.inner.InviteMetadatas[i] = inviteMD
 }
 
-func (t *TeamSigChainState) findAndObsoleteInviteForUser(uid keybase1.UID) {
-	for id, inviteMD := range t.inner.InviteMetadatas {
+func (t *TeamSigChainState) findAndObsoleteActiveInviteForUser(uid keybase1.UID) {
+	for _, inviteMD := range t.ActiveInvites() {
 		if inviteUv, err := inviteMD.Invite.KeybaseUserVersion(); err == nil {
 			if inviteUv.Uid == uid {
 				inviteMD.Status = keybase1.NewTeamInviteMetadataStatusWithObsolete()
-				t.inner.InviteMetadatas[id] = inviteMD
+				t.inner.InviteMetadatas[inviteMD.Invite.Id] = inviteMD
 			}
 		}
 	}
@@ -1288,7 +1288,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		if err := t.completeInvites(&res.newState, team.CompletedInvites, teamSigMeta); err != nil {
 			return res, fmt.Errorf("illegal completed_invites: %s", err)
 		}
-		t.obsoleteInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
+		t.obsoleteActiveInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		if err := t.useInvites(&res.newState, roleUpdates, team.UsedInvites); err != nil {
 			return res, fmt.Errorf("illegal used_invites: %s", err)
@@ -2264,14 +2264,14 @@ func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState,
 	return nil
 }
 
-func (t *teamSigchainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
+func (t *teamSigchainPlayer) obsoleteActiveInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
 	if len(stateToUpdate.inner.InviteMetadatas) == 0 {
 		return
 	}
 
 	for _, uvs := range roleUpdates {
 		for _, uv := range uvs {
-			stateToUpdate.findAndObsoleteInviteForUser(uv.Uid)
+			stateToUpdate.findAndObsoleteActiveInviteForUser(uv.Uid)
 		}
 	}
 }
