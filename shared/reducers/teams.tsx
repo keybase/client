@@ -325,7 +325,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setAddMembersWizardRole]: (draftState, action) => {
     const {role} = action.payload
     draftState.addMembersWizard.role = role
-    if (role) {
+    if (role !== 'setIndividually') {
       // keep roles stored with indiv members in sync with top level one
       draftState.addMembersWizard.addingMembers.forEach(member => {
         member.role = role
