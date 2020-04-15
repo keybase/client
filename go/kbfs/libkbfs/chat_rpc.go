@@ -710,8 +710,6 @@ func (c *ChatRPC) NewChatActivity(
 	}
 	switch activityType {
 	case chat1.ChatActivityType_NEW_CONVERSATION:
-		c.config.GetPerfLog().CDebugf(ctx,
-			"newNotificationChannel ChatActivityType_NEW_CONVERSATION")
 		// If we learn about a new conversation for a given TLF,
 		// attempt to route it to the TLF.
 		info := arg.Activity.NewConversation()
@@ -753,8 +751,6 @@ func (c *ChatRPC) NewChatActivity(
 		}
 
 		if len(cbs) == 0 {
-			c.config.GetPerfLog().CDebugf(ctx,
-				"newNotificationChannel ChatActivityType_INCOMING_MESSAGE")
 			// No one is listening for this channel yet, so consider
 			// it a new channel.
 			err := c.newNotificationChannel(ctx, msg.ConvID, msg.Conv)
