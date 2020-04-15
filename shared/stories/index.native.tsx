@@ -5,6 +5,7 @@ import * as Kb from '../common-adapters'
 import {addDecorator} from '@storybook/react-native'
 import sharedStories from './shared-stories'
 import nativeStories from './platform-stories.native'
+import {SafeAreaProvider} from 'react-native-safe-area-context'
 // Load css
 import {_setSystemIsDarkMode} from '../styles/dark-mode'
 import {View} from 'react-native'
@@ -47,10 +48,12 @@ const RootWrapper = ({children}) => {
 
   if (__STORYSHOT__) {
     return (
-      <View style={{height: '100%', width: '100%'}}>
-        {children}
-        <View key="modal-root" />
-      </View>
+      <SafeAreaProvider>
+        <View style={{height: '100%', width: '100%'}}>
+          {children}
+          <View key="modal-root" />
+        </View>
+      </SafeAreaProvider>
     )
   } else {
     return (
