@@ -703,11 +703,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.messagesAdd]: (draftState, action) => {
     const {context, conversationIDKey, shouldClearOthers} = action.payload
-    logger.info(`messagesAdd: running in context: ${context.type}`)
     // pull out deletes and handle at the end
     const [messages, deletedMessages] = partition<Types.Message>(
       action.payload.messages,
       m => m.type !== 'deleted'
+    )
+    logger.info(
+      `messagesAdd: running in context: ${context.type} messages: ${messages.length} deleted: ${deletedMessages.length}`
     )
     // we want the clear applied when we call findExisting
     const messageOrdinals = new Map(draftState.messageOrdinals)
