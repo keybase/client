@@ -414,7 +414,7 @@ func TestTeamSigChainWithInvites(t *testing.T) {
 	}
 	checkInvite := func(s string, f func(i *keybase1.TeamInvite)) {
 		var i *keybase1.TeamInvite
-		tmpMD, ok := state.inner.InviteMetadatas[keybase1.TeamInviteID(s)]
+		tmpMD, ok := state.FindActiveInviteMDByID(keybase1.TeamInviteID(s))
 		if ok {
 			tmp := tmpMD.Invite
 			i = &tmp

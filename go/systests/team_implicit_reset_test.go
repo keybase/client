@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -365,6 +366,7 @@ func TestImplicitTeamResetNoPukEncore(t *testing.T) {
 	require.Equal(t, keybase1.TeamRole_OWNER, role)
 
 	invites := teamObj.GetActiveAndObsoleteInvites()
+	fmt.Printf("@@@ %#v\n", invites)
 	require.Equal(t, 0, len(invites), "leftover invite")
 }
 

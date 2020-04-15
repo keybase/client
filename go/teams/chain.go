@@ -482,13 +482,16 @@ func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite, teamSigMeta k
 
 func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID,
 	cancelTeamSigMeta keybase1.TeamSignatureMetadata) {
+	fmt.Printf("@@@ UPDATEINVITES-CANCELIN\n")
 	inviteMD, ok := t.inner.InviteMetadatas[i]
 	if !ok {
 		return
 	}
+	fmt.Printf("@@@ UPDATEINVITES-CANCELIN2\n")
 	inviteMD.Status = keybase1.NewTeamInviteMetadataStatusWithCancelled(keybase1.TeamInviteMetadataCancel{
 		TeamSigMeta: cancelTeamSigMeta,
 	})
+	fmt.Printf("@@@ UPDATEINVITES-CANCELIN23: %#v\n", inviteMD)
 	t.inner.InviteMetadatas[i] = inviteMD
 }
 
@@ -2229,14 +2232,17 @@ func (t *teamSigchainPlayer) updateMembership(stateToUpdate *TeamSigChainState, 
 }
 
 func (t *teamSigchainPlayer) updateInvites(stateToUpdate *TeamSigChainState, additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, teamSigMeta keybase1.TeamSignatureMetadata) {
+	fmt.Printf("@@@ UPDATEINVITES\n")
 	for _, invites := range additions {
 		for _, invite := range invites {
 			stateToUpdate.informNewInvite(invite, teamSigMeta)
 		}
 	}
+	fmt.Printf("@@@ UPDATEINVITES-CANCEL\n")
 	for _, cancelation := range cancelations {
 		stateToUpdate.informCanceledInvite(cancelation, teamSigMeta)
 	}
+	fmt.Printf("@@@ UPDATEINVITES-CANCEL2\n")
 }
 
 func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState,

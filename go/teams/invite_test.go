@@ -602,7 +602,7 @@ func TestTeamInvite64BitEtime(t *testing.T) {
 	team, _ := runUnitFromFilename(t, "multiple_use_invite_1000_years.json")
 
 	state := &team.chain().inner
-	require.Len(t, state.ActiveInvites, 1)
+	require.Len(t, state.ActiveInvites(), 1)
 
 	var inviteMD keybase1.TeamInviteMetadata
 	for _, inviteMD = range state.InviteMetadatas {

@@ -307,8 +307,8 @@ func (t *Team) WasMostRecentlyAddedByInvitelink(uv keybase1.UserVersion) bool {
 		return false
 	}
 	latestLogPointAddedAtIdx := len(logPoints) - 1
-	for _, usedInvites := range chain.UsedInvites {
-		for _, usedInvite := range usedInvites {
+	for _, inviteMD := range chain.InviteMetadatas {
+		for _, usedInvite := range inviteMD.UsedInvites {
 			if usedInvite.Uv == uv {
 				invitelinkLogPointAddedAtIdx := usedInvite.LogPoint
 				if invitelinkLogPointAddedAtIdx == latestLogPointAddedAtIdx {
@@ -1251,6 +1251,7 @@ func (t *Team) GetActiveAndObsoleteInvites() (ret map[keybase1.TeamInviteID]keyb
 		}
 		switch code {
 		case keybase1.TeamInviteMetadataStatusCode_ACTIVE, keybase1.TeamInviteMetadataStatusCode_OBSOLETE:
+			fmt.Printf("@@@; %#v\n", inviteMD)
 			ret[inviteID] = inviteMD.Invite
 		}
 	}
