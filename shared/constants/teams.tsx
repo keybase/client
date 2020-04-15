@@ -793,14 +793,20 @@ const annotatedInvitesToInviteDetails = (
           username = invite.displayName
         }
         invites.add({
-          email: invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.displayName : '',
+          email:
+            invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.email
+              ? invite.displayName
+              : '',
           id: invite.inviteMetadata.invite.id,
           name: [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink].includes(
             invite.inviteMetadata.invite.type.c
           )
             ? invite.displayName
             : '',
-          phone: invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.displayName : '',
+          phone:
+            invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.phone
+              ? invite.displayName
+              : '',
           role,
           username,
         })
