@@ -199,14 +199,19 @@ export const TeamMemberRow = (props: Props) => {
     )
 
     const canEnterMemberPage = props.youCanManageMembers && active
+    const massActionsProps = props.youCanManageMembers
+      ? {
+          containerStyleOverride: styles.listItemMargin,
+          icon: checkCircle,
+          iconStyleOverride: styles.checkCircle,
+        }
+      : {}
     return (
       <Kb.ListItem2
+        {...massActionsProps}
         action={anySelected ? null : actions}
         onlyShowActionOnHover="fade"
         height={Styles.isMobile ? 90 : 64}
-        icon={checkCircle}
-        iconStyleOverride={styles.checkCircle}
-        containerStyleOverride={styles.listItemMargin}
         type="Large"
         body={body}
         firstItem={props.firstItem}

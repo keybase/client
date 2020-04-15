@@ -83,6 +83,7 @@ const ChannelMemberRow = (props: Props) => {
   const onChat = () =>
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))
   const onEditMember = () =>
+    yourOperations.manageMembers &&
     username &&
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]}))
   const onOpenProfile = () => username && dispatch(ProfileGen.createShowUserProfile({username}))
@@ -216,14 +217,19 @@ const ChannelMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
+  const massActionsProps = yourOperations.manageMembers
+    ? {
+        containerStyleOverride: styles.listItemMargin,
+        icon: checkCircle,
+        iconStyleOverride: styles.checkCircle,
+      }
+    : {}
   return (
     <Kb.ListItem2
+      {...massActionsProps}
       action={anySelected ? null : actions}
       onlyShowActionOnHover="fade"
       height={Styles.isMobile ? 90 : 64}
-      icon={checkCircle}
-      iconStyleOverride={styles.checkCircle}
-      containerStyleOverride={styles.listItemMargin}
       type="Large"
       body={body}
       firstItem={props.firstItem}
