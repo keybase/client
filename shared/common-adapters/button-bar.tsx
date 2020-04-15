@@ -52,7 +52,7 @@ class ButtonBar extends React.PureComponent<Props> {
 
     const style = collapseStyles([
       this.props.direction === 'column' || !isTablet ? {width: '100%'} : undefined,
-      isTablet ? {maxWidth: 460} : {maxWidth: '100%'},
+      isTablet ? {maxWidth: 460} : undefined,
       {
         alignItems: this.props.fullWidth ? 'stretch' : 'center',
         ...(this.props.direction === 'column'
