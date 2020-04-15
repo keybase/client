@@ -51,6 +51,7 @@ const CreateSubteams = () => {
       }}
       footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
       allowOverflow={true}
+      backgroundStyle={styles.bg}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
         <Kb.Icon type="icon-illustration-teams-subteams-460-96" />
@@ -89,10 +90,10 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {backgroundColor: Styles.globalColors.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
+  bg: {backgroundColor: Styles.globalColors.blueGrey},
   body: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
-      backgroundColor: Styles.globalColors.blueGrey,
     },
     isElectron: {minHeight: 326},
     isMobile: {...Styles.globalStyles.flexOne},
