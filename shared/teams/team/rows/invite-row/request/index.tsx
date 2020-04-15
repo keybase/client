@@ -67,7 +67,7 @@ const TeamRequestRowOld = (props: Props) => {
           style={styles.ignoreButton}
           type="Danger"
         />
-        {!Styles.isMobile && <Kb.Icon onClick={onChat} style={styles.icon} type="iconfont-chat" />}
+        {!Styles.isPhone && <Kb.Icon onClick={onChat} style={styles.icon} type="iconfont-chat" />}
       </Kb.Box>
     </Kb.Box>
   )
