@@ -4,7 +4,14 @@ import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as UsersConstants from '../constants/users'
-import Text, {TextType, Background, StylesTextCrossPlatform, AllowedColors, LineClampType} from './text'
+import Text, {
+  TextType,
+  Background,
+  StylesTextCrossPlatform,
+  AllowedColors,
+  LineClampType,
+  TextTypeBold,
+} from './text'
 import {backgroundModeIsNegative} from './text.shared'
 
 export type User = {
@@ -18,7 +25,6 @@ export type User = {
 export type Props = {
   backgroundMode?: Background
   colorBroken?: boolean
-  colorFollowing?: boolean
   colorYou?: boolean | AllowedColors
   commaColor?: AllowedColors
   containerStyle?: Styles.StylesCrossPlatform
@@ -37,11 +43,10 @@ export type Props = {
   suffix?: string | null
   suffixType?: TextType
   title?: string
-  type: TextType
   underline?: boolean
   usernames: Array<string> | string
   withProfileCardPopup?: boolean
-}
+} & ({colorFollowing?: false; type: TextType} | {colorFollowing: boolean; type: TextTypeBold})
 
 // Mobile handles spaces correctly so don't insert anything
 const space = Styles.isMobile ? ` ` : <>&nbsp;</>

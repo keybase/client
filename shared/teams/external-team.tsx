@@ -234,7 +234,7 @@ const Member = ({member, firstItem}: {member: RPCGen.TeamMemberRole; firstItem: 
       icon={<Kb.Avatar size={32} username={member.username} />}
       body={
         <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.memberBody}>
-          <Kb.ConnectedUsernames type="BodySemibold" usernames={member.username} colorFollowing={true} />
+          <Kb.ConnectedUsernames type="BodyBold" usernames={member.username} colorFollowing={true} />
           <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="flex-start">
             {!!member.fullName && (
               <Kb.Text type="BodySmall" style={{flexShrink: 1}} lineClamp={1}>
