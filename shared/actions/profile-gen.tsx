@@ -92,6 +92,7 @@ type _UpdateUsernamePayload = {readonly username: string}
 type _UploadAvatarPayload = {readonly filename: string; readonly crop?: RPCTypes.ImageCropRect}
 type _WotVouchPayload = {
   readonly username: string
+  readonly guiID: string
   readonly verificationType: string
   readonly statement: string
   readonly otherText: string

@@ -166,8 +166,6 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {
           backgroundColor: Styles.globalColors.white,
-          height: 24,
-          width: 24,
         },
       }),
       invisible: {opacity: 0},

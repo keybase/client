@@ -3,7 +3,6 @@ package client
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -106,10 +105,9 @@ func (c *cmdWotList) Run() error {
 		return nil
 	}
 	for _, vouch := range res {
-		vouchTexts := strings.Join(vouch.VouchTexts, ", ")
 		line("Vouchee: %s", vouch.VoucheeUsername)
 		line("Voucher: %s", vouch.VoucherUsername)
-		line("Attestation: \"%s\"", vouchTexts)
+		line("Attestation: \"%s\"", vouch.VouchText)
 		line("Status: %s", vouch.Status)
 		if vouch.Status == keybase1.WotStatusType_PROPOSED {
 			if len(targetVouchee) > 0 && targetVouchee == me {
