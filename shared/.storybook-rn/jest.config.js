@@ -8,6 +8,7 @@ module.exports = {
   setupFiles: ['<rootDir>/node_modules/react-native/jest/setup.js', '<rootDir>/test/setupFiles-rn.js'],
   setupFilesAfterEnv: ['<rootDir>/test/setupTestFrameworkScriptFile-rn.js'],
   testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.tsOut/'],
+  testMatch: ['**/__rntests__/**'],
   preset: 'react-native',
   rootDir: '..',
   timers: 'fake',
