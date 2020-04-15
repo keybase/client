@@ -175,54 +175,56 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const {popupAnchor, setShowingPopup, popup} = useTeamLinkPopup(meta.teamname)
 
   const bottomDescriptorsAndButtons = (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny">
-      {!!details.description && (
-        <Kb.Text
-          type="Body"
-          lineClamp={3}
-          onClick={callbacks.onEditDescription}
-          className={Styles.classNames({'hover-underline': !!callbacks.onEditDescription})}
-          style={styles.clickable}
-        >
-          {details.description}
-        </Kb.Text>
-      )}
-      {meta.memberCount !== -1 && (
-        <Kb.Text type="BodySmall">
-          {meta.memberCount.toLocaleString()} {pluralize('member', meta.memberCount)}
-          {!!newMemberCount && ` · ${newMemberCount} new this week`}
-        </Kb.Text>
-      )}
-      <Activity level={activityLevel} style={styles.activity} />
-      <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-        {meta.isMember && <Kb.Button label="Chat" onClick={callbacks.onChat} small={true} />}
-        {yourOperations.editTeamDescription && (
-          <Kb.Button label="Edit" onClick={callbacks.onEditDescription} small={true} mode="Secondary" />
+    <>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny">
+        {!!details.description && (
+          <Kb.Text
+            type="Body"
+            lineClamp={3}
+            onClick={callbacks.onEditDescription}
+            className={Styles.classNames({'hover-underline': !!callbacks.onEditDescription})}
+            style={styles.clickable}
+          >
+            {details.description}
+          </Kb.Text>
         )}
-        <Kb.Button
-          label="Share"
-          onClick={() => setShowingPopup(true)}
-          small={true}
-          mode="Secondary"
-          ref={popupAnchor}
-        />
-        {popup}
-        <Kb.Button
-          mode="Secondary"
-          small={true}
-          ref={props.setAttachmentRef}
-          onClick={props.toggleShowingMenu}
-        >
-          <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
-        </Kb.Button>
-        <TeamMenu
-          attachTo={props.getAttachmentRef}
-          onHidden={props.toggleShowingMenu}
-          teamID={props.teamID}
-          visible={props.showingMenu}
-        />
+        {meta.memberCount !== -1 && (
+          <Kb.Text type="BodySmall">
+            {meta.memberCount.toLocaleString()} {pluralize('member', meta.memberCount)}
+            {!!newMemberCount && ` · ${newMemberCount} new this week`}
+          </Kb.Text>
+        )}
+        <Activity level={activityLevel} style={styles.activity} />
+        <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
+          {meta.isMember && <Kb.Button label="Chat" onClick={callbacks.onChat} small={true} />}
+          {yourOperations.editTeamDescription && (
+            <Kb.Button label="Edit" onClick={callbacks.onEditDescription} small={true} mode="Secondary" />
+          )}
+          <Kb.Button
+            label="Share"
+            onClick={() => setShowingPopup(true)}
+            small={true}
+            mode="Secondary"
+            ref={popupAnchor}
+          />
+          <Kb.Button
+            mode="Secondary"
+            small={true}
+            ref={props.setAttachmentRef}
+            onClick={props.toggleShowingMenu}
+          >
+            <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
+          </Kb.Button>
+          <TeamMenu
+            attachTo={props.getAttachmentRef}
+            onHidden={props.toggleShowingMenu}
+            teamID={props.teamID}
+            visible={props.showingMenu}
+          />
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+      {popup}
+    </>
   )
 
   const addInviteAndLinkBox =
