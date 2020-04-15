@@ -52,11 +52,19 @@ const CreateChannel = (props: Props) => {
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
   const numChannels = filteredChannels.length
-  const continueLabel = numChannels
+  const continueLabel = onSubmitChannels
+    ? `Create ${numChannels} ${pluralize('channel', numChannels)}`
+    : numChannels
     ? `Continue with ${numChannels} ${pluralize('channel', numChannels)}`
     : 'Continue without channels'
   const submitButton = (
-    <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} waiting={!!waiting} />
+    <Kb.Button
+      fullWidth={true}
+      label={continueLabel}
+      onClick={onContinue}
+      waiting={!!waiting}
+      disabled={!!props.onSubmitChannels && numChannels === 0}
+    />
   )
 
   return (
@@ -85,7 +93,7 @@ const CreateChannel = (props: Props) => {
           <ChannelInput key={idx} onChange={setChannel(idx)} value={value} onClear={() => onClear(idx)} />
         ))}
         <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
-        {numChannels === 0 && ( // TODO: Y2K-1700 change this text if props.onContinue is passed in
+        {numChannels === 0 && !props.onSubmitChannels && (
           <Kb.Text type="BodySmall" style={styles.noChannelsText}>
             Your team will be a simple conversation. You can always make it a big team later by adding
             channels.

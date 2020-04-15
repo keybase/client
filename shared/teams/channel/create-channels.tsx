@@ -4,22 +4,19 @@ import * as TeamsTypes from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
-import CreateChannels from '../new-team/wizard/create-channels'
+import CreateChannelsModal from '../new-team/wizard/create-channels'
 
 type Props = Container.RouteProps<{teamID: TeamsTypes.TeamID}>
 
-export default (props: Props) => {
+const CreateChannels = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', TeamsTypes.noTeamID)
   const dispatch = Container.useDispatch()
   React.useEffect(() => () => dispatch(TeamsGen.createSetChannelCreationError({error: ''})), [
-    props,
     teamID,
     dispatch,
   ])
-  const [waiting, error] = Container.useSelector(s => [
-    s.teams.creatingChannels,
-    s.teams.errorInChannelCreation,
-  ])
+  const waiting = Container.useSelector(s => s.teams.creatingChannels)
+  const error = Container.useSelector(s => s.teams.errorInChannelCreation)
   const prevWaiting = Container.usePrevious(waiting)
   const success = prevWaiting && !waiting && !error
 
@@ -48,7 +45,12 @@ export default (props: Props) => {
     )
   }
   return (
-    <CreateChannels onSubmitChannels={onSubmitChannels} teamID={teamID} waiting={waiting} banners={banners} />
+    <CreateChannelsModal
+      onSubmitChannels={onSubmitChannels}
+      teamID={teamID}
+      waiting={waiting}
+      banners={banners}
+    />
   )
 }
 
@@ -59,3 +61,5 @@ const styles = Styles.styleSheetCreate(() => ({
     zIndex: 1,
   },
 }))
+
+export default CreateChannels
