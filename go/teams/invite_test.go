@@ -556,7 +556,7 @@ func TestTeamPlayerBadCompletedInvites(t *testing.T) {
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
 	require.NoError(t, err)
-	_, found := state.FindActiveInviteMDByID(keybase1.TeamInviteID(inviteID))
+	_, found := state.FindActiveInviteMDByID(inviteID)
 	require.True(t, found)
 
 	teamSectionCM := makeTestSCTeamSection(team)
@@ -712,7 +712,7 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
 	require.NoError(t, err)
-	_, found := state.FindActiveInviteMDByID(keybase1.TeamInviteID(inviteID))
+	_, found := state.FindActiveInviteMDByID(inviteID)
 	require.True(t, found)
 
 	// Add member without using the invite first.
