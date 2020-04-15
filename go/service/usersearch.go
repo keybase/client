@@ -575,8 +575,8 @@ func (h *UserSearchHandler) keybaseSearchWithContacts(mctx libkb.MetaContext, ar
 
 func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("USEARCH")
-	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#UserSearch(s=%q, q=%q)", arg.Service, arg.Query),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("UserSearch#UserSearch(s=%q, q=%q)", arg.Service, arg.Query),
+		&err)()
 
 	if arg.Service == "" {
 		return nil, fmt.Errorf("unexpected empty `Service` argument")
@@ -600,8 +600,8 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 
 func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.GetNonUserDetailsArg) (res keybase1.NonUserDetails, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#GetNonUserDetails(%q)", arg.Assertion),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("UserSearch#GetNonUserDetails(%q)", arg.Assertion),
+		&err)()
 
 	actx := mctx.G().MakeAssertionContext(mctx)
 	url, err := libkb.ParseAssertionURL(actx, arg.Assertion, true /* strict */)
@@ -675,8 +675,8 @@ func (h *UserSearchHandler) BulkEmailOrPhoneSearch(ctx context.Context,
 	arg keybase1.BulkEmailOrPhoneSearchArg) (ret []keybase1.EmailOrPhoneNumberSearchResult, err error) {
 
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#BulkEmailOrPhoneSearch(%d emails,%d phones)",
-		len(arg.Emails), len(arg.PhoneNumbers)), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("UserSearch#BulkEmailOrPhoneSearch(%d emails,%d phones)",
+		len(arg.Emails), len(arg.PhoneNumbers)), &err)()
 
 	// Use `emails` package to split comma/newline separated list of emails
 	// into actual list of valid emails.

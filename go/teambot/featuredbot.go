@@ -42,7 +42,7 @@ func (l *FeaturedBotLoader) debug(mctx libkb.MetaContext, msg string, args ...in
 }
 
 func (l *FeaturedBotLoader) SearchLocal(mctx libkb.MetaContext, arg keybase1.SearchLocalArg) (res keybase1.SearchRes, err error) {
-	defer mctx.TraceTimed("FeaturedBotLoader: SearchLocal", func() error { return err })()
+	defer mctx.Trace("FeaturedBotLoader: SearchLocal", &err)()
 	if arg.Limit == 0 {
 		return res, nil
 	}
@@ -91,7 +91,7 @@ func (l *FeaturedBotLoader) SearchLocal(mctx libkb.MetaContext, arg keybase1.Sea
 }
 
 func (l *FeaturedBotLoader) Search(mctx libkb.MetaContext, arg keybase1.SearchArg) (res keybase1.SearchRes, err error) {
-	defer mctx.TraceTimed("FeaturedBotLoader: Search", func() error { return err })()
+	defer mctx.Trace("FeaturedBotLoader: Search", &err)()
 	defer func() {
 		if err == nil {
 			res.Bots = l.present(mctx, res.Bots)
@@ -175,7 +175,7 @@ func (l *FeaturedBotLoader) shouldRefresh(cache *featuredBotsCache) bool {
 }
 
 func (l *FeaturedBotLoader) syncFeaturedBots(mctx libkb.MetaContext, arg keybase1.FeaturedBotsArg, cache *featuredBotsCache) (res keybase1.FeaturedBotsRes, err error) {
-	defer mctx.TraceTimed("FeaturedBotLoader: syncFeaturedBots", func() error { return err })()
+	defer mctx.Trace("FeaturedBotLoader: syncFeaturedBots", &err)()
 	if !l.shouldRefresh(cache) {
 		return res, nil
 	}
@@ -184,7 +184,7 @@ func (l *FeaturedBotLoader) syncFeaturedBots(mctx libkb.MetaContext, arg keybase
 		l.debug(mctx, "syncFeaturedBots: failed to load from server: %s", err)
 		return res, err
 	}
-	if cache != nil && !res.Eq(cache.Data) { // only write out data if it changed
+	if cache == nil || !res.Eq(cache.Data) { // only write out data if it changed
 		if err := l.storeFeaturedBots(mctx, arg, res); err != nil {
 			l.debug(mctx, "syncFeaturedBots: failed to store result: %s", err)
 			return res, err
@@ -195,7 +195,7 @@ func (l *FeaturedBotLoader) syncFeaturedBots(mctx libkb.MetaContext, arg keybase
 }
 
 func (l *FeaturedBotLoader) FeaturedBots(mctx libkb.MetaContext, arg keybase1.FeaturedBotsArg) (res keybase1.FeaturedBotsRes, err error) {
-	defer mctx.TraceTimed("FeaturedBotLoader: FeaturedBots", func() error { return err })()
+	defer mctx.Trace("FeaturedBotLoader: FeaturedBots", &err)()
 	defer func() {
 		if err == nil {
 			res.Bots = l.present(mctx, res.Bots)
@@ -209,7 +209,6 @@ func (l *FeaturedBotLoader) FeaturedBots(mctx libkb.MetaContext, arg keybase1.Fe
 	if err != nil {
 		l.debug(mctx, "FeaturedBots: failed to load from local storage: %s", err)
 	} else if found {
-		l.debug(mctx, "FeaturedBots: returning cached data")
 		l.G().NotifyRouter.HandleFeaturedBots(mctx.Ctx(), l.present(mctx, cache.Data.Bots), arg.Limit, arg.Offset)
 		go func() {
 			mctx = libkb.NewMetaContextBackground(l.G())

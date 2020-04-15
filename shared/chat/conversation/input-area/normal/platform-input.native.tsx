@@ -99,11 +99,13 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     }
   }
 
-  // Enter should send a message like on desktop, when a hardware keyboard's attached.
+  // Enter should send a message like on desktop, when a hardware keyboard's
+  // attached.  On Android we get "hardware" keypresses from soft keyboards,
+  // so check whether a soft keyboard's up.
   private handleHardwareEnterPress = (hwKeyEvent: {pressedKey: string}) => {
     switch (hwKeyEvent.pressedKey) {
       case 'enter':
-        !isOpen() ? this.onSubmit() : this.insertText('\n')
+        Styles.isIOS || !isOpen() ? this.onSubmit() : this.insertText('\n')
         break
       case 'shift-enter':
         this.insertText('\n')
@@ -374,43 +376,39 @@ const Buttons = (p: ButtonsProps) => {
     )
 
   const explodingIcon = !isEditing && !cannotWrite && (
-    <Kb.NativeTouchableWithoutFeedback onPress={toggleShowingMenu}>
-      <Kb.Box style={styles.explodingWrapper}>
-        {isExploding ? (
-          <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
-            <Kb.Text type="BodyTinyBold" negative={true} style={styles.explodingText}>
-              {formatDurationShort(explodingModeSeconds * 1000)}
-            </Kb.Text>
-          </Kb.Box2>
-        ) : (
-          <Kb.Icon
-            color={isExploding ? Styles.globalColors.black : null}
-            type="iconfont-timer"
-            fontSize={22}
-          />
-        )}
-      </Kb.Box>
-    </Kb.NativeTouchableWithoutFeedback>
+    <Kb.ClickableBox style={styles.explodingWrapper} onClick={toggleShowingMenu}>
+      {isExploding ? (
+        <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
+          <Kb.Text type="BodyTinyBold" negative={true} style={styles.explodingText}>
+            {formatDurationShort(explodingModeSeconds * 1000)}
+          </Kb.Text>
+        </Kb.Box2>
+      ) : (
+        <Kb.Icon color={isExploding ? Styles.globalColors.black : null} type="iconfont-timer" />
+      )}
+    </Kb.ClickableBox>
   )
 
   return (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      gap="small"
-      alignItems="center"
-      style={styles.actionContainer}
-    >
-      {isEditing && <Kb.Button small={true} onClick={onCancelEditing} label="Cancel" type="Dim" />}
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.actionContainer}>
+      {isEditing && (
+        <Kb.Button
+          style={styles.editingButton}
+          small={true}
+          onClick={onCancelEditing}
+          label="Cancel"
+          type="Dim"
+        />
+      )}
       {explodingIcon}
+      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" />
+      <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
       {!hasText && (
-        <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end">
-          <Kb.Icon onClick={openEmojiPicker} type="iconfont-reacji" />
-          <Kb.Icon onClick={insertMentionMarker} type="iconfont-mention" />
-          <Kb.Icon onClick={openFilePicker} type="iconfont-camera" />
-          <AudioRecorder conversationIDKey={conversationIDKey} />
-          <Kb.Icon onClick={openMoreMenu} type="iconfont-add" />
+        <Kb.Box2 direction="horizontal" alignItems="flex-end">
+          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" />
+          <AudioRecorder conversationIDKey={conversationIDKey} iconStyle={styles.audioRecorderIconStyle} />
+          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" />
         </Kb.Box2>
       )}
       {hasText && (
@@ -421,7 +419,7 @@ const Buttons = (p: ButtonsProps) => {
           disabled={!hasText}
           label={isEditing ? 'Save' : 'Send'}
           labelStyle={isExploding ? styles.explodingSendBtnLabel : undefined}
-          style={isExploding ? styles.explodingSendBtn : undefined}
+          style={isExploding ? styles.explodingSendBtn : styles.sendBtn}
         />
       )}
     </Kb.Box2>
@@ -440,7 +438,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
           style={{
             transform: [{rotate: concat(add(45, rotate), 'deg'), scale: 0.7}],
           }}
-          color={Styles.globalColors.black_20}
+          color={Styles.globalColors.black_35}
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom}>
@@ -457,7 +455,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
               },
             ],
           }}
-          color={Styles.globalColors.black_20}
+          color={Styles.globalColors.black_35}
         />
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -471,9 +469,10 @@ const styles = Styles.styleSheetCreate(
     ({
       actionContainer: {
         flexShrink: 0,
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
         minHeight: 32,
+      },
+      audioRecorderIconStyle: {
+        padding: Styles.globalMargins.tiny,
       },
       container: {
         alignItems: 'center',
@@ -485,7 +484,10 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         minHeight: 1,
         overflow: 'hidden',
-        padding: Styles.globalMargins.tiny,
+        ...Styles.padding(0, 0, Styles.globalMargins.tiny, 0),
+      },
+      editingButton: {
+        marginRight: Styles.globalMargins.tiny,
       },
       editingTabStyle: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -500,6 +502,7 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.black,
         borderRadius: Styles.globalMargins.mediumLarge / 2,
         height: 28,
+        margin: Styles.globalMargins.xtiny,
         width: 28,
       },
       explodingContainer: {
@@ -507,6 +510,7 @@ const styles = Styles.styleSheetCreate(
       },
       explodingSendBtn: {
         backgroundColor: Styles.globalColors.black,
+        marginRight: Styles.globalMargins.tiny,
       },
       explodingSendBtnLabel: {
         color: Styles.globalColors.white,
@@ -516,8 +520,11 @@ const styles = Styles.styleSheetCreate(
         lineHeight: 16,
       },
       explodingWrapper: {
-        height: 30,
-        width: 30,
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        height: 38,
+        justifyContent: 'center',
+        width: 36,
       },
       iconBottom: {
         bottom: 0,
@@ -548,10 +555,14 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       inputContainer: {
+        ...Styles.padding(0, Styles.globalMargins.tiny),
         flexGrow: 1,
         flexShrink: 1,
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
+      },
+      sendBtn: {
+        marginRight: Styles.globalMargins.tiny,
       },
     } as const)
 )

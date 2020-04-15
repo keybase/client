@@ -34,10 +34,15 @@ const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row
     key: (c && c.length && c[0] && c[0].short_name) || String(idx),
   }))
 
+// Remove those that have been obsolete and have a replacement. But it doens't
+// cover cases like :man-facepalming: vs :face_palm: even though they look
+// same.
+const removeObsolete = (emojis: Array<EmojiData>) => emojis.filter(e => !e.obsoleted_by)
+
 const getEmojiSections = memoize(
   (emojisPerLine: number): Array<Section> =>
     _getData().categories.map(c => ({
-      data: chunkEmojis(c.emojis, emojisPerLine),
+      data: chunkEmojis(removeObsolete(c.emojis), emojisPerLine),
       key: c.category,
       title: c.category,
     }))
@@ -71,6 +76,7 @@ const singleEmojiWidth = isMobile ? 32 : 26
 const emojiPadding = 5
 const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
 const maxEmojiSearchResults = 50
+const notFoundHeight = 224
 
 type Row = {emojis: Array<EmojiData>; key: string}
 type Section = _Section<
@@ -83,8 +89,10 @@ type Section = _Section<
 >
 
 type Props = {
+  addEmoji: () => void
   topReacjis: Array<RPCTypes.UserReacji>
   filter?: string
+  hideFrequentEmoji: boolean
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
   skinTone?: Types.EmojiSkinTone
@@ -109,7 +117,7 @@ const emojiGroupsToEmojiArrayArray = (
   emojiGroups.map(emojiGroup => ({
     emojis:
       emojiGroup.emojis
-        ?.map(e => RPCToEmojiData(e))
+        ?.map(e => RPCToEmojiData(e, false))
         .sort((a, b) => a.short_name.localeCompare(b.short_name)) || [],
     name: emojiGroup.name,
   }))
@@ -152,12 +160,12 @@ const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
   return (filter: string): Array<EmojiData> => {
     return [
       ...customEmojiIndex.filter(filter),
-      ...emojiIndex
-        // @ts-ignore type wrong?
-        .search(filter, {maxResults: maxEmojiSearchResults})
-        .map((res: {id: string}) => emojiNameMap[res.id])
-        // MUST sort this so its stable
-        .sort((a: any, b: any) => a.sort_order - b.sort_order),
+      ...removeObsolete(
+        emojiIndex
+          // @ts-ignore type wrong?
+          .search(filter, {maxResults: maxEmojiSearchResults})
+          .map((res: {id: string}) => emojiNameMap[res.id])
+      ),
     ]
   }
 }
@@ -167,6 +175,7 @@ const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWid
 const getSectionsAndBookmarks = (
   width: number,
   topReacjis: Array<RPCTypes.UserReacji>,
+  hideTopReacjis: boolean,
   customEmojiGroups?: RPCChatGen.EmojiGroup[]
 ) => {
   if (!width) {
@@ -177,7 +186,7 @@ const getSectionsAndBookmarks = (
   const sections: Array<Section> = []
   const bookmarks: Array<Bookmark> = []
 
-  if (topReacjis.length) {
+  if (topReacjis.length && !hideTopReacjis) {
     const frequentSection = getFrequentSection(topReacjis, customEmojiGroups || emptyArray, emojisPerLine)
     bookmarks.push({
       coveredSectionKeys: new Set([frequentSection.key]),
@@ -211,6 +220,12 @@ const getSectionsAndBookmarks = (
     bookmarks.push(bookmark)
   }
 
+  sections.push({
+    data: [],
+    key: 'not-found',
+    title: 'not-found',
+  })
+
   return {bookmarks, sections}
 }
 
@@ -224,7 +239,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
   private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
-    const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier)
+    const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"
@@ -299,10 +314,26 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     200
   )
 
+  private makeNotFound = () => (
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.notFoundContainer}>
+      <Kb.Icon type="icon-empty-emoji-126-96" />
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+        <Kb.Text type="BodySmall" center={true}>
+          Still haven’t found what you’re
+        </Kb.Text>
+        <Kb.Text type="BodySmall" center={true}>
+          looking for?
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.Button mode="Secondary" label="Add custom emoji" small={true} onClick={this.props.addEmoji} />
+    </Kb.Box2>
+  )
+
   render() {
     const {bookmarks, sections} = getSectionsAndBookmarks(
       this.props.width,
       this.props.topReacjis,
+      this.props.hideFrequentEmoji,
       this.props.customEmojiGroups
     )
     const emojisPerLine = getEmojisPerLine(this.props.width)
@@ -322,8 +353,8 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           direction="horizontal"
           fullWidth={true}
           centerChildren={true}
-          style={Styles.globalStyles.flexGrow}
           alignItems="flex-start"
+          style={Styles.globalStyles.flexGrow}
         >
           <Kb.Box2
             direction="horizontal"
@@ -335,6 +366,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
             {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
               makeEmojiPlaceholder(index)
             )}
+            {this.makeNotFound()}
           </Kb.Box2>
         </Kb.Box2>
       )
@@ -354,14 +386,18 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           <Kb.SectionList
             ref={this.sectionListRef}
             getItemHeight={() => emojiWidthWithPadding}
-            getSectionHeaderHeight={() => 32}
+            getSectionHeaderHeight={sectionIndex =>
+              sections[sectionIndex].key === 'not-found' ? notFoundHeight : 32
+            }
             keyboardShouldPersistTaps="handled"
             initialNumToRender={14}
             sections={sections}
             onSectionChange={this.onSectionChange}
             stickySectionHeadersEnabled={Styles.isMobile}
             renderItem={({item}: {item: Row; index: number}) => this.getEmojiRow(item, emojisPerLine)}
-            renderSectionHeader={({section}) => this.getSectionHeader(section.title)}
+            renderSectionHeader={({section}) =>
+              section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)
+            }
           />
         </Kb.Box2>
       </>
@@ -393,8 +429,11 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
       },
       emoji: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
         borderRadius: 2,
-        padding: emojiPadding,
+        height: emojiWidthWithPadding,
+        justifyContent: 'center',
         width: emojiWidthWithPadding,
       },
       emojiPlaceholder: {
@@ -407,6 +446,11 @@ const styles = Styles.styleSheetCreate(
       },
       flexWrap: {
         flexWrap: 'wrap',
+      },
+      notFoundContainer: {
+        height: notFoundHeight,
+        justifyContent: 'space-between',
+        ...Styles.padding(Styles.globalMargins.medium, 0),
       },
       sectionHeader: {
         alignItems: 'center',

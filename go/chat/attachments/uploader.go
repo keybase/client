@@ -205,7 +205,7 @@ func (u *Uploader) SetPreviewTempDir(dir string) {
 }
 
 func (u *Uploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {
-	defer u.Trace(ctx, func() error { return nil }, "Complete(%s)", outboxID)()
+	defer u.Trace(ctx, nil, "Complete(%s)", outboxID)()
 	status, err := u.getStatus(ctx, outboxID)
 	if err != nil {
 		u.Debug(ctx, "Complete: failed to get outboxID: %s", err)
@@ -226,7 +226,7 @@ func (u *Uploader) clearTempDirFromOutboxID(outboxID chat1.OutboxID) {
 }
 
 func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res types.AttachmentUploaderResultCb, err error) {
-	defer u.Trace(ctx, func() error { return err }, "Retry(%s)", outboxID)()
+	defer u.Trace(ctx, &err, "Retry(%s)", outboxID)()
 	ustatus, err := u.getStatus(ctx, outboxID)
 	if err != nil {
 		return nil, err
@@ -248,7 +248,7 @@ func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res type
 }
 
 func (u *Uploader) Cancel(ctx context.Context, outboxID chat1.OutboxID) (err error) {
-	defer u.Trace(ctx, func() error { return err }, "Cancel(%s)", outboxID)()
+	defer u.Trace(ctx, &err, "Cancel(%s)", outboxID)()
 	// check if we are actively uploading the outbox ID and cancel it
 	u.Lock()
 	var ch chan types.AttachmentUploadResult
@@ -270,7 +270,7 @@ func (u *Uploader) Cancel(ctx context.Context, outboxID chat1.OutboxID) (err err
 }
 
 func (u *Uploader) Status(ctx context.Context, outboxID chat1.OutboxID) (status types.AttachmentUploaderTaskStatus, res types.AttachmentUploadResult, err error) {
-	defer u.Trace(ctx, func() error { return err }, "Status(%s)", outboxID)()
+	defer u.Trace(ctx, &err, "Status(%s)", outboxID)()
 	ustatus, err := u.getStatus(ctx, outboxID)
 	if err != nil {
 		return status, res, err
@@ -309,7 +309,7 @@ func (u *Uploader) saveTask(ctx context.Context, uid gregor1.UID, convID chat1.C
 
 func (u *Uploader) Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res types.AttachmentUploaderResultCb, err error) {
-	defer u.Trace(ctx, func() error { return err }, "Register(%s)", outboxID)()
+	defer u.Trace(ctx, &err, "Register(%s)", outboxID)()
 	// Write down the task information
 	if err := u.saveTask(ctx, uid, convID, outboxID, title, filename, metadata, callerPreview); err != nil {
 		return nil, err

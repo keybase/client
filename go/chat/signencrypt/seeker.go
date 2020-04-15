@@ -126,7 +126,7 @@ func (r *decodingReadSeeker) getReadaheadFactor() int64 {
 }
 
 func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
-	defer r.Trace(r.ctx, func() error { return err }, "Read(%v,%v)", r.offset, len(res))()
+	defer r.Trace(r.ctx, &err, "Read(%v,%v)", r.offset, len(res))()
 	if r.offset >= r.size {
 		return 0, io.EOF
 	}
@@ -179,7 +179,7 @@ func (r *decodingReadSeeker) Read(res []byte) (n int, err error) {
 }
 
 func (r *decodingReadSeeker) Seek(offset int64, whence int) (res int64, err error) {
-	defer r.Trace(r.ctx, func() error { return err }, "Seek(%v,%v)", offset, whence)()
+	defer r.Trace(r.ctx, &err, "Seek(%v,%v)", offset, whence)()
 	switch whence {
 	case io.SeekStart:
 		r.offset = offset

@@ -1536,6 +1536,40 @@ func TestPairwiseMACChecker(t *testing.T) {
 	})
 }
 
+func TestEphemeralTopicType(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TestEphemeralTopicType", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_EMOJI, mt)
+		ctx1 := ctc.as(t, users[0]).startCtx
+
+		tc1 := ctc.world.Tcs[users[0].Username]
+		uid1 := users[0].User.GetUID()
+		ri1 := ctc.as(t, users[0]).ri
+		getRI1 := func() chat1.RemoteInterface { return ri1 }
+		boxer1 := NewBoxer(tc1.Context())
+		g1 := globals.NewContext(tc1.G, tc1.ChatG)
+		blockingSender1 := NewBlockingSender(g1, boxer1, getRI1)
+
+		text := "hi"
+		ephemeralMetadata := &chat1.MsgEphemeralMetadata{
+			Lifetime: 100000,
+		}
+		msg := textMsgWithSender(t, text, uid1.ToBytes(), chat1.MessageBoxedVersion_V3)
+		msg.ClientHeader.EphemeralMetadata = ephemeralMetadata
+		_, _, err := blockingSender1.Send(ctx1, conv.Id, msg, 0, nil, nil, nil)
+		require.Error(t, err)
+	})
+}
+
 func TestProcessDuplicateReactionMsgs(t *testing.T) {
 	ctx, world, ri, _, baseSender, listener := setupTest(t, 1)
 	defer world.Cleanup()

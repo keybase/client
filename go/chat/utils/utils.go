@@ -535,22 +535,22 @@ func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}
 	}
 }
 
-func (d DebugLabeler) Trace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
-	return d.trace(ctx, d.G().GetLog(), f, format, args...)
+func (d DebugLabeler) Trace(ctx context.Context, err *error, format string, args ...interface{}) func() {
+	return d.trace(ctx, d.G().GetLog(), err, format, args...)
 }
 
-func (d DebugLabeler) PerfTrace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
-	return d.trace(ctx, d.G().GetPerfLog(), f, format, args...)
+func (d DebugLabeler) PerfTrace(ctx context.Context, err *error, format string, args ...interface{}) func() {
+	return d.trace(ctx, d.G().GetPerfLog(), err, format, args...)
 }
 
-func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, f func() error, format string, args ...interface{}) func() {
+func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, err *error, format string, args ...interface{}) func() {
 	if d.showLog() {
 		msg := fmt.Sprintf(format, args...)
 		start := time.Now()
 		log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
 			log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
-				libkb.ErrToOk(f()), time.Since(start))
+				libkb.ErrToOkPtr(err), time.Since(start))
 		}
 	}
 	return func() {}
@@ -1153,7 +1153,7 @@ func GetMsgSnippetBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return msgBody.Text().Body,
-			PresentDecoratedSnippet(ctx, g, msgBody.Text().Body, uid, convID, msg.GetMessageType(), emojis)
+			PresentDecoratedSnippet(ctx, g, msgBody.Text().Body, uid, msg.GetMessageType(), emojis)
 	case chat1.MessageType_EDIT:
 		return msgBody.Edit().Body, ""
 	case chat1.MessageType_FLIP:
@@ -1292,7 +1292,7 @@ func GetDesktopNotificationSnippet(ctx context.Context, g *globals.Context,
 		return emoji.Sprintf("%sreacted to your message with %v", prefix, reaction)
 	default:
 		decoration, snippetBody, _ := GetMsgSnippet(ctx, g, uid, msg, *conv, currentUsername)
-		return fmt.Sprintf("%s %s", decoration.ToEmoji(), snippetBody)
+		return emoji.Sprintf("%s %s", decoration.ToEmoji(), snippetBody)
 	}
 }
 
@@ -1326,7 +1326,7 @@ func PresentRemoteConversationAsBigTeamChannelRow(ctx context.Context, rc types.
 	return res
 }
 
-func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
+func PresentRemoteConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
 	var tlfName string
 	rawConv := rc.Conv
 	latest, err := PickLatestMessageSummary(rawConv, nil)
@@ -1360,9 +1360,11 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 		chat1.NewConversationCommandGroupsWithBuiltin(g.CommandsSource.GetBuiltinCommandType(ctx, rc))
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
-			ChannelName:       rc.LocalMetadata.TopicName,
-			Headline:          rc.LocalMetadata.Headline,
-			HeadlineDecorated: DecorateWithLinks(ctx, EscapeForDecorate(ctx, rc.LocalMetadata.Headline)),
+			ChannelName: rc.LocalMetadata.TopicName,
+			Headline:    rc.LocalMetadata.Headline,
+			HeadlineDecorated: DecorateWithLinks(ctx,
+				PresentDecoratedSnippet(ctx, g, rc.LocalMetadata.Headline, uid,
+					chat1.MessageType_HEADLINE, rc.LocalMetadata.HeadlineEmojis)),
 			Snippet:           rc.LocalMetadata.Snippet,
 			SnippetDecoration: rc.LocalMetadata.SnippetDecoration,
 			WriterNames:       rc.LocalMetadata.WriterNames,
@@ -1376,9 +1378,10 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	return res
 }
 
-func PresentRemoteConversations(ctx context.Context, g *globals.Context, rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
+func PresentRemoteConversations(ctx context.Context, g *globals.Context, uid gregor1.UID, rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
+	res = make([]chat1.UnverifiedInboxUIItem, 0, len(rcs))
 	for _, rc := range rcs {
-		res = append(res, PresentRemoteConversation(ctx, g, rc))
+		res = append(res, PresentRemoteConversation(ctx, g, uid, rc))
 	}
 	return res
 }
@@ -1404,16 +1407,17 @@ func PresentRemoteConversationAsSearchHit(conv types.RemoteConversation, usernam
 }
 
 func PresentRemoteConversationsAsSearchHits(convs []types.RemoteConversation, username string) (res []chat1.UIChatSearchConvHit) {
+	res = make([]chat1.UIChatSearchConvHit, 0, len(convs))
 	for _, c := range convs {
 		res = append(res, PresentRemoteConversationAsSearchHit(c, username))
 	}
 	return res
 }
 
-func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawConv chat1.ConversationErrorLocal) (res chat1.InboxUIItemError) {
+func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, uid gregor1.UID, rawConv chat1.ConversationErrorLocal) (res chat1.InboxUIItemError) {
 	res.Message = rawConv.Message
 	res.RekeyInfo = rawConv.RekeyInfo
-	res.RemoteConv = PresentRemoteConversation(ctx, g, types.RemoteConversation{
+	res.RemoteConv = PresentRemoteConversation(ctx, g, uid, types.RemoteConversation{
 		Conv:      rawConv.RemoteConv,
 		ConvIDStr: rawConv.RemoteConv.GetConvID().ConvIDStr(),
 	})
@@ -1433,6 +1437,7 @@ func getParticipantType(username string) chat1.UIParticipantType {
 }
 
 func PresentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
+	participants = make([]chat1.UIParticipant, 0, len(rawParticipants))
 	for _, p := range rawParticipants {
 		participantType := getParticipantType(p.Username)
 		participants = append(participants, chat1.UIParticipant{
@@ -1465,7 +1470,8 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 		GetConvSnippet(ctx, g, uid, rawConv, g.GetEnv().GetUsername().String())
 	res.Channel = rawConv.Info.TopicName
 	res.Headline = rawConv.Info.Headline
-	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
+	res.HeadlineDecorated = DecorateWithLinks(ctx, PresentDecoratedSnippet(ctx, g, rawConv.Info.Headline, uid,
+		chat1.MessageType_HEADLINE, rawConv.Info.HeadlineEmojis))
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
@@ -1621,7 +1627,7 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 		}
 		if hasFullURL {
 			var cached bool
-			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false, false)
+			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false, false, false)
 			cached, err = g.AttachmentURLSrv.GetAttachmentFetcher().IsAssetLocal(ctx, asset)
 			if err != nil {
 				cached = false
@@ -1629,7 +1635,7 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 			info.FullUrlCached = cached
 		}
 		if hasPreviewURL {
-			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true, false)
+			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true, false, false)
 		}
 		atyp, err := asset.Metadata.AssetType()
 		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && strings.HasPrefix(info.MimeType, "video") {
@@ -1740,7 +1746,7 @@ func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, uid gr
 		var desc chat1.UIReactionDesc
 		if shouldDecorate {
 			desc.Decorated = g.EmojiSource.Decorate(ctx, key, uid,
-				convID, chat1.MessageType_REACTION, msg.Emojis, false)
+				chat1.MessageType_REACTION, msg.Emojis)
 		}
 		desc.Users = make(map[string]chat1.Reaction)
 		for username, reaction := range value {
@@ -1797,30 +1803,21 @@ func PresentDecoratedTextNoMentions(ctx context.Context, body string) string {
 }
 
 func PresentDecoratedSnippet(ctx context.Context, g *globals.Context, body string,
-	uid gregor1.UID, convID chat1.ConversationID, msgType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
+	uid gregor1.UID, msgType chat1.MessageType, emojis []chat1.HarvestedEmoji) string {
 	body = EscapeForDecorate(ctx, body)
 	body = EscapeShrugs(ctx, body)
-	return g.EmojiSource.Decorate(ctx, body, uid, convID, msgType, emojis, true)
+	return g.EmojiSource.Decorate(ctx, body, uid, msgType, emojis)
 }
 
 func PresentDecoratedPendingTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msg chat1.MessagePlaintext) *string {
-	msgBody := msg.MessageBody
-	typ, err := msgBody.MessageType()
+	msg chat1.MessagePlaintext) *string {
+	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		return nil
 	}
-	var body string
-	switch typ {
-	case chat1.MessageType_TEXT:
-		body = msgBody.Text().Body
-	case chat1.MessageType_REACTION:
-		body = msgBody.Reaction().Body
-	default:
-		return nil
-	}
+	body := msg.MessageBody.TextForDecoration()
 	body = PresentDecoratedTextNoMentions(ctx, body)
-	body = g.EmojiSource.Decorate(ctx, body, uid, convID, typ, msg.Emojis, false)
+	body = g.EmojiSource.Decorate(ctx, body, uid, typ, msg.Emojis)
 	return &body
 }
 
@@ -1831,31 +1828,23 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	if err != nil {
 		return nil
 	}
-	var body string
+	body := msgBody.TextForDecoration()
+	if len(body) == 0 {
+		return nil
+	}
 	var payments []chat1.TextPayment
 	switch typ {
 	case chat1.MessageType_TEXT:
-		body = msgBody.Text().Body
 		payments = msgBody.Text().Payments
-	case chat1.MessageType_FLIP:
-		body = msgBody.Flip().Text
-	case chat1.MessageType_REQUESTPAYMENT:
-		body = msgBody.Requestpayment().Note
-	case chat1.MessageType_ATTACHMENT:
-		body = msgBody.Attachment().Object.Title
 	case chat1.MessageType_SYSTEM:
 		body = systemMsgPresentText(ctx, uid, msg)
-	default:
-		return nil
 	}
+
 	body = PresentDecoratedTextNoMentions(ctx, body)
-
-	// Payment decorations
+	// Payments
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
-
 	// Emojis
-	body = g.EmojiSource.Decorate(ctx, body, uid, convID, typ, msg.Emojis, false)
-
+	body = g.EmojiSource.Decorate(ctx, body, uid, typ, msg.Emojis)
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,
 		msg.ChannelNameMentions)
@@ -1938,13 +1927,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 	case chat1.MessageUnboxedState_VALID:
 		valid := rawMsg.Valid()
 		if !rawMsg.IsValidFull() {
-			showErr := true
 			// If we have an expired ephemeral message, don't show an error
 			// message.
-			if valid.IsEphemeral() && valid.IsEphemeralExpired(time.Now()) {
-				showErr = false
-			}
-			if showErr {
+			if !(valid.IsEphemeral() && valid.IsEphemeralExpired(time.Now())) {
 				return miscErr(fmt.Errorf("unexpected deleted %v message",
 					strings.ToLower(rawMsg.GetMessageType().String())))
 			}
@@ -2010,7 +1995,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		switch typ {
 		case chat1.MessageType_TEXT:
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
-			decoratedBody = PresentDecoratedPendingTextBody(ctx, g, uid, convID, rawMsg.Outbox().Msg)
+			decoratedBody = PresentDecoratedPendingTextBody(ctx, g, uid, rawMsg.Outbox().Msg)
 		case chat1.MessageType_FLIP:
 			body = rawMsg.Outbox().Msg.MessageBody.Flip().Text
 			decoratedBody = new(string)
@@ -2028,7 +2013,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			}
 		case chat1.MessageType_REACTION:
 			body = rawMsg.Outbox().Msg.MessageBody.Reaction().Body
-			decoratedBody = PresentDecoratedPendingTextBody(ctx, g, uid, convID, rawMsg.Outbox().Msg)
+			decoratedBody = PresentDecoratedPendingTextBody(ctx, g, uid, rawMsg.Outbox().Msg)
 		}
 		var replyTo *chat1.UIMessage
 		if rawMsg.Outbox().ReplyTo != nil {

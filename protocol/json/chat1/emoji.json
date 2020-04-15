@@ -169,8 +169,16 @@
           "name": "isCrossTeam"
         },
         {
+          "type": "boolean",
+          "name": "isAlias"
+        },
+        {
           "type": "EmojiLoadSource",
           "name": "source"
+        },
+        {
+          "type": "EmojiLoadSource",
+          "name": "noAnimSource"
         },
         {
           "type": "EmojiRemoteSource",
@@ -182,6 +190,13 @@
             "EmojiCreationInfo"
           ],
           "name": "creationInfo"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "teamname"
         }
       ]
     },

@@ -111,7 +111,7 @@ type NotifyListener interface {
 	SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string)
 	UpdateInviteCounts(keybase1.InviteCounts)
 	TeamTreeMembershipsPartial(keybase1.TeamTreeMembership)
-	TeamTreeMembershipsDone(int)
+	TeamTreeMembershipsDone(keybase1.TeamTreeMembershipsDoneResult)
 	WebOfTrustChanged(username string)
 }
 
@@ -256,8 +256,8 @@ func (n *NoopNotifyListener) SaltpackOperationDone(opType keybase1.SaltpackOpera
 }
 func (n *NoopNotifyListener) UpdateInviteCounts(keybase1.InviteCounts) {
 }
-func (n *NoopNotifyListener) TeamTreeMembershipsPartial(keybase1.TeamTreeMembership) {}
-func (n *NoopNotifyListener) TeamTreeMembershipsDone(int)                            {}
+func (n *NoopNotifyListener) TeamTreeMembershipsPartial(keybase1.TeamTreeMembership)         {}
+func (n *NoopNotifyListener) TeamTreeMembershipsDone(keybase1.TeamTreeMembershipsDoneResult) {}
 func (n *NoopNotifyListener) WebOfTrustChanged(username string) {
 }
 
@@ -354,7 +354,7 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 	if n == nil {
 		return
 	}
-	defer CTrace(ctx, n.G().Log, "NotifyRouter#HandleLogout", func() error { return nil })()
+	defer n.G().CTrace(ctx, "NotifyRouter#HandleLogout", nil)()
 	ctx = CopyTagsToBackground(ctx)
 	// For all connections we currently have open...
 	n.cm.ApplyAllDetails(func(id ConnectionID, xp rpc.Transporter, d *keybase1.ClientDetails) bool {
@@ -2844,15 +2844,13 @@ func (n *NotifyRouter) HandleTeamTreeMembershipsPartial(ctx context.Context,
 	if n == nil {
 		return
 	}
+
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Team {
 			go func() {
 				_ = (keybase1.NotifyTeamClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).TeamTreeMembershipsPartial(context.Background(),
-					keybase1.TeamTreeMembershipsPartialArg{
-						Membership: result,
-					})
+				}).TeamTreeMembershipsPartial(context.Background(), result)
 			}()
 		}
 		return true
@@ -2863,24 +2861,23 @@ func (n *NotifyRouter) HandleTeamTreeMembershipsPartial(ctx context.Context,
 	})
 }
 
-func (n *NotifyRouter) HandleTeamTreeMembershipsDone(ctx context.Context, expectedCount int) {
+func (n *NotifyRouter) HandleTeamTreeMembershipsDone(ctx context.Context, result keybase1.TeamTreeMembershipsDoneResult) {
 	if n == nil {
 		return
 	}
+
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Team {
 			go func() {
 				_ = (keybase1.NotifyTeamClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).TeamTreeMembershipsDone(context.Background(), keybase1.TeamTreeMembershipsDoneArg{
-					ExpectedCount: expectedCount,
-				})
+				}).TeamTreeMembershipsDone(context.Background(), result)
 			}()
 		}
 		return true
 	})
 
 	n.runListeners(func(listener NotifyListener) {
-		listener.TeamTreeMembershipsDone(expectedCount)
+		listener.TeamTreeMembershipsDone(result)
 	})
 }

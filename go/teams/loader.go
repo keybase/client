@@ -131,7 +131,7 @@ func newFrozenChain(chain *keybase1.TeamSigChainState) keybase1.TeamSigChainStat
 }
 
 func (l *TeamLoader) Freeze(ctx context.Context, teamID keybase1.TeamID) (err error) {
-	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Freeze(%s)", teamID), func() error { return err })()
+	defer l.G().CTrace(ctx, fmt.Sprintf("TeamLoader#Freeze(%s)", teamID), &err)()
 	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
 	defer lock.Release(ctx)
 	mctx := libkb.NewMetaContext(ctx, l.G())
@@ -149,7 +149,7 @@ func (l *TeamLoader) Freeze(ctx context.Context, teamID keybase1.TeamID) (err er
 }
 
 func (l *TeamLoader) Tombstone(ctx context.Context, teamID keybase1.TeamID) (err error) {
-	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Tombstone(%s)", teamID), func() error { return err })()
+	defer l.G().CTrace(ctx, fmt.Sprintf("TeamLoader#Tombstone(%s)", teamID), &err)()
 	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
 	defer lock.Release(ctx)
 	mctx := libkb.NewMetaContext(ctx, l.G())
@@ -217,7 +217,7 @@ func (n nameLookupBurstCacheKey) String() string {
 // Will always hit the server for subteams. The server can lie in this return value.
 func (l *TeamLoader) ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error) {
 
-	defer l.G().CVTrace(ctx, libkb.VLog0, fmt.Sprintf("resolveNameToUIDUntrusted(%s,%v,%v)", teamName.String(), public, allowCache), func() error { return err })()
+	defer l.G().CVTrace(ctx, libkb.VLog0, fmt.Sprintf("resolveNameToUIDUntrusted(%s,%v,%v)", teamName.String(), public, allowCache), &err)()
 
 	// For root team names, just hash.
 	if teamName.IsRootTeam() {
@@ -477,7 +477,7 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *load2ResT, 
 		traceLabel = traceLabel + " '" + arg.reason + "'"
 	}
 
-	defer l.G().CTraceTimed(ctx, traceLabel, func() error { return err })()
+	defer l.G().CTrace(ctx, traceLabel, &err)()
 	ret, err = l.load2Inner(ctx, arg)
 	if hidden.ShouldClearSupportFlagOnError(err) {
 		mctx.Debug("Clearing support hidden chain flag for team %s because of error %v in team loader (load2)", arg.teamID, err)
@@ -1091,7 +1091,7 @@ func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, t
 func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, them keybase1.UserVersion) (ret bool, err error) {
 	state := TeamSigChainState{inner: chain.Chain}
 	mctx = mctx.WithLogTag("IAKO")
-	defer mctx.Trace(fmt.Sprintf("TeamLoader#isAllowedKeyerOf(%s, %s)", state.GetID(), them), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamLoader#isAllowedKeyerOf(%s, %s)", state.GetID(), them), &err)()
 
 	role, err := state.GetUserRole(them)
 	if err != nil {
@@ -1136,7 +1136,7 @@ func (l *TeamLoader) checkNeedRotate(mctx libkb.MetaContext, chain *keybase1.Tea
 
 func (l *TeamLoader) checkNeedRotateWithSigner(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, signer keybase1.Signer) (ret bool, err error) {
 
-	defer mctx.Trace(fmt.Sprintf("TeamLoader::checkNeedRotateWithSigner(%+v)", signer), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamLoader::checkNeedRotateWithSigner(%+v)", signer), &err)()
 
 	uv := signer.UserVersion()
 
@@ -2001,7 +2001,7 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 }
 
 func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (ret keybase1.Seqno, err error) {
-	defer mctx.Trace("TeamLoader#getHeadMerkleSeqno", func() error { return err })()
+	defer mctx.Trace("TeamLoader#getHeadMerkleSeqno", &err)()
 
 	if state.HeadMerkle != nil {
 		return state.HeadMerkle.Seqno, nil

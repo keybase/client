@@ -294,7 +294,7 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, uid gregor1.UID, desc t
 
 // Failure indicates a failure of type kind has happened when loading a conversation.
 func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) {
-	defer f.Trace(ctx, func() error { return nil }, fmt.Sprintf("Failure(%s)", desc))()
+	defer f.Trace(ctx, nil, fmt.Sprintf("Failure(%s)", desc))()
 	f.Lock()
 	defer f.Unlock()
 	if !f.running {
@@ -313,7 +313,7 @@ func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.
 // Success indicates a success of type kind loading a conversation. This effectively removes
 // that conversation from the retry queue.
 func (f *FetchRetrier) Success(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) {
-	defer f.Trace(ctx, func() error { return nil }, fmt.Sprintf("Success(%s)", desc))()
+	defer f.Trace(ctx, nil, fmt.Sprintf("Success(%s)", desc))()
 	f.Lock()
 	defer f.Unlock()
 	key := f.key(uid, desc)
@@ -325,7 +325,7 @@ func (f *FetchRetrier) Success(ctx context.Context, uid gregor1.UID, desc types.
 // Connected is called when a connection to the chat server is established, and forces a
 // pass over the retry queue
 func (f *FetchRetrier) Connected(ctx context.Context) {
-	defer f.Trace(ctx, func() error { return nil }, "Connected")()
+	defer f.Trace(ctx, nil, "Connected")()
 	f.Lock()
 	defer f.Unlock()
 	f.offline = false
@@ -351,7 +351,7 @@ func (f *FetchRetrier) IsOffline(ctx context.Context) bool {
 
 // Force forces a run of the retry loop.
 func (f *FetchRetrier) Force(ctx context.Context) {
-	defer f.Trace(ctx, func() error { return nil }, "Force")()
+	defer f.Trace(ctx, nil, "Force")()
 	f.Lock()
 	defer f.Unlock()
 	for _, control := range f.retriers {
@@ -381,7 +381,7 @@ func (f *FetchRetrier) Rekey(ctx context.Context, name string, membersType chat1
 }
 
 func (f *FetchRetrier) Stop(ctx context.Context) chan struct{} {
-	defer f.Trace(ctx, func() error { return nil }, "Shutdown")()
+	defer f.Trace(ctx, nil, "Shutdown")()
 	f.Lock()
 	defer f.Unlock()
 	f.running = false

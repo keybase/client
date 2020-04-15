@@ -71,8 +71,8 @@ export const AddAliasModal = (props: Props) => {
           ],
           res => {
             setAddAliasWaiting(false)
-            if (res.errorString) {
-              setError(res.errorString)
+            if (res.error) {
+              setError(res.error.uidisplay)
               return
             }
             dispatch(RouteTreeGen.createClearModals())
@@ -88,9 +88,9 @@ export const AddAliasModal = (props: Props) => {
   return (
     <Modal
       bannerImage="icon-illustration-emoji-alias-460-96"
-      title="Add alias"
+      title="Add an alias"
       desktopHeight={395}
-      footerButtonLabel="Add alias"
+      footerButtonLabel="Add an alias"
       footerButtonOnClick={doAddAlias}
       footerButtonWaiting={addAliasWaiting}
     >
@@ -102,16 +102,24 @@ export const AddAliasModal = (props: Props) => {
             <ChooseEmoji conversationIDKey={props.conversationIDKey} onChoose={onChoose} />
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          gap="tiny"
+          style={Styles.collapseStyles([!emoji && styles.opacity40])}
+        >
           <Kb.Text type="BodySemibold">Enter an alias:</Kb.Text>
-          <AliasInput
-            ref={aliasInputRef}
-            error={error}
-            alias={alias}
-            onChangeAlias={setAlias}
-            onEnterKeyDown={doAddAlias}
-            small={false}
-          />
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <AliasInput
+              ref={aliasInputRef}
+              error={error}
+              disabled={!emoji}
+              alias={alias}
+              onChangeAlias={setAlias}
+              onEnterKeyDown={doAddAlias}
+              small={false}
+            />
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     </Modal>
@@ -132,7 +140,9 @@ const ChooseEmoji = Styles.isMobile
               {
                 props: {
                   conversationIDKey: props.conversationIDKey,
+                  hideFrequentEmoji: true,
                   onPickAction: props.onChoose,
+                  onlyTeamCustomEmoji: true,
                   small: true,
                 },
                 selected: 'chatChooseEmoji',
@@ -153,9 +163,11 @@ const ChooseEmoji = Styles.isMobile
         >
           <EmojiPickerDesktop
             conversationIDKey={props.conversationIDKey}
+            hideFrequentEmoji={true}
             small={true}
             onPickAction={props.onChoose}
             onDidPick={() => setShowingPopup(false)}
+            onlyTeamCustomEmoji={true}
           />
         </Kb.FloatingBox>
       ))
@@ -212,9 +224,12 @@ const styles = Styles.styleSheetCreate(() => ({
     height: emojiWidthWithPadding,
     width: emojiWidthWithPadding,
   },
+  opacity40: {
+    opacity: 0.4,
+  },
 }))
 
-export default (routableProps: RoutableProps) => {
+const AddEmojiAliasWrapper = (routableProps: RoutableProps) => {
   const conversationIDKey = Container.getRouteProps(
     routableProps,
     'conversationIDKey',
@@ -230,3 +245,4 @@ export default (routableProps: RoutableProps) => {
     />
   )
 }
+export default AddEmojiAliasWrapper

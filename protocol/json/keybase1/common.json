@@ -866,14 +866,27 @@
             "string"
           ],
           "name": "customAddr"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "customAddrNoAnim"
         }
       ]
     },
     {
-      "type": "record",
+      "type": "enum",
       "name": "ReacjiSkinTone",
-      "fields": [],
-      "typedef": "int"
+      "symbols": [
+        "NONE_0",
+        "SKINTONE1_1",
+        "SKINTONE2_2",
+        "SKINTONE3_3",
+        "SKINTONE4_4",
+        "SKINTONE5_5"
+      ]
     },
     {
       "type": "record",
@@ -901,16 +914,6 @@
         "ACCEPTED_2",
         "REJECTED_3",
         "REVOKED_4"
-      ]
-    },
-    {
-      "type": "record",
-      "name": "GenericError",
-      "fields": [
-        {
-          "type": "string",
-          "name": "message"
-        }
       ]
     }
   ],

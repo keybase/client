@@ -11,43 +11,39 @@ import AddToChannel from '.'
 
 type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const conversationIDKey = Container.getRouteProps(
-    ownProps,
-    'conversationIDKey',
-    Constants.noConversationIDKey
-  )
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-  const _fullnames = state.users.infoMap
-  const title = `Add to #${meta.channelname}`
-  const _allMembers = state.teams.teamIDToMembers.get(meta.teamID)
-  return {
-    _allMembers,
-    _alreadyAdded: participantInfo.all,
-    _conversationIDKey: conversationIDKey,
-    _fullnames,
-    _teamID: meta.teamID,
-    error: anyErrors(state, Constants.waitingKeyAddUsersToChannel),
-    title,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onLoad: (teamID: TeamTypes.TeamID) => {
-    dispatch(TeamsGen.createGetMembers({teamID}))
-  },
-  _onSubmit: (conversationIDKey: Types.ConversationIDKey, usernames: Array<string>) =>
-    dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames})),
-  onCancel: () => {
-    dispatch(WaitingGen.createClearWaiting({key: Constants.waitingKeyAddUsersToChannel}))
-    dispatch(RouteTreeGen.createNavigateUp())
-  },
-})
-
 export default Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state, ownProps: OwnProps) => {
+    const conversationIDKey = Container.getRouteProps(
+      ownProps,
+      'conversationIDKey',
+      Constants.noConversationIDKey
+    )
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+    const _fullnames = state.users.infoMap
+    const title = `Add to #${meta.channelname}`
+    const _allMembers = state.teams.teamIDToMembers.get(meta.teamID)
+    return {
+      _allMembers,
+      _alreadyAdded: participantInfo.all,
+      _conversationIDKey: conversationIDKey,
+      _fullnames,
+      _teamID: meta.teamID,
+      error: anyErrors(state, Constants.waitingKeyAddUsersToChannel),
+      title,
+    }
+  },
+  dispatch => ({
+    _onLoad: (teamID: TeamTypes.TeamID) => {
+      dispatch(TeamsGen.createGetMembers({teamID}))
+    },
+    _onSubmit: (conversationIDKey: Types.ConversationIDKey, usernames: Array<string>) =>
+      dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames})),
+    onCancel: () => {
+      dispatch(WaitingGen.createClearWaiting({key: Constants.waitingKeyAddUsersToChannel}))
+      dispatch(RouteTreeGen.createNavigateUp())
+    },
+  }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const users = !stateProps._allMembers
       ? []

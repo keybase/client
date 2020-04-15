@@ -740,6 +740,8 @@ export type TypedActionsMap = {
   'profile:updateProofText': profile.UpdateProofTextPayload
   'profile:updateSigID': profile.UpdateSigIDPayload
   'profile:updateUsername': profile.UpdateUsernamePayload
+  'profile:wotVouch': profile.WotVouchPayload
+  'profile:wotVouchSetError': profile.WotVouchSetErrorPayload
   'provision:startProvision': provision.StartProvisionPayload
   'provision:provisionError': provision.ProvisionErrorPayload
   'provision:submitUsername': provision.SubmitUsernamePayload
@@ -935,6 +937,7 @@ export type TypedActionsMap = {
   'teams:inviteToTeamByEmail': teams.InviteToTeamByEmailPayload
   'teams:inviteToTeamByPhone': teams.InviteToTeamByPhonePayload
   'teams:joinTeam': teams.JoinTeamPayload
+  'teams:respondToInviteLink': teams.RespondToInviteLinkPayload
   'teams:launchNewTeamWizardOrModal': teams.LaunchNewTeamWizardOrModalPayload
   'teams:leaveTeam': teams.LeaveTeamPayload
   'teams:leftTeam': teams.LeftTeamPayload
@@ -962,7 +965,6 @@ export type TypedActionsMap = {
   'teams:setTeamRetentionPolicy': teams.SetTeamRetentionPolicyPayload
   'teams:setTeamLoadingInvites': teams.SetTeamLoadingInvitesPayload
   'teams:setTeamDetails': teams.SetTeamDetailsPayload
-  'teams:setTeamCanPerform': teams.SetTeamCanPerformPayload
   'teams:setTeamInfo': teams.SetTeamInfoPayload
   'teams:setTeamProfileAddList': teams.SetTeamProfileAddListPayload
   'teams:setTeamAccessRequestsPending': teams.SetTeamAccessRequestsPendingPayload
@@ -993,13 +995,13 @@ export type TypedActionsMap = {
   'teams:addMembersWizardRemoveMember': teams.AddMembersWizardRemoveMemberPayload
   'teams:addMembersWizardSetDefaultChannels': teams.AddMembersWizardSetDefaultChannelsPayload
   'teams:cancelAddMembersWizard': teams.CancelAddMembersWizardPayload
-  'teams:finishAddMembersWizard': teams.FinishAddMembersWizardPayload
+  'teams:finishedAddMembersWizard': teams.FinishedAddMembersWizardPayload
+  'teams:finishedNewTeamWizard': teams.FinishedNewTeamWizardPayload
   'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
   'teams:setMemberActivityDetails': teams.SetMemberActivityDetailsPayload
-  'teams:getMemberSubteamDetails': teams.GetMemberSubteamDetailsPayload
-  'teams:setMemberSubteamDetails': teams.SetMemberSubteamDetailsPayload
+  'teams:loadTeamTree': teams.LoadTeamTreePayload
   'teams:startNewTeamWizard': teams.StartNewTeamWizardPayload
   'teams:setTeamWizardTeamType': teams.SetTeamWizardTeamTypePayload
   'teams:setTeamWizardNameDescription': teams.SetTeamWizardNameDescriptionPayload
@@ -1007,10 +1009,13 @@ export type TypedActionsMap = {
   'teams:setTeamWizardTeamSize': teams.SetTeamWizardTeamSizePayload
   'teams:setTeamWizardChannels': teams.SetTeamWizardChannelsPayload
   'teams:setTeamWizardSubteams': teams.SetTeamWizardSubteamsPayload
+  'teams:setTeamWizardError': teams.SetTeamWizardErrorPayload
   'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
   'teams:manageChatChannels': teams.ManageChatChannelsPayload
   'teams:teamSeen': teams.TeamSeenPayload
+  'teams:getActivityForTeams': teams.GetActivityForTeamsPayload
   'teams:setActivityLevels': teams.SetActivityLevelsPayload
+  'teams:setTeamListFilterSort': teams.SetTeamListFilterSortPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

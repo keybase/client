@@ -824,10 +824,11 @@ func TestPassphraseGenerationStored(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
+	mctx := tc.MetaContext()
 
 	// All of the keys initially created with the user should be stored as
 	// passphrase generation 1.
-	skbKeyringFile, err := libkb.LoadSKBKeyring(u.NormalizedUsername(), tc.G)
+	skbKeyringFile, err := libkb.LoadSKBKeyring(mctx, u.NormalizedUsername())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -884,7 +885,7 @@ func TestPassphraseGenerationStored(t *testing.T) {
 	//
 	// Finally, check that the new key (and only the new key) is marked as ppgen 2.
 	//
-	finalSKBKeyringFile, err := libkb.LoadSKBKeyring(u.NormalizedUsername(), tc.G)
+	finalSKBKeyringFile, err := libkb.LoadSKBKeyring(mctx, u.NormalizedUsername())
 	if err != nil {
 		t.Fatal(err)
 	}

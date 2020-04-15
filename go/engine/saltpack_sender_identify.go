@@ -52,7 +52,7 @@ func (e *SaltpackSenderIdentify) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *SaltpackSenderIdentify) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("SaltpackSenderIdentify::Run", func() error { return err })()
+	defer m.Trace("SaltpackSenderIdentify::Run", &err)()
 
 	if e.arg.isAnon {
 		e.res.SenderType = keybase1.SaltpackSenderType_ANONYMOUS
@@ -126,7 +126,7 @@ func (e *SaltpackSenderIdentify) Run(m libkb.MetaContext) (err error) {
 }
 
 func (e *SaltpackSenderIdentify) identifySender(m libkb.MetaContext) (err error) {
-	defer m.Trace("SaltpackDecrypt::identifySender", func() error { return err })()
+	defer m.Trace("SaltpackDecrypt::identifySender", &err)()
 
 	var lin bool
 	var uid keybase1.UID

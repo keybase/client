@@ -110,7 +110,7 @@ func (p *ProvisionalLoginContext) assertNotReused(un NormalizedUsername, uv keyb
 }
 
 func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username NormalizedUsername, uv keybase1.UserVersion, deviceID keybase1.DeviceID) (err error) {
-	defer p.M().Trace("ProvisionalLoginContext#SaveState", func() error { return err })()
+	defer p.M().Trace("ProvisionalLoginContext#SaveState", &err)()
 	if err := p.assertNotReused(username, uv); err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username Nor
 }
 
 func (p *ProvisionalLoginContext) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
-	defer m.Trace("ProvisionalLoginContext#Keyring", func() error { return err })()
+	defer m.Trace("ProvisionalLoginContext#Keyring", &err)()
 	if p.skbKeyring != nil {
 		return p.skbKeyring, nil
 	}
@@ -129,7 +129,7 @@ func (p *ProvisionalLoginContext) Keyring(m MetaContext) (ret *SKBKeyringFile, e
 		return nil, NewNoUsernameError()
 	}
 	p.M().Debug("Account: loading keyring for %s", p.username)
-	ret, err = LoadSKBKeyring(p.username, p.M().G())
+	ret, err = LoadSKBKeyring(p.M(), p.username)
 	if err != nil {
 		return nil, err
 	}

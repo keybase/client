@@ -22,6 +22,7 @@ class FastImageImpl extends React.Component<
   ImageProps & {showLoadingStateUntilLoaded?: boolean},
   FastImageImplState
 > {
+  static resizeMode = RNFI.resizeMode
   static getSize = Image.getSize
   state = {
     loading: true,

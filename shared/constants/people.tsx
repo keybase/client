@@ -38,7 +38,7 @@ export const todoTypeToInstructions: {[K in Types.TodoType]: string} = {
   addPhoneNumber: 'Add your phone number so your friends can find you.',
   annoncementPlaceholder: '',
   avatarTeam: 'Change your team’s avatar from within the Keybase app.',
-  avatarUser: 'Change your avatar from within the Keybase app.',
+  avatarUser: 'Upload your profile picture, or an avatar.',
   bio: 'Add your name, bio, and location to complete your profile.',
   chat: 'Start a chat! All conversations on Keybase are end-to-end encrypted.',
   device: `Install Keybase on your ${
@@ -66,7 +66,7 @@ export const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = {
   addPhoneNumber: 'Add number',
   annoncementPlaceholder: '',
   avatarTeam: 'Edit team avatar',
-  avatarUser: 'Edit avatar',
+  avatarUser: 'Upload avatar',
   bio: 'Edit Profile',
   chat: 'Start a chat',
   device: isMobile ? 'Get the download link' : 'Get the app',

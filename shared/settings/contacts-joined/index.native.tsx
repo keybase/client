@@ -5,7 +5,6 @@ import * as Styles from '../../styles'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {FollowButton} from './buttons'
 import * as Tracker2Constants from '../../constants/tracker2'
-type Props = {}
 
 const renderItem = (_: number, item: RPCTypes.ProcessedContact) => <Item item={item} />
 
@@ -35,7 +34,7 @@ const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
   )
 }
 
-const ContactsJoinedModal = (_: Props) => {
+const ContactsJoinedModal = () => {
   const people = Container.useSelector(state => state.settings.contacts.alreadyOnKeybase)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()

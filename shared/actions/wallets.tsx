@@ -863,7 +863,7 @@ const navigateToAccount = (action: WalletsGen.SelectAccountPayload) => {
     RouteTreeGen.createResetStack({
       actions: isMobile ? [RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]})] : [],
       index: isMobile ? 1 : 0,
-      tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab,
+      tab: Constants.rootWalletTab,
     }),
   ]
 }
@@ -1068,7 +1068,7 @@ const checkDisclaimer = async (_: WalletsGen.CheckDisclaimerPayload, logger: Sag
 
     // in new nav we could be in a modal anywhere in the app right now
     actions.push(RouteTreeGen.createClearModals())
-    actions.push(RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
+    actions.push(RouteTreeGen.createSwitchTab({tab: Constants.rootWalletTab}))
     if (isMobile) {
       actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
     }

@@ -119,7 +119,7 @@ func (e *RevokeEngine) explicitOrImplicitDeviceID(me *libkb.User) keybase1.Devic
 }
 
 func (e *RevokeEngine) Run(mctx libkb.MetaContext) (err error) {
-	defer mctx.Trace(fmt.Sprintf("RevokeEngine (mode:%v)", e.mode), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("RevokeEngine (mode:%v)", e.mode), &err)()
 	return retryOnEphemeralRace(mctx, e.run)
 }
 

@@ -2,19 +2,42 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
-import * as RPCGen from '../../constants/types/rpc-gen'
-import {pluralize} from '../../util/string'
 import ContactsList, {
   useContacts,
   Contact,
   EnableContactsPopup,
 } from '../../teams/common/contacts-list.native'
+import openSMS from '../../util/sms'
+import {composeAsync} from 'expo-mail-composer'
 
 const waitingKey = 'inviteContacts'
 
 const ListHeaderComponent = () => (
   <Kb.Icon type="icon-illustration-invite-friends-460-96" style={styles.iconBox} />
 )
+
+const messageSubject = "Let's chat on Keybase?"
+const messageBody = `Let's chat privately on Keybase:
+https://keybase.io/download?invite
+It's free and secure.`
+
+// Doesn't return anything about the status of the message.
+// Resolves if we succeeded in opening composer, rejects otherwise
+const onComposeMessage = ({
+  emails,
+  phones,
+}: {
+  emails?: Array<string>
+  phones?: Array<string>
+}): Promise<void> => {
+  if ((emails && phones) || (!emails && !phones)) {
+    return Promise.reject('Invalid params')
+  }
+  if (phones) {
+    return openSMS(phones, messageBody)
+  }
+  return composeAsync({body: messageBody, recipients: emails, subject: messageSubject}).then(() => undefined)
+}
 
 const InviteContacts = () => {
   const contactInfo = useContacts()
@@ -30,28 +53,55 @@ const InviteContacts = () => {
   const navUp = () => dispatch(nav.safeNavigateUpPayload())
   const waiting = Container.useAnyWaiting(waitingKey)
 
-  const submit = Container.useRPC(RPCGen.inviteFriendsInvitePeopleRpcPromise)
-  const [rpcErrorMessage, setError] = React.useState('')
-  const [successCount, setSuccessCount] = React.useState(0)
-  const onSubmit = () => {
+  const anyPhonesSelected = !!selectedPhones.size
+  const anyEmailsSelected = !!selectedEmails.size
+  const [composerError, setError] = React.useState('')
+  const onSubmit = async () => {
     setError('')
-    submit(
-      [
-        {
-          emails: {emailsFromContacts: [...selectedEmails]},
-          phones: [...selectedPhones],
-        },
-        waitingKey,
-      ],
-      r => setSuccessCount(r),
-      err => {
-        setError(err.message)
+    try {
+      if (!anyPhonesSelected && !anyEmailsSelected) {
+        setError('Select at least one contact.')
+        return
       }
-    )
+      if (anyPhonesSelected) {
+        await onComposeMessage({phones: [...selectedPhones]})
+        navUp()
+      } else {
+        await onComposeMessage({emails: [...selectedEmails]})
+        navUp()
+      }
+    } catch (e) {
+      if (anyEmailsSelected && Styles.isIOS) {
+        setError(
+          'Something went wrong. For this feature to work, you need at least one Mail account enabled in settings.'
+        )
+      } else {
+        setError('Something went wrong.')
+      }
+    }
   }
   const placeholderText = loading ? '' : `Search ${contacts.length.toLocaleString()} contacts`
 
-  const disabled = !!successCount
+  const emailsDisabled = anyPhonesSelected
+  const phonesDisabled = anyEmailsSelected
+  const [anySelected, setAnySelected] = React.useState(false)
+  React.useEffect(() => {
+    const newAnySelected = anyPhonesSelected || anyEmailsSelected
+    if (newAnySelected !== anySelected) {
+      // this RAF is a hack so we don't animate the list items changing enabled <-> disabled
+      requestAnimationFrame(() => {
+        setAnySelected(newAnySelected)
+        Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
+      })
+    }
+  }, [anyPhonesSelected, anyEmailsSelected, anySelected])
+  const disabledTooltip =
+    emailsDisabled || phonesDisabled
+      ? `You can't select both email addresses and phone numbers. To select ${
+          anyEmailsSelected ? 'phone numbers' : 'email addresses'
+        }, click Unselect and start again.`
+      : undefined
+
   const onSelectContact = (contact: Contact, checked: boolean) => {
     if (contact.type === 'phone') {
       if (checked) {
@@ -69,6 +119,10 @@ const InviteContacts = () => {
       setSelectedEmails(new Set(selectedEmails))
     }
   }
+  const onUnselect = () => {
+    setSelectedPhones(new Set())
+    setSelectedEmails(new Set())
+  }
   return (
     <Kb.Modal
       noScrollView={true}
@@ -76,12 +130,10 @@ const InviteContacts = () => {
         hideBorder: true,
         leftButton: (
           <Kb.Text type="BodyBigLink" onClick={navUp}>
-            {successCount ? 'Close' : 'Cancel'}
+            Cancel
           </Kb.Text>
         ),
-        rightButton: successCount ? (
-          undefined
-        ) : waiting ? (
+        rightButton: waiting ? (
           <Kb.ProgressIndicator type="Small" />
         ) : (
           <Kb.Text
@@ -94,34 +146,34 @@ const InviteContacts = () => {
         ),
         title: 'Invite friends',
       }}
-      footer={
-        successCount
-          ? {content: <Kb.Button onClick={navUp} small={true} fullWidth={true} label="Close" />}
-          : undefined
-      }
     >
-      {(!!contactsErrorMessage || !!rpcErrorMessage) && (
-        <Kb.Banner color="red">{contactsErrorMessage ?? rpcErrorMessage}</Kb.Banner>
+      {(!!contactsErrorMessage || !!composerError) && (
+        <Kb.Banner color="red">{contactsErrorMessage ?? composerError}</Kb.Banner>
       )}
-      {successCount ? (
-        <Kb.Banner color="green">{`Success! You invited ${successCount} ${pluralize(
-          'contact',
-          successCount
-        )} to Keybase.`}</Kb.Banner>
-      ) : loading ? (
+      {loading ? (
         <Kb.ProgressIndicator type="Huge" />
       ) : (
-        <Kb.SearchFilter
-          size="small"
-          onChange={setSearch}
-          value={search}
-          placeholderText={placeholderText}
-          placeholderCentered={true}
-          icon="iconfont-search"
-        />
+        <Kb.Box2 direction="horizontal" gapEnd={true} alignItems="center">
+          <Kb.SearchFilter
+            size="small"
+            onChange={setSearch}
+            value={search}
+            placeholderText={placeholderText}
+            placeholderCentered={true}
+            style={Styles.globalStyles.flexOne}
+            icon="iconfont-search"
+          />
+          {anySelected && (
+            <Kb.Text type="BodyPrimaryLink" onClick={onUnselect} style={styles.unselect}>
+              Unselect
+            </Kb.Text>
+          )}
+        </Kb.Box2>
       )}
       <ContactsList
-        disabled={disabled}
+        emailsDisabled={emailsDisabled}
+        phonesDisabled={phonesDisabled}
+        disabledTooltip={disabledTooltip}
         ListHeaderComponent={ListHeaderComponent}
         onSelect={onSelectContact}
         search={search}
@@ -135,10 +187,16 @@ const InviteContacts = () => {
 export default InviteContacts
 
 const styles = Styles.styleSheetCreate(() => ({
+  banner: {
+    position: 'absolute',
+    top: 47,
+    zIndex: 1,
+  },
   disabledLink: {
     opacity: 0.5,
   },
   iconBox: {
     alignSelf: 'center',
   },
+  unselect: {marginRight: Styles.globalMargins.xsmall},
 }))

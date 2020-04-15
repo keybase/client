@@ -58,7 +58,7 @@ export const useMembersSections = (
   ]
 
   // When you're the only one in the team, still show the no-members row
-  if (meta.memberCount === 0 || (meta.memberCount === 1 && meta.role !== 'none')) {
+  if (flags.teamsRedesign && (meta.memberCount === 0 || (meta.memberCount === 1 && meta.role !== 'none'))) {
     sections.push(makeSingleRow('members-none', () => <EmptyRow teamID={teamID} type="members" />))
   }
   return sections
@@ -250,7 +250,6 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     filteredEmoji = filteredEmoji.filter(e => e.alias.includes(filter.toLowerCase()))
   }
 
-  filteredEmoji = filteredEmoji.sort((a, b) => (b.creationInfo?.time ?? 0) - (a.creationInfo?.time ?? 0))
   const sections: Array<Section> = []
   sections.push({
     data: ['emoji-add'],
@@ -267,20 +266,24 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
   })
 
   if (customEmoji.length) {
-    sections.push({
-      data: ['emoji-header'],
-      key: 'emoji-header',
-      renderItem: () => <EmojiHeader />,
-    })
+    if (!Styles.isMobile) {
+      sections.push({
+        data: ['emoji-header'],
+        key: 'emoji-header',
+        renderItem: () => <EmojiHeader />,
+      })
+    }
 
     sections.push({
       data: filteredEmoji,
       key: 'emoji-item',
-      renderItem: ({item}) => (
+      renderItem: ({item, index}) => (
         <EmojiItemRow
           emoji={item}
+          firstItem={index === 0}
           conversationIDKey={convID ?? Chat2Constants.noConversationIDKey}
           reloadEmojis={doGetUserEmoji}
+          teamID={teamID}
         />
       ),
     })

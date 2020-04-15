@@ -1075,8 +1075,9 @@ func (e OfflineAvailability) String() string {
 }
 
 type UserReacji struct {
-	Name       string  `codec:"name" json:"name"`
-	CustomAddr *string `codec:"customAddr,omitempty" json:"customAddr,omitempty"`
+	Name             string  `codec:"name" json:"name"`
+	CustomAddr       *string `codec:"customAddr,omitempty" json:"customAddr,omitempty"`
+	CustomAddrNoAnim *string `codec:"customAddrNoAnim,omitempty" json:"customAddrNoAnim,omitempty"`
 }
 
 func (o UserReacji) DeepCopy() UserReacji {
@@ -1089,13 +1090,52 @@ func (o UserReacji) DeepCopy() UserReacji {
 			tmp := (*x)
 			return &tmp
 		})(o.CustomAddr),
+		CustomAddrNoAnim: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.CustomAddrNoAnim),
 	}
 }
 
 type ReacjiSkinTone int
 
-func (o ReacjiSkinTone) DeepCopy() ReacjiSkinTone {
-	return o
+const (
+	ReacjiSkinTone_NONE      ReacjiSkinTone = 0
+	ReacjiSkinTone_SKINTONE1 ReacjiSkinTone = 1
+	ReacjiSkinTone_SKINTONE2 ReacjiSkinTone = 2
+	ReacjiSkinTone_SKINTONE3 ReacjiSkinTone = 3
+	ReacjiSkinTone_SKINTONE4 ReacjiSkinTone = 4
+	ReacjiSkinTone_SKINTONE5 ReacjiSkinTone = 5
+)
+
+func (o ReacjiSkinTone) DeepCopy() ReacjiSkinTone { return o }
+
+var ReacjiSkinToneMap = map[string]ReacjiSkinTone{
+	"NONE":      0,
+	"SKINTONE1": 1,
+	"SKINTONE2": 2,
+	"SKINTONE3": 3,
+	"SKINTONE4": 4,
+	"SKINTONE5": 5,
+}
+
+var ReacjiSkinToneRevMap = map[ReacjiSkinTone]string{
+	0: "NONE",
+	1: "SKINTONE1",
+	2: "SKINTONE2",
+	3: "SKINTONE3",
+	4: "SKINTONE4",
+	5: "SKINTONE5",
+}
+
+func (e ReacjiSkinTone) String() string {
+	if v, ok := ReacjiSkinToneRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UserReacjis struct {
@@ -1153,16 +1193,6 @@ func (e WotStatusType) String() string {
 		return v
 	}
 	return fmt.Sprintf("%v", int(e))
-}
-
-type GenericError struct {
-	Message string `codec:"message" json:"message"`
-}
-
-func (o GenericError) DeepCopy() GenericError {
-	return GenericError{
-		Message: o.Message,
-	}
 }
 
 type CommonInterface interface {

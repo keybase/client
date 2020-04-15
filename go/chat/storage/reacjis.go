@@ -14,8 +14,15 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/kyokomi/emoji"
 	context "golang.org/x/net/context"
 )
+
+func init() {
+	// Don't add padding between emojis, we want skin tones to be rendered
+	// correctly.
+	emoji.ReplacePadding = ""
+}
 
 const (
 	minScoringMinutes = 1           // one minute
@@ -304,6 +311,7 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 	defer s.Unlock()
 
 	customMap := make(map[string]string)
+	customMapNoAnim := make(map[string]string)
 	cache := s.populateCacheLocked(ctx, uid)
 	// resolve custom emoji
 	for name := range cache.FrequencyMap {
@@ -322,18 +330,19 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 			delete(cache.FrequencyMap, name)
 			continue
 		}
-		loadSource, err := s.G().EmojiSource.RemoteToLocalSource(ctx, uid, harvested[0].Source, true)
+		source, noAnimSource, err := s.G().EmojiSource.RemoteToLocalSource(ctx, uid, harvested[0].Source)
 		if err != nil {
 			s.Debug(ctx, "UserReacjis: failed to convert to local source: %s", err)
 			delete(cache.FrequencyMap, name)
 			continue
 		}
-		if !loadSource.IsHTTPSrv() {
+		if !source.IsHTTPSrv() || !noAnimSource.IsHTTPSrv() {
 			s.Debug(ctx, "UserReacjis: not http srv source")
 			delete(cache.FrequencyMap, name)
 			continue
 		}
-		customMap[name] = loadSource.Httpsrv()
+		customMap[name] = source.Httpsrv()
+		customMapNoAnim[name] = noAnimSource.Httpsrv()
 	}
 
 	// add defaults if needed so we always return some values
@@ -370,6 +379,9 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 			}
 			if addr, ok := customMap[p.name]; ok {
 				reacji.CustomAddr = &addr
+			}
+			if addr, ok := customMapNoAnim[p.name]; ok {
+				reacji.CustomAddrNoAnim = &addr
 			}
 			reacjis = append(reacjis, reacji)
 		}

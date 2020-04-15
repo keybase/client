@@ -3,6 +3,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as ChatConstants from '../../../constants/chat2'
 import {EmojiPickerDesktop} from '../../../chat/conversation/messages/react-button/emoji-picker/container'
+import {RenderableEmoji} from '../../../util/emoji'
 
 type SecretNoteProps = {
   secretNote: string // Initial value only
@@ -45,8 +46,9 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
     this.setState(s => (s.secretNote === secretNote ? null : {secretNote}))
   }
 
-  _insertEmoji = (emoji: string) => {
+  _insertEmoji = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
     if (this._note.current) {
+      const emoji = renderableEmoji.unicodeStock ?? emojiStr
       const noteInput = this._note.current
       const selection = noteInput.getSelection()
       if (!selection) {
@@ -85,11 +87,6 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
     })
   }
 
-  _emojiPickerOnClick = emoji => {
-    this._insertEmoji(emoji.native)
-    this._emojiPickerToggle()
-  }
-
   render() {
     return (
       <>
@@ -100,7 +97,6 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
               placeholder={`${
                 this.props.toSelf ? 'Add a note to yourself' : 'Add an encrypted note'
               } (in Keybase)`}
-              placeholderColor={Styles.globalColors.black_20}
               rowsMin={Styles.isMobile ? 2 : 3}
               rowsMax={8}
               style={styles.input}
@@ -116,6 +112,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
                 onHidden={() => this.setState({emojiPickerOpen: false})}
               >
                 <EmojiPickerDesktop
+                  disableCustomEmoji={true}
                   conversationIDKey={ChatConstants.noConversationIDKey}
                   onPickAction={this._insertEmoji}
                   onDidPick={this._emojiPickerToggle}
@@ -169,7 +166,6 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
             multiline={true}
             padding={0}
             placeholder="Add a public memo (on Stellar)"
-            placeholderColor={Styles.globalColors.black_20}
             style={this.props.publicMemoOverride ? styles.inputDisabled : styles.input}
             rowsMin={Styles.isMobile ? 1 : 2}
             rowsMax={6}

@@ -566,7 +566,7 @@ func (a *ActiveDevice) NISTAndUIDDeviceID(ctx context.Context) (*NIST, keybase1.
 }
 
 func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bool) (ret *SecretSyncer, err error) {
-	defer m.Trace("ActiveDevice#SyncSecretsForUID", func() error { return err })()
+	defer m.Trace("ActiveDevice#SyncSecretsForUID", &err)()
 
 	a.RLock()
 	s := a.secretSyncer
@@ -589,13 +589,13 @@ func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bo
 }
 
 func (a *ActiveDevice) SyncSecrets(m MetaContext) (ret *SecretSyncer, err error) {
-	defer m.Trace("ActiveDevice#SyncSecrets", func() error { return err })()
+	defer m.Trace("ActiveDevice#SyncSecrets", &err)()
 	var zed keybase1.UID
 	return a.SyncSecretsForUID(m, zed, false /* force */)
 }
 
 func (a *ActiveDevice) SyncSecretsForce(m MetaContext) (ret *SecretSyncer, err error) {
-	defer m.Trace("ActiveDevice#SyncSecretsForce", func() error { return err })()
+	defer m.Trace("ActiveDevice#SyncSecretsForce", &err)()
 	var zed keybase1.UID
 	return a.SyncSecretsForUID(m, zed, true /* force */)
 }
@@ -705,13 +705,13 @@ func (a *ActiveDevice) SigningKeyForUID(u keybase1.UID) GenericKey {
 }
 
 func (a *ActiveDevice) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
-	defer m.Trace("ActiveDevice#Keyring", func() error { return err })()
+	defer m.Trace("ActiveDevice#Keyring", &err)()
 	un := a.Username(m)
 	if un.IsNil() {
 		return nil, NewNoUsernameError()
 	}
 	m.Debug("Account: loading keyring for %s", un)
-	ret, err = LoadSKBKeyring(un, m.G())
+	ret, err = LoadSKBKeyring(m, un)
 	if err != nil {
 		return nil, err
 	}
@@ -719,7 +719,7 @@ func (a *ActiveDevice) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
 }
 
 func (a *ActiveDevice) CopyCacheToLoginContextIfForUserVersion(m MetaContext, lc LoginContext, uv keybase1.UserVersion) (err error) {
-	defer m.Trace("ActiveDevice#CopyCacheToLoginContextIfForUID", func() error { return err })()
+	defer m.Trace("ActiveDevice#CopyCacheToLoginContextIfForUID", &err)()
 	a.RLock()
 	defer a.RUnlock()
 	if !a.uv.Eq(uv) {

@@ -20,6 +20,7 @@ const TeamRow = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  // useActivityLevels in ../container ensures these are loaded
   const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
 
   const onViewTeam = () =>
@@ -40,6 +41,23 @@ const TeamRow = (props: Props) => {
   ))
 
   const badgeCount = Container.useSelector(s => s.teams.newTeamRequests.get(teamID)?.size ?? 0)
+  const isNew = Container.useSelector(s => s.teams.newTeams.has(teamID))
+
+  const crownIconType: Kb.IconType | undefined =
+    teamMeta.role === 'owner'
+      ? 'iconfont-crown-owner'
+      : teamMeta.role === 'admin'
+      ? 'iconfont-crown-admin'
+      : undefined
+  const crownIcon = crownIconType ? (
+    <Kb.Box2 direction="vertical" style={styles.crownIconBox} centerChildren={true}>
+      <Kb.Icon
+        type={crownIconType}
+        sizeType="Tiny"
+        style={Styles.collapseStyles([styles.crownIcon, teamMeta.role === 'admin' && styles.darkerAdminIcon])}
+      />
+    </Kb.Box2>
+  ) : null
 
   return (
     <>
@@ -56,8 +74,10 @@ const TeamRow = (props: Props) => {
           >
             <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
             {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
+            {crownIcon}
           </Kb.Box2>
         }
+        style={styles.white}
         height={Styles.isMobile ? 72 : undefined}
         body={
           <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
@@ -76,13 +96,22 @@ const TeamRow = (props: Props) => {
                     <Kb.Meta
                       title="open"
                       backgroundColor={Styles.globalColors.green}
-                      style={styles.openMeta}
+                      style={styles.alignSelfCenter}
                     />
                   )}
                 </Kb.Box2>
-                <Kb.Text type="BodySmall">
-                  {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
-                </Kb.Text>
+                <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" alignSelf="flex-start">
+                  {isNew && (
+                    <Kb.Meta
+                      title="new"
+                      backgroundColor={Styles.globalColors.orange}
+                      style={styles.alignSelfCenter}
+                    />
+                  )}
+                  <Kb.Text type="BodySmall">
+                    {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
+                  </Kb.Text>
+                </Kb.Box2>
                 {Styles.isMobile && activity}
               </Kb.Box2>
             </Kb.Box2>
@@ -124,6 +153,9 @@ const TeamRow = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  alignSelfCenter: {
+    alignSelf: 'center',
+  },
   badge: {
     position: 'absolute',
     right: -5,
@@ -141,9 +173,23 @@ const styles = Styles.styleSheetCreate(() => ({
   bodyRight: {
     flex: 0.7,
   },
+  crownIcon: Styles.platformStyles({common: {fontSize: 10}, isMobile: {left: 0.5, position: 'relative'}}),
+  crownIconBox: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: 100,
+      height: 17,
+      position: 'absolute',
+      width: 17,
+    },
+    isElectron: {bottom: -5, right: -5},
+    isMobile: {bottom: 4, right: -5},
+  }),
+  darkerAdminIcon: {color: Styles.globalColors.greyDark},
   openMeta: {
     alignSelf: 'center',
   },
+  white: {backgroundColor: Styles.globalColors.white},
 }))
 
 export default TeamRow

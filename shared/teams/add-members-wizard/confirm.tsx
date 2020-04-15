@@ -6,6 +6,7 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
@@ -38,9 +39,17 @@ const AddMembersConfirm = () => {
   const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
 
   const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
+  const onBack = () => dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'teamAddToTeamFromWhere'}))
 
-  const [waiting, setWaiting] = React.useState(false)
-  const [error, setError] = React.useState('')
+  const [_waiting, setWaiting] = React.useState(false)
+  const [_error, setError] = React.useState('')
+  const newTeamWizErr = Container.useSelector(s =>
+    fromNewTeamWizard ? s.teams.newTeamWizard.error : undefined
+  )
+  const error = _error || newTeamWizErr
+  const newTeamWaiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const waiting = _waiting || newTeamWaiting
+
   const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
   const addToChannels = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
   const onComplete = fromNewTeamWizard
@@ -72,7 +81,7 @@ const AddMembersConfirm = () => {
                   },
                 ],
                 () => {
-                  dispatch(TeamsGen.createFinishAddMembersWizard())
+                  dispatch(TeamsGen.createFinishedAddMembersWizard())
                 },
                 err => {
                   setWaiting(false)
@@ -81,7 +90,7 @@ const AddMembersConfirm = () => {
                 }
               )
             } else {
-              dispatch(TeamsGen.createFinishAddMembersWizard())
+              dispatch(TeamsGen.createFinishedAddMembersWizard())
             }
           },
           err => {
@@ -98,7 +107,9 @@ const AddMembersConfirm = () => {
       allowOverflow={true}
       mode="DefaultFullHeight"
       header={{
-        leftButton: (
+        leftButton: fromNewTeamWizard ? (
+          <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
+        ) : (
           <Kb.Text type="BodyBigLink" onClick={onLeave}>
             Cancel
           </Kb.Text>

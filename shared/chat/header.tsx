@@ -231,6 +231,9 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           alignItems: 'baseline',
         },
+        isTablet: {
+          alignItems: 'baseline',
+        },
       }),
       headerTitle: Styles.platformStyles({
         common: {
@@ -244,15 +247,27 @@ const styles = Styles.styleSheetCreate(
       }),
       left: Styles.platformStyles({
         isElectron: {minWidth: 260},
-        isTablet: {paddingLeft: Styles.globalMargins.small, width: '30%'},
+        isTablet: {
+          minWidth: 300,
+          paddingLeft: Styles.globalMargins.small,
+          width: '30%',
+        },
       }),
       markdownOverride: Styles.platformStyles({
         common: {
           fontSize: 13,
           lineHeight: 17,
         },
-        isElectron: {wordBreak: 'break-all'},
-        isMobile: {color: Styles.globalColors.black_50},
+        isElectron: {
+          fontSize: 13,
+          lineHeight: 17,
+          wordBreak: 'break-all',
+        },
+        isMobile: {
+          color: Styles.globalColors.black_50,
+          fontSize: 15,
+          lineHeight: 19,
+        },
       }),
       right: Styles.platformStyles({
         common: {

@@ -141,7 +141,7 @@ func (b *BackgroundEphemeralPurger) SetClock(clock clockwork.Clock) {
 }
 
 func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) {
-	defer b.Trace(ctx, func() error { return nil }, "Start")()
+	defer b.Trace(ctx, nil, "Start")()
 
 	b.lock.Lock()
 	defer b.lock.Unlock()
@@ -160,7 +160,7 @@ func (b *BackgroundEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) 
 }
 
 func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) (ch chan struct{}) {
-	defer b.Trace(ctx, func() error { return nil }, "Stop")()
+	defer b.Trace(ctx, nil, "Stop")()
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
@@ -281,7 +281,7 @@ func (b *BackgroundEphemeralPurger) loop(shutdownCh chan struct{}) error {
 // convLoader. We reset our timer with the next minimum time (if any) returning
 // if the work loop should stop or not.
 func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
-	defer b.Trace(ctx, func() error { return nil }, "queuePurges")()
+	defer b.Trace(ctx, nil, "queuePurges")()
 	b.queueLock.Lock()
 	defer b.queueLock.Unlock()
 
@@ -319,7 +319,7 @@ func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 }
 
 func (b *BackgroundEphemeralPurger) Len() int {
-	defer b.Trace(context.TODO(), func() error { return nil }, "Len")()
+	defer b.Trace(context.TODO(), nil, "Len")()
 	b.queueLock.Lock()
 	defer b.queueLock.Unlock()
 	return b.pq.Len()

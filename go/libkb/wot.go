@@ -78,7 +78,7 @@ type wotExpansionUser struct {
 type vouchExpansion struct {
 	User       wotExpansionUser     `json:"user"`
 	Confidence *keybase1.Confidence `json:"confidence,omitempty"`
-	VouchTexts []string             `json:"vouch_text"`
+	VouchText  string               `json:"vouch_text"`
 }
 
 type reactionExpansion struct {
@@ -122,9 +122,9 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 
 	if voucheeUser == nil || voucheeUser.GetUID() != serverVouch.Vouchee {
 		// load vouchee
-		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(serverVouch.Vouchee).WithStubMode(StubModeUnstubbed))
+		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithUID(serverVouch.Vouchee).WithPublicKeyOptional().WithStubMode(StubModeUnstubbed))
 		if err != nil {
-			return res, fmt.Errorf("error loading vouchee: %s", err.Error())
+			return res, fmt.Errorf("error loading vouchee to transform: %s", err.Error())
 		}
 	}
 
@@ -182,7 +182,7 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 		VoucheeUsername: voucheeUser.GetNormalizedName().String(),
 		Voucher:         voucher.ToUserVersion(),
 		VoucherUsername: voucher.GetNormalizedName().String(),
-		VouchTexts:      wotObj.VouchTexts,
+		VouchText:       wotObj.VouchText,
 		VouchProof:      serverVouch.VouchSigID,
 		VouchedAt:       keybase1.ToTime(wotVouchLink.GetCTime()),
 		Confidence:      wotObj.Confidence,
@@ -200,7 +200,7 @@ type FetchWotVouchesArg struct {
 }
 
 func fetchWot(mctx MetaContext, vouchee string, voucher string) (res []serverWotVouch, err error) {
-	defer mctx.Trace("fetchWot", func() error { return err })()
+	defer mctx.Trace("fetchWot", &err)()
 	apiArg := APIArg{
 		Endpoint:    "wot/get",
 		SessionType: APISessionTypeREQUIRED,
@@ -232,7 +232,7 @@ func FetchWotVouches(mctx MetaContext, arg FetchWotVouchesArg) (res []keybase1.W
 	}
 	var voucheeUser *User
 	if len(arg.Vouchee) > 0 {
-		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithName(arg.Vouchee))
+		voucheeUser, err = LoadUser(NewLoadUserArgWithMetaContext(mctx).WithName(arg.Vouchee).WithPublicKeyOptional())
 		if err != nil {
 			return nil, fmt.Errorf("error loading vouchee: %s", err.Error())
 		}

@@ -328,7 +328,12 @@ class EditAvatar extends React.Component<Props, State> {
                 type="Default"
               />
             ) : null,
-            title: <ModalTitle teamID={this.props.teamID} title="Upload an avatar" />,
+            title:
+              this.props.type === 'team' ? (
+                <ModalTitle teamID={this.props.teamID} title="Upload an avatar" />
+              ) : (
+                'Upload an avatar'
+              ),
           }}
           allowOverflow={true}
           footer={{
@@ -360,7 +365,7 @@ class EditAvatar extends React.Component<Props, State> {
             onMouseDown={this.onMouseDown}
             onMouseMove={this.onMouseMove}
           >
-            {this.props.createdTeam && !this.props.wizard && (
+            {this.props.type === 'team' && this.props.createdTeam && !this.props.wizard && (
               <Kb.Box style={styles.createdBanner}>
                 <Kb.Text type="BodySmallSemibold" negative={true}>
                   Hoorah! Your team {this.props.teamname} was created.
@@ -368,17 +373,17 @@ class EditAvatar extends React.Component<Props, State> {
               </Kb.Box>
             )}
             <Kb.Text center={true} type="Body" style={styles.instructions}>
-              Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
+              Drag and drop a {this.props.type} avatar or{' '}
               <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this.filePickerOpen}>
-                browse your computer for one
-              </Kb.Text>
-              .
+                browse your computer
+              </Kb.Text>{' '}
+              for one.
             </Kb.Text>
             <HoverBox
               className={Styles.classNames({filled: this.state.hasPreview})}
               onClick={this.state.hasPreview ? null : this.filePickerOpen}
               style={{
-                borderRadius: this.props.teamname ? 32 : AVATAR_CONTAINER_SIZE,
+                borderRadius: this.props.type === 'team' ? 32 : AVATAR_CONTAINER_SIZE,
               }}
             >
               <input
@@ -478,7 +483,7 @@ class EditAvatar extends React.Component<Props, State> {
             </Kb.Box>
           )}
           <Kb.Text center={true} type="Body" style={styles.instructions}>
-            Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
+            Drag and drop a {this.props.type} avatar or{' '}
             <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this.filePickerOpen}>
               browse your computer for one
             </Kb.Text>
@@ -488,7 +493,7 @@ class EditAvatar extends React.Component<Props, State> {
             className={Styles.classNames({filled: this.state.hasPreview})}
             onClick={this.state.hasPreview ? null : this.filePickerOpen}
             style={{
-              borderRadius: this.props.teamname ? 32 : AVATAR_CONTAINER_SIZE,
+              borderRadius: this.props.type === 'team' ? 32 : AVATAR_CONTAINER_SIZE,
             }}
           >
             <input

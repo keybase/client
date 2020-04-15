@@ -1029,6 +1029,7 @@ declare module 'react-navigation' {
       tabStyle?: StyleProp<ViewStyle>
       indicatorStyle?: StyleProp<ViewStyle>
       keyboardHidesTabBar?: boolean
+      labelPosition?: 'beside-icon' | 'below-icon'
     }
     swipeEnabled?: boolean
     animationEnabled?: boolean

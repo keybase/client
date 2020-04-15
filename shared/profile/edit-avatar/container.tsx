@@ -4,6 +4,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as WaitingGen from '../../actions/waiting-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
+import * as TeamsConstants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -11,26 +12,30 @@ import {anyErrors, anyWaiting} from '../../constants/waiting'
 import * as ImagePicker from 'expo-image-picker'
 
 type OwnProps = Container.RouteProps<{
-  createdTeam: boolean
-  image: ImagePicker.ImagePickerResult
-  sendChatNotification: boolean
-  teamID: Types.TeamID
-  teamname: string
-  wizard: boolean
+  // Mobile-only
+  image?: ImagePicker.ImagePickerResult
+  // Team-only
+  sendChatNotification?: boolean
+  teamID?: Types.TeamID
+  createdTeam?: boolean
+  wizard?: boolean
 }>
 
 const cancelledImage = {cancelled: true as const}
 
 export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    createdTeam: Container.getRouteProps(ownProps, 'createdTeam', false),
-    error: anyErrors(state, Constants.uploadAvatarWaitingKey),
-    image: Container.getRouteProps(ownProps, 'image', cancelledImage),
-    sendChatNotification: Container.getRouteProps(ownProps, 'sendChatNotification', false),
-    submitting: anyWaiting(state, Constants.uploadAvatarWaitingKey),
-    teamID: Container.getRouteProps(ownProps, 'teamID', Types.noTeamID),
-    teamname: Container.getRouteProps(ownProps, 'teamname', ''),
-  }),
+  (state, ownProps: OwnProps) => {
+    const teamID = Container.getRouteProps(ownProps, 'teamID', undefined)
+    return {
+      createdTeam: Container.getRouteProps(ownProps, 'createdTeam', undefined) ?? false,
+      error: anyErrors(state, Constants.uploadAvatarWaitingKey),
+      image: Container.getRouteProps(ownProps, 'image', undefined) ?? cancelledImage,
+      sendChatNotification: Container.getRouteProps(ownProps, 'sendChatNotification', undefined) ?? false,
+      submitting: anyWaiting(state, Constants.uploadAvatarWaitingKey),
+      teamID,
+      teamname: teamID ? TeamsConstants.getTeamNameFromID(state, teamID) : undefined,
+    }
+  },
   dispatch => ({
     onBack: () => {
       dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
@@ -65,34 +70,50 @@ export default Container.connect(
           : 'This image format is not supported.'
     }
     const wizard = Container.getRouteProps(ownProps, 'wizard', false)
-    return {
-      createdTeam: stateProps.createdTeam,
+    const bothProps = {
       error,
-      image: stateProps.image,
+      image: stateProps.image?.cancelled ? undefined : stateProps.image,
       onBack: dispatchProps.onBack,
       onClose: dispatchProps.onClose,
-      onSave: (
-        filename: string,
-        crop?: RPCTypes.ImageCropRect,
-        scaledWidth?: number,
-        offsetLeft?: number,
-        offsetTop?: number
-      ) => {
-        if (wizard && !!crop) {
-          dispatchProps.onSaveWizardAvatar(filename, {crop, offsetLeft, offsetTop, scaledWidth})
-        } else if (stateProps.teamname) {
-          dispatchProps.onSaveTeamAvatar(filename, stateProps.teamname, stateProps.sendChatNotification, crop)
-        } else {
-          dispatchProps.onSaveUserAvatar(filename, crop)
-        }
-      },
-      onSkip: dispatchProps.onSkip,
       sendChatNotification: stateProps.sendChatNotification,
       submitting: stateProps.submitting,
-      teamID: stateProps.teamID,
-      teamname: stateProps.teamname,
       waitingKey: Constants.uploadAvatarWaitingKey,
-      wizard,
     }
+    return stateProps.teamID
+      ? {
+          ...bothProps,
+          createdTeam: stateProps.createdTeam,
+          onSave: (
+            filename: string,
+            crop?: RPCTypes.ImageCropRect,
+            scaledWidth?: number,
+            offsetLeft?: number,
+            offsetTop?: number
+          ) => {
+            if (wizard) {
+              dispatchProps.onSaveWizardAvatar(
+                filename,
+                crop ? {crop, offsetLeft, offsetTop, scaledWidth} : undefined
+              )
+            } else {
+              dispatchProps.onSaveTeamAvatar(
+                filename,
+                stateProps.teamname!,
+                stateProps.sendChatNotification,
+                crop
+              )
+            }
+          },
+          onSkip: dispatchProps.onSkip,
+          teamID: stateProps.teamID,
+          teamname: stateProps.teamname!,
+          type: 'team' as const,
+          wizard,
+        }
+      : {
+          ...bothProps,
+          onSave: dispatchProps.onSaveUserAvatar,
+          type: 'profile' as const,
+        }
   }
 )(EditAvatar)

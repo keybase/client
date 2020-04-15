@@ -100,9 +100,10 @@ func (s *SecretStoreImp) SetOptions(mctx MetaContext, options *SecretStoreOption
 // NewSecretStore returns a SecretStore interface that is only used for
 // a short period of time (i.e. one function block).  Multiple calls to RetrieveSecret()
 // will only call the underlying store.RetrieveSecret once.
-func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
-	store := g.SecretStore()
+func NewSecretStore(m MetaContext, username NormalizedUsername) SecretStore {
+	store := m.G().SecretStore()
 	if store != nil {
+		m.Debug("NewSecretStore: reifying SecretStoreImp for %q", username)
 		return &SecretStoreImp{
 			username: username,
 			store:    store,
@@ -400,7 +401,7 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 			go reportPrimeSecretStoreFailure(mctx.BackgroundWithLogTags(), ss, err)
 		}
 	}()
-	defer mctx.TraceTimed("PrimeSecretStore", func() error { return err })()
+	defer mctx.Trace("PrimeSecretStore", &err)()
 
 	// Generate test username and test secret
 	testUsername, err := RandString("test_ss_", 5)
@@ -463,7 +464,7 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 
 func reportPrimeSecretStoreFailure(mctx MetaContext, ss SecretStoreAll, reportErr error) {
 	var err error
-	defer mctx.TraceTimed("reportPrimeSecretStoreFailure", func() error { return err })()
+	defer mctx.Trace("reportPrimeSecretStoreFailure", &err)()
 	osVersion, osBuild, err := OSVersionAndBuild()
 	if err != nil {
 		mctx.Debug("os info error: %v", err)

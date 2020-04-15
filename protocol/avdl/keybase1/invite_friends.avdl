@@ -8,6 +8,7 @@ protocol inviteFriends {
     double percentageChange; // vs the previous 24 hours
     boolean showNumInvites;
     boolean showFire; // Are keybase servers on fire?
+    string tooltipMarkdown; // Tooltip text
   }
 
   record EmailInvites {

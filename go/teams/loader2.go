@@ -124,7 +124,7 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 	inner SCChainLinkPayload, lkc *loadKeyCache) (
 	signerUV keybase1.UserVersion, key *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error) {
 	if !ShouldSuppressLogging(ctx) {
-		defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#loadUserForSigVerification(%d)", int(inner.Seqno)), func() error { return err })()
+		defer l.G().CTrace(ctx, fmt.Sprintf("TeamLoader#loadUserForSigVerification(%d)", int(inner.Seqno)), &err)()
 	}
 	keySection := inner.Body.Key
 	if keySection == nil {
@@ -143,7 +143,7 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 func (l *TeamLoader) loadUserAndKeyFromLinkInnerNoVerify(ctx context.Context,
 	link *ChainLinkUnpacked) (signerUV keybase1.UserVersion, err error) {
 	if !ShouldSuppressLogging(ctx) {
-		defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#loadUserAndKeyFromLinkInnerNoVerify(%d)", int(link.inner.Seqno)), func() error { return err })()
+		defer l.G().CTrace(ctx, fmt.Sprintf("TeamLoader#loadUserAndKeyFromLinkInnerNoVerify(%d)", int(link.inner.Seqno)), &err)()
 	}
 	keySection := link.inner.Body.Key
 	if keySection == nil {
@@ -1024,7 +1024,7 @@ func (l *TeamLoader) calculateName(ctx context.Context,
 // In either case, after this function runs, all seeds get seed checks computed.
 func (l *TeamLoader) computeSeedChecks(ctx context.Context, state *keybase1.TeamData) (err error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
-	defer mctx.Trace(fmt.Sprintf("TeamLoader#computeSeedChecks(%s)", state.ID()), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamLoader#computeSeedChecks(%s)", state.ID()), &err)()
 
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
 	err = computeSeedChecks(

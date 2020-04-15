@@ -21,7 +21,7 @@ func NewExpand(g *globals.Context) *Expand {
 
 func (h *Expand) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string, replyTo *chat1.MessageID) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "Expand")()
+	defer h.Trace(ctx, &err, "Expand")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}

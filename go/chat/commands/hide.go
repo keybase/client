@@ -21,7 +21,7 @@ func NewHide(g *globals.Context) *Hide {
 
 func (h *Hide) Execute(ctx context.Context, uid gregor1.UID, inConvID chat1.ConversationID,
 	tlfName, text string, replyTo *chat1.MessageID) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "Execute")()
+	defer h.Trace(ctx, &err, "Execute")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}

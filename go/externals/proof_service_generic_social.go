@@ -165,10 +165,20 @@ func NewGenericSocialProofChecker(proof libkb.RemoteProofChainLink, config *Gene
 
 func (rc *GenericSocialProofChecker) GetTorError() libkb.ProofError { return nil }
 
+func (rc *GenericSocialProofChecker) castInternalError(ierr libkb.ProofError) error {
+	err, ok := ierr.(error)
+	if ok {
+		return err
+	}
+	return nil
+}
+
 func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb.SigHint, _ libkb.ProofCheckerMode,
 	pvlU keybase1.MerkleStoreEntry) (_ *libkb.SigHint, retErr libkb.ProofError) {
 	mctx = mctx.WithLogTag("PCS")
-	defer mctx.TraceTimed("GenericSocialProofChecker.CheckStatus", func() error { return retErr })()
+	var err error
+	defer mctx.Trace("GenericSocialProofChecker.CheckStatus", &err)()
+	defer func() { err = rc.castInternalError(retErr) }()
 
 	_, sigIDBase, err := libkb.OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {

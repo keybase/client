@@ -39,7 +39,7 @@ func (p *PendingPreviews) keyFn() encrypteddb.KeyFn {
 }
 
 func (p *PendingPreviews) Get(ctx context.Context, outboxID chat1.OutboxID) (res Preprocess, err error) {
-	defer p.Trace(ctx, func() error { return err }, "Get(%s)", outboxID)()
+	defer p.Trace(ctx, &err, "Get(%s)", outboxID)()
 
 	file := encrypteddb.NewFile(p.G().ExternalG(), p.getPath(outboxID), p.keyFn())
 	if err := file.Get(ctx, &res); err != nil {
@@ -49,7 +49,7 @@ func (p *PendingPreviews) Get(ctx context.Context, outboxID chat1.OutboxID) (res
 }
 
 func (p *PendingPreviews) Put(ctx context.Context, outboxID chat1.OutboxID, pre Preprocess) (err error) {
-	defer p.Trace(ctx, func() error { return err }, "Put(%s)", outboxID)()
+	defer p.Trace(ctx, &err, "Put(%s)", outboxID)()
 	if err := os.MkdirAll(p.getDir(), os.ModePerm); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (p *PendingPreviews) Put(ctx context.Context, outboxID chat1.OutboxID, pre 
 }
 
 func (p *PendingPreviews) Remove(ctx context.Context, outboxID chat1.OutboxID) {
-	defer p.Trace(ctx, func() error { return nil }, "Remove(%s)", outboxID)()
+	defer p.Trace(ctx, nil, "Remove(%s)", outboxID)()
 	file := encrypteddb.NewFile(p.G().ExternalG(), p.getPath(outboxID), p.keyFn())
 	if err := file.Remove(ctx); err != nil {
 		p.Debug(ctx, "Remove: failed: %s", err)

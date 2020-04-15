@@ -18,7 +18,7 @@ import (
 var giphyFavicon = "https://giphy.com/static/img/icons/apple-touch-icon-180px.png"
 
 func (s *Scraper) scrapeGiphyWithMetadata(ctx context.Context, sourceURL string) (res chat1.UnfurlRaw, err error) {
-	defer s.Trace(ctx, func() error { return err }, "scrapeGiphyWithMetadata")()
+	defer s.Trace(ctx, &err, "scrapeGiphyWithMetadata")()
 	url, err := url.Parse(sourceURL)
 	if err != nil {
 		return res, err
@@ -68,7 +68,7 @@ func (s *Scraper) scrapeGiphyWithMetadata(ctx context.Context, sourceURL string)
 }
 
 func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.UnfurlRaw, err error) {
-	defer s.Trace(ctx, func() error { return err }, "scrapeGiphy")()
+	defer s.Trace(ctx, &err, "scrapeGiphy")()
 	if res, err = s.scrapeGiphyWithMetadata(ctx, sourceURL); err == nil {
 		s.Debug(ctx, "scrapeGiphy: successfully scraped with metadata")
 		return res, nil

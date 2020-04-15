@@ -286,6 +286,14 @@
         {
           "type": "string",
           "name": "headline"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "emojis"
         }
       ]
     },
@@ -689,6 +697,14 @@
             "items": "KnownTeamMention"
           },
           "name": "teamMentions"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HarvestedEmoji",
+            "keys": "string"
+          },
+          "name": "emojis"
         }
       ]
     },
@@ -1871,6 +1887,13 @@
         {
           "type": "string",
           "name": "headline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "HarvestedEmoji"
+          },
+          "name": "headlineEmojis"
         },
         {
           "type": [
@@ -3989,6 +4012,20 @@
     },
     {
       "type": "record",
+      "name": "EmojiError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "clidisplay"
+        },
+        {
+          "type": "string",
+          "name": "uidisplay"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AddEmojiRes",
       "fields": [
         {
@@ -3997,6 +4034,13 @@
             "RateLimit"
           ],
           "name": "rateLimit"
+        },
+        {
+          "type": [
+            null,
+            "EmojiError"
+          ],
+          "name": "error"
         }
       ]
     },
@@ -4021,7 +4065,7 @@
         {
           "type": {
             "type": "map",
-            "values": "string",
+            "values": "EmojiError",
             "keys": "string"
           },
           "name": "failedFilenames"
@@ -4042,9 +4086,9 @@
         {
           "type": [
             null,
-            "string"
+            "EmojiError"
           ],
-          "name": "errorString"
+          "name": "error"
         }
       ]
     },
@@ -6010,6 +6054,18 @@
         "type": "map",
         "values": "gregor1.Time",
         "keys": "keybase1.TeamID"
+      }
+    },
+    "getParticipants": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ConversationLocalParticipant"
       }
     },
     "addEmoji": {

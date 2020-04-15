@@ -128,6 +128,7 @@ const markdownStyles = Styles.styleSheetCreate(
         },
       }),
       textBlockStyle: Styles.platformStyles({
+        isAndroid: {lineHeight: undefined},
         isElectron: {color: 'inherit', display: 'block', fontWeight: 'inherit', ...wrapStyle},
       } as const),
       wrapStyle,
@@ -138,6 +139,7 @@ const markdownStyles = Styles.styleSheetCreate(
 const EmojiIfExists = React.memo(
   (
     props: EmojiProps & {
+      paragraphTextClassName?: string
       style?: any
       allowFontScaling?: boolean
       lineClamp?: LineClampType
@@ -148,7 +150,12 @@ const EmojiIfExists = React.memo(
     return exists ? (
       <Emoji emojiName={emojiNameLower} size={props.size} allowFontScaling={props.allowFontScaling} />
     ) : (
-      <Markdown style={props.style} lineClamp={props.lineClamp} allowFontScaling={props.allowFontScaling}>
+      <Markdown
+        paragraphTextClassName={props.paragraphTextClassName}
+        style={props.style}
+        lineClamp={props.lineClamp}
+        allowFontScaling={props.allowFontScaling}
+      >
         {props.emojiName}
       </Markdown>
     )
@@ -306,6 +313,7 @@ const reactComponentsForMarkdownType = {
       state: SimpleMarkdown.State
     ) => (
       <Text
+        className={state.paragraphTextClassName}
         type="Body"
         key={state.key}
         style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride.paragraph])}
@@ -329,6 +337,7 @@ const reactComponentsForMarkdownType = {
         styleOverride={state.styleOverride}
         styles={markdownStyles}
         disableBigEmojis={false}
+        disableEmojiAnimation={false}
       />
     ),
   },
@@ -456,6 +465,7 @@ const previewOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
           styleOverride={state.styleOverride}
           styles={markdownStyles as any}
           disableBigEmojis={true}
+          disableEmojiAnimation={true}
         />
       ),
     },
@@ -488,6 +498,7 @@ const serviceOnlyOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
           styleOverride={state.styleOverride}
           styles={markdownStyles as any}
           disableBigEmojis={true}
+          disableEmojiAnimation={true}
         />
       ),
     },

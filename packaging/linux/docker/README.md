@@ -4,6 +4,8 @@
 
 - [the "standard" image](https://github.com/keybase/client/blob/master/packaging/linux/docker/standard/Dockerfile)
 - [the "slim" variant](https://github.com/keybase/client/blob/master/packaging/linux/docker/slim/Dockerfile)
+- [the "alpine" image](https://github.com/keybase/client/blob/master/packaging/linux/docker/alpine/Dockerfile)
+- [the "alpine-slim" variant](https://github.com/keybase/client/blob/master/packaging/linux/docker/alpine-slim/Dockerfile)
 - [the "node" variant (standard image based on an LTS release of Node)](https://github.com/keybase/client/blob/master/packaging/linux/docker/node/Dockerfile)
 - [the "node-slim" variant (slim image based on an LTS release of Node)](https://github.com/keybase/client/blob/master/packaging/linux/docker/node-slim/Dockerfile)
 - [the "python" variant (standard image based on Python 3.8)](https://github.com/keybase/client/blob/master/packaging/linux/docker/python/Dockerfile)
@@ -16,6 +18,9 @@
 
 - **Where to file issues**:
   [https://github.com/keybase/client](https://github.com/keybase/client)
+
+- **Where to find a changelog**:
+  [packaging/linux/docker/README.md](https://github.com/keybase/client/blob/master/packaging/linux/docker/README.md)
 
 - **Supported architectures**:
   Currently we only support amd64, please file a ticket if you'd like us to

@@ -134,6 +134,9 @@ const AddToChannels = (props: Props) => {
     }
   }
 
+  // channel rows use activity levels
+  Common.useActivityLevels()
+
   // TODO: alternate title when there aren't channels yet?
   const title =
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`

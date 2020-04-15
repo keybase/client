@@ -6,8 +6,10 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type AliasInputProps = {
   error?: string
+  disabled?: boolean
   alias: string
   onChangeAlias: (alias: string) => void
+  onRemove?: () => void
   onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
   small: boolean
 }
@@ -33,24 +35,39 @@ export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
   }
   render() {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
-        <Kb.NewInput
-          ref={this.inputRef}
-          error={!!this.props.error}
-          textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
-          value={`:${this.props.alias}:`}
-          containerStyle={Styles.collapseStyles([
-            styles.aliasInput,
-            !this.props.small && styles.aliasInputLarge,
-          ])}
-          onChangeText={newText =>
-            // Remove both colon and special characters.
-            this.props.onChangeAlias(newText.replace(/[^a-zA-Z0-9-_+]/g, ''))
-          }
-          onEnterKeyDown={this.props.onEnterKeyDown}
-          onFocus={this.onFocus}
-        />
-        {!!this.props.error && <Kb.Text type="BodySmallError">{this.props.error}</Kb.Text>}
+      <Kb.Box2 direction="vertical" style={styles.aliasInputContainer} gap="xxtiny">
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
+          <Kb.NewInput
+            ref={this.inputRef}
+            error={!!this.props.error}
+            disabled={this.props.disabled}
+            textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
+            // android has issues with setSelection that make including colons a bad experience
+            // see https://keybase.atlassian.net/browse/TRIAGE-2680
+            value={Styles.isAndroid ? this.props.alias : `:${this.props.alias}:`}
+            containerStyle={Styles.collapseStyles([
+              styles.aliasInput,
+              !this.props.small && styles.aliasInputLarge,
+            ])}
+            onChangeText={newText =>
+              // Remove both colon and special characters.
+              this.props.onChangeAlias(newText.replace(/[^a-zA-Z0-9-_+]/g, ''))
+            }
+            onEnterKeyDown={this.props.onEnterKeyDown}
+            // TODO: remove android exception when https://keybase.atlassian.net/browse/TRIAGE-2680 fixed
+            onFocus={Styles.isAndroid ? undefined : this.onFocus}
+          />
+          {this.props.onRemove && (
+            <Kb.ClickableBox onClick={this.props.onRemove} style={styles.removeBox}>
+              <Kb.Icon type="iconfont-remove" />
+            </Kb.ClickableBox>
+          )}
+        </Kb.Box2>
+        {!!this.props.error && (
+          <Kb.Text type="BodySmallError" lineClamp={1}>
+            {this.props.error}
+          </Kb.Text>
+        )}
       </Kb.Box2>
     )
   }
@@ -91,7 +108,7 @@ export const Modal = (props: ModalProps) => {
                 onClick={props.backButtonOnClick}
               />
             )}
-            <Kb.Text type="Header">Add emoji</Kb.Text>
+            <Kb.Text type="Header">{props.title}</Kb.Text>
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer}>
@@ -129,18 +146,22 @@ export const Modal = (props: ModalProps) => {
 const styles = Styles.styleSheetCreate(() => ({
   aliasInput: Styles.platformStyles({
     common: {
+      flexBasis: 0,
       flexGrow: 1,
       height: '100%',
     },
     isElectron: {
+      height: Styles.globalMargins.mediumLarge,
       paddingLeft: Styles.globalMargins.xsmall,
       paddingRight: Styles.globalMargins.xsmall,
     },
     isMobile: {
+      height: Styles.globalMargins.large,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
     },
   }),
+  aliasInputContainer: {...Styles.globalStyles.flexGrow, flexShrink: 1, overflow: 'hidden'},
   aliasInputLarge: Styles.platformStyles({
     common: {
       paddingLeft: Styles.globalMargins.small,
@@ -199,4 +220,10 @@ const styles = Styles.styleSheetCreate(() => ({
       height: Styles.globalMargins.large + Styles.globalMargins.tiny,
     },
   }),
+  removeBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Styles.globalMargins.xtiny,
+  },
 }))

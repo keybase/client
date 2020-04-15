@@ -8,7 +8,7 @@ import * as TimestampUtil from '../util/timestamp'
 import {FilesPreview} from './files.desktop'
 import {DeserializeProps} from '../menubar/remote-serializer.desktop'
 
-export default () => {
+const FilesContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const {remoteTlfUpdates, config} = state
   const {username} = config
@@ -50,3 +50,4 @@ export default () => {
     />
   )
 }
+export default FilesContainer

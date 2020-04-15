@@ -118,14 +118,14 @@ const CopyText = (props: Props) => {
       ])}
     >
       <Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
-        {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" />}
+        {Styles.isMobile && <Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
         <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard
         </Text>
       </Toast>
       <Text
         lineClamp={lineClamp}
-        type={props.textType || 'BodyTiny'}
+        type={props.textType || 'BodySmallSemibold'}
         selectable={true}
         center={true}
         style={Styles.collapseStyles([styles.text, props.disabled && styles.textDisabled])}
@@ -150,8 +150,7 @@ const CopyText = (props: Props) => {
         >
           <Icon
             type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
-            color={Styles.globalColors.white}
-            sizeType="Small"
+            color={Styles.globalColors.whiteOrWhite}
           />
         </Button>
       )}
@@ -166,6 +165,8 @@ const styles = Styles.styleSheetCreate(
       button: Styles.platformStyles({
         common: {
           alignSelf: 'stretch',
+          borderBottomLeftRadius: 0,
+          borderTopLeftRadius: 0,
           height: undefined,
           marginLeft: 'auto',
           minWidth: undefined,
@@ -174,10 +175,12 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           display: 'flex',
+          minHeight: 32,
           paddingBottom: Styles.globalMargins.xtiny,
           paddingTop: Styles.globalMargins.xtiny,
         },
         isMobile: {
+          minHeight: 40,
           paddingBottom: Styles.globalMargins.tiny,
           paddingTop: Styles.globalMargins.tiny,
         },

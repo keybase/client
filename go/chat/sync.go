@@ -173,7 +173,7 @@ func (s *Syncer) IsConnected(ctx context.Context) bool {
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
 	ctx = globals.CtxAddLogTags(ctx, s.G())
-	defer s.Trace(ctx, func() error { return err }, "Connected")()
+	defer s.Trace(ctx, &err, "Connected")()
 	s.Lock()
 	s.isConnected = true
 	// Let the Offlinables know that we are back online
@@ -187,7 +187,7 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 }
 
 func (s *Syncer) Disconnected(ctx context.Context) {
-	defer s.Trace(ctx, func() error { return nil }, "Disconnected")()
+	defer s.Trace(ctx, nil, "Disconnected")()
 	s.Lock()
 	s.isConnected = false
 	// Let the Offlinables know of connection state change
@@ -314,7 +314,7 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 		rc.LocalMetadata = md
 		itemsByTopicType[c.GetTopicType()] = append(itemsByTopicType[c.GetTopicType()],
 			chat1.ChatSyncIncrementalConv{
-				Conv:        utils.PresentRemoteConversation(ctx, s.G(), rc),
+				Conv:        utils.PresentRemoteConversation(ctx, s.G(), uid, rc),
 				ShouldUnbox: shouldUnboxMap[c.GetConvID().ConvIDStr()],
 			})
 	}
@@ -331,7 +331,7 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 
 func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Sync")()
+	defer s.Trace(ctx, &err, "Sync")()
 	s.Lock()
 	if !s.isConnected {
 		defer s.Unlock()

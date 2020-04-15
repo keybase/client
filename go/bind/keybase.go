@@ -292,7 +292,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		kbfsParams.Debug = true                         // false
 		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
 		_, _ = libkbfs.Init(
-			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() error { return nil },
+			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, nil,
 			kbCtx.Log)
 	}()
 
@@ -447,28 +447,28 @@ func SetAppStateForeground() {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("SetAppStateForeground", func() error { return nil })()
+	defer kbCtx.Trace("SetAppStateForeground", nil)()
 	kbCtx.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 }
 func SetAppStateBackground() {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("SetAppStateBackground", func() error { return nil })()
+	defer kbCtx.Trace("SetAppStateBackground", nil)()
 	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 }
 func SetAppStateInactive() {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("SetAppStateInactive", func() error { return nil })()
+	defer kbCtx.Trace("SetAppStateInactive", nil)()
 	kbCtx.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
 }
 func SetAppStateBackgroundActive() {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("SetAppStateBackgroundActive", func() error { return nil })()
+	defer kbCtx.Trace("SetAppStateBackgroundActive", nil)()
 	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
 }
 
@@ -495,7 +495,7 @@ func BackgroundSync() {
 	if err := waitForInit(5 * time.Second); err != nil {
 		return
 	}
-	defer kbCtx.Trace("BackgroundSync", func() error { return nil })()
+	defer kbCtx.Trace("BackgroundSync", nil)()
 
 	// Skip the sync if we aren't in the background
 	if state := kbCtx.MobileAppState.State(); state != keybase1.MobileAppState_BACKGROUND {
@@ -543,7 +543,7 @@ func AppWillExit(pusher PushNotifier) {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("AppWillExit", func() error { return nil })()
+	defer kbCtx.Trace("AppWillExit", nil)()
 	ctx := context.Background()
 	obrs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
 	if err == nil {
@@ -560,7 +560,7 @@ func AppDidEnterBackground() bool {
 	if !isInited() {
 		return false
 	}
-	defer kbCtx.Trace("AppDidEnterBackground", func() error { return nil })()
+	defer kbCtx.Trace("AppDidEnterBackground", nil)()
 	ctx := context.Background()
 	convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
 	if err != nil {
@@ -592,7 +592,7 @@ func AppBeginBackgroundTaskNonblock(pusher PushNotifier) {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("AppBeginBackgroundTaskNonblock", func() error { return nil })()
+	defer kbCtx.Trace("AppBeginBackgroundTaskNonblock", nil)()
 	go AppBeginBackgroundTask(pusher)
 }
 
@@ -602,7 +602,7 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("AppBeginBackgroundTask", func() error { return nil })()
+	defer kbCtx.Trace("AppBeginBackgroundTask", nil)()
 	ctx := context.Background()
 	// Poll active deliveries in case we can shutdown early
 	beginTime := libkb.ForceWallClock(time.Now())

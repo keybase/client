@@ -6,6 +6,7 @@ package libkb
 import (
 	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -264,7 +265,7 @@ func (s *LKSec) GetServerHalf() LKSecServerHalf {
 }
 
 func (s *LKSec) Load(m MetaContext) (err error) {
-	defer m.Trace("LKSec::Load()", func() error { return err })()
+	defer m.Trace("LKSec::Load()", &err)()
 
 	if !s.secret.IsNil() {
 		m.Debug("| Short-circuit; we already know the full secret")
@@ -290,7 +291,7 @@ func (s *LKSec) SetFullSecret(m MetaContext) {
 }
 
 func (s *LKSec) LoadServerHalf(m MetaContext) (err error) {
-	defer m.Trace("LKSec::LoadServerHalf()", func() error { return err })()
+	defer m.Trace("LKSec::LoadServerHalf()", &err)()
 
 	if !s.serverHalf.IsNil() {
 		m.Debug("| short-circuit: already have serverHalf")
@@ -301,7 +302,7 @@ func (s *LKSec) LoadServerHalf(m MetaContext) (err error) {
 }
 
 func (s *LKSec) LoadServerDetails(m MetaContext) (ret DeviceKeyMap, err error) {
-	defer m.Trace("LKSec#LoadServerDetails", func() error { return err })()
+	defer m.Trace("LKSec#LoadServerDetails", &err)()
 
 	devid := s.deviceID
 	if devid.IsNil() {
@@ -323,7 +324,7 @@ func (s *LKSec) LoadServerDetails(m MetaContext) (ret DeviceKeyMap, err error) {
 }
 
 func (s *LKSec) GetSecret(m MetaContext) (secret LKSecFullSecret, err error) {
-	defer m.Trace("LKsec:GetSecret()", func() error { return err })()
+	defer m.Trace("LKsec:GetSecret()", &err)()
 	if err = s.Load(m); err != nil {
 		return secret, err
 	}
@@ -332,7 +333,7 @@ func (s *LKSec) GetSecret(m MetaContext) (secret LKSecFullSecret, err error) {
 }
 
 func (s *LKSec) Encrypt(m MetaContext, src []byte) (res []byte, err error) {
-	defer m.Trace("LKsec:Encrypt()", func() error { return err })()
+	defer m.Trace("LKsec:Encrypt()", &err)()
 	if err = s.Load(m); err != nil {
 		return nil, err
 	}
@@ -362,7 +363,7 @@ func (s *LKSec) attemptBug3964Recovery(m MetaContext, data []byte, nonce *[24]by
 func (s *LKSec) tryAllDevicesForBug3964Recovery(m MetaContext, devices DeviceKeyMap, data []byte, nonce *[24]byte) (res []byte, erroneousMask LKSecServerHalf, err error) {
 
 	// This logline is asserted in testing in bug_3964_repairman_test
-	defer m.Trace("LKSec#tryAllDevicesForBug3964Recovery()", func() error { return err })()
+	defer m.Trace("LKSec#tryAllDevicesForBug3964Recovery()", &err)()
 
 	for devid, dev := range devices {
 
@@ -397,7 +398,7 @@ func splitCiphertext(src []byte) ([]byte, *[24]byte) {
 
 func (s *LKSec) Decrypt(m MetaContext, src []byte) (res []byte, gen PassphraseGeneration, erroneousMask LKSecServerHalf, err error) {
 	// This logline is asserted in testing in bug_3964_repairman_test
-	defer m.Trace("LKSec#Decrypt()", func() error { return err })()
+	defer m.Trace("LKSec#Decrypt()", &err)()
 
 	if err = s.Load(m); err != nil {
 		return nil, 0, LKSecServerHalf{}, err
@@ -406,6 +407,11 @@ func (s *LKSec) Decrypt(m MetaContext, src []byte) (res []byte, gen PassphraseGe
 	data, nonce := splitCiphertext(src)
 	res, ok = secretbox.Open(nil, data, nonce, s.secret.f)
 	if !ok {
+		secretHash := sha256.New()
+		_, _ = secretHash.Write((*s.secret.f)[:])
+		m.Debug("secretbox.Open failed: used a secret of length %d", len(s.secret.f))
+		m.Debug("secretbox.Open failed: used secret of hash prefix %x and nonce prefix %x",
+			secretHash.Sum(nil)[:4], nonce[:4])
 		m.Debug("secretbox.Open failed: attempting recovery")
 		return s.attemptBug3964Recovery(m, data, nonce)
 	}
@@ -414,7 +420,7 @@ func (s *LKSec) Decrypt(m MetaContext, src []byte) (res []byte, gen PassphraseGe
 }
 
 func (s *LKSec) decryptForBug3964Repair(m MetaContext, src []byte, dkm DeviceKeyMap) (res []byte, erroneousMask LKSecServerHalf, err error) {
-	defer m.Trace("LKSec#decryptForBug3964Repair()", func() error { return err })()
+	defer m.Trace("LKSec#decryptForBug3964Repair()", &err)()
 	data, nonce := splitCiphertext(src)
 	res, ok := secretbox.Open(nil, data, nonce, s.secret.f)
 	if ok {
@@ -485,7 +491,7 @@ func (s *LKSec) EncryptClientHalfRecovery(key GenericKey) (string, error) {
 // ToSKB exports a generic key with the given LKSec to a SecretKeyBundle,
 // performing all necessary encryption.
 func (s *LKSec) ToSKB(m MetaContext, key GenericKey) (ret *SKB, err error) {
-	defer m.Trace("LKSec#ToSKB", func() error { return err })()
+	defer m.Trace("LKSec#ToSKB", &err)()
 	if s == nil {
 		return nil, errors.New("nil lks")
 	}
@@ -512,7 +518,7 @@ func (s *LKSec) ToSKB(m MetaContext, key GenericKey) (ret *SKB, err error) {
 }
 
 func WriteLksSKBToKeyring(m MetaContext, k GenericKey, lks *LKSec) (skb *SKB, err error) {
-	defer m.Trace("WriteLksSKBToKeyring", func() error { return err })()
+	defer m.Trace("WriteLksSKBToKeyring", &err)()
 	skb, err = lks.ToSKB(m, k)
 	if err != nil {
 		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)

@@ -5,10 +5,12 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"hash"
+	"math"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -354,6 +356,17 @@ func IsDeletableByDeleteHistory(typ MessageType) bool {
 		}
 	}
 	return true
+}
+
+func (t TopicType) EphemeralAllowed() bool {
+	switch t {
+	case TopicType_KBFSFILEEDIT,
+		TopicType_EMOJI,
+		TopicType_EMOJICROSS:
+		return false
+	default:
+		return true
+	}
 }
 
 func (t TopicType) String() string {
@@ -962,6 +975,24 @@ func (b MessageBody) IsType(typ MessageType) bool {
 	return btyp == typ
 }
 
+func (b MessageBody) TextForDecoration() string {
+	typ, err := b.MessageType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case MessageType_REACTION:
+		return b.Reaction().Body
+	case MessageType_HEADLINE:
+		return b.Headline().Headline
+	case MessageType_ATTACHMENT:
+		// Exclude the filename for text decoration.
+		return b.Attachment().Object.Title
+	default:
+		return b.SearchableText()
+	}
+}
+
 func (b MessageBody) SearchableText() string {
 	typ, err := b.MessageType()
 	if err != nil {
@@ -980,14 +1011,44 @@ func (b MessageBody) SearchableText() string {
 		return b.Flip().Text
 	case MessageType_UNFURL:
 		return b.Unfurl().SearchableText()
+	case MessageType_SYSTEM:
+		return b.System().String()
 	default:
 		return ""
+	}
+}
+
+func (b MessageBody) GetEmojis() map[string]HarvestedEmoji {
+	typ, err := b.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case MessageType_TEXT:
+		return b.Text().Emojis
+	case MessageType_REACTION:
+		return b.Reaction().Emojis
+	case MessageType_EDIT:
+		return b.Edit().Emojis
+	case MessageType_ATTACHMENT:
+		return b.Attachment().Emojis
+	case MessageType_HEADLINE:
+		return b.Headline().Emojis
+	default:
+		return nil
 	}
 }
 
 func (m UIMessage) IsValid() bool {
 	if state, err := m.State(); err == nil {
 		return state == MessageUnboxedState_VALID
+	}
+	return false
+}
+
+func (m UIMessage) IsError() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_ERROR
 	}
 	return false
 }
@@ -2982,6 +3043,29 @@ func (c Coordinate) Eq(o Coordinate) bool {
 	return c.Lat == o.Lat && c.Lon == o.Lon
 }
 
+type safeCoordinate struct {
+	Lat      float64 `codec:"lat" json:"lat"`
+	Lon      float64 `codec:"lon" json:"lon"`
+	Accuracy float64 `codec:"accuracy" json:"accuracy"`
+}
+
+func (c Coordinate) MarshalJSON() ([]byte, error) {
+	var safe safeCoordinate
+	safe.Lat = c.Lat
+	safe.Lon = c.Lon
+	safe.Accuracy = c.Accuracy
+	if math.IsNaN(safe.Lat) {
+		safe.Lat = 0
+	}
+	if math.IsNaN(safe.Lon) {
+		safe.Lon = 0
+	}
+	if math.IsNaN(safe.Accuracy) {
+		safe.Accuracy = 0
+	}
+	return json.Marshal(safe)
+}
+
 // Incremented if the client hash algorithm changes. If this value is changed
 // be sure to add a case in the BotInfo.Hash() function.
 const ClientBotInfoHashVers BotInfoHashVers = 1
@@ -3101,30 +3185,51 @@ func (m AssetMetadata) IsType(typ AssetMetadataType) bool {
 	return mtyp == typ
 }
 
+type safeAssetMetadataImage struct {
+	Width     int       `codec:"width" json:"width"`
+	Height    int       `codec:"height" json:"height"`
+	AudioAmps []float64 `codec:"audioAmps" json:"audioAmps"`
+}
+
+func (m AssetMetadataImage) MarshalJSON() ([]byte, error) {
+	var safe safeAssetMetadataImage
+	safe.AudioAmps = make([]float64, 0, len(m.AudioAmps))
+	for _, amp := range m.AudioAmps {
+		if math.IsNaN(amp) {
+			safe.AudioAmps = append(safe.AudioAmps, 0)
+		} else {
+			safe.AudioAmps = append(safe.AudioAmps, amp)
+		}
+	}
+	safe.Width = m.Width
+	safe.Height = m.Height
+	return json.Marshal(safe)
+}
+
 func (s SnippetDecoration) ToEmoji() string {
 	switch s {
 	case SnippetDecoration_PENDING_MESSAGE:
-		return "📤"
+		return ":outbox_tray:"
 	case SnippetDecoration_FAILED_PENDING_MESSAGE:
-		return "⚠️"
+		return ":warning:"
 	case SnippetDecoration_EXPLODING_MESSAGE:
-		return "💣"
+		return ":bomb:"
 	case SnippetDecoration_EXPLODED_MESSAGE:
-		return "💥"
+		return ":boom:"
 	case SnippetDecoration_AUDIO_ATTACHMENT:
-		return "🔊"
+		return ":loud_sound:"
 	case SnippetDecoration_VIDEO_ATTACHMENT:
-		return "🎞"
+		return ":film_frames:"
 	case SnippetDecoration_PHOTO_ATTACHMENT:
-		return "📷"
+		return ":camera:"
 	case SnippetDecoration_FILE_ATTACHMENT:
-		return "📁"
+		return ":file_folder:"
 	case SnippetDecoration_STELLAR_RECEIVED:
-		return "💰"
+		return ":bank:"
 	case SnippetDecoration_STELLAR_SENT:
-		return "🚀"
+		return ":money_with_wings:"
 	case SnippetDecoration_PINNED_MESSAGE:
-		return "📌"
+		return ":pushpin:"
 	default:
 		return ""
 	}
@@ -3156,4 +3261,27 @@ func (r EmojiLoadSource) IsHTTPSrv() bool {
 		return false
 	}
 	return typ == EmojiLoadSourceTyp_HTTPSRV
+}
+
+func TeamToChatMemberDetails(teamMembers []keybase1.TeamMemberDetails) (chatMembers []ChatMemberDetails) {
+	chatMembers = make([]ChatMemberDetails, len(teamMembers))
+	for i, teamMember := range teamMembers {
+		chatMembers[i] = ChatMemberDetails{
+			Uid:      teamMember.Uv.Uid,
+			Username: teamMember.Username,
+			FullName: teamMember.FullName,
+		}
+	}
+	return chatMembers
+}
+
+func TeamToChatMembersDetails(details keybase1.TeamMembersDetails) ChatMembersDetails {
+	return ChatMembersDetails{
+		Owners:         TeamToChatMemberDetails(details.Owners),
+		Admins:         TeamToChatMemberDetails(details.Admins),
+		Writers:        TeamToChatMemberDetails(details.Writers),
+		Readers:        TeamToChatMemberDetails(details.Readers),
+		Bots:           TeamToChatMemberDetails(details.Bots),
+		RestrictedBots: TeamToChatMemberDetails(details.RestrictedBots),
+	}
 }

@@ -108,7 +108,7 @@ const TeamHeader = (props: TeamHeaderProps) => {
         <Kb.Meta
           backgroundColor={Styles.globalColors.blueGrey}
           color={Styles.globalColors.black_50}
-          icon="iconfont-people"
+          icon="iconfont-people-solid"
           iconColor={Styles.globalColors.black_20}
           title={teamHumanCount}
         />
@@ -199,7 +199,7 @@ class InfoPanelMenu extends React.Component<Props> {
       }
       items.push({
         danger: true,
-        icon: 'iconfont-block-user',
+        icon: 'iconfont-user-block',
         onClick: props.onBlockConv,
         title: 'Block',
       })
@@ -230,7 +230,7 @@ class InfoPanelMenu extends React.Component<Props> {
       if (props.canAddPeople) {
         addPeopleItems.forEach(item => items.push(item))
       }
-      items.push({icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'})
+      items.push({icon: 'iconfont-team-leave', onClick: props.onLeaveTeam, title: 'Leave team'})
     }
 
     const header = props.hasHeader ? (

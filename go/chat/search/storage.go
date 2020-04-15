@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	indexVersion      = 15
+	indexVersion      = 16
 	tokenEntryVersion = 2
 	aliasEntryVersion = 3
 
@@ -290,7 +290,7 @@ func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.Conversati
 
 func (b *batchingStore) Flush() (err error) {
 	ctx := context.Background()
-	defer b.Trace(ctx, func() error { return err }, "Flush")()
+	defer b.Trace(ctx, &err, "Flush")()
 	b.Lock()
 	defer b.Unlock()
 	if len(b.tokenBatch) == 0 && len(b.aliasBatch) == 0 && len(b.mdBatch) == 0 {
@@ -332,7 +332,7 @@ func (b *batchingStore) Flush() (err error) {
 }
 
 func (b *batchingStore) Cancel() {
-	defer b.Trace(context.Background(), func() error { return nil }, "Cancel")()
+	defer b.Trace(context.Background(), nil, "Cancel")()
 	b.Lock()
 	defer b.Unlock()
 	b.resetLocked()
@@ -477,14 +477,13 @@ func aliasKeyWithVersion(ctx context.Context, dat string, version int,
 
 // deleteOldVersions purges old disk structures so we don't error out on msg
 // pack decode or strand indexes with ephemeral content.
-func (s *store) deleteOldVersions(ctx context.Context, keyFn func(int) (libkb.DbKey, error), maxVersion int) {
-	for version := 1; version < maxVersion; version++ {
+func (s *store) deleteOldVersions(ctx context.Context, keyFn func(int) (libkb.DbKey, error), minVersion, maxVersion int) {
+	for version := minVersion; version < maxVersion; version++ {
 		key, err := keyFn(version)
 		if err != nil {
 			s.Debug(ctx, "unable to get key for version %d, %v", version, err)
 			continue
 		}
-		s.Debug(ctx, "cleaning old version %d: for key %v", version, key)
 		if err := s.G().LocalChatDb.Delete(key); err != nil {
 			s.Debug(ctx, "deleteOldVersions: failed to delete key: %s", err)
 		}
@@ -495,25 +494,25 @@ func (s *store) deleteOldMetadataVersions(ctx context.Context, convID chat1.Conv
 	keyFn := func(version int) (libkb.DbKey, error) {
 		return metadataKeyWithVersion(s.uid, convID, version), nil
 	}
-	s.deleteOldVersions(ctx, keyFn, mdDiskVersion)
+	s.deleteOldVersions(ctx, keyFn, 3, mdDiskVersion)
 }
 
 func (s *store) deleteOldTokenVersions(ctx context.Context, convID chat1.ConversationID, token string) {
 	keyFn := func(version int) (libkb.DbKey, error) {
 		return tokenKeyWithVersion(ctx, s.uid, convID, token, version, s.keyFn)
 	}
-	s.deleteOldVersions(ctx, keyFn, tokenDiskVersion)
+	s.deleteOldVersions(ctx, keyFn, 1, tokenDiskVersion)
 }
 
 func (s *store) deleteOldAliasVersions(ctx context.Context, alias string) {
 	keyFn := func(version int) (libkb.DbKey, error) {
 		return aliasKeyWithVersion(ctx, alias, version, s.keyFn)
 	}
-	s.deleteOldVersions(ctx, keyFn, aliasDiskVersion)
+	s.deleteOldVersions(ctx, keyFn, 1, aliasDiskVersion)
 }
 
 func (s *store) GetHits(ctx context.Context, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
-	defer s.Trace(ctx, func() error { return err }, "GetHits")()
+	defer s.Trace(ctx, &err, "GetHits")()
 	s.RLock()
 	defer s.RUnlock()
 	res = make(map[chat1.MessageID]chat1.EmptyStruct)
@@ -721,7 +720,7 @@ func (s *store) GetMetadata(ctx context.Context, convID chat1.ConversationID) (r
 
 func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Add")()
+	defer s.Trace(ctx, &err, "Add")()
 	s.Lock()
 	defer s.Unlock()
 
@@ -805,7 +804,7 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 // Remove tokenizes the message content and updates/removes index keys for each token.
 func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Remove")()
+	defer s.Trace(ctx, &err, "Remove")()
 	s.Lock()
 	defer s.Unlock()
 
@@ -835,7 +834,7 @@ func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (s *store) ClearMemory() {
-	defer s.Trace(context.Background(), func() error { return nil }, "ClearMemory")()
+	defer s.Trace(context.Background(), nil, "ClearMemory")()
 	s.aliasCache.Purge()
 	s.tokenCache.Purge()
 	s.diskStorage.Cancel()

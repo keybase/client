@@ -143,6 +143,9 @@
     "joinTeam": {
       "teamname": "string"
     },
+    "respondToInviteLink": {
+      "accept": "boolean"
+    },
     "launchNewTeamWizardOrModal": {
       "subteamOf?": "Types.TeamID"
     },
@@ -260,11 +263,6 @@
       "subteams": "Array<Types.Teamname>",
       "requests": "Map<string, Array<RPCTypes.TeamJoinRequest>>",
       "subteamIDs": "Set<Types.TeamID>"
-    },
-    "setTeamCanPerform": {
-      "teamname": "string",
-      "teamID": "Types.TeamID",
-      "teamOperation": "Types.TeamOperations"
     },
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",
@@ -386,8 +384,12 @@
     "cancelAddMembersWizard": {
       "_description": "Nav away from add members wizard and clear related state."
     },
-    "finishAddMembersWizard": {
+    "finishedAddMembersWizard": {
       "_description": "Nav away from add members wizard and clear related state."
+    },
+    "finishedNewTeamWizard": {
+      "_description": "Clear new team wizard state and nav to team.",
+      "teamID": "Types.TeamID"
     },
     "setJustFinishedAddMembersWizard": {
       "justFinished": "boolean"
@@ -413,13 +415,9 @@
       "activityMap": "Map<Types.TeamID, number>",
       "username": "string"
     },
-    "getMemberSubteamDetails": {
+    "loadTeamTree": {
       "teamID": "Types.TeamID",
       "username": "string"
-    },
-    "setMemberSubteamDetails": {
-      "username": "string",
-      "memberships": "Map<Types.TeamID, Types.MemberInfoWithLastActivity>"
     },
     "startNewTeamWizard": {},
     "setTeamWizardTeamType": {
@@ -446,6 +444,9 @@
     "setTeamWizardSubteams": {
       "subteams": "Array<string>"
     },
+    "setTeamWizardError": {
+      "error": "string"
+    },
     "finishNewTeamWizard": {},
     "manageChatChannels": {
       "teamID": "Types.TeamID"
@@ -454,9 +455,17 @@
       "_description": "User has viewed this team. Clear related badges.",
       "teamID": "Types.TeamID"
     },
+    "getActivityForTeams": {
+      "_description": "Fetch activity levels."
+    },
     "setActivityLevels": {
-      "_description": "Set map of activity levels for all teams.",
+      "_description": "Set map of activity levels for all teams and channels.",
       "levels": "Types.ActivityLevels"
+    },
+    "setTeamListFilterSort": {
+      "_description": "Set filtering and sort order for main team list. Leaves existing for undefinted params.",
+      "filter?": "string",
+      "sortOrder?": "Types.TeamListSort"
     }
   }
 }

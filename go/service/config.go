@@ -143,13 +143,13 @@ func (h ConfigHandler) clearValue(_ context.Context, path string, w libkb.JSONWr
 
 func (h ConfigHandler) GetClientStatus(ctx context.Context, sessionID int) (res []keybase1.ClientStatus, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
-	defer mctx.TraceTimed("GetClientStatus", func() error { return err })()
+	defer mctx.Trace("GetClientStatus", &err)()
 	return libkb.GetClientStatus(mctx), nil
 }
 
 func (h ConfigHandler) GetConfig(ctx context.Context, sessionID int) (res keybase1.Config, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
-	defer mctx.TraceTimed("GetConfig", func() error { return err })()
+	defer mctx.Trace("GetConfig", &err)()
 	forkType := keybase1.ForkType_NONE
 	if h.svc != nil {
 		forkType = h.svc.ForkType
@@ -159,13 +159,13 @@ func (h ConfigHandler) GetConfig(ctx context.Context, sessionID int) (res keybas
 
 func (h ConfigHandler) GetFullStatus(ctx context.Context, sessionID int) (res *keybase1.FullStatus, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
-	defer mctx.TraceTimed("GetFullStatus", func() error { return err })()
+	defer mctx.Trace("GetFullStatus", &err)()
 	return status.GetFullStatus(mctx)
 }
 
 func (h ConfigHandler) IsServiceRunning(ctx context.Context, sessionID int) (res bool, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
-	defer mctx.TraceTimed("IsServiceRunning", func() error { return err })()
+	defer mctx.Trace("IsServiceRunning", &err)()
 
 	// set service status
 	if mctx.G().Env.GetStandalone() {
@@ -178,7 +178,7 @@ func (h ConfigHandler) IsServiceRunning(ctx context.Context, sessionID int) (res
 
 func (h ConfigHandler) IsKBFSRunning(ctx context.Context, sessionID int) (res bool, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
-	defer mctx.TraceTimed("IsKBFSRunning", func() error { return err })()
+	defer mctx.Trace("IsKBFSRunning", &err)()
 
 	clients := libkb.GetClientStatus(mctx)
 
@@ -189,7 +189,7 @@ func (h ConfigHandler) IsKBFSRunning(ctx context.Context, sessionID int) (res bo
 
 func (h ConfigHandler) GetNetworkStats(ctx context.Context, arg keybase1.GetNetworkStatsArg) (res []keybase1.InstrumentationStat, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
-	defer mctx.TraceTimed("GetNetworkStats", func() error { return err })()
+	defer mctx.Trace("GetNetworkStats", &err)()
 	switch arg.NetworkSrc {
 	case keybase1.NetworkSource_LOCAL:
 		return mctx.G().LocalNetworkInstrumenterStorage.Stats(ctx)
@@ -202,7 +202,7 @@ func (h ConfigHandler) GetNetworkStats(ctx context.Context, arg keybase1.GetNetw
 
 func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (res keybase1.LogSendID, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
-	defer mctx.TraceTimed("LogSend", func() error { return err })()
+	defer mctx.Trace("LogSend", &err)()
 
 	fstatus, err := status.GetFullStatus(mctx)
 	if err != nil {
@@ -314,7 +314,9 @@ func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybas
 	return h.G().GetOutOfDateInfo(), nil
 }
 
-func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, error) {
+func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (res keybase1.UpdateInfo, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.Trace("GetUpdateInfo", &err)()
 	outOfDateInfo := h.G().GetOutOfDateInfo()
 	if len(outOfDateInfo.UpgradeTo) != 0 {
 		// This is from the API server. Consider client critically out of date
@@ -326,7 +328,6 @@ func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, 
 	}
 	needUpdate, err := install.GetNeedUpdate() // This is from the updater.
 	if err != nil {
-		h.G().Log.Errorf("Error calling updater: %s", err)
 		return keybase1.UpdateInfo{
 			Status: keybase1.UpdateInfoStatus_UP_TO_DATE,
 		}, err

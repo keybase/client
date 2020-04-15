@@ -9,7 +9,7 @@ protocol wot {
   record UsernameVerificationType {}
 
   // One of the vouchee's proofs.
-  // Why not SigID? SigID doesn't uniquely identify old proofs.
+  // Why not SigID? Because SigID doesn't uniquely identify old proofs.
   record WotProof {
     @jsonkey("proof_type")
     ProofType proofType;
@@ -32,7 +32,8 @@ protocol wot {
     string other;
   }
 
-  void wotVouch(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
+  void wotVouch(int sessionID, string username, Identify3GUIID guiID, string vouchText, Confidence confidence);
+  void wotVouchCLI(int sessionID, string assertion, string vouchText, Confidence confidence);
 
   enum WotReactionType {
     ACCEPT_0,
@@ -47,7 +48,7 @@ protocol wot {
     string voucheeUsername;
     UserVersion voucher;
     string voucherUsername;
-    array<string> vouchTexts;
+    string vouchText;
     Time vouchedAt;
     union { null, Confidence } confidence;
   }

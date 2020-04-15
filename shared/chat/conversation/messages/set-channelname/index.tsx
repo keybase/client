@@ -7,13 +7,12 @@ type Props = {
   message: Types.MessageSetChannelname
 }
 
-export default (props: Props) =>
-  // suppress this message for the #general channel, it is redundant.
-  props.message.newChannelname === 'general' ? null : (
-    <Kb.Text type="BodySmall" style={styles.text} selectable={true}>
-      set the channel name to #{props.message.newChannelname}
-    </Kb.Text>
-  )
+const ChannelNameMessage = (props: Props) => (
+  <Kb.Text type="BodySmall" style={styles.text} selectable={true}>
+    set the channel name to #{props.message.newChannelname}
+  </Kb.Text>
+)
+export default ChannelNameMessage
 
 const styles = Styles.styleSheetCreate(
   () =>

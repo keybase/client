@@ -56,7 +56,7 @@ function useDarkSubscription() {
       )
       return () => {
         if (subscriptionId && Electron.remote.systemPreferences.unsubscribeNotification) {
-          Electron.systemPreferences.unsubscribeNotification(subscriptionId || -1)
+          Electron.remote.systemPreferences.unsubscribeNotification(subscriptionId || -1)
         }
       }
     } else {
@@ -108,7 +108,7 @@ const getCachedUsernames = memoize(
   ([a], [b]) => shallowEqual(a, b)
 )
 
-export default () => {
+const RemoteProxy = () => {
   const notifications = Container.useSelector(s => s.notifications)
   const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
 
@@ -192,3 +192,4 @@ export default () => {
 
   return <Widget {...p} />
 }
+export default RemoteProxy

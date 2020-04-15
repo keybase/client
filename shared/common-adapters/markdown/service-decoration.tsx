@@ -114,6 +114,7 @@ export type Props = {
   styleOverride: StyleOverride
   styles: {[K in string]: StylesTextCrossPlatform}
   disableBigEmojis: boolean
+  disableEmojiAnimation: boolean
 }
 
 const ServiceDecoration = (props: Props) => {
@@ -234,13 +235,14 @@ const ServiceDecoration = (props: Props) => {
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.emoji) {
     return renderEmoji(
-      emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji)),
+      emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji, props.disableEmojiAnimation)),
       parsed.emoji.isBig && !props.disableBigEmojis
         ? 32
         : parsed.emoji.isReacji && !Styles.isMobile
         ? 18
         : 16,
-      parsed.emoji.isReacji
+      !parsed.emoji.isReacji,
+      true
     )
   }
   return null

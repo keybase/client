@@ -1,11 +1,12 @@
-import * as Constants from '../../constants/tracker2'
-import * as Container from '../../util/container'
 import Profile2, {BackgroundColorType} from '.'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
+import * as Constants from '../../constants/tracker2'
 import * as Types from '../../constants/types/tracker2'
+import * as Styles from '../../styles'
+import * as Container from '../../util/container'
+import {memoize} from '../../util/memoize'
 
 export type OwnProps = Container.RouteProps<{username: string}>
 
@@ -19,12 +20,18 @@ const headerBackgroundColorType = (state: Types.DetailsState, followThem: boolea
   }
 }
 
+const filterWebOfTrustEntries = memoize(
+  (webOfTrustEntries: Array<Types.WebOfTrustEntry> | undefined): Array<Types.WebOfTrustEntry> =>
+    webOfTrustEntries ? webOfTrustEntries.filter(Constants.showableWotEntry) : []
+)
+
 const connected = Container.namedConnect(
   (state, ownProps: OwnProps) => {
     const username = Container.getRouteProps(ownProps, 'username', '')
     const d = Constants.getDetails(state, username)
+    const myName = state.config.username
     const notAUser = d.state === 'notAUserYet'
-    const userIsYou = username === state.config.username
+    const userIsYou = username === myName
 
     const commonProps = {
       _assertions: undefined,
@@ -38,6 +45,7 @@ const connected = Container.namedConnect(
       fullName: '',
       guiID: d.guiID,
       hidFromFollowers: d.hidFromFollowers,
+      myName,
       name: '',
       reason: d.reason,
       service: '',
@@ -50,6 +58,12 @@ const connected = Container.namedConnect(
       // Keybase user
       const followThem = Constants.followThem(state, username)
       const {followersCount, followingCount, followers, following, reason, webOfTrustEntries} = d
+      const mutualFollow = followThem && Constants.followsYou(state, username)
+
+      const filteredWot = filterWebOfTrustEntries(webOfTrustEntries)
+      const hasAlreadyVouched = filteredWot.some(entry => entry.attestingUser === myName)
+      const vouchShowButton = mutualFollow && !hasAlreadyVouched
+      const vouchDisableButton = !vouchShowButton || d.state !== 'valid' || d.resetBrokeTrack
 
       return {
         ...commonProps,
@@ -65,7 +79,9 @@ const connected = Container.namedConnect(
         sbsAvatarUrl: undefined,
         serviceIcon: undefined,
         title: username,
-        webOfTrustEntries,
+        vouchDisableButton,
+        vouchShowButton,
+        webOfTrustEntries: filteredWot,
       }
     } else {
       // SBS profile. But `nonUserDetails` might not have arrived yet,
@@ -87,15 +103,19 @@ const connected = Container.namedConnect(
         service,
         serviceIcon: Styles.isDarkMode() ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
         title,
+        vouchDisableButton: true,
+        vouchShowButton: false,
         webOfTrustEntries: [],
       }
     }
   },
   dispatch => ({
     _onEditAvatar: () => dispatch(ProfileGen.createEditAvatar()),
-    _onIKnowThem: (username: string) =>
+    _onIKnowThem: (username: string, guiID: string) =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileWotAuthor'}]})
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {guiID, username}, selected: 'profileWotAuthor'}],
+        })
       ),
     _onReload: (username: string, isYou: boolean, state: Types.DetailsState) => {
       if (state !== 'valid') {
@@ -154,7 +174,10 @@ const connected = Container.namedConnect(
       onAddIdentity,
       onBack: dispatchProps.onBack,
       onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : undefined,
-      onIKnowThem: stateProps.userIsYou ? undefined : () => dispatchProps._onIKnowThem(stateProps.username),
+      onIKnowThem:
+        stateProps.vouchShowButton && !stateProps.vouchDisableButton
+          ? () => dispatchProps._onIKnowThem(stateProps.username, stateProps.guiID)
+          : undefined,
       onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
       reason: stateProps.reason,
       sbsAvatarUrl: stateProps.sbsAvatarUrl,
@@ -167,7 +190,9 @@ const connected = Container.namedConnect(
       title: stateProps.title,
       userIsYou: stateProps.userIsYou,
       username: stateProps.username,
-      webOfTrustEntries: stateProps.webOfTrustEntries || [],
+      vouchDisableButton: stateProps.vouchDisableButton,
+      vouchShowButton: stateProps.vouchShowButton,
+      webOfTrustEntries: stateProps.webOfTrustEntries,
     }
   },
   'Profile2'

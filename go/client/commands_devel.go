@@ -41,17 +41,11 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatSetRetentionDev(cl, g),
 		newCmdChatKBFSUpgrade(cl, g),
 		newCmdChatProfileSearchDev(cl, g),
-		newCmdChatAddEmoji(cl, g),
-		newCmdChatAddEmojiAlias(cl, g),
-		newCmdChatListEmoji(cl, g),
-		newCmdChatRemoveEmoji(cl, g),
 	}
 }
 
 func getBuildSpecificTeamCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
-	return []cli.Command{
-		newCmdTeamGenerateInvitelink(cl, g),
-	}
+	return nil
 }
 
 func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {

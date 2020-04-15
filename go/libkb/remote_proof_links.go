@@ -184,12 +184,9 @@ func (p ProofLinkWithState) GetProofType() keybase1.ProofType { return p.link.Ge
 
 func (r *RemoteProofLinks) toServiceSummary() (ret UserServiceSummary) {
 	ret = make(UserServiceSummary, len(r.links))
-	for _, list := range r.links {
-		if len(list) == 0 {
-			continue
-		}
-		// Get most recent proof for the type
-		key, val := list[len(list)-1].ToKeyValuePair()
+	activeProofs := r.Active()
+	for _, proof := range activeProofs {
+		key, val := proof.ToKeyValuePair()
 		ret[key] = val
 	}
 	return ret

@@ -167,6 +167,7 @@
         "{type: 'incoming'}",
         "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}"
       ],
+      "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<Types.Message>",
       // true if these should be the only messages we know about
       "shouldClearOthers?": "boolean",
@@ -944,7 +945,8 @@
     },
     "fetchUserEmoji": {
       "_description": "Refresh user emoji and put it in store for picker",
-      "conversationIDKey?": "Types.ConversationIDKey"
+      "conversationIDKey?": "Types.ConversationIDKey",
+      "onlyInTeam?": "boolean"
     },
     "loadedUserEmoji": {
       "results": "RPCChatTypes.UserEmojiRes"

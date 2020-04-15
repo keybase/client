@@ -96,8 +96,8 @@ func (b *KVStoreRealBoxer) fetchVerifyKey(mctx libkb.MetaContext, uid keybase1.U
 func (b *KVStoreRealBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartext string) (
 	ciphertext string, teamKeyGen keybase1.PerTeamKeyGeneration, version int, err error) {
 
-	defer mctx.TraceTimed(fmt.Sprintf("KVStoreRealBoxer#Box: %s, %s, %s", entryID.TeamID, entryID.Namespace, entryID.EntryKey),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("KVStoreRealBoxer#Box: %s, %s, %s", entryID.TeamID, entryID.Namespace, entryID.EntryKey),
+		&err)()
 
 	clearBytes := []byte(cleartext)
 	ciphertextVersion := 1
@@ -155,8 +155,8 @@ func (b *KVStoreRealBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntr
 	teamKeyGen keybase1.PerTeamKeyGeneration, formatVersion int, senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno,
 	senderDeviceID keybase1.DeviceID) (cleartext string, err error) {
 
-	defer mctx.TraceTimed(fmt.Sprintf("KVStoreRealBoxer#Unbox: t:%s, n:%s, k:%s", entryID.TeamID, entryID.Namespace, entryID.EntryKey),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("KVStoreRealBoxer#Unbox: t:%s, n:%s, k:%s", entryID.TeamID, entryID.Namespace, entryID.EntryKey),
+		&err)()
 
 	if formatVersion != 1 {
 		return "", fmt.Errorf("unsupported format version %d isn't 1", formatVersion)

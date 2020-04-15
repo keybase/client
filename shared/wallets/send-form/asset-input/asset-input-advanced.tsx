@@ -81,7 +81,7 @@ const LeftBlock = (_: EmptyProps) => {
 
   if (hasTrivialPath) {
     return (
-      <Kb.Box2 direction="vertical" alignItems="flex-start">
+      <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.shrink}>
         <Kb.Text
           type="HeaderBigExtrabold"
           style={builtPaymentAdvanced.amountError ? styles.error : undefined}
@@ -110,23 +110,25 @@ const LeftBlock = (_: EmptyProps) => {
     )
   } else if (builtPaymentAdvanced.sourceDisplay) {
     return (
-      <Kb.Box2 direction="vertical" alignItems="flex-start">
-        <Kb.Text
-          type="HeaderBigExtrabold"
-          style={builtPaymentAdvanced.amountError ? styles.error : undefined}
-        >
-          ~{builtPaymentAdvanced.sourceDisplay}
-        </Kb.Text>
-        <Kb.Text type="BodyTiny">At most {builtPaymentAdvanced.sourceMaxDisplay}</Kb.Text>
-        {!!buildingAdvanced.recipientAsset && (
-          <Kb.Text type="BodyTiny">{builtPaymentAdvanced.exchangeRate}</Kb.Text>
-        )}
+      <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.shrink}>
         {builtPaymentAdvanced.amountError ? (
           <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
             {builtPaymentAdvanced.amountError}
           </Kb.Text>
         ) : (
-          <Available />
+          <>
+            <Kb.Text
+              type="HeaderBigExtrabold"
+              style={builtPaymentAdvanced.amountError ? styles.error : undefined}
+            >
+              ~{builtPaymentAdvanced.sourceDisplay}
+            </Kb.Text>
+            <Kb.Text type="BodyTiny">At most {builtPaymentAdvanced.sourceMaxDisplay}</Kb.Text>
+            {!!buildingAdvanced.recipientAsset && (
+              <Kb.Text type="BodyTiny">{builtPaymentAdvanced.exchangeRate}</Kb.Text>
+            )}
+            <Available />
+          </>
         )}
       </Kb.Box2>
     )
@@ -165,7 +167,6 @@ export const AssetInputSenderAdvanced = (_: EmptyProps) => {
       )}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.senderMainContainer}>
         <LeftBlock />
-        <Kb.Box style={Styles.globalStyles.flexGrow} />
         <PickAssetButton isSender={true} />
       </Kb.Box2>
     </Kb.Box2>
@@ -247,7 +248,7 @@ export const AssetPathIntermediate = (props: AssetPathIntermediateProps) => {
           fullWidth={true}
           style={styles.intermediateExpandedContainer}
         >
-          {path.reverse().map(asset => (
+          {[...path].reverse().map(asset => (
             <Kb.Box2
               key={Types.assetDescriptionToAssetID(asset)}
               alignSelf="flex-end"
@@ -327,41 +328,33 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
   const isLoading = Container.useAnyWaiting(Constants.calculateBuildingAdvancedWaitingKey)
   return (
     <Kb.Box style={styles.pickAssetButtonOverlayOuter}>
-      <Kb.Box style={styles.pickAssetButtonOverlayInner}>
-        <Kb.Box2
-          direction="vertical"
-          fullHeight={true}
-          alignSelf="flex-start"
-          alignItems="flex-end"
-          style={styles.pickAssetButton}
+      <Kb.Box2 direction="vertical" fullHeight={false} alignSelf="flex-start" alignItems="flex-end">
+        <Kb.ClickableBox
+          onClick={!isLoading && goToPickAsset ? goToPickAsset : undefined}
+          style={!goToPickAsset || isLoading ? styles.disabled : undefined}
         >
-          <Kb.ClickableBox
-            onClick={!isLoading && goToPickAsset ? goToPickAsset : undefined}
-            style={!goToPickAsset || isLoading ? styles.disabled : undefined}
-          >
-            <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
-              <Kb.Text
-                type={asset === Constants.emptyAssetDescription ? 'HeaderExtrabold' : 'HeaderBigExtrabold'}
-                style={Styles.collapseStyles([sharedStyles.purple, styles.pickAssetButtonTopText])}
-              >
-                {asset !== Constants.emptyAssetDescription
-                  ? asset === 'native'
-                    ? 'XLM'
-                    : asset.code
-                  : 'Pick an asset'}
-              </Kb.Text>
-              <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" color={Styles.globalColors.purple} />
-            </Kb.Box2>
-          </Kb.ClickableBox>
-          {asset !== Constants.emptyAssetDescription && (
-            <Kb.Text type="BodyTiny" style={sharedStyles.purple}>
-              {asset === 'native'
-                ? 'Stellar Lumens'
-                : asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}
+          <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
+            <Kb.Text
+              type={asset === Constants.emptyAssetDescription ? 'HeaderExtrabold' : 'HeaderBigExtrabold'}
+              style={Styles.collapseStyles([sharedStyles.purple, styles.pickAssetButtonTopText])}
+            >
+              {asset !== Constants.emptyAssetDescription
+                ? asset === 'native'
+                  ? 'XLM'
+                  : asset.code
+                : 'Pick an asset'}
             </Kb.Text>
-          )}
-        </Kb.Box2>
-      </Kb.Box>
+            <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" color={Styles.globalColors.purple} />
+          </Kb.Box2>
+        </Kb.ClickableBox>
+        {asset !== Constants.emptyAssetDescription && (
+          <Kb.Text type="BodyTiny" style={sharedStyles.purple}>
+            {asset === 'native'
+              ? 'Stellar Lumens'
+              : asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
     </Kb.Box>
   )
 }
@@ -396,6 +389,7 @@ const styles = Styles.styleSheetCreate(
       },
       error: {
         color: Styles.globalColors.redDark,
+        marginRight: Styles.globalMargins.medium,
       },
       intermediateAbsoluteBlock: {
         position: 'absolute',
@@ -468,23 +462,17 @@ const styles = Styles.styleSheetCreate(
       noShrink: {
         flexShrink: 0,
       },
-      pickAssetButton: Styles.platformStyles({
-        common: {
-          width: Styles.globalMargins.xlarge * 3,
-        },
-        isMobile: {
-          //    paddingTop: Styles.globalMargins.tiny,
-        },
-      }),
-      // We need this to make the PickAssetButton on top of other stuff so amount
-      // error can extend below it.
-      pickAssetButtonOverlayInner: {position: 'absolute', right: 0, top: 0},
-      pickAssetButtonOverlayOuter: {position: 'relative'},
+      pickAssetButtonOverlayOuter: {
+        flexShrink: 0,
+      },
       pickAssetButtonTopText: Styles.platformStyles({
         isElectron: {lineHeight: '24px'},
         isMobile: {lineHeight: 32},
       }),
-      senderMainContainer: {marginTop: Styles.globalMargins.xtiny},
+      senderMainContainer: {
+        justifyContent: 'space-between',
+        marginTop: Styles.globalMargins.xtiny,
+      },
       shrink: {flexShrink: 1},
       topLabel: {
         alignItems: 'center',

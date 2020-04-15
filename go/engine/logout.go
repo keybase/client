@@ -33,7 +33,7 @@ func (e *LogoutEngine) filterLoggedIn(accounts []keybase1.
 // Tell the user what accounts they still have secrets stored for,
 // so they don't think they are fully logged out of everything.
 func (e *LogoutEngine) printSwitchInfo(mctx libkb.MetaContext) (err error) {
-	defer mctx.Trace("Logout#printSwitchInfo", func() error { return err })()
+	defer mctx.Trace("Logout#printSwitchInfo", &err)()
 	ctx, cancel := context.WithTimeout(mctx.Ctx(), time.Second*3)
 	defer cancel()
 	accounts, err := mctx.G().GetConfiguredAccounts(ctx)
@@ -66,7 +66,7 @@ func (e *LogoutEngine) printSwitchInfo(mctx libkb.MetaContext) (err error) {
 }
 
 func (e *LogoutEngine) Run(mctx libkb.MetaContext) (err error) {
-	defer mctx.Trace("Logout#Run", func() error { return err })()
+	defer mctx.Trace("Logout#Run", &err)()
 	err = mctx.LogoutWithOptions(e.options)
 	if err != nil {
 		return err

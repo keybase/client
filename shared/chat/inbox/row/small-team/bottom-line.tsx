@@ -20,8 +20,8 @@ type Props = {
   draft?: string
 }
 
-const SnippetDecoration = (type: Kb.IconType, color: string) => {
-  return (
+const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) => {
+  const icon = (
     <Kb.Icon
       color={color}
       type={type}
@@ -29,6 +29,7 @@ const SnippetDecoration = (type: Kb.IconType, color: string) => {
       style={{alignSelf: 'flex-start'}}
     />
   )
+  return tooltip ? <Kb.WithTooltip tooltip={tooltip}>{icon}</Kb.WithTooltip> : icon
 }
 
 const BottomLine = React.memo((props: Props) => {
@@ -90,12 +91,13 @@ const BottomLine = React.memo((props: Props) => {
 
     switch (props.snippetDecoration) {
       case RPCChatTypes.SnippetDecoration.pendingMessage:
-        snippetDecoration = SnippetDecoration('iconfont-hourglass', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-hourglass', defaultIconColor, 'Sending…')
         break
       case RPCChatTypes.SnippetDecoration.failedPendingMessage:
         snippetDecoration = SnippetDecoration(
           'iconfont-exclamation',
-          props.isSelected ? Styles.globalColors.white : Styles.globalColors.red
+          props.isSelected ? Styles.globalColors.white : Styles.globalColors.red,
+          'Failed to send'
         )
         break
       case RPCChatTypes.SnippetDecoration.explodingMessage:
@@ -115,16 +117,16 @@ const BottomLine = React.memo((props: Props) => {
         exploded = true
         break
       case RPCChatTypes.SnippetDecoration.audioAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-mic', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-mic-solid', defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.videoAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-film', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-film-solid', defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.photoAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-camera', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-camera-solid', defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.fileAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-file', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-file-solid', defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.stellarReceived:
         snippetDecoration = SnippetDecoration('iconfont-stellar-request', defaultIconColor)
@@ -133,7 +135,7 @@ const BottomLine = React.memo((props: Props) => {
         snippetDecoration = SnippetDecoration('iconfont-stellar-send', defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.pinnedMessage:
-        snippetDecoration = SnippetDecoration('iconfont-pin', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-pin-solid', defaultIconColor)
         break
       default:
         snippetDecoration = null
