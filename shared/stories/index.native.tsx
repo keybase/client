@@ -5,7 +5,6 @@ import * as Kb from '../common-adapters'
 import {addDecorator} from '@storybook/react-native'
 import sharedStories from './shared-stories'
 import nativeStories from './platform-stories.native'
-import {SafeAreaProvider} from 'react-native-safe-area-context'
 // Load css
 import {_setSystemIsDarkMode} from '../styles/dark-mode'
 import {View} from 'react-native'
@@ -48,12 +47,10 @@ const RootWrapper = ({children}) => {
 
   if (__STORYSHOT__) {
     return (
-      <SafeAreaProvider>
-        <View style={{height: '100%', width: '100%'}}>
-          {children}
-          <View key="modal-root" />
-        </View>
-      </SafeAreaProvider>
+      <View style={{height: '100%', width: '100%'}}>
+        {children}
+        <View key="modal-root" />
+      </View>
     )
   } else {
     return (
@@ -82,7 +79,9 @@ const store = Sb.createStoreWithCommon()
 const load = () => {
   addDecorator((story: any) => <RootWrapper>{story()}</RootWrapper>)
   addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
-  Object.keys(filteredStories).forEach(s => filteredStories[s]())
+  debugger
+  // Object.keys(filteredStories).forEach(s => filteredStories[s]())
+  filteredStories['wallets']()
 }
 
 export default load

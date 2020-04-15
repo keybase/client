@@ -48,7 +48,10 @@ const externalPartner = {
   title: 'Example title.',
   url: 'https://example.com/%{accountId}',
 }
-const externalPartners = [externalPartner, {...externalPartner, showDivider: true}]
+const externalPartners = [
+  externalPartner,
+  {...externalPartner, showDivider: true, url: 'https://example.com/%{accountId}2'},
+]
 
 const sharedSettingsProps = {
   accountID: Types.noAccountID,

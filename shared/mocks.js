@@ -17,6 +17,7 @@ module.exports = {
     'feature-flags': '<rootDir>/__mocks__/feature-flags.tsx',
     'hidden-string': '<rootDir>/__mocks__/hidden-string.tsx',
     'local-debug': '<rootDir>/__mocks__/local-debug.tsx',
+    logger: '<rootDir>/logger/__mocks__/index.tsx',
     'navigation-hooks': '<rootDir>/util/__mocks__/navigation-hooks.tsx',
     'react-list': '<rootDir>/__mocks__/react-list.tsx',
     'react-spring': '<rootDir>/__mocks__/react-spring.tsx',

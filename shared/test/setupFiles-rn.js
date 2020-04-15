@@ -14,7 +14,7 @@ jest.mock('constants/platform', () => ({
   isIPhoneX: false,
   isLargeScreen: false,
   isLinux: false,
-  isMobile: false,
+  isMobile: true,
   isTablet: false,
   isWindows: false,
   logFileName: () => '',
@@ -29,6 +29,18 @@ jest.mock('rn-fetch-blob', () => ({
       CacheDir: '',
     },
   },
+}))
+jest.mock('react-native-gesture-handler/Swipeable', () => ({
+  default: p => p.children ?? null,
+}))
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: p => p.children ?? null,
+  useSafeArea: () => ({
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: 0,
+  }),
 }))
 jest.mock('react-native-iphone-x-helper', () => ({
   getBottomSpace: () => 0,
