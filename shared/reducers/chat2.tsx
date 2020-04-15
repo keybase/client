@@ -702,9 +702,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.messageMap.set(message.conversationIDKey, convMap)
   },
   [Chat2Gen.messagesAdd]: (draftState, action) => {
-    const {context, shouldClearOthers} = action.payload
+    const {context, conversationIDKey, shouldClearOthers} = action.payload
+    logger.info(`messagesAdd: running in context: ${context}`)
     // pull out deletes and handle at the end
-    const [messages, deletedMessages] = partition(action.payload.messages, m => m.type !== 'deleted')
+    const [messages, deletedMessages] = partition<Types.Message>(
+      action.payload.messages,
+      m => m.type !== 'deleted'
+    )
     // we want the clear applied when we call findExisting
     const messageOrdinals = new Map(draftState.messageOrdinals)
     const oldPendingOutboxToOrdinal = new Map(draftState.pendingOutboxToOrdinal)
@@ -713,54 +717,24 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     // so we can keep messages if they haven't mutated
     const previousMessageMap = new Map(draftState.messageMap)
 
-    // first group into convoid
-    const convoToMessages: {[K in string]: Array<Types.Message>} = messages.reduce((map: any, m) => {
-      const key = String(m.conversationIDKey)
-      map[key] = map[key] || []
-      map[key].push(m)
-      return map
-    }, {})
-    const convoToDeletedOrdinals: {[K in string]: Set<Types.Ordinal>} = deletedMessages.reduce(
-      (map: any, m) => {
-        const key = String(m.conversationIDKey)
-        map[key] = map[key] || new Set()
-        map[key].add(m.ordinal)
-        return map
-      },
-      {}
-    )
-
     if (shouldClearOthers) {
-      Object.keys(convoToMessages).forEach(cid => {
-        const conversationIDKey = Types.stringToConversationIDKey(cid)
-        messageOrdinals.delete(conversationIDKey)
-        oldPendingOutboxToOrdinal.delete(conversationIDKey)
-        oldMessageMap.delete(conversationIDKey)
-        draftState.hasZzzJourneycard.delete(conversationIDKey)
-      })
+      messageOrdinals.delete(conversationIDKey)
+      oldPendingOutboxToOrdinal.delete(conversationIDKey)
+      oldMessageMap.delete(conversationIDKey)
+      draftState.hasZzzJourneycard.delete(conversationIDKey)
     }
-
-    // Types we can send and have to deal with outbox ids
-    const canSendType = (m: Types.Message): Types.MessageText | null | Types.MessageAttachment | null =>
-      m.type === 'text' || m.type === 'attachment' ? m : null
 
     // Update any pending messages
     const pendingOutboxToOrdinal = new Map(oldPendingOutboxToOrdinal)
-    if (context.type === 'sent' || context.type === 'threadLoad' || context.type === 'incoming') {
-      messages.forEach(message => {
-        const m = canSendType(message)
-        if (m && !m.id && m.outboxID) {
-          const outToOrd = new Map(pendingOutboxToOrdinal.get(m.conversationIDKey) || [])
-          outToOrd.set(m.outboxID, m.ordinal)
-          pendingOutboxToOrdinal.set(m.conversationIDKey, outToOrd)
-        }
-      })
-    }
+    messages.forEach(message => {
+      if (message.submitState === 'pending' && message.outboxID) {
+        const outToOrd = new Map(pendingOutboxToOrdinal.get(conversationIDKey) || [])
+        outToOrd.set(message.outboxID, message.ordinal)
+        pendingOutboxToOrdinal.set(conversationIDKey, outToOrd)
+      }
+    })
 
-    const findExistingSentOrPending = (
-      conversationIDKey: Types.ConversationIDKey,
-      m: Types.MessageText | Types.MessageAttachment
-    ) => {
+    const findExistingSentOrPending = (conversationIDKey: Types.ConversationIDKey, m: Types.Message) => {
       // something we sent
       if (m.outboxID) {
         // and we know about it
@@ -784,94 +758,75 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       return null
     }
 
-    Object.keys(convoToDeletedOrdinals).forEach(cid => {
-      const conversationIDKey = Types.stringToConversationIDKey(cid)
-      const os = messageOrdinals.get(conversationIDKey) || new Set()
-      convoToDeletedOrdinals[conversationIDKey].forEach(o => os.delete(o))
-      messageOrdinals.set(conversationIDKey, os)
-    })
+    let os = messageOrdinals.get(conversationIDKey) || new Set()
+    deletedMessages.forEach(m => os.delete(m.ordinal))
+    messageOrdinals.set(conversationIDKey, os)
 
-    Object.keys(convoToMessages).forEach(cid => {
-      const conversationIDKey = Types.stringToConversationIDKey(cid)
-      const messages = convoToMessages[cid]
-      const removedOrdinals: Array<Types.Ordinal> = []
-      const ordinals = messages.reduce<Array<Types.Ordinal>>((arr, message) => {
-        const m = canSendType(message)
-        if (m) {
-          // Sendable so we might have an existing message
-          if (!findExistingSentOrPending(conversationIDKey, m)) {
-            arr.push(m.ordinal)
-          }
-          // We might have a placeholder for this message in there with ordinal of its own ID, let's
-          // get rid of it if that is the case
-          if (m.id) {
-            const map = oldMessageMap.get(conversationIDKey)
-            const oldMsg = map?.get(Types.numberToOrdinal(m.id))
-            if (oldMsg?.type === 'placeholder' && oldMsg.ordinal !== m.ordinal) {
-              removedOrdinals.push(oldMsg.ordinal)
-            }
-          }
-        } else if (message.type === 'placeholder') {
-          // sometimes we send then get a placeholder for that send. Lets see if we already have the message id for the sent
-          // and ignore the placeholder in that instance
-          logger.info(`Got placeholder message with id: ${message.id}`)
-          const existingOrdinal = messageIDToOrdinal(
-            oldMessageMap,
-            pendingOutboxToOrdinal,
-            conversationIDKey,
-            message.id
-          )
-          if (!existingOrdinal) {
-            arr.push(message.ordinal)
-          } else {
-            logger.info(`Skipping placeholder for message with id ${message.id} because already exists`)
-          }
+    const removedOrdinals: Array<Types.Ordinal> = []
+    const ordinals = messages.reduce<Array<Types.Ordinal>>((arr, message) => {
+      if (message.type === 'placeholder') {
+        // sometimes we send then get a placeholder for that send. Lets see if we already have the message id for the sent
+        // and ignore the placeholder in that instance
+        logger.info(`Got placeholder message with id: ${message.id}`)
+        const existingOrdinal = messageIDToOrdinal(
+          oldMessageMap,
+          pendingOutboxToOrdinal,
+          conversationIDKey,
+          message.id
+        )
+        if (!existingOrdinal) {
+          arr.push(message.ordinal)
         } else {
+          logger.info(`Skipping placeholder for message with id ${message.id} because already exists`)
+        }
+      } else {
+        // Sendable so we might have an existing message
+        if (!findExistingSentOrPending(conversationIDKey, message)) {
           arr.push(message.ordinal)
         }
-        return arr
-      }, [])
-
-      // add new ones, remove deleted ones, sort
-      const os = new Set(messageOrdinals.get(conversationIDKey) || [])
-      removedOrdinals.forEach(o => os.delete(o))
-      messageOrdinals.set(conversationIDKey, new Set([...os, ...ordinals].sort((a, b) => a - b)))
-    })
-
-    const messageMap = new Map(oldMessageMap)
-    Object.keys(convoToDeletedOrdinals).forEach(cid => {
-      const conversationIDKey = Types.stringToConversationIDKey(cid)
-      const map = messageMap.get(conversationIDKey)
-      if (map) {
-        convoToDeletedOrdinals[conversationIDKey].forEach(k => map.delete(k))
-      }
-    })
-
-    Object.keys(convoToMessages).forEach(cid => {
-      const conversationIDKey = Types.stringToConversationIDKey(cid)
-      const messages = convoToMessages[cid]
-      messages.forEach(message => {
-        const m = canSendType(message)
-        const oldSentOrPending = m ? findExistingSentOrPending(conversationIDKey, m) : null
-        let toSet
-        if (oldSentOrPending) {
-          toSet = Constants.upgradeMessage(oldSentOrPending, message)
-        } else {
-          const map = previousMessageMap.get(conversationIDKey)
-          toSet = Constants.mergeMessage((m && map && map.get(m.ordinal)) || null, message)
+        // We might have a placeholder for this message in there with ordinal of its own ID, let's
+        // get rid of it if that is the case
+        if (message.id) {
+          const map = oldMessageMap.get(conversationIDKey)
+          const oldMsg = map?.get(Types.numberToOrdinal(message.id))
+          if (oldMsg?.type === 'placeholder' && oldMsg.ordinal !== message.ordinal) {
+            removedOrdinals.push(oldMsg.ordinal)
+          }
         }
-        const map = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
-        messageMap.set(conversationIDKey, map)
-        map.set(toSet.ordinal, toSet)
-      })
+      }
+      return arr
+    }, [])
+
+    // add new ones, remove deleted ones, sort
+    os = new Set(messageOrdinals.get(conversationIDKey) || [])
+    removedOrdinals.forEach(o => os.delete(o))
+    messageOrdinals.set(conversationIDKey, new Set([...os, ...ordinals].sort((a, b) => a - b)))
+
+    // clear out message map of deleted stuff
+    const messageMap = new Map(oldMessageMap)
+    const map = messageMap.get(conversationIDKey)
+    if (map) {
+      deletedMessages.forEach(m => map.delete(m.ordinal))
+    }
+
+    messages.forEach(message => {
+      const oldSentOrPending = findExistingSentOrPending(conversationIDKey, message)
+      let toSet
+      if (oldSentOrPending) {
+        toSet = Constants.upgradeMessage(oldSentOrPending, message)
+      } else {
+        const map = previousMessageMap.get(conversationIDKey)
+        toSet = Constants.mergeMessage((map && map.get(message.ordinal)) || null, message)
+      }
+      const map = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
+      messageMap.set(conversationIDKey, map)
+      map.set(toSet.ordinal, toSet)
     })
 
     const containsLatestMessageMap = new Map(draftState.containsLatestMessageMap)
-    Object.keys(convoToMessages).forEach(cid => {
-      const conversationIDKey = Types.stringToConversationIDKey(cid)
-      if (!action.payload.forceContainsLatestCalc && containsLatestMessageMap.get(conversationIDKey)) {
-        return
-      }
+    if (!action.payload.forceContainsLatestCalc && containsLatestMessageMap.get(conversationIDKey)) {
+      // do nothing
+    } else {
       const meta = draftState.metaMap.get(conversationIDKey)
       const ordinals = [...(messageOrdinals.get(conversationIDKey) || [])]
       let maxMsgID = 0
@@ -890,7 +845,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       } else if (action.payload.forceContainsLatestCalc) {
         containsLatestMessageMap.set(conversationIDKey, false)
       }
-    })
+    }
     draftState.containsLatestMessageMap = containsLatestMessageMap
 
     let messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
@@ -913,25 +868,22 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     // Identify convs that have a zzz CHANNEL_INACTIVE journeycard.
     // Convs that used to have a zzz journeycard and just got a newer message should delete the journeycard.
-    Object.keys(convoToMessages).forEach(cid => {
-      const messages = convoToMessages[cid]
-      const jc = messages.find(
-        m => m.type == 'journeycard' && m.cardType == RPCChatTypes.JourneycardType.channelInactive
-      ) as Types.MessageJourneycard | undefined
-      if (jc) {
-        draftState.hasZzzJourneycard.set(cid, jc)
-        draftState.shouldDeleteZzzJourneycard.delete(cid)
-      } else {
-        const priorJc = draftState.hasZzzJourneycard.get(cid)
-        if (priorJc) {
-          // Find a message that has a later ordinal and so should cause the zzz to disappear.
-          if (messages.some(m => m.ordinal > priorJc.ordinal)) {
-            draftState.hasZzzJourneycard.delete(cid)
-            draftState.shouldDeleteZzzJourneycard.set(cid, priorJc)
-          }
+    const jc = messages.find(
+      m => m.type == 'journeycard' && m.cardType == RPCChatTypes.JourneycardType.channelInactive
+    ) as Types.MessageJourneycard | undefined
+    if (jc) {
+      draftState.hasZzzJourneycard.set(conversationIDKey, jc)
+      draftState.shouldDeleteZzzJourneycard.delete(conversationIDKey)
+    } else {
+      const priorJc = draftState.hasZzzJourneycard.get(conversationIDKey)
+      if (priorJc) {
+        // Find a message that has a later ordinal and so should cause the zzz to disappear.
+        if (messages.some(m => m.ordinal > priorJc.ordinal)) {
+          draftState.hasZzzJourneycard.delete(conversationIDKey)
+          draftState.shouldDeleteZzzJourneycard.set(conversationIDKey, priorJc)
         }
       }
-    })
+    }
 
     draftState.messageMap = messageMap
     if (centeredMessageIDs.length > 0) {
