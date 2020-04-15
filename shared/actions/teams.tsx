@@ -1476,6 +1476,7 @@ const setTeamWizardAvatar = (state: TypedState) => {
       return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard4TeamSize'}]})
   }
 }
+const setTeamWizardSubteamMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
   action.payload.isBig
     ? RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard5Channels'}]})
@@ -1644,6 +1645,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.setTeamWizardTeamSize, setTeamWizardTeamSize)
   yield* Saga.chainAction(TeamsGen.setTeamWizardChannels, setTeamWizardChannels)
   yield* Saga.chainAction(TeamsGen.setTeamWizardSubteams, setTeamWizardSubteams)
+  yield* Saga.chainAction(TeamsGen.setTeamWizardSubteamMembers, setTeamWizardSubteamMembers)
   yield* Saga.chainAction2(TeamsGen.finishNewTeamWizard, finishNewTeamWizard)
   yield* Saga.chainAction(TeamsGen.finishedNewTeamWizard, finishedNewTeamWizard)
 

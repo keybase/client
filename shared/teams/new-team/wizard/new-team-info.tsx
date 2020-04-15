@@ -37,6 +37,7 @@ const NewTeamInfo = () => {
       ? Constants.getTeamNameFromID(state, teamWizardState.parentTeamID)
       : undefined
   )
+  const minLength = parentName ? 2 : 3
 
   const [name, _setName] = React.useState(teamWizardState.name)
   const teamname = parentName ? `${parentName}.${name}` : name
@@ -51,7 +52,7 @@ const NewTeamInfo = () => {
     []
   )
   React.useEffect(() => {
-    if (name.length >= 3) {
+    if (name.length >= minLength) {
       checkTeamNameTaken(
         [{teamName: {parts: teamname.split('.')}}],
         ({exists, status}) => {
@@ -64,7 +65,7 @@ const NewTeamInfo = () => {
       setTeamNameTaken(false)
       setTeamNameTakenStatus(0)
     }
-  }, [teamname, name.length, setTeamNameTaken, checkTeamNameTaken, setTeamNameTakenStatus])
+  }, [teamname, name.length, setTeamNameTaken, checkTeamNameTaken, setTeamNameTakenStatus, minLength])
 
   const [description, setDescription] = React.useState(teamWizardState.description)
   const [openTeam, _setOpenTeam] = React.useState(
@@ -85,7 +86,7 @@ const NewTeamInfo = () => {
   const [selectedRole, setSelectedRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
   const [rolePickerIsOpen, setRolePickerIsOpen] = React.useState(false)
 
-  const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < 3
+  const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
