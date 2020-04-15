@@ -118,7 +118,7 @@ class EditAvatar extends React.Component<Props, State> {
       : ([] as any)
     if (paths.length) {
       // TODO: Show an error when there's more than one path.
-      for (let path of paths) {
+      for (const path of paths) {
         // Check if any file is a directory and bail out if not
         try {
           // We do this synchronously
@@ -314,6 +314,7 @@ class EditAvatar extends React.Component<Props, State> {
     if (flags.teamsRedesign) {
       return (
         <Kb.Modal
+          mode="DefaultFullHeight"
           onClose={this.props.onClose}
           header={{
             leftButton: this.props.wizard ? (
@@ -627,7 +628,6 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.padding(Styles.globalMargins.xlarge, 0),
     alignItems: 'center',
-    height: flags.teamsRedesign ? 420 : undefined,
     minWidth: flags.teamsRedesign ? undefined : 460,
   },
   cover: {zIndex: EDIT_AVATAR_ZINDEX},

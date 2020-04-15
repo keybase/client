@@ -115,6 +115,7 @@ export default Container.connect(
     if (flags.teamsRedesign) {
       if (stateProps.canInvite) {
         items.push({
+          icon: 'iconfont-new',
           onClick: dispatchProps.onAddOrInvitePeople,
           title: 'Add/Invite people',
         })
