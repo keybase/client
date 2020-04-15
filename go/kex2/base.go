@@ -18,11 +18,12 @@ type LogContext interface {
 }
 
 type baseDevice struct {
-	conn     net.Conn        //nolint
-	xp       rpc.Transporter //nolint
-	deviceID DeviceID        //nolint
-	start    chan struct{}
-	canceled bool //nolint
+	conn         net.Conn        //nolint
+	xp           rpc.Transporter //nolint
+	deviceID     DeviceID        //nolint
+	start        chan struct{}
+	canceled     bool //nolint
+	serverDoneCh <-chan struct{}
 }
 
 // KexBaseArg are arguments common to both Provisioner and Provisionee
@@ -38,3 +39,17 @@ type KexBaseArg struct {
 
 // ErrCanceled is returned if Kex is canceled by the caller via the Context argument
 var ErrCanceled = errors.New("kex canceled by caller")
+
+func (b *baseDevice) waitForServerShutdownAndCleanup() {
+	// wait for the server to shutdown
+	if b.serverDoneCh != nil {
+		<-b.serverDoneCh
+	}
+	// close the connections
+	if b.conn != nil {
+		b.conn.Close()
+	}
+	if b.xp != nil {
+		b.xp.Close()
+	}
+}

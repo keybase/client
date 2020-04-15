@@ -296,7 +296,7 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 			ProvisionUI: &TestProvisionUI{},
 		}
 		provisioner := engine.NewKex2Provisioner(tcX.G, secretX, nil)
-		go provisioner.AddSecret(secretY)
+		defer provisioner.AddSecretWithCancel(secretY)()
 		m := libkb.NewMetaContextForTest(*tcX).WithUIs(uis)
 		if err := engine.RunEngine2(m, provisioner); err != nil {
 			require.NoErrorf(t, err, "provisioner error")

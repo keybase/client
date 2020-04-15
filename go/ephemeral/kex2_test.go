@@ -125,7 +125,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 			ProvisionUI: &kbtest.TestProvisionUI{},
 		}
 		provisioner := engine.NewKex2Provisioner(tcX.G, secretX, nil)
-		go provisioner.AddSecret(secretY)
+		defer provisioner.AddSecretWithCancel(secretY)()
 		mctxX = mctxX.WithUIs(uis)
 		if err := engine.RunEngine2(mctxX, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)

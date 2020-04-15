@@ -3183,7 +3183,7 @@ func TestProvisionerSecretStore(t *testing.T) {
 		errX <- RunEngine2(m, provisioner)
 	}()
 	secretFromY := <-secretCh
-	go provisioner.AddSecret(secretFromY)
+	defer provisioner.AddSecretWithCancel(secretFromY)()
 
 	var xDone, yDone bool
 	for {

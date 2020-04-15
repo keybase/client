@@ -18,8 +18,7 @@ type provisionee struct {
 	done               chan error
 	startedCounterSign chan struct{}
 
-	server       *rpc.Server
-	serverDoneCh <-chan struct{}
+	server *rpc.Server
 }
 
 // Provisionee is an interface that abstracts out the crypto and session
@@ -103,6 +102,7 @@ func (p *provisionee) DidCounterSign2(ctx context.Context, arg keybase1.DidCount
 }
 
 func (p *provisionee) run() (err error) {
+	defer p.waitForServerShutdownAndCleanup()
 
 	if err = p.setDeviceID(); err != nil {
 		return err
@@ -154,8 +154,8 @@ func (p *provisionee) startServer(s Secret) (err error) {
 	}
 	prots := []rpc.Protocol{
 		keybase1.Kex2ProvisioneeProtocol(p),
+		keybase1.Kex2Provisionee2Protocol(p),
 	}
-	prots = append(prots, keybase1.Kex2Provisionee2Protocol(p))
 	p.xp = rpc.NewTransport(p.conn, p.arg.Provisionee.GetLogFactory(),
 		p.arg.Provisionee.GetNetworkInstrumenter(), nil, rpc.DefaultMaxFrameLength)
 	srv := rpc.NewServer(p.xp, nil)

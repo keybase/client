@@ -165,6 +165,20 @@ func (e *Kex2Provisioner) AddSecret(s kex2.Secret) {
 	e.secretCh <- s
 }
 
+// AddSecretWithCancel spawns a separate goroutine that inserts the secret into
+// the provisioner's secret channel. It returns a function you can call to
+// terminate such routine.
+func (e *Kex2Provisioner) AddSecretWithCancel(s kex2.Secret) func() {
+	cancel := make(chan struct{})
+	go func() {
+		select {
+		case e.secretCh <- s:
+		case <-cancel:
+		}
+	}()
+	return func() { close(cancel) }
+}
+
 // GetLogFactory implements GetLogFactory in kex2.Provisioner.
 func (e *Kex2Provisioner) GetLogFactory() rpc.LogFactory {
 	return rpc.NewSimpleLogFactory(e.G().Log, nil)

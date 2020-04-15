@@ -90,7 +90,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		}
 		provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		go provisioner.AddSecret(secretY)
+		defer provisioner.AddSecretWithCancel(secretY)()
 		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
@@ -165,7 +165,7 @@ func provisionNewDeviceKex(tcX *libkb.TestContext, userX *FakeUser) (*libkb.Test
 			ProvisionUI: &testProvisionUI{},
 		}
 		provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-		go provisioner.AddSecret(secretY)
+		defer provisioner.AddSecretWithCancel(secretY)()
 		m := NewMetaContextForTest(*tcX).WithUIs(uis)
 		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)

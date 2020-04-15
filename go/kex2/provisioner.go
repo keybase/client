@@ -79,6 +79,8 @@ func (p *provisioner) KexStart(_ context.Context) error {
 }
 
 func (p *provisioner) run() (err error) {
+	defer p.waitForServerShutdownAndCleanup()
+
 	if err = p.setDeviceID(); err != nil {
 		return err
 	}
@@ -126,9 +128,7 @@ func (p *provisioner) pickFirstConnection() (err error) {
 		if err = srv.Register(prot); err != nil {
 			return err
 		}
-		serverDoneCh := srv.Run()
-		// TODO: Do something with serverDoneCh.
-		_ = serverDoneCh
+		p.serverDoneCh = srv.Run()
 	}
 
 	select {
