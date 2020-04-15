@@ -5,7 +5,6 @@ import * as FsTypes from '../../../constants/types/fs'
 import GetTitles, {Info} from '.'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Tabs from '../../../constants/tabs'
 
 type OwnProps = Container.RouteProps<{
   conversationIDKey: Types.ConversationIDKey
@@ -55,13 +54,6 @@ export default Container.connect(
         dispatch(RouteTreeGen.createClearModals())
 
         if (selectConversationWithReason) {
-          dispatch(
-            RouteTreeGen.createResetStack({
-              actions: [],
-              index: 0,
-              tab: Tabs.chatTab,
-            })
-          )
           dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: selectConversationWithReason}))
         }
       },
