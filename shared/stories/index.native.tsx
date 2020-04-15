@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Sb from './storybook'
 import * as Kb from '../common-adapters'
-import {addDecorator} from '@storybook/react'
+import {addDecorator} from '@storybook/react-native'
 import sharedStories from './shared-stories'
 import nativeStories from './platform-stories.native'
 // Load css
@@ -49,40 +49,22 @@ const RootWrapper = ({children}) => {
     return (
       <View style={{height: '100%', width: '100%'}}>
         {children}
-        <View id="modal-root" />
+        <View key="modal-root" />
       </View>
     )
   } else {
     return (
       <>
-        <View
-          key={darkMode ? 'dark' : 'light'}
-          style={{height: '100%', width: '100%'}}
-          className={darkMode ? 'darkMode' : 'lightMode'}
-        >
+        <View key={darkMode ? 'dark' : 'light'} style={{height: '100%', width: '100%'}}>
           {children}
-          <View id="modal-root" key={darkMode ? 'dark' : 'light'} />
+          <View key={darkMode ? 'dark' : 'light'} />
         </View>
         <View
           style={{
-            border: 'red 1px solid',
-            color: darkMode ? 'white' : 'black',
             position: 'absolute',
             right: 0,
             top: 0,
             zIndex: 9999,
-          }}
-          title="Shift+Click to turn on auto"
-          onClick={(e: React.MouseEvent) => {
-            e.stopPropagation()
-            if (e.shiftKey) {
-              setAutoSwap(!autoSwap)
-            } else {
-              const next = !darkMode
-              _setSystemIsDarkMode(next)
-              setDarkMode(next)
-              setAutoSwap(false)
-            }
           }}
         >
           {`${darkMode ? 'Dark Mode' : 'Light Mode'}${autoSwap ? '-auto' : ''}`}
