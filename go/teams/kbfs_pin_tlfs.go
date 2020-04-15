@@ -27,7 +27,7 @@ func getUnpinnedTLF(m libkb.MetaContext) (res *unpinnedTLF, err error) {
 }
 
 func (b *backgroundTLFPinner) pinTLF(m libkb.MetaContext, tlf unpinnedTLF) (err error) {
-	defer m.Trace(fmt.Sprintf("pinTLF(%+v)", tlf), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("pinTLF(%+v)", tlf), &err)()
 	team, err := GetForTeamManagementByTeamID(m.Ctx(), m.G(), tlf.TeamID, false)
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func (r *unpinnedTLFsRaw) GetAppStatus() *libkb.AppStatus {
 
 func (b *backgroundTLFPinner) pinOneTLF(m libkb.MetaContext) (done bool, err error) {
 	m = m.WithLogTag("PIN")
-	defer m.Trace("pinOneTLF", func() error { return err })()
+	defer m.Trace("pinOneTLF", &err)()
 
 	tlf, err := b.getUnpinnedTLF(m)
 	if err != nil {
@@ -132,7 +132,7 @@ func (b *backgroundTLFPinner) run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("PIN")
 
 	uv := m.CurrentUserVersion()
-	defer m.Trace(fmt.Sprintf("teams.BackgroundPinTLFLoop(%+v)", uv), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("teams.BackgroundPinTLFLoop(%+v)", uv), &err)()
 
 	// For the purposes of testing, get make a note of when we are done.
 	defer func() {

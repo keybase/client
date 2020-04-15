@@ -290,7 +290,7 @@ func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.Conversati
 
 func (b *batchingStore) Flush() (err error) {
 	ctx := context.Background()
-	defer b.Trace(ctx, func() error { return err }, "Flush")()
+	defer b.Trace(ctx, &err, "Flush")()
 	b.Lock()
 	defer b.Unlock()
 	if len(b.tokenBatch) == 0 && len(b.aliasBatch) == 0 && len(b.mdBatch) == 0 {
@@ -332,7 +332,7 @@ func (b *batchingStore) Flush() (err error) {
 }
 
 func (b *batchingStore) Cancel() {
-	defer b.Trace(context.Background(), func() error { return nil }, "Cancel")()
+	defer b.Trace(context.Background(), nil, "Cancel")()
 	b.Lock()
 	defer b.Unlock()
 	b.resetLocked()
@@ -512,7 +512,7 @@ func (s *store) deleteOldAliasVersions(ctx context.Context, alias string) {
 }
 
 func (s *store) GetHits(ctx context.Context, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
-	defer s.Trace(ctx, func() error { return err }, "GetHits")()
+	defer s.Trace(ctx, &err, "GetHits")()
 	s.RLock()
 	defer s.RUnlock()
 	res = make(map[chat1.MessageID]chat1.EmptyStruct)
@@ -720,7 +720,7 @@ func (s *store) GetMetadata(ctx context.Context, convID chat1.ConversationID) (r
 
 func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Add")()
+	defer s.Trace(ctx, &err, "Add")()
 	s.Lock()
 	defer s.Unlock()
 
@@ -804,7 +804,7 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 // Remove tokenizes the message content and updates/removes index keys for each token.
 func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Remove")()
+	defer s.Trace(ctx, &err, "Remove")()
 	s.Lock()
 	defer s.Unlock()
 
@@ -834,7 +834,7 @@ func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (s *store) ClearMemory() {
-	defer s.Trace(context.Background(), func() error { return nil }, "ClearMemory")()
+	defer s.Trace(context.Background(), nil, "ClearMemory")()
 	s.aliasCache.Purge()
 	s.tokenCache.Purge()
 	s.diskStorage.Cancel()

@@ -74,7 +74,7 @@ func (s *SimpleSource) debug(m libkb.MetaContext, msg string, args ...interface{
 }
 
 func (s *SimpleSource) LoadUsers(m libkb.MetaContext, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.Trace("SimpleSource.LoadUsers", func() error { return err })()
+	defer m.Trace("SimpleSource.LoadUsers", &err)()
 	apiRes, err := s.apiReq(m, "image/username_pic_lookups", "usernames", usernames, formats)
 	if err != nil {
 		return res, err
@@ -86,7 +86,7 @@ func (s *SimpleSource) LoadUsers(m libkb.MetaContext, usernames []string, format
 }
 
 func (s *SimpleSource) LoadTeams(m libkb.MetaContext, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.Trace("SimpleSource.LoadTeams", func() error { return err })()
+	defer m.Trace("SimpleSource.LoadTeams", &err)()
 	apiRes, err := s.apiReq(m, "image/team_avatar_lookups", "team_names", teams, formats)
 	if err != nil {
 		return res, err

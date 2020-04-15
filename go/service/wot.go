@@ -25,7 +25,7 @@ func NewWebOfTrustHandler(xp rpc.Transporter, g *libkb.GlobalContext) *WebOfTrus
 func (h *WebOfTrustHandler) WotVouch(ctx context.Context, arg keybase1.WotVouchArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("WotVouch(%v,%v)", arg.Username, arg.GuiID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("WotVouch(%v,%v)", arg.Username, arg.GuiID), &err)()
 
 	// This wotVouch RPC does not run Identify.
 	// Because it relies on the previous Identify used to display the vouchee's profile.
@@ -61,7 +61,7 @@ func (h *WebOfTrustHandler) WotVouch(ctx context.Context, arg keybase1.WotVouchA
 func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVouchCLIArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("WotVouchCLI(%v)", arg.Assertion), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("WotVouchCLI(%v)", arg.Assertion), &err)()
 
 	upak, _, err := h.G().GetUPAKLoader().Load(libkb.NewLoadUserArg(h.G()).WithName(arg.Assertion))
 	if err != nil {
@@ -159,7 +159,7 @@ func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactA
 
 func (h *WebOfTrustHandler) DismissWotNotifications(ctx context.Context, arg keybase1.DismissWotNotificationsArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("DismissWotNotifications", func() error { return err })()
+	defer mctx.Trace("DismissWotNotifications", &err)()
 
 	return libkb.DismissWotNotifications(mctx, arg.Voucher, arg.Vouchee)
 }

@@ -33,7 +33,7 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 
 	bindFile := s.bindFile
 	what := fmt.Sprintf("SocketInfo#BindToSocket(unix:%s)", bindFile)
-	defer Trace(s.log, what, func() error { return err })()
+	defer Trace(s.log, what, &err)()
 
 	if err := MakeParentDirs(s.log, bindFile); err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (s SocketInfo) dialSocket(dialFile string) (ret net.Conn, err error) {
 	defer bindLock.Unlock()
 
 	what := fmt.Sprintf("SocketInfo#dialSocket(unix:%s)", dialFile)
-	defer Trace(s.log, what, func() error { return err })()
+	defer Trace(s.log, what, &err)()
 
 	if dialFile == "" {
 		return nil, fmt.Errorf("Can't dial empty path")

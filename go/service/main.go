@@ -952,8 +952,8 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 }
 
 func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
-	defer m.Trace("Service#OnLogout", func() error { return err })()
-	defer m.PerfTrace("Service#OnLogout", func() error { return err })()
+	defer m.Trace("Service#OnLogout", &err)()
+	defer m.PerfTrace("Service#OnLogout", &err)()
 	log := func(s string) {
 		m.Debug("Service#OnLogout: %s", s)
 	}
@@ -999,7 +999,7 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 
 func (d *Service) gregordConnect() (err error) {
 	var uri *rpc.FMPURI
-	defer d.G().Trace("gregordConnect", func() error { return err })()
+	defer d.G().Trace("gregordConnect", &err)()
 
 	uri, err = rpc.ParseFMPURI(d.G().Env.GetGregorURI())
 	if err != nil {
@@ -1313,7 +1313,7 @@ func (d *Service) GetUserAvatar(username string) (string, error) {
 // launched from launchd and therefore has the wrong path. This function currently
 // noops on all platforms aside from macOS, but we can expand it later as needs be.
 func (d *Service) configurePath() {
-	defer d.G().Trace("Service#configurePath", func() error { return nil })()
+	defer d.G().Trace("Service#configurePath", nil)()
 
 	var newDirs string
 	switch runtime.GOOS {

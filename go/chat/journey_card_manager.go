@@ -129,14 +129,14 @@ func (j *JourneyCardManager) OnDbNuke(mctx libkb.MetaContext) error {
 
 func (j *JourneyCardManager) Start(ctx context.Context, uid gregor1.UID) {
 	var err error
-	defer j.G().CTrace(ctx, "JourneyCardManager.Start", func() error { return nil })()
+	defer j.G().CTrace(ctx, "JourneyCardManager.Start", nil)()
 	_, err = j.get(ctx, uid)
 	_ = err // ignore error
 }
 
 func (j *JourneyCardManager) Stop(ctx context.Context) chan struct{} {
 	var err error
-	defer j.G().CTrace(ctx, "JourneyCardManager.Stop", func() error { return nil })()
+	defer j.G().CTrace(ctx, "JourneyCardManager.Stop", nil)()
 	err = j.clear(ctx)
 	_ = err // ignore error
 	ch := make(chan struct{})
@@ -872,7 +872,7 @@ func (cc *JourneyCardManagerSingleUser) SentMessage(ctx context.Context, teamID 
 func (cc *JourneyCardManagerSingleUser) Dismiss(ctx context.Context, teamID keybase1.TeamID, convID chat1.ConversationID, cardType chat1.JourneycardType) {
 	var err error
 	defer cc.G().CTrace(ctx, fmt.Sprintf("JourneyCardManagerSingleUser.Dismiss(cardType:%v, teamID:%v, convID:%v)",
-		cardType, teamID, convID.DbShortFormString()), func() error { return err })()
+		cardType, teamID, convID.DbShortFormString()), &err)()
 	err = libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
 	if err != nil {
 		cc.Debug(ctx, "Dismiss storageLock error: %v", err)

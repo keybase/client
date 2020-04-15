@@ -65,7 +65,7 @@ func (e *ephemeralKeyReboxer) getDeviceEKKID(mctx libkb.MetaContext) (kid keybas
 
 func (e *ephemeralKeyReboxer) getReboxArg(mctx libkb.MetaContext, userEKBox *keybase1.UserEkBoxed,
 	deviceID keybase1.DeviceID, signingKey libkb.GenericKey) (userEKReboxArg *keybase1.UserEkReboxArg, err error) {
-	defer mctx.Trace("ephemeralKeyReboxer#getReboxArg", func() error { return err })()
+	defer mctx.Trace("ephemeralKeyReboxer#getReboxArg", &err)()
 
 	ekLib := mctx.G().GetEKLib()
 	if ekLib == nil {
@@ -100,7 +100,7 @@ func (e *ephemeralKeyReboxer) getReboxArg(mctx libkb.MetaContext, userEKBox *key
 }
 
 func (e *ephemeralKeyReboxer) storeEKs(mctx libkb.MetaContext) (err error) {
-	defer mctx.Trace("ephemeralKeyReboxer#storeEKs", func() error { return err })()
+	defer mctx.Trace("ephemeralKeyReboxer#storeEKs", &err)()
 	if ekLib := mctx.G().GetEKLib(); ekLib == nil {
 		return nil
 	}

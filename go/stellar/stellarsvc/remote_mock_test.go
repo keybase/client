@@ -692,7 +692,7 @@ func (r *BackendMock) Balances(ctx context.Context, accountID stellar1.AccountID
 }
 
 func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post stellar1.PaymentDirectPost) (res stellar1.PaymentResult, err error) {
-	defer tc.G.CTraceTimed(ctx, "BackendMock.SubmitPayment", func() error { return err })()
+	defer tc.G.CTrace(ctx, "BackendMock.SubmitPayment", &err)()
 	r.Lock()
 	defer r.Unlock()
 	kbTxID := randomKeybaseTransactionID(r.T)
@@ -792,7 +792,7 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 }
 
 func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, post stellar1.PaymentRelayPost) (res stellar1.PaymentResult, err error) {
-	defer tc.G.CTraceTimed(ctx, "BackendMock.SubmitRelayPayment", func() error { return err })()
+	defer tc.G.CTrace(ctx, "BackendMock.SubmitRelayPayment", &err)()
 	r.Lock()
 	defer r.Unlock()
 	kbTxID := randomKeybaseTransactionID(r.T)
@@ -866,7 +866,7 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 }
 
 func (r *BackendMock) SubmitRelayClaim(ctx context.Context, tc *TestContext, post stellar1.RelayClaimPost) (res stellar1.RelayClaimResult, err error) {
-	defer tc.G.CTraceTimed(ctx, "BackendMock.SubmitRelayClaim", func() error { return err })()
+	defer tc.G.CTrace(ctx, "BackendMock.SubmitRelayClaim", &err)()
 	r.Lock()
 	defer r.Unlock()
 
@@ -970,7 +970,7 @@ func (r *BackendMock) SubmitMultiPayment(ctx context.Context, tc *TestContext, p
 }
 
 func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (res stellar1.PaymentsPage, err error) {
-	defer tc.G.CTraceTimed(ctx, "BackendMock.RecentPayments", func() error { return err })()
+	defer tc.G.CTrace(ctx, "BackendMock.RecentPayments", &err)()
 	r.Lock()
 	defer r.Unlock()
 	if cursor != nil {
@@ -981,7 +981,7 @@ func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accou
 }
 
 func (r *BackendMock) PendingPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
-	defer tc.G.CTraceTimed(ctx, "BackendMock.PendingPayments", func() error { return err })()
+	defer tc.G.CTrace(ctx, "BackendMock.PendingPayments", &err)()
 	r.Lock()
 	defer r.Unlock()
 	res = r.txLog.Pending(ctx, tc, accountID, limit)
@@ -989,7 +989,7 @@ func (r *BackendMock) PendingPayments(ctx context.Context, tc *TestContext, acco
 }
 
 func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error) {
-	defer tc.G.CTraceTimed(ctx, "BackendMock.PaymentDetails", func() error { return err })()
+	defer tc.G.CTrace(ctx, "BackendMock.PaymentDetails", &err)()
 	if accountID.IsNil() {
 		return res, errors.New("PaymentDetails requires AccountID")
 	}
@@ -1003,7 +1003,7 @@ func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, accou
 }
 
 func (r *BackendMock) PaymentDetailsGeneric(ctx context.Context, tc *TestContext, txID string) (res stellar1.PaymentDetails, err error) {
-	defer tc.G.CTraceTimed(ctx, "BackendMock.PaymentDetailsGeneric", func() error { return err })()
+	defer tc.G.CTrace(ctx, "BackendMock.PaymentDetailsGeneric", &err)()
 	r.Lock()
 	defer r.Unlock()
 	p := r.txLog.Find(txID)
@@ -1019,7 +1019,7 @@ type accountCurrencyResult struct {
 }
 
 func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
-	defer tc.G.CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
+	defer tc.G.CTrace(ctx, "RemoteMock.Details", &err)()
 	r.Lock()
 	defer r.Unlock()
 
@@ -1140,7 +1140,7 @@ func (r *BackendMock) addAccountByID(uid keybase1.UID, accountID stellar1.Accoun
 
 func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount) {
 	mctx := tc.MetaContext()
-	defer mctx.TraceTimed("BackendMock.ImportAccountsForUser", func() error { return nil })()
+	defer mctx.Trace("BackendMock.ImportAccountsForUser", nil)()
 	r.Lock()
 	bundle, err := fetchWholeBundleForTesting(mctx)
 	require.NoError(r.T, err)

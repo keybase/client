@@ -253,7 +253,7 @@ func getNIST(m MetaContext, sessType APISessionType) *NIST {
 // so therefore it's fine to call it without checking for nil-ness.
 func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, finisher func(), jw *jsonw.Wrapper, err error) {
 	m = m.EnsureCtx().WithLogTag("API")
-	defer m.TraceTimed("api.doRequestShared", func() error { return err })()
+	defer m.Trace("api.doRequestShared", &err)()
 	m, tbs := m.WithTimeBuckets()
 	defer tbs.Record("API.request")() // note this doesn't include time reading body from GetResp
 
@@ -376,7 +376,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 // on this request; and an error. The canceler function is to clean up the timeout.
 func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (res *http.Response, cancel func(), err error) {
 	if m.G().Env.GetExtraNetLogging() {
-		defer m.TraceTimed("api.doRetry", func() error { return err })()
+		defer m.Trace("api.doRetry", &err)()
 	}
 
 	// This serves as a proxy for checking the status of the Gregor connection. If we are not
@@ -443,7 +443,7 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (res *ht
 // with this request.
 func doTimeout(m MetaContext, cli *Client, req *http.Request, timeout time.Duration) (res *http.Response, cancel func(), err error) {
 	if m.G().Env.GetExtraNetLogging() {
-		defer m.TraceTimed("api.doTimeout", func() error { return err })()
+		defer m.Trace("api.doTimeout", &err)()
 	}
 	// check to see if the current context is canceled
 	select {

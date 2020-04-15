@@ -34,7 +34,7 @@ func (h *MerkleHandler) GetCurrentMerkleRoot(ctx context.Context, freshnessMsec 
 func (h *MerkleHandler) VerifyMerkleRootAndKBFS(ctx context.Context, arg keybase1.VerifyMerkleRootAndKBFSArg) (err error) {
 	m := libkb.NewMetaContext(ctx, h.G())
 	m = m.WithLogTag("MRKL")
-	defer m.TraceTimed("MerkleHandler#VerifyMerkleRootAndKBFS", func() error { return err })()
+	defer m.Trace("MerkleHandler#VerifyMerkleRootAndKBFS", &err)()
 	err = libkb.VerifyMerkleRootAndKBFS(m, arg)
 	return err
 }

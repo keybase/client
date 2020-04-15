@@ -93,7 +93,7 @@ func NewDiskInstrumentationStorage(g *GlobalContext, src keybase1.NetworkSource)
 }
 
 func (s *DiskInstrumentationStorage) Start(ctx context.Context) {
-	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: Start", func() error { return nil })()
+	defer s.G().CTrace(ctx, "DiskInstrumentationStorage: Start", nil)()
 	s.Lock()
 	defer s.Unlock()
 	if s.started {
@@ -105,7 +105,7 @@ func (s *DiskInstrumentationStorage) Start(ctx context.Context) {
 }
 
 func (s *DiskInstrumentationStorage) Stop(ctx context.Context) chan struct{} {
-	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: Stop", func() error { return nil })()
+	defer s.G().CTrace(ctx, "DiskInstrumentationStorage: Stop", nil)()
 	s.Lock()
 	defer s.Unlock()
 	ch := make(chan struct{})
@@ -147,7 +147,7 @@ func (s *DiskInstrumentationStorage) Flush(ctx context.Context) (err error) {
 }
 
 func (s *DiskInstrumentationStorage) flush(ctx context.Context, storage map[string]keybase1.InstrumentationStat) (err error) {
-	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: flush", func() error { return err })()
+	defer s.G().CTrace(ctx, "DiskInstrumentationStorage: flush", &err)()
 	for tag, record := range storage {
 		var existing keybase1.InstrumentationStat
 		found, err := s.G().LocalDb.GetIntoMsgpack(&existing, s.dbKey(tag))
@@ -194,7 +194,7 @@ func (s *DiskInstrumentationStorage) getAllKeysLocked() (keys []DbKey, err error
 }
 
 func (s *DiskInstrumentationStorage) GetAll(ctx context.Context) (res []keybase1.InstrumentationStat, err error) {
-	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: GetAll", func() error { return err })()
+	defer s.G().CTrace(ctx, "DiskInstrumentationStorage: GetAll", &err)()
 	s.Lock()
 	defer s.Unlock()
 
@@ -226,7 +226,7 @@ func (s *DiskInstrumentationStorage) GetAll(ctx context.Context) (res []keybase1
 }
 
 func (s *DiskInstrumentationStorage) Stats(ctx context.Context) (res []keybase1.InstrumentationStat, err error) {
-	defer s.G().CTraceTimed(ctx, "DiskInstrumentationStorage: Stats", func() error { return err })()
+	defer s.G().CTrace(ctx, "DiskInstrumentationStorage: Stats", &err)()
 	return s.GetAll(ctx)
 }
 

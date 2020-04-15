@@ -99,7 +99,7 @@ func (e *DeviceAdd) promptLoop(m libkb.MetaContext, provisioner *Kex2Provisioner
 
 // Run starts the engine.
 func (e *DeviceAdd) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("DeviceAdd#Run", func() error { return err })()
+	defer m.Trace("DeviceAdd#Run", &err)()
 
 	m.G().LocalSigchainGuard().Set(m.Ctx(), "DeviceAdd")
 	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "DeviceAdd")

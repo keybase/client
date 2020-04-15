@@ -119,7 +119,7 @@ func (s *secretStoreAndroid) serviceName(m MetaContext) string {
 }
 
 func (s *secretStoreAndroid) StoreSecret(m MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
-	defer m.TraceTimed("secret_store_external StoreSecret", func() error { return err })()
+	defer m.Trace("secret_store_external StoreSecret", &err)()
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func (s *secretStoreAndroid) StoreSecret(m MetaContext, username NormalizedUsern
 }
 
 func (s *secretStoreAndroid) RetrieveSecret(m MetaContext, username NormalizedUsername) (sec LKSecFullSecret, err error) {
-	defer m.TraceTimed("secret_store_external RetrieveSecret", func() error { return err })()
+	defer m.Trace("secret_store_external RetrieveSecret", &err)()
 
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {
@@ -140,7 +140,7 @@ func (s *secretStoreAndroid) RetrieveSecret(m MetaContext, username NormalizedUs
 }
 
 func (s *secretStoreAndroid) ClearSecret(m MetaContext, username NormalizedUsername) (err error) {
-	defer m.TraceTimed("secret_store_external ClearSecret", func() error { return err })()
+	defer m.Trace("secret_store_external ClearSecret", &err)()
 	if username.IsNil() {
 		m.Debug("NOOPing secretStoreAndroid#ClearSecret for empty username")
 		return nil
@@ -154,7 +154,7 @@ func (s *secretStoreAndroid) ClearSecret(m MetaContext, username NormalizedUsern
 }
 
 func (s *secretStoreAndroid) GetUsersWithStoredSecrets(m MetaContext) (users []string, err error) {
-	defer m.TraceTimed("secret_store_external GetUsersWithStoredSecrets", func() error { return err })()
+	defer m.Trace("secret_store_external GetUsersWithStoredSecrets", &err)()
 
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {

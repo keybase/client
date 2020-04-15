@@ -14,7 +14,7 @@ import (
 )
 
 func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRaw, err error) {
-	defer s.Trace(ctx, func() error { return err }, "scrapeMap")()
+	defer s.Trace(ctx, &err, "scrapeMap")()
 	puri, err := url.Parse(uri)
 	if err != nil {
 		return res, err

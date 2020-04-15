@@ -118,7 +118,7 @@ func (s *Sender) validConvUsername(ctx context.Context, username string, parts [
 
 func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	body string, replyTo *chat1.MessageID) (res []types.ParsedStellarPayment) {
-	defer s.Trace(ctx, func() error { return nil }, "ParsePayments")()
+	defer s.Trace(ctx, nil, "ParsePayments")()
 	parsed := FindChatTxCandidates(body)
 	if len(parsed) == 0 {
 		return nil
@@ -197,7 +197,7 @@ func (s *Sender) paymentsToMinis(payments []types.ParsedStellarPayment) (minis [
 
 func (s *Sender) DescribePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	payments []types.ParsedStellarPayment) (res chat1.UIChatPaymentSummary, toSend []types.ParsedStellarPayment, err error) {
-	defer s.Trace(ctx, func() error { return err }, "DescribePayments")()
+	defer s.Trace(ctx, &err, "DescribePayments")()
 	specs, err := s.G().GetStellar().SpecMiniChatPayments(s.G().MetaContext(ctx), s.paymentsToMinis(payments))
 	if err != nil {
 		return res, toSend, err
@@ -233,7 +233,7 @@ func (s *Sender) DescribePayments(ctx context.Context, uid gregor1.UID, convID c
 }
 
 func (s *Sender) SendPayments(ctx context.Context, convID chat1.ConversationID, payments []types.ParsedStellarPayment) (res []chat1.TextPayment, err error) {
-	defer s.Trace(ctx, func() error { return err }, "SendPayments")()
+	defer s.Trace(ctx, &err, "SendPayments")()
 	usernameToFull := make(map[string]string)
 	var minis []libkb.MiniChatPayment
 	for _, p := range payments {

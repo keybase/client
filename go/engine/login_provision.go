@@ -151,7 +151,7 @@ func (e *loginProvision) saveToSecretStore(m libkb.MetaContext) {
 func (e *loginProvision) saveToSecretStoreWithLKS(m libkb.MetaContext, lks *libkb.LKSec) {
 	nun := e.arg.User.GetNormalizedName()
 	var err error
-	defer m.Trace(fmt.Sprintf("loginProvision.saveToSecretStoreWithLKS(%s)", nun), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("loginProvision.saveToSecretStoreWithLKS(%s)", nun), &err)()
 	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(m)
 	err = libkb.StoreSecretAfterLoginWithLKSWithOptions(m, nun, lks, &options)
 }
@@ -159,7 +159,7 @@ func (e *loginProvision) saveToSecretStoreWithLKS(m libkb.MetaContext, lks *libk
 // deviceWithType provisions this device with an existing device using the
 // kex2 protocol.  provisionerType is the existing device type.
 func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType keybase1.DeviceType) (err error) {
-	defer m.Trace("loginProvision#deviceWithType", func() error { return err })()
+	defer m.Trace("loginProvision#deviceWithType", &err)()
 
 	// make a new device:
 	deviceID, err := libkb.NewDeviceID()
@@ -299,7 +299,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 
 // paper attempts to provision the device via a paper key.
 func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.DeviceWithDeviceNumber, keys *libkb.DeviceWithKeys) (err error) {
-	defer m.Trace("loginProvision#paper", func() error { return err })()
+	defer m.Trace("loginProvision#paper", &err)()
 
 	// get the paper key from the user if we're in the interactive flow
 	if keys == nil {
@@ -350,7 +350,7 @@ var paperKeyNotFound = libkb.NotFoundError{
 }
 
 func (e *loginProvision) getValidPaperKey(m libkb.MetaContext, expectedPrefix *string) (keys *libkb.DeviceWithKeys, err error) {
-	defer m.Trace("loginProvision#getValidPaperKey", func() error { return err })()
+	defer m.Trace("loginProvision#getValidPaperKey", &err)()
 
 	for i := 0; i < 10; i++ {
 		keys, err = e.getValidPaperKeyOnce(m, i, err, expectedPrefix)
@@ -366,7 +366,7 @@ func (e *loginProvision) getValidPaperKey(m libkb.MetaContext, expectedPrefix *s
 }
 
 func (e *loginProvision) getValidPaperKeyOnce(m libkb.MetaContext, i int, lastErr error, expectedPrefix *string) (keys *libkb.DeviceWithKeys, err error) {
-	defer m.Trace("loginProvision#getValidPaperKeyOnce", func() error { return err })()
+	defer m.Trace("loginProvision#getValidPaperKeyOnce", &err)()
 
 	// get the paper key from the user
 	var prefix string
@@ -405,7 +405,7 @@ func (e *loginProvision) getValidPaperKeyOnce(m libkb.MetaContext, i int, lastEr
 // pgpProvision attempts to provision with a synced pgp key.  It
 // needs to get a session first to look for a synced pgp key.
 func (e *loginProvision) pgpProvision(m libkb.MetaContext) (err error) {
-	defer m.Trace("loginProvision#pgpProvision", func() error { return err })()
+	defer m.Trace("loginProvision#pgpProvision", &err)()
 
 	err = e.passphraseLogin(m)
 	if err != nil {
@@ -488,8 +488,8 @@ func (e *loginProvision) ensureLKSec(m libkb.MetaContext) error {
 func (e *loginProvision) recoverAfterFailedSignup(mctx libkb.MetaContext) (ret *libkb.PassphraseStream, err error) {
 	mctx = mctx.WithLogTag("RSGNUP")
 	user := e.arg.User
-	defer mctx.TraceTimed(fmt.Sprintf("recoverAfterFailedSignup(%q)", user.GetNormalizedName()),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("recoverAfterFailedSignup(%q)", user.GetNormalizedName()),
+		&err)()
 
 	if !user.GetCurrentEldestSeqno().Eq(keybase1.Seqno(0)) {
 		return nil, errors.New("user has live sigchain, cannot do recover-after-signup login")
@@ -516,7 +516,7 @@ func (e *loginProvision) recoverAfterFailedSignup(mctx libkb.MetaContext) (ret *
 // ppStream gets the passphrase stream, either cached or via
 // SecretUI.
 func (e *loginProvision) ppStream(m libkb.MetaContext) (ret *libkb.PassphraseStream, err error) {
-	defer m.Trace("loginProvision#ppStream", func() error { return err })()
+	defer m.Trace("loginProvision#ppStream", &err)()
 	if ret = m.PassphraseStream(); ret != nil {
 		return ret, nil
 	}
@@ -530,7 +530,7 @@ func (e *loginProvision) ppStream(m libkb.MetaContext) (ret *libkb.PassphraseStr
 }
 
 func (e *loginProvision) passphraseLogin(m libkb.MetaContext) (err error) {
-	defer m.Trace("loginProvision#passphraseLogin", func() error { return err })()
+	defer m.Trace("loginProvision#passphraseLogin", &err)()
 
 	if m.LoginContext() != nil {
 		ok, _ := m.LoginContext().LoggedInLoad()
@@ -639,7 +639,7 @@ func (e *loginProvision) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArg
 // syncedPGPKey looks for a synced pgp key for e.user.  If found,
 // it unlocks it.
 func (e *loginProvision) syncedPGPKey(m libkb.MetaContext) (ret libkb.GenericKey, err error) {
-	defer m.Trace("loginProvision#syncedPGPKey", func() error { return err })()
+	defer m.Trace("loginProvision#syncedPGPKey", &err)()
 
 	key, err := e.arg.User.SyncedSecretKey(m)
 	if err != nil {
@@ -716,7 +716,7 @@ func (e *loginProvision) checkArg() error {
 
 func (e *loginProvision) route(m libkb.MetaContext) (err error) {
 
-	defer m.Trace("loginProvision#route", func() error { return err })()
+	defer m.Trace("loginProvision#route", &err)()
 
 	// check if User has any pgp keys, active devices
 	ckf := e.arg.User.GetComputedKeyFamily()
@@ -748,7 +748,7 @@ func (e *loginProvision) route(m libkb.MetaContext) (err error) {
 }
 
 func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error) {
-	defer m.Trace("loginProvision#chooseDevice", func() error { return err })()
+	defer m.Trace("loginProvision#chooseDevice", &err)()
 
 	ckf := e.arg.User.GetComputedKeyFamily()
 	// TODO: switch this to getting all devices
@@ -896,7 +896,7 @@ func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []libkb.
 }
 
 func (e *loginProvision) tryPGP(m libkb.MetaContext) (err error) {
-	defer m.Trace("loginProvision#tryPGP", func() error { return err })()
+	defer m.Trace("loginProvision#tryPGP", &err)()
 
 	err = e.pgpProvision(m)
 	if err == nil {
@@ -914,7 +914,7 @@ func (e *loginProvision) tryPGP(m libkb.MetaContext) (err error) {
 }
 
 func (e *loginProvision) tryGPG(m libkb.MetaContext) (err error) {
-	defer m.Trace("loginProvision#tryGPG", func() error { return err })()
+	defer m.Trace("loginProvision#tryGPG", &err)()
 	key, method, err := e.chooseGPGKeyAndMethod(m)
 	if err != nil {
 		return err

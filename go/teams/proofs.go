@@ -280,7 +280,7 @@ func (p *proofSetT) checkRequired() bool {
 
 // check the entire proof set, failing if any one proof fails.
 func (p *proofSetT) check(ctx context.Context, world LoaderContext, parallel bool) (err error) {
-	defer p.G().CTrace(ctx, "TeamLoader proofSet check", func() error { return err })()
+	defer p.G().CTrace(ctx, "TeamLoader proofSet check", &err)()
 
 	if parallel {
 		return p.checkParallel(ctx, world)

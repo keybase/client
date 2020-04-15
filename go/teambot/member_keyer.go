@@ -101,7 +101,7 @@ func (k *MemberKeyer) GetOrCreateTeambotKey(mctx libkb.MetaContext, teamID keyba
 func (k *MemberKeyer) getOrCreateTeambotKeyLocked(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	botUID keybase1.UID, appKey keybase1.TeamApplicationKey) (
 	key keybase1.TeambotKey, created bool, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("getOrCreateTeambotKeyLocked: teamID: %v, botUID: %v", teamID, botUID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("getOrCreateTeambotKeyLocked: teamID: %v, botUID: %v", teamID, botUID), &err)()
 
 	seed := k.deriveTeambotKeyFromAppKey(mctx, appKey, botUID)
 
@@ -163,7 +163,7 @@ func (k *MemberKeyer) deriveTeambotKeyFromAppKey(mctx libkb.MetaContext, applica
 
 func (k *MemberKeyer) postNewTeambotKey(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	sig, box string) (err error) {
-	defer mctx.TraceTimed("MemberKeyer#postNewTeambotKey", func() error { return err })()
+	defer mctx.Trace("MemberKeyer#postNewTeambotKey", &err)()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "teambot/key",
@@ -183,8 +183,8 @@ func (k *MemberKeyer) postNewTeambotKey(mctx libkb.MetaContext, teamID keybase1.
 func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.Team,
 	botUID keybase1.UID, appKey keybase1.TeamApplicationKey) (
 	sig string, box *keybase1.TeambotKeyBoxed, isRestrictedBotMember bool, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("MemberKeyer#prepareNewTeambotKey: teamID: %v, botUID: %v", team.ID, botUID),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("MemberKeyer#prepareNewTeambotKey: teamID: %v, botUID: %v", team.ID, botUID),
+		&err)()
 
 	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
 		libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(botUID))

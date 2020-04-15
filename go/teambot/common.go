@@ -84,7 +84,7 @@ func extractTeambotKeyMetadataFromSig(sig string) (*kbcrypto.NaclSigningKeyPubli
 // given team's latest PTK, then parse its contents.
 func verifyTeambotKeySigWithLatestPTK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string) (
 	metadata *keybase1.TeambotKeyMetadata, wrongKID bool, err error) {
-	defer mctx.TraceTimed("verifyTeambotSigWithLatestPTK", func() error { return err })()
+	defer mctx.Trace("verifyTeambotSigWithLatestPTK", &err)()
 
 	signerKey, metadata, err := extractTeambotKeyMetadataFromSig(sig)
 	if err != nil {

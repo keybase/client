@@ -292,7 +292,7 @@ func (n nistPayload) abbreviate(lastSuccessfulNISTShortHash []byte) nistPayloadS
 }
 
 func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID, key GenericKey, typ nistType, lastSuccessfulShortHash []byte) (err error) {
-	defer n.G().CTrace(ctx, "NIST#generate", func() error { return err })()
+	defer n.G().CTrace(ctx, "NIST#generate", &err)()
 
 	n.Lock()
 	defer n.Unlock()

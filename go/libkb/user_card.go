@@ -32,7 +32,7 @@ func (c *card) GetAppStatus() *AppStatus {
 }
 
 func UserCard(m MetaContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
-	defer m.Trace("UserCard", func() error { return err })()
+	defer m.Trace("UserCard", &err)()
 
 	cached, err := m.G().CardCache().Get(uid, useSession)
 	if err != nil {

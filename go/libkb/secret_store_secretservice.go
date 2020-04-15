@@ -125,7 +125,7 @@ func (s *SecretStoreRevokableSecretService) identifierKeystore(mctx MetaContext)
 }
 
 func (s *SecretStoreRevokableSecretService) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (secret LKSecFullSecret, err error) {
-	defer mctx.TraceTimed("SecretStoreRevokableSecretService.RetrieveSecret", func() error { return err })()
+	defer mctx.Trace("SecretStoreRevokableSecretService.RetrieveSecret", &err)()
 
 	identifierKeystore := s.identifierKeystore(mctx)
 	var instanceIdentifier []byte
@@ -168,7 +168,7 @@ func (s *SecretStoreRevokableSecretService) RetrieveSecret(mctx MetaContext, use
 }
 
 func (s *SecretStoreRevokableSecretService) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
-	defer mctx.TraceTimed("SecretStoreRevokableSecretService.StoreSecret", func() error { return err })()
+	defer mctx.Trace("SecretStoreRevokableSecretService.StoreSecret", &err)()
 
 	// We add a public random identifier to the secret's properties in the
 	// Secret Service so if the same machine (with the same keyring) is storing
@@ -228,7 +228,7 @@ func (s *SecretStoreRevokableSecretService) StoreSecret(mctx MetaContext, userna
 }
 
 func (s *SecretStoreRevokableSecretService) ClearSecret(mctx MetaContext, username NormalizedUsername) (err error) {
-	defer mctx.TraceTimed("SecretStoreRevokableSecretService.ClearSecret", func() error { return err })()
+	defer mctx.Trace("SecretStoreRevokableSecretService.ClearSecret", &err)()
 
 	// Delete file-based portion first. If it fails, we can still try to erase the keyring's portion.
 	secretlessKeystore := s.secretlessKeystore(mctx, string(username))
@@ -277,7 +277,7 @@ func (s *SecretStoreRevokableSecretService) ClearSecret(mctx MetaContext, userna
 // be able to be logged in as due to the noise file being corrupted, the
 // keyring being uninstalled, etc.
 func (s *SecretStoreRevokableSecretService) GetUsersWithStoredSecrets(mctx MetaContext) (usernames []string, err error) {
-	defer mctx.TraceTimed("SecretStoreRevokableSecretService.GetUsersWithStoredSecrets", func() error { return err })()
+	defer mctx.Trace("SecretStoreRevokableSecretService.GetUsersWithStoredSecrets", &err)()
 	identifierKeystore := s.identifierKeystore(mctx)
 	suffixedUsernames, err := identifierKeystore.AllKeys(mctx, identifierKeystoreSuffix)
 	if err != nil {

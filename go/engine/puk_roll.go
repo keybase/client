@@ -55,7 +55,7 @@ func (e *PerUserKeyRoll) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PerUserKeyRoll) Run(mctx libkb.MetaContext) (err error) {
-	defer mctx.Trace("PerUserKeyRoll", func() error { return err })()
+	defer mctx.Trace("PerUserKeyRoll", &err)()
 	return retryOnEphemeralRace(mctx, e.inner)
 }
 

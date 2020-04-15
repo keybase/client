@@ -95,7 +95,7 @@ func (e *Extractor) isWhitelistHit(ctx context.Context, convID chat1.Conversatio
 
 func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, body string, userSettings *Settings) (res []ExtractorHit, err error) {
-	defer e.Trace(ctx, func() error { return err }, "Extract")()
+	defer e.Trace(ctx, &err, "Extract")()
 	body = e.quoteRegexp.ReplaceAllString(body, "")
 	hits := e.urlRegexp.FindAllString(body, -1)
 	if len(hits) == 0 {
@@ -135,6 +135,6 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.C
 
 func (e *Extractor) AddWhitelistExemption(ctx context.Context, uid gregor1.UID,
 	exemption types.WhitelistExemption) {
-	defer e.Trace(ctx, func() error { return nil }, "AddWhitelistExemption")()
+	defer e.Trace(ctx, nil, "AddWhitelistExemption")()
 	e.getExemptionList(uid).Add(exemption)
 }

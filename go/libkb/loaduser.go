@@ -317,7 +317,7 @@ func LoadMeByMetaContextAndUID(m MetaContext, uid keybase1.UID) (*User, error) {
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	m := arg.MetaContext().WithLogTag("LU")
-	defer m.TraceTimed(fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("LoadUser(%s)", arg), &err)()
 
 	var refresh bool
 
@@ -618,7 +618,7 @@ func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHint
 }
 
 func lookupSigHintsAndMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, merkleOpts MerkleOpts) (sigHints *SigHints, leaf *MerkleUserLeaf, err error) {
-	defer m.Trace("lookupSigHintsAndMerkleLeaf", func() error { return err })()
+	defer m.Trace("lookupSigHintsAndMerkleLeaf", &err)()
 	sigHints, err = LoadSigHints(m, uid)
 	if err != nil {
 		return nil, nil, err

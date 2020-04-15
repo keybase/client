@@ -25,7 +25,7 @@ func NewFlip(g *globals.Context) *Flip {
 
 func (s *Flip) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string, replyTo *chat1.MessageID) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Execute")()
+	defer s.Trace(ctx, &err, "Execute")()
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
@@ -36,7 +36,7 @@ func (s *Flip) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	tlfName, text string) {
 	s.Lock()
 	defer s.Unlock()
-	defer s.Trace(ctx, func() error { return nil }, "Preview")()
+	defer s.Trace(ctx, nil, "Preview")()
 	if !s.Match(ctx, text) {
 		if s.displayed {
 			err := s.getChatUI().ChatCommandMarkdown(ctx, convID, nil)

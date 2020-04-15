@@ -78,8 +78,8 @@ func (k *BotKeyer) dbKey(cacheKey string) libkb.DbKey {
 
 func (k *BotKeyer) DeleteTeambotKeyForTest(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("botKeyer#DeleteTeambotKeyForTest: teamID:%v, app:%v, generation:%v",
-		teamID, app, generation), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("botKeyer#DeleteTeambotKeyForTest: teamID:%v, app:%v, generation:%v",
+		teamID, app, generation), &err)()
 
 	lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
 	defer lock.Release(mctx.Ctx())
@@ -97,8 +97,8 @@ func (k *BotKeyer) DeleteTeambotKeyForTest(mctx libkb.MetaContext, teamID keybas
 
 func (k *BotKeyer) get(mctx libkb.MetaContext, teamID keybase1.TeamID, app keybase1.TeamApplication,
 	generation keybase1.TeambotKeyGeneration) (key keybase1.TeambotKey, wrongKID bool, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("botKeyer#get: teamID:%v, app:%v, generation:%v, ", teamID, app, generation),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("botKeyer#get: teamID:%v, app:%v, generation:%v, ", teamID, app, generation),
+		&err)()
 
 	key, found, err := k.getFromStorage(mctx, teamID, app, generation)
 	if err != nil {
@@ -158,7 +158,7 @@ func (k *BotKeyer) put(mctx libkb.MetaContext, teamID keybase1.TeamID,
 
 func (k *BotKeyer) fetchAndStore(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) (key keybase1.TeambotKey, wrongKID bool, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("BotKeyer#fetchAndStore: teamID:%v, app: %v, generation:%v", teamID, app, generation), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("BotKeyer#fetchAndStore: teamID:%v, app: %v, generation:%v", teamID, app, generation), &err)()
 
 	boxed, wrongKID, err := k.fetch(mctx, teamID, app, generation)
 	if err != nil {
@@ -176,8 +176,8 @@ func (k *BotKeyer) fetchAndStore(mctx libkb.MetaContext, teamID keybase1.TeamID,
 // unbox decrypts the TeambotKey for the given PUK rengeration
 func (k *BotKeyer) unbox(mctx libkb.MetaContext, boxed keybase1.TeambotKeyBoxed) (
 	key keybase1.TeambotKey, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("BotKeyer#unbox: generation: %v",
-		boxed.Metadata.Generation), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("BotKeyer#unbox: generation: %v",
+		boxed.Metadata.Generation), &err)()
 
 	pukring, err := mctx.G().GetPerUserKeyring(mctx.Ctx())
 	if err != nil {
@@ -299,8 +299,8 @@ type TeambotKeyResponse struct {
 func (k *BotKeyer) GetLatestTeambotKey(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	app keybase1.TeamApplication) (key keybase1.TeambotKey, err error) {
 	mctx = mctx.WithLogTag("GLTBK")
-	defer mctx.TraceTimed(fmt.Sprintf("BotKeyer#GetLatestTeambotKey teamID: %v, app %v",
-		teamID, app), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("BotKeyer#GetLatestTeambotKey teamID: %v, app %v",
+		teamID, app), &err)()
 
 	lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
 	defer lock.Release(mctx.Ctx())
@@ -339,8 +339,8 @@ func (k *BotKeyer) GetLatestTeambotKey(mctx libkb.MetaContext, teamID keybase1.T
 
 func (k *BotKeyer) getTeambotKeyLocked(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	generation keybase1.TeambotKeyGeneration, app keybase1.TeamApplication, forceWrongKID bool) (key keybase1.TeambotKey, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("BotKeyer#getTeambotKeyLocked teamID: %v, app %v, generation %d",
-		teamID, app, generation), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("BotKeyer#getTeambotKeyLocked teamID: %v, app %v, generation %d",
+		teamID, app, generation), &err)()
 
 	key, wrongKID, err := k.get(mctx, teamID, app, generation)
 	if wrongKID || forceWrongKID {
@@ -366,8 +366,8 @@ func (k *BotKeyer) getTeambotKeyLocked(mctx libkb.MetaContext, teamID keybase1.T
 func (k *BotKeyer) GetTeambotKeyAtGeneration(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) (key keybase1.TeambotKey, err error) {
 	mctx = mctx.WithLogTag("GTBK")
-	defer mctx.TraceTimed(fmt.Sprintf("BotKeyer#GetTeambotKeyAtGeneration teamID: %v, app: %v, generation: %d",
-		teamID, app, generation), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("BotKeyer#GetTeambotKeyAtGeneration teamID: %v, app: %v, generation: %d",
+		teamID, app, generation), &err)()
 
 	lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
 	defer lock.Release(mctx.Ctx())
