@@ -179,10 +179,10 @@ func (pfs ProfileFS) openTimedProfile(
 	// TODO: Blocking here until the profile is done is
 	// weird. Blocking on read is better.
 	//
-	// TODO: Maybe keep around a special last_profile file to be
-	// able to start capturing a profile and then interrupt when
-	// done, which would also be useful in general, since you be
-	// able to save a profile even if you open it up with a tool.
+	// TODO: Maybe keep around a special last_profile file to be able
+	// to start capturing a profile and then interrupt when done,
+	// which would also be useful in general, since you'd be able to
+	// save a profile even if you open it up with a tool.
 	var buf bytes.Buffer
 	err = prof.Start(&buf)
 	if err != nil {
