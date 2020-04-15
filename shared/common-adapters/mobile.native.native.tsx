@@ -353,7 +353,7 @@ module.exports = {
     return Index.RadioButton
   },
   get ReAnimated() {
-    return require('react-native-reanimated')
+    return require('react-native-reanimated').default
   },
   get ReAnimatedEasing() {
     return require('react-native-reanimated').Easing

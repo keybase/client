@@ -36,7 +36,6 @@ jest.mock('react-native-iphone-x-helper', () => ({
   ifIphoneX: (iphoneXStyle, regularStyle) => regularStyle,
   isIphoneX: () => false,
 }))
-jest.mock('react-native-reanimated', () => ({}))
 jest.mock('expo-constants', () => ({}))
 jest.mock('expo-image-picker', () => ({}))
 jest.mock('expo-permissions', () => ({}))
@@ -48,6 +47,22 @@ jest.mock('react-native-reanimated', () => ({
   clockRunning: jest.fn(),
   cond: jest.fn(),
   createAnimatedComponent: jest.fn(),
+  default: {
+    Value: jest.fn(),
+    block: jest.fn(),
+    call: jest.fn(),
+    clockRunning: jest.fn(),
+    cond: jest.fn(),
+    createAnimatedComponent: jest.fn(),
+    easing: jest.fn(),
+    eq: jest.fn(),
+    not: jest.fn(),
+    set: jest.fn(),
+    startClock: jest.fn(),
+    stopClock: jest.fn(),
+    timing: jest.fn(),
+  },
+  easing: jest.fn(),
   eq: jest.fn(),
   not: jest.fn(),
   set: jest.fn(),
