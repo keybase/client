@@ -1154,7 +1154,8 @@ const outboxUIMessagetoMessage = (
         Types.stringToOutboxID(o.outboxID),
         Types.numberToOrdinal(o.ordinal),
         errorReason,
-        errorTyp
+        errorTyp,
+        o.isEphemeral
       )
     }
     case RPCChatTypes.MessageType.flip:
@@ -1317,13 +1318,11 @@ export const makePendingAttachmentMessage = (
   inOrdinal: Types.Ordinal | null,
   errorReason?: string,
   errorTyp?: number,
-  explodeTime?: number
+  exploding?: boolean
 ) => {
   const ordinal = !inOrdinal ? nextFractionalOrdinal(getLastOrdinal()) : inOrdinal
-  const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
   return makeMessageAttachment({
-    ...explodeInfo,
     attachmentType: previewSpec.attachmentType,
     audioAmps: previewSpec.audioAmps,
     audioDuration: previewSpec.audioDuration,
@@ -1333,6 +1332,7 @@ export const makePendingAttachmentMessage = (
     deviceType: isMobile ? 'mobile' : 'desktop',
     errorReason: errorReason,
     errorTyp: errorTyp,
+    exploding,
     fileName: fileName,
     id: Types.numberToMessageID(0),
     isCollapsed: false,
