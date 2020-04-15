@@ -23,7 +23,7 @@ type RolePickerProps = {
   onSelectRole: (role: Types.TeamRoleType) => void
   selectedRole: Types.TeamRoleType
   teamRole: Types.TeamRoleType
-  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string}
+  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string | null}
 }
 
 const capitalize = (str: string) => {

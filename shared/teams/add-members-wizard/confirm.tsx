@@ -300,7 +300,10 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
           </Kb.Box2>
         </Kb.ClickableBox>
       )}
-      {expanded && belowDivider.map(toAdd => <AddingMember key={toAdd.assertion} {...toAdd} />)}
+      {expanded &&
+        belowDivider.map(toAdd => (
+          <AddingMember key={toAdd.assertion} {...toAdd} disabledRoles={disabledRoles} />
+        ))}
     </Kb.Box2>
   )
   if (Styles.isMobile) {
