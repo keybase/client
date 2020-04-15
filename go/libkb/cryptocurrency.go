@@ -143,7 +143,7 @@ func CryptocurrencyParseAndCheck(s string) (CryptocurrencyType, []byte, error) {
 		return cryptocurrencyParseZCashSapling(s)
 	}
 
-	buf, err := Decode58(s)
+	buf, err := Base58.DecodeString(s)
 	if err != nil {
 		return CryptocurrencyTypeNone, nil, err
 	}

@@ -13,11 +13,11 @@ func doBase58Test(t *testing.T, startingHex, expectedBase58 string) {
 	if err != nil {
 		t.Fatalf("Not valid hex: '%s'", startingHex)
 	}
-	base58 := Encode58(startingBytes)
+	base58 := Base58.EncodeToString(startingBytes)
 	if base58 != expectedBase58 {
 		t.Fatalf("'%s' was converted to '%s' instead of '%s'", startingHex, base58, expectedBase58)
 	}
-	backToBytes, err := Decode58(base58)
+	backToBytes, err := Base58.DecodeString(base58)
 	if err != nil {
 		t.Fatalf("Not valid base58: '%s'", base58)
 	}

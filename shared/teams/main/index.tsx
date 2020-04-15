@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
+import * as TeamsGen from '../../actions/teams-gen'
+import * as Container from '../../util/container'
 import Header from './header'
 import Banner from './banner'
 import TeamsFooter from './footer'
@@ -137,10 +139,47 @@ const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
   </Kb.Box2>
 )
 
+const sortOrderToTitle = {
+  activity: 'Activity',
+  alphabetical: 'Alphabetical',
+  role: 'Your role',
+}
+const SortHeader = () => {
+  const dispatch = Container.useDispatch()
+  const onChangeSort = (sortOrder: Types.TeamListSort) =>
+    dispatch(TeamsGen.createSetTeamListFilterSort({sortOrder}))
+  const {popup, toggleShowingPopup, popupAnchor, showingPopup} = Kb.usePopup(getAttachmentRef => (
+    <Kb.FloatingMenu
+      attachTo={getAttachmentRef}
+      items={[
+        {onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
+        {onClick: () => onChangeSort('activity'), title: sortOrderToTitle.activity},
+        {onClick: () => onChangeSort('alphabetical'), title: sortOrderToTitle.alphabetical},
+      ]}
+      closeOnSelect={true}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
+      position="bottom left"
+    />
+  ))
+  const sortOrder = Container.useSelector(s => s.teams.teamListSort)
+  return (
+    <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
+      <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
+        <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
+          <Kb.Icon type="iconfont-arrow-full-down" />
+          <Kb.Text type="BodySmallSemibold">{sortOrderToTitle[sortOrder]}</Kb.Text>
+        </Kb.Box2>
+      </Kb.ClickableBox>
+      {popup}
+    </Kb.Box2>
+  )
+}
+
 const getMembersText = (count: number) => (count === -1 ? '' : `${count} ${pluralize('member', count)}`)
 
 type Row = {key: React.Key} & (
-  | {type: '_banner' | '_buttons' | '_footer'}
+  | {type: '_banner' | '_sortHeader' | '_buttons' | '_footer'}
   | {team: DeletedTeam; type: 'deletedTeam'}
   | {team: Types.TeamMeta; type: 'team'}
 )
@@ -154,7 +193,12 @@ class Teams extends React.PureComponent<Props, State> {
 
   private teamsAndExtras = memoize(
     (deletedTeams: Props['deletedTeams'], teams: Props['teams']): Array<Row> => [
-      ...(flags.teamsRedesign ? [{key: '_buttons', type: '_buttons' as const}] : []),
+      ...(flags.teamsRedesign
+        ? [
+            {key: '_buttons', type: '_buttons' as const},
+            {key: '_sortHeader', type: '_sortHeader' as const},
+          ]
+        : []),
       ...(this.state.sawChatBanner || flags.teamsRedesign
         ? []
         : [{key: '_banner', type: '_banner' as const}]),
@@ -186,6 +230,8 @@ class Teams extends React.PureComponent<Props, State> {
             empty={this.props.teams.length === 0}
           />
         )
+      case '_sortHeader':
+        return <SortHeader />
       case 'deletedTeam': {
         const {deletedBy, teamName} = item.team
         return (
@@ -282,6 +328,13 @@ const styles = Styles.styleSheetCreate(
       maxWidth: {maxWidth: '100%'},
       openMeta: {alignSelf: 'center'},
       relative: {position: 'relative'},
+      sortHeader: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
+        isElectron: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
+        isMobile: {...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.tiny)},
+      }),
       teamButtons: {
         ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
         backgroundColor: Styles.globalColors.blueGrey,

@@ -81,6 +81,7 @@ export const setTeamInfo = 'teams:setTeamInfo'
 export const setTeamInviteError = 'teams:setTeamInviteError'
 export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
+export const setTeamListFilterSort = 'teams:setTeamListFilterSort'
 export const setTeamLoadingInvites = 'teams:setTeamLoadingInvites'
 export const setTeamProfileAddList = 'teams:setTeamProfileAddList'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
@@ -305,6 +306,7 @@ type _SetTeamJoinSuccessPayload = {
   readonly success: boolean
   readonly teamname: string
 }
+type _SetTeamListFilterSortPayload = {readonly filter?: string; readonly sortOrder?: Types.TeamListSort}
 type _SetTeamLoadingInvitesPayload = {
   readonly teamname: string
   readonly loadingKey: string
@@ -482,6 +484,12 @@ export const createRenameTeam = (payload: _RenameTeamPayload): RenameTeamPayload
   payload,
   type: renameTeam,
 })
+/**
+ * Set filtering and sort order for main team list. Leaves existing for undefinted params.
+ */
+export const createSetTeamListFilterSort = (
+  payload: _SetTeamListFilterSortPayload = Object.freeze({})
+): SetTeamListFilterSortPayload => ({payload, type: setTeamListFilterSort})
 /**
  * Set filtering for the subteams tab.
  */
@@ -1090,6 +1098,10 @@ export type SetTeamJoinSuccessPayload = {
   readonly payload: _SetTeamJoinSuccessPayload
   readonly type: typeof setTeamJoinSuccess
 }
+export type SetTeamListFilterSortPayload = {
+  readonly payload: _SetTeamListFilterSortPayload
+  readonly type: typeof setTeamListFilterSort
+}
 export type SetTeamLoadingInvitesPayload = {
   readonly payload: _SetTeamLoadingInvitesPayload
   readonly type: typeof setTeamLoadingInvites
@@ -1291,6 +1303,7 @@ export type Actions =
   | SetTeamInviteErrorPayload
   | SetTeamJoinErrorPayload
   | SetTeamJoinSuccessPayload
+  | SetTeamListFilterSortPayload
   | SetTeamLoadingInvitesPayload
   | SetTeamProfileAddListPayload
   | SetTeamRetentionPolicyPayload
