@@ -2,12 +2,11 @@ import * as React from 'react'
 import * as Container from '../../../util/container'
 import {formatTimeRelativeToNow} from '../../../util/timestamp'
 import * as Kb from '../../../common-adapters'
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as Styles from '../../../styles'
 import * as UsersGen from '../../../actions/users-gen'
 import {WebOfTrustVerificationType} from '../../../constants/types/more'
-import {WotReactionType, WotStatusType, SigID} from '../../../constants/types/rpc-gen'
-import {wotReactWaitingKey} from '../../../constants/users'
+import {WotReactionType, WotStatusType} from '../../../constants/types/rpc-gen'
+import {wotReactWaitingKey, wotRevokeWaitingKey} from '../../../constants/users'
 
 type Props = {
   username: string
@@ -27,24 +26,21 @@ const WebOfTrust = (props: Props) => {
   const {attestation, attestingUser, proofID, vouchedAt, status} = webOfTrustAttestation
   const userIsYou = Container.useSelector(state => username === state.config.username)
   const voucherIsYou = Container.useSelector(state => attestingUser === state.config.username)
-  const onAccept =
-    userIsYou && status === WotStatusType.proposed
-      ? () => dispatch(UsersGen.createWotReact({reaction: WotReactionType.accept, voucher: attestingUser}))
-      : null
-  const _onReject =
-    userIsYou && status === WotStatusType.proposed
-      ? () => dispatch(UsersGen.createWotReact({reaction: WotReactionType.reject, voucher: attestingUser}))
-      : null
-  const _onRevoke = voucherIsYou
-    ? () => dispatch(UsersGen.createSubmitRevokeVouch({proofID, voucheeName: username}))
-    : null
-  let onDelete, onReject
-  if (voucherIsYou) {
-    onDelete = _onRevoke
-  } else if (status === WotStatusType.accepted && userIsYou) {
-    onDelete = _onReject
-  } else if (userIsYou && status === WotStatusType.proposed) {
-    onReject = _onReject
+  const canAccept = userIsYou && status === WotStatusType.proposed
+  const onAccept = () => {
+    if (!canAccept) return
+    dispatch(UsersGen.createWotReact({reaction: WotReactionType.accept, voucher: attestingUser}))
+  }
+  const canReject = userIsYou && (status === WotStatusType.proposed || status === WotStatusType.accepted)
+  const onReject = () => {
+    if (!canReject) return
+    dispatch(UsersGen.createWotReact({reaction: WotReactionType.reject, voucher: attestingUser}))
+  }
+  const rejectLabel = status === WotStatusType.proposed ? 'Reject' : 'Delete'
+  const canRevoke = voucherIsYou
+  const onRevoke = () => {
+    if (!canRevoke) return
+    dispatch(UsersGen.createSubmitRevokeVouch({proofID, voucheeName: username}))
   }
 
   let statusStatement = ''
@@ -88,10 +84,10 @@ const WebOfTrust = (props: Props) => {
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-      {(onAccept || onReject || onDelete) && (
+      {(canAccept || canReject || canRevoke) && (
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false} style={styles.buttonBar}>
           <Kb.ButtonBar align="flex-start">
-            {onAccept && (
+            {canAccept && (
               <Kb.WaitingButton
                 label="Accept"
                 onClick={onAccept}
@@ -100,22 +96,22 @@ const WebOfTrust = (props: Props) => {
                 waitingKey={wotReactWaitingKey}
               />
             )}
-            {onReject && (
+            {canReject && (
               <Kb.WaitingButton
-                label="Reject"
+                label={rejectLabel}
                 onClick={onReject}
                 small={true}
                 type="Danger"
                 waitingKey={wotReactWaitingKey}
               />
             )}
-            {onDelete && (
+            {canRevoke && (
               <Kb.WaitingButton
                 label="Delete"
-                onClick={onDelete}
+                onClick={onRevoke}
                 small={true}
                 type="Danger"
-                waitingKey={wotReactWaitingKey}
+                waitingKey={wotRevokeWaitingKey}
               />
             )}
           </Kb.ButtonBar>

@@ -76,7 +76,7 @@ const submitRevokeVouch = async (_: TypedState, action: UsersGen.SubmitRevokeVou
   try {
     await RPCTypes.revokeRevokeSigsRpcPromise(
       {sigIDQueries: [action.payload.proofID]},
-      Constants.wotReactWaitingKey
+      Constants.wotRevokeWaitingKey
     )
     return Tracker2Gen.createLoad({
       assertion: action.payload.voucheeName,
@@ -89,6 +89,7 @@ const submitRevokeVouch = async (_: TypedState, action: UsersGen.SubmitRevokeVou
     })
   } catch (e) {
     logger.info('error revoking vouch', e)
+    return
   }
 }
 
