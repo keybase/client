@@ -123,14 +123,19 @@ const ChannelRow = (props: ChannelRowProps) => {
       />
     </Kb.Box2>
   )
+  const massActionsProps = canPerform.deleteChannel
+    ? {
+        containerStyleOverride: styles.listItemMargin,
+        icon: checkCircle,
+        iconStyleOverride: styles.checkCircle,
+      }
+    : {}
   return (
     <Kb.ListItem2
+      {...massActionsProps}
       action={actions}
       onlyShowActionOnHover="fade"
       height={Styles.isMobile ? 90 : 64}
-      icon={checkCircle}
-      iconStyleOverride={styles.checkCircle}
-      containerStyleOverride={styles.listItemMargin}
       type="Large"
       body={body}
       firstItem={isGeneral}
