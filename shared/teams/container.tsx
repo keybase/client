@@ -135,7 +135,7 @@ const Connected = Container.connect(
     newTeamRequests: state.teams.newTeamRequests,
     newTeams: state.teams.newTeams,
     sawChatBanner: state.teams.sawChatBanner || false,
-    sortOrder: state.teams.teamListSort,
+    sortOrder: flags.teamsRedesign ? state.teams.teamListSort : 'alphabetical',
   }),
   (dispatch: Container.TypedDispatch) => ({
     onHideChatBanner: () =>
