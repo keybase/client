@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -302,7 +303,9 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, c
 	// group duplicate ephemeral errors
 	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
 		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
-			if !(msg.IsError() && msg.Error().IsEphemeralError() && !msg.Error().IsEphemeralExpired(time.Now())) {
+			if !msg.IsError() {
+				return false
+			} else if msg.Error().IsEphemeralError() && msg.Error().IsEphemeralExpired(time.Now()) {
 				return false
 			}
 			// group the same error message from the same sender
@@ -320,7 +323,11 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, c
 			}
 
 			merr := grouped[0].Error()
-			merr.ErrMsg = ephemeral.PluralizeErrorMessage(merr.ErrMsg, len(grouped))
+			if grouped[0].IsEphemeral() {
+				merr.ErrMsg = ephemeral.PluralizeErrorMessage(merr.ErrMsg, len(grouped))
+			} else if len(grouped) > 1 {
+				merr.ErrMsg = fmt.Sprintf("%s (occurred %d times)", merr.ErrMsg, len(grouped))
+			}
 			msg := chat1.NewMessageUnboxedWithError(merr)
 			return &msg
 		})
@@ -402,7 +409,7 @@ func (t *UIThreadLoader) messageIDControlToPagination(ctx context.Context, uid g
 
 func (t *UIThreadLoader) isConsolidateMsg(msg chat1.MessageUnboxed) bool {
 	if !msg.IsValid() {
-		return msg.IsError() && msg.Error().IsEphemeralError()
+		return msg.IsError()
 	}
 	body := msg.Valid().MessageBody
 	typ, err := body.MessageType()
