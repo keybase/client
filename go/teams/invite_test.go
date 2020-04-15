@@ -54,6 +54,17 @@ func TestObsoletingInvites1(t *testing.T) {
 	require.EqualValues(t, "40903c59d19feef1d67c455499304c19%1", invite.Name)
 	require.EqualValues(t, keybase1.UserVersion{Uid: "25852c87d6e47fb8d7d55400be9c7a19", EldestSeqno: 1}, invite.Inviter)
 
+	inviteMD := team.chain().inner.InviteMetadatas["54eafff3400b5bcd8b40bff3d225ab27"]
+	code, err := inviteMD.Status.Code()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamInviteMetadataStatusCode_OBSOLETE, code)
+
+	inviteMD = team.chain().inner.InviteMetadatas["55eafff3400b5bcd8b40bff3d225ab27"]
+	code, err = inviteMD.Status.Code()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamInviteMetadataStatusCode_CANCELLED, code)
+	require.Equal(t, keybase1.Seqno(5), inviteMD.Status.Cancelled().TeamSigMeta.SigMeta.SigChainLocation.Seqno)
+
 	members, err := team.Members()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(members.Owners))
@@ -170,6 +181,16 @@ func TestMultiUseInviteChains1(t *testing.T) {
 		inviteID = inviteMD.Invite.Id
 		break // grab first invite
 	}
+
+	code, err := inviteMD.Status.Code()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamInviteMetadataStatusCode_ACTIVE, code)
+	require.Equal(t,
+		keybase1.UserVersion{Uid: "25852c87d6e47fb8d7d55400be9c7a19", EldestSeqno: 1},
+		inviteMD.TeamSigMeta.Uv,
+	)
+	require.Equal(t, keybase1.Seqno(2), inviteMD.TeamSigMeta.SigMeta.SigChainLocation.Seqno)
+
 	invite := inviteMD.Invite
 
 	require.Equal(t, inviteID, invite.Id)
@@ -744,4 +765,7 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 	require.Equal(t, testUV, state.inner.InviteMetadatas[inviteID].UsedInvites[0].Uv)
 	// this would be the wrong log point: testUV did not accept invite at that point
 	require.Equal(t, 0, state.inner.InviteMetadatas[inviteID].UsedInvites[0].LogPoint)
+}
+
+func TestTeamInviteMetadata(t *testing.T) {
 }

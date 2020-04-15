@@ -477,10 +477,7 @@ func (t *TeamSigChainState) inform(u keybase1.UserVersion, role keybase1.TeamRol
 }
 
 func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite, teamSigMeta keybase1.TeamSignatureMetadata) {
-	t.inner.InviteMetadatas[i.Id] = keybase1.NewTeamInviteMetadata(
-		i,
-		teamSigMeta,
-	)
+	t.inner.InviteMetadatas[i.Id] = keybase1.NewTeamInviteMetadata(i, teamSigMeta)
 }
 
 func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID,
@@ -2246,20 +2243,13 @@ func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState,
 	completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm,
 	teamSigMeta keybase1.TeamSignatureMetadata) error {
 	for id := range completed {
-		inviteMD, ok := stateToUpdate.inner.InviteMetadatas[id]
-		if !ok {
+		inviteMD, found := stateToUpdate.FindActiveInviteMDByID(id)
+		if !found {
 			// Invite doesn't exist or we don't know about it because invite
 			// links were stubbed. We could do a similar check here that we do
 			// in teamSigchainPlayer.useInvites, but we haven't been doing it
 			// in the past, so we might have links with issues like that in the
 			// wild.
-			continue
-		}
-		code, err := inviteMD.Status.Code()
-		if err != nil {
-			return err
-		}
-		if code != keybase1.TeamInviteMetadataStatusCode_ACTIVE {
 			continue
 		}
 		isNewStyle, err := IsNewStyleInvite(inviteMD.Invite)
