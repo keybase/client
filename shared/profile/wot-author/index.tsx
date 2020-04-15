@@ -12,7 +12,7 @@ import * as Tracker2Constants from '../../constants/tracker2'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import sortBy from 'lodash/sortBy'
 
-// PICNIC-1059 Keep in sync with server limit (yet to be implemented)
+// Keep in sync with server limits: https://github.com/keybase/proofs/blob/master/src/wot.iced
 const statementLimit = 700
 const otherLimit = 90
 
@@ -28,6 +28,23 @@ export type Question1Answer = {
   otherText: string
   proofs: Array<RPCTypes.WotProof>
   verificationType: WebOfTrustVerificationType
+}
+
+type ReviewAction = 'accept' | 'propose' | 'reject'
+
+export type ReviewProps = {
+  error?: string
+  firstDraft: boolean
+  onAccept: () => void
+  onProposeEdits: () => void
+  onReject: () => void
+  otherText: string
+  proofs: Array<Proof>
+  statement: string
+  verificationType: WebOfTrustVerificationType
+  voucheeUsername: string
+  voucherUsername: string
+  waiting?: undefined | ReviewAction
 }
 
 export type Question2Props = {
@@ -302,6 +319,180 @@ export const Question2 = (props: Question2Props) => {
   )
 }
 
+export const Review = (props: ReviewProps) => {
+  const dispatch = Container.useDispatch()
+  const [checkedVerificationType, setCheckedVerificationType] = React.useState(false)
+  const [checkedStatement, setCheckedStatement] = React.useState(false)
+  const canAccept = checkedVerificationType && checkedStatement
+  const onClose = () => {
+    dispatch(RouteTreeGen.createClearModals())
+  }
+  const buttonState = (button: ReviewAction) => {
+    // When waiting, spinner the relevant button and disable the others.
+    if (props.waiting === button) {
+      return {waiting: true}
+    } else if (props.waiting) {
+      return {disabled: true}
+    }
+    if (button === 'accept' && !canAccept) {
+      return {disabled: true}
+    }
+    return {}
+  }
+  return (
+    <Kb.Modal
+      onClose={onClose}
+      header={{
+        leftButton: Styles.isMobile && (
+          <Kb.Text onClick={onClose} type="BodyPrimaryLink">
+            Cancel
+          </Kb.Text>
+        ),
+        title: 'Review claim',
+      }}
+      mode="DefaultFullHeight"
+      banners={[
+        !!props.error && (
+          <Kb.Banner key="error" color="red">
+            <Kb.BannerParagraph bannerColor="red" content={props.error} />
+          </Kb.Banner>
+        ),
+      ]}
+      footer={{
+        content: (
+          <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
+            <Kb.Button
+              mode="Secondary"
+              type="Default"
+              fullWidth={true}
+              label={`No, propose ${props.firstDraft ? '' : 'more '}edits`}
+              onClick={props.onProposeEdits}
+              {...buttonState('propose')}
+            />
+            <Kb.Button
+              mode="Secondary"
+              type="Danger"
+              fullWidth={true}
+              label="No, reject"
+              onClick={props.onReject}
+              {...buttonState('reject')}
+            />
+          </Kb.ButtonBar>
+        ),
+        style: {paddingBottom: Styles.globalMargins.xtiny, paddingTop: Styles.globalMargins.xxtiny},
+      }}
+    >
+      <Kb.Box2
+        direction="vertical"
+        alignSelf="stretch"
+        alignItems="stretch"
+        style={Styles.collapseStyles([styles.sidePadding, styles.outside])}
+      >
+        <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="stretch" style={styles.outsideBox}>
+          {props.firstDraft ? (
+            <Kb.Text type="BodyBig" style={styles.reviewInstruction}>
+              Review what{' '}
+              <Kb.ConnectedUsernames
+                usernames={props.voucherUsername}
+                type="BodyBig"
+                inline={true}
+                colorFollowing={true}
+                colorBroken={true}
+              />{' '}
+              wrote about you:
+            </Kb.Text>
+          ) : (
+            <Kb.Text type="BodyBig" style={styles.reviewInstruction}>
+              Review{' '}
+              <Kb.ConnectedUsernames
+                usernames={props.voucherUsername}
+                type="BodyBig"
+                inline={true}
+                colorFollowing={true}
+                colorBroken={true}
+              />
+              's edits:
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
+          <Kb.Box2
+            key="colorbar"
+            direction="vertical"
+            alignSelf="stretch"
+            style={{
+              backgroundColor: verificationTypeColors[props.verificationType] ?? Styles.globalColors.white,
+              flexShrink: 0,
+              marginRight: Styles.globalMargins.small,
+              width: 4,
+            }}
+          />
+          <Kb.Box2 direction="vertical" alignSelf="stretch" style={Styles.globalStyles.flexOne}>
+            <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
+              <Kb.Text type="Body" style={Styles.globalStyles.flexOne}>
+                {props.verificationType === 'other'
+                  ? props.otherText
+                  : verificationTypeText(props.verificationType, props.voucheeUsername)}
+              </Kb.Text>
+            </Kb.Box2>
+            {props.verificationType === 'proofs' &&
+              props.proofs.map(proof => (
+                <Kb.Box2
+                  key={`${proof.type}:${proof.value}`}
+                  direction="horizontal"
+                  alignSelf="stretch"
+                  alignItems="center"
+                >
+                  <ProofSingle {...proof} />
+                </Kb.Box2>
+              ))}
+          </Kb.Box2>
+        </Kb.Box2>
+        <Kb.Checkbox
+          checked={checkedVerificationType}
+          onCheck={setCheckedVerificationType}
+          style={styles.reviewCheckbox}
+          label="This is true"
+        />
+        <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
+          <Kb.Box2 key="colorbar" direction="vertical" alignSelf="stretch" style={styles.reviewColorbar} />
+          <Kb.Box2 direction="vertical" alignSelf="stretch" style={Styles.globalStyles.flexOne}>
+            <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
+              <Kb.Text type="Body" style={Styles.globalStyles.flexOne}>
+                {props.statement}
+              </Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+        </Kb.Box2>
+        <Kb.Checkbox
+          checked={checkedStatement}
+          onCheck={setCheckedStatement}
+          label="This is entirely true"
+          style={styles.reviewCheckbox2}
+        />
+      </Kb.Box2>
+      <Kb.Box2
+        direction="horizontal"
+        alignSelf="stretch"
+        alignItems="center"
+        style={Styles.collapseStyles([
+          styles.sidePadding,
+          {marginTop: 'auto', paddingBottom: Styles.globalMargins.tiny},
+        ])}
+      >
+        <Kb.Button
+          label="Accept"
+          mode="Primary"
+          type="Success"
+          fullWidth={true}
+          onClick={props.onAccept}
+          {...buttonState('accept')}
+        />
+      </Kb.Box2>
+    </Kb.Modal>
+  )
+}
+
 const WotModal = (props: WotModalProps) => {
   const dispatch = Container.useDispatch()
   const onClose = () => {
@@ -356,6 +547,46 @@ const WotModal = (props: WotModalProps) => {
   )
 }
 
+/* eslint-disable sort-keys */
+const verificationTypeColors = {
+  in_person: Styles.globalColors.greenDark,
+  video: '#56fff5',
+  audio: Styles.globalColors.blueLight,
+  proofs: Styles.globalColors.blueLight,
+  other_chat: Styles.globalColors.yellow,
+  familiar: Styles.globalColors.yellow,
+  other: Styles.globalColors.yellowDark,
+}
+/* eslint-enable sort-keys */
+
+const verificationTypeText = (
+  verificationType: WebOfTrustVerificationType,
+  voucheeUsername: string
+): React.ReactNode => {
+  switch (verificationType) {
+    case 'in_person':
+      return (
+        <>
+          {voucheeUsername} told me their username <Kb.Text type="BodyBold">in person</Kb.Text>
+        </>
+      )
+    case 'video':
+      return `${voucheeUsername} told me their username over video`
+    case 'audio':
+      return `${voucheeUsername} told me their username over audio`
+    case 'proofs':
+      return `I know one of ${voucheeUsername}'s proofs`
+    case 'other_chat':
+      return `${voucheeUsername} texted me their username`
+    case 'familiar':
+      return 'We are longtime Keybase friends'
+    case 'other':
+      return 'Other'
+    default:
+      return `<Unknown verification type: ${verificationType}>`
+  }
+}
+
 const VerificationChoice = (props: {
   children?: React.ReactNode
   voucheeUsername: string
@@ -363,42 +594,8 @@ const VerificationChoice = (props: {
   selected: boolean
   onSelect: () => void
 }) => {
-  let text: React.ReactNode = 'Do not choose this option'
-  let color: string = Styles.globalColors.white
-  switch (props.verificationType) {
-    case 'in_person':
-      text = (
-        <>
-          {props.voucheeUsername} told me their username <Kb.Text type="BodyBold">in person</Kb.Text>
-        </>
-      )
-      color = Styles.globalColors.greenDark
-      break
-    case 'video':
-      text = `${props.voucheeUsername} told me their username over video`
-      color = '#56fff5'
-      break
-    case 'audio':
-      text = `${props.voucheeUsername} told me their username over audio`
-      color = Styles.globalColors.blueLight
-      break
-    case 'proofs':
-      text = `I know one of ${props.voucheeUsername}'s proofs`
-      color = Styles.globalColors.blueLight
-      break
-    case 'other_chat':
-      text = `${props.voucheeUsername} texted me their username`
-      color = Styles.globalColors.yellow
-      break
-    case 'familiar':
-      text = 'We are longtime Keybase friends'
-      color = Styles.globalColors.yellow
-      break
-    case 'other':
-      text = 'Other'
-      color = Styles.globalColors.yellowDark
-      break
-  }
+  const text = verificationTypeText(props.verificationType, props.voucheeUsername)
+  const color = verificationTypeColors[props.verificationType] ?? Styles.globalColors.white
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center">
       <Kb.Box2
@@ -524,6 +721,18 @@ const styles = Styles.styleSheetCreate(
         marginTop: 0,
       },
       proofSingleValue: {flexShrink: 1, marginLeft: 8},
+      reviewCheckbox: {paddingBottom: Styles.globalMargins.small, paddingTop: Styles.globalMargins.small},
+      reviewCheckbox2: {paddingTop: Styles.globalMargins.small},
+      reviewColorbar: {
+        backgroundColor: Styles.globalColors.blueLight,
+        flexShrink: 0,
+        marginRight: Styles.globalMargins.small,
+        width: 4,
+      },
+      reviewInstruction: {
+        flex: 1,
+        paddingTop: Styles.globalMargins.tiny,
+      },
       sidePadding: {paddingLeft: Styles.globalMargins.small, paddingRight: Styles.globalMargins.small},
       topIconContainer: {backgroundColor: Styles.globalColors.green, overflow: 'hidden'},
     } as const)
