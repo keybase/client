@@ -461,6 +461,11 @@
     "setActivityLevels": {
       "_description": "Set map of activity levels for all teams and channels.",
       "levels": "Types.ActivityLevels"
+    },
+    "setTeamListFilterSort": {
+      "_description": "Set filtering and sort order for main team list. Leaves existing for undefinted params.",
+      "filter?": "string",
+      "sortOrder?": "Types.TeamListSort"
     }
   }
 }
