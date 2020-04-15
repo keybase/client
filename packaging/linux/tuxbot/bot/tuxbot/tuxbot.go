@@ -282,24 +282,11 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			// Do the actual build
 			buildCmd := makeCmd(
 				currentUser,
+				"bash",
 				"./packaging/linux/docker/build.sh",
-				trimmedVersionOutput,
+				versionTag,
 			)
-			/*
-				buildCmd.Stdout = nil
-				buildCmd.Stderr = nil
-			*/
-			//buildOutput, err := buildCmd.CombinedOutput()
 			if err := buildCmd.Run(); err != nil {
-				/*var trimmedOutput []byte
-				if len(buildOutput) > 500 {
-					trimmedOutput = buildOutput[len(buildOutput)-500:]
-				} else {
-					trimmedOutput = buildOutput
-				}
-				c.Info("docker build error: %v", err)
-				c.Info("Logs:\n%s", string(trimmedOutput))
-				*/
 				c.Info("failed to build error %s", err)
 				if _, err := c.API().SendMessage(c.sendChannel, "!tuxjournal"); err != nil {
 					c.Info("failed to tuxjournal error: %s", err)
@@ -307,10 +294,13 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 				return
 			}
 
+			c.Info("Completed building Docker tag %s. Pushing...", versionTag)
+
 			// And the push!
 			pushCmd := makeCmd(
 				currentUser,
-				"./packaging/linux/docker/build.sh",
+				"bash",
+				"./packaging/linux/docker/push.sh",
 				versionTag,
 				"nightly",
 			)
@@ -320,20 +310,44 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 				"DOCKERHUB_PASSWORD="+c.dockerPassword,
 			)
 			pushCmd.Stdout = nil
-			pushCmd.Stderr = nil
-			pushOutput, err := pushCmd.CombinedOutput()
-			var trimmedOutput []byte
-			if len(pushOutput) > 500 {
-				trimmedOutput = pushOutput[len(pushOutput)-500:]
-			} else {
-				trimmedOutput = pushOutput
-			}
+			rd, err := pushCmd.StdoutPipe()
 			if err != nil {
-				c.Info("docker push error: %v", err)
-				c.Info("Logs:\n%s", string(trimmedOutput))
+				c.Info("failed to prepare a stdout pipe: %v", err)
+			}
+
+			allOfStdout := make(chan []byte)
+			defer close(allOfStdout)
+			go func() {
+				defer rd.Close()
+
+				pushOutput := []byte{}
+				pushBuffer := make([]byte, 255)
+				for {
+					n, err := rd.Read(pushBuffer)
+					if err != nil {
+						if err != io.EOF {
+							c.Debug("docker push read error: %v", err)
+						}
+						break
+					}
+					os.Stdout.Write(pushBuffer[:n])
+					pushOutput = append(pushOutput, pushBuffer[:n]...)
+				}
+				allOfStdout <- pushOutput
+			}()
+
+			if err := pushCmd.Start(); err != nil {
+				c.Info("docker push start error: %v", err)
 				return
 			}
-			c.Info("@%s %s", msg.Sender.Username, string(pushOutput))
+
+			err = pushCmd.Wait()
+			stdout := <-allOfStdout
+			if err != nil {
+				c.Info("docker push wait error: %v\nstderr logged to journal, stdout:\n```\n%s```", err, string(stdout))
+				return
+			}
+			c.Info("@%s %s", msg.Sender.Username, string(stdout))
 		}()
 		return nil
 	case "release-docker":
@@ -346,9 +360,11 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 
 		versionTag := strings.Replace(args[0], "+", "-", -1)
 
+		c.Info("Pushing to Docker Hub %s as a new release...", versionTag)
+
 		pushCmd := makeCmd(
 			currentUser,
-			"./packaging/linux/docker/build.sh",
+			"./packaging/linux/docker/push.sh",
 			versionTag,
 			"release",
 		)
@@ -358,20 +374,43 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 			"DOCKERHUB_PASSWORD="+c.dockerPassword,
 		)
 		pushCmd.Stdout = nil
-		pushCmd.Stderr = nil
-		pushOutput, err := pushCmd.CombinedOutput()
-		var trimmedOutput []byte
-		if len(pushOutput) > 500 {
-			trimmedOutput = pushOutput[len(pushOutput)-500:]
-		} else {
-			trimmedOutput = pushOutput
-		}
+		rd, err := pushCmd.StdoutPipe()
 		if err != nil {
-			c.Info("docker push error: %v", err)
-			c.Info("Logs:\n%s", string(trimmedOutput))
-			return nil
+			c.Info("failed to prepare a stdout pipe: %v", err)
 		}
-		c.Info("@%s %s", msg.Sender.Username, string(pushOutput))
+
+		allOfStdout := make(chan []byte)
+		defer close(allOfStdout)
+		go func() {
+			defer rd.Close()
+
+			pushOutput := []byte{}
+			pushBuffer := make([]byte, 255)
+			for {
+				n, err := rd.Read(pushBuffer)
+				if err != nil {
+					if err != io.EOF {
+						c.Debug("docker push read error: %v", err)
+					}
+					break
+				}
+				os.Stdout.Write(pushBuffer[:n])
+				pushOutput = append(pushOutput, pushBuffer[:n]...)
+			}
+			allOfStdout <- pushOutput
+		}()
+
+		if err := pushCmd.Start(); err != nil {
+			return err
+		}
+
+		err = pushCmd.Wait()
+		stdout := <-allOfStdout
+		if err != nil {
+			c.Info("docker push wait error: %v\nstderr logged to journal, stdout:\n```\n%s```", err, string(stdout))
+			return err
+		}
+		c.Info("@%s %s", msg.Sender.Username, string(stdout))
 		return nil
 	case "tuxjournal", "journal":
 		filename := fmt.Sprintf("/keybase/team/%s/%s-%s.txt", c.archiveTeam, command, time.Now().Format(time.RFC3339))

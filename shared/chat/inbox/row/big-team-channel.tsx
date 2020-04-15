@@ -113,6 +113,7 @@ const BigTeamChannel = (props: Props) => {
                 <Kb.Icon
                   type="iconfont-edit"
                   style={styles.icon}
+                  sizeType="Small"
                   color={isSelected ? Styles.globalColors.white : undefined}
                 />
               </Kb.WithTooltip>

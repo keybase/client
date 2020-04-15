@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -32,8 +33,24 @@ func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID c
 	if err != nil {
 		return parts, membersType, err
 	}
-	if parts, err = utils.GetConvParticipantUsernames(ctx, s.G(), uid, convID); err != nil {
+	allParts, err := utils.GetConvParticipantUsernames(ctx, s.G(), uid, convID)
+	if err != nil {
 		return parts, membersType, err
+	}
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		return allParts, conv.GetMembersType(), nil
+	default:
+		nameParts := strings.Split(utils.GetRemoteConvTLFName(conv), ",")
+		nameMap := make(map[string]bool, len(nameParts))
+		for _, namePart := range nameParts {
+			nameMap[namePart] = true
+		}
+		for _, part := range allParts {
+			if nameMap[part] {
+				parts = append(parts, part)
+			}
+		}
 	}
 	return parts, conv.GetMembersType(), nil
 }
@@ -62,7 +79,16 @@ func (s *Sender) getConvFullnames(ctx context.Context, uid gregor1.UID, convID c
 }
 
 func (s *Sender) getRecipientUsername(ctx context.Context, uid gregor1.UID, parts []string,
-	membersType chat1.ConversationMembersType) (res string, err error) {
+	membersType chat1.ConversationMembersType, replyToUID gregor1.UID) (res string, err error) {
+	// If this message is a reply, infer the recipient as the original sender
+	if !(replyToUID.IsNil() || uid.Eq(replyToUID)) {
+		username, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(replyToUID.String()))
+		if err != nil {
+			return res, err
+		}
+		return username.String(), nil
+	}
+
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		return res, errors.New("must specify username in team chat")
@@ -83,7 +109,6 @@ func (s *Sender) getRecipientUsername(ctx context.Context, uid gregor1.UID, part
 
 func (s *Sender) validConvUsername(ctx context.Context, username string, parts []string) bool {
 	for _, p := range parts {
-		s.Debug(ctx, "part: %s", p)
 		if username == p {
 			return true
 		}
@@ -92,7 +117,7 @@ func (s *Sender) validConvUsername(ctx context.Context, username string, parts [
 }
 
 func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body string) (res []types.ParsedStellarPayment) {
+	body string, replyTo *chat1.MessageID) (res []types.ParsedStellarPayment) {
 	defer s.Trace(ctx, func() error { return nil }, "ParsePayments")()
 	parsed := FindChatTxCandidates(body)
 	if len(parsed) == 0 {
@@ -104,6 +129,11 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 		s.Debug(ctx, "ParsePayments: failed to getConvParseInfo %v", err)
 		return nil
 	}
+	replyToUID, err := s.handleReplyTo(ctx, uid, convID, replyTo)
+	if err != nil {
+		s.Debug(ctx, "ParsePayments: failed to handleReplyTo: %v", err)
+		return nil
+	}
 	seen := make(map[string]struct{})
 	for _, p := range parsed {
 		var username string
@@ -113,7 +143,7 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 			continue
 		}
 		if p.Username == nil {
-			if username, err = s.getRecipientUsername(ctx, uid, parts, membersType); err != nil {
+			if username, err = s.getRecipientUsername(ctx, uid, parts, membersType, replyToUID); err != nil {
 				s.Debug(ctx, "ParsePayments: failed to get username, skipping: %s", err)
 				continue
 			}
@@ -140,6 +170,22 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 		})
 	}
 	return res
+}
+
+func (s *Sender) handleReplyTo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, replyTo *chat1.MessageID) (gregor1.UID, error) {
+	if replyTo == nil {
+		return nil, nil
+	}
+	reply, err := s.G().ChatHelper.GetMessage(ctx, uid, convID, *replyTo, false, nil)
+	if err != nil {
+		s.Debug(ctx, "handleReplyTo: failed to get reply message: %s", err)
+		return nil, err
+	}
+	if !reply.IsValid() {
+		s.Debug(ctx, "handleReplyTo: reply message invalid: %v %v", replyTo, err)
+		return nil, nil
+	}
+	return reply.Valid().ClientHeader.Sender, nil
 }
 
 func (s *Sender) paymentsToMinis(payments []types.ParsedStellarPayment) (minis []libkb.MiniChatPayment) {

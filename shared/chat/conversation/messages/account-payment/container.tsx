@@ -63,7 +63,7 @@ const ConnectedAccountPayment = Container.connect(
 
         // find the other participant's username
         const participantInfo = Constants.getParticipantInfo(state, ownProps.message.conversationIDKey)
-        const theirUsername = participantInfo.all.find(p => p !== you) || ''
+        const theirUsername = participantInfo.name.find(p => p !== you) || ''
 
         const cancelable = paymentInfo.status === 'claimable'
         const pending = cancelable || paymentInfo.status === 'pending'

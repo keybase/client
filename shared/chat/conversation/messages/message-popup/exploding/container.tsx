@@ -281,7 +281,7 @@ export default Container.connect(
     if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInTeam) {
       items.push({
         danger: true,
-        icon: 'iconfont-block-user',
+        icon: 'iconfont-user-block',
         onClick: () => dispatchProps._onKick(stateProps._teamID, stateProps.author),
         title: 'Kick user',
       })
@@ -290,7 +290,7 @@ export default Container.connect(
       const blockModalSingle = !stateProps._teamname && stateProps._participants.length === 2
       items.push({
         danger: true,
-        icon: 'iconfont-block-user',
+        icon: 'iconfont-user-block',
         onClick: () => dispatchProps._onUserBlock(message, blockModalSingle),
         title: stateProps._teamname ? 'Report user' : 'Block user',
       })

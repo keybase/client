@@ -32,7 +32,7 @@ const ConfirmHeader = (props: Props) => (
   </Kb.Box2>
 )
 
-export default (props: Props) => (
+const PathItemActionConfirm = (props: Props) => (
   <Kb.FloatingMenu
     closeOnSelect={false}
     closeText="Cancel"
@@ -56,6 +56,7 @@ export default (props: Props) => (
     }
   />
 )
+export default PathItemActionConfirm
 
 const styles = Styles.styleSheetCreate(
   () =>

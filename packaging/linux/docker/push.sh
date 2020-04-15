@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -Eeuo pipefail
+set -Eeuxo pipefail
 
 here="$(dirname "${BASH_SOURCE[0]}")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"

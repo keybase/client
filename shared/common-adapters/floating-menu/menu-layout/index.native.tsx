@@ -77,8 +77,8 @@ const MenuRow = (props: MenuRowProps) => (
               <>
                 <Icon
                   color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_60}
-                  fontSize={16}
                   style={props.iconStyle}
+                  sizeType="Default"
                   type={props.icon}
                 />
                 {props.isBadged && <Badge badgeStyle={styles.iconBadge} />}
@@ -194,7 +194,7 @@ const styles = Styles.styleSheetCreate(
         width: Styles.globalMargins.tiny,
       },
       iconContainer: {
-        width: 16,
+        width: 20,
       },
       itemContainer: {
         ...Styles.globalStyles.flexBoxColumn,

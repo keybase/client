@@ -205,7 +205,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               )}
               {this.props.authorIsBot && (
                 <Kb.WithTooltip tooltip="Bot">
-                  <Kb.Icon fontSize={10} color={Styles.globalColors.black_35} type="iconfont-bot" />
+                  <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
                 </Kb.WithTooltip>
               )}
               <Kb.Text
@@ -444,7 +444,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   private cachedMenuStyles = new Map<string, Styles.StylesCrossPlatform>()
   private menuAreaStyle = (exploded: boolean, exploding: boolean) => {
-    const commonWidth = 24
+    const commonWidth = 20
     const iconSizes = [
       this.props.isRevoked ? commonWidth : 0, // revoked
       this.props.showCoinsIcon ? commonWidth : 0, // coin stack
@@ -536,6 +536,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         return message.newChannelname === 'general' ? null : (
           <SetChannelname key="setChannelname" message={message} />
         )
+      case 'journeycard':
+        return <TeamJourney key="journey" message={message} />
       case 'deleted':
         return null
       default:
@@ -609,7 +611,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   color={Styles.globalColors.black_35}
                   type="iconfont-bot"
                   onClick={() => null}
-                  sizeType="Small"
                   style={styles.paddingLeftTiny}
                 />
               </Kb.WithTooltip>

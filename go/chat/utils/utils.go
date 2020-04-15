@@ -1292,7 +1292,7 @@ func GetDesktopNotificationSnippet(ctx context.Context, g *globals.Context,
 		return emoji.Sprintf("%sreacted to your message with %v", prefix, reaction)
 	default:
 		decoration, snippetBody, _ := GetMsgSnippet(ctx, g, uid, msg, *conv, currentUsername)
-		return fmt.Sprintf("%s %s", decoration.ToEmoji(), snippetBody)
+		return emoji.Sprintf("%s %s", decoration.ToEmoji(), snippetBody)
 	}
 }
 
@@ -1927,13 +1927,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 	case chat1.MessageUnboxedState_VALID:
 		valid := rawMsg.Valid()
 		if !rawMsg.IsValidFull() {
-			showErr := true
 			// If we have an expired ephemeral message, don't show an error
 			// message.
-			if valid.IsEphemeral() && valid.IsEphemeralExpired(time.Now()) {
-				showErr = false
-			}
-			if showErr {
+			if !(valid.IsEphemeral() && valid.IsEphemeralExpired(time.Now())) {
 				return miscErr(fmt.Errorf("unexpected deleted %v message",
 					strings.ToLower(rawMsg.GetMessageType().String())))
 			}

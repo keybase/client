@@ -126,6 +126,7 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
   timestamp: row.ctime,
   type: row.key,
   value: row.value,
+  wotProof: row.wotProof ?? undefined,
 })
 
 export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Assertion => {

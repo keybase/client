@@ -198,6 +198,7 @@ const NewTeamInfo = () => {
                     onSelectRole={setSelectedRole}
                     floatingContainerStyle={styles.floatingRolePicker}
                     onConfirm={() => setRolePickerIsOpen(false)}
+                    onCancel={() => setRolePickerIsOpen(false)}
                     position="bottom center"
                     open={rolePickerIsOpen}
                     disabledRoles={cannotJoinAsOwner}

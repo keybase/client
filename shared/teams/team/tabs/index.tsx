@@ -37,7 +37,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     {title: 'bots' as const},
     ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
     {title: 'emoji' as const},
-    {icon: isMobile ? 'iconfont-nav-settings' : undefined, title: 'settings' as const},
+    {icon: isMobile ? 'iconfont-gear' : undefined, title: 'settings' as const},
   ]
 
   const tabContent = (
@@ -54,7 +54,17 @@ const TeamTabs = (props: TeamTabsProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box style={styles.container}>
-        {isMobile ? <Kb.ScrollView horizontal={true}>{tabContent}</Kb.ScrollView> : tabContent}
+        {isMobile ? (
+          <Kb.ScrollView
+            horizontal={true}
+            contentContainerStyle={{minWidth: '100%'}}
+            alwaysBounceHorizontal={false}
+          >
+            {tabContent}
+          </Kb.ScrollView>
+        ) : (
+          tabContent
+        )}
         {!isMobile && props.loading && flags.teamsRedesign && (
           <Kb.ProgressIndicator style={styles.inlineProgressIndicator} />
         )}

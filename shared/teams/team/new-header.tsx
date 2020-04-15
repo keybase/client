@@ -134,7 +134,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
           alignSelf="flex-start"
           style={styles.flexShrink}
         >
-          <Kb.Text type="Header" lineClamp={3} style={styles.header}>
+          <Kb.Text type="Header" lineClamp={3} style={styles.header} selectable={true}>
             {meta.teamname}
           </Kb.Text>
           {!!callbacks.onRename && <Kb.Icon type="iconfont-edit" onClick={callbacks.onRename} />}

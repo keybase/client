@@ -1435,6 +1435,10 @@ export type MessageTypes = {
     inParam: {readonly name: String; readonly joinSubteam: Boolean}
     outParam: TeamCreateResult
   }
+  'keybase.1.teams.teamCreateFancy': {
+    inParam: {readonly teamInfo: TeamCreateFancyInfo}
+    outParam: TeamID
+  }
   'keybase.1.teams.teamCreateSeitanInvitelinkWithDuration': {
     inParam: {readonly teamname: String; readonly role: TeamRole; readonly maxUses: TeamInviteMaxUses; readonly expireAfter?: String | null}
     outParam: Invitelink
@@ -1640,7 +1644,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.wot.wotVouch': {
-    inParam: {readonly assertion: String; readonly vouchTexts?: Array<String> | null; readonly confidence: Confidence}
+    inParam: {readonly username: String; readonly guiID: Identify3GUIID; readonly vouchText: String; readonly confidence: Confidence}
     outParam: void
   }
 }
@@ -1917,7 +1921,7 @@ export enum HomeScreenTodoType {
   folder = 8,
   gitRepo = 9,
   teamShowcase = 10,
-  avatarUser = 11,
+  avatarUser = 23,
   avatarTeam = 12,
   addPhoneNumber = 18,
   verifyAllPhoneNumber = 19,
@@ -2989,7 +2993,7 @@ export type Identify2Res = {readonly upk: UserPlusKeys; readonly identifiedAt: T
 export type Identify2ResUPK2 = {readonly upk: UserPlusKeysV2AllIncarnations; readonly identifiedAt: Time; readonly trackBreaks?: IdentifyTrackBreaks | null}
 export type Identify3Assertion = String
 export type Identify3GUIID = String
-export type Identify3Row = {readonly guiID: Identify3GUIID; readonly key: String; readonly value: String; readonly priority: Int; readonly siteURL: String; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly siteIconFullDarkmode?: Array<SizedImage> | null; readonly proofURL: String; readonly sigID: SigID; readonly ctime: Time; readonly state: Identify3RowState; readonly metas?: Array<Identify3RowMeta> | null; readonly color: Identify3RowColor; readonly kid?: KID | null}
+export type Identify3Row = {readonly guiID: Identify3GUIID; readonly key: String; readonly value: String; readonly priority: Int; readonly siteURL: String; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly siteIconFullDarkmode?: Array<SizedImage> | null; readonly proofURL: String; readonly sigID: SigID; readonly ctime: Time; readonly state: Identify3RowState; readonly metas?: Array<Identify3RowMeta> | null; readonly color: Identify3RowColor; readonly kid?: KID | null; readonly wotProof?: WotProof | null}
 export type Identify3RowMeta = {readonly color: Identify3RowColor; readonly label: String}
 export type Identify3Summary = {readonly guiID: Identify3GUIID; readonly numProofsToCheck: Int}
 export type IdentifyKey = {readonly pgpFingerprint: Bytes; readonly KID: KID; readonly trackDiff?: TrackDiff | null; readonly breaksTracking: Boolean; readonly sigID: SigID}
@@ -3243,6 +3247,7 @@ export type TeamAddMemberResult = {readonly invited: Boolean; readonly user?: Us
 export type TeamAddMembersResult = {readonly notAdded?: Array<User> | null}
 export type TeamAndMemberShowcase = {readonly teamShowcase: TeamShowcase; readonly isMemberShowcased: Boolean}
 export type TeamApplicationKey = {readonly application: TeamApplication; readonly keyGeneration: PerTeamKeyGeneration; readonly key: Bytes32}
+export type TeamAvatar = {readonly avatarFilename: String; readonly crop?: ImageCropRect | null}
 export type TeamBlock = {readonly teamName: String; readonly createTime: Time}
 export type TeamBotSettings = {readonly cmds: Boolean; readonly mentions: Boolean; readonly triggers?: Array<String> | null; readonly convs?: Array<String> | null}
 export type TeamCLKRMsg = {readonly teamID: TeamID; readonly generation: PerTeamKeyGeneration; readonly score: Int; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
@@ -3251,6 +3256,7 @@ export type TeamChangeReq = {readonly owners?: Array<UserVersion> | null; readon
 export type TeamChangeRow = {readonly id: TeamID; readonly name: String; readonly keyRotated: Boolean; readonly membershipChanged: Boolean; readonly latestSeqno: Seqno; readonly latestHiddenSeqno: Seqno; readonly latestOffchainSeqno: Seqno; readonly implicitTeam: Boolean; readonly misc: Boolean; readonly removedResetUsers: Boolean}
 export type TeamChangeSet = {readonly membershipChanged: Boolean; readonly keyRotated: Boolean; readonly renamed: Boolean; readonly misc: Boolean}
 export type TeamContactSettings = {readonly teamID: TeamID; readonly enabled: Boolean}
+export type TeamCreateFancyInfo = {readonly name: String; readonly description: String; readonly joinSubteam: Boolean; readonly openSettings: TeamSettings; readonly showcase: Boolean; readonly avatar?: TeamAvatar | null; readonly chatChannels?: Array<String> | null; readonly subteams?: Array<String> | null; readonly users?: Array<UserRolePair> | null; readonly emailInviteMessage?: String | null}
 export type TeamCreateResult = {readonly teamID: TeamID; readonly chatSent: Boolean; readonly creatorAdded: Boolean}
 export type TeamData = {readonly v: /* subversion */ Int; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly secretless: Boolean; readonly name: TeamName; readonly chain: TeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeedItem}; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly tlfCryptKeys: {[key: string]: Array<CryptKey> | null}}
 export type TeamDebugRes = {readonly chain: TeamSigChainState}
@@ -3400,7 +3406,7 @@ export type WalletAccountInfo = {readonly accountID: String; readonly numUnread:
 export type WebProof = {readonly hostname: String; readonly protocols?: Array<String> | null}
 export type WotProof = {readonly proofType: ProofType; readonly name: String; readonly username: String; readonly protocol: String; readonly hostname: String; readonly domain: String}
 export type WotUpdate = {readonly voucher: String; readonly vouchee: String; readonly status: WotStatusType}
-export type WotVouch = {readonly status: WotStatusType; readonly vouchProof: SigID; readonly vouchee: UserVersion; readonly voucheeUsername: String; readonly voucher: UserVersion; readonly voucherUsername: String; readonly vouchTexts?: Array<String> | null; readonly vouchedAt: Time; readonly confidence?: Confidence | null}
+export type WotVouch = {readonly status: WotStatusType; readonly vouchProof: SigID; readonly vouchee: UserVersion; readonly voucheeUsername: String; readonly voucher: UserVersion; readonly voucherUsername: String; readonly vouchText: String; readonly vouchedAt: Time; readonly confidence?: Confidence | null}
 export type WriteArgs = {readonly opID: OpID; readonly path: Path; readonly offset: Long}
 
 export type IncomingCallMapType = {
@@ -3893,6 +3899,7 @@ export const teamsTeamAcceptInviteOrRequestAccessRpcSaga = (p: {params: MessageT
 export const teamsTeamAddEmailsBulkRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddEmailsBulk']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddEmailsBulk']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddEmailsBulk', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamAddMemberRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamAddMembersMultiRoleRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddMembersMultiRole']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddMembersMultiRole']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddMembersMultiRole', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsTeamCreateFancyRpcPromise = (params: MessageTypes['keybase.1.teams.teamCreateFancy']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamCreateFancy']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreateFancy', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamCreateRpcPromise = (params: MessageTypes['keybase.1.teams.teamCreate']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamCreate']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreate', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise = (params: MessageTypes['keybase.1.teams.teamCreateSeitanInvitelinkWithDuration']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamCreateSeitanInvitelinkWithDuration']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreateSeitanInvitelinkWithDuration', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamCreateSeitanTokenV2RpcPromise = (params: MessageTypes['keybase.1.teams.teamCreateSeitanTokenV2']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamCreateSeitanTokenV2']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreateSeitanTokenV2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4370,3 +4377,4 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.getTeamBlocks'
+// 'keybase.1.wot.wotVouchCLI'

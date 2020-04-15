@@ -199,7 +199,7 @@ const loadMoreBotsButton = 'bots: load more'
 const addBotButton = 'bots: add bot'
 const featuredBotSpinner = 'bots: featured spinners'
 
-export default (props: Props) => {
+const BotTab = (props: Props) => {
   const {renderTabs, conversationIDKey} = props
   const dispatch = Container.useDispatch()
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
@@ -392,3 +392,4 @@ export default (props: Props) => {
     />
   )
 }
+export default BotTab

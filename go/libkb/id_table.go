@@ -687,6 +687,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	return ret
 }
 
+// Get the tail of the trackee's sigchain.
 func (l *TrackChainLink) GetTrackedLinkSeqno() (seqno keybase1.Seqno, err error) {
 	seqnoJSON := l.UnmarshalPayloadJSON().AtPath("body.track.seq_tail.seqno")
 	if seqnoJSON.IsNil() {

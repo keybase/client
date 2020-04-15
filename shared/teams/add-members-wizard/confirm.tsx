@@ -35,8 +35,15 @@ const AddMembersConfirm = () => {
   const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
   const onBack = () => dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'teamAddToTeamFromWhere'}))
 
-  const [waiting, setWaiting] = React.useState(false)
-  const [error, setError] = React.useState('')
+  const [_waiting, setWaiting] = React.useState(false)
+  const [_error, setError] = React.useState('')
+  const newTeamWizErr = Container.useSelector(s =>
+    fromNewTeamWizard ? s.teams.newTeamWizard.error : undefined
+  )
+  const error = _error || newTeamWizErr
+  const newTeamWaiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const waiting = _waiting || newTeamWaiting
+
   const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
   const addToChannels = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
   const onComplete = fromNewTeamWizard
@@ -68,7 +75,7 @@ const AddMembersConfirm = () => {
                   },
                 ],
                 () => {
-                  dispatch(TeamsGen.createFinishAddMembersWizard())
+                  dispatch(TeamsGen.createFinishedAddMembersWizard())
                 },
                 err => {
                   setWaiting(false)
@@ -77,7 +84,7 @@ const AddMembersConfirm = () => {
                 }
               )
             } else {
-              dispatch(TeamsGen.createFinishAddMembersWizard())
+              dispatch(TeamsGen.createFinishedAddMembersWizard())
             }
           },
           err => {
@@ -119,7 +126,7 @@ const AddMembersConfirm = () => {
           <AddingMembers />
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.controls}>
             <AddMoreMembers />
-            <RoleSelector />
+            <RoleSelector memberCount={addingMembers.length} />
           </Kb.Box2>
         </Kb.Box2>
         {isBigTeam && <DefaultChannels teamID={teamID} />}
@@ -189,53 +196,39 @@ const AddMoreMembers = () => {
     </>
   )
 }
+type RoleType = Types.AddingMemberTeamRoleType | 'setIndividually'
 
-const RoleSelector = () => {
+const RoleSelector = ({memberCount}: {memberCount: number}) => {
   const dispatch = Container.useDispatch()
   const [showingMenu, setShowingMenu] = React.useState(false)
   const storeRole = Container.useSelector(s => s.teams.addMembersWizard.role)
-  const [role, setRole] = React.useState(storeRole)
-  const onSelectRole = newRole => setRole(newRole)
-  const onConfirmRole = newRole => {
+  const [role, setRole] = React.useState<RoleType>(storeRole)
+  const onSelectRole = (newRole: RoleType) => setRole(newRole)
+  const onConfirmRole = (newRole: RoleType) => {
     setRole(newRole)
     setShowingMenu(false)
     dispatch(TeamsGen.createSetAddMembersWizardRole({role: newRole}))
   }
-  const onSetIndividually = () => {
-    setRole(undefined)
-    setShowingMenu(false)
-    dispatch(TeamsGen.createSetAddMembersWizardRole({role: undefined}))
-  }
   return (
     <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
       <Kb.Text type="BodySmall">Invite as: </Kb.Text>
-      <FloatingRolePicker
+      <FloatingRolePicker<true>
         open={showingMenu}
+        presetRole={storeRole}
+        onCancel={storeRole === role ? () => setShowingMenu(false) : undefined}
         selectedRole={role || 'writer'}
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
-        confirmLabel={`Add as ${pluralize(role || 'writer')}`}
-        footerComponent={
-          !Styles.isMobile && (
-            <Kb.Box2
-              direction="horizontal"
-              fullWidth={true}
-              centerChildren={true}
-              style={styles.setIndividuallyBox}
-            >
-              <Kb.Text type="BodySmall">
-                Or{' '}
-                <Kb.Text type="BodySmallPrimaryLink" onClick={onSetIndividually}>
-                  set roles individually
-                </Kb.Text>
-              </Kb.Text>
-            </Kb.Box2>
-          )
-        }
+        confirmLabel="Save"
+        includeSetIndividually={!Styles.isMobile && (memberCount > 1 || storeRole === 'setIndividually')}
       >
         <Kb.InlineDropdown
           textWrapperType="BodySmallSemibold"
-          label={storeRole ? capitalize(storeRole) + 's' : 'Set individually'}
+          label={
+            storeRole === 'setIndividually'
+              ? 'Set individually'
+              : pluralize(capitalize(storeRole), memberCount)
+          }
           onPress={() => setShowingMenu(true)}
         />
       </FloatingRolePicker>
@@ -289,10 +282,12 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
   const dispatch = Container.useDispatch()
   const onRemove = () => dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
   const role = Container.useSelector(s => s.teams.addMembersWizard.role)
-  const individualRole = Container.useSelector(
-    s => s.teams.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ?? role
+  const individualRole: Types.MaybeTeamRoleType = Container.useSelector(
+    s =>
+      s.teams.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ??
+      (role === 'setIndividually' ? 'writer' : role)
   )
-  const showDropdown = role === undefined
+  const showDropdown = role === 'setIndividually'
   const [showingMenu, setShowingMenu] = React.useState(false)
   const [rolePickerRole, setRole] = React.useState(individualRole)
   const onOpenRolePicker = () => {
@@ -328,6 +323,8 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
         {showDropdown && (
           <FloatingRolePicker
             open={showingMenu}
+            presetRole={individualRole}
+            onCancel={individualRole === rolePickerRole ? () => setShowingMenu(false) : undefined}
             selectedRole={rolePickerRole}
             onSelectRole={onSelectRole}
             onConfirm={onConfirmRole}
@@ -437,7 +434,6 @@ const styles = Styles.styleSheetCreate(() => ({
   flexDefinitelyShrink: {flexShrink: 100},
   flexShrink: {flexShrink: 1},
   memberPill: {flex: 1, width: 0},
-  setIndividuallyBox: Styles.padding(Styles.globalMargins.small),
 }))
 
 export default AddMembersConfirm

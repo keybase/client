@@ -761,7 +761,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 
 	// Run Stellar UI on any payments in the body
 	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
-		arg.Msg.MessageBody); err != nil {
+		arg.Msg.MessageBody, arg.ReplyTo); err != nil {
 		return res, err
 	}
 
@@ -827,7 +827,7 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 }
 
 func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor1.UID,
-	convID chat1.ConversationID, msgBody chat1.MessageBody) (res chat1.MessageBody, err error) {
+	convID chat1.ConversationID, msgBody chat1.MessageBody, replyTo *chat1.MessageID) (res chat1.MessageBody, err error) {
 	defer h.Trace(ctx, func() error { return err }, "runStellarSendUI")()
 	ui := h.getChatUI(sessionID)
 	bodyTyp, err := msgBody.MessageType()
@@ -835,7 +835,7 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 		return msgBody, nil
 	}
 	body := msgBody.Text().Body
-	parsedPayments := h.G().StellarSender.ParsePayments(ctx, uid, convID, body)
+	parsedPayments := h.G().StellarSender.ParsePayments(ctx, uid, convID, body, replyTo)
 	if len(parsedPayments) == 0 {
 		h.Debug(ctx, "runStellarSendUI: no payments")
 		return msgBody, nil
@@ -1134,7 +1134,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 
 	// Determine if the messages contains any Stellar payments, and execute them if so
 	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
-		arg.Msg.MessageBody); err != nil {
+		arg.Msg.MessageBody, arg.ReplyTo); err != nil {
 		return res, err
 	}
 

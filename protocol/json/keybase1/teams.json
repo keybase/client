@@ -2896,6 +2896,84 @@
     },
     {
       "type": "record",
+      "name": "TeamAvatar",
+      "fields": [
+        {
+          "type": "string",
+          "name": "avatarFilename"
+        },
+        {
+          "type": [
+            null,
+            "ImageCropRect"
+          ],
+          "name": "crop"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamCreateFancyInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "boolean",
+          "name": "joinSubteam"
+        },
+        {
+          "type": "TeamSettings",
+          "name": "openSettings"
+        },
+        {
+          "type": "boolean",
+          "name": "showcase"
+        },
+        {
+          "type": [
+            null,
+            "TeamAvatar"
+          ],
+          "name": "avatar"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "chatChannels"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "subteams"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserRolePair"
+          },
+          "name": "users"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "emailInviteMessage"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserRolePair",
       "fields": [
         {
@@ -3645,6 +3723,19 @@
         }
       ],
       "response": "TeamCreateResult"
+    },
+    "teamCreateFancy": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamInfo",
+          "type": "TeamCreateFancyInfo"
+        }
+      ],
+      "response": "TeamID"
     },
     "teamGetByID": {
       "request": [

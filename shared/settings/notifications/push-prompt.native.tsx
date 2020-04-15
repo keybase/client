@@ -56,8 +56,8 @@ const PushPrompt = () => {
           Notifications are very important.
         </Kb.Text>
         <Kb.Text center={true} type="Body" negative={true}>
-          Your phone might need to be contacted, for example if you install Keybase on another device. This is
-          a crucial security setting.
+          Your device might need to be contacted, for example if you install Keybase on another device. This
+          is a crucial security setting.
         </Kb.Text>
       </Kb.Box2>
     </Kb.Modal>
@@ -68,7 +68,14 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       background: {backgroundColor: Styles.globalColors.blue},
-      button: {maxHeight: 40},
+      button: Styles.platformStyles({
+        common: {
+          maxHeight: 40,
+        },
+        isTablet: {
+          marginBottom: Styles.globalMargins.medium,
+        },
+      }),
       container: {
         ...Styles.globalStyles.fillAbsolute,
         backgroundColor: Styles.globalColors.blue,
@@ -83,13 +90,8 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.white,
       },
       image: Styles.platformStyles({
-        common: {
-          flex: 1,
-          width: '150%',
-        },
         isTablet: {
           alignSelf: 'center',
-          maxWidth: 460,
         },
       }),
     } as const)
