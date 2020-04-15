@@ -185,8 +185,8 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      flexGrow: 1,
-      flexShrink: 0,
+      flexGrow: 0,
+      flexShrink: 1,
     },
     isElectron: {
       width: 'initial',
@@ -198,13 +198,18 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       alignItems: 'center',
       flexDirection: 'row',
-      flexShrink: 0,
+      flexGrow: 0,
+      flexShrink: 1,
       height: 48,
+      justifyContent: 'space-between',
       width: '100%',
     },
-    isMobile: {
+    isPhone: {
       flexDirection: 'column',
       height: 112,
+    },
+    isTablet: {
+      height: 56,
     },
   }),
   floatingRolePicker: Styles.platformStyles({
