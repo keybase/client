@@ -124,9 +124,10 @@ const ChannelMemberRow = (props: Props) => {
           {fullNameLabel}
           {crown}
           {!active && (
-            <Kb.Text type="BodySmall" style={styles.lockedOutOrDeleted}>
-              {teamMemberInfo.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
-            </Kb.Text>
+            <Kb.Meta
+              backgroundColor={Styles.globalColors.red}
+              title={teamMemberInfo.status === 'reset' ? 'locked out' : 'deleted'}
+            />
           )}
           <Kb.Text type="BodySmall">
             {!!active && !!teamMemberInfo.type && Constants.typeToLabel[teamMemberInfo.type]}
@@ -243,14 +244,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   fullNameLabel: {marginRight: Styles.globalMargins.xtiny},
   listItemMargin: {marginLeft: 0},
-  lockedOutOrDeleted: {
-    ...Styles.globalStyles.fontBold,
-    backgroundColor: Styles.globalColors.red,
-    color: Styles.globalColors.white,
-    marginRight: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.xtiny,
-    paddingRight: Styles.globalMargins.xtiny,
-  },
   mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
   nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
   nameContainerInner: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},

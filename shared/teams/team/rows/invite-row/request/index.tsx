@@ -12,12 +12,14 @@ import MenuHeader from '../../menu-header.new'
 export type RowProps = {
   ctime: number
   disabledReasonsForRolePicker: Types.DisabledReasonsForRolePicker
+  firstItem: boolean
   fullName: string
   onChat: () => void
   onIgnoreRequest: () => void
   onOpenProfile: (u: string) => void
   teamID: Types.TeamID
   username: string
+  reset?: boolean
 }
 
 type RolePickerProps = {
@@ -74,7 +76,10 @@ const TeamRequestRowOld = (props: Props) => {
 }
 
 const TeamRequestRowNew = (props: Props) => {
-  const {ctime, fullName, username, onAccept, onOpenProfile, teamID} = props
+  const {ctime, fullName, username, onAccept, onOpenProfile, reset, teamID} = props
+
+  const approveWord = reset ? 'Readmit' : 'Approve'
+  const denyWord = reset ? 'Remove' : 'Deny'
 
   const isNew = Container.useSelector(s => s.teams.newTeamRequests.get(teamID)?.has(username) ?? false)
 
@@ -84,19 +89,19 @@ const TeamRequestRowNew = (props: Props) => {
         <MenuHeader
           username={username}
           fullName={fullName ? fullName : undefined}
-          label={`Requested to join ${formatTimeRelativeToNow(ctime * 1000)}`}
+          label={reset ? 'Reset their account' : `Requested to join ${formatTimeRelativeToNow(ctime * 1000)}`}
         />
       }
       items={[
         'Divider',
         {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
-        {icon: 'iconfont-check', onClick: props.onAccept, title: 'Approve'},
+        {icon: 'iconfont-check', onClick: props.onAccept, title: approveWord},
         {
           danger: true,
           icon: 'iconfont-block',
           onClick: props.onIgnoreRequest,
           subTitle: `They won't be notified`,
-          title: 'Deny',
+          title: denyWord,
         },
       ]}
       visible={showingPopup}
@@ -117,9 +122,9 @@ const TeamRequestRowNew = (props: Props) => {
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={username} />
             <Kb.Box2 direction="horizontal">
-              {isNew && (
+              {(isNew || reset) && (
                 <Kb.Meta
-                  title="please decide"
+                  title={reset ? 'locked out' : 'please decide'}
                   style={styleCharm}
                   backgroundColor={Styles.globalColors.orange}
                 />
@@ -133,7 +138,11 @@ const TeamRequestRowNew = (props: Props) => {
               ) : (
                 <Kb.Text type="BodySmall" lineClamp={1}>
                   {fullName !== '' && `${fullName}  • `}
-                  {formatTimeRelativeToNow(ctime * 1000)}
+                  {reset
+                    ? fullName
+                      ? 'Reset their account'
+                      : 'reset their account'
+                    : formatTimeRelativeToNow(ctime * 1000)}
                 </Kb.Text>
               )}
             </Kb.Box2>
@@ -153,7 +162,7 @@ const TeamRequestRowNew = (props: Props) => {
             open={props.isRolePickerOpen}
             disabledRoles={props.disabledReasonsForRolePicker}
           >
-            <Kb.Button label="Approve" onClick={onAccept} small={true} style={styles.letInButton} />
+            <Kb.Button label={approveWord} onClick={onAccept} small={true} style={styles.letInButton} />
           </FloatingRolePicker>
           <Kb.Button
             mode="Secondary"
@@ -168,7 +177,7 @@ const TeamRequestRowNew = (props: Props) => {
         </Kb.Box2>
       }
       onClick={() => onOpenProfile(username)}
-      firstItem={true /* TODO */}
+      firstItem={props.firstItem}
     />
   )
 }

@@ -102,19 +102,21 @@ export const TeamMemberRow = (props: Props) => {
             <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} />
           </Kb.Box>
 
-          <Kb.Box style={styles.nameContainerInner}>
+          <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
             {fullNameLabel}
             {crown}
             {!active && (
-              <Kb.Text type="BodySmall" style={styles.lockedOutOrDeleted}>
-                {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
-              </Kb.Text>
+              <Kb.Meta
+                backgroundColor={Styles.globalColors.red}
+                title={props.status === 'reset' ? 'locked out' : 'deleted'}
+                style={styles.lockedOutMeta}
+              />
             )}
             <Kb.Text type="BodySmall">
               {!!active && !!props.roleType && typeToLabel[props.roleType]}
               {resetLabel}
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -228,34 +230,26 @@ export const TeamMemberRow = (props: Props) => {
             <Kb.Box style={Styles.globalStyles.flexBoxRow}>
               <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} />
             </Kb.Box>
-            <Kb.Box style={styles.nameContainerInner}>
+            <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
               {fullNameLabel}
               {crown}
               {!active && (
-                <Kb.Text type="BodySmall" style={styles.lockedOutOrDeleted}>
-                  {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
-                </Kb.Text>
+                <Kb.Meta
+                  backgroundColor={Styles.globalColors.red}
+                  title={props.status === 'reset' ? 'locked out' : 'deleted'}
+                  style={styles.lockedOutMeta}
+                />
               )}
               <Kb.Text type="BodySmall">
                 {roleLabel}
                 {resetLabel}
               </Kb.Text>
-            </Kb.Box>
+            </Kb.Box2>
           </Kb.Box>
         </Kb.ClickableBox>
         {!active && !Styles.isMobile && props.youCanManageMembers && (
           <Kb.Box style={styles.buttonBarContainer}>
             <Kb.ButtonBar>
-              {props.status !== 'deleted' && (
-                <Kb.Button
-                  small={true}
-                  label="Re-Admit"
-                  onClick={props.onReAddToTeam}
-                  type="Success"
-                  waiting={props.waitingForAdd}
-                  disabled={props.waitingForRemove}
-                />
-              )}
               <Kb.Button
                 small={true}
                 label="Remove"
@@ -380,20 +374,14 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   listItemMargin: {marginLeft: 0},
-  lockedOutOrDeleted: {
-    ...Styles.globalStyles.fontBold,
-    backgroundColor: Styles.globalColors.red,
-    color: Styles.globalColors.white,
+  lockedOutMeta: {
     marginRight: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.xtiny,
-    paddingRight: Styles.globalMargins.xtiny,
   },
   menuButton: {
     marginLeft: Styles.globalMargins.xtiny,
   },
   mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
   nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
-  nameContainerInner: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},
   selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
   widenClickableArea: {margin: -5, padding: 5},
 }))

@@ -1,4 +1,5 @@
 import * as Types from '../../../constants/types/teams'
+import flags from '../../../util/feature-flags'
 
 // Weights for sorting team members
 // 2 is neutral
@@ -46,7 +47,13 @@ export const getOrderedMemberArray = (
           const diff2 = weights[a.type] - weights[b.type]
           return diff1 || diff2 || a.username.localeCompare(b.username)
         })
-        .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
+        .filter(
+          m =>
+            m.type !== 'restrictedbot' &&
+            m.type !== 'bot' &&
+            // Reset members are included in the "requests" section for admins
+            !(flags.teamsRedesign && m.status === 'reset' && yourOperations.manageMembers)
+        )
     : []
 
 export const getOrderedBotsArray = (memberInfo: Map<string, Types.MemberInfo> | undefined) =>
