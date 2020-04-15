@@ -46,9 +46,12 @@ export const useTeamLinkPopup = (teamname: string) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  linkPopupContainer: {
-    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.tiny),
-  },
+  linkPopupContainer: Styles.platformStyles({
+    common: {
+      ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.tiny),
+    },
+    isElectron: {maxWidth: 300},
+  }),
   overlay: {backgroundColor: Styles.globalColors.white, marginTop: Styles.globalMargins.tiny},
 }))
 
