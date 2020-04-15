@@ -404,7 +404,7 @@ const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
 const onlyOwnersCanTurnTeamMembersIntoOwners = {owner: 'Only owners can turn team members into owners.'}
 const roleChangeSub = {
   admin: 'You must be at least an admin to make role changes.',
-  owner: 'Subteams cannot have owners',
+  owner: 'Subteams cannot have owners.',
   reader: 'You must be at least an admin to make role changes.',
   writer: 'You must be at least an admin to make role changes.',
 }

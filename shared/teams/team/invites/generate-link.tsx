@@ -179,7 +179,7 @@ const GenerateLinkModal = (props: Props) => {
   const rolePickerProps = {
     disabledReasonsForRolePicker: {
       admin: `Users can't join open teams as admins.`,
-      owner: `Users can't join open teams as owners.`,
+      owner: null, //don't even show
       reader: '',
       writer: '',
     },

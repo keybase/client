@@ -135,7 +135,7 @@ export const newModalRoutes = {
   teamInviteLinkJoin: {
     getScreen: (): typeof TeamInviteLinkJoin => require('./join-team/join-from-invite').default,
   },
-  teamInviteLinksModal: {
+  teamInviteLinksGenerate: {
     getScreen: (): typeof GenerateLinkModal => require('./team/invites/generate-link').default,
   },
   teamJoinTeamDialog: {

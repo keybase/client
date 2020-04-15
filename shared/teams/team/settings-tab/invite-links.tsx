@@ -20,7 +20,7 @@ const InviteLinks = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onGenLink = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamInviteLinksModal'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamInviteLinksGenerate'}]}))
   const onViewHistory = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamInviteHistory'}]}))
 

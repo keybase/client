@@ -17,10 +17,24 @@ import {ModalTitle, ChannelsWidget} from '../common'
 import {pluralize} from '../../util/string'
 import logger from '../../logger'
 
+type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
+const disabledRolesForEmailsPhones = {
+  owner: null,
+  admin: 'Some invitees cannot be added as admins. Only Keybase users can be added as admins.',
+}
+const disabledRolesForPhoneEmailIndividual = {
+  owner: null,
+  admin: 'Only Keybase users can be added as admins.',
+}
+const disabledRolesSubteam = {
+  owner: 'Subteams cannot have owners.',
+}
+
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
 
   const {teamID, addingMembers, defaultChannels} = Container.useSelector(s => s.teams.addMembersWizard)
+  const isSubteam = Container.useSelector(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
   const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
@@ -36,6 +50,8 @@ const AddMembersConfirm = () => {
       addingMembers.some(m => m.assertion.endsWith('@email') || m.assertion.endsWith('@phone')),
     [addingMembers]
   )
+  const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
+
   const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
 
   const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
@@ -129,10 +145,13 @@ const AddMembersConfirm = () => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          <AddingMembers />
+          <AddingMembers disabledRoles={disabledRoles} />
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.controls}>
             <AddMoreMembers />
-            <RoleSelector memberCount={addingMembers.length} emailsAndPhones={emailsAndPhones} />
+            <RoleSelector
+              memberCount={addingMembers.length}
+              disabledRoles={emailsAndPhones ? disabledRolesForEmailsPhones : disabledRoles}
+            />
           </Kb.Box2>
         </Kb.Box2>
         {isBigTeam && <DefaultChannels teamID={teamID} />}
@@ -204,20 +223,11 @@ const AddMoreMembers = () => {
 }
 type RoleType = Types.AddingMemberTeamRoleType | 'setIndividually'
 
-const disabledRolesForEmailsPhones = {
-  owner: null,
-  admin: 'Some invitees cannot be added as admins. Only Keybase users can be added as admins.',
-}
-const disabledRolesForPhoneEmailIndividual = {
-  owner: null,
-  admin: 'Only Keybase users can be added as admins',
-}
-
 type RoleSelectorProps = {
-  emailsAndPhones: boolean
+  disabledRoles: DisabledRoles
   memberCount: number
 }
-const RoleSelector = ({emailsAndPhones, memberCount}: RoleSelectorProps) => {
+const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
   const dispatch = Container.useDispatch()
   const [showingMenu, setShowingMenu] = React.useState(false)
   const storeRole = Container.useSelector(s => s.teams.addMembersWizard.role)
@@ -240,7 +250,7 @@ const RoleSelector = ({emailsAndPhones, memberCount}: RoleSelectorProps) => {
         onConfirm={onConfirmRole}
         confirmLabel="Save"
         includeSetIndividually={!Styles.isMobile && (memberCount > 1 || storeRole === 'setIndividually')}
-        disabledRoles={emailsAndPhones ? disabledRolesForEmailsPhones : undefined}
+        disabledRoles={disabledRoles}
       >
         <Kb.InlineDropdown
           textWrapperType="BodySmallSemibold"
@@ -256,7 +266,7 @@ const RoleSelector = ({emailsAndPhones, memberCount}: RoleSelectorProps) => {
   )
 }
 
-const AddingMembers = () => {
+const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
   const addingMembers = Container.useSelector(s => s.teams.addMembersWizard.addingMembers)
   const [expanded, setExpanded] = React.useState(false)
   const showDivider = Styles.isMobile && addingMembers.length > 4
@@ -269,7 +279,12 @@ const AddingMembers = () => {
   const content = (
     <Kb.Box2 direction="vertical" fullWidth={true} gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
       {aboveDivider.map(toAdd => (
-        <AddingMember key={toAdd.assertion} {...toAdd} lastMember={addingMembers.length === 1} />
+        <AddingMember
+          key={toAdd.assertion}
+          {...toAdd}
+          lastMember={addingMembers.length === 1}
+          disabledRoles={disabledRoles}
+        />
       ))}
       {showDivider && (
         <Kb.ClickableBox onClick={toggleExpanded}>
@@ -298,7 +313,7 @@ const AddingMembers = () => {
   return <Kb.ScrollView style={styles.addingMembers}>{content}</Kb.ScrollView>
 }
 
-const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
+const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles; lastMember?: boolean}) => {
   const dispatch = Container.useDispatch()
   const onRemove = () => dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
   const role = Container.useSelector(s => s.teams.addMembersWizard.role)
@@ -350,7 +365,7 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
             onSelectRole={onSelectRole}
             onConfirm={onConfirmRole}
             confirmLabel={`Add as ${rolePickerRole}`}
-            disabledRoles={isPhoneEmail ? disabledRolesForPhoneEmailIndividual : undefined}
+            disabledRoles={isPhoneEmail ? disabledRolesForPhoneEmailIndividual : props.disabledRoles}
           >
             <Kb.InlineDropdown
               textWrapperType="BodySmallSemibold"
