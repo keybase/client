@@ -12,7 +12,6 @@ import (
 )
 
 func TestWotNotifications(t *testing.T) {
-	t.Skip()
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
