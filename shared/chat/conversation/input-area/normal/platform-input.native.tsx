@@ -484,7 +484,7 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         minHeight: 1,
         overflow: 'hidden',
-        ...Styles.padding(Styles.globalMargins.tiny, 0),
+        ...Styles.padding(0, 0, Styles.globalMargins.tiny, 0),
       },
       editingButton: {
         marginRight: Styles.globalMargins.tiny,
