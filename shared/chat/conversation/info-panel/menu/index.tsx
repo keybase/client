@@ -137,7 +137,7 @@ class InfoPanelMenu extends React.Component<Props> {
             onClick: props.onAddPeople,
             style: {borderTopWidth: 0},
             subTitle: 'Keybase, Twitter, etc.',
-            title: 'Add/Invite',
+            title: 'Add someone by username',
           },
           {
             icon: 'iconfont-contact-book',
