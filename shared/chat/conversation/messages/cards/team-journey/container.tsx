@@ -10,7 +10,6 @@ import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as TeamTypes from '../../../../../constants/types/teams'
 import {teamsTab} from '../../../../../constants/tabs'
-import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 import {TeamJourney, Action} from '.'
 import {renderWelcomeMessage} from './util'
@@ -199,7 +198,8 @@ const TeamJourneyConnected = Container.connect(
     }
   },
   dispatch => ({
-    _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
+    _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) =>
+      dispatch(TeamsGen.createStartAddMembersWizard({teamID})),
     _onAuthorClick: (teamID: TeamTypes.TeamID) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({

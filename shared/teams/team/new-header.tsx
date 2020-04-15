@@ -4,14 +4,11 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as TeamBuildingGen from '../../actions/team-building-gen'
-import {selfToUser} from '../../constants/team-building'
 import TeamMenu from './menu-container'
 import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import capitalize from 'lodash/capitalize'
 import {Activity, useActivityLevels} from '../common'
-import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import flags from '../../util/feature-flags'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
@@ -315,9 +312,9 @@ const useHeaderCallbacks = (teamID: TeamID) => {
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
 
   const onAddSelf = () => {
-    dispatch(appendNewTeamBuilder(teamID))
+    dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
     dispatch(
-      TeamBuildingGen.createAddUsersToTeamSoFar({namespace: 'teams', users: [selfToUser(yourUsername)]})
+      TeamsGen.createAddMembersWizardPushMembers({members: [{assertion: yourUsername, role: 'writer'}]})
     )
   }
   const onChat = () =>
