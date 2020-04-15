@@ -204,7 +204,6 @@ class InboxSearch extends React.Component<Props, State> {
           <Kb.Text
             onClick={(e: React.BaseSyntheticEvent) => {
               e.stopPropagation()
-              console.log('spooner toggle teams')
               this.props.onToggleOpenTeamsAll()
             }}
             type="BodySmallSecondaryLink"
@@ -236,7 +235,6 @@ class InboxSearch extends React.Component<Props, State> {
           <Kb.Text
             onClick={(e: React.BaseSyntheticEvent) => {
               e.stopPropagation()
-              console.log('spooner toggle bots')
               this.props.onToggleBotsAll()
             }}
             type="BodySmallSecondaryLink"
