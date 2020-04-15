@@ -415,7 +415,7 @@ func TestWebOfTrustRevoke(t *testing.T) {
 		require.Equal(t, expectedStatus, vouch.Status)
 		require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
 		require.Equal(t, alice.User.GetUID(), vouch.Vouchee.Uid)
-		expectedVouchText := []string{fmt.Sprintf("alice is wondibar v%d", version)}
+		expectedVouchText := fmt.Sprintf("alice is wondibar v%d", version)
 		require.Equal(t, expectedVouchText, vouch.VouchText)
 		require.NotNil(t, vouch.Confidence)
 		return vouch
