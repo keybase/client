@@ -274,10 +274,13 @@ func (tx *AddMemberTx) sweepCryptoMembersOlderThan(uv keybase1.UserVersion) {
 // sweepKeybaseInvites will queue "cancels" for all keybase-type
 // invites (PUKless members) for given UID.
 func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
+	fmt.Printf("@@@ WERE TYRNA CANCEL 2 %s\n", uid)
 	team := tx.team
 	allInvites := team.GetActiveAndObsoleteInvites()
+	fmt.Printf("@@@ WERE TYRNA CANCEL 3 %d\n", len(allInvites))
 	for _, invite := range allInvites {
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
+			fmt.Printf("@@@ WERE TYRNA CANCEL 4 %v\n", inviteUv)
 			if inviteUv.Uid.Equal(uid) && !tx.completedInvites[invite.Id] {
 				tx.CancelInvite(invite.Id, uid)
 			}
@@ -890,6 +893,7 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 }
 
 func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID, forUID keybase1.UID) {
+	fmt.Printf("@@@ WERE TYRNA CANCEL %s\n", forUID)
 	payload := tx.inviteKeybasePayload(forUID)
 	if payload.Cancel == nil {
 		payload.Cancel = &[]SCTeamInviteID{SCTeamInviteID(id)}

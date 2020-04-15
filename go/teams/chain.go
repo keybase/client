@@ -482,16 +482,13 @@ func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite, teamSigMeta k
 
 func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID,
 	cancelTeamSigMeta keybase1.TeamSignatureMetadata) {
-	fmt.Printf("@@@ UPDATEINVITES-CANCELIN\n")
 	inviteMD, ok := t.inner.InviteMetadatas[i]
 	if !ok {
 		return
 	}
-	fmt.Printf("@@@ UPDATEINVITES-CANCELIN2\n")
 	inviteMD.Status = keybase1.NewTeamInviteMetadataStatusWithCancelled(keybase1.TeamInviteMetadataCancel{
 		TeamSigMeta: cancelTeamSigMeta,
 	})
-	fmt.Printf("@@@ UPDATEINVITES-CANCELIN23: %#v\n", inviteMD)
 	t.inner.InviteMetadatas[i] = inviteMD
 }
 
@@ -2232,17 +2229,14 @@ func (t *teamSigchainPlayer) updateMembership(stateToUpdate *TeamSigChainState, 
 }
 
 func (t *teamSigchainPlayer) updateInvites(stateToUpdate *TeamSigChainState, additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, teamSigMeta keybase1.TeamSignatureMetadata) {
-	fmt.Printf("@@@ UPDATEINVITES\n")
 	for _, invites := range additions {
 		for _, invite := range invites {
 			stateToUpdate.informNewInvite(invite, teamSigMeta)
 		}
 	}
-	fmt.Printf("@@@ UPDATEINVITES-CANCEL\n")
 	for _, cancelation := range cancelations {
 		stateToUpdate.informCanceledInvite(cancelation, teamSigMeta)
 	}
-	fmt.Printf("@@@ UPDATEINVITES-CANCEL2\n")
 }
 
 func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState,
@@ -2299,43 +2293,49 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 		}
 
 		inviteMD, foundInvite := stateToUpdate.FindActiveInviteMDByID(inviteID)
-		if foundInvite {
-			isNewStyle, err := IsNewStyleInvite(inviteMD.Invite)
-			if err != nil {
-				return err
+		if !foundInvite {
+			if hasStubbedLinks {
+				// We didn't find it, possibly because server stubbed it out (we're not allowed to
+				// see it; didn't load with admin perms).
+				continue
+			} else {
+				// We couldn't find the invite, and we have no stubbed links, which
+				// means that inviteID is invalid.
+				return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
 			}
-			if !isNewStyle {
-				return fmt.Errorf("`used_invites` for a non-new-style invite (id: %q)", inviteID)
-			}
+		}
 
-			maxUses := inviteMD.Invite.MaxUses
-			alreadyUsed := len(inviteMD.UsedInvites)
-			// Note that we append to stateToUpdate.inner.UsedInvites at the end of this for loop,
-			// so alreadyUsed updates correctly when processing multiple invite pairs.
-			if maxUses.IsUsedUp(alreadyUsed) {
-				return fmt.Errorf("invite %s is expired after %d uses", inviteID, alreadyUsed)
-			}
+		isNewStyle, err := IsNewStyleInvite(inviteMD.Invite)
+		if err != nil {
+			return err
+		}
+		if !isNewStyle {
+			return fmt.Errorf("`used_invites` for a non-new-style invite (id: %q)", inviteID)
+		}
 
-			// We explicitly don't check invite.Etime here; it's used as a hint for admins.
-			// but not checked in the sigchain player.
+		maxUses := inviteMD.Invite.MaxUses
+		alreadyUsed := len(inviteMD.UsedInvites)
+		// Note that we append to stateToUpdate.inner.UsedInvites at the end of this for loop,
+		// so alreadyUsed updates correctly when processing multiple invite pairs.
+		if maxUses.IsUsedUp(alreadyUsed) {
+			return fmt.Errorf("invite %s is expired after %d uses", inviteID, alreadyUsed)
+		}
 
-			// If we have the invite, also check if invite role matches role
-			// added.
-			var foundUV bool
-			for _, updatedUV := range roleUpdates[inviteMD.Invite.Role] {
-				if uv.Eq(updatedUV) {
-					foundUV = true
-					break
-				}
+		// We explicitly don't check invite.Etime here; it's used as a hint for admins.
+		// but not checked in the sigchain player.
+
+		// If we have the invite, also check if invite role matches role
+		// added.
+		var foundUV bool
+		for _, updatedUV := range roleUpdates[inviteMD.Invite.Role] {
+			if uv.Eq(updatedUV) {
+				foundUV = true
+				break
 			}
-			if !foundUV {
-				return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV,
-					inviteMD.Invite.Role.HumanString())
-			}
-		} else if !hasStubbedLinks {
-			// We couldn't find the invite, and we have no stubbed links, which
-			// means that inviteID is invalid.
-			return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
+		}
+		if !foundUV {
+			return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV,
+				inviteMD.Invite.Role.HumanString())
 		}
 
 		logPoint := len(stateToUpdate.inner.UserLog[uv]) - 1
