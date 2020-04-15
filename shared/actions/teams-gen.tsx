@@ -249,9 +249,9 @@ type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly 
 type _SetActivityLevelsPayload = {readonly levels: Types.ActivityLevels}
 type _SetAddMembersWizardIndividualRolePayload = {
   readonly assertion: string
-  readonly role: Types.TeamRoleType
+  readonly role: Types.AddingMemberTeamRoleType
 }
-type _SetAddMembersWizardRolePayload = {readonly role: Types.TeamRoleType | undefined}
+type _SetAddMembersWizardRolePayload = {readonly role: Types.AddingMemberTeamRoleType | 'setIndividually'}
 type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly results: string}
 type _SetChannelCreationErrorPayload = {readonly error: string}
 type _SetChannelSelectedPayload = {
