@@ -164,7 +164,7 @@ const SortHeader = () => {
   ))
   const sortOrder = Container.useSelector(s => s.teams.teamListSort)
   return (
-    <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center">
+    <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
       <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
           <Kb.Icon type="iconfont-arrow-full-down" />
