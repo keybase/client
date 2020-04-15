@@ -449,6 +449,7 @@ type _MessagesAddPayload = {
     | {type: 'sent'}
     | {type: 'incoming'}
     | {type: 'threadLoad'; conversationIDKey: Types.ConversationIDKey}
+  readonly conversationIDKey: Types.ConversationIDKey
   readonly messages: Array<Types.Message>
   readonly shouldClearOthers?: boolean
   readonly centeredMessageIDs?: Array<{

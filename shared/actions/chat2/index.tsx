@@ -372,7 +372,9 @@ const onIncomingMessage = (
         )
       } else if (shouldAddMessage) {
         // A normal message
-        actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
+        actions.push(
+          Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, conversationIDKey, messages: [message]})
+        )
       }
     } else if (cMsg.state === RPCChatTypes.MessageUnboxedState.valid && cMsg.valid) {
       const {valid} = cMsg
@@ -390,7 +392,13 @@ const onIncomingMessage = (
               devicename
             )
             if (modMessage) {
-              actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [modMessage]}))
+              actions.push(
+                Chat2Gen.createMessagesAdd({
+                  context: {type: 'incoming'},
+                  conversationIDKey,
+                  messages: [modMessage],
+                })
+              )
             }
           }
           break
@@ -1178,6 +1186,7 @@ function* loadMoreMessages(
           Chat2Gen.createMessagesAdd({
             centeredMessageIDs,
             context: {conversationIDKey, type: 'threadLoad'},
+            conversationIDKey,
             forceContainsLatestCalc,
             messages,
             shouldClearOthers,
