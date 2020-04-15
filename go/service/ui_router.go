@@ -145,7 +145,7 @@ func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI,
 }
 
 func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
-	defer u.G().Trace("UIRouter#GetSecretUI", func() error { return err })()
+	defer u.G().Trace("UIRouter#GetSecretUI", &err)()
 	x, _ := u.getUI(libkb.SecretUIKind)
 	if x == nil {
 		u.G().Log.Debug("| getUI(libkb.SecretUIKind) returned nil")
@@ -187,7 +187,7 @@ func (u *UIRouter) WaitForUIType(uiKind libkb.UIKind, timeout time.Duration) boo
 
 func (u *UIRouter) GetHomeUI() (keybase1.HomeUIInterface, error) {
 	var err error
-	defer u.G().Trace(fmt.Sprintf("UIRouter#GetHomeUI [%p]", u), func() error { return err })()
+	defer u.G().Trace(fmt.Sprintf("UIRouter#GetHomeUI [%p]", u), &err)()
 
 	x, _ := u.getUI(libkb.HomeUIKind)
 	if x == nil {
@@ -201,7 +201,7 @@ func (u *UIRouter) GetHomeUI() (keybase1.HomeUIInterface, error) {
 
 func (u *UIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {
 	var err error
-	defer u.G().Trace("UIRouter#GetRekeyUI", func() error { return err })()
+	defer u.G().Trace("UIRouter#GetRekeyUI", &err)()
 
 	x, cid := u.getUI(libkb.RekeyUIKind)
 	if x == nil {
@@ -224,7 +224,7 @@ func (u *UIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {
 }
 
 func (u *UIRouter) getOrReuseRekeyUI(prev *RekeyUI) (ret *RekeyUI, err error) {
-	defer u.G().Trace("UIRouter#GetOrReuseRekeyUI", func() error { return err })()
+	defer u.G().Trace("UIRouter#GetOrReuseRekeyUI", &err)()
 	x, cid := u.getUI(libkb.RekeyUIKind)
 
 	if x == nil {
@@ -253,6 +253,6 @@ func (u *UIRouter) getOrReuseRekeyUI(prev *RekeyUI) (ret *RekeyUI, err error) {
 }
 
 func (u *UIRouter) GetRekeyUINoSessionID() (ret keybase1.RekeyUIInterface, err error) {
-	defer u.G().Trace("UIRouter#GetRekeyUINoSessionID", func() error { return err })()
+	defer u.G().Trace("UIRouter#GetRekeyUINoSessionID", &err)()
 	return u.getOrReuseRekeyUI(nil)
 }

@@ -535,22 +535,22 @@ func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}
 	}
 }
 
-func (d DebugLabeler) Trace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
-	return d.trace(ctx, d.G().GetLog(), f, format, args...)
+func (d DebugLabeler) Trace(ctx context.Context, err *error, format string, args ...interface{}) func() {
+	return d.trace(ctx, d.G().GetLog(), err, format, args...)
 }
 
-func (d DebugLabeler) PerfTrace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
-	return d.trace(ctx, d.G().GetPerfLog(), f, format, args...)
+func (d DebugLabeler) PerfTrace(ctx context.Context, err *error, format string, args ...interface{}) func() {
+	return d.trace(ctx, d.G().GetPerfLog(), err, format, args...)
 }
 
-func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, f func() error, format string, args ...interface{}) func() {
+func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, err *error, format string, args ...interface{}) func() {
 	if d.showLog() {
 		msg := fmt.Sprintf(format, args...)
 		start := time.Now()
 		log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
 			log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
-				libkb.ErrToOk(f()), time.Since(start))
+				libkb.ErrToOkPtr(err), time.Since(start))
 		}
 	}
 	return func() {}

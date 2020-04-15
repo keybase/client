@@ -338,7 +338,7 @@ func (p *Packager) cacheKey(uid gregor1.UID, convID chat1.ConversationID, raw ch
 
 func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
-	defer p.Trace(ctx, func() error { return err }, "Package")()
+	defer p.Trace(ctx, &err, "Package")()
 
 	cacheKey := p.cacheKey(uid, convID, raw)
 	if item, valid := p.cache.get(cacheKey); cacheKey != "" && valid {

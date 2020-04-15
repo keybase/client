@@ -363,7 +363,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	g := m.G()
 	ctx := m.Ctx()
 
-	defer m.VTrace(VLog0, culDebug(arg.uid), func() error { return err })()
+	defer m.VTrace(VLog0, culDebug(arg.uid), &err)()
 
 	if arg.uid.IsNil() {
 		if len(arg.name) == 0 {
@@ -634,7 +634,7 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2,
 	upak *keybase1.UserPlusKeysV2AllIncarnations, key *keybase1.PublicKeyV2NaCl, err error) {
 	ctx = WithLogTag(ctx, "LK") // Load key
-	defer u.G().CVTraceTimed(ctx, VLog0, fmt.Sprintf("LoadKeyV2 uid:%s,kid:%s", uid, kid), func() error { return err })()
+	defer u.G().CVTrace(ctx, VLog0, fmt.Sprintf("LoadKeyV2 uid:%s,kid:%s", uid, kid), &err)()
 	ctx, tbs := u.G().CTimeBuckets(ctx)
 	defer tbs.Record("CachedUPAKLoader.LoadKeyV2")()
 	if uid.IsNil() {
@@ -969,7 +969,7 @@ func checkDeviceValidForUID(ctx context.Context, u UPAKLoader, uid keybase1.UID,
 }
 
 func CheckCurrentUIDDeviceID(m MetaContext) (err error) {
-	defer m.Trace("CheckCurrentUIDDeviceID", func() error { return err })()
+	defer m.Trace("CheckCurrentUIDDeviceID", &err)()
 	uid := m.G().Env.GetUID()
 	if uid.IsNil() {
 		return NoUIDError{}
@@ -992,7 +992,7 @@ func (u *CachedUPAKLoader) Batcher(ctx context.Context, getArg func(int) *LoadUs
 
 	ctx = WithLogTag(ctx, "LUB")
 	eg, ctx := errgroup.WithContext(ctx)
-	defer u.G().CTrace(ctx, "CachedUPAKLoader#Batcher", func() error { return err })()
+	defer u.G().CTrace(ctx, "CachedUPAKLoader#Batcher", &err)()
 
 	type argWithIndex struct {
 		i   int

@@ -78,7 +78,7 @@ func (e *SaltpackUserKeyfinder) UsedUnresolvedSBSAssertion() (bool, string) {
 }
 
 func (e *SaltpackUserKeyfinder) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("SaltpackUserKeyfinder#Run", func() error { return err })()
+	defer m.Trace("SaltpackUserKeyfinder#Run", &err)()
 
 	if len(e.Arg.TeamRecipients) != 0 {
 		m.Debug("tried to use SaltpackUserKeyfinder for a team. This should never happen")

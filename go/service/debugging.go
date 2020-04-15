@@ -35,7 +35,7 @@ func NewDebuggingHandler(xp rpc.Transporter, g *libkb.GlobalContext, userHandler
 func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (res string, err error) {
 	ctx = libkb.WithLogTag(ctx, "DG")
 	m := libkb.NewMetaContext(ctx, t.G())
-	defer m.TraceTimed(fmt.Sprintf("Script(%s)", arg.Script), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("Script(%s)", arg.Script), &err)()
 	args := arg.Args
 	log := func(format string, args ...interface{}) {
 		t.G().Log.CInfof(ctx, format, args...)

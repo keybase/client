@@ -44,7 +44,7 @@ func (t *ServertrustTrackerSyncer) loadFromStorage(m MetaContext, uid keybase1.U
 	var err error
 	var found bool
 	var tmp keybase1.UserSummarySet
-	defer m.Trace(fmt.Sprintf("loadFromStorage(%s)", uid), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("loadFromStorage(%s)", uid), &err)()
 	found, err = t.G().LocalDb.GetInto(&tmp, t.dbKey(uid))
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func (t *ServertrustTrackerSyncer) getLoadedVersion() int {
 
 func (t *ServertrustTrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceReload bool) (err error) {
 
-	defer m.Trace(fmt.Sprintf("syncFromServer(%s)", uid), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("syncFromServer(%s)", uid), &err)()
 
 	hargs := HTTPArgs{
 		"uid":        UIDArg(uid),
@@ -129,7 +129,7 @@ func (t *ServertrustTrackerSyncer) needsLogin(m MetaContext) bool {
 }
 
 func (t *ServertrustTrackerSyncer) Block(m MetaContext, badUIDs map[keybase1.UID]bool) (err error) {
-	defer m.Trace(fmt.Sprintf("ServertrustTrackerSyncer#Block(%+v)", badUIDs), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("ServertrustTrackerSyncer#Block(%+v)", badUIDs), &err)()
 	t.Lock()
 	defer t.Unlock()
 

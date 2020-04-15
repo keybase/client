@@ -67,7 +67,7 @@ func (a *audioVisualizer) visualize() ([]byte, int) {
 }
 
 func (s *Sender) MakeAudioPreview(ctx context.Context, amps []float64, duration int) (res chat1.MakePreviewRes, err error) {
-	defer s.Trace(ctx, func() error { return err }, "MakeAudioPreview")()
+	defer s.Trace(ctx, &err, "MakeAudioPreview")()
 	v := newAudioVisualizer(amps)
 	previewDat, previewWidth := v.visualize()
 	res.MimeType = "video/mp4"

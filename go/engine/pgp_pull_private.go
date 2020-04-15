@@ -98,7 +98,7 @@ func (e *PGPPullPrivate) pull(m libkb.MetaContext, fp libkb.PGPFingerprint, tty 
 
 func (e *PGPPullPrivate) Run(m libkb.MetaContext) (err error) {
 
-	defer m.Trace("PGPPullPrivate#Run", func() error { return err })()
+	defer m.Trace("PGPPullPrivate#Run", &err)()
 
 	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())
 	if err != nil {

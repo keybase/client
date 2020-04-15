@@ -29,6 +29,6 @@ func newBadgerHandler(xp rpc.Transporter, g *libkb.GlobalContext, badger *badges
 }
 
 func (a *badgerHandler) GetBadgeState(ctx context.Context) (res keybase1.BadgeState, err error) {
-	a.G().Trace(fmt.Sprintf("GetBadgeState"), func() error { return err })()
+	a.G().Trace(fmt.Sprintf("GetBadgeState"), &err)()
 	return a.badger.State().Export(ctx)
 }

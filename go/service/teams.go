@@ -44,7 +44,7 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Conte
 
 func (h *TeamsHandler) UntrustedTeamExists(ctx context.Context, teamName keybase1.TeamName) (res keybase1.UntrustedTeamExistsResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UntrustedTeamExists(%s)", teamName), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("UntrustedTeamExists(%s)", teamName), &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetUntrustedTeamExists(mctx, teamName)
 }
@@ -67,7 +67,7 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 	ctx = libkb.WithLogTag(ctx, "TM")
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	teamInfo := arg.TeamInfo
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamCreateFancy(%s)", teamInfo.Name), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamCreateFancy(%s)", teamInfo.Name), &err)()
 
 	arg2 := keybase1.TeamCreateWithSettingsArg{
 		Name:        teamInfo.Name,
@@ -141,7 +141,7 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 
 func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.TeamCreateWithSettingsArg) (res keybase1.TeamCreateResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamCreate(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamCreate(%s)", arg.Name), &err)()
 
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return res, err
@@ -204,7 +204,7 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 
 func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (res keybase1.TeamDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGet(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamGet(%s)", arg.Name), &err)()
 
 	res, err = teams.Details(ctx, h.G().ExternalG(), arg.Name)
 	if err != nil {
@@ -215,7 +215,7 @@ func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (re
 
 func (h *TeamsHandler) TeamGetByID(ctx context.Context, arg keybase1.TeamGetByIDArg) (res keybase1.TeamDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetByID(%s)", arg.Id), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamGetByID(%s)", arg.Id), &err)()
 
 	res, err = teams.DetailsByID(ctx, h.G().ExternalG(), arg.Id)
 	if err != nil {
@@ -226,7 +226,7 @@ func (h *TeamsHandler) TeamGetByID(ctx context.Context, arg keybase1.TeamGetByID
 
 func (h *TeamsHandler) GetAnnotatedTeam(ctx context.Context, arg keybase1.TeamID) (res keybase1.AnnotatedTeam, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetAnnotatedTeam(%s)", arg), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("GetAnnotatedTeam(%s)", arg), &err)()
 
 	return teams.GetAnnotatedTeam(ctx, h.G().ExternalG(), arg)
 }
@@ -242,7 +242,7 @@ func (h *TeamsHandler) teamGet(ctx context.Context, details keybase1.TeamDetails
 
 func (h *TeamsHandler) TeamGetMembersByID(ctx context.Context, arg keybase1.TeamGetMembersByIDArg) (res keybase1.TeamMembersDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetMembersByID(%s)", arg.Id), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamGetMembersByID(%s)", arg.Id), &err)()
 	t, err := teams.Load(ctx, h.G().ExternalG(), keybase1.LoadTeamArg{
 		ID: arg.Id,
 	})
@@ -254,7 +254,7 @@ func (h *TeamsHandler) TeamGetMembersByID(ctx context.Context, arg keybase1.Team
 
 func (h *TeamsHandler) TeamGetMembers(ctx context.Context, arg keybase1.TeamGetMembersArg) (res keybase1.TeamMembersDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetMembers(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamGetMembers(%s)", arg.Name), &err)()
 	t, err := teams.Load(ctx, h.G().ExternalG(), keybase1.LoadTeamArg{
 		Name: arg.Name,
 	})
@@ -266,7 +266,7 @@ func (h *TeamsHandler) TeamGetMembers(ctx context.Context, arg keybase1.TeamGetM
 
 func (h *TeamsHandler) TeamImplicitAdmins(ctx context.Context, arg keybase1.TeamImplicitAdminsArg) (res []keybase1.TeamMemberDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamImplicitAdmins(%s)", arg.TeamName), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamImplicitAdmins(%s)", arg.TeamName), &err)()
 	teamName, err := keybase1.TeamNameFromString(arg.TeamName)
 	if err != nil {
 		return nil, err
@@ -280,7 +280,7 @@ func (h *TeamsHandler) TeamImplicitAdmins(ctx context.Context, arg keybase1.Team
 
 func (h *TeamsHandler) TeamListUnverified(ctx context.Context, arg keybase1.TeamListUnverifiedArg) (res keybase1.AnnotatedTeamList, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamList(%s)", arg.UserAssertion), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamList(%s)", arg.UserAssertion), &err)()
 	x, err := teams.ListTeamsUnverified(ctx, h.G().ExternalG(), arg)
 	if err != nil {
 		return keybase1.AnnotatedTeamList{}, err
@@ -290,7 +290,7 @@ func (h *TeamsHandler) TeamListUnverified(ctx context.Context, arg keybase1.Team
 
 func (h *TeamsHandler) TeamListTeammates(ctx context.Context, arg keybase1.TeamListTeammatesArg) (res keybase1.AnnotatedTeamList, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListTeammates(%t)", arg.IncludeImplicitTeams), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamListTeammates(%t)", arg.IncludeImplicitTeams), &err)()
 	x, err := teams.ListAll(ctx, h.G().ExternalG(), arg)
 	if err != nil {
 		return keybase1.AnnotatedTeamList{}, err
@@ -300,7 +300,7 @@ func (h *TeamsHandler) TeamListTeammates(ctx context.Context, arg keybase1.TeamL
 
 func (h *TeamsHandler) TeamListVerified(ctx context.Context, arg keybase1.TeamListVerifiedArg) (res keybase1.AnnotatedTeamList, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListVerified(%s)", arg.UserAssertion), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamListVerified(%s)", arg.UserAssertion), &err)()
 	x, err := teams.ListTeamsVerified(ctx, h.G().ExternalG(), arg)
 	if err != nil {
 		return keybase1.AnnotatedTeamList{}, err
@@ -310,21 +310,21 @@ func (h *TeamsHandler) TeamListVerified(ctx context.Context, arg keybase1.TeamLi
 
 func (h *TeamsHandler) TeamGetSubteamsUnverified(ctx context.Context, arg keybase1.TeamGetSubteamsUnverifiedArg) (res keybase1.SubteamListResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetSubteamsUnverified(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamGetSubteamsUnverified(%s)", arg.Name), &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.ListSubteamsUnverified(mctx, arg.Name)
 }
 
 func (h *TeamsHandler) TeamListSubteamsRecursive(ctx context.Context, arg keybase1.TeamListSubteamsRecursiveArg) (res []keybase1.TeamIDAndName, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListSubteamsRecursive(%s)", arg.ParentTeamName), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamListSubteamsRecursive(%s)", arg.ParentTeamName), &err)()
 	return teams.ListSubteamsRecursive(ctx, h.G().ExternalG(), arg.ParentTeamName, arg.ForceRepoll)
 }
 
 func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) (res keybase1.TeamAddMemberResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMember(%s,username=%q,email=%q,phone=%q)", arg.TeamID, arg.Username, arg.Email, arg.Phone),
-		func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamAddMember(%s,username=%q,email=%q,phone=%q)", arg.TeamID, arg.Username, arg.Email, arg.Phone),
+		&err)()
 
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return res, err
@@ -380,7 +380,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 // weren't added. If the 2nd attempt fails, then an err is returned as usual.
 func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddMembersArg) (res keybase1.TeamAddMembersResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMembers(%+v", arg), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamAddMembers(%+v", arg), &err)()
 
 	var users []keybase1.UserRolePair
 	for _, a := range arg.Assertions {
@@ -406,8 +406,8 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 		}
 	}
 
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMembers(%s, %s)", arg.TeamID, debugString),
-		func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamAddMembers(%s, %s)", arg.TeamID, debugString),
+		&err)()
 	if len(arg.Users) == 0 {
 		return res, fmt.Errorf("attempted to add 0 users to a team")
 	}
@@ -461,7 +461,7 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMember(%s, u:%q, e:%q, i:%q, a:%v)", arg.TeamID, arg.Username, arg.Email, arg.InviteID, arg.AllowInaction), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRemoveMember(%s, u:%q, e:%q, i:%q, a:%v)", arg.TeamID, arg.Username, arg.Email, arg.InviteID, arg.AllowInaction), &err)()
 
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
@@ -502,8 +502,8 @@ func (h *TeamsHandler) TeamRemoveMembers(ctx context.Context, arg keybase1.TeamR
 			debugString = fmt.Sprintf("'%v' + %v more", arg.Users[0].Username, len(arg.Users)-1)
 		}
 	}
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMembers(%s, %s)", arg.TeamID, debugString),
-		func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRemoveMembers(%s, %s)", arg.TeamID, debugString),
+		&err)()
 	if len(arg.Users) == 0 {
 		return res, nil
 	}
@@ -517,8 +517,8 @@ func (h *TeamsHandler) TeamRemoveMembers(ctx context.Context, arg keybase1.TeamR
 
 func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamEditMember(%s,%s,%s)", arg.Name, arg.Username, arg.Role),
-		func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamEditMember(%s,%s,%s)", arg.Name, arg.Username, arg.Role),
+		&err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
 	}
@@ -534,8 +534,8 @@ func (h *TeamsHandler) TeamEditMembers(ctx context.Context, arg keybase1.TeamEdi
 			debugString = fmt.Sprintf("'%v' + %v more", arg.Users[0].Assertion, len(arg.Users)-1)
 		}
 	}
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamEditMembers(%s, %s)", arg.TeamID, debugString),
-		func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamEditMembers(%s, %s)", arg.TeamID, debugString),
+		&err)()
 	if len(arg.Users) == 0 {
 		return res, nil
 	}
@@ -549,8 +549,8 @@ func (h *TeamsHandler) TeamEditMembers(ctx context.Context, arg keybase1.TeamEdi
 
 func (h *TeamsHandler) TeamSetBotSettings(ctx context.Context, arg keybase1.TeamSetBotSettingsArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamSetBotSettings(%s,%s,%v)", arg.Name, arg.Username, arg.BotSettings),
-		func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamSetBotSettings(%s,%s,%v)", arg.Name, arg.Username, arg.BotSettings),
+		&err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
 	}
@@ -559,8 +559,8 @@ func (h *TeamsHandler) TeamSetBotSettings(ctx context.Context, arg keybase1.Team
 
 func (h *TeamsHandler) TeamGetBotSettings(ctx context.Context, arg keybase1.TeamGetBotSettingsArg) (res keybase1.TeamBotSettings, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetBotSettings(%s,%s)", arg.Name, arg.Username),
-		func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamGetBotSettings(%s,%s)", arg.Name, arg.Username),
+		&err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return res, err
 	}
@@ -569,7 +569,7 @@ func (h *TeamsHandler) TeamGetBotSettings(ctx context.Context, arg keybase1.Team
 
 func (h *TeamsHandler) TeamLeave(ctx context.Context, arg keybase1.TeamLeaveArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamLeave(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamLeave(%s)", arg.Name), &err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
 	}
@@ -578,7 +578,7 @@ func (h *TeamsHandler) TeamLeave(ctx context.Context, arg keybase1.TeamLeaveArg)
 
 func (h *TeamsHandler) TeamRename(ctx context.Context, arg keybase1.TeamRenameArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRename(%s)", arg.PrevName), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRename(%s)", arg.PrevName), &err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
 	}
@@ -587,7 +587,7 @@ func (h *TeamsHandler) TeamRename(ctx context.Context, arg keybase1.TeamRenameAr
 
 func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAcceptInviteArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, "TeamAcceptInvite", func() error { return err })()
+	defer h.G().CTrace(ctx, "TeamAcceptInvite", &err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
 	}
@@ -608,7 +608,7 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 
 func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) (res keybase1.TeamRequestAccessResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	h.G().CTraceTimed(ctx, "TeamRequestAccess", func() error { return err })()
+	h.G().CTrace(ctx, "TeamRequestAccess", &err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return keybase1.TeamRequestAccessResult{}, err
 	}
@@ -617,7 +617,7 @@ func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamR
 
 func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg keybase1.TeamAcceptInviteOrRequestAccessArg) (res keybase1.TeamAcceptOrRequestResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, "TeamAcceptInviteOrRequestAccess", func() error { return err })()
+	defer h.G().CTrace(ctx, "TeamAcceptInviteOrRequestAccess", &err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return res, err
 	}
@@ -635,7 +635,7 @@ func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg 
 
 func (h *TeamsHandler) TeamListRequests(ctx context.Context, arg keybase1.TeamListRequestsArg) (res []keybase1.TeamJoinRequest, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, "TeamListRequests", func() error { return err })()
+	defer h.G().CTrace(ctx, "TeamListRequests", &err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return nil, err
 	}
@@ -644,7 +644,7 @@ func (h *TeamsHandler) TeamListRequests(ctx context.Context, arg keybase1.TeamLi
 
 func (h *TeamsHandler) TeamListMyAccessRequests(ctx context.Context, arg keybase1.TeamListMyAccessRequestsArg) (res []keybase1.TeamName, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, "TeamListMyAccessRequests", func() error { return err })()
+	defer h.G().CTrace(ctx, "TeamListMyAccessRequests", &err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return nil, err
 	}
@@ -653,7 +653,7 @@ func (h *TeamsHandler) TeamListMyAccessRequests(ctx context.Context, arg keybase
 
 func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamIgnoreRequestArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, "TeamIgnoreRequest", func() error { return err })()
+	defer h.G().CTrace(ctx, "TeamIgnoreRequest", &err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
 	}
@@ -662,13 +662,13 @@ func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamI
 
 func (h *TeamsHandler) TeamTreeUnverified(ctx context.Context, arg keybase1.TeamTreeUnverifiedArg) (res keybase1.TeamTreeResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, "TeamTreeUnverified", func() error { return err })()
+	defer h.G().CTrace(ctx, "TeamTreeUnverified", &err)()
 	return teams.TeamTreeUnverified(ctx, h.G().ExternalG(), arg)
 }
 
 func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamDelete(%s)", arg.TeamID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamDelete(%s)", arg.TeamID), &err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
 	}
@@ -678,7 +678,7 @@ func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteAr
 
 func (h *TeamsHandler) TeamSetSettings(ctx context.Context, arg keybase1.TeamSetSettingsArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamSetSettings(%s)", arg.TeamID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamSetSettings(%s)", arg.TeamID), &err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
 	}
@@ -688,7 +688,7 @@ func (h *TeamsHandler) TeamSetSettings(ctx context.Context, arg keybase1.TeamSet
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(ctx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (res keybase1.TeamPlusApplicationKeys, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	ctx = libkb.WithLogTag(ctx, "LTPAK")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamPlusApplicationKeys(%s)", arg.Id), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("LoadTeamPlusApplicationKeys(%s)", arg.Id), &err)()
 
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	loader := func(mctx libkb.MetaContext) (interface{}, error) {
@@ -769,7 +769,7 @@ func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (k
 
 func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), &err)()
 	var team *teams.Team
 	team, res.Name, res.DisplayName, err =
 		teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public, teams.ImplicitTeamOptions{})
@@ -782,8 +782,8 @@ func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.Look
 
 func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keybase1.LookupOrCreateImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%s)", arg.Name),
-		func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%s)", arg.Name),
+		&err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return res, err
 	}
@@ -799,7 +799,7 @@ func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keyba
 
 func (h *TeamsHandler) TeamReAddMemberAfterReset(ctx context.Context, arg keybase1.TeamReAddMemberAfterResetArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamReAddMemberAfterReset(%s)", arg.Id), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamReAddMemberAfterReset(%s)", arg.Id), &err)()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
 	}
@@ -808,28 +808,28 @@ func (h *TeamsHandler) TeamReAddMemberAfterReset(ctx context.Context, arg keybas
 
 func (h *TeamsHandler) TeamAddEmailsBulk(ctx context.Context, arg keybase1.TeamAddEmailsBulkArg) (res keybase1.BulkRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddEmailsBulk(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamAddEmailsBulk(%s)", arg.Name), &err)()
 
 	return teams.AddEmailsBulk(ctx, h.G().ExternalG(), arg.Name, arg.Emails, arg.Role)
 }
 
 func (h *TeamsHandler) GetTeamShowcase(ctx context.Context, teamID keybase1.TeamID) (ret keybase1.TeamShowcase, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamShowcase(%s)", teamID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("GetTeamShowcase(%s)", teamID), &err)()
 
 	return teams.GetTeamShowcase(ctx, h.G().ExternalG(), teamID)
 }
 
 func (h *TeamsHandler) GetTeamAndMemberShowcase(ctx context.Context, id keybase1.TeamID) (ret keybase1.TeamAndMemberShowcase, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamAndMemberShowcase(%s)", id), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("GetTeamAndMemberShowcase(%s)", id), &err)()
 
 	return teams.GetTeamAndMemberShowcase(ctx, h.G().ExternalG(), id)
 }
 
 func (h *TeamsHandler) SetTeamShowcase(ctx context.Context, arg keybase1.SetTeamShowcaseArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTeamShowcase(%s)", arg.TeamID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("SetTeamShowcase(%s)", arg.TeamID), &err)()
 
 	err = teams.SetTeamShowcase(ctx, h.G().ExternalG(), arg.TeamID, arg.IsShowcased, arg.Description, arg.AnyMemberShowcase)
 	return err
@@ -837,7 +837,7 @@ func (h *TeamsHandler) SetTeamShowcase(ctx context.Context, arg keybase1.SetTeam
 
 func (h *TeamsHandler) SetTeamMemberShowcase(ctx context.Context, arg keybase1.SetTeamMemberShowcaseArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTeamMemberShowcase(%s)", arg.TeamID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("SetTeamMemberShowcase(%s)", arg.TeamID), &err)()
 
 	err = teams.SetTeamMemberShowcase(ctx, h.G().ExternalG(), arg.TeamID, arg.IsShowcased)
 	return err
@@ -845,7 +845,7 @@ func (h *TeamsHandler) SetTeamMemberShowcase(ctx context.Context, arg keybase1.S
 
 func (h *TeamsHandler) CanUserPerform(ctx context.Context, teamname string) (ret keybase1.TeamOperation, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("CanUserPerform(%s)", teamname), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("CanUserPerform(%s)", teamname), &err)()
 	// We never want to return an error from this, the frontend has no proper reaction to an error from
 	// this RPC call. We retry until we work.
 	for {
@@ -864,41 +864,41 @@ func (h *TeamsHandler) CanUserPerform(ctx context.Context, teamname string) (ret
 
 func (h *TeamsHandler) TeamRotateKey(ctx context.Context, arg keybase1.TeamRotateKeyArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRotateKey(%v)", arg.TeamID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRotateKey(%v)", arg.TeamID), &err)()
 	return teams.RotateKey(ctx, h.G().ExternalG(), arg)
 }
 
 func (h *TeamsHandler) TeamDebug(ctx context.Context, teamID keybase1.TeamID) (res keybase1.TeamDebugRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamDebug(%v)", teamID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamDebug(%v)", teamID), &err)()
 
 	return teams.TeamDebug(ctx, h.G().ExternalG(), teamID)
 }
 
 func (h *TeamsHandler) GetTarsDisabled(ctx context.Context, teamID keybase1.TeamID) (res bool, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTarsDisabled(%s)", teamID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("GetTarsDisabled(%s)", teamID), &err)()
 
 	return teams.GetTarsDisabled(ctx, h.G().ExternalG(), teamID)
 }
 
 func (h *TeamsHandler) SetTarsDisabled(ctx context.Context, arg keybase1.SetTarsDisabledArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTarsDisabled(%s,%t)", arg.TeamID, arg.Disabled), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("SetTarsDisabled(%s,%t)", arg.TeamID, arg.Disabled), &err)()
 
 	return teams.SetTarsDisabled(ctx, h.G().ExternalG(), arg.TeamID, arg.Disabled)
 }
 
 func (h *TeamsHandler) TeamProfileAddList(ctx context.Context, arg keybase1.TeamProfileAddListArg) (res []keybase1.TeamProfileAddEntry, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamProfileAddList(%v)", arg.Username), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamProfileAddList(%v)", arg.Username), &err)()
 
 	return teams.TeamProfileAddList(ctx, h.G().ExternalG(), arg.Username)
 }
 
 func (h *TeamsHandler) UploadTeamAvatar(ctx context.Context, arg keybase1.UploadTeamAvatarArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadTeamAvatar(%s,%s)", arg.Teamname, arg.Filename), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("UploadTeamAvatar(%s,%s)", arg.Teamname, arg.Filename), &err)()
 
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.ChangeTeamAvatar(mctx, arg)
@@ -906,7 +906,7 @@ func (h *TeamsHandler) UploadTeamAvatar(ctx context.Context, arg keybase1.Upload
 
 func (h *TeamsHandler) TryDecryptWithTeamKey(ctx context.Context, arg keybase1.TryDecryptWithTeamKeyArg) (ret []byte, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TryDecryptWithTeamKey(teamID:%s)", arg.TeamID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TryDecryptWithTeamKey(teamID:%s)", arg.TeamID), &err)()
 
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.TryDecryptWithTeamKey(mctx, arg)
@@ -914,28 +914,28 @@ func (h *TeamsHandler) TryDecryptWithTeamKey(ctx context.Context, arg keybase1.T
 
 func (h *TeamsHandler) FindNextMerkleRootAfterTeamRemoval(ctx context.Context, arg keybase1.FindNextMerkleRootAfterTeamRemovalArg) (res keybase1.NextMerkleRootRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("FindNextMerkleRootAfterTeamRemoval(%+v)", arg), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("FindNextMerkleRootAfterTeamRemoval(%+v)", arg), &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return libkb.FindNextMerkleRootAfterTeamRemoval(mctx, arg)
 }
 
 func (h *TeamsHandler) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.Context, arg keybase1.FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (res keybase1.NextMerkleRootRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("FindNextMerkleRootAfterTeamRemovalBySigningKey(%+v)", arg), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("FindNextMerkleRootAfterTeamRemovalBySigningKey(%+v)", arg), &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.FindNextMerkleRootAfterRemoval(mctx, arg)
 }
 
 func (h *TeamsHandler) ProfileTeamLoad(ctx context.Context, arg keybase1.LoadTeamArg) (res keybase1.ProfileTeamLoadRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("ProfileTeamLoad(%+v)", arg), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("ProfileTeamLoad(%+v)", arg), &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.ProfileTeamLoad(mctx, arg)
 }
 
 func (h *TeamsHandler) Ftl(ctx context.Context, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("Ftl(%+v)", arg), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("Ftl(%+v)", arg), &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.FTL(mctx, arg)
 
@@ -943,14 +943,14 @@ func (h *TeamsHandler) Ftl(ctx context.Context, arg keybase1.FastTeamLoadArg) (r
 
 func (h *TeamsHandler) GetTeamID(ctx context.Context, teamName string) (res keybase1.TeamID, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamIDByName(%s)", teamName), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("GetTeamIDByName(%s)", teamName), &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetTeamIDByNameRPC(mctx, teamName)
 }
 
 func (h *TeamsHandler) GetTeamName(ctx context.Context, teamID keybase1.TeamID) (res keybase1.TeamName, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamNameByID(%s)", teamID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("GetTeamNameByID(%s)", teamID), &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.ResolveIDToName(mctx.Ctx(), mctx.G(), teamID)
 }
@@ -962,7 +962,7 @@ func (h *TeamsHandler) GetTeamRoleMap(ctx context.Context) (res keybase1.TeamRol
 
 func (h *TeamsHandler) GetUntrustedTeamInfo(ctx context.Context, name keybase1.TeamName) (info keybase1.UntrustedTeamInfo, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetUntrustedTeamInfo(%s)", name), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("GetUntrustedTeamInfo(%s)", name), &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetUntrustedTeamInfo(mctx, name)
 }
@@ -971,8 +971,8 @@ func (h *TeamsHandler) LoadTeamTreeMembershipsAsync(ctx context.Context,
 	arg keybase1.LoadTeamTreeMembershipsAsyncArg) (res keybase1.TeamTreeInitial, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	ctx = libkb.WithLogTag(ctx, "TMTREE")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamTreeMembershipsAsync(%s, %s, %d)",
-		arg.TeamID, arg.Username, arg.SessionID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("LoadTeamTreeMembershipsAsync(%s, %s, %d)",
+		arg.TeamID, arg.Username, arg.SessionID), &err)()
 
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	loader, err := teams.NewTreeloader(mctx, arg.Username, arg.TeamID, arg.SessionID)
@@ -988,7 +988,7 @@ func (h *TeamsHandler) LoadTeamTreeMembershipsAsync(ctx context.Context,
 
 func (h *TeamsHandler) GetInviteLinkDetails(ctx context.Context, inviteID keybase1.TeamInviteID) (details keybase1.InviteLinkDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetInviteLinkDetails(%s)", inviteID), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("GetInviteLinkDetails(%s)", inviteID), &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetInviteLinkDetails(mctx, inviteID)
 }

@@ -11,9 +11,9 @@ import (
 const trustlineMaxLimit = "922337203685.4775807"
 
 func AddTrustlineLocal(mctx libkb.MetaContext, arg stellar1.AddTrustlineLocalArg) (err error) {
-	defer mctx.TraceTimed(
+	defer mctx.Trace(
 		fmt.Sprintf("Stellar.AddTrustlineLocal(%s,%s)", arg.AccountID, arg.Trustline.AssetCode),
-		func() error { return err })()
+		&err)()
 
 	var limitAmount string
 	if arg.Limit != "" {
@@ -88,9 +88,9 @@ func AddTrustlineLocal(mctx libkb.MetaContext, arg stellar1.AddTrustlineLocalArg
 }
 
 func DeleteTrustlineLocal(mctx libkb.MetaContext, arg stellar1.DeleteTrustlineLocalArg) (err error) {
-	defer mctx.TraceTimed(
+	defer mctx.Trace(
 		fmt.Sprintf("Stellar.DeleteTrustlineLocal(%s,%s)", arg.AccountID, arg.Trustline.AssetCode),
-		func() error { return err })()
+		&err)()
 
 	walletState := getGlobal(mctx.G()).walletState
 
@@ -161,9 +161,9 @@ func DeleteTrustlineLocal(mctx libkb.MetaContext, arg stellar1.DeleteTrustlineLo
 }
 
 func ChangeTrustlineLimitLocal(mctx libkb.MetaContext, arg stellar1.ChangeTrustlineLimitLocalArg) (err error) {
-	defer mctx.TraceTimed(
+	defer mctx.Trace(
 		fmt.Sprintf("Stellar.ChangeTrustlineLimitLocal(%s,%s,%s)", arg.AccountID, arg.Trustline.AssetCode, arg.Limit),
-		func() error { return err })()
+		&err)()
 
 	walletState := getGlobal(mctx.G()).walletState
 

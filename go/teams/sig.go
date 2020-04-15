@@ -337,7 +337,7 @@ func precheckLinksToState(ctx context.Context, g *libkb.GlobalContext,
 	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState,
 	me keybase1.UserVersion) (newState *TeamSigChainState, err error) {
 
-	defer g.CTraceTimed(ctx, "precheckLinksToState", func() error { return err })()
+	defer g.CTrace(ctx, "precheckLinksToState", &err)()
 
 	isAdmin := true
 	if state != nil {

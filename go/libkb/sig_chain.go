@@ -427,8 +427,8 @@ func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 }
 
 func (sc *SigChain) VerifyChain(mctx MetaContext, uid keybase1.UID) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("SigChain#VerifyChain(%s)", uid), func() error { return err })()
-	defer mctx.PerfTrace(fmt.Sprintf("SigChain#VerifyChain(%s)", uid), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("SigChain#VerifyChain(%s)", uid), &err)()
+	defer mctx.PerfTrace(fmt.Sprintf("SigChain#VerifyChain(%s)", uid), &err)()
 	start := time.Now()
 	defer func() {
 		var message string
@@ -998,7 +998,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID,
 
 func verifySigsAndComputeKeysHistorical(m MetaContext, uid keybase1.UID, username NormalizedUsername, allLinks ChainLinks, kf KeyFamily) (allCached bool, prevSubchains []ChainLinks, err error) {
 
-	defer m.Trace("verifySigsAndComputeKeysHistorical", func() error { return err })()
+	defer m.Trace("verifySigsAndComputeKeysHistorical", &err)()
 	var cached bool
 
 	for {
@@ -1150,8 +1150,8 @@ func (l *SigChainLoader) AccessPreload() bool {
 
 func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	uid := l.user.GetUID()
-	defer l.M().TraceTimed(fmt.Sprintf("SigChainLoader.LoadFromStorage(%s)", uid),
-		func() error { return err })()
+	defer l.M().Trace(fmt.Sprintf("SigChainLoader.LoadFromStorage(%s)", uid),
+		&err)()
 	var mt *MerkleTriple
 
 	if mt, err = l.LoadLastLinkIDFromStorage(); err != nil || mt == nil || mt.LinkID == nil {

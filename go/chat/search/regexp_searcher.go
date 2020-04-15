@@ -35,7 +35,7 @@ func (s *RegexpSearcher) SetPageSize(pageSize int) {
 
 func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	queryRe *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) (hits []chat1.ChatSearchHit, msgHits []chat1.MessageUnboxed, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Search")()
+	defer s.Trace(ctx, &err, "Search")()
 	defer func() {
 		if uiCh != nil {
 			close(uiCh)

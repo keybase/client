@@ -62,7 +62,7 @@ func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
 
 	m = m.WithLogTag("PPCHNG")
 
-	defer m.Trace("PassphraseChange#Run", func() error { return err })()
+	defer m.Trace("PassphraseChange#Run", &err)()
 	defer func() {
 		m.G().SKBKeyringMu.Unlock()
 	}()
@@ -123,7 +123,7 @@ func (c *PassphraseChange) findPaperKeys(m libkb.MetaContext) (*libkb.DeviceWith
 // for backup keys.  If backup keys are necessary, then it will
 // also log the user in with the backup keys.
 func (c *PassphraseChange) findUpdateDevice(m libkb.MetaContext) (ad *libkb.ActiveDevice, err error) {
-	defer m.Trace("PassphraseChange#findUpdateDevice", func() error { return err })()
+	defer m.Trace("PassphraseChange#findUpdateDevice", &err)()
 	if ad = m.G().ActiveDevice; ad.Valid() {
 		m.Debug("| returning globally active device key")
 		return ad, nil
@@ -140,7 +140,7 @@ func (c *PassphraseChange) findUpdateDevice(m libkb.MetaContext) (ad *libkb.Acti
 
 func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf libkb.LKSecClientHalf) (err error) {
 
-	defer m.Trace("PassphraseChange#forceUpdatePassphrase", func() error { return err })()
+	defer m.Trace("PassphraseChange#forceUpdatePassphrase", &err)()
 
 	// Don't update server-synced pgp keys when recovering.
 	// This will render any server-synced pgp keys unrecoverable from the server.
@@ -205,7 +205,7 @@ func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey lib
 // 3. Get lks client half from server
 // 4. Post an update passphrase proof
 func (c *PassphraseChange) runForcedUpdate(m libkb.MetaContext) (err error) {
-	defer m.Trace("PassphraseChange#runForcedUpdate", func() error { return err })()
+	defer m.Trace("PassphraseChange#runForcedUpdate", &err)()
 
 	ad, err := c.findUpdateDevice(m)
 	if err != nil {
@@ -251,7 +251,7 @@ func (c *PassphraseChange) runForcedUpdate(m libkb.MetaContext) (err error) {
 // runStandardUpdate is for when the user knows the current password.
 func (c *PassphraseChange) runStandardUpdate(m libkb.MetaContext) (err error) {
 
-	defer m.Trace("PassphraseChange.runStandardUpdate", func() error { return err })()
+	defer m.Trace("PassphraseChange.runStandardUpdate", &err)()
 
 	var ppStream *libkb.PassphraseStream
 	if len(c.arg.OldPassphrase) == 0 {

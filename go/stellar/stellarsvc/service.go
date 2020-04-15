@@ -70,13 +70,7 @@ type preambleArg struct {
 //   if err != nil { return err }
 func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (mctx libkb.MetaContext, fin func(), err error) {
 	mctx = libkb.NewMetaContext(s.logTag(inCtx), s.G())
-	getFinalErr := func() error {
-		if opts.Err == nil {
-			return nil
-		}
-		return *opts.Err
-	}
-	fin = mctx.TraceTimed("LRPC "+opts.RPCName, getFinalErr)
+	fin = mctx.Trace("LRPC "+opts.RPCName, opts.Err)
 	if !opts.AllowLoggedOut {
 		if err = s.assertLoggedIn(mctx); err != nil {
 			return mctx, fin, err

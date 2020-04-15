@@ -200,7 +200,7 @@ type FetchWotVouchesArg struct {
 }
 
 func fetchWot(mctx MetaContext, vouchee string, voucher string) (res []serverWotVouch, err error) {
-	defer mctx.Trace("fetchWot", func() error { return err })()
+	defer mctx.Trace("fetchWot", &err)()
 	apiArg := APIArg{
 		Endpoint:    "wot/get",
 		SessionType: APISessionTypeREQUIRED,

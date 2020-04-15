@@ -65,7 +65,7 @@ func (g *GlobalContext) ResetSocket(clearError bool) (net.Conn, rpc.Transporter,
 }
 
 func (g *GlobalContext) GetSocket(clearError bool) (conn net.Conn, xp rpc.Transporter, isNew bool, err error) {
-	g.Trace("GetSocket", func() error { return err })()
+	g.Trace("GetSocket", &err)()
 	g.socketWrapperMu.Lock()
 	defer g.socketWrapperMu.Unlock()
 	return g.getSocketLocked(clearError)

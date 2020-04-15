@@ -28,19 +28,19 @@ func newReachabilityHandler(xp rpc.Transporter, g *libkb.GlobalContext, reachabi
 }
 
 func (h *reachabilityHandler) ReachabilityChanged(_ context.Context, _ keybase1.Reachability) (err error) {
-	h.G().Trace("ReachabilityChanged", func() error { return err })()
+	h.G().Trace("ReachabilityChanged", &err)()
 	return nil
 }
 
 func (h *reachabilityHandler) StartReachability(_ context.Context) (res keybase1.Reachability, err error) {
-	h.G().Trace("StartReachability", func() error { return err })()
+	h.G().Trace("StartReachability", &err)()
 	return keybase1.Reachability{
 		Reachable: keybase1.Reachable_UNKNOWN,
 	}, nil
 }
 
 func (h *reachabilityHandler) CheckReachability(_ context.Context) (res keybase1.Reachability, err error) {
-	h.G().Trace("CheckReachability", func() error { return err })()
+	h.G().Trace("CheckReachability", &err)()
 	return h.reachability.check(), nil
 }
 

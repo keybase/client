@@ -210,7 +210,7 @@ func (r *rekeyMaster) resumeSleep() time.Duration {
 }
 
 func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) {
-	defer r.G().Trace(fmt.Sprintf("rekeyMaster#runOnce(%d) [%p]", ri, r), func() error { return err })()
+	defer r.G().Trace(fmt.Sprintf("rekeyMaster#runOnce(%d) [%p]", ri, r), &err)()
 
 	var problemsAndDevices *keybase1.ProblemSetDevices
 	var event keybase1.RekeyEvent
@@ -259,7 +259,7 @@ func (r *rekeyMaster) getUI() (ret *RekeyUI, err error) {
 }
 
 func (r *rekeyMaster) clearUI() (err error) {
-	defer r.G().Trace("rekeyMaster#clearUI", func() error { return err })()
+	defer r.G().Trace("rekeyMaster#clearUI", &err)()
 
 	if !r.uiVisible {
 		r.G().Log.Debug("| no need to clear the UI; UI wasn't visible")
@@ -289,7 +289,7 @@ func (r *rekeyMaster) clearUI() (err error) {
 }
 
 func (r *rekeyMaster) spawnOrRefreshUI(problemSetDevices keybase1.ProblemSetDevices) (err error) {
-	defer r.G().Trace("rekeyMaster#spawnOrRefreshUI", func() error { return err })()
+	defer r.G().Trace("rekeyMaster#spawnOrRefreshUI", &err)()
 
 	var ui *RekeyUI
 	ui, err = r.getUI()
@@ -313,7 +313,7 @@ func (r *rekeyMaster) spawnOrRefreshUI(problemSetDevices keybase1.ProblemSetDevi
 // sendRekeyEvent sends notification of a rekey event to the UI. It's largely
 // used for testing.
 func (r *rekeyMaster) sendRekeyEvent(e keybase1.RekeyEvent) (err error) {
-	defer r.G().Trace(fmt.Sprintf("rekeyMaster#sendRekeyEvent(%v)", e), func() error { return err })()
+	defer r.G().Trace(fmt.Sprintf("rekeyMaster#sendRekeyEvent(%v)", e), &err)()
 
 	if e.InterruptType == int(RekeyInterruptSync) {
 		r.G().Log.Debug("| No need to send a rekey event on a Sync() RPC")
@@ -334,7 +334,7 @@ func (r *rekeyMaster) sendRekeyEvent(e keybase1.RekeyEvent) (err error) {
 }
 
 func (r *rekeyMaster) actOnProblems(problemsAndDevices *keybase1.ProblemSetDevices, event keybase1.RekeyEvent) (err error) {
-	defer r.G().Trace(fmt.Sprintf("rekeyMaster#actOnProblems(%v)", problemsAndDevices != nil), func() error { return err })()
+	defer r.G().Trace(fmt.Sprintf("rekeyMaster#actOnProblems(%v)", problemsAndDevices != nil), &err)()
 
 	if problemsAndDevices == nil {
 		err = r.clearUI()
@@ -346,7 +346,7 @@ func (r *rekeyMaster) actOnProblems(problemsAndDevices *keybase1.ProblemSetDevic
 }
 
 func (r *rekeyMaster) hasGregorTLFRekeyMessages() (ret bool, err error) {
-	defer r.G().Trace("hasGregorTLFRekeyMessages", func() error { return err })()
+	defer r.G().Trace("hasGregorTLFRekeyMessages", &err)()
 
 	var state gregor1.State
 	state, err = r.gregor.getState(context.Background())
@@ -363,7 +363,7 @@ func (r *rekeyMaster) hasGregorTLFRekeyMessages() (ret bool, err error) {
 }
 
 func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevices *keybase1.ProblemSetDevices, event keybase1.RekeyEvent, err error) {
-	defer r.G().Trace("rekeyMaster#computeProblems", func() error { return err })()
+	defer r.G().Trace("rekeyMaster#computeProblems", &err)()
 
 	if !r.G().ActiveDevice.Valid() {
 		r.G().Log.Debug("| not logged in")

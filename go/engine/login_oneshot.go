@@ -37,7 +37,7 @@ func (e *LoginOneshot) RequiredUIs() []libkb.UIKind      { return []libkb.UIKind
 func (e *LoginOneshot) SubConsumers() []libkb.UIConsumer { return []libkb.UIConsumer{} }
 
 func (e *LoginOneshot) loadUser(m libkb.MetaContext) (err error) {
-	defer m.Trace("LoginOneshot#loadUser", func() error { return err })()
+	defer m.Trace("LoginOneshot#loadUser", &err)()
 	arg := libkb.NewLoadUserArgWithMetaContext(m).WithName(e.arg.Username)
 	var upak *keybase1.UserPlusKeysV2AllIncarnations
 	upak, _, err = m.G().GetUPAKLoader().LoadV2(arg)
@@ -49,7 +49,7 @@ func (e *LoginOneshot) loadUser(m libkb.MetaContext) (err error) {
 }
 
 func (e *LoginOneshot) loadKey(m libkb.MetaContext) (err error) {
-	defer m.Trace("LoginOneshot#loadKey", func() error { return err })()
+	defer m.Trace("LoginOneshot#loadKey", &err)()
 	arg := PaperKeyGenArg{
 		Passphrase: libkb.NewPaperKeyPhrase(e.arg.PaperKey),
 		SkipPush:   true,
@@ -74,7 +74,7 @@ func (e *LoginOneshot) loadKey(m libkb.MetaContext) (err error) {
 }
 
 func (e *LoginOneshot) checkLogin(m libkb.MetaContext) (err error) {
-	defer m.Trace("LoginOneshot#checkLogin", func() error { return err })()
+	defer m.Trace("LoginOneshot#checkLogin", &err)()
 	arg := libkb.NewRetryAPIArg("sesscheck")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	_, err = m.G().API.Get(m, arg)
@@ -82,25 +82,25 @@ func (e *LoginOneshot) checkLogin(m libkb.MetaContext) (err error) {
 }
 
 func (e *LoginOneshot) makeLoginChanges(m libkb.MetaContext) (err error) {
-	defer m.Trace("LoginOneshot#makeLoginChanges", func() error { return err })()
+	defer m.Trace("LoginOneshot#makeLoginChanges", &err)()
 	nun := libkb.NewNormalizedUsername(e.upak.GetName())
 	return m.SwitchUserToActiveOneshotDevice(e.upak.ToUserVersion(), nun, e.device)
 }
 
 func (e *LoginOneshot) commitLoginChanges(m libkb.MetaContext) (err error) {
-	defer m.Trace("LoginOneshot#commitLoginChanges", func() error { return err })()
+	defer m.Trace("LoginOneshot#commitLoginChanges", &err)()
 	m.G().NotifyRouter.HandleLogin(m.Ctx(), e.arg.Username)
 	m.G().CallLoginHooks(m)
 	return nil
 }
 
 func (e *LoginOneshot) rollbackLoginChanges(m libkb.MetaContext) (err error) {
-	defer m.Trace("LoginOneshot#rollbackLoginChanges", func() error { return err })()
+	defer m.Trace("LoginOneshot#rollbackLoginChanges", &err)()
 	return m.SwitchUserLoggedOut()
 }
 
 func (e *LoginOneshot) finish(m libkb.MetaContext) (err error) {
-	defer m.Trace("LoginOneshot#commit", func() error { return err })()
+	defer m.Trace("LoginOneshot#commit", &err)()
 
 	err = e.makeLoginChanges(m)
 	if err != nil {
@@ -116,7 +116,7 @@ func (e *LoginOneshot) finish(m libkb.MetaContext) (err error) {
 }
 
 func (e *LoginOneshot) checkPreconditions(m libkb.MetaContext) (err error) {
-	defer m.Trace("LoginOneshot#checkPreconditions", func() error { return err })()
+	defer m.Trace("LoginOneshot#checkPreconditions", &err)()
 	if m.ActiveDevice().Valid() {
 		return libkb.LoggedInError{}
 	}
@@ -124,7 +124,7 @@ func (e *LoginOneshot) checkPreconditions(m libkb.MetaContext) (err error) {
 }
 
 func (e *LoginOneshot) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("LoginOneshot#run", func() error { return err })()
+	defer m.Trace("LoginOneshot#run", &err)()
 
 	if err = e.checkPreconditions(m); err != nil {
 		return err

@@ -61,7 +61,7 @@ func NewEphemeralTracker(g *globals.Context) *EphemeralTracker {
 }
 
 func (t *EphemeralTracker) Start(ctx context.Context, uid gregor1.UID) {
-	defer t.Trace(ctx, func() error { return nil }, "Start")()
+	defer t.Trace(ctx, nil, "Start")()
 	t.Lock()
 	defer t.Unlock()
 	if t.started {
@@ -73,7 +73,7 @@ func (t *EphemeralTracker) Start(ctx context.Context, uid gregor1.UID) {
 }
 
 func (t *EphemeralTracker) Stop(ctx context.Context) chan struct{} {
-	defer t.Trace(ctx, func() error { return nil }, "Stop")()
+	defer t.Trace(ctx, nil, "Stop")()
 	t.Lock()
 	defer t.Unlock()
 	ch := make(chan struct{})
@@ -198,7 +198,7 @@ func (t *EphemeralTracker) flushLocked(ctx context.Context, uid gregor1.UID) err
 
 func (t *EphemeralTracker) GetPurgeInfo(ctx context.Context,
 	uid gregor1.UID, convID chat1.ConversationID) (chat1.EphemeralPurgeInfo, error) {
-	defer t.Trace(ctx, func() error { return nil }, "GetPurgeInfo")()
+	defer t.Trace(ctx, nil, "GetPurgeInfo")()
 	t.Lock()
 	defer t.Unlock()
 
@@ -235,7 +235,7 @@ func (t *EphemeralTracker) getAllKeysLocked(ctx context.Context, uid gregor1.UID
 }
 
 func (t *EphemeralTracker) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) ([]chat1.EphemeralPurgeInfo, error) {
-	defer t.Trace(ctx, func() error { return nil }, "GetAllPurgeInfo")()
+	defer t.Trace(ctx, nil, "GetAllPurgeInfo")()
 	t.Lock()
 	defer t.Unlock()
 
@@ -341,7 +341,7 @@ func (t *EphemeralTracker) clearMemory() {
 }
 
 func (t *EphemeralTracker) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (err error) {
-	defer t.Trace(ctx, func() error { return err }, "Clear")()
+	defer t.Trace(ctx, &err, "Clear")()
 	t.Lock()
 	defer t.Unlock()
 

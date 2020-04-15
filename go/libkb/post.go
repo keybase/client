@@ -147,7 +147,7 @@ func DeletePrimary(m MetaContext) (err error) {
 }
 
 func CheckPosted(mctx MetaContext, sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("CheckPosted(%v)", sigID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("CheckPosted(%v)", sigID), &err)()
 	found, status, state, err = checkPostedAPICall(mctx, sigID)
 	if err != nil {
 		return found, status, state, err

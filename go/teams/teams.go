@@ -204,7 +204,7 @@ func (t *Team) getKeyManager(ctx context.Context) (km *TeamKeyManager, err error
 }
 
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
-	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
+	defer t.G().CTrace(ctx, "Team#SharedSecret", &err)()
 	km, err := t.getKeyManager(ctx)
 	if err != nil {
 		return ret, err
@@ -403,7 +403,7 @@ func (t *Team) ImplicitTeamDisplayNameNoConflicts(ctx context.Context) (res keyb
 }
 
 func (t *Team) implicitTeamDisplayName(ctx context.Context, skipConflicts bool) (res keybase1.ImplicitTeamDisplayName, err error) {
-	defer t.G().CTrace(ctx, "Team.ImplicitTeamDisplayName", func() error { return err })()
+	defer t.G().CTrace(ctx, "Team.ImplicitTeamDisplayName", &err)()
 
 	impName := keybase1.ImplicitTeamDisplayName{
 		IsPublic:     t.IsPublic(),
@@ -593,7 +593,7 @@ func (t *Team) Rotate(ctx context.Context, rt keybase1.RotationType) (err error)
 
 func (t *Team) rotate(ctx context.Context, rt keybase1.RotationType) (err error) {
 	mctx := t.MetaContext(ctx).WithLogTag("ROT")
-	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%s)", t.ID, rt), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%s)", t.ID, rt), &err)()
 
 	rt, err = hidden.CheckFeatureGateForSupportWithRotationType(mctx, t.ID, rt)
 	if err != nil {
@@ -852,7 +852,7 @@ type ChangeMembershipOptions struct {
 }
 
 func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.TeamChangeReq, opts ChangeMembershipOptions) (err error) {
-	defer t.G().CTrace(ctx, "Team.ChangeMembershipWithOptions", func() error { return err })()
+	defer t.G().CTrace(ctx, "Team.ChangeMembershipWithOptions", &err)()
 
 	if t.IsSubteam() && len(req.Owners) > 0 {
 		return NewSubteamOwnersError()
@@ -970,7 +970,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 }
 
 func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, err error) {
-	defer t.G().CTrace(ctx, "Team#downgradeIfOwnerOrAdmin", func() error { return err })()
+	defer t.G().CTrace(ctx, "Team#downgradeIfOwnerOrAdmin", &err)()
 
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
@@ -1381,7 +1381,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 }
 
 func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKey, err error) {
-	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitan: team: %v, role: %v", t.Name(), role), func() error { return err })()
+	defer t.G().CTrace(ctx, fmt.Sprintf("InviteSeitan: team: %v, role: %v", t.Name(), role), &err)()
 
 	ikey, err = GenerateIKey()
 	if err != nil {
@@ -1417,7 +1417,7 @@ func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole, label k
 }
 
 func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKeyV2, err error) {
-	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanV2: team: %v, role: %v", t.Name(), role), func() error { return err })()
+	defer t.G().CTrace(ctx, fmt.Sprintf("InviteSeitanV2: team: %v, role: %v", t.Name(), role), &err)()
 
 	ikey, err = GenerateIKeyV2()
 	if err != nil {
@@ -1458,7 +1458,7 @@ func (t *Team) InviteInvitelink(
 	maxUses keybase1.TeamInviteMaxUses,
 	etime *keybase1.UnixTime,
 ) (ikey keybase1.SeitanIKeyInvitelink, inviteID SCTeamInviteID, err error) {
-	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), func() error { return err })()
+	defer t.G().CTrace(ctx, fmt.Sprintf("InviteInviteLink: team: %v, role: %v, etime: %v, maxUses: %v", t.Name(), role, etime, maxUses), &err)()
 
 	if role.IsAdminOrAbove() {
 		return ikey, inviteID, fmt.Errorf("cannot create invitelink to add as %v", role)
@@ -2054,7 +2054,7 @@ func createTeambotKeys(g *libkb.GlobalContext, teamID keybase1.TeamID, bots []ke
 	mctx := libkb.NewMetaContextBackground(g)
 	go func() {
 		var err error
-		defer mctx.TraceTimed(fmt.Sprintf("createTeambotKeys: %d bot members", len(bots)), func() error { return err })()
+		defer mctx.Trace(fmt.Sprintf("createTeambotKeys: %d bot members", len(bots)), &err)()
 		if len(bots) == 0 {
 			return
 		}
@@ -2411,7 +2411,7 @@ func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.Si
 // Passes the attempt number (initially 0) to `post`.
 func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx context.Context, attempt int) error) (err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
-	defer mctx.TraceTimed("RetryIfPossible", func() error { return err })()
+	defer mctx.Trace("RetryIfPossible", &err)()
 	const nRetries = 3
 	for i := 0; i < nRetries; i++ {
 		mctx.Debug("| RetryIfPossible(%v)", i)
@@ -2513,7 +2513,7 @@ func (t *Team) boxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicatio
 func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 	cryptKeys []keybase1.CryptKey, appType keybase1.TeamApplication) (err error) {
 	m := t.MetaContext(ctx)
-	defer m.Trace("Team.AssociateWithTLFKeyset", func() error { return err })()
+	defer m.Trace("Team.AssociateWithTLFKeyset", &err)()
 
 	// If we get no crypt keys, just associate TLF ID and bail
 	if len(cryptKeys) == 0 {
@@ -2589,7 +2589,7 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 
 func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (err error) {
 	m := t.MetaContext(ctx)
-	defer m.Trace("Team.AssociateWithTLFID", func() error { return err })()
+	defer m.Trace("Team.AssociateWithTLFID", &err)()
 
 	if tlfID.Eq(t.LatestKBFSTLFID()) {
 		m.Debug("No updated needed, TLFID already set to %s", tlfID)
@@ -2712,7 +2712,7 @@ func (t *Team) refreshUIDMapper(ctx context.Context, g *libkb.GlobalContext) {
 
 func UpgradeTLFIDToImpteam(ctx context.Context, g *libkb.GlobalContext, tlfName string, tlfID keybase1.TLFID,
 	public bool, appType keybase1.TeamApplication, cryptKeys []keybase1.CryptKey) (err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("UpgradeTLFIDToImpteam(%s)", tlfID), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("UpgradeTLFIDToImpteam(%s)", tlfID), &err)()
 
 	var team *Team
 	if team, _, _, err = LookupOrCreateImplicitTeam(ctx, g, tlfName, public); err != nil {

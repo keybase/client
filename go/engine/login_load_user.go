@@ -56,7 +56,7 @@ func (e *loginLoadUser) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *loginLoadUser) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("loginLoadUser#Run", func() error { return err })()
+	defer m.Trace("loginLoadUser#Run", &err)()
 
 	var username string
 	username, err = e.findUsername(m)

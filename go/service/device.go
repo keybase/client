@@ -118,7 +118,7 @@ func LoopAndDismissForDeviceChangeNotifications(mctx libkb.MetaContext, dismisse
 
 func (h *DeviceHandler) DismissDeviceChangeNotifications(c context.Context) (err error) {
 	mctx := libkb.NewMetaContext(c, h.G())
-	defer mctx.TraceTimed("DismissDeviceChangeNotifications", func() error { return err })()
+	defer mctx.Trace("DismissDeviceChangeNotifications", &err)()
 
 	gcli, err := h.gregor.getGregorCli()
 	if err != nil {

@@ -27,7 +27,7 @@ func (mctx MetaContext) LogoutWithOptions(options LogoutOptions) (err error) {
 
 func (mctx MetaContext) LogoutUsernameWithOptions(username NormalizedUsername, options LogoutOptions) (err error) {
 	mctx = mctx.WithLogTag("LOGOUT")
-	defer mctx.Trace(fmt.Sprintf("MetaContext#LogoutWithOptions(%#v)", options), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("MetaContext#LogoutWithOptions(%#v)", options), &err)()
 
 	g := mctx.G()
 	defer g.switchUserMu.Acquire(mctx, "Logout")()

@@ -119,7 +119,7 @@ func backoffIncrease(d time.Duration) time.Duration {
 func (t *TeamRoleMapManager) loadDelayedRetry(mctx libkb.MetaContext, backoff time.Duration) {
 	mctx = mctx.WithLogTag("TRMM-LDR")
 	var err error
-	defer mctx.Trace("TeamRoleMapManager#loadDelayedRetry", func() error { return err })()
+	defer mctx.Trace("TeamRoleMapManager#loadDelayedRetry", &err)()
 
 	if backoff == time.Duration(0) {
 		mctx.Debug("Not retrying, no backoff specified")
@@ -220,7 +220,7 @@ func (t *TeamRoleMapManager) load(mctx libkb.MetaContext, retryOnFailBackoff tim
 // Get is called from the frontend to refresh its view of the TeamRoleMap state. The unfortunate
 // case is when the
 func (t *TeamRoleMapManager) Get(mctx libkb.MetaContext, retryOnFail bool) (res keybase1.TeamRoleMapAndVersion, err error) {
-	defer mctx.Trace("TeamRoleMapManager#Get", func() error { return err })()
+	defer mctx.Trace("TeamRoleMapManager#Get", &err)()
 	t.Lock()
 	defer t.Unlock()
 	err = t.load(mctx, backoffInitial(retryOnFail))
@@ -231,7 +231,7 @@ func (t *TeamRoleMapManager) Get(mctx libkb.MetaContext, retryOnFail bool) (res 
 }
 
 func (t *TeamRoleMapManager) Update(mctx libkb.MetaContext, version keybase1.UserTeamVersion) (err error) {
-	defer mctx.Trace(fmt.Sprintf("TeamRoleMapManager#Update(%d)", version), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamRoleMapManager#Update(%d)", version), &err)()
 	t.Lock()
 	defer t.Unlock()
 	t.lastKnownVersion = &version

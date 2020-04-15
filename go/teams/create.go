@@ -14,7 +14,7 @@ import (
 )
 
 func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam keybase1.ImplicitTeamDisplayName) (res keybase1.TeamID, teamName keybase1.TeamName, err error) {
-	defer g.CTrace(ctx, "CreateImplicitTeam", func() error { return err })()
+	defer g.CTrace(ctx, "CreateImplicitTeam", &err)()
 
 	teamName, err = NewImplicitTeamName()
 	if err != nil {
@@ -152,7 +152,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 	invites *SCTeamInvites, secretboxRecipients map[keybase1.UserVersion]keybase1.PerUserKey, name string,
 	teamID keybase1.TeamID, public, implicit bool, settings *SCTeamSettings, merkleRoot libkb.MerkleRoot) (err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
-	defer g.Trace("makeSigAndPostRootTeam", func() error { return err })()
+	defer g.Trace("makeSigAndPostRootTeam", &err)()
 	mctx.Debug("makeSigAndPostRootTeam get device keys")
 	deviceSigningKey, err := mctx.G().ActiveDevice.SigningKey()
 	if err != nil {
@@ -280,7 +280,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 }
 
 func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString string, settings keybase1.TeamSettings) (res *keybase1.TeamID, err error) {
-	defer g.CTraceTimed(ctx, "CreateRootTeam", func() error { return err })()
+	defer g.CTrace(ctx, "CreateRootTeam", &err)()
 
 	perUserKeyUpgradeSoft(ctx, g, "create-root-team")
 
@@ -338,7 +338,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string,
 	parentName keybase1.TeamName, addSelfAs keybase1.TeamRole) (ret *keybase1.TeamID, err error) {
-	defer g.CTrace(ctx, "CreateSubteam", func() error { return err })()
+	defer g.CTrace(ctx, "CreateSubteam", &err)()
 	mctx := libkb.NewMetaContext(ctx, g)
 
 	subteamName, err := parentName.Append(subteamBasename)
