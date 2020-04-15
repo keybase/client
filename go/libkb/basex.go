@@ -48,7 +48,7 @@ func reverseBuf(buf []byte) {
 	}
 }
 
-func (b BaseXEncoder) EncodeToString(input []byte) string {
+func (b *BaseXEncoder) EncodeToString(input []byte) string {
 	num := new(big.Int).SetBytes(input)
 	buf := make([]byte, 0, len(input))
 	rem := new(big.Int)
@@ -74,7 +74,7 @@ func (b BaseXEncoder) EncodeToString(input []byte) string {
 	return string(buf)
 }
 
-func (b BaseXEncoder) DecodeString(inp string) (outp []byte, err error) {
+func (b *BaseXEncoder) DecodeString(inp string) (outp []byte, err error) {
 	place := big.NewInt(1)
 	buf := []byte(inp)
 	padlen := 0
