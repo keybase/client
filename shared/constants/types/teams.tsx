@@ -207,6 +207,8 @@ export type ActivityLevels = {
   loaded: boolean
 }
 
+export type TeamListSort = 'role' | 'activity' | 'alphabetical'
+
 export type State = {
   readonly activityLevels: ActivityLevels
   readonly addMembersWizard: AddMembersWizardState
@@ -236,6 +238,8 @@ export type State = {
   readonly teamJoinSuccess: boolean
   readonly teamJoinSuccessOpen: boolean
   readonly teamJoinSuccessTeamName: string
+  readonly teamListFilter: string
+  readonly teamListSort: TeamListSort
   readonly teamMeta: Map<TeamID, TeamMeta>
   readonly teamMetaStale: boolean // if we've received an update since we last loaded team list
   readonly teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
