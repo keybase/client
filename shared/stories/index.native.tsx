@@ -80,8 +80,7 @@ const load = () => {
   addDecorator((story: any) => <RootWrapper>{story()}</RootWrapper>)
   addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
   debugger
-  // Object.keys(filteredStories).forEach(s => filteredStories[s]())
-  filteredStories['wallets']()
+  Object.keys(filteredStories).forEach(s => filteredStories[s]())
 }
 
 export default load
