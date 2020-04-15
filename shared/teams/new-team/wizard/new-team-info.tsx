@@ -131,6 +131,7 @@ const NewTeamInfo = () => {
         ),
       }}
       allowOverflow={true}
+      backgroundStyle={styles.bg}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         {parentName ? (
@@ -232,10 +233,10 @@ const NewTeamInfo = () => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Styles.globalColors.blueGrey},
   body: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
-      backgroundColor: Styles.globalColors.blueGrey,
       borderRadius: 4,
     },
     isMobile: {...Styles.globalStyles.flexOne},

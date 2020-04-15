@@ -152,9 +152,17 @@ const SortHeader = () => {
     <Kb.FloatingMenu
       attachTo={getAttachmentRef}
       items={[
-        {onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
-        {onClick: () => onChangeSort('activity'), title: sortOrderToTitle.activity},
-        {onClick: () => onChangeSort('alphabetical'), title: sortOrderToTitle.alphabetical},
+        {icon: 'iconfont-crown-owner', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
+        {
+          icon: 'iconfont-campfire-burning',
+          onClick: () => onChangeSort('activity'),
+          title: sortOrderToTitle.activity,
+        },
+        {
+          icon: 'iconfont-text-code',
+          onClick: () => onChangeSort('alphabetical'),
+          title: sortOrderToTitle.alphabetical,
+        },
       ]}
       closeOnSelect={true}
       onHidden={toggleShowingPopup}

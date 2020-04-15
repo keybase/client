@@ -28,6 +28,7 @@ const TeamPurpose = () => {
         title: <ModalTitle teamID={Types.noTeamID} title="New team" />,
       }}
       allowOverflow={true}
+      backgroundStyle={styles.bg}
     >
       <Kb.Box2
         direction="vertical"
@@ -69,10 +70,13 @@ const TeamPurpose = () => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  bg: Styles.platformStyles({
+    common: {backgroundColor: Styles.globalColors.blueGrey},
+    isElectron: {borderRadius: 4},
+  }),
   body: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
-      backgroundColor: Styles.globalColors.blueGrey,
       borderRadius: 4,
     },
     isMobile: {...Styles.globalStyles.flexOne},
