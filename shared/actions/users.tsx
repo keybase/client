@@ -73,24 +73,19 @@ const refreshBlockList = async (action: TeamBuildingGen.SearchResultsLoadedPaylo
   })
 
 const submitRevokeVouch = async (_: TypedState, action: UsersGen.SubmitRevokeVouchPayload) => {
-  try {
-    await RPCTypes.revokeRevokeSigsRpcPromise(
-      {sigIDQueries: [action.payload.proofID]},
-      Constants.wotRevokeWaitingKey
-    )
-    return Tracker2Gen.createLoad({
-      assertion: action.payload.voucheeName,
-      forceDisplay: false,
-      fromDaemon: false,
-      guiID: TrackerConstants.generateGUIID(),
-      ignoreCache: false,
-      inTracker: false,
-      reason: '',
-    })
-  } catch (e) {
-    logger.info('error revoking vouch', e)
-    return
-  }
+  await RPCTypes.revokeRevokeSigsRpcPromise(
+    {sigIDQueries: [action.payload.proofID]},
+    Constants.wotRevokeWaitingKey
+  )
+  return Tracker2Gen.createLoad({
+    assertion: action.payload.voucheeName,
+    forceDisplay: false,
+    fromDaemon: false,
+    guiID: TrackerConstants.generateGUIID(),
+    ignoreCache: false,
+    inTracker: false,
+    reason: 'wotRevokedVouch',
+  })
 }
 
 const wotReact = async (action: UsersGen.WotReactPayload) => {
