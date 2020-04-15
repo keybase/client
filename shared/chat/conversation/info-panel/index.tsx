@@ -181,7 +181,10 @@ const styles = Styles.styleSheetCreate(
           width: infoPanelWidthTablet,
         },
       }),
-      containerBorder: {backgroundColor: '#E5E5E5', width: tabletContainerBorderSize},
+      containerBorder: {
+        backgroundColor: Styles.globalColors.black_10,
+        width: tabletContainerBorderSize,
+      },
       containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
       tab: {
         paddingLeft: Styles.globalMargins.xsmall,
