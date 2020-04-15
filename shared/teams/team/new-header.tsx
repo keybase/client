@@ -8,7 +8,7 @@ import TeamMenu from './menu-container'
 import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import capitalize from 'lodash/capitalize'
-import {Activity, useActivityLevels} from '../common'
+import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import flags from '../../util/feature-flags'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
@@ -172,6 +172,8 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
+  const {popupAnchor, setShowingPopup, popup} = useTeamLinkPopup(meta.teamname)
+
   const bottomDescriptorsAndButtons = (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny">
       {!!details.description && (
@@ -195,9 +197,16 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
       <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
         {meta.isMember && <Kb.Button label="Chat" onClick={callbacks.onChat} small={true} />}
         {yourOperations.editTeamDescription && (
-          <Kb.Button label="Edit" onClick={callbacks.onEdit} small={true} mode="Secondary" />
+          <Kb.Button label="Edit" onClick={callbacks.onEditDescription} small={true} mode="Secondary" />
         )}
-        <Kb.Button label="Share" onClick={callbacks.onShare} small={true} mode="Secondary" />
+        <Kb.Button
+          label="Share"
+          onClick={() => setShowingPopup(true)}
+          small={true}
+          mode="Secondary"
+          ref={popupAnchor}
+        />
+        {popup}
         <Kb.Button
           mode="Secondary"
           small={true}
@@ -303,7 +312,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
 }
 export default Kb.OverlayParentHOC(_HeaderTitle)
 
-const nyi = () => console.warn('not yet implemented')
 const useHeaderCallbacks = (teamID: TeamID) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -339,23 +347,19 @@ const useHeaderCallbacks = (teamID: TeamID) => {
           nav.safeNavigateAppendPayload({path: [{props: {teamname: meta.teamname}, selected: 'teamRename'}]})
         )
     : undefined
-  const onEdit = nyi
   const onManageInvites = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteHistory'}]}))
   const onGenerateLink = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksModal'}]}))
-  const onShare = nyi
 
   return {
     onAddSelf,
     onChat,
-    onEdit,
     onEditAvatar,
     onEditDescription,
     onGenerateLink,
     onManageInvites,
     onRename,
-    onShare,
   }
 }
 
