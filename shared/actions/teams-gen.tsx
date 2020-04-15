@@ -75,7 +75,6 @@ export const setNewTeamRequests = 'teams:setNewTeamRequests'
 export const setPublicity = 'teams:setPublicity'
 export const setSubteamFilter = 'teams:setSubteamFilter'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
-export const setTeamCanPerform = 'teams:setTeamCanPerform'
 export const setTeamCreationError = 'teams:setTeamCreationError'
 export const setTeamDetails = 'teams:setTeamDetails'
 export const setTeamInfo = 'teams:setTeamInfo'
@@ -283,11 +282,6 @@ type _SetNewTeamRequestsPayload = {readonly newTeamRequests: Map<Types.TeamID, S
 type _SetPublicityPayload = {readonly teamID: Types.TeamID; readonly settings: Types.PublicitySettings}
 type _SetSubteamFilterPayload = {readonly filter: string; readonly parentTeam?: Types.TeamID}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
-type _SetTeamCanPerformPayload = {
-  readonly teamname: string
-  readonly teamID: Types.TeamID
-  readonly teamOperation: Types.TeamOperations
-}
 type _SetTeamCreationErrorPayload = {readonly error: string}
 type _SetTeamDetailsPayload = {
   readonly teamID: Types.TeamID
@@ -738,10 +732,6 @@ export const createSetPublicity = (payload: _SetPublicityPayload): SetPublicityP
 export const createSetTeamAccessRequestsPending = (
   payload: _SetTeamAccessRequestsPendingPayload
 ): SetTeamAccessRequestsPendingPayload => ({payload, type: setTeamAccessRequestsPending})
-export const createSetTeamCanPerform = (payload: _SetTeamCanPerformPayload): SetTeamCanPerformPayload => ({
-  payload,
-  type: setTeamCanPerform,
-})
 export const createSetTeamCreationError = (
   payload: _SetTeamCreationErrorPayload
 ): SetTeamCreationErrorPayload => ({payload, type: setTeamCreationError})
@@ -1079,10 +1069,6 @@ export type SetTeamAccessRequestsPendingPayload = {
   readonly payload: _SetTeamAccessRequestsPendingPayload
   readonly type: typeof setTeamAccessRequestsPending
 }
-export type SetTeamCanPerformPayload = {
-  readonly payload: _SetTeamCanPerformPayload
-  readonly type: typeof setTeamCanPerform
-}
 export type SetTeamCreationErrorPayload = {
   readonly payload: _SetTeamCreationErrorPayload
   readonly type: typeof setTeamCreationError
@@ -1299,7 +1285,6 @@ export type Actions =
   | SetPublicityPayload
   | SetSubteamFilterPayload
   | SetTeamAccessRequestsPendingPayload
-  | SetTeamCanPerformPayload
   | SetTeamCreationErrorPayload
   | SetTeamDetailsPayload
   | SetTeamInfoPayload
