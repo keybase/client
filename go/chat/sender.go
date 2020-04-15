@@ -1204,6 +1204,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			TopicNameState: prepareRes.TopicNameState,
 			JoinMentionsAs: sendOpts.GetJoinMentionsAs(),
 		}
+		time.Sleep(10 * time.Second)
 		plres, err = s.getRi().PostRemote(ctx, rarg)
 		if err != nil {
 			switch e := err.(type) {

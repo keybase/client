@@ -703,7 +703,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.messagesAdd]: (draftState, action) => {
     const {context, conversationIDKey, shouldClearOthers} = action.payload
-    logger.info(`messagesAdd: running in context: ${context}`)
+    logger.info(`messagesAdd: running in context: ${context.type}`)
     // pull out deletes and handle at the end
     const [messages, deletedMessages] = partition<Types.Message>(
       action.payload.messages,
@@ -718,6 +718,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const previousMessageMap = new Map(draftState.messageMap)
 
     if (shouldClearOthers) {
+      logger.info(`messagesAdd: clearing existing data`)
       messageOrdinals.delete(conversationIDKey)
       oldPendingOutboxToOrdinal.delete(conversationIDKey)
       oldMessageMap.delete(conversationIDKey)
@@ -729,6 +730,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     messages.forEach(message => {
       if (message.submitState === 'pending' && message.outboxID) {
         const outToOrd = new Map(pendingOutboxToOrdinal.get(conversationIDKey) || [])
+        logger.info(
+          `messagesAdd: setting new outbox ordinal: ${message.ordinal} outboxID: ${message.outboxID}`
+        )
         outToOrd.set(message.outboxID, message.ordinal)
         pendingOutboxToOrdinal.set(conversationIDKey, outToOrd)
       }
@@ -758,6 +762,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       return null
     }
 
+    // remove all deleted messages from ordinals that we are passed as a parameter
     let os = messageOrdinals.get(conversationIDKey) || new Set()
     deletedMessages.forEach(m => os.delete(m.ordinal))
     messageOrdinals.set(conversationIDKey, os)
@@ -767,7 +772,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       if (message.type === 'placeholder') {
         // sometimes we send then get a placeholder for that send. Lets see if we already have the message id for the sent
         // and ignore the placeholder in that instance
-        logger.info(`Got placeholder message with id: ${message.id}`)
+        logger.info(`messagesAdd: got placeholder message with id: ${message.id}`)
         const existingOrdinal = messageIDToOrdinal(
           oldMessageMap,
           pendingOutboxToOrdinal,
@@ -777,12 +782,19 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         if (!existingOrdinal) {
           arr.push(message.ordinal)
         } else {
-          logger.info(`Skipping placeholder for message with id ${message.id} because already exists`)
+          logger.info(
+            `messagesAdd: skipping placeholder for message with id ${message.id} because already exists`
+          )
         }
       } else {
         // Sendable so we might have an existing message
-        if (!findExistingSentOrPending(conversationIDKey, message)) {
+        const existing = findExistingSentOrPending(conversationIDKey, message)
+        if (!existing || !messageOrdinals.get(conversationIDKey)?.has(existing.ordinal)) {
           arr.push(message.ordinal)
+        } else {
+          logger.info(
+            `messagesAdd: skipping existing message for ordinal add: ordinal: ${message.ordinal} outboxID: ${message.outboxID}`
+          )
         }
         // We might have a placeholder for this message in there with ordinal of its own ID, let's
         // get rid of it if that is the case
@@ -790,6 +802,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           const map = oldMessageMap.get(conversationIDKey)
           const oldMsg = map?.get(Types.numberToOrdinal(message.id))
           if (oldMsg?.type === 'placeholder' && oldMsg.ordinal !== message.ordinal) {
+            logger.info(`messagesAdd: removing old placeholder: ${oldMsg.ordinal}`)
             removedOrdinals.push(oldMsg.ordinal)
           }
         }
@@ -797,7 +810,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       return arr
     }, [])
 
-    // add new ones, remove deleted ones, sort
+    // add new ones, remove deleted ones, sort. This pass is for when we remove placeholder messages
+    // with their resolved ids
     os = new Set(messageOrdinals.get(conversationIDKey) || [])
     removedOrdinals.forEach(o => os.delete(o))
     messageOrdinals.set(conversationIDKey, new Set([...os, ...ordinals].sort((a, b) => a - b)))
@@ -807,13 +821,16 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const map = messageMap.get(conversationIDKey)
     if (map) {
       deletedMessages.forEach(m => map.delete(m.ordinal))
+      removedOrdinals.forEach(o => map.delete(o))
     }
 
+    // update messages
     messages.forEach(message => {
       const oldSentOrPending = findExistingSentOrPending(conversationIDKey, message)
-      let toSet
+      let toSet: Types.Message | undefined
       if (oldSentOrPending) {
         toSet = Constants.upgradeMessage(oldSentOrPending, message)
+        logger.info(`messagesAdd: upgrade message: ordinal: ${message.ordinal} id: ${message.id}`)
       } else {
         const map = previousMessageMap.get(conversationIDKey)
         toSet = Constants.mergeMessage((map && map.get(message.ordinal)) || null, message)
