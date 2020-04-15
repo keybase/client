@@ -190,7 +190,7 @@ const wotVouch = async (state: TypedState, action: ProfileGen.WotVouchPayload, l
         },
         guiID,
         username,
-        vouchTexts: [statement],
+        vouchText: statement,
       },
       Constants.wotAuthorWaitingKey
     )

@@ -78,7 +78,7 @@ type wotExpansionUser struct {
 type vouchExpansion struct {
 	User       wotExpansionUser     `json:"user"`
 	Confidence *keybase1.Confidence `json:"confidence,omitempty"`
-	VouchTexts []string             `json:"vouch_text"`
+	VouchText  string               `json:"vouch_text"`
 }
 
 type reactionExpansion struct {
@@ -182,7 +182,7 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 		VoucheeUsername: voucheeUser.GetNormalizedName().String(),
 		Voucher:         voucher.ToUserVersion(),
 		VoucherUsername: voucher.GetNormalizedName().String(),
-		VouchTexts:      wotObj.VouchTexts,
+		VouchText:       wotObj.VouchText,
 		VouchProof:      serverVouch.VouchSigID,
 		VouchedAt:       keybase1.ToTime(wotVouchLink.GetCTime()),
 		Confidence:      wotObj.Confidence,

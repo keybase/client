@@ -93,7 +93,7 @@ type WotVouch struct {
 	VoucheeUsername string        `codec:"voucheeUsername" json:"voucheeUsername"`
 	Voucher         UserVersion   `codec:"voucher" json:"voucher"`
 	VoucherUsername string        `codec:"voucherUsername" json:"voucherUsername"`
-	VouchTexts      []string      `codec:"vouchTexts" json:"vouchTexts"`
+	VouchText       string        `codec:"vouchText" json:"vouchText"`
 	VouchedAt       Time          `codec:"vouchedAt" json:"vouchedAt"`
 	Confidence      *Confidence   `codec:"confidence,omitempty" json:"confidence,omitempty"`
 }
@@ -106,18 +106,8 @@ func (o WotVouch) DeepCopy() WotVouch {
 		VoucheeUsername: o.VoucheeUsername,
 		Voucher:         o.Voucher.DeepCopy(),
 		VoucherUsername: o.VoucherUsername,
-		VouchTexts: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.VouchTexts),
-		VouchedAt: o.VouchedAt.DeepCopy(),
+		VouchText:       o.VouchText,
+		VouchedAt:       o.VouchedAt.DeepCopy(),
 		Confidence: (func(x *Confidence) *Confidence {
 			if x == nil {
 				return nil
@@ -132,14 +122,14 @@ type WotVouchArg struct {
 	SessionID  int            `codec:"sessionID" json:"sessionID"`
 	Username   string         `codec:"username" json:"username"`
 	GuiID      Identify3GUIID `codec:"guiID" json:"guiID"`
-	VouchTexts []string       `codec:"vouchTexts" json:"vouchTexts"`
+	VouchText  string         `codec:"vouchText" json:"vouchText"`
 	Confidence Confidence     `codec:"confidence" json:"confidence"`
 }
 
 type WotVouchCLIArg struct {
 	SessionID  int        `codec:"sessionID" json:"sessionID"`
 	Assertion  string     `codec:"assertion" json:"assertion"`
-	VouchTexts []string   `codec:"vouchTexts" json:"vouchTexts"`
+	VouchText  string     `codec:"vouchText" json:"vouchText"`
 	Confidence Confidence `codec:"confidence" json:"confidence"`
 }
 
