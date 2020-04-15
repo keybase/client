@@ -7,20 +7,25 @@ import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
 import {pluralize} from '../../../util/string'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as TeamsGen from '../../../actions/teams-gen'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 
 const AddSubteamMembers = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onClose = () => dispatch(RouteTreeGen.createClearModals())
-  const onContinue = () => {} // TODO
-
   const [selectedMembers, setSelectedMembers] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()
 
+  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => dispatch(RouteTreeGen.createClearModals())
+  const onContinue = () =>
+    selectedMembers.size
+      ? dispatch(TeamsGen.createSetTeamWizardSubteamMembers({members: [...selectedMembers]}))
+      : dispatch(TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID}))
+
+  const yourUsername = Container.useSelector(state => state.config.username)
   const parentTeamID = Container.useSelector(
     state => state.teams.newTeamWizard.parentTeamID ?? Types.noTeamID
   )
@@ -29,7 +34,9 @@ const AddSubteamMembers = () => {
   const parentMembersMap = Container.useSelector(
     state => Constants.getTeamDetails(state, parentTeamID).members
   )
-  const parentMembers = [...parentMembersMap.values()].filter(m => !Constants.isBot(m.type))
+  const parentMembers = [...parentMembersMap.values()].filter(
+    m => !Constants.isBot(m.type) && m.username !== yourUsername
+  )
   const filteredMembers = filter
     ? parentMembers.filter(
         m => m.username.toLowerCase().includes(filterL) || m.fullName.toLowerCase().includes(filterL)

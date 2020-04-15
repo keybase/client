@@ -312,6 +312,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamWizardSubteams]: (draftState, action) => {
     draftState.newTeamWizard.subteams = action.payload.subteams
   },
+  [TeamsGen.setTeamWizardSubteamMembers]: (draftState, action) => {
+    const {members} = action.payload
+    draftState.addMembersWizard = {
+      ...Constants.addMembersWizardEmptyState,
+      addingMembers: members.map(m => ({assertion: m, role: 'writer'})),
+      teamID: Types.newTeamWizardTeamID,
+    }
+  },
   [TeamsGen.setTeamWizardError]: (draftState, action) => {
     draftState.newTeamWizard.error = action.payload.error
   },

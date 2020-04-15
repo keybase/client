@@ -444,6 +444,9 @@
     "setTeamWizardSubteams": {
       "subteams": "Array<string>"
     },
+    "setTeamWizardSubteamMembers": {
+      "members": "Array<string>"
+    },
     "setTeamWizardError": {
       "error": "string"
     },

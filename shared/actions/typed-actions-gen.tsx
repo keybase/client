@@ -1009,6 +1009,7 @@ export type TypedActionsMap = {
   'teams:setTeamWizardTeamSize': teams.SetTeamWizardTeamSizePayload
   'teams:setTeamWizardChannels': teams.SetTeamWizardChannelsPayload
   'teams:setTeamWizardSubteams': teams.SetTeamWizardSubteamsPayload
+  'teams:setTeamWizardSubteamMembers': teams.SetTeamWizardSubteamMembersPayload
   'teams:setTeamWizardError': teams.SetTeamWizardErrorPayload
   'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
   'teams:manageChatChannels': teams.ManageChatChannelsPayload

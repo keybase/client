@@ -94,6 +94,7 @@ export const setTeamWizardAvatar = 'teams:setTeamWizardAvatar'
 export const setTeamWizardChannels = 'teams:setTeamWizardChannels'
 export const setTeamWizardError = 'teams:setTeamWizardError'
 export const setTeamWizardNameDescription = 'teams:setTeamWizardNameDescription'
+export const setTeamWizardSubteamMembers = 'teams:setTeamWizardSubteamMembers'
 export const setTeamWizardSubteams = 'teams:setTeamWizardSubteams'
 export const setTeamWizardTeamSize = 'teams:setTeamWizardTeamSize'
 export const setTeamWizardTeamType = 'teams:setTeamWizardTeamType'
@@ -333,6 +334,7 @@ type _SetTeamWizardNameDescriptionPayload = {
   readonly showcase: boolean
   readonly addYourself: boolean
 }
+type _SetTeamWizardSubteamMembersPayload = {readonly members: Array<string>}
 type _SetTeamWizardSubteamsPayload = {readonly subteams: Array<string>}
 type _SetTeamWizardTeamSizePayload = {readonly isBig: boolean}
 type _SetTeamWizardTeamTypePayload = {readonly teamType: Types.TeamWizardTeamType}
@@ -802,6 +804,9 @@ export const createSetTeamWizardError = (payload: _SetTeamWizardErrorPayload): S
 export const createSetTeamWizardNameDescription = (
   payload: _SetTeamWizardNameDescriptionPayload
 ): SetTeamWizardNameDescriptionPayload => ({payload, type: setTeamWizardNameDescription})
+export const createSetTeamWizardSubteamMembers = (
+  payload: _SetTeamWizardSubteamMembersPayload
+): SetTeamWizardSubteamMembersPayload => ({payload, type: setTeamWizardSubteamMembers})
 export const createSetTeamWizardSubteams = (
   payload: _SetTeamWizardSubteamsPayload
 ): SetTeamWizardSubteamsPayload => ({payload, type: setTeamWizardSubteams})
@@ -1150,6 +1155,10 @@ export type SetTeamWizardNameDescriptionPayload = {
   readonly payload: _SetTeamWizardNameDescriptionPayload
   readonly type: typeof setTeamWizardNameDescription
 }
+export type SetTeamWizardSubteamMembersPayload = {
+  readonly payload: _SetTeamWizardSubteamMembersPayload
+  readonly type: typeof setTeamWizardSubteamMembers
+}
 export type SetTeamWizardSubteamsPayload = {
   readonly payload: _SetTeamWizardSubteamsPayload
   readonly type: typeof setTeamWizardSubteams
@@ -1316,6 +1325,7 @@ export type Actions =
   | SetTeamWizardChannelsPayload
   | SetTeamWizardErrorPayload
   | SetTeamWizardNameDescriptionPayload
+  | SetTeamWizardSubteamMembersPayload
   | SetTeamWizardSubteamsPayload
   | SetTeamWizardTeamSizePayload
   | SetTeamWizardTeamTypePayload
