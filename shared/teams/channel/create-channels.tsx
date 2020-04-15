@@ -11,7 +11,7 @@ type Props = Container.RouteProps<{teamID: TeamsTypes.TeamID}>
 export default (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', TeamsTypes.noTeamID)
   const dispatch = Container.useDispatch()
-  React.useEffect(() => () => dispatch(TeamsGen.createSetChannelCreationError({error: null})), [
+  React.useEffect(() => () => dispatch(TeamsGen.createSetChannelCreationError({error: ''})), [
     props,
     teamID,
     dispatch,
