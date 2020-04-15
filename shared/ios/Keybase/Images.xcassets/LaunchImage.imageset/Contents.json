@@ -3,16 +3,19 @@
     {
       "idiom" : "universal",
       "filename" : "keybase-logo-100.png",
+      "extent": "full-screen",
       "scale" : "1x"
     },
     {
       "idiom" : "universal",
       "filename" : "keybase-logo-100@2x.png",
+      "extent": "full-screen",
       "scale" : "2x"
     },
     {
       "idiom" : "universal",
       "filename" : "keybase-logo-100@3x.png",
+      "extent": "full-screen",
       "scale" : "3x"
     }
   ],

@@ -220,6 +220,7 @@
   // Snapshot happens right after this call, force alpha immediately w/o animation else you'll get a half animated overlay
   NSLog(@"applicationDidEnterBackground: setting keyz screen alpha to 1.");
   self.resignImageView.alpha = 1;
+  [self.resignImageView sizeToFit];
 
   const bool requestTime = KeybaseAppDidEnterBackground();
   if (requestTime && (!self.shutdownTask || self.shutdownTask == UIBackgroundTaskInvalid)) {

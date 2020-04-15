@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16096" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16096" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
     <device id="ipad12_9rounded" orientation="portrait" layout="fullscreen" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
@@ -11,29 +11,15 @@
         <scene sceneID="EHf-IW-A2E">
             <objects>
                 <viewController id="01J-lp-oVM" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="8ft-rl-Jzp"/>
-                        <viewControllerLayoutGuide type="bottom" id="8i4-ag-kNz"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="3m9-kb-ubs">
+                    <imageView key="view" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="LaunchImage" id="ksp-KB-B8f">
                         <rect key="frame" x="0.0" y="0.0" width="1024" height="1366"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="LaunchImage" translatesAutoresizingMaskIntoConstraints="NO" id="hnb-hk-jg1">
-                                <rect key="frame" x="-171" y="0.0" width="1366" height="1366"/>
-                                <color key="backgroundColor" red="0.29953917860000001" green="0.55654865499999995" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                            </imageView>
-                        </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                        <constraints>
-                            <constraint firstItem="hnb-hk-jg1" firstAttribute="centerY" secondItem="3m9-kb-ubs" secondAttribute="centerY" id="7c6-sn-YAT"/>
-                            <constraint firstItem="hnb-hk-jg1" firstAttribute="centerX" secondItem="3m9-kb-ubs" secondAttribute="centerX" id="wmQ-tz-41O"/>
-                        </constraints>
-                    </view>
+                        <color key="backgroundColor" red="0.29953917860000001" green="0.55654865499999995" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    </imageView>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="265" y="346"/>
+            <point key="canvasLocation" x="51.830161054172763" y="374.4140625"/>
         </scene>
     </scenes>
     <resources>
