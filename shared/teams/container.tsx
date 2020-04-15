@@ -5,6 +5,7 @@ import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
+import * as Styles from '../styles'
 import Teams, {OwnProps as MainOwnProps} from './main'
 import {HeaderRightActions} from './main/header'
 import openURL from '../util/open-url'
@@ -36,9 +37,14 @@ const orderTeamsImpl = (
   teams: Map<string, Types.TeamMeta>,
   newRequests: Map<Types.TeamID, Set<string>>,
   sortOrder: Types.TeamListSort,
-  activityLevels: Types.ActivityLevels
-): Array<Types.TeamMeta> =>
-  [...teams.values()].sort((a, b) => {
+  activityLevels: Types.ActivityLevels,
+  filter: string
+): Array<Types.TeamMeta> => {
+  const filterLC = filter.toLowerCase().trim()
+  const teamsFiltered = filter
+    ? [...teams.values()].filter(meta => meta.teamname.toLowerCase().includes(filterLC))
+    : [...teams.values()]
+  return teamsFiltered.sort((a, b) => {
     const sizeDiff = (newRequests.get(b.id)?.size ?? 0) - (newRequests.get(a.id)?.size ?? 0)
     if (sizeDiff != 0) return sizeDiff
     const nameCompare = a.teamname.localeCompare(b.teamname)
@@ -54,6 +60,7 @@ const orderTeamsImpl = (
         return nameCompare
     }
   })
+}
 
 const orderTeams = memoize(orderTeamsImpl)
 
@@ -84,10 +91,36 @@ const Reloadable = (props: ReloadableProps) => {
   )
 }
 
+const TeamsFilter = () => {
+  const dispatch = Container.useDispatch()
+  const filterValue = Container.useSelector(s => s.teams.teamListFilter)
+  const numTeams = Container.useSelector(s => s.teams.teamMeta.size)
+  const setFilter = (filter: string) => dispatch(TeamsGen.createSetTeamListFilterSort({filter}))
+  return numTeams >= 20 ? (
+    <Kb.SearchFilter
+      value={filterValue}
+      valueControlled={true}
+      onChange={setFilter}
+      size="small"
+      placeholderText="Filter"
+      hotkey="k"
+      icon="iconfont-filter"
+      style={filterStyles.filter}
+    />
+  ) : null
+}
+const filterStyles = Styles.styleSheetCreate(() => ({
+  filter: {
+    alignSelf: 'flex-end',
+    marginBottom: Styles.globalMargins.xtiny,
+    marginRight: Styles.globalMargins.xsmall,
+  },
+}))
+
 Reloadable.navigationOptions = {
   header: undefined,
-  // This will be a filter box eventually
-  headerRightActions: flags.teamsRedesign ? undefined : () => <ConnectedHeaderRightActions />,
+  headerRightActions:
+    flags.teamsRedesign && !Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
   title: 'Teams',
 }
 
@@ -97,11 +130,12 @@ const Connected = Container.connect(
     _teams: state.teams.teamMeta,
     activityLevels: state.teams.activityLevels,
     deletedTeams: state.teams.deletedTeams,
+    filter: state.teams.teamListFilter,
     loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
     newTeamRequests: state.teams.newTeamRequests,
     newTeams: state.teams.newTeams,
     sawChatBanner: state.teams.sawChatBanner || false,
-    sortOrder: state.teams.teamListSort,
+    sortOrder: flags.teamsRedesign ? state.teams.teamListSort : 'alphabetical',
   }),
   (dispatch: Container.TypedDispatch) => ({
     onHideChatBanner: () =>
@@ -125,7 +159,8 @@ const Connected = Container.connect(
       stateProps._teams,
       stateProps.newTeamRequests,
       stateProps.sortOrder,
-      stateProps.activityLevels
+      stateProps.activityLevels,
+      stateProps.filter
     ),
     ...dispatchProps,
   })
