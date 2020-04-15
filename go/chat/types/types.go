@@ -591,7 +591,7 @@ type DummyStellarSender struct{}
 var _ StellarSender = (*DummyStellarSender)(nil)
 
 func (d DummyStellarSender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body string) []ParsedStellarPayment {
+	body string, replyTo *chat1.MessageID) []ParsedStellarPayment {
 	return nil
 }
 
