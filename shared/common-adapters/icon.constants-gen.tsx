@@ -192,7 +192,9 @@ export type IconType =
   | 'icon-dark-email-remove-64'
   | 'icon-dark-email-remove-96'
   | 'icon-dark-empty-channels-103-96'
+  | 'icon-dark-empty-confused-96-96'
   | 'icon-dark-empty-emoji-126-96'
+  | 'icon-dark-empty-lone-wolf-116-96'
   | 'icon-dark-empty-people-search-112-96'
   | 'icon-dark-empty-subteams-164-96'
   | 'icon-dark-empty-team-small-96'
@@ -425,8 +427,37 @@ export type IconType =
   | 'icon-email-remove-48'
   | 'icon-email-remove-64'
   | 'icon-email-remove-96'
+  | 'icon-emoji-keybase'
+  | 'icon-emoji-nycto-a'
+  | 'icon-emoji-nycto-b'
+  | 'icon-emoji-nycto-c'
+  | 'icon-emoji-nycto-d'
+  | 'icon-emoji-nycto-e'
+  | 'icon-emoji-nycto-f'
+  | 'icon-emoji-nycto-g'
+  | 'icon-emoji-nycto-h'
+  | 'icon-emoji-nycto-i'
+  | 'icon-emoji-nycto-j'
+  | 'icon-emoji-nycto-k'
+  | 'icon-emoji-nycto-l'
+  | 'icon-emoji-nycto-m'
+  | 'icon-emoji-nycto-n'
+  | 'icon-emoji-nycto-o'
+  | 'icon-emoji-nycto-p'
+  | 'icon-emoji-nycto-q'
+  | 'icon-emoji-nycto-r'
+  | 'icon-emoji-nycto-s'
+  | 'icon-emoji-nycto-t'
+  | 'icon-emoji-nycto-u'
+  | 'icon-emoji-nycto-v'
+  | 'icon-emoji-nycto-w'
+  | 'icon-emoji-nycto-x'
+  | 'icon-emoji-nycto-y'
+  | 'icon-emoji-nycto-z'
   | 'icon-empty-channels-103-96'
+  | 'icon-empty-confused-96-96'
   | 'icon-empty-emoji-126-96'
+  | 'icon-empty-lone-wolf-116-96'
   | 'icon-empty-people-search-112-96'
   | 'icon-empty-subteams-164-96'
   | 'icon-empty-team-small-96'
@@ -906,14 +937,13 @@ export type IconType =
   | 'iconfont-attachment'
   | 'iconfont-basketball'
   | 'iconfont-block'
-  | 'iconfont-block-user'
   | 'iconfont-bomb'
   | 'iconfont-boom'
   | 'iconfont-bot'
   | 'iconfont-calculate'
   | 'iconfont-calculator'
   | 'iconfont-camera'
-  | 'iconfont-camera-off'
+  | 'iconfont-camera-solid'
   | 'iconfont-campfire-burning'
   | 'iconfont-campfire-out'
   | 'iconfont-caret-down'
@@ -924,6 +954,8 @@ export type IconType =
   | 'iconfont-circle'
   | 'iconfont-clipboard'
   | 'iconfont-clock'
+  | 'iconfont-clock-reversed'
+  | 'iconfont-clock-solid'
   | 'iconfont-close'
   | 'iconfont-cloud'
   | 'iconfont-club'
@@ -945,11 +977,13 @@ export type IconType =
   | 'iconfont-ellipsis'
   | 'iconfont-emoji'
   | 'iconfont-envelope'
+  | 'iconfont-envelope-solid'
   | 'iconfont-exclamation'
   | 'iconfont-expand'
   | 'iconfont-file'
-  | 'iconfont-file-note'
+  | 'iconfont-file-solid'
   | 'iconfont-film'
+  | 'iconfont-film-solid'
   | 'iconfont-filter'
   | 'iconfont-finder'
   | 'iconfont-fire'
@@ -961,6 +995,7 @@ export type IconType =
   | 'iconfont-folder-private'
   | 'iconfont-folder-private-me'
   | 'iconfont-folder-public'
+  | 'iconfont-folder-public-me'
   | 'iconfont-folder-up'
   | 'iconfont-gear'
   | 'iconfont-gif'
@@ -991,6 +1026,7 @@ export type IconType =
   | 'iconfont-mailbox'
   | 'iconfont-mention'
   | 'iconfont-mic'
+  | 'iconfont-mic-solid'
   | 'iconfont-music'
   | 'iconfont-nav-2-chat'
   | 'iconfont-nav-2-crypto'
@@ -1004,30 +1040,20 @@ export type IconType =
   | 'iconfont-nav-2-settings'
   | 'iconfont-nav-2-teams'
   | 'iconfont-nav-2-wallets'
-  | 'iconfont-nav-chat'
-  | 'iconfont-nav-devices'
-  | 'iconfont-nav-files'
-  | 'iconfont-nav-folders'
-  | 'iconfont-nav-git'
-  | 'iconfont-nav-more'
-  | 'iconfont-nav-people'
-  | 'iconfont-nav-settings'
-  | 'iconfont-nav-teams'
-  | 'iconfont-nav-wallets'
   | 'iconfont-new'
-  | 'iconfont-notifications-desktop'
-  | 'iconfont-notifications-mobile'
   | 'iconfont-number-pad'
   | 'iconfont-open-browser'
   | 'iconfont-password'
   | 'iconfont-pause'
   | 'iconfont-pawprint'
   | 'iconfont-people'
+  | 'iconfont-people-solid'
   | 'iconfont-person'
   | 'iconfont-person-raisedarms'
   | 'iconfont-phone-contact'
   | 'iconfont-photo-library'
   | 'iconfont-pin'
+  | 'iconfont-pin-solid'
   | 'iconfont-play'
   | 'iconfont-proof-broken'
   | 'iconfont-proof-good'
@@ -1038,9 +1064,6 @@ export type IconType =
   | 'iconfont-radio'
   | 'iconfont-radio-update'
   | 'iconfont-reacji'
-  | 'iconfont-reacji-heart'
-  | 'iconfont-reacji-sheep'
-  | 'iconfont-reacji-wave'
   | 'iconfont-refresh'
   | 'iconfont-reload'
   | 'iconfont-remove'
@@ -1050,6 +1073,7 @@ export type IconType =
   | 'iconfont-root'
   | 'iconfont-search'
   | 'iconfont-share'
+  | 'iconfont-share-android'
   | 'iconfont-shh'
   | 'iconfont-skull'
   | 'iconfont-spade'
@@ -1061,20 +1085,15 @@ export type IconType =
   | 'iconfont-team-join'
   | 'iconfont-team-leave'
   | 'iconfont-text-code'
-  | 'iconfont-thin-arrow-left'
-  | 'iconfont-thin-arrow-right'
   | 'iconfont-thunderbolt'
-  | 'iconfont-time'
-  | 'iconfont-time-reversed'
   | 'iconfont-timer'
   | 'iconfont-trash'
-  | 'iconfont-tweet'
   | 'iconfont-typing'
   | 'iconfont-unhide'
   | 'iconfont-unlock'
   | 'iconfont-upload'
   | 'iconfont-upload-2'
-  | 'iconfont-usercard'
+  | 'iconfont-user-block'
   | 'iconfont-verify'
   | 'iconfont-video-library'
   | 'iconfont-wallet-transfer'
@@ -1096,6 +1115,8 @@ export type IconType =
   | 'release-5.2.0-crypto'
   | 'release-5.3.0-ipad'
   | 'release-5.3.0-open-teams'
+  | 'release-5.4.0-emoji'
+  | 'release-5.4.0-pony'
 
 export const iconMeta: {[k in IconType]: IconMeta} = {
   'icon-GPG-export': {
@@ -2782,12 +2803,28 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-empty-channels-103-96.png')
     },
   },
+  'icon-dark-empty-confused-96-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-empty-confused-96-96.png')
+    },
+  },
   'icon-dark-empty-emoji-126-96': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-empty-emoji-126-96.png')
+    },
+  },
+  'icon-dark-empty-lone-wolf-116-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-empty-lone-wolf-116-96.png')
     },
   },
   'icon-dark-empty-people-search-112-96': {
@@ -4666,6 +4703,222 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-email-remove-96.png')
     },
   },
+  'icon-emoji-keybase': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-keybase.png')
+    },
+  },
+  'icon-emoji-nycto-a': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-a.png')
+    },
+  },
+  'icon-emoji-nycto-b': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-b.png')
+    },
+  },
+  'icon-emoji-nycto-c': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-c.png')
+    },
+  },
+  'icon-emoji-nycto-d': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-d.png')
+    },
+  },
+  'icon-emoji-nycto-e': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-e.png')
+    },
+  },
+  'icon-emoji-nycto-f': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-f.png')
+    },
+  },
+  'icon-emoji-nycto-g': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-g.png')
+    },
+  },
+  'icon-emoji-nycto-h': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-h.png')
+    },
+  },
+  'icon-emoji-nycto-i': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-i.png')
+    },
+  },
+  'icon-emoji-nycto-j': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-j.png')
+    },
+  },
+  'icon-emoji-nycto-k': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-k.png')
+    },
+  },
+  'icon-emoji-nycto-l': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-l.png')
+    },
+  },
+  'icon-emoji-nycto-m': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-m.png')
+    },
+  },
+  'icon-emoji-nycto-n': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-n.png')
+    },
+  },
+  'icon-emoji-nycto-o': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-o.png')
+    },
+  },
+  'icon-emoji-nycto-p': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-p.png')
+    },
+  },
+  'icon-emoji-nycto-q': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-q.png')
+    },
+  },
+  'icon-emoji-nycto-r': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-r.png')
+    },
+  },
+  'icon-emoji-nycto-s': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-s.png')
+    },
+  },
+  'icon-emoji-nycto-t': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-t.png')
+    },
+  },
+  'icon-emoji-nycto-u': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-u.png')
+    },
+  },
+  'icon-emoji-nycto-v': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-v.png')
+    },
+  },
+  'icon-emoji-nycto-w': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-w.png')
+    },
+  },
+  'icon-emoji-nycto-x': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-x.png')
+    },
+  },
+  'icon-emoji-nycto-y': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-y.png')
+    },
+  },
+  'icon-emoji-nycto-z': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-emoji-nycto-z.png')
+    },
+  },
   'icon-empty-channels-103-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -4678,6 +4931,18 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-empty-channels-103-96.png')
     },
   },
+  'icon-empty-confused-96-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-empty-confused-96-96',
+    get require() {
+      return require('../images/icons/icon-empty-confused-96-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-empty-confused-96-96.png')
+    },
+  },
   'icon-empty-emoji-126-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -4688,6 +4953,18 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-empty-emoji-126-96.png')
+    },
+  },
+  'icon-empty-lone-wolf-116-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-empty-lone-wolf-116-96',
+    get require() {
+      return require('../images/icons/icon-empty-lone-wolf-116-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-empty-lone-wolf-116-96.png')
     },
   },
   'icon-empty-people-search-112-96': {
@@ -9366,11 +9643,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-block-user': {
-    charCode: 0xe9a4,
-    gridSize: 16,
-    isFont: true,
-  },
   'iconfont-bomb': {
     charCode: 0xe908,
     gridSize: 16,
@@ -9401,7 +9673,7 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-camera-off': {
+  'iconfont-camera-solid': {
     charCode: 0xe90b,
     gridSize: 16,
     isFont: true,
@@ -9452,6 +9724,16 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: true,
   },
   'iconfont-clock': {
+    charCode: 0xe961,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-clock-reversed': {
+    charCode: 0xe962,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-clock-solid': {
     charCode: 0xe911,
     gridSize: 16,
     isFont: true,
@@ -9561,6 +9843,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-envelope-solid': {
+    charCode: 0xe9c2,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-exclamation': {
     charCode: 0xe91c,
     gridSize: 16,
@@ -9576,13 +9863,18 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-file-note': {
-    charCode: 0xe91d,
+  'iconfont-file-solid': {
+    charCode: 0xe9c5,
     gridSize: 16,
     isFont: true,
   },
   'iconfont-film': {
     charCode: 0xe9a9,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-film-solid': {
+    charCode: 0xe9c4,
     gridSize: 16,
     isFont: true,
   },
@@ -9637,6 +9929,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: true,
   },
   'iconfont-folder-public': {
+    charCode: 0xe926,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-folder-public-me': {
     charCode: 0xe927,
     gridSize: 16,
     isFont: true,
@@ -9791,6 +10088,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-mic-solid': {
+    charCode: 0xe9c3,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-music': {
     charCode: 0xe9bc,
     gridSize: 16,
@@ -9856,68 +10158,8 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 24,
     isFont: true,
   },
-  'iconfont-nav-chat': {
-    charCode: 0xe93c,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-devices': {
-    charCode: 0xe93d,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-files': {
-    charCode: 0xe93e,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-folders': {
-    charCode: 0xe93f,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-git': {
-    charCode: 0xe940,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-more': {
-    charCode: 0xe941,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-people': {
-    charCode: 0xe942,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-settings': {
-    charCode: 0xe943,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-teams': {
-    charCode: 0xe944,
-    gridSize: 24,
-    isFont: true,
-  },
-  'iconfont-nav-wallets': {
-    charCode: 0xe945,
-    gridSize: 24,
-    isFont: true,
-  },
   'iconfont-new': {
     charCode: 0xe946,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-notifications-desktop': {
-    charCode: 0xe947,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-notifications-mobile': {
-    charCode: 0xe948,
     gridSize: 16,
     isFont: true,
   },
@@ -9951,6 +10193,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-people-solid': {
+    charCode: 0xe9c7,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-person': {
     charCode: 0xe9a7,
     gridSize: 16,
@@ -9973,6 +10220,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-pin': {
     charCode: 0xe9a8,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-pin-solid': {
+    charCode: 0xe9c6,
     gridSize: 16,
     isFont: true,
   },
@@ -10026,21 +10278,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-reacji-heart': {
-    charCode: 0xe952,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-reacji-sheep': {
-    charCode: 0xe953,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-reacji-wave': {
-    charCode: 0xe954,
-    gridSize: 16,
-    isFont: true,
-  },
   'iconfont-refresh': {
     charCode: 0xe956,
     gridSize: 16,
@@ -10083,6 +10320,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-share': {
     charCode: 0xe9aa,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-share-android': {
+    charCode: 0xe9c0,
     gridSize: 16,
     isFont: true,
   },
@@ -10141,28 +10383,8 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-thin-arrow-left': {
-    charCode: 0xe96b,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-thin-arrow-right': {
-    charCode: 0xe96c,
-    gridSize: 16,
-    isFont: true,
-  },
   'iconfont-thunderbolt': {
     charCode: 0xe960,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-time': {
-    charCode: 0xe961,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-time-reversed': {
-    charCode: 0xe962,
     gridSize: 16,
     isFont: true,
   },
@@ -10173,11 +10395,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-trash': {
     charCode: 0xe964,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-tweet': {
-    charCode: 0xe965,
     gridSize: 16,
     isFont: true,
   },
@@ -10206,8 +10423,8 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-usercard': {
-    charCode: 0xe968,
+  'iconfont-user-block': {
+    charCode: 0xe9a4,
     gridSize: 16,
     isFont: true,
   },
@@ -10359,6 +10576,22 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/releases/release-5.3.0-open-teams.png')
+    },
+  },
+  'release-5.4.0-emoji': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.4.0-emoji.png')
+    },
+  },
+  'release-5.4.0-pony': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.4.0-pony.png')
     },
   },
 }

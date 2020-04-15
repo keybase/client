@@ -999,7 +999,8 @@ export type TypedActionsMap = {
   'teams:addMembersWizardRemoveMember': teams.AddMembersWizardRemoveMemberPayload
   'teams:addMembersWizardSetDefaultChannels': teams.AddMembersWizardSetDefaultChannelsPayload
   'teams:cancelAddMembersWizard': teams.CancelAddMembersWizardPayload
-  'teams:finishAddMembersWizard': teams.FinishAddMembersWizardPayload
+  'teams:finishedAddMembersWizard': teams.FinishedAddMembersWizardPayload
+  'teams:finishedNewTeamWizard': teams.FinishedNewTeamWizardPayload
   'teams:setJustFinishedAddMembersWizard': teams.SetJustFinishedAddMembersWizardPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
@@ -1012,6 +1013,7 @@ export type TypedActionsMap = {
   'teams:setTeamWizardTeamSize': teams.SetTeamWizardTeamSizePayload
   'teams:setTeamWizardChannels': teams.SetTeamWizardChannelsPayload
   'teams:setTeamWizardSubteams': teams.SetTeamWizardSubteamsPayload
+  'teams:setTeamWizardError': teams.SetTeamWizardErrorPayload
   'teams:finishNewTeamWizard': teams.FinishNewTeamWizardPayload
   'teams:manageChatChannels': teams.ManageChatChannelsPayload
   'teams:teamSeen': teams.TeamSeenPayload

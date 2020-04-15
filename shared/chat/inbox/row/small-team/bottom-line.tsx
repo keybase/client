@@ -115,16 +115,16 @@ const BottomLine = React.memo((props: Props) => {
         exploded = true
         break
       case RPCChatTypes.SnippetDecoration.audioAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-mic', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-mic-solid', defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.videoAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-film', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-film-solid', defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.photoAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-camera', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-camera-solid', defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.fileAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-file', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-file-solid', defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.stellarReceived:
         snippetDecoration = SnippetDecoration('iconfont-stellar-request', defaultIconColor)
@@ -133,7 +133,7 @@ const BottomLine = React.memo((props: Props) => {
         snippetDecoration = SnippetDecoration('iconfont-stellar-send', defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.pinnedMessage:
-        snippetDecoration = SnippetDecoration('iconfont-pin', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-pin-solid', defaultIconColor)
         break
       default:
         snippetDecoration = null

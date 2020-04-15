@@ -7,7 +7,7 @@ import {usePhoneNumberList} from '../../teams/common'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {pluralize} from '../../util/string'
 
-const shareURL = 'https://keybase.io/download'
+const shareURL = 'https://keybase.io/download?invite'
 const waitingKey = 'invitePeople'
 
 const InviteFriendsModal = () => {
@@ -153,7 +153,12 @@ const InviteFriendsModal = () => {
                   onClear={phoneNumbers.length === 1 ? undefined : () => removePhoneNumber(i)}
                 />
               ))}
-              <Kb.Button mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
+              <Kb.Button
+                mode="Secondary"
+                icon="iconfont-new"
+                onClick={addPhoneNumber}
+                style={styles.alignSelfStart}
+              />
             </Kb.Box2>
           </Kb.Box2>
           {Styles.isMobile && (
@@ -182,6 +187,7 @@ export const ShareLinkPopup = ({onClose}: {onClose: () => void}) => (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
+  alignSelfStart: {alignSelf: 'flex-start'},
   banner: {
     position: 'absolute',
     top: 47,

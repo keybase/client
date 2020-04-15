@@ -83,6 +83,7 @@
     "updateUsername": {"username": "string"},
     "wotVouch": {
       "username": "string",
+      "guiID": "string", // Identify3 ID to pin the user version
       "verificationType": "string",
       "statement": "string",
       "otherText": "string",

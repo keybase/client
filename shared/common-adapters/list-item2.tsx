@@ -21,6 +21,7 @@ type Props = {
   statusIcon?: React.ReactNode
   body: React.ReactNode
   firstItem: boolean
+  fullDivider?: boolean
   action?: React.ReactNode
   hideHover?: boolean
   // If 'grow' is used, the width of action cannot exceed 64. If larger width
@@ -56,6 +57,7 @@ const ListItem = (props: Props) => (
       ])}
       fullWidth={true}
     >
+      {!props.firstItem && !!props.fullDivider && <Divider style={styles.divider} />}
       {props.statusIcon && (
         <Kb.Box2
           direction="vertical"
@@ -77,7 +79,7 @@ const ListItem = (props: Props) => (
         </Kb.Box2>
       )}
       <Kb.Box2 direction="horizontal" style={getContainerStyles(props)}>
-        {!props.firstItem && <Divider style={styles.divider} />}
+        {!props.firstItem && !props.fullDivider && <Divider style={styles.divider} />}
         <Kb.BoxGrow>
           <Kb.Box2 fullHeight={true} direction="horizontal" style={styles.bodyContainer}>
             {props.body}

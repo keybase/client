@@ -58,7 +58,7 @@ func DefaultV1() *V1 {
 		},
 		PerPathConfigs: map[string]PerPathConfigV1{
 			"/": {
-				AnonymousPermissions: "read,list",
+				AnonymousPermissions: "read",
 			},
 		},
 	}

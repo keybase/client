@@ -1029,7 +1029,7 @@ function* loadMoreMessages(
   let messageIDControl: RPCChatTypes.MessageIDControl | null = null
   let forceClear = false
   let forceContainsLatestCalc = false
-  let knownRemotes: Array<string> = []
+  const knownRemotes: Array<string> = []
   const centeredMessageIDs: Array<{
     conversationIDKey: Types.ConversationIDKey
     messageID: Types.MessageID
@@ -2028,6 +2028,7 @@ const previewConversationTeam = async (
     actions.push(
       Chat2Gen.createNavigateToThread({
         conversationIDKey: first.conversationIDKey,
+        highlightMessageID,
         reason: 'previewResolved',
       })
     )
@@ -2518,6 +2519,9 @@ const navigateToInbox = (
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
+  if (action.type === TeamsGen.leftTeam && action.payload.context !== 'chat') {
+    return
+  }
   return [
     RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
     RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'}),
@@ -2535,11 +2539,18 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     return false
   }
 
+  const modalPath = Router2Constants.getModalStack()
+  const mainPath = Router2Constants.getMainStack()
+
+  const modalClearAction = modalPath.length > 0 ? [RouteTreeGen.createClearModals()] : []
+  const tabSwitchAction =
+    mainPath[1]?.routeName !== Tabs.chatTab ? [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})] : []
+
   // we select the chat tab and change the params
   if (Constants.isSplit) {
     return [
-      RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-      RouteTreeGen.createClearModals(),
+      ...tabSwitchAction,
+      ...modalClearAction,
       RouteTreeGen.createSetParams({key: 'chatRoot', params: {conversationIDKey}}),
       RouteTreeGen.createNavUpToScreen({routeName: Constants.threadRouteName}),
     ]
@@ -2547,7 +2558,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     // immediately switch stack to an inbox | thread stack
     if (reason === 'push' || reason === 'savedLastState') {
       return [
-        RouteTreeGen.createClearModals(),
+        ...modalClearAction,
         RouteTreeGen.createResetStack({
           actions: [
             RouteTreeGen.createNavigateAppend({
@@ -2557,14 +2568,15 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
           index: 1,
           tab: Tabs.chatTab,
         }),
-        RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+        ...tabSwitchAction,
       ]
     } else {
       // looking at the pending / waiting screen
       const replace =
         visibleRouteName === Constants.threadRouteName && !Constants.isValidConversationIDKey(visibleConvo)
       return [
-        RouteTreeGen.createClearModals(),
+        ...modalClearAction,
+        ...tabSwitchAction,
         RouteTreeGen.createNavigateAppend({
           path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
           replace,

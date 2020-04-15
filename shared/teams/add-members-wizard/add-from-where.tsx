@@ -3,9 +3,28 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
+import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
+
+const Skip = () => {
+  const dispatch = Container.useDispatch()
+  const onSkip = () => dispatch(TeamsGen.createFinishNewTeamWizard())
+  const waiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
+
+  if (Styles.isMobile) {
+    return waiting ? (
+      <Kb.ProgressIndicator />
+    ) : (
+      <Kb.Text type="BodyBigLink" onClick={onSkip}>
+        Skip
+      </Kb.Text>
+    )
+  } else {
+    return <Kb.Button mode="Secondary" label="Skip" small={true} onClick={onSkip} waiting={waiting} />
+  }
+}
 
 const AddFromWhere = () => {
   const dispatch = Container.useDispatch()
@@ -13,10 +32,11 @@ const AddFromWhere = () => {
 
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
   const newTeam: boolean = teamID === Types.newTeamWizardTeamID
+  // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
+  const createTeamError = Container.useSelector(s => (newTeam ? s.teams.newTeamWizard.error : undefined))
 
   const onClose = () => dispatch(TeamsGen.createCancelAddMembersWizard())
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onSkip = () => dispatch(TeamsGen.createFinishNewTeamWizard())
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
   const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
   const onContinueContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))
@@ -25,6 +45,15 @@ const AddFromWhere = () => {
     <Kb.Modal
       allowOverflow={true}
       onClose={onClose}
+      banners={
+        createTeamError
+          ? [
+              <Kb.Banner color="red" key="err">
+                {createTeamError}
+              </Kb.Banner>,
+            ]
+          : []
+      }
       header={{
         leftButton: newTeam ? (
           <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
@@ -35,17 +64,7 @@ const AddFromWhere = () => {
         ) : (
           undefined
         ),
-        rightButton: newTeam ? (
-          Styles.isMobile ? (
-            <Kb.Text type="BodyBigLink" onClick={onSkip}>
-              Skip
-            </Kb.Text>
-          ) : (
-            <Kb.Button mode="Secondary" label="Skip" small={true} onClick={onSkip} />
-          )
-        ) : (
-          undefined
-        ),
+        rightButton: newTeam ? <Skip /> : undefined,
         title: (
           <ModalTitle
             title={Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}

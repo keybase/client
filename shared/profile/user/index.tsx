@@ -49,6 +49,8 @@ export type Props = {
   serviceIcon?: Array<Types.SiteIcon>
   fullName?: string // full name from external profile
   title: string
+  vouchShowButton: boolean
+  vouchDisableButton: boolean
   webOfTrustEntries: Array<Types.WebOfTrustEntry>
 }
 
@@ -329,7 +331,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
 
 const Header = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <ProfileSearch whiteText={true} />
+    <ProfileSearch whiteText={true} style={styles.profileSearch} />
   </Kb.Box2>
 )
 
@@ -403,9 +405,15 @@ class User extends React.Component<Props, State> {
 
   _renderWebOfTrust = ({item}) =>
     item.type === 'IKnowThem' ? (
-      this.props.onIKnowThem && (
+      this.props.vouchShowButton && (
         <Kb.Box2 key="iknowthem" direction="horizontal" fullWidth={true} style={styles.knowThemBox}>
-          <Kb.Button key="iknowthembtn" onClick={this.props.onIKnowThem} type="Default" label={item.text}>
+          <Kb.Button
+            key="iknowthembtn"
+            type="Default"
+            label={item.text}
+            onClick={this.props.onIKnowThem}
+            disabled={this.props.vouchDisableButton}
+          >
             <Kb.Icon type="iconfont-proof-good" style={styles.knowThemIcon} />
           </Kb.Button>
         </Kb.Box2>
@@ -654,6 +662,7 @@ export const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   noGrow: {flexGrow: 0},
+  profileSearch: {marginTop: Styles.globalMargins.xtiny},
   proofs: Styles.platformStyles({
     isElectron: {
       alignSelf: 'flex-start',

@@ -280,7 +280,11 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 	if err != nil {
 		return msg, nil, nil, err
 	}
-	switch deleteTarget.ClientHeader.MessageType {
+	bodyTyp, err := deleteTarget.MessageBody.MessageType()
+	if err != nil {
+		return msg, nil, nil, err
+	}
+	switch bodyTyp {
 	case chat1.MessageType_REACTION:
 		// Don't do anything here for reactions/unfurls, they can't be edited
 		return msg, nil, nil, nil

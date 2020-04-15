@@ -8,6 +8,7 @@ import (
 	"fmt"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -1369,6 +1370,7 @@ type MessageClientHeader struct {
 	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
 	PairwiseMacs      map[keybase1.KID][]byte  `codec:"pm" json:"pm"`
 	BotUID            *gregor1.UID             `codec:"b,omitempty" json:"b,omitempty"`
+	TxID              *stellar1.TransactionID  `codec:"t,omitempty" json:"t,omitempty"`
 }
 
 func (o MessageClientHeader) DeepCopy() MessageClientHeader {
@@ -1468,6 +1470,13 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.BotUID),
+		TxID: (func(x *stellar1.TransactionID) *stellar1.TransactionID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TxID),
 	}
 }
 

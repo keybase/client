@@ -307,7 +307,7 @@ const switchRouteDef = (
         RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
         ...(action.payload.causedBySignup
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
-          : []),
+          : [PushGen.createShowPermissionsPrompt({justSignedUp: false, show: true})]),
       ]
     }
 
@@ -370,9 +370,6 @@ const showMonsterPushPrompt = () => [
   RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
   RouteTreeGen.createNavigateAppend({
     path: ['settingsPushPrompt'],
-  }),
-  PushGen.createShowPermissionsPrompt({
-    show: false, // disable the prompt after showing it once, this does not perma-skip
   }),
 ]
 

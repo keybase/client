@@ -25,7 +25,7 @@ export type Props = {
   buttons?: Array<TaskButton>
 }
 
-export default (props: Props) => (
+const PeopleItem = (props: Props) => (
   <Kb.Box style={Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
     {!!props.icon && (
       <Kb.Box key="icon" style={Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
@@ -66,6 +66,7 @@ export default (props: Props) => (
     </Kb.Box>
   </Kb.Box>
 )
+export default PeopleItem
 
 const styles = Styles.styleSheetCreate(() => ({
   actionContainer: {

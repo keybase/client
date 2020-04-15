@@ -55,7 +55,11 @@ const InviteFriends = () => {
   if (inviteCounts?.showNumInvites) {
     inviteCounter = (
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-        <Kb.Icon type="iconfont-envelope" sizeType="Small" color={Styles.globalColors.blueDarkerOrBlack_85} />
+        <Kb.Icon
+          type="iconfont-envelope-solid"
+          sizeType="Small"
+          color={Styles.globalColors.blueDarkerOrBlack_85}
+        />
         <Kb.Text type="BodySmallBold" style={styles.counter}>
           {inviteCounts.inviteCount.toLocaleString()}{' '}
           {inviteCounts.showFire ? <Kb.Emoji emojiName=":fire:" size={12} /> : null}
@@ -63,7 +67,9 @@ const InviteFriends = () => {
       </Kb.Box2>
     )
   }
-  const tooltipMarkdown = <Kb.Markdown style={styles.tooltip}>{inviteCounts?.tooltipMarkdown}</Kb.Markdown>
+  const tooltipMarkdown = (
+    <Kb.Markdown styleOverride={tooltipStyleOverride}>{inviteCounts?.tooltipMarkdown}</Kb.Markdown>
+  )
 
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.mobileContainer}>
@@ -98,7 +104,7 @@ const InviteFriends = () => {
       >
         <Kb.WithTooltip tooltip="Invite friends" position="top center">
           <Kb.Icon
-            type="iconfont-envelope"
+            type="iconfont-envelope-solid"
             className="invite-icon"
             onClick={onInviteFriends}
             sizeType="Default"
@@ -137,3 +143,5 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.white,
   },
 }))
+
+const tooltipStyleOverride = {paragraph: styles.tooltip}

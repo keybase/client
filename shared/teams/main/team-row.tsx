@@ -59,6 +59,7 @@ const TeamRow = (props: Props) => {
             {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
           </Kb.Box2>
         }
+        style={styles.white}
         height={Styles.isMobile ? 72 : undefined}
         body={
           <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
@@ -145,6 +146,7 @@ const styles = Styles.styleSheetCreate(() => ({
   openMeta: {
     alignSelf: 'center',
   },
+  white: {backgroundColor: Styles.globalColors.white},
 }))
 
 export default TeamRow

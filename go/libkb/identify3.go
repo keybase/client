@@ -73,6 +73,12 @@ func (s *Identify3Session) ResultType() keybase1.Identify3ResultType {
 	}
 }
 
+func (s *Identify3Session) Outcome() *IdentifyOutcome {
+	s.Lock()
+	defer s.Unlock()
+	return s.outcome
+}
+
 func (s *Identify3Session) OutcomeLocked() *IdentifyOutcome {
 	return s.outcome
 }

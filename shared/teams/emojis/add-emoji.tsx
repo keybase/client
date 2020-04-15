@@ -9,7 +9,6 @@ import * as FsTypes from '../../constants/types/fs'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
 import {AliasInput, Modal} from './common'
-import {pluralize} from '../../util/string'
 import useRPC from '../../util/use-rpc'
 import pickFiles from '../../util/pick-files'
 import kebabCase from 'lodash/kebabCase'
@@ -59,21 +58,14 @@ const useDoAddEmojis = (
               },
             ],
             res => {
-              const failedFilenamesKeys = Object.keys(res.failedFilenames || {})
-
-              if (!failedFilenamesKeys.length) {
-                dispatch(RouteTreeGen.createClearModals())
+              if (res.successFilenames?.length) {
                 onChange?.()
+                removeFilePath(new Set(res.successFilenames))
               }
-
-              res.successFilenames && removeFilePath(new Set(res.successFilenames))
+              const failedFilenamesKeys = Object.keys(res.failedFilenames || {})
+              !failedFilenamesKeys.length && dispatch(RouteTreeGen.createClearModals())
               setErrors(new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key].uidisplay])))
-              setBannerError(
-                `Failed to add ${failedFilenamesKeys.length} ${pluralize(
-                  'emojis',
-                  failedFilenamesKeys.length
-                )}.`
-              )
+              setBannerError(`Failed to add ${failedFilenamesKeys.length} emoji.`)
               setWaitingAddEmojis(false)
             },
             err => {
@@ -206,7 +198,7 @@ export const AddEmojiModal = (props: Props) => {
   )
 }
 
-export default (routableProps: RoutableProps) => {
+const AddEmojiModalWrapper = (routableProps: RoutableProps) => {
   const conversationIDKey = Container.getRouteProps(
     routableProps,
     'conversationIDKey',
@@ -216,6 +208,7 @@ export default (routableProps: RoutableProps) => {
   const onChange = Container.getRouteProps(routableProps, 'onChange', undefined)
   return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} onChange={onChange} />
 }
+export default AddEmojiModalWrapper
 
 const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
   const [dragOver, setDragOver] = React.useState(false)
@@ -381,7 +374,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
       onDrop={onDrop}
     >
       <Kb.Text style={styles.textChooseAlias} type="BodySmall">
-        Choose aliases for these emojis:
+        {items.length > 1 ? 'Choose aliases for these emoji:' : 'Choose an alias for this emoji:'}
       </Kb.Text>
       <Kb.BoxGrow>
         <Kb.List2
@@ -404,7 +397,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
 }
 
 const emojiToAddRowHeightNoError = Styles.isMobile ? 48 : 40
-const emojiToAddRowHeightWithError = Styles.isMobile ? 70 : 58
+const emojiToAddRowHeightWithError = Styles.isMobile ? 70 : 60
 
 const styles = Styles.styleSheetCreate(() => ({
   addEmojiIconContainer: Styles.platformStyles({

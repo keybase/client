@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -73,6 +74,7 @@ func TestEmojiSourceBasic(t *testing.T) {
 		func() chat1.RemoteInterface { return ri }, 1)
 	tc.ChatG.AttachmentUploader = uploader
 	filename := "./testdata/party_parrot.gif"
+	tc.ChatG.EmojiSource.(*DevConvEmojiSource).tempDir = os.TempDir()
 
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
@@ -323,6 +325,9 @@ func TestEmojiSourceCrossTeam(t *testing.T) {
 	store := attachments.NewStoreTesting(tc.Context(), nil)
 	fetcher := NewRemoteAttachmentFetcher(tc.Context(), store)
 	source := tc.Context().EmojiSource.(*DevConvEmojiSource)
+	source1 := tc1.Context().EmojiSource.(*DevConvEmojiSource)
+	source.tempDir = os.TempDir()
+	source1.tempDir = os.TempDir()
 	syncCreated := make(chan struct{}, 10)
 	syncRefresh := make(chan struct{}, 10)
 	source.testingCreatedSyncConv = syncCreated

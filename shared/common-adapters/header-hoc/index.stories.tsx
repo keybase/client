@@ -33,7 +33,7 @@ const rightActions = (length: number = 3): Action[] =>
       onPress: onAction,
     },
     {
-      icon: 'iconfont-time-reversed' as 'iconfont-time-reversed',
+      icon: 'iconfont-film' as 'iconfont-film',
       label: 'Movie trope',
       onPress: onAction,
     },

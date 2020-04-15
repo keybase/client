@@ -5,6 +5,7 @@ import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {memoize} from '../../util/memoize'
 
 type Props = Container.RouteProps<{members: string[]; teamID: Types.TeamID}>
@@ -65,9 +66,9 @@ const ConfirmKickOut = (props: Props) => {
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
-      onCancel()
+      dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'team'}))
     }
-  }, [waiting, wasWaiting, onCancel])
+  }, [waiting, wasWaiting, dispatch])
 
   const prompt = (
     <Kb.Text center={true} type="Header" style={styles.prompt}>

@@ -14,8 +14,15 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/kyokomi/emoji"
 	context "golang.org/x/net/context"
 )
+
+func init() {
+	// Don't add padding between emojis, we want skin tones to be rendered
+	// correctly.
+	emoji.ReplacePadding = ""
+}
 
 const (
 	minScoringMinutes = 1           // one minute

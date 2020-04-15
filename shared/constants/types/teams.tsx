@@ -178,6 +178,7 @@ export type NewTeamWizardState = {
   channels?: string[]
   subteams?: string[]
   parentTeamID?: TeamID
+  error?: string
 }
 
 export type AddingMember = {

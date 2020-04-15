@@ -389,7 +389,7 @@ const Instructions = (p: Props) => {
   return (
     <Kb.Box2 direction="vertical">
       {p.currentDeviceAlreadyProvisioned ? (
-        <Kb.Box2 alignItems="center" direction="horizontal">
+        <Kb.Box2 alignItems="center" direction="horizontal" style={styles.flexWrap}>
           <Kb.Text type={textType} style={styles.instructions}>
             Ready to authorize using
           </Kb.Text>
@@ -564,6 +564,7 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
+      flexWrap: Styles.platformStyles({isMobile: {flexWrap: 'wrap'}}),
       hamburger: Styles.platformStyles({
         isMobile: {
           bottom: 1,

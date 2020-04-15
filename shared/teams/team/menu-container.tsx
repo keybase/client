@@ -155,10 +155,10 @@ export default Container.connect(
         })
       }
     }
-    if (stateProps.canLeaveTeam || !flags.teamsRedesign) {
+    if (stateProps.canLeaveTeam) {
       items.push({
         danger: true,
-        icon: 'iconfont-leave',
+        icon: 'iconfont-team-leave',
         onClick: dispatchProps.onLeaveTeam,
         title: 'Leave team',
       })
