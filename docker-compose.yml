@@ -8,6 +8,7 @@ services:
             - MYSQL_DATABASES=gregor
         ports:
             - "3306"
+        tmpfs: /var/lib/mysql
         command: ["--innodb_print_all_deadlocks=1", "--max_connections=1000"]
     sqsd.local:
         image: keybaseprivate/sqsd
