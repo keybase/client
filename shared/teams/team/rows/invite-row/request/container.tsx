@@ -10,8 +10,10 @@ import {connect} from '../../../../../util/container'
 
 type OwnProps = {
   ctime: number
+  firstItem: boolean
   fullName: string
   username: string
+  reset?: boolean
   teamID: Types.TeamID
 }
 
@@ -43,12 +45,16 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
         isRolePickerOpen={this.state.rolePickerOpen}
         onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
         onEditMembership={() => this.setState({rolePickerOpen: true})}
-        footerComponent={sendNotificationFooter(_notifLabel, this.state.sendNotification, nextVal =>
-          this.setState({sendNotification: nextVal})
-        )}
+        footerComponent={
+          this.props.reset
+            ? undefined
+            : sendNotificationFooter(_notifLabel, this.state.sendNotification, nextVal =>
+                this.setState({sendNotification: nextVal})
+              )
+        }
         onConfirmRolePicker={role => {
           this.setState({rolePickerOpen: false})
-          letIn(this.state.sendNotification, role)
+          letIn(!this.props.reset && this.state.sendNotification, role)
         }}
         onSelectRole={selectedRole => this.setState({selectedRole})}
         selectedRole={this.state.selectedRole}
@@ -70,9 +76,11 @@ export default connect(
       teamname,
     }
   },
-  (dispatch, {username, teamID}) => ({
+  (dispatch, {reset, username, teamID}) => ({
     _onIgnoreRequest: (teamname: string) =>
-      dispatch(TeamsGen.createIgnoreRequest({teamID, teamname, username})),
+      reset
+        ? dispatch(TeamsGen.createRemoveMember({teamID, username}))
+        : dispatch(TeamsGen.createIgnoreRequest({teamID, teamname, username})),
     letIn: (sendNotification: boolean, role: Types.TeamRoleType) => {
       dispatch(
         TeamsGen.createAddToTeam({
@@ -93,11 +101,13 @@ export default connect(
       _notifLabel: stateProps._notifLabel,
       ctime: ownProps.ctime,
       disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
+      firstItem: ownProps.firstItem,
       fullName: stateProps.fullName,
       letIn: dispatchProps.letIn,
       onChat: dispatchProps.onChat,
       onIgnoreRequest: () => dispatchProps._onIgnoreRequest(stateProps.teamname),
       onOpenProfile: dispatchProps.onOpenProfile,
+      reset: ownProps.reset,
       teamID: ownProps.teamID,
       username: ownProps.username,
     }
