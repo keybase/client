@@ -474,7 +474,7 @@ const InstallBotPopup = (props: Props) => {
         enabled && (!readOnly || showReviewButton)
           ? {
               content: (
-                <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
                   <Kb.ButtonBar direction="column">
                     {doneButton}
                     {editButton}

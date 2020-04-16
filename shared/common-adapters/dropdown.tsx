@@ -160,7 +160,6 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
 const styles = Styles.styleSheetCreate(() => ({
   dropdownBoxContainer: Styles.platformStyles({
     isTablet: {
-      alignSelf: 'center',
       maxWidth: 460,
     },
   }),
