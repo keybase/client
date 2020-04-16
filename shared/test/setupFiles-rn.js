@@ -33,13 +33,18 @@ jest.mock('rn-fetch-blob', () => ({
   },
 }))
 
-jest.mock('react-native-gesture-handler', () => ({
-  LongPressGestureHandler: () => null,
-  PanGestureHandler: () => null,
-  RectButton: () => null,
-  State: () => null,
-  TapGestureHandler: () => null,
-}))
+jest.mock('react-native-gesture-handler', () => {
+  const React = require('react')
+  // eslint-disable-next-line
+  const Mock = React.forwardRef((p, _ref) => p.children ?? null)
+  return {
+    LongPressGestureHandler: Mock,
+    PanGestureHandler: Mock,
+    RectButton: () => null,
+    State: () => null,
+    TapGestureHandler: Mock,
+  }
+})
 
 jest.mock('react-native-gesture-handler/Swipeable', () => {
   const React = require('react')
@@ -89,7 +94,15 @@ jest.mock('@react-navigation/core', () => ({
   },
 }))
 jest.mock('expo-constants', () => ({}))
-jest.mock('expo-image-picker', () => ({}))
+jest.mock('expo-image-picker', () => ({
+  MediaTypeOptions: {
+    All: 0,
+    Images: 0,
+    Videos: 0,
+  },
+  launchCameraAsync: jest.fn(),
+  launchImageLibraryAsync: jest.fn(),
+}))
 jest.mock('expo-permissions', () => ({}))
 jest.mock('expo-barcode-scanner', () => ({}))
 jest.mock('react-native-hw-keyboard-event', () => ({
@@ -107,6 +120,7 @@ jest.mock('react-native-reanimated', () => {
     Extrapolate: {
       CLAMP: 'clamp',
     },
+    ScrollView: p => p.children ?? null,
     SpringUtils: {
       makeDefaultConfig: () => {},
     },

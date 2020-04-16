@@ -1,5 +1,6 @@
 import * as React from 'react'
-import {Box} from '../../../../../../common-adapters/index'
+import {Box} from '../../../../../../common-adapters'
+import * as Styles from '../../../../../../styles'
 import * as Sb from '../../../../../../stories/storybook'
 
 import UnfurlGeneric from '.'
@@ -7,9 +8,9 @@ import UnfurlGeneric from '.'
 const full = {
   description:
     'A surge in technology shares following Facebook’s latest earnings lifted U.S. stocks, helping major indexes trim some of their October declines following a punishing period for global investors.',
-  faviconURL: require('../../../../../../images/mock/wsj.jpg'),
+  faviconURL: Styles.isMobile ? '' : require('../../../../../../images/mock/wsj.jpg'),
   imageHeight: 471,
-  imageURL: require('../../../../../../images/mock/wsj_image.jpg'),
+  imageURL: Styles.isMobile ? '' : require('../../../../../../images/mock/wsj_image.jpg'),
   imageWidth: 900,
   isCollapsed: false,
   onClose: Sb.action('onClose'),
@@ -38,7 +39,7 @@ const missingPubDesc = {
 
 const missingPubDescImage = {
   ...missingPubDesc,
-  imageURL: undefined,
+  imageURL: Styles.isMobile ? '' : undefined,
 }
 
 const missingPubDescImageFav = {
@@ -48,13 +49,13 @@ const missingPubDescImageFav = {
 
 const missingImage = {
   ...full,
-  imageURL: undefined,
+  imageURL: Styles.isMobile ? '' : undefined,
 }
 
 const fullGithub = {
   description: 'Keybase Go Library, Client, Service, OS X, iOS, Android, Electron - keybase/client',
   faviconURL: require('../../../../../../images/mock/github_fav.jpg'),
-  imageURL: require('../../../../../../images/mock/github.jpg'),
+  imageURL: Styles.isMobile ? '' : require('../../../../../../images/mock/github.jpg'),
   isCollapsed: false,
   onClose: Sb.action('onClose'),
   onCollapse: Sb.action('onCollapse'),
@@ -71,7 +72,7 @@ const githubMissingDesc = {
 
 const githubMissingImage = {
   ...fullGithub,
-  imageURL: undefined,
+  imageURL: Styles.isMobile ? '' : undefined,
 }
 
 const load = () => {
