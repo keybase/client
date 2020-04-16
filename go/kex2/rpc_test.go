@@ -191,7 +191,7 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 	go func() {
 		err := RunProvisionee(ProvisioneeArg{
 			KexBaseArg: KexBaseArg{
-				Ctx:           ctx,
+				Ctx:           context.Background(),
 				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        s2,
