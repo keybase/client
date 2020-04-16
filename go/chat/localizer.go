@@ -696,6 +696,7 @@ func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, c
 
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	rc types.RemoteConversation) (conversationLocal chat1.ConversationLocal) {
+	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 	ctx = libkb.WithLogTag(ctx, "CHTLOC")
 	conversationRemote := rc.Conv
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
