@@ -201,8 +201,6 @@ export type IconType =
   | 'icon-dark-empty-wot-118-96'
   | 'icon-dark-fancy-bomb-desktop-150-72'
   | 'icon-dark-fancy-bomb-mobile-226-96'
-  | 'icon-dark-fancy-chat-103-x-75'
-  | 'icon-dark-fancy-chat-72-x-52'
   | 'icon-dark-fancy-email-sent-144-x-48'
   | 'icon-dark-fancy-email-sent-192-x-64'
   | 'icon-dark-fancy-encrypted-computer-desktop-150-72'
@@ -471,8 +469,6 @@ export type IconType =
   | 'icon-facebook-logo-64'
   | 'icon-fancy-bomb-desktop-150-72'
   | 'icon-fancy-bomb-mobile-226-96'
-  | 'icon-fancy-chat-103-x-75'
-  | 'icon-fancy-chat-72-x-52'
   | 'icon-fancy-email-sent-144-x-48'
   | 'icon-fancy-email-sent-192-x-64'
   | 'icon-fancy-encrypted-computer-desktop-150-72'
@@ -2875,22 +2871,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
     },
   },
-  'icon-dark-fancy-chat-103-x-75': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-chat-103-x-75.png')
-    },
-  },
-  'icon-dark-fancy-chat-72-x-52': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-chat-72-x-52.png')
-    },
-  },
   'icon-dark-fancy-email-sent-144-x-48': {
     extension: 'png',
     imagesDir: 'icons',
@@ -5093,30 +5073,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
-    },
-  },
-  'icon-fancy-chat-103-x-75': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    nameDark: 'icon-dark-fancy-chat-103-x-75',
-    get require() {
-      return require('../images/icons/icon-fancy-chat-103-x-75.png')
-    },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-chat-103-x-75.png')
-    },
-  },
-  'icon-fancy-chat-72-x-52': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    nameDark: 'icon-dark-fancy-chat-72-x-52',
-    get require() {
-      return require('../images/icons/icon-fancy-chat-72-x-52.png')
-    },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-chat-72-x-52.png')
     },
   },
   'icon-fancy-email-sent-144-x-48': {
