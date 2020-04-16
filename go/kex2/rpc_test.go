@@ -115,7 +115,7 @@ func (mp *mockProvisionee) GetNetworkInstrumenter() rpc.NetworkInstrumenterStora
 
 var ErrHandleHello = errors.New("handle hello failure")
 var ErrHandleDidCounterSign = errors.New("handle didCounterSign failure")
-var testTimeout = time.Duration(500) * time.Millisecond
+var testTimeout = 5000 * time.Millisecond
 
 func (mp *mockProvisionee) HandleHello2(ctx context.Context, arg2 keybase1.Hello2Arg) (res keybase1.Hello2Res, err error) {
 	arg1 := keybase1.HelloArg{
@@ -182,14 +182,16 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 			},
 			Provisioner: newMockProvisioner(t),
 		})
+		_ = err
 		ch <- err
+		//ch <- io.EOF
 	}()
 
 	// Run the privisionee
 	go func() {
 		err := RunProvisionee(ProvisioneeArg{
 			KexBaseArg: KexBaseArg{
-				Ctx:           context.Background(),
+				Ctx:           ctx,
 				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        s2,
@@ -199,12 +201,15 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 			},
 			Provisionee: newMockProvisionee(t, provisioneeBehavior),
 		})
+		_ = err
 		ch <- err
+		//ch <- io.EOF
 	}()
 
 	if (provisioneeBehavior & BadProvisioneeCancel) != 0 {
 		go func() {
 			time.Sleep(testTimeout / 20)
+			_ = cancelFn
 			cancelFn()
 		}()
 	}

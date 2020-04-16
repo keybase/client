@@ -100,6 +100,8 @@ type Conn struct {
 	lctx LogContext
 }
 
+var _ net.Conn = (*Conn)(nil)
+
 const sessionIDText = "Kex v2 Session ID"
 
 // NewConn establishes a Kex session based on the given secret. Will work for

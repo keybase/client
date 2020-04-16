@@ -6,6 +6,7 @@ package kex2
 import (
 	"errors"
 	"net"
+	"sync"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -22,7 +23,8 @@ type baseDevice struct {
 	xp           rpc.Transporter //nolint
 	deviceID     DeviceID        //nolint
 	start        chan struct{}
-	canceled     bool //nolint
+	stopOnce     sync.Once
+	stopCh       chan struct{}
 	serverDoneCh <-chan struct{}
 }
 
@@ -40,16 +42,25 @@ type KexBaseArg struct {
 // ErrCanceled is returned if Kex is canceled by the caller via the Context argument
 var ErrCanceled = errors.New("kex canceled by caller")
 
-func (b *baseDevice) waitForServerShutdownAndCleanup() {
+// closeConnectionAndWaitForShutdown ignores any errors in closing the connection
+func (b *baseDevice) closeConnectionAndWaitForShutdown() {
+	_ = b.closeConnection()
 	// wait for the server to shutdown
 	if b.serverDoneCh != nil {
 		<-b.serverDoneCh
 	}
-	// close the connections
+	b.stopOnce.Do(func() {
+		close(b.stopCh)
+	})
+}
+
+func (b *baseDevice) closeConnection() (err error) {
+	// close the connection
 	if b.conn != nil {
-		b.conn.Close()
+		err = b.conn.Close()
 	}
 	if b.xp != nil {
-		b.xp.Close()
+		b.xp.CloseBlocking()
 	}
+	return err
 }

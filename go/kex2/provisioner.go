@@ -4,7 +4,6 @@
 package kex2
 
 import (
-	"net"
 	"strings"
 	"time"
 
@@ -45,7 +44,8 @@ func newProvisioner(arg ProvisionerArg) *provisioner {
 	}
 	ret := &provisioner{
 		baseDevice: baseDevice{
-			start: make(chan struct{}),
+			start:  make(chan struct{}),
+			stopCh: make(chan struct{}),
 		},
 		arg: arg,
 	}
@@ -61,16 +61,7 @@ func (p *provisioner) debug(fmtString string, args ...interface{}) {
 // RunProvisioner runs a provisioner given the necessary arguments.
 func RunProvisioner(arg ProvisionerArg) error {
 	p := newProvisioner(arg)
-	err := p.run()
-	p.close() // ignore any errors in closing the channel
-	return err
-}
-
-func (p *provisioner) close() (err error) {
-	if p.conn != nil {
-		err = p.conn.Close()
-	}
-	return err
+	return p.run()
 }
 
 func (p *provisioner) KexStart(_ context.Context) error {
@@ -79,7 +70,19 @@ func (p *provisioner) KexStart(_ context.Context) error {
 }
 
 func (p *provisioner) run() (err error) {
-	defer p.waitForServerShutdownAndCleanup()
+	defer p.closeConnectionAndWaitForShutdown()
+
+	// The rpc library does not close automatically when the context is
+	// cancelled, so we need to give it a nudge.
+	go func() {
+		select {
+		case <-p.arg.Ctx.Done():
+			// ignore errors in closing
+			_ = p.closeConnection()
+		case <-p.stopCh:
+			// do not leak this goroutine
+		}
+	}()
 
 	if err = p.setDeviceID(); err != nil {
 		return err
@@ -87,7 +90,7 @@ func (p *provisioner) run() (err error) {
 	if err = p.pickFirstConnection(); err != nil {
 		return err
 	}
-	return p.runProtocolWithCancel()
+	return p.runProtocol()
 }
 
 func (k KexBaseArg) getDeviceID() (ret DeviceID, err error) {
@@ -102,29 +105,17 @@ func (p *provisioner) setDeviceID() (err error) {
 
 func (p *provisioner) pickFirstConnection() (err error) {
 
-	// This connection is auto-closed at the end of this function, so if
-	// you don't want it to close, then set it to nil.  See the first
-	// case in the select below.
-	var conn net.Conn
-	var xp rpc.Transporter
-
-	defer func() {
-		if conn != nil {
-			conn.Close()
-		}
-	}()
-
 	// Only make a channel if we were provided a secret to start it with.
 	// If not, we'll just have to wait for a message on p.arg.SecretChannel
 	// and use the provisionee's channel.
 	if len(p.arg.Secret) != 0 {
-		if conn, err = NewConn(p.arg.Ctx, p.arg.LogCtx, p.arg.Mr, p.arg.Secret, p.deviceID, p.arg.Timeout); err != nil {
+		if p.conn, err = NewConn(p.arg.Ctx, p.arg.LogCtx, p.arg.Mr, p.arg.Secret, p.deviceID, p.arg.Timeout); err != nil {
 			return err
 		}
 		prot := keybase1.Kex2ProvisionerProtocol(p)
-		xp = rpc.NewTransport(conn, p.arg.Provisioner.GetLogFactory(),
+		p.xp = rpc.NewTransport(p.conn, p.arg.Provisioner.GetLogFactory(),
 			p.arg.Provisioner.GetNetworkInstrumenter(), nil, rpc.DefaultMaxFrameLength)
-		srv := rpc.NewServer(xp, nil)
+		srv := rpc.NewServer(p.xp, nil)
 		if err = srv.Register(prot); err != nil {
 			return err
 		}
@@ -133,12 +124,13 @@ func (p *provisioner) pickFirstConnection() (err error) {
 
 	select {
 	case <-p.start:
-		p.conn = conn
-		conn = nil // so it's not closed in the defer()'ed close
-		p.xp = xp
 	case sec := <-p.arg.SecretChannel:
 		if len(sec) != SecretLen {
 			return ErrBadSecret
+		}
+		err = p.closeConnection()
+		if err != nil {
+			p.debug("provisioner: err in closing the connection: %v", err)
 		}
 		if p.conn, err = NewConn(p.arg.Ctx, p.arg.LogCtx, p.arg.Mr, sec, p.deviceID, p.arg.Timeout); err != nil {
 			return err
@@ -153,24 +145,13 @@ func (p *provisioner) pickFirstConnection() (err error) {
 	return
 }
 
-func (p *provisioner) runProtocolWithCancel() (err error) {
-	ch := make(chan error)
-	go func() {
-		ch <- p.runProtocol()
-	}()
-	select {
-	case <-p.arg.Ctx.Done():
-		p.canceled = true
-		return ErrCanceled
-	case err = <-ch:
-		if err == context.Canceled && !p.helloReceived {
-			return ErrHelloTimeout
-		}
-		return err
-	}
-}
-
 func (p *provisioner) runProtocol() (err error) {
+	defer func() {
+		if err == context.Canceled && !p.helloReceived {
+			err = ErrHelloTimeout
+		}
+	}()
+
 	var fallback bool
 	p.debug("+ provisioner#runProtocol: try V2")
 	fallback, err = p.runProtocolV2()
@@ -197,8 +178,10 @@ func (p *provisioner) runProtocolV2() (fallback bool, err error) {
 		}
 		return false, err
 	}
-	if p.canceled {
+	select {
+	case <-p.arg.Ctx.Done():
 		return false, ErrCanceled
+	default:
 	}
 	p.helloReceived = true
 	var counterSign2Arg keybase1.DidCounterSign2Arg
@@ -222,8 +205,10 @@ func (p *provisioner) runProtocolV1() (err error) {
 	if res, err = cli.Hello(context.TODO(), helloArg); err != nil {
 		return
 	}
-	if p.canceled {
+	select {
+	case <-p.arg.Ctx.Done():
 		return ErrCanceled
+	default:
 	}
 	p.helloReceived = true
 	var counterSigned []byte

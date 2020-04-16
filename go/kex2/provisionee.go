@@ -42,7 +42,8 @@ type ProvisioneeArg struct {
 func newProvisionee(arg ProvisioneeArg) *provisionee {
 	ret := &provisionee{
 		baseDevice: baseDevice{
-			start: make(chan struct{}),
+			start:  make(chan struct{}),
+			stopCh: make(chan struct{}),
 		},
 		arg:                arg,
 		done:               make(chan error),
@@ -102,7 +103,19 @@ func (p *provisionee) DidCounterSign2(ctx context.Context, arg keybase1.DidCount
 }
 
 func (p *provisionee) run() (err error) {
-	defer p.waitForServerShutdownAndCleanup()
+	defer p.closeConnectionAndWaitForShutdown()
+
+	// The rpc library does not close automatically when the context is
+	// cancelled, so we need to give it a nudge.
+	go func() {
+		select {
+		case <-p.arg.Ctx.Done():
+			// ignore errors in closing
+			_ = p.closeConnection()
+		case <-p.stopCh:
+			// do not leak this goroutine
+		}
+	}()
 
 	if err = p.setDeviceID(); err != nil {
 		return err
@@ -130,10 +143,13 @@ func (p *provisionee) run() (err error) {
 	// provisioner explodes. It makes sense to try to finish, however we can.
 	// Thus, we wait for EOF from the server in a Go routine.
 	go func() {
-		<-p.serverDoneCh
-		tmp := p.server.Err()
-		if tmp != nil && tmp != io.EOF {
-			p.debug("provisionee#run: RPC server died with an error: %s", tmp.Error())
+		select {
+		case <-p.serverDoneCh:
+			tmp := p.server.Err()
+			if tmp != nil && tmp != io.EOF {
+				p.debug("provisionee#run: RPC server died with an error: %s", tmp.Error())
+			}
+		case <-p.stopCh:
 		}
 	}()
 
@@ -178,7 +194,10 @@ func (p *provisionee) pickFirstConnection() (err error) {
 		if len(sec) != SecretLen {
 			return ErrBadSecret
 		}
-		p.conn.Close()
+		err = p.closeConnection()
+		if err != nil {
+			return err
+		}
 		err = p.startServer(sec)
 		if err != nil {
 			return err
