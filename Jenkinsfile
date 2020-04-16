@@ -693,6 +693,9 @@ def testGoTestSuite(prefix, packagesToTest) {
         flags: '-race',
         timeout: '30s',
       ],
+      'github.com/keybase/client/go/systests': [
+        citogo_extra: '-parallel=8',
+      ],
     ],
     test_windows_go_: [
       '*': [],
