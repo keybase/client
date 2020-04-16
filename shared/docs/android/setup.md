@@ -12,7 +12,7 @@ You will already have the `sdkmanager` command line tool installed. So run:
 
 `sdkmanager --install "ndk-bundle"` which should write to `$HOME/Library/Android/sdk/ndk-bundle` on macOS.
 
-**Without Android Stuido** 
+**Without Android Studio**
 You will need the Android Studio Command Line Tools to use `sdkmanager` without Android Studio.
 [Download Command Line Tools](https://developer.android.com/studio/index.html#command-tools) here.
 
@@ -115,19 +115,11 @@ react-native packager running (`yarn rn-start android`).
 Then run
 
 ```sh
-# Build the apk.
-yarn rn-build-android
-
-# Or with gradle (inside android)
-# You can also use the gradle wrapper `./gradlew` in android
-gradle installDebug
-
+yarn react-native run-android
 
 # for storybook
-gradle installStorybook
+yarn react-native run-android --variant 'storybook'
 
-# gradle tasks shows all the things you can do with gradle
-gradle tasks
 ```
 
 Unless you're modifying the Java files or you're modifying Go files
@@ -196,21 +188,9 @@ To recap, you should have run:
 
 1. `adb devices` (should list _exactly_ one device)
 1. `yarn rn-gobuild-android`
-1. `yarn rn-start android`
-1. `yarn rn-build-android` (or `gradle installDebug` inside android),
-1. `yarn rn-push-android` (To install the apk on the device. NOTE: `gradle installDebug` does this automatically)
+1. `yarn react-native run-android`
 
-and have an emulator or android device connected. (i.e. `adb devices` should list _exactly_ one device)
-
-Then you can run
-
-```sh
-yarn rn-push-android
-```
-
-to push the debug APK to your emulator or device, and it should
-connect to the react-native packager instance on your machine. Happy
-developing!
+Happy developing!
 
 ### Troubleshooting
 
