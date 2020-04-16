@@ -97,7 +97,7 @@ export const TeamMemberRow = (props: Props) => {
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
 
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.nameContainer}>
+        <Kb.Box2 direction="vertical" style={styles.nameContainer}>
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
             <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} />
           </Kb.Box>
@@ -374,7 +374,7 @@ const styles = Styles.styleSheetCreate(() => ({
   crownIcon: {
     marginRight: Styles.globalMargins.xtiny,
   },
-  fullNameLabel: {marginRight: Styles.globalMargins.xtiny},
+  fullNameLabel: {flexShrink: 1, marginRight: Styles.globalMargins.xtiny},
   innerContainerBottom: {...Styles.globalStyles.flexBoxRow, flexShrink: 1},
   innerContainerTop: {
     ...Styles.globalStyles.flexBoxRow,
@@ -397,7 +397,13 @@ const styles = Styles.styleSheetCreate(() => ({
     marginLeft: Styles.globalMargins.xtiny,
   },
   mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
-  nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
+  nameContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignSelf: undefined,
+    flex: 1,
+    justifyContent: 'center',
+    marginLeft: Styles.globalMargins.small,
+  },
   nameContainerInner: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},
   selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
   widenClickableArea: {margin: -5, padding: 5},
