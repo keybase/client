@@ -4378,3 +4378,4 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.getTeamBlocks'
 // 'keybase.1.wot.wotVouchCLI'
+// 'keybase.1.wot.wotVouchCLI'

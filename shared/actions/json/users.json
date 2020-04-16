@@ -24,6 +24,11 @@
       "_description": "Call RPC to get block state for usernames",
       "usernames": "Array<string>"
     },
+    "submitRevokeVouch": {
+      "_description": "revoke an attestation you previously made",
+      "proofID": "string",
+      "voucheeName": "string"
+    },
     "updateBlockState": {
       "_description": "Sets the block state for multiple users",
       "blocks": "Array<{username: string, chatBlocked: boolean, followBlocked: boolean}>"
