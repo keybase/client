@@ -23,7 +23,10 @@ type DropdownButtonProps = {
 }
 const noTheme = {}
 export const DropdownButton = (props: DropdownButtonProps) => (
-  <ClickableBox onClick={!props.disabled ? props.toggleOpen : undefined} style={props.style}>
+  <ClickableBox
+    onClick={!props.disabled ? props.toggleOpen : undefined}
+    style={Styles.collapseStyles([styles.dropdownBoxContainer, props.style])}
+  >
     <ButtonBox inline={props.inline} disabled={props.disabled} ref={props.setAttachmentRef} theme={noTheme}>
       <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>
         {props.loading ? <ProgressIndicator type="Small" /> : props.selected}
@@ -76,7 +79,7 @@ class Dropdown<N extends React.ReactNode> extends React.Component<Props<N> & Ove
 
   render() {
     return (
-      <Box style={Styles.collapseStyles([{width: Styles.isMobile ? '100%' : 270}, this.props.style])}>
+      <Box style={Styles.collapseStyles([styles.overlayContainer, this.props.style])}>
         <DropdownButton
           disabled={this.props.disabled}
           selected={this.props.selected}
@@ -155,6 +158,12 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  dropdownBoxContainer: Styles.platformStyles({
+    isTablet: {
+      alignSelf: 'center',
+      maxWidth: 460,
+    },
+  }),
   inlineDropdown: {
     paddingRight: Styles.globalMargins.tiny,
   },
@@ -190,6 +199,14 @@ const styles = Styles.styleSheetCreate(() => ({
       borderRadius: 4,
       maxHeight: 300,
       width: 270,
+    },
+  }),
+  overlayContainer: Styles.platformStyles({
+    isElectron: {
+      width: 270,
+    },
+    isMobile: {
+      width: '100%',
     },
   }),
   scrollView: Styles.platformStyles({
@@ -246,6 +263,11 @@ const ButtonBox = Styles.styled(Box, {shouldForwardProp: prop => prop !== 'inlin
     ? Styles.globalMargins.large
     : Styles.globalMargins.small,
   width: props.inline ? undefined : '100%',
+  ...(Styles.isTablet
+    ? {
+        maxWidth: 460,
+      }
+    : {}),
 }))
 
 // This whole wrapper exists so as to get proper typing on the export, so
