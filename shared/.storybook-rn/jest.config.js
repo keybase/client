@@ -7,6 +7,7 @@ module.exports = {
   ],
   setupFiles: ['<rootDir>/node_modules/react-native/jest/setup.js', '<rootDir>/test/setupFiles-rn.js'],
   setupFilesAfterEnv: ['<rootDir>/test/setupTestFrameworkScriptFile-rn.js'],
+  snapshotSerializers: ['<rootDir>/.storybook-rn/smaller-rn-serializer'],
   testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.tsOut/'],
   testMatch: ['**/__rntests__/Storyshots-rn.js'],
   preset: 'react-native',

@@ -23,8 +23,34 @@ import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
 const _getData = () => {
   const categories: typeof Data.categories = require('./data').categories
   const emojiIndex: typeof Data.emojiIndex = require('./data').emojiIndex
-  const emojiNameMap: typeof Data.emojiNameMap = require('./data').emojiNameMap
+  let emojiNameMap: typeof Data.emojiNameMap = require('./data').emojiNameMap
   const emojiSkinTones: typeof Data.skinTones = require('./data').skinTones
+
+  // use way less emoji data on storyshots, really blows up the snapshots
+  if (__STORYSHOT__) {
+    categories.length = 1
+    categories[0].emojis.length = 1
+
+    const emojis = Object.keys(emojiIndex.emojis)
+    emojiIndex.emojis = {
+      [emojis[0]]: emojiIndex.emojis[emojis[0]],
+      [emojis[1]]: emojiIndex.emojis[emojis[1]],
+    }
+    const emoticons = Object.keys(emojiIndex.emoticons)
+    emojiIndex.emoticons = {
+      [emoticons[0]]: emojiIndex.emoticons[emoticons[0]],
+      [emoticons[1]]: emojiIndex.emoticons[emoticons[1]],
+    }
+
+    const smallMap = Object.keys(emojiNameMap)
+    smallMap.length = 2
+    emojiNameMap = {
+      [smallMap[0]]: emojiNameMap[smallMap[0]],
+      [smallMap[1]]: emojiNameMap[smallMap[1]],
+    } as typeof Data.emojiNameMap
+  }
+
+  console.error('aaa', categories)
   return {categories, emojiIndex, emojiNameMap, emojiSkinTones}
 }
 

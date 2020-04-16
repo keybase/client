@@ -47,10 +47,10 @@ const RootWrapper = ({children}) => {
 
   if (__STORYSHOT__) {
     return (
-      <View style={{height: '100%', width: '100%'}}>
+      <>
         {children}
         <View key="modal-root" />
-      </View>
+      </>
     )
   } else {
     return (
@@ -79,7 +79,6 @@ const store = Sb.createStoreWithCommon()
 const load = () => {
   addDecorator((story: any) => <RootWrapper>{story()}</RootWrapper>)
   addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
-  debugger
   Object.keys(filteredStories).forEach(s => filteredStories[s]())
 }
 

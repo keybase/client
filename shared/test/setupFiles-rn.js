@@ -2,6 +2,7 @@
 import * as React from 'react'
 require('../app/preload.native')
 require('immer').enableAllPlugins()
+
 // fixed in 5.3 storybook
 // eslint-disable-next-line
 jest.mock('global', () => Object.assign(global, {window: {STORYBOOK_HOOKS_CONTEXT: ''}}))
