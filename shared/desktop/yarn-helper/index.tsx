@@ -42,8 +42,7 @@ const commands = {
       const updateStr = update ? ' -u Storyshots' : ''
 
       console.log(`Electron test${updateLabel}`)
-      // TEMP
-      // exec(`cross-env-shell BABEL_ENV=test jest${updateStr}`)
+      exec(`cross-env-shell BABEL_ENV=test jest${updateStr}`)
       console.log(`React Native test${updateLabel}`)
       exec(`cross-env-shell BABEL_ENV=test-rn jest --config .storybook-rn/jest.config.js${updateStr}`)
     },
