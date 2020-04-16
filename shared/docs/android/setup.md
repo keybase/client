@@ -12,7 +12,7 @@ You will already have the `sdkmanager` command line tool installed. So run:
 
 `sdkmanager --install "ndk-bundle"` which should write to `$HOME/Library/Android/sdk/ndk-bundle` on macOS.
 
-**Without Android Stuido**
+**Without Android Studio**
 You will need the Android Studio Command Line Tools to use `sdkmanager` without Android Studio.
 [Download Command Line Tools](https://developer.android.com/studio/index.html#command-tools) here.
 
