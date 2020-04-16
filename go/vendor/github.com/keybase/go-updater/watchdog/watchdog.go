@@ -109,21 +109,20 @@ func (p *Program) Run(log Log, shutdownCh chan struct{}) (err error) {
 	return err
 }
 
+type heartbeat struct {
+	name string
+	pid  int
+}
+
 func (w *Watchdog) heartbeatToLog(delay time.Duration) {
 	// wait enough time for the first heartbeat so it's actually useful
 	time.Sleep(1 * time.Minute)
 	for {
-		var heartbeatData []struct {
-			name string
-			pid  int
-		}
+		var heartbeats []heartbeat
 		for _, p := range w.Programs {
-			heartbeatData = append(heartbeatData, struct {
-				name string
-				pid  int
-			}{p.Name, p.runningPid})
+			heartbeats = append(heartbeats, heartbeat{p.Name, p.runningPid})
 		}
-		w.Log.Infof("heartbeating programs: %v", heartbeatData)
+		w.Log.Infof("heartbeating programs: %v", heartbeats)
 		select {
 		case <-w.shutdownCh:
 			w.Log.Infof("watchdog is shutting down, stop heartbeating")
