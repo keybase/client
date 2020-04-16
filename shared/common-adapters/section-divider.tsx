@@ -22,7 +22,7 @@ type Props = {
 }
 
 const SectionDivider = (props: Props) => {
-  const collapsible = Object.prototype.hasOwnProperty.call(props, 'collapsed')
+  const collapsible = props.collapsed === true || props.collapsed === false
   const children = (
     <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true} style={styles.container}>
       {typeof props.label === 'string' ? (
