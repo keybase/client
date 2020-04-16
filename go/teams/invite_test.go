@@ -766,6 +766,3 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 	// this would be the wrong log point: testUV did not accept invite at that point
 	require.Equal(t, 0, state.inner.InviteMetadatas[inviteID].UsedInvites[0].LogPoint)
 }
-
-func TestTeamInviteMetadata(t *testing.T) {
-}

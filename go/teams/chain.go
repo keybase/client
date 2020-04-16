@@ -650,15 +650,18 @@ func (t *TeamSigChainState) FindActiveInvite(name keybase1.TeamInviteName, typ k
 // completing invites, but do not check them in the sigchain player.
 func (t *TeamSigChainState) FindActiveInviteMDByID(
 	id keybase1.TeamInviteID) (inviteMD keybase1.TeamInviteMetadata, found bool) {
-	inviteMD, found = t.inner.InviteMetadatas[id]
+	res, found := t.inner.InviteMetadatas[id]
 	if !found {
 		return inviteMD, false
 	}
-	code, err := inviteMD.Status.Code()
+	code, err := res.Status.Code()
 	if err != nil {
 		return inviteMD, false
 	}
-	return inviteMD, code == keybase1.TeamInviteMetadataStatusCode_ACTIVE
+	if code != keybase1.TeamInviteMetadataStatusCode_ACTIVE {
+		return inviteMD, false
+	}
+	return res, true
 }
 
 func (t *TeamSigChainState) IsInviteObsolete(id keybase1.TeamInviteID) bool {
@@ -2315,8 +2318,8 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 
 		maxUses := inviteMD.Invite.MaxUses
 		alreadyUsed := len(inviteMD.UsedInvites)
-		// Note that we append to stateToUpdate.inner.UsedInvites at the end of this for loop,
-		// so alreadyUsed updates correctly when processing multiple invite pairs.
+		// Note that we append to inviteMD.UsedInvites at the end of this for loop, so alreadyUsed
+		// updates correctly when processing multiple invite pairs.
 		if maxUses.IsUsedUp(alreadyUsed) {
 			return fmt.Errorf("invite %s is expired after %d uses", inviteID, alreadyUsed)
 		}
@@ -2338,6 +2341,8 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 				inviteMD.Invite.Role.HumanString())
 		}
 
+		// Because we use information from the UserLog here, useInvites should be called after
+		// updateMembership.
 		logPoint := len(stateToUpdate.inner.UserLog[uv]) - 1
 		if logPoint < 0 {
 			return fmt.Errorf("used_invite for UV %s that was not added to to the team", pair.UV)
