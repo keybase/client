@@ -726,8 +726,12 @@
 
   // Bot Commands
   enum BotCommandsAdvertisementTyp {
+    // Commands are publicly viewable by all users
     PUBLIC_0,
+    // Commands are listed to members of the team in any conversation they are
+    // in.
     TLFID_MEMBERS_1,
+    // Commands are listed in all conversations of the given team.
     TLFID_CONVS_2
   }
 
