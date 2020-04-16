@@ -19,10 +19,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// ErrorFile is the name of the virtual file in KBFS that should
-// contain the last reported error(s).
-var ErrorFile = ".kbfs_error"
-
 // WrapError simply wraps an error in a fmt.Stringer interface, so
 // that it can be reported.
 type WrapError struct {
@@ -98,16 +94,6 @@ type RenameAcrossDirsError struct {
 // Error implements the error interface for RenameAcrossDirsError
 func (e RenameAcrossDirsError) Error() string {
 	return fmt.Sprintf("Cannot rename across directories")
-}
-
-// ErrorFileAccessError indicates that the user tried to perform an
-// operation on the ErrorFile that is not allowed.
-type ErrorFileAccessError struct {
-}
-
-// Error implements the error interface for ErrorFileAccessError
-func (e ErrorFileAccessError) Error() string {
-	return fmt.Sprintf("Operation not allowed on file %s", ErrorFile)
 }
 
 // WriteUnsupportedError indicates an error when trying to write a file

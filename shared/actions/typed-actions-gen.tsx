@@ -915,6 +915,7 @@ export type TypedActionsMap = {
   'teams:createNewTeamFromConversation': teams.CreateNewTeamFromConversationPayload
   'teams:teamCreated': teams.TeamCreatedPayload
   'teams:createChannel': teams.CreateChannelPayload
+  'teams:createChannels': teams.CreateChannelsPayload
   'teams:clearAddUserToTeamsResults': teams.ClearAddUserToTeamsResultsPayload
   'teams:setAddUserToTeamsResults': teams.SetAddUserToTeamsResultsPayload
   'teams:setEmailInviteError': teams.SetEmailInviteErrorPayload
@@ -991,6 +992,7 @@ export type TypedActionsMap = {
   'teams:startAddMembersWizard': teams.StartAddMembersWizardPayload
   'teams:setAddMembersWizardRole': teams.SetAddMembersWizardRolePayload
   'teams:setAddMembersWizardIndividualRole': teams.SetAddMembersWizardIndividualRolePayload
+  'teams:setCreatingChannels': teams.SetCreatingChannelsPayload
   'teams:addMembersWizardPushMembers': teams.AddMembersWizardPushMembersPayload
   'teams:addMembersWizardRemoveMember': teams.AddMembersWizardRemoveMemberPayload
   'teams:addMembersWizardSetDefaultChannels': teams.AddMembersWizardSetDefaultChannelsPayload
@@ -1045,6 +1047,7 @@ export type TypedActionsMap = {
   'users:updateBio': users.UpdateBioPayload
   'users:setUserBlocks': users.SetUserBlocksPayload
   'users:getBlockState': users.GetBlockStatePayload
+  'users:submitRevokeVouch': users.SubmitRevokeVouchPayload
   'users:updateBlockState': users.UpdateBlockStatePayload
   'users:wotReact': users.WotReactPayload
   'users:reportUser': users.ReportUserPayload

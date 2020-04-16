@@ -466,10 +466,16 @@ func (k *SimpleFS) getFSWithMaybeCreate(
 		if err != nil {
 			return nil, "", err
 		}
-		if len(ps) < 2 {
+		if len(ps) < 2 || len(ps) < 3 && strings.HasPrefix(ps[0], ".kbfs_") {
 			fs = libfs.NewRootFS(k.config)
 			if len(ps) == 1 {
 				finalElem = ps[0]
+			} else if len(ps) == 2 {
+				fs, err = fs.Chroot(ps[0])
+				if err != nil {
+					return nil, "", err
+				}
+				finalElem = ps[1]
 			}
 			return fs, finalElem, nil
 		}

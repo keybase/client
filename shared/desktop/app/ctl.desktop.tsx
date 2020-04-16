@@ -13,7 +13,7 @@ export function ctlStop(callback: any) {
     }
     spawn(binPath, ['ctl', 'stop'], {
       detached: true,
-      stdio: 'ignore',
+      stdio: 'inherit',
     })
     if (callback) callback(null)
     return
