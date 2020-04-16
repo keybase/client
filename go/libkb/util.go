@@ -542,7 +542,7 @@ func CTrace(ctx context.Context, log logger.Logger, msg string, err *error, cl c
 	start := cl.Now()
 	return func() {
 		if err != nil && *err != nil {
-			log.CDebugf(ctx, "- %s -> %v %T [time=%s]", msg, err, err, cl.Since(start))
+			log.CDebugf(ctx, "- %s -> %v %T [time=%s]", msg, *err, err, cl.Since(start))
 		} else {
 			log.CDebugf(ctx, "- %s -> ok [time=%s]", msg, cl.Since(start))
 		}
@@ -564,7 +564,7 @@ func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string
 	g.VDL.CLogf(ctx, lev, "+ %s", msg)
 	start := cl.Now()
 	return func() {
-		g.VDL.CLogf(ctx, lev, "- %s -> %v [time=%s]", msg, err, cl.Since(start))
+		g.VDL.CLogf(ctx, lev, "- %s -> %v [time=%s]", msg, ErrToOkPtr(err), cl.Since(start))
 	}
 }
 
@@ -1142,7 +1142,7 @@ func JsonwStringArray(a []string) *jsonw.Wrapper {
 	return aj
 }
 
-var throttleBatchClock clockwork.Clock = clockwork.NewRealClock()
+var throttleBatchClock = clockwork.NewRealClock()
 
 type throttleBatchEmpty struct{}
 
