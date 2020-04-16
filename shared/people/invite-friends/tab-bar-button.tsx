@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as TeamsGen from '../../actions/teams-gen'
 import logger from '../../logger'
 import InviteHow from './invite-how'
 import {ShareLinkPopup} from './modal'
@@ -24,13 +23,7 @@ const InviteFriends = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onInviteFriends = () =>
-    dispatch(
-      TeamsGen.createOpenInviteLink({
-        inviteID: '0f205adb74f374362540681ab7cd3d27',
-        inviteKey: 'mvv2afn+jy9de66zysh2kwxgjgxn',
-      })
-    )
-  //  dispatch(nav.safeNavigateAppendPayload({path: [{selected: 'inviteFriendsModal'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{selected: 'inviteFriendsModal'}]}))
 
   const {popup: shareLinkPopup, setShowingPopup: setShowingShareLinkPopup} = Kb.usePopup(() => (
     <ShareLinkPopup onClose={() => setShowingShareLinkPopup(false)} />
@@ -46,7 +39,7 @@ const InviteFriends = () => {
   const inviteButton = (
     <Kb.Button
       small={true}
-      label="Join a team"
+      label="Invite friends"
       onClick={Styles.isMobile ? toggleShowingPopup : onInviteFriends}
     />
   )
