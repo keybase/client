@@ -119,11 +119,10 @@ func InstallLogPath() (string, error) {
 		keybaseLogFiles = keybaseLogFiles[:6]
 	}
 
-	// Get the latest msi log - this is the clean install .msi log
-	msiLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "MSI*.LOG")))
-	sort.Sort(sort.Reverse(sort.StringSlice(msiLogFiles)))
-	if len(msiLogFiles) >= 1 {
-		keybaseLogFiles = append(keybaseLogFiles, msiLogFiles[0])
+	// Get the latest msi log for a keybase install
+	installFile := LastModifiedMatchingFile("${TEMP}", "MSI", "Keybase")
+	if installFile != nil {
+		keybaseLogFiles = append(keybaseLogFiles, *installFile)
 	}
 
 	// Get the 2 newest dokan logs - sorting by name works because timestamp

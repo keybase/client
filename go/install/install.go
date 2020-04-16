@@ -4,11 +4,14 @@
 package install
 
 import (
+	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 
 	"github.com/blang/semver"
@@ -272,4 +275,42 @@ func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 type CommonLsofResult struct {
 	PID     string
 	Command string
+}
+
+func fileContainsWord(filePath, searchWord string) bool {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), searchWord) {
+			return true
+		}
+	}
+	return false
+}
+
+func LastModifiedMatchingFile(dirPath string, fileNameMatch string, fileContentMatch string) (res *string) {
+	allFiles, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		return nil
+	}
+	var msiInstallFilePaths []os.FileInfo
+	for _, fileInfo := range allFiles {
+		if strings.Contains(fileInfo.Name(), fileNameMatch) {
+			msiInstallFilePaths = append(msiInstallFilePaths, fileInfo)
+		}
+	}
+	sort.Slice(msiInstallFilePaths, func(i, j int) bool {
+		return msiInstallFilePaths[i].ModTime().Unix() > msiInstallFilePaths[j].ModTime().Unix()
+	})
+	for _, f := range msiInstallFilePaths {
+		fullPath := filepath.Join(dirPath, f.Name())
+		if fileContainsWord(fullPath, fileContentMatch) {
+			return &fullPath
+		}
+	}
+	return nil
 }
