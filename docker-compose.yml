@@ -1,4 +1,4 @@
-version: '2'
+version: '3.7'
 services:
     mysql.local:
         image: keybaseprivate/mysql
@@ -22,7 +22,7 @@ services:
             - "13009"
             - "13010"
             - "13037"
-        links:
+        depends_on:
             - mysql.local
             - sqsd.local
         entrypoint: ["run/startup_for_container.sh"]
