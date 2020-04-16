@@ -45,7 +45,6 @@ const useSecondaryAction = (props: Props) => {
         dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
         break
       case 'channelsEmpty':
-        // TODO(Y2K-1700)
         dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamCreateChannels'}]}))
         break
     }
