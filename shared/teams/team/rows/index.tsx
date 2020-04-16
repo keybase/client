@@ -191,7 +191,11 @@ export const useSubteamsSections = (
   if (yourOperations.manageSubteams && (!flags.teamsRedesign || subteams.length)) {
     sections.push(makeSingleRow('subteam-add', () => <SubteamAddRow teamID={teamID} />))
   }
-  sections.push({data: subteams, key: 'subteams', renderItem: ({item}) => <SubteamTeamRow teamID={item} />})
+  sections.push({
+    data: subteams,
+    key: 'subteams',
+    renderItem: ({item, index}) => <SubteamTeamRow teamID={item} firstItem={index === 0} />,
+  })
 
   if (flags.teamsRedesign && subteams.length) {
     sections.push(makeSingleRow('subteam-info', () => <SubteamInfoRow />))
