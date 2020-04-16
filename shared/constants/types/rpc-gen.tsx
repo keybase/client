@@ -1008,7 +1008,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.login.accountDelete': {
-    inParam: void
+    inParam: {readonly passphrase?: String | null}
     outParam: void
   }
   'keybase.1.login.deprovision': {

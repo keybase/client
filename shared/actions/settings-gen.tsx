@@ -72,6 +72,7 @@ export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
 export const resendVerificationForPhoneNumber = 'settings:resendVerificationForPhoneNumber'
+export const resetCheckPasswordIsCorrect = 'settings:resetCheckPasswordIsCorrect'
 export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const sentVerificationEmail = 'settings:sentVerificationEmail'
@@ -113,7 +114,7 @@ type _ContactSettingsSavedPayload = {
   readonly teamsList: Types.ContactSettingsTeamsList
 }
 type _DbNukePayload = void
-type _DeleteAccountForeverPayload = void
+type _DeleteAccountForeverPayload = {readonly passphrase?: string}
 type _EditContactImportEnabledPayload = {readonly enable: boolean; readonly fromSettings?: boolean}
 type _EditEmailPayload = {
   readonly email: string
@@ -174,6 +175,7 @@ type _RequestContactPermissionsPayload = {
   readonly fromSettings?: boolean
 }
 type _ResendVerificationForPhoneNumberPayload = {readonly phoneNumber: string}
+type _ResetCheckPasswordIsCorrectPayload = void
 type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _SendFeedbackPayload = {
   readonly feedback: string
@@ -344,7 +346,7 @@ export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswo
 })
 export const createDbNuke = (payload: _DbNukePayload): DbNukePayload => ({payload, type: dbNuke})
 export const createDeleteAccountForever = (
-  payload: _DeleteAccountForeverPayload
+  payload: _DeleteAccountForeverPayload = Object.freeze({})
 ): DeleteAccountForeverPayload => ({payload, type: deleteAccountForever})
 export const createEditContactImportEnabled = (
   payload: _EditContactImportEnabledPayload
@@ -491,6 +493,9 @@ export const createProcessorProfile = (payload: _ProcessorProfilePayload): Proce
 export const createRequestContactPermissions = (
   payload: _RequestContactPermissionsPayload = Object.freeze({})
 ): RequestContactPermissionsPayload => ({payload, type: requestContactPermissions})
+export const createResetCheckPasswordIsCorrect = (
+  payload: _ResetCheckPasswordIsCorrectPayload
+): ResetCheckPasswordIsCorrectPayload => ({payload, type: resetCheckPasswordIsCorrect})
 export const createSaveProxyData = (payload: _SaveProxyDataPayload): SaveProxyDataPayload => ({
   payload,
   type: saveProxyData,
@@ -748,6 +753,10 @@ export type ResendVerificationForPhoneNumberPayload = {
   readonly payload: _ResendVerificationForPhoneNumberPayload
   readonly type: typeof resendVerificationForPhoneNumber
 }
+export type ResetCheckPasswordIsCorrectPayload = {
+  readonly payload: _ResetCheckPasswordIsCorrectPayload
+  readonly type: typeof resetCheckPasswordIsCorrect
+}
 export type SaveProxyDataPayload = {
   readonly payload: _SaveProxyDataPayload
   readonly type: typeof saveProxyData
@@ -864,6 +873,7 @@ export type Actions =
   | ProcessorProfilePayload
   | RequestContactPermissionsPayload
   | ResendVerificationForPhoneNumberPayload
+  | ResetCheckPasswordIsCorrectPayload
   | SaveProxyDataPayload
   | SendFeedbackPayload
   | SentVerificationEmailPayload

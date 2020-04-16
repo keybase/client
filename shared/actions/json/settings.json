@@ -37,7 +37,9 @@
       "_description": "Clear only error from phone number add flow."
     },
     "dbNuke": {},
-    "deleteAccountForever": {},
+    "deleteAccountForever": {
+      "passphrase?": "string",
+    },
     "editEmail": {
       "email": "string",
       "delete?": "boolean",
@@ -213,6 +215,7 @@
     "loadedHasRandomPw": {
       "randomPW": "boolean"
     },
+    "resetCheckPasswordIsCorrect": {},
     "checkPassword": {
       "password": "HiddenString"
     },

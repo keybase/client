@@ -25,7 +25,7 @@ func TestAccountDelete(t *testing.T) {
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	eng := NewAccountDelete(tc.G)
+	eng := NewAccountDelete(tc.G, nil)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
@@ -62,7 +62,7 @@ func TestAccountDeleteBadPassphrase(t *testing.T) {
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase + "xxx"},
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	eng := NewAccountDelete(tc.G)
+	eng := NewAccountDelete(tc.G, nil)
 	err := RunEngine2(m, eng)
 	require.Error(t, err)
 
@@ -90,7 +90,7 @@ func TestAccountDeleteIdentify(t *testing.T) {
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	eng := NewAccountDelete(tc.G)
+	eng := NewAccountDelete(tc.G, nil)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
 	t.Logf("deleted user")
@@ -130,7 +130,7 @@ func TestAccountDeleteAfterRestart(t *testing.T) {
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	eng := NewAccountDelete(tc.G)
+	eng := NewAccountDelete(tc.G, nil)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 

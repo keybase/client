@@ -209,12 +209,8 @@ const AccountSettings = (props: Props) => (
         <Password {...props} />
         <Kb.Divider />
         <WebAuthTokenLogin {...props} />
-        {!Styles.isMobile && (
-          <>
-            <Kb.Divider />
-            <DeleteAccount {...props} />
-          </>
-        )}
+        <Kb.Divider />
+        <DeleteAccount {...props} />
       </Kb.Box2>
     </Kb.ScrollView>
   </Kb.Reloadable>

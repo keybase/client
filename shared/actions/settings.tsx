@@ -344,14 +344,20 @@ const dbNuke = async () => {
   await RPCTypes.ctlDbNukeRpcPromise(undefined, Constants.settingsWaitingKey)
 }
 
-const deleteAccountForever = async (state: Container.TypedState) => {
+const deleteAccountForever = async (
+  state: Container.TypedState,
+  action: SettingsGen.DeleteAccountForeverPayload
+) => {
   const username = state.config.username
 
   if (!username) {
     throw new Error('Unable to delete account: no username set')
   }
 
-  await RPCTypes.loginAccountDeleteRpcPromise(undefined, Constants.settingsWaitingKey)
+  await RPCTypes.loginAccountDeleteRpcPromise(
+    {passphrase: action.payload.passphrase},
+    Constants.settingsWaitingKey
+  )
   return ConfigGen.createSetDeletedSelf({deletedUsername: username})
 }
 
