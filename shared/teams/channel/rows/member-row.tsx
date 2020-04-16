@@ -155,7 +155,16 @@ const ChannelMemberRow = (props: Props) => {
     'Divider',
     ...(yourOperations.manageMembers
       ? ([
-          {icon: 'iconfont-chat', onClick: onChat, title: 'Add to channels...'},
+          {
+            icon: 'iconfont-chat',
+            onClick: () =>
+              dispatch(
+                RouteTreeGen.createNavigateAppend({
+                  path: [{props: {teamID, usernames: [username]}, selected: 'teamAddToChannels'}],
+                })
+              ),
+            title: 'Add to channels...',
+          },
           {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},
         ] as Kb.MenuItems)
       : []),
