@@ -346,12 +346,18 @@ const styles = Styles.styleSheetCreate(() => ({
   containerCenter: {
     justifyContent: 'center',
   },
-  containerMobile: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-  },
+  containerMobile: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isTablet: {
+      paddingLeft: 0,
+      paddingRight: 0,
+    },
+  }),
   containerNonSmall: {
     height: 32,
     paddingLeft: Styles.globalMargins.xsmall,
