@@ -577,6 +577,8 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 	// Wait for all the goroutines to finish, so that we don't have any races
 	// with logging during test reporting.
 	fbo.doneWg.Wait()
+
+	fbo.config.MDServer().CancelRegistration(ctx, fbo.id())
 	return nil
 }
 
