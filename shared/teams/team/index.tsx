@@ -79,6 +79,9 @@ const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean
   }, [shouldLoad, _bots, featuredBotsMap, dispatch])
 }
 
+const SectionList: typeof Kb.SectionList = Styles.isMobile
+  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
+  : Kb.SectionList
 const Team = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const initialTab = Container.getRouteProps(props, 'initialTab', undefined)
@@ -149,22 +152,22 @@ const Team = (props: Props) => {
   }
 
   // Animation
-  const SectionList: typeof Kb.SectionList = Styles.isMobile
-    ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
-    : Kb.SectionList
   const offset = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
   const onScroll = Styles.isMobile
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset}}}], {useNativeDriver: true})
     : undefined
 
-  const renderSectionHeader = ({section}) =>
-    section.title ? (
-      <Kb.SectionDivider
-        label={section.title}
-        collapsed={section.collapsed}
-        onToggleCollapsed={section.onToggleCollapsed}
-      />
-    ) : null
+  const renderSectionHeader = React.useCallback(
+    ({section}) =>
+      section.title ? (
+        <Kb.SectionDivider
+          label={section.title}
+          collapsed={section.collapsed}
+          onToggleCollapsed={section.onToggleCollapsed}
+        />
+      ) : null,
+    []
+  )
 
   const body = (
     <Kb.Box style={styles.container}>
