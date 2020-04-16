@@ -141,21 +141,22 @@ func GenerateInvitelinkURL(
 
 type TeamInviteLinkDetails struct {
 	libkb.AppStatusEmbed
+	InviterResetOrDel int                                          `json:"inviter_reset_or_del"`
 	InviterUID        keybase1.UID                                 `json:"inviter_uid"`
 	InviterUsername   string                                       `json:"inviter_username"`
-	InviterResetOrDel int                                          `json:"inviter_reset_or_del"`
-	TeamID            keybase1.TeamID                              `json:"team_id"`
+	IsMember          bool                                         `json:"is_member"`
+	TeamAvatars       map[keybase1.AvatarFormat]keybase1.AvatarUrl `json:"team_avatars"`
 	TeamDescription   string                                       `json:"team_desc"`
+	TeamID            keybase1.TeamID                              `json:"team_id"`
+	TeamIsOpen        bool                                         `json:"team_is_open"`
 	TeamName          string                                       `json:"team_name"`
 	TeamNumMembers    int                                          `json:"team_num_members"`
-	TeamAvatars       map[keybase1.AvatarFormat]keybase1.AvatarUrl `json:"team_avatars"`
-	TeamIsOpen        bool                                         `json:"team_is_open"`
 }
 
 func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID) (info keybase1.InviteLinkDetails, err error) {
 	arg := libkb.APIArg{
 		Endpoint:    "team/get_invite_details",
-		SessionType: libkb.APISessionTypeNONE,
+		SessionType: libkb.APISessionTypeOPTIONAL,
 		Args: libkb.HTTPArgs{
 			"invite_id": libkb.S{Val: string(inviteID)},
 		},
@@ -176,14 +177,15 @@ func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID
 
 	return keybase1.InviteLinkDetails{
 		InviteID:          inviteID,
+		InviterResetOrDel: resp.InviterResetOrDel == 1,
 		InviterUID:        resp.InviterUID,
 		InviterUsername:   resp.InviterUsername,
-		InviterResetOrDel: resp.InviterResetOrDel == 1,
-		TeamID:            resp.TeamID,
-		TeamName:          teamName,
-		TeamDesc:          resp.TeamDescription,
-		TeamNumMembers:    resp.TeamNumMembers,
+		IsMember:          resp.IsMember,
 		TeamAvatars:       resp.TeamAvatars,
+		TeamDesc:          resp.TeamDescription,
+		TeamID:            resp.TeamID,
 		TeamIsOpen:        resp.TeamIsOpen,
+		TeamName:          teamName,
+		TeamNumMembers:    resp.TeamNumMembers,
 	}, nil
 }

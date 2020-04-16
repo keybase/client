@@ -75,6 +75,17 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.teamJoinSuccessOpen = action.payload.open
     draftState.teamJoinSuccessTeamName = action.payload.teamname
   },
+  [TeamsGen.joinTeam]: draftState => {
+    draftState.teamInviteDetails.inviteDetails = undefined
+  },
+  [TeamsGen.openInviteLink]: (draftState, action) => {
+    draftState.teamInviteDetails.inviteDetails = undefined
+    draftState.teamInviteDetails.inviteID = action.payload.inviteID
+    draftState.teamInviteDetails.inviteKey = action.payload.inviteKey
+  },
+  [TeamsGen.updateInviteLinkDetails]: (draftState, action) => {
+    draftState.teamInviteDetails.inviteDetails = action.payload.details
+  },
   [TeamsGen.setTeamRetentionPolicy]: (draftState, action) => {
     draftState.teamIDToRetentionPolicy.set(action.payload.teamID, action.payload.retentionPolicy)
   },
@@ -473,13 +484,5 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       usernameMemberships.set(targetUsername, memberships)
     }
     memberships.expectedCount = expectedCount
-  },
-  [TeamsGen.openInviteLink]: (draftState, action) => {
-    draftState.teamInviteDetails.inviteDetails = undefined
-    draftState.teamInviteDetails.inviteID = action.payload.inviteID
-    draftState.teamInviteDetails.inviteKey = action.payload.inviteKey
-  },
-  [TeamsGen.updateInviteLinkDetails]: (draftState, action) => {
-    draftState.teamInviteDetails.inviteDetails = action.payload.details
   },
 })

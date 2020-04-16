@@ -25,7 +25,7 @@ const JoinFromInvite = () => {
 
     // Otherwise we're reusing the join flow, so that we don't look up the invite id twice
     // (the invite id is derived from the key).
-    dispatch(TeamsGen.createJoinTeam({teamname: key}))
+    dispatch(TeamsGen.createJoinTeam({teamname: key, deeplink: true}))
     return
   }, [loaded, dispatch, key, id])
 

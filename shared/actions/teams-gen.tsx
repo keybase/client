@@ -213,7 +213,7 @@ type _InviteToTeamByPhonePayload = {
   readonly fullName: string
   readonly loadingKey?: string
 }
-type _JoinTeamPayload = {readonly teamname: string}
+type _JoinTeamPayload = {readonly teamname: string; readonly deeplink?: boolean}
 type _LaunchNewTeamWizardOrModalPayload = {readonly subteamOf?: Types.TeamID}
 type _LeaveTeamPayload = {
   readonly teamname: string

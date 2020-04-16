@@ -203,6 +203,13 @@ func presentInviteLinkInUI(mctx libkb.MetaContext, ui keybase1.TeamsUiInterface,
 		mctx.Debug("failed to get invite details for %v: %v", inviteID, err)
 		return err
 	}
+	if details.IsMember {
+		return libkb.AppStatusError{
+			Code: libkb.SCTeamMemberExists,
+			Name: "TEAM_MEMBER_EXISTS",
+			Desc: fmt.Sprintf("You're already a member of %s!", details.TeamName),
+		}
+	}
 	accepted, err := ui.ConfirmInviteLinkAccept(mctx.Ctx(), keybase1.ConfirmInviteLinkAcceptArg{Details: details})
 	if err != nil {
 		mctx.Debug("failed to confirm invite link %v: %v", inviteID, err)

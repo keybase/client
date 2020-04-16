@@ -142,7 +142,8 @@
     },
     "joinTeam": {
       "_description": "Called either by the join team UI or invite links when the modal appears",
-      "teamname": "string"
+      "teamname": "string",
+      "deeplink?": "boolean"
     },
     "openInviteLink": {
       "_description": "First stage of the invite link process, opens the modal",
