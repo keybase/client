@@ -9,18 +9,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/protocol/keybase1"
-
-	"github.com/keybase/client/go/encrypteddb"
-	"golang.org/x/sync/errgroup"
-
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
+	"golang.org/x/sync/errgroup"
 )
 
 const storageVersion = 1
@@ -152,8 +151,14 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 			return res, errors.New("missing team name")
 		}
 		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, param.Typ)
+		var membersType chat1.ConversationMembersType
+		if _, err := teams.Details(ctx, b.G().GlobalContext, *param.TeamName); err == nil {
+			membersType = chat1.ConversationMembersType_TEAM
+		} else {
+			membersType = chat1.ConversationMembersType_IMPTEAMNATIVE
+		}
 		res, _, err = b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, *param.TeamName, &topicName,
-			chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
+			chat1.TopicType_DEV, membersType, keybase1.TLFVisibility_PRIVATE)
 		return res, err
 	default:
 		return res, errors.New("unknown bot advertisement typ")
