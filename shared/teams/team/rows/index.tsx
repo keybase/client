@@ -133,6 +133,7 @@ export const useChannelsSections = (
 ): Array<Section> => {
   const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
   const {channelMetas, loadingChannels} = useAllChannelMetas(teamID, !shouldActuallyLoad /* dontCallRPC */)
+  const canCreate = Container.useSelector(state => Constants.getCanPerformByID(state, teamID).createChannel)
 
   if (!isBig) {
     return [makeSingleRow('channel-empty', () => <EmptyRow type="channelsEmpty" teamID={teamID} />)]
@@ -140,8 +141,11 @@ export const useChannelsSections = (
   if (loadingChannels) {
     return [makeSingleRow('channel-loading', () => <LoadingRow />)]
   }
+  const createRow = canCreate
+    ? [makeSingleRow('channel-add', () => <ChannelHeaderRow teamID={teamID} />)]
+    : []
   return [
-    makeSingleRow('channel-add', () => <ChannelHeaderRow teamID={teamID} />),
+    ...createRow,
     {
       data: [...channelMetas.values()].sort((a, b) =>
         a.channelname === 'general'
