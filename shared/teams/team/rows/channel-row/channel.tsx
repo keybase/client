@@ -87,7 +87,6 @@ const ChannelRow = (props: ChannelRowProps) => {
   )
 
   const menuItems: Array<Kb.MenuItem> = [
-    {onClick: () => {}, title: 'Audience stats'},
     {onClick: onNavToSettings, title: 'Settings'},
     ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
   ]
@@ -101,7 +100,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     />
   ))
 
-  const actions = (
+  const actions = canPerform.deleteChannel ? (
     <Kb.Box2
       direction="horizontal"
       gap="tiny"
@@ -126,6 +125,8 @@ const ChannelRow = (props: ChannelRowProps) => {
         tooltip="More actions"
       />
     </Kb.Box2>
+  ) : (
+    undefined
   )
   const massActionsProps = canPerform.deleteChannel
     ? {
