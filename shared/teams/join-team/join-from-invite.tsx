@@ -12,7 +12,8 @@ const JoinFromInvite = () => {
   const {inviteID: id, inviteKey: key, inviteDetails: details} = Container.useSelector(
     state => state.teams.teamInviteDetails
   )
-  const loaded = details !== undefined
+  const error = Container.useSelector(state => state.teams.errorInTeamJoin)
+  const loaded = details !== undefined || !!error
   React.useEffect(() => {
     if (loaded || key === '') {
       return
@@ -31,7 +32,6 @@ const JoinFromInvite = () => {
 
   const [clickedJoin, setClickedJoin] = React.useState(false)
   const nav = Container.useSafeNavigation()
-  const error = Container.useSelector(state => state.teams.errorInTeamJoin)
 
   const onNavUp = () => dispatch(nav.safeNavigateUpPayload())
   const onDecide = (accept: boolean) => dispatch(TeamsGen.createRespondToInviteLink({accept}))
@@ -52,17 +52,30 @@ const JoinFromInvite = () => {
 
   const body =
     details === undefined ? (
-      <Kb.Box2
-        direction="vertical"
-        style={styles.center}
-        fullWidth={true}
-        fullHeight={true}
-        gap="small"
-        centerChildren={true}
-      >
-        <Kb.ProgressIndicator type="Huge" />
-        <Kb.Text type="BodySmall">Loading...</Kb.Text>
-      </Kb.Box2>
+      loaded ? (
+        <Kb.Box2
+          direction="vertical"
+          style={styles.center}
+          fullWidth={true}
+          fullHeight={true}
+          gap="small"
+          centerChildren={true}
+        >
+          <Kb.Text type="BodySmallError">ERROR: {error}</Kb.Text>
+        </Kb.Box2>
+      ) : (
+        <Kb.Box2
+          direction="vertical"
+          style={styles.center}
+          fullWidth={true}
+          fullHeight={true}
+          gap="small"
+          centerChildren={true}
+        >
+          <Kb.ProgressIndicator type="Huge" />
+          <Kb.Text type="BodySmall">Loading...</Kb.Text>
+        </Kb.Box2>
+      )
     ) : showSuccess ? (
       <Kb.Box2
         direction="vertical"
