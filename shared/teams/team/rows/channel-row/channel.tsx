@@ -73,9 +73,11 @@ const ChannelRow = (props: ChannelRowProps) => {
       <Kb.Text type="BodySemibold" lineClamp={1}>
         #{channel.channelname}
       </Kb.Text>
-      <Kb.Text type="BodySmall" lineClamp={1}>
-        {channel.description}{' '}
-      </Kb.Text>
+      {!!channel.description && (
+        <Kb.Text type="BodySmall" lineClamp={1}>
+          {channel.description}{' '}
+        </Kb.Text>
+      )}
       <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
         <Kb.Text type="BodySmall">{membersText}</Kb.Text>
         {!Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
