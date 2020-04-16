@@ -73,15 +73,13 @@ const ChannelRow = (props: ChannelRowProps) => {
       <Kb.Text type="BodySemibold" lineClamp={1}>
         #{channel.channelname}
       </Kb.Text>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text type="BodySmall" lineClamp={1}>
-          {channel.description}{' '}
-        </Kb.Text>
-        <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
-          <Kb.Text type="BodySmall">{membersText}</Kb.Text>
-          {!Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
-          <Activity level={activityLevel} />
-        </Kb.Box2>
+      <Kb.Text type="BodySmall" lineClamp={1}>
+        {channel.description}{' '}
+      </Kb.Text>
+      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
+        <Kb.Text type="BodySmall">{membersText}</Kb.Text>
+        {!Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
+        <Activity level={activityLevel} />
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -102,7 +100,11 @@ const ChannelRow = (props: ChannelRowProps) => {
   ))
 
   const actions = (
-    <Kb.Box2 direction="horizontal" gap="tiny" style={styles.mobileMarginsHack}>
+    <Kb.Box2
+      direction="horizontal"
+      gap="tiny"
+      style={canPerform.deleteChannel ? styles.mobileMarginsHack : undefined}
+    >
       {popup}
       <Kb.Button
         icon="iconfont-edit"
