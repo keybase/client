@@ -100,8 +100,8 @@ jest.mock('expo-image-picker', () => ({
     Images: 0,
     Videos: 0,
   },
-  launchCameraAsync: jest.fn(),
-  launchImageLibraryAsync: jest.fn(),
+  launchCameraAsync: () => Promise.resolve(),
+  launchImageLibraryAsync: () => Promise.resolve(),
 }))
 jest.mock('expo-permissions', () => ({}))
 jest.mock('expo-barcode-scanner', () => ({}))
