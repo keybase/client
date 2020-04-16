@@ -126,6 +126,35 @@ export const teamRoleByEnum = ((m: {[K in Types.MaybeTeamRoleType]: RPCTypes.Tea
   return mInv
 })(RPCTypes.TeamRole)
 
+/* eslint-disable sort-keys */
+const teamRoleToCompare = {
+  owner: 6,
+  admin: 5,
+  writer: 4,
+  reader: 3,
+  bot: 2,
+  restrictedbot: 1,
+  none: 0,
+}
+/* eslint-enable sort-keys */
+export const compareTeamRoles = (a: Types.MaybeTeamRoleType, b: Types.MaybeTeamRoleType) => {
+  return teamRoleToCompare[b] - teamRoleToCompare[a]
+}
+
+/* eslint-disable sort-keys */
+const activityLevelToCompare = {
+  active: 2,
+  recently: 1,
+  none: 0,
+}
+/* eslint-enable sort-keys */
+export const compareActivityLevels = (
+  a: Types.ActivityLevel | undefined,
+  b: Types.ActivityLevel | undefined
+) => {
+  return activityLevelToCompare[b || 'none'] - activityLevelToCompare[a || 'none']
+}
+
 export const rpcTeamRoleMapAndVersionToTeamRoleMap = (
   m: RPCTypes.TeamRoleMapAndVersion
 ): Types.TeamRoleMap => {
@@ -191,7 +220,6 @@ const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
-  canPerform: new Map(),
   channelSelectedMembers: new Map(),
   deletedTeams: [],
   errorInAddToTeam: '',
@@ -224,6 +252,8 @@ const emptyState: Types.State = {
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
+  teamListFilter: '',
+  teamListSort: 'role',
   teamMemberToLastActivity: new Map(),
   teamMemberToTreeMemberships: new Map(),
   teamMeta: new Map(),

@@ -279,11 +279,6 @@
       "requests": "Map<string, Array<RPCTypes.TeamJoinRequest>>",
       "subteamIDs": "Set<Types.TeamID>"
     },
-    "setTeamCanPerform": {
-      "teamname": "string",
-      "teamID": "Types.TeamID",
-      "teamOperation": "Types.TeamOperations"
-    },
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",
       "teamNameToID": "Map<Types.Teamname, string>",
@@ -381,12 +376,12 @@
     },
     "setAddMembersWizardRole": {
       "_description": "Set the role for the add members wizard.",
-      "role": ["Types.TeamRoleType", "undefined"]
+      "role": ["Types.AddingMemberTeamRoleType", "'setIndividually'"]
     },
     "setAddMembersWizardIndividualRole": {
       "_description": "Set the role for a pending member in the add member wizard.",
       "assertion": "string",
-      "role": "Types.TeamRoleType"
+      "role": "Types.AddingMemberTeamRoleType"
     },
     "addMembersWizardPushMembers": {
       "_description": "Add pending members to the add members wizard and show the confirm screen.",
@@ -464,6 +459,9 @@
     "setTeamWizardSubteams": {
       "subteams": "Array<string>"
     },
+    "setTeamWizardSubteamMembers": {
+      "members": "Array<string>"
+    },
     "setTeamWizardError": {
       "error": "string"
     },
@@ -481,6 +479,11 @@
     "setActivityLevels": {
       "_description": "Set map of activity levels for all teams and channels.",
       "levels": "Types.ActivityLevels"
+    },
+    "setTeamListFilterSort": {
+      "_description": "Set filtering and sort order for main team list. Leaves existing for undefinted params.",
+      "filter?": "string",
+      "sortOrder?": "Types.TeamListSort"
     }
   }
 }

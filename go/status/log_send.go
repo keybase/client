@@ -265,8 +265,8 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 		numBytes = LogSendMaxBytes
 	}
 	mctx := libkb.NewMetaContextBackground(l.G()).WithLogTag("LOGSEND")
-	defer mctx.TraceTimed(fmt.Sprintf("LogSend sendLogs: %v numBytes: %s",
-		sendLogs, humanize.Bytes(uint64(numBytes))), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("LogSend sendLogs: %v numBytes: %s",
+		sendLogs, humanize.Bytes(uint64(numBytes))), &err)()
 
 	logs := l.Logs
 	// So far, install logs are Windows only

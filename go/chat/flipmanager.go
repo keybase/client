@@ -197,7 +197,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 }
 
 func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
-	defer m.Trace(ctx, func() error { return nil }, "Start")()
+	defer m.Trace(ctx, nil, "Start")()
 	m.shutdownMu.Lock()
 	if m.started {
 		m.shutdownMu.Unlock()
@@ -223,7 +223,7 @@ func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 }
 
 func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
-	defer m.Trace(ctx, func() error { return nil }, "Stop")()
+	defer m.Trace(ctx, nil, "Stop")()
 	m.dealer.Stop()
 
 	m.shutdownMu.Lock()
@@ -648,7 +648,7 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 
 func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpdateMessage, force bool) (err error) {
 	gameID := update.Metadata.GameID
-	defer m.Trace(ctx, func() error { return err }, "handleUpdate: gameID: %s", gameID)()
+	defer m.Trace(ctx, &err, "handleUpdate: gameID: %s", gameID)()
 	defer func() {
 		if err == nil {
 			m.queueDirtyGameID(ctx, gameID, force)
@@ -890,7 +890,7 @@ func (m *FlipManager) getHostMessageInfo(ctx context.Context, convID chat1.Conve
 }
 
 func (m *FlipManager) DescribeFlipText(ctx context.Context, text string) string {
-	defer m.Trace(ctx, func() error { return nil }, "DescribeFlipText")()
+	defer m.Trace(ctx, nil, "DescribeFlipText")()
 	start, metadata := m.startFromText(text, nil)
 	typ, err := start.Params.T()
 	if err != nil {
@@ -937,7 +937,7 @@ func (m *FlipManager) setStartFlipSendStatus(ctx context.Context, outboxID chat1
 // StartFlip implements the types.CoinFlipManager interface
 func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
 	tlfName, text string, inOutboxID *chat1.OutboxID) (err error) {
-	defer m.Trace(ctx, func() error { return err }, "StartFlip: convID: %s", hostConvID)()
+	defer m.Trace(ctx, &err, "StartFlip: convID: %s", hostConvID)()
 	gameID := flip.GenerateGameID()
 	m.Debug(ctx, "StartFlip: using gameID: %s", gameID)
 
@@ -1203,7 +1203,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		m.isHostMessageInfoMsgID(boxedMsg.GetMessageID()) {
 		return false
 	}
-	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: uid: %s convID: %s", uid, convID)()
+	defer m.Trace(ctx, nil, "MaybeInjectFlipMessage: uid: %s convID: %s", uid, convID)()
 
 	// Update inbox for this guy
 	if err := m.G().InboxSource.UpdateInboxVersion(ctx, uid, inboxVers); err != nil {
@@ -1238,7 +1238,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 	ctx = globals.BackgroundChatCtx(ctx, m.G())
 	select {
 	case m.maybeInjectCh <- func() {
-		defer m.Trace(ctx, func() error { return nil },
+		defer m.Trace(ctx, nil,
 			"MaybeInjectFlipMessage(goroutine): uid: %s convID: %s id: %d",
 			uid, convID, msg.GetMessageID())()
 		if m.Me().Eq(flip.UserDevice{
@@ -1274,7 +1274,7 @@ func (m *FlipManager) HasActiveGames(ctx context.Context) bool {
 }
 
 func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error) {
-	defer m.Trace(ctx, func() error { return err },
+	defer m.Trace(ctx, &err,
 		"loadGame: hostConvID: %s flipConvID: %s gameID: %s hostMsgID: %d",
 		job.hostConvID, job.flipConvID, job.gameID, job.hostMsgID)()
 	defer func() {
@@ -1383,7 +1383,7 @@ func (m *FlipManager) loadGameLoop(shutdownCh chan struct{}) {
 // LoadFlip implements the types.CoinFlipManager interface
 func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
 	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) (res chan chat1.UICoinFlipStatus, err chan error) {
-	defer m.Trace(ctx, func() error { return nil }, "LoadFlip")()
+	defer m.Trace(ctx, nil, "LoadFlip")()
 	stored, ok := m.games.Get(gameID.FlipGameIDStr())
 	if ok {
 		switch stored.(chat1.UICoinFlipStatus).Phase {
@@ -1418,7 +1418,7 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID 
 }
 
 func (m *FlipManager) IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (convID chat1.ConversationID, status types.FlipSendStatus) {
-	defer m.Trace(ctx, func() error { return nil }, "IsFlipConversationCreated")()
+	defer m.Trace(ctx, nil, "IsFlipConversationCreated")()
 	if rec, ok := m.flipConvs.Get(outboxID.String()); ok {
 		status := rec.(startFlipSendStatus)
 		switch status.status {
@@ -1445,7 +1445,7 @@ func (m *FlipManager) Clock() clockwork.Clock {
 // ServerTime implements the flip.DealersHelper interface
 func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error) {
 	ctx = globals.ChatCtx(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
-	defer m.Trace(ctx, func() error { return err }, "ServerTime")()
+	defer m.Trace(ctx, &err, "ServerTime")()
 	if m.testingServerClock != nil {
 		return m.testingServerClock.Now(), nil
 	}
@@ -1507,7 +1507,7 @@ func (m *FlipManager) registerSentOutboxID(ctx context.Context, gameID chat1.Fli
 func (m *FlipManager) SendChat(ctx context.Context, initatorUID gregor1.UID, convID chat1.ConversationID, gameID chat1.FlipGameID,
 	msg flip.GameMessageEncoded) (err error) {
 	ctx = globals.ChatCtx(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
-	defer m.Trace(ctx, func() error { return err }, "SendChat: convID: %s", convID)()
+	defer m.Trace(ctx, &err, "SendChat: convID: %s", convID)()
 	uid, err := utils.AssertLoggedInUID(ctx, m.G())
 	if err != nil {
 		return err

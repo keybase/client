@@ -47,7 +47,7 @@ func (k *TeamEphemeralKeyer) Type() keybase1.TeamEphemeralKeyType {
 
 func postNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string,
 	boxes *[]keybase1.TeamEkBoxMetadata) (err error) {
-	defer mctx.TraceTimed("postNewTeamEK", func() error { return err })()
+	defer mctx.Trace("postNewTeamEK", &err)()
 
 	boxesJSON, err := json.Marshal(*boxes)
 	if err != nil {
@@ -70,7 +70,7 @@ func prepareNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	signingKey libkb.NaclSigningKeyPair, membersMetadata map[keybase1.UID]keybase1.UserEkMetadata,
 	merkleRoot libkb.MerkleRoot) (sig string, boxes *[]keybase1.TeamEkBoxMetadata,
 	metadata keybase1.TeamEkMetadata, myBox *keybase1.TeamEkBoxed, err error) {
-	defer mctx.TraceTimed("prepareNewTeamEK", func() error { return err })()
+	defer mctx.Trace("prepareNewTeamEK", &err)()
 
 	seed, err := newTeamEphemeralSeed()
 	if err != nil {
@@ -131,7 +131,7 @@ func prepareNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 
 func publishNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	merkleRoot libkb.MerkleRoot, forceCreateGeneration *keybase1.EkGeneration) (metadata keybase1.TeamEkMetadata, err error) {
-	defer mctx.TraceTimed("publishNewTeamEK", func() error { return err })()
+	defer mctx.Trace("publishNewTeamEK", &err)()
 
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
 		ID: teamID,
@@ -237,8 +237,8 @@ func (k *TeamEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 func (k *TeamEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.TeamEphemeralKeyBoxed,
 	contentCtime *gregor1.Time) (ek keybase1.TeamEphemeralKey, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#unbox: teamEKGeneration: %v", boxed.Generation()),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamEKBoxStorage#unbox: teamEKGeneration: %v", boxed.Generation()),
+		&err)()
 
 	typ, err := boxed.KeyType()
 	if err != nil {
@@ -314,7 +314,7 @@ func teamEKRetryWrapper(mctx libkb.MetaContext, retryFn func() error) (err error
 
 func ForcePublishNewTeamEKForTesting(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
-	defer mctx.TraceTimed("ForcePublishNewTeamEKForTesting", func() error { return err })()
+	defer mctx.Trace("ForcePublishNewTeamEKForTesting", &err)()
 	err = teamEKRetryWrapper(mctx, func() error {
 		metadata, err = publishNewTeamEK(mctx, teamID, merkleRoot, nil)
 		return err
@@ -324,7 +324,7 @@ func ForcePublishNewTeamEKForTesting(mctx libkb.MetaContext, teamID keybase1.Tea
 
 func boxTeamEKForUsers(mctx libkb.MetaContext, usersMetadata map[keybase1.UID]keybase1.UserEkMetadata,
 	teamEK keybase1.TeamEk) (teamBoxes *[]keybase1.TeamEkBoxMetadata, myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
-	defer mctx.TraceTimed("boxTeamEKForUsers", func() error { return err })()
+	defer mctx.Trace("boxTeamEKForUsers", &err)()
 
 	myUID := mctx.G().Env.GetUID()
 	boxes := make([]keybase1.TeamEkBoxMetadata, 0, len(usersMetadata))
@@ -367,7 +367,7 @@ type teamEKStatementResponse struct {
 // in the wild have EK support, we will make that case an error.
 func fetchTeamEKStatement(mctx libkb.MetaContext, teamID keybase1.TeamID) (
 	statement *keybase1.TeamEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
-	defer mctx.TraceTimed("fetchTeamEKStatement", func() error { return err })()
+	defer mctx.Trace("fetchTeamEKStatement", &err)()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/team_ek",
@@ -429,7 +429,7 @@ func extractTeamEKStatementFromSig(sig string) (signerKey *kbcrypto.NaclSigningK
 // key" and convert the error to a warning.
 func verifySigWithLatestPTK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	sig string) (statement *keybase1.TeamEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
-	defer mctx.TraceTimed("verifySigWithLatestPTK", func() error { return err })()
+	defer mctx.Trace("verifySigWithLatestPTK", &err)()
 
 	// Parse the statement before we verify the signing key. Even if the
 	// signing key is bad (likely because of a legacy PTK roll that didn't
@@ -487,7 +487,7 @@ type teamMemberEKStatementResponse struct {
 // team and all signatures verify correctly for the users.
 func fetchTeamMemberStatements(mctx libkb.MetaContext,
 	teamID keybase1.TeamID) (statements map[keybase1.UID]*keybase1.UserEkStatement, err error) {
-	defer mctx.TraceTimed("fetchTeamMemberStatements", func() error { return err })()
+	defer mctx.Trace("fetchTeamMemberStatements", &err)()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/member_eks",

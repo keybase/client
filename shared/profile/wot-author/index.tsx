@@ -221,7 +221,7 @@ export const Question1 = (props: Question1Props) => {
           How do you know{' '}
           <Kb.ConnectedUsernames
             usernames={props.voucheeUsername}
-            type="BodySemibold"
+            type="BodyBold"
             inline={true}
             colorFollowing={true}
             colorBroken={true}
@@ -276,7 +276,7 @@ export const Question2 = (props: Question2Props) => {
             How do you know{' '}
             <Kb.ConnectedUsernames
               usernames={props.voucheeUsername}
-              type="BodySemibold"
+              type="BodyBold"
               inline={true}
               colorFollowing={true}
               colorBroken={true}

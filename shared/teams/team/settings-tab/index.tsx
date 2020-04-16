@@ -175,6 +175,7 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
                   label={pluralize(props.newOpenTeamRole)}
                   onPress={props.newOpenTeam ? props.onOpenRolePicker : () => {}}
                   textWrapperType="BodySmall"
+                  style={styles.openDropdown}
                 />
               </FloatingRolePicker>
             </Kb.Box2>
@@ -452,6 +453,7 @@ const styles = styleSheetCreate(() => ({
     padding: globalMargins.small,
   },
   memberShowcase: {alignItems: 'flex-start', paddingRight: globalMargins.small},
+  openDropdown: {width: 70},
   openTeam: {
     flexShrink: 1,
     paddingRight: globalMargins.small,

@@ -119,7 +119,7 @@ func decodeContactNotifications(mctx libkb.MetaContext, home keybase1.
 
 func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWanted int, skipPeople bool) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("Home#getToCache", func() error { return err })()
+	defer mctx.Trace("Home#getToCache", &err)()
 
 	numPeopleToRequest := 100
 	if numPeopleWanted > numPeopleToRequest {
@@ -166,7 +166,7 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 
 func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (ret keybase1.HomeScreen, err error) {
 	ctx = libkb.WithLogTag(ctx, "HOME")
-	defer h.G().CTraceTimed(ctx, "Home#Get", func() error { return err })()
+	defer h.G().CTrace(ctx, "Home#Get", &err)()
 
 	// 10 people by default
 	if numPeopleWanted < 0 {
@@ -271,7 +271,7 @@ func (p *peopleCache) isValid(ctx context.Context, g *libkb.GlobalContext, numPe
 
 func (h *Home) skipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("Home#skipTodoType", func() error { return err })()
+	defer mctx.Trace("Home#skipTodoType", &err)()
 
 	_, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/todo/skip",
@@ -286,7 +286,7 @@ func (h *Home) skipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType
 
 func (h *Home) DismissAnnouncement(ctx context.Context, id keybase1.HomeScreenAnnouncementID) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("Home#DismissAnnouncement", func() error { return err })()
+	defer mctx.Trace("Home#DismissAnnouncement", &err)()
 
 	_, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/todo/skip",
@@ -310,7 +310,7 @@ func (h *Home) bustCache(ctx context.Context, bustPeople bool) {
 }
 
 func (h *Home) bustHomeCacheIfBadgedFollowers(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "+ Home#bustHomeCacheIfBadgedFollowers", func() error { return err })()
+	defer h.G().CTrace(ctx, "+ Home#bustHomeCacheIfBadgedFollowers", &err)()
 
 	if h.homeCache == nil {
 		h.G().Log.CDebugf(ctx, "| nil home cache, nothing to bust")
@@ -349,20 +349,20 @@ func (h *Home) SkipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType
 	if which, ok = keybase1.HomeScreenTodoTypeRevMap[typ]; !ok {
 		which = fmt.Sprintf("unknown=%d", int(typ))
 	}
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("home#SkipTodoType(%s)", which), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("home#SkipTodoType(%s)", which), &err)()
 	h.bustCache(ctx, false)
 	return h.skipTodoType(ctx, typ)
 }
 
 func (h *Home) MarkViewed(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#MarkViewed", func() error { return err })()
+	defer h.G().CTrace(ctx, "Home#MarkViewed", &err)()
 	h.Lock()
 	defer h.Unlock()
 	return h.markViewedWithLock(ctx)
 }
 
 func (h *Home) markViewedWithLock(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#markViewedWithLock", func() error { return err })()
+	defer h.G().CTrace(ctx, "Home#markViewedWithLock", &err)()
 	err = h.bustHomeCacheIfBadgedFollowers(ctx)
 	if err != nil {
 		return err
@@ -372,7 +372,7 @@ func (h *Home) markViewedWithLock(ctx context.Context) (err error) {
 
 func (h *Home) markViewedAPICall(ctx context.Context) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("Home#markViewedAPICall", func() error { return err })()
+	defer mctx.Trace("Home#markViewedAPICall", &err)()
 
 	if _, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/visit",
@@ -385,7 +385,7 @@ func (h *Home) markViewedAPICall(ctx context.Context) (err error) {
 }
 
 func (h *Home) ActionTaken(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#ActionTaken", func() error { return err })()
+	defer h.G().CTrace(ctx, "Home#ActionTaken", &err)()
 	h.bustCache(ctx, false)
 	return err
 }
@@ -406,7 +406,7 @@ type updateGregorMessage struct {
 }
 
 func (h *Home) updateUI(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#updateUI", func() error { return err })()
+	defer h.G().CTrace(ctx, "Home#updateUI", &err)()
 	var ui keybase1.HomeUIInterface
 	if h.G().UIRouter == nil {
 		h.G().Log.CDebugf(ctx, "no UI router, swallowing update")
@@ -425,7 +425,7 @@ func (h *Home) updateUI(ctx context.Context) (err error) {
 }
 
 func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#handleUpdate", func() error { return err })()
+	defer h.G().CTrace(ctx, "Home#handleUpdate", &err)()
 	var msg updateGregorMessage
 	if err = json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		h.G().Log.Debug("error unmarshaling home.update item: %s", err.Error())
@@ -468,7 +468,7 @@ func (h *Home) Name() string {
 }
 
 func (h *Home) handleUpdateState(ctx context.Context, item gregor.Item) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#handleUpdateState", func() error { return err })()
+	defer h.G().CTrace(ctx, "Home#handleUpdateState", &err)()
 	var msg libkb.HomeStateBody
 	if err = json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		h.G().Log.Debug("error unmarshaling home.update item: %s", err.Error())
@@ -540,7 +540,7 @@ func (h *Home) updateLoopThread(m libkb.MetaContext) {
 }
 
 func (h *Home) pollOnce(m libkb.MetaContext) (d time.Duration, err error) {
-	defer m.TraceTimed("Home#pollOnce", func() error { return err })()
+	defer m.Trace("Home#pollOnce", &err)()
 
 	if !m.HasAnySession() {
 		m.Debug("No-op, since don't have keys (and/or am not logged in)")

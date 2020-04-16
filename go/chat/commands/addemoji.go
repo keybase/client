@@ -20,7 +20,7 @@ func NewAddEmoji(g *globals.Context) *AddEmoji {
 
 func (h *AddEmoji) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string, replyTo *chat1.MessageID) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "AddEmoji")()
+	defer h.Trace(ctx, &err, "AddEmoji")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}

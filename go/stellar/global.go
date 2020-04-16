@@ -296,7 +296,7 @@ func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (
 }
 
 func (s *Stellar) handleReconnect(mctx libkb.MetaContext) {
-	defer mctx.TraceTimed("Stellar.handleReconnect", func() error { return nil })()
+	defer mctx.Trace("Stellar.handleReconnect", nil)()
 	mctx.Debug("stellar received reconnect msg, doing delayed wallet refresh")
 	mctx = mctx.WithCtx(s.reconnectSlot.Use(mctx.Ctx()))
 	mctx, cancel := cancelOnMobileBackground(mctx)
@@ -321,7 +321,7 @@ func (s *Stellar) handleReconnect(mctx libkb.MetaContext) {
 
 func (s *Stellar) handlePaymentStatus(mctx libkb.MetaContext, obm gregor.OutOfBandMessage) {
 	var err error
-	defer mctx.TraceTimed("Stellar.handlePaymentStatus", func() error { return err })()
+	defer mctx.Trace("Stellar.handlePaymentStatus", &err)()
 
 	var msg stellar1.PaymentStatusMsg
 	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
@@ -341,7 +341,7 @@ func (s *Stellar) handlePaymentStatus(mctx libkb.MetaContext, obm gregor.OutOfBa
 
 func (s *Stellar) handlePaymentNotification(mctx libkb.MetaContext, obm gregor.OutOfBandMessage) {
 	var err error
-	defer mctx.TraceTimed("Stellar.handlePaymentNotification", func() error { return err })()
+	defer mctx.Trace("Stellar.handlePaymentNotification", &err)()
 	var msg stellar1.PaymentNotificationMsg
 	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
 		mctx.Debug("error unmarshaling obm PaymentNotificationMsg: %s", err)
@@ -421,7 +421,7 @@ func (s *Stellar) refreshPaymentFromNotification(mctx libkb.MetaContext, account
 
 func (s *Stellar) handleRequestStatus(mctx libkb.MetaContext, obm gregor.OutOfBandMessage) {
 	var err error
-	defer mctx.TraceTimed("Stellar.handleRequestStatus", func() error { return err })()
+	defer mctx.Trace("Stellar.handleRequestStatus", &err)()
 	var msg stellar1.RequestStatusMsg
 	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
 		mctx.Debug("error unmarshaling obm RequestStatusMsg: %s", err)
@@ -492,7 +492,7 @@ func (s *Stellar) informAcceptedDisclaimer(ctx context.Context) {
 }
 
 func (s *Stellar) informAcceptedDisclaimerLocked(ctx context.Context) (err error) {
-	defer s.G().CTraceTimed(ctx, "Stellar.informAcceptedDisclaimer", func() error { return err })()
+	defer s.G().CTrace(ctx, "Stellar.informAcceptedDisclaimer", &err)()
 	uv, err := s.G().GetMeUV(ctx)
 	if err != nil {
 		return err

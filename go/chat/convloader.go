@@ -284,7 +284,7 @@ func (b *BackgroundConvLoader) cancelActiveLoadsLocked() (canceled bool) {
 }
 
 func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
-	defer b.Trace(ctx, func() error { return nil }, "Suspend")()
+	defer b.Trace(ctx, nil, "Suspend")()
 	b.Lock()
 	defer b.Unlock()
 	if !b.started {
@@ -304,7 +304,7 @@ func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
 }
 
 func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
-	defer b.Trace(ctx, func() error { return nil }, "Resume")()
+	defer b.Trace(ctx, nil, "Resume")()
 	b.Lock()
 	defer b.Unlock()
 	if b.suspendCount > 0 {
@@ -475,8 +475,8 @@ func (b *BackgroundConvLoader) IsBackgroundActive() bool {
 }
 
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) *clTask {
-	defer b.Trace(ictx, func() error { return nil }, "load: %s", task.job)()
-	defer b.PerfTrace(ictx, func() error { return nil }, "load: %s", task.job)()
+	defer b.Trace(ictx, nil, "load: %s", task.job)()
+	defer b.PerfTrace(ictx, nil, "load: %s", task.job)()
 	b.Lock()
 	var al activeLoad
 	al.Ctx, al.CancelFn = context.WithCancel(

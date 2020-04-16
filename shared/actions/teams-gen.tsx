@@ -77,13 +77,13 @@ export const setNewTeamRequests = 'teams:setNewTeamRequests'
 export const setPublicity = 'teams:setPublicity'
 export const setSubteamFilter = 'teams:setSubteamFilter'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
-export const setTeamCanPerform = 'teams:setTeamCanPerform'
 export const setTeamCreationError = 'teams:setTeamCreationError'
 export const setTeamDetails = 'teams:setTeamDetails'
 export const setTeamInfo = 'teams:setTeamInfo'
 export const setTeamInviteError = 'teams:setTeamInviteError'
 export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
+export const setTeamListFilterSort = 'teams:setTeamListFilterSort'
 export const setTeamLoadingInvites = 'teams:setTeamLoadingInvites'
 export const setTeamProfileAddList = 'teams:setTeamProfileAddList'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
@@ -96,6 +96,7 @@ export const setTeamWizardAvatar = 'teams:setTeamWizardAvatar'
 export const setTeamWizardChannels = 'teams:setTeamWizardChannels'
 export const setTeamWizardError = 'teams:setTeamWizardError'
 export const setTeamWizardNameDescription = 'teams:setTeamWizardNameDescription'
+export const setTeamWizardSubteamMembers = 'teams:setTeamWizardSubteamMembers'
 export const setTeamWizardSubteams = 'teams:setTeamWizardSubteams'
 export const setTeamWizardTeamSize = 'teams:setTeamWizardTeamSize'
 export const setTeamWizardTeamType = 'teams:setTeamWizardTeamType'
@@ -254,9 +255,9 @@ type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly 
 type _SetActivityLevelsPayload = {readonly levels: Types.ActivityLevels}
 type _SetAddMembersWizardIndividualRolePayload = {
   readonly assertion: string
-  readonly role: Types.TeamRoleType
+  readonly role: Types.AddingMemberTeamRoleType
 }
-type _SetAddMembersWizardRolePayload = {readonly role: Types.TeamRoleType | undefined}
+type _SetAddMembersWizardRolePayload = {readonly role: Types.AddingMemberTeamRoleType | 'setIndividually'}
 type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly results: string}
 type _SetChannelCreationErrorPayload = {readonly error: string}
 type _SetChannelSelectedPayload = {
@@ -288,11 +289,6 @@ type _SetNewTeamRequestsPayload = {readonly newTeamRequests: Map<Types.TeamID, S
 type _SetPublicityPayload = {readonly teamID: Types.TeamID; readonly settings: Types.PublicitySettings}
 type _SetSubteamFilterPayload = {readonly filter: string; readonly parentTeam?: Types.TeamID}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
-type _SetTeamCanPerformPayload = {
-  readonly teamname: string
-  readonly teamID: Types.TeamID
-  readonly teamOperation: Types.TeamOperations
-}
 type _SetTeamCreationErrorPayload = {readonly error: string}
 type _SetTeamDetailsPayload = {
   readonly teamID: Types.TeamID
@@ -316,6 +312,7 @@ type _SetTeamJoinSuccessPayload = {
   readonly success: boolean
   readonly teamname: string
 }
+type _SetTeamListFilterSortPayload = {readonly filter?: string; readonly sortOrder?: Types.TeamListSort}
 type _SetTeamLoadingInvitesPayload = {
   readonly teamname: string
   readonly loadingKey: string
@@ -342,6 +339,7 @@ type _SetTeamWizardNameDescriptionPayload = {
   readonly showcase: boolean
   readonly addYourself: boolean
 }
+type _SetTeamWizardSubteamMembersPayload = {readonly members: Array<string>}
 type _SetTeamWizardSubteamsPayload = {readonly subteams: Array<string>}
 type _SetTeamWizardTeamSizePayload = {readonly isBig: boolean}
 type _SetTeamWizardTeamTypePayload = {readonly teamType: Types.TeamWizardTeamType}
@@ -523,6 +521,12 @@ export const createRenameTeam = (payload: _RenameTeamPayload): RenameTeamPayload
 export const createUpdateInviteLinkDetails = (
   payload: _UpdateInviteLinkDetailsPayload
 ): UpdateInviteLinkDetailsPayload => ({payload, type: updateInviteLinkDetails})
+/**
+ * Set filtering and sort order for main team list. Leaves existing for undefinted params.
+ */
+export const createSetTeamListFilterSort = (
+  payload: _SetTeamListFilterSortPayload = Object.freeze({})
+): SetTeamListFilterSortPayload => ({payload, type: setTeamListFilterSort})
 /**
  * Set filtering for the subteams tab.
  */
@@ -769,10 +773,6 @@ export const createSetPublicity = (payload: _SetPublicityPayload): SetPublicityP
 export const createSetTeamAccessRequestsPending = (
   payload: _SetTeamAccessRequestsPendingPayload
 ): SetTeamAccessRequestsPendingPayload => ({payload, type: setTeamAccessRequestsPending})
-export const createSetTeamCanPerform = (payload: _SetTeamCanPerformPayload): SetTeamCanPerformPayload => ({
-  payload,
-  type: setTeamCanPerform,
-})
 export const createSetTeamCreationError = (
   payload: _SetTeamCreationErrorPayload
 ): SetTeamCreationErrorPayload => ({payload, type: setTeamCreationError})
@@ -835,6 +835,9 @@ export const createSetTeamWizardError = (payload: _SetTeamWizardErrorPayload): S
 export const createSetTeamWizardNameDescription = (
   payload: _SetTeamWizardNameDescriptionPayload
 ): SetTeamWizardNameDescriptionPayload => ({payload, type: setTeamWizardNameDescription})
+export const createSetTeamWizardSubteamMembers = (
+  payload: _SetTeamWizardSubteamMembersPayload
+): SetTeamWizardSubteamMembersPayload => ({payload, type: setTeamWizardSubteamMembers})
 export const createSetTeamWizardSubteams = (
   payload: _SetTeamWizardSubteamsPayload
 ): SetTeamWizardSubteamsPayload => ({payload, type: setTeamWizardSubteams})
@@ -1118,10 +1121,6 @@ export type SetTeamAccessRequestsPendingPayload = {
   readonly payload: _SetTeamAccessRequestsPendingPayload
   readonly type: typeof setTeamAccessRequestsPending
 }
-export type SetTeamCanPerformPayload = {
-  readonly payload: _SetTeamCanPerformPayload
-  readonly type: typeof setTeamCanPerform
-}
 export type SetTeamCreationErrorPayload = {
   readonly payload: _SetTeamCreationErrorPayload
   readonly type: typeof setTeamCreationError
@@ -1142,6 +1141,10 @@ export type SetTeamJoinErrorPayload = {
 export type SetTeamJoinSuccessPayload = {
   readonly payload: _SetTeamJoinSuccessPayload
   readonly type: typeof setTeamJoinSuccess
+}
+export type SetTeamListFilterSortPayload = {
+  readonly payload: _SetTeamListFilterSortPayload
+  readonly type: typeof setTeamListFilterSort
 }
 export type SetTeamLoadingInvitesPayload = {
   readonly payload: _SetTeamLoadingInvitesPayload
@@ -1190,6 +1193,10 @@ export type SetTeamWizardErrorPayload = {
 export type SetTeamWizardNameDescriptionPayload = {
   readonly payload: _SetTeamWizardNameDescriptionPayload
   readonly type: typeof setTeamWizardNameDescription
+}
+export type SetTeamWizardSubteamMembersPayload = {
+  readonly payload: _SetTeamWizardSubteamMembersPayload
+  readonly type: typeof setTeamWizardSubteamMembers
 }
 export type SetTeamWizardSubteamsPayload = {
   readonly payload: _SetTeamWizardSubteamsPayload
@@ -1344,13 +1351,13 @@ export type Actions =
   | SetPublicityPayload
   | SetSubteamFilterPayload
   | SetTeamAccessRequestsPendingPayload
-  | SetTeamCanPerformPayload
   | SetTeamCreationErrorPayload
   | SetTeamDetailsPayload
   | SetTeamInfoPayload
   | SetTeamInviteErrorPayload
   | SetTeamJoinErrorPayload
   | SetTeamJoinSuccessPayload
+  | SetTeamListFilterSortPayload
   | SetTeamLoadingInvitesPayload
   | SetTeamProfileAddListPayload
   | SetTeamRetentionPolicyPayload
@@ -1363,6 +1370,7 @@ export type Actions =
   | SetTeamWizardChannelsPayload
   | SetTeamWizardErrorPayload
   | SetTeamWizardNameDescriptionPayload
+  | SetTeamWizardSubteamMembersPayload
   | SetTeamWizardSubteamsPayload
   | SetTeamWizardTeamSizePayload
   | SetTeamWizardTeamTypePayload

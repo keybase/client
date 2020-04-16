@@ -50,9 +50,9 @@ func (e *UserBlocksGet) Run(mctx libkb.MetaContext) (err error) {
 	} else {
 		usernameLog = fmt.Sprintf("%s... %d total", strings.Join(e.Usernames[:5], ","), len(e.Usernames))
 	}
-	defer mctx.TraceTimed(
+	defer mctx.Trace(
 		fmt.Sprintf("UserBlocksGet#Run(%s)", usernameLog),
-		func() error { return err })()
+		&err)()
 
 	httpArgs := libkb.HTTPArgs{}
 	if len(e.Usernames) > 0 {

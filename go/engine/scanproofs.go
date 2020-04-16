@@ -131,7 +131,7 @@ func (e *ScanProofsEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *ScanProofsEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("ScanProofsEngine#Run", func() error { return err })()
+	defer m.Trace("ScanProofsEngine#Run", &err)()
 
 	var cache *ScanProofsCache
 	saveevery := 10

@@ -118,9 +118,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       Constants.ratchetTeamVersion(version, draftState.teamVersion.get(teamID))
     )
   },
-  [TeamsGen.setTeamCanPerform]: (draftState, action) => {
-    draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
-  },
   [TeamsGen.setEmailInviteError]: (draftState, action) => {
     if (!action.payload.malformed.length && !action.payload.message) {
       draftState.errorInEmailInvite = Constants.emptyEmailInviteError
@@ -326,6 +323,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamWizardSubteams]: (draftState, action) => {
     draftState.newTeamWizard.subteams = action.payload.subteams
   },
+  [TeamsGen.setTeamWizardSubteamMembers]: (draftState, action) => {
+    const {members} = action.payload
+    draftState.addMembersWizard = {
+      ...Constants.addMembersWizardEmptyState,
+      addingMembers: members.map(m => ({assertion: m, role: 'writer'})),
+      teamID: Types.newTeamWizardTeamID,
+    }
+  },
   [TeamsGen.setTeamWizardError]: (draftState, action) => {
     draftState.newTeamWizard.error = action.payload.error
   },
@@ -336,7 +341,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setAddMembersWizardRole]: (draftState, action) => {
     const {role} = action.payload
     draftState.addMembersWizard.role = role
-    if (role) {
+    if (role !== 'setIndividually') {
       // keep roles stored with indiv members in sync with top level one
       draftState.addMembersWizard.addingMembers.forEach(member => {
         member.role = role
@@ -402,6 +407,15 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [TeamsGen.setActivityLevels]: (draftState, action) => {
     draftState.activityLevels = action.payload.levels
+  },
+  [TeamsGen.setTeamListFilterSort]: (draftState, action) => {
+    const {filter, sortOrder} = action.payload
+    if (filter !== undefined) {
+      draftState.teamListFilter = filter
+    }
+    if (sortOrder !== undefined) {
+      draftState.teamListSort = sortOrder
+    }
   },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params

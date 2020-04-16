@@ -160,7 +160,7 @@ func (t *TeamKeyManager) EncryptionKey() (libkb.NaclDHKeyPair, error) {
 // SharedSecretBoxes creates the PerTeamSharedSecretBoxes for recipients with the
 // existing team shared secret.
 func (t *TeamKeyManager) SharedSecretBoxes(mctx libkb.MetaContext, senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, err error) {
-	defer mctx.Trace("SharedSecretBoxes", func() error { return err })()
+	defer mctx.Trace("SharedSecretBoxes", &err)()
 
 	// make the nonce prefix, skipping the zero counter
 	// (0 used for previous key encryption nonce)
@@ -176,7 +176,7 @@ func (t *TeamKeyManager) SharedSecretBoxes(mctx libkb.MetaContext, senderKey lib
 // RotateSharedSecretBoxes creates a new shared secret for the team and the
 // required PerTeamKey section.
 func (t *TeamKeyManager) RotateSharedSecretBoxes(mctx libkb.MetaContext, senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, keySection *SCPerTeamKey, err error) {
-	defer mctx.Trace("RotateSharedSecretBoxes", func() error { return err })()
+	defer mctx.Trace("RotateSharedSecretBoxes", &err)()
 
 	// make a new secret
 	nextSecret, err := newSharedSecret()

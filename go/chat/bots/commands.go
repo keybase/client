@@ -96,7 +96,7 @@ func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInter
 }
 
 func (b *CachingBotCommandManager) Start(ctx context.Context, uid gregor1.UID) {
-	defer b.Trace(ctx, func() error { return nil }, "Start")()
+	defer b.Trace(ctx, nil, "Start")()
 	b.Lock()
 	defer b.Unlock()
 	if b.started {
@@ -109,7 +109,7 @@ func (b *CachingBotCommandManager) Start(ctx context.Context, uid gregor1.UID) {
 }
 
 func (b *CachingBotCommandManager) Stop(ctx context.Context) chan struct{} {
-	defer b.Trace(ctx, func() error { return nil }, "Stop")()
+	defer b.Trace(ctx, nil, "Stop")()
 	b.Lock()
 	defer b.Unlock()
 	ch := make(chan struct{})
@@ -176,7 +176,7 @@ func (b *CachingBotCommandManager) PublicCommandsConv(ctx context.Context, usern
 
 func (b *CachingBotCommandManager) Advertise(ctx context.Context, alias *string,
 	ads []chat1.AdvertiseCommandsParam) (err error) {
-	defer b.Trace(ctx, func() error { return err }, "Advertise")()
+	defer b.Trace(ctx, &err, "Advertise")()
 	var remotes []chat1.RemoteBotCommandsAdvertisement
 	for _, ad := range ads {
 		// create conversations with the commands
@@ -217,7 +217,7 @@ func (b *CachingBotCommandManager) Advertise(ctx context.Context, alias *string,
 }
 
 func (b *CachingBotCommandManager) Clear(ctx context.Context) (err error) {
-	defer b.Trace(ctx, func() error { return err }, "Clear")()
+	defer b.Trace(ctx, &err, "Clear")()
 	if _, err := b.ri().ClearBotCommands(ctx); err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func (b *CachingBotCommandManager) dbCommandsKey(convID chat1.ConversationID) li
 }
 
 func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) (res []chat1.UserBotCommandOutput, alias map[string]string, err error) {
-	defer b.Trace(ctx, func() error { return err }, "ListCommands")()
+	defer b.Trace(ctx, &err, "ListCommands")()
 	alias = make(map[string]string)
 	dbKey := b.dbCommandsKey(convID)
 	var s commandsStorage
@@ -292,7 +292,7 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 
 func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID,
 	info *chat1.BotInfo) (completeCh chan error, err error) {
-	defer b.Trace(ctx, func() error { return err }, "UpdateCommands")()
+	defer b.Trace(ctx, &err, "UpdateCommands")()
 	completeCh = make(chan error, 1)
 	uiCh := make(chan uiResult, 1)
 	return completeCh, b.queueCommandUpdate(ctx, &commandUpdaterJob{
@@ -360,7 +360,7 @@ func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job *
 }
 
 func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job *commandUpdaterJob) (botInfo chat1.BotInfo, doUpdate bool, err error) {
-	defer b.Trace(ctx, func() error { return err }, fmt.Sprintf("getBotInfo: %v", job.convID))()
+	defer b.Trace(ctx, &err, fmt.Sprintf("getBotInfo: %v", job.convID))()
 	if job.info != nil {
 		return *job.info, true, nil
 	}
@@ -446,7 +446,7 @@ func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, con
 func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job *commandUpdaterJob) (err error) {
 	var botSettings chat1.UIBotCommandsUpdateSettings
 	ctx = globals.ChatCtx(ctx, b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
-	defer b.Trace(ctx, func() error { return err }, "commandUpdate")()
+	defer b.Trace(ctx, &err, "commandUpdate")()
 	defer func() {
 		b.queuedUpdatedMu.Lock()
 		delete(b.queuedUpdates, job.convID.ConvIDStr())

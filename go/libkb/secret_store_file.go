@@ -31,7 +31,7 @@ func NewSecretStoreFile(dir string) *SecretStoreFile {
 }
 
 func (s *SecretStoreFile) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (secret LKSecFullSecret, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("SecretStoreFile.RetrieveSecret(%s)", username), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("SecretStoreFile.RetrieveSecret(%s)", username), &err)()
 	mctx.Debug("Retrieving secret V2 from file")
 	secret, err = s.retrieveSecretV2(mctx, username)
 	switch err.(type) {
@@ -108,7 +108,7 @@ func (s *SecretStoreFile) retrieveSecretV2(mctx MetaContext, username Normalized
 }
 
 func (s *SecretStoreFile) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("SecretStoreFile.StoreSecret(%s)", username), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("SecretStoreFile.StoreSecret(%s)", username), &err)()
 	noise, err := MakeNoise()
 	if err != nil {
 		return err
@@ -207,7 +207,7 @@ func (s *SecretStoreFile) StoreSecret(mctx MetaContext, username NormalizedUsern
 }
 
 func (s *SecretStoreFile) ClearSecret(mctx MetaContext, username NormalizedUsername) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("SecretStoreFile.ClearSecret(%s)", username), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("SecretStoreFile.ClearSecret(%s)", username), &err)()
 	// try both
 
 	if username.IsNil() {
@@ -258,7 +258,7 @@ func (s *SecretStoreFile) clearSecretV2(username NormalizedUsername) error {
 }
 
 func (s *SecretStoreFile) GetUsersWithStoredSecrets(mctx MetaContext) (users []string, err error) {
-	defer mctx.TraceTimed("SecretStoreFile.GetUsersWithStoredSecrets", func() error { return err })()
+	defer mctx.Trace("SecretStoreFile.GetUsersWithStoredSecrets", &err)()
 	files, err := filepath.Glob(filepath.Join(s.dir, "*.ss*"))
 	if err != nil {
 		return nil, err

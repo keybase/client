@@ -26,6 +26,7 @@ import {TypedState, TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import {RPCError} from '../util/errors'
 import flags from '../util/feature-flags'
+import {appendNewTeamBuilder} from './typed-routes'
 
 async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
   const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
@@ -1517,6 +1518,7 @@ const setTeamWizardAvatar = (state: TypedState) => {
       return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard4TeamSize'}]})
   }
 }
+const setTeamWizardSubteamMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
   action.payload.isBig
     ? RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard5Channels'}]})
@@ -1524,10 +1526,12 @@ const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
 const setTeamWizardChannels = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard6Subteams'}]})
 const setTeamWizardSubteams = () => TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
-const startAddMembersWizard = (_: TeamsGen.StartAddMembersWizardPayload) =>
-  RouteTreeGen.createNavigateAppend({
-    path: ['teamAddToTeamFromWhere'],
-  })
+const startAddMembersWizard = (action: TeamsGen.StartAddMembersWizardPayload) =>
+  flags.teamsRedesign
+    ? RouteTreeGen.createNavigateAppend({
+        path: ['teamAddToTeamFromWhere'],
+      })
+    : appendNewTeamBuilder(action.payload.teamID)
 const finishNewTeamWizard = async (state: TypedState) => {
   const {name, description, open, openTeamJoinRole, showcase, addYourself} = state.teams.newTeamWizard
   const {avatarFilename, avatarCrop, channels, subteams} = state.teams.newTeamWizard
@@ -1687,6 +1691,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.setTeamWizardTeamSize, setTeamWizardTeamSize)
   yield* Saga.chainAction(TeamsGen.setTeamWizardChannels, setTeamWizardChannels)
   yield* Saga.chainAction(TeamsGen.setTeamWizardSubteams, setTeamWizardSubteams)
+  yield* Saga.chainAction(TeamsGen.setTeamWizardSubteamMembers, setTeamWizardSubteamMembers)
   yield* Saga.chainAction2(TeamsGen.finishNewTeamWizard, finishNewTeamWizard)
   yield* Saga.chainAction(TeamsGen.finishedNewTeamWizard, finishedNewTeamWizard)
 

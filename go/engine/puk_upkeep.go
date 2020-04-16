@@ -59,7 +59,7 @@ func (e *PerUserKeyUpkeep) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PerUserKeyUpkeep) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("PerUserKeyUpkeep", func() error { return err })()
+	defer m.Trace("PerUserKeyUpkeep", &err)()
 	return e.inner(m)
 }
 

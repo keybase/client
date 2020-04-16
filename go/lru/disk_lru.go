@@ -456,7 +456,7 @@ func (d *DiskLRU) getPath(entry DiskLRUEntry) (res string, ok bool) {
 }
 
 func (d *DiskLRU) cleanOutOfSync(mctx libkb.MetaContext, cacheDir string, batchSize int) (completed bool, err error) {
-	defer mctx.TraceTimed("cleanOutOfSync", func() error { return err })()
+	defer mctx.Trace("cleanOutOfSync", &err)()
 	d.Lock()
 	defer d.Unlock()
 
@@ -518,7 +518,7 @@ func CleanOutOfSyncWithDelay(mctx libkb.MetaContext, d *DiskLRU, cacheDir string
 	case <-time.After(delay):
 	}
 
-	defer mctx.TraceTimed("CleanOutOfSyncWithDelay", func() error { return nil })()
+	defer mctx.Trace("CleanOutOfSyncWithDelay", nil)()
 
 	// Batch deletions so we don't hog the lock.
 	batchSize := 1000

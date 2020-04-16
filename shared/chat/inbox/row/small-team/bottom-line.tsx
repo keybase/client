@@ -20,8 +20,8 @@ type Props = {
   draft?: string
 }
 
-const SnippetDecoration = (type: Kb.IconType, color: string) => {
-  return (
+const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) => {
+  const icon = (
     <Kb.Icon
       color={color}
       type={type}
@@ -29,6 +29,7 @@ const SnippetDecoration = (type: Kb.IconType, color: string) => {
       style={{alignSelf: 'flex-start'}}
     />
   )
+  return tooltip ? <Kb.WithTooltip tooltip={tooltip}>{icon}</Kb.WithTooltip> : icon
 }
 
 const BottomLine = React.memo((props: Props) => {
@@ -90,12 +91,13 @@ const BottomLine = React.memo((props: Props) => {
 
     switch (props.snippetDecoration) {
       case RPCChatTypes.SnippetDecoration.pendingMessage:
-        snippetDecoration = SnippetDecoration('iconfont-hourglass', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-hourglass', defaultIconColor, 'Sending…')
         break
       case RPCChatTypes.SnippetDecoration.failedPendingMessage:
         snippetDecoration = SnippetDecoration(
           'iconfont-exclamation',
-          props.isSelected ? Styles.globalColors.white : Styles.globalColors.red
+          props.isSelected ? Styles.globalColors.white : Styles.globalColors.red,
+          'Failed to send'
         )
         break
       case RPCChatTypes.SnippetDecoration.explodingMessage:

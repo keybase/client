@@ -128,7 +128,7 @@ func (m *ChainManager) checkFrozen(mctx libkb.MetaContext, newState *keybase1.Hi
 // Load hidden team chain data from storage, either mem or disk. Will not hit the network.
 func (m *ChainManager) HintLatestSeqno(mctx libkb.MetaContext, id keybase1.TeamID, q keybase1.Seqno) (err error) {
 	mctx = withLogTag(mctx)
-	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#HintLatestSeqno(%d)", q), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#HintLatestSeqno(%d)", q), &err)()
 	_, err = m.loadAndMutate(mctx, loadArg{
 		id: id,
 		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {
@@ -150,7 +150,7 @@ func (m *ChainManager) HintLatestSeqno(mctx libkb.MetaContext, id keybase1.TeamI
 }
 
 func (m *ChainManager) loadAndMutate(mctx libkb.MetaContext, arg loadArg) (state *keybase1.HiddenTeamChain, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("ChainManager#load(%+v)", arg), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("ChainManager#load(%+v)", arg), &err)()
 	lock := m.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), arg.id.String())
 	defer lock.Release(mctx.Ctx())
 
@@ -205,7 +205,7 @@ func (m *ChainManager) ratchet(mctx libkb.MetaContext, state *keybase1.HiddenTea
 // data (and ratchets) that we have.
 func (m *ChainManager) Ratchet(mctx libkb.MetaContext, id keybase1.TeamID, ratchets keybase1.HiddenTeamChainRatchetSet) (err error) {
 	mctx = withLogTag(mctx)
-	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Ratchet(%s, %+v)", id, ratchets), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Ratchet(%s, %+v)", id, ratchets), &err)()
 	arg := loadArg{
 		id: id,
 		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {
@@ -289,7 +289,7 @@ func (m *ChainManager) checkRatchetsOnAdvance(mctx libkb.MetaContext, ratchets k
 // See hidden.go for and the caller of this function for where that happens.
 func (m *ChainManager) Advance(mctx libkb.MetaContext, dat keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) (err error) {
 	mctx = withLogTag(mctx)
-	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Advance(%s)", dat.ID()), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Advance(%s)", dat.ID()), &err)()
 	arg := loadArg{
 		id: dat.ID(),
 		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {
@@ -340,7 +340,7 @@ func (m *ChainManager) OnDbNuke(mctx libkb.MetaContext) error {
 
 func (m *ChainManager) Tombstone(mctx libkb.MetaContext, id keybase1.TeamID) (err error) {
 	mctx = withLogTag(mctx)
-	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Tombstone(%s)", id), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Tombstone(%s)", id), &err)()
 	arg := loadArg{
 		id: id,
 		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {
@@ -353,7 +353,7 @@ func (m *ChainManager) Tombstone(mctx libkb.MetaContext, id keybase1.TeamID) (er
 
 func (m *ChainManager) Freeze(mctx libkb.MetaContext, id keybase1.TeamID) (err error) {
 	mctx = withLogTag(mctx)
-	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Freeze(%s)", id), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Freeze(%s)", id), &err)()
 	arg := loadArg{
 		id: id,
 		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {

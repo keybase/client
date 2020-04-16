@@ -43,9 +43,9 @@ func (e *UserBlocksSet) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *UserBlocksSet) Run(mctx libkb.MetaContext) (err error) {
-	defer mctx.TraceTimed(
+	defer mctx.Trace(
 		fmt.Sprintf("UserBlocksSet#Run(len=%d)", len(e.Blocks)),
-		func() error { return err })()
+		&err)()
 
 	type setBlockArg struct {
 		BlockUID string `json:"block_uid"`

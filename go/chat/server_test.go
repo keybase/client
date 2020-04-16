@@ -72,7 +72,7 @@ func newGregorTestConnection(g *globals.Context, uid gregor1.UID, sessionToken s
 }
 
 func (g *gregorTestConnection) Connect(ctx context.Context) (err error) {
-	defer g.Trace(ctx, func() error { return err }, "Connect")()
+	defer g.Trace(ctx, &err, "Connect")()
 	uri, err := rpc.ParseFMPURI(g.G().Env.GetGregorURI())
 	if err != nil {
 		return err

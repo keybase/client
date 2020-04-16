@@ -181,16 +181,18 @@ export type NewTeamWizardState = {
   error?: string
 }
 
+export type AddingMemberTeamRoleType = 'owner' | 'admin' | 'reader' | 'writer'
+
 export type AddingMember = {
   assertion: string
-  role: TeamRoleType
+  role: AddingMemberTeamRoleType
   note?: string // note is for imp tofu assertions that got turned into usernames. It doesn't go to the server but it displays to the user in the confirm screen.
 }
 export type AddMembersWizardState = {
   addingMembers: Array<AddingMember>
   defaultChannels: Array<ChannelNameID> | undefined // undefined -> unchanged from default
   justFinished: boolean
-  role: TeamRoleType | undefined // undefined -> role set individually
+  role: AddingMemberTeamRoleType | 'setIndividually'
   teamID: TeamID
 }
 
@@ -205,6 +207,8 @@ export type ActivityLevels = {
   loaded: boolean
 }
 
+export type TeamListSort = 'role' | 'activity' | 'alphabetical'
+
 export type TeamInviteState = {
   inviteID: string
   inviteKey: string
@@ -216,7 +220,6 @@ export type State = {
   readonly addMembersWizard: AddMembersWizardState
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
-  readonly canPerform: Map<TeamID, TeamOperations>
   readonly channelSelectedMembers: Map<ConversationIDKey, Set<string>>
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly errorInAddToTeam: string
@@ -241,6 +244,8 @@ export type State = {
   readonly teamJoinSuccess: boolean
   readonly teamJoinSuccessOpen: boolean
   readonly teamJoinSuccessTeamName: string
+  readonly teamListFilter: string
+  readonly teamListSort: TeamListSort
   readonly teamMeta: Map<TeamID, TeamMeta>
   readonly teamMetaStale: boolean // if we've received an update since we last loaded team list
   readonly teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list

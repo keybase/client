@@ -401,7 +401,7 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 			go reportPrimeSecretStoreFailure(mctx.BackgroundWithLogTags(), ss, err)
 		}
 	}()
-	defer mctx.TraceTimed("PrimeSecretStore", func() error { return err })()
+	defer mctx.Trace("PrimeSecretStore", &err)()
 
 	// Generate test username and test secret
 	testUsername, err := RandString("test_ss_", 5)
@@ -464,7 +464,7 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 
 func reportPrimeSecretStoreFailure(mctx MetaContext, ss SecretStoreAll, reportErr error) {
 	var err error
-	defer mctx.TraceTimed("reportPrimeSecretStoreFailure", func() error { return err })()
+	defer mctx.Trace("reportPrimeSecretStoreFailure", &err)()
 	osVersion, osBuild, err := OSVersionAndBuild()
 	if err != nil {
 		mctx.Debug("os info error: %v", err)

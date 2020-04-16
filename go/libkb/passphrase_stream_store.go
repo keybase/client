@@ -43,7 +43,7 @@ func isPPSSecretStore(identifier string) bool {
 
 func RetrievePwhashEddsaPassphraseStream(mctx MetaContext, username NormalizedUsername, uid keybase1.UID) (ret *PassphraseStream, err error) {
 	defer mctx.Trace(fmt.Sprintf("RetrievePwhashEddsaPassphraseStream(%q,%q)", username, uid),
-		func() error { return err })()
+		&err)()
 
 	ss := mctx.G().SecretStore()
 
@@ -67,7 +67,7 @@ func RetrievePwhashEddsaPassphraseStream(mctx MetaContext, username NormalizedUs
 
 func StorePwhashEddsaPassphraseStream(mctx MetaContext, username NormalizedUsername, pps *PassphraseStream) (err error) {
 	defer mctx.Trace(fmt.Sprintf("StorePwhashEddsaPassphraseStream(%q)", username),
-		func() error { return err })()
+		&err)()
 
 	ss := mctx.G().SecretStore()
 

@@ -8,7 +8,6 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Kb from '../../common-adapters'
 import flags from '../../util/feature-flags'
-import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import capitalize from 'lodash/capitalize'
 import * as Styles from '../../styles'
 
@@ -39,7 +38,7 @@ const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamID}: OwnProps) => ({
-  onAddOrInvitePeople: () => dispatch(appendNewTeamBuilder(teamID)),
+  onAddOrInvitePeople: () => dispatch(TeamsGen.createStartAddMembersWizard({teamID})),
   onCopyInviteLink: () => {}, // TODO
   onCreateSubteam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID})),
   onDeleteTeam: () =>
@@ -115,6 +114,7 @@ export default Container.connect(
     if (flags.teamsRedesign) {
       if (stateProps.canInvite) {
         items.push({
+          icon: 'iconfont-new',
           onClick: dispatchProps.onAddOrInvitePeople,
           title: 'Add/Invite people',
         })

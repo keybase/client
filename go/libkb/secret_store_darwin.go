@@ -62,7 +62,7 @@ func (k KeychainSecretStore) serviceName(mctx MetaContext) string {
 }
 
 func (k KeychainSecretStore) StoreSecret(mctx MetaContext, accountName NormalizedUsername, secret LKSecFullSecret) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("KeychainSecretStore.StoreSecret(%s)", accountName), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("KeychainSecretStore.StoreSecret(%s)", accountName), &err)()
 
 	// Base64 encode to make it easy to work with Keychain Access (since we are
 	// using a password item and secret is not utf-8)
@@ -123,7 +123,7 @@ func (k KeychainSecretStore) mobileKeychainPermissionDeniedCheck(mctx MetaContex
 }
 
 func (k KeychainSecretStore) RetrieveSecret(mctx MetaContext, accountName NormalizedUsername) (secret LKSecFullSecret, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("KeychainSecretStore.RetrieveSecret(%s)", accountName), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("KeychainSecretStore.RetrieveSecret(%s)", accountName), &err)()
 
 	// find the last valid item we have stored in the keychain
 	var previousSecret LKSecFullSecret
@@ -171,8 +171,8 @@ func (k KeychainSecretStore) retrieveSecret(mctx MetaContext, account keychainSl
 }
 
 func (k KeychainSecretStore) ClearSecret(mctx MetaContext, accountName NormalizedUsername) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("KeychainSecretStore#ClearSecret: accountName: %s", accountName),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("KeychainSecretStore#ClearSecret: accountName: %s", accountName),
+		&err)()
 
 	if accountName.IsNil() {
 		mctx.Debug("NOOPing KeychainSecretStore#ClearSecret for empty username")

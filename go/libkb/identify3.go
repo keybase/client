@@ -233,7 +233,7 @@ func (s *Identify3State) runExpireThread(g *GlobalContext, expireCh <-chan struc
 }
 
 func (s *Identify3Session) doExpireSession(mctx MetaContext) {
-	defer mctx.Trace("Identify3Session#doExpireSession", func() error { return nil })()
+	defer mctx.Trace("Identify3Session#doExpireSession", nil)()
 	s.Lock()
 	defer s.Unlock()
 	mctx.Debug("Identify3Session#doExpireSession(%s)", s.id)
@@ -260,7 +260,7 @@ func (s *Identify3Session) doExpireSession(mctx MetaContext) {
 }
 
 func (s *Identify3State) expireSessions(mctx MetaContext, now time.Time) time.Duration {
-	defer mctx.Trace("Identify3State#expireSessions", func() error { return nil })()
+	defer mctx.Trace("Identify3State#expireSessions", nil)()
 
 	// getSesionsToExpire holds the Identify3State Mutex.
 	toExpire, diff := s.getSessionsToExpire(mctx, now)

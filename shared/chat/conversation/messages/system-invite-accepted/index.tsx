@@ -17,7 +17,7 @@ const connectedUsernamesProps = {
   colorFollowing: true,
   inline: true,
   onUsernameClicked: 'profile',
-  type: 'BodySmallSemibold',
+  type: 'BodySmallBold',
   underline: true,
 } as const
 

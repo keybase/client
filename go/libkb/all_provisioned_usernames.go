@@ -23,7 +23,7 @@ type deviceForUser struct {
 // asks the server to filter out revoked devices or reset users.
 func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, all []NormalizedUsername, err error) {
 	mctx = mctx.WithLogTag("GAPU")
-	defer mctx.Trace("GetAllProvisionedUsernames", func() error { return err })()
+	defer mctx.Trace("GetAllProvisionedUsernames", &err)()
 
 	currentUC, otherUCs, err := mctx.G().Env.GetConfig().GetAllUserConfigs()
 	if err != nil {

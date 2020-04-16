@@ -87,7 +87,7 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *Login) Run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("LOGIN")
-	defer m.Trace("Login#Run", func() error { return err })()
+	defer m.Trace("Login#Run", &err)()
 
 	if len(e.username) > 0 && libkb.CheckEmail.F(e.username) {
 		// We used to support logging in with e-mail but we don't anymore,

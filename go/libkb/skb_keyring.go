@@ -401,7 +401,7 @@ func (k *SKBKeyringFile) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (k *SKBKeyringFile) Bug3964Repair(m MetaContext, lks *LKSec, dkm DeviceKeyMap) (ret *SKBKeyringFile, serverHalfSet *LKSecServerHalfSet, err error) {
-	defer m.Trace("SKBKeyringFile#Bug3964Repair", func() error { return err })()
+	defer m.Trace("SKBKeyringFile#Bug3964Repair", &err)()
 
 	var newBlocks []*SKB
 	var hitBug3964 bool

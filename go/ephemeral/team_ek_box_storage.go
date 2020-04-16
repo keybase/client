@@ -94,7 +94,7 @@ func (s *TeamEKBoxStorage) dbKey(mctx libkb.MetaContext, teamID keybase1.TeamID)
 
 func (s *TeamEKBoxStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
 	contentCtime *gregor1.Time) (teamEK keybase1.TeamEphemeralKey, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#Get: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamEKBoxStorage#Get: teamID:%v, generation:%v", teamID, generation), &err)()
 
 	unlock := s.lockForTeamID(mctx, teamID)
 	cache, found, err := s.getCacheForTeamID(mctx, teamID)
@@ -159,7 +159,7 @@ type TeamEKBoxedResponse struct {
 
 func (s *TeamEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
 	contentCtime *gregor1.Time) (teamEK keybase1.TeamEphemeralKey, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#fetchAndStore: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamEKBoxStorage#fetchAndStore: teamID:%v, generation:%v", teamID, generation), &err)()
 
 	// cache unboxing/missing box errors so we don't continually try to fetch
 	// something nonexistent.
@@ -196,7 +196,7 @@ func (s *TeamEKBoxStorage) Put(mctx libkb.MetaContext, teamID keybase1.TeamID,
 
 func (s *TeamEKBoxStorage) putLocked(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEphemeralKeyBoxed, ekErr error) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#putLocked: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamEKBoxStorage#putLocked: teamID:%v, generation:%v", teamID, generation), &err)()
 
 	// sanity check that we got the right generation
 	if teamEKBoxed.Generation() != generation && ekErr == nil {
@@ -228,7 +228,7 @@ func (s *TeamEKBoxStorage) Delete(mctx libkb.MetaContext, teamID keybase1.TeamID
 
 func (s *TeamEKBoxStorage) deleteMany(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	generations []keybase1.EkGeneration) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#delete: teamID:%v, generations:%v", teamID, generations), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamEKBoxStorage#delete: teamID:%v, generations:%v", teamID, generations), &err)()
 
 	cache, found, err := s.getCacheForTeamID(mctx, teamID)
 	if err != nil {
@@ -253,7 +253,7 @@ func (s *TeamEKBoxStorage) deleteMany(mctx libkb.MetaContext, teamID keybase1.Te
 }
 
 func (s *TeamEKBoxStorage) PurgeCacheForTeamID(mctx libkb.MetaContext, teamID keybase1.TeamID) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#PurgeCacheForTeamID: teamID:%v", teamID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamEKBoxStorage#PurgeCacheForTeamID: teamID:%v", teamID), &err)()
 	unlock := s.lockForTeamID(mctx, teamID)
 	defer unlock()
 
@@ -271,7 +271,7 @@ func (s *TeamEKBoxStorage) PurgeCacheForTeamID(mctx libkb.MetaContext, teamID ke
 
 func (s *TeamEKBoxStorage) DeleteExpired(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	merkleRoot libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#DeleteExpired: teamID:%v", teamID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamEKBoxStorage#DeleteExpired: teamID:%v", teamID), &err)()
 
 	unlock := s.lockForTeamID(mctx, teamID)
 	defer unlock()
@@ -306,7 +306,7 @@ func (s *TeamEKBoxStorage) DeleteExpired(mctx libkb.MetaContext, teamID keybase1
 }
 
 func (s *TeamEKBoxStorage) GetAll(mctx libkb.MetaContext, teamID keybase1.TeamID) (teamEKs TeamEKMap, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#GetAll: teamID:%v", teamID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeamEKBoxStorage#GetAll: teamID:%v", teamID), &err)()
 
 	unlock := s.lockForTeamID(mctx, teamID)
 	defer unlock()
@@ -339,7 +339,7 @@ func (s *TeamEKBoxStorage) ClearCache() {
 }
 
 func (s *TeamEKBoxStorage) MaxGeneration(mctx libkb.MetaContext, teamID keybase1.TeamID, includeErrs bool) (maxGeneration keybase1.EkGeneration, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#MaxGeneration: teamID:%v", teamID), func() error { return nil })()
+	defer mctx.Trace(fmt.Sprintf("TeamEKBoxStorage#MaxGeneration: teamID:%v", teamID), nil)()
 
 	unlock := s.lockForTeamID(mctx, teamID)
 	defer unlock()

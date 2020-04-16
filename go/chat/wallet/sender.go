@@ -79,7 +79,16 @@ func (s *Sender) getConvFullnames(ctx context.Context, uid gregor1.UID, convID c
 }
 
 func (s *Sender) getRecipientUsername(ctx context.Context, uid gregor1.UID, parts []string,
-	membersType chat1.ConversationMembersType) (res string, err error) {
+	membersType chat1.ConversationMembersType, replyToUID gregor1.UID) (res string, err error) {
+	// If this message is a reply, infer the recipient as the original sender
+	if !(replyToUID.IsNil() || uid.Eq(replyToUID)) {
+		username, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(replyToUID.String()))
+		if err != nil {
+			return res, err
+		}
+		return username.String(), nil
+	}
+
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		return res, errors.New("must specify username in team chat")
@@ -108,8 +117,8 @@ func (s *Sender) validConvUsername(ctx context.Context, username string, parts [
 }
 
 func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body string) (res []types.ParsedStellarPayment) {
-	defer s.Trace(ctx, func() error { return nil }, "ParsePayments")()
+	body string, replyTo *chat1.MessageID) (res []types.ParsedStellarPayment) {
+	defer s.Trace(ctx, nil, "ParsePayments")()
 	parsed := FindChatTxCandidates(body)
 	if len(parsed) == 0 {
 		return nil
@@ -118,6 +127,11 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 	parts, membersType, err := s.getConvParseInfo(ctx, uid, convID)
 	if err != nil {
 		s.Debug(ctx, "ParsePayments: failed to getConvParseInfo %v", err)
+		return nil
+	}
+	replyToUID, err := s.handleReplyTo(ctx, uid, convID, replyTo)
+	if err != nil {
+		s.Debug(ctx, "ParsePayments: failed to handleReplyTo: %v", err)
 		return nil
 	}
 	seen := make(map[string]struct{})
@@ -129,7 +143,7 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 			continue
 		}
 		if p.Username == nil {
-			if username, err = s.getRecipientUsername(ctx, uid, parts, membersType); err != nil {
+			if username, err = s.getRecipientUsername(ctx, uid, parts, membersType, replyToUID); err != nil {
 				s.Debug(ctx, "ParsePayments: failed to get username, skipping: %s", err)
 				continue
 			}
@@ -158,6 +172,22 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 	return res
 }
 
+func (s *Sender) handleReplyTo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, replyTo *chat1.MessageID) (gregor1.UID, error) {
+	if replyTo == nil {
+		return nil, nil
+	}
+	reply, err := s.G().ChatHelper.GetMessage(ctx, uid, convID, *replyTo, false, nil)
+	if err != nil {
+		s.Debug(ctx, "handleReplyTo: failed to get reply message: %s", err)
+		return nil, err
+	}
+	if !reply.IsValid() {
+		s.Debug(ctx, "handleReplyTo: reply message invalid: %v %v", replyTo, err)
+		return nil, nil
+	}
+	return reply.Valid().ClientHeader.Sender, nil
+}
+
 func (s *Sender) paymentsToMinis(payments []types.ParsedStellarPayment) (minis []libkb.MiniChatPayment) {
 	for _, p := range payments {
 		minis = append(minis, p.ToMini())
@@ -167,7 +197,7 @@ func (s *Sender) paymentsToMinis(payments []types.ParsedStellarPayment) (minis [
 
 func (s *Sender) DescribePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	payments []types.ParsedStellarPayment) (res chat1.UIChatPaymentSummary, toSend []types.ParsedStellarPayment, err error) {
-	defer s.Trace(ctx, func() error { return err }, "DescribePayments")()
+	defer s.Trace(ctx, &err, "DescribePayments")()
 	specs, err := s.G().GetStellar().SpecMiniChatPayments(s.G().MetaContext(ctx), s.paymentsToMinis(payments))
 	if err != nil {
 		return res, toSend, err
@@ -203,7 +233,7 @@ func (s *Sender) DescribePayments(ctx context.Context, uid gregor1.UID, convID c
 }
 
 func (s *Sender) SendPayments(ctx context.Context, convID chat1.ConversationID, payments []types.ParsedStellarPayment) (res []chat1.TextPayment, err error) {
-	defer s.Trace(ctx, func() error { return err }, "SendPayments")()
+	defer s.Trace(ctx, &err, "SendPayments")()
 	usernameToFull := make(map[string]string)
 	var minis []libkb.MiniChatPayment
 	for _, p := range payments {

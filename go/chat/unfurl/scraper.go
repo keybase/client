@@ -54,7 +54,7 @@ func (s *Scraper) makeCollector() *colly.Collector {
 }
 
 func (s *Scraper) Scrape(ctx context.Context, uri string, forceTyp *chat1.UnfurlType) (res chat1.UnfurlRaw, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Scrape")()
+	defer s.Trace(ctx, &err, "Scrape")()
 	// Check if we have a cached valued
 	if item, valid := s.cache.get(uri); valid {
 		s.Debug(ctx, "Scape: using cached value")

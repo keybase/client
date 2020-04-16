@@ -304,7 +304,7 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string, allowOverwrite bool) (res chat1.EmojiRemoteSource, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Add")()
+	defer s.Trace(ctx, &err, "Add")()
 	if alias, err = s.validateCustomEmoji(ctx, alias, filename); err != nil {
 		return res, err
 	}
@@ -314,7 +314,7 @@ func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID ch
 
 func (s *DevConvEmojiSource) AddAlias(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	newAlias, existingAlias string) (res chat1.EmojiRemoteSource, err error) {
-	defer s.Trace(ctx, func() error { return err }, "AddAlias")()
+	defer s.Trace(ctx, &err, "AddAlias")()
 	if err = s.validateShortName(newAlias); err != nil {
 		return res, err
 	}
@@ -389,7 +389,7 @@ func (s *DevConvEmojiSource) removeRemoteSource(ctx context.Context, uid gregor1
 
 func (s *DevConvEmojiSource) Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias string) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "Remove")()
+	defer s.Trace(ctx, &err, "Remove")()
 	var stored chat1.EmojiStorage
 	storage := s.makeStorage(chat1.TopicType_EMOJI)
 	topicName := s.topicName(nil)
@@ -448,7 +448,7 @@ func (s *DevConvEmojiSource) animationsDisabled(ctx context.Context, uid gregor1
 }
 
 func (s *DevConvEmojiSource) ToggleAnimations(ctx context.Context, uid gregor1.UID, enabled bool) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "ToggleAnimations: enabled: %v", enabled)()
+	defer s.Trace(ctx, &err, "ToggleAnimations: enabled: %v", enabled)()
 	cat, err := gregor1.ObjFactory{}.MakeCategory(animationKey)
 	if err != nil {
 		s.Debug(ctx, "animationsDisabled: failed to make category: %s", err)
@@ -615,7 +615,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 
 func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID,
 	opts chat1.EmojiFetchOpts) (res chat1.UserEmojis, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Get")()
+	defer s.Trace(ctx, &err, "Get")()
 	var aliasLookup map[string]chat1.Emoji
 	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, opts); err != nil {
 		return res, err
@@ -827,7 +827,7 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 		return nil, nil
 	}
 	ctx = globals.CtxMakeEmojiHarvester(ctx)
-	defer s.Trace(ctx, func() error { return err }, "Harvest: mode: %v", mode)()
+	defer s.Trace(ctx, &err, "Harvest: mode: %v", mode)()
 	s.Debug(ctx, "Harvest: %d matches found", len(matches))
 	aliasMap, err := s.getAliasLookup(ctx, uid)
 	if err != nil {
@@ -907,7 +907,7 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 			bigEmoji = true
 		}
 	}
-	defer s.Trace(ctx, func() error { return nil }, "Decorate")()
+	defer s.Trace(ctx, nil, "Decorate")()
 	emojiMap := make(map[string]chat1.EmojiRemoteSource, len(emojis))
 	for _, emoji := range emojis {
 		emojiMap[emoji.Alias] = emoji.Source

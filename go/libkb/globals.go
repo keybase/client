@@ -1219,7 +1219,7 @@ func (g *GlobalContext) AddLogoutHook(hook LogoutHook, name string) {
 }
 
 func (g *GlobalContext) CallLogoutHooks(mctx MetaContext) {
-	defer mctx.TraceTimed("GlobalContext.CallLogoutHooks", func() error { return nil })()
+	defer mctx.Trace("GlobalContext.CallLogoutHooks", nil)()
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.logoutHooks {
@@ -1246,7 +1246,7 @@ func (g *GlobalContext) AddDbNukeHook(hook DbNukeHook, name string) {
 }
 
 func (g *GlobalContext) CallDbNukeHooks(mctx MetaContext) {
-	defer mctx.TraceTimed("GlobalContext.CallDbNukeHook", func() error { return nil })()
+	defer mctx.Trace("GlobalContext.CallDbNukeHook", nil)()
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.dbNukeHooks {
@@ -1454,7 +1454,7 @@ func (g *GlobalContext) UserChanged(ctx context.Context, u keybase1.UID) {
 
 // GetPerUserKeyring recreates PerUserKeyring if the uid changes or this is none installed.
 func (g *GlobalContext) GetPerUserKeyring(ctx context.Context) (ret *PerUserKeyring, err error) {
-	defer g.Trace("G#GetPerUserKeyring", func() error { return err })()
+	defer g.Trace("G#GetPerUserKeyring", &err)()
 
 	myUID := g.ActiveDevice.UID()
 	if myUID.IsNil() {
@@ -1489,7 +1489,7 @@ func (g *GlobalContext) GetPerUserKeyring(ctx context.Context) (ret *PerUserKeyr
 }
 
 func (g *GlobalContext) ClearPerUserKeyring() {
-	defer g.Trace("G#ClearPerUserKeyring", func() error { return nil })()
+	defer g.Trace("G#ClearPerUserKeyring", nil)()
 
 	g.perUserKeyringMu.Lock()
 	defer g.perUserKeyringMu.Unlock()

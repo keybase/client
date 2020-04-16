@@ -162,7 +162,7 @@ func TestStellarSender(t *testing.T) {
 		mi.tlfNameFn = nameFn
 		mp.partsFn = partsFn
 		ms.miniFn = miniFn
-		parsedPayments := sender.ParsePayments(context.TODO(), senderUID, convID, body)
+		parsedPayments := sender.ParsePayments(context.TODO(), senderUID, convID, body, nil)
 		res, err := sender.SendPayments(context.TODO(), convID, parsedPayments)
 		require.NoError(t, err)
 		require.Equal(t, len(expected), len(res))

@@ -49,8 +49,8 @@ func NewTreeloader(mctx libkb.MetaContext, targetUsername string,
 }
 
 func (l *Treeloader) Load(mctx libkb.MetaContext) error {
-	defer mctx.TraceTimed(fmt.Sprintf("Treeloader.Load(%s, %s)",
-		l.targetTeamID, l.targetUV), func() error { return nil })()
+	defer mctx.Trace(fmt.Sprintf("Treeloader.Load(%s, %s)",
+		l.targetTeamID, l.targetUV), nil)()
 
 	start := time.Now()
 
@@ -80,8 +80,8 @@ func (l *Treeloader) Load(mctx libkb.MetaContext) error {
 
 func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	teamName keybase1.TeamName, targetChainState *TeamSigChainState) (expectedCount int32) {
-	defer mctx.TraceTimed(fmt.Sprintf("Treeloader.loadRecursive(%s, %s, %s)",
-		l.targetTeamName, l.targetUV, l.targetUsername), func() error { return nil })()
+	defer mctx.Trace(fmt.Sprintf("Treeloader.loadRecursive(%s, %s, %s)",
+		l.targetTeamName, l.targetUV, l.targetUsername), nil)()
 
 	// If it is the initial call, the caller passes in the sigchain state so we don't need to reload
 	// it. Otherwise, do a team load.
@@ -141,7 +141,7 @@ func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 func (l *Treeloader) loadAncestors(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	teamName keybase1.TeamName) (expectedCount int32) {
-	defer mctx.TraceTimed(fmt.Sprintf("Treeloader.loadAncestors"), func() error { return nil })()
+	defer mctx.Trace(fmt.Sprintf("Treeloader.loadAncestors"), nil)()
 
 	handleAncestor := func(t keybase1.TeamSigChainState, ancestorTeamName keybase1.TeamName) error {
 		result := l.Converter.ProcessSigchainState(mctx, ancestorTeamName, &t)

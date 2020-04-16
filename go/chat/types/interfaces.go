@@ -450,7 +450,7 @@ type StellarLoader interface {
 
 type StellarSender interface {
 	ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		body string) []ParsedStellarPayment
+		body string, replyTo *chat1.MessageID) []ParsedStellarPayment
 	DescribePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		payments []ParsedStellarPayment) (chat1.UIChatPaymentSummary, []ParsedStellarPayment, error)
 	DecorateWithPayments(ctx context.Context, body string, payments []chat1.TextPayment) string

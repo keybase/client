@@ -167,17 +167,17 @@ func (c *URLCachingSource) clearName(m libkb.MetaContext, name string, formats [
 }
 
 func (c *URLCachingSource) LoadUsers(m libkb.MetaContext, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.Trace("URLCachingSource.LoadUsers", func() error { return err })()
+	defer m.Trace("URLCachingSource.LoadUsers", &err)()
 	return c.loadNames(m, usernames, formats, c.simpleSource.LoadUsers)
 }
 
 func (c *URLCachingSource) LoadTeams(m libkb.MetaContext, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.Trace("URLCachingSource.LoadTeams", func() error { return err })()
+	defer m.Trace("URLCachingSource.LoadTeams", &err)()
 	return c.loadNames(m, teams, formats, c.simpleSource.LoadTeams)
 }
 
 func (c *URLCachingSource) ClearCacheForName(m libkb.MetaContext, name string, formats []keybase1.AvatarFormat) (err error) {
-	defer m.Trace(fmt.Sprintf("URLCachingSource.ClearCacheForUser(%s,%v)", name, formats), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("URLCachingSource.ClearCacheForUser(%s,%v)", name, formats), &err)()
 	return c.clearName(m, name, formats)
 }
 

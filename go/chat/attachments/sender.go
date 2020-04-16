@@ -26,7 +26,7 @@ func NewSender(g *globals.Context) *Sender {
 }
 
 func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat1.OutboxID) (res chat1.MakePreviewRes, err error) {
-	defer s.Trace(ctx, func() error { return err }, "MakePreview")()
+	defer s.Trace(ctx, &err, "MakePreview")()
 	src, err := NewReadCloseResetter(ctx, s.G().GlobalContext, filename)
 	if err != nil {
 		return res, err
@@ -109,7 +109,7 @@ func (s *Sender) PostFileAttachmentMessage(ctx context.Context, sender types.Sen
 	convID chat1.ConversationID, tlfName string, vis keybase1.TLFVisibility, inOutboxID *chat1.OutboxID,
 	filename, title string, md []byte, clientPrev chat1.MessageID, ephemeralLifetime *gregor1.DurationSec,
 	callerPreview *chat1.MakePreviewRes) (outboxID chat1.OutboxID, msgID *chat1.MessageID, err error) {
-	defer s.Trace(ctx, func() error { return err }, "PostFileAttachmentMessage")()
+	defer s.Trace(ctx, &err, "PostFileAttachmentMessage")()
 	var msg chat1.MessagePlaintext
 	if msg, outboxID, err = s.makeBaseAttachmentMessage(ctx, tlfName, vis, inOutboxID, filename, title, md,
 		ephemeralLifetime, callerPreview); err != nil {
@@ -131,7 +131,7 @@ func (s *Sender) PostFileAttachment(ctx context.Context, sender types.Sender, ui
 	convID chat1.ConversationID, tlfName string, vis keybase1.TLFVisibility, inOutboxID *chat1.OutboxID,
 	filename, title string, md []byte, clientPrev chat1.MessageID, ephemeralLifetime *gregor1.DurationSec,
 	callerPreview *chat1.MakePreviewRes) (outboxID chat1.OutboxID, msgID *chat1.MessageID, err error) {
-	defer s.Trace(ctx, func() error { return err }, "PostFileAttachment")()
+	defer s.Trace(ctx, &err, "PostFileAttachment")()
 	var msg chat1.MessagePlaintext
 	if msg, outboxID, err = s.makeBaseAttachmentMessage(ctx, tlfName, vis, inOutboxID, filename, title, md,
 		ephemeralLifetime, callerPreview); err != nil {

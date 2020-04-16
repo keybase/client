@@ -167,6 +167,7 @@
         "{type: 'incoming'}",
         "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}"
       ],
+      "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<Types.Message>",
       // true if these should be the only messages we know about
       "shouldClearOthers?": "boolean",

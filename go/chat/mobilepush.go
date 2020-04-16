@@ -50,7 +50,7 @@ func NewMobilePush(g *globals.Context) *MobilePush {
 }
 
 func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []string) {
-	defer h.Trace(ctx, func() error { return nil }, "AckNotificationSuccess: pushID: %v", pushIDs)()
+	defer h.Trace(ctx, nil, "AckNotificationSuccess: pushID: %v", pushIDs)()
 	conn, token, err := utils.GetGregorConn(ctx, h.G(), h.DebugLabeler,
 		func(nist *libkb.NIST) rpc.ConnectionHandler {
 			return &remoteNotificationSuccessHandler{}
@@ -73,7 +73,7 @@ func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []strin
 
 func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (res chat1.MessageUnboxed, err error) {
-	defer h.Trace(ctx, func() error { return err }, "UnboxPushNotification: convID: %v", convID)()
+	defer h.Trace(ctx, &err, "UnboxPushNotification: convID: %v", convID)()
 	// Parse the message payload
 	bMsg, err := base64.StdEncoding.DecodeString(payload)
 	if err != nil {
