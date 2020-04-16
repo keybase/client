@@ -1227,10 +1227,12 @@ func (k *KeybaseServiceBase) NotifyFavoritesChanged(ctx context.Context) error {
 
 // OnPathChange implements the SubscriptionNotifier interface.
 func (k *KeybaseServiceBase) OnPathChange(
+	clientID SubscriptionManagerClientID,
 	subscriptionID SubscriptionID, path string,
 	topic keybase1.PathSubscriptionTopic) {
 	err := k.kbfsClient.FSSubscriptionNotifyPathEvent(
 		context.Background(), keybase1.FSSubscriptionNotifyPathEventArg{
+			ClientID:       string(clientID),
 			SubscriptionID: string(subscriptionID),
 			Path:           path,
 			Topic:          topic,
@@ -1243,9 +1245,11 @@ func (k *KeybaseServiceBase) OnPathChange(
 
 // OnNonPathChange implements the SubscriptionNotifier interface.
 func (k *KeybaseServiceBase) OnNonPathChange(
+	clientID SubscriptionManagerClientID,
 	subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
 	err := k.kbfsClient.FSSubscriptionNotifyEvent(context.Background(),
 		keybase1.FSSubscriptionNotifyEventArg{
+			ClientID:       string(clientID),
 			SubscriptionID: string(subscriptionID),
 			Topic:          topic,
 		})

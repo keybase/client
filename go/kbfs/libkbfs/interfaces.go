@@ -148,7 +148,18 @@ type settingsDBGetter interface {
 type subscriptionManagerGetter interface {
 	// SubscriptionManager returns a subscription manager that can be used to
 	// subscribe to events.
-	SubscriptionManager() SubscriptionManager
+	//
+	// clientID identifies a subscriptionManager client. Each user of the
+	// subscription manager should specify a unique clientID. When a
+	// notification happens, the client ID is provided.
+	//
+	// This is helpful for caller to filter out notifications that other clients
+	// subscribe.
+	//
+	// If purgeable is true, the client is marked as purgeable. We keep maximum
+	// 3 purgeable clients (FIFO). This is useful as a way to purge old, likely
+	// dead, clients, which happens a lot with electron refreshes.
+	SubscriptionManager(clientID SubscriptionManagerClientID, purgeable bool) SubscriptionManager
 }
 
 type subscriptionManagerPublisherGetter interface {
@@ -2102,10 +2113,13 @@ type SubscriptionID string
 // on subscribed topics.
 type SubscriptionNotifier interface {
 	// OnPathChange notifies about a change that's related to a specific path.
-	OnPathChange(subscriptionID SubscriptionID,
+	OnPathChange(
+		clientID SubscriptionManagerClientID, subscriptionID SubscriptionID,
 		path string, topic keybase1.PathSubscriptionTopic)
-	// OnNonPathChange notifies about a change that's not related to a specific path.
-	OnNonPathChange(subscriptionID SubscriptionID,
+	// OnNonPathChange notifies about a change that's not related to a specific
+	// path.
+	OnNonPathChange(
+		clientID SubscriptionManagerClientID, subscriptionID SubscriptionID,
 		topic keybase1.SubscriptionTopic)
 }
 

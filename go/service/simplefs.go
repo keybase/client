@@ -541,14 +541,14 @@ func (s *SimpleFSHandler) SimpleFSForceStuckConflict(
 
 // SimpleFSGetOnlineStatus implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSGetOnlineStatus(
-	ctx context.Context) (keybase1.KbfsOnlineStatus, error) {
+	ctx context.Context, clientID string) (keybase1.KbfsOnlineStatus, error) {
 	cli, err := s.client(ctx)
 	if err != nil {
 		return keybase1.KbfsOnlineStatus_OFFLINE, err
 	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
-	return cli.SimpleFSGetOnlineStatus(ctx)
+	return cli.SimpleFSGetOnlineStatus(ctx, clientID)
 }
 
 // SimpleFSCheckReachability implements the SimpleFSInterface.

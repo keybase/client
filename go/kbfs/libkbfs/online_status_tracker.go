@@ -376,6 +376,9 @@ func (ost *onlineStatusTracker) run(ctx context.Context) {
 	}
 }
 
+// TODO: we now have clientID in the subscriptionManager so it's not necessary
+// anymore for onlineStatusTracker to track it.
+
 func (ost *onlineStatusTracker) userInOut(clientID string, clientIsIn bool) {
 	ost.lock.Lock()
 	wasIn := len(ost.userIsLooking) != 0

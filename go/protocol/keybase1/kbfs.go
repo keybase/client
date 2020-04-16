@@ -53,12 +53,14 @@ type FSFavoritesChangedEventArg struct {
 }
 
 type FSSubscriptionNotifyPathEventArg struct {
+	ClientID       string                `codec:"clientID" json:"clientID"`
 	SubscriptionID string                `codec:"subscriptionID" json:"subscriptionID"`
 	Path           string                `codec:"path" json:"path"`
 	Topic          PathSubscriptionTopic `codec:"topic" json:"topic"`
 }
 
 type FSSubscriptionNotifyEventArg struct {
+	ClientID       string            `codec:"clientID" json:"clientID"`
 	SubscriptionID string            `codec:"subscriptionID" json:"subscriptionID"`
 	Topic          SubscriptionTopic `codec:"topic" json:"topic"`
 }

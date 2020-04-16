@@ -521,7 +521,7 @@ protocol SimpleFS {
     TRYING_1,
     ONLINE_2
   }
-  KbfsOnlineStatus simpleFSGetOnlineStatus();
+  KbfsOnlineStatus simpleFSGetOnlineStatus(string clientID);
 
   // This is called when GUI learns about a OS level network status change, and
   // causes mdserver_remote to check reachability with a Dial. Then it either
@@ -582,10 +582,10 @@ protocol SimpleFS {
 
   // Caller needs to make sure subscriptionID is unique. Notifications are
   // delivered through notify_fs.
-  void simpleFSSubscribePath(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID, string kbfsPath, PathSubscriptionTopic topic, int deduplicateIntervalSecond);
-  void simpleFSSubscribeNonPath(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID, SubscriptionTopic topic, int deduplicateIntervalSecond);
+  void simpleFSSubscribePath(union{ null, TLFIdentifyBehavior } identifyBehavior, string clientID, string subscriptionID, string kbfsPath, PathSubscriptionTopic topic, int deduplicateIntervalSecond);
+  void simpleFSSubscribeNonPath(union{ null, TLFIdentifyBehavior } identifyBehavior, string clientID, string subscriptionID, SubscriptionTopic topic, int deduplicateIntervalSecond);
 
-  void simpleFSUnsubscribe(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID);
+  void simpleFSUnsubscribe(union{ null, TLFIdentifyBehavior } identifyBehavior, string clientID, string subscriptionID);
 
   record DownloadInfo {
     string downloadID;

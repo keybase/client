@@ -32,13 +32,16 @@ func waitForCall(t *testing.T, timeout time.Duration) (
 		}
 }
 
+const testSubscriptionManagerClientID SubscriptionManagerClientID = "test"
+
 func initSubscriptionManagerTest(t *testing.T) (config Config,
 	subscriber Subscriber, notifier *MockSubscriptionNotifier,
 	finish func()) {
 	ctl := gomock.NewController(t)
 	config = MakeTestConfigOrBust(t, "jdoe")
 	notifier = NewMockSubscriptionNotifier(ctl)
-	subscriber = config.SubscriptionManager().Subscriber(notifier)
+	subscriber = config.SubscriptionManager(
+		testSubscriptionManagerClientID, false).Subscriber(notifier)
 	return config, subscriber, notifier, func() {
 		err := config.Shutdown(context.Background())
 		require.NoError(t, err)
@@ -77,7 +80,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	err = subscriber.SubscribePath(ctx, sid1, "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_CHILDREN, nil)
 	require.NoError(t, err)
-	notifier.EXPECT().OnPathChange(sid1, "/keybase/private/jdoe",
+	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
+		sid1, "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_CHILDREN)
 	fileNode, _, err := config.KBFSOps().CreateFile(ctx, rootNode, rootNode.ChildName("file"), false, NoExcl)
 	require.NoError(t, err)
@@ -91,9 +95,11 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	err = subscriber.SubscribePath(ctx, sid2, "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_STAT, nil)
 	require.NoError(t, err)
-	notifier.EXPECT().OnPathChange(sid1, "/keybase/private/jdoe",
+	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
+		sid1, "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_CHILDREN).Do(done0)
-	notifier.EXPECT().OnPathChange(sid2, "/keybase/private/jdoe",
+	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
+		sid2, "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_STAT).Do(done1)
 	_, _, err = config.KBFSOps().CreateDir(
 		ctx, rootNode, rootNode.ChildName("dir1"))
@@ -106,7 +112,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 
 	t.Logf("Unsubscribe sid1, and make another dir. We should only get a notification for STAT.")
 	subscriber.Unsubscribe(ctx, sid1)
-	notifier.EXPECT().OnPathChange(sid2, "/keybase/private/jdoe",
+	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
+		sid2, "/keybase/private/jdoe",
 		keybase1.PathSubscriptionTopic_STAT).Do(done2)
 	_, _, err = config.KBFSOps().CreateDir(
 		ctx, rootNode, rootNode.ChildName("dir2"))
@@ -119,7 +126,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	subscriber.Unsubscribe(ctx, sid2)
 	err = subscriber.SubscribePath(ctx, sid1, "/keybase/private/jdoe/dir1/../file", keybase1.PathSubscriptionTopic_STAT, nil)
 	require.NoError(t, err)
-	notifier.EXPECT().OnPathChange(sid1, "/keybase/private/jdoe/dir1/../file",
+	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
+		sid1, "/keybase/private/jdoe/dir1/../file",
 		keybase1.PathSubscriptionTopic_STAT).Do(done3)
 	err = config.KBFSOps().Write(ctx, fileNode, []byte("hello"), 0)
 	require.NoError(t, err)
@@ -142,6 +150,7 @@ func TestSubscriptionManagerFavoritesChange(t *testing.T) {
 	err := subscriber.SubscribeNonPath(ctx, sid1, keybase1.SubscriptionTopic_FAVORITES, nil)
 	require.NoError(t, err)
 	notifier.EXPECT().OnNonPathChange(
+		testSubscriptionManagerClientID,
 		sid1, keybase1.SubscriptionTopic_FAVORITES).Do(done1)
 	err = config.KBFSOps().AddFavorite(ctx,
 		favorites.Folder{

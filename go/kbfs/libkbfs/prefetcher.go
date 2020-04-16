@@ -1326,12 +1326,20 @@ type prefetcherSubscriber struct {
 	ch chan<- struct{}
 }
 
+const prefetcherSubscriptionManagerClientID SubscriptionManagerClientID = "prefetcher"
+
 func (ps prefetcherSubscriber) OnPathChange(
+	_ SubscriptionManagerClientID,
 	_ SubscriptionID, _ string, _ keybase1.PathSubscriptionTopic) {
 }
 
 func (ps prefetcherSubscriber) OnNonPathChange(
+	clientID SubscriptionManagerClientID,
 	_ SubscriptionID, _ keybase1.SubscriptionTopic) {
+	if clientID != prefetcherSubscriptionManagerClientID {
+		return
+	}
+
 	select {
 	case ps.ch <- struct{}{}:
 	default:
@@ -1431,7 +1439,8 @@ func (p *blockPrefetcher) run(
 
 	// Subscribe to settings updates while waiting for the network to
 	// change.
-	subMan := p.config.SubscriptionManager()
+	subMan := p.config.SubscriptionManager(
+		prefetcherSubscriptionManagerClientID, false)
 	var subCh chan struct{}
 	if subMan != nil {
 		subCh = make(chan struct{}, 1)

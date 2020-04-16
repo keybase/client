@@ -89,7 +89,8 @@ func (c testBlockRetrievalConfig) GetSettingsDB() *SettingsDB {
 	return nil
 }
 
-func (c testBlockRetrievalConfig) SubscriptionManager() SubscriptionManager {
+func (c testBlockRetrievalConfig) SubscriptionManager(
+	_ SubscriptionManagerClientID, _ bool) SubscriptionManager {
 	return c.subscriptionManager
 }
 

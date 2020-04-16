@@ -18,6 +18,10 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// SubscriptionManagerClientID identifies a subscriptionManager client. See
+// comment in interfaces.go for more.
+type SubscriptionManagerClientID string
+
 // userPath is always the full path including the /keybase prefix, but may
 // not be canonical or cleaned. The goal is to track whatever the user of this
 // type is dealing with without needing them to know if a path is canonicalized
@@ -101,8 +105,13 @@ type pathSubscriptionRef struct {
 // not specific to a path, such as journal flushing, online status change, etc.
 // We store a debouncedNotify struct for each subscription, which includes a
 // notify function that might be debounced if caller asked so.
+//
+// This is per client. For example, if we have multiple GUI instances, each of
+// them get their own client ID and their subscriptions won't affect each
+// other. The prefetcher also gets its own client ID.
 type subscriptionManager struct {
-	config Config
+	clientID SubscriptionManagerClientID
+	config   Config
 
 	onlineStatusTracker *onlineStatusTracker
 	lock                sync.RWMutex
@@ -132,18 +141,19 @@ func (sm *subscriptionManager) notifyOnlineStatus() {
 	}
 }
 
-func newSubscriptionManager(config Config) (SubscriptionManager, SubscriptionManagerPublisher) {
+func newSubscriptionManager(clientID SubscriptionManagerClientID, config Config) *subscriptionManager {
 	sm := &subscriptionManager{
 		pathSubscriptions:               make(map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify),
 		pathSubscriptionIDToRef:         make(map[SubscriptionID]pathSubscriptionRef),
 		nonPathSubscriptions:            make(map[keybase1.SubscriptionTopic]map[SubscriptionID]debouncedNotify),
 		nonPathSubscriptionIDToTopic:    make(map[SubscriptionID]keybase1.SubscriptionTopic),
+		clientID:                        clientID,
 		config:                          config,
 		subscriptionIDs:                 make(map[SubscriptionID]bool),
 		subscriptionCountByFolderBranch: make(map[data.FolderBranch]int),
 	}
 	sm.onlineStatusTracker = newOnlineStatusTracker(config, sm.notifyOnlineStatus)
-	return sm, sm
+	return sm
 }
 
 func (sm *subscriptionManager) Shutdown(ctx context.Context) {
@@ -237,7 +247,7 @@ func (sm *subscriptionManager) subscribePath(ctx context.Context,
 		limit = rate.Every(*deduplicateInterval)
 	}
 	sm.pathSubscriptions[ref][sid] = debounce(func() {
-		notifier.OnPathChange(sid, path, topic)
+		notifier.OnPathChange(sm.clientID, sid, path, topic)
 	}, limit)
 	sm.pathSubscriptionIDToRef[sid] = ref
 	subscriptionIDSetter()
@@ -261,7 +271,7 @@ func (sm *subscriptionManager) subscribeNonPath(
 		limit = rate.Every(*deduplicateInterval)
 	}
 	sm.nonPathSubscriptions[topic][sid] = debounce(func() {
-		notifier.OnNonPathChange(sid, topic)
+		notifier.OnNonPathChange(sm.clientID, sid, topic)
 	}, limit)
 	sm.nonPathSubscriptionIDToTopic[sid] = topic
 	subscriptionIDSetter()
@@ -427,4 +437,69 @@ func (sm *subscriptionManager) BatchChanges(ctx context.Context,
 // TlfHandleChange implements the Observer interface.
 func (sm *subscriptionManager) TlfHandleChange(ctx context.Context,
 	newHandle *tlfhandle.Handle) {
+}
+
+type subscriptionManagerManager struct {
+	lock                   sync.RWMutex
+	config                 Config
+	subscriptionManagers   map[SubscriptionManagerClientID]*subscriptionManager
+	purgeableClientIDsFIFO []SubscriptionManagerClientID
+}
+
+const maxPurgeableSubscriptionManagerClient = 3
+
+func newSubscriptionManagerManager(config Config) *subscriptionManagerManager {
+	return &subscriptionManagerManager{
+		config:                 config,
+		subscriptionManagers:   make(map[SubscriptionManagerClientID]*subscriptionManager),
+		purgeableClientIDsFIFO: nil,
+	}
+}
+
+func (smm *subscriptionManagerManager) Shutdown(ctx context.Context) {
+	smm.lock.Lock()
+	defer smm.lock.Unlock()
+
+	for _, sm := range smm.subscriptionManagers {
+		sm.Shutdown(ctx)
+	}
+	smm.subscriptionManagers = make(map[SubscriptionManagerClientID]*subscriptionManager)
+	smm.purgeableClientIDsFIFO = nil
+}
+
+func (smm *subscriptionManagerManager) get(clientID SubscriptionManagerClientID, purgeable bool) *subscriptionManager {
+	smm.lock.RLock()
+	sm, ok := smm.subscriptionManagers[clientID]
+	smm.lock.RUnlock()
+
+	if ok {
+		return sm
+	}
+
+	smm.lock.Lock()
+	defer smm.lock.Unlock()
+
+	if purgeable {
+		if len(smm.purgeableClientIDsFIFO) == maxPurgeableSubscriptionManagerClient {
+			toPurge := smm.purgeableClientIDsFIFO[0]
+			smm.subscriptionManagers[toPurge].Shutdown(context.Background())
+			delete(smm.subscriptionManagers, toPurge)
+			smm.purgeableClientIDsFIFO = smm.purgeableClientIDsFIFO[1:]
+		}
+		smm.purgeableClientIDsFIFO = append(smm.purgeableClientIDsFIFO, clientID)
+	}
+
+	sm = newSubscriptionManager(clientID, smm.config)
+	smm.subscriptionManagers[clientID] = sm
+
+	return sm
+}
+
+// PublishChange implements the SubscriptionManagerPublisher interface.
+func (smm *subscriptionManagerManager) PublishChange(topic keybase1.SubscriptionTopic) {
+	smm.lock.RLock()
+	defer smm.lock.RUnlock()
+	for _, sm := range smm.subscriptionManagers {
+		sm.PublishChange(topic)
+	}
 }

@@ -376,17 +376,19 @@ func (k KeybaseServiceMeasured) PutGitMetadata(
 }
 
 // OnPathChange implements the SubscriptionNotifier interface.
-func (k KeybaseServiceMeasured) OnPathChange(subscriptionID SubscriptionID, path string, topic keybase1.PathSubscriptionTopic) {
+func (k KeybaseServiceMeasured) OnPathChange(clientID SubscriptionManagerClientID,
+	subscriptionID SubscriptionID, path string, topic keybase1.PathSubscriptionTopic) {
 	k.onPathChangeTimer.Time(func() {
-		k.delegate.OnPathChange(subscriptionID, path, topic)
+		k.delegate.OnPathChange(clientID, subscriptionID, path, topic)
 	})
 }
 
 // OnNonPathChange implements the SubscriptionNotifier interface.
 func (k KeybaseServiceMeasured) OnNonPathChange(
+	clientID SubscriptionManagerClientID,
 	subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
 	k.onChangeTimer.Time(func() {
-		k.delegate.OnNonPathChange(subscriptionID, topic)
+		k.delegate.OnNonPathChange(clientID, subscriptionID, topic)
 	})
 }
 

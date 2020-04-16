@@ -103,6 +103,10 @@
     "FSSubscriptionNotifyPath": {
       "request": [
         {
+          "name": "clientID",
+          "type": "string"
+        },
+        {
           "name": "subscriptionID",
           "type": "string"
         },
@@ -121,6 +125,10 @@
     },
     "FSSubscriptionNotify": {
       "request": [
+        {
+          "name": "clientID",
+          "type": "string"
+        },
         {
           "name": "subscriptionID",
           "type": "string"
