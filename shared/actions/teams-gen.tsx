@@ -22,6 +22,7 @@ export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearNavBadges = 'teams:clearNavBadges'
 export const createChannel = 'teams:createChannel'
+export const createChannels = 'teams:createChannels'
 export const createNewTeam = 'teams:createNewTeam'
 export const createNewTeamFromConversation = 'teams:createNewTeamFromConversation'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
@@ -63,6 +64,7 @@ export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setChannelSelected = 'teams:setChannelSelected'
+export const setCreatingChannels = 'teams:setCreatingChannels'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEditMemberError = 'teams:setEditMemberError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
@@ -158,6 +160,7 @@ type _CreateChannelPayload = {
   readonly description: string | null
   readonly navToChatOnSuccess: boolean
 }
+type _CreateChannelsPayload = {readonly teamID: Types.TeamID; readonly channelnames: Array<string>}
 type _CreateNewTeamFromConversationPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly teamname: string
@@ -261,6 +264,7 @@ type _SetChannelSelectedPayload = {
   readonly selected: boolean
   readonly clearAll?: boolean
 }
+type _SetCreatingChannelsPayload = {readonly creatingChannels: boolean}
 type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEditMemberErrorPayload = {
   readonly error: string
@@ -623,6 +627,10 @@ export const createCreateChannel = (payload: _CreateChannelPayload): CreateChann
   payload,
   type: createChannel,
 })
+export const createCreateChannels = (payload: _CreateChannelsPayload): CreateChannelsPayload => ({
+  payload,
+  type: createChannels,
+})
 export const createCreateNewTeam = (payload: _CreateNewTeamPayload): CreateNewTeamPayload => ({
   payload,
   type: createNewTeam,
@@ -707,6 +715,9 @@ export const createSetAddUserToTeamsResults = (
 export const createSetChannelCreationError = (
   payload: _SetChannelCreationErrorPayload
 ): SetChannelCreationErrorPayload => ({payload, type: setChannelCreationError})
+export const createSetCreatingChannels = (
+  payload: _SetCreatingChannelsPayload
+): SetCreatingChannelsPayload => ({payload, type: setCreatingChannels})
 export const createSetEditDescriptionError = (
   payload: _SetEditDescriptionErrorPayload
 ): SetEditDescriptionErrorPayload => ({payload, type: setEditDescriptionError})
@@ -909,6 +920,10 @@ export type CreateChannelPayload = {
   readonly payload: _CreateChannelPayload
   readonly type: typeof createChannel
 }
+export type CreateChannelsPayload = {
+  readonly payload: _CreateChannelsPayload
+  readonly type: typeof createChannels
+}
 export type CreateNewTeamFromConversationPayload = {
   readonly payload: _CreateNewTeamFromConversationPayload
   readonly type: typeof createNewTeamFromConversation
@@ -1039,6 +1054,10 @@ export type SetChannelCreationErrorPayload = {
 export type SetChannelSelectedPayload = {
   readonly payload: _SetChannelSelectedPayload
   readonly type: typeof setChannelSelected
+}
+export type SetCreatingChannelsPayload = {
+  readonly payload: _SetCreatingChannelsPayload
+  readonly type: typeof setCreatingChannels
 }
 export type SetEditDescriptionErrorPayload = {
   readonly payload: _SetEditDescriptionErrorPayload
@@ -1253,6 +1272,7 @@ export type Actions =
   | ClearAddUserToTeamsResultsPayload
   | ClearNavBadgesPayload
   | CreateChannelPayload
+  | CreateChannelsPayload
   | CreateNewTeamFromConversationPayload
   | CreateNewTeamPayload
   | DeleteChannelConfirmedPayload
@@ -1294,6 +1314,7 @@ export type Actions =
   | SetAddUserToTeamsResultsPayload
   | SetChannelCreationErrorPayload
   | SetChannelSelectedPayload
+  | SetCreatingChannelsPayload
   | SetEditDescriptionErrorPayload
   | SetEditMemberErrorPayload
   | SetEmailInviteErrorPayload
