@@ -26,6 +26,7 @@ export default function SettingsItem(props: SettingsItemProps) {
               borderLeftColor: Styles.globalColors.blue,
               borderLeftStyle: 'solid',
               borderLeftWidth: 3,
+              ...(Styles.isTablet ? {borderRadius: 0} : {}),
             }
           : {},
       ])}
