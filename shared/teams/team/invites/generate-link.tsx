@@ -178,10 +178,8 @@ const GenerateLinkModal = (props: Props) => {
 
   const rolePickerProps = {
     disabledReasonsForRolePicker: {
-      admin: `Users can't join open teams as admins.`,
+      admin: `You can't invite admins via invte link.`,
       owner: null, //don't even show
-      reader: '',
-      writer: '',
     },
     isRolePickerOpen: isRolePickerOpen,
     onCancelRolePicker: () => setRolePickerOpen(false),

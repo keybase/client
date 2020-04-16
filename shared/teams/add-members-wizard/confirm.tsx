@@ -18,7 +18,7 @@ import {pluralize} from '../../util/string'
 import logger from '../../logger'
 
 type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
-const disabledRolesForEmailsPhones = {
+const disabledRolesForNonKeybasePlural = {
   owner: null,
   admin: 'Some invitees cannot be added as admins. Only Keybase users can be added as admins.',
 }
@@ -39,17 +39,12 @@ const AddMembersConfirm = () => {
   const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
   const onlyEmails = React.useMemo(
-    () =>
-      addingMembers.length > 0 &&
-      addingMembers.findIndex(member => !member.assertion.endsWith('@email')) === -1,
+    () => !addingMembers.some(member => !member.assertion.endsWith('@email')),
     [addingMembers]
   )
-  const emailsAndPhones = React.useMemo(
-    () =>
-      addingMembers.length > 0 &&
-      addingMembers.some(m => m.assertion.endsWith('@email') || m.assertion.endsWith('@phone')),
-    [addingMembers]
-  )
+  const anyNonKeybase = React.useMemo(() => addingMembers.some(m => m.assertion.includes('@')), [
+    addingMembers,
+  ])
   const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
 
   const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
@@ -150,7 +145,7 @@ const AddMembersConfirm = () => {
             <AddMoreMembers />
             <RoleSelector
               memberCount={addingMembers.length}
-              disabledRoles={emailsAndPhones ? disabledRolesForEmailsPhones : disabledRoles}
+              disabledRoles={anyNonKeybase ? disabledRolesForNonKeybasePlural : disabledRoles}
             />
           </Kb.Box2>
         </Kb.Box2>

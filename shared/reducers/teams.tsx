@@ -325,7 +325,11 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (role !== 'setIndividually') {
       // keep roles stored with indiv members in sync with top level one
       draftState.addMembersWizard.addingMembers.forEach(member => {
-        member.role = role
+        if (member.assertion.includes('@') && (role === 'admin' || role === 'owner')) {
+          member.role = 'writer'
+        } else {
+          member.role = role
+        }
       })
     }
   },
@@ -333,7 +337,11 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const {assertion, role} = action.payload
     const maybeMember = draftState.addMembersWizard.addingMembers.find(m => m.assertion === assertion)
     if (maybeMember) {
-      maybeMember.role = role
+      if (maybeMember.assertion.includes('@') && (role === 'admin' || role === 'owner')) {
+        maybeMember.role = 'writer'
+      } else {
+        maybeMember.role = role
+      }
     }
   },
   [TeamsGen.setJustFinishedAddMembersWizard]: (draftState, action) => {

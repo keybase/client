@@ -25,7 +25,7 @@ const getTeamTakenMessage = (status: number): string => {
   }
 }
 
-const cannotJoinAsOwner = {owner: 'People cannot automatically join open teams as owners'}
+const cannotJoinAsOwner = {admin: `Users can't join open teams as admins`, owner: null}
 
 const NewTeamInfo = () => {
   const dispatch = Container.useDispatch()
