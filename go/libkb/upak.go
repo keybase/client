@@ -71,7 +71,7 @@ func CheckKID(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID) (foun
 }
 
 func GetRemoteChainLinkFor(m MetaContext, follower *keybase1.UserPlusKeysV2AllIncarnations, followeeUsername NormalizedUsername, followeeUID keybase1.UID) (ret *TrackChainLink, err error) {
-	defer m.Trace(fmt.Sprintf("UPAK#GetRemoteChainLinkFor(%s,%s,%s)", follower.Current.GetUID(), followeeUsername, followeeUID), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("UPAK#GetRemoteChainLinkFor(%s,%s,%s)", follower.Current.GetUID(), followeeUsername, followeeUID), &err)()
 	m.VLogf(VLog1, "| Full user: %+v\n", *follower)
 	rtl := follower.GetRemoteTrack(followeeUID)
 	if rtl == nil {

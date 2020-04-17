@@ -67,7 +67,7 @@ func NewUIInboxLoader(g *globals.Context) *UIInboxLoader {
 }
 
 func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
-	defer h.Trace(ctx, func() error { return nil }, "Start")()
+	defer h.Trace(ctx, nil, "Start")()
 	h.Lock()
 	defer h.Unlock()
 	if h.started {
@@ -85,7 +85,7 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 }
 
 func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
-	defer h.Trace(ctx, func() error { return nil }, "Stop")()
+	defer h.Trace(ctx, nil, "Stop")()
 	h.Lock()
 	defer h.Unlock()
 	ch := make(chan struct{})
@@ -153,7 +153,7 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 		return nil
 	}
 	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
-	defer h.Trace(ctx, func() error { return err }, "flushConvBatch")()
+	defer h.Trace(ctx, &err, "flushConvBatch")()
 	var convs []chat1.ConversationLocal
 	for _, conv := range h.convTransmitBatch {
 		convs = append(convs, conv)
@@ -281,7 +281,7 @@ func (h *UIInboxLoader) transmitLoop(shutdownCh chan struct{}) error {
 
 func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
 	maxUnbox *int, skipUnverified bool) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "LoadNonblock")()
+	defer h.Trace(ctx, &err, "LoadNonblock")()
 	uid := h.uid
 	// Retry helpers
 	retryInboxLoad := func() {
@@ -526,7 +526,7 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 }
 
 func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbox, err error) {
-	defer h.Trace(ctx, func() error { return err }, "getInboxFromQuery")()
+	defer h.Trace(ctx, &err, "getInboxFromQuery")()
 	query := h.Query()
 	rquery, _, err := h.G().InboxSource.GetInboxQueryLocalToRemote(ctx, &query)
 	if err != nil {
@@ -537,7 +537,7 @@ func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbo
 
 func (h *UIInboxLoader) flushLayout(reselectMode chat1.InboxLayoutReselectMode) (err error) {
 	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
-	defer h.Trace(ctx, func() error { return err }, "flushLayout")()
+	defer h.Trace(ctx, &err, "flushLayout")()
 	defer func() {
 		if err != nil {
 			h.Debug(ctx, "flushLayout: failed to transmit, retrying: %s", err)
@@ -655,7 +655,7 @@ func (h *UIInboxLoader) setLastLayout(l *chat1.UIInboxLayout) {
 
 func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode,
 	reason string) {
-	defer h.Trace(ctx, func() error { return nil }, "UpdateLayout: %s", reason)()
+	defer h.Trace(ctx, nil, "UpdateLayout: %s", reason)()
 	select {
 	case h.layoutCh <- reselectMode:
 	default:
@@ -664,7 +664,7 @@ func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.Inb
 }
 
 func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation) {
-	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromNewMessage: %s", conv.ConvIDStr)()
+	defer h.Trace(ctx, nil, "UpdateLayoutFromNewMessage: %s", conv.ConvIDStr)()
 	if h.isTopSmallTeamInLastLayout(conv.GetConvID()) {
 		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout, conv top small team in last layout")
 	} else if conv.GetTeamType() == chat1.TeamType_COMPLEX {
@@ -675,7 +675,7 @@ func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv typ
 }
 
 func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation) {
-	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromSubteamRename")()
+	defer h.Trace(ctx, nil, "UpdateLayoutFromSubteamRename")()
 	var bigTeamConvs []chat1.ConversationID
 	for _, conv := range convs {
 		if conv.GetTeamType() == chat1.TeamType_COMPLEX {
@@ -688,7 +688,7 @@ func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs
 }
 
 func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "UpdateConvs")()
+	defer h.Trace(ctx, &err, "UpdateConvs")()
 	query := chat1.GetInboxLocalQuery{
 		ComputeActiveList: true,
 		ConvIDs:           convIDs,
@@ -697,13 +697,13 @@ func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.Convers
 }
 
 func (h *UIInboxLoader) UpdateLayoutFromSmallIncrease(ctx context.Context) {
-	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromSmallIncrease")()
+	defer h.Trace(ctx, nil, "UpdateLayoutFromSmallIncrease")()
 	h.smallTeamBound += h.defaultSmallTeamBound
 	h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "small increase")
 }
 
 func (h *UIInboxLoader) UpdateLayoutFromSmallReset(ctx context.Context) {
-	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromSmallReset")()
+	defer h.Trace(ctx, nil, "UpdateLayoutFromSmallReset")()
 	h.smallTeamBound = h.defaultSmallTeamBound
 	h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "small reset")
 }

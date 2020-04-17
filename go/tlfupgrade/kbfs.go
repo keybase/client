@@ -13,8 +13,8 @@ import (
 
 func UpgradeTLFForKBFS(ctx context.Context, g *libkb.GlobalContext, tlfName string, public bool) (err error) {
 	ctx = libkb.WithLogTag(ctx, "KBFSUP")
-	defer g.CTraceTimed(ctx, fmt.Sprintf("UpgradeTLFForKBFS(%s,%v)", tlfName, public),
-		func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("UpgradeTLFForKBFS(%s,%v)", tlfName, public),
+		&err)()
 
 	// Set up KBFS connection
 	if g.ConnectionManager == nil {

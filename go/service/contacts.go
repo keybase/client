@@ -22,22 +22,22 @@ var _ contacts.ContactsProvider = (*bulkLookupContactsProvider)(nil)
 
 func (c *bulkLookupContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, token contacts.Token) (contacts.ContactLookupResults, error) {
-	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAllWithToken(len=%d)", len(emails)+len(numbers)),
-		func() error { return nil })()
+	defer mctx.Trace(fmt.Sprintf("bulkLookupContactsProvider#LookupAllWithToken(len=%d)", len(emails)+len(numbers)),
+		nil)()
 	return contacts.BulkLookupContacts(mctx, emails, numbers, token)
 }
 
 func (c *bulkLookupContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber) (contacts.ContactLookupResults, error) {
-	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
-		func() error { return nil })()
+	defer mctx.Trace(fmt.Sprintf("bulkLookupContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
+		nil)()
 	return c.LookupAllWithToken(mctx, emails, numbers, contacts.NoneToken)
 }
 
 func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,
 	uids []keybase1.UID) (res map[keybase1.UID]contacts.ContactUsernameAndFullName, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#FillUsernames(len=%d)", len(res)),
-		func() error { return nil })()
+	defer mctx.Trace(fmt.Sprintf("bulkLookupContactsProvider#FillUsernames(len=%d)", len(res)),
+		nil)()
 
 	const fullnameFreshness = 10 * time.Minute
 	const networkTimeBudget = uidmap.DefaultNetworkBudget
@@ -63,8 +63,8 @@ func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,
 
 func (c *bulkLookupContactsProvider) FindFollowing(mctx libkb.MetaContext,
 	uids []keybase1.UID) (res map[keybase1.UID]bool, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#FillFollowing(len=%d)", len(res)),
-		func() error { return nil })()
+	defer mctx.Trace(fmt.Sprintf("bulkLookupContactsProvider#FillFollowing(len=%d)", len(res)),
+		nil)()
 
 	arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithSelf(true).WithStubMode(libkb.StubModeUnstubbed)
 	err = mctx.G().GetFullSelfer().WithUser(arg, func(user *libkb.User) error {
@@ -112,8 +112,8 @@ func (c *bulkLookupContactsProvider) FindFollowing(mctx libkb.MetaContext,
 
 func (c *bulkLookupContactsProvider) FindServiceMaps(mctx libkb.MetaContext,
 	uids []keybase1.UID) (res map[keybase1.UID]libkb.UserServiceSummary, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#FindServiceMaps(len=%d)", len(uids)),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("bulkLookupContactsProvider#FindServiceMaps(len=%d)", len(uids)),
+		&err)()
 
 	const serviceMapFreshness = 12 * time.Hour
 	const networkTimeBudget = uidmap.DefaultNetworkBudget
@@ -155,21 +155,21 @@ var _ keybase1.ContactsInterface = (*ContactsHandler)(nil)
 
 func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.LookupContactListArg) (res []keybase1.ProcessedContact, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOOKCON")
-	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#LookupContactList(len=%d)", len(arg.Contacts)),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("ContactsHandler#LookupContactList(len=%d)", len(arg.Contacts)),
+		&err)()
 	return contacts.ResolveContacts(mctx, h.contactsProvider, arg.Contacts)
 }
 
 func (h *ContactsHandler) SaveContactList(ctx context.Context, arg keybase1.SaveContactListArg) (res keybase1.ContactListResolutionResult, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("SAVECON")
-	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#SaveContactList(len=%d)", len(arg.Contacts)),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("ContactsHandler#SaveContactList(len=%d)", len(arg.Contacts)),
+		&err)()
 	return contacts.ResolveAndSaveContacts(mctx, h.contactsProvider, arg.Contacts)
 }
 
 func (h *ContactsHandler) LookupSavedContactsList(ctx context.Context, sessionID int) (res []keybase1.ProcessedContact, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOADCON")
-	defer mctx.TraceTimed("ContactsHandler#LookupSavedContactsList", func() error { return err })()
+	defer mctx.Trace("ContactsHandler#LookupSavedContactsList", &err)()
 
 	store := h.G().SyncedContactList
 	savedContacts, err := store.RetrieveContacts(mctx)
@@ -181,7 +181,7 @@ func (h *ContactsHandler) LookupSavedContactsList(ctx context.Context, sessionID
 
 func (h *ContactsHandler) GetContactsForUserRecommendations(ctx context.Context, sessionID int) (res []keybase1.ProcessedContact, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RECSCON")
-	defer mctx.TraceTimed("ContactsHandler#GetContactsForUserRecommendations", func() error { return err })()
+	defer mctx.Trace("ContactsHandler#GetContactsForUserRecommendations", &err)()
 
 	savedContacts, err := h.G().SyncedContactList.RetrieveContacts(mctx)
 	if err != nil {

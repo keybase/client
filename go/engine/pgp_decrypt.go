@@ -60,7 +60,7 @@ func (e *PGPDecrypt) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("PGPDecrypt#Run", func() error { return err })()
+	defer m.Trace("PGPDecrypt#Run", &err)()
 
 	m.Debug("| ScanKeys")
 	sk, err := NewScanKeys(m)

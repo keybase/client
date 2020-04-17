@@ -132,3 +132,11 @@ const OpenFileCountFileName = ".kbfs_open_file_count"
 // Note that if this is used for a directory that is already live in
 // the current TLF, it will make that existing directory read-only.
 const DirBlockPrefix = ".kbfs_dirblock_"
+
+// ProfileListDirName is the name of the KBFS profile directory -- it
+// can be reached from any KBFS directory.
+const ProfileListDirName = ".kbfs_profiles"
+
+// ErrorFileName is the name of the virtual file in KBFS that should
+// contain the last reported error(s).
+var ErrorFileName = ".kbfs_error"

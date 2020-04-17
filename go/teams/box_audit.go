@@ -209,8 +209,8 @@ func (a *BoxAuditor) BoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID
 		mctx.Debug("Box auditor feature flagged off or not logged in; not auditing...")
 		return nil, nil
 	}
-	defer mctx.TraceTimed(fmt.Sprintf("BoxAuditTeam(%s)", teamID), func() error { return err })()
-	defer mctx.PerfTrace(fmt.Sprintf("BoxAuditTeam(%s)", teamID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("BoxAuditTeam(%s)", teamID), &err)()
+	defer mctx.PerfTrace(fmt.Sprintf("BoxAuditTeam(%s)", teamID), &err)()
 	start := time.Now()
 	defer func() {
 		var message string
@@ -232,7 +232,7 @@ func (a *BoxAuditor) BoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID
 }
 
 func (a *BoxAuditor) boxAuditTeamLocked(mctx libkb.MetaContext, teamID keybase1.TeamID) (attemptPtr *keybase1.BoxAuditAttempt, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("boxAuditTeamLocked(%s)", teamID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("boxAuditTeamLocked(%s)", teamID), &err)()
 
 	a.clearDelayedSlotForTeam(teamID)
 
@@ -336,7 +336,7 @@ func (a *BoxAuditor) boxAuditTeamLocked(mctx libkb.MetaContext, teamID keybase1.
 
 func (a *BoxAuditor) AssertUnjailedOrReaudit(mctx libkb.MetaContext, teamID keybase1.TeamID) (didReaudit bool, err error) {
 	mctx = a.initMctx(mctx)
-	defer mctx.TraceTimed("AssertUnjailedOrReaudit", func() error { return err })()
+	defer mctx.Trace("AssertUnjailedOrReaudit", &err)()
 
 	if !ShouldRunBoxAudit(mctx) {
 		mctx.Debug("Box auditor feature flagged off or not logged in; not AssertUnjailedOrReauditing...")
@@ -369,7 +369,7 @@ func (a *BoxAuditor) AssertUnjailedOrReaudit(mctx libkb.MetaContext, teamID keyb
 // RetryNextBoxAudit selects a teamID from the box audit retry queue and performs another box audit.
 func (a *BoxAuditor) RetryNextBoxAudit(mctx libkb.MetaContext) (attempt *keybase1.BoxAuditAttempt, err error) {
 	mctx = a.initMctx(mctx)
-	defer mctx.TraceTimed("RetryNextBoxAudit", func() error { return err })()
+	defer mctx.Trace("RetryNextBoxAudit", &err)()
 
 	if !ShouldRunBoxAudit(mctx) {
 		mctx.Debug("Box auditor feature flagged off or not logged in; not RetryNextBoxAuditing...")
@@ -393,7 +393,7 @@ func (a *BoxAuditor) RetryNextBoxAudit(mctx libkb.MetaContext) (attempt *keybase
 // do a box audit or the team is an open team.
 func (a *BoxAuditor) BoxAuditRandomTeam(mctx libkb.MetaContext) (attempt *keybase1.BoxAuditAttempt, err error) {
 	mctx = a.initMctx(mctx)
-	defer mctx.TraceTimed("BoxAuditRandomTeam", func() error { return err })()
+	defer mctx.Trace("BoxAuditRandomTeam", &err)()
 
 	if !ShouldRunBoxAudit(mctx) {
 		mctx.Debug("Box auditor feature flagged off or not logged in; not BoxAuditRandomTeaming...")
@@ -448,24 +448,26 @@ func (a *BoxAuditor) IsInJail(mctx libkb.MetaContext, teamID keybase1.TeamID) (i
 // the team cache.
 func (a *BoxAuditor) Attempt(mctx libkb.MetaContext, teamID keybase1.TeamID, rotateBeforeAudit bool) (attempt keybase1.BoxAuditAttempt) {
 	mctx = a.initMctx(mctx)
-	defer mctx.TraceTimed(fmt.Sprintf("Attempt(%s, %t)", teamID, rotateBeforeAudit), func() error {
+	var err error
+	defer mctx.Trace(fmt.Sprintf("Attempt(%s, %t)", teamID, rotateBeforeAudit), &err)()
+	defer func() {
 		if attempt.Error != nil {
-			return errors.New(*attempt.Error)
+			err = errors.New(*attempt.Error)
 		}
-		return nil
-	})()
+	}()
 	lock := a.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), teamID.String())
 	defer lock.Release(mctx.Ctx())
 	return a.attemptLocked(mctx, teamID, rotateBeforeAudit, false)
 }
 
 func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamID, rotateBeforeAudit bool, justRotated bool) (attempt keybase1.BoxAuditAttempt) {
-	defer mctx.TraceTimed(fmt.Sprintf("attemptLocked(%s, %t)", teamID, rotateBeforeAudit), func() error {
+	var err error
+	defer mctx.Trace(fmt.Sprintf("attemptLocked(%s, %t)", teamID, rotateBeforeAudit), &err)()
+	defer func() {
 		if attempt.Error != nil {
-			return errors.New(*attempt.Error)
+			err = errors.New(*attempt.Error)
 		}
-		return nil
-	})()
+	}()
 
 	attempt = keybase1.BoxAuditAttempt{
 		Result: keybase1.BoxAuditAttemptResult_FAILURE_RETRYABLE,
@@ -551,14 +553,14 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 }
 
 func (a *BoxAuditor) clearRetryQueueOf(mctx libkb.MetaContext, teamID keybase1.TeamID) (queue *BoxAuditQueue, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("clearRetryQueueOf(%s)", teamID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("clearRetryQueueOf(%s)", teamID), &err)()
 	a.queueMutex.Lock()
 	defer a.queueMutex.Unlock()
 	return a.clearRetryQueueOfLocked(mctx, teamID)
 }
 
 func (a *BoxAuditor) clearRetryQueueOfLocked(mctx libkb.MetaContext, teamID keybase1.TeamID) (queue *BoxAuditQueue, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("clearRetryQueueOfLocked(%s)", teamID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("clearRetryQueueOfLocked(%s)", teamID), &err)()
 	queue, err = a.maybeGetQueue(mctx)
 	if err != nil {
 		return nil, err
@@ -581,7 +583,7 @@ func (a *BoxAuditor) clearRetryQueueOfLocked(mctx libkb.MetaContext, teamID keyb
 }
 
 func (a *BoxAuditor) popRetryQueue(mctx libkb.MetaContext) (itemPtr *BoxAuditQueueItem, err error) {
-	defer mctx.TraceTimed("popRetryQueue", func() error { return err })()
+	defer mctx.Trace("popRetryQueue", &err)()
 	a.queueMutex.Lock()
 	defer a.queueMutex.Unlock()
 
@@ -605,7 +607,7 @@ func (a *BoxAuditor) popRetryQueue(mctx libkb.MetaContext) (itemPtr *BoxAuditQue
 }
 
 func (a *BoxAuditor) pushRetryQueue(mctx libkb.MetaContext, teamID keybase1.TeamID, auditID BoxAuditID) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("pushRetryQueue(%s, %x)", teamID, auditID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("pushRetryQueue(%s, %x)", teamID, auditID), &err)()
 	a.queueMutex.Lock()
 	defer a.queueMutex.Unlock()
 
@@ -637,7 +639,7 @@ func (a *BoxAuditor) pushRetryQueue(mctx libkb.MetaContext, teamID keybase1.Team
 }
 
 func (a *BoxAuditor) jail(mctx libkb.MetaContext, teamID keybase1.TeamID) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("jail(%s)", teamID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("jail(%s)", teamID), &err)()
 	a.jailMutex.Lock()
 	defer a.jailMutex.Unlock()
 
@@ -659,7 +661,7 @@ func (a *BoxAuditor) jail(mctx libkb.MetaContext, teamID keybase1.TeamID) (err e
 }
 
 func (a *BoxAuditor) unjail(mctx libkb.MetaContext, teamID keybase1.TeamID) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("unjail(%s)", teamID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("unjail(%s)", teamID), &err)()
 	a.jailMutex.Lock()
 	defer a.jailMutex.Unlock()
 
@@ -838,7 +840,7 @@ func loadTeamForBoxAudit(mctx libkb.MetaContext, teamID keybase1.TeamID) (*Team,
 }
 
 func loadTeamForBoxAuditInner(mctx libkb.MetaContext, teamID keybase1.TeamID, force bool) (team *Team, err error) {
-	defer mctx.TraceTimed("loadTeamForBoxAuditInner", func() error { return err })()
+	defer mctx.Trace("loadTeamForBoxAuditInner", &err)()
 	arg := keybase1.LoadTeamArg{
 		ID:              teamID,
 		ForceRepoll:     true,
@@ -901,7 +903,7 @@ func max(a, b merkleSeqno) merkleSeqno {
 // all users in the team (i.e., if the team were rotated right now, what the summary
 // should be afterwards).
 func calculateCurrentSummary(mctx libkb.MetaContext, team *Team) (summary *boxPublicSummary, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("calculateCurrentSummary(%s)", team.ID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("calculateCurrentSummary(%s)", team.ID), &err)()
 
 	currentRoot, err := mctx.G().GetMerkleClient().FetchRootFromServer(mctx, 5*time.Minute)
 	if err != nil {
@@ -916,7 +918,7 @@ func calculateCurrentSummary(mctx libkb.MetaContext, team *Team) (summary *boxPu
 // calculateChainSummary calculates the box summary as implied by the team sigchain and previous links,
 // using the last known rotation and subsequent additions as markers for PUK freshness.
 func calculateChainSummary(mctx libkb.MetaContext, team *Team) (summary *boxPublicSummary, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("calculateChainSummary(%s)", team.ID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("calculateChainSummary(%s)", team.ID), &err)()
 
 	merkleSeqno, err := merkleSeqnoAtGenerationInception(mctx, team.chain())
 	if err != nil {
@@ -932,7 +934,7 @@ func calculateChainSummary(mctx libkb.MetaContext, team *Team) (summary *boxPubl
 
 // calculateSummaryAtMerkleSeqno calculates the summary at the given merkleSeqno.
 func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeqno merkleSeqno, fastforwardToAddition bool) (summary *boxPublicSummary, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("calculateSummaryAtMerkleSeqno(%s, %v)", team.ID, merkleSeqno), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("calculateSummaryAtMerkleSeqno(%s, %v)", team.ID, merkleSeqno), &err)()
 
 	checkpoints, err := getPUKCheckpoints(mctx, team.chain(), merkleSeqno, fastforwardToAddition)
 	if err != nil {
@@ -1109,7 +1111,7 @@ func (a *BoxAuditor) maybeGetJail(mctx libkb.MetaContext) (*BoxAuditJail, error)
 }
 
 func (a *BoxAuditor) maybeGetIntoVersioned(mctx libkb.MetaContext, v boxAuditVersioned, dbKey libkb.DbKey) (found bool, err error) {
-	defer mctx.TraceTimed("maybeGetIntoVersioned", func() error { return err })()
+	defer mctx.Trace("maybeGetIntoVersioned", &err)()
 	found, err = mctx.G().LocalDb.GetInto(v, dbKey)
 	if err != nil {
 		mctx.Warning("Failed to unmarshal from db for key %+v: %s", dbKey, err)
@@ -1144,7 +1146,7 @@ func putToDisk(mctx libkb.MetaContext, dbKey libkb.DbKey, i interface{}) error {
 }
 
 func KnownTeamIDs(mctx libkb.MetaContext) (teamIDs []keybase1.TeamID, err error) {
-	defer mctx.TraceTimed("KnownTeamID", func() error { return err })()
+	defer mctx.Trace("KnownTeamID", &err)()
 	db := mctx.G().LocalDb
 	if db == nil {
 		return nil, fmt.Errorf("nil db")
@@ -1202,7 +1204,7 @@ func (a *BoxAuditor) MaybeScheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, te
 }
 
 func (a *BoxAuditor) scheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {
-	defer mctx.Trace(fmt.Sprintf("BoxAuditor#ScheduleDelayedBoxAuditTeam(%s)", teamID), func() error { return nil })()
+	defer mctx.Trace(fmt.Sprintf("BoxAuditor#ScheduleDelayedBoxAuditTeam(%s)", teamID), nil)()
 
 	if !a.getDelayedSlotForTeam(teamID) {
 		mctx.Debug("not scheduling delayed audit, since one is already in progress")

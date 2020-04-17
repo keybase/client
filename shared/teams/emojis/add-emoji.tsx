@@ -198,7 +198,7 @@ export const AddEmojiModal = (props: Props) => {
   )
 }
 
-export default (routableProps: RoutableProps) => {
+const AddEmojiModalWrapper = (routableProps: RoutableProps) => {
   const conversationIDKey = Container.getRouteProps(
     routableProps,
     'conversationIDKey',
@@ -208,6 +208,7 @@ export default (routableProps: RoutableProps) => {
   const onChange = Container.getRouteProps(routableProps, 'onChange', undefined)
   return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} onChange={onChange} />
 }
+export default AddEmojiModalWrapper
 
 const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
   const [dragOver, setDragOver] = React.useState(false)

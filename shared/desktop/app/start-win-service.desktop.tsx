@@ -13,6 +13,6 @@ export default function() {
 
   spawn(rqPath, args, {
     detached: true,
-    stdio: 'ignore',
+    stdio: 'inherit',
   })
 }

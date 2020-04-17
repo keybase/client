@@ -42,7 +42,7 @@ func (b *Bot) clearExtendedDisplayLocked(ctx context.Context, convID chat1.Conve
 
 func (b *Bot) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string) {
-	defer b.Trace(ctx, func() error { return nil }, "Preview")()
+	defer b.Trace(ctx, nil, "Preview")()
 	b.Lock()
 	defer b.Unlock()
 	if !strings.HasPrefix(text, "!") {

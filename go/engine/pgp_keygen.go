@@ -110,7 +110,7 @@ func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
 }
 
 func (e *PGPKeyGen) push(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, pushPrivate bool) (err error) {
-	defer m.Trace("PGPKeyGen.push", func() error { return err })()
+	defer m.Trace("PGPKeyGen.push", &err)()
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional())
 	if err != nil {

@@ -72,7 +72,7 @@ func NewCachingParticipantSource(g *globals.Context, ri func() chat1.RemoteInter
 
 func (s *CachingParticipantSource) Get(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res []gregor1.UID, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Get")()
+	defer s.Trace(ctx, &err, "Get")()
 	ch := s.GetNonblock(ctx, uid, convID, dataSource)
 	for r := range ch {
 		if r.Err != nil {
@@ -94,7 +94,7 @@ func (s *CachingParticipantSource) GetNonblock(ctx context.Context, uid gregor1.
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (resCh chan types.ParticipantResult) {
 	resCh = make(chan types.ParticipantResult, 1)
 	go func(ctx context.Context) {
-		defer s.Trace(ctx, func() error { return nil }, "GetNonblock")()
+		defer s.Trace(ctx, nil, "GetNonblock")()
 		defer close(resCh)
 		lock := s.locktab.AcquireOnName(ctx, s.G(), convID.String())
 		defer lock.Release(ctx)

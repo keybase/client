@@ -9,7 +9,7 @@ const sampleAssertions = {
   'mastodon.social:mlsteele': {
     assertionKey: 'mastodon.social:mlsteele',
     belowFold: false,
-    color: 'blue',
+    color: 'green',
     kid: ',',
     metas: [],
     pickerSubtext: '',
@@ -64,11 +64,19 @@ const sampleAssertions = {
     timestamp: 1554393831000,
     type: 'mastodon.social',
     value: 'mlsteele',
+    wotProof: {
+      domain: '',
+      hostname: '',
+      name: 'mastodon.social',
+      proofType: 9,
+      protocol: '',
+      username: 'mlsteele',
+    },
   },
   'https:milessteele.com': {
     assertionKey: 'https:milessteele.com',
     belowFold: false,
-    color: 'blue',
+    color: 'green',
     kid: ',',
     metas: [],
     pickerSubtext: '',
@@ -100,11 +108,19 @@ const sampleAssertions = {
     timestamp: 1437509684000,
     type: 'https',
     value: 'milessteele.com',
+    wotProof: {
+      domain: '',
+      hostname: 'milessteele.com',
+      name: '',
+      proofType: 1000,
+      protocol: 'https',
+      username: '',
+    },
   },
   'github:mlsteele': {
     assertionKey: 'github:mlsteele',
     belowFold: false,
-    color: 'blue',
+    color: 'green',
     kid: ',',
     metas: [],
     pickerSubtext: '',
@@ -139,11 +155,12 @@ const sampleAssertions = {
     timestamp: 1437509440000,
     type: 'github',
     value: 'mlsteele',
+    wotProof: {domain: '', hostname: '', name: 'github', proofType: 3, protocol: '', username: 'mlsteele'},
   },
   'twitter:mlsteele': {
     assertionKey: 'twitter:mlsteele',
     belowFold: false,
-    color: 'blue',
+    color: 'green',
     kid: ',',
     metas: [],
     pickerSubtext: '',
@@ -178,11 +195,12 @@ const sampleAssertions = {
     timestamp: 1437510817000,
     type: 'twitter',
     value: 'mlsteele',
+    wotProof: {domain: '', hostname: '', name: 'twitter', proofType: 2, protocol: '', username: 'mlsteele'},
   },
   'btc:1BtCWKzmZTmRdH63CZzJeVD1MUMSshniFo': {
     assertionKey: 'btc:1BtCWKzmZTmRdH63CZzJeVD1MUMSshniFo',
     belowFold: false,
-    color: 'blue',
+    color: 'green',
     kid: ',',
     metas: [],
     pickerSubtext: '',
@@ -220,7 +238,7 @@ const sampleAssertions = {
   'stellar:mlsteele*keybase.io': {
     assertionKey: 'stellar:mlsteele*keybase.io',
     belowFold: false,
-    color: 'blue',
+    color: 'green',
     kid: ',',
     metas: [],
     pickerSubtext: '',
@@ -261,8 +279,14 @@ const sampleAssertions = {
 }
 /* eslint-enable sort-keys */
 
-const sampleProofs: Proof[] = sortBy(Object.values(sampleAssertions), x => x.priority).filter(
-  x => x.type !== 'stellar'
+const sampleProofs: Proof[] = sortBy(Object.values(sampleAssertions), x => x.priority).reduce<Array<Proof>>(
+  (acc, x: any) => {
+    if (x.wotProof && x.state === 'valid') {
+      acc.push({...x, wotProof: x.wotProof})
+    }
+    return acc
+  },
+  []
 )
 
 const storyProofs: Proof[] = [
@@ -271,6 +295,14 @@ const storyProofs: Proof[] = [
 ].map(x => ({
   siteIcon: sampleProofs[0].siteIcon,
   siteIconDarkmode: sampleProofs[0].siteIcon,
+  wotProof: {
+    domain: '',
+    hostname: '',
+    name: x.type,
+    proofType: 9,
+    protocol: '',
+    username: x.value,
+  },
   ...x,
 }))
 

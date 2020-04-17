@@ -147,7 +147,7 @@ const InviteItem = React.memo(
               <Kb.ConnectedUsernames
                 inline={true}
                 colorFollowing={true}
-                type="BodySmallSemibold"
+                type="BodySmallBold"
                 usernames={inviteLink.creatorUsername}
               />
             )}{' '}
@@ -158,7 +158,7 @@ const InviteItem = React.memo(
                 <Kb.ConnectedUsernames
                   inline={true}
                   colorFollowing={true}
-                  type="BodySmallSemibold"
+                  type="BodySmallBold"
                   usernames={inviteLink.lastJoinedUsername}
                 />
               </Kb.Text>

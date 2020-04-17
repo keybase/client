@@ -6,6 +6,7 @@ import * as TeamTypes from '../../../../constants/types/teams'
 import * as InfoPanelCommon from '../common'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
+import flags from '../../../../util/feature-flags'
 
 export type ConvProps = {
   fullname: string
@@ -108,7 +109,7 @@ const TeamHeader = (props: TeamHeaderProps) => {
         <Kb.Meta
           backgroundColor={Styles.globalColors.blueGrey}
           color={Styles.globalColors.black_50}
-          icon="iconfont-people"
+          icon="iconfont-people-solid"
           iconColor={Styles.globalColors.black_20}
           title={teamHumanCount}
         />
@@ -121,20 +122,29 @@ class InfoPanelMenu extends React.Component<Props> {
   render() {
     const props = this.props
     const isGeneralChannel = !!(props.channelname && props.channelname === 'general')
-    const addPeopleItems: Kb.MenuItems = [
-      {
-        icon: 'iconfont-mention',
-        onClick: props.onAddPeople,
-        style: {borderTopWidth: 0},
-        subTitle: 'Keybase, Twitter, etc.',
-        title: 'Add someone by username',
-      },
-      {
-        icon: 'iconfont-contact-book',
-        onClick: props.onInvite,
-        title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
-      },
-    ]
+    const hasChannelSection = !props.isSmallTeam && !props.hasHeader
+    const addPeopleItems: Kb.MenuItems = flags.teamsRedesign
+      ? [
+          {
+            icon: 'iconfont-new',
+            onClick: props.onAddPeople,
+            title: hasChannelSection ? 'Add/Invite people to team' : 'Add/invite people',
+          },
+        ]
+      : [
+          {
+            icon: 'iconfont-mention',
+            onClick: props.onAddPeople,
+            style: {borderTopWidth: 0},
+            subTitle: 'Keybase, Twitter, etc.',
+            title: 'Add someone by username',
+          },
+          {
+            icon: 'iconfont-contact-book',
+            onClick: props.onInvite,
+            title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
+          },
+        ]
     const channelHeader: Kb.MenuItem = {
       title: 'channelHeader',
       unWrapped: true,
@@ -199,12 +209,12 @@ class InfoPanelMenu extends React.Component<Props> {
       }
       items.push({
         danger: true,
-        icon: 'iconfont-block-user',
+        icon: 'iconfont-user-block',
         onClick: props.onBlockConv,
         title: 'Block',
       })
     } else {
-      if (!props.isSmallTeam && !props.hasHeader) {
+      if (hasChannelSection) {
         items.push(channelHeader)
       }
       if (muteItem) {
@@ -219,7 +229,7 @@ class InfoPanelMenu extends React.Component<Props> {
       if (!props.isSmallTeam && props.isInChannel && !isGeneralChannel && !props.hasHeader) {
         items.push({icon: 'iconfont-leave', onClick: props.onLeaveChannel, title: 'Leave channel'})
       }
-      if (!props.isSmallTeam && !props.hasHeader) {
+      if (hasChannelSection) {
         items.push(teamHeader)
       }
       items.push(channelItem, {
@@ -230,7 +240,7 @@ class InfoPanelMenu extends React.Component<Props> {
       if (props.canAddPeople) {
         addPeopleItems.forEach(item => items.push(item))
       }
-      items.push({icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'})
+      items.push({icon: 'iconfont-team-leave', onClick: props.onLeaveTeam, title: 'Leave team'})
     }
 
     const header = props.hasHeader ? (

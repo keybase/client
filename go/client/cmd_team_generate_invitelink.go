@@ -28,9 +28,7 @@ func newCmdTeamGenerateInvitelink(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 	return cli.Command{
 		Name:         "generate-invitelink",
 		ArgumentHelp: "<team name>",
-		Usage: `Generate an invite link that you can send via iMessage or similar.
-If neither max-uses nor infinite-uses is passed, defaults to one-time-use. If duration is not
-passed, does not expire.`,
+		Usage:        "Generate an invite link that you can send via iMessage or similar.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamGenerateInvitelinkRunner(g)
 			cl.ChooseCommand(cmd, "generate-invitelink", c)
@@ -38,7 +36,7 @@ passed, does not expire.`,
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "r, role",
-				Usage: "team role (admin, writer, reader) [required]",
+				Usage: "team role (writer, reader) [required]",
 			},
 			cli.StringFlag{
 				Name:  "d, duration",
@@ -73,9 +71,9 @@ func (c *CmdTeamGenerateInvitelink) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	switch c.Role {
-	case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN:
+	case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
 	default:
-		return errors.New("invalid team role, please use admin, writer, or reader")
+		return errors.New("invalid team role, please use writer, or reader")
 	}
 
 	if ctx.IsSet("duration") {
@@ -145,5 +143,9 @@ func (c *CmdTeamGenerateInvitelink) GetUsage() libkb.Usage {
 	}
 }
 
-const teamGenerateInvitelinkDoc = `"keybase generate-invitelink" allows you to create a multi-use,
-possibly expiring link that someone can use to join a team.`
+const teamGenerateInvitelinkDoc = `
+"keybase generate-invitelink" allows you to create a multi-use, possibly
+expiring link that someone can use to join a team.
+
+If neither max-uses nor infinite-uses is passed, defaults to one-time-use.
+If duration is not passed, does not expire.`

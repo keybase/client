@@ -30,7 +30,7 @@ const OpenInSystemFileManager = ({path}: Props) => {
 const shouldHideFileManagerIcon = (driverStatus: Types.DriverStatus, settings: Types.Settings) =>
   driverStatus.type === Types.DriverStatusType.Disabled && settings.sfmiBannerDismissed
 
-export default (props: Props) => {
+const OpenInSFM = (props: Props) => {
   const driverStatus = Container.useSelector(state => state.fs.sfmi.driverStatus)
   const settings = Container.useSelector(state => state.fs.settings)
   if (shouldHideFileManagerIcon(driverStatus, settings)) {
@@ -42,3 +42,4 @@ export default (props: Props) => {
     <Kbfs.SystemFileManagerIntegrationPopup mode="Icon" />
   )
 }
+export default OpenInSFM

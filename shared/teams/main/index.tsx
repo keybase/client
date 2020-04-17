@@ -2,9 +2,11 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
+import * as TeamsGen from '../../actions/teams-gen'
+import * as Container from '../../util/container'
 import Header from './header'
 import Banner from './banner'
-import NoTeamsPlaceholder from './no-teams-placeholder'
+import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
 import {memoize} from '../../util/memoize'
 import {pluralize} from '../../util/string'
@@ -103,7 +105,7 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
   )
 })
 
-const TeamBigButtons = (props: HeaderProps) => (
+const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny">
     <Kb.ClickableBox
       style={styles.bigButton}
@@ -128,13 +130,64 @@ const TeamBigButtons = (props: HeaderProps) => (
         <Kb.Icon type="icon-illustration-teams-96" />
       </Kb.Box2>
     </Kb.ClickableBox>
+    {props.empty && !Styles.isMobile && (
+      <Kb.Text type="BodySmall" style={styles.emptyNote}>
+        Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual friends to
+        large communities.
+      </Kb.Text>
+    )}
   </Kb.Box2>
 )
+
+const sortOrderToTitle = {
+  activity: 'Activity',
+  alphabetical: 'Alphabetical',
+  role: 'Your role',
+}
+const SortHeader = () => {
+  const dispatch = Container.useDispatch()
+  const onChangeSort = (sortOrder: Types.TeamListSort) =>
+    dispatch(TeamsGen.createSetTeamListFilterSort({sortOrder}))
+  const {popup, toggleShowingPopup, popupAnchor, showingPopup} = Kb.usePopup(getAttachmentRef => (
+    <Kb.FloatingMenu
+      attachTo={getAttachmentRef}
+      items={[
+        {icon: 'iconfont-crown-owner', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
+        {
+          icon: 'iconfont-campfire-burning',
+          onClick: () => onChangeSort('activity'),
+          title: sortOrderToTitle.activity,
+        },
+        {
+          icon: 'iconfont-text-code',
+          onClick: () => onChangeSort('alphabetical'),
+          title: sortOrderToTitle.alphabetical,
+        },
+      ]}
+      closeOnSelect={true}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
+      position="bottom left"
+    />
+  ))
+  const sortOrder = Container.useSelector(s => s.teams.teamListSort)
+  return (
+    <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
+      <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
+        <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
+          <Kb.Icon type="iconfont-arrow-full-down" />
+          <Kb.Text type="BodySmallSemibold">{sortOrderToTitle[sortOrder]}</Kb.Text>
+        </Kb.Box2>
+      </Kb.ClickableBox>
+      {popup}
+    </Kb.Box2>
+  )
+}
 
 const getMembersText = (count: number) => (count === -1 ? '' : `${count} ${pluralize('member', count)}`)
 
 type Row = {key: React.Key} & (
-  | {type: '_banner' | '_placeholder' | '_buttons'}
+  | {type: '_banner' | '_sortHeader' | '_buttons' | '_footer'}
   | {team: DeletedTeam; type: 'deletedTeam'}
   | {team: Types.TeamMeta; type: 'team'}
 )
@@ -148,13 +201,18 @@ class Teams extends React.PureComponent<Props, State> {
 
   private teamsAndExtras = memoize(
     (deletedTeams: Props['deletedTeams'], teams: Props['teams']): Array<Row> => [
-      ...(flags.teamsRedesign ? [{key: '_buttons', type: '_buttons' as const}] : []),
+      ...(flags.teamsRedesign
+        ? [
+            {key: '_buttons', type: '_buttons' as const},
+            {key: '_sortHeader', type: '_sortHeader' as const},
+          ]
+        : []),
       ...(this.state.sawChatBanner || flags.teamsRedesign
         ? []
         : [{key: '_banner', type: '_banner' as const}]),
       ...deletedTeams.map(dt => ({key: 'deletedTeam' + dt.teamName, team: dt, type: 'deletedTeam' as const})),
       ...teams.map(team => ({key: team.id, team, type: 'team' as const})),
-      ...(teams.length === 0 ? [{key: '_placeholder', type: '_placeholder' as const}] : []),
+      ...(teams.length === 0 || flags.teamsRedesign ? [{key: '_footer', type: '_footer' as const}] : []),
     ]
   )
 
@@ -170,10 +228,18 @@ class Teams extends React.PureComponent<Props, State> {
     switch (item.type) {
       case '_banner':
         return <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this.onHideChatBanner} />
-      case '_placeholder':
-        return <NoTeamsPlaceholder />
+      case '_footer':
+        return <TeamsFooter empty={this.props.teams.length === 0} />
       case '_buttons':
-        return <TeamBigButtons onCreateTeam={this.props.onCreateTeam} onJoinTeam={this.props.onJoinTeam} />
+        return (
+          <TeamBigButtons
+            onCreateTeam={this.props.onCreateTeam}
+            onJoinTeam={this.props.onJoinTeam}
+            empty={this.props.teams.length === 0}
+          />
+        )
+      case '_sortHeader':
+        return <SortHeader />
       case 'deletedTeam': {
         const {deletedBy, teamName} = item.team
         return (
@@ -190,7 +256,7 @@ class Teams extends React.PureComponent<Props, State> {
         const reset = this.props.teamresetusers.get(team.id)
         const resetUserCount = (reset && reset.size) || 0
         if (flags.teamsRedesign) {
-          return <TeamRowNew firstItem={index === 1} showChat={!Styles.isMobile} teamID={team.id} />
+          return <TeamRowNew firstItem={index === 2} showChat={!Styles.isMobile} teamID={team.id} />
         }
         return (
           <TeamRow
@@ -221,7 +287,7 @@ class Teams extends React.PureComponent<Props, State> {
   render() {
     const renderHeader = Styles.isMobile && !flags.teamsRedesign
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {renderHeader && (
           <Header
             loaded={this.props.loaded}
@@ -232,6 +298,7 @@ class Teams extends React.PureComponent<Props, State> {
         <Kb.List
           items={this.teamsAndExtras(this.props.deletedTeams, this.props.teams)}
           renderItem={this.renderItem}
+          style={Styles.globalStyles.fullHeight}
         />
       </Kb.Box2>
     )
@@ -261,10 +328,21 @@ const styles = Styles.styleSheetCreate(
           width: 140,
         },
       }),
+      container: {
+        backgroundColor: flags.teamsRedesign ? Styles.globalColors.blueGrey : Styles.globalColors.white,
+      },
+      emptyNote: Styles.padding(60, 42, Styles.globalMargins.medium, Styles.globalMargins.medium),
       kerning: {letterSpacing: 0.2},
       maxWidth: {maxWidth: '100%'},
       openMeta: {alignSelf: 'center'},
       relative: {position: 'relative'},
+      sortHeader: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
+        isElectron: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
+        isMobile: {...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.tiny)},
+      }),
       teamButtons: {
         ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
         backgroundColor: Styles.globalColors.blueGrey,

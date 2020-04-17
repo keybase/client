@@ -7,17 +7,17 @@ const {env} = KB.process
 // Path to keybase executable (darwin only), null if not available
 export function keybaseBinPath() {
   if (os.platform() === 'win32') {
-    var kbPath = SafeElectron.getApp()
-      .getPath('appData')
-      .replace('Roaming', 'Local')
-    if (!kbPath) {
-      kbPath = env.LOCALAPPDATA || ''
+    var guiAppPath = SafeElectron.getApp().getAppPath()
+    if (env.LOCALAPPDATA && !guiAppPath) {
+      guiAppPath = resolve(env.LOCALAPPDATA, 'Keybase', 'Gui', 'resources', 'app')
     }
-    if (!kbPath) {
+    if (!guiAppPath) {
       console.log('No keybase bin path')
       return null
     }
-    return resolve(String(kbPath), 'Keybase', 'keybase.exe')
+    const kbPath = resolve(guiAppPath, '..', '..', '..')
+    console.log(`expected path to keybase binaries is ${kbPath}`)
+    return resolve(String(kbPath), 'keybase.exe')
   }
   if (os.platform() === 'darwin') {
     return resolve(appPath, '..', '..', '..', 'Contents', 'SharedSupport', 'bin', 'keybase')

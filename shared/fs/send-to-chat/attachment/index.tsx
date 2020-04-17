@@ -28,7 +28,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
   const incomingShareItems = Container.getRouteProps(props, 'incomingShareItems', undefined)
   const useOriginal = Container.getRouteProps(props, 'useOriginal', false)
   const url = Container.getRouteProps(props, 'url', undefined)
-  const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
+  const path = Container.getRouteProps(props, 'path', undefined)
   const isFromShareExtension = !!Container.getRouteProps(props, 'incomingShareItems', undefined)
   const dispatch = Container.useDispatch()
 
@@ -37,8 +37,8 @@ const MobileSendAttachmentToChat = (props: Props) => {
     // as an attachment.
     ?.filter(item => !isChatText(item))
     ?.map(({originalPath, scaledPath}) => (useOriginal ? originalPath : scaledPath || originalPath))
-  const pathsFromUrl = url ? [url] : []
-  const pathsFromPath = path ? [path] : []
+  const pathsFromUrl = url ? [url] : undefined
+  const pathsFromPath = path ? [path] : undefined
   const sendPaths = pathsFromIncomingShare || pathsFromUrl || pathsFromPath || []
   const text =
     incomingShareItems
@@ -68,7 +68,6 @@ const MobileSendAttachmentToChat = (props: Props) => {
         })
       )
     } else {
-      dispatch(RouteTreeGen.createClearModals())
       dispatch(
         Chat2Gen.createNavigateToThread({
           conversationIDKey,

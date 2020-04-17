@@ -56,7 +56,7 @@ func (e *SelfProvisionEngine) Result() error {
 }
 
 func (e *SelfProvisionEngine) Run(mctx libkb.MetaContext) (err error) {
-	defer mctx.Trace("SelfProvisionEngine#Run", func() error { return err })()
+	defer mctx.Trace("SelfProvisionEngine#Run", &err)()
 	return retryOnEphemeralRace(mctx, e.run)
 }
 

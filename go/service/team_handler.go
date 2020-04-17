@@ -226,7 +226,7 @@ func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterfac
 func (r *teamHandler) userTeamVersion(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) (err error) {
 	mctx := libkb.NewMetaContext(ctx, r.G())
 	nm := "team.user_team_version"
-	defer mctx.Trace("teamHandler#userTeamVersion", func() error { return err })()
+	defer mctx.Trace("teamHandler#userTeamVersion", &err)()
 	var obj keybase1.UserTeamVersionUpdate
 	err = json.Unmarshal(item.Body().Bytes(), &obj)
 	if err != nil {

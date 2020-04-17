@@ -49,7 +49,7 @@ func (e *LoginOffline) Run(m libkb.MetaContext) error {
 }
 
 func (e *LoginOffline) run(m libkb.MetaContext) (uid keybase1.UID, err error) {
-	defer m.Trace("LoginOffline#run", func() error { return err })()
+	defer m.Trace("LoginOffline#run", &err)()
 	uid, err = libkb.BootstrapActiveDeviceFromConfig(m, false)
 	if err != nil {
 		err = libkb.NewLoginRequiredError(err.Error())

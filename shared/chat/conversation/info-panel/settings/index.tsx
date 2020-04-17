@@ -312,7 +312,7 @@ type Props = {
   commonSections: Array<unknown>
 }
 
-export default (p: Props) => {
+const SettingsTab = (p: Props) => {
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
@@ -332,3 +332,4 @@ export default (p: Props) => {
     />
   )
 }
+export default SettingsTab

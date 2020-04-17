@@ -3387,6 +3387,94 @@ func (o TeamAndMemberShowcase) DeepCopy() TeamAndMemberShowcase {
 	}
 }
 
+type TeamAvatar struct {
+	AvatarFilename string         `codec:"avatarFilename" json:"avatarFilename"`
+	Crop           *ImageCropRect `codec:"crop,omitempty" json:"crop,omitempty"`
+}
+
+func (o TeamAvatar) DeepCopy() TeamAvatar {
+	return TeamAvatar{
+		AvatarFilename: o.AvatarFilename,
+		Crop: (func(x *ImageCropRect) *ImageCropRect {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Crop),
+	}
+}
+
+type TeamCreateFancyInfo struct {
+	Name               string         `codec:"name" json:"name"`
+	Description        string         `codec:"description" json:"description"`
+	JoinSubteam        bool           `codec:"joinSubteam" json:"joinSubteam"`
+	OpenSettings       TeamSettings   `codec:"openSettings" json:"openSettings"`
+	Showcase           bool           `codec:"showcase" json:"showcase"`
+	Avatar             *TeamAvatar    `codec:"avatar,omitempty" json:"avatar,omitempty"`
+	ChatChannels       []string       `codec:"chatChannels" json:"chatChannels"`
+	Subteams           []string       `codec:"subteams" json:"subteams"`
+	Users              []UserRolePair `codec:"users" json:"users"`
+	EmailInviteMessage *string        `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
+}
+
+func (o TeamCreateFancyInfo) DeepCopy() TeamCreateFancyInfo {
+	return TeamCreateFancyInfo{
+		Name:         o.Name,
+		Description:  o.Description,
+		JoinSubteam:  o.JoinSubteam,
+		OpenSettings: o.OpenSettings.DeepCopy(),
+		Showcase:     o.Showcase,
+		Avatar: (func(x *TeamAvatar) *TeamAvatar {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Avatar),
+		ChatChannels: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ChatChannels),
+		Subteams: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Subteams),
+		Users: (func(x []UserRolePair) []UserRolePair {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserRolePair, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Users),
+		EmailInviteMessage: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.EmailInviteMessage),
+	}
+}
+
 type UserRolePair struct {
 	Assertion   string           `codec:"assertion" json:"assertion"`
 	Role        TeamRole         `codec:"role" json:"role"`
@@ -4121,6 +4209,11 @@ type TeamCreateWithSettingsArg struct {
 	Settings    TeamSettings `codec:"settings" json:"settings"`
 }
 
+type TeamCreateFancyArg struct {
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	TeamInfo  TeamCreateFancyInfo `codec:"teamInfo" json:"teamInfo"`
+}
+
 type TeamGetByIDArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Id        TeamID `codec:"id" json:"id"`
@@ -4490,6 +4583,7 @@ type TeamsInterface interface {
 	GetUntrustedTeamInfo(context.Context, TeamName) (UntrustedTeamInfo, error)
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
+	TeamCreateFancy(context.Context, TeamCreateFancyArg) (TeamID, error)
 	TeamGetByID(context.Context, TeamGetByIDArg) (TeamDetails, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamGetMembers(context.Context, TeamGetMembersArg) (TeamMembersDetails, error)
@@ -4619,6 +4713,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamCreateWithSettings(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamCreateFancy": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamCreateFancyArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamCreateFancyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamCreateFancyArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamCreateFancy(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5583,6 +5692,11 @@ func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (res T
 
 func (c TeamsClient) TeamCreateWithSettings(ctx context.Context, __arg TeamCreateWithSettingsArg) (res TeamCreateResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateWithSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) TeamCreateFancy(ctx context.Context, __arg TeamCreateFancyArg) (res TeamID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateFancy", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

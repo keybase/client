@@ -298,7 +298,7 @@ func MakeRatchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (ret *
 	}
 	id := state.Id
 
-	defer mctx.Trace(fmt.Sprintf("hidden.MakeRatchet(%s)", id), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("hidden.MakeRatchet(%s)", id), &err)()
 
 	err = CheckFeatureGateForSupport(mctx, id)
 	if err != nil {

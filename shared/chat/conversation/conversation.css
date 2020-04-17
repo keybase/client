@@ -18,8 +18,6 @@
   display: none;
   flex-direction: row;
   justify-content: flex-end;
-  max-width: 100%;
-  width: 100%;
   margin-left: 0;
 }
 .WrapperMessage-hoverBox:hover .WrapperMessage-buttons,
@@ -27,22 +25,16 @@
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
-  max-width: 100%;
-  width: 100%;
   margin-left: 0;
 }
 .WrapperMessage-hoverColor:hover {
-  background-color: #f7f9fc;
-  /* Using a second box shadow instead of a border to prevent changing the height of the box. */
-  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08), 0 1px 0 rgba(0, 0, 0, 0.04);
+  background-color: #ebf2fc;
 }
 .WrapperMessage-decorated.active {
-  background-color: #f7f9fc;
+  background-color: #ebf2fc;
 }
 .darkMode .WrapperMessage-hoverColor:hover {
   background-color: #101010;
-  /* Using a second box shadow instead of a border to prevent changing the height of the box. */
-  box-shadow: none;
 }
 .darkMode .WrapperMessage-decorated.active {
   background-color: #101010;

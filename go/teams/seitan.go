@@ -187,7 +187,7 @@ func generateShortTeamInviteID(secretKey []byte, payload []byte) (id SCTeamInvit
 	if err != nil {
 		return id, err
 	}
-	id = SCTeamInviteIDShort(libkb.Encode58(out))
+	id = SCTeamInviteIDShort(libkb.Base30.EncodeToString(out))
 	return id, nil
 }
 

@@ -40,6 +40,7 @@ export const appendNewChatBuilder = () =>
     path: [{props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'}],
   })
 
+// Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
 export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) =>
   RouteTreeGen.createNavigateAppend({
     path: [

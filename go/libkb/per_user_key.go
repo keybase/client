@@ -473,7 +473,7 @@ func (s *PerUserKeyring) SyncAsProvisioningKey(m MetaContext, upak *keybase1.Use
 
 // `m.LoginContext` and `upak` are optional
 func (s *PerUserKeyring) sync(m MetaContext, upak *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID, decryptionKey GenericKey) (err error) {
-	defer m.Trace("PerUserKeyring#sync", func() error { return err })()
+	defer m.Trace("PerUserKeyring#sync", &err)()
 
 	m.Debug("PerUserKeyring#sync(%v, %v)", m.LoginContext() != nil, upak != nil)
 
@@ -544,7 +544,7 @@ func (m byGeneration) Less(i, j int) bool { return m[i].Generation < m[j].Genera
 func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
 	deviceID keybase1.DeviceID) (box *keybase1.PerUserKeyBox, prevs []perUserKeyPrevResp, err error) {
 
-	defer m.Trace("PerUserKeyring#fetchBoxesLocked", func() error { return err })()
+	defer m.Trace("PerUserKeyring#fetchBoxesLocked", &err)()
 
 	var resp perUserKeySyncResp
 	err = m.G().API.GetDecode(m, APIArg{
@@ -638,7 +638,7 @@ func (s *PerUserKeyring) importLocked(m MetaContext,
 	box *keybase1.PerUserKeyBox, prevs []perUserKeyPrevResp,
 	decryptionKey GenericKey, checker *perUserKeyChecker) (ret perUserKeyMap, err error) {
 
-	defer m.Trace("PerUserKeyring#importLocked", func() error { return err })()
+	defer m.Trace("PerUserKeyring#importLocked", &err)()
 
 	if box == nil && len(prevs) == 0 {
 		// No new stuff, this keyring is up to date.

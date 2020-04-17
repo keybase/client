@@ -1,98 +1,124 @@
 import * as React from 'react'
-import {WebOfTrustVerificationType} from '../../../constants/types/more'
-import {WotStatusType} from '../../../constants/types/rpc-gen'
+import * as Container from '../../../util/container'
+import {formatTimeRelativeToNow} from '../../../util/timestamp'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {formatTimeRelativeToNow} from '../../../util/timestamp'
+import * as UsersGen from '../../../actions/users-gen'
+import {WebOfTrustVerificationType} from '../../../constants/types/more'
+import {WotReactionType, WotStatusType} from '../../../constants/types/rpc-gen'
+import {wotReactWaitingKey, wotRevokeWaitingKey} from '../../../constants/users'
 
 type Props = {
-  attestation: string
-  attestingUser: string
-  onAccept?: () => void
-  onHide?: () => void
-  onReject?: () => void
-  reactWaitingKey: string
-  status: WotStatusType
-  userIsYou: boolean
   username: string
-  verificationType: WebOfTrustVerificationType
-  vouchedAt: number
+  webOfTrustAttestation: {
+    attestation: string
+    attestingUser: string
+    proofID: string
+    status: WotStatusType
+    verificationType: WebOfTrustVerificationType
+    vouchedAt: number
+  }
 }
 
-const entry = (props: Props, statusStatement: string) => (
-  <>
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.Box2 direction="vertical" style={styles.avatarContainer} centerChildren={true}>
-        <Kb.Avatar
-          size={96}
-          username={props.attestingUser}
-          style={styles.avatar}
-          showFollowingStatus={false}
-        />
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer} centerChildren={false}>
-        <Kb.Text style={styles.attestationText} type="BodySmall">
-          {statusStatement}
-        </Kb.Text>
-        <Kb.Text style={styles.attestationText} type="Body">
-          {props.attestation}
-        </Kb.Text>
-        <Kb.Box2 direction="vertical" style={styles.signatureBox} centerChildren={false} fullWidth={true}>
-          <Kb.Box2 direction="horizontal" gap="xxtiny" centerChildren={true} style={styles.innerSignatureBox}>
-            <Kb.Icon color={Styles.globalColors.blue} type="iconfont-proof-good" sizeType="Small" />
-            <Kb.Text type="BodySmall">signed by </Kb.Text>
-            <Kb.ConnectedUsernames
-              type={Styles.isMobile ? 'BodySmallBold' : 'BodyBold'}
-              usernames={props.attestingUser}
-              colorBroken={true}
-              colorFollowing={true}
-              style={styles.username}
-            />
-            <Kb.Text type="BodySmall">{formatTimeRelativeToNow(props.vouchedAt)}</Kb.Text>
+const WebOfTrust = (props: Props) => {
+  const dispatch = Container.useDispatch()
+  const {username, webOfTrustAttestation} = props
+  const {attestation, attestingUser, proofID, vouchedAt, status} = webOfTrustAttestation
+  const userIsYou = Container.useSelector(state => username === state.config.username)
+  const voucherIsYou = Container.useSelector(state => attestingUser === state.config.username)
+  const canAccept = userIsYou && status === WotStatusType.proposed
+  const onAccept = () => {
+    if (!canAccept) return
+    dispatch(UsersGen.createWotReact({reaction: WotReactionType.accept, voucher: attestingUser}))
+  }
+  const canReject = userIsYou && (status === WotStatusType.proposed || status === WotStatusType.accepted)
+  const onReject = () => {
+    if (!canReject) return
+    dispatch(UsersGen.createWotReact({reaction: WotReactionType.reject, voucher: attestingUser}))
+  }
+  const rejectLabel = status === WotStatusType.proposed ? 'Reject' : 'Delete'
+  const canRevoke = voucherIsYou
+  const onRevoke = () => {
+    if (!canRevoke) return
+    dispatch(UsersGen.createSubmitRevokeVouch({proofID, voucheeName: username}))
+  }
+
+  let statusStatement = ''
+  if (status === WotStatusType.proposed) {
+    statusStatement = userIsYou ? 'Pending your approval:' : 'You proposed:'
+  } else if (status === WotStatusType.accepted) {
+    statusStatement = 'Accepted:'
+  }
+
+  return (
+    <>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="vertical" style={styles.avatarContainer} centerChildren={true}>
+          <Kb.Avatar username={attestingUser} showFollowingStatus={false} size={96} style={styles.avatar} />
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer} centerChildren={false}>
+          <Kb.Text style={styles.attestationText} type="BodySmall">
+            {statusStatement}
+          </Kb.Text>
+          <Kb.Text style={styles.attestationText} type="Body">
+            {attestation}
+          </Kb.Text>
+          <Kb.Box2 direction="vertical" style={styles.signatureBox} centerChildren={false} fullWidth={true}>
+            <Kb.Box2
+              direction="horizontal"
+              gap="xxtiny"
+              centerChildren={true}
+              style={styles.innerSignatureBox}
+            >
+              <Kb.Icon color={Styles.globalColors.blue} type="iconfont-proof-good" sizeType="Small" />
+              <Kb.Text type="BodySmall">signed by </Kb.Text>
+              <Kb.ConnectedUsernames
+                colorBroken={true}
+                colorFollowing={true}
+                style={styles.username}
+                type={Styles.isMobile ? 'BodySmallBold' : 'BodyBold'}
+                usernames={attestingUser}
+              />
+              <Kb.Text type="BodySmall">{formatTimeRelativeToNow(vouchedAt)}</Kb.Text>
+            </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-    {(props.onHide || props.onAccept || props.onReject) && (
-      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false} style={styles.buttonBar}>
-        <Kb.ButtonBar align="flex-start">
-          {props.onHide && <Kb.Button label="Hide" small={true} type="Danger" onClick={props.onHide} />}
-          {props.onAccept && (
-            <Kb.WaitingButton
-              label="Accept"
-              small={true}
-              type="Success"
-              onClick={props.onAccept}
-              waitingKey={props.reactWaitingKey}
-            />
-          )}
-          {props.onReject && (
-            <Kb.WaitingButton
-              label="Reject"
-              small={true}
-              type="Danger"
-              onClick={props.onReject}
-              waitingKey={props.reactWaitingKey}
-            />
-          )}
-        </Kb.ButtonBar>
-      </Kb.Box2>
-    )}
-  </>
-)
-
-const WebOfTrust = (props: Props) => {
-  switch (props.status) {
-    case WotStatusType.proposed: {
-      return entry(props, props.userIsYou ? 'Pending your approval:' : 'You proposed:')
-    }
-    case WotStatusType.accepted: {
-      return entry(props, 'Accepted:')
-    }
-    default: {
-      return null
-    }
-  }
+      {(canAccept || canReject || canRevoke) && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false} style={styles.buttonBar}>
+          <Kb.ButtonBar align="flex-start">
+            {canAccept && (
+              <Kb.WaitingButton
+                label="Accept"
+                onClick={onAccept}
+                small={true}
+                type="Success"
+                waitingKey={wotReactWaitingKey}
+              />
+            )}
+            {canReject && (
+              <Kb.WaitingButton
+                label={rejectLabel}
+                onClick={onReject}
+                small={true}
+                type="Danger"
+                waitingKey={wotReactWaitingKey}
+              />
+            )}
+            {canRevoke && (
+              <Kb.WaitingButton
+                label="Delete"
+                onClick={onRevoke}
+                small={true}
+                type="Danger"
+                waitingKey={wotRevokeWaitingKey}
+              />
+            )}
+          </Kb.ButtonBar>
+        </Kb.Box2>
+      )}
+    </>
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({

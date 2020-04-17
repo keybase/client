@@ -53,7 +53,7 @@ func (e *Unlock) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Unlock) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("Unlock#Run", func() error { return err })()
+	defer m.Trace("Unlock#Run", &err)()
 
 	un := m.CurrentUsername()
 	m.Debug("Active device: %+v", *m.ActiveDevice())

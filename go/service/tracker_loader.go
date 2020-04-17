@@ -44,7 +44,7 @@ func (l *TrackerLoader) debug(ctx context.Context, msg string, args ...interface
 }
 
 func (l *TrackerLoader) Run(ctx context.Context) {
-	defer l.G().CTrace(ctx, "TrackerLoader.Run", func() error { return nil })()
+	defer l.G().CTrace(ctx, "TrackerLoader.Run", nil)()
 	l.Lock()
 	defer l.Unlock()
 	if l.started {
@@ -58,7 +58,7 @@ func (l *TrackerLoader) Run(ctx context.Context) {
 }
 
 func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
-	defer l.G().CTrace(ctx, "TrackerLoader.Shutdown", func() error { return nil })()
+	defer l.G().CTrace(ctx, "TrackerLoader.Shutdown", nil)()
 	l.Lock()
 	defer l.Unlock()
 	ch := make(chan struct{})
@@ -77,7 +77,7 @@ func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
 }
 
 func (l *TrackerLoader) Queue(ctx context.Context, uid keybase1.UID) (err error) {
-	defer l.G().CTrace(ctx, fmt.Sprintf("TrackerLoader.Queue: uid: %s", uid), func() error { return err })()
+	defer l.G().CTrace(ctx, fmt.Sprintf("TrackerLoader.Queue: uid: %s", uid), &err)()
 	select {
 	case l.queueCh <- uid:
 	default:
@@ -126,7 +126,7 @@ func (l *TrackerLoader) loadInner(mctx libkb.MetaContext, uid keybase1.UID, with
 }
 
 func (l *TrackerLoader) load(ctx context.Context, uid keybase1.UID) error {
-	defer l.G().CTraceTimed(ctx, "TrackerLoader.load", func() error { return nil })()
+	defer l.G().CTrace(ctx, "TrackerLoader.load", nil)()
 
 	mctx := libkb.NewMetaContext(ctx, l.G())
 

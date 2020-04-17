@@ -30,7 +30,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     return initialState
   },
   [TeamsGen.setChannelCreationError]: (draftState, action) => {
+    draftState.creatingChannels = false
     draftState.errorInChannelCreation = action.payload.error
+  },
+  [TeamsGen.createChannels]: draftState => {
+    draftState.creatingChannels = true
+  },
+  [TeamsGen.setCreatingChannels]: (draftState, action) => {
+    draftState.creatingChannels = action.payload.creatingChannels
   },
   [TeamsGen.createNewTeam]: draftState => {
     draftState.errorInTeamCreation = ''
@@ -106,9 +113,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       teamID,
       Constants.ratchetTeamVersion(version, draftState.teamVersion.get(teamID))
     )
-  },
-  [TeamsGen.setTeamCanPerform]: (draftState, action) => {
-    draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
   },
   [TeamsGen.setEmailInviteError]: (draftState, action) => {
     if (!action.payload.malformed.length && !action.payload.message) {
@@ -315,6 +319,17 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamWizardSubteams]: (draftState, action) => {
     draftState.newTeamWizard.subteams = action.payload.subteams
   },
+  [TeamsGen.setTeamWizardSubteamMembers]: (draftState, action) => {
+    const {members} = action.payload
+    draftState.addMembersWizard = {
+      ...Constants.addMembersWizardEmptyState,
+      addingMembers: members.map(m => ({assertion: m, role: 'writer'})),
+      teamID: Types.newTeamWizardTeamID,
+    }
+  },
+  [TeamsGen.setTeamWizardError]: (draftState, action) => {
+    draftState.newTeamWizard.error = action.payload.error
+  },
   [TeamsGen.startAddMembersWizard]: (draftState, action) => {
     const {teamID} = action.payload
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, teamID}
@@ -322,7 +337,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setAddMembersWizardRole]: (draftState, action) => {
     const {role} = action.payload
     draftState.addMembersWizard.role = role
-    if (role) {
+    if (role !== 'setIndividually') {
       // keep roles stored with indiv members in sync with top level one
       draftState.addMembersWizard.addingMembers.forEach(member => {
         member.role = role
@@ -355,7 +370,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.cancelAddMembersWizard]: draftState => {
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState}
   },
-  [TeamsGen.finishAddMembersWizard]: draftState => {
+  [TeamsGen.finishedAddMembersWizard]: draftState => {
+    draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
+  },
+  [TeamsGen.finishNewTeamWizard]: draftState => {
+    draftState.newTeamWizard.error = undefined
+  },
+  [TeamsGen.finishedNewTeamWizard]: draftState => {
+    draftState.newTeamWizard = Constants.newTeamWizardEmptyState
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
   },
   [TeamsGen.addMembersWizardSetDefaultChannels]: (draftState, action) => {
@@ -381,6 +403,15 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [TeamsGen.setActivityLevels]: (draftState, action) => {
     draftState.activityLevels = action.payload.levels
+  },
+  [TeamsGen.setTeamListFilterSort]: (draftState, action) => {
+    const {filter, sortOrder} = action.payload
+    if (filter !== undefined) {
+      draftState.teamListFilter = filter
+    }
+    if (sortOrder !== undefined) {
+      draftState.teamListSort = sortOrder
+    }
   },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params

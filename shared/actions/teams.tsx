@@ -26,6 +26,7 @@ import {TypedState, TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import {RPCError} from '../util/errors'
 import flags from '../util/feature-flags'
+import {appendNewTeamBuilder} from './typed-routes'
 
 async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
   const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
@@ -859,6 +860,31 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
   }
 }
 
+const createChannels = async (state: TypedState, action: TeamsGen.CreateChannelsPayload) => {
+  const {teamID, channelnames} = action.payload
+  const teamname = Constants.getTeamNameFromID(state, teamID)
+
+  if (teamname === null) {
+    return TeamsGen.createSetChannelCreationError({error: 'Invalid team name'})
+  }
+
+  try {
+    for (const c of channelnames) {
+      await RPCChatTypes.localNewConversationLocalRpcPromise({
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.ConversationMembersType.team,
+        tlfName: teamname,
+        tlfVisibility: RPCTypes.TLFVisibility.private,
+        topicName: c,
+        topicType: RPCChatTypes.TopicType.chat,
+      })
+    }
+  } catch (error) {
+    return TeamsGen.createSetChannelCreationError({error: error.desc})
+  }
+  return TeamsGen.createSetCreatingChannels({creatingChannels: false})
+}
+
 const setMemberPublicity = async (action: TeamsGen.SetMemberPublicityPayload) => {
   const {teamID, showcase} = action.payload
   try {
@@ -1060,7 +1086,10 @@ const updateTopic = async (state: TypedState, action: TeamsGen.UpdateTopicPayloa
     tlfPublic: false,
   }
 
-  await RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.teamWaitingKey(teamID))
+  await RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.updateChannelNameWaitingKey(teamID))
+  if (!flags.teamsRedesign) {
+    return RouteTreeGen.createNavUpToScreen({routeName: 'chatManageChannels'})
+  }
   return []
 }
 
@@ -1472,6 +1501,7 @@ const setTeamWizardAvatar = (state: TypedState) => {
       return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard4TeamSize'}]})
   }
 }
+const setTeamWizardSubteamMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
   action.payload.isBig
     ? RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard5Channels'}]})
@@ -1479,10 +1509,41 @@ const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
 const setTeamWizardChannels = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard6Subteams'}]})
 const setTeamWizardSubteams = () => TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
-const startAddMembersWizard = (_: TeamsGen.StartAddMembersWizardPayload) =>
-  RouteTreeGen.createNavigateAppend({
-    path: ['teamAddToTeamFromWhere'],
-  })
+const startAddMembersWizard = (action: TeamsGen.StartAddMembersWizardPayload) =>
+  flags.teamsRedesign
+    ? RouteTreeGen.createNavigateAppend({
+        path: ['teamAddToTeamFromWhere'],
+      })
+    : appendNewTeamBuilder(action.payload.teamID)
+const finishNewTeamWizard = async (state: TypedState) => {
+  const {name, description, open, openTeamJoinRole, showcase, addYourself} = state.teams.newTeamWizard
+  const {avatarFilename, avatarCrop, channels, subteams} = state.teams.newTeamWizard
+  const teamInfo: RPCTypes.TeamCreateFancyInfo = {
+    avatar: avatarFilename ? {avatarFilename, crop: avatarCrop?.crop} : null,
+    chatChannels: channels,
+    description,
+    joinSubteam: addYourself,
+    name,
+    openSettings: {joinAs: RPCTypes.TeamRole[openTeamJoinRole], open},
+    showcase,
+    subteams,
+    users: state.teams.addMembersWizard.addingMembers.map(member => ({
+      assertion: member.assertion,
+      role: RPCTypes.TeamRole[member.role],
+    })),
+  }
+  try {
+    const teamID = await RPCTypes.teamsTeamCreateFancyRpcPromise({teamInfo}, Constants.teamCreationWaitingKey)
+    return TeamsGen.createFinishedNewTeamWizard({teamID})
+  } catch (e) {
+    return TeamsGen.createSetTeamWizardError({error: e.message})
+  }
+}
+
+const finishedNewTeamWizard = (action: TeamsGen.FinishedNewTeamWizardPayload) => [
+  RouteTreeGen.createClearModals(),
+  RouteTreeGen.createNavigateAppend({path: [{props: {teamID: action.payload.teamID}, selected: 'team'}]}),
+]
 
 const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
 const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
@@ -1546,6 +1607,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.ignoreRequest, ignoreRequest)
   yield* Saga.chainAction(TeamsGen.editTeamDescription, editDescription)
   yield* Saga.chainAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
+  yield* Saga.chainAction2(TeamsGen.createChannels, createChannels)
   yield* Saga.chainAction2(TeamsGen.editMembership, editMembership)
   yield* Saga.chainGenerator<TeamsGen.RemoveMemberPayload>(TeamsGen.removeMember, removeMember)
   yield* Saga.chainGenerator<TeamsGen.RemovePendingInvitePayload>(
@@ -1609,12 +1671,15 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.setTeamWizardTeamSize, setTeamWizardTeamSize)
   yield* Saga.chainAction(TeamsGen.setTeamWizardChannels, setTeamWizardChannels)
   yield* Saga.chainAction(TeamsGen.setTeamWizardSubteams, setTeamWizardSubteams)
+  yield* Saga.chainAction(TeamsGen.setTeamWizardSubteamMembers, setTeamWizardSubteamMembers)
+  yield* Saga.chainAction2(TeamsGen.finishNewTeamWizard, finishNewTeamWizard)
+  yield* Saga.chainAction(TeamsGen.finishedNewTeamWizard, finishedNewTeamWizard)
 
   // Add members wizard
   yield* Saga.chainAction(TeamsGen.startAddMembersWizard, startAddMembersWizard)
   yield* Saga.chainAction(TeamsGen.addMembersWizardPushMembers, addMembersWizardPushMembers)
   yield* Saga.chainAction(
-    [TeamsGen.cancelAddMembersWizard, TeamsGen.finishAddMembersWizard],
+    [TeamsGen.cancelAddMembersWizard, TeamsGen.finishedAddMembersWizard],
     navAwayFromAddMembersWizard
   )
 

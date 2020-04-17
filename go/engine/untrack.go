@@ -53,7 +53,7 @@ func (e *UntrackEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("UntrackEngine#Run", func() error { return err })()
+	defer m.Trace("UntrackEngine#Run", &err)()
 
 	e.arg.Me, err = e.loadMe()
 	if err != nil {
@@ -189,7 +189,7 @@ func (e *UntrackEngine) storeLocalUntrack(m libkb.MetaContext, them *libkb.User)
 }
 
 func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User) (err error) {
-	defer m.Trace("UntrackEngine#StoreRemoteUntrack", func() error { return err })()
+	defer m.Trace("UntrackEngine#StoreRemoteUntrack", &err)()
 
 	me := e.arg.Me
 	arg := libkb.SecretKeyArg{

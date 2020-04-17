@@ -43,7 +43,7 @@ func (r *Runner) debug(ctx context.Context, msg string, args ...interface{}) {
 }
 
 func (r *Runner) Start(ctx context.Context) {
-	defer r.G().CTrace(ctx, "Runner.Start", func() error { return nil })()
+	defer r.G().CTrace(ctx, "Runner.Start", nil)()
 	r.Lock()
 	defer r.Unlock()
 	if !r.G().Env.GetRuntimeStatsEnabled() {
@@ -60,7 +60,7 @@ func (r *Runner) Start(ctx context.Context) {
 }
 
 func (r *Runner) Stop(ctx context.Context) chan struct{} {
-	defer r.G().CTrace(ctx, "Runner.Stop", func() error { return nil })()
+	defer r.G().CTrace(ctx, "Runner.Stop", nil)()
 	r.Lock()
 	defer r.Unlock()
 	ch := make(chan struct{})

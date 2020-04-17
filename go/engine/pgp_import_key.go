@@ -86,7 +86,7 @@ func (e *PGPKeyImportEngine) generateKey(m libkb.MetaContext) (err error) {
 
 func (e *PGPKeyImportEngine) saveLKS(m libkb.MetaContext) (err error) {
 
-	defer m.Trace("PGPKeyImportEngine::saveLKS", func() error { return err })()
+	defer m.Trace("PGPKeyImportEngine::saveLKS", &err)()
 
 	lks := e.arg.Lks
 	if lks == nil {
@@ -164,7 +164,7 @@ func (e *PGPKeyImportEngine) checkExistingKey(m libkb.MetaContext) error {
 }
 
 func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("PGPKeyImportEngine::Run", func() error { return err })()
+	defer m.Trace("PGPKeyImportEngine::Run", &err)()
 
 	if err = e.init(); err != nil {
 		return err
@@ -311,7 +311,7 @@ func (e *PGPKeyImportEngine) exportToGPG(m libkb.MetaContext) (err error) {
 }
 
 func (e *PGPKeyImportEngine) unlock(m libkb.MetaContext) (err error) {
-	defer m.Trace("PGPKeyImportEngine::unlock", func() error { return err })()
+	defer m.Trace("PGPKeyImportEngine::unlock", &err)()
 	if e.arg.Pregen == nil || !e.arg.DoUnlock || !e.arg.Pregen.HasSecretKey() {
 		m.Debug("| short circuit unlock function")
 	} else {
@@ -334,7 +334,7 @@ func (e *PGPKeyImportEngine) loadDelegator(m libkb.MetaContext) (err error) {
 }
 
 func (e *PGPKeyImportEngine) generate(m libkb.MetaContext) (err error) {
-	defer m.Trace("PGP::Generate", func() error { return err })()
+	defer m.Trace("PGP::Generate", &err)()
 
 	m.Debug("| GenerateKey")
 	if e.arg.Pregen != nil {
@@ -349,7 +349,7 @@ func (e *PGPKeyImportEngine) generate(m libkb.MetaContext) (err error) {
 }
 
 func (e *PGPKeyImportEngine) saveKey(m libkb.MetaContext) (err error) {
-	defer m.Trace("PGP::saveKey", func() error { return err })()
+	defer m.Trace("PGP::saveKey", &err)()
 
 	m.Debug("| WriteKey (hasSecret = %v)", e.bundle.HasSecretKey())
 	if !e.arg.NoSave && e.bundle.HasSecretKey() {
@@ -390,7 +390,7 @@ func (e *PGPKeyImportEngine) prepareSecretPush(m libkb.MetaContext) error {
 }
 
 func (e *PGPKeyImportEngine) push(m libkb.MetaContext) (err error) {
-	defer m.Trace("PGP#Push", func() error { return err })()
+	defer m.Trace("PGP#Push", &err)()
 	if e.arg.GPGFallback {
 		e.bundle.GPGFallbackKey = libkb.NewGPGKey(
 			m.G(),
@@ -415,7 +415,7 @@ func (e *PGPKeyImportEngine) push(m libkb.MetaContext) (err error) {
 }
 
 func (e *PGPKeyImportEngine) pushSecretOnly(m libkb.MetaContext) (err error) {
-	defer m.Trace("PGP#PushSecretOnly", func() error { return err })()
+	defer m.Trace("PGP#PushSecretOnly", &err)()
 
 	m.UIs().LogUI.Info("Only pushing encrypted private key to Keybase server")
 

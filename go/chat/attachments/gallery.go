@@ -142,7 +142,7 @@ func (g *Gallery) getUnfurlHost(ctx context.Context, uid gregor1.UID, convID cha
 func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, num int, opts NextMessageOptions,
 	uiCh chan chat1.UIMessage) (res []chat1.MessageUnboxed, last bool, err error) {
-	defer g.Trace(ctx, func() error { return err }, "NextMessages")()
+	defer g.Trace(ctx, &err, "NextMessages")()
 	defer func() {
 		if uiCh != nil {
 			close(uiCh)

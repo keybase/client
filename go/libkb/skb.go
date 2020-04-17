@@ -209,7 +209,7 @@ func (s *SKB) RawUnlockedKey() []byte {
 }
 
 func (s *SKB) unlockSecretKeyFromSecretRetriever(m MetaContext, secretRetriever SecretRetriever) (key GenericKey, err error) {
-	defer m.Trace("SKB#unlockSecretKeyFromSecretRetriever", func() error { return err })()
+	defer m.Trace("SKB#unlockSecretKeyFromSecretRetriever", &err)()
 	if key = s.decryptedSecret; key != nil {
 		return
 	}
@@ -231,7 +231,7 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(m MetaContext, secretRetriever 
 }
 
 func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, pps *PassphraseStream, secretStorer SecretStorer) (key GenericKey, err error) {
-	defer m.Trace("SKB#UnlockSecretKey", func() error { return err })()
+	defer m.Trace("SKB#UnlockSecretKey", &err)()
 	if key = s.decryptedSecret; key != nil {
 		return key, nil
 	}
@@ -322,7 +322,7 @@ func (s *SKB) tsecUnlock(tsec Triplesec) ([]byte, error) {
 }
 
 func (s *SKB) lksUnlock(m MetaContext, pps *PassphraseStream, secretStorer SecretStorer) (unlocked []byte, err error) {
-	defer m.Trace("SKB#lksUnlock", func() error { return err })()
+	defer m.Trace("SKB#lksUnlock", &err)()
 	m.Debug("| creating new lks")
 
 	lks := s.newLKSec(pps)
@@ -355,7 +355,7 @@ func (s *SKB) lksUnlock(m MetaContext, pps *PassphraseStream, secretStorer Secre
 }
 
 func (s *SKB) lksUnlockWithSecretRetriever(m MetaContext, secretRetriever SecretRetriever) (unlocked []byte, err error) {
-	defer m.Trace("SKB#lksUnlockWithSecretRetriever", func() error { return err })()
+	defer m.Trace("SKB#lksUnlockWithSecretRetriever", &err)()
 	secret, err := secretRetriever.RetrieveSecret(m)
 	if err != nil {
 		return
@@ -384,7 +384,7 @@ func (s *SKB) ArmoredEncode() (ret string, err error) {
 }
 
 func (s *SKB) UnlockWithStoredSecret(m MetaContext, secretRetriever SecretRetriever) (ret GenericKey, err error) {
-	defer m.Trace("SKB#UnlockWithStoredSecret()", func() error { return err })()
+	defer m.Trace("SKB#UnlockWithStoredSecret()", &err)()
 	if ret = s.decryptedSecret; ret != nil {
 		return
 	}
@@ -394,7 +394,7 @@ func (s *SKB) UnlockWithStoredSecret(m MetaContext, secretRetriever SecretRetrie
 var ErrUnlockNotPossible = errors.New("unlock not possible")
 
 func (s *SKB) UnlockNoPrompt(m MetaContext, secretStore SecretStore) (ret GenericKey, err error) {
-	defer m.Trace("SKB#UnlockNoPrompt", func() error { return err })()
+	defer m.Trace("SKB#UnlockNoPrompt", &err)()
 	// already have decrypted secret?
 	if s.decryptedSecret != nil {
 		return s.decryptedSecret, nil
@@ -432,7 +432,7 @@ func (s *SKB) UnlockNoPrompt(m MetaContext, secretStore SecretStore) (ret Generi
 }
 
 func (s *SKB) unlockPrompt(m MetaContext, arg SecretKeyPromptArg, secretStore SecretStore, me *User) (ret GenericKey, err error) {
-	defer m.Trace("SKB#unlockPrompt", func() error { return err })()
+	defer m.Trace("SKB#unlockPrompt", &err)()
 
 	// check to see if user has recently canceled an unlock prompt:
 	// if lctx != nil, then don't bother as any prompts during login should be shown.
@@ -468,7 +468,7 @@ func (s *SKB) unlockPrompt(m MetaContext, arg SecretKeyPromptArg, secretStore Se
 }
 
 func (s *SKB) PromptAndUnlock(m MetaContext, arg SecretKeyPromptArg, secretStore SecretStore, me *User) (ret GenericKey, err error) {
-	defer m.Trace(fmt.Sprintf("SKB#PromptAndUnlock(%s)", arg.Reason), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("SKB#PromptAndUnlock(%s)", arg.Reason), &err)()
 
 	// First try to unlock without prompting the user.
 	ret, err = s.UnlockNoPrompt(m, secretStore)

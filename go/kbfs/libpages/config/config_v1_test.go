@@ -20,9 +20,9 @@ func TestConfigV1Default(t *testing.T) {
 		realm, err := config.GetPermissions("/", nil)
 	require.NoError(t, err)
 	require.True(t, read)
-	require.True(t, list)
+	require.False(t, list)
 	require.True(t, possibleRead)
-	require.True(t, possibleList)
+	require.False(t, possibleList)
 	require.Equal(t, "/", realm)
 }
 
@@ -349,7 +349,7 @@ func TestV1EncodeObjectKeyOrder(t *testing.T) {
 	require.NoError(t, err)
 	const expectedJSON = `{"version":"v1","users":null,` +
 		`"per_path_configs":{"/":{"whitelist_additional_permissions":null,` +
-		`"anonymous_permissions":"read,list"}}}`
+		`"anonymous_permissions":"read"}}}`
 	require.Equal(t, expectedJSON, strings.TrimSpace(buf.String()))
 }
 

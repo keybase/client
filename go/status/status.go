@@ -33,7 +33,7 @@ func GetCurrentStatus(mctx libkb.MetaContext) (res keybase1.CurrentStatus, err e
 
 func GetExtendedStatus(mctx libkb.MetaContext) (res keybase1.ExtendedStatus, err error) {
 	mctx = mctx.WithLogTag("EXTSTATUS")
-	defer mctx.TraceTimed("GetExtendedStatus", func() error { return err })()
+	defer mctx.Trace("GetExtendedStatus", &err)()
 	g := mctx.G()
 
 	res.Standalone = g.Env.GetStandalone()

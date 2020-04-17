@@ -95,7 +95,7 @@ func (e *BackgroundTask) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 // Returns immediately, kicks off a background goroutine.
 func (e *BackgroundTask) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace(e.Name(), func() error { return err })()
+	defer m.Trace(e.Name(), &err)()
 
 	// use a new background context with a saved cancel function
 	var cancel func()

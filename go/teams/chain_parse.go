@@ -339,11 +339,11 @@ func (i SCTeamInviteID) ToShortInviteID() (SCTeamInviteIDShort, error) {
 	if err != nil {
 		return "", err
 	}
-	return SCTeamInviteIDShort(libkb.Encode58(decoded)), nil
+	return SCTeamInviteIDShort(libkb.Base30.EncodeToString(decoded)), nil
 }
 
 func (i SCTeamInviteIDShort) ToInviteID() (SCTeamInviteID, error) {
-	decoded, err := libkb.Decode58(string(i))
+	decoded, err := libkb.Base30.DecodeString(string(i))
 	if err != nil {
 		return "", err
 	}

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as Kb from '../../../common-adapters'
 import flags from '../../../util/feature-flags'
-import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../styles'
+import * as Styles from '../../../styles'
 import {Tab as TabType} from '../../../common-adapters/tabs'
 
 type TeamTabsProps = {
@@ -37,7 +37,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     {title: 'bots' as const},
     ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
     {title: 'emoji' as const},
-    {icon: isMobile ? 'iconfont-nav-settings' : undefined, title: 'settings' as const},
+    {icon: Styles.isPhone ? 'iconfont-gear' : undefined, title: 'settings' as const},
   ]
 
   const tabContent = (
@@ -47,15 +47,25 @@ const TeamTabs = (props: TeamTabsProps) => {
       selectedTab={props.selectedTab}
       onSelect={props.setSelectedTab}
       style={styles.tabContainer}
-      showProgressIndicator={!isMobile && props.loading && !flags.teamsRedesign}
+      showProgressIndicator={!Styles.isMobile && props.loading && !flags.teamsRedesign}
       tabStyle={styles.tab}
     />
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box style={styles.container}>
-        {isMobile ? <Kb.ScrollView horizontal={true}>{tabContent}</Kb.ScrollView> : tabContent}
-        {!isMobile && props.loading && flags.teamsRedesign && (
+        {Styles.isMobile ? (
+          <Kb.ScrollView
+            horizontal={true}
+            contentContainerStyle={{minWidth: '100%'}}
+            alwaysBounceHorizontal={false}
+          >
+            {tabContent}
+          </Kb.ScrollView>
+        ) : (
+          tabContent
+        )}
+        {!Styles.isMobile && props.loading && flags.teamsRedesign && (
           <Kb.ProgressIndicator style={styles.inlineProgressIndicator} />
         )}
       </Kb.Box>
@@ -64,34 +74,34 @@ const TeamTabs = (props: TeamTabsProps) => {
   )
 }
 
-const styles = styleSheetCreate(() => ({
-  clickableBox: platformStyles({
+const styles = Styles.styleSheetCreate(() => ({
+  clickableBox: Styles.platformStyles({
     isElectron: flags.teamsRedesign ? {flex: 1} : {},
     isMobile: {
       flexGrow: 1,
     },
   }),
   container: {
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
   },
   inlineProgressIndicator: {
     height: 17,
     position: 'absolute',
-    right: globalMargins.small,
-    top: globalMargins.small,
+    right: Styles.globalMargins.small,
+    top: Styles.globalMargins.small,
     width: 17,
   },
-  tab: platformStyles({
+  tab: Styles.platformStyles({
     isElectron: {
       flexGrow: 1,
     },
     isMobile: {
-      paddingLeft: globalMargins.tiny,
-      paddingRight: globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     },
   }),
   tabContainer: {
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
     flexBasis: '100%',
     marginTop: 0,
   },

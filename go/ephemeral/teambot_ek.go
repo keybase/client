@@ -49,7 +49,7 @@ func (k *TeambotEphemeralKeyer) Type() keybase1.TeamEphemeralKeyType {
 }
 
 func postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig, box string) (err error) {
-	defer mctx.TraceTimed("postNewTeambotEK", func() error { return err })()
+	defer mctx.Trace("postNewTeambotEK", &err)()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "teambot/key",
@@ -70,7 +70,7 @@ func postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig, box s
 func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybase1.UID,
 	seed TeambotEKSeed, metadata *keybase1.TeambotEkMetadata,
 	merkleRoot libkb.MerkleRoot) (sig string, box *keybase1.TeambotEkBoxed, err error) {
-	defer mctx.TraceTimed("prepareNewTeambotEK", func() error { return err })()
+	defer mctx.Trace("prepareNewTeambotEK", &err)()
 
 	statement, _, _, err := fetchUserEKStatement(mctx, botUID)
 	if err != nil {
@@ -119,7 +119,7 @@ func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybas
 }
 
 func fetchLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID) (metadata *keybase1.TeambotEkMetadata, wrongKID bool, err error) {
-	defer mctx.TraceTimed("fetchLatestTeambotEK", func() error { return err })()
+	defer mctx.Trace("fetchLatestTeambotEK", &err)()
 
 	var parsedResponse teambot.TeambotKeyResponse
 	gotResult := false
@@ -172,7 +172,7 @@ func extractTeambotEKMetadataFromSig(sig string) (*kbcrypto.NaclSigningKeyPublic
 // given team's latest PTK, then parse its contents.
 func verifyTeambotSigWithLatestPTK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string) (
 	metadata *keybase1.TeambotEkMetadata, wrongKID bool, err error) {
-	defer mctx.TraceTimed("verifyTeambotSigWithLatestPTK", func() error { return err })()
+	defer mctx.Trace("verifyTeambotSigWithLatestPTK", &err)()
 
 	signerKey, metadata, err := extractTeambotEKMetadataFromSig(sig)
 	if err != nil {
@@ -220,7 +220,7 @@ func verifyTeambotSigWithLatestPTK(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 func (k *TeambotEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.TeamEphemeralKeyBoxed,
 	contentCtime *gregor1.Time) (ek keybase1.TeamEphemeralKey, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("TeambotEphemeralKeyer#Unbox: teambotEKGeneration: %v", boxed.Generation()), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("TeambotEphemeralKeyer#Unbox: teambotEKGeneration: %v", boxed.Generation()), &err)()
 
 	typ, err := boxed.KeyType()
 	if err != nil {

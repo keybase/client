@@ -32,7 +32,7 @@ const AccountNameMaxRunes = 24
 // Only succeeds if they do not already have one.
 // Safe (but wasteful) to call even if the user has a bundle already.
 func CreateWallet(mctx libkb.MetaContext) (created bool, err error) {
-	defer mctx.TraceTimed("Stellar.CreateWallet", func() error { return err })()
+	defer mctx.Trace("Stellar.CreateWallet", &err)()
 	loggedInUsername := mctx.ActiveDevice().Username(mctx)
 	if !loggedInUsername.IsValid() {
 		return false, fmt.Errorf("could not get logged-in username")
@@ -77,7 +77,7 @@ type CreateWalletGatedResult struct {
 // Taking into account settings from the server.
 // It should be speedy to call repeatedly _if_ the user gets a wallet.
 func CreateWalletGated(mctx libkb.MetaContext) (res CreateWalletGatedResult, err error) {
-	defer mctx.TraceTimed("Stellar.CreateWalletGated", func() error { return err })()
+	defer mctx.Trace("Stellar.CreateWalletGated", &err)()
 	defer func() {
 		mctx.Debug("CreateWalletGated: (res:%+v, err:%v)", res, err != nil)
 	}()
@@ -94,7 +94,7 @@ func CreateWalletGated(mctx libkb.MetaContext) (res CreateWalletGatedResult, err
 }
 
 func createWalletGatedHelper(mctx libkb.MetaContext) (res CreateWalletGatedResult, err error) {
-	defer mctx.TraceTimed("Stellar.createWalletGatedHelper", func() error { return err })()
+	defer mctx.Trace("Stellar.createWalletGatedHelper", &err)()
 	defer func() {
 		mctx.Debug("createWalletGatedHelper: (res:%+v, err:%v)", res, err != nil)
 	}()
@@ -142,7 +142,7 @@ func createWalletGatedHelper(mctx libkb.MetaContext) (res CreateWalletGatedResul
 // Does not get in the way of intentional user actions.
 func CreateWalletSoft(mctx libkb.MetaContext) {
 	var err error
-	defer mctx.TraceTimed("CreateWalletSoft", func() error { return err })()
+	defer mctx.Trace("CreateWalletSoft", &err)()
 	if !mctx.G().LocalSigchainGuard().IsAvailable(mctx.Ctx(), "CreateWalletSoft") {
 		err = fmt.Errorf("yielding to guard")
 		return
@@ -151,7 +151,7 @@ func CreateWalletSoft(mctx libkb.MetaContext) {
 }
 
 func pushSimpleUpdateForAccount(mctx libkb.MetaContext, accountID stellar1.AccountID) (err error) {
-	defer mctx.TraceTimed("Stellar.Upkeep pushSimpleUpdateForAccount", func() error { return err })()
+	defer mctx.Trace("Stellar.Upkeep pushSimpleUpdateForAccount", &err)()
 	prevBundle, err := remote.FetchAccountBundle(mctx, accountID)
 	if err != nil {
 		return err
@@ -162,7 +162,7 @@ func pushSimpleUpdateForAccount(mctx libkb.MetaContext, accountID stellar1.Accou
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
 func Upkeep(mctx libkb.MetaContext) (err error) {
-	defer mctx.TraceTimed("Stellar.Upkeep", func() error { return err })()
+	defer mctx.Trace("Stellar.Upkeep", &err)()
 	_, _, prevAccountPukGens, err := remote.FetchBundleWithGens(mctx)
 	if err != nil {
 		return err
@@ -383,7 +383,7 @@ func federationLookupByAddressCtx(mctx libkb.MetaContext, addy string) (*federat
 // LookupRecipient finds a recipient.
 // `to` can be a username, social assertion, account ID, or federation address.
 func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI bool) (res stellarcommon.Recipient, err error) {
-	defer m.TraceTimed("Stellar.LookupRecipient", func() error { return err })()
+	defer m.Trace("Stellar.LookupRecipient", &err)()
 
 	res = stellarcommon.Recipient{
 		Input: to,
@@ -584,7 +584,7 @@ func SendPaymentGUI(m libkb.MetaContext, walletState *WalletState, sendArg SendP
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
 func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPaymentArg, isCLI bool) (res SendPaymentResult, err error) {
-	defer mctx.TraceTimed("Stellar.SendPayment", func() error { return err })()
+	defer mctx.Trace("Stellar.SendPayment", &err)()
 
 	// look up sender account
 	senderEntry, senderAccountBundle, err := LookupSender(mctx, sendArg.From)
@@ -1012,7 +1012,7 @@ func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payme
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
 func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID chat1.ConversationID, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
-	defer m.TraceTimed("Stellar.SendMiniChatPayments", func() error { return err })()
+	defer m.Trace("Stellar.SendMiniChatPayments", &err)()
 
 	// look up sender account
 	senderAccountID, senderSeed, err := LookupSenderSeed(m)
@@ -1253,7 +1253,7 @@ func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter,
 func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
 	secretNote string, publicMemo *stellarnet.Memo, quickReturn bool, senderEntryPrimary bool, baseFee uint64) (res SendPaymentResult, err error) {
-	defer mctx.TraceTimed("Stellar.sendRelayPayment", func() error { return err })()
+	defer mctx.Trace("Stellar.sendRelayPayment", &err)()
 	appKey, teamID, err := relays.GetKey(mctx, recipient)
 	if err != nil {
 		return res, err
@@ -1349,7 +1349,7 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 func Claim(mctx libkb.MetaContext, walletState *WalletState,
 	txID string, into stellar1.AccountID, dir *stellar1.RelayDirection,
 	autoClaimToken *string) (res stellar1.RelayClaimResult, err error) {
-	defer mctx.TraceTimed("Stellar.Claim", func() error { return err })()
+	defer mctx.Trace("Stellar.Claim", &err)()
 	mctx.Debug("Stellar.Claim(txID:%v, into:%v, dir:%v, autoClaimToken:%v)", txID, into, dir, autoClaimToken)
 	details, err := walletState.PaymentDetailsGeneric(mctx.Ctx(), txID)
 	if err != nil {
@@ -1468,7 +1468,7 @@ func GetOwnPrimaryAccountID(mctx libkb.MetaContext) (res stellar1.AccountID, err
 }
 
 func RecentPaymentsCLILocal(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
-	defer mctx.TraceTimed("Stellar.RecentPaymentsCLILocal", func() error { return err })()
+	defer mctx.Trace("Stellar.RecentPaymentsCLILocal", &err)()
 	arg := remote.RecentPaymentsArg{
 		AccountID:       accountID,
 		IncludeAdvanced: true,
@@ -1494,7 +1494,7 @@ func RecentPaymentsCLILocal(mctx libkb.MetaContext, remoter remote.Remoter, acco
 }
 
 func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, txID string) (res stellar1.PaymentCLILocal, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.PaymentDetailCLILocal", func() error { return err })()
+	defer g.CTrace(ctx, "Stellar.PaymentDetailCLILocal", &err)()
 	payment, err := remoter.PaymentDetailsGeneric(ctx, txID)
 	if err != nil {
 		return res, err
@@ -1522,7 +1522,7 @@ func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter 
 // Returns an error if a resolution was found but failed.
 // Returns ("", nil) if no resolution was found.
 func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool) (maybeUsername string, err error) {
-	defer m.TraceTimed(fmt.Sprintf("Stellar.lookupRecipientAssertion(isCLI:%v, %v)", isCLI, assertion), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("Stellar.lookupRecipientAssertion(isCLI:%v, %v)", isCLI, assertion), &err)()
 	reason := fmt.Sprintf("Find transaction recipient for %s", assertion)
 
 	// GUI is a verified lookup modeled after func ResolveAndCheck.
@@ -1804,7 +1804,7 @@ func MakeRequestCLI(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequest
 }
 
 func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg, isCLI bool) (ret stellar1.KeybaseRequestID, err error) {
-	defer m.TraceTimed("Stellar.MakeRequest", func() error { return err })()
+	defer m.Trace("Stellar.MakeRequest", &err)()
 
 	if arg.Asset == nil && arg.Currency == nil {
 		return ret, fmt.Errorf("expected either Asset or Currency, got none")
@@ -1888,7 +1888,7 @@ func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 // Verifies the result against the user's sigchain.
 // If there are no users, or multiple users, returns NotFoundError.
 func LookupUserByAccountID(m libkb.MetaContext, accountID stellar1.AccountID) (uv keybase1.UserVersion, un libkb.NormalizedUsername, err error) {
-	defer m.TraceTimed(fmt.Sprintf("Stellar.LookupUserByAccount(%v)", accountID), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("Stellar.LookupUserByAccount(%v)", accountID), &err)()
 	usersUnverified, err := remote.LookupUnverified(m.Ctx(), m.G(), accountID)
 	if err != nil {
 		return uv, un, err
@@ -1906,7 +1906,7 @@ func LookupUserByAccountID(m libkb.MetaContext, accountID stellar1.AccountID) (u
 	uv = usersUnverified[0]
 	// Verify that `uv` (from server) matches `accountID`.
 	verify := func(forcePoll bool) (upak *keybase1.UserPlusKeysV2AllIncarnations, retry bool, err error) {
-		defer m.TraceTimed(fmt.Sprintf("verify(forcePoll:%v, accountID:%v, uv:%v)", forcePoll, accountID, uv), func() error { return err })()
+		defer m.Trace(fmt.Sprintf("verify(forcePoll:%v, accountID:%v, uv:%v)", forcePoll, accountID, uv), &err)()
 		upak, _, err = m.G().GetUPAKLoader().LoadV2(
 			libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional().WithUID(uv.Uid).WithForcePoll(forcePoll))
 		if err != nil {

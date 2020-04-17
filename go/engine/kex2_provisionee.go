@@ -170,7 +170,7 @@ func (e *Kex2Provisionee) GetNetworkInstrumenter() rpc.NetworkInstrumenterStorag
 // HandleHello implements HandleHello in kex2.Provisionee.
 func (e *Kex2Provisionee) HandleHello(_ context.Context, harg keybase1.HelloArg) (res keybase1.HelloRes, err error) {
 	m := e.mctx
-	defer m.Trace("Kex2Provisionee#HandleHello", func() error { return err })()
+	defer m.Trace("Kex2Provisionee#HandleHello", &err)()
 	e.pps = harg.Pps
 	res, err = e.handleHello(m, harg.Uid, harg.Token, harg.Csrf, harg.SigBody)
 	return res, err
@@ -231,7 +231,7 @@ func (e *Kex2Provisionee) handleHello(m libkb.MetaContext, uid keybase1.UID, tok
 // HandleHello2 implements HandleHello2 in kex2.Provisionee.
 func (e *Kex2Provisionee) HandleHello2(_ context.Context, harg keybase1.Hello2Arg) (res keybase1.Hello2Res, err error) {
 	m := e.mctx
-	defer m.Trace("Kex2Provisionee#HandleHello2()", func() error { return err })()
+	defer m.Trace("Kex2Provisionee#HandleHello2()", &err)()
 	var res1 keybase1.HelloRes
 	res1, err = e.handleHello(m, harg.Uid, harg.Token, harg.Csrf, harg.SigBody)
 	if err != nil {
@@ -248,7 +248,7 @@ func (e *Kex2Provisionee) HandleHello2(_ context.Context, harg keybase1.Hello2Ar
 
 func (e *Kex2Provisionee) HandleDidCounterSign2(_ context.Context, arg keybase1.DidCounterSign2Arg) (err error) {
 	mctx := e.mctx
-	defer mctx.Trace("Kex2Provisionee#HandleDidCounterSign2()", func() error { return err })()
+	defer mctx.Trace("Kex2Provisionee#HandleDidCounterSign2()", &err)()
 	var ppsBytes []byte
 	ppsBytes, _, err = e.dh.DecryptFromString(arg.PpsEncrypted)
 	if err != nil {
@@ -271,7 +271,7 @@ func (e *Kex2Provisionee) HandleDidCounterSign(_ context.Context, sig []byte) (e
 
 func (e *Kex2Provisionee) handleDidCounterSign(m libkb.MetaContext, sig []byte, perUserKeyBox *keybase1.PerUserKeyBox, userEKBox *keybase1.UserEkBoxed) (err error) {
 
-	defer m.Trace("Kex2Provisionee#handleDidCounterSign()", func() error { return err })()
+	defer m.Trace("Kex2Provisionee#handleDidCounterSign()", &err)()
 
 	// load self user (to load merkle root)
 	m.Debug("| running for username %s", e.username)
@@ -362,7 +362,7 @@ func (e *Kex2Provisionee) handleDidCounterSign(m libkb.MetaContext, sig []byte, 
 // updateTemporarySession commits the session token and csrf token to our temporary session,
 // stored in our provisional login context. We'll need that to post successfully.
 func (e *Kex2Provisionee) updateTemporarySession(m libkb.MetaContext, uv keybase1.UserVersion) (err error) {
-	defer m.Trace("Kex2Provisionee#updateTemporarySession", func() error { return err })()
+	defer m.Trace("Kex2Provisionee#updateTemporarySession", &err)()
 	m.Debug("login context: %T %+v", m.LoginContext(), m.LoginContext())
 	return m.LoginContext().SaveState(string(e.sessionToken), string(e.csrfToken), libkb.NewNormalizedUsername(e.username), uv, e.device.ID)
 }
@@ -570,7 +570,7 @@ func (e *Kex2Provisionee) dhKeyProof(m libkb.MetaContext, dh libkb.GenericKey, e
 }
 
 func (e *Kex2Provisionee) pushLKSServerHalf(m libkb.MetaContext) (err error) {
-	defer m.Trace("Kex2Provisionee#pushLKSServerHalf", func() error { return err })()
+	defer m.Trace("Kex2Provisionee#pushLKSServerHalf", &err)()
 
 	// make new lks
 	ppstream := libkb.NewPassphraseStream(e.pps.PassphraseStream)
@@ -624,7 +624,7 @@ func (e *Kex2Provisionee) saveKeys(m libkb.MetaContext) error {
 
 // cacheKeys caches the device keys in the Account object.
 func (e *Kex2Provisionee) saveConfig(m libkb.MetaContext, uv keybase1.UserVersion) (err error) {
-	defer m.Trace("Kex2Provisionee#saveConfig", func() error { return err })()
+	defer m.Trace("Kex2Provisionee#saveConfig", &err)()
 	if e.eddsa == nil {
 		return errors.New("cacheKeys called, but eddsa key is nil")
 	}

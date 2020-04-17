@@ -214,7 +214,7 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 	key := c.lastKey
 	c.Unlock()
 
-	defer c.M().TraceTimed(fmt.Sprintf("levelDbCleaner(%s) clean, config: %v", c.dbName, c.config), func() error { return err })()
+	defer c.M().Trace(fmt.Sprintf("levelDbCleaner(%s) clean, config: %v", c.dbName, c.config), &err)()
 	defer func() {
 		c.Lock()
 		defer c.Unlock()

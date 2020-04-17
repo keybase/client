@@ -158,13 +158,13 @@ func (s *Source) GetBuiltinCommandType(ctx context.Context, c types.Conversation
 }
 
 func (s *Source) ListCommands(ctx context.Context, uid gregor1.UID, conv types.ConversationCommandsSpec) (res chat1.ConversationCommandGroups, err error) {
-	defer s.Trace(ctx, func() error { return err }, "ListCommands")()
+	defer s.Trace(ctx, &err, "ListCommands")()
 	return chat1.NewConversationCommandGroupsWithBuiltin(s.GetBuiltinCommandType(ctx, conv)), nil
 }
 
 func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName string, body chat1.MessageBody, replyTo *chat1.MessageID) (handled bool, err error) {
-	defer s.Trace(ctx, func() error { return err }, "AttemptBuiltinCommand")()
+	defer s.Trace(ctx, &err, "AttemptBuiltinCommand")()
 	if !body.IsType(chat1.MessageType_TEXT) {
 		return false, nil
 	}
@@ -188,7 +188,7 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 
 func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string) {
-	defer s.Trace(ctx, func() error { return nil }, "PreviewBuiltinCommand")()
+	defer s.Trace(ctx, nil, "PreviewBuiltinCommand")()
 
 	// always try bot command, it might do something and is mutually exclusive with the rest of this
 	// function

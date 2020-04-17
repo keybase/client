@@ -1,11 +1,12 @@
-import * as Constants from '../../constants/tracker2'
-import * as Container from '../../util/container'
 import Profile2, {BackgroundColorType} from '.'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
+import * as Constants from '../../constants/tracker2'
 import * as Types from '../../constants/types/tracker2'
+import * as Styles from '../../styles'
+import * as Container from '../../util/container'
+import {memoize} from '../../util/memoize'
 
 export type OwnProps = Container.RouteProps<{username: string}>
 
@@ -18,6 +19,11 @@ const headerBackgroundColorType = (state: Types.DetailsState, followThem: boolea
     return followThem ? 'green' : 'blue'
   }
 }
+
+const filterWebOfTrustEntries = memoize(
+  (webOfTrustEntries: Array<Types.WebOfTrustEntry> | undefined): Array<Types.WebOfTrustEntry> =>
+    webOfTrustEntries ? webOfTrustEntries.filter(Constants.showableWotEntry) : []
+)
 
 const connected = Container.namedConnect(
   (state, ownProps: OwnProps) => {
@@ -51,8 +57,13 @@ const connected = Container.namedConnect(
     if (!notAUser) {
       // Keybase user
       const followThem = Constants.followThem(state, username)
-      const {followersCount, followingCount, followers, following, reason, webOfTrustEntries} = d
+      const {followersCount, followingCount, followers, following, reason, webOfTrustEntries = []} = d
       const mutualFollow = followThem && Constants.followsYou(state, username)
+
+      const filteredWot = filterWebOfTrustEntries(webOfTrustEntries)
+      const hasAlreadyVouched = filteredWot.some(entry => entry.attestingUser === myName)
+      const vouchShowButton = mutualFollow && !hasAlreadyVouched
+      const vouchDisableButton = !vouchShowButton || d.state !== 'valid' || d.resetBrokeTrack
 
       return {
         ...commonProps,
@@ -64,12 +75,13 @@ const connected = Container.namedConnect(
         followersCount,
         following,
         followingCount,
-        mutualFollow,
         reason,
         sbsAvatarUrl: undefined,
         serviceIcon: undefined,
         title: username,
-        webOfTrustEntries: webOfTrustEntries || [],
+        vouchDisableButton,
+        vouchShowButton,
+        webOfTrustEntries: filteredWot,
       }
     } else {
       // SBS profile. But `nonUserDetails` might not have arrived yet,
@@ -86,21 +98,24 @@ const connected = Container.namedConnect(
         ...commonProps,
         backgroundColorType: headerBackgroundColorType(d.state, false),
         fullName: nonUserDetails.fullName,
-        mutualFollow: false,
         name,
         sbsAvatarUrl: nonUserDetails.pictureUrl || undefined,
         service,
         serviceIcon: Styles.isDarkMode() ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
         title,
+        vouchDisableButton: true,
+        vouchShowButton: false,
         webOfTrustEntries: [],
       }
     }
   },
   dispatch => ({
     _onEditAvatar: () => dispatch(ProfileGen.createEditAvatar()),
-    _onIKnowThem: (username: string) =>
+    _onIKnowThem: (username: string, guiID: string) =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileWotAuthor'}]})
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {guiID, username}, selected: 'profileWotAuthor'}],
+        })
       ),
     _onReload: (username: string, isYou: boolean, state: Types.DetailsState) => {
       if (state !== 'valid') {
@@ -143,10 +158,6 @@ const connected = Container.namedConnect(
       assertionKeys = []
     }
 
-    const filteredWot = stateProps.webOfTrustEntries.filter(Constants.showableWotEntry)
-    const hasNotAlreadyVouched = filteredWot.every(entry => entry.attestingUser !== stateProps.myName)
-    const promptForVouch = stateProps.mutualFollow && hasNotAlreadyVouched
-
     return {
       assertionKeys,
       backgroundColorType: stateProps.backgroundColorType,
@@ -163,7 +174,10 @@ const connected = Container.namedConnect(
       onAddIdentity,
       onBack: dispatchProps.onBack,
       onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : undefined,
-      onIKnowThem: promptForVouch ? () => dispatchProps._onIKnowThem(stateProps.username) : undefined,
+      onIKnowThem:
+        stateProps.vouchShowButton && !stateProps.vouchDisableButton
+          ? () => dispatchProps._onIKnowThem(stateProps.username, stateProps.guiID)
+          : undefined,
       onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
       reason: stateProps.reason,
       sbsAvatarUrl: stateProps.sbsAvatarUrl,
@@ -176,7 +190,9 @@ const connected = Container.namedConnect(
       title: stateProps.title,
       userIsYou: stateProps.userIsYou,
       username: stateProps.username,
-      webOfTrustEntries: filteredWot,
+      vouchDisableButton: stateProps.vouchDisableButton,
+      vouchShowButton: stateProps.vouchShowButton,
+      webOfTrustEntries: stateProps.webOfTrustEntries,
     }
   },
   'Profile2'

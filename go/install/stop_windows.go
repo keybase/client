@@ -19,8 +19,8 @@ import (
 // and the watchdog dies when the service exists gracefully.
 func StopAllButService(mctx libkb.MetaContext, exitCode keybase1.ExitCode) {
 	var err error
-	defer mctx.TraceTimed(fmt.Sprintf("StopAllButService()"),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("StopAllButService()"),
+		&err)()
 	mountdir, err := mctx.G().Env.GetMountDir()
 	if err != nil {
 		mctx.Error("StopAllButService: Error in GetCurrentMountDir: %s", err.Error())

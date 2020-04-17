@@ -95,7 +95,7 @@ func (s *Giphy) queryEqual(query *string, shown *string) bool {
 
 func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string) {
-	defer s.Trace(ctx, func() error { return nil }, "Preview")()
+	defer s.Trace(ctx, nil, "Preview")()
 	s.Lock()
 	if s.currentOpCancelFn != nil {
 		s.currentOpCancelFn()

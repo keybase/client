@@ -158,7 +158,7 @@ func (idx *Indexer) SetFlushDelay(dur time.Duration) {
 }
 
 func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
-	defer idx.Trace(ctx, func() error { return nil }, "Start")()
+	defer idx.Trace(ctx, nil, "Start")()
 	idx.Lock()
 	defer idx.Unlock()
 	if idx.started {
@@ -289,7 +289,7 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 }
 
 func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
-	defer idx.Trace(ctx, func() error { return nil }, "Stop")()
+	defer idx.Trace(ctx, nil, "Stop")()
 	idx.Lock()
 	defer idx.Unlock()
 	ch := make(chan struct{})
@@ -310,7 +310,7 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 }
 
 func (idx *Indexer) Suspend(ctx context.Context) bool {
-	defer idx.Trace(ctx, func() error { return nil }, "Suspend")()
+	defer idx.Trace(ctx, nil, "Suspend")()
 	idx.Lock()
 	defer idx.Unlock()
 	if !idx.started {
@@ -330,7 +330,7 @@ func (idx *Indexer) Suspend(ctx context.Context) bool {
 }
 
 func (idx *Indexer) Resume(ctx context.Context) bool {
-	defer idx.Trace(ctx, func() error { return nil }, "Resume")()
+	defer idx.Trace(ctx, nil, "Resume")()
 	idx.Lock()
 	defer idx.Unlock()
 	if idx.suspendCount > 0 {
@@ -464,7 +464,7 @@ func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
 		return cb, nil
 	}
 
-	defer idx.Trace(ctx, func() error { return err },
+	defer idx.Trace(ctx, &err,
 		fmt.Sprintf("Indexer.Add conv: %v, msgs: %d, force: %v",
 			convID, len(msgs), force))()
 	idx.storageDispatch(storageAdd{
@@ -504,7 +504,7 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 		return cb, nil
 	}
 
-	defer idx.Trace(ctx, func() error { return err },
+	defer idx.Trace(ctx, &err,
 		fmt.Sprintf("Indexer.Remove conv: %v, msgs: %d, force: %v",
 			convID, len(msgs), force))()
 	idx.storageDispatch(storageRemove{
@@ -535,7 +535,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 	minIdxID := missingIDs[0]
 	maxIdxID := missingIDs[len(missingIDs)-1]
 
-	defer idx.Trace(ctx, func() error { return err },
+	defer idx.Trace(ctx, &err,
 		fmt.Sprintf("Indexer.reindex: conv: %v, minID: %v, maxID: %v, numMissing: %v",
 			utils.GetRemoteConvDisplayName(rconv), minIdxID, maxIdxID, len(missingIDs)))()
 
@@ -683,7 +683,7 @@ func (idx *Indexer) convsPrioritySorted(ctx context.Context,
 // for each token, returning matches.
 func (idx *Indexer) Search(ctx context.Context, query, origQuery string,
 	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (res *chat1.ChatSearchInboxResults, err error) {
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.Search")()
+	defer idx.Trace(ctx, &err, "Indexer.Search")()
 	defer func() {
 		// get a selective sync to run after the search completes even if we
 		// errored.
@@ -721,8 +721,8 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 // periodically so our index can cover all conversations. The number of jobs
 // varies between desktop and mobile so mobile can be more conservative.
 func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
-	defer idx.Trace(ctx, func() error { return err }, "SelectiveSync")()
-	defer idx.PerfTrace(ctx, func() error { return err }, "SelectiveSync")()
+	defer idx.Trace(ctx, &err, "SelectiveSync")()
+	defer idx.PerfTrace(ctx, &err, "SelectiveSync")()
 	idx.setSelectiveSyncActive(true)
 	defer func() { idx.setSelectiveSyncActive(false) }()
 
@@ -770,7 +770,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 // IndexInbox is only exposed in devel for debugging/profiling the indexing
 // process.
 func (idx *Indexer) IndexInbox(ctx context.Context) (res map[chat1.ConvIDStr]chat1.ProfileSearchConvStats, err error) {
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.IndexInbox")()
+	defer idx.Trace(ctx, &err, "Indexer.IndexInbox")()
 
 	convMap, err := idx.allConvs(ctx, nil)
 	if err != nil {
@@ -794,7 +794,7 @@ func (idx *Indexer) IndexInbox(ctx context.Context) (res map[chat1.ConvIDStr]cha
 }
 
 func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteConversation) (res chat1.ProfileSearchConvStats, err error) {
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.indexConvWithProfile")()
+	defer idx.Trace(ctx, &err, "Indexer.indexConvWithProfile")()
 	md, err := idx.store.GetMetadata(ctx, conv.GetConvID())
 	if err != nil {
 		return res, err
@@ -832,7 +832,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 }
 
 func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID) (res bool, err error) {
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.FullyIndexed")()
+	defer idx.Trace(ctx, &err, "Indexer.FullyIndexed")()
 	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), idx.uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return false, err
@@ -845,7 +845,7 @@ func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationI
 }
 
 func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID) (res int, err error) {
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.PercentIndexed")()
+	defer idx.Trace(ctx, &err, "Indexer.PercentIndexed")()
 	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), idx.uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return 0, err
@@ -858,14 +858,14 @@ func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.Conversatio
 }
 
 func (idx *Indexer) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
-	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("Indexer.Clear uid: %v convID: %v", uid, convID))()
+	defer idx.Trace(ctx, &err, fmt.Sprintf("Indexer.Clear uid: %v convID: %v", uid, convID))()
 	idx.Lock()
 	defer idx.Unlock()
 	return idx.store.Clear(ctx, uid, convID)
 }
 
 func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) (err error) {
-	defer idx.Trace(mctx.Ctx(), func() error { return err }, "Indexer.OnDbNuke")()
+	defer idx.Trace(mctx.Ctx(), &err, "Indexer.OnDbNuke")()
 	idx.Lock()
 	defer idx.Unlock()
 	if !idx.started {

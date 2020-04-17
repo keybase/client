@@ -4,7 +4,7 @@ import * as Styles from '../../../../styles'
 
 const sentence1 = 'Channels can be joined by anyone, unlike subteams.'
 const sentence2 = 'Anyone except readers can create channels.'
-export default () => (
+const ChannelRow = () => (
   <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
     <Kb.InfoNote>
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -20,6 +20,7 @@ export default () => (
     </Kb.InfoNote>
   </Kb.Box2>
 )
+export default ChannelRow
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {

@@ -22,7 +22,7 @@ const hideWindow = () => {
   Electron.remote.getCurrentWindow().hide()
 }
 
-export default () => {
+const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const {config, ...rest} = state
   const {username} = config
@@ -86,3 +86,4 @@ export default () => {
     />
   )
 }
+export default RemoteContainer

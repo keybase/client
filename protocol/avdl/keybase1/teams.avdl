@@ -1264,9 +1264,29 @@ protocol teams {
     boolean isMemberShowcased;
   }
 
+  record TeamAvatar {
+    string avatarFilename;
+    union { null, ImageCropRect } crop;
+  }
+  
+  record TeamCreateFancyInfo {
+    string name;
+    string description;
+    boolean joinSubteam;
+    TeamSettings openSettings;
+    boolean showcase;
+    union { null, TeamAvatar } avatar;
+    array<string> chatChannels;
+    array<string> subteams;
+    array<UserRolePair> users;
+    union { null, string } emailInviteMessage;
+  }
+
   TeamCreateResult teamCreate(int sessionID, string name, boolean joinSubteam);
 
   TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean joinSubteam, TeamSettings settings);
+
+  TeamID teamCreateFancy(int sessionID, TeamCreateFancyInfo teamInfo);
 
   // A user can hope for success if and only if they are a member of
   // the team or an admin of any of its ancestors.

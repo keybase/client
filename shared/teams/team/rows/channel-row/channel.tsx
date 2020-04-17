@@ -73,21 +73,20 @@ const ChannelRow = (props: ChannelRowProps) => {
       <Kb.Text type="BodySemibold" lineClamp={1}>
         #{channel.channelname}
       </Kb.Text>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
+      {!!channel.description && (
         <Kb.Text type="BodySmall" lineClamp={1}>
           {channel.description}{' '}
         </Kb.Text>
-        <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
-          <Kb.Text type="BodySmall">{membersText}</Kb.Text>
-          {!Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
-          <Activity level={activityLevel} />
-        </Kb.Box2>
+      )}
+      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
+        <Kb.Text type="BodySmall">{membersText}</Kb.Text>
+        {!Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
+        <Activity level={activityLevel} />
       </Kb.Box2>
     </Kb.Box2>
   )
 
   const menuItems: Array<Kb.MenuItem> = [
-    {onClick: () => {}, title: 'Audience stats'},
     {onClick: onNavToSettings, title: 'Settings'},
     ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
   ]
@@ -101,8 +100,12 @@ const ChannelRow = (props: ChannelRowProps) => {
     />
   ))
 
-  const actions = (
-    <Kb.Box2 direction="horizontal" gap="tiny" style={styles.mobileMarginsHack}>
+  const actions = canPerform.deleteChannel ? (
+    <Kb.Box2
+      direction="horizontal"
+      gap="tiny"
+      style={canPerform.deleteChannel ? styles.mobileMarginsHack : undefined}
+    >
       {popup}
       <Kb.Button
         icon="iconfont-edit"
@@ -122,15 +125,22 @@ const ChannelRow = (props: ChannelRowProps) => {
         tooltip="More actions"
       />
     </Kb.Box2>
+  ) : (
+    undefined
   )
+  const massActionsProps = canPerform.deleteChannel
+    ? {
+        containerStyleOverride: styles.listItemMargin,
+        icon: checkCircle,
+        iconStyleOverride: styles.checkCircle,
+      }
+    : {}
   return (
     <Kb.ListItem2
+      {...massActionsProps}
       action={actions}
       onlyShowActionOnHover="fade"
       height={Styles.isMobile ? 90 : 64}
-      icon={checkCircle}
-      iconStyleOverride={styles.checkCircle}
-      containerStyleOverride={styles.listItemMargin}
       type="Large"
       body={body}
       firstItem={isGeneral}

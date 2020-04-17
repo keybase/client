@@ -5,7 +5,7 @@ import (
 )
 
 func CancelResetPipeline(mctx MetaContext) (err error) {
-	defer mctx.TraceTimed("CancelResetPipeline", func() error { return err })()
+	defer mctx.Trace("CancelResetPipeline", &err)()
 	_, err = mctx.G().API.Post(mctx, APIArg{
 		Endpoint:    "autoreset/cancel",
 		SessionType: APISessionTypeREQUIRED,
@@ -17,17 +17,17 @@ func CancelResetPipeline(mctx MetaContext) (err error) {
 }
 
 func ResetAccount(mctx MetaContext, username NormalizedUsername, passphrase string) (err error) {
-	defer mctx.Trace("ResetAccount", func() error { return err })()
+	defer mctx.Trace("ResetAccount", &err)()
 	return resetOrDeleteAccount(mctx, username, &passphrase, "nuke")
 }
 
 func DeleteAccount(mctx MetaContext, username NormalizedUsername, passphrase *string) (err error) {
-	defer mctx.Trace("DeleteAccount", func() error { return err })()
+	defer mctx.Trace("DeleteAccount", &err)()
 	return resetOrDeleteAccount(mctx, username, passphrase, "delete")
 }
 
 func resetOrDeleteAccount(mctx MetaContext, username NormalizedUsername, passphrase *string, endpoint string) (err error) {
-	defer mctx.Trace("resetOrDeleteAccount", func() error { return err })()
+	defer mctx.Trace("resetOrDeleteAccount", &err)()
 
 	arg := APIArg{
 		Endpoint:    endpoint,

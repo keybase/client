@@ -217,7 +217,7 @@ func (w *WalletState) Primed() bool {
 // UpdateAccountEntries gets the bundle from the server and updates the individual
 // account entries with the server's bundle information.
 func (w *WalletState) UpdateAccountEntries(mctx libkb.MetaContext, reason string) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("WalletState.UpdateAccountEntries [%s]", reason), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("WalletState.UpdateAccountEntries [%s]", reason), &err)()
 
 	bundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
@@ -230,7 +230,7 @@ func (w *WalletState) UpdateAccountEntries(mctx libkb.MetaContext, reason string
 // UpdateAccountEntriesWithBundle updates the individual account entries with the
 // bundle information.
 func (w *WalletState) UpdateAccountEntriesWithBundle(mctx libkb.MetaContext, reason string, bundle *stellar1.Bundle) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("WalletState.UpdateAccountEntriesWithBundle [%s]", reason), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("WalletState.UpdateAccountEntriesWithBundle [%s]", reason), &err)()
 
 	if bundle == nil {
 		return errors.New("nil bundle")
@@ -266,7 +266,7 @@ func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
 }
 
 func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("WalletState.RefreshAll [%s]", reason), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("WalletState.RefreshAll [%s]", reason), &err)()
 
 	// get all details in one call
 	all, err := w.AllDetailsPlusPayments(mctx)
@@ -711,7 +711,7 @@ func (a *AccountState) RefreshWithDetails(mctx libkb.MetaContext, router *libkb.
 }
 
 func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRouter, reason string) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("WalletState.Refresh(%s) [%s]", a.accountID, reason), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("WalletState.Refresh(%s) [%s]", a.accountID, reason), &err)()
 
 	dpp, err := a.remoter.DetailsPlusPayments(mctx.Ctx(), a.accountID)
 	if err != nil {
