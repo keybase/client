@@ -111,7 +111,7 @@ helpers.rootLinuxNode(env, {
           },
           pull_kbweb: {
             kbwebImage.pull()
-            kbwebImage.tag('897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb')
+            kbwebImage.tag('')
           },
           remove_dockers: {
             sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
