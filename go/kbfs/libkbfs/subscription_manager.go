@@ -230,7 +230,7 @@ func (sm *subscriptionManager) makePathSubscriptionDebouncedNotify(
 			return
 		}
 		sids := make([]SubscriptionID, 0, len(ps.subscriptionIDs))
-		topicsMap := make(map[keybase1.PathSubscriptionTopic]struct{}, 0)
+		topicsMap := make(map[keybase1.PathSubscriptionTopic]struct{})
 		for sid, topic := range ps.subscriptionIDs {
 			sids = append(sids, sid)
 			topicsMap[topic] = struct{}{}
