@@ -60,6 +60,9 @@ helpers.rootLinuxNode(env, {
   ])
 
   def kbwebProjectName = env.kbwebProjectName
+  def cause = helpers.getCauseString(currentBuild)
+  println "Cause: ${cause}"
+  println "Pull Request ID: ${env.CHANGE_ID}"
 
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
@@ -74,10 +77,6 @@ helpers.rootLinuxNode(env, {
 
   println "Running on host $kbwebNodePrivateIP"
   println "Setting up build: ${env.BUILD_TAG}"
-
-  def cause = helpers.getCauseString(currentBuild)
-  println "Cause: ${cause}"
-  println "Pull Request ID: ${env.CHANGE_ID}"
 
   ws("${env.GOPATH}/src/github.com/keybase/client") {
 
