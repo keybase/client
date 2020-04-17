@@ -79,6 +79,10 @@ const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean
   }, [shouldLoad, _bots, featuredBotsMap, dispatch])
 }
 
+const SectionList: typeof Kb.SectionList = Styles.isMobile
+  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
+  : Kb.SectionList
+
 const Team = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const initialTab = Container.getRouteProps(props, 'initialTab', undefined)
@@ -149,33 +153,35 @@ const Team = (props: Props) => {
   }
 
   // Animation
-  const SectionList: typeof Kb.SectionList = Styles.isMobile
-    ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
-    : Kb.SectionList
-  const offset = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
-  const onScroll = Styles.isMobile
-    ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset}}}], {useNativeDriver: true})
-    : undefined
+  const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
+  const onScroll = React.useRef(
+    Styles.isMobile
+      ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
+      : undefined
+  )
 
-  const renderSectionHeader = ({section}) =>
-    section.title ? (
-      <Kb.SectionDivider
-        label={section.title}
-        collapsed={section.collapsed}
-        onToggleCollapsed={section.onToggleCollapsed}
-      />
-    ) : null
+  const renderSectionHeader = React.useCallback(
+    ({section}) =>
+      section.title ? (
+        <Kb.SectionDivider
+          label={section.title}
+          collapsed={section.collapsed}
+          onToggleCollapsed={section.onToggleCollapsed}
+        />
+      ) : null,
+    []
+  )
 
   const body = (
     <Kb.Box style={styles.container}>
-      {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={teamID} offset={offset} />}
+      {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={teamID} offset={offset.current} />}
       <SectionList
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={Styles.isMobile}
         sections={sections}
         contentContainerStyle={styles.listContentContainer}
         style={styles.list}
-        onScroll={onScroll}
+        onScroll={onScroll.current}
       />
       <SelectionPopup
         selectedTab={
@@ -216,12 +222,12 @@ Team.navigationOptions = flags.teamsRedesign
     })
 
 const startAnimationOffset = 40
+const AnimatedBox2 = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2) : undefined
 const MobileHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: any}) => {
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
   const top = Kb.ReAnimated.interpolate(offset, {
     inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
     outputRange: [40, 40, 0, 0],
