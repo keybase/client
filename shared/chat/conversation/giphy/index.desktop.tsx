@@ -45,7 +45,7 @@ class GiphySearch extends React.Component<Props, State> {
         >
           <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="xtiny">
             <Kb.Text style={styles.instructions} type="BodySmall">
-              Tip: hit 'Enter' now to send a custom GIF.
+              Tip: hit 'Enter' now to send a random GIF.
             </Kb.Text>
             <Kb.Text
               style={styles.instructions}
