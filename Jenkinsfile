@@ -83,7 +83,7 @@ helpers.rootLinuxNode(env, {
 
     stage("Setup") {
       sh "docker rmi keybaseprivate/mysql || echo 'No mysql image to remove'"
-      docker.withRegistry("", "docker-hub-creds") {
+      docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
         parallel (
           checkout: {
             retry(3) {
@@ -324,7 +324,7 @@ helpers.rootLinuxNode(env, {
 
     stage("Push") {
       if (env.BRANCH_NAME == "master" && cause != "upstream") {
-        docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb', 'ecr:us-east-1:aws-ecr-user') {
+        docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
           sh "docker push keybaseprivate/kbfsfuse"
         }
       } else {
