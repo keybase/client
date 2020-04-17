@@ -1,5 +1,7 @@
 import * as React from 'react'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as ConfigGen from '../../../../../actions/config-gen'
+import * as DeeplinksConstants from '../../../../../constants/deeplinks'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
@@ -33,11 +35,13 @@ export default Container.connect(
     const _canPinMessage = !isTeam || (yourOperations && yourOperations.pinMessage)
     const _authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
     const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID)
+    const _label = Constants.getConversationLabel(state, meta, true)
     return {
       _authorIsBot,
       _canAdminDelete,
       _canDeleteHistory,
       _canPinMessage,
+      _label,
       _teamID: meta.teamID,
       _teamMembers,
       _you: state.config.username,
@@ -64,6 +68,10 @@ export default Container.connect(
       dispatch(RouteTreeGen.createClearModals())
       dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'attachments'}))
     },
+    _onCopyLink: (label: string, message: Types.Message) =>
+      dispatch(
+        ConfigGen.createCopyToClipboard({text: DeeplinksConstants.linkFromConvAndMessage(label, message.id)})
+      ),
     _onDelete: (message: Types.Message) => {
       dispatch(
         Chat2Gen.createMessageDelete({
@@ -73,7 +81,6 @@ export default Container.connect(
       )
       dispatch(RouteTreeGen.createClearModals())
     },
-
     _onDownload: (message: Types.MessageAttachment) => {
       dispatch(
         Chat2Gen.createAttachmentDownload({
@@ -153,6 +160,7 @@ export default Container.connect(
       isKickable: isDeleteable && !!stateProps._teamID && !yourMessage && authorInTeam,
       onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
+      onCopyLink: () => dispatchProps._onCopyLink(stateProps._label, message),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
       onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
       // We only show the share/save options for video if we have the file stored locally from a download
