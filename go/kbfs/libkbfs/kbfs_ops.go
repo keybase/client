@@ -303,6 +303,8 @@ func (fs *KBFSOpsStandard) waitForEditHistoryInitialization(
 	// Send a request to unblock, if needed.
 	select {
 	case reqChan <- struct{}{}:
+		fs.config.GetPerfLog().CDebugf(
+			ctx, "reqChan unblock waitForEditHistoryInitialization")
 	default:
 	}
 
