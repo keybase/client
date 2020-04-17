@@ -1074,7 +1074,9 @@ func removeMemberFromSubtree(ctx context.Context, g *libkb.GlobalContext, target
 	if err != nil {
 		return err
 	}
+	mctx.Warning("MADE A LOADER")
 	teamTreeMemberships, err := treeloader.LoadSync(mctx)
+	mctx.Warning("%#v %#v", teamTreeMemberships, err)
 	if err != nil {
 		return err
 	}

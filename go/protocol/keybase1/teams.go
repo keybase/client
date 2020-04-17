@@ -4568,6 +4568,15 @@ type TeamAddMembersMultiRoleArg struct {
 	EmailInviteMessage   *string        `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
 }
 
+type TeamRemoveMemberArg struct {
+	SessionID     int          `codec:"sessionID" json:"sessionID"`
+	TeamID        TeamID       `codec:"teamID" json:"teamID"`
+	Username      string       `codec:"username" json:"username"`
+	Email         string       `codec:"email" json:"email"`
+	InviteID      TeamInviteID `codec:"inviteID" json:"inviteID"`
+	AllowInaction bool         `codec:"allowInaction" json:"allowInaction"`
+}
+
 type TeamRemoveMembersArg struct {
 	SessionID               int                  `codec:"sessionID" json:"sessionID"`
 	TeamID                  TeamID               `codec:"teamID" json:"teamID"`
@@ -4864,6 +4873,7 @@ type TeamsInterface interface {
 	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
 	TeamAddMembers(context.Context, TeamAddMembersArg) (TeamAddMembersResult, error)
 	TeamAddMembersMultiRole(context.Context, TeamAddMembersMultiRoleArg) (TeamAddMembersResult, error)
+	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamRemoveMembers(context.Context, TeamRemoveMembersArg) (TeamRemoveMembersResult, error)
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
@@ -5175,6 +5185,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamAddMembersMultiRole(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamRemoveMember": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamRemoveMemberArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamRemoveMemberArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamRemoveMemberArg)(nil), args)
+						return
+					}
+					err = i.TeamRemoveMember(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -6009,6 +6034,11 @@ func (c TeamsClient) TeamAddMembers(ctx context.Context, __arg TeamAddMembersArg
 
 func (c TeamsClient) TeamAddMembersMultiRole(ctx context.Context, __arg TeamAddMembersMultiRoleArg) (res TeamAddMembersResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembersMultiRole", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMemberArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

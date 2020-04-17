@@ -4138,6 +4138,35 @@
       ],
       "response": "TeamAddMembersResult"
     },
+    "teamRemoveMember": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "email",
+          "type": "string"
+        },
+        {
+          "name": "inviteID",
+          "type": "TeamInviteID"
+        },
+        {
+          "name": "allowInaction",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
     "teamRemoveMembers": {
       "request": [
         {

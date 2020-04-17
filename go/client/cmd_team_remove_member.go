@@ -213,15 +213,15 @@ func (c *CmdTeamRemoveMember) Run() error {
 			case keybase1.TeamMemberToRemoveType_ASSERTION:
 				name = member.Assertion().Assertion
 			case keybase1.TeamMemberToRemoveType_INVITEID:
-				name = fmt.Sprintf("invite id %s", member.Inviteid().InviteID)
+				name = fmt.Sprintf("invite id %s\n", member.Inviteid().InviteID)
 			default:
-				return fmt.Errorf("Could not handle member type %v", typ)
+				return fmt.Errorf("Could not handle member type %v\n", typ)
 			}
 			if failure.ErrorAtTarget != nil {
-				ui.Printf("Could not remove %s from team: %s", name, *failure.ErrorAtTarget)
+				ui.Printf("Could not remove %s from team: %s\n", name, *failure.ErrorAtTarget)
 			}
 			if failure.ErrorAtSubtree != nil {
-				ui.Printf("Could not remove %s from subtree: %s", name, *failure.ErrorAtSubtree)
+				ui.Printf("Could not remove %s from subtree: %s\n", name, *failure.ErrorAtSubtree)
 			}
 		}
 

@@ -41,10 +41,11 @@ func NewTreeloader(mctx libkb.MetaContext, targetUsername string,
 	}
 
 	l := &Treeloader{
-		targetUsername: targetUsername,
-		targetTeamID:   targetTeamID,
-		guid:           guid,
-		targetUV:       upak.Current.ToUserVersion(),
+		targetUsername:   targetUsername,
+		targetTeamID:     targetTeamID,
+		guid:             guid,
+		targetUV:         upak.Current.ToUserVersion(),
+		includeAncestors: includeAncestors,
 	}
 	l.Converter = l
 	return l, nil
@@ -121,7 +122,7 @@ type notification struct {
 
 func newPartialNotification(teamName keybase1.TeamName, result keybase1.TeamTreeMembershipResult) notification {
 	return notification{
-		typ:                 treeloaderNotificationTypeDone,
+		typ:                 treeloaderNotificationTypePartial,
 		teamName:            teamName,
 		partialNotification: &result,
 	}

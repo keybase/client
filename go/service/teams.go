@@ -952,3 +952,7 @@ func (h *TeamsHandler) GetInviteLinkDetails(ctx context.Context, inviteID keybas
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetInviteLinkDetails(mctx, inviteID)
 }
+
+func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
+	return nil
+}

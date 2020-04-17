@@ -1404,6 +1404,7 @@ protocol teams {
   // For non-invite members (except for keybase-type invites), one can optionally remove the member
   // from all subteams recursively as well by passing removeFromSubtree. Failure in this
   // step is recorded separately from failure in removal from teamID.
+  void teamRemoveMember(int sessionID, TeamID teamID, string username, string email, TeamInviteID inviteID, boolean allowInaction);
   TeamRemoveMembersResult teamRemoveMembers(
     int sessionID,
     TeamID teamID,
@@ -1412,8 +1413,8 @@ protocol teams {
     // were some successes and some failures. It is the caller's responsibility to check
     // TeamRemoveMembersResult and handle the errors. However, the call can still error out in the
     // normal means if the RPC fails at a preliminary step.
-	// This is mainly used for the GUI because it cannot both get an error and inspect the results
-	// at the same time.
+  // This is mainly used for the GUI because it cannot both get an error and inspect the results
+  // at the same time.
     boolean noErrorOnPartialFailure
   );
   /* Team remove members - end */
