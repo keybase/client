@@ -256,7 +256,7 @@ class Teams extends React.PureComponent<Props, State> {
         const reset = this.props.teamresetusers.get(team.id)
         const resetUserCount = (reset && reset.size) || 0
         if (flags.teamsRedesign) {
-          return <TeamRowNew firstItem={index === 1} showChat={!Styles.isMobile} teamID={team.id} />
+          return <TeamRowNew firstItem={index === 2} showChat={!Styles.isMobile} teamID={team.id} />
         }
         return (
           <TeamRow
