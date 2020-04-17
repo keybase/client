@@ -85,7 +85,17 @@
   [self.window makeKeyAndVisible];
 
   // To simplify the cover animation raciness
-  self.resignImageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
+  
+  // make a square of the biggest screen dimension to handle rotate snapshot
+  CGRect screenRect = [UIScreen mainScreen].bounds;
+  CGFloat dim = screenRect.size.width;
+  if (screenRect.size.height > dim) {
+    dim = screenRect.size.height;
+  }
+  CGRect square;
+  square = CGRectMake(screenRect.origin.x, screenRect.origin.y, dim, dim);
+  self.resignImageView = [[UIImageView alloc] initWithFrame:square];
+  
   self.resignImageView.contentMode = UIViewContentModeCenter;
   self.resignImageView.alpha = 0;
   self.resignImageView.backgroundColor = rootView.backgroundColor;
