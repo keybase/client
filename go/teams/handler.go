@@ -583,20 +583,20 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	for _, seitan := range msg.Seitans {
 		inviteMD, found := team.chain().FindActiveInviteMDByID(seitan.InviteID)
 		if !found {
-			g.Log.CDebugf(ctx, "Couldn't find specified invite id %q; skipping", seitan.InviteID)
+			mctx.Debug("Couldn't find specified invite id %q; skipping", seitan.InviteID)
 			continue
 		}
 		invite := inviteMD.Invite
 
-		g.Log.CDebugf(ctx, "Processing Seitan acceptance for invite %s", invite.Id)
+		mctx.Debug("Processing Seitan acceptance for invite %s", invite.Id)
 
 		err := verifySeitanSingle(ctx, g, team, invite, seitan)
 		if err != nil {
-			if _, isInviteLinkAcceptanceError := err.(InviteLinkAcceptanceError); isInviteLinkAcceptanceError {
-				g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: %v; ignoring and scheduling for rejection", err)
+			if _, ok := err.(InviteLinkAcceptanceError); ok {
+				mctx.Debug("Provided AKey failed to verify with error: %v; ignoring and scheduling for rejection", err)
 				invitesToReject = append(invitesToReject, seitan)
 			} else {
-				g.Log.CDebugf(ctx, "Provided AKey failed to verify with error: %v; ignoring", err)
+				mctx.Debug("Provided AKey failed to verify with error: %v; ignoring", err)
 			}
 			continue
 		}
@@ -604,34 +604,34 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		uv := NewUserVersion(seitan.Uid, seitan.EldestSeqno)
 		currentRole, err := team.MemberRole(ctx, uv)
 		if err != nil {
-			g.Log.CDebugf(ctx, "Failure in team.MemberRole: %v", err)
+			mctx.Debug("Failure in team.MemberRole: %v", err)
 			return err
 		}
 
 		err = tx.CanConsumeInvite(ctx, invite.Id)
 		if err != nil {
-			if _, isInviteLinkAcceptanceError := err.(InviteLinkAcceptanceError); isInviteLinkAcceptanceError {
-				g.Log.CDebugf(ctx, "Can't use invite: %s; ignoring and scheduling for rejection", err)
+			if _, ok := err.(InviteLinkAcceptanceError); ok {
+				mctx.Debug("Can't use invite: %s; ignoring and scheduling for rejection", err)
 				invitesToReject = append(invitesToReject, seitan)
 			} else {
-				g.Log.CDebugf(ctx, "Can't use invite: %s", err)
+				mctx.Debug("Can't use invite: %s", err)
 			}
 			continue
 		}
 
 		isNewStyle, err := IsNewStyleInvite(invite)
 		if err != nil {
-			g.Log.CDebugf(ctx, "Error checking whether invite is new-style: %s", isNewStyle)
+			mctx.Debug("Error checking whether invite is new-style: %s", isNewStyle)
 			continue
 		}
 
 		if currentRole.IsOrAbove(invite.Role) {
-			g.Log.CDebugf(ctx, "User already has same or higher role.")
+			mctx.Debug("User already has same or higher role.")
 			if !isNewStyle {
-				g.Log.CDebugf(ctx, "User already has same or higher role; since is not a new-style invite, cancelling invite.")
+				mctx.Debug("User already has same or higher role; since is not a new-style invite, cancelling invite.")
 				tx.CancelInvite(invite.Id, uv.Uid)
 			} else {
-				g.Log.CDebugf(ctx, "User already has same or higher role; scheduling for rejection.")
+				mctx.Debug("User already has same or higher role; scheduling for rejection.")
 				invitesToReject = append(invitesToReject, seitan)
 			}
 			continue
@@ -639,7 +639,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		err = tx.AddMemberByUV(ctx, uv, invite.Role, nil)
 		if err != nil {
-			g.Log.CDebugf(ctx, "Failed to add %v to transaction: %v", uv, err)
+			mctx.Debug("Failed to add %v to transaction: %v", uv, err)
 			continue
 		}
 
@@ -650,7 +650,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		// PUK and status is set to ACCEPTED.
 		err = tx.ConsumeInviteByID(ctx, invite.Id, uv)
 		if err != nil {
-			g.Log.CDebugf(ctx, "Failed to consume invite: %v", err)
+			mctx.Debug("Failed to consume invite: %v", err)
 			continue
 		}
 
@@ -662,7 +662,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	}
 
 	if tx.IsEmpty() {
-		g.Log.CDebugf(ctx, "Transaction is empty - nothing to post")
+		mctx.Debug("Transaction is empty - nothing to post")
 	} else {
 		err = tx.Post(mctx)
 		if err != nil {
@@ -671,7 +671,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 		// Send chats
 		for _, chat := range chats {
-			g.Log.CDebugf(ctx, "sending welcome message for successful Seitan handle: inviter: %s invitee: %s, role: %v",
+			mctx.Debug("sending welcome message for successful Seitan handle: inviter: %s invitee: %s, role: %v",
 				chat.inviter, chat.invitee, chat.role)
 			SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), keybase1.TeamInviteCategory_SEITAN,
 				chat.inviter, chat.invitee, chat.role)

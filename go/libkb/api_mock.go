@@ -138,7 +138,6 @@ func (a *APIArgRecorder) PostDecodeCtx(ctx context.Context, arg APIArg, arw APIR
 	err := a.API.PostDecodeCtx(ctx, arg, arw)
 	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodPostDecodeCtx, RespWrapper: arw, Err: err})
 	return err
-
 }
 func (a *APIArgRecorder) PostRaw(mctx MetaContext, arg APIArg, s string, r io.Reader) (*APIRes, error) {
 	res, err := a.API.PostRaw(mctx, arg, s, r)
@@ -149,6 +148,52 @@ func (a *APIArgRecorder) Delete(mctx MetaContext, arg APIArg) (*APIRes, error) {
 	res, err := a.API.Delete(mctx, arg)
 	a.Records = append(a.Records, APIRecord{Arg: arg, Method: MethodDelete, Res: res, Err: err})
 	return res, err
+}
+
+// APIRouter forwards each API call to one of the underlying API implementations
+// depending on an internal filter function passed to its constructor. Be
+// careful that the filter always returns a value in bound for the api array.
+// This is meant to be used in tests to mock some but not all api calls.
+type APIRouter struct {
+	APIs   []API
+	Filter func(arg APIArg, method APIMethodType) int
+}
+
+var _ API = (*APIRouter)(nil)
+
+func NewAPIRouter(apis []API, filter func(arg APIArg, method APIMethodType) int) *APIRouter {
+	return &APIRouter{APIs: apis, Filter: filter}
+}
+
+func (a *APIRouter) Get(mctx MetaContext, arg APIArg) (*APIRes, error) {
+	return a.APIs[a.Filter(arg, MethodGet)].Get(mctx, arg)
+}
+func (a *APIRouter) GetDecode(mctx MetaContext, arg APIArg, arw APIResponseWrapper) error {
+	return a.APIs[a.Filter(arg, MethodGetDecode)].GetDecode(mctx, arg, arw)
+}
+func (a *APIRouter) GetDecodeCtx(ctx context.Context, arg APIArg, arw APIResponseWrapper) error {
+	return a.APIs[a.Filter(arg, MethodGetDecodeCtx)].GetDecodeCtx(ctx, arg, arw)
+}
+func (a *APIRouter) GetResp(mctx MetaContext, arg APIArg) (*http.Response, func(), error) {
+	return a.APIs[a.Filter(arg, MethodGetResp)].GetResp(mctx, arg)
+}
+func (a *APIRouter) Post(mctx MetaContext, arg APIArg) (*APIRes, error) {
+	return a.APIs[a.Filter(arg, MethodPost)].Post(mctx, arg)
+}
+func (a *APIRouter) PostJSON(mctx MetaContext, arg APIArg) (*APIRes, error) {
+	return a.APIs[a.Filter(arg, MethodPostJSON)].PostJSON(mctx, arg)
+}
+func (a *APIRouter) PostDecode(mctx MetaContext, arg APIArg, arw APIResponseWrapper) error {
+	return a.APIs[a.Filter(arg, MethodPostDecode)].PostDecode(mctx, arg, arw)
+}
+func (a *APIRouter) PostDecodeCtx(ctx context.Context, arg APIArg, arw APIResponseWrapper) error {
+	return a.APIs[a.Filter(arg, MethodPostDecodeCtx)].PostDecodeCtx(ctx, arg, arw)
+}
+func (a *APIRouter) PostRaw(mctx MetaContext, arg APIArg, s string, r io.Reader) (*APIRes, error) {
+	return a.APIs[a.Filter(arg, MethodPostRaw)].PostRaw(mctx, arg, s, r)
+}
+func (a *APIRouter) Delete(mctx MetaContext, arg APIArg) (*APIRes, error) {
+	return a.APIs[a.Filter(arg, MethodDelete)].Delete(mctx, arg)
 }
 
 type ErrorMockAPI struct{}

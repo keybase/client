@@ -234,14 +234,27 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 	teamName, teamID := createTeam2(tc)
 	t.Logf("Created team %s", teamName)
 
-	// Add team invite link which expires in an hour.
+	// Add team invite link which expires in 10 minutes.
 	expTime := keybase1.ToUnixTime(clock.Now().Add(10 * time.Minute))
 	invLink, err := CreateInvitelink(tc.MetaContext(), teamName.String(), keybase1.TeamRole_READER, keybase1.TeamMaxUsesInfinite,
 		&expTime)
 	require.NoError(t, err)
 
-	API := libkb.NewAPIArgRecorder(tc.G.API)
-	tc.G.API = API
+	origAPI := tc.G.API
+	RecordAPI := libkb.NewAPIArgRecorder(origAPI)
+	// This API records all calls but silently drops the ones for
+	// team/reject_invite_acceptance. Sometimes we need this to avoid having to
+	// post the invite again (which would be non deterministic, as the rejection
+	// might not have been accepted depending on team rekeyd's state).
+	DropRejectCallsAPI := libkb.NewAPIArgRecorder(
+		libkb.NewAPIRouter(
+			[]libkb.API{origAPI, &libkb.NullMockAPI{}},
+			func(arg libkb.APIArg, _ libkb.APIMethodType) int {
+				if arg.Endpoint == "team/reject_invite_acceptance" {
+					return 1
+				}
+				return 0
+			}))
 
 	// Accept the link as user2.
 	kbtest.LogoutAndLoginAs(tc, user2)
@@ -270,8 +283,9 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 		},
 	}
 
-	adminCallsHandleTeamSeitanAndReturnsRejectCalls := func(msg keybase1.TeamSeitanMsg) []libkb.APIRecord {
+	adminCallsHandleTeamSeitanAndReturnsRejectCalls := func(msg keybase1.TeamSeitanMsg, API *libkb.APIArgRecorder) []libkb.APIRecord {
 		kbtest.LogoutAndLoginAs(tc, admin)
+		tc.G.API = API
 		err = HandleTeamSeitan(context.TODO(), tc.G, msg)
 		require.NoError(t, err)
 		return API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
@@ -288,7 +302,7 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 	// change the eldest seqno and ensure the invite is rejected
 	fakeMsg := origMsg.DeepCopy()
 	fakeMsg.Seitans[0].EldestSeqno = 5
-	records := adminCallsHandleTeamSeitanAndReturnsRejectCalls(fakeMsg)
+	records := adminCallsHandleTeamSeitanAndReturnsRejectCalls(fakeMsg, RecordAPI)
 	require.Len(t, records, 1, "one invite acceptance should be rejected")
 	record := records[0]
 	assertRejectInviteArgs(record, accepted.inviteID, uv.Uid, keybase1.Seqno(5))
@@ -299,41 +313,21 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 	// now change the akey to something that cannot be b64 decoded
 	fakeMsg = origMsg.DeepCopy()
 	fakeMsg.Seitans[0].Akey = keybase1.SeitanAKey("*") + fakeMsg.Seitans[0].Akey[1:]
-	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(fakeMsg)
+	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(fakeMsg, DropRejectCallsAPI)
 	require.Len(t, records, 1, "one invite acceptance should be rejected")
 	record = records[0]
 	assertRejectInviteArgs(record, accepted.inviteID, uv.Uid, uv.EldestSeqno)
-	// We do not test the rejection error here, as team_rekeyd might or might
-	// not have assigned the admin the job to process this invite acceptance yet
-	// and so the server might or might not accept this rejection. However, if
-	// the cancellation succeeded, we post the acceptance again so the test can
-	// continue assuming an acceptance is pending.
-	if record.Err == nil {
-		kbtest.LogoutAndLoginAs(tc, user2)
-		err = postSeitanInviteLink(tc.MetaContext(), accepted)
-		require.NoError(t, err)
-	}
 
 	// now change the akey to something that can be decoded but is not the correct key
 	fakeMsg2 := origMsg.DeepCopy()
 	fakeMsg2.Seitans[0].Akey = keybase1.SeitanAKey("aaaaaa") + fakeMsg2.Seitans[0].Akey[6:]
-	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(fakeMsg2)
+	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(fakeMsg2, DropRejectCallsAPI)
 	require.Len(t, records, 1, "one invite acceptance should be rejected")
 	record = records[0]
 	assertRejectInviteArgs(record, accepted.inviteID, uv.Uid, uv.EldestSeqno)
-	// We do not test the rejection error here, as team_rekeyd might or might
-	// not have assigned the admin the job to process this invite acceptance yet
-	// and so the server might or might not accept this rejection. However, if
-	// the cancellation succeeded, we post the acceptance again so the test can
-	// continue assuming an acceptance is pending.
-	if record.Err == nil {
-		kbtest.LogoutAndLoginAs(tc, user2)
-		err = postSeitanInviteLink(tc.MetaContext(), accepted)
-		require.NoError(t, err)
-	}
 
 	// when we try to handle the original invite, it should succeed without issues
-	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(origMsg)
+	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(origMsg, RecordAPI)
 	require.Len(t, records, 0, "no invite link acceptances were rejected")
 
 	// User2 leaves team.
@@ -347,7 +341,7 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 	// User2 accepts again.
 	err = postSeitanInviteLink(tc.MetaContext(), accepted)
 	require.NoError(t, err)
-	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(origMsg)
+	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(origMsg, RecordAPI)
 	require.Len(t, records, 0, "no invite acceptance should be rejected")
 	user2LeavesTeam()
 
@@ -355,7 +349,7 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(keybase1.TeamSeitanMsg{
 		TeamID:  teamID,
 		Seitans: []keybase1.TeamSeitanRequest{fakeMsg.Seitans[0], fakeMsg2.Seitans[0]},
-	})
+	}, RecordAPI)
 	require.Len(t, records, 2, "two invite acceptances should be rejected")
 	assertRejectInviteArgs(records[0], accepted.inviteID, uv.Uid, uv.EldestSeqno)
 	assertRejectInviteArgs(records[1], accepted.inviteID, uv.Uid, uv.EldestSeqno)
@@ -367,7 +361,7 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(keybase1.TeamSeitanMsg{
 		TeamID:  teamID,
 		Seitans: []keybase1.TeamSeitanRequest{fakeMsg.Seitans[0], origMsg.Seitans[0]},
-	})
+	}, RecordAPI)
 	require.Len(t, records, 1, "only one acceptance should be rejected")
 	assertRejectInviteArgs(records[0], accepted.inviteID, uv.Uid, uv.EldestSeqno)
 	user2LeavesTeam()
@@ -380,7 +374,7 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 
 	// `HandleTeamSeitan` should not return an error but skip over bad
 	// `TeamSeitanRequest` and reject it.
-	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(origMsg)
+	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(origMsg, RecordAPI)
 	require.Len(t, records, 1, "one invite acceptance should be rejected")
 	record = records[0]
 	// since this invite acceptance was already accepted once, rejection
@@ -403,4 +397,114 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 		require.Equal(t, []keybase1.UserVersion{admin.GetUserVersion()}, uvs)
 	}
 	ensureTeamOnlyHasAdminMember()
+}
+
+func TestSeitanHandleExpiredInvite(t *testing.T) {
+	// Test what happens if server sends us acceptance for an invite that's
+	// expired. Handler should notice that and not add the member.
+
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+
+	clock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(clock)
+
+	user2, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	kbtest.Logout(tc)
+
+	user3, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	kbtest.Logout(tc)
+
+	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	teamName, teamID := createTeam2(tc)
+	t.Logf("Created team %s", teamName)
+
+	// Add team invite link which expires in 10 minutes.
+	expTime := keybase1.ToUnixTime(clock.Now().Add(10 * time.Minute))
+	invLink, err := CreateInvitelink(tc.MetaContext(), teamName.String(), keybase1.TeamRole_READER, keybase1.TeamMaxUsesInfinite,
+		&expTime)
+	require.NoError(t, err)
+
+	origAPI := tc.G.API
+	RecordAPI := libkb.NewAPIArgRecorder(origAPI)
+
+	acceptInvite := func(user *kbtest.FakeUser, inviteLink keybase1.Invitelink) keybase1.TeamSeitanMsg {
+		kbtest.LogoutAndLoginAs(tc, user)
+
+		uv := user.GetUserVersion()
+		unixNow := clock.Now().Unix()
+		accepted, err := generateAcceptanceSeitanInviteLink(invLink.Ikey, uv, unixNow)
+		require.NoError(t, err)
+
+		err = postSeitanInviteLink(tc.MetaContext(), accepted)
+		require.NoError(t, err)
+
+		// This simulates a seitan msg for the admin as it would have came from
+		// team_rekeyd.
+		return keybase1.TeamSeitanMsg{
+			TeamID: teamID,
+			Seitans: []keybase1.TeamSeitanRequest{
+				{
+					InviteID:    keybase1.TeamInviteID(accepted.inviteID),
+					Uid:         uv.Uid,
+					EldestSeqno: uv.EldestSeqno,
+					Akey:        keybase1.SeitanAKey(accepted.encoded),
+					Role:        keybase1.TeamRole_READER,
+					UnixCTime:   unixNow,
+				},
+			},
+		}
+
+	}
+
+	msg2 := acceptInvite(user2, invLink)
+	msg3 := acceptInvite(user3, invLink)
+
+	adminCallsHandleTeamSeitanAndReturnsRejectCalls := func(msg keybase1.TeamSeitanMsg, API *libkb.APIArgRecorder) []libkb.APIRecord {
+		kbtest.LogoutAndLoginAs(tc, admin)
+		tc.G.API = API
+		err = HandleTeamSeitan(context.TODO(), tc.G, msg)
+		require.NoError(t, err)
+		return API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
+			return rec.Arg.Endpoint == "team/reject_invite_acceptance"
+		})
+	}
+
+	assertRejectInviteArgs := func(record libkb.APIRecord, inviteID SCTeamInviteID, uid keybase1.UID, seqno keybase1.Seqno) {
+		require.Equal(t, string(inviteID), record.Arg.Args["invite_id"].String())
+		require.Equal(t, string(uid), record.Arg.Args["uid"].String())
+		require.Equal(t, fmt.Sprintf("%v", seqno), record.Arg.Args["eldest_seqno"].String())
+	}
+
+	// invite is accepted for user2
+	records := adminCallsHandleTeamSeitanAndReturnsRejectCalls(msg2, RecordAPI)
+	require.Len(t, records, 0, "no invite link acceptances were rejected")
+
+	// We move the clock forward so the invite expires.
+	clock.Advance(24 * time.Hour)
+
+	// try to add user3. This should fail
+	records = adminCallsHandleTeamSeitanAndReturnsRejectCalls(msg3, RecordAPI)
+	require.Len(t, records, 1, "one invite acceptance should be rejected")
+	record := records[0]
+	assertRejectInviteArgs(record, SCTeamInviteID(msg3.Seitans[0].InviteID), user3.GetUID(), user3.GetUserVersion().EldestSeqno)
+
+	// ensure team has user2 and admin but not user3
+	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name:      teamName.String(),
+		NeedAdmin: true,
+	})
+	require.NoError(t, err)
+
+	members, err := teamObj.Members()
+	require.NoError(t, err)
+	require.Len(t, members.AllUserVersions(), 2)
+	require.Equal(t, []keybase1.UserVersion{admin.GetUserVersion()}, members.Owners)
+	require.Equal(t, []keybase1.UserVersion{user2.GetUserVersion()}, members.Readers)
 }
