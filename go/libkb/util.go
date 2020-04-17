@@ -1118,9 +1118,10 @@ func FindFilePathWithNumberSuffix(parentDir string, basename string, useArbitrar
 	if useArbitraryName {
 		return filepath.Join(parentDir, strconv.FormatInt(time.Now().UnixNano(), 16)+ext), nil
 	}
-	destPathBase := filepath.Join(parentDir, basename[:len(basename)-len(ext)])
-	destPath := destPathBase + ext
-	for suffix := 1; ; suffix++ {
+	destPath := filepath.Join(parentDir, basename)
+	basename = basename[:len(basename)-len(ext)]
+	// keep a sane limit on the loop.
+	for suffix := 1; suffix < 100000; suffix++ {
 		_, err := os.Stat(destPath)
 		if os.IsNotExist(err) {
 			break
@@ -1128,7 +1129,7 @@ func FindFilePathWithNumberSuffix(parentDir string, basename string, useArbitrar
 		if err != nil {
 			return "", err
 		}
-		destPath = fmt.Sprintf("%s (%d)%s", destPathBase, suffix, ext)
+		destPath = filepath.Join(parentDir, fmt.Sprintf("%s (%d)%s", basename, suffix, ext))
 	}
 	// Could race but it should be rare enough so fine.
 	return destPath, nil

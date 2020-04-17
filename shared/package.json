@@ -15,7 +15,7 @@
     "prettier-debug-check": "git ls-files | grep \"\\.\\(js\\|ts\\|tsx\\)\\$\" | xargs ./node_modules/.bin/prettier --debug-check",
     "prettier-write-all": "yarn run _helper prettier-write-all",
     "render-screenshots": "yarn run _helper render-screenshots",
-    "test": "cross-env-shell BABEL_ENV=test jest",
+    "test": "yarn run _helper test",
     "update-icon-constants": "yarn run _helper update-icon-constants",
     "update-icon-font": "yarn run _helper update-icon-font",
     "update-web-font": "yarn run _helper update-web-font",

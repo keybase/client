@@ -6,6 +6,8 @@ package libkb
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -298,4 +300,28 @@ func TestThrottleBatch(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	clock.Advance(300 * time.Millisecond)
 	noVal()
+}
+
+func TestFindFilePathWithNumberSuffix(t *testing.T) {
+	parentDir := os.TempDir()
+	path, err := FindFilePathWithNumberSuffix(parentDir, "", true)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(path, parentDir))
+
+	path, err = FindFilePathWithNumberSuffix(parentDir, "test.txt", true)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(path, parentDir))
+	require.True(t, strings.HasSuffix(path, ".txt"))
+
+	path, err = FindFilePathWithNumberSuffix(parentDir, "", false)
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(parentDir, " (1)"), path)
+
+	path, err = FindFilePathWithNumberSuffix(parentDir, "test.txt", false)
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(parentDir, "test.txt"), path)
+
+	path, err = FindFilePathWithNumberSuffix(parentDir, ".txt", false)
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(parentDir, ".txt"), path)
 }

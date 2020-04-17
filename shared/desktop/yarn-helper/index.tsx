@@ -35,6 +35,19 @@ const commands = {
     },
     help: '',
   },
+  test: {
+    code: () => {
+      const update = process.argv[3] === '-u'
+      const updateLabel = update ? ' (updating storyshots)' : ''
+      const updateStr = update ? ' -u Storyshots' : ''
+
+      console.log(`Electron test${updateLabel}`)
+      exec(`cross-env-shell BABEL_ENV=test jest${updateStr}`)
+      console.log(`React Native test${updateLabel}`)
+      exec(`cross-env-shell BABEL_ENV=test-rn jest --config .storybook-rn/jest.config.js${updateStr}`)
+    },
+    help: 'Run various tests. pass -u to update storyshots',
+  },
 }
 
 const checkFSEvents = () => {
@@ -85,7 +98,7 @@ function fixModules() {
   } catch (_) {}
 }
 
-function exec(command, env, options) {
+function exec(command: string, env?: any, options?: Object) {
   console.log(
     execSync(command, {
       encoding: 'utf8',
