@@ -142,3 +142,37 @@ func TestAccountDeleteAfterRestart(t *testing.T) {
 		t.Errorf("loading deleted user error type: %T, expected libkb.DeletedError", err)
 	}
 }
+
+func TestAccountDeleteWithPassphrase(t *testing.T) {
+	tc := SetupEngineTest(t, "acct")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "acct")
+
+	m := NewMetaContextForTest(tc)
+	eng := NewAccountDelete(tc.G, &fu.Passphrase)
+	err := RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	_, res, err := tc.G.Resolver.ResolveUser(m, fu.Username)
+	require.NoError(t, err)
+
+	err = res.GetError()
+	require.NoError(t, err)
+	require.True(t, res.GetDeleted())
+
+	tmp := res.FailOnDeleted()
+	err = tmp.GetError()
+	require.Error(t, err)
+
+	if _, ok := err.(libkb.UserDeletedError); !ok {
+		t.Fatal("expected a libkb.UserDeletedError")
+	}
+
+	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
+	require.Error(t, err)
+
+	if _, ok := err.(libkb.UserDeletedError); !ok {
+		t.Errorf("loading deleted user error type: %T, expected libkb.UserDeletedError", err)
+	}
+}
