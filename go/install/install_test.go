@@ -64,9 +64,11 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 	contentMatch := "lemon"
 	matchingContent := fmt.Sprintf("la la la\nblah blah\nblah%s a match!\n", contentMatch)
 	unmatchingContent := "la la la\nblah blah\nblah no matches\n"
+	filePattern := filepath.Join(tmpdir, fmt.Sprintf("*%s*", nameMatch))
 
 	// no matches with no files
-	match := LastModifiedMatchingFile(tmpdir, nameMatch, contentMatch)
+	match, err := LastModifiedMatchingFile(filePattern, contentMatch)
+	require.NoError(t, err)
 	require.Nil(t, match)
 
 	// no matches with two files that each only half match
@@ -75,14 +77,16 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 	err = ioutil.WriteFile(filepath.Join(tmpdir, "secondfile.txt"), []byte(matchingContent), 0644)
 	require.NoError(t, err)
 
-	match = LastModifiedMatchingFile(tmpdir, nameMatch, contentMatch)
+	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
+	require.NoError(t, err)
 	require.Nil(t, match)
 
 	// with an actual match
 	fullPath := filepath.Join(tmpdir, fmt.Sprintf("third%sfile.txt", nameMatch))
 	err = ioutil.WriteFile(fullPath, []byte(matchingContent), 0644)
 	require.NoError(t, err)
-	match = LastModifiedMatchingFile(tmpdir, nameMatch, contentMatch)
+	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
+	require.NoError(t, err)
 	require.NotNil(t, match)
 	require.Equal(t, fullPath, *match)
 
@@ -90,7 +94,8 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 	fullPath = filepath.Join(tmpdir, fmt.Sprintf("fourth%sfile.txt", nameMatch))
 	err = ioutil.WriteFile(fullPath, []byte(matchingContent), 0644)
 	require.NoError(t, err)
-	match = LastModifiedMatchingFile(tmpdir, nameMatch, contentMatch)
+	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
+	require.NoError(t, err)
 	require.NotNil(t, match)
 	require.Equal(t, fullPath, *match)
 
@@ -99,7 +104,8 @@ func TestLastModifiedMatchingFile(t *testing.T) {
 	require.NoError(t, err)
 	err = ioutil.WriteFile(filepath.Join(tmpdir, "sixthfile.txt"), []byte(matchingContent), 0644)
 	require.NoError(t, err)
-	match = LastModifiedMatchingFile(tmpdir, nameMatch, contentMatch)
+	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
+	require.NoError(t, err)
 	require.NotNil(t, match)
 	require.Equal(t, fullPath, *match)
 }

@@ -6,7 +6,6 @@ package install
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -284,33 +283,57 @@ func fileContainsWord(filePath, searchWord string) bool {
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
+	var lineCount int
 	for scanner.Scan() {
 		if strings.Contains(scanner.Text(), searchWord) {
 			return true
 		}
+		if lineCount >= 400 {
+			// if we haven't seen it yet, we won't
+			return false
+		}
+		lineCount++
 	}
 	return false
 }
 
-func LastModifiedMatchingFile(dirPath string, fileNameMatch string, fileContentMatch string) (res *string) {
-	allFiles, err := ioutil.ReadDir(dirPath)
+type fileWithPath struct {
+	os.FileInfo
+	Path string
+}
+
+func LastModifiedMatchingFile(filePattern string, fileContentMatch string) (filePath *string, err error) {
+	// find all paths that match the pattern
+	allFiles, err := filepath.Glob(filePattern)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	var msiInstallFilePaths []os.FileInfo
-	for _, fileInfo := range allFiles {
-		if strings.Contains(fileInfo.Name(), fileNameMatch) {
-			msiInstallFilePaths = append(msiInstallFilePaths, fileInfo)
+	// loop through those file paths and get file info on each one
+	var fileObjects []fileWithPath
+	for _, path := range allFiles {
+		fileInfo, err := os.Stat(path)
+		if err != nil {
+			continue
 		}
+		fileObjects = append(fileObjects, fileWithPath{
+			FileInfo: fileInfo,
+			Path:     path,
+		})
 	}
-	sort.Slice(msiInstallFilePaths, func(i, j int) bool {
-		return msiInstallFilePaths[i].ModTime().Unix() > msiInstallFilePaths[j].ModTime().Unix()
+	// sort them by most recently modified
+	sort.Slice(fileObjects, func(i, j int) bool {
+		return fileObjects[i].ModTime().Unix() > fileObjects[j].ModTime().Unix()
 	})
-	for _, f := range msiInstallFilePaths {
-		fullPath := filepath.Join(dirPath, f.Name())
-		if fileContainsWord(fullPath, fileContentMatch) {
-			return &fullPath
+	// loop through and return the first one that matches for content
+	for idx, f := range fileObjects {
+		if idx >= 200 {
+			// we've looked at a lot of files and couldn't find one that's relevant, just bail.
+			return nil, nil
+		}
+		if fileContainsWord(f.Path, fileContentMatch) {
+			return &f.Path, nil
 		}
 	}
-	return nil
+	return nil, nil
+
 }
