@@ -152,7 +152,7 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 		}
 		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, param.Typ)
 		var membersType chat1.ConversationMembersType
-		if _, err := teams.Details(ctx, b.G().GlobalContext, *param.TeamName); err == nil {
+		if _, err := teams.Load(ctx, b.G().GlobalContext, keybase1.LoadTeamArg{Name: *param.TeamName}); err == nil {
 			membersType = chat1.ConversationMembersType_TEAM
 		} else {
 			membersType = chat1.ConversationMembersType_IMPTEAMNATIVE
