@@ -44,6 +44,7 @@ export const useMembersSections = (
   if (stillLoading) {
     return [makeSingleRow('members-loading', () => <LoadingRow />)]
   }
+  // scroll useEffect in team/index depends on the structure of this section
   const sections: Array<Section> = [
     {
       data: getOrderedMemberArray(details.members, yourUsername, yourOperations),

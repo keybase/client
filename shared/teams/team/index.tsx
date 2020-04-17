@@ -152,6 +152,21 @@ const Team = (props: Props) => {
       break
   }
 
+  // scroll member up when starting a selection
+  const sectionListRef = React.useRef<{_component: Kb.SectionList}>(null)
+  const selectedMembers = Container.useSelector(state => state.teams.teamSelectedMembers.get(teamID))
+  const anySelected = !!selectedMembers?.size
+  const prevAnySelected = !!Container.usePrevious(anySelected)
+  React.useEffect(() => {
+    if (anySelected && !prevAnySelected) {
+      const sectionIndex = sections.findIndex(section => section.key === 'member-members')
+      const memberUsername = [...selectedMembers!][0]
+      const itemIndex = sections[sectionIndex].data.findIndex(m => m.username === memberUsername)
+      sectionListRef.current &&
+        sectionListRef.current._component.scrollToLocation({itemIndex, sectionIndex, viewOffset: 0})
+    }
+  }, [prevAnySelected, anySelected, selectedMembers, sections])
+
   // Animation
   const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
   const onScroll = React.useRef(
@@ -182,6 +197,8 @@ const Team = (props: Props) => {
         contentContainerStyle={styles.listContentContainer}
         style={styles.list}
         onScroll={onScroll.current}
+        // @ts-ignore because this is wrapped by animated, ref is actually in _component
+        ref={sectionListRef}
       />
       <SelectionPopup
         selectedTab={

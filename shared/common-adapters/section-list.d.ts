@@ -133,4 +133,7 @@ export type Props<SectionT extends Section<any, any>> = {
   onSectionChange?: (section: SectionT) => void
 }
 
-export default class<T extends Section<any, any>> extends React.Component<Props<T>> {}
+export default class<T extends Section<any, any> = Section<{}>> extends React.Component<Props<T>> {
+  // mobile only
+  scrollToLocation: typeof ReactNative.SectionList.prototype.scrollToLocation
+}
