@@ -166,8 +166,8 @@ func (c *CachedContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emai
 func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber) (res ContactLookupResults, err error) {
 
-	defer mctx.TraceTimed(fmt.Sprintf("CachedContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
-		func() error { return nil })()
+	defer mctx.Trace(fmt.Sprintf("CachedContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
+		nil)()
 
 	res = NewContactLookupResults()
 	if len(emails)+len(numbers) == 0 {

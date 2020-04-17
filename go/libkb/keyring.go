@@ -266,7 +266,7 @@ func LockedLocalSecretKey(m MetaContext, ska SecretKeyArg) (*SKB, error) {
 // those in the local Keyring that are also active for the user.
 // In any case, the key will be locked.
 func (k *Keyrings) GetSecretKeyLocked(m MetaContext, ska SecretKeyArg) (ret *SKB, err error) {
-	defer m.Trace("Keyrings#GetSecretKeyLocked()", func() error { return err })()
+	defer m.Trace("Keyrings#GetSecretKeyLocked()", &err)()
 	m.Debug("| LoadMe w/ Secrets on")
 
 	if ska.Me == nil {
@@ -395,7 +395,7 @@ type SecretKeyPromptArg struct {
 
 // TODO: Figure out whether and how to dep-inject the SecretStore.
 func (k *Keyrings) GetSecretKeyWithPrompt(m MetaContext, arg SecretKeyPromptArg) (key GenericKey, err error) {
-	defer m.Trace(fmt.Sprintf("Keyrings#GetSecretKeyWithPrompt(%s)", arg.Reason), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("Keyrings#GetSecretKeyWithPrompt(%s)", arg.Reason), &err)()
 
 	key = k.cachedSecretKey(m, arg.Ska)
 	if key != nil {
@@ -415,7 +415,7 @@ func (k *Keyrings) GetSecretKeyWithPrompt(m MetaContext, arg SecretKeyPromptArg)
 }
 
 func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(m MetaContext, arg SecretKeyPromptArg) (key GenericKey, skb *SKB, err error) {
-	defer m.Trace(fmt.Sprintf("GetSecretKeyAndSKBWithPrompt(%s)", arg.Reason), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("GetSecretKeyAndSKBWithPrompt(%s)", arg.Reason), &err)()
 	if skb, err = k.GetSecretKeyLocked(m, arg.Ska); err != nil {
 		skb = nil
 		return nil, nil, err
@@ -432,7 +432,7 @@ func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(m MetaContext, arg SecretKeyProm
 }
 
 func (k *Keyrings) GetSecretKeyWithStoredSecret(m MetaContext, ska SecretKeyArg, me *User, secretRetriever SecretRetriever) (key GenericKey, err error) {
-	defer m.Trace("Keyrings#GetSecretKeyWithStoredSecret()", func() error { return err })()
+	defer m.Trace("Keyrings#GetSecretKeyWithStoredSecret()", &err)()
 	var skb *SKB
 	skb, err = k.GetSecretKeyLocked(m, ska)
 	if err != nil {
@@ -443,7 +443,7 @@ func (k *Keyrings) GetSecretKeyWithStoredSecret(m MetaContext, ska SecretKeyArg,
 }
 
 func (k *Keyrings) GetSecretKeyWithPassphrase(m MetaContext, me *User, passphrase string, secretStorer SecretStorer) (key GenericKey, err error) {
-	defer m.Trace("Keyrings#GetSecretKeyWithPassphrase()", func() error { return err })()
+	defer m.Trace("Keyrings#GetSecretKeyWithPassphrase()", &err)()
 	ska := SecretKeyArg{
 		Me:      me,
 		KeyType: DeviceSigningKeyType,

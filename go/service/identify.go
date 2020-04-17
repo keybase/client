@@ -47,7 +47,7 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext, s *Service) 
 func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
 	netCtx = libkb.WithLogTag(netCtx, "ID2")
 	m := libkb.NewMetaContext(netCtx, h.G())
-	defer h.G().CTrace(netCtx, "IdentifyHandler#Identify2", func() error { return err })()
+	defer h.G().CTrace(netCtx, "IdentifyHandler#Identify2", &err)()
 
 	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
 	logui := h.getLogUI(arg.SessionID)
@@ -74,7 +74,7 @@ func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identif
 
 func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.IdentifyLiteArg) (ret keybase1.IdentifyLiteRes, err error) {
 	mctx := libkb.NewMetaContext(netCtx, h.G()).WithLogTag("IDL")
-	defer mctx.Trace("IdentifyHandler#IdentifyLite", func() error { return err })()
+	defer mctx.Trace("IdentifyHandler#IdentifyLite", &err)()
 	loader := func(mctx libkb.MetaContext) (interface{}, error) {
 		return h.identifyLite(mctx, arg)
 	}
@@ -174,7 +174,7 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 
 func (h *IdentifyHandler) Resolve3(ctx context.Context, arg keybase1.Resolve3Arg) (ret keybase1.UserOrTeamLite, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RSLV")
-	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#Resolve3(%+v)", arg), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#Resolve3(%+v)", arg), &err)()
 	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolve3", false, arg, &ret, func(mctx libkb.MetaContext) (interface{}, error) {
 		return h.resolveUserOrTeam(mctx.Ctx(), arg.Assertion)
 	})
@@ -199,7 +199,7 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 
 func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RIIT")
-	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#ResolveIdentifyImplicitTeam(%+v)", arg), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#ResolveIdentifyImplicitTeam(%+v)", arg), &err)()
 
 	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.MetaContext(ctx), arg.Assertions)
 	if err != nil {
@@ -396,13 +396,13 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 
 func (h *IdentifyHandler) ResolveImplicitTeam(ctx context.Context, arg keybase1.ResolveImplicitTeamArg) (res keybase1.Folder, err error) {
 	ctx = libkb.WithLogTag(ctx, "RIT")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("ResolveImplicitTeam(%s)", arg.Id), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("ResolveImplicitTeam(%s)", arg.Id), &err)()
 	return teams.MapImplicitTeamIDToDisplayName(ctx, h.G(), arg.Id, arg.Id.IsPublic())
 }
 
 func (h *IdentifyHandler) NormalizeSocialAssertion(ctx context.Context, assertion string) (socialAssertion keybase1.SocialAssertion, err error) {
 	ctx = libkb.WithLogTag(ctx, "NSA")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#NormalizeSocialAssertion(%s)", assertion), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#NormalizeSocialAssertion(%s)", assertion), &err)()
 	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(h.G().MakeAssertionContext(h.MetaContext(ctx)), assertion)
 	if !isSocialAssertion {
 		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")

@@ -14,7 +14,7 @@ const FadeBox = Styles.styled.div(() => ({
   opacity: 0,
 }))
 
-export default (props: Props) => (
+const Toast = (props: Props) => (
   <Kb.FloatingBox attachTo={props.attachTo} propagateOutsideClicks={true} position={props.position}>
     <FadeBox
       className={Styles.classNames({visible: props.visible}, props.className)}
@@ -24,6 +24,7 @@ export default (props: Props) => (
     </FadeBox>
   </Kb.FloatingBox>
 )
+export default Toast
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {

@@ -43,6 +43,9 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 		gomock.Any(), gomock.Any(), gomock.Any()).
 		AnyTimes().Return(kbname.NormalizedUsername("mockUser"), nil)
 
+	config.mockMdserv.EXPECT().CancelRegistration(
+		gomock.Any(), gomock.Any()).AnyTimes().Return()
+
 	mockDaemon := NewMockKeybaseService(mockCtrl)
 	mockDaemon.EXPECT().LoadUserPlusKeys(
 		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).

@@ -301,19 +301,19 @@ const (
 	HomeScreenTodoType_PROOF                   HomeScreenTodoType = 2
 	HomeScreenTodoType_DEVICE                  HomeScreenTodoType = 3
 	HomeScreenTodoType_FOLLOW                  HomeScreenTodoType = 4
-	HomeScreenTodoType_CHAT                    HomeScreenTodoType = 5
 	HomeScreenTodoType_PAPERKEY                HomeScreenTodoType = 6
 	HomeScreenTodoType_TEAM                    HomeScreenTodoType = 7
 	HomeScreenTodoType_FOLDER                  HomeScreenTodoType = 8
 	HomeScreenTodoType_GIT_REPO                HomeScreenTodoType = 9
 	HomeScreenTodoType_TEAM_SHOWCASE           HomeScreenTodoType = 10
-	HomeScreenTodoType_AVATAR_USER             HomeScreenTodoType = 11
 	HomeScreenTodoType_AVATAR_TEAM             HomeScreenTodoType = 12
 	HomeScreenTodoType_ADD_PHONE_NUMBER        HomeScreenTodoType = 18
 	HomeScreenTodoType_VERIFY_ALL_PHONE_NUMBER HomeScreenTodoType = 19
 	HomeScreenTodoType_VERIFY_ALL_EMAIL        HomeScreenTodoType = 20
 	HomeScreenTodoType_LEGACY_EMAIL_VISIBILITY HomeScreenTodoType = 21
 	HomeScreenTodoType_ADD_EMAIL               HomeScreenTodoType = 22
+	HomeScreenTodoType_AVATAR_USER             HomeScreenTodoType = 23
+	HomeScreenTodoType_CHAT                    HomeScreenTodoType = 24
 	HomeScreenTodoType_ANNONCEMENT_PLACEHOLDER HomeScreenTodoType = 10000
 )
 
@@ -325,19 +325,19 @@ var HomeScreenTodoTypeMap = map[string]HomeScreenTodoType{
 	"PROOF":                   2,
 	"DEVICE":                  3,
 	"FOLLOW":                  4,
-	"CHAT":                    5,
 	"PAPERKEY":                6,
 	"TEAM":                    7,
 	"FOLDER":                  8,
 	"GIT_REPO":                9,
 	"TEAM_SHOWCASE":           10,
-	"AVATAR_USER":             11,
 	"AVATAR_TEAM":             12,
 	"ADD_PHONE_NUMBER":        18,
 	"VERIFY_ALL_PHONE_NUMBER": 19,
 	"VERIFY_ALL_EMAIL":        20,
 	"LEGACY_EMAIL_VISIBILITY": 21,
 	"ADD_EMAIL":               22,
+	"AVATAR_USER":             23,
+	"CHAT":                    24,
 	"ANNONCEMENT_PLACEHOLDER": 10000,
 }
 
@@ -347,19 +347,19 @@ var HomeScreenTodoTypeRevMap = map[HomeScreenTodoType]string{
 	2:     "PROOF",
 	3:     "DEVICE",
 	4:     "FOLLOW",
-	5:     "CHAT",
 	6:     "PAPERKEY",
 	7:     "TEAM",
 	8:     "FOLDER",
 	9:     "GIT_REPO",
 	10:    "TEAM_SHOWCASE",
-	11:    "AVATAR_USER",
 	12:    "AVATAR_TEAM",
 	18:    "ADD_PHONE_NUMBER",
 	19:    "VERIFY_ALL_PHONE_NUMBER",
 	20:    "VERIFY_ALL_EMAIL",
 	21:    "LEGACY_EMAIL_VISIBILITY",
 	22:    "ADD_EMAIL",
+	23:    "AVATAR_USER",
+	24:    "CHAT",
 	10000: "ANNONCEMENT_PLACEHOLDER",
 }
 

@@ -205,7 +205,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               )}
               {this.props.authorIsBot && (
                 <Kb.WithTooltip tooltip="Bot">
-                  <Kb.Icon fontSize={10} color={Styles.globalColors.black_35} type="iconfont-bot" />
+                  <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
                 </Kb.WithTooltip>
               )}
               <Kb.Text
@@ -444,7 +444,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   private cachedMenuStyles = new Map<string, Styles.StylesCrossPlatform>()
   private menuAreaStyle = (exploded: boolean, exploding: boolean) => {
-    const commonWidth = 24
+    const commonWidth = 20
     const iconSizes = [
       this.props.isRevoked ? commonWidth : 0, // revoked
       this.props.showCoinsIcon ? commonWidth : 0, // coin stack
@@ -536,6 +536,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         return message.newChannelname === 'general' ? null : (
           <SetChannelname key="setChannelname" message={message} />
         )
+      case 'journeycard':
+        return <TeamJourney key="journey" message={message} />
       case 'deleted':
         return null
       default:
@@ -609,7 +611,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   color={Styles.globalColors.black_35}
                   type="iconfont-bot"
                   onClick={() => null}
-                  sizeType="Small"
                   style={styles.paddingLeftTiny}
                 />
               </Kb.WithTooltip>
@@ -620,16 +621,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   Constants.isMessageWithReactions(this.props.message) &&
                   !this.props.showingMenu && (
                     <EmojiRow
-                      className={Styles.classNames({
-                        'WrapperMessage-emojiRow': !this.props.isLastInThread,
-                      })}
+                      className="WrapperMessage-emojiButton"
                       conversationIDKey={this.props.conversationIDKey}
                       onShowingEmojiPicker={this.setShowingPicker}
                       ordinal={message.ordinal}
                       tooltipPosition={this.props.isLastInThread ? 'top center' : 'bottom center'}
                       style={Styles.collapseStyles([
                         styles.emojiRow,
-                        !Styles.isDarkMode && styles.emojiRowBorder,
                         this.props.isLastInThread && styles.emojiRowLast,
                       ])}
                     />
@@ -775,35 +773,19 @@ const styles = Styles.styleSheetCreate(
       },
       emojiRow: Styles.platformStyles({
         isElectron: {
-          borderBottomLeftRadius: Styles.borderRadius,
-          borderBottomRightRadius: Styles.borderRadius,
-          bottom: -Styles.globalMargins.mediumLarge + 1,
-          height: Styles.globalMargins.mediumLarge,
-          paddingBottom: Styles.globalMargins.tiny,
+          backgroundColor: Styles.globalColors.white,
+          border: `1px solid ${Styles.globalColors.black_10}`,
+          borderRadius: Styles.borderRadius,
+          bottom: -Styles.globalMargins.medium + 3,
           paddingRight: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
           position: 'absolute',
           right: 96,
           zIndex: 2,
         },
       }),
-      emojiRowBorder: Styles.platformStyles({
-        isElectron: {
-          borderBottom: `1px solid ${Styles.globalColors.black_10}`,
-          borderLeft: `1px solid ${Styles.globalColors.black_10}`,
-          borderRight: `1px solid ${Styles.globalColors.black_10}`,
-        },
-      }),
       emojiRowLast: Styles.platformStyles({
         isElectron: {
-          border: 'none',
-          borderBottomLeftRadius: 0,
-          borderBottomRightRadius: 0,
-          borderTopLeftRadius: Styles.borderRadius,
-          borderTopRightRadius: Styles.borderRadius,
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.tiny,
-          top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
+          top: -Styles.globalMargins.medium + 5,
         },
       }),
       fail: {color: Styles.globalColors.redDark},

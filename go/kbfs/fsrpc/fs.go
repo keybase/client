@@ -25,6 +25,7 @@ func NewFS(config libkbfs.Config, log logger.Logger) keybase1.FsInterface {
 }
 
 func (f fs) favorites(ctx context.Context, path Path) (keybase1.ListResult, error) {
+	f.config.GetPerfLog().CDebugf(ctx, "GetFavorites fsrpc")
 	favs, err := f.config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
 		return keybase1.ListResult{}, err

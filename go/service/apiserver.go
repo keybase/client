@@ -88,7 +88,7 @@ func (a *APIServerHandler) setupArg(arg GenericArg) libkb.APIArg {
 }
 
 func (a *APIServerHandler) doGet(mctx libkb.MetaContext, arg GenericArg, sessionRequired bool) (res keybase1.APIRes, err error) {
-	defer mctx.Trace("APIServerHandler::Get", func() error { return err })()
+	defer mctx.Trace("APIServerHandler::Get", &err)()
 	// turn off session requirement if not needed
 	kbarg := a.setupArg(arg)
 	if !sessionRequired {
@@ -119,7 +119,7 @@ func (a *APIServerHandler) doGet(mctx libkb.MetaContext, arg GenericArg, session
 }
 
 func (a *APIServerHandler) doPost(mctx libkb.MetaContext, arg keybase1.PostArg) (res keybase1.APIRes, err error) {
-	defer mctx.Trace("APIServerHandler::Post", func() error { return err })()
+	defer mctx.Trace("APIServerHandler::Post", &err)()
 	var ires *libkb.APIRes
 	ires, err = mctx.G().API.Post(mctx, a.setupArg(arg))
 	if err != nil {
@@ -129,7 +129,7 @@ func (a *APIServerHandler) doPost(mctx libkb.MetaContext, arg keybase1.PostArg) 
 }
 
 func (a *APIServerHandler) doPostJSON(mctx libkb.MetaContext, rawarg keybase1.PostJSONArg) (res keybase1.APIRes, err error) {
-	defer mctx.Trace("APIServerHandler::PostJSON", func() error { return err })()
+	defer mctx.Trace("APIServerHandler::PostJSON", &err)()
 	var ires *libkb.APIRes
 	arg := a.setupArg(rawarg)
 	jsonPayload := make(libkb.JSONPayload)
@@ -156,7 +156,7 @@ func (a *APIServerHandler) doPostJSON(mctx libkb.MetaContext, rawarg keybase1.Po
 }
 
 func (a *APIServerHandler) doDelete(mctx libkb.MetaContext, arg keybase1.DeleteArg) (res keybase1.APIRes, err error) {
-	a.G().Trace("APIServerHandler::Delete", func() error { return err })()
+	a.G().Trace("APIServerHandler::Delete", &err)()
 	var ires *libkb.APIRes
 	ires, err = a.G().API.Delete(mctx, a.setupArg(arg))
 	if err != nil {

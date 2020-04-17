@@ -3,7 +3,6 @@ import * as ChatConstants from '../../../../constants/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import {appendNewTeamBuilder} from '../../../../actions/typed-routes'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as ChatGen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
@@ -115,7 +114,8 @@ export default Container.namedConnect(
     }
   },
   (dispatch, {conversationIDKey}: OwnProps) => ({
-    _onAddPeople: (teamID?: TeamTypes.TeamID) => teamID && dispatch(appendNewTeamBuilder(teamID)),
+    _onAddPeople: (teamID?: TeamTypes.TeamID) =>
+      teamID && dispatch(TeamsGen.createStartAddMembersWizard({teamID})),
     _onBlockConv: (team: string, others: Array<string>) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({

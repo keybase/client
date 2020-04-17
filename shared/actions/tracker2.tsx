@@ -144,8 +144,9 @@ const loadWebOfTrustEntries = async (
     )
     const webOfTrustEntries =
       wotVouches?.map(entry => ({
-        attestation: (entry.vouchTexts || []).join(', '),
+        attestation: entry.vouchText,
         attestingUser: entry.voucherUsername,
+        proofID: entry.vouchProof,
         status: entry.status,
         verificationType: (entry.confidence?.usernameVerifiedVia || 'none') as WebOfTrustVerificationType,
         vouchedAt: entry.vouchedAt,

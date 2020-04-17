@@ -25,6 +25,7 @@ import {
   Section,
   useEmojiSections,
 } from './rows'
+import isEqual from 'lodash/isEqual'
 
 type Props = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.TabKey}>
 
@@ -36,14 +37,18 @@ const useTabsState = (
   teamID: Types.TeamID,
   providedTab?: Types.TabKey
 ): [Types.TabKey, (t: Types.TabKey) => void] => {
+  const dispatch = Container.useDispatch()
   const defaultSelectedTab = lastSelectedTabs[teamID] ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<Types.TabKey>(defaultSelectedTab)
   const setSelectedTab = React.useCallback(
     t => {
       lastSelectedTabs[teamID] = t
+      if (selectedTab === 'settings' && t !== 'settings') {
+        dispatch(TeamsGen.createSettingsError({error: ''}))
+      }
       _setSelectedTab(t)
     },
-    [teamID, _setSelectedTab]
+    [teamID, selectedTab, dispatch]
   )
 
   const prevTeamID = Container.usePrevious(teamID)
@@ -74,13 +79,17 @@ const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean
   }, [shouldLoad, _bots, featuredBotsMap, dispatch])
 }
 
+const SectionList: typeof Kb.SectionList = Styles.isMobile
+  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
+  : Kb.SectionList
+
 const Team = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const initialTab = Container.getRouteProps(props, 'initialTab', undefined)
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID), isEqual)
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const dispatch = Container.useDispatch()
@@ -144,33 +153,35 @@ const Team = (props: Props) => {
   }
 
   // Animation
-  const SectionList: typeof Kb.SectionList = Styles.isMobile
-    ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
-    : Kb.SectionList
-  const offset = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
-  const onScroll = Styles.isMobile
-    ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset}}}], {useNativeDriver: true})
-    : undefined
+  const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
+  const onScroll = React.useRef(
+    Styles.isMobile
+      ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
+      : undefined
+  )
 
-  const renderSectionHeader = ({section}) =>
-    section.title ? (
-      <Kb.SectionDivider
-        label={section.title}
-        collapsed={section.collapsed}
-        onToggleCollapsed={section.onToggleCollapsed}
-      />
-    ) : null
+  const renderSectionHeader = React.useCallback(
+    ({section}) =>
+      section.title ? (
+        <Kb.SectionDivider
+          label={section.title}
+          collapsed={section.collapsed}
+          onToggleCollapsed={section.onToggleCollapsed}
+        />
+      ) : null,
+    []
+  )
 
   const body = (
     <Kb.Box style={styles.container}>
-      {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={teamID} offset={offset} />}
+      {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={teamID} offset={offset.current} />}
       <SectionList
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={Styles.isMobile}
         sections={sections}
         contentContainerStyle={styles.listContentContainer}
         style={styles.list}
-        onScroll={onScroll}
+        onScroll={onScroll.current}
       />
       <SelectionPopup
         selectedTab={
@@ -211,12 +222,12 @@ Team.navigationOptions = flags.teamsRedesign
     })
 
 const startAnimationOffset = 40
+const AnimatedBox2 = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2) : undefined
 const MobileHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: any}) => {
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
   const top = Kb.ReAnimated.interpolate(offset, {
     inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
     outputRange: [40, 40, 0, 0],

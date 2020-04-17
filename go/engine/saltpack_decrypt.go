@@ -61,7 +61,7 @@ func (e *SaltpackDecrypt) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybase1.KID, isAnon, signed bool) (err error) {
-	defer m.Trace("SaltpackDecrypt#promptForDecrypt", func() error { return err })()
+	defer m.Trace("SaltpackDecrypt#promptForDecrypt", &err)()
 
 	spsiArg := SaltpackSenderIdentifyArg{
 		isAnon:           isAnon,
@@ -131,7 +131,7 @@ func (t *nilPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Sy
 
 // Run starts the engine.
 func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("SaltpackDecrypt::Run", func() error { return err })()
+	defer m.Trace("SaltpackDecrypt::Run", &err)()
 
 	// We don't load this in the --paperkey case.
 	var me *libkb.User

@@ -42,7 +42,7 @@ func (d *DevList) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (d *DevList) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("DevList#Run", func() error { return err })()
+	defer m.Trace("DevList#Run", &err)()
 
 	var devs libkb.DeviceKeyMap
 	var ss *libkb.SecretSyncer

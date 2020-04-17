@@ -19,7 +19,7 @@ func NotifyTeambotKeyNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID,
 
 func notifyTeambotKeyNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	app keybase1.TeamApplication, generation int, isEphemeral bool) (err error) {
-	defer mctx.TraceTimed("notifyTeambotKeyNeeded", func() error { return err })()
+	defer mctx.Trace("notifyTeambotKeyNeeded", &err)()
 	apiArg := libkb.APIArg{
 		Endpoint:    "teambot/key_needed",
 		SessionType: libkb.APISessionTypeREQUIRED,

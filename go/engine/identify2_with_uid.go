@@ -169,7 +169,7 @@ func loadIdentifyUser(m libkb.MetaContext, arg libkb.LoadUserArg, cache libkb.Id
 }
 
 func (i *identifyUser) trackChainLinkFor(m libkb.MetaContext, name libkb.NormalizedUsername, uid keybase1.UID) (ret *libkb.TrackChainLink, err error) {
-	defer m.Trace(fmt.Sprintf("identifyUser#trackChainLinkFor(%s)", name), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("identifyUser#trackChainLinkFor(%s)", name), &err)()
 
 	if i.full != nil {
 		m.Debug("| Using full user object")
@@ -297,7 +297,7 @@ func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
 
 func (e *Identify2WithUID) resetError(m libkb.MetaContext, inErr error) (outErr error) {
 
-	defer m.Trace(fmt.Sprintf("Identify2WithUID#resetError(%s)", libkb.ErrToOk(inErr)), func() error { return outErr })()
+	defer m.Trace(fmt.Sprintf("Identify2WithUID#resetError(%s)", libkb.ErrToOk(inErr)), &outErr)()
 
 	if inErr == nil {
 		return nil
@@ -323,7 +323,7 @@ func (e *Identify2WithUID) Run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("ID2")
 
 	n := fmt.Sprintf("Identify2WithUID#Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
-	defer m.TraceTimed(n, func() error { return err })()
+	defer m.Trace(n, &err)()
 	m.Debug("| Full Arg: %+v", e.arg)
 
 	if e.arg.Uid.IsNil() {
@@ -424,7 +424,7 @@ func (e *Identify2WithUID) hitFastCache(m libkb.MetaContext) bool {
 
 func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 
-	defer m.TraceOK("Identify2WithUID#untrackedFastPath", func() bool { return ret })()
+	defer m.Trace("Identify2WithUID#untrackedFastPath", nil)()
 
 	if !e.arg.IdentifyBehavior.CanUseUntrackedFastPath() {
 		m.Debug("| Can't use untracked fast path due to identify behavior %v", e.arg.IdentifyBehavior)
@@ -687,7 +687,7 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 }
 
 func (e *Identify2WithUID) insertTrackToken(m libkb.MetaContext, outcome *libkb.IdentifyOutcome) (err error) {
-	defer m.Trace("Identify2WithUID#insertTrackToken", func() error { return err })()
+	defer m.Trace("Identify2WithUID#insertTrackToken", &err)()
 	e.trackToken, err = m.G().TrackCache().Insert(outcome)
 	if err != nil {
 		return err
@@ -843,7 +843,7 @@ func (e *Identify2WithUID) setupIdentifyUI(m libkb.MetaContext) libkb.MetaContex
 
 func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	n := fmt.Sprintf("+ runIdentifyUI(%s)", e.them.GetName())
-	defer m.Trace(n, func() error { return err })()
+	defer m.Trace(n, &err)()
 
 	// RemoteReceived, start with the baseProofSet that has PGP
 	// fingerprints and the user's UID and username.
@@ -945,7 +945,7 @@ func (e *Identify2WithUID) forceRemoteCheck() bool {
 }
 
 func (e *Identify2WithUID) createIdentifyState(m libkb.MetaContext) (err error) {
-	defer m.Trace("createIdentifyState", func() error { return err })()
+	defer m.Trace("createIdentifyState", &err)()
 	var them *libkb.User
 	them, err = e.them.User(e.getCache())
 	if err != nil {
@@ -1087,7 +1087,7 @@ func (e *Identify2WithUID) loadUsers(m libkb.MetaContext) (err error) {
 
 func (e *Identify2WithUID) checkFastCacheHit(m libkb.MetaContext) (hit bool) {
 	prfx := fmt.Sprintf("Identify2WithUID#checkFastCacheHit(%s)", e.arg.Uid)
-	defer m.ExitTraceOK(prfx, func() bool { return hit })()
+	defer m.Trace(prfx, nil)()
 	if e.getCache() == nil {
 		return false
 	}
@@ -1117,7 +1117,7 @@ func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
 }
 
 func (e *Identify2WithUID) loadSlowCacheFromDB(m libkb.MetaContext) (ret *keybase1.Identify2ResUPK2) {
-	defer m.ExitTraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
+	defer m.Trace("Identify2WithUID#loadSlowCacheFromDB", nil)()
 
 	if e.getCache() != nil && !e.getCache().UseDiskCache() {
 		m.Debug("| Disk cached disabled")
@@ -1158,7 +1158,7 @@ func (e *Identify2WithUID) loadSlowCacheFromDB(m libkb.MetaContext) (ret *keybas
 // Thus, after a cold boot, we don't start up with a cold identify cache.
 func (e *Identify2WithUID) storeSlowCacheToDB(m libkb.MetaContext) (err error) {
 	prfx := fmt.Sprintf("Identify2WithUID#storeSlowCacheToDB(%s)", e.them.GetUID())
-	defer e.G().ExitTrace(prfx, func() error { return err })()
+	defer e.G().Trace(prfx, &err)()
 	if e.me == nil {
 		m.Debug("not storing to persistent slow cache since no me user")
 		return nil
@@ -1173,7 +1173,7 @@ func (e *Identify2WithUID) storeSlowCacheToDB(m libkb.MetaContext) (err error) {
 // Remove (themUID) from the identify cache, if they're there.
 func (e *Identify2WithUID) removeSlowCacheFromDB(m libkb.MetaContext) (err error) {
 	prfx := fmt.Sprintf("Identify2WithUID#removeSlowCacheFromDB(%s)", e.them.GetUID())
-	defer e.G().Trace(prfx, func() error { return err })()
+	defer e.G().Trace(prfx, &err)()
 	if e.me == nil {
 		m.Debug("not removing from persistent slow cache since no me user")
 		return nil
@@ -1185,7 +1185,7 @@ func (e *Identify2WithUID) removeSlowCacheFromDB(m libkb.MetaContext) (err error
 
 func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 	prfx := fmt.Sprintf("Identify2WithUID#checkSlowCacheHit(%s)", e.them.GetUID())
-	defer m.ExitTraceOK(prfx, func() bool { return ret })()
+	defer m.Trace(prfx, nil)()
 
 	if e.getCache() == nil {
 		return false
@@ -1251,40 +1251,6 @@ func (e *Identify2WithUID) Result(m libkb.MetaContext) (*keybase1.Identify2ResUP
 		return nil, libkb.UserNotFoundError{Msg: "identify2 unexpectly returned an empty user"}
 	}
 	return res, nil
-}
-
-func (e *Identify2WithUID) ResultWotFailingProofs(mctx libkb.MetaContext) (failingProofs []keybase1.WotProof, err error) {
-	for _, row := range e.state.Result().ProofChecks {
-		if row.GetError() != nil {
-			proofType := row.GetLink().GetProofType()
-			key, value := row.GetLink().ToKeyValuePair()
-			switch proofType {
-			case keybase1.ProofType_TWITTER, keybase1.ProofType_GITHUB, keybase1.ProofType_REDDIT,
-				keybase1.ProofType_COINBASE, keybase1.ProofType_HACKERNEWS, keybase1.ProofType_FACEBOOK,
-				keybase1.ProofType_GENERIC_SOCIAL, keybase1.ProofType_ROOTER:
-				failingProofs = append(failingProofs, keybase1.WotProof{
-					ProofType: proofType,
-					Name:      key,
-					Username:  value,
-				})
-			case keybase1.ProofType_GENERIC_WEB_SITE:
-				failingProofs = append(failingProofs, keybase1.WotProof{
-					ProofType: proofType,
-					Protocol:  key,
-					Hostname:  value,
-				})
-			case keybase1.ProofType_DNS:
-				failingProofs = append(failingProofs, keybase1.WotProof{
-					ProofType: proofType,
-					Protocol:  key,
-					Domain:    value,
-				})
-			default:
-				return nil, fmt.Errorf("unexpected proof failure of type: %v", proofType)
-			}
-		}
-	}
-	return failingProofs, nil
 }
 
 func (e *Identify2WithUID) GetProofSet() *libkb.ProofSet {

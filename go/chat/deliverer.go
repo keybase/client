@@ -234,7 +234,7 @@ func (s *Deliverer) IsDelivering() bool {
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 	outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Queue")()
+	defer s.Trace(ctx, &err, "Queue")()
 
 	// KBFSFILEEDIT msgs skip the traditional outbox
 	if msg.ClientHeader.Conv.TopicType == chat1.TopicType_KBFSFILEEDIT {
@@ -275,7 +275,7 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 }
 
 func (s *Deliverer) ActiveDeliveries(ctx context.Context) (res []chat1.OutboxRecord, err error) {
-	defer s.Trace(ctx, func() error { return err }, "ActiveDeliveries")()
+	defer s.Trace(ctx, &err, "ActiveDeliveries")()
 	if !s.IsDelivering() {
 		s.Debug(ctx, "ActiveDeliveries: not delivering, returning empty")
 		return nil, nil

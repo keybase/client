@@ -63,6 +63,10 @@ protocol identify3Ui {
     array<Identify3RowMeta> metas; // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
     Identify3RowColor color;       // 'blue' | 'red' | 'black' | 'green' | 'gray' | 'yellow' | 'orange'
     union { null, KID } kid;       // in the case of PGP key, also send the KID so that we can revoke by kid
+
+    // wotProof is a summary of the proof for web-of-trust.
+    // Passed back from gui to service for wot proofs list. If omitted, proof is ineligible (e.g. stellar).
+    union { null, WotProof } wotProof;
   }
 
   record Identify3Summary {

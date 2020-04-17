@@ -3,18 +3,19 @@ import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as FsGen from '../actions/fs-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as SettingsConstants from '../constants/settings'
 import ChooseTarget from './choose-target'
 
 const IOSChooseTarget = () => {
-  const [incomingShareItems, setIncomingShareItems] = React.useState<Array<RPCTypes.IncomingShareItem>>([])
+  const [incomingShareItems, setIncomingShareItems] = React.useState<
+    undefined | Array<RPCTypes.IncomingShareItem>
+  >(undefined)
   React.useEffect(() => {
-    RPCTypes.incomingShareGetIncomingShareItemsRpcPromise().then(
-      items => items && setIncomingShareItems(items)
-    )
+    RPCTypes.incomingShareGetIncomingShareItemsRpcPromise().then(items => setIncomingShareItems(items || []))
   }, [])
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
-  const onKBFS = incomingShareItems.length
+  const onKBFS = incomingShareItems?.length
     ? (useOriginal: boolean) => {
         dispatch(FsGen.createSetIncomingShareSource({source: incomingShareItems, useOriginal}))
         dispatch(
@@ -22,7 +23,7 @@ const IOSChooseTarget = () => {
         )
       }
     : undefined
-  const onChat = incomingShareItems.length
+  const onChat = incomingShareItems?.length
     ? (useOriginal: boolean) => {
         dispatch(
           RouteTreeGen.createNavigateAppend({
@@ -37,7 +38,34 @@ const IOSChooseTarget = () => {
       }
     : undefined
 
-  return <ChooseTarget items={incomingShareItems} onCancel={onCancel} onChat={onChat} onKBFS={onKBFS} />
+  const erroredSendFeedback =
+    incomingShareItems && !incomingShareItems.length
+      ? () => {
+          dispatch(RouteTreeGen.createClearModals())
+          dispatch(
+            RouteTreeGen.createNavigateAppend({
+              path: [
+                {
+                  props: {feedback: `iOS share failure`},
+                  selected: SettingsConstants.feedbackTab,
+                },
+              ],
+            })
+          )
+        }
+      : undefined
+
+  return (
+    <ChooseTarget
+      items={incomingShareItems || emptyArray}
+      erroredSendFeedback={erroredSendFeedback}
+      onCancel={onCancel}
+      onChat={onChat}
+      onKBFS={onKBFS}
+    />
+  )
 }
 
 export default IOSChooseTarget
+
+const emptyArray: Array<RPCTypes.IncomingShareItem> = []

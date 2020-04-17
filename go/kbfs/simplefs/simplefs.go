@@ -466,10 +466,16 @@ func (k *SimpleFS) getFSWithMaybeCreate(
 		if err != nil {
 			return nil, "", err
 		}
-		if len(ps) < 2 {
+		if len(ps) < 2 || len(ps) < 3 && strings.HasPrefix(ps[0], ".kbfs_") {
 			fs = libfs.NewRootFS(k.config)
 			if len(ps) == 1 {
 				finalElem = ps[0]
+			} else if len(ps) == 2 {
+				fs, err = fs.Chroot(ps[0])
+				if err != nil {
+					return nil, "", err
+				}
+				finalElem = ps[1]
 			}
 			return fs, finalElem, nil
 		}
@@ -555,6 +561,7 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 		return nil, nil
 	}
 
+	k.config.GetPerfLog().CDebugf(ctx, "GetFavorites simplefs.favoriteList")
 	favs, err := k.config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
 		return nil, err
@@ -1193,6 +1200,7 @@ func (k *SimpleFS) SimpleFSListFavorites(ctx context.Context) (
 		return keybase1.FavoritesResult{}, nil
 	}
 
+	k.config.GetPerfLog().CDebugf(ctx, "GetFavorites simplefs.SimpleFSListFavorites")
 	return k.config.KBFSOps().GetFavoritesAll(ctx)
 }
 

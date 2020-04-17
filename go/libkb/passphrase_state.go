@@ -24,7 +24,7 @@ func LoadPassphraseState(mctx MetaContext) (passphraseState keybase1.PassphraseS
 // forceRepoll only forces repoll when the state is RANDOM, but not when it is KNOWN.
 func LoadPassphraseStateWithForceRepoll(mctx MetaContext) (passphraseState keybase1.PassphraseState, err error) {
 	mctx = mctx.WithLogTag("PPSTATE")
-	defer mctx.TraceTimed(fmt.Sprintf("LoadPassphraseState()"), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("LoadPassphraseState()"), &err)()
 
 	// If we're in standalone mode, we don't get the gregor msg about
 	// passphrase_state changes. So, force a repoll to the server if the state

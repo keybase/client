@@ -10,11 +10,11 @@ import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as TeamTypes from '../../../../../constants/types/teams'
 import {teamsTab} from '../../../../../constants/tabs'
-import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 import {TeamJourney, Action} from '.'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
+import flags from '../../../../../util/feature-flags'
 
 type OwnProps = {
   message: MessageTypes.MessageJourneycard
@@ -183,6 +183,9 @@ const TeamJourneyConnected = Container.connect(
   (state, ownProps: OwnProps) => {
     const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
     const {cannotWrite, channelname, conversationIDKey, teamname, teamID} = conv
+    const welcomeMessage = flags.teamsRedesign
+      ? TeamConstants.getTeamWelcomeMessageByID(state, teamID)
+      : {display: '', raw: '', set: false}
     return {
       _teamID: teamID,
       canShowcase: TeamConstants.canShowcase(state, teamID),
@@ -191,11 +194,12 @@ const TeamJourneyConnected = Container.connect(
       conversationIDKey,
       isBigTeam: TeamConstants.isBigTeam(state, teamID),
       teamname,
-      welcomeMessage: TeamConstants.getTeamWelcomeMessageByID(state, teamID),
+      welcomeMessage,
     }
   },
   dispatch => ({
-    _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
+    _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) =>
+      dispatch(TeamsGen.createStartAddMembersWizard({teamID})),
     _onAuthorClick: (teamID: TeamTypes.TeamID) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({

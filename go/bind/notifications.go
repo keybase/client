@@ -50,7 +50,8 @@ type ChatNotification struct {
 
 func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body string) (err error) {
 	ctx := context.Background()
-	defer kbCtx.CTraceTimed(ctx, fmt.Sprintf("HandlePostTextReply()"), func() error { return flattenError(err) })()
+	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandlePostTextReply()"), &err)()
+	defer func() { err = flattenError(err) }()
 	outboxID, err := storage.NewOutboxID()
 	if err != nil {
 		return err
@@ -88,9 +89,9 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 
-	defer kbCtx.CTraceTimed(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%s,%v,%d,%d,%s,%d,%d)",
-		strConvID, sender, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
-		func() error { return flattenError(err) })()
+	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%s,%v,%d,%d,%s,%d,%d)",
+		strConvID, sender, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime), &err)()
+	defer func() { err = flattenError(err) }()
 
 	// Unbox
 	if !kbCtx.ActiveDevice.HaveKeys() {

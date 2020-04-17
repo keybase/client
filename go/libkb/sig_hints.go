@@ -142,7 +142,7 @@ func (sh *SigHints) Store(m MetaContext) (err error) {
 }
 
 func LoadSigHints(m MetaContext, uid keybase1.UID) (sh *SigHints, err error) {
-	defer m.Trace(fmt.Sprintf("+ LoadSigHints(%s)", uid), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("+ LoadSigHints(%s)", uid), &err)()
 	var jw *jsonw.Wrapper
 	jw, err = m.G().LocalDb.Get(DbKeyUID(DBSigHints, uid))
 	if err != nil {
@@ -159,7 +159,7 @@ func LoadSigHints(m MetaContext, uid keybase1.UID) (sh *SigHints, err error) {
 }
 
 func (sh *SigHints) Refresh(m MetaContext) (err error) {
-	defer m.Trace(fmt.Sprintf("Refresh SigHints for uid=%s", sh.uid), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("Refresh SigHints for uid=%s", sh.uid), &err)()
 	res, err := m.G().API.Get(m, APIArg{
 		Endpoint:    "sig/hints",
 		SessionType: APISessionTypeNONE,
@@ -176,7 +176,7 @@ func (sh *SigHints) Refresh(m MetaContext) (err error) {
 }
 
 func (sh *SigHints) RefreshWith(m MetaContext, jw *jsonw.Wrapper) (err error) {
-	defer m.Trace("RefreshWith", func() error { return err })()
+	defer m.Trace("RefreshWith", &err)()
 
 	n, err := jw.AtKey("hints").Len()
 	if err != nil {

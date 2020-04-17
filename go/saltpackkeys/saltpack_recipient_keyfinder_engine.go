@@ -43,7 +43,7 @@ func (e *SaltpackRecipientKeyfinderEngine) Name() string {
 }
 
 func (e *SaltpackRecipientKeyfinderEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("SaltpackRecipientKeyfinder#Run", func() error { return err })()
+	defer m.Trace("SaltpackRecipientKeyfinder#Run", &err)()
 
 	err = e.AddOwnKeysIfNeeded(m)
 	if err != nil {

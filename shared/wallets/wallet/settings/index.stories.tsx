@@ -50,7 +50,7 @@ const externalPartner = {
 }
 const externalPartners = [
   externalPartner,
-  {...externalPartner, showDivider: true, url: 'https://example.com/%{accountId}2'},
+  {...externalPartner, showDivider: true, url: 'https://differenturl.com/%{accountId'},
 ]
 
 const sharedSettingsProps = {

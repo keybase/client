@@ -263,7 +263,7 @@ func (c *KBFSContext) newTransportFromSocket(s net.Conn) rpc.Transporter {
 func (c *KBFSContext) GetKBFSSocket(clearError bool) (
 	net.Conn, rpc.Transporter, bool, error) {
 	var err error
-	c.g.Trace("GetSocket", func() error { return err })()
+	c.g.Trace("GetSocket", &err)()
 
 	// Protect all global socket wrapper manipulation with a
 	// lock to prevent race conditions.

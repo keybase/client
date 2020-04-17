@@ -221,7 +221,7 @@ func (h *Helper) FindConversationsByID(ctx context.Context, convIDs []chat1.Conv
 // GetChannelTopicName gets the name of a team channel even if it's not in the inbox.
 func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID,
 	topicType chat1.TopicType, convID chat1.ConversationID) (topicName string, err error) {
-	defer h.Trace(ctx, func() error { return err }, "ChatHelper.GetChannelTopicName")()
+	defer h.Trace(ctx, &err, "ChatHelper.GetChannelTopicName")()
 	h.Debug(ctx, "for teamID:%v convID:%v", teamID.String(), convID.String())
 	kuid, err := CurrentUID(h.G())
 	if err != nil {
@@ -254,7 +254,7 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 
 func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(h.G()))
-	defer h.Trace(ctx, func() error { return err }, "ChatHelper.UpgradeKBFSToImpteam(%s,%s,%v)",
+	defer h.Trace(ctx, &err, "ChatHelper.UpgradeKBFSToImpteam(%s,%s,%v)",
 		tlfID, tlfName, public)()
 	var cryptKeys []keybase1.CryptKey
 	nis := NewKBFSNameInfoSource(h.G())
@@ -790,7 +790,7 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 }
 
 func (h *Helper) JoinConversationByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "ChatHelper.JoinConversationByID")()
+	defer h.Trace(ctx, &err, "ChatHelper.JoinConversationByID")()
 	return JoinConversation(ctx, h.G(), h.DebugLabeler, h.ri, uid, convID)
 }
 
@@ -833,7 +833,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 
 func (h *Helper) JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName, topicName string,
 	topicType chat1.TopicType, vis keybase1.TLFVisibility) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "ChatHelper.JoinConversationByName")()
+	defer h.Trace(ctx, &err, "ChatHelper.JoinConversationByName")()
 	return JoinConversationByName(ctx, h.G(), h.DebugLabeler, h.ri, uid, tlfName, topicName, topicType, vis)
 }
 
@@ -870,7 +870,7 @@ func JoinConversationByName(ctx context.Context, g *globals.Context, debugger ut
 }
 
 func (h *Helper) LeaveConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "ChatHelper.LeaveConversation")()
+	defer h.Trace(ctx, &err, "ChatHelper.LeaveConversation")()
 	return LeaveConversation(ctx, h.G(), h.DebugLabeler, h.ri, uid, convID)
 }
 
@@ -1078,7 +1078,7 @@ func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context, 
 }
 
 func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, created bool, reserr error) {
-	defer n.Trace(ctx, func() error { return reserr }, "newConversationHelper")()
+	defer n.Trace(ctx, &reserr, "newConversationHelper")()
 	// Handle a nil topic name with default values for the members type specified
 	if n.topicName == nil {
 		// We never want a blank topic name in team chats, always default to the default team name

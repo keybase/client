@@ -105,7 +105,7 @@ const AttachmentPopupMenu = (props: Props) => {
           {
             danger: true,
             disabled: !props.onKick,
-            icon: 'iconfont-block-user',
+            icon: 'iconfont-user-block',
             onClick: props.onKick,
             subTitle: 'Removes the user from the team',
             title: 'Kick user',

@@ -13,9 +13,10 @@ import {pluralize} from '../../../util/string'
 import {FloatingRolePicker} from '../../role-picker'
 import RoleButton from '../../role-button'
 import * as TeamsGen from '../../../actions/teams-gen'
-import {TeamDetailsSubscriber} from '../../subscriber'
+import {useTeamDetailsSubscribe} from '../../subscriber'
 import {formatTimeForTeamMember, formatTimeRelativeToNow} from '../../../util/timestamp'
 import {Section as _Section} from '../../../common-adapters/section-list'
+import isEqual from 'lodash/isEqual'
 
 type Props = {
   teamID: Types.TeamID
@@ -31,49 +32,76 @@ type TeamTreeRowNotIn = {
   canAdminister: boolean
 }
 type TeamTreeRowIn = {
-  lastActivity: number
   role: Types.TeamRoleType
 } & TeamTreeRowNotIn
 
-const getMemberships = (state: Container.TypedState, targetTeamID: Types.TeamID, username: string) => {
+const getMemberships = (
+  state: Container.TypedState,
+  teamIDs: Array<Types.TeamID>,
+  username: string
+): Map<Types.TeamID, Types.TreeloaderSparseMemberInfo> => {
+  const results = new Map<Types.TeamID, Types.TreeloaderSparseMemberInfo>()
+  teamIDs.forEach(teamID => {
+    const info = Constants.maybeGetSparseMemberInfo(state, teamID, username)
+    if (info) {
+      results.set(teamID, info)
+    }
+  })
+  return results
+}
+
+type TreeMembershipOK = {s: RPCTypes.TeamTreeMembershipStatus.ok; ok: RPCTypes.TeamTreeMembershipValue}
+const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   const errors: Array<RPCTypes.TeamTreeMembership> = []
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
   const nodesIn: Array<TeamTreeRowIn> = []
 
-  const memberships = state.teams.teamMemberToTreeMemberships.get(targetTeamID)?.get(username)
+  const memberships = Container.useSelector(state =>
+    state.teams.teamMemberToTreeMemberships.get(targetTeamID)?.get(username)
+  )
+  const roleMap = Container.useSelector(state => state.teams.teamRoleMap.roles)
+  const teamMetas = Container.useSelector(state => state.teams.teamMeta)
+
+  // Note that we do not directly take any information directly from the TeamTree result other
+  // than the **shape of the tree**. The other information is delegated to
+  // Constants.maybeGetSparseMemberInfo which opportunistically sources the information from the
+  // teamDetails map if present, so as to show up-to-date information.
+  const teamIDs: Array<Types.TeamID> =
+    memberships?.memberships
+      .filter(m => m.result.s === RPCTypes.TeamTreeMembershipStatus.ok)
+      .map(m => (m.result as TreeMembershipOK).ok.teamID) ?? []
+  const upToDateSparseMemberInfos = Container.useSelector(
+    state => getMemberships(state, teamIDs, username),
+    isEqual // Since this makes a new map every time, do a deep equality comparison to see if it actually changed
+  )
+
   if (!memberships) {
     return {errors, nodesIn, nodesNotIn}
   }
 
   for (const membership of memberships.memberships) {
-    const teamname = membership.teamName
+    const teamname = membership?.teamName
 
-    // Note that we do not directly take any information directly from the TeamTree result other
-    // than the **shape of the tree**. The other information is delegated to
-    // Constants.maybeGetSparseMemberInfo which opportunistically sources the information from the
-    // teamDetails map if present, so as to show up-to-date information.
-    if (RPCTypes.TeamTreeMembershipStatus.ok == membership.result.s) {
+    if (RPCTypes.TeamTreeMembershipStatus.ok === membership.result.s) {
       const teamID = membership.result.ok.teamID
-      const sparseMemberInfo = Constants.maybeGetSparseMemberInfo(state, teamID, username)
+      const sparseMemberInfo = upToDateSparseMemberInfos.get(teamID)
       if (!sparseMemberInfo) {
         continue
       }
 
-      const ops = Constants.getCanPerformByID(state, teamID)
-
+      const ops = Constants.deriveCanPerform(roleMap.get(teamID))
       const row = {
         canAdminister: ops.manageMembers,
         joinTime: sparseMemberInfo.joinTime,
         // memberCount should always be populated because the TeamList, which is synced
         // eagerly, provides it.
-        memberCount: Constants.getTeamMeta(state, teamID).memberCount,
+        memberCount: teamMetas.get(teamID)?.memberCount,
         teamID,
         teamname,
       }
 
       if ('none' != sparseMemberInfo.type) {
         nodesIn.push({
-          lastActivity: Constants.getTeamMemberLastActivity(state, teamID, username) || 0,
           role: sparseMemberInfo.type,
           ...row,
         })
@@ -117,10 +145,8 @@ const TeamMember = (props: OwnProps) => {
   React.useEffect(() => {
     dispatch(TeamsGen.createLoadTeamTree({teamID, username}))
   }, [teamID, username, dispatch])
-  // TODO this will keep thrasing
-  const {nodesIn, nodesNotIn, errors} = Container.useSelector(state =>
-    getMemberships(state, teamID, username)
-  )
+
+  const {nodesIn, nodesNotIn, errors} = useMemberships(teamID, username)
 
   const [expandedSet, setExpandedSet] = React.useState(
     new Set<string>([teamID])
@@ -128,7 +154,7 @@ const TeamMember = (props: OwnProps) => {
 
   const makeTitle = label => {
     return (
-      <Kb.Box2 direction="horizontal" alignItems="center">
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
         <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
         {loading && <Kb.ProgressIndicator type="Small" />}
       </Kb.Box2>
@@ -251,6 +277,8 @@ type NodeNotInRowProps = {
   username: string
 }
 const NodeNotInRow = (props: NodeNotInRowProps) => {
+  useTeamDetailsSubscribe(props.node.teamID)
+
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onAddWaitingKey = Constants.addMemberWaitingKey(props.node.teamID, props.username)
@@ -279,14 +307,9 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   const [role, setRole] = React.useState<Types.TeamRoleType>('writer')
   const [open, setOpen] = React.useState(false)
 
-  const memberCount = props.node.memberCount ?? -1
-
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowCollapsedFixedHeight}>
       {props.idx !== 0 && <Kb.Divider />}
-
-      {/* Placed here so that it doesn't generate any gaps */}
-      <TeamDetailsSubscriber teamID={props.node.teamID} />
 
       <Kb.Box2
         direction="horizontal"
@@ -319,7 +342,9 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
               {props.node.teamname}
             </Kb.Text>
             <Kb.Text type="BodySmall">
-              {memberCount.toLocaleString()} {pluralize('member', memberCount)}
+              {props.node.memberCount
+                ? `${props.node.memberCount.toLocaleString()} ${pluralize('member', props.node.memberCount)}`
+                : 'Loading members...'}
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
@@ -352,6 +377,21 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   )
 }
 
+const LastActivity = (props: {loading: boolean; teamID: Types.TeamID; username: string}) => {
+  const lastActivity = Container.useSelector(state =>
+    Constants.getTeamMemberLastActivity(state, props.teamID, props.username)
+  )
+
+  return (
+    <Kb.Text type="BodySmall">
+      {props.loading
+        ? 'Loading activity...'
+        : lastActivity
+        ? `Active ${formatTimeRelativeToNow(lastActivity)}`
+        : 'No activity'}
+    </Kb.Text>
+  )
+}
 type NodeInRowProps = {
   idx: number
   node: TeamTreeRowIn
@@ -360,7 +400,11 @@ type NodeInRowProps = {
   setExpanded: (b: boolean) => void
 }
 const NodeInRow = (props: NodeInRowProps) => {
-  const {channelMetas, loadingChannels} = useAllChannelMetas(props.node.teamID)
+  const {channelMetas, loadingChannels} = useAllChannelMetas(
+    props.node.teamID,
+    !props.expanded /* dontCallRPC */
+  )
+  useTeamDetailsSubscribe(props.node.teamID)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -414,156 +458,157 @@ const NodeInRow = (props: NodeInRowProps) => {
     .join(', #')
 
   const rolePicker = props.node.canAdminister ? (
-    <FloatingRolePicker
-      selectedRole={role}
-      onSelectRole={setRole}
-      onConfirm={onChangeRole}
-      onCancel={() => setOpen(false)}
-      position="bottom left"
-      open={open}
-      disabledRoles={disabledRoles}
-    >
-      <RoleButton
-        containerStyle={Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
-        loading={changingRole}
-        onClick={() => setOpen(true)}
-        selectedRole={props.node.role}
-      />
-    </FloatingRolePicker>
+    <RoleButton
+      containerStyle={Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
+      loading={changingRole}
+      onClick={() => setOpen(true)}
+      selectedRole={props.node.role}
+    />
   ) : (
     <></>
   )
 
   return (
-    <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
-        {props.idx !== 0 && <Kb.Divider />}
+    <>
+      <FloatingRolePicker
+        selectedRole={role}
+        onSelectRole={setRole}
+        onConfirm={onChangeRole}
+        onCancel={() => {
+          setRole(props.node.role)
+          setOpen(false)
+        }}
+        position="top right"
+        open={open}
+        disabledRoles={disabledRoles}
+      />
+      <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
+          {props.idx !== 0 && <Kb.Divider />}
 
-        {/* Placed here so that it doesn't generate any gaps */}
-        <TeamDetailsSubscriber teamID={props.node.teamID} />
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
+            <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.expandIcon])}>
+              <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
+            </Kb.Box2>
 
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
-          <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.expandIcon])}>
-            <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
-          </Kb.Box2>
-
-          <Kb.Box2
-            direction="horizontal"
-            style={Styles.collapseStyles([
-              Styles.globalStyles.flexGrow,
-              !expanded && styles.contentCollapsedFixedHeight,
-              expanded && styles.membershipExpanded,
-            ])}
-          >
             <Kb.Box2
-              direction="vertical"
-              fullWidth={true}
-              alignItems="flex-start"
-              gap="tiny"
-              style={!expanded && styles.contentCollapsedFixedHeight}
+              direction="horizontal"
+              style={Styles.collapseStyles([
+                Styles.globalStyles.flexGrow,
+                !expanded && styles.contentCollapsedFixedHeight,
+                expanded && styles.membershipExpanded,
+              ])}
             >
               <Kb.Box2
-                direction="horizontal"
-                alignSelf="flex-start"
-                alignItems="center"
+                direction="vertical"
+                fullWidth={true}
+                alignItems="flex-start"
                 gap="tiny"
-                style={Styles.collapseStyles([
-                  !expanded && styles.contentCollapsedFixedHeight,
-                  expanded && styles.membershipContentExpanded,
-                ])}
+                style={!expanded && styles.contentCollapsedFixedHeight}
               >
-                <Kb.Avatar teamname={props.node.teamname} size={32} />
-                <Kb.Box2
-                  direction="vertical"
-                  alignItems="flex-start"
-                  style={Styles.collapseStyles([
-                    styles.membershipTeamText,
-                    expanded && styles.membershipTeamTextExpanded,
-                    !expanded && styles.contentCollapsedFixedHeight,
-                  ])}
-                >
-                  <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
-                    {props.node.teamname}
-                  </Kb.Text>
-                  {!!props.node.joinTime && (
-                    <Kb.Text type="BodySmall">Joined {formatTimeForTeamMember(props.node.joinTime)}</Kb.Text>
-                  )}
-                </Kb.Box2>
-              </Kb.Box2>
-              {expanded && Styles.isMobile && (
-                <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
-                  {rolePicker}
-                </Kb.Box2>
-              )}
-              {expanded && (
-                <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
-                  <Kb.Icon type="iconfont-typing" sizeType="Small" color={Styles.globalColors.black_20} />
-                  <Kb.Text type="BodySmall">
-                    {loadingActivity
-                      ? 'Loading activity...'
-                      : props.node.lastActivity
-                      ? `Active ${formatTimeRelativeToNow(props.node.lastActivity)}`
-                      : 'No activity'}
-                  </Kb.Text>
-                </Kb.Box2>
-              )}
-              {expanded && (
                 <Kb.Box2
                   direction="horizontal"
-                  gap="tiny"
                   alignSelf="flex-start"
-                  style={{justifyContent: 'center'}}
-                  fullWidth={true}
+                  alignItems="center"
+                  gap="tiny"
+                  style={Styles.collapseStyles([
+                    !expanded && styles.contentCollapsedFixedHeight,
+                    expanded && styles.membershipContentExpanded,
+                  ])}
                 >
-                  <Kb.Icon
-                    type="iconfont-hash"
-                    sizeType="Small"
-                    color={Styles.globalColors.black_20}
-                    style={styles.membershipIcon}
-                  />
-                  <Kb.Text
-                    type="BodySmall"
-                    style={Styles.globalStyles.flexOne}
-                    lineClamp={4}
-                    ellipsizeMode="tail"
+                  <Kb.Avatar teamname={props.node.teamname} size={32} />
+                  <Kb.Box2
+                    direction="vertical"
+                    alignItems="flex-start"
+                    style={Styles.collapseStyles([
+                      styles.membershipTeamText,
+                      expanded && styles.membershipTeamTextExpanded,
+                      !expanded && styles.contentCollapsedFixedHeight,
+                    ])}
                   >
-                    {loadingChannels ? `Member of #${channelsJoined}` : 'Loading channels...'}
-                  </Kb.Text>
+                    <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
+                      {props.node.teamname}
+                    </Kb.Text>
+                    {!!props.node.joinTime && (
+                      <Kb.Text type="BodySmall">
+                        Joined {formatTimeForTeamMember(props.node.joinTime)}
+                      </Kb.Text>
+                    )}
+                  </Kb.Box2>
                 </Kb.Box2>
-              )}
-              {expanded && (props.node.canAdminister || isMe) && (
-                <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
-                  <Kb.Button
-                    mode="Secondary"
-                    onClick={onAddToChannels}
-                    label="Add to channels"
-                    small={true}
-                  />
-                  {!(isMe && amLastOwner) && (
-                    <Kb.WaitingButton
-                      mode="Secondary"
-                      icon={isMe ? 'iconfont-leave' : 'iconfont-block'}
-                      type="Danger"
-                      onClick={onKickOut}
-                      label={isMe ? 'Leave' : 'Kick out'}
-                      small={true}
-                      waitingKey={onKickOutWaitingKey}
+                {expanded && Styles.isMobile && (
+                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
+                    {rolePicker}
+                  </Kb.Box2>
+                )}
+                {expanded && (
+                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
+                    <Kb.Icon type="iconfont-typing" sizeType="Small" color={Styles.globalColors.black_20} />
+                    <LastActivity
+                      loading={loadingActivity}
+                      teamID={props.node.teamID}
+                      username={props.username}
                     />
-                  )}
-                </Kb.Box2>
-              )}
+                  </Kb.Box2>
+                )}
+                {expanded && (
+                  <Kb.Box2
+                    direction="horizontal"
+                    gap="tiny"
+                    alignSelf="flex-start"
+                    style={{justifyContent: 'center'}}
+                    fullWidth={true}
+                  >
+                    <Kb.Icon
+                      type="iconfont-hash"
+                      sizeType="Small"
+                      color={Styles.globalColors.black_20}
+                      style={styles.membershipIcon}
+                    />
+                    <Kb.Text
+                      type="BodySmall"
+                      style={Styles.globalStyles.flexOne}
+                      lineClamp={4}
+                      ellipsizeMode="tail"
+                    >
+                      {loadingChannels ? 'Loading channels...' : `Member of #${channelsJoined}`}
+                    </Kb.Text>
+                  </Kb.Box2>
+                )}
+                {expanded && (props.node.canAdminister || isMe) && (
+                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
+                    <Kb.Button
+                      mode="Secondary"
+                      onClick={onAddToChannels}
+                      label="Add to channels"
+                      small={true}
+                    />
+                    {!(isMe && amLastOwner) && (
+                      <Kb.WaitingButton
+                        mode="Secondary"
+                        icon={isMe ? 'iconfont-leave' : 'iconfont-block'}
+                        type="Danger"
+                        onClick={onKickOut}
+                        label={isMe ? 'Leave' : 'Kick out'}
+                        small={true}
+                        waitingKey={onKickOutWaitingKey}
+                      />
+                    )}
+                  </Kb.Box2>
+                )}
 
-              {expanded && Styles.isMobile && <Kb.Box2 direction="horizontal" style={{height: 8}} />}
+                {expanded && Styles.isMobile && <Kb.Box2 direction="horizontal" style={{height: 8}} />}
+              </Kb.Box2>
             </Kb.Box2>
+            {!Styles.isMobile && (
+              <Kb.Box2 direction="horizontal" alignSelf={expanded ? 'flex-start' : 'center'}>
+                {rolePicker}
+              </Kb.Box2>
+            )}
           </Kb.Box2>
-          {!Styles.isMobile && (
-            <Kb.Box2 direction="horizontal" alignSelf={expanded ? 'flex-start' : 'center'}>
-              {rolePicker}
-            </Kb.Box2>
-          )}
         </Kb.Box2>
-      </Kb.Box2>
-    </Kb.ClickableBox>
+      </Kb.ClickableBox>
+    </>
   )
 }
 
@@ -784,7 +829,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   roleButtonExpanded: Styles.platformStyles({
     isElectron: {
-      marginTop: 12, // does not exist as an official size
+      marginTop: 10, // does not exist as an official size
     },
   }),
   row: Styles.platformStyles({

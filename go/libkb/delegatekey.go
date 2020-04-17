@@ -84,7 +84,7 @@ func (d Delegator) GetMerkleTriple() MerkleTriple { return d.merkleTriple }
 
 func (d *Delegator) CheckArgs(m MetaContext) (err error) {
 
-	defer m.Trace("Delegator#CheckArgs", func() error { return err })()
+	defer m.Trace("Delegator#CheckArgs", &err)()
 
 	if d.DelegationType == "" {
 		err = MissingDelegationTypeError{}
@@ -121,7 +121,7 @@ func (d *Delegator) CheckArgs(m MetaContext) (err error) {
 // as the eldest key on upload.
 // m.LoginContext can be nil.
 func (d *Delegator) LoadSigningKey(m MetaContext, ui SecretUI) (err error) {
-	defer m.Trace("Delegator#LoadSigningKey", func() error { return err })()
+	defer m.Trace("Delegator#LoadSigningKey", &err)()
 
 	if d.ExistingKey != nil {
 		m.Debug("| Was set ahead of time")
@@ -161,7 +161,7 @@ func (d *Delegator) LoadSigningKey(m MetaContext, ui SecretUI) (err error) {
 // on failure and nil on success.
 func (d *Delegator) Run(m MetaContext) (err error) {
 	var jw *jsonw.Wrapper
-	defer m.Trace("Delegator#Run", func() error { return err })()
+	defer m.Trace("Delegator#Run", &err)()
 
 	if err = d.CheckArgs(m); err != nil {
 		return err

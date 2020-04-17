@@ -18,6 +18,30 @@ import (
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
+func newStatusFileNode(
+	config libkbfs.Config, log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node: nil,
+		log:  log,
+		name: StatusFileName,
+		reader: func(ctx context.Context) ([]byte, time.Time, error) {
+			return GetEncodedStatus(ctx, config)
+		},
+	}
+}
+
+func newUserEditHistoryFileNode(
+	config libkbfs.Config, log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node: nil,
+		log:  log,
+		name: EditHistoryName,
+		reader: func(ctx context.Context) ([]byte, time.Time, error) {
+			return GetEncodedUserEditHistory(ctx, config)
+		},
+	}
+}
+
 // RootFS is a browseable (read-only) version of `/keybase`.  It
 // does not support traversal into any subdirectories.
 type RootFS struct {
@@ -38,7 +62,11 @@ var _ billy.Filesystem = (*RootFS)(nil)
 ///// Read-only functions:
 
 var rootWrappedNodeNames = map[string]bool{
-	StatusFileName: true,
+	StatusFileName:     true,
+	MetricsFileName:    true,
+	ErrorFileName:      true,
+	EditHistoryName:    true,
+	ProfileListDirName: true,
 }
 
 // Open implements the billy.Filesystem interface for RootFS.
@@ -49,15 +77,16 @@ func (rfs *RootFS) Open(filename string) (f billy.File, err error) {
 		return nil, os.ErrNotExist
 	}
 
+	ctx := context.TODO()
 	switch filename {
 	case StatusFileName:
-		return &wrappedReadFile{
-			name: StatusFileName,
-			reader: func(ctx context.Context) ([]byte, time.Time, error) {
-				return GetEncodedStatus(ctx, rfs.config)
-			},
-			log: rfs.log,
-		}, nil
+		return newStatusFileNode(rfs.config, rfs.log).GetFile(ctx), nil
+	case MetricsFileName:
+		return newMetricsFileNode(rfs.config, nil, rfs.log).GetFile(ctx), nil
+	case ErrorFileName:
+		return newErrorFileNode(rfs.config, nil, rfs.log).GetFile(ctx), nil
+	case EditHistoryName:
+		return newUserEditHistoryFileNode(rfs.config, rfs.log).GetFile(ctx), nil
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", filename))
 	}
@@ -86,16 +115,23 @@ func (rfs *RootFS) Lstat(filename string) (fi os.FileInfo, err error) {
 		return nil, os.ErrNotExist
 	}
 
+	ctx := context.TODO()
 	switch filename {
 	case StatusFileName:
-		wrf := &wrappedReadFile{
-			name: StatusFileName,
-			reader: func(ctx context.Context) ([]byte, time.Time, error) {
-				return GetEncodedStatus(ctx, rfs.config)
-			},
-			log: rfs.log,
-		}
-		return wrf.GetInfo(), nil
+		sfn := newStatusFileNode(rfs.config, rfs.log).GetFile(ctx)
+		return sfn.(*wrappedReadFile).GetInfo(), nil
+	case MetricsFileName:
+		mfn := newMetricsFileNode(rfs.config, nil, rfs.log).GetFile(ctx)
+		return mfn.(*wrappedReadFile).GetInfo(), nil
+	case ErrorFileName:
+		efn := newErrorFileNode(rfs.config, nil, rfs.log).GetFile(ctx)
+		return efn.(*wrappedReadFile).GetInfo(), nil
+	case EditHistoryName:
+		uehfn := newUserEditHistoryFileNode(rfs.config, rfs.log).GetFile(ctx)
+		return uehfn.(*wrappedReadFile).GetInfo(), nil
+	case ProfileListDirName:
+		return &wrappedReadFileInfo{
+			filename, 0, rfs.config.Clock().Now(), true}, nil
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", filename))
 	}
@@ -113,11 +149,12 @@ func (rfs *RootFS) Join(elem ...string) string {
 
 // ReadDir implements the billy.Filesystem interface for RootFS.
 func (rfs *RootFS) ReadDir(p string) (fis []os.FileInfo, err error) {
-	if p == "" {
-		p = "."
-	}
-
-	if p != "." {
+	switch p {
+	case ProfileListDirName:
+		return NewProfileFS(rfs.config).ReadDir("")
+	case "", ".":
+		// Fall through.
+	default:
 		return nil, os.ErrNotExist
 	}
 
@@ -135,9 +172,12 @@ func (rfs *RootFS) Readlink(_ string) (target string, err error) {
 }
 
 // Chroot implements the billy.Filesystem interface for RootFS.
-func (rfs *RootFS) Chroot(_ string) (newFS billy.Filesystem, err error) {
-	// Don't allow chroot'ing anywhere outside of the root FS since we
-	// haven't yet implemented folderlist browsing.
+func (rfs *RootFS) Chroot(p string) (newFS billy.Filesystem, err error) {
+	if p == ProfileListDirName {
+		return dummyFSReadOnly{ProfileFS{rfs.config}}, nil
+	}
+	// Don't allow chroot'ing anywhere elsewhere outside of the root
+	// FS since we haven't yet implemented folderlist browsing.
 	return nil, errors.New("RootFS cannot chroot")
 }
 

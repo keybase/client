@@ -57,7 +57,7 @@ const _TeamHeader = (props: SmallProps) => {
             <Kb.Meta
               backgroundColor={Styles.globalColors.blueGrey}
               color={Styles.globalColors.black_50}
-              icon="iconfont-people"
+              icon="iconfont-people-solid"
               iconColor={Styles.globalColors.black_20}
               style={styles.meta}
               title={channelHumans.length}
@@ -77,7 +77,7 @@ const _TeamHeader = (props: SmallProps) => {
               <Kb.Meta
                 backgroundColor={Styles.globalColors.blueGrey}
                 color={Styles.globalColors.black_50}
-                icon="iconfont-people"
+                icon="iconfont-people-solid"
                 iconColor={Styles.globalColors.black_20}
                 title={channelHumans.length}
               />
@@ -95,7 +95,7 @@ const _TeamHeader = (props: SmallProps) => {
               <Kb.Meta
                 backgroundColor={Styles.globalColors.blueGrey}
                 color={Styles.globalColors.black_50}
-                icon="iconfont-people"
+                icon="iconfont-people-solid"
                 iconColor={Styles.globalColors.black_20}
                 title={teamHumanCount}
               />

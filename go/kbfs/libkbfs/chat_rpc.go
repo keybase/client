@@ -451,6 +451,8 @@ func (c *ChatRPC) GetGroupedInbox(
 		return nil, err
 	}
 
+	c.config.GetPerfLog().CDebugf(
+		ctx, "GetFavorites GetGroupedInbox")
 	favs, err := c.config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
 		c.log.CWarningf(ctx,
@@ -653,6 +655,8 @@ func (c *ChatRPC) newNotificationChannel(
 		tlfType = tlf.SingleTeam
 	}
 
+	c.config.GetPerfLog().CDebugf(
+		ctx, "GetFavorites newNotificationChannel")
 	favorites, err := c.config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
 		c.log.CWarningf(ctx,

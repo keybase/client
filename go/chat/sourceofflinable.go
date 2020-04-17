@@ -35,7 +35,7 @@ func newSourceOfflinable(g *globals.Context, labeler utils.DebugLabeler) *source
 }
 
 func (s *sourceOfflinable) Connected(ctx context.Context) {
-	defer s.Trace(ctx, func() error { return nil }, "Connected")()
+	defer s.Trace(ctx, nil, "Connected")()
 	s.Lock()
 	defer s.Unlock()
 	s.Debug(ctx, "connected: offline to false")
@@ -44,7 +44,7 @@ func (s *sourceOfflinable) Connected(ctx context.Context) {
 }
 
 func (s *sourceOfflinable) Disconnected(ctx context.Context) {
-	defer s.Trace(ctx, func() error { return nil }, "Disconnected")()
+	defer s.Trace(ctx, nil, "Disconnected")()
 	s.Lock()
 	defer s.Unlock()
 	if s.offline {

@@ -113,7 +113,7 @@ func (f ftlCombinedData) perTeamKey(g keybase1.PerTeamKeyGeneration) *keybase1.P
 // from the server, and then the keys can be output in the result.
 func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
 	m = ftlLogTag(m)
-	defer m.TraceTimed(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), &err)()
 	originalArg := arg.DeepCopy()
 
 	res, err = f.loadOneAttempt(m, arg)
@@ -149,7 +149,7 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 // (and not verifying sigs along the way).
 func (f *FastTeamChainLoader) VerifyTeamName(m libkb.MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) (err error) {
 	m = m.WithLogTag("FTL")
-	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#VerifyTeamName(%v,%s)", id, name.String()), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#VerifyTeamName(%v,%s)", id, name.String()), &err)()
 	_, err = f.Load(m, keybase1.FastTeamLoadArg{
 		ID:                    id,
 		Public:                id.IsPublic(),
@@ -254,7 +254,7 @@ func (a fastLoadArg) needChainTail() bool {
 
 // load acquires a lock by team ID, and the runs loadLockedWithRetries.
 func (f *FastTeamChainLoader) load(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
-	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#load(%+v)", arg), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#load(%+v)", arg), &err)()
 
 	// Single-flight lock by team ID.
 	lock := f.locktab.AcquireOnName(m.Ctx(), m.G(), arg.ID.String())
@@ -725,7 +725,7 @@ func (a fastLoadArg) toHTTPArgs(m libkb.MetaContext, s shoppingList, hp *hidden.
 // the given state was fresh already, then we'll return a nil groceries.
 func (f *FastTeamChainLoader) loadFromServerWithRetries(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList, hp *hidden.LoaderPackage) (groceries *groceries, err error) {
 
-	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#loadFromServerWithRetries(%s,%v)", arg.ID, arg.Public), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#loadFromServerWithRetries(%s,%v)", arg.ID, arg.Public), &err)()
 
 	const nRetries = 3
 	for i := 0; i < nRetries; i++ {
@@ -784,7 +784,7 @@ func (f *FastTeamChainLoader) checkHiddenResp(m libkb.MetaContext, arg fastLoadA
 // decrypted.
 func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList, hp *hidden.LoaderPackage) (ret *groceries, err error) {
 
-	defer m.Trace("FastTeamChainLoader#loadFromServerOnce", func() error { return err })()
+	defer m.Trace("FastTeamChainLoader#loadFromServerOnce", &err)()
 
 	var teamUpdate rawTeam
 	var links []*ChainLinkUnpacked
@@ -1376,7 +1376,7 @@ func (f *FastTeamChainLoader) processHidden(m libkb.MetaContext, arg fastLoadArg
 // fresh, we will return (nil, nil) and short-circuit.
 func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList, hp *hidden.LoaderPackage) (res *keybase1.FastTeamData, err error) {
 
-	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#refresh(%+v)", arg), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#refresh(%+v)", arg), &err)()
 
 	groceries, err := f.loadFromServerWithRetries(m, arg, state, shoppingList, hp)
 	if err != nil {
@@ -1539,7 +1539,7 @@ func (f *FastTeamChainLoader) OnDbNuke(mctx libkb.MetaContext) error {
 func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) (err error) {
 	m = ftlLogTag(m)
 
-	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#HintLatestSeqno(%v->%d)", id, seqno), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#HintLatestSeqno(%v->%d)", id, seqno), &err)()
 
 	// Single-flight lock by team ID.
 	lock := f.locktab.AcquireOnName(m.Ctx(), m.G(), id.String())
@@ -1585,7 +1585,7 @@ func newFrozenFastChain(chain *keybase1.FastTeamSigChainState) keybase1.FastTeam
 }
 
 func (f *FastTeamChainLoader) Freeze(mctx libkb.MetaContext, teamID keybase1.TeamID) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("FastTeamChainLoader#Freeze(%s)", teamID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("FastTeamChainLoader#Freeze(%s)", teamID), &err)()
 
 	// Single-flight lock by team ID.
 	lock := f.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), teamID.String())
@@ -1605,7 +1605,7 @@ func (f *FastTeamChainLoader) Freeze(mctx libkb.MetaContext, teamID keybase1.Tea
 }
 
 func (f *FastTeamChainLoader) Tombstone(mctx libkb.MetaContext, teamID keybase1.TeamID) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("FastTeamChainLoader#Tombstone(%s)", teamID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("FastTeamChainLoader#Tombstone(%s)", teamID), &err)()
 
 	// Single-flight lock by team ID.
 	lock := f.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), teamID.String())

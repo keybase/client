@@ -313,7 +313,7 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 
 	uv := NewUserVersion(user.Uid, user.EldestSeqno)
 	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.addMemberByUPKV2(name:%q uv:%v, %v) to team: %q",
-		user.Username, uv, role, team.Name()), func() error { return err })()
+		user.Username, uv, role, team.Name()), &err)()
 
 	if user.Status == keybase1.StatusCode_SCDeleted {
 		return false, fmt.Errorf("User %q (%s) is deleted", user.Username, uv.Uid)
@@ -436,7 +436,7 @@ func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersio
 	team := tx.team
 	g := team.G()
 
-	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUV(%v,%v) to team %q", uv, role, team.Name()), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberByUV(%v,%v) to team %q", uv, role, team.Name()), &err)()
 	upak, err := loadUPAK2(ctx, g, uv.Uid, true /* forcePoll */)
 	if err != nil {
 		return err
@@ -459,7 +459,7 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 	team := tx.team
 	mctx := team.MetaContext(ctx)
 
-	defer mctx.Trace(fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), &err)()
 
 	upak, err := engine.ResolveAndCheck(mctx, username, true /* useTracking */)
 	if err != nil {
@@ -613,7 +613,7 @@ func (tx *AddMemberTx) AddOrInviteMemberCandidate(ctx context.Context, candidate
 	mctx := team.MetaContext(ctx)
 
 	defer mctx.Trace(fmt.Sprintf("AddMemberTx.AddOrInviteMemberCandidate(%q,keybaseUser=%t,%v) to team %q",
-		candidate.SourceAssertion, candidate.KeybaseUser != nil, role, team.Name()), func() error { return err })()
+		candidate.SourceAssertion, candidate.KeybaseUser != nil, role, team.Name()), &err)()
 
 	if candidate.KeybaseUser != nil {
 		// We have a user and can add them to a team, no invite required.
@@ -679,7 +679,7 @@ func (tx *AddMemberTx) AddOrInviteMemberByAssertion(ctx context.Context, asserti
 	team := tx.team
 	m := team.MetaContext(ctx)
 
-	defer m.Trace(fmt.Sprintf("AddMemberTx.AddOrInviteMemberByAssertion(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("AddMemberTx.AddOrInviteMemberByAssertion(%s,%v) to team %q", assertion, role, team.Name()), &err)()
 
 	candidate, err := tx.ResolveUPKV2FromAssertion(m, assertion)
 	if err != nil {
@@ -777,7 +777,7 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 	team := tx.team
 	g := team.G()
 
-	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.CompleteSocialInvitesFor(%v,%s)", uv, username), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.CompleteSocialInvitesFor(%v,%s)", uv, username), &err)()
 	if team.NumActiveInvites() == 0 {
 		g.Log.CDebugf(ctx, "CompleteSocialInvitesFor: no active invites in team")
 		return nil
@@ -910,7 +910,7 @@ func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.Team
 	g := team.G()
 
 	defer g.CTrace(ctx, fmt.Sprintf("AddMemberTx.AddMemberBySBS(%v) to team: %q",
-		invitee, team.Name()), func() error { return err })()
+		invitee, team.Name()), &err)()
 
 	uv := NewUserVersion(invitee.Uid, invitee.EldestSeqno)
 	upak, err := loadUPAK2(ctx, g, uv.Uid, true /* forcePoll */)
@@ -955,7 +955,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	team := tx.team
 	g := team.G()
 
-	defer g.CTrace(mctx.Ctx(), "AddMemberTx.Post", func() error { return err })()
+	defer g.CTrace(mctx.Ctx(), "AddMemberTx.Post", &err)()
 
 	if tx.err != nil {
 		// AddMemberTx operation has irreversibly failed, potentially leaving

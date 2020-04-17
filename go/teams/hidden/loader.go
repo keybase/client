@@ -214,7 +214,7 @@ func (l *LoaderPackage) UpdateTeamMetadata(encKID keybase1.KID, encKIDGen keybas
 // Update combines the preloaded data with any downloaded updates from the server, and stores
 // the result local to this object.
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON, maxUncommittedSeqnoPromised keybase1.Seqno) (err error) {
-	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s, %d)", l.id, len(update)), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s, %d)", l.id, len(update)), &err)()
 	mctx.G().GetVDebugLog().CLogf(mctx.Ctx(), libkb.VLog1,
 		"LoaderPackage#Update pre: %s", l.data.LinkAndKeySummary())
 
@@ -450,7 +450,7 @@ func (l *LoaderPackage) CheckUpdatesAgainstSeedsWithMap(mctx libkb.MetaContext, 
 // enforces equality and will error out if not. Through this check, a client can convince itself that the
 // recent keyers knew the old keys.
 func (l *LoaderPackage) CheckUpdatesAgainstSeeds(mctx libkb.MetaContext, f func(keybase1.PerTeamKeyGeneration) *keybase1.PerTeamSeedCheck) (err error) {
-	defer mctx.Trace("LoaderPackage#CheckUpdatesAgainstSeeds", func() error { return err })()
+	defer mctx.Trace("LoaderPackage#CheckUpdatesAgainstSeeds", &err)()
 	// RESTRICTEDBOTs are excluded since they do not have any seed access
 	if l.newData == nil || l.role.IsRestrictedBot() {
 		return nil

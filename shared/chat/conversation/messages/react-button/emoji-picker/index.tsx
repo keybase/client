@@ -418,7 +418,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
             initialNumToRender={14}
             sections={sections}
             onSectionChange={this.onSectionChange}
-            stickySectionHeadersEnabled={Styles.isMobile}
+            stickySectionHeadersEnabled={true}
             renderItem={({item}: {item: Row; index: number}) => this.getEmojiRow(item, emojisPerLine)}
             renderSectionHeader={({section}) =>
               section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)

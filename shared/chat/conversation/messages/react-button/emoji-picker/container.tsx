@@ -59,17 +59,11 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
   }
 }
 
-let lastSetSkinTone: undefined | Types.EmojiSkinTone = undefined
-
-// This can only be used in one place at a time for now since when it's changed
-// it doesn't cause other hook instances to update.
 const useSkinTone = () => {
-  lastSetSkinTone = Types.EmojiSkinToneFromRPC(
+  const currentSkinTone = Types.EmojiSkinToneFromRPC(
     Container.useSelector(state => state.chat2.userReacjis.skinTone)
   )
-  const [currentSkinTone, _setSkinTone] = React.useState(lastSetSkinTone)
-  // NOTE: The store does not update skin tones after put so we track the
-  // module variable `lastSetSkinTone`
+  const dispatch = Container.useDispatch()
   const rpc = useRPC(RPCChatGen.localPutReacjiSkinToneRpcPromise)
   const setSkinTone = (emojiSkinTone: undefined | Types.EmojiSkinTone) => {
     rpc(
@@ -78,10 +72,7 @@ const useSkinTone = () => {
           skinTone: Types.EmojiSkinToneToRPC(emojiSkinTone),
         },
       ],
-      _ => {
-        lastSetSkinTone = emojiSkinTone
-        _setSkinTone(emojiSkinTone)
-      },
+      res => dispatch(Chat2Gen.createUpdateUserReacjis({userReacjis: res})),
       err => {
         throw err
       }
@@ -89,6 +80,7 @@ const useSkinTone = () => {
   }
   return {currentSkinTone, setSkinTone}
 }
+
 const useCustomReacji = (
   conversationIDKey: Types.ConversationIDKey,
   onlyInTeam: boolean | undefined,
@@ -298,9 +290,6 @@ const styles = Styles.styleSheetCreate(
       addEmojiButton: Styles.platformStyles({
         isElectron: {
           width: 88,
-        },
-        isMobile: {
-          width: 104,
         },
       }),
       cancelContainerMobile: {

@@ -372,7 +372,9 @@ const onIncomingMessage = (
         )
       } else if (shouldAddMessage) {
         // A normal message
-        actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
+        actions.push(
+          Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, conversationIDKey, messages: [message]})
+        )
       }
     } else if (cMsg.state === RPCChatTypes.MessageUnboxedState.valid && cMsg.valid) {
       const {valid} = cMsg
@@ -390,7 +392,13 @@ const onIncomingMessage = (
               devicename
             )
             if (modMessage) {
-              actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [modMessage]}))
+              actions.push(
+                Chat2Gen.createMessagesAdd({
+                  context: {type: 'incoming'},
+                  conversationIDKey,
+                  messages: [modMessage],
+                })
+              )
             }
           }
           break
@@ -1029,7 +1037,7 @@ function* loadMoreMessages(
   let messageIDControl: RPCChatTypes.MessageIDControl | null = null
   let forceClear = false
   let forceContainsLatestCalc = false
-  let knownRemotes: Array<string> = []
+  const knownRemotes: Array<string> = []
   const centeredMessageIDs: Array<{
     conversationIDKey: Types.ConversationIDKey
     messageID: Types.MessageID
@@ -1178,6 +1186,7 @@ function* loadMoreMessages(
           Chat2Gen.createMessagesAdd({
             centeredMessageIDs,
             context: {conversationIDKey, type: 'threadLoad'},
+            conversationIDKey,
             forceContainsLatestCalc,
             messages,
             shouldClearOthers,
@@ -2028,6 +2037,7 @@ const previewConversationTeam = async (
     actions.push(
       Chat2Gen.createNavigateToThread({
         conversationIDKey: first.conversationIDKey,
+        highlightMessageID,
         reason: 'previewResolved',
       })
     )
@@ -2516,6 +2526,9 @@ const navigateToInbox = (
     | TeamsGen.DeleteChannelConfirmedPayload
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
+    return
+  }
+  if (action.type === TeamsGen.leftTeam && action.payload.context !== 'chat') {
     return
   }
   return [

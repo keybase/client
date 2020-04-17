@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Types from '../../../../constants/types/teams'
 import * as FsTypes from '../../../../constants/types/fs'
 import * as Constants from '../../../../constants/teams'
@@ -11,6 +10,7 @@ import flags from '../../../../util/feature-flags'
 
 type OwnProps = {
   teamID: Types.TeamID
+  firstItem: boolean
 }
 
 const TeamRowOld = Container.connect(
@@ -50,6 +50,4 @@ const TeamRowOld = Container.connect(
   })
 )(TeamRow)
 
-export default flags.teamsRedesign
-  ? ({teamID}: OwnProps) => <TeamRowNew teamID={teamID} firstItem={false} />
-  : TeamRowOld
+export default flags.teamsRedesign ? TeamRowNew : TeamRowOld

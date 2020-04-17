@@ -29,7 +29,7 @@ func RunSyncer(m MetaContext, s Syncer, uid keybase1.UID, loggedIn bool, forceRe
 	s.Lock()
 	defer s.Unlock()
 
-	defer m.Trace(fmt.Sprintf("RunSyncer(%s)", uid), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("RunSyncer(%s)", uid), &err)()
 
 	if err = s.loadFromStorage(m, uid, true); err != nil {
 		return
@@ -63,7 +63,7 @@ func RunSyncerCached(m MetaContext, s Syncer, uid keybase1.UID) (err error) {
 	s.Lock()
 	defer s.Unlock()
 
-	defer m.Trace(fmt.Sprintf("RunSyncerCached(%s)", uid), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("RunSyncerCached(%s)", uid), &err)()
 
 	return s.loadFromStorage(m, uid, false)
 }

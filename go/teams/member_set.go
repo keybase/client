@@ -190,7 +190,7 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext,
 }
 
 func loadUPAK2(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, forcePoll bool) (ret *keybase1.UserPlusKeysV2AllIncarnations, err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("loadUPAK2(%s)", uid), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("loadUPAK2(%s)", uid), &err)()
 
 	arg := libkb.NewLoadUserArg(g).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional()
 	if forcePoll {
@@ -231,7 +231,7 @@ func memberFromUPAK(ctx context.Context, requestedUV keybase1.UserVersion, upak 
 }
 
 func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forcePoll bool) (mem member, err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s, forcePoll=%t)", uv, forcePoll), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s, forcePoll=%t)", uv, forcePoll), &err)()
 
 	upak, err := loadUPAK2(ctx, g, uv.Uid, forcePoll)
 	if err != nil {
@@ -296,7 +296,7 @@ func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChe
 // m.restrictedBotRecipients that isn't in m.None.
 func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalContext, existing keybase1.TeamMembers) (err error) {
 
-	defer g.CTrace(ctx, "memberSet#AddRemainingRecipients", func() error { return err })()
+	defer g.CTrace(ctx, "memberSet#AddRemainingRecipients", &err)()
 
 	// make a map of the None members
 	filtered := make(map[keybase1.UserVersion]bool)

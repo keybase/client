@@ -4,7 +4,7 @@ import Avatar, {AvatarSize} from '../avatar'
 import {Box} from '../box'
 import ClickableBox from '../clickable-box'
 import Icon, {IconType} from '../icon'
-import Text, {TextType, StylesTextCrossPlatform, AllowedColors} from '../text'
+import Text, {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} from '../text'
 import ConnectedUsernames from '../usernames'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
@@ -108,7 +108,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
   ) : (
     <ConnectedUsernames
       onUsernameClicked={props.clickType === 'onClick' ? props.onClick : 'profile'}
-      type={props.horizontal ? 'BodySemibold' : adapterProps.titleType}
+      type={props.horizontal ? 'BodyBold' : adapterProps.titleType}
       containerStyle={Styles.collapseStyles([
         !props.horizontal && !Styles.isMobile && styles.vUsernameContainerStyle,
         props.size === 'smaller' && styles.smallerWidthTextContainer,
@@ -298,7 +298,7 @@ const styles = Styles.styleSheetCreate(() => ({
 // Get props to pass to subcomponents (Text, Avatar, etc.)
 const getAdapterProps = (
   size: Size
-): {iconSize: number; metaMargin: number; metaOneType: TextType; titleType: TextType} => {
+): {iconSize: number; metaMargin: number; metaOneType: TextType; titleType: TextTypeBold} => {
   switch (size) {
     case 'smaller':
       return {

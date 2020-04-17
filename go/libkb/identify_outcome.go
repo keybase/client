@@ -16,6 +16,8 @@ import (
 type IdentifyOutcome struct {
 	Contextified
 	Username              NormalizedUsername
+	UID                   keybase1.UID
+	EldestSeqno           keybase1.Seqno
 	Error                 error
 	KeyDiffs              []TrackDiff
 	Revoked               []TrackDiff
@@ -29,8 +31,13 @@ type IdentifyOutcome struct {
 	ResponsibleGregorItem gregor.Item
 }
 
-func NewIdentifyOutcomeWithUsername(g *GlobalContext, u NormalizedUsername) *IdentifyOutcome {
-	return &IdentifyOutcome{Contextified: NewContextified(g), Username: u}
+func NewIdentifyOutcome(g *GlobalContext, username NormalizedUsername, uid keybase1.UID, eldestSeqno keybase1.Seqno) *IdentifyOutcome {
+	return &IdentifyOutcome{
+		Contextified: NewContextified(g),
+		Username:     username,
+		UID:          uid,
+		EldestSeqno:  eldestSeqno,
+	}
 }
 
 func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {

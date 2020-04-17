@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/keybase/client/go/citogo/types"
 )
 
@@ -25,6 +27,7 @@ type opts struct {
 	DirBasename          string
 	BuildID              string
 	Branch               string
+	Parallel             int
 	Preserve             bool
 	BuildURL             string
 	NoCompile            bool
@@ -61,6 +64,7 @@ func convertBreakingChars(s string) string {
 func (r *runner) parseArgs() (err error) {
 	flag.IntVar(&r.opts.Flakes, "flakes", 3, "number of allowed flakes")
 	flag.IntVar(&r.opts.Fails, "fails", -1, "number of fails allowed before quitting")
+	flag.IntVar(&r.opts.Parallel, "parallel", 1, "number of tests to run in parallel")
 	flag.StringVar(&r.opts.Prefix, "prefix", "", "test set prefix")
 	flag.StringVar(&r.opts.S3Bucket, "s3bucket", "", "AWS S3 bucket to write failures to")
 	flag.StringVar(&r.opts.ReportLambdaFunction, "report-lambda-function", "", "lambda function to report results to")
@@ -267,16 +271,27 @@ func (r *runner) runTestFixError(t string) error {
 }
 
 func (r *runner) runTests() error {
-	for _, f := range r.tests {
-		err := r.runTestFixError(f)
-		if err != nil {
-			return err
-		}
-		if r.opts.Pause > 0 {
-			time.Sleep(r.opts.Pause)
-		}
+	var eg errgroup.Group
+	q := make(chan string, len(r.tests))
+	for i := 0; i < r.opts.Parallel; i++ {
+		eg.Go(func() error {
+			for f := range q {
+				err := r.runTestFixError(f)
+				if err != nil {
+					return err
+				}
+				if r.opts.Pause > 0 {
+					time.Sleep(r.opts.Pause)
+				}
+			}
+			return nil
+		})
 	}
-	return nil
+	for _, f := range r.tests {
+		q <- f
+	}
+	close(q)
+	return eg.Wait()
 }
 
 func (r *runner) cleanup() {
