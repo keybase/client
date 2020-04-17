@@ -63,11 +63,12 @@ helpers.rootLinuxNode(env, {
 
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
-  def mysqlImage = docker.image("keybaseprivate/mysql")
-  def gregorImage = docker.image("keybaseprivate/kbgregor")
-  def kbwebImage = docker.image("keybaseprivate/kbweb")
-  def glibcImage = docker.image("keybaseprivate/glibc")
-  def clientImage = null
+  def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'master'
+  def mysqlImage = docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql")
+  def sqsdImage = docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/sqsd")
+  def kbwebImage = docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb:${kbwebTag}")
+  def glibcImage = docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc")
+  def kbfsfuseImage
 
   def kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
 
@@ -106,23 +107,12 @@ helpers.rootLinuxNode(env, {
           pull_mysql: {
             mysqlImage.pull()
           },
+          pull_sqsd: {
+            sqsdImage.pull()
+          },
           pull_kbweb: {
-            if (cause == "upstream" && kbwebProjectName != '') {
-                retry(3) {
-                    step([$class: 'CopyArtifact',
-                            projectName: "${kbwebProjectName}",
-                            filter: 'kbweb.tar.gz',
-                            fingerprintArtifacts: true,
-                            selector: [$class: 'TriggeredBuildSelector',
-                                allowUpstreamDependencies: false,
-                                fallbackToLastSuccessful: false,
-                                upstreamFilterStrategy: 'UseGlobalSetting'],
-                            target: '.'])
-                    sh "gunzip -c kbweb.tar.gz | docker load"
-                }
-            } else {
-                kbwebImage.pull()
-            }
+            kbwebImage.pull()
+            kbwebImage.tag('897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb')
           },
           remove_dockers: {
             sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
@@ -220,7 +210,7 @@ helpers.rootLinuxNode(env, {
                   dir('go') {
                     sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/keybase"
                     sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                    clientImage = docker.build("keybaseprivate/kbclient")
+                    def clientImage = docker.build("kbclient")
                     // TODO: only do this when we need to run at least one KBFS test.
                     dir('kbfs') {
                       sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/kbfs/kbfsfuse"
@@ -228,23 +218,15 @@ helpers.rootLinuxNode(env, {
                       sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
                       sh "cp ${env.GOPATH}/bin/git-remote-keybase ./kbfsgit/git-remote-keybase/git-remote-keybase"
                       withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64']]) {
-                        println "Building Docker"
-                        sh '''
-                          set +x
-                          KBFS_DOCKER_CERT="$(echo $KBFS_DOCKER_CERT_B64 | sed 's/ //g' | base64 -d)"
-                          docker build -t keybaseprivate/kbfsfuse \
-                              --build-arg KEYBASE_TEST_ROOT_CERT_PEM="$KBFS_DOCKER_CERT" \
-                              --build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64="$KBFS_DOCKER_CERT_B64" .
-                        '''
+                        kbfsfuseImage = docker.build('897413463132.dkr.ecr.us-east-1.amazonaws.com/client', "--build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64='$KBFS_DOCKER_CERT_B64'")
                       }
-                      sh "docker save keybaseprivate/kbfsfuse | gzip > kbfsfuse.tar.gz"
-                      archive("kbfsfuse.tar.gz")
+                      kbfsfuseImage.push("897413463132.dkr.ecr.us-east-1.amazonaws.com/client:${env.BUILD_TAG}")
                       build([
                           job: "/kbfs-server/master",
                           parameters: [
                             string(
                               name: 'kbfsProjectName',
-                              value: env.JOB_NAME,
+                              value: env.BUILD_TAG,
                             ),
                           ]
                       ])
@@ -342,8 +324,7 @@ helpers.rootLinuxNode(env, {
 
     stage("Push") {
       if (env.BRANCH_NAME == "master" && cause != "upstream") {
-        docker.withRegistry("https://docker.io", "docker-hub-creds") {
-          clientImage.push()
+        docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb', 'ecr:us-east-1:aws-ecr-user') {
           sh "docker push keybaseprivate/kbfsfuse"
         }
       } else {

@@ -1,7 +1,7 @@
 version: '3.7'
 services:
     mysql.local:
-        image: keybaseprivate/mysql
+        image: 897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql
         restart: unless-stopped
         environment:
             - MYSQL_ROOT_PASSWORD=secret
@@ -11,17 +11,19 @@ services:
         tmpfs: /var/lib/mysql
         command: ["--innodb_print_all_deadlocks=1", "--max_connections=1000"]
     sqsd.local:
-        image: keybaseprivate/sqsd
+        image: 897413463132.dkr.ecr.us-east-1.amazonaws.com/sqsd
         restart: unless-stopped
         ports:
             - "9324"
     kbweb.local:
-        image: keybaseprivate/kbweb
+        image: 897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb
         ports:
             - "3000:3000"
+            - "9911:9911"
             - "13009"
             - "13010"
             - "13037"
+            - "13047"
         depends_on:
             - mysql.local
             - sqsd.local
