@@ -95,8 +95,8 @@ export const TeamMemberRow = (props: Props) => {
     )
 
     const body = (
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+        <Kb.Avatar username={props.username} size={32} />
 
         <Kb.Box2 direction="vertical" style={styles.nameContainer}>
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
@@ -227,7 +227,7 @@ export const TeamMemberRow = (props: Props) => {
         {...massActionsProps}
         action={anySelected ? null : actions}
         onlyShowActionOnHover="fade"
-        height={Styles.isMobile ? 90 : 64}
+        height={Styles.isMobile ? 56 : 48}
         type="Large"
         body={body}
         firstItem={props.firstItem}
