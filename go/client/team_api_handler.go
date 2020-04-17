@@ -384,11 +384,15 @@ func (t *teamAPIHandler) removeMember(ctx context.Context, c Call, w io.Writer) 
 		return err
 	}
 
-	arg := keybase1.TeamRemoveMemberArg{
-		TeamID:   teamID,
-		Username: opts.Username,
+	arg := keybase1.TeamRemoveMembersArg{
+		TeamID: teamID,
+		Members: []keybase1.TeamMemberToRemove{
+			keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{
+				Assertion: opts.Username,
+			}),
+		},
 	}
-	if err := t.cli.TeamRemoveMember(ctx, arg); err != nil {
+	if _, err := t.cli.TeamRemoveMembers(ctx, arg); err != nil {
 		return t.encodeErr(c, err, w)
 	}
 	return t.encodeResult(c, nil, w)

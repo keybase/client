@@ -601,3 +601,21 @@ func (e *MapAncestorsError) Error() string {
 func (e *MapAncestorsError) Unwrap() error {
 	return e.err
 }
+
+// MemberNotFoundInChainError is an error that is returned when a member is not in a team, and this
+// fact is verified in the sigchain (i.e., not servertrust).
+type MemberNotFoundInChainError struct {
+	err error
+}
+
+func NewMemberNotFoundInChainError(err error) error {
+	return &MemberNotFoundInChainError{err}
+}
+
+func (e *MemberNotFoundInChainError) Error() string {
+	return fmt.Sprintf("could not find team member in team: %s", e.err)
+}
+
+func (e *MemberNotFoundInChainError) Unwrap() error {
+	return e.err
+}

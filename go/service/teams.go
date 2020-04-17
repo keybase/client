@@ -471,7 +471,7 @@ func (h *TeamsHandler) TeamRemoveMembers(ctx context.Context, arg keybase1.TeamR
 		return res, err
 	}
 
-	return teams.RemoveMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Members)
+	return teams.RemoveMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Members, arg.NoErrorOnPartialFailure)
 }
 
 func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) (err error) {

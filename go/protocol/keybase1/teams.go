@@ -3638,14 +3638,14 @@ func (o UserRolePair) DeepCopy() UserRolePair {
 }
 
 type AssertionTeamMemberToRemove struct {
-	Assertion                    string `codec:"assertion" json:"assertion"`
-	RemoveFromTransitiveSubteams bool   `codec:"removeFromTransitiveSubteams" json:"removeFromTransitiveSubteams"`
+	Assertion         string `codec:"assertion" json:"assertion"`
+	RemoveFromSubtree bool   `codec:"removeFromSubtree" json:"removeFromSubtree"`
 }
 
 func (o AssertionTeamMemberToRemove) DeepCopy() AssertionTeamMemberToRemove {
 	return AssertionTeamMemberToRemove{
-		Assertion:                    o.Assertion,
-		RemoveFromTransitiveSubteams: o.RemoveFromTransitiveSubteams,
+		Assertion:         o.Assertion,
+		RemoveFromSubtree: o.RemoveFromSubtree,
 	}
 }
 
@@ -3762,28 +3762,28 @@ func (o TeamMemberToRemove) DeepCopy() TeamMemberToRemove {
 }
 
 type RemoveTeamMemberFailure struct {
-	TeamMember                           TeamMemberToRemove `codec:"teamMember" json:"teamMember"`
-	ErrorAtRemovalFromTarget             *string            `codec:"errorAtRemovalFromTarget,omitempty" json:"errorAtRemovalFromTarget,omitempty"`
-	ErrorAtRemovalFromTransitiveSubteams *string            `codec:"errorAtRemovalFromTransitiveSubteams,omitempty" json:"errorAtRemovalFromTransitiveSubteams,omitempty"`
+	TeamMember     TeamMemberToRemove `codec:"teamMember" json:"teamMember"`
+	ErrorAtTarget  *string            `codec:"errorAtTarget,omitempty" json:"errorAtTarget,omitempty"`
+	ErrorAtSubtree *string            `codec:"errorAtSubtree,omitempty" json:"errorAtSubtree,omitempty"`
 }
 
 func (o RemoveTeamMemberFailure) DeepCopy() RemoveTeamMemberFailure {
 	return RemoveTeamMemberFailure{
 		TeamMember: o.TeamMember.DeepCopy(),
-		ErrorAtRemovalFromTarget: (func(x *string) *string {
+		ErrorAtTarget: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x)
 			return &tmp
-		})(o.ErrorAtRemovalFromTarget),
-		ErrorAtRemovalFromTransitiveSubteams: (func(x *string) *string {
+		})(o.ErrorAtTarget),
+		ErrorAtSubtree: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x)
 			return &tmp
-		})(o.ErrorAtRemovalFromTransitiveSubteams),
+		})(o.ErrorAtSubtree),
 	}
 }
 
@@ -4569,10 +4569,10 @@ type TeamAddMembersMultiRoleArg struct {
 }
 
 type TeamRemoveMembersArg struct {
-	SessionID                      int                  `codec:"sessionID" json:"sessionID"`
-	TeamID                         TeamID               `codec:"teamID" json:"teamID"`
-	Members                        []TeamMemberToRemove `codec:"members" json:"members"`
-	ShouldNotErrorOnPartialFailure bool                 `codec:"shouldNotErrorOnPartialFailure" json:"shouldNotErrorOnPartialFailure"`
+	SessionID               int                  `codec:"sessionID" json:"sessionID"`
+	TeamID                  TeamID               `codec:"teamID" json:"teamID"`
+	Members                 []TeamMemberToRemove `codec:"members" json:"members"`
+	NoErrorOnPartialFailure bool                 `codec:"noErrorOnPartialFailure" json:"noErrorOnPartialFailure"`
 }
 
 type TeamLeaveArg struct {

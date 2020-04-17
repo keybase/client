@@ -983,8 +983,9 @@ func MemberRoleFromID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 }
 
 func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
-	members []keybase1.TeamMemberToRemove) (res keybase1.TeamRemoveMembersResult, err error) {
-	mctx := libkb.NewMetaContext(ctx, g)
+	members []keybase1.TeamMemberToRemove, shouldNotErrorOnPartialFailure bool,
+) (res keybase1.TeamRemoveMembersResult, err error) {
+	// mctx := libkb.NewMetaContext(ctx, g)
 
 	// Preliminary checks
 	for _, member := range members {
@@ -994,14 +995,15 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 		switch typ {
 		case keybase1.TeamMemberToRemoveType_ASSERTION:
-			actx := mctx.G().MakeAssertionContext(mctx)
-			assertion, err := libkb.ParseAssertionURL(actx, member.Assertion().Assertion, false /* strict */)
-			if err != nil {
-				return res, err
-			}
-			if !assertion.IsKeybase() && member.Assertion().RemoveFromTransitiveSubteams {
-				return res, fmt.Errorf("cannot remove %s-type assertion recursively", assertion.GetKey())
-			}
+			// TODO: test if recursion works w/ social invites
+			// actx := mctx.G().MakeAssertionContext(mctx)
+			// assertion, err := libkb.ParseAssertionURL(actx, member.Assertion().Assertion, false /* strict */)
+			// if err != nil {
+			// 	return res, err
+			// }
+			// if !assertion.IsKeybase() && member.Assertion().RemoveFromTransitiveSubteams {
+			// 	return res, fmt.Errorf("cannot remove %s-type assertion recursively", assertion.GetKey())
+			// }
 		case keybase1.TeamMemberToRemoveType_INVITEID:
 		default:
 			return res, fmt.Errorf("unknown TeamMemberToRemoveType %v", typ)
@@ -1026,29 +1028,49 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		case keybase1.TeamMemberToRemoveType_ASSERTION:
 			targetErr := remove(ctx, g, teamGetter, member.Assertion().Assertion)
 			var subtreeErr error
-			if targetErr == nil && member.Assertion().RemoveFromTransitiveSubteams {
-				subtreeErr = removeMemberFromSubtree(ctx, g, teamID, member.Assertion().Assertion)
+			if member.Assertion().RemoveFromSubtree {
+				if targetErr == nil {
+					subtreeErr = removeMemberFromSubtree(ctx, g, teamID, member.Assertion().Assertion)
+				} else {
+					subtreeErr = fmt.Errorf("did not attempt to remove from subtree since removal failed at specified team")
+				}
 			}
-			failures = append(failures, keybase1.RemoveTeamMemberFailure{
-				TeamMember:                           member,
-				ErrorAtRemovalFromTarget:             errstrp(targetErr),
-				ErrorAtRemovalFromTransitiveSubteams: errstrp(subtreeErr),
-			})
-			// Transitive
-		case keybase1.TeamMemberToRemoveType_INVITEID:
-			err = CancelInviteByID(ctx, g, teamID, member.Inviteid().InviteID)
-			if err != nil {
+			if targetErr != nil || subtreeErr != nil {
 				failures = append(failures, keybase1.RemoveTeamMemberFailure{
-					TeamMember:               member,
-					ErrorAtRemovalFromTarget: errstrp(err),
+					TeamMember:     member,
+					ErrorAtTarget:  errstrp(targetErr),
+					ErrorAtSubtree: errstrp(subtreeErr),
+				})
+			}
+		case keybase1.TeamMemberToRemoveType_INVITEID:
+			targetErr := CancelInviteByID(ctx, g, teamID, member.Inviteid().InviteID)
+			if targetErr != nil {
+				failures = append(failures, keybase1.RemoveTeamMemberFailure{
+					TeamMember:     member,
+					ErrorAtSubtree: errstrp(targetErr),
 				})
 			}
 		}
 	}
 
 	res = keybase1.TeamRemoveMembersResult{Failures: failures}
-	if len(res.Failures) > 0 {
-		err = fmt.Errorf("failed to remove %d members", failures)
+	if !shouldNotErrorOnPartialFailure && len(res.Failures) > 0 {
+		if len(res.Failures) == 1 {
+			failure := res.Failures[0]
+			var m string
+			if failure.ErrorAtTarget != nil {
+				m += fmt.Sprintf("failed to remove from team: %s", failure.ErrorAtTarget)
+			}
+			if failure.ErrorAtTarget != nil && failure.ErrorAtSubtree != nil {
+				m += "; "
+			}
+			if failure.ErrorAtSubtree != nil {
+				m += fmt.Sprintf("failed to remove from subteams: %s", failure.ErrorAtSubtree)
+			}
+			err = errors.New(m)
+		} else {
+			err = fmt.Errorf("failed to remove %d members", len(res.Failures))
+		}
 	}
 	return res, err
 }
@@ -1073,6 +1095,7 @@ func removeMemberFromSubtree(ctx context.Context, g *libkb.GlobalContext, target
 	for _, membership := range teamTreeMemberships {
 		teamID := membership.Result.Ok().TeamID
 
+		// Don't remove member from the targetTeam; just the subtree
 		if teamID == targetTeamID {
 			continue
 		}
@@ -1082,9 +1105,14 @@ func removeMemberFromSubtree(ctx context.Context, g *libkb.GlobalContext, target
 		}
 
 		removeErr := remove(ctx, g, teamGetter, assertion)
-		// ITS FINE IF ITS NOT FOUND ERR, ... BUT ONL
-		// maybe this is where allowinaction'd be useful...
-		if removeErr != nil {
+		var memberNotFoundErr *MemberNotFoundInChainError
+		switch {
+		case err == nil:
+		// If the member was not found in the sigchain (either via invite or cryptomember), we can
+		// ignore the error. Because we got team memberships for ourselves and not the user,
+		// we can't use the membership data provided by the Treeloader.
+		case errors.As(removeErr, &memberNotFoundErr):
+		default:
 			errs = append(errs, removeErr)
 		}
 	}
@@ -1139,8 +1167,8 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 		if err != nil {
-			return libkb.NotFoundError{Msg: fmt.Sprintf(
-				"user %q is not a member of team %q", username, t.Name())}
+			return NewMemberNotFoundInChainError(libkb.NotFoundError{Msg: fmt.Sprintf(
+				"user %q is not a member of team %q", username, t.Name())})
 		}
 
 		removePermanently := t.IsOpen() ||
@@ -1724,7 +1752,7 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 	}
 
 	g.Log.CDebugf(ctx, "no invites found to remove for %s/%s", validatedType, inviteName)
-	return libkb.NotFoundError{}
+	return NewMemberNotFoundInChainError(libkb.NotFoundError{})
 }
 
 func removeKeybaseTypeInviteForUID(ctx context.Context, g *libkb.GlobalContext, team *Team, uid keybase1.UID) (err error) {
@@ -1752,7 +1780,7 @@ func removeKeybaseTypeInviteForUID(ctx context.Context, g *libkb.GlobalContext, 
 	}
 
 	g.Log.CDebugf(ctx, "no keybase-invites found to remove %s", uid)
-	return libkb.NotFoundError{}
+	return NewMemberNotFoundInChainError(libkb.NotFoundError{})
 }
 
 func removeMultipleInviteIDs(ctx context.Context, team *Team, invIDs []keybase1.TeamInviteID) error {

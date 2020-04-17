@@ -3091,7 +3091,7 @@
         },
         {
           "type": "boolean",
-          "name": "removeFromTransitiveSubteams"
+          "name": "removeFromSubtree"
         }
       ]
     },
@@ -3150,14 +3150,14 @@
             null,
             "string"
           ],
-          "name": "errorAtRemovalFromTarget"
+          "name": "errorAtTarget"
         },
         {
           "type": [
             null,
             "string"
           ],
-          "name": "errorAtRemovalFromTransitiveSubteams"
+          "name": "errorAtSubtree"
         }
       ]
     },
@@ -4156,7 +4156,7 @@
           }
         },
         {
-          "name": "shouldNotErrorOnPartialFailure",
+          "name": "noErrorOnPartialFailure",
           "type": "boolean"
         }
       ],

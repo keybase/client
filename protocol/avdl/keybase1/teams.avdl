@@ -1374,7 +1374,7 @@ protocol teams {
   /* Team remove members - start */
   record AssertionTeamMemberToRemove {
     string assertion;
-    boolean removeFromTransitiveSubteams;
+    boolean removeFromSubtree;
   }
   record InviteTeamMemberToRemove {
     TeamInviteID inviteID;
@@ -1391,8 +1391,8 @@ protocol teams {
   }
   record RemoveTeamMemberFailure {
     TeamMemberToRemove teamMember;
-    union {null, string} errorAtRemovalFromTarget;
-    union {null, string} errorAtRemovalFromTransitiveSubteams;
+    union {null, string} errorAtTarget;
+    union {null, string} errorAtSubtree;
   }
   record TeamRemoveMembersResult {
     array<RemoveTeamMemberFailure> failures;
@@ -1402,17 +1402,19 @@ protocol teams {
   // a list of members that were not able to be removed, for whatever reason (network failure,
   // permissions issues, races, etc.).
   // For non-invite members (except for keybase-type invites), one can optionally remove the member
-  // from all subteams recursively as well by passing removeFromTransitiveSubteams. Failure in this
+  // from all subteams recursively as well by passing removeFromSubtree. Failure in this
   // step is recorded separately from failure in removal from teamID.
   TeamRemoveMembersResult teamRemoveMembers(
     int sessionID,
     TeamID teamID,
     array<TeamMemberToRemove> members,
-    // Pass shouldNotErrorOnPartialFailure if the returned error should be nil in the case there
+    // Pass noErrorOnPartialFailure if the returned error should be nil in the case there
     // were some successes and some failures. It is the caller's responsibility to check
-    // TeamRemoveMembersResult and handle the errors.  However, the call can still error out in the
+    // TeamRemoveMembersResult and handle the errors. However, the call can still error out in the
     // normal means if the RPC fails at a preliminary step.
-    boolean shouldNotErrorOnPartialFailure
+	// This is mainly used for the GUI because it cannot both get an error and inspect the results
+	// at the same time.
+    boolean noErrorOnPartialFailure
   );
   /* Team remove members - end */
 
