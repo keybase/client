@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -152,10 +153,15 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 		}
 		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, param.Typ)
 		var membersType chat1.ConversationMembersType
+		// https://github.com/keybase/client/blob/249cfcb4b4bd6dcc50d207d0b88eee455a7f6c2d/go/protocol/keybase1/extras.go#L2249
 		if _, err := teams.Load(ctx, b.G().GlobalContext, keybase1.LoadTeamArg{Name: *param.TeamName}); err == nil {
 			membersType = chat1.ConversationMembersType_TEAM
 		} else {
-			membersType = chat1.ConversationMembersType_IMPTEAMNATIVE
+			if strings.Contains(err.Error(), "team names must be between 2 and 16 characters long") {
+				membersType = chat1.ConversationMembersType_IMPTEAMNATIVE
+			} else {
+				return res, err
+			}
 		}
 		res, _, err = b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, *param.TeamName, &topicName,
 			chat1.TopicType_DEV, membersType, keybase1.TLFVisibility_PRIVATE)
