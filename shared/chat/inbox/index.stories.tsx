@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/chat2'
 import * as Sb from '../../stories/storybook'
-import {isDarwin} from '../../constants/platform'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 import Inbox from '.'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
