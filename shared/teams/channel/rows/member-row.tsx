@@ -113,7 +113,11 @@ const ChannelMemberRow = (props: Props) => {
   )
 
   const body = (
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={anySelected ? styles.mobileMarginsHack : undefined}
+    >
       <Kb.Avatar username={username} size={Styles.isMobile ? 48 : 32} />
 
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.nameContainer}>
