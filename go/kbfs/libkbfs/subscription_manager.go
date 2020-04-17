@@ -171,10 +171,10 @@ func newSubscriptionManager(clientID SubscriptionManagerClientID, config Config,
 
 func (sm *subscriptionManager) Shutdown(ctx context.Context) {
 	sm.onlineStatusTracker.shutdown()
-	pathSids := make([]SubscriptionID, 0, len(sm.pathSubscriptionIDToRef))
-	nonPathSids := make([]SubscriptionID, 0, len(sm.nonPathSubscriptionIDToTopic))
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
+	pathSids := make([]SubscriptionID, 0, len(sm.pathSubscriptionIDToRef))
+	nonPathSids := make([]SubscriptionID, 0, len(sm.nonPathSubscriptionIDToTopic))
 	for sid := range sm.pathSubscriptionIDToRef {
 		pathSids = append(pathSids, sid)
 	}
