@@ -909,16 +909,8 @@ const unsubscribe = async (action: FsGen.UnsubscribePayload) => {
 
 const onPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload) => {
   const {clientID: clientIDFromNotification, path, topics} = action.payload.params
-  KB.debugConsoleLog({
-    songgao: 'onPathChange',
-    clientIDFromNotification,
-    subscriptionIDs: action.payload.params.subscriptionIDs,
-    skip: clientIDFromNotification !== clientID,
-    topics,
-    path,
-  })
   if (clientIDFromNotification !== clientID) {
-    return
+    return null
   }
   return topics?.map(topic => {
     switch (topic) {
@@ -932,15 +924,8 @@ const onPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPath
 
 const onNonPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload) => {
   const {clientID: clientIDFromNotification, topic} = action.payload.params
-  KB.debugConsoleLog({
-    songgao: 'onNonPathChange',
-    clientIDFromNotification,
-    subscriptionIDs: action.payload.params.subscriptionIDs,
-    skip: clientIDFromNotification !== clientID,
-    topic,
-  })
   if (clientIDFromNotification !== clientID) {
-    return
+    return null
   }
   switch (topic) {
     case RPCTypes.SubscriptionTopic.favorites:
