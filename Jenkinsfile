@@ -219,7 +219,7 @@ helpers.rootLinuxNode(env, {
                       withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64']]) {
                         kbfsfuseImage = docker.build('897413463132.dkr.ecr.us-east-1.amazonaws.com/client', "--build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64='$KBFS_DOCKER_CERT_B64'")
                       }
-                      kbfsfuseImage.push("897413463132.dkr.ecr.us-east-1.amazonaws.com/client:${env.BUILD_TAG}")
+                      kbfsfuseImage.push(env.BUILD_TAG)
                       build([
                           job: "/kbfs-server/master",
                           parameters: [
@@ -324,7 +324,7 @@ helpers.rootLinuxNode(env, {
     stage("Push") {
       if (env.BRANCH_NAME == "master" && cause != "upstream") {
         docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
-          sh "docker push keybaseprivate/kbfsfuse"
+            kbfsfuseImage.push('master')
         }
       } else {
         println "Not pushing docker"
