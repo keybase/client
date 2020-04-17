@@ -43,16 +43,16 @@ type FSOnlineStatusChangedArg struct {
 }
 
 type FSSubscriptionNotifyPathArg struct {
-	ClientID       string                `codec:"clientID" json:"clientID"`
-	SubscriptionID string                `codec:"subscriptionID" json:"subscriptionID"`
-	Path           string                `codec:"path" json:"path"`
-	Topic          PathSubscriptionTopic `codec:"topic" json:"topic"`
+	ClientID        string                  `codec:"clientID" json:"clientID"`
+	SubscriptionIDs []string                `codec:"subscriptionIDs" json:"subscriptionIDs"`
+	Path            string                  `codec:"path" json:"path"`
+	Topics          []PathSubscriptionTopic `codec:"topics" json:"topics"`
 }
 
 type FSSubscriptionNotifyArg struct {
-	ClientID       string            `codec:"clientID" json:"clientID"`
-	SubscriptionID string            `codec:"subscriptionID" json:"subscriptionID"`
-	Topic          SubscriptionTopic `codec:"topic" json:"topic"`
+	ClientID        string            `codec:"clientID" json:"clientID"`
+	SubscriptionIDs []string          `codec:"subscriptionIDs" json:"subscriptionIDs"`
+	Topic           SubscriptionTopic `codec:"topic" json:"topic"`
 }
 
 type NotifyFSInterface interface {

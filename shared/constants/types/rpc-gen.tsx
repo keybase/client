@@ -100,11 +100,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyFS.FSSubscriptionNotify': {
-    inParam: {readonly clientID: String; readonly subscriptionID: String; readonly topic: SubscriptionTopic}
+    inParam: {readonly clientID: String; readonly subscriptionIDs?: Array<String> | null; readonly topic: SubscriptionTopic}
     outParam: void
   }
   'keybase.1.NotifyFS.FSSubscriptionNotifyPath': {
-    inParam: {readonly clientID: String; readonly subscriptionID: String; readonly path: String; readonly topic: PathSubscriptionTopic}
+    inParam: {readonly clientID: String; readonly subscriptionIDs?: Array<String> | null; readonly path: String; readonly topics?: Array<PathSubscriptionTopic> | null}
     outParam: void
   }
   'keybase.1.NotifyFS.FSSyncActivity': {

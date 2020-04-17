@@ -1835,10 +1835,12 @@ func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
 }
 
 // SubscriptionManager implements the Config interface.
-func (c *ConfigLocal) SubscriptionManager(clientID SubscriptionManagerClientID, purgeable bool) SubscriptionManager {
+func (c *ConfigLocal) SubscriptionManager(
+	clientID SubscriptionManagerClientID, purgeable bool,
+	notifier SubscriptionNotifier) SubscriptionManager {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	return c.subscriptionManagerManager.get(clientID, purgeable)
+	return c.subscriptionManagerManager.get(clientID, purgeable, notifier)
 }
 
 // SubscriptionManagerPublisher implements the Config interface.

@@ -118,16 +118,22 @@
           "type": "string"
         },
         {
-          "name": "subscriptionID",
-          "type": "string"
+          "name": "subscriptionIDs",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         },
         {
           "name": "path",
           "type": "string"
         },
         {
-          "name": "topic",
-          "type": "PathSubscriptionTopic"
+          "name": "topics",
+          "type": {
+            "type": "array",
+            "items": "PathSubscriptionTopic"
+          }
         }
       ],
       "response": null,
@@ -140,8 +146,11 @@
           "type": "string"
         },
         {
-          "name": "subscriptionID",
-          "type": "string"
+          "name": "subscriptionIDs",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         },
         {
           "name": "topic",

@@ -159,7 +159,13 @@ type subscriptionManagerGetter interface {
 	// If purgeable is true, the client is marked as purgeable. We keep maximum
 	// 3 purgeable clients (FIFO). This is useful as a way to purge old, likely
 	// dead, clients, which happens a lot with electron refreshes.
-	SubscriptionManager(clientID SubscriptionManagerClientID, purgeable bool) SubscriptionManager
+	//
+	// notifier specifies how notification should be delivered when things
+	// change. If different notifiers are used across multiple calls to get the
+	// subscription manager for the same clientID, only the first one is
+	// effective.
+	SubscriptionManager(clientID SubscriptionManagerClientID, purgeable bool,
+		notifier SubscriptionNotifier) SubscriptionManager
 }
 
 type subscriptionManagerPublisherGetter interface {
@@ -2114,16 +2120,26 @@ type SubscriptionID string
 type SubscriptionNotifier interface {
 	// OnPathChange notifies about a change that's related to a specific path.
 	OnPathChange(
-		clientID SubscriptionManagerClientID, subscriptionID SubscriptionID,
-		path string, topic keybase1.PathSubscriptionTopic)
+		clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
+		path string, topics []keybase1.PathSubscriptionTopic)
 	// OnNonPathChange notifies about a change that's not related to a specific
 	// path.
 	OnNonPathChange(
-		clientID SubscriptionManagerClientID, subscriptionID SubscriptionID,
+		clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
 		topic keybase1.SubscriptionTopic)
 }
 
-// Subscriber defines a type that can be used to subscribe to different topic.
+// OnlineStatusTracker tracks the online status for the GUI.
+type OnlineStatusTracker interface {
+	GetOnlineStatus() keybase1.KbfsOnlineStatus
+	UserIn(ctx context.Context, clientKey string)
+	UserOut(ctx context.Context, clientKey string)
+}
+
+// SubscriptionManager manages subscriptions associated with one clientID.
+// Multiple subscribers can be used with the same SubscriptionManager.
+// If multiple subscriptions exist on the same topic (and for the same path, if
+// applicable), notifications are deduplicated.
 //
 // The two Subscribe methods are for path and non-path subscriptions
 // respectively. Notes on some common arguments:
@@ -2134,7 +2150,7 @@ type SubscriptionNotifier interface {
 //    debounce the events so it doesn't send more frequently than the interval.
 //    If deduplicateInterval is not set, i.e. nil, no deduplication is done and
 //    all events will be delivered.
-type Subscriber interface {
+type SubscriptionManager interface {
 	// SubscribePath subscribes to changes about path, when topic happens.
 	SubscribePath(
 		ctx context.Context, subscriptionID SubscriptionID,
@@ -2147,22 +2163,6 @@ type Subscriber interface {
 	// Unsubscribe unsubscribes a previsous subscription. The subscriptionID
 	// should be the same as when caller subscribed. Otherwise, it's a no-op.
 	Unsubscribe(context.Context, SubscriptionID)
-}
-
-// OnlineStatusTracker tracks the online status for the GUI.
-type OnlineStatusTracker interface {
-	GetOnlineStatus() keybase1.KbfsOnlineStatus
-	UserIn(ctx context.Context, clientKey string)
-	UserOut(ctx context.Context, clientKey string)
-}
-
-// SubscriptionManager manages subscriptions. Use the Subscriber interface to
-// subscribe and unsubscribe. Multiple subscribers can be used with the same
-// SubscriptionManager.
-type SubscriptionManager interface {
-	// Subscriber returns a new subscriber. All subscriptions made on this
-	// subscriber causes notifications sent through the give notifier here.
-	Subscriber(SubscriptionNotifier) Subscriber
 	// OnlineStatusTracker returns the OnlineStatusTracker for getting the
 	// current online status for GUI.
 	OnlineStatusTracker() OnlineStatusTracker

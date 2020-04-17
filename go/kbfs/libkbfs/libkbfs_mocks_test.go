@@ -2504,7 +2504,7 @@ func (mr *MockKeybaseServiceMockRecorder) NotifySyncStatus(arg0, arg1 interface{
 }
 
 // OnNonPathChange mocks base method.
-func (m *MockKeybaseService) OnNonPathChange(arg0 SubscriptionManagerClientID, arg1 SubscriptionID, arg2 keybase1.SubscriptionTopic) {
+func (m *MockKeybaseService) OnNonPathChange(arg0 SubscriptionManagerClientID, arg1 []SubscriptionID, arg2 keybase1.SubscriptionTopic) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "OnNonPathChange", arg0, arg1, arg2)
 }
@@ -2516,7 +2516,7 @@ func (mr *MockKeybaseServiceMockRecorder) OnNonPathChange(arg0, arg1, arg2 inter
 }
 
 // OnPathChange mocks base method.
-func (m *MockKeybaseService) OnPathChange(arg0 SubscriptionManagerClientID, arg1 SubscriptionID, arg2 string, arg3 keybase1.PathSubscriptionTopic) {
+func (m *MockKeybaseService) OnPathChange(arg0 SubscriptionManagerClientID, arg1 []SubscriptionID, arg2 string, arg3 []keybase1.PathSubscriptionTopic) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "OnPathChange", arg0, arg1, arg2, arg3)
 }
@@ -4335,7 +4335,7 @@ func (m *MockSubscriptionNotifier) EXPECT() *MockSubscriptionNotifierMockRecorde
 }
 
 // OnNonPathChange mocks base method.
-func (m *MockSubscriptionNotifier) OnNonPathChange(arg0 SubscriptionManagerClientID, arg1 SubscriptionID, arg2 keybase1.SubscriptionTopic) {
+func (m *MockSubscriptionNotifier) OnNonPathChange(arg0 SubscriptionManagerClientID, arg1 []SubscriptionID, arg2 keybase1.SubscriptionTopic) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "OnNonPathChange", arg0, arg1, arg2)
 }
@@ -4347,7 +4347,7 @@ func (mr *MockSubscriptionNotifierMockRecorder) OnNonPathChange(arg0, arg1, arg2
 }
 
 // OnPathChange mocks base method.
-func (m *MockSubscriptionNotifier) OnPathChange(arg0 SubscriptionManagerClientID, arg1 SubscriptionID, arg2 string, arg3 keybase1.PathSubscriptionTopic) {
+func (m *MockSubscriptionNotifier) OnPathChange(arg0 SubscriptionManagerClientID, arg1 []SubscriptionID, arg2 string, arg3 []keybase1.PathSubscriptionTopic) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "OnPathChange", arg0, arg1, arg2, arg3)
 }

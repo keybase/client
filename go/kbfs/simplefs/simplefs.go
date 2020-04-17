@@ -196,25 +196,25 @@ var _ libkbfs.SubscriptionNotifier = subscriptionNotifier{}
 // OnNonPathChange implements the libkbfs.SubscriptionNotifier interface.
 func (s subscriptionNotifier) OnPathChange(
 	clientID libkbfs.SubscriptionManagerClientID,
-	subscriptionID libkbfs.SubscriptionID,
-	path string, topic keybase1.PathSubscriptionTopic) {
+	subscriptionIDs []libkbfs.SubscriptionID,
+	path string, topics []keybase1.PathSubscriptionTopic) {
 	ks := s.config.KeybaseService()
 	if ks == nil {
 		return
 	}
-	ks.OnPathChange(clientID, subscriptionID, path, topic)
+	ks.OnPathChange(clientID, subscriptionIDs, path, topics)
 }
 
 // OnPathChange implements the libkbfs.SubscriptionNotifier interface.
 func (s subscriptionNotifier) OnNonPathChange(
 	clientID libkbfs.SubscriptionManagerClientID,
-	subscriptionID libkbfs.SubscriptionID,
+	subscriptionIDs []libkbfs.SubscriptionID,
 	topic keybase1.SubscriptionTopic) {
 	ks := s.config.KeybaseService()
 	if ks == nil {
 		return
 	}
-	ks.OnNonPathChange(clientID, subscriptionID, topic)
+	ks.OnNonPathChange(clientID, subscriptionIDs, topic)
 }
 
 func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *SimpleFS {
@@ -3175,11 +3175,8 @@ func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
 func (k *SimpleFS) subscriptionManager(
 	clientID string) libkbfs.SubscriptionManager {
 	return k.config.SubscriptionManager(
-		libkbfs.SubscriptionManagerClientID(clientID), true)
-}
-
-func (k *SimpleFS) subscriber(clientID string) libkbfs.Subscriber {
-	return k.subscriptionManager(clientID).Subscriber(k.subscriptionNotifier)
+		libkbfs.SubscriptionManagerClientID(clientID), true,
+		k.subscriptionNotifier)
 }
 
 // SimpleFSSubscribePath implements the SimpleFSInterface.
@@ -3194,7 +3191,7 @@ func (k *SimpleFS) SimpleFSSubscribePath(
 		return err
 	}
 	interval := time.Second * time.Duration(arg.DeduplicateIntervalSecond)
-	return k.subscriber(arg.ClientID).SubscribePath(
+	return k.subscriptionManager(arg.ClientID).SubscribePath(
 		ctx, libkbfs.SubscriptionID(arg.SubscriptionID),
 		arg.KbfsPath, arg.Topic, &interval)
 }
@@ -3207,7 +3204,7 @@ func (k *SimpleFS) SimpleFSSubscribeNonPath(
 		return err
 	}
 	interval := time.Second * time.Duration(arg.DeduplicateIntervalSecond)
-	return k.subscriber(arg.ClientID).SubscribeNonPath(
+	return k.subscriptionManager(arg.ClientID).SubscribeNonPath(
 		ctx, libkbfs.SubscriptionID(arg.SubscriptionID), arg.Topic, &interval)
 }
 
@@ -3218,7 +3215,8 @@ func (k *SimpleFS) SimpleFSUnsubscribe(
 	if err != nil {
 		return err
 	}
-	k.subscriber(arg.ClientID).Unsubscribe(ctx, libkbfs.SubscriptionID(arg.SubscriptionID))
+	k.subscriptionManager(arg.ClientID).Unsubscribe(
+		ctx, libkbfs.SubscriptionID(arg.SubscriptionID))
 	return nil
 }
 
