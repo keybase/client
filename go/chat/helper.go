@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teams"
 	"golang.org/x/net/context"
 )
@@ -405,6 +406,10 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 			MessageType: mtype,
 		},
 		MessageBody: body,
+	}
+	if mtype == chat1.MessageType_SENDPAYMENT {
+		txID := stellar1.TransactionIDFromPaymentID(body.Sendpayment__.PaymentID)
+		msg.ClientHeader.TxID = &txID
 	}
 	return s.sender.Send(ctx, s.convID, msg, 0, outboxID, nil, nil)
 }
