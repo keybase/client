@@ -67,7 +67,7 @@ const getFrequentSection = memoize(
     return {
       data: chunkEmojis(emojis, emojisPerLine).slice(0, 4),
       key: 'Frequently Used',
-      title: 'Frequently Used',
+      title: 'Frequently used',
     }
   }
 )
