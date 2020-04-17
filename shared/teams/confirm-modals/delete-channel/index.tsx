@@ -30,9 +30,13 @@ const DeleteChannel = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const routePropChannel = Container.getRouteProps(props, 'conversationIDKey', undefined)
   const storeSelectedChannels = Container.useSelector(state => getTeamSelectedCount(state, teamID))
-  const channelIDs = routePropChannel ? [routePropChannel] : storeSelectedChannels
 
-  if (channelIDs == undefined) {
+  // When the channels get deleted, the values in the store are gone but we should keep displaying the same thing.
+  const [channelIDs] = React.useState<ChatTypes.ConversationIDKey[]>(
+    routePropChannel ? [routePropChannel] : storeSelectedChannels ? [...storeSelectedChannels] : []
+  )
+
+  if (channelIDs === []) {
     throw new Error('conversationIDKeys unexpectedly empty')
   }
 
@@ -63,17 +67,17 @@ const DeleteChannel = (props: Props) => {
 
   const onDelete = () => {
     dispatch(
+      TeamsGen.createDeleteMultiChannelsConfirmed({
+        channels: Array.from(channelIDs.values()),
+        teamID,
+      })
+    )
+    dispatch(
       TeamsGen.createSetChannelSelected({
         channel: '',
         clearAll: true,
         selected: false,
         teamID: teamID,
-      })
-    )
-    dispatch(
-      TeamsGen.createDeleteMultiChannelsConfirmed({
-        channels: Array.from(channelIDs.values()),
-        teamID,
       })
     )
   }

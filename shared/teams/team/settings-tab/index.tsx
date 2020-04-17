@@ -447,6 +447,7 @@ const styles = styleSheetCreate(() => ({
   }),
   main: {
     alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.white,
     flexBasis: 0,
     flexGrow: 1,
     justifyContent: 'flex-start',

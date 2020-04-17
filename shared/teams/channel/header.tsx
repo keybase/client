@@ -186,10 +186,14 @@ export default HeaderTitle
 const nyi = () => console.warn('not yet implemented')
 const useHeaderCallbacks = (_: TeamID, conversationIDKey: ConversationIDKey) => {
   const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
 
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'channelHeader'}))
-  const onEdit = nyi
+  const onEdit = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({path: [{props: {conversationIDKey}, selected: 'chatEditChannel'}]})
+    )
   const onAddMembers = nyi
 
   return {onAddMembers, onChat, onEdit}
