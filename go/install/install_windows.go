@@ -176,6 +176,8 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 	if len(watchdogLogFiles) > 5 {
 		watchdogLogFiles = watchdogLogFiles[:5]
 	}
+	// resort the files so the combined file will be chronological
+	sort.Sort((sort.StringSlice(watchdogLogFiles)))
 
 	logName, logFile, err := libkb.OpenTempFile("KeybaseWatchdogUpload", ".log", 0)
 	defer logFile.Close()
