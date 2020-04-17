@@ -504,17 +504,6 @@ func (t *TeamSigChainState) informCompletedInvite(i keybase1.TeamInviteID,
 	t.inner.InviteMetadatas[i] = inviteMD
 }
 
-func (t *TeamSigChainState) findAndObsoleteActiveInviteForUser(uid keybase1.UID) {
-	for _, inviteMD := range t.ActiveInvites() {
-		if inviteUv, err := inviteMD.Invite.KeybaseUserVersion(); err == nil {
-			if inviteUv.Uid == uid {
-				inviteMD.Status = keybase1.NewTeamInviteMetadataStatusWithObsolete()
-				t.inner.InviteMetadatas[inviteMD.Invite.Id] = inviteMD
-			}
-		}
-	}
-}
-
 func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.SubteamLogPoint {
 	if len(t.inner.SubteamLog[id]) > 0 {
 		return &t.inner.SubteamLog[id][len(t.inner.SubteamLog[id])-1]
@@ -2272,9 +2261,19 @@ func (t *teamSigchainPlayer) obsoleteActiveInvites(stateToUpdate *TeamSigChainSt
 		return
 	}
 
+	m := make(map[keybase1.UID]struct{})
 	for _, uvs := range roleUpdates {
 		for _, uv := range uvs {
-			stateToUpdate.findAndObsoleteActiveInviteForUser(uv.Uid)
+			m[uv.Uid] = struct{}{}
+		}
+	}
+
+	for _, inviteMD := range stateToUpdate.ActiveInvites() {
+		if inviteUv, err := inviteMD.Invite.KeybaseUserVersion(); err == nil {
+			if _, ok := m[inviteUv.Uid]; ok {
+				inviteMD.Status = keybase1.NewTeamInviteMetadataStatusWithObsolete()
+				stateToUpdate.inner.InviteMetadatas[inviteMD.Invite.Id] = inviteMD
+			}
 		}
 	}
 }
