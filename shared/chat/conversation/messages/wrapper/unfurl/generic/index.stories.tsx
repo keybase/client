@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {Box} from '../../../../../../common-adapters'
-import * as Styles from '../../../../../../styles'
 import * as Sb from '../../../../../../stories/storybook'
 
 import UnfurlGeneric from '.'

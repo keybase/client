@@ -98,7 +98,7 @@ function fixModules() {
   } catch (_) {}
 }
 
-function exec(command: string, env?: Object, options?: Object) {
+function exec(command: string, env?: any, options?: Object) {
   console.log(
     execSync(command, {
       encoding: 'utf8',

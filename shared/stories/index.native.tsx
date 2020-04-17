@@ -28,7 +28,7 @@ let _darkMode = false
 let _autoSwap = false
 const RootWrapper = ({children}) => {
   const [darkMode, setDarkMode] = React.useState(_darkMode)
-  const [autoSwap, setAutoSwap] = React.useState(_autoSwap)
+  const [autoSwap] = React.useState(_autoSwap)
 
   // stash change
   React.useEffect(() => {
