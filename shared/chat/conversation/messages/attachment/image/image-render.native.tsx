@@ -48,6 +48,7 @@ export class ImageRender extends React.Component<Props, State> {
               }}
               style={Styles.collapseStyles([styles.video, {height, width}])}
               resizeMode="contain"
+              ignoreSilentSwitch="ignore"
             />
           ) : (
             <Kb.NativeFastImage
