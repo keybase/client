@@ -8,9 +8,9 @@ import UnfurlGeneric from '.'
 const full = {
   description:
     'A surge in technology shares following Facebook’s latest earnings lifted U.S. stocks, helping major indexes trim some of their October declines following a punishing period for global investors.',
-  faviconURL: Styles.isMobile ? '' : require('../../../../../../images/mock/wsj.jpg'),
+  faviconURL: __STORYSHOT__ ? '' : require('../../../../../../images/mock/wsj.jpg'),
   imageHeight: 471,
-  imageURL: Styles.isMobile ? '' : require('../../../../../../images/mock/wsj_image.jpg'),
+  imageURL: __STORYSHOT__ ? '' : require('../../../../../../images/mock/wsj_image.jpg'),
   imageWidth: 900,
   isCollapsed: false,
   onClose: Sb.action('onClose'),
@@ -39,7 +39,7 @@ const missingPubDesc = {
 
 const missingPubDescImage = {
   ...missingPubDesc,
-  imageURL: Styles.isMobile ? '' : undefined,
+  imageURL: __STORYSHOT__ ? '' : undefined,
 }
 
 const missingPubDescImageFav = {
@@ -49,13 +49,13 @@ const missingPubDescImageFav = {
 
 const missingImage = {
   ...full,
-  imageURL: Styles.isMobile ? '' : undefined,
+  imageURL: __STORYSHOT__ ? '' : undefined,
 }
 
 const fullGithub = {
   description: 'Keybase Go Library, Client, Service, OS X, iOS, Android, Electron - keybase/client',
   faviconURL: require('../../../../../../images/mock/github_fav.jpg'),
-  imageURL: Styles.isMobile ? '' : require('../../../../../../images/mock/github.jpg'),
+  imageURL: __STORYSHOT__ ? '' : require('../../../../../../images/mock/github.jpg'),
   isCollapsed: false,
   onClose: Sb.action('onClose'),
   onCollapse: Sb.action('onCollapse'),
@@ -72,7 +72,7 @@ const githubMissingDesc = {
 
 const githubMissingImage = {
   ...fullGithub,
-  imageURL: Styles.isMobile ? '' : undefined,
+  imageURL: __STORYSHOT__ ? '' : undefined,
 }
 
 const load = () => {

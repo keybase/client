@@ -50,7 +50,6 @@ const _getData = () => {
     } as typeof Data.emojiNameMap
   }
 
-  console.error('aaa', categories)
   return {categories, emojiIndex, emojiNameMap, emojiSkinTones}
 }
 
