@@ -78,7 +78,6 @@ const CreateChannel = (props: Props) => {
       mode="DefaultFullHeight"
       footer={{content: submitButton}}
       allowOverflow={true}
-      style={styles.container}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
         <Kb.Icon type="icon-illustration-teams-channels-460-96" />
