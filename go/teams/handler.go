@@ -454,8 +454,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 			}
 
 			g.Log.CDebugf(ctx, "User already has same or higher role, canceling invite %s", invite.Id)
-			const allowInaction = false
-			return removeInviteID(ctx, team, invite.Id, allowInaction)
+			return removeInviteID(ctx, team, invite.Id)
 		}
 
 		tx := CreateAddMemberTx(team)

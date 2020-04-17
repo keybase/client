@@ -3637,33 +3637,167 @@ func (o UserRolePair) DeepCopy() UserRolePair {
 	}
 }
 
+type AssertionTeamMemberToRemove struct {
+	Assertion                    string `codec:"assertion" json:"assertion"`
+	RemoveFromTransitiveSubteams bool   `codec:"removeFromTransitiveSubteams" json:"removeFromTransitiveSubteams"`
+}
+
+func (o AssertionTeamMemberToRemove) DeepCopy() AssertionTeamMemberToRemove {
+	return AssertionTeamMemberToRemove{
+		Assertion:                    o.Assertion,
+		RemoveFromTransitiveSubteams: o.RemoveFromTransitiveSubteams,
+	}
+}
+
+type InviteTeamMemberToRemove struct {
+	InviteID TeamInviteID `codec:"inviteID" json:"inviteID"`
+}
+
+func (o InviteTeamMemberToRemove) DeepCopy() InviteTeamMemberToRemove {
+	return InviteTeamMemberToRemove{
+		InviteID: o.InviteID.DeepCopy(),
+	}
+}
+
+type TeamMemberToRemoveType int
+
+const (
+	TeamMemberToRemoveType_ASSERTION TeamMemberToRemoveType = 0
+	TeamMemberToRemoveType_INVITEID  TeamMemberToRemoveType = 1
+)
+
+func (o TeamMemberToRemoveType) DeepCopy() TeamMemberToRemoveType { return o }
+
+var TeamMemberToRemoveTypeMap = map[string]TeamMemberToRemoveType{
+	"ASSERTION": 0,
+	"INVITEID":  1,
+}
+
+var TeamMemberToRemoveTypeRevMap = map[TeamMemberToRemoveType]string{
+	0: "ASSERTION",
+	1: "INVITEID",
+}
+
+func (e TeamMemberToRemoveType) String() string {
+	if v, ok := TeamMemberToRemoveTypeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type TeamMemberToRemove struct {
-	Username      string       `codec:"username" json:"username"`
-	Email         string       `codec:"email" json:"email"`
-	InviteID      TeamInviteID `codec:"inviteID" json:"inviteID"`
-	AllowInaction bool         `codec:"allowInaction" json:"allowInaction"`
+	Type__      TeamMemberToRemoveType       `codec:"type" json:"type"`
+	Assertion__ *AssertionTeamMemberToRemove `codec:"assertion,omitempty" json:"assertion,omitempty"`
+	Inviteid__  *InviteTeamMemberToRemove    `codec:"inviteid,omitempty" json:"inviteid,omitempty"`
+}
+
+func (o *TeamMemberToRemove) Type() (ret TeamMemberToRemoveType, err error) {
+	switch o.Type__ {
+	case TeamMemberToRemoveType_ASSERTION:
+		if o.Assertion__ == nil {
+			err = errors.New("unexpected nil value for Assertion__")
+			return ret, err
+		}
+	case TeamMemberToRemoveType_INVITEID:
+		if o.Inviteid__ == nil {
+			err = errors.New("unexpected nil value for Inviteid__")
+			return ret, err
+		}
+	}
+	return o.Type__, nil
+}
+
+func (o TeamMemberToRemove) Assertion() (res AssertionTeamMemberToRemove) {
+	if o.Type__ != TeamMemberToRemoveType_ASSERTION {
+		panic("wrong case accessed")
+	}
+	if o.Assertion__ == nil {
+		return
+	}
+	return *o.Assertion__
+}
+
+func (o TeamMemberToRemove) Inviteid() (res InviteTeamMemberToRemove) {
+	if o.Type__ != TeamMemberToRemoveType_INVITEID {
+		panic("wrong case accessed")
+	}
+	if o.Inviteid__ == nil {
+		return
+	}
+	return *o.Inviteid__
+}
+
+func NewTeamMemberToRemoveWithAssertion(v AssertionTeamMemberToRemove) TeamMemberToRemove {
+	return TeamMemberToRemove{
+		Type__:      TeamMemberToRemoveType_ASSERTION,
+		Assertion__: &v,
+	}
+}
+
+func NewTeamMemberToRemoveWithInviteid(v InviteTeamMemberToRemove) TeamMemberToRemove {
+	return TeamMemberToRemove{
+		Type__:     TeamMemberToRemoveType_INVITEID,
+		Inviteid__: &v,
+	}
 }
 
 func (o TeamMemberToRemove) DeepCopy() TeamMemberToRemove {
 	return TeamMemberToRemove{
-		Username:      o.Username,
-		Email:         o.Email,
-		InviteID:      o.InviteID.DeepCopy(),
-		AllowInaction: o.AllowInaction,
+		Type__: o.Type__.DeepCopy(),
+		Assertion__: (func(x *AssertionTeamMemberToRemove) *AssertionTeamMemberToRemove {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Assertion__),
+		Inviteid__: (func(x *InviteTeamMemberToRemove) *InviteTeamMemberToRemove {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Inviteid__),
+	}
+}
+
+type RemoveTeamMemberFailure struct {
+	TeamMember                           TeamMemberToRemove `codec:"teamMember" json:"teamMember"`
+	ErrorAtRemovalFromTarget             *string            `codec:"errorAtRemovalFromTarget,omitempty" json:"errorAtRemovalFromTarget,omitempty"`
+	ErrorAtRemovalFromTransitiveSubteams *string            `codec:"errorAtRemovalFromTransitiveSubteams,omitempty" json:"errorAtRemovalFromTransitiveSubteams,omitempty"`
+}
+
+func (o RemoveTeamMemberFailure) DeepCopy() RemoveTeamMemberFailure {
+	return RemoveTeamMemberFailure{
+		TeamMember: o.TeamMember.DeepCopy(),
+		ErrorAtRemovalFromTarget: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ErrorAtRemovalFromTarget),
+		ErrorAtRemovalFromTransitiveSubteams: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ErrorAtRemovalFromTransitiveSubteams),
 	}
 }
 
 type TeamRemoveMembersResult struct {
-	Failures []TeamMemberToRemove `codec:"failures" json:"failures"`
+	Failures []RemoveTeamMemberFailure `codec:"failures" json:"failures"`
 }
 
 func (o TeamRemoveMembersResult) DeepCopy() TeamRemoveMembersResult {
 	return TeamRemoveMembersResult{
-		Failures: (func(x []TeamMemberToRemove) []TeamMemberToRemove {
+		Failures: (func(x []RemoveTeamMemberFailure) []RemoveTeamMemberFailure {
 			if x == nil {
 				return nil
 			}
-			ret := make([]TeamMemberToRemove, len(x))
+			ret := make([]RemoveTeamMemberFailure, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -4434,19 +4568,11 @@ type TeamAddMembersMultiRoleArg struct {
 	EmailInviteMessage   *string        `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
 }
 
-type TeamRemoveMemberArg struct {
-	SessionID     int          `codec:"sessionID" json:"sessionID"`
-	TeamID        TeamID       `codec:"teamID" json:"teamID"`
-	Username      string       `codec:"username" json:"username"`
-	Email         string       `codec:"email" json:"email"`
-	InviteID      TeamInviteID `codec:"inviteID" json:"inviteID"`
-	AllowInaction bool         `codec:"allowInaction" json:"allowInaction"`
-}
-
 type TeamRemoveMembersArg struct {
-	SessionID int                  `codec:"sessionID" json:"sessionID"`
-	TeamID    TeamID               `codec:"teamID" json:"teamID"`
-	Users     []TeamMemberToRemove `codec:"users" json:"users"`
+	SessionID                      int                  `codec:"sessionID" json:"sessionID"`
+	TeamID                         TeamID               `codec:"teamID" json:"teamID"`
+	Members                        []TeamMemberToRemove `codec:"members" json:"members"`
+	ShouldNotErrorOnPartialFailure bool                 `codec:"shouldNotErrorOnPartialFailure" json:"shouldNotErrorOnPartialFailure"`
 }
 
 type TeamLeaveArg struct {
@@ -4738,7 +4864,6 @@ type TeamsInterface interface {
 	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
 	TeamAddMembers(context.Context, TeamAddMembersArg) (TeamAddMembersResult, error)
 	TeamAddMembersMultiRole(context.Context, TeamAddMembersMultiRoleArg) (TeamAddMembersResult, error)
-	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamRemoveMembers(context.Context, TeamRemoveMembersArg) (TeamRemoveMembersResult, error)
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
@@ -5050,21 +5175,6 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamAddMembersMultiRole(ctx, typedArgs[0])
-					return
-				},
-			},
-			"teamRemoveMember": {
-				MakeArg: func() interface{} {
-					var ret [1]TeamRemoveMemberArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]TeamRemoveMemberArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]TeamRemoveMemberArg)(nil), args)
-						return
-					}
-					err = i.TeamRemoveMember(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5899,11 +6009,6 @@ func (c TeamsClient) TeamAddMembers(ctx context.Context, __arg TeamAddMembersArg
 
 func (c TeamsClient) TeamAddMembersMultiRole(ctx context.Context, __arg TeamAddMembersMultiRoleArg) (res TeamAddMembersResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembersMultiRole", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMemberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
