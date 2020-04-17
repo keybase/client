@@ -14,14 +14,15 @@ var (
 
 func GetCounts(mctx libkb.MetaContext) (counts keybase1.InviteCounts, err error) {
 	type apiRes struct {
-		NumInvitesInLastDay int     `json:"numInvitesInLastDay"`
-		PercentageChange    float64 `json:"percentageChange"`
-		ShowNumInvites      bool    `json:"showNumInvites"`
-		ShowFire            bool    `json:"showFire"`
+		NumInvites       int     `json:"numInvites"`
+		PercentageChange float64 `json:"percentageChange"`
+		ShowNumInvites   bool    `json:"showNumInvites"`
+		ShowFire         bool    `json:"showFire"`
+		TooltipMarkdown  string  `json:"tooltipMarkdown"`
 		libkb.AppStatusEmbed
 	}
 	apiArg := libkb.APIArg{
-		Endpoint:    "invite_friends/num_invites_in_last_day",
+		Endpoint:    "invite_friends/num_invites",
 		SessionType: libkb.APISessionTypeNONE,
 	}
 	var res apiRes
@@ -30,10 +31,11 @@ func GetCounts(mctx libkb.MetaContext) (counts keybase1.InviteCounts, err error)
 		return counts, err
 	}
 	newCounts := keybase1.InviteCounts{
-		InviteCount:      res.NumInvitesInLastDay,
+		InviteCount:      res.NumInvites,
 		PercentageChange: res.PercentageChange,
 		ShowNumInvites:   res.ShowNumInvites,
 		ShowFire:         res.ShowFire,
+		TooltipMarkdown:  res.TooltipMarkdown,
 	}
 	countsCacheMu.Lock()
 	countsCache = &newCounts

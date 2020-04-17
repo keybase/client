@@ -11,7 +11,7 @@ type Props = {
   onFinishTeamBuilding: () => void
 }
 
-export default (props: Props) => {
+const RolePickerHeaderAction = (props: Props) => {
   const [rolePickerOpen, setRolePickerOpen] = React.useState(
     (props.rolePickerProps && props.rolePickerProps.showRolePicker) || false
   )
@@ -44,6 +44,7 @@ export default (props: Props) => {
     </FloatingRolePicker>
   )
 }
+export default RolePickerHeaderAction
 
 const styles = Styles.styleSheetCreate(() => ({
   hide: {opacity: 0},

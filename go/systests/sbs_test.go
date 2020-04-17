@@ -112,21 +112,7 @@ func (p *userSBSRooter) Verify() {
 }
 
 func (p *userSBSRooter) Revoke() {
-	tctx := p.u.tc
-	arg := libkb.NewLoadUserArg(tctx.G).WithUID(p.u.uid).WithPublicKeyOptional().WithForcePoll(true)
-	_, user, err := tctx.G.GetUPAKLoader().LoadV2(arg)
-	require.NoError(tctx.T, err)
-
-	st := tctx.G.GetProofServices().GetServiceType(context.TODO(), "rooter")
-	ret := user.IDTable().GetActiveProofsFor(st)
-	require.Len(tctx.T, len(ret), 1)
-	sigID := ret[0].GetSigID()
-
-	revokeClient := keybase1.RevokeClient{Cli: p.u.teamsClient.Cli}
-	err = revokeClient.RevokeSigs(context.TODO(), keybase1.RevokeSigsArg{
-		SigIDQueries: []string{sigID.String()},
-	})
-	require.NoError(tctx.T, err)
+	p.u.revokeServiceProof("rooter")
 }
 
 // ------------------

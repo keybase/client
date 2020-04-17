@@ -8,6 +8,9 @@ import {RPCError} from '../util/errors'
 
 export const saltpackDocumentation = 'https://saltpack.org'
 
+export const inputDesktopMaxHeight = {maxHeight: '30%'}
+export const outputDesktopMaxHeight = {maxHeight: '70%'}
+
 // String waiting keys
 export const encryptStringWaitingKey = 'crypto:encrypt:string' as Types.StringWaitingKey
 export const decryptStringWaitingKey = 'crypto:decrypt:string' as Types.StringWaitingKey

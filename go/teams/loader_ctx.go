@@ -88,7 +88,7 @@ func (r *rawTeam) unpackLinks(mctx libkb.MetaContext) (links []*ChainLinkUnpacke
 	if r == nil {
 		return nil, nil
 	}
-	defer mctx.PerfTrace(fmt.Sprintf("TeamLoad: unpackLinks(%v, %d)", r.ID, len(r.Chain)), func() error { return err })()
+	defer mctx.PerfTrace(fmt.Sprintf("TeamLoad: unpackLinks(%v, %d)", r.ID, len(r.Chain)), &err)()
 	start := time.Now()
 	defer func() {
 		if len(links) == 0 {

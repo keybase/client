@@ -92,7 +92,7 @@ func (s *SignupEngine) PaperKey() *libkb.PaperKeyPhrase {
 }
 
 func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.Trace("SignupEngine#Run", func() error { return err })()
+	defer m.Trace("SignupEngine#Run", &err)()
 
 	if err = m.LogoutKeepSecrets(); err != nil {
 		return err
@@ -383,7 +383,7 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 }
 
 func (s *SignupEngine) storeSecret(m libkb.MetaContext, randomPw bool) {
-	defer m.Trace("SignupEngine#storeSecret", func() error { return nil })()
+	defer m.Trace("SignupEngine#storeSecret", nil)()
 
 	// Create the secret store as late as possible here, as the username may
 	// change during the signup process.
@@ -399,7 +399,7 @@ func (s *SignupEngine) storeSecret(m libkb.MetaContext, randomPw bool) {
 }
 
 func (s *SignupEngine) storeSecretForRecovery(m libkb.MetaContext) (err error) {
-	defer m.Trace("SignupEngine#storeSecretForRecovery", func() error { return err })()
+	defer m.Trace("SignupEngine#storeSecretForRecovery", &err)()
 
 	if !s.arg.GenerateRandomPassphrase {
 		m.Debug("Not GenerateRandomPassphrase - skipping storeSecretForRecovery")
@@ -441,7 +441,7 @@ func (s *SignupEngine) checkGPG(m libkb.MetaContext) (bool, error) {
 }
 
 func (s *SignupEngine) addGPG(m libkb.MetaContext, allowMulti bool, hasProvisionedDevice bool) (err error) {
-	defer m.Trace(fmt.Sprintf("SignupEngine.addGPG(signingKey: %v)", s.signingKey), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("SignupEngine.addGPG(signingKey: %v)", s.signingKey), &err)()
 
 	arg := GPGImportKeyArg{Signer: s.signingKey, AllowMulti: allowMulti, Me: s.me, Lks: s.lks, HasProvisionedDevice: hasProvisionedDevice}
 	eng := NewGPGImportKeyEngine(m.G(), &arg)

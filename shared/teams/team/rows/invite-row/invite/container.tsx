@@ -3,6 +3,7 @@ import * as Constants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import {TeamInviteRow} from '.'
 import {InviteInfo, TeamID} from '../../../../../constants/types/teams'
+import flags from '../../../../../util/feature-flags'
 
 type OwnProps = {
   id: string
@@ -67,6 +68,10 @@ export default Container.connect(
       const match = labelledInviteRegex.exec(label)!
       label = match[1]
       subLabel = match[2]
+    }
+
+    if (!flags.teamsRedesign && subLabel) {
+      label = `${label} (${subLabel})`
     }
 
     return {

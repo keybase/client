@@ -138,21 +138,21 @@ func (r *AttachmentHTTPSrv) getURL(ctx context.Context, prefix string, payload i
 }
 
 func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
-	preview, noAnim bool) string {
+	preview, noAnim, isEmoji bool) string {
 	r.Lock()
 	defer r.Unlock()
-	defer r.Trace(ctx, func() error { return nil }, "GetURL(%s,%d)", convID, msgID)()
+	defer r.Trace(ctx, nil, "GetURL(%s,%d)", convID, msgID)()
 	url := r.getURL(ctx, r.attachmentPrefix, chat1.ConversationIDMessageIDPair{
 		ConvID: convID,
 		MsgID:  msgID,
 	})
-	url += fmt.Sprintf("&prev=%v&noanim=%v", preview, noAnim)
+	url += fmt.Sprintf("&prev=%v&noanim=%v&isemoji=%v", preview, noAnim, isEmoji)
 	r.Debug(ctx, "GetURL: handler URL: convID: %s msgID: %d %s", convID, msgID, url)
 	return url
 }
 
 func (r *AttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string {
-	defer r.Trace(ctx, func() error { return nil }, "GetPendingPreviewURL(%s)", outboxID)()
+	defer r.Trace(ctx, nil, "GetPendingPreviewURL(%s)", outboxID)()
 	url := r.getURL(ctx, r.pendingPrefix, outboxID)
 	r.Debug(ctx, "GetPendingPreviewURL: handler URL: outboxID: %s %s", outboxID, url)
 	return url
@@ -165,7 +165,7 @@ type unfurlAsset struct {
 
 func (r *AttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID,
 	asset chat1.Asset) string {
-	defer r.Trace(ctx, func() error { return nil }, "GetUnfurlAssetURL")()
+	defer r.Trace(ctx, nil, "GetUnfurlAssetURL")()
 	url := r.getURL(ctx, r.unfurlPrefix, unfurlAsset{
 		Asset:  asset,
 		ConvID: convID,
@@ -175,7 +175,7 @@ func (r *AttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID chat1.
 }
 
 func (r *AttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) string {
-	defer r.Trace(ctx, func() error { return nil }, "GetGiphyURL")()
+	defer r.Trace(ctx, nil, "GetGiphyURL")()
 	url := r.getURL(ctx, r.giphyPrefix, giphyURL)
 	r.Debug(ctx, "GetGiphyURL: handler URL: %s", url)
 	return url
@@ -183,7 +183,7 @@ func (r *AttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) st
 
 func (r *AttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, convID chat1.ConversationID,
 	tlfName string, results []chat1.GiphySearchResult) string {
-	defer r.Trace(ctx, func() error { return nil }, "GetGiphyGalleryURL")()
+	defer r.Trace(ctx, nil, "GetGiphyGalleryURL")()
 	url := r.getURL(ctx, r.giphyGalleryPrefix, giphyGalleryInfo{
 		Results: results,
 		ConvID:  convID,
@@ -194,7 +194,7 @@ func (r *AttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, convID chat1
 }
 
 func (r *AttachmentHTTPSrv) servePendingPreview(ctx context.Context, w http.ResponseWriter, req *http.Request) {
-	defer r.Trace(ctx, func() error { return nil }, "servePendingPreview")()
+	defer r.Trace(ctx, nil, "servePendingPreview")()
 	key := req.URL.Query().Get("key")
 	intOutboxID, ok := r.urlMap.Get(key)
 	if !ok {
@@ -218,7 +218,7 @@ func (r *AttachmentHTTPSrv) servePendingPreview(ctx context.Context, w http.Resp
 }
 
 func (r *AttachmentHTTPSrv) serveUnfurlAsset(ctx context.Context, w http.ResponseWriter, req *http.Request) {
-	defer r.Trace(ctx, func() error { return nil }, "serveUnfurlAsset")()
+	defer r.Trace(ctx, nil, "serveUnfurlAsset")()
 	key := req.URL.Query().Get("key")
 	val, ok := r.urlMap.Get(key)
 	if !ok {
@@ -272,7 +272,7 @@ func (r *AttachmentHTTPSrv) getGiphyGallerySelectURL(ctx context.Context, convID
 
 func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.ResponseWriter,
 	req *http.Request) {
-	defer r.Trace(ctx, func() error { return nil }, "serveGiphyGallerySelect")()
+	defer r.Trace(ctx, nil, "serveGiphyGallerySelect")()
 	url := req.URL.Query().Get("url")
 	strConvID := req.URL.Query().Get("convID")
 	tlfName := req.URL.Query().Get("tlfName")
@@ -307,7 +307,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.
 }
 
 func (r *AttachmentHTTPSrv) serveGiphyGallery(ctx context.Context, w http.ResponseWriter, req *http.Request) {
-	defer r.Trace(ctx, func() error { return nil }, "serveGiphyGallery")()
+	defer r.Trace(ctx, nil, "serveGiphyGallery")()
 	key := req.URL.Query().Get("key")
 	infoInt, ok := r.urlMap.Get(key)
 	if !ok {
@@ -347,7 +347,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(ctx context.Context, w http.Respon
 }
 
 func (r *AttachmentHTTPSrv) serveGiphyLink(ctx context.Context, w http.ResponseWriter, req *http.Request) {
-	defer r.Trace(ctx, func() error { return nil }, "serveGiphyLink")()
+	defer r.Trace(ctx, nil, "serveGiphyLink")()
 	key := req.URL.Query().Get("key")
 	val, ok := r.urlMap.Get(key)
 	if !ok {
@@ -478,16 +478,12 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 }
 
 func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.ResponseWriter, req *http.Request) {
-	defer r.Trace(ctx, func() error { return nil }, "serveAttachment")()
+	defer r.Trace(ctx, nil, "serveAttachment")()
+
+	preview := "true" == req.URL.Query().Get("prev")
+	noAnim := "true" == req.URL.Query().Get("noanim")
+	isEmoji := "true" == req.URL.Query().Get("isemoji")
 	key := req.URL.Query().Get("key")
-	preview := false
-	noAnim := false
-	if "true" == req.URL.Query().Get("prev") {
-		preview = true
-	}
-	if "true" == req.URL.Query().Get("noanim") {
-		noAnim = true
-	}
 	r.Lock()
 	pairInt, ok := r.urlMap.Get(key)
 	r.Unlock()
@@ -499,6 +495,7 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 	pair := pairInt.(chat1.ConversationIDMessageIDPair)
 	uid := gregor1.UID(r.G().Env.GetUID().ToBytes())
 	r.Debug(ctx, "serveAttachment: convID: %s msgID: %d", pair.ConvID, pair.MsgID)
+
 	asset, err := attachments.AssetFromMessage(ctx, r.G(), uid, pair.ConvID, pair.MsgID, preview)
 	if err != nil {
 		r.makeError(ctx, w, http.StatusInternalServerError, "failed to get asset: %s", err)
@@ -508,8 +505,12 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 		r.makeError(ctx, w, http.StatusNotFound, "attachment not uploaded yet, no path")
 		return
 	}
-	size := asset.Size
-	r.Debug(ctx, "serveAttachment: setting content-type: %s sz: %d", asset.MimeType, size)
+	if isEmoji && !r.G().EmojiSource.IsValidSize(asset.Size) {
+		r.makeError(ctx, w, http.StatusBadRequest, "%v", fmt.Errorf("emoji incorrectly sized: %d", asset.Size))
+		return
+	}
+
+	r.Debug(ctx, "serveAttachment: setting content-type: %s sz: %d", asset.MimeType, asset.Size)
 	w.Header().Set("Content-Type", asset.MimeType)
 	if r.shouldServeContent(ctx, asset, req) {
 		if r.serveVideoHostPage(ctx, w, req) {
@@ -553,7 +554,7 @@ func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.Response
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
-	defer r.Trace(ctx, func() error { return nil }, "serve")()
+	defer r.Trace(ctx, nil, "serve")()
 	addr, err := r.httpSrv.Addr()
 	if err != nil {
 		r.Debug(ctx, "serve: failed to get HTTP server address: %s", err)
@@ -620,7 +621,7 @@ func NewRemoteAttachmentFetcher(g *globals.Context, store attachments.Store) *Re
 
 func (r *RemoteAttachmentFetcher) StreamAttachment(ctx context.Context, convID chat1.ConversationID,
 	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (res io.ReadSeeker, err error) {
-	defer r.Trace(ctx, func() error { return err }, "StreamAttachment")()
+	defer r.Trace(ctx, &err, "StreamAttachment")()
 	// Grab S3 params for the conversation
 	s3params, err := ri().GetS3Params(ctx, convID)
 	if err != nil {
@@ -632,7 +633,7 @@ func (r *RemoteAttachmentFetcher) StreamAttachment(ctx context.Context, convID c
 func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
 	convID chat1.ConversationID, asset chat1.Asset,
 	ri func() chat1.RemoteInterface, signer s3.Signer, progress types.ProgressReporter) (err error) {
-	defer r.Trace(ctx, func() error { return err }, "FetchAttachment")()
+	defer r.Trace(ctx, &err, "FetchAttachment")()
 	// Grab S3 params for the conversation
 	s3params, err := ri().GetS3Params(ctx, convID)
 	if err != nil {
@@ -643,7 +644,7 @@ func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writ
 
 func (r *RemoteAttachmentFetcher) DeleteAssets(ctx context.Context,
 	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (err error) {
-	defer r.Trace(ctx, func() error { return err }, "DeleteAssets")()
+	defer r.Trace(ctx, &err, "DeleteAssets")()
 
 	if len(assets) == 0 {
 		return nil
@@ -767,7 +768,7 @@ func (c *CachingAttachmentFetcher) localAssetPath(ctx context.Context, asset cha
 
 func (c *CachingAttachmentFetcher) StreamAttachment(ctx context.Context, convID chat1.ConversationID,
 	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (res io.ReadSeeker, err error) {
-	defer c.Trace(ctx, func() error { return err }, "StreamAttachment")()
+	defer c.Trace(ctx, &err, "StreamAttachment")()
 	return NewRemoteAttachmentFetcher(c.G(), c.store).StreamAttachment(ctx, convID, asset, ri, signer)
 }
 
@@ -775,7 +776,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 	convID chat1.ConversationID, asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer,
 	progress types.ProgressReporter) (err error) {
 
-	defer c.Trace(ctx, func() error { return err }, "FetchAttachment")()
+	defer c.Trace(ctx, &err, "FetchAttachment")()
 
 	// Check for a disk cache hit, and decrypt that onto the response stream
 	found, path, err := c.localAssetPath(ctx, asset)
@@ -846,7 +847,7 @@ func (c *CachingAttachmentFetcher) putFileInLRU(ctx context.Context, filename st
 }
 
 func (c *CachingAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (found bool, err error) {
-	defer c.Trace(ctx, func() error { return err }, "IsAssetLocal")()
+	defer c.Trace(ctx, &err, "IsAssetLocal")()
 	found, path, err := c.localAssetPath(ctx, asset)
 	if err != nil {
 		return false, err
@@ -863,13 +864,13 @@ func (c *CachingAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1
 }
 
 func (c *CachingAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) (err error) {
-	defer c.Trace(ctx, func() error { return err }, "PutUploadedAsset")()
+	defer c.Trace(ctx, &err, "PutUploadedAsset")()
 	return c.putFileInLRU(ctx, filename, asset)
 }
 
 func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (err error) {
-	defer c.Trace(ctx, func() error { return err }, "DeleteAssets")()
+	defer c.Trace(ctx, &err, "DeleteAssets")()
 
 	if len(assets) == 0 {
 		return nil

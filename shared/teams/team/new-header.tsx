@@ -4,14 +4,11 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as TeamBuildingGen from '../../actions/team-building-gen'
-import {selfToUser} from '../../constants/team-building'
 import TeamMenu from './menu-container'
 import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import capitalize from 'lodash/capitalize'
-import {Activity, useActivityLevels} from '../common'
-import {appendNewTeamBuilder} from '../../actions/typed-routes'
+import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import flags from '../../util/feature-flags'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
@@ -45,7 +42,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
   return (
     <Kb.Box2
       direction="vertical"
-      gap={Styles.isMobile ? 'xtiny' : 'tiny'}
+      gap={Styles.isPhone ? 'xtiny' : 'tiny'}
       style={styles.addInviteAsFeatureTeamBox}
       className="addInviteAndLinkBox"
       alignItems="flex-start"
@@ -122,7 +119,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const topDescriptors = (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny" style={styles.flexShrink}>
       <Kb.Box2
-        direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+        direction={Styles.isPhone ? 'vertical' : 'horizontal'}
         gap="xtiny"
         alignSelf="flex-start"
         style={styles.flexShrink}
@@ -134,7 +131,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
           alignSelf="flex-start"
           style={styles.flexShrink}
         >
-          <Kb.Text type="Header" lineClamp={3} style={styles.header}>
+          <Kb.Text type="Header" lineClamp={3} style={styles.header} selectable={true}>
             {meta.teamname}
           </Kb.Text>
           {!!callbacks.onRename && <Kb.Icon type="iconfont-edit" onClick={callbacks.onRename} />}
@@ -148,14 +145,14 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
           {(meta.role === 'admin' || meta.role === 'owner') && (
             <Kb.Icon
               color={meta.role === 'owner' ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
-              fontSize={Styles.isMobile ? 16 : 10}
+              fontSize={Styles.isPhone ? 16 : 10}
               type={meta.role === 'owner' ? 'iconfont-crown-owner' : 'iconfont-crown-admin'}
             />
           )}
-          {(!Styles.isMobile || !!meta.role) && (
+          {(!Styles.isPhone || !!meta.role) && (
             <>
               <Kb.Text type="BodySmall">
-                {Styles.isMobile
+                {Styles.isPhone
                   ? capitalize(meta.role)
                   : `You are ${roleDisplay[meta.role] || 'a member of'} this team. `}
               </Kb.Text>
@@ -175,48 +172,59 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
+  const {popupAnchor, setShowingPopup, popup} = useTeamLinkPopup(meta.teamname)
+
   const bottomDescriptorsAndButtons = (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny">
-      {!!details.description && (
-        <Kb.Text
-          type="Body"
-          lineClamp={3}
-          onClick={callbacks.onEditDescription}
-          className={Styles.classNames({'hover-underline': !!callbacks.onEditDescription})}
-          style={styles.clickable}
-        >
-          {details.description}
-        </Kb.Text>
-      )}
-      {meta.memberCount !== -1 && (
-        <Kb.Text type="BodySmall">
-          {meta.memberCount.toLocaleString()} {pluralize('member', meta.memberCount)}
-          {!!newMemberCount && ` · ${newMemberCount} new this week`}
-        </Kb.Text>
-      )}
-      <Activity level={activityLevel} style={styles.activity} />
-      <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-        {meta.isMember && <Kb.Button label="Chat" onClick={callbacks.onChat} small={true} />}
-        {yourOperations.editTeamDescription && (
-          <Kb.Button label="Edit" onClick={callbacks.onEdit} small={true} mode="Secondary" />
+    <>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny">
+        {!!details.description && (
+          <Kb.Text
+            type="Body"
+            lineClamp={3}
+            onClick={callbacks.onEditDescription}
+            className={Styles.classNames({'hover-underline': !!callbacks.onEditDescription})}
+            style={styles.clickable}
+          >
+            {details.description}
+          </Kb.Text>
         )}
-        <Kb.Button label="Share" onClick={callbacks.onShare} small={true} mode="Secondary" />
-        <Kb.Button
-          mode="Secondary"
-          small={true}
-          ref={props.setAttachmentRef}
-          onClick={props.toggleShowingMenu}
-        >
-          <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
-        </Kb.Button>
-        <TeamMenu
-          attachTo={props.getAttachmentRef}
-          onHidden={props.toggleShowingMenu}
-          teamID={props.teamID}
-          visible={props.showingMenu}
-        />
+        {meta.memberCount !== -1 && (
+          <Kb.Text type="BodySmall">
+            {meta.memberCount.toLocaleString()} {pluralize('member', meta.memberCount)}
+            {!!newMemberCount && ` · ${newMemberCount} new this week`}
+          </Kb.Text>
+        )}
+        <Activity level={activityLevel} style={styles.activity} />
+        <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
+          {meta.isMember && <Kb.Button label="Chat" onClick={callbacks.onChat} small={true} />}
+          {yourOperations.editTeamDescription && (
+            <Kb.Button label="Edit" onClick={callbacks.onEditDescription} small={true} mode="Secondary" />
+          )}
+          <Kb.Button
+            label="Share"
+            onClick={() => setShowingPopup(true)}
+            small={true}
+            mode="Secondary"
+            ref={popupAnchor}
+          />
+          <Kb.Button
+            mode="Secondary"
+            small={true}
+            ref={props.setAttachmentRef}
+            onClick={props.toggleShowingMenu}
+          >
+            <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
+          </Kb.Button>
+          <TeamMenu
+            attachTo={props.getAttachmentRef}
+            onHidden={props.toggleShowingMenu}
+            teamID={props.teamID}
+            visible={props.showingMenu}
+          />
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+      {popup}
+    </>
   )
 
   const addInviteAndLinkBox =
@@ -225,7 +233,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     ) : (
       <Kb.Box2
         direction="vertical"
-        gap={Styles.isMobile ? 'xtiny' : 'tiny'}
+        gap={Styles.isPhone ? 'xtiny' : 'tiny'}
         style={styles.addInviteAndLinkBox}
         className="addInviteAndLinkBox"
         alignItems="center"
@@ -233,7 +241,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
       >
         <AddPeopleButton teamID={props.teamID} />
         {flags.teamInvites && (
-          <Kb.Text type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'}>
+          <Kb.Text type={mostRecentInviteLink ? 'BodyTiny' : 'BodySmall'}>
             {mostRecentInviteLink ? 'or share a link:' : 'or'}
           </Kb.Text>
         )}
@@ -262,7 +270,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
       </Kb.Box2>
     )
 
-  if (Styles.isMobile) {
+  if (Styles.isPhone) {
     return (
       <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backButton}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.outerBoxMobile}>
@@ -306,7 +314,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
 }
 export default Kb.OverlayParentHOC(_HeaderTitle)
 
-const nyi = () => console.warn('not yet implemented')
 const useHeaderCallbacks = (teamID: TeamID) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -315,9 +322,9 @@ const useHeaderCallbacks = (teamID: TeamID) => {
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
 
   const onAddSelf = () => {
-    dispatch(appendNewTeamBuilder(teamID))
+    dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
     dispatch(
-      TeamBuildingGen.createAddUsersToTeamSoFar({namespace: 'teams', users: [selfToUser(yourUsername)]})
+      TeamsGen.createAddMembersWizardPushMembers({members: [{assertion: yourUsername, role: 'writer'}]})
     )
   }
   const onChat = () =>
@@ -342,23 +349,19 @@ const useHeaderCallbacks = (teamID: TeamID) => {
           nav.safeNavigateAppendPayload({path: [{props: {teamname: meta.teamname}, selected: 'teamRename'}]})
         )
     : undefined
-  const onEdit = nyi
   const onManageInvites = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteHistory'}]}))
   const onGenerateLink = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksModal'}]}))
-  const onShare = nyi
 
   return {
     onAddSelf,
     onChat,
-    onEdit,
     onEditAvatar,
     onEditDescription,
     onGenerateLink,
     onManageInvites,
     onRename,
-    onShare,
   }
 }
 
@@ -381,10 +384,17 @@ const styles = Styles.styleSheetCreate(
           marginTop: Styles.globalMargins.tiny,
           width: 220,
         },
-        isMobile: {
+        isPhone: {
           borderRadius: 8,
           flexGrow: 1,
           margin: Styles.globalMargins.tiny,
+        },
+        isTablet: {
+          borderRadius: 4,
+          marginBottom: Styles.globalMargins.xsmall,
+          marginRight: Styles.globalMargins.small,
+          marginTop: Styles.globalMargins.tiny,
+          width: 220,
         },
       }),
       addInviteAsFeatureTeamBox: Styles.platformStyles({
@@ -402,10 +412,17 @@ const styles = Styles.styleSheetCreate(
           marginRight: Styles.globalMargins.small,
           width: 220,
         },
-        isMobile: {
+        isPhone: {
           borderRadius: 8,
           flexGrow: 1,
           margin: Styles.globalMargins.tiny,
+        },
+        isTablet: {
+          borderRadius: 4,
+          height: 184,
+          marginBottom: Styles.globalMargins.xsmall,
+          marginRight: Styles.globalMargins.small,
+          width: 220,
         },
       }),
       addPeopleButton: {
@@ -452,7 +469,11 @@ const styles = Styles.styleSheetCreate(
           alignSelf: 'center',
           marginLeft: Styles.globalMargins.xtiny,
         },
-        isMobile: {alignSelf: 'flex-start'},
+        isPhone: {alignSelf: 'flex-start'},
+        isTablet: {
+          alignSelf: 'center',
+          marginLeft: Styles.globalMargins.xtiny,
+        },
       }),
       outerBoxMobile: {
         ...Styles.padding(Styles.globalMargins.small),

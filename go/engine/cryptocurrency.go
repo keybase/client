@@ -69,7 +69,7 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 	m.G().LocalSigchainGuard().Set(m.Ctx(), "CryptocurrencyEngine")
 	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "CryptocurrencyEngine")
 
-	defer m.Trace("CryptocurrencyEngine", func() error { return err })()
+	defer m.Trace("CryptocurrencyEngine", &err)()
 
 	var typ libkb.CryptocurrencyType
 	e.arg.Address = normalizeAddress(e.arg.Address)

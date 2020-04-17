@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -63,13 +64,16 @@ func (c *CmdChatAddEmojiAlias) Run() error {
 	if err != nil {
 		return err
 	}
-	_, err = resolver.ChatClient.AddEmojiAlias(ctx, chat1.AddEmojiAliasArg{
+	res, err := resolver.ChatClient.AddEmojiAlias(ctx, chat1.AddEmojiAliasArg{
 		ConvID:        conversation.GetConvID(),
 		NewAlias:      c.newAlias,
 		ExistingAlias: c.existingAlias,
 	})
 	if err != nil {
 		return err
+	}
+	if res.Error != nil {
+		return errors.New(res.Error.Clidisplay)
 	}
 	return nil
 }

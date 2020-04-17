@@ -108,7 +108,7 @@ func TestServerDefault(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	server.ServeHTTP(w, httptest.NewRequest("GET", "/", nil))
-	require.Equal(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusForbidden, w.Code)
 
 	w = httptest.NewRecorder()
 	server.ServeHTTP(w, httptest.NewRequest("GET", "/non-existent", nil))

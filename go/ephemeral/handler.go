@@ -8,7 +8,7 @@ import (
 )
 
 func HandleNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) (err error) {
-	defer mctx.TraceTimed("HandleNewTeamEK", func() error { return err })()
+	defer mctx.Trace("HandleNewTeamEK", &err)()
 
 	ekLib := mctx.G().GetEKLib()
 	if ekLib == nil {
@@ -20,7 +20,7 @@ func HandleNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generation 
 }
 
 func HandleNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) (err error) {
-	defer mctx.TraceTimed("HandleNewTeambotEK", func() error { return err })()
+	defer mctx.Trace("HandleNewTeambotEK", &err)()
 
 	ekLib := mctx.G().GetEKLib()
 	if ekLib == nil {
@@ -36,7 +36,7 @@ func HandleNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generati
 // requested key.
 func HandleTeambotEKNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
 	generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration) (err error) {
-	defer mctx.TraceTimed("HandleTeambotEKNeeded", func() error { return err })()
+	defer mctx.Trace("HandleTeambotEKNeeded", &err)()
 	defer func() {
 		mctx.G().NotifyRouter.HandleTeambotEKNeeded(mctx.Ctx(), teamID, botUID, generation, forceCreateGen)
 	}()

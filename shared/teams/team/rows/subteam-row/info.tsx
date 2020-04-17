@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
-export default () => (
+const SubteamRow = () => (
   <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
     <Kb.InfoNote>
       <Kb.Text type="BodySmall" center={true} style={styles.text}>
@@ -11,6 +11,7 @@ export default () => (
     </Kb.InfoNote>
   </Kb.Box2>
 )
+export default SubteamRow
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {

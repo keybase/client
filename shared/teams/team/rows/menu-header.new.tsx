@@ -12,7 +12,11 @@ const MenuHeader = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.header}>
     <Kb.Avatar username={props.username} size={64} style={styles.avatar} />
     <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={props.username} />
-    {!!props.fullName && <Kb.Text type="BodySmall">{props.fullName}</Kb.Text>}
+    {!!props.fullName && (
+      <Kb.Text type="BodySmall" center={true}>
+        {props.fullName}
+      </Kb.Text>
+    )}
     {!!props.label && typeof props.label === 'string' ? (
       <Kb.Text type="BodySmall">{props.label}</Kb.Text>
     ) : (
@@ -26,6 +30,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginBottom: Styles.globalMargins.tiny,
   },
   header: Styles.platformStyles({
+    common: Styles.padding(0, Styles.globalMargins.tiny),
     isElectron: {
       paddingTop: Styles.globalMargins.small,
     },

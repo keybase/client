@@ -7,10 +7,12 @@ import * as Chat2Types from '../constants/types/chat2'
 export type EmojiData = {
   category: string
   name: string | null
+  obsoleted_by?: string
   short_name: string
   short_names: Array<string>
   sort_order?: number
   skin_variations?: {[K in Chat2Types.EmojiSkinTone]: Object}
+  teamname?: string
   unified: string
   userEmojiRenderStock?: string
   userEmojiRenderUrl?: string
@@ -26,6 +28,7 @@ export const getEmojiStr = (emoji: EmojiData, skinToneModifier?: string) => {
 
 export type RenderableEmoji = {
   aliasForCustom?: string
+  unicodeStock?: string
   renderStock?: string
   renderUrl?: string
 }
@@ -33,7 +36,8 @@ export type RenderableEmoji = {
 export const renderEmoji = (
   emoji: RenderableEmoji,
   size: number,
-  isReacji: boolean,
+  showTooltip: boolean,
+  addTopMarginToCustom?: boolean,
   customEmojiSize?: number
 ) => {
   if (emoji.renderUrl) {
@@ -41,7 +45,8 @@ export const renderEmoji = (
       <Kb.CustomEmoji
         size={customEmojiSize ?? size}
         src={emoji.renderUrl}
-        alias={!isReacji ? emoji.aliasForCustom : undefined}
+        alias={showTooltip ? emoji.aliasForCustom : undefined}
+        addTopMargin={addTopMarginToCustom}
       />
     )
   }
@@ -68,6 +73,7 @@ export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, noAnim: boolean, categ
     name: null,
     short_name: emoji.alias,
     short_names: [emoji.alias],
+    teamname: emoji.teamname ?? undefined,
     unified: '',
     userEmojiRenderStock:
       emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str ? emoji.source.str : undefined,
@@ -80,8 +86,20 @@ export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, noAnim: boolean, categ
   }
 }
 
-export const emojiDataToRenderableEmoji = (emoji: EmojiData, skinToneModifier?: string): RenderableEmoji => ({
+export const emojiDataToRenderableEmoji = (
+  emoji: EmojiData,
+  skinToneModifier?: string,
+  skinToneKey?: Chat2Types.EmojiSkinTone
+): RenderableEmoji => ({
   aliasForCustom: emoji.short_name,
   renderStock: emoji.userEmojiRenderStock ?? `:${emoji.short_name}:${skinToneModifier ?? ''}`,
   renderUrl: emoji.userEmojiRenderUrl,
+  unicodeStock:
+    emoji.unified &&
+    String.fromCodePoint(
+      // @ts-ignore
+      ...(skinToneModifier && skinToneKey ? emoji.skin_variations?.[skinToneKey].unified : emoji.unified)
+        .split('-')
+        .map((str: string) => Number.parseInt(str, 16))
+    ),
 })

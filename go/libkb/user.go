@@ -396,7 +396,7 @@ func (u *User) SyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 }
 
 func (u *User) getSyncedSecretKeyLogin(m MetaContext, lctx LoginContext) (ret *SKB, err error) {
-	defer m.Trace("User#getSyncedSecretKeyLogin", func() error { return err })()
+	defer m.Trace("User#getSyncedSecretKeyLogin", &err)()
 
 	if err = lctx.RunSecretSyncer(m, u.id); err != nil {
 		return
@@ -438,7 +438,7 @@ func (u *User) SyncedSecretKeyWithSka(m MetaContext, ska SecretKeyArg) (ret *SKB
 }
 
 func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
-	defer m.Trace("User#GetSyncedSecretKey", func() error { return err })()
+	defer m.Trace("User#GetSyncedSecretKey", &err)()
 	skbs, err := u.GetSyncedSecretKeys(m)
 	if err != nil {
 		return nil, err
@@ -451,7 +451,7 @@ func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 }
 
 func (u *User) GetSyncedSecretKeys(m MetaContext) (ret []*SKB, err error) {
-	defer m.Trace("User#GetSyncedSecretKeys", func() error { return err })()
+	defer m.Trace("User#GetSyncedSecretKeys", &err)()
 
 	if err = u.SyncSecrets(m); err != nil {
 		return
@@ -476,7 +476,7 @@ func (u *User) GetSyncedSecretKeys(m MetaContext) (ret []*SKB, err error) {
 // synced to API server.  LoginContext can be nil if this isn't
 // used while logging in, signing up.
 func (u *User) AllSyncedSecretKeys(m MetaContext) (keys []*SKB, err error) {
-	defer m.Trace("User#AllSyncedSecretKeys", func() error { return err })()
+	defer m.Trace("User#AllSyncedSecretKeys", &err)()
 	m.Dump()
 
 	ss, err := m.SyncSecretsForUID(u.GetUID())

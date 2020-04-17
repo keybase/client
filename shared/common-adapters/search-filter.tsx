@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Animation from './animation'
+import {AllowedColors} from './text'
 import Box, {Box2} from './box'
 import ClickableBox from './clickable-box'
 import NewInput from './new-input'
@@ -26,12 +27,14 @@ const Kb = {
 
 type Props = {
   icon?: IconType | null
+  iconColor?: AllowedColors
   focusOnMount?: boolean
   size: 'small' | 'full-width' // only affects desktop (https://zpl.io/aMW5AG3)
   negative?: boolean
   onChange: (text: string) => void
   placeholderText: string
   placeholderCentered?: boolean
+  placeholderColor?: AllowedColors
   style?: Styles.StylesCrossPlatform | null
   valueControlled?: boolean
   value?: string
@@ -153,7 +156,11 @@ class SearchFilter extends React.PureComponent<Props, State> {
     return !Styles.isMobile && this.props.size === 'full-width' ? 'Default' : 'Small'
   }
   private iconColor() {
-    return this.props.negative ? Styles.globalColors.white_75 : Styles.globalColors.black_50
+    return this.props.iconColor
+      ? this.props.iconColor
+      : this.props.negative
+      ? Styles.globalColors.white_75
+      : Styles.globalColors.black_50
   }
   private leftIcon() {
     return (
@@ -196,7 +203,13 @@ class SearchFilter extends React.PureComponent<Props, State> {
         hideBorder={true}
         containerStyle={styles.inputContainer}
         style={Styles.collapseStyles([styles.input, !!this.props.negative && styles.textNegative])}
-        placeholderColor={this.props.negative ? Styles.globalColors.white_75 : ''}
+        placeholderColor={
+          this.props.placeholderColor
+            ? this.props.placeholderColor
+            : this.props.negative
+            ? Styles.globalColors.white_75
+            : ''
+        }
       />
     )
   }
@@ -333,12 +346,18 @@ const styles = Styles.styleSheetCreate(() => ({
   containerCenter: {
     justifyContent: 'center',
   },
-  containerMobile: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-  },
+  containerMobile: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isTablet: {
+      paddingLeft: 0,
+      paddingRight: 0,
+    },
+  }),
   containerNonSmall: {
     height: 32,
     paddingLeft: Styles.globalMargins.xsmall,

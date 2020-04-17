@@ -39,10 +39,10 @@ func pullTranscript(mctx libkb.MetaContext, postArgs libkb.HTTPArgs, convSource 
 
 func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("REPORT")
-	defer mctx.TraceTimed(fmt.Sprintf(
+	defer mctx.Trace(fmt.Sprintf(
 		"UserHandler#ReportUser(username=%q,transcript=%t,convId=%v)",
 		arg.Username, arg.IncludeTranscript, arg.ConvID),
-		func() error { return err })()
+		&err)()
 
 	postArgs := libkb.HTTPArgs{
 		"username": libkb.S{Val: arg.Username},

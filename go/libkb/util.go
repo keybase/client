@@ -56,11 +56,18 @@ func VersionString() string {
 	return Version
 }
 
+func ErrToOkPtr(err *error) string {
+	if err == nil {
+		return "ok"
+	}
+	return ErrToOk(*err)
+}
+
 func ErrToOk(err error) string {
 	if err == nil {
 		return "ok"
 	}
-	return "ERROR: " + err.Error()
+	return fmt.Sprintf("ERROR: %v", err)
 }
 
 // exists returns whether the given file or directory exists or not
@@ -522,96 +529,42 @@ func RandHexString(prefix string, numbytes int) (string, error) {
 	return prefix + str, nil
 }
 
-func Trace(log logger.Logger, msg string, f func() error) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.Debug("+ %s", msg)
-	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
-}
-
-func TraceTimed(log logger.Logger, msg string, f func() error) func() {
+func Trace(log logger.Logger, msg string, err *error) func() {
 	log = log.CloneWithAddedDepth(1)
 	log.Debug("+ %s", msg)
 	start := time.Now()
-	return func() { log.Debug("- %s -> %s [time=%s]", msg, ErrToOk(f()), time.Since(start)) }
+	return func() { log.Debug("- %s -> %s [time=%s]", msg, ErrToOkPtr(err), time.Since(start)) }
 }
 
-func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.CDebugf(ctx, "+ %s", msg)
-	return func() {
-		err := f()
-		if err != nil {
-			log.CDebugf(ctx, "- %s -> %v %T", msg, err, err)
-		} else {
-			log.CDebugf(ctx, "- %s -> ok", msg)
-		}
-	}
-}
-
-func CTraceString(ctx context.Context, log logger.Logger, msg string, f func() string) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.CDebugf(ctx, "+ %s", msg)
-	return func() {
-		log.CDebugf(ctx, "- %s -> %s", msg, f())
-	}
-}
-
-func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
+func CTrace(ctx context.Context, log logger.Logger, msg string, err *error, cl clockwork.Clock) func() {
 	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
 	start := cl.Now()
 	return func() {
-		err := f()
-		if err != nil {
-			log.CDebugf(ctx, "- %s -> %v %T [time=%s]", msg, err, err, cl.Since(start))
+		if err != nil && *err != nil {
+			log.CDebugf(ctx, "- %s -> %v %T [time=%s]", msg, *err, err, cl.Since(start))
 		} else {
 			log.CDebugf(ctx, "- %s -> ok [time=%s]", msg, cl.Since(start))
 		}
 	}
 }
 
-func TraceOK(log logger.Logger, msg string, f func() bool) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.Debug("+ %s", msg)
-	return func() { log.Debug("- %s -> %v", msg, f()) }
+func (g *GlobalContext) Trace(msg string, err *error) func() {
+	return Trace(g.Log.CloneWithAddedDepth(1), msg, err)
+}
+func (g *GlobalContext) CTrace(ctx context.Context, msg string, err *error) func() {
+	return CTrace(ctx, g.Log.CloneWithAddedDepth(1), msg, err, g.Clock())
+}
+func (g *GlobalContext) CPerfTrace(ctx context.Context, msg string, err *error) func() {
+	return CTrace(ctx, g.PerfLog, msg, err, g.Clock())
 }
 
-func CTraceOK(ctx context.Context, log logger.Logger, msg string, f func() bool) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.CDebugf(ctx, "+ %s", msg)
-	return func() { log.CDebugf(ctx, "- %s -> %v", msg, f()) }
-}
-
-func (g *GlobalContext) Trace(msg string, f func() error) func() {
-	return Trace(g.Log.CloneWithAddedDepth(1), msg, f)
-}
-
-func (g *GlobalContext) ExitTrace(msg string, f func() error) func() {
-	return func() { g.Log.CloneWithAddedDepth(1).Debug("| %s -> %s", msg, ErrToOk(f())) }
-}
-
-func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) func() {
-	return CTrace(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
-}
-
-func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
-	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
-}
-func (g *GlobalContext) CPerfTrace(ctx context.Context, msg string, f func() error) func() {
-	return CTraceTimed(ctx, g.PerfLog, msg, f, g.Clock())
-}
-
-func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
-	g.VDL.CLogf(ctx, lev, "+ %s", msg)
-	return func() { g.VDL.CLogf(ctx, lev, "- %s -> %v", msg, ErrToOk(f())) }
-}
-
-func (g *GlobalContext) CVTraceTimed(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
+func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, err *error) func() {
 	cl := g.Clock()
 	g.VDL.CLogf(ctx, lev, "+ %s", msg)
 	start := cl.Now()
 	return func() {
-		g.VDL.CLogf(ctx, lev, "- %s -> %v [time=%s]", msg, f(), cl.Since(start))
+		g.VDL.CLogf(ctx, lev, "- %s -> %v [time=%s]", msg, ErrToOkPtr(err), cl.Since(start))
 	}
 }
 
@@ -624,24 +577,6 @@ func (g *GlobalContext) CTimeTracer(ctx context.Context, label string, enabled b
 
 func (g *GlobalContext) CTimeBuckets(ctx context.Context) (context.Context, *profiling.TimeBuckets) {
 	return profiling.WithTimeBuckets(ctx, g.Clock(), g.Log)
-}
-
-func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
-	return func() { g.Log.Debug("| %s -> %v", msg, f()) }
-}
-
-func (g *GlobalContext) TraceOK(msg string, f func() bool) func() {
-	return TraceOK(g.Log.CloneWithAddedDepth(1), msg, f)
-}
-
-func (g *GlobalContext) CTraceOK(ctx context.Context, msg string, f func() bool) func() {
-	return CTraceOK(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
-}
-
-func (g *GlobalContext) CVTraceOK(ctx context.Context, lev VDebugLevel, msg string, f func() bool) func() {
-	g.VDL.CLogf(ctx, lev, "+ %s", msg)
-	return func() { g.VDL.CLogf(ctx, lev, "- %s -> %v", msg, f()) }
-
 }
 
 // SplitByRunes splits string by runes
@@ -1183,9 +1118,10 @@ func FindFilePathWithNumberSuffix(parentDir string, basename string, useArbitrar
 	if useArbitraryName {
 		return filepath.Join(parentDir, strconv.FormatInt(time.Now().UnixNano(), 16)+ext), nil
 	}
-	destPathBase := filepath.Join(parentDir, basename[:len(basename)-len(ext)])
-	destPath := destPathBase + ext
-	for suffix := 1; ; suffix++ {
+	destPath := filepath.Join(parentDir, basename)
+	basename = basename[:len(basename)-len(ext)]
+	// keep a sane limit on the loop.
+	for suffix := 1; suffix < 100000; suffix++ {
 		_, err := os.Stat(destPath)
 		if os.IsNotExist(err) {
 			break
@@ -1193,7 +1129,7 @@ func FindFilePathWithNumberSuffix(parentDir string, basename string, useArbitrar
 		if err != nil {
 			return "", err
 		}
-		destPath = fmt.Sprintf("%s (%d)%s", destPathBase, suffix, ext)
+		destPath = filepath.Join(parentDir, fmt.Sprintf("%s (%d)%s", basename, suffix, ext))
 	}
 	// Could race but it should be rare enough so fine.
 	return destPath, nil
@@ -1207,7 +1143,7 @@ func JsonwStringArray(a []string) *jsonw.Wrapper {
 	return aj
 }
 
-var throttleBatchClock clockwork.Clock = clockwork.NewRealClock()
+var throttleBatchClock = clockwork.NewRealClock()
 
 type throttleBatchEmpty struct{}
 
@@ -1265,5 +1201,33 @@ func ThrottleBatch(f func(interface{}), batcher func(interface{}, interface{}) i
 		}
 		closed = true
 		close(cancelCh)
+	}
+}
+
+// Format a proof for web-of-trust. Does not support all proof types.
+func NewWotProof(proofType keybase1.ProofType, key, value string) (res keybase1.WotProof, err error) {
+	switch proofType {
+	case keybase1.ProofType_TWITTER, keybase1.ProofType_GITHUB, keybase1.ProofType_REDDIT,
+		keybase1.ProofType_COINBASE, keybase1.ProofType_HACKERNEWS, keybase1.ProofType_FACEBOOK,
+		keybase1.ProofType_GENERIC_SOCIAL, keybase1.ProofType_ROOTER:
+		return keybase1.WotProof{
+			ProofType: proofType,
+			Name:      key,
+			Username:  value,
+		}, nil
+	case keybase1.ProofType_GENERIC_WEB_SITE:
+		return keybase1.WotProof{
+			ProofType: proofType,
+			Protocol:  key,
+			Hostname:  value,
+		}, nil
+	case keybase1.ProofType_DNS:
+		return keybase1.WotProof{
+			ProofType: proofType,
+			Protocol:  key,
+			Domain:    value,
+		}, nil
+	default:
+		return res, fmt.Errorf("unexpected proof type: %v", proofType)
 	}
 }

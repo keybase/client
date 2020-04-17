@@ -43,6 +43,9 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 		gomock.Any(), gomock.Any(), gomock.Any()).
 		AnyTimes().Return(kbname.NormalizedUsername("mockUser"), nil)
 
+	config.mockMdserv.EXPECT().CancelRegistration(
+		gomock.Any(), gomock.Any()).AnyTimes().Return()
+
 	mockDaemon := NewMockKeybaseService(mockCtrl)
 	mockDaemon.EXPECT().LoadUserPlusKeys(
 		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
@@ -1496,11 +1499,11 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 			mergedRootPath.TailPointer())
 	} else if len(blocks) != 1 {
 		t.Errorf("Unexpected number of blocks")
-	} else if fblock, ok := blocks[data.NewPathPartString(mergedName, nil)]; !ok {
+	} else if info, ok := blocks[mergedName]; !ok {
 		t.Errorf("No block for name %s", mergedName)
-	} else if fblock.IsInd {
+	} else if info.block.IsInd {
 		t.Errorf("Unexpected indirect block")
-	} else if g, e := fblock.Contents, unmergedData; !reflect.DeepEqual(g, e) {
+	} else if g, e := info.block.Contents, unmergedData; !reflect.DeepEqual(g, e) {
 		t.Errorf("Unexpected block contents: %v vs %v", g, e)
 	}
 

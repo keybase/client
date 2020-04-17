@@ -80,7 +80,7 @@ func (s *searchSession) incrementNumConvsSearched() {
 // searchConv finds all messages that match the given set of tokens and opts,
 // results are ordered desc by msg id.
 func (s *searchSession) searchConv(ctx context.Context, convID chat1.ConversationID) (msgIDs []chat1.MessageID, err error) {
-	defer s.indexer.Trace(ctx, func() error { return err }, fmt.Sprintf("searchConv convID: %s", convID))()
+	defer s.indexer.Trace(ctx, &err, fmt.Sprintf("searchConv convID: %s", convID))()
 	var allMsgIDs mapset.Set
 	for token := range s.tokens {
 		matchedIDs := mapset.NewThreadUnsafeSet()
@@ -163,7 +163,7 @@ func (s *searchSession) getMsgsAndIDSet(ctx context.Context, convID chat1.Conver
 func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteConversation,
 	msgIDs []chat1.MessageID) (convHits *chat1.ChatSearchInboxHit, err error) {
 	convID := conv.GetConvID()
-	defer s.indexer.Trace(ctx, func() error { return err },
+	defer s.indexer.Trace(ctx, &err,
 		fmt.Sprintf("searchHitsFromMsgIDs convID: %s msgIDs: %d", convID, len(msgIDs)))()
 	if msgIDs == nil {
 		return nil, nil
@@ -331,7 +331,7 @@ func (s *searchSession) searchDone(ctx context.Context, stage string) bool {
 // if PRESEARCH_SYNC is set. As conversations are processed they are passed to
 // the `search` stage via `preSearchCh`.
 func (s *searchSession) preSearch(ctx context.Context) (err error) {
-	defer s.indexer.Trace(ctx, func() error { return err }, "searchSession.preSearch")()
+	defer s.indexer.Trace(ctx, &err, "searchSession.preSearch")()
 	for _, conv := range s.convList {
 		select {
 		case <-ctx.Done():
@@ -384,7 +384,7 @@ func (s *searchSession) preSearch(ctx context.Context) (err error) {
 // search performs the actual search on each conversation after it completes
 // preSearch via `preSearchCh`
 func (s *searchSession) search(ctx context.Context) (err error) {
-	defer s.indexer.Trace(ctx, func() error { return err }, "searchSession.search")()
+	defer s.indexer.Trace(ctx, &err, "searchSession.search")()
 	for _, conv := range s.convList {
 		select {
 		case <-ctx.Done():
@@ -404,7 +404,7 @@ func (s *searchSession) search(ctx context.Context) (err error) {
 // postSearch is the final pipeline stage, reindexing conversations if
 // POSTSEARCH_SYNC is set.
 func (s *searchSession) postSearch(ctx context.Context) (err error) {
-	defer s.indexer.Trace(ctx, func() error { return err }, "searchSession.postSearch")()
+	defer s.indexer.Trace(ctx, &err, "searchSession.postSearch")()
 	switch s.opts.ReindexMode {
 	case chat1.ReIndexingMode_POSTSEARCH_SYNC:
 	default:

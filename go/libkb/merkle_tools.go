@@ -31,7 +31,7 @@ type merkleSearchComparator func(leaf *MerkleGenericLeaf, root *MerkleRoot) (boo
 // lookup the max merkle root seqno from the server, or use a cached version if
 // possible (and it's less than a minute old).
 func lookupMaxMerkleSeqno(m MetaContext) (ret keybase1.Seqno, err error) {
-	defer m.Trace("lookupMaxMerkleSeqno", func() error { return err })()
+	defer m.Trace("lookupMaxMerkleSeqno", &err)()
 	cli := m.G().GetMerkleClient()
 	mr, err := cli.FetchRootFromServer(m, time.Minute)
 	if err != nil {
@@ -52,7 +52,7 @@ func lookupMaxMerkleSeqno(m MetaContext) (ret keybase1.Seqno, err error) {
 // that makes comparer true. Then, to binary search to find the exact [a,b] pair in which a makes the
 // comparer false, and b makes it true. The leaf and root that correspond to b are returned.
 func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparator merkleSearchComparator, prevRootSeqno keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
-	defer m.Trace(fmt.Sprintf("findFirstLeafWithComparer(%s,%d)", id, prevRootSeqno), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("findFirstLeafWithComparer(%s,%d)", id, prevRootSeqno), &err)()
 
 	cli := m.G().GetMerkleClient()
 
@@ -137,7 +137,7 @@ func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparat
 // searching forward until finding a leaf that matches arg.Loc.
 func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRootAfterRevokeArg) (res keybase1.NextMerkleRootRes, err error) {
 
-	defer m.Trace(fmt.Sprintf("FindNextMerkleRootAfterRevoke(%+v)", arg), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FindNextMerkleRootAfterRevoke(%+v)", arg), &err)()
 
 	var u *User
 	u, err = LoadUser(NewLoadUserArgWithMetaContext(m).WithUID(arg.Uid).WithPublicKeyOptional())
@@ -177,7 +177,7 @@ func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRoo
 }
 
 func FindNextMerkleRootAfterReset(m MetaContext, arg keybase1.FindNextMerkleRootAfterResetArg) (res keybase1.NextMerkleRootRes, err error) {
-	defer m.Trace(fmt.Sprintf("FindNextMerkleRootAfterReset(%+v)", arg), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FindNextMerkleRootAfterReset(%+v)", arg), &err)()
 
 	comparer := func(leaf *MerkleGenericLeaf, root *MerkleRoot) (bool, error) {
 		user := leaf.userExtras
@@ -205,7 +205,7 @@ func FindNextMerkleRootAfterReset(m MetaContext, arg keybase1.FindNextMerkleRoot
 }
 
 func FindNextMerkleRootAfterTeamRemoval(m MetaContext, arg keybase1.FindNextMerkleRootAfterTeamRemovalArg) (res keybase1.NextMerkleRootRes, err error) {
-	defer m.Trace(fmt.Sprintf("FindNextMerkleRootAfterTeamRemoval(%+v)", arg), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FindNextMerkleRootAfterTeamRemoval(%+v)", arg), &err)()
 	comparer := func(leaf *MerkleGenericLeaf, root *MerkleRoot) (bool, error) {
 		var trip *MerkleTriple
 		if arg.IsPublic {
@@ -235,7 +235,7 @@ func FindNextMerkleRootAfterTeamRemoval(m MetaContext, arg keybase1.FindNextMerk
 
 func VerifyMerkleRootAndKBFS(m MetaContext, arg keybase1.VerifyMerkleRootAndKBFSArg) (err error) {
 
-	defer m.Trace(fmt.Sprintf("VerifyMerkleRootAndKBFS(%+v)", arg), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("VerifyMerkleRootAndKBFS(%+v)", arg), &err)()
 
 	var mr *MerkleRoot
 	mr, err = m.G().GetMerkleClient().LookupRootAtSeqno(m, arg.Root.Seqno)
@@ -279,7 +279,7 @@ func VerifyMerkleRootAndKBFS(m MetaContext, arg keybase1.VerifyMerkleRootAndKBFS
 // Used to detect a malicious server silently dropping sigchain link posts.
 func MerkleCheckPostedUserSig(mctx MetaContext, uid keybase1.UID,
 	seqno keybase1.Seqno, linkID LinkID) (err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("MerkleCheckPostedUserSig(%v, %v, %v)", uid, seqno, linkID.String()), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("MerkleCheckPostedUserSig(%v, %v, %v)", uid, seqno, linkID.String()), &err)()
 	for _, forcePoll := range []bool{false, true} {
 		upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
 			NewLoadUserArgWithMetaContext(mctx).WithPublicKeyOptional().

@@ -275,10 +275,12 @@ type Emoji struct {
 	IsBig        bool               `codec:"isBig" json:"isBig"`
 	IsReacji     bool               `codec:"isReacji" json:"isReacji"`
 	IsCrossTeam  bool               `codec:"isCrossTeam" json:"isCrossTeam"`
+	IsAlias      bool               `codec:"isAlias" json:"isAlias"`
 	Source       EmojiLoadSource    `codec:"source" json:"source"`
 	NoAnimSource EmojiLoadSource    `codec:"noAnimSource" json:"noAnimSource"`
 	RemoteSource EmojiRemoteSource  `codec:"remoteSource" json:"remoteSource"`
 	CreationInfo *EmojiCreationInfo `codec:"creationInfo,omitempty" json:"creationInfo,omitempty"`
+	Teamname     *string            `codec:"teamname,omitempty" json:"teamname,omitempty"`
 }
 
 func (o Emoji) DeepCopy() Emoji {
@@ -287,6 +289,7 @@ func (o Emoji) DeepCopy() Emoji {
 		IsBig:        o.IsBig,
 		IsReacji:     o.IsReacji,
 		IsCrossTeam:  o.IsCrossTeam,
+		IsAlias:      o.IsAlias,
 		Source:       o.Source.DeepCopy(),
 		NoAnimSource: o.NoAnimSource.DeepCopy(),
 		RemoteSource: o.RemoteSource.DeepCopy(),
@@ -297,6 +300,13 @@ func (o Emoji) DeepCopy() Emoji {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.CreationInfo),
+		Teamname: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Teamname),
 	}
 }
 

@@ -168,7 +168,7 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 }
 
 func (hsc *HighSigChain) VerifyChain(m MetaContext) (err error) {
-	defer m.Trace("HighSigChain.VerifyChain", func() error { return err })()
+	defer m.Trace("HighSigChain.VerifyChain", &err)()
 
 	for i := len(hsc.chainLinks) - 1; i >= 0; i-- {
 		curr := hsc.chainLinks[i]

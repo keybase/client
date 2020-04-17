@@ -131,7 +131,7 @@ func NewStoreTesting(g *globals.Context, kt func(enc, sig []byte)) *S3Store {
 }
 
 func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask, encryptedOut io.Writer) (res chat1.Asset, err error) {
-	defer a.Trace(ctx, func() error { return err }, "UploadAsset")()
+	defer a.Trace(ctx, &err, "UploadAsset")()
 	// compute plaintext hash
 	if task.hash() == nil {
 		task.computeHash()
@@ -172,7 +172,7 @@ func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask, encryptedOu
 
 func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncrypter,
 	previous *AttachmentInfo, resumable bool, encryptedOut io.Writer) (asset chat1.Asset, err error) {
-	defer a.Trace(ctx, func() error { return err }, "uploadAsset")()
+	defer a.Trace(ctx, &err, "uploadAsset")()
 	var encReader io.Reader
 	var ptHash hash.Hash
 	if previous != nil {
@@ -335,7 +335,7 @@ func newS3Seeker(ctx context.Context, g *globals.Context, asset chat1.Asset, buc
 }
 
 func (s *s3Seeker) Read(b []byte) (n int, err error) {
-	defer s.Trace(s.ctx, func() error { return err }, "Read(%v,%v)", s.offset, len(b))()
+	defer s.Trace(s.ctx, &err, "Read(%v,%v)", s.offset, len(b))()
 	if s.offset >= s.asset.Size {
 		return 0, io.EOF
 	}
@@ -353,7 +353,7 @@ func (s *s3Seeker) Read(b []byte) (n int, err error) {
 }
 
 func (s *s3Seeker) Seek(offset int64, whence int) (res int64, err error) {
-	defer s.Trace(s.ctx, func() error { return err }, "Seek(%v,%v)", s.offset, whence)()
+	defer s.Trace(s.ctx, &err, "Seek(%v,%v)", s.offset, whence)()
 	switch whence {
 	case io.SeekStart:
 		s.offset = offset

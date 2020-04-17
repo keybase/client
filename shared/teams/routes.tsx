@@ -4,6 +4,7 @@ import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
 import OpenTeamWarning from './team/settings-tab/open-team-warning'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
+import GenerateLinkModal from './team/invites/generate-link'
 import TeamDeleteTeam from './delete-team/container'
 import DeleteChannel from './confirm-modals/delete-channel'
 import TeamAddEmoji from './emojis/add-emoji'
@@ -13,6 +14,7 @@ import TeamEditTeamDescription from './edit-team-description'
 import TeamEditWelcomeMessage from './edit-team-welcome-message'
 import TeamInviteByEmail from './invite-by-email/container'
 import TeamInviteByContact from './invite-by-contact/container'
+import TeamInviteLinkJoin from './join-team/join-from-invite'
 import TeamJoinTeamDialog from './join-team/container'
 import TeamNewTeamDialog from './new-team/container'
 import TeamReallyLeaveTeam from './confirm-modals/really-leave-team/container'
@@ -21,6 +23,7 @@ import TeamReallyRemoveChannelMember from './confirm-modals/confirm-remove-from-
 import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
 import TeamAddToChannels from './team/member/add-to-channels'
+import TeamCreateChannels from './channel/create-channels'
 import TeamWizardTeamInfo from './new-team/wizard/new-team-info'
 import TeamWizardTeamPurpose from './new-team/wizard/team-purpose'
 import TeamWizardTeamSize from './new-team/wizard/make-big-team'
@@ -67,8 +70,31 @@ const addWizardRoutes = {
   },
 }
 
+const newTeamWizardRoutes = {
+  teamWizard1TeamPurpose: {
+    getScreen: (): typeof TeamWizardTeamPurpose => require('./new-team/wizard/team-purpose').default,
+  },
+  teamWizard2TeamInfo: {
+    getScreen: (): typeof TeamWizardTeamInfo => require('./new-team/wizard/new-team-info').default,
+  },
+  teamWizard4TeamSize: {
+    getScreen: (): typeof TeamWizardTeamSize => require('./new-team/wizard/make-big-team').default,
+  },
+  teamWizard5Channels: {
+    getScreen: (): typeof TeamWizardChannels => require('./new-team/wizard/create-channels').default,
+  },
+  teamWizard6Subteams: {
+    getScreen: (): typeof TeamWizardSubteams => require('./new-team/wizard/create-subteams').default,
+  },
+  teamWizardSubteamMembers: {
+    getScreen: (): typeof TeamWizardSubteamMembers =>
+      require('./new-team/wizard/add-subteam-members').default,
+  },
+}
+
 export const newModalRoutes = {
   ...addWizardRoutes,
+  ...newTeamWizardRoutes,
   contactRestricted: {
     getScreen: (): typeof ContactRestricted => require('../team-building/contact-restricted').default,
   },
@@ -87,6 +113,9 @@ export const newModalRoutes = {
   },
   teamAddToChannels: {
     getScreen: (): typeof TeamAddToChannels => require('./team/member/add-to-channels').default,
+  },
+  teamCreateChannels: {
+    getScreen: (): typeof TeamCreateChannels => require('./channel/create-channels').default,
   },
   teamDeleteChannel: {
     getScreen: (): typeof DeleteChannel => require('./confirm-modals/delete-channel').default,
@@ -107,6 +136,12 @@ export const newModalRoutes = {
   teamInviteHistory: {
     getScreen: (): typeof TeamInviteHistory => require('./team/invites/invite-history').default,
   },
+  teamInviteLinkJoin: {
+    getScreen: (): typeof TeamInviteLinkJoin => require('./join-team/join-from-invite').default,
+  },
+  teamInviteLinksModal: {
+    getScreen: (): typeof GenerateLinkModal => require('./team/invites/generate-link').default,
+  },
   teamJoinTeamDialog: {
     getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default,
   },
@@ -125,25 +160,6 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamReallyRemoveMember => require('./confirm-modals/confirm-kick-out').default,
   },
   teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
-  teamWizard1TeamPurpose: {
-    getScreen: (): typeof TeamWizardTeamPurpose => require('./new-team/wizard/team-purpose').default,
-  },
-  teamWizard2TeamInfo: {
-    getScreen: (): typeof TeamWizardTeamInfo => require('./new-team/wizard/new-team-info').default,
-  },
-  teamWizard4TeamSize: {
-    getScreen: (): typeof TeamWizardTeamSize => require('./new-team/wizard/make-big-team').default,
-  },
-  teamWizard5Channels: {
-    getScreen: (): typeof TeamWizardChannels => require('./new-team/wizard/create-channels').default,
-  },
-  teamWizard6Subteams: {
-    getScreen: (): typeof TeamWizardSubteams => require('./new-team/wizard/create-subteams').default,
-  },
-  teamWizardSubteamMembers: {
-    getScreen: (): typeof TeamWizardSubteamMembers =>
-      require('./new-team/wizard/add-subteam-members').default,
-  },
   teamsTeamBuilder: {
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },

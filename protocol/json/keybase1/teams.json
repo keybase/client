@@ -2896,6 +2896,84 @@
     },
     {
       "type": "record",
+      "name": "TeamAvatar",
+      "fields": [
+        {
+          "type": "string",
+          "name": "avatarFilename"
+        },
+        {
+          "type": [
+            null,
+            "ImageCropRect"
+          ],
+          "name": "crop"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamCreateFancyInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "boolean",
+          "name": "joinSubteam"
+        },
+        {
+          "type": "TeamSettings",
+          "name": "openSettings"
+        },
+        {
+          "type": "boolean",
+          "name": "showcase"
+        },
+        {
+          "type": [
+            null,
+            "TeamAvatar"
+          ],
+          "name": "avatar"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "chatChannels"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "subteams"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserRolePair"
+          },
+          "name": "users"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "emailInviteMessage"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserRolePair",
       "fields": [
         {
@@ -3023,6 +3101,10 @@
         {
           "type": "boolean",
           "name": "inviterResetOrDel"
+        },
+        {
+          "type": "boolean",
+          "name": "teamIsOpen"
         },
         {
           "type": "TeamID",
@@ -3221,6 +3303,10 @@
         {
           "type": "boolean",
           "name": "deleteChatHistory"
+        },
+        {
+          "type": "boolean",
+          "name": "deleteOtherEmojis"
         },
         {
           "type": "boolean",
@@ -3454,28 +3540,6 @@
     },
     {
       "type": "record",
-      "name": "AnnotatedSubteamMemberDetails",
-      "fields": [
-        {
-          "type": "TeamName",
-          "name": "teamName"
-        },
-        {
-          "type": "TeamID",
-          "name": "teamID"
-        },
-        {
-          "type": "TeamMemberDetails",
-          "name": "details"
-        },
-        {
-          "type": "TeamRole",
-          "name": "role"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "TeamTreeMembershipValue",
       "fields": [
         {
@@ -3488,6 +3552,10 @@
             "Time"
           ],
           "name": "joinTime"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID"
         }
       ]
     },
@@ -3496,7 +3564,26 @@
       "name": "TeamTreeMembershipStatus",
       "symbols": [
         "OK_0",
-        "ERROR_1"
+        "ERROR_1",
+        "HIDDEN_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "boolean",
+          "name": "willSkipSubtree"
+        },
+        {
+          "type": "boolean",
+          "name": "willSkipAncestors"
+        }
       ]
     },
     {
@@ -3519,7 +3606,14 @@
             "name": "ERROR",
             "def": false
           },
-          "body": "GenericError"
+          "body": "TeamTreeError"
+        },
+        {
+          "label": {
+            "name": "HIDDEN",
+            "def": false
+          },
+          "body": null
         }
       ]
     },
@@ -3528,12 +3622,56 @@
       "name": "TeamTreeMembership",
       "fields": [
         {
-          "type": "TeamName",
+          "type": "string",
           "name": "teamName"
         },
         {
           "type": "TeamTreeMembershipResult",
           "name": "result"
+        },
+        {
+          "type": "TeamID",
+          "name": "targetTeamID"
+        },
+        {
+          "type": "string",
+          "name": "targetUsername"
+        },
+        {
+          "type": "int",
+          "name": "guid"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeMembershipsDoneResult",
+      "fields": [
+        {
+          "type": "int",
+          "name": "expectedCount"
+        },
+        {
+          "type": "TeamID",
+          "name": "targetTeamID"
+        },
+        {
+          "type": "string",
+          "name": "targetUsername"
+        },
+        {
+          "type": "int",
+          "name": "guid"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeInitial",
+      "fields": [
+        {
+          "type": "int",
+          "name": "guid"
         }
       ]
     }
@@ -3585,6 +3723,19 @@
         }
       ],
       "response": "TeamCreateResult"
+    },
+    "teamCreateFancy": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamInfo",
+          "type": "TeamCreateFancyInfo"
+        }
+      ],
+      "response": "TeamID"
     },
     "teamGetByID": {
       "request": [
@@ -4662,23 +4813,7 @@
       ],
       "response": "AnnotatedTeam"
     },
-    "getUserSubteamMemberships": {
-      "request": [
-        {
-          "name": "teamID",
-          "type": "TeamID"
-        },
-        {
-          "name": "username",
-          "type": "string"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "AnnotatedSubteamMemberDetails"
-      }
-    },
-    "loadTeamTreeMemberships": {
+    "loadTeamTreeMembershipsAsync": {
       "request": [
         {
           "name": "sessionID",
@@ -4693,16 +4828,7 @@
           "type": "string"
         }
       ],
-      "response": null
-    },
-    "cancelLoadTeamTree": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
+      "response": "TeamTreeInitial"
     }
   },
   "namespace": "keybase.1"

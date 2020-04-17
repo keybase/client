@@ -183,7 +183,7 @@ func details(mctx libkb.MetaContext, t *Team, tracer profiling.TimeTracer) (res 
 // List all the admins of ancestor teams.
 // Includes admins of the specified team only if they are also admins of ancestor teams.
 func ImplicitAdmins(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res []keybase1.TeamMemberDetails, err error) {
-	defer g.CTraceTimed(ctx, fmt.Sprintf("teams::ImplicitAdmins(%v)", teamID), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("teams::ImplicitAdmins(%v)", teamID), &err)()
 	if teamID.IsRootTeam() {
 		// Root teams have only explicit admins.
 		return nil, nil
@@ -593,7 +593,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 
 func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
 	username string) (err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("ReAddMemberAfterReset(%v,%v)", teamID, username), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("ReAddMemberAfterReset(%v,%v)", teamID, username), &err)()
 	err = reAddMemberAfterResetInner(ctx, g, teamID, username)
 	switch err.(type) {
 	case UserHasNotResetError:
@@ -1085,9 +1085,12 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 			return libkb.NotFoundError{Msg: fmt.Sprintf(
 				"user %q is not a member of team %q", username, t.Name())}
 		}
+
+		removePermanently := t.IsOpen() ||
+			t.WasMostRecentlyAddedByInvitelink(existingUV)
 		req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 		opts := ChangeMembershipOptions{
-			Permanent:       t.IsOpen(), // Ban for open teams only.
+			Permanent:       removePermanently,
 			SkipKeyRotation: t.CanSkipKeyRotation(),
 		}
 		return t.ChangeMembershipWithOptions(ctx, req, opts)
@@ -1095,7 +1098,7 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 }
 
 func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, email string, allowInaction bool) (err error) {
-	g.CTrace(ctx, "CancelEmailInvite", func() error { return err })
+	g.CTrace(ctx, "CancelEmailInvite", &err)
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
@@ -1111,7 +1114,7 @@ func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamID keyba
 }
 
 func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, inviteID keybase1.TeamInviteID, allowInaction bool) (err error) {
-	g.CTrace(ctx, "CancelInviteByID", func() error { return err })
+	g.CTrace(ctx, "CancelInviteByID", &err)
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
@@ -1615,7 +1618,7 @@ func ChangeTeamSettingsByID(ctx context.Context, g *libkb.GlobalContext, id keyb
 }
 
 func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion) (err error) {
-	g.CTrace(ctx, "removeMemberInvite", func() error { return err })
+	g.CTrace(ctx, "removeMemberInvite", &err)
 	var lookingFor keybase1.TeamInviteName
 	var typ string
 	if !uv.IsNil() {
@@ -1671,7 +1674,7 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 }
 
 func removeKeybaseTypeInviteForUID(ctx context.Context, g *libkb.GlobalContext, team *Team, uid keybase1.UID) (err error) {
-	g.CTrace(ctx, "removeKeybaseTypeInviteForUID", func() error { return err })
+	g.CTrace(ctx, "removeKeybaseTypeInviteForUID", &err)
 	g.Log.CDebugf(ctx, "looking for active or obsolete keybase-type invite in %s for %s", team.Name(), uid)
 
 	// Remove all invites with given UID, so we don't have to worry
@@ -1710,7 +1713,7 @@ func removeMultipleInviteIDs(ctx context.Context, team *Team, invIDs []keybase1.
 }
 
 func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID, allowInaction bool) (err error) {
-	defer team.MetaContext(ctx).Trace("remoteInviteID", func() error { return err })()
+	defer team.MetaContext(ctx).Trace("remoteInviteID", &err)()
 	cancelList := []SCTeamInviteID{SCTeamInviteID(invID)}
 	invites := SCTeamInvites{
 		Cancel: &cancelList,
@@ -1782,7 +1785,7 @@ func CreateInvitelink(mctx libkb.MetaContext, teamname string,
 // CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.
 // Should work on either named or implicit teams.
 func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateTLFArg) (err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("CreateTLF(%v)", arg), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("CreateTLF(%v)", arg), &err)()
 	ctx = libkb.WithLogTag(ctx, "CREATETLF")
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, false)
@@ -1801,7 +1804,7 @@ func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateT
 }
 
 func GetKBFSTeamSettings(ctx context.Context, g *libkb.GlobalContext, isPublic bool, teamID keybase1.TeamID) (res keybase1.KBFSTeamSettings, err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("GetKBFSTeamSettings(%v,%v)", isPublic, teamID), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("GetKBFSTeamSettings(%v,%v)", isPublic, teamID), &err)()
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:     teamID,
 		Public: isPublic,
@@ -1908,6 +1911,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.EditTeamDescription = isAdmin || isImplicitAdmin
 	ret.ManageBots = isAdmin || isImplicitAdmin
 	ret.ManageEmojis = isWriter
+	ret.DeleteOtherEmojis = isAdmin
 	ret.SetMemberShowcase, err = canMemberShowcase()
 	if err != nil {
 		return ret, err
@@ -1948,7 +1952,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 
 func RotateKey(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamRotateKeyArg) (err error) {
 	teamID := arg.TeamID
-	defer g.CTrace(ctx, fmt.Sprintf("RotateKey(%+v)", arg), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("RotateKey(%+v)", arg), &err)()
 	return RetryIfPossible(ctx, g, func(ctx context.Context, attempt int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          teamID,
@@ -1967,7 +1971,7 @@ func RotateKeyVisible(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 }
 
 func TeamDebug(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res keybase1.TeamDebugRes, err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("TeamDebug(%v)", teamID), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("TeamDebug(%v)", teamID), &err)()
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          teamID,
 		Public:      teamID.IsPublic(),
@@ -2120,7 +2124,7 @@ func ChangeTeamAvatar(mctx libkb.MetaContext, arg keybase1.UploadTeamAvatarArg) 
 }
 
 func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (res keybase1.NextMerkleRootRes, err error) {
-	defer mctx.Trace(fmt.Sprintf("teams.FindNextMerkleRootAfterRemoval(%+v)", arg), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("teams.FindNextMerkleRootAfterRemoval(%+v)", arg), &err)()
 
 	team, err := Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
 		ID:          arg.Team,
@@ -2194,90 +2198,4 @@ func GetTeamIDByNameRPC(mctx libkb.MetaContext, teamName string) (res keybase1.T
 		return "", err
 	}
 	return id, nil
-}
-
-func GetUserSubteamMemberships(m libkb.MetaContext, id keybase1.TeamID, username string) (res []keybase1.AnnotatedSubteamMemberDetails, err error) {
-	tracer := m.G().CTimeTracer(m.Ctx(), "GetUserSubteamMemberships", true)
-	defer tracer.Finish()
-
-	tracer.Stage("resolving user")
-	upak, _, err := m.G().GetUPAKLoader().LoadV2(
-		libkb.NewLoadUserArgWithMetaContext(m).WithName(username),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	tracer.Stage("resolving team and subteams")
-	name, err := ResolveIDToName(m.Ctx(), m.G(), id)
-	if err != nil {
-		return nil, err
-	}
-	tree, err := ListSubteamsUnverified(m, name)
-	if err != nil {
-		return nil, err
-	}
-
-	// Inject the root team into the result
-	for _, entry := range append([]keybase1.SubteamListEntry{
-		{TeamID: id},
-	}, tree.Entries...) {
-		tracer.Stage(fmt.Sprintf("resolving membership in %s", entry.Name))
-
-		team, err := GetMaybeAdminByID(m.Ctx(), m.G(), entry.TeamID, entry.TeamID.IsPublic())
-		if err != nil {
-			return nil, err
-		}
-		members, err := MembersDetails(m.Ctx(), m.G(), team)
-		if err != nil {
-			return nil, err
-		}
-		role, err := team.MemberRole(m.Ctx(), upak.ToUserVersion())
-		if err != nil {
-			return nil, err
-		}
-
-		var (
-			details keybase1.TeamMemberDetails
-			ok      bool
-		)
-		switch role {
-		case keybase1.TeamRole_NONE:
-			continue
-		case keybase1.TeamRole_READER:
-			details, ok = findMemberDetails(members.Readers, upak.GetUID())
-		case keybase1.TeamRole_WRITER:
-			details, ok = findMemberDetails(members.Writers, upak.GetUID())
-		case keybase1.TeamRole_ADMIN:
-			details, ok = findMemberDetails(members.Admins, upak.GetUID())
-		case keybase1.TeamRole_OWNER:
-			details, ok = findMemberDetails(members.Owners, upak.GetUID())
-		case keybase1.TeamRole_BOT:
-			details, ok = findMemberDetails(members.Bots, upak.GetUID())
-		case keybase1.TeamRole_RESTRICTEDBOT:
-			details, ok = findMemberDetails(members.RestrictedBots, upak.GetUID())
-		}
-		if !ok {
-			// We're not a member, possibly a race condition?
-			continue
-		}
-
-		res = append(res, keybase1.AnnotatedSubteamMemberDetails{
-			TeamName: team.Name(),
-			TeamID:   team.ID,
-			Details:  details,
-			Role:     role,
-		})
-
-	}
-	return res, nil
-}
-
-func findMemberDetails(input []keybase1.TeamMemberDetails, uid keybase1.UID) (keybase1.TeamMemberDetails, bool) {
-	for _, details := range input {
-		if details.Uv.Uid.Equal(uid) {
-			return details, true
-		}
-	}
-	return keybase1.TeamMemberDetails{}, false
 }

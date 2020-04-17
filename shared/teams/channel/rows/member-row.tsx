@@ -83,6 +83,7 @@ const ChannelMemberRow = (props: Props) => {
   const onChat = () =>
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))
   const onEditMember = () =>
+    yourOperations.manageMembers &&
     username &&
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]}))
   const onOpenProfile = () => username && dispatch(ProfileGen.createShowUserProfile({username}))
@@ -124,9 +125,10 @@ const ChannelMemberRow = (props: Props) => {
           {fullNameLabel}
           {crown}
           {!active && (
-            <Kb.Text type="BodySmall" style={styles.lockedOutOrDeleted}>
-              {teamMemberInfo.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
-            </Kb.Text>
+            <Kb.Meta
+              backgroundColor={Styles.globalColors.red}
+              title={teamMemberInfo.status === 'reset' ? 'locked out' : 'deleted'}
+            />
           )}
           <Kb.Text type="BodySmall">
             {!!active && !!teamMemberInfo.type && Constants.typeToLabel[teamMemberInfo.type]}
@@ -154,7 +156,16 @@ const ChannelMemberRow = (props: Props) => {
     'Divider',
     ...(yourOperations.manageMembers
       ? ([
-          {icon: 'iconfont-chat', onClick: onChat, title: 'Add to channels...'},
+          {
+            icon: 'iconfont-chat',
+            onClick: () =>
+              dispatch(
+                RouteTreeGen.createNavigateAppend({
+                  path: [{props: {teamID, usernames: [username]}, selected: 'teamAddToChannels'}],
+                })
+              ),
+            title: 'Add to channels...',
+          },
           {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},
         ] as Kb.MenuItems)
       : []),
@@ -216,14 +227,19 @@ const ChannelMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
+  const massActionsProps = yourOperations.manageMembers
+    ? {
+        containerStyleOverride: styles.listItemMargin,
+        icon: checkCircle,
+        iconStyleOverride: styles.checkCircle,
+      }
+    : {}
   return (
     <Kb.ListItem2
+      {...massActionsProps}
       action={anySelected ? null : actions}
       onlyShowActionOnHover="fade"
       height={Styles.isMobile ? 90 : 64}
-      icon={checkCircle}
-      iconStyleOverride={styles.checkCircle}
-      containerStyleOverride={styles.listItemMargin}
       type="Large"
       body={body}
       firstItem={props.firstItem}
@@ -243,14 +259,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   fullNameLabel: {marginRight: Styles.globalMargins.xtiny},
   listItemMargin: {marginLeft: 0},
-  lockedOutOrDeleted: {
-    ...Styles.globalStyles.fontBold,
-    backgroundColor: Styles.globalColors.red,
-    color: Styles.globalColors.white,
-    marginRight: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.xtiny,
-    paddingRight: Styles.globalMargins.xtiny,
-  },
   mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
   nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
   nameContainerInner: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},

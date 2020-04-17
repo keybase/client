@@ -68,7 +68,7 @@ func (e *PGPVerify) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *PGPVerify) Run(m libkb.MetaContext) error {
 	var err error
-	defer m.Trace("PGPVerify#Run", func() error { return err })()
+	defer m.Trace("PGPVerify#Run", &err)()
 	var sc libkb.StreamClassification
 	sc, e.source, err = libkb.ClassifyStream(e.arg.Source)
 

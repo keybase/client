@@ -311,7 +311,7 @@ class BlockModal extends React.PureComponent<Props, State> {
       ) : (
         undefined
       ),
-      title: <Kb.Icon type="iconfont-block-user" sizeType="Big" color={Styles.globalColors.red} />,
+      title: <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Styles.globalColors.red} />,
     }
 
     if (this.props.loadingWaiting) {

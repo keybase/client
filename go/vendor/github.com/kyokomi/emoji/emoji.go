@@ -13,7 +13,7 @@ import (
 //go:generate generateEmojiCodeMap -pkg emoji
 
 // Replace Padding character for emoji.
-const (
+var (
 	ReplacePadding = " "
 )
 

@@ -5,10 +5,12 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"hash"
+	"math"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -22,11 +24,14 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// we will show some representation of an exploded message in the UI for a week
-const ShowExplosionLifetime = time.Hour * 24 * 7
+const (
+	// we will show some representation of an exploded message in the UI for a
+	// day
+	ShowExplosionLifetime = time.Hour * 24
 
-// If a conversation is larger, only admins can @channel.
-const MaxChanMentionConvSize = 100
+	// If a conversation is larger, only admins can @channel.
+	MaxChanMentionConvSize = 100
+)
 
 func (i FlipGameIDStr) String() string {
 	return string(i)
@@ -354,6 +359,17 @@ func IsDeletableByDeleteHistory(typ MessageType) bool {
 		}
 	}
 	return true
+}
+
+func (t TopicType) EphemeralAllowed() bool {
+	switch t {
+	case TopicType_KBFSFILEEDIT,
+		TopicType_EMOJI,
+		TopicType_EMOJICROSS:
+		return false
+	default:
+		return true
+	}
 }
 
 func (t TopicType) String() string {
@@ -1017,8 +1033,6 @@ func (b MessageBody) GetEmojis() map[string]HarvestedEmoji {
 		return b.Reaction().Emojis
 	case MessageType_EDIT:
 		return b.Edit().Emojis
-	case MessageType_REQUESTPAYMENT:
-		return b.Requestpayment().Emojis
 	case MessageType_ATTACHMENT:
 		return b.Attachment().Emojis
 	case MessageType_HEADLINE:
@@ -1031,6 +1045,13 @@ func (b MessageBody) GetEmojis() map[string]HarvestedEmoji {
 func (m UIMessage) IsValid() bool {
 	if state, err := m.State(); err == nil {
 		return state == MessageUnboxedState_VALID
+	}
+	return false
+}
+
+func (m UIMessage) IsError() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_ERROR
 	}
 	return false
 }
@@ -3025,6 +3046,29 @@ func (c Coordinate) Eq(o Coordinate) bool {
 	return c.Lat == o.Lat && c.Lon == o.Lon
 }
 
+type safeCoordinate struct {
+	Lat      float64 `codec:"lat" json:"lat"`
+	Lon      float64 `codec:"lon" json:"lon"`
+	Accuracy float64 `codec:"accuracy" json:"accuracy"`
+}
+
+func (c Coordinate) MarshalJSON() ([]byte, error) {
+	var safe safeCoordinate
+	safe.Lat = c.Lat
+	safe.Lon = c.Lon
+	safe.Accuracy = c.Accuracy
+	if math.IsNaN(safe.Lat) {
+		safe.Lat = 0
+	}
+	if math.IsNaN(safe.Lon) {
+		safe.Lon = 0
+	}
+	if math.IsNaN(safe.Accuracy) {
+		safe.Accuracy = 0
+	}
+	return json.Marshal(safe)
+}
+
 // Incremented if the client hash algorithm changes. If this value is changed
 // be sure to add a case in the BotInfo.Hash() function.
 const ClientBotInfoHashVers BotInfoHashVers = 1
@@ -3144,30 +3188,51 @@ func (m AssetMetadata) IsType(typ AssetMetadataType) bool {
 	return mtyp == typ
 }
 
+type safeAssetMetadataImage struct {
+	Width     int       `codec:"width" json:"width"`
+	Height    int       `codec:"height" json:"height"`
+	AudioAmps []float64 `codec:"audioAmps" json:"audioAmps"`
+}
+
+func (m AssetMetadataImage) MarshalJSON() ([]byte, error) {
+	var safe safeAssetMetadataImage
+	safe.AudioAmps = make([]float64, 0, len(m.AudioAmps))
+	for _, amp := range m.AudioAmps {
+		if math.IsNaN(amp) {
+			safe.AudioAmps = append(safe.AudioAmps, 0)
+		} else {
+			safe.AudioAmps = append(safe.AudioAmps, amp)
+		}
+	}
+	safe.Width = m.Width
+	safe.Height = m.Height
+	return json.Marshal(safe)
+}
+
 func (s SnippetDecoration) ToEmoji() string {
 	switch s {
 	case SnippetDecoration_PENDING_MESSAGE:
-		return "📤"
+		return ":outbox_tray:"
 	case SnippetDecoration_FAILED_PENDING_MESSAGE:
-		return "⚠️"
+		return ":warning:"
 	case SnippetDecoration_EXPLODING_MESSAGE:
-		return "💣"
+		return ":bomb:"
 	case SnippetDecoration_EXPLODED_MESSAGE:
-		return "💥"
+		return ":boom:"
 	case SnippetDecoration_AUDIO_ATTACHMENT:
-		return "🔊"
+		return ":loud_sound:"
 	case SnippetDecoration_VIDEO_ATTACHMENT:
-		return "🎞"
+		return ":film_frames:"
 	case SnippetDecoration_PHOTO_ATTACHMENT:
-		return "📷"
+		return ":camera:"
 	case SnippetDecoration_FILE_ATTACHMENT:
-		return "📁"
+		return ":file_folder:"
 	case SnippetDecoration_STELLAR_RECEIVED:
-		return "💰"
+		return ":bank:"
 	case SnippetDecoration_STELLAR_SENT:
-		return "🚀"
+		return ":money_with_wings:"
 	case SnippetDecoration_PINNED_MESSAGE:
-		return "📌"
+		return ":pushpin:"
 	default:
 		return ""
 	}

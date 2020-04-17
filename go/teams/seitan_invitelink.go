@@ -116,7 +116,7 @@ func GenerateSeitanInvitelinkAcceptanceKey(sikey []byte, uid keybase1.UID, eldes
 }
 
 // bound from SeitanEncodedIKeyInvitelinkLength
-var invitelinkIKeyRxx = regexp.MustCompile(`/i/t/([a-z0-9]{16})#([a-z0-9+]{16,28})`)
+var invitelinkIKeyRxx = regexp.MustCompile(`/i/t/([a-zA-Z0-9]{16,28})#([a-z0-9+]{16,28})`)
 
 func generateInvitelinkURLPrefix(mctx libkb.MetaContext) (string, error) {
 	serverRoot, err := mctx.G().Env.GetServerURI()
@@ -149,6 +149,7 @@ type TeamInviteLinkDetails struct {
 	TeamName          string                                       `json:"team_name"`
 	TeamNumMembers    int                                          `json:"team_num_members"`
 	TeamAvatars       map[keybase1.AvatarFormat]keybase1.AvatarUrl `json:"team_avatars"`
+	TeamIsOpen        bool                                         `json:"team_is_open"`
 }
 
 func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID) (info keybase1.InviteLinkDetails, err error) {
@@ -183,5 +184,6 @@ func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID
 		TeamDesc:          resp.TeamDescription,
 		TeamNumMembers:    resp.TeamNumMembers,
 		TeamAvatars:       resp.TeamAvatars,
+		TeamIsOpen:        resp.TeamIsOpen,
 	}, nil
 }

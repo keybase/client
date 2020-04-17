@@ -138,7 +138,7 @@ func (p *proofServices) loadServiceConfigs(mctx libkb.MetaContext) {
 		// Latest config already loaded.
 		return
 	}
-	defer mctx.TraceTimed("proofServices.loadServiceConfigsBulk", func() error { return err })()
+	defer mctx.Trace("proofServices.loadServiceConfigsBulk", &err)()
 	tracer.Stage("parse")
 	config, err := p.parseServerConfig(mctx, *entry)
 	if err != nil {

@@ -22,12 +22,13 @@ export type Props = Types.FollowedNotificationItem & {
   onClickUser: (username: string) => void
 }
 
-export default (props: Props) => {
+const FollowNotificationWrapper = (props: Props) => {
   if (props.newFollows.length === 1) {
     return <FollowNotification {...props} />
   }
   return <MultiFollowNotification {...props} />
 }
+export default FollowNotificationWrapper
 
 const FollowNotification = (props: Props) => {
   if (props.newFollows.length !== 1) {

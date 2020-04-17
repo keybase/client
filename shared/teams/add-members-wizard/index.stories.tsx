@@ -56,13 +56,11 @@ const emailsOnlyStore = Container.produce(Sb.createStoreWithCommon(), draftState
   draftState.settings.phoneNumbers.defaultCountry = 'FR'
 })
 
-const fromWhereNewProps = Sb.createNavigator({newTeam: true, teamID: fakeTeamID})
-
 const load = () => {
   Sb.storiesOf('Teams/Add member wizard', module)
     .addDecorator(story => <Sb.MockStore store={commonStore}>{story()}</Sb.MockStore>)
-    .add('Add from where', () => <AddFromWhere {...Sb.createNavigator({})} />)
-    .add('Add from where (new team)', () => <AddFromWhere {...fromWhereNewProps} />)
+    .add('Add from where', () => <AddFromWhere />)
+    .add('Add from where (new team)', () => <AddFromWhere />)
     .add('Add by email', () => <AddEmail teamID={fakeTeamID} errorMessage="" />)
     .add('Add by phone', () => <AddPhone />)
 

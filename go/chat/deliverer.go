@@ -234,7 +234,7 @@ func (s *Deliverer) IsDelivering() bool {
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 	outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Queue")()
+	defer s.Trace(ctx, &err, "Queue")()
 
 	// KBFSFILEEDIT msgs skip the traditional outbox
 	if msg.ClientHeader.Conv.TopicType == chat1.TopicType_KBFSFILEEDIT {
@@ -275,7 +275,7 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 }
 
 func (s *Deliverer) ActiveDeliveries(ctx context.Context) (res []chat1.OutboxRecord, err error) {
-	defer s.Trace(ctx, func() error { return err }, "ActiveDeliveries")()
+	defer s.Trace(ctx, &err, "ActiveDeliveries")()
 	if !s.IsDelivering() {
 		s.Debug(ctx, "ActiveDeliveries: not delivering, returning empty")
 		return nil, nil
@@ -644,7 +644,8 @@ func (s *Deliverer) shouldBreakLoop(ctx context.Context, obr chat1.OutboxRecord)
 }
 
 func (s *Deliverer) kbfsDeliverLoop(shutdownCh chan struct{}) error {
-	bgctx := context.Background()
+	bgctx := globals.ChatCtx(context.Background(), s.G(), keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, nil)
+	bgctx = libkb.WithLogTag(bgctx, "KDELV")
 	s.Debug(bgctx, "deliverLoop: starting non blocking sender kbfs deliver loop: uid: %s",
 		s.outbox.GetUID())
 	for {
@@ -653,6 +654,7 @@ func (s *Deliverer) kbfsDeliverLoop(shutdownCh chan struct{}) error {
 			s.Debug(bgctx, "deliverLoop: shutting down outbox deliver loop: uid: %s", s.outbox.GetUID())
 			return nil
 		case obr := <-s.kbfsDeliverQueue:
+			s.Debug(bgctx, "deliverLoop: flushing record obr for %v", obr.ConvID)
 			if _, _, err := s.sender.Send(bgctx, obr.ConvID, obr.Msg, 0, nil, nil, nil); err != nil {
 				s.Debug(bgctx, "Unable to deliver msg: %v", err)
 			}
@@ -661,7 +663,7 @@ func (s *Deliverer) kbfsDeliverLoop(shutdownCh chan struct{}) error {
 }
 
 func (s *Deliverer) deliverLoop(shutdownCh chan struct{}) error {
-	bgctx := context.Background()
+	bgctx := libkb.WithLogTag(context.Background(), "DELV")
 	s.Debug(bgctx, "deliverLoop: starting non blocking sender deliver loop: uid: %s duration: %v",
 		s.outbox.GetUID(), s.G().Env.GetChatDelivererInterval())
 	for {

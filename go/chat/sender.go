@@ -280,7 +280,11 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 	if err != nil {
 		return msg, nil, nil, err
 	}
-	switch deleteTarget.ClientHeader.MessageType {
+	bodyTyp, err := deleteTarget.MessageBody.MessageType()
+	if err != nil {
+		return msg, nil, nil, err
+	}
+	switch bodyTyp {
 	case chat1.MessageType_REACTION:
 		// Don't do anything here for reactions/unfurls, they can't be edited
 		return msg, nil, nil, nil
@@ -633,14 +637,6 @@ func (s *BlockingSender) handleEmojis(ctx context.Context, uid gregor1.UID,
 			MessageBody:        chat1.NewMessageBodyWithEdit(newBody),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
 		}, nil
-	case chat1.MessageType_REQUESTPAYMENT:
-		newBody := msg.MessageBody.Requestpayment().DeepCopy()
-		newBody.Emojis = ct
-		return chat1.MessagePlaintext{
-			ClientHeader:       msg.ClientHeader,
-			MessageBody:        chat1.NewMessageBodyWithRequestpayment(newBody),
-			SupersedesOutboxID: msg.SupersedesOutboxID,
-		}, nil
 	case chat1.MessageType_ATTACHMENT:
 		newBody := msg.MessageBody.Attachment().DeepCopy()
 		newBody.Emojis = ct
@@ -666,7 +662,7 @@ func (s *BlockingSender) getUsernamesForMentions(ctx context.Context, uid gregor
 	if conv == nil {
 		return nil, nil
 	}
-	defer s.Trace(ctx, func() error { return err }, "getParticipantsForMentions")()
+	defer s.Trace(ctx, &err, "getParticipantsForMentions")()
 	// get the conv that we will look for @ mentions in
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
@@ -878,7 +874,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		}
 
 		// Handle cross team emoji
-		if msg, err = s.handleEmojis(ctx, uid, convID, msg, conv.Info.Triple.TopicType); err != nil {
+		if msg, err = s.handleEmojis(ctx, uid, convID, msg, conv.GetTopicType()); err != nil {
 			s.Debug(ctx, "Prepare: error processing cross team emoji: %s", err)
 			return res, err
 		}
@@ -890,29 +886,35 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 			return res, err
 		}
 
-		// If no ephemeral data set, then let's double check to make sure no exploding policy
-		// or Gregor state should set it
-		if msg.EphemeralMetadata() == nil && chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) {
-			s.Debug(ctx, "Prepare: attempting to set ephemeral policy from conversation")
-			elf, err := utils.EphemeralLifetimeFromConv(ctx, s.G(), *conv)
-			if err != nil {
-				s.Debug(ctx, "Prepare: failed to get ephemeral lifetime from conv: %s", err)
-				elf = nil
+		if !conv.GetTopicType().EphemeralAllowed() {
+			if msg.EphemeralMetadata() != nil {
+				return res, errors.New("emoji messages cannot be ephemeral")
 			}
-			if elf != nil {
-				s.Debug(ctx, "Prepare: setting ephemeral lifetime from conv: %v", *elf)
-				msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-					Lifetime: *elf,
+		} else {
+			// If no ephemeral data set, then let's double check to make sure no exploding policy
+			// or Gregor state should set it
+			if msg.EphemeralMetadata() == nil && chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) {
+				s.Debug(ctx, "Prepare: attempting to set ephemeral policy from conversation")
+				elf, err := utils.EphemeralLifetimeFromConv(ctx, s.G(), *conv)
+				if err != nil {
+					s.Debug(ctx, "Prepare: failed to get ephemeral lifetime from conv: %s", err)
+					elf = nil
+				}
+				if elf != nil {
+					s.Debug(ctx, "Prepare: setting ephemeral lifetime from conv: %v", *elf)
+					msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+						Lifetime: *elf,
+					}
 				}
 			}
-		}
 
-		metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
-		if err != nil {
-			s.Debug(ctx, "Prepare: error getting superseder ephemeral metadata: %s", err)
-			return res, err
+			metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
+			if err != nil {
+				s.Debug(ctx, "Prepare: error getting superseder ephemeral metadata: %s", err)
+				return res, err
+			}
+			msg.ClientHeader.EphemeralMetadata = metadata
 		}
-		msg.ClientHeader.EphemeralMetadata = metadata
 	}
 
 	// Make sure it is a proper length
@@ -1135,7 +1137,7 @@ func (s *BlockingSender) presentUIItem(ctx context.Context, uid gregor1.UID, con
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID,
 	outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
-	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
+	defer s.Trace(ctx, &err, fmt.Sprintf("Send(%s)", convID))()
 	defer utils.SuspendComponent(ctx, s.G(), s.G().InboxSource)()
 
 	// Get conversation metadata first. If we can't find it, we will just attempt to join

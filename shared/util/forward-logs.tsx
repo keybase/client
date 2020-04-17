@@ -8,9 +8,9 @@ type Log = (...args: Array<any>) => void
 
 const {localLog, localWarn, localError} = isMobile
   ? {
-      localError: window.console.error.bind(window.console) as Log,
-      localLog: (__DEV__ ? window.console.log.bind(window.console) : noop) as Log,
-      localWarn: window.console.warn.bind(window.console) as Log,
+      localError: console.error.bind(console) as Log,
+      localLog: (__DEV__ ? console.log.bind(console) : noop) as Log,
+      localWarn: console.warn.bind(console) as Log,
     }
   : {
       localError: console.error.bind(console) as Log,

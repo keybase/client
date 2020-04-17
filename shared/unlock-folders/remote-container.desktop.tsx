@@ -4,7 +4,7 @@ import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 import UnlockFolders from './index.desktop'
 import {DeserializeProps} from './remote-serializer.desktop'
 
-export default () => {
+const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const dispatch = Container.useDispatch()
 
@@ -21,3 +21,4 @@ export default () => {
     />
   )
 }
+export default RemoteContainer

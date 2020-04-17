@@ -45,12 +45,18 @@ export type TeamSettings = {} & RPCTypes.TeamSettings
 export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
 export type MemberStatus = 'active' | 'deleted' | 'reset'
-export type MemberInfo = {
-  fullName: string
+export type TreeloaderSparseMemberInfo = {
   joinTime?: number
-  status: MemberStatus
+  type: MaybeTeamRoleType
+}
+export type SparseMemberInfo = {
+  joinTime?: number
   type: TeamRoleType
+}
+export type MemberInfo = SparseMemberInfo & {
   username: string
+  fullName: string
+  status: MemberStatus
 }
 export type MemberInfoWithLastActivity = MemberInfo & {
   lastActivity?: number
@@ -148,7 +154,16 @@ export type AvatarCrop = {
   scaledWidth?: number
 }
 
+export type TeamTreeMemberships = {
+  guid: number
+  targetTeamID: TeamID
+  targetUsername: string
+  expectedCount?: number
+  memberships: Array<RPCTypes.TeamTreeMembership>
+}
+
 export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other' | 'subteam'
+
 export type NewTeamWizardState = {
   teamType: TeamWizardTeamType
   name: string
@@ -163,18 +178,21 @@ export type NewTeamWizardState = {
   channels?: string[]
   subteams?: string[]
   parentTeamID?: TeamID
+  error?: string
 }
+
+export type AddingMemberTeamRoleType = 'owner' | 'admin' | 'reader' | 'writer'
 
 export type AddingMember = {
   assertion: string
-  role: TeamRoleType
+  role: AddingMemberTeamRoleType
   note?: string // note is for imp tofu assertions that got turned into usernames. It doesn't go to the server but it displays to the user in the confirm screen.
 }
 export type AddMembersWizardState = {
   addingMembers: Array<AddingMember>
   defaultChannels: Array<ChannelNameID> | undefined // undefined -> unchanged from default
   justFinished: boolean
-  role: TeamRoleType | undefined // undefined -> role set individually
+  role: AddingMemberTeamRoleType | 'setIndividually'
   teamID: TeamID
 }
 
@@ -189,13 +207,15 @@ export type ActivityLevels = {
   loaded: boolean
 }
 
+export type TeamListSort = 'role' | 'activity' | 'alphabetical'
+
 export type State = {
   readonly activityLevels: ActivityLevels
   readonly addMembersWizard: AddMembersWizardState
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
-  readonly canPerform: Map<TeamID, TeamOperations>
   readonly channelSelectedMembers: Map<ConversationIDKey, Set<string>>
+  readonly creatingChannels: boolean
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly errorInAddToTeam: string
   readonly errorInChannelCreation: string
@@ -219,6 +239,8 @@ export type State = {
   readonly teamJoinSuccess: boolean
   readonly teamJoinSuccessOpen: boolean
   readonly teamJoinSuccessTeamName: string
+  readonly teamListFilter: string
+  readonly teamListSort: TeamListSort
   readonly teamMeta: Map<TeamID, TeamMeta>
   readonly teamMetaStale: boolean // if we've received an update since we last loaded team list
   readonly teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
@@ -229,7 +251,10 @@ export type State = {
   readonly teamIDToResetUsers: Map<TeamID, Set<string>>
   readonly teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
-  readonly teamMemberToSubteams: Map<TeamID, Map<string, MemberInfo>>
+
+  readonly treeLoaderTeamIDToSparseMemberInfos: Map<TeamID, Map<string, TreeloaderSparseMemberInfo>>
+  readonly teamMemberToTreeMemberships: Map<TeamID, Map<string, TeamTreeMemberships>>
+
   readonly teamMemberToLastActivity: Map<TeamID, Map<string, number>>
   readonly teamNameToID: Map<Teamname, string>
   readonly teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>

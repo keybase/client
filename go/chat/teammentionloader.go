@@ -41,7 +41,7 @@ func NewTeamMentionLoader(g *globals.Context) *TeamMentionLoader {
 }
 
 func (l *TeamMentionLoader) Start(ctx context.Context, uid gregor1.UID) {
-	defer l.Trace(ctx, func() error { return nil }, "Start")()
+	defer l.Trace(ctx, nil, "Start")()
 	l.Lock()
 	defer l.Unlock()
 	if l.started {
@@ -52,7 +52,7 @@ func (l *TeamMentionLoader) Start(ctx context.Context, uid gregor1.UID) {
 }
 
 func (l *TeamMentionLoader) Stop(ctx context.Context) chan struct{} {
-	defer l.Trace(ctx, func() error { return nil }, "Stop")()
+	defer l.Trace(ctx, nil, "Stop")()
 	l.Lock()
 	defer l.Unlock()
 	ch := make(chan struct{})
@@ -87,7 +87,7 @@ func (l *TeamMentionLoader) IsTeamMention(ctx context.Context, uid gregor1.UID,
 
 func (l *TeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1.UID,
 	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention, forceRemote bool) (err error) {
-	defer l.Trace(ctx, func() error { return err }, "LoadTeamMention")()
+	defer l.Trace(ctx, &err, "LoadTeamMention")()
 	select {
 	case l.jobCh <- teamMentionJob{
 		uid:               uid,
@@ -131,7 +131,7 @@ func (l *TeamMentionLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error)
 func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention,
 	forceRemote bool) (err error) {
-	defer l.Trace(ctx, func() error { return err }, "loadTeamMention: name: %s", maybeMention.Name)()
+	defer l.Trace(ctx, &err, "loadTeamMention: name: %s", maybeMention.Name)()
 	ui, err := l.getChatUI(ctx)
 	if err != nil {
 		return err

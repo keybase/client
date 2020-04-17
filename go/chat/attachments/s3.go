@@ -84,7 +84,7 @@ type PutS3Result struct {
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use
 // putSingle or putMultiPipeline based on the size of the object.
 func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (res *PutS3Result, err error) {
-	defer a.Trace(ctx, func() error { return err }, "PutS3")()
+	defer a.Trace(ctx, &err, "PutS3")()
 	region := a.regionFromParams(task.S3Params)
 	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey).Bucket(task.S3Params.Bucket)
 
@@ -121,7 +121,7 @@ func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Uplo
 // to 5GB, but putMultiPipeline best for anything over 5MB.
 func (a *S3Store) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params,
 	b s3.BucketInt, progressReporter types.ProgressReporter) (err error) {
-	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putSingle(size=%d)", size))()
+	defer a.Trace(ctx, &err, fmt.Sprintf("putSingle(size=%d)", size))()
 
 	progWriter := progress.NewProgressWriter(progressReporter, size)
 	tee := io.TeeReader(r, progWriter)
@@ -141,7 +141,7 @@ func (a *S3Store) putSingle(ctx context.Context, r io.Reader, size int64, params
 // will return a different object key from params.ObjectKey if a previous Put is
 // successfully resumed and completed.
 func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64, task *UploadTask, b s3.BucketInt, previous *AttachmentInfo) (res string, err error) {
-	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putMultiPipeline(size=%d)", size))()
+	defer a.Trace(ctx, &err, fmt.Sprintf("putMultiPipeline(size=%d)", size))()
 
 	var multi s3.MultiInt
 	if previous != nil {
@@ -303,7 +303,7 @@ func (a *S3Store) addJob(ctx context.Context, blockCh chan job, block []byte, pa
 // If this is a resumed upload, it checks the previous parts reported by S3 and will skip uploading
 // any that already exist.
 func (a *S3Store) uploadPart(ctx context.Context, task *UploadTask, b job, previous *AttachmentInfo, previousParts map[int]s3.Part, multi s3.MultiInt, retCh chan s3.Part) (err error) {
-	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("uploadPart(%d)", b.index))()
+	defer a.Trace(ctx, &err, fmt.Sprintf("uploadPart(%d)", b.index))()
 
 	// check to see if this part has already been uploaded.
 	// for job `b` to be here, it has already passed local stash verification.

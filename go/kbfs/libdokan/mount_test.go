@@ -2158,6 +2158,8 @@ func TestErrorFile(t *testing.T) {
 	defer mnt.Close()
 	defer cancelFn()
 
+	libfs.AddRootWrapper(config)
+
 	// cause an error by stating a non-existent user
 	_, err := ioutil.Lstat(filepath.Join(mnt.Dir, PrivateName, "janedoe"))
 	if err == nil {
@@ -2168,15 +2170,32 @@ func TestErrorFile(t *testing.T) {
 	expectedErr := dokan.ErrObjectNameNotFound
 
 	// test both the root error file and one in a directory
-	testForErrorText(t, filepath.Join(mnt.Dir, libkbfs.ErrorFile),
+	testForErrorText(t, filepath.Join(mnt.Dir, libfs.ErrorFileName),
 		expectedErr, "root")
-	testForErrorText(t, filepath.Join(mnt.Dir, PublicName, libkbfs.ErrorFile),
+	testForErrorText(t, filepath.Join(mnt.Dir, PublicName, libfs.ErrorFileName),
 		expectedErr, "root")
-	testForErrorText(t, filepath.Join(mnt.Dir, PrivateName, libkbfs.ErrorFile),
+	testForErrorText(
+		t, filepath.Join(mnt.Dir, PrivateName, libfs.ErrorFileName),
 		expectedErr, "root")
-	testForErrorText(t, filepath.Join(mnt.Dir, PublicName, "jdoe", libkbfs.ErrorFile),
+
+	// Create public and private jdoe TLFs.
+	const b = "hello world"
+	p := filepath.Join(mnt.Dir, PublicName, "jdoe", "myfile")
+	if err := ioutil.WriteFile(p, []byte(b), 0644); err != nil {
+		t.Fatal(err)
+	}
+	syncFilename(t, p)
+	p = filepath.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
+	if err := ioutil.WriteFile(p, []byte(b), 0644); err != nil {
+		t.Fatal(err)
+	}
+	syncFilename(t, p)
+
+	testForErrorText(
+		t, filepath.Join(mnt.Dir, PublicName, "jdoe", libfs.ErrorFileName),
 		expectedErr, "dir")
-	testForErrorText(t, filepath.Join(mnt.Dir, PrivateName, "jdoe", libkbfs.ErrorFile),
+	testForErrorText(
+		t, filepath.Join(mnt.Dir, PrivateName, "jdoe", libfs.ErrorFileName),
 		expectedErr, "dir")
 }
 

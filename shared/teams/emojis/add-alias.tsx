@@ -71,8 +71,8 @@ export const AddAliasModal = (props: Props) => {
           ],
           res => {
             setAddAliasWaiting(false)
-            if (res.errorString) {
-              setError(res.errorString)
+            if (res.error) {
+              setError(res.error.uidisplay)
               return
             }
             dispatch(RouteTreeGen.createClearModals())
@@ -109,7 +109,7 @@ export const AddAliasModal = (props: Props) => {
           style={Styles.collapseStyles([!emoji && styles.opacity40])}
         >
           <Kb.Text type="BodySemibold">Enter an alias:</Kb.Text>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.aliasInputContainer}>
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
             <AliasInput
               ref={aliasInputRef}
               error={error}
@@ -205,14 +205,6 @@ const emojiPadding = 4
 const singleEmojiWidth = emojiWidthWithPadding - 2 * emojiPadding
 
 const styles = Styles.styleSheetCreate(() => ({
-  aliasInputContainer: Styles.platformStyles({
-    isElectron: {
-      height: Styles.globalMargins.large,
-    },
-    isMobile: {
-      height: Styles.globalMargins.large + 3 * Styles.globalMargins.xxtiny,
-    },
-  }),
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexGrow,
@@ -237,7 +229,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default (routableProps: RoutableProps) => {
+const AddEmojiAliasWrapper = (routableProps: RoutableProps) => {
   const conversationIDKey = Container.getRouteProps(
     routableProps,
     'conversationIDKey',
@@ -253,3 +245,4 @@ export default (routableProps: RoutableProps) => {
     />
   )
 }
+export default AddEmojiAliasWrapper

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
@@ -42,7 +43,7 @@ func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
 	etime := keybase1.ToUnixTime(time.Now().Add(24 * time.Hour))
 	link, err := alice.teamsClient.TeamCreateSeitanInvitelink(context.TODO(), keybase1.TeamCreateSeitanInvitelinkArg{
 		Teamname: teamName.String(),
-		Role:     keybase1.TeamRole_ADMIN,
+		Role:     keybase1.TeamRole_WRITER,
 		MaxUses:  maxUses,
 		Etime:    &etime,
 	})
@@ -54,7 +55,7 @@ func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
 	require.Len(t, details.AnnotatedActiveInvites, 1)
 	for _, aInvite := range details.AnnotatedActiveInvites {
 		invite := aInvite.Invite
-		require.Equal(t, keybase1.TeamRole_ADMIN, invite.Role)
+		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
 		tic, err := invite.Type.C()
 		require.NoError(t, err)
 		require.Equal(t, keybase1.TeamInviteCategory_INVITELINK, tic)
@@ -75,7 +76,7 @@ func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
 
 	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(bob.uid, 1))
 	require.NoError(t, err)
-	require.Equal(t, role, keybase1.TeamRole_ADMIN)
+	require.Equal(t, role, keybase1.TeamRole_WRITER)
 }
 
 func TestTeamInviteLinkAfterLeave(t *testing.T) {
@@ -122,6 +123,35 @@ func TestTeamInviteLinkAfterLeave(t *testing.T) {
 	require.NoError(t, err)
 
 	alice.waitForTeamChangedGregor(teamID, keybase1.Seqno(5))
+
+	t.Logf("removing bob; expecting to ban since he was added by invitelink most recently")
+	alice.removeTeamMember(teamName.String(), bob.username)
+	t.Logf("bob tries to rejoin")
+	clock.Advance(1 * time.Second)
+	err = bob.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
+		Token: string(link.Ikey),
+	})
+	require.Error(t, err, "server won't let bob back in")
+	appErr, ok := err.(libkb.AppStatusError)
+	require.True(t, ok, "got an app err")
+	require.Equal(t, appErr.Code, libkb.SCTeamBanned)
+
+	t.Logf("alice adds/removes manually to clear ban")
+	alice.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_WRITER)
+	alice.removeTeamMember(teamName.String(), bob.username)
+
+	clock.Advance(1 * time.Second)
+	err = bob.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
+		Token: string(link.Ikey),
+	})
+	require.NoError(t, err, "bob can rejoin")
+	alice.waitForTeamChangedGregor(teamID, keybase1.Seqno(9))
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), alice.tc.G,
+		teamName.String(), false /* public */, true /* needAdmin */)
+	require.NoError(t, err)
+	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(bob.uid, 1))
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_WRITER)
 }
 
 func TestCreateSeitanInvitelinkWithDuration(t *testing.T) {

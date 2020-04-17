@@ -4,7 +4,7 @@ set -euox pipefail
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
-apt-get install -yq git curl vim python3-pip
+apt-get install -yq git curl vim python3-pip jq
 
 GOLANG_VERSION=1.13.7
 GOLANG_DOWNLOAD_URL=https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz

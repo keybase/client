@@ -23,61 +23,147 @@ import (
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
-type statusFileNode struct {
+type namedFileNode struct {
 	libkbfs.Node
 
-	fb     data.FolderBranch
-	config libkbfs.Config
 	log    logger.Logger
+	name   string
+	reader func(ctx context.Context) ([]byte, time.Time, error)
 }
 
-var _ libkbfs.Node = (*statusFileNode)(nil)
+var _ libkbfs.Node = (*namedFileNode)(nil)
 
-func (sfn *statusFileNode) GetFile(ctx context.Context) billy.File {
+func (nfn *namedFileNode) GetFile(ctx context.Context) billy.File {
 	return &wrappedReadFile{
-		name: StatusFileName,
-		reader: func(ctx context.Context) ([]byte, time.Time, error) {
-			return GetEncodedFolderStatus(ctx, sfn.config, sfn.fb)
-		},
-		log: sfn.log,
+		name:   nfn.name,
+		reader: nfn.reader,
+		log:    nfn.log,
 	}
 }
 
-func (sfn *statusFileNode) FillCacheDuration(d *time.Duration) {
+func (nfn *namedFileNode) FillCacheDuration(d *time.Duration) {
 	// Suggest kindly that no one should cache this node, since it
 	// could change each time it's read.
 	*d = 0
+}
+
+func newFolderStatusFileNode(
+	config libkbfs.Config, node libkbfs.Node, fb data.FolderBranch,
+	log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node: node,
+		log:  log,
+		name: StatusFileName,
+		reader: func(ctx context.Context) ([]byte, time.Time, error) {
+			return GetEncodedFolderStatus(ctx, config, fb)
+		},
+	}
+}
+
+func newMetricsFileNode(
+	config libkbfs.Config, node libkbfs.Node,
+	log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node:   node,
+		log:    log,
+		name:   MetricsFileName,
+		reader: GetEncodedMetrics(config),
+	}
+}
+
+func newErrorFileNode(
+	config libkbfs.Config, node libkbfs.Node,
+	log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node:   node,
+		log:    log,
+		name:   ErrorFileName,
+		reader: GetEncodedErrors(config),
+	}
+}
+
+func newTlfEditHistoryFileNode(
+	config libkbfs.Config, node libkbfs.Node, fb data.FolderBranch,
+	log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node: node,
+		log:  log,
+		name: EditHistoryName,
+		reader: func(ctx context.Context) ([]byte, time.Time, error) {
+			return GetEncodedTlfEditHistory(ctx, config, fb)
+		},
+	}
+}
+
+func newUpdateHistoryFileNode(
+	config libkbfs.Config, node libkbfs.Node, fb data.FolderBranch,
+	start, end kbfsmd.Revision, log logger.Logger) *namedFileNode {
+	return &namedFileNode{
+		Node: node,
+		log:  log,
+		name: UpdateHistoryFileName,
+		reader: func(ctx context.Context) ([]byte, time.Time, error) {
+			return GetEncodedUpdateHistory(ctx, config, fb, start, end)
+		},
+	}
 }
 
 var updateHistoryRevsRE = regexp.MustCompile("^\\.([0-9]+)(-([0-9]+))?$") //nolint (`\.` doesn't seem to work in single quotes)
 
-type updateHistoryFileNode struct {
+type profileNode struct {
 	libkbfs.Node
 
-	fb     data.FolderBranch
 	config libkbfs.Config
-	log    logger.Logger
-	start  kbfsmd.Revision
-	end    kbfsmd.Revision
+	name   string
 }
 
-var _ libkbfs.Node = (*updateHistoryFileNode)(nil)
+var _ libkbfs.Node = (*profileNode)(nil)
 
-func (uhfn updateHistoryFileNode) GetFile(ctx context.Context) billy.File {
-	return &wrappedReadFile{
-		name: StatusFileName,
-		reader: func(ctx context.Context) ([]byte, time.Time, error) {
-			return GetEncodedUpdateHistory(
-				ctx, uhfn.config, uhfn.fb, uhfn.start, uhfn.end)
-		},
-		log: uhfn.log,
+func (pn *profileNode) GetFile(ctx context.Context) billy.File {
+	fs := NewProfileFS(pn.config)
+	f, err := fs.Open(pn.name)
+	if err != nil {
+		return nil
 	}
+	return f
 }
 
-func (uhfn *updateHistoryFileNode) FillCacheDuration(d *time.Duration) {
+func (pn *profileNode) FillCacheDuration(d *time.Duration) {
 	// Suggest kindly that no one should cache this node, since it
 	// could change each time it's read.
 	*d = 0
+}
+
+type profileListNode struct {
+	libkbfs.Node
+
+	config libkbfs.Config
+}
+
+var _ libkbfs.Node = (*profileListNode)(nil)
+
+func (pln *profileListNode) ShouldCreateMissedLookup(
+	ctx context.Context, name data.PathPartString) (
+	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString,
+	data.BlockPointer) {
+	namePlain := name.Plaintext()
+
+	fs := NewProfileFS(pln.config)
+	fi, err := fs.Lstat(namePlain)
+	if err != nil {
+		return pln.Node.ShouldCreateMissedLookup(ctx, name)
+	}
+
+	return true, ctx, data.FakeFile, fi, data.PathPartString{}, data.ZeroPtr
+}
+
+func (pln *profileListNode) WrapChild(child libkbfs.Node) libkbfs.Node {
+	child = pln.Node.WrapChild(child)
+	return &profileNode{child, pln.config, child.GetBasename().Plaintext()}
+}
+
+func (pln *profileListNode) GetFS(ctx context.Context) libkbfs.NodeFSReadOnly {
+	return NewProfileFS(pln.config)
 }
 
 // specialFileNode is a Node wrapper around a TLF node, that causes
@@ -94,6 +180,10 @@ var _ libkbfs.Node = (*specialFileNode)(nil)
 var perTlfWrappedNodeNames = map[string]bool{
 	StatusFileName:        true,
 	UpdateHistoryFileName: true,
+	ProfileListDirName:    true,
+	MetricsFileName:       true,
+	ErrorFileName:         true,
+	EditHistoryName:       true,
 }
 
 var perTlfWrappedNodePrefixes = []string{
@@ -111,17 +201,12 @@ func shouldBeTlfWrappedNode(name string) bool {
 }
 
 func (sfn *specialFileNode) newUpdateHistoryFileNode(
-	node libkbfs.Node, name string) *updateHistoryFileNode {
+	node libkbfs.Node, name string) *namedFileNode {
 	revs := strings.TrimPrefix(name, UpdateHistoryFileName)
 	if revs == "" {
-		return &updateHistoryFileNode{
-			Node:   node,
-			fb:     sfn.GetFolderBranch(),
-			config: sfn.config,
-			log:    sfn.log,
-			start:  kbfsmd.RevisionInitial,
-			end:    kbfsmd.RevisionUninitialized,
-		}
+		return newUpdateHistoryFileNode(
+			sfn.config, node, sfn.GetFolderBranch(),
+			kbfsmd.RevisionInitial, kbfsmd.RevisionUninitialized, sfn.log)
 	}
 
 	matches := updateHistoryRevsRE.FindStringSubmatch(revs)
@@ -141,14 +226,9 @@ func (sfn *specialFileNode) newUpdateHistoryFileNode(
 		}
 	}
 
-	return &updateHistoryFileNode{
-		Node:   node,
-		fb:     sfn.GetFolderBranch(),
-		config: sfn.config,
-		log:    sfn.log,
-		start:  kbfsmd.Revision(start),
-		end:    kbfsmd.Revision(end),
-	}
+	return newUpdateHistoryFileNode(
+		sfn.config, node, sfn.GetFolderBranch(),
+		kbfsmd.Revision(start), kbfsmd.Revision(end), sfn.log)
 }
 
 // parseBlockPointer returns a real BlockPointer given a string.  The
@@ -205,14 +285,30 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 
 	switch {
 	case plain == StatusFileName:
-		sfn := &statusFileNode{
-			Node:   nil,
-			fb:     sfn.GetFolderBranch(),
-			config: sfn.config,
-			log:    sfn.log,
-		}
+		sfn := newFolderStatusFileNode(
+			sfn.config, nil, sfn.GetFolderBranch(), sfn.log)
 		f := sfn.GetFile(ctx)
 		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
+			data.PathPartString{}, data.ZeroPtr
+	case plain == MetricsFileName:
+		mfn := newMetricsFileNode(sfn.config, nil, sfn.log)
+		f := mfn.GetFile(ctx)
+		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
+			data.PathPartString{}, data.ZeroPtr
+	case plain == ErrorFileName:
+		efn := newErrorFileNode(sfn.config, nil, sfn.log)
+		f := efn.GetFile(ctx)
+		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
+			data.PathPartString{}, data.ZeroPtr
+	case plain == EditHistoryName:
+		tehfn := newTlfEditHistoryFileNode(
+			sfn.config, nil, sfn.GetFolderBranch(), sfn.log)
+		f := tehfn.GetFile(ctx)
+		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
+			data.PathPartString{}, data.ZeroPtr
+	case plain == ProfileListDirName:
+		return true, ctx, data.FakeDir,
+			&wrappedReadFileInfo{plain, 0, sfn.config.Clock().Now(), true},
 			data.PathPartString{}, data.ZeroPtr
 	case strings.HasPrefix(plain, UpdateHistoryFileName):
 		uhfn := sfn.newUpdateHistoryFileNode(nil, plain)
@@ -263,11 +359,23 @@ func (sfn *specialFileNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 
 	switch {
 	case name == StatusFileName:
-		return &statusFileNode{
+		return newFolderStatusFileNode(
+			sfn.config, &libkbfs.ReadonlyNode{Node: child},
+			sfn.GetFolderBranch(), sfn.log)
+	case name == MetricsFileName:
+		return newMetricsFileNode(
+			sfn.config, &libkbfs.ReadonlyNode{Node: child}, sfn.log)
+	case name == ErrorFileName:
+		return newErrorFileNode(
+			sfn.config, &libkbfs.ReadonlyNode{Node: child}, sfn.log)
+	case name == EditHistoryName:
+		return newTlfEditHistoryFileNode(
+			sfn.config, &libkbfs.ReadonlyNode{Node: child},
+			sfn.GetFolderBranch(), sfn.log)
+	case name == ProfileListDirName:
+		return &profileListNode{
 			Node:   &libkbfs.ReadonlyNode{Node: child},
-			fb:     sfn.GetFolderBranch(),
 			config: sfn.config,
-			log:    sfn.log,
 		}
 	case strings.HasPrefix(name, UpdateHistoryFileName):
 		uhfn := sfn.newUpdateHistoryFileNode(child, name)

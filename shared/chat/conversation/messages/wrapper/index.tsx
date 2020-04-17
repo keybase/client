@@ -205,7 +205,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               )}
               {this.props.authorIsBot && (
                 <Kb.WithTooltip tooltip="Bot">
-                  <Kb.Icon fontSize={10} color={Styles.globalColors.black_35} type="iconfont-bot" />
+                  <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
                 </Kb.WithTooltip>
               )}
               <Kb.Text
@@ -444,7 +444,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   private cachedMenuStyles = new Map<string, Styles.StylesCrossPlatform>()
   private menuAreaStyle = (exploded: boolean, exploding: boolean) => {
-    const commonWidth = 24
+    const commonWidth = 20
     const iconSizes = [
       this.props.isRevoked ? commonWidth : 0, // revoked
       this.props.showCoinsIcon ? commonWidth : 0, // coin stack
@@ -471,103 +471,96 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     return this.cachedMenuStyles.get(key)
   }
 
-  private messageAndButtons = () => {
-    const showMenuButton = !Styles.isMobile && this.state.showMenuButton
+  private messageNode = () => {
     const message = this.props.message
-    let child: React.ReactNode = null
-    let exploded = false
-    let explodedBy = ''
     switch (message.type) {
       case 'text':
-        exploded = message.exploded
-        explodedBy = message.explodedBy
-        child = <TextMessage isHighlighted={this.showCenteredHighlight()} key="text" message={message} />
-        break
+        return <TextMessage isHighlighted={this.showCenteredHighlight()} key="text" message={message} />
       case 'attachment':
-        exploded = message.exploded
-        explodedBy = message.explodedBy
-        child = (
+        return (
           <AttachmentMessage
             key="attachment"
             message={message}
             toggleMessageMenu={this.props.toggleShowingMenu}
           />
         )
-        break
       case 'requestPayment':
-        child = <PaymentMessage key="requestPayment" message={message} />
-        break
+        return <PaymentMessage key="requestPayment" message={message} />
       case 'sendPayment':
-        child = <PaymentMessage key="sendPayment" message={message} />
-        break
+        return <PaymentMessage key="sendPayment" message={message} />
       case 'placeholder':
-        child = <MessagePlaceholder key="placeholder" message={message} />
-        break
+        return <MessagePlaceholder key="placeholder" message={message} />
       case 'systemInviteAccepted':
-        child = <SystemInviteAccepted key="systemInviteAccepted" message={message} />
-        break
+        return <SystemInviteAccepted key="systemInviteAccepted" message={message} />
       case 'systemSBSResolved':
         if (this.props.youAreAuthor) {
-          child = <SystemSBSResolved key="systemSbsResolved" message={message} />
+          return <SystemSBSResolved key="systemSbsResolved" message={message} />
         } else {
-          child = (
+          return (
             <SystemJoined
               key="systemJoined"
               message={{...message, joiners: [message.prover], leavers: [], type: 'systemJoined'}}
             />
           )
         }
-        break
       case 'systemSimpleToComplex':
-        child = <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
-        break
+        return <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
       case 'systemGitPush':
-        child = <SystemGitPush key="systemGitPush" message={message} />
-        break
+        return <SystemGitPush key="systemGitPush" message={message} />
       case 'systemCreateTeam':
-        child = <SystemCreateTeam key="systemCreateTeam" message={message} />
-        break
+        return <SystemCreateTeam key="systemCreateTeam" message={message} />
       case 'systemAddedToTeam':
-        child = <SystemAddedToTeam key="systemAddedToTeam" message={message} />
-        break
+        return <SystemAddedToTeam key="systemAddedToTeam" message={message} />
       case 'systemChangeRetention':
-        child = <SystemChangeRetention key="systemChangeRetention" message={message} />
-        break
+        return <SystemChangeRetention key="systemChangeRetention" message={message} />
       case 'systemUsersAddedToConversation':
-        child = <SystemUsersAddedToConv key="systemUsersAddedToConv" message={message} />
-        break
+        return <SystemUsersAddedToConv key="systemUsersAddedToConv" message={message} />
       case 'systemJoined':
-        child = <SystemJoined key="systemJoined" message={message} />
-        break
+        return <SystemJoined key="systemJoined" message={message} />
       case 'systemText':
-        child = <SystemText key="systemText" message={message} />
-        break
+        return <SystemText key="systemText" message={message} />
       case 'systemLeft':
-        child = <SystemLeft key="systemLeft" message={message} />
-        break
+        return <SystemLeft key="systemLeft" message={message} />
       case 'systemChangeAvatar':
-        child = <SystemChangeAvatar key="systemChangeAvatar" message={message} />
-        break
+        return <SystemChangeAvatar key="systemChangeAvatar" message={message} />
       case 'systemNewChannel':
-        child = <SystemNewChannel key="systemNewChannel" message={message} />
-        break
+        return <SystemNewChannel key="systemNewChannel" message={message} />
       case 'setDescription':
-        child = <SetDescription key="setDescription" message={message} />
-        break
+        return <SetDescription key="setDescription" message={message} />
       case 'pin':
-        child = (
+        return (
           <Pin key="pin" conversationIDKey={message.conversationIDKey} messageID={message.pinnedMessageID} />
         )
-        break
       case 'setChannelname':
-        child = <SetChannelname key="setChannelname" message={message} />
-        break
+        // suppress this message for the #general channel, it is redundant.
+        return message.newChannelname === 'general' ? null : (
+          <SetChannelname key="setChannelname" message={message} />
+        )
+      case 'journeycard':
+        return <TeamJourney key="journey" message={message} />
       case 'deleted':
         return null
       default:
         return null
     }
+  }
 
+  private messageAndButtons = (child: React.ReactNode) => {
+    const showMenuButton = !Styles.isMobile && this.state.showMenuButton
+    const message = this.props.message
+    let exploded = false
+    let explodedBy = ''
+    switch (message.type) {
+      case 'text':
+        exploded = message.exploded
+        explodedBy = message.explodedBy
+        break
+      case 'attachment':
+        exploded = message.exploded
+        explodedBy = message.explodedBy
+        break
+      default:
+    }
     const exploding = this.isExploding()
     const maybeExplodedChild = exploding ? (
       <ExplodingHeightRetainer
@@ -618,7 +611,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   color={Styles.globalColors.black_35}
                   type="iconfont-bot"
                   onClick={() => null}
-                  sizeType="Small"
                   style={styles.paddingLeftTiny}
                 />
               </Kb.WithTooltip>
@@ -629,16 +621,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   Constants.isMessageWithReactions(this.props.message) &&
                   !this.props.showingMenu && (
                     <EmojiRow
-                      className={Styles.classNames({
-                        'WrapperMessage-emojiRow': !this.props.isLastInThread,
-                      })}
+                      className="WrapperMessage-emojiButton"
                       conversationIDKey={this.props.conversationIDKey}
                       onShowingEmojiPicker={this.setShowingPicker}
                       ordinal={message.ordinal}
                       tooltipPosition={this.props.isLastInThread ? 'top center' : 'bottom center'}
                       style={Styles.collapseStyles([
                         styles.emojiRow,
-                        !Styles.isDarkMode && styles.emojiRowBorder,
                         this.props.isLastInThread && styles.emojiRowLast,
                       ])}
                     />
@@ -681,6 +670,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     if (!this.props.message) {
       return null
     }
+    const msgNode = this.messageNode()
+    if (!msgNode) {
+      return null
+    }
     return (
       <>
         <LongPressable
@@ -690,7 +683,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               <TeamJourney key="journey" message={this.props.message} />
             ) : (
               this.authorAndContent([
-                this.messageAndButtons(),
+                this.messageAndButtons(msgNode),
                 this.isEdited(),
                 this.isFailed(),
                 this.unfurlPrompts(),
@@ -780,35 +773,19 @@ const styles = Styles.styleSheetCreate(
       },
       emojiRow: Styles.platformStyles({
         isElectron: {
-          borderBottomLeftRadius: Styles.borderRadius,
-          borderBottomRightRadius: Styles.borderRadius,
-          bottom: -Styles.globalMargins.mediumLarge + 1,
-          height: Styles.globalMargins.mediumLarge,
-          paddingBottom: Styles.globalMargins.tiny,
+          backgroundColor: Styles.globalColors.white,
+          border: `1px solid ${Styles.globalColors.black_10}`,
+          borderRadius: Styles.borderRadius,
+          bottom: -Styles.globalMargins.medium + 3,
           paddingRight: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
           position: 'absolute',
           right: 96,
           zIndex: 2,
         },
       }),
-      emojiRowBorder: Styles.platformStyles({
-        isElectron: {
-          borderBottom: `1px solid ${Styles.globalColors.black_10}`,
-          borderLeft: `1px solid ${Styles.globalColors.black_10}`,
-          borderRight: `1px solid ${Styles.globalColors.black_10}`,
-        },
-      }),
       emojiRowLast: Styles.platformStyles({
         isElectron: {
-          border: 'none',
-          borderBottomLeftRadius: 0,
-          borderBottomRightRadius: 0,
-          borderTopLeftRadius: Styles.borderRadius,
-          borderTopRightRadius: Styles.borderRadius,
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.tiny,
-          top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
+          top: -Styles.globalMargins.medium + 5,
         },
       }),
       fail: {color: Styles.globalColors.redDark},

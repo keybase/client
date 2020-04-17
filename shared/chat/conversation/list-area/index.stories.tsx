@@ -20,7 +20,7 @@ const firstOrdinal = 10000
 const makeMoreOrdinals = (
   ordinals: Array<Types.Ordinal>,
   direction: 'append' | 'prepend',
-  num = __STORYSHOT__ ? 10 : 100
+  num = __STORYSHOT__ ? 1 : 100
 ): Array<Types.Ordinal> => {
   if (direction === 'prepend') {
     const oldStart = ordinals.length ? Types.ordinalToNumber(ordinals[0] as Types.Ordinal) : firstOrdinal
@@ -113,7 +113,7 @@ const ordinalToMessage = (o: Types.Ordinal) => {
   }
 
   const offset = r.next()
-  const loops = r.next() % 100
+  const loops = __STORYSHOT__ ? 1 : r.next() % 100
 
   let extra = ''
   for (var j = 0; j < loops; ++j) {

@@ -37,8 +37,8 @@ func NewSecretStoreUpgradeable(a, b SecretStoreAll, labelA, labelB string, shoul
 }
 
 func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (secret LKSecFullSecret, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("SecretStoreUpgradeable.RetrieveSecret(%s)", username),
-		func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("SecretStoreUpgradeable.RetrieveSecret(%s)", username),
+		&err)()
 
 	mctx.Debug("Trying to retrieve secret from primary store (%s)", s.labelA)
 	secret, err1 := s.a.RetrieveSecret(mctx, username)
@@ -86,7 +86,7 @@ func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username Norma
 }
 
 func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
-	defer mctx.TraceTimed("SecretStoreUpgradeable.StoreSecret", func() error { return err })()
+	defer mctx.Trace("SecretStoreUpgradeable.StoreSecret", &err)()
 
 	fallbackBehavior := s.shouldStoreInFallback(s.options)
 	if fallbackBehavior == SecretStoreFallbackBehaviorAlways {
@@ -122,7 +122,7 @@ func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username Normaliz
 }
 
 func (s *SecretStoreUpgradeable) ClearSecret(mctx MetaContext, username NormalizedUsername) (err error) {
-	defer mctx.TraceTimed("SecretStoreUpgradeable.ClearSecret", func() error { return err })()
+	defer mctx.Trace("SecretStoreUpgradeable.ClearSecret", &err)()
 	err1 := s.a.ClearSecret(mctx, username)
 	if err1 != nil {
 		mctx.Debug("Failed to clear secret in primary store (%s): %s", s.labelA, err1)
@@ -140,7 +140,7 @@ func (s *SecretStoreUpgradeable) ClearSecret(mctx MetaContext, username Normaliz
 }
 
 func (s *SecretStoreUpgradeable) GetUsersWithStoredSecrets(mctx MetaContext) (usernames []string, err error) {
-	defer mctx.TraceTimed("SecretStoreUpgradeable.GetUsersWithStoredSecrets", func() error { return err })()
+	defer mctx.Trace("SecretStoreUpgradeable.GetUsersWithStoredSecrets", &err)()
 	usernameMap := make(map[string]bool)
 	usernamesA, err1 := s.a.GetUsersWithStoredSecrets(mctx)
 	if err1 == nil {

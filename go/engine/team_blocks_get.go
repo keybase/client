@@ -39,7 +39,7 @@ func (e *TeamBlocksGet) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *TeamBlocksGet) Run(mctx libkb.MetaContext) (err error) {
-	defer mctx.TraceTimed("TeamBlocksGet#Run", func() error { return err })()
+	defer mctx.Trace("TeamBlocksGet#Run", &err)()
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/blocks",
 		SessionType: libkb.APISessionTypeREQUIRED,

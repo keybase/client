@@ -61,7 +61,7 @@ func (e *AccountReset) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 	mctx = mctx.WithLogTag("RST")
-	defer mctx.TraceTimed("Account#Run", func() error { return err })()
+	defer mctx.Trace("Account#Run", &err)()
 
 	// User's with active devices cannot reset at all
 	if mctx.ActiveDevice().Valid() {

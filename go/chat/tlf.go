@@ -90,7 +90,7 @@ func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public
 }
 
 func (t *KBFSNameInfoSource) LookupID(ctx context.Context, tlfName string, public bool) (res types.NameInfo, err error) {
-	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", tlfName))()
+	defer t.Trace(ctx, &err, fmt.Sprintf("Lookup(%s)", tlfName))()
 	res, _, err = t.loadAll(ctx, tlfName, public)
 	return res, err
 }
@@ -106,14 +106,14 @@ func (t *KBFSNameInfoSource) TeamBotSettings(ctx context.Context, tlfName string
 }
 
 func (t *KBFSNameInfoSource) AllCryptKeys(ctx context.Context, tlfName string, public bool) (res types.AllCryptKeys, err error) {
-	defer t.Trace(ctx, func() error { return err }, "AllCryptKeys(%s,%v)", tlfName, public)()
+	defer t.Trace(ctx, &err, "AllCryptKeys(%s,%v)", tlfName, public)()
 	_, res, err = t.loadAll(ctx, tlfName, public)
 	return res, err
 }
 
 func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (res types.CryptKey, ni types.NameInfo, err error) {
-	defer t.Trace(ctx, func() error { return err }, "EncryptionKey(%s,%v)", tlfName, public)()
+	defer t.Trace(ctx, &err, "EncryptionKey(%s,%v)", tlfName, public)()
 	if botUID != nil {
 		return res, ni, fmt.Errorf("TeambotKeys not supported by KBFS")
 	}
@@ -131,7 +131,7 @@ func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, 
 func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID) (res types.CryptKey, err error) {
-	defer t.Trace(ctx, func() error { return err }, "DecryptionKey(%s,%v)", tlfName, public)()
+	defer t.Trace(ctx, &err, "DecryptionKey(%s,%v)", tlfName, public)()
 
 	if botUID != nil {
 		return res, fmt.Errorf("TeambotKeys not supported by KBFS")
@@ -178,12 +178,12 @@ func (t *KBFSNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName stri
 	return false, nil, nil
 }
 
-func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {
+func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
 	identBehavior, _, ok := globals.CtxIdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
-	defer t.Trace(ctx, func() error { return ferr },
+	defer t.Trace(ctx, &err,
 		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
 	username := t.G().Env.GetUsername()
@@ -246,12 +246,12 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 	return res, nil
 }
 
-func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, ferr error) {
+func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
 	identBehavior, _, ok := globals.CtxIdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
-	defer t.Trace(ctx, func() error { return ferr },
+	defer t.Trace(ctx, &err,
 		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
 	// call Identify and CanonicalTLFNameAndIDWithBreaks concurrently:

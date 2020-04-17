@@ -15,7 +15,7 @@ type Background =
   | 'Terminal'
 
 type TextType = keyof typeof allTextTypes
-
+type TextTypeBold = 'BodyTinyBold' | 'BodySmallBold' | 'BodyBold' | 'BodyBig' | 'Header' | 'HeaderBig'
 // Talk to design before adding a color here - these should cover all cases.
 export type AllowedColors =
   | Values<
@@ -111,5 +111,5 @@ declare function getStyle(
 ): TextStyle
 
 export {getStyle, allTextTypes}
-export {Background, MetaType, Props, TextType}
+export {Background, MetaType, Props, TextType, TextTypeBold}
 export default Text

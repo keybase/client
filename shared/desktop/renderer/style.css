@@ -326,6 +326,10 @@ body {
   background-color: rgba(0, 0, 0, 0.05);
 }
 
+.darkMode .emoji-picker-emoji-box:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
 .hover-underline {
   text-decoration: none;
 }
@@ -464,7 +468,7 @@ body {
 
 .hideableDropdown {
   transition: height 0.2s;
-  height: 24px;
+  height: 32px;
   overflow: hidden;
 }
 .hideableDropdown.hidden {

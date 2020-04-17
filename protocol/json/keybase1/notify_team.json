@@ -179,10 +179,6 @@
     "teamTreeMembershipsPartial": {
       "request": [
         {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
           "name": "membership",
           "type": "TeamTreeMembership"
         }
@@ -193,12 +189,8 @@
     "teamTreeMembershipsDone": {
       "request": [
         {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "expectedCount",
-          "type": "int"
+          "name": "result",
+          "type": "TeamTreeMembershipsDoneResult"
         }
       ],
       "response": null,

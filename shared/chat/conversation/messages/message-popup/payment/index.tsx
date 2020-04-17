@@ -69,7 +69,7 @@ export type Props = {
 const headerIcon = (props: HeaderProps) =>
   props.status === 'pending' ? (
     <Kb.Icon
-      type="iconfont-time"
+      type="iconfont-clock"
       color={Styles.globalColors.black_50}
       fontSize={pendingIconSize}
       style={styles.pendingHeaderIcon}

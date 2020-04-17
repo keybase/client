@@ -6,6 +6,7 @@ import * as Types from '../constants/types/teams'
 import * as Container from '../util/container'
 import {editTeambuildingDraft} from './team-building'
 import {mapGetEnsureValue} from '../util/map'
+import * as RPCTypes from '../constants/types/rpc-gen'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -16,18 +17,27 @@ const handleTeamBuilding = (draftState: Container.Draft<Types.State>, action: Te
   }
 }
 
-export default Container.makeReducer<
-  | TeamsGen.Actions
-  | TeamBuildingGen.Actions
+type EngineActions =
   | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload
-  | EngineGen.Chat1NotifyChatChatWelcomeMessageLoadedPayload,
-  Types.State
->(initialState, {
+  | EngineGen.Chat1NotifyChatChatWelcomeMessageLoadedPayload
+  | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
+  | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsDonePayload
+
+type Actions = TeamsGen.Actions | TeamBuildingGen.Actions | EngineActions
+
+export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.resetStore]: () => {
     return initialState
   },
   [TeamsGen.setChannelCreationError]: (draftState, action) => {
+    draftState.creatingChannels = false
     draftState.errorInChannelCreation = action.payload.error
+  },
+  [TeamsGen.createChannels]: draftState => {
+    draftState.creatingChannels = true
+  },
+  [TeamsGen.setCreatingChannels]: (draftState, action) => {
+    draftState.creatingChannels = action.payload.creatingChannels
   },
   [TeamsGen.createNewTeam]: draftState => {
     draftState.errorInTeamCreation = ''
@@ -96,7 +106,6 @@ export default Container.makeReducer<
 
     const details = Constants.annotatedTeamToDetails(team)
     draftState.teamDetails.set(teamID, details)
-    draftState.teamMemberToSubteams.set(teamID, details.members)
   },
   [TeamsGen.setTeamVersion]: (draftState, action) => {
     const {teamID, version} = action.payload
@@ -104,9 +113,6 @@ export default Container.makeReducer<
       teamID,
       Constants.ratchetTeamVersion(version, draftState.teamVersion.get(teamID))
     )
-  },
-  [TeamsGen.setTeamCanPerform]: (draftState, action) => {
-    draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
   },
   [TeamsGen.setEmailInviteError]: (draftState, action) => {
     if (!action.payload.malformed.length && !action.payload.message) {
@@ -274,14 +280,6 @@ export default Container.makeReducer<
   [TeamsGen.setWelcomeMessage]: (draftState, _) => {
     draftState.errorInEditWelcomeMessage = ''
   },
-  [TeamsGen.setMemberSubteamDetails]: (draftState, action) => {
-    action.payload.memberships.forEach((info, teamID) => {
-      if (!draftState.teamMemberToSubteams.has(teamID)) {
-        draftState.teamMemberToSubteams.set(teamID, new Map())
-      }
-      draftState.teamMemberToSubteams.get(teamID)?.set(info.username, info)
-    })
-  },
   [TeamsGen.setMemberActivityDetails]: (draftState, action) => {
     action.payload.activityMap.forEach((lastActivity, teamID) => {
       if (!draftState.teamMemberToLastActivity.has(teamID)) {
@@ -321,6 +319,17 @@ export default Container.makeReducer<
   [TeamsGen.setTeamWizardSubteams]: (draftState, action) => {
     draftState.newTeamWizard.subteams = action.payload.subteams
   },
+  [TeamsGen.setTeamWizardSubteamMembers]: (draftState, action) => {
+    const {members} = action.payload
+    draftState.addMembersWizard = {
+      ...Constants.addMembersWizardEmptyState,
+      addingMembers: members.map(m => ({assertion: m, role: 'writer'})),
+      teamID: Types.newTeamWizardTeamID,
+    }
+  },
+  [TeamsGen.setTeamWizardError]: (draftState, action) => {
+    draftState.newTeamWizard.error = action.payload.error
+  },
   [TeamsGen.startAddMembersWizard]: (draftState, action) => {
     const {teamID} = action.payload
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, teamID}
@@ -328,7 +337,7 @@ export default Container.makeReducer<
   [TeamsGen.setAddMembersWizardRole]: (draftState, action) => {
     const {role} = action.payload
     draftState.addMembersWizard.role = role
-    if (role) {
+    if (role !== 'setIndividually') {
       // keep roles stored with indiv members in sync with top level one
       draftState.addMembersWizard.addingMembers.forEach(member => {
         member.role = role
@@ -361,7 +370,14 @@ export default Container.makeReducer<
   [TeamsGen.cancelAddMembersWizard]: draftState => {
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState}
   },
-  [TeamsGen.finishAddMembersWizard]: draftState => {
+  [TeamsGen.finishedAddMembersWizard]: draftState => {
+    draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
+  },
+  [TeamsGen.finishNewTeamWizard]: draftState => {
+    draftState.newTeamWizard.error = undefined
+  },
+  [TeamsGen.finishedNewTeamWizard]: draftState => {
+    draftState.newTeamWizard = Constants.newTeamWizardEmptyState
     draftState.addMembersWizard = {...Constants.addMembersWizardEmptyState, justFinished: true}
   },
   [TeamsGen.addMembersWizardSetDefaultChannels]: (draftState, action) => {
@@ -388,6 +404,15 @@ export default Container.makeReducer<
   [TeamsGen.setActivityLevels]: (draftState, action) => {
     draftState.activityLevels = action.payload.levels
   },
+  [TeamsGen.setTeamListFilterSort]: (draftState, action) => {
+    const {filter, sortOrder} = action.payload
+    if (filter !== undefined) {
+      draftState.teamListFilter = filter
+    }
+    if (sortOrder !== undefined) {
+      draftState.teamListSort = sortOrder
+    }
+  },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
     draftState.teamIDToWelcomeMessage.set(teamID, message)
@@ -406,4 +431,68 @@ export default Container.makeReducer<
   [TeamBuildingGen.changeSendNotification]: handleTeamBuilding,
   [TeamBuildingGen.finishTeamBuilding]: handleTeamBuilding,
   [TeamBuildingGen.setError]: handleTeamBuilding,
+  [EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial]: (draftState, action) => {
+    const {membership} = action.payload.params
+    const {guid, targetTeamID, targetUsername} = membership
+
+    const usernameMemberships = mapGetEnsureValue(
+      draftState.teamMemberToTreeMemberships,
+      targetTeamID,
+      new Map()
+    )
+
+    var memberships = usernameMemberships.get(targetUsername)
+    if (memberships && guid < memberships.guid) {
+      // noop
+      return
+    }
+    if (!memberships || guid > memberships.guid) {
+      // start over
+      memberships = {
+        guid,
+        memberships: [],
+        targetTeamID,
+        targetUsername,
+      }
+      usernameMemberships.set(targetUsername, memberships)
+    }
+    memberships.memberships.push(membership)
+
+    if (RPCTypes.TeamTreeMembershipStatus.ok == membership.result.s) {
+      const value = membership.result.ok
+      const sparseMemberInfos = mapGetEnsureValue(
+        draftState.treeLoaderTeamIDToSparseMemberInfos,
+        value.teamID,
+        new Map()
+      )
+      sparseMemberInfos.set(targetUsername, Constants.consumeTeamTreeMembershipValue(value))
+    }
+  },
+  [EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone]: (draftState, action) => {
+    const {result} = action.payload.params
+    const {guid, targetTeamID, targetUsername, expectedCount} = result
+
+    const usernameMemberships = mapGetEnsureValue(
+      draftState.teamMemberToTreeMemberships,
+      targetTeamID,
+      new Map()
+    )
+
+    var memberships = usernameMemberships.get(targetUsername)
+    if (memberships && guid < memberships.guid) {
+      // noop
+      return
+    }
+    if (!memberships || guid > memberships.guid) {
+      // start over
+      memberships = {
+        guid,
+        memberships: [],
+        targetTeamID,
+        targetUsername,
+      }
+      usernameMemberships.set(targetUsername, memberships)
+    }
+    memberships.expectedCount = expectedCount
+  },
 })

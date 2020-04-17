@@ -223,7 +223,7 @@ func performMerkleAudit(m libkb.MetaContext, startSeqno keybase1.Seqno) error {
 
 func MerkleAuditRound(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("MAUDT")
-	defer m.TraceTimed("MerkleAuditRound", func() error { return err })()
+	defer m.Trace("MerkleAuditRound", &err)()
 
 	// Look up any previously requested retries
 	startSeqno, prevSeqno, err := lookupMerkleAuditRetryFromState(m)

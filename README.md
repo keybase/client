@@ -12,6 +12,8 @@ But - some of the things in this repo are explorations, and the app you build
 from source just *might not do what it says it's doing*. So, if you just want
 to install Keybase on your computer, you should **[monitor our releases](https://keybase.io/download)** for macOS, Linux, or Windows.
 
+If you're interested in our Docker image releases, please check out **[the Docker README](packaging/linux/docker/README.md)**.
+
 ![Sharing](https://keybase.io/images/github/repo_share.png?)
 
 

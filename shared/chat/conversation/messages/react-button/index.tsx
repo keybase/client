@@ -54,47 +54,54 @@ const ButtonBox = Styles.styled(ClickableBox, {
       }
 )
 
-const ReactButton = (props: Props) => (
-  <ButtonBox
-    noEffect={false}
-    border={false}
-    className={Styles.classNames(props.className, {noShadow: props.active})}
-    onLongPress={props.onLongPress}
-    onMouseLeave={props.onMouseLeave}
-    onMouseOver={props.onMouseOver}
-    onClick={props.onClick}
-    style={Styles.collapseStyles([
-      styles.borderBase,
-      styles.buttonBox,
-      props.active && styles.active,
-      props.style,
-    ])}
-  >
-    <Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny" style={styles.container}>
-      <Box2 direction="horizontal" style={styles.emojiWrapper}>
-        <EmojiIfExists
-          paragraphTextClassName="noLineHeight"
-          size={Styles.isMobile ? 16 : 18}
-          lineClamp={1}
-          emojiName={props.decorated.length ? props.decorated : props.emoji}
-        />
-      </Box2>
-      <Text
-        type="BodyTinyBold"
-        style={Styles.collapseStyles([styles.count, props.active && styles.countActive])}
-      >
-        {props.count}
-      </Text>
-    </Box2>
-  </ButtonBox>
-)
+const standardEmojiPattern = /^:([^:])+:$/
 
-const iconCycle = [
-  'iconfont-reacji',
-  'iconfont-reacji-wave',
-  'iconfont-reacji-heart',
-  'iconfont-reacji-sheep',
-] as const
+const ReactButton = (props: Props) => {
+  const text = props.decorated.length ? props.decorated : props.emoji
+  const isStandardEmoji = !!props.emoji.match(standardEmojiPattern)
+  return (
+    <ButtonBox
+      noEffect={false}
+      border={false}
+      className={Styles.classNames(props.className, {noShadow: props.active})}
+      onLongPress={props.onLongPress}
+      onMouseLeave={props.onMouseLeave}
+      onMouseOver={props.onMouseOver}
+      onClick={props.onClick}
+      style={Styles.collapseStyles([
+        styles.borderBase,
+        styles.buttonBox,
+        props.active && styles.active,
+        props.style,
+      ])}
+    >
+      <Box2
+        centerChildren={true}
+        fullHeight={true}
+        direction="horizontal"
+        gap="xtiny"
+        style={styles.container}
+      >
+        <Box2 direction="horizontal" style={styles.emojiWrapper}>
+          <EmojiIfExists
+            paragraphTextClassName={Styles.classNames({noLineHeight: isStandardEmoji})}
+            size={Styles.isMobile ? 16 : 18}
+            lineClamp={1}
+            emojiName={text}
+          />
+        </Box2>
+        <Text
+          type="BodyTinyBold"
+          style={Styles.collapseStyles([styles.count, props.active && styles.countActive])}
+        >
+          {props.count}
+        </Text>
+      </Box2>
+    </ButtonBox>
+  )
+}
+
+const iconCycle = ['iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji'] as const
 export type NewReactionButtonProps = {
   getAttachmentRef?: () => React.Component<any> | null
   onAddReaction: (emoji: string) => void
@@ -194,7 +201,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             <Icon
               type="iconfont-reacji"
               color={Styles.globalColors.black_50}
-              fontSize={16}
+              fontSize={Styles.isMobile ? 18 : 16}
               style={styles.emojiIconWrapper}
             />
           ) : (
