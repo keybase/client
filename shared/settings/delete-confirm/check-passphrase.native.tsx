@@ -26,7 +26,7 @@ const CheckPassphraseMobile = () => {
   }
   const deleteForever = () => dispatch(SettingsGen.createDeleteAccountForever({passphrase: password}))
 
-  // const waitingKey = Container.useSelector(state => Container.anyWaiting(state, Constants.settingsWaitingKey))
+  const waitingKey = Container.useSelector(state => Container.anyWaiting(state, Constants.settingsWaitingKey))
   const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Styles.isAndroid ? 'visible-password' : 'default'
 
@@ -34,9 +34,15 @@ const CheckPassphraseMobile = () => {
     <Kb.Modal
       banners={[
         checkPasswordIsCorrect === false && (
-          <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
+          <Kb.Banner key="errorBanner" color="red">
+            Wrong password. Please try again.
+          </Kb.Banner>
         ),
-        checkPasswordIsCorrect === true && <Kb.Banner color="green">Your password is correct.</Kb.Banner>,
+        checkPasswordIsCorrect === true && (
+          <Kb.Banner key="successBanner" color="green">
+            Your password is correct.
+          </Kb.Banner>
+        ),
       ]}
       footer={{
         content: (
@@ -91,7 +97,7 @@ const CheckPassphraseMobile = () => {
             onClick={deleteForever}
             type="Danger"
             style={styles.deleteButton}
-            // waiting={waitingKey}
+            waiting={waitingKey}
           />
         )}
       </Kb.Box2>

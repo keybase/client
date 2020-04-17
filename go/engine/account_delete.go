@@ -50,14 +50,12 @@ func (e *AccountDelete) SubConsumers() []libkb.UIConsumer {
 func (e *AccountDelete) Run(m libkb.MetaContext) error {
 	username := m.G().GetEnv().GetUsername()
 
-	m.Debug("daniel")
 	passphraseState, err := libkb.LoadPassphraseState(m)
 	if err != nil {
 		return err
 	}
 
 	var passphrase *string
-	m.Debug("daniel passphrase: ", e.passphrase)
 	if e.passphrase == nil && passphraseState == keybase1.PassphraseState_KNOWN {
 		// Passphrase is required to create PDPKA, but that's not required for
 		// randomPW users.
