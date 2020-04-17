@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 
@@ -392,8 +393,12 @@ func (t *teamAPIHandler) removeMember(ctx context.Context, c Call, w io.Writer) 
 			}),
 		},
 	}
-	if _, err := t.cli.TeamRemoveMembers(ctx, arg); err != nil {
-		return t.encodeErr(c, err, w)
+	if res, err := t.cli.TeamRemoveMembers(ctx, arg); err != nil {
+		msg := fmt.Sprintf("failed to remove member: %s", err)
+		if len(res.Failures) > 0 && res.Failures[0].ErrorAtTarget != nil {
+			msg += "; " + *res.Failures[0].ErrorAtTarget
+		}
+		return t.encodeErr(c, errors.New(msg), w)
 	}
 	return t.encodeResult(c, nil, w)
 }

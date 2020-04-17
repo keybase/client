@@ -1055,22 +1055,9 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 
 	res = keybase1.TeamRemoveMembersResult{Failures: failures}
 	if !shouldNotErrorOnPartialFailure && len(res.Failures) > 0 {
-		if len(res.Failures) == 1 {
-			failure := res.Failures[0]
-			var m string
-			if failure.ErrorAtTarget != nil {
-				m += fmt.Sprintf("failed to remove from team: %s", failure.ErrorAtTarget)
-			}
-			if failure.ErrorAtTarget != nil && failure.ErrorAtSubtree != nil {
-				m += "; "
-			}
-			if failure.ErrorAtSubtree != nil {
-				m += fmt.Sprintf("failed to remove from subteams: %s", failure.ErrorAtSubtree)
-			}
-			err = errors.New(m)
-		} else {
-			err = fmt.Errorf("failed to remove %d members", len(res.Failures))
-		}
+		err = fmt.Errorf("failed to remove %d members", len(res.Failures))
+	} else {
+		err = nil
 	}
 	return res, err
 }
