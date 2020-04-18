@@ -219,16 +219,24 @@ helpers.rootLinuxNode(env, {
                       withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64']]) {
                         kbfsfuseImage = docker.build('897413463132.dkr.ecr.us-east-1.amazonaws.com/client', "--build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64='$KBFS_DOCKER_CERT_B64' .")
                       }
-                      kbfsfuseImage.push(env.BUILD_TAG)
-                      build([
+                      docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
+                        kbfsfuseImage.push(env.BUILD_TAG)
+                      }
+                      if (true) { // TODO: env.BRANCH_NAME == "master" && cause != "upstream") {
+                        build([
                           job: "/kbfs-server/master",
                           parameters: [
                             string(
                               name: 'kbfsProjectName',
                               value: env.BUILD_TAG,
                             ),
+                            string(
+                              name: 'kbwebProjectName',
+                              value: kbwebTag,
+                            ),
                           ]
-                      ])
+                        ])
+                      }
                     }
                   }
                 }
@@ -324,7 +332,7 @@ helpers.rootLinuxNode(env, {
     stage("Push") {
       if (env.BRANCH_NAME == "master" && cause != "upstream") {
         docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
-            kbfsfuseImage.push('master')
+          kbfsfuseImage.push('master')
         }
       } else {
         println "Not pushing docker"
