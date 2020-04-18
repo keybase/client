@@ -209,8 +209,7 @@ helpers.rootLinuxNode(env, {
                   dir('go') {
                     sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/keybase"
                     sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                    def clientImage = docker.build("kbclient")
-                    // TODO: only do this when we need to run at least one KBFS test.
+                    docker.build("kbclient")
                     dir('kbfs') {
                       sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/kbfs/kbfsfuse"
                       sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
@@ -295,6 +294,7 @@ helpers.rootLinuxNode(env, {
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                   "TMPDIR=${mountDir}",
+                  "DOCKER_BUILDKIT=1",
                 ]) {
                 ws("$GOPATH/src/github.com/keybase/client") {
                   println "Checkout OS X"
