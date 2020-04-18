@@ -22,7 +22,6 @@ def withKbweb(closure) {
     sh "docker ps -a"
     sh "docker-compose stop"
     helpers.logContainer('docker-compose', 'mysql')
-    helpers.logContainer('docker-compose', 'gregor')
     logKbwebServices(kbwebName)
     throw ex
   } finally {
