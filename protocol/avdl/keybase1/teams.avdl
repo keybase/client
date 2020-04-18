@@ -742,6 +742,15 @@ protocol teams {
     // Set of links that are stubbed-out and whose contents are missing.
     map<Seqno, boolean> stubbedLinks;
 
+    // if an outdated client loaded a team with invite links but did not
+    // understand them (and they since updated and are an admin of such team),
+    // they would have to reload the whole team to pick up those invites from
+    // already processed sigchain links. Rather than busting the cache for 
+    // everyone, we use this flag to keep track of this and reload as needed. 
+    // the flag can be removed after diskStorageVersion in team/std.go gets 
+    // bumped to 12 or more. 
+    boolean processedWithInviteLinks;
+
     // All invitations that are currently active.
     map<TeamInviteID,TeamInvite> activeInvites;
 

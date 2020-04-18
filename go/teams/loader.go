@@ -123,10 +123,11 @@ func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *
 
 func newFrozenChain(chain *keybase1.TeamSigChainState) keybase1.TeamSigChainState {
 	return keybase1.TeamSigChainState{
-		Id:         chain.Id,
-		Public:     chain.Public,
-		LastSeqno:  chain.LastSeqno,
-		LastLinkID: chain.LastLinkID,
+		Id:                       chain.Id,
+		Public:                   chain.Public,
+		LastSeqno:                chain.LastSeqno,
+		LastLinkID:               chain.LastLinkID,
+		ProcessedWithInviteLinks: true,
 	}
 }
 
@@ -501,9 +502,16 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 		res, err = l.load2InnerLockedRetry(ctx, arg)
 		switch pkgErrors.Cause(err).(type) {
 		case nil:
+			// this if clause and the ProcessedWithInviteLinks fields can be removed when diskStorageVersion is bumped to 12 or greater.
+			if !res.team.Chain.ProcessedWithInviteLinks && !res.team.Name.IsImplicit() && res.team.Chain.UserRole(arg.me).IsAdminOrAbove() {
+				l.G().Log.CDebugf(ctx, "User role in %s is %v but ProcessedWithInviteLinks is false; retrying with forceFullReload=true", res.team.Name, res.team.Chain.UserRole(arg.me))
+				arg.forceFullReload = true
+				err = fmt.Errorf("Loaded team has ProcessedWithInviteLinks=false")
+				continue
+			}
 			return res, nil
 		case MissingReaderKeyMaskError:
-			l.G().Log.CDebugf(ctx, "Got MissingReaderKeyMaskError (%s); retrying with forceFullReload=true", err.Error())
+			l.G().Log.CDebugf(ctx, "Got MissingReaderKeyMaskError (%s); retrying with foundRKMHole=true", err.Error())
 			arg.foundRKMHole = true
 			origErr := err
 			res, err = l.load2InnerLockedRetry(ctx, arg)
