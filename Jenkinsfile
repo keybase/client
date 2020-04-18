@@ -224,7 +224,7 @@ helpers.rootLinuxNode(env, {
                       }
                       if (true) { // TODO: env.BRANCH_NAME == "master" && cause != "upstream") {
                         build([
-                          job: "/kbfs-server/master",
+                          job: "/kbfs-server/PR-675", // TODO: revert to kbfs-server/master
                           parameters: [
                             string(
                               name: 'kbfsProjectName',
