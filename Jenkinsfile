@@ -217,7 +217,7 @@ helpers.rootLinuxNode(env, {
                       sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
                       sh "cp ${env.GOPATH}/bin/git-remote-keybase ./kbfsgit/git-remote-keybase/git-remote-keybase"
                       withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64']]) {
-                        kbfsfuseImage = docker.build('897413463132.dkr.ecr.us-east-1.amazonaws.com/client', "--build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64='$KBFS_DOCKER_CERT_B64'")
+                        kbfsfuseImage = docker.build('897413463132.dkr.ecr.us-east-1.amazonaws.com/client', "--build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64='$KBFS_DOCKER_CERT_B64' .")
                       }
                       kbfsfuseImage.push(env.BUILD_TAG)
                       build([
