@@ -201,7 +201,9 @@ helpers.rootLinuxNode(env, {
                   }
                 }
               }},
-              integrate: {
+              integrate: { withEnv([
+                "DOCKER_BUILDKIT=1",
+              ]) {
                 // Build the client docker first so we can immediately kick off KBFS
                 def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
                 if (hasGoChanges && hasKBFSChanges) {
@@ -239,7 +241,7 @@ helpers.rootLinuxNode(env, {
                     }
                   }
                 }
-              },
+              }},
             )
           },
           test_windows: {
@@ -294,7 +296,6 @@ helpers.rootLinuxNode(env, {
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                   "TMPDIR=${mountDir}",
-                  "DOCKER_BUILDKIT=1",
                 ]) {
                 ws("$GOPATH/src/github.com/keybase/client") {
                   println "Checkout OS X"
