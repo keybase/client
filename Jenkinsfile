@@ -111,7 +111,7 @@ helpers.rootLinuxNode(env, {
           },
           pull_kbweb: {
             kbwebImage.pull()
-            kbwebImage.tag('')
+            kbwebImage.tag('latest')
           },
           remove_dockers: {
             sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
