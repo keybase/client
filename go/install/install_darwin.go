@@ -305,7 +305,8 @@ func UninstallKeybaseServices(context Context, log Log) error {
 	runMode := context.GetRunMode()
 	logf := logger.NewLoggerf(log)
 	matcher := process.NewMatcher("keybase", process.ExecutableEqual, logf)
-	services, err := process.FindProcesses(matcher, 0, 0, logf)
+	matcher.ExceptPID(os.Getpid())
+	services, err := process.FindProcesses(matcher, 5*time.Second, 0, logf)
 	if err != nil {
 		log.Warning("UninstallKeybaseServices: failed to get before uninstall count: %s", err)
 	} else {
@@ -318,11 +319,12 @@ func UninstallKeybaseServices(context Context, log Log) error {
 	if services, err = process.FindProcesses(matcher, 0, 0, logf); err != nil {
 		log.Warning("UninstallKeybaseServices: failed to get after uninstall count: %s", err)
 	} else {
-		if len(services) >= beforeUninstallCount {
+		if beforeUninstallCount > 0 && len(services) >= beforeUninstallCount {
 			pids := process.TerminateAll(matcher, 0, logf)
 			log.Warning("UninstallKeybaseServices: processes remain after uninstall: terminated: %v", pids)
+		} else {
+			log.Info("UninstallKeybaseServices: no processes remain")
 		}
-		log.Info("UninstallKeybaseServices: no processes remain, success")
 	}
 	return libkb.CombineErrors(err0, err1, err2)
 }
