@@ -1,5 +1,6 @@
 import * as dateFns from 'date-fns'
 import * as React from 'react'
+import * as Container from '../util/container'
 import * as Sb from '../stories/storybook'
 import proofsList from './generic/proofs-list/index.stories'
 import {BioTeamProofs, BackgroundColorType} from './user'
@@ -156,36 +157,89 @@ const bioPropsSBS = {
   username: 'chris@twitter',
 }
 
-const fourHoursAgo = dateFns.sub(new Date(), {hours: 4}).getTime()
+// logged in as `max`
+const common = Sb.createStoreWithCommon()
+const wotStore = Container.produce(common, draftState => {
+  draftState.config.username = 'max'
+})
 
-// looking at an attestation on alice's profile
-const webOfTrustBase = {
+const fourHoursAgo = dateFns.sub(new Date(), {hours: 4}).getTime()
+const baseAttestation = {
   attestation:
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-  reactWaitingKey: 'reactWaitingKey',
-  username: 'alice',
+  proofID: 'whateverwhatever',
   verificationType: 'video' as 'video',
   vouchedAt: fourHoursAgo,
 }
 
-// logged in as alice, chris vouched
-const webOfTrustPending = {
-  ...webOfTrustBase,
-  attestingUser: 'chris',
-  onAccept: Sb.action('onAccept'),
-  onReject: Sb.action('onReject'),
-  status: WotStatusType.proposed,
-  userIsYou: true,
+// max attests for alice (pending)
+const wotSeePendingAsVoucher = {
+  username: 'alice',
+  webOfTrustAttestation: {
+    ...baseAttestation,
+    attestingUser: 'max',
+    status: WotStatusType.proposed,
+  },
 }
 
-// logged in as max, max wrote, alice accepted
-const webOfTrustAccepted = {
-  ...webOfTrustBase,
-  attestingUser: 'max',
-  onAccept: undefined,
-  onReject: undefined,
-  status: WotStatusType.accepted,
-  userIsYou: false,
+// max attests for alice (accepted)
+const wotSeeAcceptedAsVoucher = {
+  username: 'alice',
+  webOfTrustAttestation: {
+    ...baseAttestation,
+    attestingUser: 'max',
+    status: WotStatusType.accepted,
+  },
+}
+
+// max attests for alice (rejected)
+const wotSeeRejectedAsVoucher = {
+  username: 'alice',
+  webOfTrustAttestation: {
+    ...baseAttestation,
+    attestingUser: 'max',
+    status: WotStatusType.rejected,
+  },
+}
+
+// max looking at chris' accepted vouch for alice
+const wotSeeAccepted = {
+  username: 'alice',
+  webOfTrustAttestation: {
+    ...baseAttestation,
+    attestingUser: 'chris',
+    status: WotStatusType.accepted,
+  },
+}
+
+// max sees an attestation of his own from alice (pending)
+const wotSeePendingAsVouchee = {
+  username: 'max',
+  webOfTrustAttestation: {
+    ...baseAttestation,
+    attestingUser: 'alice',
+    status: WotStatusType.proposed,
+  },
+}
+
+// max sees an attestation of his own from alice (accepted)
+const wotSeeAcceptedAsVouchee = {
+  username: 'max',
+  webOfTrustAttestation: {
+    ...baseAttestation,
+    attestingUser: 'alice',
+    status: WotStatusType.accepted,
+  },
+}
+
+// max sees an attestation of his own from alice (rejected)
+const wotSeeRejectedAsVouchee = {
+  username: 'max',
+  webOfTrustAttestation: {
+    ...baseAttestation,
+    attestingUser: 'alice',
+    status: WotStatusType.rejected,
+  },
 }
 
 const load = () => {
@@ -194,8 +248,14 @@ const load = () => {
   Sb.storiesOf('Profile/Profile', module)
     .addDecorator(providerUser)
     .add('BioTeamProofs', () => <BioTeamProofs {...bioPropsUser} />)
-    .add('Web of Trust - pending for you', () => <WebOfTrust {...webOfTrustPending} />)
-    .add('Web of Trust - accepted you authored', () => <WebOfTrust {...webOfTrustAccepted} />)
+    .addDecorator((story: any) => <Sb.MockStore store={wotStore}>{story()}</Sb.MockStore>)
+    .add('Web of Trust - pending as voucher', () => <WebOfTrust {...wotSeePendingAsVoucher} />)
+    .add('Web of Trust - accepted as voucher', () => <WebOfTrust {...wotSeeAcceptedAsVoucher} />)
+    .add('Web of Trust - rejected as voucher', () => <WebOfTrust {...wotSeeRejectedAsVoucher} />)
+    .add('Web of Trust - uninvolved accepted', () => <WebOfTrust {...wotSeeAccepted} />)
+    .add('Web of Trust - pending as vouchee', () => <WebOfTrust {...wotSeePendingAsVouchee} />)
+    .add('Web of Trust - accepted as vouchee', () => <WebOfTrust {...wotSeeAcceptedAsVouchee} />)
+    .add('Web of Trust - rejected as vouchee', () => <WebOfTrust {...wotSeeRejectedAsVouchee} />)
 
   Sb.storiesOf('Profile/Profile', module)
     .addDecorator(providerSBS)

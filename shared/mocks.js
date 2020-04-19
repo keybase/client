@@ -7,6 +7,7 @@
 module.exports = {
   // These are used in jest.config.js to mock things out in storyshots and other tests.
   jestReplacements: {
+    '/logger': '<rootDir>/logger/__mocks__/index.tsx',
     '@msgpack': '<rootDir>/node_modules/@msgpack/msgpack/dist.es5/msgpack.js',
     '\\.(jpg|png|gif|ttf|css)$': '<rootDir>/__mocks__/file-mock.tsx',
     '^electron$': '<rootDir>/__mocks__/electron.tsx',

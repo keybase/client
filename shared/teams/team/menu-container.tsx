@@ -120,6 +120,7 @@ export default Container.connect(
         })
         if (flags.teamInvites) {
           items.push({
+            icon: 'iconfont-link',
             onClick: dispatchProps.onCopyInviteLink,
             title: 'Copy invite link',
           })

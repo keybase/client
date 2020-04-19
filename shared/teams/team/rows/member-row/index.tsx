@@ -75,6 +75,7 @@ export const TeamMemberRow = (props: Props) => {
     const teamID = props.teamID
 
     const dispatch = Container.useDispatch()
+    const nav = Container.useSafeNavigation()
     const teamSelectedMembers = Container.useSelector(state => state.teams.teamSelectedMembers.get(teamID))
     const anySelected = !!teamSelectedMembers?.size
     const selected = !!teamSelectedMembers?.has(props.username)
@@ -94,10 +95,10 @@ export const TeamMemberRow = (props: Props) => {
     )
 
     const body = (
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+        <Kb.Avatar username={props.username} size={32} />
 
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.nameContainer}>
+        <Kb.Box2 direction="vertical" style={styles.nameContainer}>
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
             <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} />
           </Kb.Box>
@@ -138,7 +139,16 @@ export const TeamMemberRow = (props: Props) => {
       'Divider',
       ...(props.youCanManageMembers
         ? ([
-            {icon: 'iconfont-chat', onClick: props.onChat, title: 'Add to channels...'},
+            {
+              icon: 'iconfont-chat',
+              onClick: () =>
+                dispatch(
+                  nav.safeNavigateAppendPayload({
+                    path: [{props: {teamID, usernames: [props.username]}, selected: 'teamAddToChannels'}],
+                  })
+                ),
+              title: 'Add to channels...',
+            },
             {icon: 'iconfont-crown-admin', onClick: props.onClick, title: 'Edit role...'},
           ] as Kb.MenuItems)
         : []),
@@ -178,7 +188,11 @@ export const TeamMemberRow = (props: Props) => {
     ))
 
     const actions = (
-      <Kb.Box2 direction="horizontal" gap="tiny" style={styles.mobileMarginsHack}>
+      <Kb.Box2
+        direction="horizontal"
+        gap="tiny"
+        style={props.youCanManageMembers ? styles.mobileMarginsHack : undefined}
+      >
         {popup}
         <Kb.Button
           icon="iconfont-chat"
@@ -213,7 +227,7 @@ export const TeamMemberRow = (props: Props) => {
         {...massActionsProps}
         action={anySelected ? null : actions}
         onlyShowActionOnHover="fade"
-        height={Styles.isMobile ? 90 : 64}
+        height={Styles.isMobile ? 56 : 48}
         type="Large"
         body={body}
         firstItem={props.firstItem}
@@ -368,7 +382,7 @@ const styles = Styles.styleSheetCreate(() => ({
   crownIcon: {
     marginRight: Styles.globalMargins.xtiny,
   },
-  fullNameLabel: {marginRight: Styles.globalMargins.xtiny},
+  fullNameLabel: {flexShrink: 1, marginRight: Styles.globalMargins.xtiny},
   innerContainerBottom: {...Styles.globalStyles.flexBoxRow, flexShrink: 1},
   innerContainerTop: {
     ...Styles.globalStyles.flexBoxRow,
@@ -386,7 +400,13 @@ const styles = Styles.styleSheetCreate(() => ({
     marginLeft: Styles.globalMargins.xtiny,
   },
   mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
-  nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
+  nameContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignSelf: undefined,
+    flex: 1,
+    justifyContent: 'center',
+    marginLeft: Styles.globalMargins.small,
+  },
   selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
   widenClickableArea: {margin: -5, padding: 5},
 }))

@@ -56,23 +56,26 @@ const Avatar = (props: Props) => {
           }}
         />
       )}
-      {!!props.url && props.crop && props.crop?.offsetLeft && props.crop?.offsetTop && (
-        <img
-          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
-          style={{
-            backgroundImage: props.url,
-            backgroundPositionX: props.crop?.offsetLeft * scaledAvatarRatio,
-            backgroundPositionY: props.crop?.offsetTop * scaledAvatarRatio,
-            backgroundSize: `${avatarScaledWidth}px auto`,
-            opacity:
-              props.opacity === undefined || props.opacity === 1
-                ? props.blocked
-                  ? 0.1
-                  : undefined
-                : props.opacity,
-          }}
-        />
-      )}
+      {!!props.url &&
+        props.crop &&
+        props.crop?.offsetLeft !== undefined &&
+        props.crop?.offsetTop !== undefined && (
+          <img
+            className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+            style={{
+              backgroundImage: props.url,
+              backgroundPositionX: props.crop?.offsetLeft * scaledAvatarRatio,
+              backgroundPositionY: props.crop?.offsetTop * scaledAvatarRatio,
+              backgroundSize: `${avatarScaledWidth}px auto`,
+              opacity:
+                props.opacity === undefined || props.opacity === 1
+                  ? props.blocked
+                    ? 0.1
+                    : undefined
+                  : props.opacity,
+            }}
+          />
+        )}
       {(!!props.borderColor || props.isTeam) && (
         <div
           style={Styles.collapseStyles([
