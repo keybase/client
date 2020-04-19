@@ -104,6 +104,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, tlfHandle, data.MasterBranch)
 	require.NoError(t, err)
+	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 
 	sid1, sid2 := SubscriptionID("sid1"), SubscriptionID("sid2")
 
@@ -115,6 +117,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 		[]SubscriptionID{sid1}, "/keybase/private/jdoe",
 		[]keybase1.PathSubscriptionTopic{keybase1.PathSubscriptionTopic_CHILDREN})
 	fileNode, _, err := config.KBFSOps().CreateFile(ctx, rootNode, rootNode.ChildName("file"), false, NoExcl)
+	require.NoError(t, err)
+	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 
 	t.Logf("Try to subscribe using sid1 again, and it should fail")
@@ -136,6 +140,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	_, _, err = config.KBFSOps().CreateDir(
 		ctx, rootNode, rootNode.ChildName("dir1"))
 	require.NoError(t, err)
+	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 
 	// These waits are needed to avoid races.
 	t.Logf("Waiting for last notifications (done0 and done1) before unsubscribing.")
@@ -150,6 +156,8 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	_, _, err = config.KBFSOps().CreateDir(
 		ctx, rootNode, rootNode.ChildName("dir2"))
 	require.NoError(t, err)
+	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 
 	t.Logf("Waiting for last notification (done2) before unsubscribing.")
 	waiter2()
@@ -163,12 +171,11 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 		[]keybase1.PathSubscriptionTopic{keybase1.PathSubscriptionTopic_STAT}).Do(done3)
 	err = config.KBFSOps().Write(ctx, fileNode, []byte("hello"), 0)
 	require.NoError(t, err)
+	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 
 	t.Logf("Waiting for last notification (done3) before finishing the test.")
 	waiter3()
-
-	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
-	require.NoError(t, err)
 }
 
 func TestSubscriptionManagerFavoritesChange(t *testing.T) {
