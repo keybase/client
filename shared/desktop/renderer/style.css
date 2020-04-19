@@ -235,7 +235,7 @@ body {
 }
 
 :root {
-  --scrollbar-size: 0.375rem;
+  --scrollbar-size: 0.750rem;
   --scrollbar-minlength: 0.5rem;
   --scrollbar-ff-width: thin;
   --scrollbar-track-color: transparent;
