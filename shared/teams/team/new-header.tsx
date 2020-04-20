@@ -36,7 +36,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
     () => dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false})),
     [dispatch]
   )
-  // Automatically dismiss this when the user navigates away
+  // Automatically dismisses this when the user navigates away
   React.useEffect(() => onNoThanks, [onNoThanks])
   const waiting = Container.useAnyWaiting(Constants.setMemberPublicityWaitingKey(teamID))
   return (
@@ -47,6 +47,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
       className="addInviteAndLinkBox"
       alignItems="flex-start"
       alignSelf="flex-end"
+      fullWidth={true}
     >
       <Kb.Box style={styles.illustration}>
         <Kb.Icon type="icon-illustration-teams-feature-profile-460-64" />
@@ -416,7 +417,6 @@ const styles = Styles.styleSheetCreate(
         isPhone: {
           borderRadius: 8,
           flexGrow: 1,
-          margin: Styles.globalMargins.tiny,
         },
         isTablet: {
           borderRadius: 4,

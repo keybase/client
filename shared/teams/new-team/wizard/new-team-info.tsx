@@ -83,6 +83,7 @@ const NewTeamInfo = () => {
       ? teamWizardState.showcase
       : teamWizardState.teamType !== 'other' && teamWizardState.teamType !== 'subteam'
   )
+  const [realRole, setRealRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
   const [selectedRole, setSelectedRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
   const [rolePickerIsOpen, setRolePickerIsOpen] = React.useState(false)
 
@@ -96,7 +97,7 @@ const NewTeamInfo = () => {
         addYourself,
         description,
         openTeam,
-        openTeamJoinRole: selectedRole,
+        openTeamJoinRole: realRole,
         showcase,
         teamname,
       })
@@ -199,14 +200,17 @@ const NewTeamInfo = () => {
                     selectedRole={selectedRole}
                     onSelectRole={setSelectedRole}
                     floatingContainerStyle={styles.floatingRolePicker}
-                    onConfirm={() => setRolePickerIsOpen(false)}
+                    onConfirm={() => {
+                      setRealRole(selectedRole)
+                      setRolePickerIsOpen(false)
+                    }}
                     onCancel={() => setRolePickerIsOpen(false)}
                     position="bottom center"
                     open={rolePickerIsOpen}
                     disabledRoles={cannotJoinAsOwner}
                   >
                     <InlineDropdown
-                      label={pluralize(selectedRole)}
+                      label={pluralize(realRole)}
                       onPress={() => setRolePickerIsOpen(!rolePickerIsOpen)}
                       textWrapperType="BodySmall"
                     />
