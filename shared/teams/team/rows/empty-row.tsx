@@ -29,18 +29,16 @@ const buttonLabel = {
 }
 
 const useSecondaryAction = (props: Props) => {
+  const {teamID, conversationIDKey} = props
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const teamID = props.teamID
   const onSecondaryAction = () => {
     switch (props.type) {
       case 'members':
         dispatch(
-          props.conversationIDKey
+          conversationIDKey
             ? nav.safeNavigateAppendPayload({
-                path: [
-                  {props: {conversationIDKey: props.conversationIDKey, teamID}, selected: 'chatAddToChannel'},
-                ],
+                path: [{props: {conversationIDKey: conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
               })
             : TeamsGen.createStartAddMembersWizard({teamID})
         )
