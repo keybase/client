@@ -158,6 +158,12 @@ func TestBotCommandManager(t *testing.T) {
 			Name: "teammembsonly",
 		}},
 		TeamName: &teamConv.TlfName,
+	}, chat1.AdvertiseCommandsParam{
+		Typ: chat1.BotCommandsAdvertisementTyp_TLFID_CONVS,
+		Commands: []chat1.UserBotCommandInput{{
+			Name: "teamconvonly_implicit",
+		}},
+		TeamName: &impConv.TlfName,
 	})
 	require.NoError(t, tc.Context().BotCommandManager.Advertise(ctx, &alias, commands))
 
@@ -175,7 +181,7 @@ func TestBotCommandManager(t *testing.T) {
 
 	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(cmds))
+	require.Equal(t, 3, len(cmds))
 	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(cmds))
