@@ -982,16 +982,7 @@ func MemberRoleFromID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	return role, err
 }
 
-func RemoveMemberByUsername(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
-	username string) (err error) {
-	return RemoveMember(ctx, g, teamID, keybase1.NewTeamMemberToRemoveWithAssertion(
-		keybase1.AssertionTeamMemberToRemove{
-			Assertion: username,
-		},
-	))
-}
-
-func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+func RemoveMemberSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
 	member keybase1.TeamMemberToRemove) (err error) {
 	members := []keybase1.TeamMemberToRemove{member}
 	res, err := RemoveMembers(ctx, g, teamID, members, false /* NoErrorOnPartialFailure */)
@@ -1139,6 +1130,13 @@ func removeMemberFromSubtree(mctx libkb.MetaContext, targetTeamID keybase1.TeamI
 func RemoveMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {
 	teamGetter := func() (*Team, error) {
 		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+	}
+	return remove(ctx, g, teamGetter, username)
+}
+
+func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamName string, username string) error {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByStringName(ctx, g, teamName, false)
 	}
 	return remove(ctx, g, teamGetter, username)
 }

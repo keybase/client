@@ -468,7 +468,7 @@ func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRe
 		return err
 	}
 
-	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.TeamID, arg.Member)
+	return teams.RemoveMemberSingle(ctx, h.G().ExternalG(), arg.TeamID, arg.Member)
 }
 
 func (h *TeamsHandler) TeamRemoveMembers(ctx context.Context, arg keybase1.TeamRemoveMembersArg) (res keybase1.TeamRemoveMembersResult, err error) {

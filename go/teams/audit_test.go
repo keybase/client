@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/sig3"
 	"github.com/keybase/client/go/teams/hidden"
 
@@ -15,12 +14,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
-
-func removeUsername(mctx libkb.MetaContext, tc *libkb.TestContext, teamID keybase1.TeamID, fu *kbtest.FakeUser) error {
-	return RemoveMember(mctx.Ctx(), tc.G, teamID, keybase1.NewTeamMemberToRemoveWithAssertion(
-		keybase1.AssertionTeamMemberToRemove{Assertion: fu.Username},
-	))
-}
 
 // See CORE-8860. We should be able to audit a stale team. That is, ever the merkle tree
 // is advertising a tail at 5, and we're only loaded through 3 (due to an unbusted cache),
@@ -31,7 +24,7 @@ func TestAuditStaleTeam(t *testing.T) {
 	defer cleanup()
 
 	t.Logf("create team")
-	teamName, teamID := createTeam2(*tcs[0])
+	teamName, _ := createTeam2(*tcs[0])
 	m := make([]libkb.MetaContext, 5)
 	for i, tc := range tcs {
 		m[i] = libkb.NewMetaContextForTest(*tc)
@@ -75,17 +68,17 @@ func TestAuditStaleTeam(t *testing.T) {
 	}
 
 	rmC := func(asUser int) {
-		err = removeUsername(m[asUser], tcs[asUser], teamID, fus[C])
+		err = RemoveMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[C].Username)
 		require.NoError(t, err)
 	}
 
 	rmD := func(asUser int) {
-		err = removeUsername(m[asUser], tcs[asUser], teamID, fus[D])
+		err = RemoveMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[D].Username)
 		require.NoError(t, err)
 	}
 
 	rmE := func(asUser int) {
-		err = removeUsername(m[asUser], tcs[asUser], teamID, fus[E])
+		err = RemoveMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[E].Username)
 		require.NoError(t, err)
 	}
 
@@ -191,19 +184,19 @@ func TestAuditRotateAudit(t *testing.T) {
 	}
 
 	rmB := func() keybase1.Seqno {
-		err := removeUsername(m[A], tcs[A], teamID, fus[B])
+		err := RemoveMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[B].Username)
 		require.NoError(t, err)
 		return 1
 	}
 
 	rmC := func() keybase1.Seqno {
-		err := removeUsername(m[A], tcs[A], teamID, fus[C])
+		err := RemoveMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[C].Username)
 		require.NoError(t, err)
 		return 1
 	}
 
 	rmD := func() keybase1.Seqno {
-		err := removeUsername(m[A], tcs[A], teamID, fus[D])
+		err := RemoveMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[D].Username)
 		require.NoError(t, err)
 		return 1
 	}
