@@ -74,7 +74,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   }
 
   const menuItems: Array<Kb.MenuItem> = [
-    {onClick: () => {}, title: 'Audience stats'},
     // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
     // It's included in the other place this menu appears.
     ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
