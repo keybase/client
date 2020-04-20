@@ -114,8 +114,8 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       backgroundColor: Styles.globalColors.blueGrey,
-      width: Constants.settingsSubNavWidth,
       maxWidth: Constants.settingsSubNavWidth,
+      width: Constants.settingsSubNavWidth,
     },
     isElectron: {
       paddingTop: Styles.globalMargins.small,
