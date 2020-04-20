@@ -2074,6 +2074,9 @@ type InitMode interface {
 	// DelayInitialConnect indicates whether the initial connection to KBFS
 	// servers should be delayed.
 	DelayInitialConnect() bool
+	// DiskCacheCompactionEnabled indicates whether the local disk
+	// block cache should trigger compaction automatically.
+	DiskCacheCompactionEnabled() bool
 
 	ldbutils.DbWriteBufferSizeGetter
 }

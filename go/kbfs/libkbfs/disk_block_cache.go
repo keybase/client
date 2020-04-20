@@ -282,8 +282,8 @@ func newDiskBlockCacheLocalFromStorage(
 		},
 		tlfSizes:      map[tlf.ID]uint64{},
 		tlfLastUnrefs: map[tlf.ID]kbfsmd.Revision{},
-		compactCh:     make(chan struct{}),
-		useCh:         make(chan struct{}),
+		compactCh:     make(chan struct{}, 1),
+		useCh:         make(chan struct{}, 1),
 		startedCh:     startedCh,
 		startErrCh:    startErrCh,
 		shutdownCh:    make(chan struct{}),
@@ -313,7 +313,12 @@ func newDiskBlockCacheLocalFromStorage(
 		close(startedCh)
 	}()
 
-	go cache.compactLoop()
+	// Only do background compaction on desktop for now, because on
+	// mobile we'd probably cause issues if we try to do it while
+	// backgrounded.
+	if mode.DiskCacheCompactionEnabled() {
+		go cache.compactLoop()
+	}
 
 	return cache, nil
 }
