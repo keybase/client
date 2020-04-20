@@ -114,7 +114,7 @@ type _ContactSettingsSavedPayload = {
   readonly teamsList: Types.ContactSettingsTeamsList
 }
 type _DbNukePayload = void
-type _DeleteAccountForeverPayload = {readonly passphrase?: string}
+type _DeleteAccountForeverPayload = {readonly passphrase?: HiddenString}
 type _EditContactImportEnabledPayload = {readonly enable: boolean; readonly fromSettings?: boolean}
 type _EditEmailPayload = {
   readonly email: string

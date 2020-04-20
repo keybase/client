@@ -355,7 +355,7 @@ const deleteAccountForever = async (
   }
 
   await RPCTypes.loginAccountDeleteRpcPromise(
-    {passphrase: action.payload.passphrase},
+    {passphrase: action.payload.passphrase?.stringValue()},
     Constants.settingsWaitingKey
   )
   return ConfigGen.createSetDeletedSelf({deletedUsername: username})

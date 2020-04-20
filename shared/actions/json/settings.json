@@ -38,7 +38,7 @@
     },
     "dbNuke": {},
     "deleteAccountForever": {
-      "passphrase?": "string",
+      "passphrase?": "HiddenString"
     },
     "editEmail": {
       "email": "string",

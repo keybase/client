@@ -24,9 +24,10 @@ const CheckPassphraseMobile = () => {
       dispatch(SettingsGen.createCheckPassword({password: new HiddenString(password)}))
     }
   }
-  const deleteForever = () => dispatch(SettingsGen.createDeleteAccountForever({passphrase: password}))
+  const deleteForever = () =>
+    dispatch(SettingsGen.createDeleteAccountForever({passphrase: new HiddenString(password)}))
 
-  const waitingKey = Container.useSelector(state => Container.anyWaiting(state, Constants.settingsWaitingKey))
+  const waitingKey = Container.useAnyWaiting(Constants.settingsWaitingKey)
   const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Styles.isAndroid ? 'visible-password' : 'default'
 
