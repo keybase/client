@@ -24,6 +24,7 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   inviteFriends: true,
   moveOrCopy: true,
   tabletSupport: true,
+  teamInvites: true,
   teamsRedesign: true,
   webOfTrust: false,
 }

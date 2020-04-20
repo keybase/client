@@ -13,7 +13,7 @@ const ff: FeatureFlags = {
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   tabletSupport: true,
-  teamInvites: false,
+  teamInvites: true,
   teamsRedesign: true,
   webOfTrust: false,
   whyDidYouRender: false,
