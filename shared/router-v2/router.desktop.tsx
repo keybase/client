@@ -100,8 +100,7 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
   const {index, routes} = state
   const {key} = routes[index]
   const descriptor = descriptors[key]
-  const {navigation: childNav, getComponent, state: childState} = descriptor
-  const {params} = childState
+  const {navigation: childNav, getComponent} = descriptor
 
   // We render the app below us
   const appKey = routes[0].key
@@ -109,8 +108,16 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
   const appDescriptor = descriptors[appKey]
 
   const Component = getComponent()
+  const getNavigationOptions: undefined | Object | ((n: {navigation: typeof childNav}) => Object) =
+    // @ts-ignore
+    Component?.navigationOptions
+  let navigationOptions: undefined | Object
+  if (typeof getNavigationOptions === 'function') {
+    navigationOptions = getNavigationOptions({navigation: childNav})
+  } else if (typeof getNavigationOptions === 'object') {
+    navigationOptions = getNavigationOptions
+  }
   // @ts-ignore
-  const navigationOptions = Component?.navigationOptions
   const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover, modal2Type} = navigationOptions ?? {}
 
   const popRef = React.useRef(navigation.pop)
@@ -172,6 +179,15 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
                 component={Component}
                 screenProps={props.screenProps || noScreenProps}
               />
+              {!modal2ClearCover && (
+                <Kb.Icon
+                  type="iconfont-close"
+                  onClick={() => popRef.current?.()}
+                  color={Styles.globalColors.whiteOrWhite_75}
+                  hoverColor={Styles.globalColors.white_40OrWhite_40}
+                  style={styles.modal2CloseIcon}
+                />
+              )}
             </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
@@ -426,6 +442,7 @@ const modalModeCommon = Styles.platformStyles({
     ...Styles.desktopStyles.boxShadow,
     backgroundColor: Styles.globalColors.white,
     borderRadius: Styles.borderRadius,
+    position: 'relative',
   },
 })
 const styles = Styles.styleSheetCreate(
@@ -447,6 +464,15 @@ const styles = Styles.styleSheetCreate(
       }),
       modal2AvoidTabs: {backgroundColor: undefined, height: 0},
       modal2ClearCover: {backgroundColor: undefined},
+      modal2CloseIcon: Styles.platformStyles({
+        isElectron: {
+          cursor: 'pointer',
+          padding: Styles.globalMargins.tiny,
+          position: 'absolute',
+          right: Styles.globalMargins.tiny * -4,
+          top: 0,
+        },
+      }),
       modal2Container: {
         ...Styles.globalStyles.fillAbsolute,
         backgroundColor: 'rgba(255,0,0,0.2)', // Styles.globalColors.black_50OrBlack_60,

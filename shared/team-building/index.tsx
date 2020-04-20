@@ -266,17 +266,32 @@ const FilteredServiceTabBar = (
 const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
 
 class TeamBuilding extends React.PureComponent<Props> {
-  static navigationOptions = {
-    modal2: true,
-    modal2AvoidTabs: true,
-    modal2ClearCover: true,
-    modal2Style: {
-      alignSelf: 'flex-start',
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.mediumLarge,
-    },
-    modal2Type: 'DefaultFullWidth',
+  static navigationOptions = ({navigation}) => {
+    const namespace = navigation.state.params.namespace
+    const common = {
+      modal2: true,
+      modal2AvoidTabs: false,
+      modal2ClearCover: false,
+      modal2Style: {
+        alignSelf: 'center',
+      },
+      modal2Type: 'DefaultFullHeight',
+    }
+
+    return namespace === 'people'
+      ? {
+          ...common,
+          modal2AvoidTabs: true,
+          modal2ClearCover: true,
+          modal2Style: {
+            alignSelf: 'flex-start',
+            paddingLeft: Styles.globalMargins.xsmall,
+            paddingRight: Styles.globalMargins.xsmall,
+            paddingTop: Styles.globalMargins.mediumLarge,
+          },
+          modal2Type: 'DefaultFullWidth',
+        }
+      : common
   }
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
 

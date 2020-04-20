@@ -41,7 +41,7 @@ type Props = {
   header?: HeaderProps
   onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
-  mode: 'Default' | 'DefaultFullHeight' | 'Wide' | 'DefaultFullWidth'
+  // mode: 'Default' | 'DefaultFullHeight' | 'Wide' | 'DefaultFullWidth'
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean // content must push footer to bottom with this on.
   // backgroundStyle?: Styles.StylesCrossPlatform
@@ -54,13 +54,14 @@ type Props = {
 }
 
 const Modal2 = (props: Props) => {
-  const {footer, header, banners, children, mode = 'Default'} = props
+  const {footer, header, banners, children} = props
   return (
     <>
       {!!header && <Header2 {...header} />}
       {!!banners && banners}
       {children}
-      {!!footer && <Footer {...footer} wide={mode === 'Wide'} />}
+      {/* TODO wide */}
+      {!!footer && <Footer {...footer} wide={false} />}
     </>
   )
 }

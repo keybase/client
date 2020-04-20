@@ -1,5 +1,6 @@
 import logger from '../logger'
 import * as Constants from '../constants/team-building'
+import * as RouterConstants from '../constants/router2'
 import * as TeamBuildingTypes from '../constants/types/team-building'
 import * as TeamBuildingGen from './team-building-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -8,7 +9,17 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import {validateEmailAddress} from '../util/email-address'
 
-const closeTeamBuilding = () => RouteTreeGen.createNavigateUp()
+const closeTeamBuilding = () => {
+  const modals = RouterConstants.getModalStack()
+  const routeNames = [...namespaceToRoute.values()]
+  const routeName = modals[modals.length - 1]?.routeName
+
+  if (routeNames.indexOf(routeName) !== -1) {
+    return RouteTreeGen.createNavigateUp()
+  }
+  return false
+}
+
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
 type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace; includeContacts: boolean}}
 
@@ -103,8 +114,6 @@ const search = async (state: TypedState, {payload: {namespace, includeContacts}}
   })
 }
 
-const cancelTeamBuilding = () => {}
-
 const fetchUserRecs = async (
   state: TypedState,
   {payload: {namespace, includeContacts}}: SearchOrRecAction
@@ -146,18 +155,18 @@ export function filterForNs<S, A, L, R>(
 const makeCustomResetStore = () =>
   TeamBuildingTypes.allowedNamespace.map(namespace => TeamBuildingGen.createTbResetStore({namespace}))
 
+const namespaceToRoute = new Map([
+  ['chat2', 'chatNewChat'],
+  ['crypto', 'cryptoTeamBuilder'],
+  ['teams', 'teamsTeamBuilder'],
+  ['people', 'peopleTeamBuilder'],
+  ['wallets', 'walletTeamBuilder'],
+])
+
 const maybeCancelTeamBuilding = (namespace: TeamBuildingTypes.AllowedNamespace) => (
   action: RouteTreeGen.OnNavChangedPayload
 ) => {
   const {prev, next} = action.payload
-
-  const namespaceToRoute = new Map([
-    ['chat2', 'chatNewChat'],
-    ['crypto', 'cryptoTeamBuilder'],
-    ['teams', 'teamsTeamBuilder'],
-    ['people', 'peopleTeamBuilder'],
-    ['wallets', 'walletTeamBuilder'],
-  ])
 
   const wasTeamBuilding = namespaceToRoute.get(namespace) === prev[prev.length - 1]?.routeName
   if (wasTeamBuilding) {
