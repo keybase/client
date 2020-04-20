@@ -34,6 +34,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
@@ -413,17 +414,27 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 		return NewPermanentUnboxingError(err)
 	}
 
-	// Check that message type on the client header matches the body
 	body := unboxed.MessageBody
 	if !body.IsNil() {
 		bodyTyp, err := body.MessageType()
 		if err != nil {
 			return NewPermanentUnboxingError(err)
 		}
+
+		// Check that message type on the client header matches the body
 		if unboxed.ClientHeader.MessageType != bodyTyp {
 			err := fmt.Errorf("client header message type does not match body: %v(header) != %v(body)",
 				unboxed.ClientHeader.MessageType, bodyTyp)
 			return NewPermanentUnboxingError(err)
+		}
+		// Check that txID on the client header matches the body, if relevant
+		if bodyTyp == chat1.MessageType_SENDPAYMENT {
+			bodyTxID := stellar1.TransactionIDFromPaymentID(body.Sendpayment__.PaymentID)
+			if unboxed.ClientHeader.TxID != nil && unboxed.ClientHeader.TxID != &bodyTxID {
+				err := fmt.Errorf("client header txID does not match body: %v(header) != %v(body)",
+					unboxed.ClientHeader.TxID, bodyTxID)
+				return NewPermanentUnboxingError(err)
+			}
 		}
 	}
 
@@ -1059,6 +1070,7 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 			EphemeralMetadata: hp.EphemeralMetadata,
 			BotUID:            hp.BotUID,
+			TxID:              hp.TxID,
 			Rtime:             rtime,
 		}, hp.BodyHash, nil
 	// NOTE: When adding new versions here, you must also update
@@ -1188,6 +1200,11 @@ func (b *Boxer) compareHeadersMBV2orV3(ctx context.Context, hServer chat1.Messag
 	// BotUID (only present in V3 and greater)
 	if version > chat1.MessageBoxedVersion_V2 && !gregor1.UIDPtrEq(hServer.BotUID, hSigned.BotUID) {
 		return NewPermanentUnboxingError(NewHeaderMismatchError("BotUID"))
+	}
+
+	// TxID (only present in V3 and greater)
+	if version > chat1.MessageBoxedVersion_V2 && !stellar1.TransactionIDPtrEq(hServer.TxID, hSigned.TxID) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("TxID"))
 	}
 
 	return nil

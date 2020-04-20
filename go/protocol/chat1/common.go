@@ -1496,6 +1496,7 @@ type MessageClientHeaderVerified struct {
 	Rtime             gregor1.Time             `codec:"rt" json:"rt"`
 	HasPairwiseMacs   bool                     `codec:"pm" json:"pm"`
 	BotUID            *gregor1.UID             `codec:"b,omitempty" json:"b,omitempty"`
+	TxID              *stellar1.TransactionID  `codec:"t,omitempty" json:"t,omitempty"`
 }
 
 func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
@@ -1561,6 +1562,13 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.BotUID),
+		TxID: (func(x *stellar1.TransactionID) *stellar1.TransactionID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TxID),
 	}
 }
 

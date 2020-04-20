@@ -66,6 +66,13 @@ func (t TransactionID) Eq(b TransactionID) bool {
 	return t == b
 }
 
+func TransactionIDPtrEq(x, y *TransactionID) bool {
+	if x != nil && y != nil {
+		return (*x).Eq(*y)
+	}
+	return (x == nil) && (y == nil)
+}
+
 func KeybaseRequestIDFromString(s string) (KeybaseRequestID, error) {
 	if len(s) != hex.EncodedLen(KeybaseRequestIDLen) {
 		return "", fmt.Errorf("bad KeybaseRequestID %q: must be %d bytes long", s, KeybaseRequestIDLen)

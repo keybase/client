@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-codec/codec"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
@@ -72,6 +73,36 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 	return chat1.MessagePlaintext{
 		ClientHeader: header,
 		MessageBody:  chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}),
+	}
+}
+
+func sendPaymentMsgWithSender(t *testing.T, txID stellar1.TransactionID, uid gregor1.UID, mbVersion chat1.MessageBoxedVersion) chat1.MessagePlaintext {
+	header := chat1.MessageClientHeader{
+		Conv: chat1.ConversationIDTriple{
+			Tlfid: mockTLFID,
+		},
+		Sender:      uid,
+		MessageType: chat1.MessageType_SENDPAYMENT,
+		TxID:        &txID,
+	}
+	switch mbVersion {
+	case chat1.MessageBoxedVersion_V1:
+		// no-op
+	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3, chat1.MessageBoxedVersion_V4:
+		header.MerkleRoot = &chat1.MerkleRoot{
+			Seqno: 12,
+			Hash:  []byte{123, 117, 0, 99, 99, 79, 223, 37, 180, 168, 111, 107, 210, 227, 128, 35, 47, 158, 221, 210, 151, 242, 182, 199, 50, 29, 236, 93, 106, 149, 133, 221, 156, 216, 167, 79, 91, 28, 9, 196, 107, 173, 61, 248, 123, 97, 101, 34, 7, 15, 30, 80, 246, 162, 198, 12, 20, 19, 130, 151, 45, 2, 130, 170},
+		}
+	default:
+		panic("unrecognized version: " + mbVersion.String())
+	}
+	return sendPaymentMsgWithHeader(t, txID, header)
+}
+
+func sendPaymentMsgWithHeader(t *testing.T, txID stellar1.TransactionID, header chat1.MessageClientHeader) chat1.MessagePlaintext {
+	return chat1.MessagePlaintext{
+		ClientHeader: header,
+		MessageBody:  chat1.NewMessageBodyWithSendpayment(chat1.MessageSendPayment{PaymentID: stellar1.NewPaymentID(txID)}),
 	}
 }
 
@@ -1837,4 +1868,47 @@ func TestMakeOnePairwiseMAC(t *testing.T) {
 	expected := "ec6d999902fa02a1e96b0a2d97526999db49843f3e2d961e7a398d53f9a910e0"
 
 	require.Equal(t, expected, hex.EncodeToString(mac))
+}
+
+func TestSendPaymentMessageUnbox(t *testing.T) {
+	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
+		key := cryptKey(t)
+		txID := stellar1.TransactionID("1111")
+
+		tc, boxer := setupChatTest(t, "unbox")
+		defer tc.Cleanup()
+
+		// need a real user
+		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+		require.NoError(t, err)
+
+		msg := sendPaymentMsgWithSender(t, txID, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
+		outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
+		msg.ClientHeader.OutboxID = &outboxID
+
+		signKP := getSigningKeyPairForTest(t, tc, u)
+
+		boxed, err := boxer.box(context.TODO(), msg, key, nil, signKP, mbVersion, nil)
+		require.NoError(t, err)
+		boxed = remarshalBoxed(t, boxed)
+
+		if boxed.ClientHeader.OutboxID == msg.ClientHeader.OutboxID {
+			t.Fatalf("defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
+		}
+
+		// need to give it a server header...
+		boxed.ServerHeader = &chat1.MessageServerHeader{
+			Ctime: gregor1.ToTime(time.Now()),
+		}
+
+		unboxed, err := boxer.unbox(context.TODO(), boxed, convInfo, key, nil)
+		require.NoError(t, err)
+		body := unboxed.MessageBody
+		typ, err := body.MessageType()
+		require.NoError(t, err)
+		require.Equal(t, typ, chat1.MessageType_SENDPAYMENT)
+		require.Equal(t, stellar1.TransactionIDFromPaymentID(body.Sendpayment__.PaymentID), txID)
+		require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
+		require.NotNil(t, unboxed.BodyHash)
+	})
 }
