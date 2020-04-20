@@ -201,6 +201,8 @@ func (c *CmdTeamRemoveMember) Run() error {
 		Members: []keybase1.TeamMemberToRemove{member},
 	}
 
+	// Use the multi-rpc here in case we want to make allow this command to remove multiple members
+	// at once in the future.
 	if result, err := cli.TeamRemoveMembers(context.Background(), arg); err != nil {
 		for _, failure := range result.Failures {
 			member := failure.TeamMember

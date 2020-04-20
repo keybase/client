@@ -1397,6 +1397,8 @@ protocol teams {
   record TeamRemoveMembersResult {
     array<RemoveTeamMemberFailure> failures;
   }
+  // teamRemoveMember always returns an error if there was a failure.
+  void teamRemoveMember(int sessionID, TeamID teamID, TeamMemberToRemove member);
   // teamRemoveMembers tries to remove the team members or invites specified in the argument. If it
   // fails at some preliminary step, it will return an error. Otherwise, it will return no error and
   // a list of members that were not able to be removed, for whatever reason (network failure,
@@ -1404,7 +1406,6 @@ protocol teams {
   // For non-invite members (except for keybase-type invites), one can optionally remove the member
   // from all subteams recursively as well by passing removeFromSubtree. Failure in this
   // step is recorded separately from failure in removal from teamID.
-  void teamRemoveMember(int sessionID, TeamID teamID, string username, string email, TeamInviteID inviteID, boolean allowInaction);
   TeamRemoveMembersResult teamRemoveMembers(
     int sessionID,
     TeamID teamID,

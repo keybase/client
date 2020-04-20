@@ -460,6 +460,33 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 	return res, nil
 }
 
+func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRemoveMember(%s, %v)", arg.TeamID, arg), &err)()
+
+	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
+		return err
+	}
+
+	members := []keybase1.TeamMemberToRemove{arg.Member}
+	res, err := teams.RemoveMembers(ctx, h.G().ExternalG(), arg.TeamID, members,
+		false /* NoErrorOnPartialFailure */)
+	if err != nil {
+		msg := fmt.Sprintf("failed to remove member: %s", err)
+		if len(res.Failures) > 0 {
+			if res.Failures[0].ErrorAtTarget != nil {
+				msg += "; " + *res.Failures[0].ErrorAtTarget
+			}
+			if res.Failures[0].ErrorAtSubtree != nil {
+				msg += "; " + *res.Failures[0].ErrorAtSubtree
+			}
+		}
+		err = errors.New(msg)
+	}
+
+	return err
+}
+
 func (h *TeamsHandler) TeamRemoveMembers(ctx context.Context, arg keybase1.TeamRemoveMembersArg) (res keybase1.TeamRemoveMembersResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRemoveMembers(%s, %v)", arg.TeamID, arg), &err)()
@@ -951,8 +978,4 @@ func (h *TeamsHandler) GetInviteLinkDetails(ctx context.Context, inviteID keybas
 	defer h.G().CTrace(ctx, fmt.Sprintf("GetInviteLinkDetails(%s)", inviteID), &err)()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetInviteLinkDetails(mctx, inviteID)
-}
-
-func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
-	return nil
 }

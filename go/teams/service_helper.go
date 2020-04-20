@@ -985,7 +985,7 @@ func MemberRoleFromID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
 	members []keybase1.TeamMemberToRemove, shouldNotErrorOnPartialFailure bool,
 ) (res keybase1.TeamRemoveMembersResult, err error) {
-	// mctx := libkb.NewMetaContext(ctx, g)
+	mctx := libkb.NewMetaContext(ctx, g)
 
 	// Preliminary checks
 	for _, member := range members {
@@ -995,15 +995,6 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 		switch typ {
 		case keybase1.TeamMemberToRemoveType_ASSERTION:
-			// TODO: test if recursion works w/ social invites
-			// actx := mctx.G().MakeAssertionContext(mctx)
-			// assertion, err := libkb.ParseAssertionURL(actx, member.Assertion().Assertion, false /* strict */)
-			// if err != nil {
-			// 	return res, err
-			// }
-			// if !assertion.IsKeybase() && member.Assertion().RemoveFromTransitiveSubteams {
-			// 	return res, fmt.Errorf("cannot remove %s-type assertion recursively", assertion.GetKey())
-			// }
 		case keybase1.TeamMemberToRemoveType_INVITEID:
 		default:
 			return res, fmt.Errorf("unknown TeamMemberToRemoveType %v", typ)
@@ -1030,7 +1021,7 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			var subtreeErr error
 			if member.Assertion().RemoveFromSubtree {
 				if targetErr == nil {
-					subtreeErr = removeMemberFromSubtree(ctx, g, teamID, member.Assertion().Assertion)
+					subtreeErr = removeMemberFromSubtree(mctx, teamID, member.Assertion().Assertion)
 				} else {
 					subtreeErr = fmt.Errorf("did not attempt to remove from subtree since removal failed at specified team")
 				}
@@ -1064,24 +1055,29 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 
 // removeMemberFromSubtree removes member from all teams in the subtree of targetTeamID,
 // *not including* targetTeamID itself
-func removeMemberFromSubtree(ctx context.Context, g *libkb.GlobalContext, targetTeamID keybase1.TeamID, assertion string) error {
-	mctx := libkb.NewMetaContext(ctx, g)
+func removeMemberFromSubtree(mctx libkb.MetaContext, targetTeamID keybase1.TeamID, assertion string) error {
 	// We don't care about the roles; we just want the list of teams. So we can pass our
 	// own username.
-	myUsername := g.Env.GetUsername()
+	myUsername := mctx.G().Env.GetUsername()
 	guid := 0
-	treeloader, err := NewTreeloader(mctx, myUsername.String(), targetTeamID, guid, false /*includeAncestors*/)
+	treeloader, err := NewTreeloader(mctx, myUsername.String(), targetTeamID, guid, false /* includeAncestors */)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not start loading subteams: %w", err)
 	}
-	mctx.Warning("MADE A LOADER")
+	// All or nothing; we can assume all results will be OK.
 	teamTreeMemberships, err := treeloader.LoadSync(mctx)
-	mctx.Warning("%#v %#v", teamTreeMemberships, err)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not load subteams: %w", err)
 	}
 	var errs []error
 	for _, membership := range teamTreeMemberships {
+		status, _ := membership.Result.S()
+		if status != keybase1.TeamTreeMembershipStatus_OK {
+			// should never happen; no errors because that's the behavior of LoadSync,
+			// and no hidden results because we're not loading ancestors
+			continue
+		}
+
 		teamID := membership.Result.Ok().TeamID
 
 		// Don't remove member from the targetTeam; just the subtree
@@ -1090,19 +1086,21 @@ func removeMemberFromSubtree(ctx context.Context, g *libkb.GlobalContext, target
 		}
 
 		teamGetter := func() (*Team, error) {
-			return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+			return GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, false)
 		}
 
-		removeErr := remove(ctx, g, teamGetter, assertion)
+		removeErr := remove(mctx.Ctx(), mctx.G(), teamGetter, assertion)
 		var memberNotFoundErr *MemberNotFoundInChainError
 		switch {
 		case err == nil:
 		// If the member was not found in the sigchain (either via invite or cryptomember), we can
-		// ignore the error. Because we got team memberships for ourselves and not the user,
-		// we can't use the membership data provided by the Treeloader.
+		// ignore the error. Because we got team memberships for ourselves and not the user, we
+		// can't use the membership data provided by the Treeloader. (We're not using the
+		// membership data from the treeloader because it does not support looking up by invites).
 		case errors.As(removeErr, &memberNotFoundErr):
 		default:
-			errs = append(errs, removeErr)
+			errs = append(errs, fmt.Errorf("failed to remove from %s: %w",
+				membership.TeamName, removeErr))
 		}
 	}
 	return libkb.CombineErrors(errs...)

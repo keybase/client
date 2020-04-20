@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"context"
 	"fmt"
 	"sync/atomic"
 	"time"
@@ -56,16 +57,18 @@ func (l *Treeloader) LoadSync(mctx libkb.MetaContext) (res []keybase1.TeamTreeMe
 	defer mctx.Trace(fmt.Sprintf("Treeloader.LoadSync(%s, %s)",
 		l.targetTeamID, l.targetUV), &err)()
 
-	ch, err := l.load(mctx)
+	ch, cancel, err := l.load(mctx)
 	if err != nil {
 		return nil, err
 	}
+	// Stop load if we error out early
+	defer cancel()
 	for notification := range ch {
 		switch notification.typ {
 		case treeloaderNotificationTypePartial:
 			s, _ := notification.partialNotification.S()
 			if s == keybase1.TeamTreeMembershipStatus_ERROR {
-				return res, fmt.Errorf("Treeloader.LoadSync: failed to load team: %s; bailing",
+				return nil, fmt.Errorf("Treeloader.LoadSync: failed to load team; bailing: %s",
 					notification.partialNotification.Error().Message)
 			}
 
@@ -86,10 +89,11 @@ func (l *Treeloader) LoadAsync(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace(fmt.Sprintf("Treeloader.LoadAsync(%s, %s)",
 		l.targetTeamID, l.targetUV), &err)()
 
-	ch, err := l.load(mctx)
+	ch, cancel, err := l.load(mctx)
 	if err != nil {
 		return err
 	}
+	defer cancel()
 	go func() {
 		// Because Go channels provide FIFO guarantees, we don't need to check expectedCount against
 		// the number of received partials like RPC clients do.
@@ -135,7 +139,8 @@ func newDoneNotification(teamName keybase1.TeamName, expectedCount int) notifica
 	}
 }
 
-func (l *Treeloader) load(mctx libkb.MetaContext) (ch chan notification, err error) {
+func (l *Treeloader) load(mctx libkb.MetaContext) (ch chan notification,
+	cancel context.CancelFunc, err error) {
 	defer mctx.Trace(fmt.Sprintf("Treeloader.load(%s, %s)",
 		l.targetTeamID, l.targetUV), nil)()
 
@@ -144,12 +149,13 @@ func (l *Treeloader) load(mctx libkb.MetaContext) (ch chan notification, err err
 	target, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(),
 		l.targetTeamID, true /* needAdmin */)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	l.targetTeamName = target.Name()
 
 	ch = make(chan notification)
+	imctx, cancel := mctx.BackgroundWithLogTags().WithContextCancel()
 
 	// Load rest of team tree asynchronously.
 	go func(imctx libkb.MetaContext, start time.Time, targetChainState *TeamSigChainState,
@@ -163,9 +169,9 @@ func (l *Treeloader) load(mctx libkb.MetaContext) (ch chan notification, err err
 				expectedCount, l.targetTeamName),
 			Ctime: keybase1.ToTime(start),
 		})
-	}(mctx.BackgroundWithLogTags(), start, target.chain(), ch)
+	}(imctx, start, target.chain(), ch)
 
-	return ch, nil
+	return ch, cancel, nil
 }
 
 func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamID,

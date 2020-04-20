@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"strings"
 
@@ -385,20 +384,14 @@ func (t *teamAPIHandler) removeMember(ctx context.Context, c Call, w io.Writer) 
 		return err
 	}
 
-	arg := keybase1.TeamRemoveMembersArg{
+	arg := keybase1.TeamRemoveMemberArg{
 		TeamID: teamID,
-		Members: []keybase1.TeamMemberToRemove{
-			keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{
-				Assertion: opts.Username,
-			}),
-		},
+		Member: keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{
+			Assertion: opts.Username,
+		}),
 	}
-	if res, err := t.cli.TeamRemoveMembers(ctx, arg); err != nil {
-		msg := fmt.Sprintf("failed to remove member: %s", err)
-		if len(res.Failures) > 0 && res.Failures[0].ErrorAtTarget != nil {
-			msg += "; " + *res.Failures[0].ErrorAtTarget
-		}
-		return t.encodeErr(c, errors.New(msg), w)
+	if err := t.cli.TeamRemoveMember(ctx, arg); err != nil {
+		return t.encodeErr(c, err, w)
 	}
 	return t.encodeResult(c, nil, w)
 }
