@@ -171,7 +171,7 @@ helpers.rootLinuxNode(env, {
                   for (platform in platforms) {
                       withEnv(["GOOS=${platform}"]) {
                           println "Testing compilation on ${platform}"
-                          sh "go build -tags production github.com/keybase/client/go/keybase"
+                          sh "go build -tags production -o keybase_${platform} github.com/keybase/client/go/keybase"
                           println "End testing compilation on ${platform}"
                       }
                   }
@@ -435,14 +435,14 @@ def testGo(prefix, packagesToTest) {
 def testGoBuilds(prefix, packagesToTest) {
   if (prefix == "test_linux_go_") {
     dir("keybase") {
-      sh "go build -ldflags \"-s -w\" -buildmode=pie --tags=production"
+      sh "go build -o keybase_production -ldflags \"-s -w\" -buildmode=pie --tags=production"
     }
     dir("fuzz") {
       sh "go build -tags gofuzz ./..."
     }
   } else if (prefix == "test_windows_go_") {
     dir("keybase") {
-      sh "go build -ldflags \"-s -w\" --tags=production"
+      sh "go build -o keybase_production -ldflags \"-s -w\" --tags=production"
     }
   }
 
