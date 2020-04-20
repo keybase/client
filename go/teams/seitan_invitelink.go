@@ -133,7 +133,7 @@ func GenerateInvitelinkURL(
 
 type TeamInviteLinkDetails struct {
 	libkb.AppStatusEmbed
-	InviterResetOrDel int                                          `json:"inviter_reset_or_del"`
+	InviterResetOrDel bool                                         `json:"inviter_reset_or_del"`
 	InviterUID        keybase1.UID                                 `json:"inviter_uid"`
 	InviterUsername   string                                       `json:"inviter_username"`
 	IsMember          bool                                         `json:"is_member"`
@@ -169,7 +169,7 @@ func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID
 
 	return keybase1.InviteLinkDetails{
 		InviteID:          inviteID,
-		InviterResetOrDel: resp.InviterResetOrDel == 1,
+		InviterResetOrDel: resp.InviterResetOrDel,
 		InviterUID:        resp.InviterUID,
 		InviterUsername:   resp.InviterUsername,
 		IsMember:          resp.IsMember,
