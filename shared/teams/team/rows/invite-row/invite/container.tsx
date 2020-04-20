@@ -36,7 +36,6 @@ export default Container.connect(
       return {firstItem: ownProps.firstItem, label: '', onCancelInvite: () => {}, role: 'reader'} as const
     }
     let onCancelInvite = () => dispatchProps._onCancelInvite({inviteID: ownProps.id})
-    // TODO: can we just do this by invite ID always?
 
     let label = user.username || user.name || user.email || user.phone
     let subLabel = user.name ? user.phone || user.email : undefined
