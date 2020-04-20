@@ -12,7 +12,7 @@ import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import flags from '../../util/feature-flags'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
-import {formatExpirationTimeForInviteLink} from '../../util/timestamp'
+import {InviteItem} from './invites/invite-item'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
   const dispatch = Container.useDispatch()
@@ -97,9 +97,8 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
 
-  const inviteLinks = details.inviteLinks ? [...details.inviteLinks] : []
-  // TODO: how to get the most recent nonexpired link
-  const mostRecentInviteLink = inviteLinks.length ? inviteLinks[0] : undefined
+  const mostRecentInviteLink = Constants.maybeGetMostRecentValidInviteLink(details.inviteLinks)
+  const validInviteLinkCount = Constants.countValidInviteLinks(details.inviteLinks)
 
   const callbacks = useHeaderCallbacks(teamID)
 
@@ -249,15 +248,9 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         {flags.teamInvites &&
           (mostRecentInviteLink ? (
             <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
-              <Kb.Box2 direction="horizontal">
-                <Kb.CopyText text={mostRecentInviteLink.url} />
-              </Kb.Box2>
-              <Kb.Text type="BodySmall">
-                Invites as {mostRecentInviteLink.role} · Expires{' '}
-                {formatExpirationTimeForInviteLink(mostRecentInviteLink.expirationTime)}
-              </Kb.Text>
+              <InviteItem inviteLink={mostRecentInviteLink} teamID={props.teamID} mode="header" />
               <Kb.Text type="BodyTiny" onClick={callbacks.onManageInvites} className="hover-underline">
-                Manage invite links
+                Manage invite links ({validInviteLinkCount} active)
               </Kb.Text>
             </Kb.Box2>
           ) : (

@@ -63,5 +63,5 @@ export const getOrderedBotsArray = (memberInfo: Map<string, Types.MemberInfo> | 
         .filter(m => m.type === 'restrictedbot' || m.type === 'bot')
     : []
 
-export const sortInvites = (a: Types.InviteInfo, b: Types.InviteInfo) =>
+export const sortInvites = (a: Types.ValidInviteInfo, b: Types.ValidInviteInfo) =>
   (a.email || a.username || a.name || a.id || '').localeCompare(b.email || b.username || b.name || b.id || '')

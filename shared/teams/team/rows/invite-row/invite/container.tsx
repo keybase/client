@@ -2,7 +2,7 @@ import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Constants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import {TeamInviteRow} from '.'
-import {InviteInfo, TeamID} from '../../../../../constants/types/teams'
+import {ValidInviteInfo, TeamID} from '../../../../../constants/types/teams'
 import flags from '../../../../../util/feature-flags'
 
 type OwnProps = {
@@ -21,7 +21,7 @@ const labelledInviteRegex = /^(.+?) \((.+)\)$/
 export default Container.connect(
   (state, {teamID}: OwnProps) => {
     const teamDetails = Constants.getTeamDetails(state, teamID)
-    return {_invites: teamDetails.invites}
+    return {_invites: teamDetails.validInvites}
   },
   (dispatch, {teamID}: OwnProps) => ({
     _onCancelInvite: (inviteID: string) => {
@@ -29,7 +29,7 @@ export default Container.connect(
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const user: InviteInfo | undefined =
+    const user: ValidInviteInfo | undefined =
       [...(stateProps._invites || [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
     if (!user) {
       // loading

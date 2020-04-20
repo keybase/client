@@ -77,12 +77,26 @@ func (c *CmdChatListMembers) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	details, err := cli.TeamGetByID(context.Background(), keybase1.TeamGetByIDArg{Id: teamID})
+	annotatedTeam, err := cli.GetAnnotatedTeam(context.Background(), teamID)
 	if err != nil {
 		return err
 	}
+	details := annotatedTeam.ToLegacyTeamDetails()
 
 	if c.topicName != "" && c.topicName != "general" {
+		// filter annotatedTeam
+		var newMembers []keybase1.TeamMemberDetails
+		for _, member := range annotatedTeam.Members {
+			for _, convMember := range convMembers {
+				if convMember == member.Username {
+					newMembers = append(newMembers, member)
+					continue
+				}
+			}
+		}
+		annotatedTeam.Members = newMembers
+
+		// filter details
 		details = keybase1.FilterTeamDetailsForMembers(convMembers, details)
 	}
 
@@ -97,7 +111,7 @@ func (c *CmdChatListMembers) Run() (err error) {
 	}
 
 	renderer := newTeamMembersRenderer(c.G(), c.json, false /*showInviteID*/)
-	return renderer.output(details, conversationInfo.TlfName, false /*verbose*/)
+	return renderer.output(annotatedTeam, conversationInfo.TlfName, false /*verbose*/)
 }
 
 func (c *CmdChatListMembers) getUntrustedConvMemberList(ctx context.Context) ([]string, error) {

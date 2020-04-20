@@ -386,7 +386,7 @@ func (c *CmdTeamSettings) resetWelcomeMessage(ctx context.Context) error {
 }
 
 func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1.TeamsClient) error {
-	details, err := cli.TeamGet(ctx, keybase1.TeamGetArg{Name: c.Team.String()})
+	res, err := cli.GetAnnotatedTeamByName(ctx, c.Team.String())
 	if err != nil {
 		return err
 	}
@@ -404,8 +404,8 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 	if showcaseInfo != nil && showcaseInfo.TeamShowcase.Description != nil {
 		dui.Printf("  Description:             %v\n", *showcaseInfo.TeamShowcase.Description)
 	}
-	dui.Printf("  Open:                     %v\n", c.tfToYn(details.Settings.Open,
-		fmt.Sprintf("default membership = %v", strings.ToLower(details.Settings.JoinAs.String()))))
+	dui.Printf("  Open:                     %v\n", c.tfToYn(res.Settings.Open,
+		fmt.Sprintf("default membership = %v", strings.ToLower(res.Settings.JoinAs.String()))))
 	if showcaseInfo != nil {
 		dui.Printf("  Showcased:                %v\n", c.tfToYn(showcaseInfo.TeamShowcase.IsShowcased, "on keybase.io/popular-teams"))
 		dui.Printf("  Promoted:                 %v\n", c.tfToYn(showcaseInfo.IsMemberShowcased, "on your profile"))

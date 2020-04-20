@@ -267,19 +267,30 @@ func TestTeamInviteMaxUsesUnit(t *testing.T) {
 	bad := []int{0, -2, -1000, math.MinInt64, math.MinInt32}
 
 	for _, v := range good {
-		require.True(t, keybase1.TeamInviteMaxUses(v).IsValid())
+		m := keybase1.TeamInviteMaxUses(v)
+		mp := &m
+		require.True(t, mp.IsNotNilAndValid())
 	}
 
 	for _, v := range bad {
-		require.False(t, keybase1.TeamInviteMaxUses(v).IsValid())
+		m := keybase1.TeamInviteMaxUses(v)
+		mp := &m
+		require.False(t, mp.IsNotNilAndValid())
 	}
 
 	// -1 is a special value that means infinite uses.
-	require.False(t, keybase1.TeamInviteMaxUses(1).IsInfiniteUses())
-	require.False(t, keybase1.TeamInviteMaxUses(2).IsInfiniteUses())
-	require.False(t, keybase1.TeamInviteMaxUses(100).IsInfiniteUses())
+	mkInvite := func(n int) keybase1.TeamInvite {
+		m := keybase1.TeamInviteMaxUses(n)
+		return keybase1.TeamInvite{
+			MaxUses: &m,
+		}
+	}
 
-	require.True(t, keybase1.TeamInviteMaxUses(-1).IsInfiniteUses())
+	require.False(t, mkInvite(1).IsInfiniteUses())
+	require.False(t, mkInvite(2).IsInfiniteUses())
+	require.False(t, mkInvite(100).IsInfiniteUses())
+
+	require.True(t, mkInvite(-1).IsInfiniteUses())
 }
 
 func makeTestSCForInviteLink() SCTeamInvite {
@@ -611,7 +622,7 @@ func TestTeamInvite64BitEtime(t *testing.T) {
 	invite := inviteMD.Invite
 
 	require.NotNil(t, invite.MaxUses)
-	require.True(t, invite.MaxUses.IsInfiniteUses())
+	require.True(t, invite.IsInfiniteUses())
 
 	require.NotNil(t, invite.Etime)
 	require.Equal(t, 3020, invite.Etime.Time().Year())

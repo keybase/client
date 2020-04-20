@@ -777,25 +777,11 @@ func TestMemberAddEmail(t *testing.T) {
 	// existing invite should be untouched
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
 
-	annotatedTeamList, err := ListAll(context.TODO(), tc.G, keybase1.TeamListTeammatesArg{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	found := false
-	for _, invite := range annotatedTeamList.AnnotatedActiveInvites {
-		if invite.TeamName == name && string(invite.InviteMetadata.Invite.Name) == address {
-			found = true
-		}
-	}
-	if !found {
-		t.Fatal("List --all does not list invite.")
-	}
-
 	details, err := Details(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	found = false
+	found := false
 	for _, invite := range details.AnnotatedActiveInvites {
 		if invite.TeamName == name && string(invite.InviteMetadata.Invite.Name) == address {
 			found = true
@@ -864,19 +850,10 @@ func TestMemberListInviteUsername(t *testing.T) {
 
 	annotatedTeamList, err := ListAll(context.TODO(), tc.G, keybase1.TeamListTeammatesArg{})
 	require.NoError(t, err)
-	require.Equal(t, 0, len(annotatedTeamList.AnnotatedActiveInvites))
-	require.Equal(t, 2, len(annotatedTeamList.Teams))
+	require.Equal(t, 1, len(annotatedTeamList.Teams), "ListAll doesn't include keybase invites")
 
-	var foundMember bool
-	for _, member := range annotatedTeamList.Teams {
-		require.Equal(t, name, member.FqName)
-		if member.Username == username {
-			foundMember = true
-		} else if member.Username != user.Username {
-			t.Fatalf("Unexpected member name %s", member.Username)
-		}
-	}
-	require.True(t, foundMember)
+	require.Equal(t, user.Username, annotatedTeamList.Teams[0].Username)
+	require.Equal(t, name, annotatedTeamList.Teams[0].FqName)
 }
 
 func TestMemberAddAsImplicitAdmin(t *testing.T) {
@@ -912,19 +889,17 @@ func TestMemberAddAsImplicitAdmin(t *testing.T) {
 	require.NoError(t, err)
 	subteamID, err := ResolveNameToID(context.TODO(), tc.G, subteamName2)
 	require.NoError(t, err)
-	ias, err := ImplicitAdmins(context.TODO(), tc.G, subteamID)
+
+	ias, err := tc.G.GetTeamLoader().ImplicitAdmins(context.TODO(), subteamID)
+	// ias, err := ImplicitAdmins(context.TODO(), tc.G, subteamID)
 	require.NoError(t, err)
 	t.Logf("res: %v", spew.Sdump(ias))
 	require.Len(t, ias, 2, "number of implicit admins")
 	sort.Slice(ias, func(i, _ int) bool {
-		return ias[i].Uv.Eq(owner.GetUserVersion())
+		return ias[i].Eq(owner.GetUserVersion())
 	})
-	require.Equal(t, owner.GetUserVersion(), ias[0].Uv)
-	require.Equal(t, owner.Username, ias[0].Username)
-	require.True(t, ias[0].Status.IsActive())
-	require.Equal(t, otherA.GetUserVersion(), ias[1].Uv)
-	require.Equal(t, otherA.Username, ias[1].Username)
-	require.True(t, ias[1].Status.IsActive())
+	require.Equal(t, owner.GetUserVersion(), ias[0])
+	require.Equal(t, otherA.GetUserVersion(), ias[1])
 }
 
 func TestLeave(t *testing.T) {
@@ -1967,25 +1942,8 @@ func TestMembersDetailsHasCorrectJoinTimes(t *testing.T) {
 		JoinUpperBound keybase1.Time
 	}
 
-	findUserDetails := func(res keybase1.TeamMembersDetails, username string, role keybase1.TeamRole) keybase1.TeamMemberDetails {
-		var pool []keybase1.TeamMemberDetails
-		switch role {
-		case keybase1.TeamRole_OWNER:
-			pool = res.Owners
-		case keybase1.TeamRole_ADMIN:
-			pool = res.Admins
-		case keybase1.TeamRole_WRITER:
-			pool = res.Writers
-		case keybase1.TeamRole_READER:
-			pool = res.Readers
-		case keybase1.TeamRole_BOT:
-			pool = res.Bots
-		case keybase1.TeamRole_RESTRICTEDBOT:
-			pool = res.RestrictedBots
-		default:
-			t.Error("Unrecognized team role")
-		}
-		for _, detail := range pool {
+	findUserDetails := func(res []keybase1.TeamMemberDetails, username string, role keybase1.TeamRole) keybase1.TeamMemberDetails {
+		for _, detail := range res {
 			if detail.Username == username {
 				return detail
 			}
@@ -2003,7 +1961,7 @@ func TestMembersDetailsHasCorrectJoinTimes(t *testing.T) {
 		res, err := MembersDetails(context.TODO(), tc.G, loadedTeam)
 		require.NoError(t, err)
 
-		numMembers := len(res.Owners) + len(res.Admins) + len(res.Writers) + len(res.Readers) + len(res.Bots) + len(res.RestrictedBots)
+		numMembers := len(res)
 		require.Equal(t, expNumMembers, numMembers)
 
 		for _, expUserDetails := range details {

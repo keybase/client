@@ -23,7 +23,7 @@ func TestTeamAPI(t *testing.T) {
 
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "list-self-memberships"}`,
-		`{"result":{"teams":null,"annotatedActiveInvites":{}}}`)
+		`{"result":{"teams":null}}`)
 
 	teamName, err := libkb.RandHexString("t", 6)
 	require.NoError(t, err)

@@ -80,7 +80,6 @@ export const setPublicity = 'teams:setPublicity'
 export const setSubteamFilter = 'teams:setSubteamFilter'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
 export const setTeamCreationError = 'teams:setTeamCreationError'
-export const setTeamDetails = 'teams:setTeamDetails'
 export const setTeamInfo = 'teams:setTeamInfo'
 export const setTeamInviteError = 'teams:setTeamInviteError'
 export const setTeamJoinError = 'teams:setTeamJoinError'
@@ -289,16 +288,6 @@ type _SetPublicityPayload = {readonly teamID: Types.TeamID; readonly settings: T
 type _SetSubteamFilterPayload = {readonly filter: string; readonly parentTeam?: Types.TeamID}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
 type _SetTeamCreationErrorPayload = {readonly error: string}
-type _SetTeamDetailsPayload = {
-  readonly teamID: Types.TeamID
-  readonly teamname: string
-  readonly members: RPCTypes.TeamMembersDetails
-  readonly settings: RPCTypes.TeamSettings
-  readonly invites: Array<Types.InviteInfo>
-  readonly subteams: Array<Types.Teamname>
-  readonly requests: Map<string, Array<RPCTypes.TeamJoinRequest>>
-  readonly subteamIDs: Set<Types.TeamID>
-}
 type _SetTeamInfoPayload = {
   readonly teamnames: Set<Types.Teamname>
   readonly teamNameToID: Map<Types.Teamname, string>
@@ -782,10 +771,6 @@ export const createSetTeamAccessRequestsPending = (
 export const createSetTeamCreationError = (
   payload: _SetTeamCreationErrorPayload
 ): SetTeamCreationErrorPayload => ({payload, type: setTeamCreationError})
-export const createSetTeamDetails = (payload: _SetTeamDetailsPayload): SetTeamDetailsPayload => ({
-  payload,
-  type: setTeamDetails,
-})
 export const createSetTeamInfo = (payload: _SetTeamInfoPayload): SetTeamInfoPayload => ({
   payload,
   type: setTeamInfo,
@@ -1139,10 +1124,6 @@ export type SetTeamCreationErrorPayload = {
   readonly payload: _SetTeamCreationErrorPayload
   readonly type: typeof setTeamCreationError
 }
-export type SetTeamDetailsPayload = {
-  readonly payload: _SetTeamDetailsPayload
-  readonly type: typeof setTeamDetails
-}
 export type SetTeamInfoPayload = {readonly payload: _SetTeamInfoPayload; readonly type: typeof setTeamInfo}
 export type SetTeamInviteErrorPayload = {
   readonly payload: _SetTeamInviteErrorPayload
@@ -1368,7 +1349,6 @@ export type Actions =
   | SetSubteamFilterPayload
   | SetTeamAccessRequestsPendingPayload
   | SetTeamCreationErrorPayload
-  | SetTeamDetailsPayload
   | SetTeamInfoPayload
   | SetTeamInviteErrorPayload
   | SetTeamJoinErrorPayload
