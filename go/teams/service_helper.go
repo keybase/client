@@ -1023,7 +1023,7 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 				if targetErr == nil {
 					subtreeErr = removeMemberFromSubtree(mctx, teamID, member.Assertion().Assertion)
 				} else {
-					subtreeErr = fmt.Errorf("did not attempt to remove from subtree since removal failed at specified team")
+					subtreeErr = errors.New("did not attempt to remove from subtree since removal failed at specified team")
 				}
 			}
 			if targetErr != nil || subtreeErr != nil {
@@ -1055,12 +1055,14 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 
 // removeMemberFromSubtree removes member from all teams in the subtree of targetTeamID,
 // *not including* targetTeamID itself
-func removeMemberFromSubtree(mctx libkb.MetaContext, targetTeamID keybase1.TeamID, assertion string) error {
+func removeMemberFromSubtree(mctx libkb.MetaContext, targetTeamID keybase1.TeamID,
+	assertion string) error {
 	// We don't care about the roles; we just want the list of teams. So we can pass our
 	// own username.
 	myUsername := mctx.G().Env.GetUsername()
 	guid := 0
-	treeloader, err := NewTreeloader(mctx, myUsername.String(), targetTeamID, guid, false /* includeAncestors */)
+	treeloader, err := NewTreeloader(mctx, myUsername.String(), targetTeamID, guid,
+		false /* includeAncestors */)
 	if err != nil {
 		return fmt.Errorf("could not start loading subteams: %w", err)
 	}

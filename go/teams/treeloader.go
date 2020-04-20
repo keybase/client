@@ -53,7 +53,8 @@ func NewTreeloader(mctx libkb.MetaContext, targetUsername string,
 }
 
 // LoadSync requires all loads to succeed, or errors out.
-func (l *Treeloader) LoadSync(mctx libkb.MetaContext) (res []keybase1.TeamTreeMembership, err error) {
+func (l *Treeloader) LoadSync(mctx libkb.MetaContext) (res []keybase1.TeamTreeMembership,
+	err error) {
 	defer mctx.Trace(fmt.Sprintf("Treeloader.LoadSync(%s, %s)",
 		l.targetTeamID, l.targetUV), &err)()
 
@@ -66,9 +67,13 @@ func (l *Treeloader) LoadSync(mctx libkb.MetaContext) (res []keybase1.TeamTreeMe
 	for notification := range ch {
 		switch notification.typ {
 		case treeloaderNotificationTypePartial:
-			s, _ := notification.partialNotification.S()
+			s, err := notification.partialNotification.S()
+			if err != nil {
+				return nil, fmt.Errorf("Treeloader.LoadSync: failed to load subtree; bailing: %s",
+					err)
+			}
 			if s == keybase1.TeamTreeMembershipStatus_ERROR {
-				return nil, fmt.Errorf("Treeloader.LoadSync: failed to load team; bailing: %s",
+				return nil, fmt.Errorf("Treeloader.LoadSync: failed to load subtree; bailing: %s",
 					notification.partialNotification.Error().Message)
 			}
 
@@ -124,7 +129,8 @@ type notification struct {
 	doneNotification    *int
 }
 
-func newPartialNotification(teamName keybase1.TeamName, result keybase1.TeamTreeMembershipResult) notification {
+func newPartialNotification(teamName keybase1.TeamName,
+	result keybase1.TeamTreeMembershipResult) notification {
 	return notification{
 		typ:                 treeloaderNotificationTypePartial,
 		teamName:            teamName,
@@ -160,7 +166,8 @@ func (l *Treeloader) load(mctx libkb.MetaContext) (ch chan notification,
 	// Load rest of team tree asynchronously.
 	go func(imctx libkb.MetaContext, start time.Time, targetChainState *TeamSigChainState,
 		ch chan notification) {
-		expectedCount := l.loadRecursive(imctx, l.targetTeamID, l.targetTeamName, targetChainState, ch)
+		expectedCount := l.loadRecursive(imctx, l.targetTeamID, l.targetTeamName,
+			targetChainState, ch)
 		ch <- newDoneNotification(l.targetTeamName, int(expectedCount))
 		close(ch)
 		imctx.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{

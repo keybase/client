@@ -962,7 +962,7 @@ func (h *TeamsHandler) LoadTeamTreeMembershipsAsync(ctx context.Context,
 
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	loader, err := teams.NewTreeloader(mctx, arg.Username, arg.TeamID,
-		arg.SessionID, true /*includeAncestors*/)
+		arg.SessionID, true /* includeAncestors */)
 	if err != nil {
 		return res, err
 	}
