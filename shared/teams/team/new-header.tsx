@@ -297,6 +297,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
       gapStart={true}
       fullWidth={true}
       className="headerTitle"
+      style={styles.backgroundWhite}
     >
       {avatar}
       <Kb.Box2
@@ -394,7 +395,7 @@ const styles = Styles.styleSheetCreate(
           marginBottom: Styles.globalMargins.xsmall,
           marginRight: Styles.globalMargins.small,
           marginTop: Styles.globalMargins.tiny,
-          width: 220,
+          width: 260,
         },
       }),
       addInviteAsFeatureTeamBox: Styles.platformStyles({
@@ -419,10 +420,10 @@ const styles = Styles.styleSheetCreate(
         },
         isTablet: {
           borderRadius: 4,
-          height: 184,
+          height: 194,
           marginBottom: Styles.globalMargins.xsmall,
           marginRight: Styles.globalMargins.small,
-          width: 220,
+          width: 260,
         },
       }),
       addPeopleButton: {
@@ -436,6 +437,9 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
       },
       backButton: {
+        backgroundColor: Styles.globalColors.white,
+      },
+      backgroundWhite: {
         backgroundColor: Styles.globalColors.white,
       },
       banner: {

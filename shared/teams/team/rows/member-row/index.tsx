@@ -231,7 +231,7 @@ export const TeamMemberRow = (props: Props) => {
         type="Large"
         body={body}
         firstItem={props.firstItem}
-        style={selected ? styles.selected : undefined}
+        style={selected ? styles.selected : styles.unselected}
         onClick={anySelected ? () => onSelect(!selected) : canEnterMemberPage ? props.onClick : undefined}
       />
     )
@@ -408,5 +408,6 @@ const styles = Styles.styleSheetCreate(() => ({
     marginLeft: Styles.globalMargins.small,
   },
   selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
+  unselected: {backgroundColor: Styles.globalColors.white},
   widenClickableArea: {margin: -5, padding: 5},
 }))
