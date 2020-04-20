@@ -943,7 +943,7 @@ type AdvertiseCommandAPIParam struct {
 	Typ      string                `codec:"typ" json:"type"`
 	Commands []UserBotCommandInput `codec:"commands" json:"commands"`
 	TeamName string                `codec:"teamName,omitempty" json:"team_name,omitempty"`
-	ConvID   ConvIDStr             `codec:"convID,omitempty" json:"convID,omitempty"`
+	ConvID   ConvIDStr             `codec:"convID,omitempty" json:"conv_id,omitempty"`
 }
 
 func (o AdvertiseCommandAPIParam) DeepCopy() AdvertiseCommandAPIParam {

@@ -994,7 +994,7 @@
         {
           "type": "ConvIDStr",
           "name": "convID",
-          "jsonKey": "conv_id",
+          "jsonkey": "conv_id",
           "optional": true
         }
       ]

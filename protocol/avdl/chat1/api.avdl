@@ -360,7 +360,7 @@ protocol api {
     @optional(true)
     @jsonkey("team_name")
     string teamName;
-    @jsonKey("conv_id")
+    @jsonkey("conv_id")
     @optional(true)
     ConvIDStr convID;
   }
