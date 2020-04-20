@@ -160,7 +160,7 @@ const Header = () => {
 }
 
 const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
-  map[`${Platforms.isDarwin ? 'command' : 'ctrl'}+${index + 1}`] = tab
+  map[`mod+${index + 1}`] = tab
   return map
 }, {})
 const hotKeys = Object.keys(keysMap)
