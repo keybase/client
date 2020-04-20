@@ -156,7 +156,7 @@ const Team = (props: Props) => {
   const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
   const onScroll = React.useRef(
     Styles.isMobile
-      ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: false})
+      ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
       : undefined
   )
 
