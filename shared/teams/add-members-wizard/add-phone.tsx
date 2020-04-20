@@ -51,6 +51,12 @@ const AddPhone = () => {
     )
   }
 
+  const maybeSubmit = (evt?: any) => {
+    if (!disabled && evt && evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
+      onContinue()
+    }
+  }
+
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
@@ -92,6 +98,7 @@ const AddPhone = () => {
               onChangeNumber={(phoneNumber, valid) => setPhoneNumber(idx, phoneNumber, valid)}
               onClear={phoneNumbers.length === 1 ? undefined : () => removePhoneNumber(idx)}
               small={true}
+              onEnterKeyDown={maybeSubmit}
             />
           ))}
           <Kb.Button mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />

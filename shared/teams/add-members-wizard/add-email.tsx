@@ -48,6 +48,12 @@ const AddEmail = (props: Props) => {
     )
   }
 
+  const maybeSubmit = (evt: React.KeyboardEvent) => {
+    if (!disabled && evt && evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
+      onContinue()
+    }
+  }
+
   return (
     <Kb.Modal
       onClose={onBack}
@@ -76,6 +82,7 @@ const AddEmail = (props: Props) => {
             ]
           : undefined
       }
+      mode="DefaultFullHeight"
     >
       <Kb.Box2
         direction="vertical"
@@ -95,6 +102,7 @@ const AddEmail = (props: Props) => {
             rowsMin={3}
             rowsMax={8}
             value={invitees}
+            onKeyDown={maybeSubmit}
           />
           {!!props.errorMessage && (
             <Kb.Text type="BodySmall" style={styles.errorText}>
@@ -113,8 +121,8 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
       backgroundColor: Styles.globalColors.blueGrey,
+      flex: 1,
     },
-    isElectron: {minHeight: 326},
     isMobile: {...Styles.globalStyles.flexOne},
   }),
   container: {
