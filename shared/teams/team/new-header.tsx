@@ -417,6 +417,7 @@ const styles = Styles.styleSheetCreate(
         isPhone: {
           borderRadius: 8,
           flexGrow: 1,
+          width: '100%',
         },
         isTablet: {
           borderRadius: 4,

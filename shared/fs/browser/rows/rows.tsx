@@ -11,7 +11,7 @@ import Still from './still-container'
 import Editing from './editing'
 import {normalRowHeight} from './common'
 import {memoize} from '../../../util/memoize'
-import {useFsChildren} from '../../common'
+import {useFsChildren, UploadButton} from '../../common'
 
 export type Props = {
   emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty'
@@ -131,6 +131,7 @@ class Rows extends React.PureComponent<Props> {
               ? 'This folder is empty.'
               : 'Sorry, no folder or file was found.'}
           </Kb.Text>
+          {this.props.emptyMode === 'empty' && <UploadButton path={this.props.path} />}
         </Kb.Box2>
       </Kb.Box2>
     ) : (
