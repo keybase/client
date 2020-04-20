@@ -43,16 +43,16 @@ class GiphySearch extends React.Component<Props, State> {
             {overflowY: this.state.width ? 'auto' : 'scroll'},
           ])}
         >
-          <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="tiny">
+          <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="xtiny">
             <Kb.Text style={styles.instructions} type="BodySmall">
-              Hit enter for a random GIF, or click a preview to send
+              Tip: hit 'Enter' now to send a random GIF.
             </Kb.Text>
             <Kb.Text
               style={styles.instructions}
               type="BodySmallSecondaryLink"
               onClickURL="https://keybase.io/docs/chat/linkpreviews"
             >
-              (More Info)
+              Learn more about GIFs & encryption
             </Kb.Text>
           </Kb.Box2>
           {this.state.width &&
