@@ -488,11 +488,7 @@ func ComputeInvitelinkDisplayName(mctx libkb.MetaContext, team *Team, invite key
 		return name, err
 	}
 
-	url, err := GenerateInvitelinkURL(mctx, ikey, id)
-	if err != nil {
-		return name, err
-	}
-
+	url := GenerateInvitelinkURL(mctx, ikey, id)
 	name = keybase1.TeamInviteDisplayName(url)
 	return name, nil
 }

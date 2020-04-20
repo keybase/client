@@ -118,25 +118,17 @@ func GenerateSeitanInvitelinkAcceptanceKey(sikey []byte, uid keybase1.UID, eldes
 // bound from SeitanEncodedIKeyInvitelinkLength
 var invitelinkIKeyRxx = regexp.MustCompile(`/i/t/([a-zA-Z0-9]{16,28})#([a-z0-9+]{16,28})`)
 
-func generateInvitelinkURLPrefix(mctx libkb.MetaContext) (string, error) {
-	serverRoot, err := mctx.G().Env.GetServerURI()
-	if err != nil {
-		return "", err
-	}
+func generateInvitelinkURLPrefix(mctx libkb.MetaContext) string {
 	// NOTE: if you change this url, change invitelinkIKeyRxx too!
-	return fmt.Sprintf("%s/i/t/", serverRoot), nil
+	return fmt.Sprintf("%s/i/t/", libkb.SiteURILookup[mctx.G().Env.GetRunMode()])
 }
 
 func GenerateInvitelinkURL(
 	mctx libkb.MetaContext,
 	ikey keybase1.SeitanIKeyInvitelink,
 	id SCTeamInviteIDShort,
-) (string, error) {
-	prefix, err := generateInvitelinkURLPrefix(mctx)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s%s#%s", prefix, id, ikey), nil
+) string {
+	return fmt.Sprintf("%s%s#%s", generateInvitelinkURLPrefix(mctx), id, ikey)
 }
 
 type TeamInviteLinkDetails struct {
