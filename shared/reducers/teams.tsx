@@ -2,6 +2,7 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/teams'
+import {isPhone} from '../constants/platform'
 import * as Types from '../constants/types/teams'
 import * as Container from '../util/container'
 import {editTeambuildingDraft} from './team-building'
@@ -325,11 +326,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (role !== 'setIndividually') {
       // keep roles stored with indiv members in sync with top level one
       draftState.addMembersWizard.addingMembers.forEach(member => {
-        if (member.assertion.includes('@') && (role === 'admin' || role === 'owner')) {
-          member.role = 'writer'
-        } else {
-          member.role = role
-        }
+        member.role = role
       })
     }
   },
@@ -337,11 +334,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const {assertion, role} = action.payload
     const maybeMember = draftState.addMembersWizard.addingMembers.find(m => m.assertion === assertion)
     if (maybeMember) {
-      if (maybeMember.assertion.includes('@') && (role === 'admin' || role === 'owner')) {
-        maybeMember.role = 'writer'
-      } else {
-        maybeMember.role = role
-      }
+      maybeMember.role = role
     }
   },
   [TeamsGen.setJustFinishedAddMembersWizard]: (draftState, action) => {
@@ -352,6 +345,17 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.addMembersWizard.addingMembers,
       action.payload.members
     )
+    if (
+      ['admin', 'owner'].includes(draftState.addMembersWizard.role) &&
+      action.payload.members.some(m => m.assertion.includes('@'))
+    ) {
+      if (isPhone) {
+        draftState.addMembersWizard.role = 'writer'
+        draftState.addMembersWizard.addingMembers.forEach(member => (member.role = 'writer'))
+      } else {
+        draftState.addMembersWizard.role = 'setIndividually'
+      }
+    }
   },
   [TeamsGen.addMembersWizardRemoveMember]: (draftState, action) => {
     const {assertion} = action.payload

@@ -928,7 +928,14 @@ export const dedupAddingMembeers = (
   const existing = [..._existing]
   for (const toAdd of toAdds) {
     if (!existing.find(m => m.assertion === toAdd.assertion)) {
-      existing.unshift(toAdd)
+      const role =
+        (toAdd.role === 'admin' || toAdd.role === 'owner') && toAdd.assertion.includes('@')
+          ? 'writer'
+          : toAdd.role
+      existing.unshift({
+        ...toAdd,
+        role,
+      })
     }
   }
   return existing
