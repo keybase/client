@@ -468,7 +468,7 @@ export const Review = (props: ReviewProps) => {
           checked={checkedStatement}
           onCheck={setCheckedStatement}
           label="This is entirely true"
-          style={styles.reviewCheckbox2}
+          style={styles.reviewCheckbox}
         />
       </Kb.Box2>
       <Kb.Box2
@@ -722,7 +722,6 @@ const styles = Styles.styleSheetCreate(
       },
       proofSingleValue: {flexShrink: 1, marginLeft: 8},
       reviewCheckbox: {paddingBottom: Styles.globalMargins.small, paddingTop: Styles.globalMargins.small},
-      reviewCheckbox2: {paddingTop: Styles.globalMargins.small},
       reviewColorbar: {
         backgroundColor: Styles.globalColors.blueLight,
         flexShrink: 0,
