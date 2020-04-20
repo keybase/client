@@ -54,6 +54,7 @@ const (
 	crDirtyBlockCacheName           string = "DirtyBlockCache"
 	minDiskBlockWriteBufferSize            = 3 * data.MaxBlockSizeBytesDefault // ~ 1 MB
 	deleteCompactThreshold          int    = 25
+	compactTimer                           = time.Minute * 5
 )
 
 var errTeamOrUnknownTLFAddedAsHome = errors.New(
@@ -117,6 +118,8 @@ type DiskBlockCacheLocal struct {
 	currBytesLock sync.RWMutex
 	currBytes     uint64
 
+	compactCh  chan struct{}
+	useCh      chan struct{}
 	startedCh  chan struct{}
 	startErrCh chan struct{}
 	shutdownCh chan struct{}
@@ -279,6 +282,8 @@ func newDiskBlockCacheLocalFromStorage(
 		},
 		tlfSizes:      map[tlf.ID]uint64{},
 		tlfLastUnrefs: map[tlf.ID]kbfsmd.Revision{},
+		compactCh:     make(chan struct{}),
+		useCh:         make(chan struct{}),
 		startedCh:     startedCh,
 		startErrCh:    startErrCh,
 		shutdownCh:    make(chan struct{}),
@@ -307,6 +312,9 @@ func newDiskBlockCacheLocalFromStorage(
 		}
 		close(startedCh)
 	}()
+
+	go cache.compactLoop()
+
 	return cache, nil
 }
 
@@ -591,8 +599,21 @@ func (cache *DiskBlockCacheLocal) encodeBlockCacheEntry(buf []byte,
 	return cache.config.Codec().Encode(&entry)
 }
 
+func (cache *DiskBlockCacheLocal) used() {
+	select {
+	case cache.useCh <- struct{}{}:
+	default:
+	}
+}
+
 // checkAndLockCache checks whether the cache is started.
-func (cache *DiskBlockCacheLocal) checkCacheLocked(method string) error {
+func (cache *DiskBlockCacheLocal) checkCacheLocked(method string) (err error) {
+	defer func() {
+		if err == nil {
+			cache.used()
+		}
+	}()
+
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:
@@ -956,12 +977,61 @@ func (cache *DiskBlockCacheLocal) compactDBs(ctx context.Context) (err error) {
 	return cache.metaDb.CompactRange(util.Range{})
 }
 
+// compactLoops fires compaction, but only after five minutes of
+// non-usage has passed.
+func (cache *DiskBlockCacheLocal) compactLoop() {
+	ctx := context.Background()
+	var timer *time.Timer
+	var timerCh <-chan time.Time
+	for {
+		select {
+		case <-cache.compactCh:
+			// If we explicitly need to compact, start a new timer no
+			// matter what (since a compaction request implies a use
+			// of the cache).
+			if timer != nil {
+				timer.Stop()
+			} else {
+				cache.log.CDebugf(ctx, "Starting initial compaction timer")
+			}
+
+			timer = time.NewTimer(compactTimer)
+			timerCh = timer.C
+		case <-cache.useCh:
+			// If we've just been used, interrupt any timer that's
+			// already running, but don't start a new one if one isn't
+			// already running.
+			if timer != nil {
+				timer.Stop()
+				timer = time.NewTimer(compactTimer)
+				timerCh = timer.C
+			}
+		case <-timerCh:
+			err := cache.compactDBs(ctx)
+			if err != nil {
+				cache.log.CDebugf(ctx, "Error compacting DBs: %+v", err)
+			}
+			timerCh = nil
+			timer = nil
+		case <-cache.shutdownCh:
+			return
+		}
+	}
+}
+
+func (cache *DiskBlockCacheLocal) doCompact() {
+	select {
+	case cache.compactCh <- struct{}{}:
+	default:
+	}
+}
+
 // Delete implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
 	defer func() {
 		if err == nil && numRemoved > deleteCompactThreshold {
-			err = cache.compactDBs(ctx)
+			cache.doCompact()
 		}
 	}()
 
@@ -1304,7 +1374,7 @@ func (cache *DiskBlockCacheLocal) ClearAllTlfBlocks(
 		cache.log.CDebugf(ctx,
 			"Finished clearing blocks from %s: %+v", tlfID, err)
 		if err == nil {
-			err = cache.compactDBs(ctx)
+			cache.doCompact()
 		}
 	}()
 
@@ -1598,7 +1668,7 @@ func (cache *DiskBlockCacheLocal) DeleteUnmarked(
 			"Finished deleting unmarked blocks (tag=%s) from %s: %+v",
 			tag, tlfID, err)
 		if err == nil {
-			err = cache.compactDBs(ctx)
+			cache.doCompact()
 		}
 	}()
 
