@@ -125,13 +125,17 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
     popRef.current = navigation.pop
   }, [navigation])
 
+  const backgroundRef = React.useRef(null)
   // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
   // window around to count
   const [mouseDownX, setMouseDownX] = React.useState(mouseResetValue)
   const [mouseDownY, setMouseDownY] = React.useState(mouseResetValue)
   const onMouseDown = React.useCallback(
     (e: React.MouseEvent) => {
-      const {screenX, screenY} = e.nativeEvent
+      const {screenX, screenY, target} = e.nativeEvent
+      if (target !== backgroundRef.current) {
+        return
+      }
       setMouseDownX(screenX)
       setMouseDownY(screenY)
     },
@@ -139,7 +143,10 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
   )
   const onMouseUp = React.useCallback(
     (e: React.MouseEvent) => {
-      const {screenX, screenY} = e.nativeEvent
+      const {screenX, screenY, target} = e.nativeEvent
+      if (target !== backgroundRef.current) {
+        return
+      }
       const delta = Math.abs(screenX - mouseDownX) + Math.abs(screenY - mouseDownY)
       const dismiss = delta < mouseDistanceThreshold
       setMouseDownX(mouseResetValue)
@@ -164,6 +171,7 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
         <Kb.Box2
           key="background"
           direction="horizontal"
+          ref={backgroundRef}
           style={Styles.collapseStyles([styles.modal2Container, modal2ClearCover && styles.modal2ClearCover])}
           onMouseDown={onMouseDown as any}
           onMouseUp={onMouseUp as any}
