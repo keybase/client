@@ -14,7 +14,7 @@ import AccountTab from './account/container'
 import FeedbackTab from './feedback/container'
 import NotificationsTab from './notifications/container'
 import DbNukeConfirm from './db-nuke-confirm/container'
-import DeleteConfirm from './delete-confirm/container'
+import DeleteConfirm from './delete-confirm/index'
 import InviteSent from './invite-generated/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import LogOutTab from './logout/container'
@@ -84,7 +84,7 @@ export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
   // TODO connect broken
   changePassword: {getScreen: (): typeof ChangePassword => require('./password/container').default},
-  deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
+  deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/index').default},
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
