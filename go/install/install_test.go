@@ -6,12 +6,15 @@
 package install
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/stretchr/testify/require"
 )
 
 var testLog = logger.New("test")
@@ -48,4 +51,61 @@ func TestCommandLine(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
+}
+
+func TestLastModifiedMatchingFile(t *testing.T) {
+	var err error
+	tc := libkb.SetupTest(t, "TestLastModifiedMatchingFile", 1)
+	defer tc.Cleanup()
+	tmpdir, err := ioutil.TempDir("", "TestLastModifiedMatchingFile")
+	defer os.RemoveAll(tmpdir)
+	require.NoError(t, err)
+	nameMatch := "blerg"
+	contentMatch := "lemon"
+	matchingContent := fmt.Sprintf("la la la\nblah blah\nblah%s a match!\n", contentMatch)
+	unmatchingContent := "la la la\nblah blah\nblah no matches\n"
+	filePattern := filepath.Join(tmpdir, fmt.Sprintf("*%s*", nameMatch))
+
+	// no matches with no files
+	match, err := LastModifiedMatchingFile(filePattern, contentMatch)
+	require.NoError(t, err)
+	require.Nil(t, match)
+
+	// no matches with two files that each only half match
+	err = ioutil.WriteFile(filepath.Join(tmpdir, fmt.Sprintf("first%sfile.txt", nameMatch)), []byte(unmatchingContent), 0644)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(filepath.Join(tmpdir, "secondfile.txt"), []byte(matchingContent), 0644)
+	require.NoError(t, err)
+
+	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
+	require.NoError(t, err)
+	require.Nil(t, match)
+
+	// with an actual match
+	fullPath := filepath.Join(tmpdir, fmt.Sprintf("third%sfile.txt", nameMatch))
+	err = ioutil.WriteFile(fullPath, []byte(matchingContent), 0644)
+	require.NoError(t, err)
+	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
+	require.NoError(t, err)
+	require.NotNil(t, match)
+	require.Equal(t, fullPath, *match)
+
+	// with another match
+	fullPath = filepath.Join(tmpdir, fmt.Sprintf("fourth%sfile.txt", nameMatch))
+	err = ioutil.WriteFile(fullPath, []byte(matchingContent), 0644)
+	require.NoError(t, err)
+	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
+	require.NoError(t, err)
+	require.NotNil(t, match)
+	require.Equal(t, fullPath, *match)
+
+	// result doesn't change after additional files are added
+	err = ioutil.WriteFile(filepath.Join(tmpdir, fmt.Sprintf("fifth%sfile.txt", nameMatch)), []byte(unmatchingContent), 0644)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(filepath.Join(tmpdir, "sixthfile.txt"), []byte(matchingContent), 0644)
+	require.NoError(t, err)
+	match, err = LastModifiedMatchingFile(filePattern, contentMatch)
+	require.NoError(t, err)
+	require.NotNil(t, match)
+	require.Equal(t, fullPath, *match)
 }
