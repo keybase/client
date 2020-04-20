@@ -6,21 +6,21 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 	"time"
-
-	"github.com/keybase/client/go/protocol/keybase1"
-
-	"github.com/keybase/client/go/encrypteddb"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
+	"golang.org/x/sync/errgroup"
 )
 
 const storageVersion = 1
@@ -152,8 +152,23 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 			return res, errors.New("missing team name")
 		}
 		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, param.Typ)
+		var membersType chat1.ConversationMembersType
+		_, err = teams.Load(ctx, b.G().GlobalContext, keybase1.LoadTeamArg{Name: *param.TeamName})
+		switch err.(type) {
+		case nil:
+			membersType = chat1.ConversationMembersType_TEAM
+		case teams.TeamDoesNotExistError:
+			membersType = chat1.ConversationMembersType_IMPTEAMNATIVE
+		default:
+			// https://github.com/keybase/client/blob/249cfcb4b4bd6dcc50d207d0b88eee455a7f6c2d/go/protocol/keybase1/extras.go#L2249
+			if strings.Contains(err.Error(), "team names must be between 2 and 16 characters long") {
+				membersType = chat1.ConversationMembersType_IMPTEAMNATIVE
+			} else {
+				return res, err
+			}
+		}
 		res, _, err = b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, *param.TeamName, &topicName,
-			chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
+			chat1.TopicType_DEV, membersType, keybase1.TLFVisibility_PRIVATE)
 		return res, err
 	default:
 		return res, errors.New("unknown bot advertisement typ")
