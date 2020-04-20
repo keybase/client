@@ -173,23 +173,26 @@ const Team = (props: Props) => {
   )
 
   const body = (
-    <Kb.Box style={styles.container}>
-      {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={teamID} offset={offset.current} />}
-      <SectionList
-        renderSectionHeader={renderSectionHeader}
-        stickySectionHeadersEnabled={Styles.isMobile}
-        sections={sections}
-        contentContainerStyle={styles.listContentContainer}
-        style={styles.list}
-        onScroll={onScroll.current}
-      />
-      <SelectionPopup
-        selectedTab={
-          selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
-        }
-        teamID={teamID}
-      />
-    </Kb.Box>
+    <>
+      <Kb.SafeAreaViewTop />
+      <Kb.Box style={styles.container}>
+        {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={teamID} offset={offset.current} />}
+        <SectionList
+          renderSectionHeader={renderSectionHeader}
+          stickySectionHeadersEnabled={Styles.isMobile}
+          sections={sections}
+          contentContainerStyle={styles.listContentContainer}
+          style={styles.list}
+          onScroll={onScroll.current}
+        />
+        <SelectionPopup
+          selectedTab={
+            selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
+          }
+          teamID={teamID}
+        />
+      </Kb.Box>
+    </>
   )
 
   return body
@@ -197,6 +200,7 @@ const Team = (props: Props) => {
 
 const newNavigationOptions = () => ({
   headerHideBorder: true,
+  title: ' ',
 })
 
 Team.navigationOptions = flags.teamsRedesign
