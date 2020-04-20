@@ -200,7 +200,7 @@ const Team = (props: Props) => {
 
 const newNavigationOptions = () => ({
   headerHideBorder: true,
-  title: ' ',
+  underNotch: true,
 })
 
 Team.navigationOptions = flags.teamsRedesign
