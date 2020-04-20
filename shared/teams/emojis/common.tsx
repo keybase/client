@@ -28,10 +28,16 @@ export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
     setTimeout(
       () =>
         this.mounted &&
-        this.inputRef.current?.setSelection({
-          end: this.props.alias.length + 1,
-          start: this.props.alias.length + 1,
-        })
+        this.inputRef.current?.transformText(
+          () => ({
+            selection: {
+              end: this.props.alias.length + 1,
+              start: this.props.alias.length + 1,
+            },
+            text: `:${this.props.alias}:`,
+          }),
+          true
+        )
     )
   }
   render() {
@@ -43,18 +49,24 @@ export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
             error={!!this.props.error}
             disabled={this.props.disabled}
             textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
-            value={`:${this.props.alias}:`}
             containerStyle={Styles.collapseStyles([
               styles.aliasInput,
               !this.props.small && styles.aliasInputLarge,
             ])}
             onChangeText={newText => {
               // Remove both colon and special characters.
-              this.props.onChangeAlias(newText.replace(/[^a-zA-Z0-9-_+]/g, ''))
-              if (Styles.isAndroid) {
-                // set selection again on android to work around finicky selection bug
-                this.onFocus()
+              const cleaned = newText.replace(/[^a-zA-Z0-9-_+]/g, '')
+              if (newText !== `:${cleaned}:`) {
+                // if the input currently contains invalid characters, overwrite with clean text and reset selection
+                this.inputRef.current?.transformText(
+                  () => ({
+                    selection: {start: cleaned.length + 1, end: cleaned.length + 1},
+                    text: `:${cleaned}:`,
+                  }),
+                  true
+                )
               }
+              this.props.onChangeAlias(cleaned)
             }}
             onEnterKeyDown={this.props.onEnterKeyDown}
             onFocus={this.onFocus}
