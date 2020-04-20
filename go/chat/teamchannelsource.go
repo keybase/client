@@ -194,6 +194,7 @@ func (c *TeamChannelSource) GetLastActiveForTLF(ctx context.Context, uid gregor1
 
 func (c *TeamChannelSource) GetLastActiveForTeams(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType) (
 	res chat1.LastActiveTimeAll, err error) {
+	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 	defer c.Trace(ctx, &err,
 		fmt.Sprintf("GetLastActiveForTeams: topicType: %v", topicType))()
 
@@ -226,6 +227,7 @@ func (c *TeamChannelSource) GetLastActiveForTeams(ctx context.Context, uid grego
 
 func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,
 	tlfID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
+	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 	defer c.Trace(ctx, &err,
 		fmt.Sprintf("GetChannelsFull: tlfID: %v, topicType: %v", tlfID, topicType))()
 
@@ -249,6 +251,7 @@ func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID
 
 func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
 	tlfID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, err error) {
+	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 	defer c.Trace(ctx, &err,
 		fmt.Sprintf("GetChannelsTopicName: tlfID: %v, topicType: %v", tlfID, topicType))()
 
@@ -303,6 +306,7 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 
 func (c *TeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1.UID,
 	tlfID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (res string, err error) {
+	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 	defer c.Trace(ctx, &err,
 		fmt.Sprintf("GetChannelTopicName: tlfID: %v, topicType: %v, convID: %v", tlfID, topicType, convID))()
 
