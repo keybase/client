@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import {LayoutChangeEvent} from 'react-native'
-import PopupDialog2 from './popup-dialog2'
 import ScrollView from './scroll-view'
 import {Box2, Box} from './box'
 import BoxGrow from './box-grow'
@@ -41,16 +40,9 @@ type Props = {
   header?: HeaderProps
   onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
-  // mode: 'Default' | 'DefaultFullHeight' | 'Wide' | 'DefaultFullWidth'
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean // content must push footer to bottom with this on.
-  // backgroundStyle?: Styles.StylesCrossPlatform
   scrollViewRef?: React.Ref<ScrollView>
-
-  // Desktop only popup overrides
-  // popupStyleClose?: Styles.StylesCrossPlatform
-  popupStyleContainer?: Styles.StylesCrossPlatform
-  // popupTabBarShim?: boolean
 }
 
 const Modal2 = (props: Props) => {
@@ -61,27 +53,10 @@ const Modal2 = (props: Props) => {
       {!!banners && banners}
       {children}
       {/* TODO wide */}
-      {!!footer && <Footer {...footer} wide={false} />}
+      {!!footer && <Footer {...footer} wide={true} />}
     </>
   )
 }
-
-/** Used by the router and not for public consumption **/
-// const Modal2 = (props: Props) =>
-// Styles.isMobile ? (
-// <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
-// <Modal2Inner {...props} />
-// </Kb.Box2>
-// ) : (
-// <Kb.Box2
-// direction="vertical"
-// fullWidth={true}
-// fullHeight={true}
-// style={Styles.collapseStyles([clipContainerStyles[props.mode], props.popupStyleContainer])}
-// >
-// <Modal2Inner {...props} />
-// </Kb.Box2>
-// )
 
 const Header2 = (props: HeaderProps) => {
   // On native, let the header sides layout for 100ms to measure which is wider.
@@ -221,14 +196,6 @@ const styles = Styles.styleSheetCreate(() => {
     borderStyle: 'solid' as const,
   }
 
-  // const modeCommon = Styles.platformStyles({
-  // isElectron: {
-  // ...Styles.desktopStyles.boxShadow,
-  // backgroundColor: Styles.globalColors.white,
-  // borderRadius: Styles.borderRadius,
-  // },
-  // })
-
   return {
     footer: Styles.platformStyles({
       common: {
@@ -303,13 +270,6 @@ const styles = Styles.styleSheetCreate(() => {
     }),
   }
 })
-
-// const clipContainerStyles: {[k in Props['mode']]: Styles.StylesCrossPlatform} = {
-// Default: styles.modeDefault,
-// DefaultFullHeight: styles.modeDefaultFullHeight,
-// DefaultFullWidth: styles.modeDefaultFullWidth,
-// Wide: styles.modeWide,
-// }
 
 export default Modal2
 export {Header2}

@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 
 export type HocExtractProps = {
   onClosePopup: () => void
-  // tabBarShim?: boolean
+  tabBarShim?: boolean
   closeStyleOverrides?: Styles.StylesCrossPlatform
   containerStyleOverrides?: Styles.StylesCrossPlatform
   coverStyleOverrides?: Styles.StylesCrossPlatform
@@ -18,7 +18,7 @@ function popupDialogHoc<P extends {}>(
   return function WrappedPopupDialog(props: P & HocExtractProps) {
     const {
       onClosePopup,
-      // tabBarShim,
+      tabBarShim,
       containerStyleOverrides,
       coverStyleOverrides,
       closeStyleOverrides,
@@ -30,7 +30,7 @@ function popupDialogHoc<P extends {}>(
         styleCover={coverStyleOverrides}
         styleClose={closeStyleOverrides}
         styleContainer={containerStyleOverrides}
-        // tabBarShim={tabBarShim}
+        tabBarShim={tabBarShim}
       >
         <Component {...rest} />
       </PopupDialog>
