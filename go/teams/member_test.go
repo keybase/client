@@ -2133,3 +2133,28 @@ func TestTeamPlayerNoRoleChange(t *testing.T) {
 	require.Len(t, state.inner.UserLog[testUV], 1)
 	require.EqualValues(t, 2, state.inner.UserLog[testUV][0].SigMeta.SigChainLocation.Seqno)
 }
+
+func TestRemoveMembersHappy(t *testing.T) {
+	tc, _, alice, bob, name, teamID := memberSetupMultipleWithTeamID(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleReader(context.TODO(), tc.G, name, alice.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	rmMaker := func(fu *kbtest.FakeUser, removeFromSubtree bool) keybase1.TeamMemberToRemove {
+		return keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{
+			Assertion:         fu.Username,
+			RemoveFromSubtree: removeFromSubtree,
+		})
+	}
+	if err := RemoveMember(context.TODO(), tc.G, teamID, rmMaker(alice, false)); err != nil {
+		t.Fatal(err)
+	}
+	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
+
+	// if err := SetRoleReader(context.TODO(), tc.G, name, bob.Username); err != nil {
+	// 	t.Fatal(err)
+	// }
+
+}

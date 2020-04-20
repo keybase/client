@@ -468,23 +468,7 @@ func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRe
 		return err
 	}
 
-	members := []keybase1.TeamMemberToRemove{arg.Member}
-	res, err := teams.RemoveMembers(ctx, h.G().ExternalG(), arg.TeamID, members,
-		false /* NoErrorOnPartialFailure */)
-	if err != nil {
-		msg := fmt.Sprintf("failed to remove member: %s", err)
-		if len(res.Failures) > 0 {
-			if res.Failures[0].ErrorAtTarget != nil {
-				msg += "; " + *res.Failures[0].ErrorAtTarget
-			}
-			if res.Failures[0].ErrorAtSubtree != nil {
-				msg += "; " + *res.Failures[0].ErrorAtSubtree
-			}
-		}
-		err = errors.New(msg)
-	}
-
-	return err
+	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.TeamID, arg.Member)
 }
 
 func (h *TeamsHandler) TeamRemoveMembers(ctx context.Context, arg keybase1.TeamRemoveMembersArg) (res keybase1.TeamRemoveMembersResult, err error) {

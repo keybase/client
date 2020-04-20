@@ -106,7 +106,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	t.Logf("rotate the key a bunch of times")
 	// Rotate the key by removing and adding B from the team
 	for i := 0; i < 3; i++ {
-		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
+		err = removeUsername(m[0], tcs[0], teamID, fus[1])
 		require.NoError(t, err)
 
 		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
@@ -187,7 +187,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	require.Zero(t, len(team.ApplicationKeys))
 
 	t.Logf("upgrade D to a bot and check they have access")
-	err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[3].Username)
+	err = removeUsername(m[0], tcs[0], teamID, fus[3])
 	require.NoError(t, err)
 	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_BOT, nil)
 	require.NoError(t, err)
@@ -268,7 +268,7 @@ func TestFastLoaderUpPointerUnstub(t *testing.T) {
 	t.Logf("rotate the key a bunch of times")
 	// Rotate the key by removing and adding B from the team
 	for i := 0; i < 3; i++ {
-		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
+		err = removeUsername(m[0], tcs[0], teamID, fus[1])
 		require.NoError(t, err)
 		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
@@ -332,7 +332,7 @@ func TestLoadSubteamThenParent(t *testing.T) {
 	t.Logf("rotate the parent team a bunch of times")
 	// Rotate the key by removing and adding B from the team
 	for i := 0; i < 3; i++ {
-		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
+		err = removeUsername(m[0], tcs[0], teamID, fus[1])
 		require.NoError(t, err)
 		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
@@ -382,7 +382,7 @@ func TestLoadSubteamThenAllowedInThenParent(t *testing.T) {
 	rotateKey := func(name keybase1.TeamName) {
 		_, err := AddMember(m[0].Ctx(), tcs[0].G, name.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
-		err = RemoveMember(m[0].Ctx(), tcs[0].G, name.String(), fus[1].Username)
+		err = removeUsername(m[0], tcs[0], teamID, fus[1])
 		require.NoError(t, err)
 	}
 
@@ -454,7 +454,7 @@ func TestLoadRKMForLatestCORE8894(t *testing.T) {
 
 	// Rotate the key by removing and adding B from the team
 	for i := 0; i < 3; i++ {
-		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
+		err = removeUsername(m[0], tcs[0], teamID, fus[1])
 		require.NoError(t, err)
 		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)

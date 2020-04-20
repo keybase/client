@@ -832,7 +832,7 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamGetter fu
 	g.Log.CDebugf(ctx, "team %s: edit member %s, member is an invite link", t.ID, username)
 
 	// Note that there could be a problem if removeMemberInvite works but AddMember doesn't
-	// as the original invite will be lost.  But the user will get an error and can try
+	// as the original invite will be lost. But the user will get an error and can try
 	// again.
 	if err := removeMemberInvite(ctx, g, t, username, uv); err != nil {
 		g.Log.CDebugf(ctx, "editMemberInvite error in removeMemberInvite: %s", err)
@@ -980,6 +980,34 @@ func MemberRoleFromID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		return err
 	})
 	return role, err
+}
+
+func RemoveMemberByUsername(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	username string) (err error) {
+	return RemoveMember(ctx, g, teamID, keybase1.NewTeamMemberToRemoveWithAssertion(
+		keybase1.AssertionTeamMemberToRemove{
+			Assertion: username,
+		},
+	))
+}
+
+func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	member keybase1.TeamMemberToRemove) (err error) {
+	members := []keybase1.TeamMemberToRemove{member}
+	res, err := RemoveMembers(ctx, g, teamID, members, false /* NoErrorOnPartialFailure */)
+	if err != nil {
+		msg := fmt.Sprintf("failed to remove member: %s", err)
+		if len(res.Failures) > 0 {
+			if res.Failures[0].ErrorAtTarget != nil {
+				msg += "; " + *res.Failures[0].ErrorAtTarget
+			}
+			if res.Failures[0].ErrorAtSubtree != nil {
+				msg += "; " + *res.Failures[0].ErrorAtSubtree
+			}
+		}
+		err = errors.New(msg)
+	}
+	return err
 }
 
 func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
