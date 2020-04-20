@@ -68,7 +68,7 @@ const getContentDescription = (props: Props) => {
           props.items.map(({type, originalPath}, i) => (
             <Kb.Text key={`item-${i}`} type="Body">
               {incomingShareTypeToString(type, true, false)}:{' '}
-              {FsTypes.getLocalPathName(originalPath) || '<unnamed>'}
+              {(originalPath && FsTypes.getLocalPathName(originalPath)) || '<unnamed>'}
             </Kb.Text>
           ))}
       </>
@@ -104,7 +104,9 @@ const getContentDescription = (props: Props) => {
         <>
           {heading}
           <AVPreview
-            thumbnailPaths={props.items.map(({thumbnailPath, originalPath}) => thumbnailPath || originalPath)}
+            thumbnailPaths={props.items
+              .map(({thumbnailPath, originalPath}) => thumbnailPath || originalPath || '')
+              .filter(Boolean)}
           />
         </>
       )
@@ -115,7 +117,7 @@ const getContentDescription = (props: Props) => {
           {props.items.some(({originalPath}) => !!originalPath) &&
             props.items.map(({originalPath}, i) => (
               <Kb.Text key={`item-${i}`} type="Body">
-                {FsTypes.getLocalPathName(originalPath) || '<unnamed>'}
+                {(originalPath && FsTypes.getLocalPathName(originalPath)) || '<unnamed>'}
               </Kb.Text>
             ))}
         </>
@@ -125,11 +127,17 @@ const getContentDescription = (props: Props) => {
 
 const ChooseTarget = (props: Props) => {
   const {onChat, onKBFS} = props
-  const originalTotalSize = props.items.reduce((bytes, item) => bytes + item.originalSize, 0)
+  const originalTotalSize = props.items.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
   const scaledTotalSize = props.items.reduce((bytes, item) => bytes + (item.scaledSize ?? 0), 0)
   const offerScaled = scaledTotalSize > 0 && scaledTotalSize < originalTotalSize
   const [useOriginalUserSelection, setUseOriginalUserSelection] = React.useState(false)
   const useOriginal = !offerScaled || useOriginalUserSelection
+
+  React.useEffect(() => {
+    if (onChat && !onKBFS) {
+      onChat(useOriginal)
+    }
+  }, [onChat, onKBFS, useOriginal])
 
   if (props.erroredSendFeedback) {
     return (
@@ -149,7 +157,7 @@ const ChooseTarget = (props: Props) => {
     )
   }
 
-  if (!props.items.length) {
+  if (!props.items.length || !onChat || !onKBFS) {
     return (
       <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
         <Kb.ProgressIndicator type="Large" />
