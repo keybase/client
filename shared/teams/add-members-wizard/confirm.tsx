@@ -4,11 +4,9 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import * as ChatTypes from '../../constants/types/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
-import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
@@ -30,6 +28,7 @@ const AddMembersConfirm = () => {
       addingMembers.findIndex(member => !member.assertion.endsWith('@email')) === -1,
     [addingMembers]
   )
+  const someKeybaseUsers = addingMembers.some(member => !member.assertion.includes('@'))
   const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
 
   const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
@@ -45,7 +44,6 @@ const AddMembersConfirm = () => {
   const waiting = _waiting || newTeamWaiting
 
   const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
-  const addToChannels = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
   const onComplete = fromNewTeamWizard
     ? () => dispatch(TeamsGen.createFinishNewTeamWizard())
     : () => {
@@ -53,6 +51,9 @@ const AddMembersConfirm = () => {
         addMembers(
           [
             {
+              defaultChannelsOverride: defaultChannels
+                ?.filter(c => c.channelname !== 'general')
+                .map(c => c.conversationIDKey),
               emailInviteMessage: emailMessage || undefined,
               sendChatNotification: true,
               teamID,
@@ -64,28 +65,7 @@ const AddMembersConfirm = () => {
           ],
           _ => {
             // TODO handle users not added?
-            if (defaultChannels) {
-              addToChannels(
-                [
-                  {
-                    conversations: defaultChannels
-                      .filter(c => c.channelname !== 'general')
-                      .map(c => ChatTypes.keyToConversationID(c.conversationIDKey)),
-                    usernames: addingMembers.map(m => m.assertion),
-                  },
-                ],
-                () => {
-                  dispatch(TeamsGen.createFinishedAddMembersWizard())
-                },
-                err => {
-                  setWaiting(false)
-                  logger.error(err.message)
-                  setError(err.message)
-                }
-              )
-            } else {
-              dispatch(TeamsGen.createFinishedAddMembersWizard())
-            }
+            dispatch(TeamsGen.createFinishedAddMembersWizard())
           },
           err => {
             setWaiting(false)
@@ -129,7 +109,7 @@ const AddMembersConfirm = () => {
             <RoleSelector memberCount={addingMembers.length} />
           </Kb.Box2>
         </Kb.Box2>
-        {isBigTeam && <DefaultChannels teamID={teamID} />}
+        {isBigTeam && someKeybaseUsers && <DefaultChannels teamID={teamID} />}
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
@@ -347,6 +327,9 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
   const dispatch = Container.useDispatch()
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
   const defaultChannelsFromStore = Container.useSelector(s => s.teams.addMembersWizard.defaultChannels)
+  const allKeybaseUsers = Container.useSelector(
+    s => !s.teams.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
+  )
   const onChangeFromDefault = () =>
     dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: defaultChannels}))
   const onAdd = (toAdd: Array<Types.ChannelNameID>) =>
@@ -370,8 +353,8 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
         ) : (
           <>
             <Kb.Text type="BodySmall">
-              Your invitees will be added to {defaultChannels.length}{' '}
-              {pluralize('channel', defaultChannels.length)}.
+              {allKeybaseUsers ? 'Your invitees' : 'Invitees that are Keybase users'} will be added to{' '}
+              {defaultChannels.length} {pluralize('channel', defaultChannels.length)}.
             </Kb.Text>
             <Kb.Text type="BodySmall">
               {defaultChannels.map((channel, index) => (
