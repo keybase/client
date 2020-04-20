@@ -341,6 +341,7 @@ const styles = Styles.styleSheetCreate(
       thumbContainer: {
         overflow: 'hidden',
         position: 'relative',
+        margin: Styles.globalMargins.xxtiny,
       },
     } as const)
 )

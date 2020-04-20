@@ -40,8 +40,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const onAddMembers = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
-        // TODO: this route does not exist yet
-        path: [{props: {conversationIDKey, teamID}, selected: 'teamAddToChannel'}],
+        path: [{props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
       })
     )
   const onNavToTeam = () =>

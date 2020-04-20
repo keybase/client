@@ -35,8 +35,15 @@ const useSecondaryAction = (props: Props) => {
   const onSecondaryAction = () => {
     switch (props.type) {
       case 'members':
-        // TODO: different behavior for channels - but waiting on the add members button in parent to be implemented
-        dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
+        dispatch(
+          props.conversationIDKey
+            ? nav.safeNavigateAppendPayload({
+                path: [
+                  {props: {conversationIDKey: props.conversationIDKey, teamID}, selected: 'chatAddToChannel'},
+                ],
+              })
+            : TeamsGen.createStartAddMembersWizard({teamID})
+        )
         break
       case 'subteams':
         dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID}))
