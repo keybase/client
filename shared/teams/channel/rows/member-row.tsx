@@ -87,7 +87,17 @@ const ChannelMemberRow = (props: Props) => {
     username &&
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]}))
   const onOpenProfile = () => username && dispatch(ProfileGen.createShowUserProfile({username}))
-  const onRemoveFromChannel = () => console.log('onRemoveFromChannel not yet implemented')
+  const onRemoveFromChannel = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey, members: [username], teamID},
+            selected: 'teamReallyRemoveChannelMember',
+          },
+        ],
+      })
+    )
   const onBlock = () =>
     username &&
     dispatch(
@@ -116,7 +126,7 @@ const ChannelMemberRow = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Avatar username={username} size={32} />
 
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.nameContainer}>
+      <Kb.Box2 direction="vertical" style={styles.nameContainer}>
         <Kb.Box style={Styles.globalStyles.flexBoxRow}>
           <Kb.ConnectedUsernames type="BodySemibold" usernames={props.username} />
         </Kb.Box>
@@ -130,7 +140,7 @@ const ChannelMemberRow = (props: Props) => {
               title={teamMemberInfo.status === 'reset' ? 'locked out' : 'deleted'}
             />
           )}
-          <Kb.Text type="BodySmall">
+          <Kb.Text type="BodySmall" style={styles.marginRight}>
             {!!active && !!teamMemberInfo.type && Constants.typeToLabel[teamMemberInfo.type]}
             {resetLabel}
           </Kb.Text>
@@ -259,8 +269,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   fullNameLabel: {flexShrink: 1, marginRight: Styles.globalMargins.xtiny},
   listItemMargin: {marginLeft: 0},
+  marginRight: {marginRight: Styles.globalMargins.xtiny},
   mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
-  nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
+  nameContainer: {flex: 1, marginLeft: Styles.globalMargins.small},
   nameContainerInner: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},
   selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
   widenClickableArea: {margin: -5, padding: 5},
