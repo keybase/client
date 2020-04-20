@@ -54,7 +54,7 @@ func testTeamInviteSeitanInvitelinkHappy(t *testing.T, implicitAdmin bool) {
 	details := alice.teamGetDetails(teamName.String())
 	require.Len(t, details.AnnotatedActiveInvites, 1)
 	for _, aInvite := range details.AnnotatedActiveInvites {
-		invite := aInvite.Invite
+		invite := aInvite.InviteMetadata.Invite
 		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
 		tic, err := invite.Type.C()
 		require.NoError(t, err)
@@ -180,7 +180,7 @@ func TestCreateSeitanInvitelinkWithDuration(t *testing.T) {
 	details := alice.teamGetDetails(teamName.String())
 	require.Len(t, details.AnnotatedActiveInvites, 1)
 	for _, aInvite := range details.AnnotatedActiveInvites {
-		invite := aInvite.Invite
+		invite := aInvite.InviteMetadata.Invite
 		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
 		require.NotNil(t, invite.MaxUses)
 		require.Equal(t, keybase1.TeamMaxUsesInfinite, *invite.MaxUses)

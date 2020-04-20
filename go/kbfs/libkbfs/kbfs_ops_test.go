@@ -98,6 +98,8 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	c := make(chan error, 1)
 	config.mockMdserv.EXPECT().RegisterForUpdate(gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().Return(c, nil)
+	config.mockMdserv.EXPECT().CancelRegistration(
+		gomock.Any(), gomock.Any()).AnyTimes().Return()
 	config.mockMdserv.EXPECT().OffsetFromServerTime().
 		Return(time.Duration(0), true).AnyTimes()
 	// No chat monitoring.

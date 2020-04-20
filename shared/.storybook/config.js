@@ -6,6 +6,6 @@ import {configure} from '@storybook/react'
 enableAllPlugins()
 
 configure(() => {
-  const load = require('../stories').default
+  const load = require('../stories/index.desktop').default
   load()
 }, module)

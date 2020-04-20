@@ -5,6 +5,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
+import {ModalTitle} from '../common'
 
 type Props = Container.RouteProps<{teamID: Types.TeamID}>
 
@@ -61,14 +62,8 @@ const EditTeamDescription = (props: Props) => {
           </Kb.ButtonBar>
         ),
       }}
-      header={{
-        icon: (
-          <Kb.Box style={styles.headerIcon}>
-            <Kb.Avatar isTeam={true} teamname={teamname} size={64} />
-          </Kb.Box>
-        ),
-        title: teamname,
-      }}
+      header={{title: <ModalTitle teamID={teamID} title="Edit team description" />}}
+      allowOverflow={true}
     >
       <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
         <Kb.LabeledInput

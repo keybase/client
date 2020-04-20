@@ -73,21 +73,18 @@ const ChannelRow = (props: ChannelRowProps) => {
       <Kb.Text type="BodySemibold" lineClamp={1}>
         #{channel.channelname}
       </Kb.Text>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text type="BodySmall" lineClamp={1}>
-          {channel.description}{' '}
-        </Kb.Text>
-        <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
-          <Kb.Text type="BodySmall">{membersText}</Kb.Text>
-          {!Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
-          <Activity level={activityLevel} />
-        </Kb.Box2>
+      <Kb.Text type="BodySmall" lineClamp={1}>
+        {channel.description}
+      </Kb.Text>
+      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
+        <Kb.Text type="BodySmall">{membersText}</Kb.Text>
+        {!Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
+        <Activity level={activityLevel} />
       </Kb.Box2>
     </Kb.Box2>
   )
 
   const menuItems: Array<Kb.MenuItem> = [
-    {onClick: () => {}, title: 'Audience stats'},
     {onClick: onNavToSettings, title: 'Settings'},
     ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
   ]
@@ -101,8 +98,12 @@ const ChannelRow = (props: ChannelRowProps) => {
     />
   ))
 
-  const actions = (
-    <Kb.Box2 direction="horizontal" gap="tiny" style={styles.mobileMarginsHack}>
+  const actions = canPerform.deleteChannel ? (
+    <Kb.Box2
+      direction="horizontal"
+      gap="tiny"
+      style={canPerform.deleteChannel ? styles.mobileMarginsHack : undefined}
+    >
       {popup}
       <Kb.Button
         icon="iconfont-edit"
@@ -122,6 +123,8 @@ const ChannelRow = (props: ChannelRowProps) => {
         tooltip="More actions"
       />
     </Kb.Box2>
+  ) : (
+    undefined
   )
   const massActionsProps = canPerform.deleteChannel
     ? {
@@ -139,7 +142,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       type="Large"
       body={body}
       firstItem={isGeneral}
-      style={selected ? styles.selected : undefined}
+      style={selected ? styles.selected : styles.unselected}
       onClick={onNavToChannel}
     />
   )
@@ -152,6 +155,7 @@ const styles = Styles.styleSheetCreate(
       listItemMargin: {marginLeft: 0},
       mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
       selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
+      unselected: {backgroundColor: Styles.globalColors.white},
       widenClickableArea: {margin: -5, padding: 5},
     } as const)
 )

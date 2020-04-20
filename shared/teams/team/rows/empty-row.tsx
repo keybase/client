@@ -98,7 +98,7 @@ const EmptyRow = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" gap="small" alignItems="center" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal">
-        <Kb.Icon type={icon[props.type]} />
+        <Kb.Icon type={icon[props.type]} style={styles.iconHeight} />
       </Kb.Box2>
       <Kb.Text type="BodySmall" center={true} style={styles.text}>
         {getFirstText(props.type, teamOrChannel, teamOrChannelName, notIn)}
@@ -129,9 +129,10 @@ const styles = Styles.styleSheetCreate(
     ({
       container: {
         ...Styles.padding(40, 0),
-        backgroundColor: Styles.globalColors.blueGreyLight,
+        backgroundColor: Styles.globalColors.blueGrey,
         justifyContent: 'flex-start',
       },
+      iconHeight: {height: 96},
       text: Styles.platformStyles({
         isElectron: {maxWidth: 272},
       }),

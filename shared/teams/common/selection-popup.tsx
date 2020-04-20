@@ -96,31 +96,31 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   const popup = (
     <Kb.Box2
       fullWidth={Styles.isMobile}
-      direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+      direction={Styles.isPhone ? 'vertical' : 'horizontal'}
       alignItems="center"
       style={Styles.collapseStyles([
         styles.container,
         selectedCount && !Styles.isMobile ? styles.containerShowing : null,
       ])}
-      gap={Styles.isMobile ? 'tiny' : undefined}
+      gap={Styles.isPhone ? 'tiny' : undefined}
       className="selectionPopup"
       onLayout={Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
-      {Styles.isMobile && (
+      {Styles.isPhone && (
         <Kb.Text style={styles.topLink} type="BodyPrimaryLink" onClick={onCancel}>
           Cancel
         </Kb.Text>
       )}
       <Kb.Text type="BodySmall">
         {selectedCount} {pluralize(selectableTabName, selectedCount)} selected.{' '}
-        {!Styles.isMobile && (
+        {!Styles.isPhone && (
           <Kb.Text type="BodySmallPrimaryLink" onClick={onCancel}>
             Unselect
           </Kb.Text>
         )}
       </Kb.Text>
 
-      {!Styles.isMobile && <Kb.BoxGrow />}
+      {!Styles.isPhone && <Kb.BoxGrow />}
       {children}
     </Kb.Box2>
   )
@@ -218,7 +218,7 @@ const SelectionPopup = (props: Props) =>
   ) : null
 
 const ActionsWrapper = ({children}) => (
-  <Kb.Box2 fullWidth={Styles.isMobile} direction={Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
+  <Kb.Box2 fullWidth={Styles.isPhone} direction={Styles.isPhone ? 'vertical' : 'horizontal'} gap="tiny">
     {children}
   </Kb.Box2>
 )
@@ -253,7 +253,7 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
           label="Add to channels"
           mode="Secondary"
           onClick={onAddToChannel}
-          fullWidth={Styles.isMobile}
+          fullWidth={Styles.isPhone}
         />
       )}
       <EditRoleButton teamID={teamID} members={members} />
@@ -261,7 +261,7 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
         label="Remove from team"
         type="Danger"
         onClick={onRemoveFromTeam}
-        fullWidth={Styles.isMobile}
+        fullWidth={Styles.isPhone}
       />
     </ActionsWrapper>
   )
@@ -324,7 +324,7 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
         mode="Secondary"
         disabled={disableButton}
         onClick={() => setShowingPicker(!showingPicker)}
-        fullWidth={Styles.isMobile}
+        fullWidth={Styles.isPhone}
         tooltip={disableButton ? disabledReasons.admin : undefined}
       />
     </FloatingRolePicker>
@@ -387,7 +387,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
         label="Add to channels"
         mode="Secondary"
         onClick={onAddToChannel}
-        fullWidth={Styles.isMobile}
+        fullWidth={Styles.isPhone}
       />
       <EditRoleButton teamID={teamID} members={members} />
       {channelname !== 'general' && (
@@ -395,7 +395,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
           label="Remove from channel"
           type="Danger"
           onClick={onRemoveFromChannel}
-          fullWidth={Styles.isMobile}
+          fullWidth={Styles.isPhone}
         />
       )}
     </ActionsWrapper>

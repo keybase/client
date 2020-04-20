@@ -75,8 +75,8 @@ func testTeamInviteSeitanHappy(t *testing.T, implicitAdmin bool, seitanVersion t
 	details := own.teamGetDetails(teamName.String())
 	require.Len(t, details.AnnotatedActiveInvites, 1)
 	for _, invite := range details.AnnotatedActiveInvites {
-		require.Equal(t, keybase1.TeamRole_WRITER, invite.Invite.Role)
-		tic, err := invite.Invite.Type.C()
+		require.Equal(t, keybase1.TeamRole_WRITER, invite.InviteMetadata.Invite.Role)
+		tic, err := invite.InviteMetadata.Invite.Type.C()
 		require.NoError(t, err)
 		require.Equal(t, keybase1.TeamInviteCategory_SEITAN, tic)
 		require.Equal(t, keybase1.TeamInviteDisplayName("bugs (0000)"), invite.DisplayName)

@@ -344,7 +344,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 		uids = append(uids, member.UserID)
 	}
 	for _, invite := range res.AnnotatedActiveInvites {
-		uids = append(uids, invite.Invite.Inviter.Uid)
+		uids = append(uids, invite.InviteMetadata.Invite.Inviter.Uid)
 	}
 
 	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids,
@@ -375,7 +375,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 		}
 	}
 	for i, invite := range res.AnnotatedActiveInvites {
-		if pkg, ok := namePkgs[invite.Invite.Inviter.Uid]; ok {
+		if pkg, ok := namePkgs[invite.InviteMetadata.Invite.Inviter.Uid]; ok {
 			invite.InviterUsername = pkg.NormalizedUsername.String()
 			res.AnnotatedActiveInvites[i] = invite
 		}
@@ -525,16 +525,17 @@ type AnnotatedInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
 func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 	members *keybase1.TeamMembersDetails) (AnnotatedInviteMap, error) {
 
-	invites := team.chain().inner.ActiveInvites
-	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))
-	if len(invites) == 0 {
+	inviteMDs := team.chain().ActiveInvites()
+	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(inviteMDs))
+	if len(inviteMDs) == 0 {
 		return annotatedInvites, nil
 	}
 
 	// UID list to pass to UIDMapper to get full names. Duplicate UIDs
 	// are fine, MapUIDsReturnMap will filter them out.
 	var uids []keybase1.UID
-	for _, invite := range invites {
+	for _, inviteMD := range inviteMDs {
+		invite := inviteMD.Invite
 		uids = append(uids, invite.Inviter.Uid)
 
 		category, err := invite.Type.C()
@@ -548,7 +549,7 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 			}
 			uids = append(uids, uv.Uid)
 		}
-		for _, usedInviteLogPoint := range team.chain().inner.UsedInvites[invite.Id] {
+		for _, usedInviteLogPoint := range inviteMD.UsedInvites {
 			uids = append(uids, usedInviteLogPoint.Uv.Uid)
 		}
 	}
@@ -561,7 +562,8 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 	}
 
 	teamName := team.Name().String()
-	for id, invite := range invites {
+	for _, inviteMD := range inviteMDs {
+		invite := inviteMD.Invite
 		inviterUsername := namePkgs[invite.Inviter.Uid].NormalizedUsername
 
 		// default displayName; overridden by some invite types later
@@ -628,26 +630,26 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 				// There are seitan invites in the wild from before
 				// https://github.com/keybase/client/pull/9816 These can no
 				// longer be decrypted, we hide them.
-				mctx.Debug("error annotating seitan invite (%v): %v", id, err)
+				mctx.Debug("error annotating seitan invite (%v): %v", invite.Id, err)
 				continue
 			}
 		case keybase1.TeamInviteCategory_INVITELINK:
 			displayName, err = ComputeInvitelinkDisplayName(mctx, team, invite)
 			if err != nil {
-				mctx.Warning("error annotating invitelink (%v): %v", id, err)
+				mctx.Warning("error annotating invitelink (%v): %v", invite.Id, err)
 				continue
 			}
 		default:
 		}
 
-		annotatedInvites[id] = keybase1.AnnotatedTeamInvite{
-			Invite:          invite,
-			DisplayName:     displayName,
-			InviteeUv:       uv,
-			InviterUsername: inviterUsername.String(),
-			TeamName:        teamName,
-			Status:          status,
-			UsedInvites:     AnnotateTeamUsedInviteLogPoints(team.chain().inner.UsedInvites[invite.Id], namePkgs),
+		annotatedInvites[invite.Id] = keybase1.AnnotatedTeamInvite{
+			InviteMetadata:       inviteMD,
+			DisplayName:          displayName,
+			InviteeUv:            uv,
+			InviterUsername:      inviterUsername.String(),
+			TeamName:             teamName,
+			Status:               status,
+			AnnotatedUsedInvites: AnnotateTeamUsedInviteLogPoints(inviteMD.UsedInvites, namePkgs),
 		}
 	}
 
@@ -655,8 +657,9 @@ func AnnotateInvitesNoPUKless(mctx libkb.MetaContext, team *Team,
 }
 
 func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *Team, res *keybase1.AnnotatedTeamList) {
-	invites := team.chain().inner.ActiveInvites
-	for invID, invite := range invites {
+	inviteMDs := team.chain().ActiveInvites()
+	for invID, inviteMD := range inviteMDs {
+		invite := inviteMD.Invite
 		category, err := invite.Type.C()
 		if err != nil {
 			g.Log.CDebugf(ctx, "| parseInvitesNoAnnotate failed to parse invite %q for team %q: %v", invID, team.ID, err)
@@ -686,9 +689,9 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 		case keybase1.TeamInviteCategory_SEITAN, keybase1.TeamInviteCategory_INVITELINK:
 			// Don't show seitans or links in this view.
 		default:
-			res.AnnotatedActiveInvites[invID] = keybase1.AnnotatedTeamInvite{
-				Invite:   invite,
-				TeamName: team.Name().String(),
+			res.AnnotatedActiveInvites[invite.Id] = keybase1.AnnotatedTeamInvite{
+				InviteMetadata: inviteMD,
+				TeamName:       team.Name().String(),
 			}
 		}
 	}

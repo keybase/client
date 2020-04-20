@@ -55,7 +55,7 @@ const ChannelMemberRow = (props: Props) => {
     ) : null
   const fullNameLabel =
     fullname && active ? (
-      <Kb.Text style={styles.fullNameLabel} type="BodySmall">
+      <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
         {fullname} •
       </Kb.Text>
     ) : null
@@ -113,8 +113,8 @@ const ChannelMemberRow = (props: Props) => {
   )
 
   const body = (
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.Avatar username={username} size={Styles.isMobile ? 48 : 32} />
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+      <Kb.Avatar username={username} size={32} />
 
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.nameContainer}>
         <Kb.Box style={Styles.globalStyles.flexBoxRow}>
@@ -156,7 +156,16 @@ const ChannelMemberRow = (props: Props) => {
     'Divider',
     ...(yourOperations.manageMembers
       ? ([
-          {icon: 'iconfont-chat', onClick: onChat, title: 'Add to channels...'},
+          {
+            icon: 'iconfont-chat',
+            onClick: () =>
+              dispatch(
+                RouteTreeGen.createNavigateAppend({
+                  path: [{props: {teamID, usernames: [username]}, selected: 'teamAddToChannels'}],
+                })
+              ),
+            title: 'Add to channels...',
+          },
           {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},
         ] as Kb.MenuItems)
       : []),
@@ -230,7 +239,7 @@ const ChannelMemberRow = (props: Props) => {
       {...massActionsProps}
       action={anySelected ? null : actions}
       onlyShowActionOnHover="fade"
-      height={Styles.isMobile ? 90 : 64}
+      height={Styles.isMobile ? 64 : 48}
       type="Large"
       body={body}
       firstItem={props.firstItem}
@@ -248,7 +257,7 @@ const styles = Styles.styleSheetCreate(() => ({
   crownIcon: {
     marginRight: Styles.globalMargins.xtiny,
   },
-  fullNameLabel: {marginRight: Styles.globalMargins.xtiny},
+  fullNameLabel: {flexShrink: 1, marginRight: Styles.globalMargins.xtiny},
   listItemMargin: {marginLeft: 0},
   mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
   nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
