@@ -70,6 +70,7 @@ const CreateChannel = (props: Props) => {
   return (
     <Kb.Modal
       banners={props.banners}
+      backgroundStyle={styles.background}
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
@@ -137,13 +138,13 @@ const styles = Styles.styleSheetCreate(() => ({
     isMobile: {width: 47},
     isTablet: {alignSelf: 'flex-start'},
   }),
+  background: {backgroundColor: Styles.globalColors.blueGrey},
   banner: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
   body: {
     ...Styles.padding(Styles.globalMargins.small),
-    backgroundColor: Styles.globalColors.blueGrey,
     flex: 1,
   },
   input: {...Styles.padding(Styles.globalMargins.xsmall)},
