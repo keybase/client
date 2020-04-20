@@ -303,8 +303,10 @@ func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertis
 		return chat1.BotCommandsAdvertisementTyp_TLFID_CONVS, nil
 	case "teammembers":
 		return chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
+	case "conv":
+		return chat1.BotCommandsAdvertisementTyp_CONV, nil
 	default:
-		return chat1.BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q, must be one of 'public', 'teamconvs' or 'teammembers' see `keybase chat api --help` for more info.", typ)
+		return chat1.BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q, must be one of 'public', 'teamconvs', 'teammembers', or 'conv' see `keybase chat api --help` for more info.", typ)
 	}
 }
 
@@ -329,10 +331,19 @@ func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts adver
 			adTeamName := ad.TeamName
 			teamName = &adTeamName
 		}
+		var convID *chat1.ConversationID
+		if ad.ConvID != "" {
+			adConvID, err := chat1.MakeConvID(ad.ConvID.String())
+			if err != nil {
+				return c.errReply(err)
+			}
+			convID = &adConvID
+		}
 		ads = append(ads, chat1.AdvertiseCommandsParam{
 			Typ:      typ,
 			Commands: ad.Commands,
 			TeamName: teamName,
+			ConvID:   convID,
 		})
 	}
 	res, err := client.AdvertiseBotCommandsLocal(ctx, chat1.AdvertiseBotCommandsLocalArg{

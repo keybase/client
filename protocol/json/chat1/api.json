@@ -990,6 +990,12 @@
           "name": "teamName",
           "optional": true,
           "jsonkey": "team_name"
+        },
+        {
+          "type": "ConvIDStr",
+          "name": "convID",
+          "jsonKey": "conv_id",
+          "optional": true
         }
       ]
     },

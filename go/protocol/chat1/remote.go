@@ -968,11 +968,24 @@ func (o RemoteBotCommandsAdvertisementTLFID) DeepCopy() RemoteBotCommandsAdverti
 	}
 }
 
+type RemoteBotCommandsAdvertisementConv struct {
+	ConvID          ConversationID `codec:"convID" json:"convID"`
+	AdvertiseConvID ConversationID `codec:"advertiseConvID" json:"advertiseConvID"`
+}
+
+func (o RemoteBotCommandsAdvertisementConv) DeepCopy() RemoteBotCommandsAdvertisementConv {
+	return RemoteBotCommandsAdvertisementConv{
+		ConvID:          o.ConvID.DeepCopy(),
+		AdvertiseConvID: o.AdvertiseConvID.DeepCopy(),
+	}
+}
+
 type RemoteBotCommandsAdvertisement struct {
 	Typ__          BotCommandsAdvertisementTyp           `codec:"typ" json:"typ"`
 	Public__       *RemoteBotCommandsAdvertisementPublic `codec:"public,omitempty" json:"public,omitempty"`
 	TlfidMembers__ *RemoteBotCommandsAdvertisementTLFID  `codec:"tlfidMembers,omitempty" json:"tlfidMembers,omitempty"`
 	TlfidConvs__   *RemoteBotCommandsAdvertisementTLFID  `codec:"tlfidConvs,omitempty" json:"tlfidConvs,omitempty"`
+	Conv__         *RemoteBotCommandsAdvertisementConv   `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 func (o *RemoteBotCommandsAdvertisement) Typ() (ret BotCommandsAdvertisementTyp, err error) {
@@ -990,6 +1003,11 @@ func (o *RemoteBotCommandsAdvertisement) Typ() (ret BotCommandsAdvertisementTyp,
 	case BotCommandsAdvertisementTyp_TLFID_CONVS:
 		if o.TlfidConvs__ == nil {
 			err = errors.New("unexpected nil value for TlfidConvs__")
+			return ret, err
+		}
+	case BotCommandsAdvertisementTyp_CONV:
+		if o.Conv__ == nil {
+			err = errors.New("unexpected nil value for Conv__")
 			return ret, err
 		}
 	}
@@ -1026,6 +1044,16 @@ func (o RemoteBotCommandsAdvertisement) TlfidConvs() (res RemoteBotCommandsAdver
 	return *o.TlfidConvs__
 }
 
+func (o RemoteBotCommandsAdvertisement) Conv() (res RemoteBotCommandsAdvertisementConv) {
+	if o.Typ__ != BotCommandsAdvertisementTyp_CONV {
+		panic("wrong case accessed")
+	}
+	if o.Conv__ == nil {
+		return
+	}
+	return *o.Conv__
+}
+
 func NewRemoteBotCommandsAdvertisementWithPublic(v RemoteBotCommandsAdvertisementPublic) RemoteBotCommandsAdvertisement {
 	return RemoteBotCommandsAdvertisement{
 		Typ__:    BotCommandsAdvertisementTyp_PUBLIC,
@@ -1044,6 +1072,13 @@ func NewRemoteBotCommandsAdvertisementWithTlfidConvs(v RemoteBotCommandsAdvertis
 	return RemoteBotCommandsAdvertisement{
 		Typ__:        BotCommandsAdvertisementTyp_TLFID_CONVS,
 		TlfidConvs__: &v,
+	}
+}
+
+func NewRemoteBotCommandsAdvertisementWithConv(v RemoteBotCommandsAdvertisementConv) RemoteBotCommandsAdvertisement {
+	return RemoteBotCommandsAdvertisement{
+		Typ__:  BotCommandsAdvertisementTyp_CONV,
+		Conv__: &v,
 	}
 }
 
@@ -1071,6 +1106,13 @@ func (o RemoteBotCommandsAdvertisement) DeepCopy() RemoteBotCommandsAdvertisemen
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TlfidConvs__),
+		Conv__: (func(x *RemoteBotCommandsAdvertisementConv) *RemoteBotCommandsAdvertisementConv {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Conv__),
 	}
 }
 

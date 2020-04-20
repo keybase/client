@@ -351,10 +351,15 @@ protocol remote {
     ConversationID convID;
     TLFID tlfID;
   }
+  record RemoteBotCommandsAdvertisementConv {
+    ConversationID convID;
+    ConversationID advertiseConvID;
+  }
   variant RemoteBotCommandsAdvertisement switch(BotCommandsAdvertisementTyp typ) {
     case PUBLIC: RemoteBotCommandsAdvertisementPublic;
     case TLFID_MEMBERS: RemoteBotCommandsAdvertisementTLFID;
     case TLFID_CONVS: RemoteBotCommandsAdvertisementTLFID;
+    case CONV: RemoteBotCommandsAdvertisementConv;
   }
   record BotCommandConv {
     gregor1.UID uid;
