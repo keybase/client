@@ -176,6 +176,7 @@ const maybeCancelTeamBuilding = (namespace: TeamBuildingTypes.AllowedNamespace) 
       return TeamBuildingGen.createCancelTeamBuilding({namespace})
     }
   }
+  return false
 }
 
 export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {

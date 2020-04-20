@@ -522,7 +522,9 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const modalModeToStyle = new Map([
+type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide'
+
+const modalModeToStyle = new Map<ModalType, Styles.StylesCrossPlatform>([
   ['Default', styles.modalModeDefault],
   ['DefaultFullHeight', styles.modalModeDefaultFullHeight],
   ['DefaultFullWidth', styles.modalModeDefaultFullWidth],
