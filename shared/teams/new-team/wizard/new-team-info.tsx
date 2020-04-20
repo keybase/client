@@ -199,6 +199,7 @@ const NewTeamInfo = () => {
                     confirmLabel={`Let people in as ${pluralize(selectedRole)}`}
                     selectedRole={selectedRole}
                     onSelectRole={setSelectedRole}
+                    presetRole={realRole}
                     floatingContainerStyle={styles.floatingRolePicker}
                     onConfirm={() => {
                       setRealRole(selectedRole)
