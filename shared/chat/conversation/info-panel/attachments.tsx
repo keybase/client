@@ -339,6 +339,7 @@ const styles = Styles.styleSheetCreate(
         borderTopRightRadius: 0,
       },
       thumbContainer: {
+        margin: Styles.globalMargins.xxtiny,
         overflow: 'hidden',
         position: 'relative',
       },
