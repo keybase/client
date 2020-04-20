@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -508,4 +509,71 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 	role, err := t0.MemberRole(context.Background(), user2.GetUserVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_NONE, role, "user role")
+}
+
+func TestSeitanPukless(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+
+	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	t.Logf("Admin username: %s", admin.Username)
+
+	teamName, teamID := createTeam2(tc)
+	t.Logf("Created team %q", teamName.String())
+
+	_ = teamID
+
+	token, err := CreateSeitanTokenV2(context.Background(), tc.G,
+		teamName.String(), keybase1.TeamRole_WRITER, keybase1.SeitanKeyLabel{})
+	require.NoError(t, err)
+
+	t.Logf("Created token %q", token)
+
+	kbtest.Logout(tc)
+
+	// Create a PUKless user
+	tc.Tp.DisableUpgradePerUserKey = true
+	user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	t.Logf("User: %s", user.Username)
+
+	timeNow := keybase1.ToTime(tc.G.Clock().Now())
+	seitanRet, err := generateAcceptanceSeitanV2(SeitanIKeyV2(token), user.GetUserVersion(), timeNow)
+	require.NoError(t, err)
+
+	kbtest.LogoutAndLoginAs(tc, admin)
+
+	inviteID, err := seitanRet.inviteID.TeamInviteID()
+	require.NoError(t, err)
+
+	msg := keybase1.TeamSeitanMsg{
+		TeamID: teamID,
+		Seitans: []keybase1.TeamSeitanRequest{{
+			InviteID:    inviteID,
+			Uid:         user.GetUID(),
+			EldestSeqno: user.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(seitanRet.encoded),
+			Role:        keybase1.TeamRole_WRITER,
+			UnixCTime:   int64(timeNow),
+		}},
+	}
+	err = HandleTeamSeitan(context.Background(), tc.G, msg)
+	require.NoError(t, err)
+
+	// HandleTeamSeitan should not have added an invite for user. If it has, it
+	// also hasn't completed invite properly (`team.invite` link can't complete
+	// invite), which means the invite has been used but left active.
+	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name:        teamName.String(),
+		NeedAdmin:   true,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	invite, _, found := team.FindActiveKeybaseInvite(user.GetUID())
+	require.False(t, found, "Found invite for user: %s", spew.Sdump(invite))
 }

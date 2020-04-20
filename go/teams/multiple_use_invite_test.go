@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/clockwork"
 
 	"github.com/keybase/client/go/kbtest"
@@ -212,7 +213,6 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 	// Test various cases where an acceptance is malformed and should be
 	// rejected. Rejections for over-used invites are tested in
 	// TestSeitanHandleExceededInvite.
-
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
@@ -627,4 +627,71 @@ func newDropRejectCallsAPI(origAPI libkb.API) *libkb.APIArgRecorder {
 				return 0
 			},
 		))
+}
+
+func TestSeitanInviteLinkPukless(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	t.Logf("Admin username: %s", admin.Username)
+
+	teamName, teamID := createTeam2(tc)
+	t.Logf("Created team %q", teamName.String())
+
+	_ = teamID
+
+	maxUses := keybase1.TeamInviteMaxUses(1)
+	invLink, err := CreateInvitelink(tc.MetaContext(), teamName.String(), keybase1.TeamRole_READER,
+		maxUses, nil /* etime */)
+	require.NoError(t, err)
+
+	t.Logf("Created invite link %q", invLink.Ikey)
+
+	kbtest.Logout(tc)
+
+	// Create a PUKless user
+	tc.Tp.DisableUpgradePerUserKey = true
+	user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	t.Logf("User: %s", user.Username)
+
+	timeNow := tc.G.Clock().Now().Unix()
+	seitanRet, err := generateAcceptanceSeitanInviteLink(invLink.Ikey, user.GetUserVersion(), timeNow)
+	require.NoError(t, err)
+
+	kbtest.LogoutAndLoginAs(tc, admin)
+
+	inviteID, err := seitanRet.inviteID.TeamInviteID()
+	require.NoError(t, err)
+
+	msg := keybase1.TeamSeitanMsg{
+		TeamID: teamID,
+		Seitans: []keybase1.TeamSeitanRequest{{
+			InviteID:    inviteID,
+			Uid:         user.GetUID(),
+			EldestSeqno: user.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(seitanRet.encoded),
+			Role:        keybase1.TeamRole_WRITER,
+			UnixCTime:   int64(timeNow),
+		}},
+	}
+	err = HandleTeamSeitan(context.Background(), tc.G, msg)
+	require.NoError(t, err)
+
+	// HandleTeamSeitan should not have added an invite for user. If it has, it
+	// also hasn't "used invite" properly (`team.invite` link does not have
+	// `use_invites` field even if it adds type=keybase invites).
+	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name:        teamName.String(),
+		NeedAdmin:   true,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	invite, _, found := team.FindActiveKeybaseInvite(user.GetUID())
+	require.False(t, found, "Found invite for user: %s", spew.Sdump(invite))
 }
