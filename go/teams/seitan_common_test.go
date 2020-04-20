@@ -46,7 +46,7 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion SeitanVersion) {
 
 	require.Equal(t, 1, len(details.AnnotatedActiveInvites))
 	for key, aInvite := range details.AnnotatedActiveInvites {
-		invite := aInvite.Invite
+		invite := aInvite.InviteMetadata.Invite
 		require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
 		require.EqualValues(t, fmt.Sprintf("%s (%s)", labelSms.F, labelSms.N), aInvite.DisplayName)
 
