@@ -49,7 +49,9 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         path: [{props: {teamID}, selected: 'team'}],
       })
     )
-  const activityLevel = 'active' // TODO plumbing
+  const activityLevel = Container.useSelector(
+    state => state.teams.activityLevels.channels.get(conversationIDKey) || 'none'
+  )
   const newMemberCount = 1 // TODO plumbing
 
   const callbacks = useHeaderCallbacks(teamID, conversationIDKey)
