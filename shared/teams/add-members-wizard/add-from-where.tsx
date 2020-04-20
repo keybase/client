@@ -72,6 +72,8 @@ const AddFromWhere = () => {
           />
         ),
       }}
+      mode="DefaultFullHeight"
+      backgroundStyle={styles.bg}
     >
       <Kb.Box2
         direction="vertical"
@@ -114,12 +116,15 @@ const AddFromWhere = () => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  bg: Styles.platformStyles({
+    common: {backgroundColor: Styles.globalColors.blueGrey},
+    isElectron: {borderRadius: 4},
+  }),
   body: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.blueGrey},
     isElectron: {
       ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.xlarge),
       borderBottomRadius: 4,
-      minHeight: 479,
     },
     isMobile: {
       ...Styles.globalStyles.flexOne,
