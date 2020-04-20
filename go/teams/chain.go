@@ -207,6 +207,14 @@ func (t TeamSigChainState) GetUserLastJoinTime(user keybase1.UserVersion) (time 
 	return t.inner.GetUserLastJoinTime(user)
 }
 
+// GetUserLastRoleChangeTime returns the time of the last role change for user
+// in team. If the user left the team as a last change, the time of such leave
+// event is returned. If the user was never in the team, then this function
+// returns time=0 ans wasPartOfTeam=false.
+func (t TeamSigChainState) GetUserLastRoleChangeTime(user keybase1.UserVersion) (time keybase1.Time, wasPartOfTeam bool) {
+	return t.inner.GetUserLastRoleChangeTime(user)
+}
+
 // NewStyle invites are completed in the `used_invites` field in the change
 // membership link, can optionally specify an expiration time, and a maximum
 // number of uses (potentially infinite).

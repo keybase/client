@@ -749,7 +749,7 @@ func verifySeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		if category != keybase1.TeamInviteCategory_INVITELINK {
 			return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v; wanted invitelink", category)
 		}
-		return verifySeitanSingleInvitelink(ctx, g, keyAndLabel.Invitelink().I, invite, seitan)
+		return verifySeitanSingleInvitelink(ctx, g, team, keyAndLabel.Invitelink().I, invite, seitan)
 	default:
 		return fmt.Errorf("unknown KeyAndLabel version: %v", labelversion)
 	}
@@ -822,10 +822,13 @@ func verifySeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 	return nil
 }
 
-func verifySeitanSingleInvitelink(ctx context.Context, g *libkb.GlobalContext, ikey keybase1.SeitanIKeyInvitelink, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+func verifySeitanSingleInvitelink(ctx context.Context, g *libkb.GlobalContext, team *Team, ikey keybase1.SeitanIKeyInvitelink, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
 	// We repeat the steps that user does when they request access using the
 	// invite ID and see if we get the same answer for the same parameters (UV
 	// and unixCTime).
+	//
+	// Also, we check that the state of the user in the team has not changed
+	// since they signed the acceptance.
 	uv := keybase1.UserVersion{
 		Uid:         seitan.Uid,
 		EldestSeqno: seitan.EldestSeqno,
@@ -848,6 +851,23 @@ func verifySeitanSingleInvitelink(ctx context.Context, g *libkb.GlobalContext, i
 
 	if !libkb.SecureByteArrayEq(ourAccept.akey, decodedAKey) {
 		return NewInviteLinkAcceptanceError("did not end up with the same invitelink AKey")
+	}
+
+	roleChangeTime, wasPartOfTeam := team.UserLastRoleChangeTime(uv)
+	if wasPartOfTeam && seitan.UnixCTime < roleChangeTime.UnixSeconds() {
+		return NewInviteLinkAcceptanceError("invite link was accepted before the user last changed their role")
+	}
+
+	if g.Clock().Now().Unix() < seitan.UnixCTime {
+		// In this case we do not return an InviteLinkAcceptanceError to avoid
+		// triggering a rejection in case this client's clock is off. If the
+		// server is honest, clients shouldn't get asked to process these invite
+		// links anyways, and if it is malicious than it does not matter if we
+		// ask it to reject. Moreover, not rejecting might be cause a slight
+		// performance degradation that can be detected server side, while
+		// rejecting erroneously means people can't get into the teams they want
+		// with no immediate feedback error.
+		return fmt.Errorf("acceptance was produced with a future timestamp: ignoring (without rejecting)")
 	}
 
 	return nil
