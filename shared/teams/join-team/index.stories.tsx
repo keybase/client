@@ -7,8 +7,6 @@ import {fakeTeamID} from '../stories'
 const detailsStore = Container.produce(Sb.createStoreWithCommon(), draftState => {
   draftState.teams.teamInviteDetails = {
     ...draftState.teams.teamInviteDetails,
-    inviteID: 'inviteID',
-    inviteKey: 'inviteKey',
     inviteDetails: {
       inviteID: 'inviteID',
       inviterResetOrDel: true,
@@ -28,6 +26,8 @@ const detailsStore = Container.produce(Sb.createStoreWithCommon(), draftState =>
       teamName: {parts: ['bobland']},
       teamNumMembers: 1,
     },
+    inviteID: 'inviteID',
+    inviteKey: 'inviteKey',
   }
 })
 // const acceptedStore = Container.produce(Sb.createStoreWithCommon(), draftState => {})
