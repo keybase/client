@@ -19,7 +19,8 @@ import NotificationsTab from './notifications/container'
 import PasswordTab from './password/container'
 import ScreenprotectorTab from './screenprotector.native'
 import DbNukeConfirm from './db-nuke-confirm/container'
-import DeleteConfirm from './delete-confirm/container'
+import DeleteConfirm from './delete-confirm/index'
+import CheckPassphraseMobile from './delete-confirm/check-passphrase.native'
 import InviteSent from './invite-generated/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import WebLink from './web-links.native'
@@ -89,8 +90,12 @@ export const newModalRoutes = {
   [Constants.passwordTab]: {
     getScreen: (): typeof PasswordTab => require('./password/container').default,
   },
+  checkPassphraseBeforeDeleteAccount: {
+    getScreen: (): typeof CheckPassphraseMobile =>
+      require('./delete-confirm/check-passphrase.native').default,
+  },
   deleteConfirm: {
-    getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default,
+    getScreen: (): typeof DeleteConfirm => require('./delete-confirm/index').default,
   },
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
