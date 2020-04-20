@@ -70,7 +70,7 @@ const TeamRow = (props: Props) => {
             direction="vertical"
             fullHeight={true}
             centerChildren={true}
-            style={Styles.globalStyles.positionRelative}
+            style={styles.avatarContainer}
           >
             <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
             {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
@@ -78,7 +78,7 @@ const TeamRow = (props: Props) => {
           </Kb.Box2>
         }
         style={styles.white}
-        height={Styles.isMobile ? 72 : undefined}
+        height={Styles.isPhone ? 72 : undefined}
         body={
           <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
             <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyLeft}>
@@ -112,10 +112,10 @@ const TeamRow = (props: Props) => {
                     {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
                   </Kb.Text>
                 </Kb.Box2>
-                {Styles.isMobile && activity}
+                {Styles.isPhone && activity}
               </Kb.Box2>
             </Kb.Box2>
-            {!Styles.isMobile && (
+            {!Styles.isPhone && (
               <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyRight}>
                 {activity}
               </Kb.Box2>
@@ -123,7 +123,7 @@ const TeamRow = (props: Props) => {
           </Kb.Box2>
         }
         action={
-          <Kb.Box2 direction="horizontal" gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
+          <Kb.Box2 direction="horizontal" gap={Styles.isPhone ? 'tiny' : 'xtiny'}>
             {showChat && (
               <Kb.Button
                 type="Dim"
@@ -156,6 +156,13 @@ const styles = Styles.styleSheetCreate(() => ({
   alignSelfCenter: {
     alignSelf: 'center',
   },
+  avatarContainer: Styles.platformStyles({
+    common: {
+      marginTop: Styles.globalMargins.xxtiny,
+      position: 'relative',
+    },
+    isPhone: {marginTop: Styles.globalMargins.small},
+  }),
   badge: {
     position: 'absolute',
     right: -5,

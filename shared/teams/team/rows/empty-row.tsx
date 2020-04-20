@@ -129,7 +129,7 @@ const styles = Styles.styleSheetCreate(
     ({
       container: {
         ...Styles.padding(40, 0),
-        backgroundColor: Styles.globalColors.blueGreyLight,
+        backgroundColor: Styles.globalColors.blueGrey,
         justifyContent: 'flex-start',
       },
       iconHeight: {height: 96},

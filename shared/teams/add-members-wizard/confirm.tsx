@@ -220,7 +220,7 @@ const RoleSelector = ({memberCount}: {memberCount: number}) => {
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
         confirmLabel="Save"
-        includeSetIndividually={!Styles.isMobile && (memberCount > 1 || storeRole === 'setIndividually')}
+        includeSetIndividually={!Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
       >
         <Kb.InlineDropdown
           textWrapperType="BodySmallSemibold"
