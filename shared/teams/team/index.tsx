@@ -43,7 +43,7 @@ const useTabsState = (
   const setSelectedTab = React.useCallback(
     t => {
       lastSelectedTabs[teamID] = t
-      if (selectedTab === 'settings' && t !== 'settings') {
+      if (selectedTab !== 'settings' && t === 'settings') {
         dispatch(TeamsGen.createSettingsError({error: ''}))
       }
       _setSelectedTab(t)
@@ -139,7 +139,7 @@ const Team = (props: Props) => {
       sections.push(...invitesSections)
       break
     case 'settings':
-      sections.push({data: ['settings'], key: 'settings', renderItem: () => <Settings teamID={teamID} />})
+      sections.push({data: ['settings'], key: 'teamSettings', renderItem: () => <Settings teamID={teamID} />})
       break
     case 'channels':
       sections.push(...channelsSections)
@@ -266,12 +266,20 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
+    backgroundColor: flags.teamsRedesign ? Styles.globalColors.blueGrey : undefined,
     flex: 1,
     height: '100%',
     position: 'relative',
     width: '100%',
   },
-  header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
+  header: {
+    backgroundColor: Styles.globalColors.white,
+    height: 40,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
   list: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,

@@ -70,11 +70,13 @@ const CreateChannel = (props: Props) => {
   return (
     <Kb.Modal
       banners={props.banners}
+      backgroundStyle={styles.background}
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Create channels" />,
       }}
+      mode="DefaultFullHeight"
       footer={{content: submitButton}}
       allowOverflow={true}
     >
@@ -134,19 +136,17 @@ const styles = Styles.styleSheetCreate(() => ({
   addButton: Styles.platformStyles({
     isElectron: {width: 42},
     isMobile: {width: 47},
+    isTablet: {alignSelf: 'flex-start'},
   }),
+  background: {backgroundColor: Styles.globalColors.blueGrey},
   banner: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
-  body: Styles.platformStyles({
-    common: {
-      ...Styles.padding(Styles.globalMargins.small),
-      backgroundColor: Styles.globalColors.blueGrey,
-    },
-    isElectron: {minHeight: 326},
-    isMobile: {...Styles.globalStyles.flexOne},
-  }),
+  body: {
+    ...Styles.padding(Styles.globalMargins.small),
+    flex: 1,
+  },
   input: {...Styles.padding(Styles.globalMargins.xsmall)},
   inputGeneral: {...Styles.padding(Styles.globalMargins.xsmall), opacity: 0.4},
   noChannelsText: {paddingTop: Styles.globalMargins.tiny, width: '100%'},

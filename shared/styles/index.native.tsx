@@ -66,7 +66,7 @@ export {isDarkMode} from './dark-mode'
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
 ): ReadonlyArray<Object | null | false | void> => {
-  return styles
+  return styles.filter(Boolean)
 }
 export const transition = () => ({})
 export const backgroundURL = () => ({})

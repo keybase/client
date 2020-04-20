@@ -86,15 +86,15 @@ func (c *teamMembersRenderer) outputInvites(invites map[keybase1.TeamInviteID]ke
 		inviteList = append(inviteList, annotatedInvite)
 	}
 	sort.SliceStable(inviteList, func(i, j int) bool {
-		a, aErr := inviteList[i].Invite.Type.C()
-		b, bErr := inviteList[j].Invite.Type.C()
+		a, aErr := inviteList[i].InviteMetadata.Invite.Type.C()
+		b, bErr := inviteList[j].InviteMetadata.Invite.Type.C()
 		if aErr != nil || bErr != nil {
 			return bErr != nil
 		}
 		return a.String() < b.String()
 	})
 	for _, annotatedInvite := range inviteList {
-		invite := annotatedInvite.Invite
+		invite := annotatedInvite.InviteMetadata.Invite
 		category, err := invite.Type.C()
 		if err != nil {
 			category = keybase1.TeamInviteCategory_UNKNOWN
@@ -122,7 +122,7 @@ func (c *teamMembersRenderer) outputInvites(invites map[keybase1.TeamInviteID]ke
 			etime = "expiration: " + humanize.RelTime(t, time.Now(), "ago", "from now")
 		}
 
-		usesLeft := invite.MaxUses.String(len(annotatedInvite.UsedInvites))
+		usesLeft := invite.MaxUses.String(len(annotatedInvite.AnnotatedUsedInvites))
 
 		fmtstring := "%s\t%s*\t%s\t%s\t%s\t%s\n"
 		fmt.Fprintf(c.tabw, fmtstring, annotatedInvite.TeamName,

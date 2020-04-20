@@ -170,7 +170,7 @@ const AccountSettings = (props: Props) => (
   >
     <Kb.ScrollView style={Styles.globalStyles.fullWidth}>
       {props.addedEmail && (
-        <Kb.Banner color="yellow" onClose={props.onClearAddedEmail}>
+        <Kb.Banner key="clearAdded" color="yellow" onClose={props.onClearAddedEmail}>
           <Kb.BannerParagraph
             bannerColor="yellow"
             content={`Check your inbox! A verification link was sent to ${props.addedEmail}.`}
@@ -178,7 +178,7 @@ const AccountSettings = (props: Props) => (
         </Kb.Banner>
       )}
       {props.supersededPhoneNumber && (
-        <Kb.Banner color="yellow" onClose={props.onClearSupersededPhoneNumber}>
+        <Kb.Banner key="supersededPhone" color="yellow" onClose={props.onClearSupersededPhoneNumber}>
           <Kb.BannerParagraph
             bannerColor="yellow"
             content={`Your phone number ${props.supersededPhoneNumber} is now associated with another Keybase user.`}
@@ -193,7 +193,7 @@ const AccountSettings = (props: Props) => (
         </Kb.Banner>
       )}
       {props.addedPhone && (
-        <Kb.Banner color="green" onClose={props.onClearAddedPhone}>
+        <Kb.Banner key="addedPhone" color="green" onClose={props.onClearAddedPhone}>
           <Kb.BannerParagraph
             bannerColor="green"
             content={[

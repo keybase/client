@@ -33,9 +33,14 @@ const About = () => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.Icon type="icon-keybase-logo-64" />
-      <Kb.Text center={true} style={styles.version} type="Body">
-        You are running version <Kb.Text type="BodySemibold">{version}</Kb.Text>
-      </Kb.Text>
+      <Kb.Box2 direction="vertical" alignItems="center" style={styles.version}>
+        <Kb.Text center={true} type="Body">
+          You are running version{' '}
+        </Kb.Text>
+        <Kb.Text type="BodySemibold" selectable={true}>
+          {version}
+        </Kb.Text>
+      </Kb.Box2>
       <Kb.Text style={styles.terms} type="BodyPrimaryLink" onClick={onShowTerms}>
         Terms and Conditions
       </Kb.Text>

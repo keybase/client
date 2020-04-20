@@ -752,34 +752,40 @@ func (u *smuUser) readChatsWithError(team smuTeam) (messages []chat1.MessageUnbo
 	return u.readChatsWithErrorAndDevice(team, u.primaryDevice(), 0)
 }
 
+// readChatsWithErrorAndDevice reads chats from `team` to get *at least*
+// `nMessages` messages.
 func (u *smuUser) readChatsWithErrorAndDevice(team smuTeam, dev *smuDeviceWrapper, nMessages int) (messages []chat1.MessageUnboxed, err error) {
 	tctx := dev.popClone()
 
-	wait := time.Second
-	var totalWait time.Duration
-	for i := 0; i < 10; i++ {
+	pollInterval := 100 * time.Millisecond
+	timeLimit := 10 * time.Second
+	timeout := time.After(timeLimit)
+
+pollLoop:
+	for i := 0; ; i++ {
 		runner := client.NewCmdChatReadRunner(tctx.G)
 		runner.SetTeamChatForTest(team.name)
 		_, messages, err = runner.Fetch()
+		if err != nil {
+			u.ctx.t.Logf("readChatsWithErrorAndDevice failure: %s", err.Error())
+			return nil, err
+		}
 
-		if err == nil && len(messages) == nMessages {
-			if i != 0 {
-				u.ctx.t.Logf("readChatsWithErrorAndDevice success after retrying %d times, polling for %s", i, totalWait)
-			}
+		if len(messages) >= nMessages {
+			u.ctx.t.Logf("readChatsWithErrorAndDevice success after retrying %d times, got %d msgs, asked for %d", i, len(messages), nMessages)
 			return messages, nil
 		}
 
-		if err != nil {
-			u.ctx.t.Logf("readChatsWithErrorAndDevice failure: %s", err.Error())
+		u.ctx.t.Logf("readChatsWithErrorAndDevice trying again in %s (i=%d)", pollInterval, i)
+		select {
+		case <-timeout:
+			break pollLoop
+		case <-time.After(pollInterval):
 		}
-
-		u.ctx.t.Logf("readChatsWithErrorAndDevice trying again")
-		time.Sleep(wait)
-		totalWait += wait
 	}
 
-	u.ctx.t.Logf("Failed to readChatsWithErrorAndDevice after polling for %s", totalWait)
-	return messages, err
+	u.ctx.t.Logf("Failed to readChatsWithErrorAndDevice after polling for %s", timeLimit)
+	return nil, fmt.Errorf("failed to read messages after polling for %s", timeLimit)
 }
 
 func (u *smuUser) readChats(team smuTeam, nMessages int) {
@@ -809,6 +815,7 @@ func (u *smuUser) readChatsWithDevice(team smuTeam, dev *smuDeviceWrapper, nMess
 		t.Logf("messages: %v", chat1.MessageUnboxedDebugLines(messages))
 	}
 	require.Len(t, messages, nMessages)
+
 	for i, msg := range messages {
 		require.Equal(t, msg.Valid().MessageBody.Text().Body, fmt.Sprintf("%d", len(messages)-i-1))
 	}

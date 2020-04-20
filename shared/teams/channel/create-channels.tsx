@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as TeamsTypes from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
-import * as Styles from '../../styles'
 import CreateChannelsModal from '../new-team/wizard/create-channels'
 
 type Props = Container.RouteProps<{teamID: TeamsTypes.TeamID}>
@@ -20,21 +19,24 @@ const CreateChannels = (props: Props) => {
   const prevWaiting = Container.usePrevious(waiting)
   const success = prevWaiting && !waiting && !error
 
-  const banners = [
-    ...(error
-      ? [
-          <Kb.Banner color="red" key="error" style={styles.banner}>
-            {error}
-          </Kb.Banner>,
-        ]
-      : success
-      ? [
-          <Kb.Banner color="green" key="success" style={styles.banner}>
-            Successfully created channels.
-          </Kb.Banner>,
-        ]
-      : []),
-  ]
+  const banners = React.useMemo(
+    () => [
+      ...(error
+        ? [
+            <Kb.Banner color="red" key="error">
+              {error}
+            </Kb.Banner>,
+          ]
+        : success
+        ? [
+            <Kb.Banner color="green" key="success">
+              Successfully created channels.
+            </Kb.Banner>,
+          ]
+        : []),
+    ],
+    [error, success]
+  )
 
   const onSubmitChannels = (channels: Array<string>) => {
     dispatch(
@@ -53,13 +55,5 @@ const CreateChannels = (props: Props) => {
     />
   )
 }
-
-const styles = Styles.styleSheetCreate(() => ({
-  banner: {
-    position: 'absolute',
-    top: 64,
-    zIndex: 1,
-  },
-}))
 
 export default CreateChannels

@@ -643,7 +643,8 @@ protocol teams {
   }
 
   record AnnotatedTeamInvite {
-    TeamInvite invite;
+    // metadata is taken straight from the protocol
+    TeamInviteMetadata inviteMetadata;
 
     TeamInviteDisplayName displayName;
     string inviterUsername;
@@ -653,8 +654,7 @@ protocol teams {
     // null for multiuse invites
     union { null, TeamMemberStatus } status;
 
-    // possibly non-empty for multiuse invites
-    array<AnnotatedTeamUsedInviteLogPoint> usedInvites;
+    array<AnnotatedTeamUsedInviteLogPoint> annotatedUsedInvites;
   }
 
   record TeamEncryptedKBFSKeyset {
@@ -682,6 +682,48 @@ protocol teams {
     PerTeamKeyGeneration teamGeneration;
     int legacyGeneration;
     TeamApplication appType;
+  }
+
+  record TeamSignatureMetadata {
+    SignatureMetadata sigMeta;
+    UserVersion uv;
+  }
+  record TeamInviteMetadataCancel {
+    // Signature of cancellation
+    TeamSignatureMetadata teamSigMeta;
+  }
+  record TeamInviteMetadataCompleted {
+    // Signature of completion
+    TeamSignatureMetadata teamSigMeta;
+  }
+  enum TeamInviteMetadataStatusCode {
+    // NOTE: multiuse-style invites that are expired or used up will still have an 'Active' status
+    // until explicitly cancelled.
+    ACTIVE_0,
+    // Obsolete invites are ones that are not necessary anymore because the invitee was added
+    // to the team without resolving the invite.
+    OBSOLETE_1,
+    // Cancelled invites are invites that are explicitly cancelled by the user.
+    CANCELLED_2,
+    // Completed invites are single-use invites that have been completed. Even if a multiuse-style
+    // invite has no more uses left or is expired, it won't have this status.
+    COMPLETED_3
+  }
+  variant TeamInviteMetadataStatus switch (TeamInviteMetadataStatusCode code) {
+    case ACTIVE: void;
+    case OBSOLETE: void;
+    case CANCELLED: TeamInviteMetadataCancel;
+    case COMPLETED: TeamInviteMetadataCompleted;
+  }
+  record TeamInviteMetadata {
+    TeamInvite invite;
+    // Signature of creation
+    TeamSignatureMetadata teamSigMeta;
+
+    TeamInviteMetadataStatus status;
+
+    // Invite uses. For invites that are multiuse-style, their usages are recorded in this field.
+    array<TeamUsedInviteLogPoint> usedInvites;
   }
 
   // State of a parsed team sigchain.
@@ -742,16 +784,8 @@ protocol teams {
     // Set of links that are stubbed-out and whose contents are missing.
     map<Seqno, boolean> stubbedLinks;
 
-    // All invitations that are currently active.
-    map<TeamInviteID,TeamInvite> activeInvites;
-
-    // Invitations that were removed from activeInvites because they
-    // were obsoleted by a ChangeMembership link.
-    map<TeamInviteID,TeamInvite> obsoleteInvites;
-
-    // Invite uses. If an invite can be used multiple times, usedInvite
-    // field is used, and this usage is saved here.
-    map<TeamInviteID,array<TeamUsedInviteLogPoint>> usedInvites;
+    // All invitations.
+    map<TeamInviteID,TeamInviteMetadata> inviteMetadatas;
 
     // Whether this is an open team.
     boolean open;
