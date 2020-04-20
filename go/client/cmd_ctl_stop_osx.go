@@ -94,16 +94,25 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool) error {
 			errs = append(errs, err)
 		}
 	}
+	if err := rpcStop(g); err != nil {
+		g.Log.Info("ctlStop: expected error when trying to shutdown service post-uninstall: %s", err)
+	} else {
+		g.Log.Info("ctlStop: no error when shutting down service post-uninstall")
+	}
 	return libkb.CombineErrors(errs...)
+}
+
+func rpcStop(g *libkb.GlobalContext) error {
+	cli, err := GetCtlClient(g)
+	if err != nil {
+		return err
+	}
+	return cli.StopService(context.TODO(), keybase1.StopServiceArg{ExitCode: keybase1.ExitCode_OK})
 }
 
 func (s *CmdCtlStop) Run() error {
 	if s.shutdown {
-		cli, err := GetCtlClient(s.G())
-		if err != nil {
-			return err
-		}
-		return cli.StopService(context.TODO(), keybase1.StopServiceArg{ExitCode: keybase1.ExitCode_OK})
+		return rpcStop(s.G())
 	}
 	return ctlStop(s.G(), s.components)
 }
