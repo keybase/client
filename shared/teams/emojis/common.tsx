@@ -43,8 +43,6 @@ export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
             error={!!this.props.error}
             disabled={this.props.disabled}
             textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
-            // android has issues with setSelection that make including colons a bad experience
-            // see https://keybase.atlassian.net/browse/TRIAGE-2680
             value={`:${this.props.alias}:`}
             containerStyle={Styles.collapseStyles([
               styles.aliasInput,
@@ -53,7 +51,10 @@ export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
             onChangeText={newText => {
               // Remove both colon and special characters.
               this.props.onChangeAlias(newText.replace(/[^a-zA-Z0-9-_+]/g, ''))
-              this.onFocus()
+              if (Styles.isAndroid) {
+                // set selection again on android to work around finicky selection bug
+                this.onFocus()
+              }
             }}
             onEnterKeyDown={this.props.onEnterKeyDown}
             onFocus={this.onFocus}
