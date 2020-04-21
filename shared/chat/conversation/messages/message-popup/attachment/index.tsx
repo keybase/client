@@ -14,6 +14,7 @@ type Props = {
   deviceRevokedAt?: number
   onAddReaction?: () => void
   onAllMedia: () => void
+  onCopyLink?: () => void
   onDelete?: () => void
   onDownload?: () => void
   onHidden: () => void
@@ -83,6 +84,9 @@ const AttachmentPopupMenu = (props: Props) => {
         ]
       : []),
     ...(props.onAllMedia ? [{icon: 'iconfont-camera', onClick: props.onAllMedia, title: 'All media'}] : []),
+    ...(props.onCopyLink
+      ? [{icon: 'iconfont-link', onClick: props.onCopyLink, title: 'Copy a link to this message'}]
+      : []),
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onPinMessage
       ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]

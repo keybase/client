@@ -67,9 +67,9 @@ const util = {
     marginBottom: Shared.globalMargins.tiny,
     marginTop: Shared.globalMargins.tiny,
   },
+  mediumSubNavWidth: 260,
   mediumWidth: 400,
-  shortWidth: 240,
-  tinyWidth: 200,
+  shortSubNavWidth: 160,
 }
 
 export const globalStyles = {

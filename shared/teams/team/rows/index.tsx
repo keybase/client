@@ -21,14 +21,12 @@ import {EmojiItemRow, EmojiAddRow, EmojiHeader} from './emoji-row'
 import LoadingRow from './loading'
 import EmptyRow from './empty-row'
 
-export type Section = _Section<
-  any,
-  {
-    collapsed?: boolean
-    onToggleCollapsed?: () => void
-    title?: string
-  }
->
+type SectionExtras = {
+  collapsed?: boolean
+  onToggleCollapsed?: () => void
+  title?: string
+}
+export type Section = _Section<any, SectionExtras>
 
 const makeSingleRow = (key: string, renderItem: () => React.ReactNode) => ({data: ['row'], key, renderItem})
 
@@ -93,22 +91,37 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
 
   const sections: Array<Section> = []
 
+  const resetMembers = flags.teamsRedesign
+    ? [...details.members?.values()].filter(m => m.status === 'reset')
+    : []
+
   let empty = true
-  if (details.requests?.size) {
+  if (details.requests?.size || resetMembers.length) {
     empty = false
-    sections.push({
-      data: [...details.requests].map(req => {
-        return {
+    const requestsSection: _Section<
+      Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>,
+      SectionExtras
+    > = {
+      data: [
+        ...[...details.requests].map(req => ({
           ctime: req.ctime,
           fullName: req.fullName,
           key: `invites-request:${req.username}`,
           username: req.username,
-        }
-      }),
+        })),
+        ...resetMembers.map(memberInfo => ({
+          ctime: 0,
+          fullName: memberInfo.fullName,
+          key: `invites-reset:${memberInfo.username}`,
+          reset: true,
+          username: memberInfo.username,
+        })),
+      ],
       key: 'invite-requests',
-      renderItem: ({item}) => <RequestRow {...item} teamID={teamID} />,
+      renderItem: ({index, item}) => <RequestRow {...item} teamID={teamID} firstItem={index == 0} />,
       title: Styles.isMobile ? `Requests (${details.requests.size})` : undefined,
-    })
+    }
+    sections.push(requestsSection)
   }
   if (details.invites?.size) {
     empty = false
@@ -133,6 +146,7 @@ export const useChannelsSections = (
 ): Array<Section> => {
   const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
   const {channelMetas, loadingChannels} = useAllChannelMetas(teamID, !shouldActuallyLoad /* dontCallRPC */)
+  const canCreate = Container.useSelector(state => Constants.getCanPerformByID(state, teamID).createChannel)
 
   if (!isBig) {
     return [makeSingleRow('channel-empty', () => <EmptyRow type="channelsEmpty" teamID={teamID} />)]
@@ -140,8 +154,11 @@ export const useChannelsSections = (
   if (loadingChannels) {
     return [makeSingleRow('channel-loading', () => <LoadingRow />)]
   }
+  const createRow = canCreate
+    ? [makeSingleRow('channel-add', () => <ChannelHeaderRow teamID={teamID} />)]
+    : []
   return [
-    makeSingleRow('channel-add', () => <ChannelHeaderRow teamID={teamID} />),
+    ...createRow,
     {
       data: [...channelMetas.values()].sort((a, b) =>
         a.channelname === 'general'
@@ -178,7 +195,11 @@ export const useSubteamsSections = (
   if (yourOperations.manageSubteams && (!flags.teamsRedesign || subteams.length)) {
     sections.push(makeSingleRow('subteam-add', () => <SubteamAddRow teamID={teamID} />))
   }
-  sections.push({data: subteams, key: 'subteams', renderItem: ({item}) => <SubteamTeamRow teamID={item} />})
+  sections.push({
+    data: subteams,
+    key: 'subteams',
+    renderItem: ({item, index}) => <SubteamTeamRow teamID={item} firstItem={index === 0} />,
+  })
 
   if (flags.teamsRedesign && subteams.length) {
     sections.push(makeSingleRow('subteam-info', () => <SubteamInfoRow />))

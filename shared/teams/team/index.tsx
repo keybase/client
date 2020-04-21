@@ -43,7 +43,7 @@ const useTabsState = (
   const setSelectedTab = React.useCallback(
     t => {
       lastSelectedTabs[teamID] = t
-      if (selectedTab === 'settings' && t !== 'settings') {
+      if (selectedTab !== 'settings' && t === 'settings') {
         dispatch(TeamsGen.createSettingsError({error: ''}))
       }
       _setSelectedTab(t)
@@ -78,6 +78,10 @@ const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean
     }
   }, [shouldLoad, _bots, featuredBotsMap, dispatch])
 }
+
+const SectionList: typeof Kb.SectionList = Styles.isMobile
+  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
+  : Kb.SectionList
 
 const Team = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
@@ -135,7 +139,7 @@ const Team = (props: Props) => {
       sections.push(...invitesSections)
       break
     case 'settings':
-      sections.push({data: ['settings'], key: 'settings', renderItem: () => <Settings teamID={teamID} />})
+      sections.push({data: ['settings'], key: 'teamSettings', renderItem: () => <Settings teamID={teamID} />})
       break
     case 'channels':
       sections.push(...channelsSections)
@@ -149,41 +153,46 @@ const Team = (props: Props) => {
   }
 
   // Animation
-  const SectionList: typeof Kb.SectionList = Styles.isMobile
-    ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
-    : Kb.SectionList
-  const offset = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
-  const onScroll = Styles.isMobile
-    ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset}}}], {useNativeDriver: true})
-    : undefined
+  const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
+  const onScroll = React.useRef(
+    Styles.isMobile
+      ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
+      : undefined
+  )
 
-  const renderSectionHeader = ({section}) =>
-    section.title ? (
-      <Kb.SectionDivider
-        label={section.title}
-        collapsed={section.collapsed}
-        onToggleCollapsed={section.onToggleCollapsed}
-      />
-    ) : null
+  const renderSectionHeader = React.useCallback(
+    ({section}) =>
+      section.title ? (
+        <Kb.SectionDivider
+          label={section.title}
+          collapsed={section.collapsed}
+          onToggleCollapsed={section.onToggleCollapsed}
+        />
+      ) : null,
+    []
+  )
 
   const body = (
-    <Kb.Box style={styles.container}>
-      {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={teamID} offset={offset} />}
-      <SectionList
-        renderSectionHeader={renderSectionHeader}
-        stickySectionHeadersEnabled={Styles.isMobile}
-        sections={sections}
-        contentContainerStyle={styles.listContentContainer}
-        style={styles.list}
-        onScroll={onScroll}
-      />
-      <SelectionPopup
-        selectedTab={
-          selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
-        }
-        teamID={teamID}
-      />
-    </Kb.Box>
+    <>
+      <Kb.SafeAreaViewTop />
+      <Kb.Box style={styles.container}>
+        {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={teamID} offset={offset.current} />}
+        <SectionList
+          renderSectionHeader={renderSectionHeader}
+          stickySectionHeadersEnabled={Styles.isMobile}
+          sections={sections}
+          contentContainerStyle={styles.listContentContainer}
+          style={styles.list}
+          onScroll={onScroll.current}
+        />
+        <SelectionPopup
+          selectedTab={
+            selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
+          }
+          teamID={teamID}
+        />
+      </Kb.Box>
+    </>
   )
 
   return body
@@ -191,6 +200,7 @@ const Team = (props: Props) => {
 
 const newNavigationOptions = () => ({
   headerHideBorder: true,
+  underNotch: true,
 })
 
 Team.navigationOptions = flags.teamsRedesign
@@ -216,12 +226,12 @@ Team.navigationOptions = flags.teamsRedesign
     })
 
 const startAnimationOffset = 40
+const AnimatedBox2 = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2) : undefined
 const MobileHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: any}) => {
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
   const top = Kb.ReAnimated.interpolate(offset, {
     inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
     outputRange: [40, 40, 0, 0],
@@ -260,12 +270,20 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
+    backgroundColor: flags.teamsRedesign ? Styles.globalColors.blueGrey : undefined,
     flex: 1,
     height: '100%',
     position: 'relative',
     width: '100%',
   },
-  header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
+  header: {
+    backgroundColor: Styles.globalColors.white,
+    height: 40,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
   list: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,

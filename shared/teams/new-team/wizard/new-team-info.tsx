@@ -37,6 +37,7 @@ const NewTeamInfo = () => {
       ? Constants.getTeamNameFromID(state, teamWizardState.parentTeamID)
       : undefined
   )
+  const minLength = parentName ? 2 : 3
 
   const [name, _setName] = React.useState(teamWizardState.name)
   const teamname = parentName ? `${parentName}.${name}` : name
@@ -51,7 +52,7 @@ const NewTeamInfo = () => {
     []
   )
   React.useEffect(() => {
-    if (name.length >= 3) {
+    if (name.length >= minLength) {
       checkTeamNameTaken(
         [{teamName: {parts: teamname.split('.')}}],
         ({exists, status}) => {
@@ -64,7 +65,7 @@ const NewTeamInfo = () => {
       setTeamNameTaken(false)
       setTeamNameTakenStatus(0)
     }
-  }, [teamname, name.length, setTeamNameTaken, checkTeamNameTaken, setTeamNameTakenStatus])
+  }, [teamname, name.length, setTeamNameTaken, checkTeamNameTaken, setTeamNameTakenStatus, minLength])
 
   const [description, setDescription] = React.useState(teamWizardState.description)
   const [openTeam, _setOpenTeam] = React.useState(
@@ -82,10 +83,11 @@ const NewTeamInfo = () => {
       ? teamWizardState.showcase
       : teamWizardState.teamType !== 'other' && teamWizardState.teamType !== 'subteam'
   )
+  const [realRole, setRealRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
   const [selectedRole, setSelectedRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
   const [rolePickerIsOpen, setRolePickerIsOpen] = React.useState(false)
 
-  const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < 3
+  const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
@@ -95,7 +97,7 @@ const NewTeamInfo = () => {
         addYourself,
         description,
         openTeam,
-        openTeamJoinRole: selectedRole,
+        openTeamJoinRole: realRole,
         showcase,
         teamname,
       })
@@ -131,6 +133,7 @@ const NewTeamInfo = () => {
         ),
       }}
       allowOverflow={true}
+      backgroundStyle={styles.bg}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         {parentName ? (
@@ -196,15 +199,19 @@ const NewTeamInfo = () => {
                     confirmLabel={`Let people in as ${pluralize(selectedRole)}`}
                     selectedRole={selectedRole}
                     onSelectRole={setSelectedRole}
+                    presetRole={realRole}
                     floatingContainerStyle={styles.floatingRolePicker}
-                    onConfirm={() => setRolePickerIsOpen(false)}
+                    onConfirm={() => {
+                      setRealRole(selectedRole)
+                      setRolePickerIsOpen(false)
+                    }}
                     onCancel={() => setRolePickerIsOpen(false)}
                     position="bottom center"
                     open={rolePickerIsOpen}
                     disabledRoles={cannotJoinAsOwner}
                   >
                     <InlineDropdown
-                      label={pluralize(selectedRole)}
+                      label={pluralize(realRole)}
                       onPress={() => setRolePickerIsOpen(!rolePickerIsOpen)}
                       textWrapperType="BodySmall"
                     />
@@ -232,10 +239,10 @@ const NewTeamInfo = () => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Styles.globalColors.blueGrey},
   body: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
-      backgroundColor: Styles.globalColors.blueGrey,
       borderRadius: 4,
     },
     isMobile: {...Styles.globalStyles.flexOne},

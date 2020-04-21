@@ -40,6 +40,10 @@
       "description": "string | null",
       "navToChatOnSuccess": "boolean"
     },
+    "createChannels": {
+      "teamID": "Types.TeamID",
+      "channelnames": "Array<string>"
+    },
     "clearAddUserToTeamsResults": {},
     "setAddUserToTeamsResults": {
       "error": "boolean",
@@ -368,6 +372,9 @@
       "assertion": "string",
       "role": "Types.AddingMemberTeamRoleType"
     },
+    "setCreatingChannels": {
+      "creatingChannels": "boolean"
+    },
     "addMembersWizardPushMembers": {
       "_description": "Add pending members to the add members wizard and show the confirm screen.",
       "members": "Array<Types.AddingMember>"
@@ -443,6 +450,9 @@
     },
     "setTeamWizardSubteams": {
       "subteams": "Array<string>"
+    },
+    "setTeamWizardSubteamMembers": {
+      "members": "Array<string>"
     },
     "setTeamWizardError": {
       "error": "string"

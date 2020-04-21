@@ -303,8 +303,7 @@ const styles = Styles.styleSheetCreate(
         },
         isTablet: {
           backgroundColor: Styles.globalColors.blueGrey,
-          minWidth: 300,
-          width: '30%',
+          width: Styles.globalStyles.mediumSubNavWidth,
         },
       }),
       loadingContainer: {

@@ -113,21 +113,21 @@ func newScannerUTF16or8(filename string) (utfScanner, error) {
 // and translate if necessary.
 func InstallLogPath() (string, error) {
 	// Get the 3 newest keybase logs - sorting by name works because timestamp
-	keybaseLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Keybase*.log")))
+	keybaseLogFiles, keybaseFetchLogErr := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Keybase*.log")))
 	sort.Sort(sort.Reverse(sort.StringSlice(keybaseLogFiles)))
 	if len(keybaseLogFiles) > 6 {
 		keybaseLogFiles = keybaseLogFiles[:6]
 	}
 
-	// Get the latest msi log - this is the clean install .msi log
-	msiLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "MSI*.LOG")))
-	sort.Sort(sort.Reverse(sort.StringSlice(msiLogFiles)))
-	if len(msiLogFiles) >= 1 {
-		keybaseLogFiles = append(keybaseLogFiles, msiLogFiles[0])
+	// Get the latest msi log (in the app data temp dir) for a keybase install
+	msiLogPattern := os.ExpandEnv(filepath.Join("${TEMP}", "MSI*.LOG"))
+	msiLogFile, msiFetchLogErr := LastModifiedMatchingFile(msiLogPattern, "Keybase")
+	if msiLogFile != nil {
+		keybaseLogFiles = append(keybaseLogFiles, *msiLogFile)
 	}
 
 	// Get the 2 newest dokan logs - sorting by name works because timestamp
-	dokanLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Dokan*.log")))
+	dokanLogFiles, dokanFetchLogErr := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Dokan*.log")))
 	sort.Sort(sort.Reverse(sort.StringSlice(dokanLogFiles)))
 	if len(dokanLogFiles) > 2 {
 		dokanLogFiles = dokanLogFiles[:2]
@@ -138,6 +138,16 @@ func InstallLogPath() (string, error) {
 	defer logFile.Close()
 	if err != nil {
 		return "", err
+	}
+
+	if msiFetchLogErr != nil {
+		fmt.Fprintf(logFile, "  --- error fetching msi log %v---\n", msiFetchLogErr)
+	}
+	if keybaseFetchLogErr != nil {
+		fmt.Fprintf(logFile, "  --- error fetching keybase install log %v---\n", keybaseFetchLogErr)
+	}
+	if dokanFetchLogErr != nil {
+		fmt.Fprintf(logFile, "  --- error fetching dokan log %v---\n", dokanFetchLogErr)
 	}
 
 	getVersionAndDrivers(logFile)
@@ -177,6 +187,8 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 	if len(watchdogLogFiles) > 5 {
 		watchdogLogFiles = watchdogLogFiles[:5]
 	}
+	// resort the files so the combined file will be chronological
+	sort.Sort((sort.StringSlice(watchdogLogFiles)))
 
 	logName, logFile, err := libkb.OpenTempFile("KeybaseWatchdogUpload", ".log", 0)
 	defer logFile.Close()

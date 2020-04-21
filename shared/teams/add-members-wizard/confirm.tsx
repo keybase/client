@@ -4,11 +4,9 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import * as ChatTypes from '../../constants/types/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
-import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
@@ -38,13 +36,12 @@ const AddMembersConfirm = () => {
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
   const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
-  const onlyEmails = React.useMemo(
-    () => !addingMembers.some(member => !member.assertion.endsWith('@email')),
-    [addingMembers]
-  )
-  const anyNonKeybase = React.useMemo(() => addingMembers.some(m => m.assertion.includes('@')), [
-    addingMembers,
-  ])
+
+  // TODO: consider useMemoing these
+  const anyNonKeybase = addingMembers.some(m => m.assertion.includes('@'))
+  const someKeybaseUsers = addingMembers.some(member => !member.assertion.includes('@'))
+  const onlyEmails = !addingMembers.some(member => !member.assertion.endsWith('@email'))
+
   const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
 
   const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
@@ -62,7 +59,6 @@ const AddMembersConfirm = () => {
   const waiting = _waiting || newTeamWaiting
 
   const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
-  const addToChannels = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
   const onComplete = fromNewTeamWizard
     ? () => dispatch(TeamsGen.createFinishNewTeamWizard())
     : () => {
@@ -70,6 +66,9 @@ const AddMembersConfirm = () => {
         addMembers(
           [
             {
+              defaultChannelsOverride: defaultChannels
+                ?.filter(c => c.channelname !== 'general')
+                .map(c => c.conversationIDKey),
               emailInviteMessage: emailMessage || undefined,
               sendChatNotification: true,
               teamID,
@@ -81,28 +80,7 @@ const AddMembersConfirm = () => {
           ],
           _ => {
             // TODO handle users not added?
-            if (defaultChannels) {
-              addToChannels(
-                [
-                  {
-                    conversations: defaultChannels
-                      .filter(c => c.channelname !== 'general')
-                      .map(c => ChatTypes.keyToConversationID(c.conversationIDKey)),
-                    usernames: addingMembers.map(m => m.assertion),
-                  },
-                ],
-                () => {
-                  dispatch(TeamsGen.createFinishedAddMembersWizard())
-                },
-                err => {
-                  setWaiting(false)
-                  logger.error(err.message)
-                  setError(err.message)
-                }
-              )
-            } else {
-              dispatch(TeamsGen.createFinishedAddMembersWizard())
-            }
+            dispatch(TeamsGen.createFinishedAddMembersWizard())
           },
           err => {
             setWaiting(false)
@@ -149,7 +127,7 @@ const AddMembersConfirm = () => {
             />
           </Kb.Box2>
         </Kb.Box2>
-        {isBigTeam && <DefaultChannels teamID={teamID} />}
+        {isBigTeam && someKeybaseUsers && <DefaultChannels teamID={teamID} />}
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
@@ -244,7 +222,7 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
         confirmLabel="Save"
-        includeSetIndividually={!Styles.isMobile && (memberCount > 1 || storeRole === 'setIndividually')}
+        includeSetIndividually={!Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
         disabledRoles={disabledRoles}
       >
         <Kb.InlineDropdown
@@ -339,7 +317,7 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.memberPill}>
         <Kb.Avatar size={16} username={props.assertion} />
         <Kb.ConnectedUsernames
-          type="BodySemibold"
+          type="BodyBold"
           inline={true}
           lineClamp={1}
           usernames={[props.assertion]}
@@ -382,6 +360,9 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
   const dispatch = Container.useDispatch()
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
   const defaultChannelsFromStore = Container.useSelector(s => s.teams.addMembersWizard.defaultChannels)
+  const allKeybaseUsers = Container.useSelector(
+    s => !s.teams.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
+  )
   const onChangeFromDefault = () =>
     dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: defaultChannels}))
   const onAdd = (toAdd: Array<Types.ChannelNameID>) =>
@@ -405,8 +386,8 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
         ) : (
           <>
             <Kb.Text type="BodySmall">
-              Your invitees will be added to {defaultChannels.length}{' '}
-              {pluralize('channel', defaultChannels.length)}.
+              {allKeybaseUsers ? 'Your invitees' : 'Invitees that are Keybase users'} will be added to{' '}
+              {defaultChannels.length} {pluralize('channel', defaultChannels.length)}.
             </Kb.Text>
             <Kb.Text type="BodySmall">
               {defaultChannels.map((channel, index) => (

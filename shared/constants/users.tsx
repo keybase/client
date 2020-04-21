@@ -29,3 +29,4 @@ export const setUserBlocksWaitingKey = 'users:setUserBlocks'
 
 export const reportUserWaitingKey = 'users:reportUser'
 export const wotReactWaitingKey = 'users:wotReact'
+export const wotRevokeWaitingKey = 'users:wotRevoke'

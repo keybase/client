@@ -154,9 +154,13 @@ const AddToChannels = (props: Props) => {
         ),
         rightButton:
           Styles.isMobile && mode === 'others' ? (
-            <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
-              Add
-            </Kb.Text>
+            waiting ? (
+              <Kb.ProgressIndicator type="Large" />
+            ) : (
+              <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
+                Add
+              </Kb.Text>
+            )
           ) : (
             undefined
           ),

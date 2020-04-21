@@ -10,7 +10,7 @@ for (const cat in categorized) {
 }
 delete sorted.undefined
 const categoryOrder = [
-  'Smileys & People',
+  'Smileys & Emotion',
   'Animals & Nature',
   'Food & Drink',
   'Activities',
@@ -25,10 +25,11 @@ export const categoryIcons = {
   Flags: 'iconfont-flag',
   'Food & Drink': 'iconfont-apple',
   Objects: 'iconfont-music',
-  'Smileys & People': 'iconfont-emoji',
+  'Smileys & Emotion': 'iconfont-emoji',
   Symbols: 'iconfont-checkbox',
   'Travel & Places': 'iconfont-airplane',
 }
+// @ts-ignore
 const categories: Array<{
   category: string
   emojis: Array<EmojiData>
@@ -40,9 +41,14 @@ const categories: Array<{
 // Map from EmojiMart's `id` to EmojiDatasource's object
 const emojiNameMap = Object.values(emojiIndex.emojis).reduce(
   (res: {[K in string]: EmojiData}, emoji: any) => {
+    // sometimes its a collection of things
+    if (emoji.id === undefined && emoji[1]) {
+      emoji = emoji[1]
+    }
     const shortName = emoji.id
     const emojiFromEmojiData = emojidata.find(e => e.short_name === shortName)
     if (emojiFromEmojiData) {
+      // @ts-ignore
       res[shortName] = emojiFromEmojiData
     }
     return res

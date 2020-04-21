@@ -58,6 +58,7 @@ func (c *CmdWatchdog) Run() error {
 		},
 		// when the service exits gracefully, also exit the watchdog and any other programs it is currently watching
 		ExitOn: watchdog.ExitAllOnSuccess,
+		Name:   "KeybaseService",
 	}
 	programs = append(programs, serviceProgram)
 
@@ -76,6 +77,7 @@ func (c *CmdWatchdog) Run() error {
 			mountDirArg,
 		},
 		ExitOn: watchdog.ExitOnSuccess,
+		Name:   "KBFS",
 	}
 	programs = append(programs, kbfsProgram)
 
@@ -90,6 +92,7 @@ func (c *CmdWatchdog) Run() error {
 			"-log-to-file",
 			"-path-to-keybase=" + keybasePath,
 		},
+		Name: "KeybaseUpdater",
 	}
 	programs = append(programs, updaterProgram)
 

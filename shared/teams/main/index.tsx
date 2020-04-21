@@ -152,9 +152,17 @@ const SortHeader = () => {
     <Kb.FloatingMenu
       attachTo={getAttachmentRef}
       items={[
-        {onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
-        {onClick: () => onChangeSort('activity'), title: sortOrderToTitle.activity},
-        {onClick: () => onChangeSort('alphabetical'), title: sortOrderToTitle.alphabetical},
+        {icon: 'iconfont-crown-owner', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
+        {
+          icon: 'iconfont-campfire-burning',
+          onClick: () => onChangeSort('activity'),
+          title: sortOrderToTitle.activity,
+        },
+        {
+          icon: 'iconfont-text-code',
+          onClick: () => onChangeSort('alphabetical'),
+          title: sortOrderToTitle.alphabetical,
+        },
       ]}
       closeOnSelect={true}
       onHidden={toggleShowingPopup}
@@ -248,7 +256,7 @@ class Teams extends React.PureComponent<Props, State> {
         const reset = this.props.teamresetusers.get(team.id)
         const resetUserCount = (reset && reset.size) || 0
         if (flags.teamsRedesign) {
-          return <TeamRowNew firstItem={index === 1} showChat={!Styles.isMobile} teamID={team.id} />
+          return <TeamRowNew firstItem={index === 2} showChat={!Styles.isMobile} teamID={team.id} />
         }
         return (
           <TeamRow

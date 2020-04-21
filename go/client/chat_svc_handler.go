@@ -304,7 +304,7 @@ func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertis
 	case "teammembers":
 		return chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
 	default:
-		return chat1.BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q", typ)
+		return chat1.BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q, must be one of 'public', 'teamconvs' or 'teammembers' see `keybase chat api --help` for more info.", typ)
 	}
 }
 

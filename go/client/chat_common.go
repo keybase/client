@@ -5,12 +5,14 @@ package client
 
 import (
 	"fmt"
+	"strings"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 )
 
 func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (res keybase1.UserOrTeamResult, err error) {
@@ -18,10 +20,19 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 	if err != nil {
 		return res, err
 	}
-	if _, err = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name}); err == nil {
+	_, err = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name})
+	switch err.(type) {
+	case nil:
 		return keybase1.UserOrTeamResult_TEAM, nil
+	case teams.TeamDoesNotExistError:
+		return keybase1.UserOrTeamResult_USER, nil
+	default:
+		// https://github.com/keybase/client/blob/249cfcb4b4bd6dcc50d207d0b88eee455a7f6c2d/go/protocol/keybase1/extras.go#L2249
+		if strings.Contains(err.Error(), "team names must be between 2 and 16 characters long") {
+			return keybase1.UserOrTeamResult_USER, nil
+		}
+		return res, err
 	}
-	return keybase1.UserOrTeamResult_USER, nil
 }
 
 // Post a retention policy

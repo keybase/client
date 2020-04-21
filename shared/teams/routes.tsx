@@ -23,6 +23,7 @@ import TeamReallyRemoveChannelMember from './confirm-modals/confirm-remove-from-
 import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
 import TeamAddToChannels from './team/member/add-to-channels'
+import TeamCreateChannels from './channel/create-channels'
 import TeamWizardTeamInfo from './new-team/wizard/new-team-info'
 import TeamWizardTeamPurpose from './new-team/wizard/team-purpose'
 import TeamWizardTeamSize from './new-team/wizard/make-big-team'
@@ -112,6 +113,9 @@ export const newModalRoutes = {
   },
   teamAddToChannels: {
     getScreen: (): typeof TeamAddToChannels => require('./team/member/add-to-channels').default,
+  },
+  teamCreateChannels: {
+    getScreen: (): typeof TeamCreateChannels => require('./channel/create-channels').default,
   },
   teamDeleteChannel: {
     getScreen: (): typeof DeleteChannel => require('./confirm-modals/delete-channel').default,

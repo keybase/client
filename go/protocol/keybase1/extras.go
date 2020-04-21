@@ -3683,6 +3683,16 @@ func (s TeamSigChainState) GetAllUVs() (res []UserVersion) {
 	return res
 }
 
+func (s TeamSigChainState) ActiveInvites() (ret []TeamInvite) {
+	for _, md := range s.InviteMetadatas {
+		if code, err := md.Status.Code(); err == nil &&
+			code == TeamInviteMetadataStatusCode_ACTIVE {
+			ret = append(ret, md.Invite)
+		}
+	}
+	return ret
+}
+
 func (h *HiddenTeamChain) IsStale() bool {
 	if h == nil {
 		return false
@@ -4086,4 +4096,16 @@ func UserRolePairsHaveOwner(users []UserRolePair) bool {
 
 func (e EmailAddress) String() string {
 	return string(e)
+}
+
+func NewTeamSigMeta(sigMeta SignatureMetadata, uv UserVersion) TeamSignatureMetadata {
+	return TeamSignatureMetadata{SigMeta: sigMeta, Uv: uv}
+}
+
+func NewTeamInviteMetadata(invite TeamInvite, teamSigMeta TeamSignatureMetadata) TeamInviteMetadata {
+	return TeamInviteMetadata{
+		Invite:      invite,
+		TeamSigMeta: teamSigMeta,
+		Status:      NewTeamInviteMetadataStatusWithActive(),
+	}
 }

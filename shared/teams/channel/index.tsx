@@ -20,6 +20,7 @@ import ChannelMemberRow from './rows/member-row'
 import BotRow from '../team/rows/bot-row/bot/container'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
+import isEqual from 'lodash/isEqual'
 
 export type OwnProps = Container.RouteProps<{
   teamID: Types.TeamID
@@ -106,9 +107,9 @@ const Channel = (props: OwnProps) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', '')
   const providedTab = Container.getRouteProps(props, 'selectedTab', undefined)
 
-  // TODO this will thrash every time
-  const {bots, participants} = Container.useSelector(state =>
-    ChatConstants.getBotsAndParticipants(state, conversationIDKey, true /* sort */)
+  const {bots, participants} = Container.useSelector(
+    state => ChatConstants.getBotsAndParticipants(state, conversationIDKey, true /* sort */),
+    isEqual // do a deep comparison so as to not render thrash
   )
   const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))

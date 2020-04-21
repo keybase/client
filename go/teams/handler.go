@@ -386,11 +386,12 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		// verify the invite info:
 
 		// find the invite in the team chain
-		invite, found := team.chain().FindActiveInviteByID(untrustedInviteeFromGregor.InviteID)
+		inviteMD, found := team.chain().FindActiveInviteMDByID(untrustedInviteeFromGregor.InviteID)
 		if !found {
 			g.Log.CDebugf(ctx, "FindActiveInviteByID failed for invite %s", untrustedInviteeFromGregor.InviteID)
 			return libkb.NotFoundError{Msg: "Invite not found"}
 		}
+		invite := inviteMD.Invite
 		g.Log.CDebugf(ctx, "Found invite: %+v", invite)
 		category, err := invite.Type.C()
 		if err != nil {
@@ -576,11 +577,12 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	tx := CreateAddMemberTx(team)
 
 	for _, seitan := range msg.Seitans {
-		invite, found := team.chain().FindActiveInviteByID(seitan.InviteID)
+		inviteMD, found := team.chain().FindActiveInviteMDByID(seitan.InviteID)
 		if !found {
 			g.Log.CDebugf(ctx, "Couldn't find specified invite id %q; skipping", seitan.InviteID)
 			continue
 		}
+		invite := inviteMD.Invite
 
 		g.Log.CDebugf(ctx, "Processing Seitan acceptance for invite %s", invite.Id)
 

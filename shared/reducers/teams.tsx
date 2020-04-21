@@ -31,7 +31,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     return initialState
   },
   [TeamsGen.setChannelCreationError]: (draftState, action) => {
+    draftState.creatingChannels = false
     draftState.errorInChannelCreation = action.payload.error
+  },
+  [TeamsGen.createChannels]: draftState => {
+    draftState.creatingChannels = true
+  },
+  [TeamsGen.setCreatingChannels]: (draftState, action) => {
+    draftState.creatingChannels = action.payload.creatingChannels
   },
   [TeamsGen.createNewTeam]: draftState => {
     draftState.errorInTeamCreation = ''
@@ -312,6 +319,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [TeamsGen.setTeamWizardSubteams]: (draftState, action) => {
     draftState.newTeamWizard.subteams = action.payload.subteams
+  },
+  [TeamsGen.setTeamWizardSubteamMembers]: (draftState, action) => {
+    const {members} = action.payload
+    draftState.addMembersWizard = {
+      ...Constants.addMembersWizardEmptyState,
+      addingMembers: members.map(m => ({assertion: m, role: 'writer'})),
+      teamID: Types.newTeamWizardTeamID,
+    }
   },
   [TeamsGen.setTeamWizardError]: (draftState, action) => {
     draftState.newTeamWizard.error = action.payload.error

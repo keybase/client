@@ -57,7 +57,7 @@ const connected = Container.namedConnect(
     if (!notAUser) {
       // Keybase user
       const followThem = Constants.followThem(state, username)
-      const {followersCount, followingCount, followers, following, reason, webOfTrustEntries} = d
+      const {followersCount, followingCount, followers, following, reason, webOfTrustEntries = []} = d
       const mutualFollow = followThem && Constants.followsYou(state, username)
 
       const filteredWot = filterWebOfTrustEntries(webOfTrustEntries)

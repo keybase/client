@@ -1008,7 +1008,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.login.accountDelete': {
-    inParam: void
+    inParam: {readonly passphrase?: String | null}
     outParam: void
   }
   'keybase.1.login.deprovision': {
@@ -1428,7 +1428,7 @@ export type MessageTypes = {
     outParam: TeamAddMemberResult
   }
   'keybase.1.teams.teamAddMembersMultiRole': {
-    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean; readonly emailInviteMessage?: String | null}
+    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean; readonly emailInviteMessage?: String | null; readonly defaultChannelsOverride?: Array<String> | null}
     outParam: TeamAddMembersResult
   }
   'keybase.1.teams.teamCreate': {
@@ -1915,19 +1915,19 @@ export enum HomeScreenTodoType {
   proof = 2,
   device = 3,
   follow = 4,
-  chat = 5,
   paperkey = 6,
   team = 7,
   folder = 8,
   gitRepo = 9,
   teamShowcase = 10,
-  avatarUser = 23,
   avatarTeam = 12,
   addPhoneNumber = 18,
   verifyAllPhoneNumber = 19,
   verifyAllEmail = 20,
   legacyEmailVisibility = 21,
   addEmail = 22,
+  avatarUser = 23,
+  chat = 24,
   annoncementPlaceholder = 10000,
 }
 
@@ -2685,6 +2685,13 @@ export enum TeamInviteCategory {
   invitelink = 7,
 }
 
+export enum TeamInviteMetadataStatusCode {
+  active = 0,
+  obsolete = 1,
+  cancelled = 2,
+  completed = 3,
+}
+
 export enum TeamMemberStatus {
   active = 0,
   reset = 1,
@@ -2807,7 +2814,7 @@ export type AirdropDetails = {readonly uid: UID; readonly kid: BinaryKID; readon
 export type AllProvisionedUsernames = {readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly hasProvisionedUser: Boolean}
 export type AnnotatedMemberInfo = {readonly userID: UID; readonly teamID: TeamID; readonly username: String; readonly fullName: String; readonly fqName: String; readonly isImplicitTeam: Boolean; readonly impTeamDisplayName: String; readonly isOpenTeam: Boolean; readonly role: TeamRole; readonly implicit?: ImplicitRole | null; readonly needsPUK: Boolean; readonly memberCount: Int; readonly eldestSeqno: Seqno; readonly allowProfilePromote: Boolean; readonly isMemberShowcased: Boolean; readonly status: TeamMemberStatus}
 export type AnnotatedTeam = {readonly teamID: TeamID; readonly name: String; readonly transitiveSubteamsUnverified: SubteamListResult; readonly members?: Array<AnnotatedTeamMemberDetails> | null; readonly invites?: Array<AnnotatedTeamInvite> | null; readonly joinRequests?: Array<TeamJoinRequest> | null; readonly tarsDisabled: Boolean; readonly settings: TeamSettings; readonly showcase: TeamShowcase}
-export type AnnotatedTeamInvite = {readonly invite: TeamInvite; readonly displayName: TeamInviteDisplayName; readonly inviterUsername: String; readonly inviteeUv: UserVersion; readonly teamName: String; readonly status?: TeamMemberStatus | null; readonly usedInvites?: Array<AnnotatedTeamUsedInviteLogPoint> | null}
+export type AnnotatedTeamInvite = {readonly inviteMetadata: TeamInviteMetadata; readonly displayName: TeamInviteDisplayName; readonly inviterUsername: String; readonly inviteeUv: UserVersion; readonly teamName: String; readonly status?: TeamMemberStatus | null; readonly annotatedUsedInvites?: Array<AnnotatedTeamUsedInviteLogPoint> | null}
 export type AnnotatedTeamList = {readonly teams?: Array<AnnotatedMemberInfo> | null; readonly annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}}
 export type AnnotatedTeamMemberDetails = {readonly details: TeamMemberDetails; readonly role: TeamRole}
 export type AnnotatedTeamUsedInviteLogPoint = {readonly username: String; readonly teamUsedInviteLogPoint: TeamUsedInviteLogPoint}
@@ -2985,8 +2992,8 @@ export type HomeScreenPeopleNotificationContact = {readonly resolveTime: Time; r
 export type HomeScreenPeopleNotificationContactMulti = {readonly contacts?: Array<HomeScreenPeopleNotificationContact> | null; readonly numOthers: Int}
 export type HomeScreenPeopleNotificationFollowed = {readonly followTime: Time; readonly followedBack: Boolean; readonly user: UserSummary}
 export type HomeScreenPeopleNotificationFollowedMulti = {readonly followers?: Array<HomeScreenPeopleNotificationFollowed> | null; readonly numOthers: Int}
-export type HomeScreenTodo = {t: HomeScreenTodoType.verifyAllPhoneNumber; verifyAllPhoneNumber: PhoneNumber} | {t: HomeScreenTodoType.verifyAllEmail; verifyAllEmail: EmailAddress} | {t: HomeScreenTodoType.legacyEmailVisibility; legacyEmailVisibility: EmailAddress} | {t: HomeScreenTodoType.none} | {t: HomeScreenTodoType.bio} | {t: HomeScreenTodoType.proof} | {t: HomeScreenTodoType.device} | {t: HomeScreenTodoType.follow} | {t: HomeScreenTodoType.chat} | {t: HomeScreenTodoType.paperkey} | {t: HomeScreenTodoType.team} | {t: HomeScreenTodoType.folder} | {t: HomeScreenTodoType.gitRepo} | {t: HomeScreenTodoType.teamShowcase} | {t: HomeScreenTodoType.avatarUser} | {t: HomeScreenTodoType.avatarTeam} | {t: HomeScreenTodoType.addPhoneNumber} | {t: HomeScreenTodoType.addEmail} | {t: HomeScreenTodoType.annoncementPlaceholder}
-export type HomeScreenTodoExt = {t: HomeScreenTodoType.verifyAllEmail; verifyAllEmail: VerifyAllEmailTodoExt} | {t: HomeScreenTodoType.none} | {t: HomeScreenTodoType.bio} | {t: HomeScreenTodoType.proof} | {t: HomeScreenTodoType.device} | {t: HomeScreenTodoType.follow} | {t: HomeScreenTodoType.chat} | {t: HomeScreenTodoType.paperkey} | {t: HomeScreenTodoType.team} | {t: HomeScreenTodoType.folder} | {t: HomeScreenTodoType.gitRepo} | {t: HomeScreenTodoType.teamShowcase} | {t: HomeScreenTodoType.avatarUser} | {t: HomeScreenTodoType.avatarTeam} | {t: HomeScreenTodoType.addPhoneNumber} | {t: HomeScreenTodoType.verifyAllPhoneNumber} | {t: HomeScreenTodoType.legacyEmailVisibility} | {t: HomeScreenTodoType.addEmail} | {t: HomeScreenTodoType.annoncementPlaceholder}
+export type HomeScreenTodo = {t: HomeScreenTodoType.verifyAllPhoneNumber; verifyAllPhoneNumber: PhoneNumber} | {t: HomeScreenTodoType.verifyAllEmail; verifyAllEmail: EmailAddress} | {t: HomeScreenTodoType.legacyEmailVisibility; legacyEmailVisibility: EmailAddress} | {t: HomeScreenTodoType.none} | {t: HomeScreenTodoType.bio} | {t: HomeScreenTodoType.proof} | {t: HomeScreenTodoType.device} | {t: HomeScreenTodoType.follow} | {t: HomeScreenTodoType.paperkey} | {t: HomeScreenTodoType.team} | {t: HomeScreenTodoType.folder} | {t: HomeScreenTodoType.gitRepo} | {t: HomeScreenTodoType.teamShowcase} | {t: HomeScreenTodoType.avatarTeam} | {t: HomeScreenTodoType.addPhoneNumber} | {t: HomeScreenTodoType.addEmail} | {t: HomeScreenTodoType.avatarUser} | {t: HomeScreenTodoType.chat} | {t: HomeScreenTodoType.annoncementPlaceholder}
+export type HomeScreenTodoExt = {t: HomeScreenTodoType.verifyAllEmail; verifyAllEmail: VerifyAllEmailTodoExt} | {t: HomeScreenTodoType.none} | {t: HomeScreenTodoType.bio} | {t: HomeScreenTodoType.proof} | {t: HomeScreenTodoType.device} | {t: HomeScreenTodoType.follow} | {t: HomeScreenTodoType.paperkey} | {t: HomeScreenTodoType.team} | {t: HomeScreenTodoType.folder} | {t: HomeScreenTodoType.gitRepo} | {t: HomeScreenTodoType.teamShowcase} | {t: HomeScreenTodoType.avatarTeam} | {t: HomeScreenTodoType.addPhoneNumber} | {t: HomeScreenTodoType.verifyAllPhoneNumber} | {t: HomeScreenTodoType.legacyEmailVisibility} | {t: HomeScreenTodoType.addEmail} | {t: HomeScreenTodoType.avatarUser} | {t: HomeScreenTodoType.chat} | {t: HomeScreenTodoType.annoncementPlaceholder}
 export type HomeUserSummary = {readonly uid: UID; readonly username: String; readonly bio: String; readonly fullName: String; readonly pics?: Pics | null}
 export type HttpSrvInfo = {readonly address: String; readonly token: String}
 export type Identify2Res = {readonly upk: UserPlusKeys; readonly identifiedAt: Time; readonly trackBreaks?: IdentifyTrackBreaks | null}
@@ -3280,6 +3287,10 @@ export type TeamInvite = {readonly role: TeamRole; readonly id: TeamInviteID; re
 export type TeamInviteDisplayName = String
 export type TeamInviteID = String
 export type TeamInviteMaxUses = Int
+export type TeamInviteMetadata = {readonly invite: TeamInvite; readonly teamSigMeta: TeamSignatureMetadata; readonly status: TeamInviteMetadataStatus; readonly usedInvites?: Array<TeamUsedInviteLogPoint> | null}
+export type TeamInviteMetadataCancel = {readonly teamSigMeta: TeamSignatureMetadata}
+export type TeamInviteMetadataCompleted = {readonly teamSigMeta: TeamSignatureMetadata}
+export type TeamInviteMetadataStatus = {code: TeamInviteMetadataStatusCode.active} | {code: TeamInviteMetadataStatusCode.obsolete} | {code: TeamInviteMetadataStatusCode.cancelled; cancelled: TeamInviteMetadataCancel} | {code: TeamInviteMetadataStatusCode.completed; completed: TeamInviteMetadataCompleted}
 export type TeamInviteName = String
 export type TeamInviteSocialNetwork = String
 export type TeamInviteType = {c: TeamInviteCategory.unknown; unknown: String} | {c: TeamInviteCategory.sbs; sbs: TeamInviteSocialNetwork} | {c: TeamInviteCategory.none} | {c: TeamInviteCategory.keybase} | {c: TeamInviteCategory.email} | {c: TeamInviteCategory.seitan} | {c: TeamInviteCategory.phone} | {c: TeamInviteCategory.invitelink}
@@ -3320,7 +3331,8 @@ export type TeamSeitanMsg = {readonly teamID: TeamID; readonly seitans?: Array<T
 export type TeamSeitanRequest = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly akey: SeitanAKey; readonly role: TeamRole; readonly unixCTime: Int64}
 export type TeamSettings = {readonly open: Boolean; readonly joinAs: TeamRole}
 export type TeamShowcase = {readonly isShowcased: Boolean; readonly description?: String | null; readonly setByUID?: UID | null; readonly anyMemberShowcase: Boolean}
-export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog: {[key: string]: Array<UserLogPoint> | null}; readonly subteamLog: {[key: string]: Array<SubteamLogPoint> | null}; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly maxPerTeamKeyGeneration: PerTeamKeyGeneration; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly stubbedLinks: {[key: string]: Boolean}; readonly activeInvites: {[key: string]: TeamInvite}; readonly obsoleteInvites: {[key: string]: TeamInvite}; readonly usedInvites: {[key: string]: Array<TeamUsedInviteLogPoint> | null}; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly bots: {[key: string]: TeamBotSettings}; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots: {[key: string]: MerkleRootV2}}
+export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog: {[key: string]: Array<UserLogPoint> | null}; readonly subteamLog: {[key: string]: Array<SubteamLogPoint> | null}; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly maxPerTeamKeyGeneration: PerTeamKeyGeneration; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly stubbedLinks: {[key: string]: Boolean}; readonly inviteMetadatas: {[key: string]: TeamInviteMetadata}; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly bots: {[key: string]: TeamBotSettings}; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots: {[key: string]: MerkleRootV2}}
+export type TeamSignatureMetadata = {readonly sigMeta: SignatureMetadata; readonly uv: UserVersion}
 export type TeamTreeEntry = {readonly name: TeamName; readonly admin: Boolean}
 export type TeamTreeError = {readonly message: String; readonly willSkipSubtree: Boolean; readonly willSkipAncestors: Boolean}
 export type TeamTreeInitial = {readonly guid: Int}

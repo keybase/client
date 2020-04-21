@@ -9,7 +9,6 @@ import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status/container'
 import ThreadSearch from '../search/container'
 import {Props} from '.'
-import {isDarwin} from '../../../constants/platform'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import '../conversation.css'
 
@@ -30,11 +29,9 @@ class Conversation extends React.PureComponent<Props> {
     })
   }
 
-  private hotKeys = [`${isDarwin ? 'command' : 'ctrl'}+f`]
-  private onHotKey = (cmd: string) => {
-    if (cmd.replace(/(command|ctrl)\+/, '') === 'f') {
-      this.props.onToggleThreadSearch()
-    }
+  private hotKeys = ['mod+f']
+  private onHotKey = () => {
+    this.props.onToggleThreadSearch()
   }
 
   render() {

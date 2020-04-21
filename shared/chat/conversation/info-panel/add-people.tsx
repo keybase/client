@@ -3,10 +3,10 @@ import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as TeamTypes from '../../../constants/types/teams'
+import * as TeamsGen from '../../../actions/teams-gen'
 import * as Kb from '../../../common-adapters'
 import {connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {appendNewTeamBuilder} from '../../../actions/typed-routes'
 
 type Props = {
   isAdmin: boolean
@@ -72,7 +72,7 @@ const AddPeople = connect(
   },
   dispatch => {
     return {
-      _onAddPeople: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
+      _onAddPeople: (teamID: TeamTypes.TeamID) => dispatch(TeamsGen.createStartAddMembersWizard({teamID})),
       _onAddToChannel: (conversationIDKey: Types.ConversationIDKey) => {
         dispatch(
           RouteTreeGen.createNavigateAppend({

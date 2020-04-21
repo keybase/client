@@ -26,6 +26,7 @@ const MakeBigTeam = () => {
         title: <ModalTitle teamID={teamID} title="Make it a big team?" />,
       }}
       allowOverflow={true}
+      backgroundStyle={styles.bg}
     >
       <Kb.Box2
         direction="vertical"
@@ -52,10 +53,10 @@ const MakeBigTeam = () => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Styles.globalColors.blueGrey},
   body: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
-      backgroundColor: Styles.globalColors.blueGrey,
       borderRadius: 4,
     },
     isMobile: {...Styles.globalStyles.flexOne},

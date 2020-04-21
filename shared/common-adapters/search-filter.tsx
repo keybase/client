@@ -140,16 +140,12 @@ class SearchFilter extends React.PureComponent<Props, State> {
       this.focusOnMount()
     }
   }
+
   private keyHandler() {
     return (
       !Styles.isMobile &&
       this.props.hotkey &&
-      !this.props.onClick && (
-        <Kb.HotKey
-          onHotKey={this.onHotkey}
-          hotKeys={[(Platforms.isDarwin ? 'command+' : 'ctrl+') + this.props.hotkey]}
-        />
-      )
+      !this.props.onClick && <Kb.HotKey onHotKey={this.onHotkey} hotKeys={`mod+${this.props.hotkey}`} />
     )
   }
   private iconSizeType() {
@@ -346,12 +342,18 @@ const styles = Styles.styleSheetCreate(() => ({
   containerCenter: {
     justifyContent: 'center',
   },
-  containerMobile: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-  },
+  containerMobile: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isTablet: {
+      paddingLeft: 0,
+      paddingRight: 0,
+    },
+  }),
   containerNonSmall: {
     height: 32,
     paddingLeft: Styles.globalMargins.xsmall,

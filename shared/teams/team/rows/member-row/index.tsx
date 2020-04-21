@@ -75,6 +75,7 @@ export const TeamMemberRow = (props: Props) => {
     const teamID = props.teamID
 
     const dispatch = Container.useDispatch()
+    const nav = Container.useSafeNavigation()
     const teamSelectedMembers = Container.useSelector(state => state.teams.teamSelectedMembers.get(teamID))
     const anySelected = !!teamSelectedMembers?.size
     const selected = !!teamSelectedMembers?.has(props.username)
@@ -94,27 +95,29 @@ export const TeamMemberRow = (props: Props) => {
     )
 
     const body = (
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+        <Kb.Avatar username={props.username} size={32} />
 
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.nameContainer}>
+        <Kb.Box2 direction="vertical" style={styles.nameContainer}>
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
             <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} />
           </Kb.Box>
 
-          <Kb.Box style={styles.nameContainerInner}>
+          <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
             {fullNameLabel}
             {crown}
             {!active && (
-              <Kb.Text type="BodySmall" style={styles.lockedOutOrDeleted}>
-                {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
-              </Kb.Text>
+              <Kb.Meta
+                backgroundColor={Styles.globalColors.red}
+                title={props.status === 'reset' ? 'locked out' : 'deleted'}
+                style={styles.lockedOutMeta}
+              />
             )}
             <Kb.Text type="BodySmall">
               {!!active && !!props.roleType && typeToLabel[props.roleType]}
               {resetLabel}
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -136,7 +139,16 @@ export const TeamMemberRow = (props: Props) => {
       'Divider',
       ...(props.youCanManageMembers
         ? ([
-            {icon: 'iconfont-chat', onClick: props.onChat, title: 'Add to channels...'},
+            {
+              icon: 'iconfont-chat',
+              onClick: () =>
+                dispatch(
+                  nav.safeNavigateAppendPayload({
+                    path: [{props: {teamID, usernames: [props.username]}, selected: 'teamAddToChannels'}],
+                  })
+                ),
+              title: 'Add to channels...',
+            },
             {icon: 'iconfont-crown-admin', onClick: props.onClick, title: 'Edit role...'},
           ] as Kb.MenuItems)
         : []),
@@ -176,7 +188,11 @@ export const TeamMemberRow = (props: Props) => {
     ))
 
     const actions = (
-      <Kb.Box2 direction="horizontal" gap="tiny" style={styles.mobileMarginsHack}>
+      <Kb.Box2
+        direction="horizontal"
+        gap="tiny"
+        style={props.youCanManageMembers ? styles.mobileMarginsHack : undefined}
+      >
         {popup}
         <Kb.Button
           icon="iconfont-chat"
@@ -199,18 +215,23 @@ export const TeamMemberRow = (props: Props) => {
     )
 
     const canEnterMemberPage = props.youCanManageMembers && active
+    const massActionsProps = props.youCanManageMembers
+      ? {
+          containerStyleOverride: styles.listItemMargin,
+          icon: checkCircle,
+          iconStyleOverride: styles.checkCircle,
+        }
+      : {}
     return (
       <Kb.ListItem2
+        {...massActionsProps}
         action={anySelected ? null : actions}
         onlyShowActionOnHover="fade"
-        height={Styles.isMobile ? 90 : 64}
-        icon={checkCircle}
-        iconStyleOverride={styles.checkCircle}
-        containerStyleOverride={styles.listItemMargin}
+        height={Styles.isMobile ? 56 : 48}
         type="Large"
         body={body}
         firstItem={props.firstItem}
-        style={selected ? styles.selected : undefined}
+        style={selected ? styles.selected : styles.unselected}
         onClick={anySelected ? () => onSelect(!selected) : canEnterMemberPage ? props.onClick : undefined}
       />
     )
@@ -228,34 +249,26 @@ export const TeamMemberRow = (props: Props) => {
             <Kb.Box style={Styles.globalStyles.flexBoxRow}>
               <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} />
             </Kb.Box>
-            <Kb.Box style={styles.nameContainerInner}>
+            <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
               {fullNameLabel}
               {crown}
               {!active && (
-                <Kb.Text type="BodySmall" style={styles.lockedOutOrDeleted}>
-                  {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
-                </Kb.Text>
+                <Kb.Meta
+                  backgroundColor={Styles.globalColors.red}
+                  title={props.status === 'reset' ? 'locked out' : 'deleted'}
+                  style={styles.lockedOutMeta}
+                />
               )}
               <Kb.Text type="BodySmall">
                 {roleLabel}
                 {resetLabel}
               </Kb.Text>
-            </Kb.Box>
+            </Kb.Box2>
           </Kb.Box>
         </Kb.ClickableBox>
         {!active && !Styles.isMobile && props.youCanManageMembers && (
           <Kb.Box style={styles.buttonBarContainer}>
             <Kb.ButtonBar>
-              {props.status !== 'deleted' && (
-                <Kb.Button
-                  small={true}
-                  label="Re-Admit"
-                  onClick={props.onReAddToTeam}
-                  type="Success"
-                  waiting={props.waitingForAdd}
-                  disabled={props.waitingForRemove}
-                />
-              )}
               <Kb.Button
                 small={true}
                 label="Remove"
@@ -369,7 +382,7 @@ const styles = Styles.styleSheetCreate(() => ({
   crownIcon: {
     marginRight: Styles.globalMargins.xtiny,
   },
-  fullNameLabel: {marginRight: Styles.globalMargins.xtiny},
+  fullNameLabel: {flexShrink: 1, marginRight: Styles.globalMargins.xtiny},
   innerContainerBottom: {...Styles.globalStyles.flexBoxRow, flexShrink: 1},
   innerContainerTop: {
     ...Styles.globalStyles.flexBoxRow,
@@ -380,20 +393,21 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   listItemMargin: {marginLeft: 0},
-  lockedOutOrDeleted: {
-    ...Styles.globalStyles.fontBold,
-    backgroundColor: Styles.globalColors.red,
-    color: Styles.globalColors.white,
+  lockedOutMeta: {
     marginRight: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.xtiny,
-    paddingRight: Styles.globalMargins.xtiny,
   },
   menuButton: {
     marginLeft: Styles.globalMargins.xtiny,
   },
   mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
-  nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
-  nameContainerInner: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},
+  nameContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignSelf: undefined,
+    flex: 1,
+    justifyContent: 'center',
+    marginLeft: Styles.globalMargins.small,
+  },
   selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
+  unselected: {backgroundColor: Styles.globalColors.white},
   widenClickableArea: {margin: -5, padding: 5},
 }))
