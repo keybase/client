@@ -249,6 +249,7 @@ const emptyState: Types.State = {
   teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamIDToWelcomeMessage: new Map(),
+  teamInviteDetails: {inviteID: '', inviteKey: ''},
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
