@@ -60,7 +60,7 @@ export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
                 // if the input currently contains invalid characters, overwrite with clean text and reset selection
                 this.inputRef.current?.transformText(
                   () => ({
-                    selection: {start: cleaned.length + 1, end: cleaned.length + 1},
+                    selection: {end: cleaned.length + 1, start: cleaned.length + 1},
                     text: `:${cleaned}:`,
                   }),
                   true
