@@ -188,6 +188,10 @@ helpers.rootLinuxNode(env, {
                 sh "make"
               }
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
+              dir ('./go/chat/emoji/') {
+                sh "go run main.go"
+              }
+              checkDiffs(['./go/'], 'Please run \\"go run main.go\\" inside the client/go/chat/emoji directory.')
               packagesToTest = getPackagesToTest(dependencyFiles)
             } else {
               // Ensure that the change target branch has been fetched,
