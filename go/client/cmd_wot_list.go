@@ -116,9 +116,7 @@ func (c *cmdWotList) Run() error {
 				line("    `keybase wot revoke %s` to revoke your proposed vouch (coming soon)", vouch.VoucheeUsername) // TODO
 			}
 		}
-		if vouch.Confidence != nil {
-			line("Additional Details: %+v", *vouch.Confidence)
-		}
+		line("Additional Details: %+v", vouch.Confidence)
 		line("-------------------------------")
 	}
 	return nil

@@ -146,9 +146,11 @@ const loadWebOfTrustEntries = async (
       wotVouches?.map(entry => ({
         attestation: entry.vouchText,
         attestingUser: entry.voucherUsername,
+        otherText: entry.confidence.other,
         proofID: entry.vouchProof,
+        proofs: entry.proofs ?? undefined,
         status: entry.status,
-        verificationType: (entry.confidence?.usernameVerifiedVia || 'none') as WebOfTrustVerificationType,
+        verificationType: (entry.confidence.usernameVerifiedVia || 'none') as WebOfTrustVerificationType, // xxx this is an incorrect cast. Go does not gaurantee this match.
         vouchedAt: entry.vouchedAt,
       })) || []
     return Tracker2Gen.createUpdateWotEntries({

@@ -1231,3 +1231,53 @@ func NewWotProof(proofType keybase1.ProofType, key, value string) (res keybase1.
 		return res, fmt.Errorf("unexpected proof type: %v", proofType)
 	}
 }
+
+// Format a web-of-trust proof for gui display.
+func NewWotProofUI(mctx MetaContext, proof keybase1.WotProof) (res keybase1.WotProofUI, err error) {
+	iconKey := ProofIconKey(mctx, proof.ProofType, proof.Name)
+	res = keybase1.WotProofUI{
+		SiteIcon:         MakeProofIcons(mctx, iconKey, ProofIconTypeSmall, 16),
+		SiteIconDarkmode: MakeProofIcons(mctx, iconKey, ProofIconTypeSmallDarkmode, 16),
+	}
+	switch proof.ProofType {
+	case keybase1.ProofType_TWITTER, keybase1.ProofType_GITHUB, keybase1.ProofType_REDDIT,
+		keybase1.ProofType_COINBASE, keybase1.ProofType_HACKERNEWS, keybase1.ProofType_FACEBOOK,
+		keybase1.ProofType_GENERIC_SOCIAL, keybase1.ProofType_ROOTER:
+		res.Type = proof.Name
+		res.Value = proof.Username
+	case keybase1.ProofType_GENERIC_WEB_SITE:
+		res.Type = proof.Protocol
+		res.Value = proof.Hostname
+	case keybase1.ProofType_DNS:
+		res.Type = "dns"
+		res.Value = proof.Domain
+	default:
+		return res, fmt.Errorf("unexpected proof type: %v", proof.ProofType)
+	}
+	return res, nil
+}
+
+func ProofIconKey(mctx MetaContext, proofType keybase1.ProofType, genericKeyAndFallback string) (iconKey string) {
+	switch proofType {
+	case keybase1.ProofType_TWITTER:
+		return "twitter"
+	case keybase1.ProofType_GITHUB:
+		return "github"
+	case keybase1.ProofType_REDDIT:
+		return "reddit"
+	case keybase1.ProofType_HACKERNEWS:
+		return "hackernews"
+	case keybase1.ProofType_FACEBOOK:
+		return "facebook"
+	case keybase1.ProofType_GENERIC_SOCIAL:
+		serviceType := mctx.G().GetProofServices().GetServiceType(mctx.Ctx(), genericKeyAndFallback)
+		if serviceType != nil {
+			return serviceType.GetLogoKey()
+		}
+		return genericKeyAndFallback
+	case keybase1.ProofType_GENERIC_WEB_SITE, keybase1.ProofType_DNS:
+		return "web"
+	default:
+		return genericKeyAndFallback
+	}
+}
