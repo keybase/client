@@ -551,10 +551,6 @@ const styles = Styles.styleSheetCreate(
           minHeight: 0,
           paddingTop: Styles.globalMargins.tiny,
         },
-        isAndroid: {
-          // This is to counteract some intrinsic margins the android view has
-          marginTop: -8,
-        },
       }),
       inputContainer: {
         ...Styles.padding(0, Styles.globalMargins.tiny),
