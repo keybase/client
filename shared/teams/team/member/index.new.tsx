@@ -182,6 +182,7 @@ const TeamMember = (props: OwnProps) => {
       <NodeInRow
         node={item}
         idx={index}
+        isParentTeamMe={isMe && teamID == item.teamID}
         username={username}
         expanded={expandedSet.has(item.teamID)}
         setExpanded={newExpanded => {
@@ -194,7 +195,7 @@ const TeamMember = (props: OwnProps) => {
         }}
       />
     ),
-    title: makeTitle(isMe ? 'You are in:' : `${username} is in:`),
+    title: makeTitle(isMe ? 'You are a member of:' : `${username} is a member of:`),
   }
 
   const nodesNotInSection = {
@@ -258,7 +259,7 @@ const TeamMember = (props: OwnProps) => {
         </Kb.Banner>
       )}
       <Kb.SectionList<Section>
-        stickySectionHeadersEnabled={true}
+        stickySectionHeadersEnabled={false}
         renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
         sections={sections}
         keyExtractor={item => `member:${username}:${item.teamname}`}
@@ -408,6 +409,7 @@ const LastActivity = (props: {loading: boolean; teamID: Types.TeamID; username: 
 }
 type NodeInRowProps = {
   idx: number
+  isParentTeamMe: boolean
   node: TeamTreeRowIn
   username: string
   expanded: boolean
@@ -434,8 +436,12 @@ const NodeInRow = (props: NodeInRowProps) => {
       })
     )
   const onKickOutWaitingKey = Constants.removeMemberWaitingKey(props.node.teamID, props.username)
-  const onKickOut = () =>
+  const onKickOut = () => {
     dispatch(TeamsGen.createRemoveMember({teamID: props.node.teamID, username: props.username}))
+    if (props.isParentTeamMe) {
+      dispatch(nav.safeNavigateUpPayload())
+    }
+  }
 
   const openTeam = React.useCallback(
     () =>
@@ -454,6 +460,9 @@ const NodeInRow = (props: NodeInRowProps) => {
   const onChangeRole = (role: Types.TeamRoleType) => {
     dispatch(TeamsGen.createEditMembership({role, teamID: props.node.teamID, username: props.username}))
     setOpen(false)
+    if (['reader, writer'].includes(role) && props.isParentTeamMe) {
+      dispatch(nav.safeNavigateUpPayload())
+    }
   }
   const disabledRoles = Container.useSelector(state =>
     Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
@@ -566,13 +575,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   </Kb.Box2>
                 )}
                 {expanded && (
-                  <Kb.Box2
-                    direction="horizontal"
-                    gap="tiny"
-                    alignSelf="flex-start"
-                    style={{justifyContent: 'center'}}
-                    fullWidth={true}
-                  >
+                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" fullWidth={true}>
                     <Kb.Icon
                       type="iconfont-hash"
                       sizeType="Small"
@@ -590,7 +593,13 @@ const NodeInRow = (props: NodeInRowProps) => {
                   </Kb.Box2>
                 )}
                 {expanded && (props.node.canAdminister || isMe) && (
-                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" gapEnd={Styles.isMobile}>
+                  <Kb.Box2
+                    direction="horizontal"
+                    gap="tiny"
+                    alignSelf="flex-start"
+                    gapEnd={Styles.isMobile}
+                    style={styles.paddingBottomMobile}
+                  >
                     <Kb.Button
                       mode="Secondary"
                       onClick={onAddToChannels}
@@ -774,16 +783,15 @@ const styles = Styles.styleSheetCreate(() => ({
   headerContainer: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
+      paddingBottom: Styles.globalMargins.small,
     },
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
-      paddingBottom: Styles.globalMargins.small,
     },
     isPhone: {
       paddingTop: Styles.globalMargins.small,
     },
     isTablet: {
-      paddingBottom: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.small,
     },
   }),
@@ -836,6 +844,11 @@ const styles = Styles.styleSheetCreate(() => ({
   membershipTeamTextExpanded: Styles.platformStyles({
     isMobile: {
       paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
+  paddingBottomMobile: Styles.platformStyles({
+    isPhone: {
+      paddingBottom: Styles.globalMargins.small,
     },
   }),
   reloadButton: {
