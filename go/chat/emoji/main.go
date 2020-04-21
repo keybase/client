@@ -38,8 +38,8 @@ func UnifiedToChar(unified string) (string, error) {
 	return sb.String(), nil
 }
 
-func createEmojiDataCodeMap() (map[string]string, map[string][]string, error) {
-	emojiFile, err := ioutil.ReadFile(emojiDataJSONPath)
+func createEmojiDataCodeMap(path string) (map[string]string, map[string][]string, error) {
+	emojiFile, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -85,8 +85,7 @@ func createEmojiDataCodeMap() (map[string]string, map[string][]string, error) {
 
 // adapted from https://github.com/kyokomi/emoji/ to only use the emoji-data
 // emoji source
-var pkgName string
-var fileName string
+var pkgName, inName, outName string
 
 // TemplateData emoji_codemap.go template
 type TemplateData struct {
@@ -136,9 +135,10 @@ func createCodeMapSource(pkgName string, emojiCodeMap map[string]string, emojiRe
 
 func main() {
 	flag.StringVar(&pkgName, "pkg", "storage", "output package")
-	flag.StringVar(&fileName, "o", "../storage/emoji_codemap.go", "output file")
+	flag.StringVar(&outName, "o", "../storage/emoji_codemap.go", "output file")
+	flag.StringVar(&inName, "i", "../../../shared/node_modules/emoji-datasource/emoji.json", "input file")
 	flag.Parse()
-	codeMap, revCodeMap, err := createEmojiDataCodeMap()
+	codeMap, revCodeMap, err := createEmojiDataCodeMap(inName)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -148,8 +148,8 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	os.Remove(fileName)
-	file, err := os.Create(fileName)
+	os.Remove(outName)
+	file, err := os.Create(outName)
 	if err != nil {
 		log.Fatalln(err)
 	}
