@@ -459,6 +459,10 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		}
 
 		tx := CreateAddMemberTx(team)
+		tx.NoPUKless = true // only allow users with PUK
+		// NOTE: AddMemberBySBS already errors out when encountering PUK-less
+		// users, but `NoPUKless` also provides additional check during tx.Post
+		// that no type=keybase invite is being added.
 		if err := tx.AddMemberBySBS(ctx, verifiedInvitee, invite.Role); err != nil {
 			return err
 		}

@@ -875,9 +875,6 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 	if !tx.team.IsImplicit() {
 		return fmt.Errorf("ReAddMemberToImplicitTeam only works on implicit teams")
 	}
-	if tx.NoPUKless {
-		return fmt.Errorf("internal error - NoPUKless used for implicit teams seems like a bug")
-	}
 	if err := assertValidNewTeamMemberRole(role); err != nil {
 		return err
 	}
@@ -891,6 +888,9 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 			return err
 		}
 	} else {
+		if tx.NoPUKless {
+			return fmt.Errorf("User %s cannot be added because they don't have a PUK", uv.String())
+		}
 		if err := tx.createKeybaseInvite(uv, role); err != nil {
 			return err
 		}

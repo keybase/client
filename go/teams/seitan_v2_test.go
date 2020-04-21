@@ -581,7 +581,7 @@ func TestSeitanPukless(t *testing.T) {
 	require.NoError(t, err)
 
 	invite, _, found := team.FindActiveKeybaseInvite(user.GetUID())
-	require.False(t, found, "Found invite for user: %s", spew.Sdump(invite))
+	require.False(t, found, "Expected not to find invite for user: %s", spew.Sdump(invite))
 }
 
 func TestSeitanMultipleRequestForOneInvite(t *testing.T) {
