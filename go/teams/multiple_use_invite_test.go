@@ -676,7 +676,7 @@ func TestSeitanInviteLinkPukless(t *testing.T) {
 			EldestSeqno: user.EldestSeqno,
 			Akey:        keybase1.SeitanAKey(seitanRet.encoded),
 			Role:        keybase1.TeamRole_WRITER,
-			UnixCTime:   int64(timeNow),
+			UnixCTime:   timeNow,
 		}},
 	}
 	err = HandleTeamSeitan(context.Background(), tc.G, msg)

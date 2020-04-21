@@ -426,6 +426,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 
 		tx := CreateAddMemberTx(t)
+		tx.AllowPUKless = true
 		tx.EmailInviteMsg = emailInviteMsg
 		resolvedUsername, uv, invite, err := tx.AddOrInviteMemberByAssertion(ctx, username, role, botSettings)
 		if err != nil {
@@ -509,6 +510,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 
 		tx := CreateAddMemberTx(team)
+		tx.AllowPUKless = true
 		tx.EmailInviteMsg = emailInviteMsg
 
 		type sweepEntry struct {
@@ -693,6 +695,7 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 		}
 
 		tx := CreateAddMemberTx(t)
+		tx.AllowPUKless = true
 		if err := tx.ReAddMemberToImplicitTeam(ctx, uv, hasPUK, targetRole, existingBotSettings); err != nil {
 			return err
 		}

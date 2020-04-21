@@ -47,12 +47,15 @@ type AddMemberTx struct {
 
 	// Caller can set the following to affect how AddMemberTx:
 
-	// Do not add users who do not have an active Per User Key. Settings this
-	// to true will force AddMemberTx to never add type=keybase invites using
-	// `team.invite` link, only `team.change_membership` will be allowed for
-	// adding members. AddMember* functions that would result in PUKless user
-	// being added will return an error.
-	NoPUKless bool
+	// Allow adding users who do not have active Per User Key. Users without
+	// PUK will be added using a 'team.invite' link with type='keybase'
+	// invites.
+	//
+	// If this setting is 'false' (which is the default), it forces AddMemberTx
+	// to never add type='keybase' invites, and only `team.change_membership`
+	// is allowed for adding Keybase users as members. Calls to AddMember*
+	// functions that with a user that does not have a PUK result in an error.
+	AllowPUKless bool
 
 	// Override whether the team key is rotated.
 	SkipKeyRotation *bool
@@ -339,8 +342,9 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	hasPUK := len(user.PerUserKeys) > 0
 	if !hasPUK {
 		g.Log.CDebugf(ctx, "Invite required for %v", uv)
-		if tx.NoPUKless {
-			return false, fmt.Errorf("User %q (%s) does not have a PUK, cannot be added to NoPUKless transaction",
+
+		if !tx.AllowPUKless {
+			return false, fmt.Errorf("User %q (%s) does not have a PUK, cannot be added to this transaction",
 				user.Username, uv.Uid)
 		}
 	}
@@ -888,7 +892,7 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 			return err
 		}
 	} else {
-		if tx.NoPUKless {
+		if !tx.AllowPUKless {
 			return fmt.Errorf("User %s cannot be added because they don't have a PUK", uv.String())
 		}
 		if err := tx.createKeybaseInvite(uv, role); err != nil {
@@ -1074,11 +1078,11 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			section.Entropy = entropy
 			sections = append(sections, section)
 
-			if tx.NoPUKless && p.Tag == txPayloadTagInviteKeybase && section.Invites.HasNewInvites() {
-				// This means we broke contract somewhere along or tx.NoPUKless was
-				// changed to true in the middle of creating the transaction.
-				// Better fail this here instead of doing unexpected.
-				return fmt.Errorf("Found payload with new Keybase invites but NoPUKless is true")
+			if !tx.AllowPUKless && p.Tag == txPayloadTagInviteKeybase && section.Invites.HasNewInvites() {
+				// This means we broke contract somewhere or that tx.AllowPUKless
+				// was changed to false after adding PUKless user. Better fail here
+				// instead of doing unexpected.
+				return fmt.Errorf("Found payload with new Keybase invites but AllowPUKless is false")
 			}
 		default:
 			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown tag: %v", p.Tag)
