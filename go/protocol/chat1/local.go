@@ -2062,22 +2062,22 @@ func (o HeaderPlaintextUnsupported) DeepCopy() HeaderPlaintextUnsupported {
 }
 
 type HeaderPlaintextV1 struct {
-	Conv              ConversationIDTriple     `codec:"conv" json:"conv"`
-	TlfName           string                   `codec:"tlfName" json:"tlfName"`
-	TlfPublic         bool                     `codec:"tlfPublic" json:"tlfPublic"`
-	MessageType       MessageType              `codec:"messageType" json:"messageType"`
-	Prev              []MessagePreviousPointer `codec:"prev" json:"prev"`
-	Sender            gregor1.UID              `codec:"sender" json:"sender"`
-	SenderDevice      gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
-	KbfsCryptKeysUsed *bool                    `codec:"kbfsCryptKeysUsed,omitempty" json:"kbfsCryptKeysUsed,omitempty"`
-	BodyHash          Hash                     `codec:"bodyHash" json:"bodyHash"`
-	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
-	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	HeaderSignature   *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
-	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
-	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
-	BotUID            *gregor1.UID             `codec:"b,omitempty" json:"b,omitempty"`
-	TxID              *stellar1.TransactionID  `codec:"t,omitempty" json:"t,omitempty"`
+	Conv              ConversationIDTriple      `codec:"conv" json:"conv"`
+	TlfName           string                    `codec:"tlfName" json:"tlfName"`
+	TlfPublic         bool                      `codec:"tlfPublic" json:"tlfPublic"`
+	MessageType       MessageType               `codec:"messageType" json:"messageType"`
+	Prev              []MessagePreviousPointer  `codec:"prev" json:"prev"`
+	Sender            gregor1.UID               `codec:"sender" json:"sender"`
+	SenderDevice      gregor1.DeviceID          `codec:"senderDevice" json:"senderDevice"`
+	KbfsCryptKeysUsed *bool                     `codec:"kbfsCryptKeysUsed,omitempty" json:"kbfsCryptKeysUsed,omitempty"`
+	BodyHash          Hash                      `codec:"bodyHash" json:"bodyHash"`
+	OutboxInfo        *OutboxInfo               `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+	OutboxID          *OutboxID                 `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	HeaderSignature   *SignatureInfo            `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
+	MerkleRoot        *MerkleRoot               `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
+	EphemeralMetadata *MsgEphemeralMetadata     `codec:"em,omitempty" json:"em,omitempty"`
+	BotUID            *gregor1.UID              `codec:"b,omitempty" json:"b,omitempty"`
+	TxIDs             *[]stellar1.TransactionID `codec:"t,omitempty" json:"t,omitempty"`
 }
 
 func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
@@ -2149,13 +2149,23 @@ func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.BotUID),
-		TxID: (func(x *stellar1.TransactionID) *stellar1.TransactionID {
+		TxIDs: (func(x *[]stellar1.TransactionID) *[]stellar1.TransactionID {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := (func(x []stellar1.TransactionID) []stellar1.TransactionID {
+				if x == nil {
+					return nil
+				}
+				ret := make([]stellar1.TransactionID, len(x))
+				for i, v := range x {
+					vCopy := v.DeepCopy()
+					ret[i] = vCopy
+				}
+				return ret
+			})((*x))
 			return &tmp
-		})(o.TxID),
+		})(o.TxIDs),
 	}
 }
 

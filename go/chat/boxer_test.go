@@ -77,13 +77,14 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 }
 
 func sendPaymentMsgWithSender(t *testing.T, txID stellar1.TransactionID, uid gregor1.UID, mbVersion chat1.MessageBoxedVersion) chat1.MessagePlaintext {
+	txIDs := []stellar1.TransactionID{txID}
 	header := chat1.MessageClientHeader{
 		Conv: chat1.ConversationIDTriple{
 			Tlfid: mockTLFID,
 		},
 		Sender:      uid,
 		MessageType: chat1.MessageType_SENDPAYMENT,
-		TxID:        &txID,
+		TxIDs:       &txIDs,
 	}
 	switch mbVersion {
 	case chat1.MessageBoxedVersion_V1:

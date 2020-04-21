@@ -29,6 +29,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-codec/codec"
 	context "golang.org/x/net/context"
 	"golang.org/x/net/idna"
@@ -3052,4 +3053,14 @@ func IsDeletedConvError(err error) bool {
 	default:
 		return false
 	}
+}
+
+func TextPaymentsToTransactionIDs(textPayments []chat1.TextPayment) (txIDs []stellar1.TransactionID) {
+	for _, payment := range textPayments {
+		if payment.Result.Sent__ != nil {
+			txID := stellar1.TransactionIDFromPaymentID(*payment.Result.Sent__)
+			txIDs = append(txIDs, txID)
+		}
+	}
+	return txIDs
 }

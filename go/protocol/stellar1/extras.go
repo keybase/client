@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -66,9 +67,34 @@ func (t TransactionID) Eq(b TransactionID) bool {
 	return t == b
 }
 
-func TransactionIDPtrEq(x, y *TransactionID) bool {
+type byTxID []TransactionID
+
+func (s byTxID) Len() int {
+	return len(s)
+}
+func (s byTxID) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byTxID) Less(i, j int) bool {
+	return s[i] < s[j]
+}
+
+func TransactionIDsEq(x, y *[]TransactionID) bool {
 	if x != nil && y != nil {
-		return (*x).Eq(*y)
+		if len(*x) != len(*y) {
+			return false
+		}
+		var xs []TransactionID
+		var ys []TransactionID
+		_ = copy(xs, *x)
+		_ = copy(ys, *y)
+		sort.Sort(byTxID(xs))
+		sort.Sort(byTxID(ys))
+		for i, _ := range xs {
+			if xs[i] != ys[i] {
+				return false
+			}
+		}
 	}
 	return (x == nil) && (y == nil)
 }
