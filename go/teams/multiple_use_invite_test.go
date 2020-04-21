@@ -238,19 +238,7 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 
 	origAPI := tc.G.API
 	RecordAPI := libkb.NewAPIArgRecorder(origAPI)
-	// This API records all calls but silently drops the ones for
-	// team/reject_invite_acceptance. Sometimes we need this to avoid having to
-	// post the invite again (which would be non deterministic, as the rejection
-	// might not have been accepted depending on team rekeyd's state).
-	DropRejectCallsAPI := libkb.NewAPIArgRecorder(
-		libkb.NewAPIRouter(
-			[]libkb.API{origAPI, &libkb.NullMockAPI{}},
-			func(arg libkb.APIArg, _ libkb.APIMethodType) int {
-				if arg.Endpoint == "team/reject_invite_acceptance" {
-					return 1
-				}
-				return 0
-			}))
+	DropRejectCallsAPI := newDropRejectCallsAPI(origAPI)
 
 	// Accept the link as user2.
 	origMsg := acceptInvite(t, &tc, teamID, user2, invLink)
@@ -395,19 +383,7 @@ func TestSeitanHandleExpiredInvite(t *testing.T) {
 
 	origAPI := tc.G.API
 	RecordAPI := libkb.NewAPIArgRecorder(origAPI)
-	// This API records all calls but silently drops the ones for
-	// team/reject_invite_acceptance. Sometimes we need this to avoid having to
-	// post the invite again (which would be non deterministic, as the rejection
-	// might not have been accepted depending on team rekeyd's state).
-	DropRejectCallsAPI := libkb.NewAPIArgRecorder(
-		libkb.NewAPIRouter(
-			[]libkb.API{origAPI, &libkb.NullMockAPI{}},
-			func(arg libkb.APIArg, _ libkb.APIMethodType) int {
-				if arg.Endpoint == "team/reject_invite_acceptance" {
-					return 1
-				}
-				return 0
-			}))
+	DropRejectCallsAPI := newDropRejectCallsAPI(origAPI)
 
 	msg2 := acceptInvite(t, &tc, teamID, user2, invLink)
 	msg3 := acceptInvite(t, &tc, teamID, user3, invLink)
@@ -468,19 +444,7 @@ func TestSeitanHandleRequestAfterRoleChange(t *testing.T) {
 	inviteID := inviteIDFromIkey(t, invLink.Ikey)
 
 	origAPI := tc.G.API
-	// This API records all calls but silently drops the ones for
-	// team/reject_invite_acceptance. Sometimes we need this to avoid having to
-	// post the invite again (which would be non deterministic, as the rejection
-	// might not have been accepted depending on team rekeyd's state).
-	DropRejectCallsAPI := libkb.NewAPIArgRecorder(
-		libkb.NewAPIRouter(
-			[]libkb.API{origAPI, &libkb.NullMockAPI{}},
-			func(arg libkb.APIArg, _ libkb.APIMethodType) int {
-				if arg.Endpoint == "team/reject_invite_acceptance" {
-					return 1
-				}
-				return 0
-			}))
+	DropRejectCallsAPI := newDropRejectCallsAPI(origAPI)
 
 	msg2 := acceptInvite(t, &tc, teamID, user2, invLink)
 	msg3 := acceptInvite(t, &tc, teamID, user3, invLink)
@@ -643,4 +607,24 @@ func assertRejectInviteArgs(t *testing.T, record libkb.APIRecord, inviteID SCTea
 		require.NotNil(t, record.Err)
 		require.Contains(t, record.Err.Error(), errString)
 	}
+}
+
+// newDropRejectCallsAPI returns an API which records all calls received,
+// but does not actually forward the ones for team/reject_invite_acceptance
+// to the server (these calls return no errors and empty results). Sometimes
+// we need this because invite rejection could fail in a racy way:
+// team_rekeyd might or might not have already assigned the admin the job to
+// process the invite, and so such admin might not be authorized to reject
+// it.
+func newDropRejectCallsAPI(origAPI libkb.API) *libkb.APIArgRecorder {
+	return libkb.NewAPIArgRecorder(
+		libkb.NewAPIRouter(
+			[]libkb.API{origAPI, &libkb.NullMockAPI{}},
+			func(arg libkb.APIArg, _ libkb.APIMethodType) int {
+				if arg.Endpoint == "team/reject_invite_acceptance" {
+					return 1
+				}
+				return 0
+			},
+		))
 }

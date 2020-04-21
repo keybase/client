@@ -3617,8 +3617,8 @@ func (s TeamSigChainState) GetUserLastJoinTime(user UserVersion) (time Time, err
 // GetUserLastRoleChangeTime returns the time of the last role change for user
 // in team. If the user left the team as a last change, the time of such leave
 // event is returned. If the user was never in the team, then this function
-// returns time=0 ans wasPartOfTeam=false.
-func (s TeamSigChainState) GetUserLastRoleChangeTime(user UserVersion) (time Time, wasPartOfTeam bool) {
+// returns time=0 and wasMember=false.
+func (s TeamSigChainState) GetUserLastRoleChangeTime(user UserVersion) (time Time, wasMember bool) {
 	points := s.UserLog[user]
 	if len(points) == 0 {
 		return 0, false

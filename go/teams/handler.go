@@ -853,8 +853,8 @@ func verifySeitanSingleInvitelink(ctx context.Context, g *libkb.GlobalContext, t
 		return NewInviteLinkAcceptanceError("did not end up with the same invitelink AKey")
 	}
 
-	roleChangeTime, wasPartOfTeam := team.UserLastRoleChangeTime(uv)
-	if wasPartOfTeam && seitan.UnixCTime < roleChangeTime.UnixSeconds() {
+	roleChangeTime, wasMember := team.UserLastRoleChangeTime(uv)
+	if wasMember && seitan.UnixCTime < roleChangeTime.UnixSeconds() {
 		return NewInviteLinkAcceptanceError("invite link was accepted before the user last changed their role")
 	}
 
