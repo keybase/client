@@ -534,7 +534,8 @@ const styles = Styles.styleSheetCreate(
       },
       iconContainer: {
         height: 28,
-        marginRight: -4,
+        marginRight: -Styles.globalMargins.xtiny,
+        marginTop: Styles.globalMargins.tiny,
         position: 'relative',
         width: 28,
       },
