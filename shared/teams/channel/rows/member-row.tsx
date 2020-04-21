@@ -16,6 +16,7 @@ import MenuHeader from '../../team/rows/menu-header.new'
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
   firstItem: boolean
+  isGeneral: boolean
   teamID: Types.TeamID
   username: string
 }
@@ -182,7 +183,7 @@ const ChannelMemberRow = (props: Props) => {
     {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
     {icon: 'iconfont-chat', onClick: onChat, title: 'Chat'},
     ...(yourOperations.manageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
-    ...(yourOperations.manageMembers || isYou
+    ...((yourOperations.manageMembers || isYou) && !props.isGeneral
       ? ([
           {
             danger: true,
