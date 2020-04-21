@@ -19,7 +19,7 @@ amdefine@>=0.0.4:
 
 "avdl-compiler@https://github.com/keybase/node-avdl-compiler.git#xgess/picnic-1133-allow-serializing-nulls":
   version "1.4.8"
-  resolved "https://github.com/keybase/node-avdl-compiler.git#3183f776609f65bdcddd0523448d2c8a8c0139a0"
+  resolved "https://github.com/keybase/node-avdl-compiler.git#fb1cee0be45eb46d5b67c5d960366518947a6483"
   dependencies:
     avdl2json "^2.2.5"
     iced-error "0.0.9"
