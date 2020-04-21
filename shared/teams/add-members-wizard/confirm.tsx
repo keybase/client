@@ -36,6 +36,7 @@ const AddMembersConfirm = () => {
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
   const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
+  const isInTeam = Container.useSelector(s => Constants.getRole(s, teamID) !== 'none')
 
   // TODO: consider useMemoing these
   const anyNonKeybase = addingMembers.some(m => m.assertion.includes('@'))
@@ -66,7 +67,7 @@ const AddMembersConfirm = () => {
         addMembers(
           [
             {
-              defaultChannelsOverride: defaultChannels
+              addToChannels: defaultChannels
                 ?.filter(c => c.channelname !== 'general')
                 .map(c => c.conversationIDKey),
               emailInviteMessage: emailMessage || undefined,
@@ -127,7 +128,7 @@ const AddMembersConfirm = () => {
             />
           </Kb.Box2>
         </Kb.Box2>
-        {isBigTeam && someKeybaseUsers && <DefaultChannels teamID={teamID} />}
+        {isBigTeam && someKeybaseUsers && isInTeam && <DefaultChannels teamID={teamID} />}
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
@@ -363,8 +364,7 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
   const allKeybaseUsers = Container.useSelector(
     s => !s.teams.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
   )
-  const onChangeFromDefault = () =>
-    dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: defaultChannels}))
+  const onChangeFromDefault = () => dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: []}))
   const onAdd = (toAdd: Array<Types.ChannelNameID>) =>
     dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd}))
   const onRemove = (toRemove: Types.ChannelNameID) =>
@@ -399,7 +399,7 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
               ))}
               .{' '}
               <Kb.Text type="BodySmallPrimaryLink" onClick={onChangeFromDefault}>
-                Change this
+                Add channels
               </Kb.Text>
             </Kb.Text>
           </>

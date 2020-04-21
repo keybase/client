@@ -4429,12 +4429,12 @@ type TeamAddMembersArg struct {
 }
 
 type TeamAddMembersMultiRoleArg struct {
-	SessionID               int            `codec:"sessionID" json:"sessionID"`
-	TeamID                  TeamID         `codec:"teamID" json:"teamID"`
-	Users                   []UserRolePair `codec:"users" json:"users"`
-	SendChatNotification    bool           `codec:"sendChatNotification" json:"sendChatNotification"`
-	EmailInviteMessage      *string        `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
-	DefaultChannelsOverride []string       `codec:"defaultChannelsOverride" json:"defaultChannelsOverride"`
+	SessionID            int            `codec:"sessionID" json:"sessionID"`
+	TeamID               TeamID         `codec:"teamID" json:"teamID"`
+	Users                []UserRolePair `codec:"users" json:"users"`
+	SendChatNotification bool           `codec:"sendChatNotification" json:"sendChatNotification"`
+	EmailInviteMessage   *string        `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
+	AddToChannels        []string       `codec:"addToChannels" json:"addToChannels"`
 }
 
 type TeamRemoveMemberArg struct {

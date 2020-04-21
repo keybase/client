@@ -120,7 +120,7 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 			SendChatNotification: false,
 			EmailInviteMessage:   teamInfo.EmailInviteMessage,
 			// Add users to the default channels.
-			DefaultChannelsOverride: nil,
+			AddToChannels: nil,
 		}
 
 		unaddedUsers, err := h.TeamAddMembersMultiRole(ctx, arg4)
@@ -467,7 +467,7 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 		}
 	}
 	uid := gregor1.UID(h.G().GetMyUID().ToBytes())
-	for _, convIDStr := range arg.DefaultChannelsOverride {
+	for _, convIDStr := range arg.AddToChannels {
 		convID, err := chat1.MakeConvID(convIDStr)
 		if err != nil {
 			return res, err
