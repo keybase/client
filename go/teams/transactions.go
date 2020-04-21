@@ -16,12 +16,14 @@ import (
 	"github.com/keybase/client/go/teams/hidden"
 )
 
-// AddMemberTx helps build a transaction that may contain multiple
-// team sigchain links. The caller can use the transaction to add users
-// to a team whether they be pukful, pukless, or social assertions.
-// Behind the scenes cryptomembers and invites may be removed if
-// they are for stale versions of the addees.
-// Not threadsafe.
+// AddMemberTx helps build a transaction that may contain multiple team
+// sigchain links. The caller can use the transaction to add users to a team
+// whether they be PUKful or PUKless users, social or server-trust assertions.
+//
+// Behind the scenes cryptomembers and invites may be removed if they are for
+// stale versions of the addees.
+//
+// Not thread-safe.
 type AddMemberTx struct {
 	team     *Team
 	payloads []txPayload
@@ -44,6 +46,13 @@ type AddMemberTx struct {
 	lastChangeForUID map[keybase1.UID]int
 
 	// Caller can set the following to affect how AddMemberTx:
+
+	// Do not add users who do not have an active Per User Key. Settings this
+	// to true will force AddMemberTx to never add type=keybase invites using
+	// `team.invite` link, only `team.change_membership` will be allowed for
+	// adding members. AddMember* functions that would result in PUKless user
+	// being added will return an error.
+	NoPUKless bool
 
 	// Override whether the team key is rotated.
 	SkipKeyRotation *bool
@@ -330,6 +339,10 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	hasPUK := len(user.PerUserKeys) > 0
 	if !hasPUK {
 		g.Log.CDebugf(ctx, "Invite required for %v", uv)
+		if tx.NoPUKless {
+			return false, fmt.Errorf("User %q (%s) does not have a PUK, cannot be added to NoPUKless transaction",
+				user.Username, uv.Uid)
+		}
 	}
 
 	normalizedUsername := libkb.NewNormalizedUsername(user.Username)
@@ -862,6 +875,9 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 	if !tx.team.IsImplicit() {
 		return fmt.Errorf("ReAddMemberToImplicitTeam only works on implicit teams")
 	}
+	if tx.NoPUKless {
+		return fmt.Errorf("internal error - NoPUKless used for implicit teams seems like a bug")
+	}
 	if err := assertValidNewTeamMemberRole(role); err != nil {
 		return err
 	}
@@ -1057,6 +1073,13 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			}
 			section.Entropy = entropy
 			sections = append(sections, section)
+
+			if tx.NoPUKless && p.Tag == txPayloadTagInviteKeybase && section.Invites.HasNewInvites() {
+				// This means we broke contract somewhere along or tx.NoPUKless was
+				// changed to true in the middle of creating the transaction.
+				// Better fail this here instead of doing unexpected.
+				return fmt.Errorf("Found payload with new Keybase invites but NoPUKless is true")
+			}
 		default:
 			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown tag: %v", p.Tag)
 		}

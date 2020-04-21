@@ -169,24 +169,46 @@ func (u SCTeamBotUV) ToUserVersion() keybase1.UserVersion {
 	}
 }
 
+// Len returns total count of all created invites and all canceled invites.
 func (i SCTeamInvites) Len() int {
 	size := 0
-	if i.Owners != nil {
-		size += len(*i.Owners)
-	}
-	if i.Admins != nil {
-		size += len(*i.Admins)
-	}
-	if i.Writers != nil {
-		size += len(*i.Writers)
-	}
-	if i.Readers != nil {
-		size += len(*i.Readers)
+	// ヾ( []*[])ノ
+	for _, ptr := range []*[]SCTeamInvite{i.Owners, i.Admins, i.Writers, i.Readers} {
+		size += len(*ptr)
 	}
 	if i.Cancel != nil {
 		size += len(*i.Cancel)
 	}
 	return size
+}
+
+// NewInviteCount returns count of all created invites.
+func (i SCTeamInvites) NewInviteCount() int {
+	size := 0
+	for _, ptr := range []*[]SCTeamInvite{i.Owners, i.Admins, i.Writers, i.Readers} {
+		if ptr != nil {
+			size += len(*ptr)
+		}
+	}
+	return size
+}
+
+// CanceledInviteCount returns count of canceled invites.
+func (i SCTeamInvites) CanceledInviteCount() int {
+	if i.Cancel != nil {
+		return len(*i.Cancel)
+	}
+	return 0
+}
+
+// HasNewInvites returns true if SCTeamInvites creates any invites.
+func (i SCTeamInvites) HasNewInvites() bool {
+	for _, ptr := range []*[]SCTeamInvite{i.Owners, i.Admins, i.Writers, i.Readers} {
+		if ptr != nil && len(*ptr) > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {
