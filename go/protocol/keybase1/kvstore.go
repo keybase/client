@@ -10,20 +10,26 @@ import (
 )
 
 type KVGetResult struct {
-	TeamName   string `codec:"teamName" json:"teamName"`
-	Namespace  string `codec:"namespace" json:"namespace"`
-	EntryKey   string `codec:"entryKey" json:"entryKey"`
-	EntryValue string `codec:"entryValue" json:"entryValue"`
-	Revision   int    `codec:"revision" json:"revision"`
+	TeamName   string  `codec:"teamName" json:"teamName"`
+	Namespace  string  `codec:"namespace" json:"namespace"`
+	EntryKey   string  `codec:"entryKey" json:"entryKey"`
+	EntryValue *string `codec:"entryValue" json:"entryValue"`
+	Revision   int     `codec:"revision" json:"revision"`
 }
 
 func (o KVGetResult) DeepCopy() KVGetResult {
 	return KVGetResult{
-		TeamName:   o.TeamName,
-		Namespace:  o.Namespace,
-		EntryKey:   o.EntryKey,
-		EntryValue: o.EntryValue,
-		Revision:   o.Revision,
+		TeamName:  o.TeamName,
+		Namespace: o.Namespace,
+		EntryKey:  o.EntryKey,
+		EntryValue: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.EntryValue),
+		Revision: o.Revision,
 	}
 }
 

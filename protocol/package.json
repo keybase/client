@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/keybase/protocol",
   "dependencies": {
-    "avdl-compiler": "1.4.8",
+    "avdl-compiler": "https://github.com/keybase/node-avdl-compiler.git#xgess/picnic-1133-allow-serializing-nulls",
     "avdl2json": "2.2.5",
     "bluebird": "^2.10.0",
     "camelcase": "^4.0.0",
