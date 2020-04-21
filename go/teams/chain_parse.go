@@ -174,7 +174,9 @@ func (i SCTeamInvites) Len() int {
 	size := 0
 	// ヾ( []*[])ノ
 	for _, ptr := range []*[]SCTeamInvite{i.Owners, i.Admins, i.Writers, i.Readers} {
-		size += len(*ptr)
+		if ptr != nil {
+			size += len(*ptr)
+		}
 	}
 	if i.Cancel != nil {
 		size += len(*i.Cancel)
