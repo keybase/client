@@ -32,13 +32,13 @@ func NewAvatarHandler(xp rpc.Transporter, g *libkb.GlobalContext, source libkb.A
 var _ keybase1.AvatarsInterface = (*AvatarHandler)(nil)
 
 func (h *AvatarHandler) LoadUserAvatars(ctx context.Context, arg keybase1.LoadUserAvatarsArg) (keybase1.LoadAvatarsRes, error) {
-	m := libkb.NewMetaContext(ctx, h.G())
-	return h.source.LoadUsers(m, arg.Names, arg.Formats)
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("UAVTR")
+	return h.source.LoadUsers(mctx, arg.Names, arg.Formats)
 }
 
 func (h *AvatarHandler) LoadTeamAvatars(ctx context.Context, arg keybase1.LoadTeamAvatarsArg) (keybase1.LoadAvatarsRes, error) {
-	m := libkb.NewMetaContext(ctx, h.G())
-	return h.source.LoadTeams(m, arg.Names, arg.Formats)
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("TAVTR")
+	return h.source.LoadTeams(mctx, arg.Names, arg.Formats)
 }
 
 const avatarGregorHandlerName = "avatarHandler"

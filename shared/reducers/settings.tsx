@@ -169,6 +169,9 @@ const passwordActions: Container.ActionHandler<Actions, Types.State> = {
     password.error = undefined
     password.newPasswordConfirm = action.payload.password
   },
+  [SettingsGen.resetCheckPasswordIsCorrect]: draftState => {
+    draftState.checkPasswordIsCorrect = undefined
+  },
   [SettingsGen.checkPassword]: draftState => {
     draftState.checkPasswordIsCorrect = undefined
   },

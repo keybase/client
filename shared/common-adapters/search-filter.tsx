@@ -140,16 +140,12 @@ class SearchFilter extends React.PureComponent<Props, State> {
       this.focusOnMount()
     }
   }
+
   private keyHandler() {
     return (
       !Styles.isMobile &&
       this.props.hotkey &&
-      !this.props.onClick && (
-        <Kb.HotKey
-          onHotKey={this.onHotkey}
-          hotKeys={[(Platforms.isDarwin ? 'command+' : 'ctrl+') + this.props.hotkey]}
-        />
-      )
+      !this.props.onClick && <Kb.HotKey onHotKey={this.onHotkey} hotKeys={`mod+${this.props.hotkey}`} />
     )
   }
   private iconSizeType() {

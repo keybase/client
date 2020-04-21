@@ -62,7 +62,7 @@ const EnterDevicename = (props: Props) => {
               : 'icon-computer-background-1-96'
           }
         />
-        <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
+        <Kb.Box2 direction="vertical" fullWidth={Styles.isPhone} gap="tiny">
           <Kb.LabeledInput
             autoFocus={true}
             containerStyle={styles.input}
@@ -78,7 +78,7 @@ const EnterDevicename = (props: Props) => {
               {Constants.deviceNameInstructions}
             </Kb.Text>
           ) : (
-            <Kb.Text type="BodySmall" style={styles.inputSub}>
+            <Kb.Text type="BodySmall">
               Your device name will be public and can not be changed in the future.
             </Kb.Text>
           )}
@@ -107,28 +107,9 @@ const styles = Styles.styleSheetCreate(() => ({
     marginLeft: 2,
   },
   input: Styles.platformStyles({
-    isElectron: {
-      width: 368,
-    },
-    isTablet: {
-      maxWidth: 368,
-    },
+    isElectron: {width: 368},
+    isTablet: {width: 368},
   }),
-  inputBox: Styles.platformStyles({
-    isElectron: {
-      // need to set width so subtext will wrap
-      width: 368,
-    },
-    isMobile: {
-      width: '100%',
-    },
-    isTablet: {
-      maxWidth: 368,
-    },
-  }),
-  inputSub: {
-    marginLeft: 2,
-  },
 }))
 
 export default EnterDevicename

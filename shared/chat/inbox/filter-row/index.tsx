@@ -54,11 +54,9 @@ class ConversationFilterInput extends React.PureComponent<Props> {
     }
   }
 
-  private hotKeys = Platforms.isDarwin ? ['command+n'] : ['ctrl+n']
-  private onHotKeys = (cmd: string) => {
-    if (cmd.endsWith('+n')) {
-      this.props.appendNewChatBuilder()
-    }
+  private hotKeys = ['mod+n']
+  private onHotKeys = () => {
+    this.props.appendNewChatBuilder()
   }
 
   componentDidUpdate(prevProps: Props) {

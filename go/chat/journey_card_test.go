@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -93,6 +94,15 @@ func TestJourneycardDismiss(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], teamConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "Where there's life there's hope, and need of vittles.",
 	}))
+	ui := kbtest.NewChatUI()
+	ctc.as(t, users[1]).h.mockChatUI = ui
+	_, err = ctc.as(t, users[1]).chatLocalHandler().GetThreadNonblock(ctx1,
+		chat1.GetThreadNonblockArg{
+			ConversationID:   teamConv.Id,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		},
+	)
+	require.NoError(t, err)
 
 	requireJourneycard := func(toExist bool) {
 		thread, err := tc1.ChatG.ConvSource.Pull(ctx1, convID, uid1,

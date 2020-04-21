@@ -344,6 +344,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   expand: {
+    marginTop: -Styles.globalMargins.xxtiny,
     paddingLeft: Styles.globalMargins.xtiny,
   },
   iconContainer: {

@@ -487,6 +487,7 @@ const styles = Styles.styleSheetCreate(
         ...Styles.padding(0, 0, Styles.globalMargins.tiny, 0),
       },
       editingButton: {
+        marginLeft: Styles.globalMargins.tiny,
         marginRight: Styles.globalMargins.tiny,
       },
       editingTabStyle: {
@@ -548,6 +549,7 @@ const styles = Styles.styleSheetCreate(
           flexShrink: 1,
           marginRight: Styles.globalMargins.tiny,
           minHeight: 0,
+          paddingTop: Styles.globalMargins.tiny,
         },
         isAndroid: {
           // This is to counteract some intrinsic margins the android view has

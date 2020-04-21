@@ -54,6 +54,17 @@ func TestObsoletingInvites1(t *testing.T) {
 	require.EqualValues(t, "40903c59d19feef1d67c455499304c19%1", invite.Name)
 	require.EqualValues(t, keybase1.UserVersion{Uid: "25852c87d6e47fb8d7d55400be9c7a19", EldestSeqno: 1}, invite.Inviter)
 
+	inviteMD := team.chain().inner.InviteMetadatas["54eafff3400b5bcd8b40bff3d225ab27"]
+	code, err := inviteMD.Status.Code()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamInviteMetadataStatusCode_OBSOLETE, code)
+
+	inviteMD = team.chain().inner.InviteMetadatas["55eafff3400b5bcd8b40bff3d225ab27"]
+	code, err = inviteMD.Status.Code()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamInviteMetadataStatusCode_CANCELLED, code)
+	require.Equal(t, keybase1.Seqno(5), inviteMD.Status.Cancelled().TeamSigMeta.SigMeta.SigChainLocation.Seqno)
+
 	members, err := team.Members()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(members.Owners))
@@ -69,7 +80,7 @@ func TestObsoletingInvites2(t *testing.T) {
 	// someone got tricked into accepting obsolete invite, such chain
 	// should still play and result in predictable end state.
 	team, _ := runUnitFromFilename(t, "invite_obsolete_trick.json")
-	require.Equal(t, 0, len(team.chain().inner.ActiveInvites))
+	require.Equal(t, 0, len(team.chain().ActiveInvites()))
 	require.True(t, team.IsMember(context.Background(), keybase1.UserVersion{Uid: "579651b0d574971040b531b66efbc519", EldestSeqno: 1}))
 }
 
@@ -162,25 +173,34 @@ func TestMultiUseInviteChains1(t *testing.T) {
 	team, _ := runUnitFromFilename(t, "multiple_use_invite.json")
 
 	state := &team.chain().inner
-	require.Len(t, state.ActiveInvites, 1)
+	require.Len(t, state.InviteMetadatas, 1)
 
 	var inviteID keybase1.TeamInviteID
-	var invite keybase1.TeamInvite
-	for inviteID, invite = range state.ActiveInvites {
+	var inviteMD keybase1.TeamInviteMetadata
+	for _, inviteMD = range state.InviteMetadatas {
+		inviteID = inviteMD.Invite.Id
 		break // grab first invite
 	}
+
+	code, err := inviteMD.Status.Code()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamInviteMetadataStatusCode_ACTIVE, code)
+	require.Equal(t,
+		keybase1.UserVersion{Uid: "25852c87d6e47fb8d7d55400be9c7a19", EldestSeqno: 1},
+		inviteMD.TeamSigMeta.Uv,
+	)
+	require.Equal(t, keybase1.Seqno(2), inviteMD.TeamSigMeta.SigMeta.SigChainLocation.Seqno)
+
+	invite := inviteMD.Invite
 
 	require.Equal(t, inviteID, invite.Id)
 	require.Nil(t, invite.Etime)
 	require.NotNil(t, invite.MaxUses)
 	require.Equal(t, keybase1.TeamInviteMaxUses(10), *invite.MaxUses)
 
-	require.Len(t, state.UsedInvites, 1)
-	usedInvitesForID, ok := state.UsedInvites[inviteID]
-	require.True(t, ok)
-	require.Len(t, usedInvitesForID, 3)
+	require.Len(t, inviteMD.UsedInvites, 3)
 
-	for _, usedInvitePair := range usedInvitesForID {
+	for _, usedInvitePair := range inviteMD.UsedInvites {
 		// Check if UserLog pointed at by usedInvitePair exists (otherwise
 		// crash on map/list access).
 		ulog := state.UserLog[usedInvitePair.Uv][usedInvitePair.LogPoint]
@@ -192,11 +212,12 @@ func TestMultiUseInviteChains2(t *testing.T) {
 	team, _ := runUnitFromFilename(t, "multiple_use_invite_3.json")
 
 	state := &team.chain().inner
-	require.Len(t, state.ActiveInvites, 1)
+	require.Len(t, state.ActiveInvites(), 1)
 
 	var inviteID keybase1.TeamInviteID
 	var invite keybase1.TeamInvite
-	for inviteID, invite = range state.ActiveInvites {
+	for _, invite = range state.ActiveInvites() {
+		inviteID = invite.Id
 		break // grab first invite
 	}
 
@@ -205,9 +226,7 @@ func TestMultiUseInviteChains2(t *testing.T) {
 	require.NotNil(t, invite.MaxUses)
 	require.Equal(t, keybase1.TeamInviteMaxUses(999), *invite.MaxUses)
 
-	require.Len(t, state.UsedInvites, 1)
-	usedInvitesForID, ok := state.UsedInvites[inviteID]
-	require.True(t, ok)
+	usedInvitesForID := state.InviteMetadatas[inviteID].UsedInvites
 	require.Len(t, usedInvitesForID, 3)
 
 	require.Equal(t, keybase1.UserVersion{
@@ -305,8 +324,9 @@ func TestTeamPlayerInviteMaxUses(t *testing.T) {
 		state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 			section, me, nil /* merkleRoot */)
 		require.NoError(t, err)
-		require.Len(t, state.inner.ActiveInvites, 1)
-		require.NotNil(t, state.inner.ActiveInvites[keybase1.TeamInviteID(inviteID)])
+		require.Len(t, state.ActiveInvites(), 1)
+		_, found := state.FindActiveInviteMDByID(keybase1.TeamInviteID(inviteID))
+		require.True(t, found)
 	}
 }
 
@@ -345,8 +365,9 @@ func TestTeamPlayerEtime(t *testing.T) {
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		section, me, nil /* merkleRoot */)
 	require.NoError(t, err)
-	require.Len(t, state.inner.ActiveInvites, 1)
-	require.NotNil(t, state.inner.ActiveInvites[keybase1.TeamInviteID(inviteID)])
+	require.Len(t, state.ActiveInvites(), 1)
+	_, found := state.FindActiveInviteMDByID(keybase1.TeamInviteID(inviteID))
+	require.True(t, found)
 }
 
 func TestTeamPlayerInviteLinksImplicitTeam(t *testing.T) {
@@ -416,7 +437,8 @@ func TestTeamPlayerInviteLinkBadAdds(t *testing.T) {
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
 	require.NoError(t, err)
-	require.NotNil(t, state.inner.ActiveInvites[keybase1.TeamInviteID(inviteID)])
+	_, found := state.FindActiveInviteMDByID(keybase1.TeamInviteID(inviteID))
+	require.True(t, found)
 
 	{
 		// Trying to add the members as role=writer and "use invite", but the
@@ -515,7 +537,8 @@ func TestTeamPlayerBadUsedInvites(t *testing.T) {
 		state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 			teamSectionForInvite, me, nil /* merkleRoot */)
 		require.NoError(t, err)
-		require.NotNil(t, state.inner.ActiveInvites[keybase1.TeamInviteID(inviteID)])
+		_, found := state.FindActiveInviteMDByID(keybase1.TeamInviteID(inviteID))
+		require.True(t, found)
 
 		// Try to do `used_invites` for an invite that does not have `max_uses`.
 		teamSectionCM := makeTestSCTeamSection(team)
@@ -554,7 +577,8 @@ func TestTeamPlayerBadCompletedInvites(t *testing.T) {
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
 	require.NoError(t, err)
-	require.NotNil(t, state.inner.ActiveInvites[inviteID])
+	_, found := state.FindActiveInviteMDByID(inviteID)
+	require.True(t, found)
 
 	teamSectionCM := makeTestSCTeamSection(team)
 	teamSectionCM.Members = &SCTeamMembers{
@@ -578,12 +602,13 @@ func TestTeamInvite64BitEtime(t *testing.T) {
 	team, _ := runUnitFromFilename(t, "multiple_use_invite_1000_years.json")
 
 	state := &team.chain().inner
-	require.Len(t, state.ActiveInvites, 1)
+	require.Len(t, state.ActiveInvites(), 1)
 
-	var invite keybase1.TeamInvite
-	for _, invite = range state.ActiveInvites {
+	var inviteMD keybase1.TeamInviteMetadata
+	for _, inviteMD = range state.InviteMetadatas {
 		break // get first invite
 	}
+	invite := inviteMD.Invite
 
 	require.NotNil(t, invite.MaxUses)
 	require.True(t, invite.MaxUses.IsInfiniteUses())
@@ -591,7 +616,7 @@ func TestTeamInvite64BitEtime(t *testing.T) {
 	require.NotNil(t, invite.Etime)
 	require.Equal(t, 3020, invite.Etime.Time().Year())
 
-	require.Len(t, state.UsedInvites[invite.Id], 2)
+	require.Len(t, inviteMD.UsedInvites, 2)
 }
 
 func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
@@ -620,7 +645,8 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
 	require.NoError(t, err)
-	require.NotNil(t, state.inner.ActiveInvites[keybase1.TeamInviteID(inviteID)])
+	_, found := state.FindActiveInviteMDByID(keybase1.TeamInviteID(inviteID))
+	require.True(t, found)
 
 	{
 		// Try to add two people in same link. Max uses is 1, so it should not
@@ -652,7 +678,7 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 		state, err := appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 			teamSectionCM, me, nil /* merkleRoot */)
 		require.NoError(t, err)
-		require.Len(t, state.inner.UsedInvites[keybase1.TeamInviteID(inviteID)], 1)
+		require.Len(t, state.inner.InviteMetadatas[keybase1.TeamInviteID(inviteID)].UsedInvites, 1)
 		require.Len(t, state.GetAllUVs(), 3) // team creator and two people added in this link
 	}
 
@@ -678,7 +704,7 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 			}
 		}
 
-		require.Len(t, state.inner.UsedInvites[keybase1.TeamInviteID(inviteID)], 1)
+		require.Len(t, state.inner.InviteMetadatas[keybase1.TeamInviteID(inviteID)].UsedInvites, 1)
 		require.Len(t, state.GetAllUVs(), 2) // team creator and one person added in loop above
 	}
 }
@@ -707,7 +733,8 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
 	require.NoError(t, err)
-	require.NotNil(t, state.inner.ActiveInvites[inviteID])
+	_, found := state.FindActiveInviteMDByID(inviteID)
+	require.True(t, found)
 
 	// Add member without using the invite first.
 	teamSectionCM := makeTestSCTeamSection(team)
@@ -734,8 +761,8 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 	require.Len(t, state.inner.UserLog[testUV], 1)
 
 	// ...which makes the usedInvites weird with the log pointer:
-	require.Len(t, state.inner.UsedInvites[inviteID], 1)
-	require.Equal(t, testUV, state.inner.UsedInvites[inviteID][0].Uv)
+	require.Len(t, state.inner.InviteMetadatas[inviteID].UsedInvites, 1)
+	require.Equal(t, testUV, state.inner.InviteMetadatas[inviteID].UsedInvites[0].Uv)
 	// this would be the wrong log point: testUV did not accept invite at that point
-	require.Equal(t, 0, state.inner.UsedInvites[inviteID][0].LogPoint)
+	require.Equal(t, 0, state.inner.InviteMetadatas[inviteID].UsedInvites[0].LogPoint)
 }

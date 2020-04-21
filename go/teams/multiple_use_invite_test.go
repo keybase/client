@@ -20,7 +20,7 @@ func TestTeamInviteStubbing(t *testing.T) {
 
 	tc2 := SetupTest(t, "team", 1)
 	defer tc2.Cleanup()
-	user2, err := kbtest.CreateAndSignupFakeUser("team", tc2.G)
+	user2, err := kbtest.CreateAndSignupFakeUserPaper("team", tc2.G)
 	require.NoError(t, err)
 
 	teamname := createTeam(tc)
@@ -48,7 +48,8 @@ func TestTeamInviteStubbing(t *testing.T) {
 	require.NoError(t, err)
 
 	var inviteID keybase1.TeamInviteID
-	for inviteID = range teamObj.chain().inner.ActiveInvites {
+	for _, inviteMD := range teamObj.chain().ActiveInvites() {
+		inviteID = inviteMD.Invite.Id
 		break // get first invite id
 	}
 
@@ -61,16 +62,12 @@ func TestTeamInviteStubbing(t *testing.T) {
 
 	// User 2 loads team
 
-	teamObj, err = Load(context.TODO(), tc2.G, keybase1.LoadTeamArg{
+	teamObj2, err := Load(context.TODO(), tc2.G, keybase1.LoadTeamArg{
 		Name:      teamname,
 		NeedAdmin: false,
 	})
 	require.NoError(t, err)
-
-	inner := teamObj.chain().inner
-	require.Len(t, inner.ActiveInvites, 0)
-	require.Len(t, inner.UsedInvites, 1)
-	require.Len(t, inner.UsedInvites[inviteID], 1)
+	require.Len(t, teamObj2.chain().ActiveInvites(), 0, "invites were stubbed")
 
 	// User 1 makes User 2 admin
 
@@ -85,11 +82,12 @@ func TestTeamInviteStubbing(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	inner = teamObj.chain().inner
-	require.Len(t, inner.ActiveInvites, 1)
-	invite, ok := inner.ActiveInvites[inviteID]
+	inner := teamObj.chain().inner
+	require.Len(t, inner.ActiveInvites(), 1)
+	inviteMD, ok := inner.InviteMetadatas[inviteID]
+	invite := inviteMD.Invite
 	require.True(t, ok, "invite found loaded by user 2")
-	require.Len(t, inner.UsedInvites[inviteID], 1)
+	require.Len(t, inviteMD.UsedInvites, 1)
 
 	// See if User 2 can decrypt
 	pkey, err := SeitanDecodePKey(string(invite.Name))

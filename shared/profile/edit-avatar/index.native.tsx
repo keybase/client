@@ -203,6 +203,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
         >
           <Kb.Box2 direction="vertical" style={styles.wizardContainer} fullHeight={true} gap="small">
             {this.renderImageZoomer()}
+            <Kb.Box style={styles.flexReallyGrow} />
             <Kb.Button
               label={this.props.image ? 'Pick a new avatar' : 'Pick an avatar'}
               mode="Secondary"
@@ -259,6 +260,9 @@ const styles = Styles.styleSheetCreate(
         ...Styles.padding(0, Styles.globalMargins.medium),
         marginBottom: Styles.globalMargins.small,
         marginTop: Styles.globalMargins.small,
+      },
+      flexReallyGrow: {
+        flexGrow: 1000,
       },
       placeholder: {
         alignItems: 'center',

@@ -150,6 +150,7 @@ const styles = Styles.styleSheetCreate(
         width: 130,
       },
       outerContainer: Styles.platformStyles({
+        common: {backgroundColor: Styles.globalColors.white},
         isElectron: Styles.padding(0, Styles.globalMargins.small),
       }),
       username: {

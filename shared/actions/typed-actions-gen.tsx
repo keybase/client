@@ -867,6 +867,7 @@ export type TypedActionsMap = {
   'settings:contactSettingsSaved': settings.ContactSettingsSavedPayload
   'settings:loadHasRandomPw': settings.LoadHasRandomPwPayload
   'settings:loadedHasRandomPw': settings.LoadedHasRandomPwPayload
+  'settings:resetCheckPasswordIsCorrect': settings.ResetCheckPasswordIsCorrectPayload
   'settings:checkPassword': settings.CheckPasswordPayload
   'settings:loadedCheckPassword': settings.LoadedCheckPasswordPayload
   'settings:sendFeedback': settings.SendFeedbackPayload
