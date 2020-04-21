@@ -343,7 +343,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.addMembersWizardPushMembers]: (draftState, action) => {
     draftState.addMembersWizard.addingMembers = Constants.dedupAddingMembeers(
       draftState.addMembersWizard.addingMembers,
-      action.payload.members
+      action.payload.members.map(Constants.coerceAssertionRole)
     )
     if (
       ['admin', 'owner'].includes(draftState.addMembersWizard.role) &&

@@ -928,17 +928,17 @@ export const dedupAddingMembeers = (
   const existing = [..._existing]
   for (const toAdd of toAdds) {
     if (!existing.find(m => m.assertion === toAdd.assertion)) {
-      const role =
-        (toAdd.role === 'admin' || toAdd.role === 'owner') && toAdd.assertion.includes('@')
-          ? 'writer'
-          : toAdd.role
-      existing.unshift({
-        ...toAdd,
-        role,
-      })
+      existing.unshift(toAdd)
     }
   }
   return existing
+}
+
+export const coerceAssertionRole = (mem: Types.AddingMember): Types.AddingMember => {
+  if (mem.assertion.includes('@') && ['admin, owner'].includes(mem.role)) {
+    return {...mem, role: 'writer'}
+  }
+  return mem
 }
 
 export const lastActiveStatusToActivityLevel: {
