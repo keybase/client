@@ -89,7 +89,7 @@ const AddPhone = () => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
-        <Kb.Box2 direction="vertical" gap="xsmall" fullWidth={true} alignItems="flex-start">
+        <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} alignItems="flex-start">
           {phoneNumbers.map((pn, idx) => (
             <Kb.PhoneInput
               key={pn.key}
@@ -97,7 +97,6 @@ const AddPhone = () => {
               defaultCountry={defaultCountry}
               onChangeNumber={(phoneNumber, valid) => setPhoneNumber(idx, phoneNumber, valid)}
               onClear={phoneNumbers.length === 1 ? undefined : () => removePhoneNumber(idx)}
-              small={true}
               onEnterKeyDown={maybeSubmit}
             />
           ))}
