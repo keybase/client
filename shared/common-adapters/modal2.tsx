@@ -52,7 +52,7 @@ const Modal2 = (props: Props) => {
       {!!header && <Header2 {...header} />}
       {!!banners && banners}
       {children}
-      {/* TODO wide */}
+      {/* TODO wide based on type? */}
       {!!footer && <Footer {...footer} wide={true} />}
     </>
   )

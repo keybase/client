@@ -310,7 +310,7 @@ const RootStackNavigator = createSwitchNavigator(
 
 type Subscriber = (data: {action: Object | null; lastState: Object | null; state: any; type: string}) => void
 
-const createElectronApp = Component => {
+const createElectronApp = (Component: any) => {
   // Based on https://github.com/react-navigation/react-navigation-native/blob/master/src/createAppContainer.js
   class ElectronApp extends React.PureComponent<any, any> {
     private navState: any = null // always use this value and not whats in state since thats async
@@ -332,7 +332,7 @@ const createElectronApp = Component => {
     }
 
     componentDidMount() {
-      let action = this.initialAction
+      const action = this.initialAction
       // maybe slightly unsafe but keeping this close to the reference
       // eslint-disable-next-line
       let startupState = this.state.nav
@@ -450,6 +450,7 @@ const modalModeCommon = Styles.platformStyles({
     ...Styles.desktopStyles.boxShadow,
     backgroundColor: Styles.globalColors.white,
     borderRadius: Styles.borderRadius,
+    pointerEvents: 'auto',
     position: 'relative',
   },
 })
@@ -470,7 +471,13 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
-      modal2AvoidTabs: {backgroundColor: undefined, height: 0},
+      modal2AvoidTabs: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: undefined,
+          height: 0,
+          pointerEvents: 'none',
+        },
+      }),
       modal2ClearCover: {backgroundColor: undefined},
       modal2CloseIcon: Styles.platformStyles({
         isElectron: {
@@ -483,9 +490,11 @@ const styles = Styles.styleSheetCreate(
       }),
       modal2Container: {
         ...Styles.globalStyles.fillAbsolute,
-        backgroundColor: 'rgba(255,0,0,0.2)', // Styles.globalColors.black_50OrBlack_60,
+        backgroundColor: Styles.globalColors.black_50OrBlack_60,
       },
-      modal2Style: {flexGrow: 1},
+      modal2Style: Styles.platformStyles({
+        isElectron: {flexGrow: 1, pointerEvents: 'none'},
+      }),
       modalContainer: {
         ...Styles.globalStyles.fillAbsolute,
       },
