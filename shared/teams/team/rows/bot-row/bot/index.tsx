@@ -120,6 +120,7 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
+    backgroundColor: Styles.globalColors.white,
     flex: 1,
     height: '100%',
     position: 'relative',

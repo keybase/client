@@ -902,6 +902,31 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
   }
 }
 
+const createChannels = async (state: TypedState, action: TeamsGen.CreateChannelsPayload) => {
+  const {teamID, channelnames} = action.payload
+  const teamname = Constants.getTeamNameFromID(state, teamID)
+
+  if (teamname === null) {
+    return TeamsGen.createSetChannelCreationError({error: 'Invalid team name'})
+  }
+
+  try {
+    for (const c of channelnames) {
+      await RPCChatTypes.localNewConversationLocalRpcPromise({
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.ConversationMembersType.team,
+        tlfName: teamname,
+        tlfVisibility: RPCTypes.TLFVisibility.private,
+        topicName: c,
+        topicType: RPCChatTypes.TopicType.chat,
+      })
+    }
+  } catch (error) {
+    return TeamsGen.createSetChannelCreationError({error: error.desc})
+  }
+  return TeamsGen.createSetCreatingChannels({creatingChannels: false})
+}
+
 const setMemberPublicity = async (action: TeamsGen.SetMemberPublicityPayload) => {
   const {teamID, showcase} = action.payload
   try {
@@ -1628,6 +1653,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.ignoreRequest, ignoreRequest)
   yield* Saga.chainAction(TeamsGen.editTeamDescription, editDescription)
   yield* Saga.chainAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
+  yield* Saga.chainAction2(TeamsGen.createChannels, createChannels)
   yield* Saga.chainAction2(TeamsGen.editMembership, editMembership)
   yield* Saga.chainGenerator<TeamsGen.RemoveMemberPayload>(TeamsGen.removeMember, removeMember)
   yield* Saga.chainGenerator<TeamsGen.RemovePendingInvitePayload>(

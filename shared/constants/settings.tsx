@@ -8,6 +8,7 @@ import * as RPCTypes from './types/rpc-gen'
 import {RPCError} from 'util/errors'
 import {ContactResponse} from 'expo-contacts'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import * as Styles from '../styles'
 
 export const makeEmailRow = (): Types.EmailRow => ({
   email: '',
@@ -209,6 +210,10 @@ export const processorProfileInProgressKey = 'settings:processorProfileInProgres
 export const processorProfileInProgress = (state: TypedState) =>
   WaitingConstants.anyWaiting(state, processorProfileInProgressKey)
 export const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
+
+export const settingsSubNavWidth = Styles.isTablet
+  ? Styles.globalStyles.mediumSubNavWidth
+  : Styles.globalStyles.shortSubNavWidth
 
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'

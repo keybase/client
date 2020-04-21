@@ -9,7 +9,7 @@ import {produce} from '../../../../util/container'
 const commit = {
   authorEmail: 'email@email.com',
   authorName: 'author',
-  commitHash: 'hash1',
+  commitHash: 'hash',
   ctime: new Date('1/1/1999').getTime(),
   message: 'message1 this is a message blah blah blah end.',
 }
@@ -44,7 +44,7 @@ const lotsCommits = {
       ...message.refs[0],
       commits: new Array(50).fill(null).map((_, idx) => ({
         ...commit,
-        commitHash: `hash${idx}`,
+        commitHash: `hash${idx + 2}`,
         message: new Array((idx % 20) + 1).fill('a word').join(' '),
       })),
     },

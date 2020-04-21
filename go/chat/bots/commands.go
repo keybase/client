@@ -6,21 +6,21 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 	"time"
-
-	"github.com/keybase/client/go/protocol/keybase1"
-
-	"github.com/keybase/client/go/encrypteddb"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
+	"golang.org/x/sync/errgroup"
 )
 
 const storageVersion = 1
@@ -137,6 +137,23 @@ func (b *CachingBotCommandManager) getMyUsername(ctx context.Context) (string, e
 	return nn.String(), nil
 }
 
+func (b *CachingBotCommandManager) deriveMembersType(ctx context.Context, name string) (chat1.ConversationMembersType, error) {
+	_, err := teams.Load(ctx, b.G().GlobalContext, keybase1.LoadTeamArg{Name: name})
+	switch err.(type) {
+	case nil:
+		return chat1.ConversationMembersType_TEAM, nil
+	case teams.TeamDoesNotExistError:
+		return chat1.ConversationMembersType_IMPTEAMNATIVE, nil
+	default:
+		// https://github.com/keybase/client/blob/249cfcb4b4bd6dcc50d207d0b88eee455a7f6c2d/go/protocol/keybase1/extras.go#L2249
+		if strings.Contains(err.Error(), "team names must be between 2 and 16 characters long") ||
+			strings.Contains(err.Error(), "Keybase team names must be letters") {
+			return chat1.ConversationMembersType_IMPTEAMNATIVE, nil
+		}
+		return 0, err
+	}
+}
+
 func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.AdvertiseCommandsParam) (res chat1.ConversationLocal, err error) {
 	username, err := b.getMyUsername(ctx)
 	if err != nil {
@@ -144,19 +161,50 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 	}
 	switch param.Typ {
 	case chat1.BotCommandsAdvertisementTyp_PUBLIC:
+		if param.TeamName != nil {
+			return res, errors.New("team name cannot be specified for public advertisements")
+		} else if param.ConvID != nil {
+			return res, errors.New("convID cannot be specified for public advertisements")
+		}
+
 		res, _, err = b.G().ChatHelper.NewConversation(ctx, b.uid, username, &commandsPublicTopicName,
 			chat1.TopicType_DEV, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PUBLIC)
 		return res, err
 	case chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, chat1.BotCommandsAdvertisementTyp_TLFID_CONVS:
 		if param.TeamName == nil {
 			return res, errors.New("missing team name")
+		} else if param.ConvID != nil {
+			return res, errors.New("convID cannot be specified for team advertisments use type 'conv'")
 		}
+
 		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, param.Typ)
+		membersType, err := b.deriveMembersType(ctx, *param.TeamName)
+		if err != nil {
+			return res, err
+		}
 		res, _, err = b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, *param.TeamName, &topicName,
-			chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
+			chat1.TopicType_DEV, membersType, keybase1.TLFVisibility_PRIVATE)
+		return res, err
+	case chat1.BotCommandsAdvertisementTyp_CONV:
+		if param.TeamName != nil {
+			return res, errors.New("unexpected team name")
+		} else if param.ConvID == nil {
+			return res, errors.New("missing convID")
+		}
+
+		topicName := fmt.Sprintf("___keybase_botcommands_conv_%s_%v", username, param.Typ)
+		convs, err := b.G().ChatHelper.FindConversationsByID(ctx, []chat1.ConversationID{*param.ConvID})
+		if err != nil {
+			return res, err
+		} else if len(convs) != 1 {
+			return res, errors.New("Unable able to find conversation for advertisement")
+		}
+		conv := convs[0]
+		res, _, err = b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, conv.Info.TlfName, &topicName,
+			chat1.TopicType_DEV, conv.Info.MembersType, keybase1.TLFVisibility_PRIVATE)
 		return res, err
 	default:
-		return res, errors.New("unknown bot advertisement typ")
+		return res, fmt.Errorf("unknown bot advertisement typ %q", param.Typ)
 	}
 }
 
@@ -177,7 +225,7 @@ func (b *CachingBotCommandManager) PublicCommandsConv(ctx context.Context, usern
 func (b *CachingBotCommandManager) Advertise(ctx context.Context, alias *string,
 	ads []chat1.AdvertiseCommandsParam) (err error) {
 	defer b.Trace(ctx, &err, "Advertise")()
-	var remotes []chat1.RemoteBotCommandsAdvertisement
+	remotes := make([]chat1.RemoteBotCommandsAdvertisement, 0, len(ads))
 	for _, ad := range ads {
 		// create conversations with the commands
 		conv, err := b.createConv(ctx, ad)
@@ -193,19 +241,28 @@ func (b *CachingBotCommandManager) Advertise(ctx context.Context, alias *string,
 		if err != nil {
 			return err
 		}
-		// write out commands to conv
-		vis := keybase1.TLFVisibility_PUBLIC
-		if ad.Typ != chat1.BotCommandsAdvertisementTyp_PUBLIC {
+		var vis keybase1.TLFVisibility
+		var tlfID *chat1.TLFID
+		var adConvID *chat1.ConversationID
+		switch ad.Typ {
+		case chat1.BotCommandsAdvertisementTyp_PUBLIC:
+			vis = keybase1.TLFVisibility_PUBLIC
+		case chat1.BotCommandsAdvertisementTyp_CONV:
+			vis = keybase1.TLFVisibility_PRIVATE
+			adConvID = ad.ConvID
+		default:
+			tlfID = &conv.Info.Triple.Tlfid
 			vis = keybase1.TLFVisibility_PRIVATE
 		}
+		remote, err := ad.ToRemote(conv.GetConvID(), tlfID, adConvID)
+		if err != nil {
+			return err
+		}
+		// write out commands to conv
 		if err := b.G().ChatHelper.SendMsgByID(ctx, conv.GetConvID(), conv.Info.TlfName,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: string(dat),
 			}), chat1.MessageType_TEXT, vis); err != nil {
-			return err
-		}
-		remote, err := ad.ToRemote(conv.GetConvID(), &conv.Info.Triple.Tlfid)
-		if err != nil {
 			return err
 		}
 		remotes = append(remotes, remote)

@@ -32,7 +32,7 @@ const InviteHistory = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
   const onGenerate = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksModal'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksGenerate'}]}))
 
   const inviteLinks = teamDetails?.inviteLinks
   const {active, expired} = splitInviteLinks(inviteLinks)

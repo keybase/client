@@ -42,6 +42,10 @@ func (pl ProfileList) open(ctx context.Context, oc *openContext, path []string) 
 
 // FindFiles does readdir for dokan.
 func (ProfileList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string, callback func(*dokan.NamedStat) error) (err error) {
+	// TODO: eventually this should use `libfs.ListProfileNames`, but
+	// first we have to figure out how to use the dokan API to handle
+	// the timed profiles (i.e., only read them once on open, and not
+	// trigger the timed wait on every read).
 	profiles := pprof.Profiles()
 	var ns dokan.NamedStat
 	ns.FileAttributes = dokan.FileAttributeReadonly

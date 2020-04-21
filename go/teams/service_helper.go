@@ -1650,7 +1650,8 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 		return err
 	}
 
-	for _, inv := range team.chain().inner.ActiveInvites {
+	for _, invMD := range team.chain().ActiveInvites() {
+		inv := invMD.Invite
 		invTypeStr, err := inv.Type.String()
 		if err != nil {
 			return err
@@ -1775,11 +1776,10 @@ func CreateInvitelink(mctx libkb.MetaContext, teamname string,
 	if err != nil {
 		return invitelink, err
 	}
-	url, err := GenerateInvitelinkURL(mctx, ikey, shortID)
-	if err != nil {
-		return invitelink, err
-	}
-	return keybase1.Invitelink{Ikey: ikey, Url: url}, err
+	return keybase1.Invitelink{
+		Ikey: ikey,
+		Url:  GenerateInvitelinkURL(mctx, ikey, shortID),
+	}, err
 }
 
 // CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.

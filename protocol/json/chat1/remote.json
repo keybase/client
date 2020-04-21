@@ -706,6 +706,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "RemoteBotCommandsAdvertisementConv",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "ConversationID",
+          "name": "advertiseConvID"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "RemoteBotCommandsAdvertisement",
       "switch": {
@@ -733,6 +747,13 @@
             "def": false
           },
           "body": "RemoteBotCommandsAdvertisementTLFID"
+        },
+        {
+          "label": {
+            "name": "CONV",
+            "def": false
+          },
+          "body": "RemoteBotCommandsAdvertisementConv"
         }
       ]
     },

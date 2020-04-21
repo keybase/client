@@ -164,6 +164,29 @@ type NodeID interface {
 	ParentID() NodeID
 }
 
+// NodeFSReadOnly is the subset of billy.Filesystem that is actually
+// used by libkbfs.  The method comments are copied from go-billy.
+type NodeFSReadOnly interface {
+	// ReadDir reads the directory named by dirname and returns a list of
+	// directory entries sorted by filename.
+	ReadDir(path string) ([]os.FileInfo, error)
+	// Lstat returns a FileInfo describing the named file. If the file is a
+	// symbolic link, the returned FileInfo describes the symbolic link. Lstat
+	// makes no attempt to follow the link.
+	Lstat(filename string) (os.FileInfo, error)
+	// Readlink returns the target path of link.
+	Readlink(link string) (string, error)
+	// Open opens the named file for reading. If successful, methods on the
+	// returned file can be used for reading; the associated file descriptor has
+	// mode O_RDONLY.
+	Open(filename string) (billy.File, error)
+	// OpenFile is the generalized open call; most users will use Open or Create
+	// instead. It opens the named file with specified flag (O_RDONLY etc.) and
+	// perm, (0666 etc.) if applicable. If successful, methods on the returned
+	// File can be used for I/O.
+	OpenFile(filename string, flags int, mode os.FileMode) (billy.File, error)
+}
+
 // Node represents a direct pointer to a file or directory in KBFS.
 // It is somewhat like an inode in a regular file system.  Users of
 // KBFS can use Node as a handle when accessing files or directories
@@ -235,7 +258,7 @@ type Node interface {
 	// instead of the standard, block-based method of acessing data.
 	// The provided context will be used, if possible, for any
 	// subsequent calls on the file system.
-	GetFS(ctx context.Context) billy.Filesystem
+	GetFS(ctx context.Context) NodeFSReadOnly
 	// GetFile returns a file interface that, if non-nil, should be
 	// used to satisfy any file-related calls on this Node, instead of
 	// the standard, block-based method of accessing data.  The

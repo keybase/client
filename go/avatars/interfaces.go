@@ -9,6 +9,12 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+const (
+	// When changing staleThreshold here, serverside avatar
+	// `client_avatar_stale_threshold` should be adjusted to match.
+	staleThreshold = 24 * time.Hour
+)
+
 func CreateSourceFromEnvAndInstall(g *libkb.GlobalContext) {
 	var s libkb.AvatarLoaderSource
 	typ := g.Env.GetAvatarSource()
@@ -16,15 +22,13 @@ func CreateSourceFromEnvAndInstall(g *libkb.GlobalContext) {
 	case "simple":
 		s = NewSimpleSource()
 	case "url":
-		s = NewURLCachingSource(time.Hour /* staleThreshold */, 20000)
+		s = NewURLCachingSource(staleThreshold, 20000)
 	case "full":
 		maxSize := 10000
 		if g.IsMobileAppType() {
 			maxSize = 2000
 		}
-		// When changing staleThreshold here, serverside avatar change
-		// notification dismiss time should be adjusted as well.
-		s = NewFullCachingSource(g, time.Hour /* staleThreshold */, maxSize)
+		s = NewFullCachingSource(g, staleThreshold, maxSize)
 	}
 	g.AddDbNukeHook(s, fmt.Sprintf("AvatarLoader[%s]", typ))
 	g.SetAvatarLoader(s)

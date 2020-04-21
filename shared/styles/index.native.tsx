@@ -40,9 +40,9 @@ const util = {
     backgroundColor: globalColors.greyLight,
     height: 16,
   },
+  mediumSubNavWidth: isTablet ? '25%' : '100%',
   mediumWidth: isTablet ? 460 : '100%',
-  shortWidth: isTablet ? 240 : '100%',
-  tinyWidth: isTablet ? 200 : '100%',
+  shortSubNavWidth: isTablet ? '15%' : '100%',
 }
 
 export const desktopStyles = {
@@ -66,7 +66,7 @@ export {isDarkMode} from './dark-mode'
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
 ): ReadonlyArray<Object | null | false | void> => {
-  return styles
+  return styles.filter(Boolean)
 }
 export const transition = () => ({})
 export const backgroundURL = () => ({})

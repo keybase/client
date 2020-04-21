@@ -75,7 +75,7 @@ type retryMerkleAuditMock struct {
 
 func newRetryMerkleAuditMock(tc libkb.TestContext) *retryMerkleAuditMock {
 	return &retryMerkleAuditMock{
-		APIArgRecorder: libkb.NewAPIArgRecorder(),
+		APIArgRecorder: libkb.NewAPIArgRecorderWithNullAPI(),
 		tc:             tc,
 		api:            tc.G.API,
 	}

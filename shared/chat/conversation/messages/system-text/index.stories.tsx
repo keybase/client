@@ -13,12 +13,12 @@ const message = Constants.makeMessageSystemText({
 
 const longMessage = {
   ...message,
-  text: new HiddenString(new Array(100).fill('a word').join(' ')),
+  text: new HiddenString(new Array(__STORYSHOT__ ? 1 : 100).fill('a word').join(' ')),
 }
 
 const longWordMessage = {
   ...message,
-  text: new HiddenString(new Array(100).fill('tooLong').join('')),
+  text: new HiddenString(new Array(__STORYSHOT__ ? 1 : 100).fill('tooLong').join('')),
 }
 
 const load = () => {

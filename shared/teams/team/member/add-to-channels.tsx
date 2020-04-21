@@ -154,9 +154,13 @@ const AddToChannels = (props: Props) => {
         ),
         rightButton:
           Styles.isMobile && mode === 'others' ? (
-            <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
-              Add
-            </Kb.Text>
+            waiting ? (
+              <Kb.ProgressIndicator type="Large" />
+            ) : (
+              <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
+                Add
+              </Kb.Text>
+            )
           ) : (
             undefined
           ),
@@ -193,7 +197,9 @@ const AddToChannels = (props: Props) => {
       onClose={onCancel}
     >
       {loadingChannels && !channelMetas?.size ? (
-        <Kb.ProgressIndicator type="Huge" />
+        <Kb.Box fullWidth={true} style={Styles.globalStyles.flexOne}>
+          <Kb.ProgressIndicator type="Huge" />
+        </Kb.Box>
       ) : (
         <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
@@ -346,9 +352,10 @@ type ChannelRowProps = {
 }
 const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: ChannelRowProps) => {
   const selfMode = mode === 'self'
-  const numParticipants = Container.useSelector(
-    s => ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey).name.length
-  )
+  const numParticipants = Container.useSelector(s => {
+    const participants = ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey)
+    return participants.name.length || participants.all.length
+  })
   const activityLevel = Container.useSelector(
     s => s.teams.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )

@@ -88,7 +88,7 @@ func (c *CmdAccountDelete) Run() error {
 	if err != nil {
 		return err
 	}
-	err = cli.AccountDelete(context.Background(), 0)
+	err = cli.AccountDelete(context.Background(), keybase1.AccountDeleteArg{})
 	if err != nil {
 		return err
 	}

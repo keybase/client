@@ -3614,6 +3614,18 @@ func (s TeamSigChainState) GetUserLastJoinTime(user UserVersion) (time Time, err
 	return points[0].SigMeta.Time, nil
 }
 
+// GetUserLastRoleChangeTime returns the time of the last role change for user
+// in team. If the user left the team as a last change, the time of such leave
+// event is returned. If the user was never in the team, then this function
+// returns time=0 and wasMember=false.
+func (s TeamSigChainState) GetUserLastRoleChangeTime(user UserVersion) (time Time, wasMember bool) {
+	points := s.UserLog[user]
+	if len(points) == 0 {
+		return 0, false
+	}
+	return points[len(points)-1].SigMeta.Time, true
+}
+
 func (s TeamSigChainState) KeySummary() string {
 	var v []PerTeamKeyGeneration
 	for k := range s.PerTeamKeys {
@@ -3681,6 +3693,16 @@ func (s TeamSigChainState) GetAllUVs() (res []UserVersion) {
 		}
 	}
 	return res
+}
+
+func (s TeamSigChainState) ActiveInvites() (ret []TeamInvite) {
+	for _, md := range s.InviteMetadatas {
+		if code, err := md.Status.Code(); err == nil &&
+			code == TeamInviteMetadataStatusCode_ACTIVE {
+			ret = append(ret, md.Invite)
+		}
+	}
+	return ret
 }
 
 func (h *HiddenTeamChain) IsStale() bool {
@@ -4086,4 +4108,16 @@ func UserRolePairsHaveOwner(users []UserRolePair) bool {
 
 func (e EmailAddress) String() string {
 	return string(e)
+}
+
+func NewTeamSigMeta(sigMeta SignatureMetadata, uv UserVersion) TeamSignatureMetadata {
+	return TeamSignatureMetadata{SigMeta: sigMeta, Uv: uv}
+}
+
+func NewTeamInviteMetadata(invite TeamInvite, teamSigMeta TeamSignatureMetadata) TeamInviteMetadata {
+	return TeamInviteMetadata{
+		Invite:      invite,
+		TeamSigMeta: teamSigMeta,
+		Status:      NewTeamInviteMetadataStatusWithActive(),
+	}
 }

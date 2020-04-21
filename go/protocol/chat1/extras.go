@@ -24,11 +24,14 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// we will show some representation of an exploded message in the UI for a week
-const ShowExplosionLifetime = time.Hour * 24 * 7
+const (
+	// we will show some representation of an exploded message in the UI for a
+	// day
+	ShowExplosionLifetime = time.Hour * 24
 
-// If a conversation is larger, only admins can @channel.
-const MaxChanMentionConvSize = 100
+	// If a conversation is larger, only admins can @channel.
+	MaxChanMentionConvSize = 100
+)
 
 func (i FlipGameIDStr) String() string {
 	return string(i)
@@ -3114,27 +3117,46 @@ func (b BotInfoHash) Eq(h BotInfoHash) bool {
 	return bytes.Equal(b, h)
 }
 
-func (p AdvertiseCommandsParam) ToRemote(convID ConversationID, tlfID *TLFID) (res RemoteBotCommandsAdvertisement, err error) {
+func (p AdvertiseCommandsParam) ToRemote(cmdConvID ConversationID, tlfID *TLFID, adConvID *ConversationID) (res RemoteBotCommandsAdvertisement, err error) {
 	switch p.Typ {
 	case BotCommandsAdvertisementTyp_PUBLIC:
+		if tlfID != nil {
+			return res, errors.New("TLFID specified for public advertisement")
+		} else if adConvID != nil {
+			return res, errors.New("ConvID specified for public advertisement")
+		}
 		return NewRemoteBotCommandsAdvertisementWithPublic(RemoteBotCommandsAdvertisementPublic{
-			ConvID: convID,
+			ConvID: cmdConvID,
 		}), nil
 	case BotCommandsAdvertisementTyp_TLFID_CONVS:
 		if tlfID == nil {
 			return res, errors.New("no TLFID specified")
+		} else if adConvID != nil {
+			return res, errors.New("ConvID specified")
 		}
 		return NewRemoteBotCommandsAdvertisementWithTlfidConvs(RemoteBotCommandsAdvertisementTLFID{
-			ConvID: convID,
+			ConvID: cmdConvID,
 			TlfID:  *tlfID,
 		}), nil
 	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
 		if tlfID == nil {
 			return res, errors.New("no TLFID specified")
+		} else if adConvID != nil {
+			return res, errors.New("ConvID specified")
 		}
 		return NewRemoteBotCommandsAdvertisementWithTlfidMembers(RemoteBotCommandsAdvertisementTLFID{
-			ConvID: convID,
+			ConvID: cmdConvID,
 			TlfID:  *tlfID,
+		}), nil
+	case BotCommandsAdvertisementTyp_CONV:
+		if tlfID != nil {
+			return res, errors.New("TLFID specified")
+		} else if adConvID == nil {
+			return res, errors.New("no ConvID specified")
+		}
+		return NewRemoteBotCommandsAdvertisementWithConv(RemoteBotCommandsAdvertisementConv{
+			ConvID:          cmdConvID,
+			AdvertiseConvID: *adConvID,
 		}), nil
 	default:
 		return res, errors.New("unknown bot advertisement typ")

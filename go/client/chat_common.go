@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -18,10 +19,17 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 	if err != nil {
 		return res, err
 	}
-	if _, err = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name}); err == nil {
-		return keybase1.UserOrTeamResult_TEAM, nil
+	_, err = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name})
+	if err != nil {
+		// https://github.com/keybase/client/blob/249cfcb4b4bd6dcc50d207d0b88eee455a7f6c2d/go/protocol/keybase1/extras.go#L2249
+		if strings.Contains(err.Error(), "team names must be between 2 and 16 characters long") ||
+			strings.Contains(err.Error(), "Keybase team names must be letters") ||
+			strings.Contains(err.Error(), "does not exist") {
+			return keybase1.UserOrTeamResult_USER, nil
+		}
+		return res, err
 	}
-	return keybase1.UserOrTeamResult_USER, nil
+	return keybase1.UserOrTeamResult_TEAM, nil
 }
 
 // Post a retention policy

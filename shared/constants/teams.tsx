@@ -221,6 +221,7 @@ const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   channelSelectedMembers: new Map(),
+  creatingChannels: false,
   deletedTeams: [],
   errorInAddToTeam: '',
   errorInChannelCreation: '',
@@ -405,7 +406,7 @@ const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
 const onlyOwnersCanTurnTeamMembersIntoOwners = {owner: 'Only owners can turn team members into owners.'}
 const roleChangeSub = {
   admin: 'You must be at least an admin to make role changes.',
-  owner: 'Subteams cannot have owners',
+  owner: 'Subteams cannot have owners.',
   reader: 'You must be at least an admin to make role changes.',
   writer: 'You must be at least an admin to make role changes.',
 }
@@ -767,40 +768,46 @@ const annotatedInvitesToInviteDetails = (
   invitesData.reduce<InviteDetails>(
     (invitesAndLinks, invite) => {
       const {invites, inviteLinks} = invitesAndLinks
-      const role = teamRoleByEnum[invite.invite.role]
+      const role = teamRoleByEnum[invite.inviteMetadata.invite.role]
       if (!role || role === 'none') {
         return invitesAndLinks
       }
 
-      if (invite.invite.type.c === RPCTypes.TeamInviteCategory.invitelink) {
-        const lastJoinedUsername = invite.usedInvites
-          ? invite.usedInvites[invite.usedInvites.length - 1]?.username
+      if (invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.invitelink) {
+        const lastJoinedUsername = invite.annotatedUsedInvites
+          ? invite.annotatedUsedInvites[invite.annotatedUsedInvites.length - 1]?.username
           : ''
         inviteLinks.add({
           creatorUsername: invite.inviterUsername,
-          expirationTime: invite.invite.etime ?? 0,
-          expired: Date.now() / 1000 > (invite.invite.etime ?? 0), // TODO Y2K-1715 get from invite
-          id: invite.invite.id,
+          expirationTime: invite.inviteMetadata.invite.etime ?? 0,
+          expired: Date.now() / 1000 > (invite.inviteMetadata.invite.etime ?? 0), // TODO Y2K-1715 get from invite
+          id: invite.inviteMetadata.invite.id,
           lastJoinedUsername,
-          maxUses: invite.invite.maxUses ?? 0,
-          numUses: invite.usedInvites?.length ?? 0,
+          maxUses: invite.inviteMetadata.invite.maxUses ?? 0,
+          numUses: invite.annotatedUsedInvites?.length ?? 0,
           role,
           url: invite.displayName,
         })
       } else {
         let username = ''
-        if (invite.invite.type.c === RPCTypes.TeamInviteCategory.sbs) {
+        if (invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.sbs) {
           username = invite.displayName
         }
         invites.add({
-          email: invite.invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.displayName : '',
-          id: invite.invite.id,
+          email:
+            invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.email
+              ? invite.displayName
+              : '',
+          id: invite.inviteMetadata.invite.id,
           name: [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink].includes(
-            invite.invite.type.c
+            invite.inviteMetadata.invite.type.c
           )
             ? invite.displayName
             : '',
-          phone: invite.invite.type.c === RPCTypes.TeamInviteCategory.phone ? invite.displayName : '',
+          phone:
+            invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.phone
+              ? invite.displayName
+              : '',
           role,
           username,
         })
@@ -933,6 +940,13 @@ export const dedupAddingMembeers = (
     }
   }
   return existing
+}
+
+export const coerceAssertionRole = (mem: Types.AddingMember): Types.AddingMember => {
+  if (mem.assertion.includes('@') && ['admin, owner'].includes(mem.role)) {
+    return {...mem, role: 'writer'}
+  }
+  return mem
 }
 
 export const lastActiveStatusToActivityLevel: {

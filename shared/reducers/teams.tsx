@@ -2,6 +2,7 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/teams'
+import {isPhone} from '../constants/platform'
 import * as Types from '../constants/types/teams'
 import * as Container from '../util/container'
 import {editTeambuildingDraft} from './team-building'
@@ -30,7 +31,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     return initialState
   },
   [TeamsGen.setChannelCreationError]: (draftState, action) => {
+    draftState.creatingChannels = false
     draftState.errorInChannelCreation = action.payload.error
+  },
+  [TeamsGen.createChannels]: draftState => {
+    draftState.creatingChannels = true
+  },
+  [TeamsGen.setCreatingChannels]: (draftState, action) => {
+    draftState.creatingChannels = action.payload.creatingChannels
   },
   [TeamsGen.createNewTeam]: draftState => {
     draftState.errorInTeamCreation = ''
@@ -361,8 +369,19 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.addMembersWizardPushMembers]: (draftState, action) => {
     draftState.addMembersWizard.addingMembers = Constants.dedupAddingMembeers(
       draftState.addMembersWizard.addingMembers,
-      action.payload.members
+      action.payload.members.map(Constants.coerceAssertionRole)
     )
+    if (
+      ['admin', 'owner'].includes(draftState.addMembersWizard.role) &&
+      action.payload.members.some(m => m.assertion.includes('@'))
+    ) {
+      if (isPhone) {
+        draftState.addMembersWizard.role = 'writer'
+        draftState.addMembersWizard.addingMembers.forEach(member => (member.role = 'writer'))
+      } else {
+        draftState.addMembersWizard.role = 'setIndividually'
+      }
+    }
   },
   [TeamsGen.addMembersWizardRemoveMember]: (draftState, action) => {
     const {assertion} = action.payload

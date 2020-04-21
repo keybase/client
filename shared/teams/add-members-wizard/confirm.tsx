@@ -4,11 +4,9 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import * as ChatTypes from '../../constants/types/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
-import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
@@ -17,19 +15,35 @@ import {ModalTitle, ChannelsWidget} from '../common'
 import {pluralize} from '../../util/string'
 import logger from '../../logger'
 
+type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
+const disabledRolesForNonKeybasePlural = {
+  admin: 'Some invitees cannot be added as admins. Only Keybase users can be added as admins.',
+  owner: null,
+}
+const disabledRolesForPhoneEmailIndividual = {
+  admin: 'Only Keybase users can be added as admins.',
+  owner: null,
+}
+const disabledRolesSubteam = {
+  owner: 'Subteams cannot have owners.',
+}
+
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
 
   const {teamID, addingMembers, defaultChannels} = Container.useSelector(s => s.teams.addMembersWizard)
+  const isSubteam = Container.useSelector(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
   const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
-  const onlyEmails = React.useMemo(
-    () =>
-      addingMembers.length > 0 &&
-      addingMembers.findIndex(member => !member.assertion.endsWith('@email')) === -1,
-    [addingMembers]
-  )
+
+  // TODO: consider useMemoing these
+  const anyNonKeybase = addingMembers.some(m => m.assertion.includes('@'))
+  const someKeybaseUsers = addingMembers.some(member => !member.assertion.includes('@'))
+  const onlyEmails = !addingMembers.some(member => !member.assertion.endsWith('@email'))
+
+  const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
+
   const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
 
   const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
@@ -45,7 +59,6 @@ const AddMembersConfirm = () => {
   const waiting = _waiting || newTeamWaiting
 
   const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
-  const addToChannels = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
   const onComplete = fromNewTeamWizard
     ? () => dispatch(TeamsGen.createFinishNewTeamWizard())
     : () => {
@@ -53,6 +66,9 @@ const AddMembersConfirm = () => {
         addMembers(
           [
             {
+              defaultChannelsOverride: defaultChannels
+                ?.filter(c => c.channelname !== 'general')
+                .map(c => c.conversationIDKey),
               emailInviteMessage: emailMessage || undefined,
               sendChatNotification: true,
               teamID,
@@ -64,28 +80,7 @@ const AddMembersConfirm = () => {
           ],
           _ => {
             // TODO handle users not added?
-            if (defaultChannels) {
-              addToChannels(
-                [
-                  {
-                    conversations: defaultChannels
-                      .filter(c => c.channelname !== 'general')
-                      .map(c => ChatTypes.keyToConversationID(c.conversationIDKey)),
-                    usernames: addingMembers.map(m => m.assertion),
-                  },
-                ],
-                () => {
-                  dispatch(TeamsGen.createFinishedAddMembersWizard())
-                },
-                err => {
-                  setWaiting(false)
-                  logger.error(err.message)
-                  setError(err.message)
-                }
-              )
-            } else {
-              dispatch(TeamsGen.createFinishedAddMembersWizard())
-            }
+            dispatch(TeamsGen.createFinishedAddMembersWizard())
           },
           err => {
             setWaiting(false)
@@ -123,13 +118,16 @@ const AddMembersConfirm = () => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          <AddingMembers />
+          <AddingMembers disabledRoles={disabledRoles} />
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.controls}>
             <AddMoreMembers />
-            <RoleSelector memberCount={addingMembers.length} />
+            <RoleSelector
+              memberCount={addingMembers.length}
+              disabledRoles={anyNonKeybase ? disabledRolesForNonKeybasePlural : disabledRoles}
+            />
           </Kb.Box2>
         </Kb.Box2>
-        {isBigTeam && <DefaultChannels teamID={teamID} />}
+        {isBigTeam && someKeybaseUsers && <DefaultChannels teamID={teamID} />}
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
@@ -198,7 +196,11 @@ const AddMoreMembers = () => {
 }
 type RoleType = Types.AddingMemberTeamRoleType | 'setIndividually'
 
-const RoleSelector = ({memberCount}: {memberCount: number}) => {
+type RoleSelectorProps = {
+  disabledRoles: DisabledRoles
+  memberCount: number
+}
+const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
   const dispatch = Container.useDispatch()
   const [showingMenu, setShowingMenu] = React.useState(false)
   const storeRole = Container.useSelector(s => s.teams.addMembersWizard.role)
@@ -220,7 +222,8 @@ const RoleSelector = ({memberCount}: {memberCount: number}) => {
         onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
         confirmLabel="Save"
-        includeSetIndividually={!Styles.isMobile && (memberCount > 1 || storeRole === 'setIndividually')}
+        includeSetIndividually={!Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
+        disabledRoles={disabledRoles}
       >
         <Kb.InlineDropdown
           textWrapperType="BodySmallSemibold"
@@ -236,7 +239,7 @@ const RoleSelector = ({memberCount}: {memberCount: number}) => {
   )
 }
 
-const AddingMembers = () => {
+const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
   const addingMembers = Container.useSelector(s => s.teams.addMembersWizard.addingMembers)
   const [expanded, setExpanded] = React.useState(false)
   const showDivider = Styles.isMobile && addingMembers.length > 4
@@ -249,7 +252,12 @@ const AddingMembers = () => {
   const content = (
     <Kb.Box2 direction="vertical" fullWidth={true} gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
       {aboveDivider.map(toAdd => (
-        <AddingMember key={toAdd.assertion} {...toAdd} lastMember={addingMembers.length === 1} />
+        <AddingMember
+          key={toAdd.assertion}
+          {...toAdd}
+          lastMember={addingMembers.length === 1}
+          disabledRoles={disabledRoles}
+        />
       ))}
       {showDivider && (
         <Kb.ClickableBox onClick={toggleExpanded}>
@@ -265,7 +273,10 @@ const AddingMembers = () => {
           </Kb.Box2>
         </Kb.ClickableBox>
       )}
-      {expanded && belowDivider.map(toAdd => <AddingMember key={toAdd.assertion} {...toAdd} />)}
+      {expanded &&
+        belowDivider.map(toAdd => (
+          <AddingMember key={toAdd.assertion} {...toAdd} disabledRoles={disabledRoles} />
+        ))}
     </Kb.Box2>
   )
   if (Styles.isMobile) {
@@ -278,7 +289,7 @@ const AddingMembers = () => {
   return <Kb.ScrollView style={styles.addingMembers}>{content}</Kb.ScrollView>
 }
 
-const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
+const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles; lastMember?: boolean}) => {
   const dispatch = Container.useDispatch()
   const onRemove = () => dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
   const role = Container.useSelector(s => s.teams.addMembersWizard.role)
@@ -287,6 +298,7 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
       s.teams.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ??
       (role === 'setIndividually' ? 'writer' : role)
   )
+  const isPhoneEmail = props.assertion.endsWith('@phone') || props.assertion.endsWith('@email')
   const showDropdown = role === 'setIndividually'
   const [showingMenu, setShowingMenu] = React.useState(false)
   const [rolePickerRole, setRole] = React.useState(individualRole)
@@ -329,6 +341,7 @@ const AddingMember = (props: Types.AddingMember & {lastMember?: boolean}) => {
             onSelectRole={onSelectRole}
             onConfirm={onConfirmRole}
             confirmLabel={`Add as ${rolePickerRole}`}
+            disabledRoles={isPhoneEmail ? disabledRolesForPhoneEmailIndividual : props.disabledRoles}
           >
             <Kb.InlineDropdown
               textWrapperType="BodySmallSemibold"
@@ -347,6 +360,9 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
   const dispatch = Container.useDispatch()
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
   const defaultChannelsFromStore = Container.useSelector(s => s.teams.addMembersWizard.defaultChannels)
+  const allKeybaseUsers = Container.useSelector(
+    s => !s.teams.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
+  )
   const onChangeFromDefault = () =>
     dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: defaultChannels}))
   const onAdd = (toAdd: Array<Types.ChannelNameID>) =>
@@ -370,8 +386,8 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
         ) : (
           <>
             <Kb.Text type="BodySmall">
-              Your invitees will be added to {defaultChannels.length}{' '}
-              {pluralize('channel', defaultChannels.length)}.
+              {allKeybaseUsers ? 'Your invitees' : 'Invitees that are Keybase users'} will be added to{' '}
+              {defaultChannels.length} {pluralize('channel', defaultChannels.length)}.
             </Kb.Text>
             <Kb.Text type="BodySmall">
               {defaultChannels.map((channel, index) => (

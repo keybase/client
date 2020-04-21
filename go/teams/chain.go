@@ -207,6 +207,14 @@ func (t TeamSigChainState) GetUserLastJoinTime(user keybase1.UserVersion) (time 
 	return t.inner.GetUserLastJoinTime(user)
 }
 
+// GetUserLastRoleChangeTime returns the time of the last role change for user
+// in team. If the user left the team as a last change, the time of such leave
+// event is returned. If the user was never in the team, then this function
+// returns time=0 and wasMember=false.
+func (t TeamSigChainState) GetUserLastRoleChangeTime(user keybase1.UserVersion) (time keybase1.Time, wasMember bool) {
+	return t.inner.GetUserLastRoleChangeTime(user)
+}
+
 // NewStyle invites are completed in the `used_invites` field in the change
 // membership link, can optionally specify an expiration time, and a maximum
 // number of uses (potentially infinite).
@@ -476,29 +484,32 @@ func (t *TeamSigChainState) inform(u keybase1.UserVersion, role keybase1.TeamRol
 	}
 }
 
-func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite) {
-	t.inner.ActiveInvites[i.Id] = i
+func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite, teamSigMeta keybase1.TeamSignatureMetadata) {
+	t.inner.InviteMetadatas[i.Id] = keybase1.NewTeamInviteMetadata(i, teamSigMeta)
 }
 
-func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID) {
-	delete(t.inner.ActiveInvites, i)
-	delete(t.inner.ObsoleteInvites, i)
-}
-
-func (t *TeamSigChainState) informCompletedInvite(i keybase1.TeamInviteID) {
-	delete(t.inner.ActiveInvites, i)
-	delete(t.inner.ObsoleteInvites, i)
-}
-
-func (t *TeamSigChainState) findAndObsoleteInviteForUser(uid keybase1.UID) {
-	for id, invite := range t.inner.ActiveInvites {
-		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
-			if inviteUv.Uid == uid {
-				delete(t.inner.ActiveInvites, id)
-				t.inner.ObsoleteInvites[id] = invite
-			}
-		}
+func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID,
+	cancelTeamSigMeta keybase1.TeamSignatureMetadata) {
+	inviteMD, ok := t.inner.InviteMetadatas[i]
+	if !ok {
+		return
 	}
+	inviteMD.Status = keybase1.NewTeamInviteMetadataStatusWithCancelled(keybase1.TeamInviteMetadataCancel{
+		TeamSigMeta: cancelTeamSigMeta,
+	})
+	t.inner.InviteMetadatas[i] = inviteMD
+}
+
+func (t *TeamSigChainState) informCompletedInvite(i keybase1.TeamInviteID,
+	completeTeamSigMeta keybase1.TeamSignatureMetadata) {
+	inviteMD, ok := t.inner.InviteMetadatas[i]
+	if !ok {
+		return
+	}
+	inviteMD.Status = keybase1.NewTeamInviteMetadataStatusWithCompleted(keybase1.TeamInviteMetadataCompleted{
+		TeamSigMeta: completeTeamSigMeta,
+	})
+	t.inner.InviteMetadatas[i] = inviteMD
 }
 
 func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.SubteamLogPoint {
@@ -593,8 +604,18 @@ func (t *TeamSigChainState) SubteamRenameOccurred(
 		subteamID, newName, seqno)
 }
 
+func (t *TeamSigChainState) ActiveInvites() (ret []keybase1.TeamInviteMetadata) {
+	for _, md := range t.inner.InviteMetadatas {
+		if code, err := md.Status.Code(); err == nil &&
+			code == keybase1.TeamInviteMetadataStatusCode_ACTIVE {
+			ret = append(ret, md)
+		}
+	}
+	return ret
+}
+
 func (t *TeamSigChainState) NumActiveInvites() int {
-	return len(t.inner.ActiveInvites)
+	return len(t.ActiveInvites())
 }
 
 func (t *TeamSigChainState) HasActiveInvite(name keybase1.TeamInviteName, typ keybase1.TeamInviteType) (bool, error) {
@@ -612,26 +633,44 @@ func (t *TeamSigChainState) HasActiveInvite(name keybase1.TeamInviteName, typ ke
 }
 
 func (t *TeamSigChainState) FindActiveInvite(name keybase1.TeamInviteName, typ keybase1.TeamInviteType) (*keybase1.TeamInvite, error) {
-	for _, active := range t.inner.ActiveInvites {
-		if active.Name == name && active.Type.Eq(typ) {
-			return &active, nil
+	for _, inviteMD := range t.ActiveInvites() {
+		if inviteMD.Invite.Name == name && inviteMD.Invite.Type.Eq(typ) {
+			return &inviteMD.Invite, nil
 		}
 	}
 	return nil, libkb.NotFoundError{}
 }
 
-// FindActiveInviteByID returns potentially expired invites that have not been
+// FindActiveInviteMDByID returns potentially expired invites that have not been
 // explicitly cancelled, since the sigchain player is agnostic to the concept
 // of time. We treat invite expiration times as advisory for admin clients
 // completing invites, but do not check them in the sigchain player.
-func (t *TeamSigChainState) FindActiveInviteByID(id keybase1.TeamInviteID) (keybase1.TeamInvite, bool) {
-	invite, found := t.inner.ActiveInvites[id]
-	return invite, found
+func (t *TeamSigChainState) FindActiveInviteMDByID(
+	id keybase1.TeamInviteID) (inviteMD keybase1.TeamInviteMetadata, found bool) {
+	res, found := t.inner.InviteMetadatas[id]
+	if !found {
+		return inviteMD, false
+	}
+	code, err := res.Status.Code()
+	if err != nil {
+		return inviteMD, false
+	}
+	if code != keybase1.TeamInviteMetadataStatusCode_ACTIVE {
+		return inviteMD, false
+	}
+	return res, true
 }
 
 func (t *TeamSigChainState) IsInviteObsolete(id keybase1.TeamInviteID) bool {
-	_, ok := t.inner.ObsoleteInvites[id]
-	return ok
+	inviteMD, found := t.inner.InviteMetadatas[id]
+	if !found {
+		return false
+	}
+	code, err := inviteMD.Status.Code()
+	if err != nil {
+		return false
+	}
+	return code == keybase1.TeamInviteMetadataStatusCode_OBSOLETE
 }
 
 // FindActiveKeybaseInvite finds and returns a Keybase-type
@@ -639,10 +678,10 @@ func (t *TeamSigChainState) IsInviteObsolete(id keybase1.TeamInviteID) bool {
 // shouldn't assume that returned invite will be the oldest/newest one
 // for the UID.
 func (t *TeamSigChainState) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.TeamInvite, keybase1.UserVersion, bool) {
-	for _, invite := range t.inner.ActiveInvites {
-		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
+	for _, inviteMD := range t.ActiveInvites() {
+		if inviteUv, err := inviteMD.Invite.KeybaseUserVersion(); err == nil {
 			if inviteUv.Uid.Equal(uid) {
-				return invite, inviteUv, true
+				return inviteMD.Invite, inviteUv, true
 			}
 		}
 	}
@@ -980,6 +1019,8 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 	}
 	isHighLink := false
 
+	teamSigMeta := keybase1.NewTeamSigMeta(payload.SignatureMetadata(), signer.signer)
+
 	switch libkb.LinkType(payload.Body.Type) {
 	case libkb.LinkTypeTeamRoot:
 		isHighLink = true
@@ -1062,16 +1103,13 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				PerTeamKeyCTime:         keybase1.UnixTime(payload.Ctime),
 				LinkIDs:                 make(map[keybase1.Seqno]keybase1.LinkID),
 				StubbedLinks:            make(map[keybase1.Seqno]bool),
-				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLogPoint),
+				InviteMetadatas:         make(map[keybase1.TeamInviteID]keybase1.TeamInviteMetadata),
 				TlfLegacyUpgrade:        make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
-
 		if team.Invites != nil {
 			if isImplicit {
 				signerIsExplicitOwner := true
@@ -1083,7 +1121,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				if err != nil {
 					return res, err
 				}
-				t.updateInvites(&res.newState, additions, cancelations)
+				t.updateInvites(&res.newState, additions, cancelations, teamSigMeta)
 			} else {
 				return res, fmt.Errorf("invites not allowed in root link")
 			}
@@ -1162,8 +1200,8 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			invitees := make(map[keybase1.UID]bool)
 			parsedCompletedInvites := make(map[keybase1.TeamInviteID]keybase1.UserVersion)
 			for inviteID, invitee := range team.CompletedInvites {
-				_, ok := prevState.inner.ActiveInvites[inviteID]
-				if !ok {
+				_, found := prevState.FindActiveInviteMDByID(inviteID)
+				if !found {
 					return res, NewImplicitTeamOperationError("completed invite %v but was not active",
 						inviteID)
 				}
@@ -1247,10 +1285,10 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		moveState()
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
-		if err := t.completeInvites(&res.newState, team.CompletedInvites); err != nil {
+		if err := t.completeInvites(&res.newState, team.CompletedInvites, teamSigMeta); err != nil {
 			return res, fmt.Errorf("illegal completed_invites: %s", err)
 		}
-		t.obsoleteInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
+		t.obsoleteActiveInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		if err := t.useInvites(&res.newState, roleUpdates, team.UsedInvites); err != nil {
 			return res, fmt.Errorf("illegal used_invites: %s", err)
@@ -1452,9 +1490,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				PerTeamKeyCTime:         keybase1.UnixTime(payload.Ctime),
 				LinkIDs:                 make(map[keybase1.Seqno]keybase1.LinkID),
 				StubbedLinks:            make(map[keybase1.Seqno]bool),
-				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLogPoint),
+				InviteMetadatas:         make(map[keybase1.TeamInviteID]keybase1.TeamInviteMetadata),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
 			}}
@@ -1645,13 +1681,13 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 
 				var cancelledUVs []keybase1.UserVersion
 				for _, inviteID := range cancelations {
-					invite, found := prevState.FindActiveInviteByID(inviteID)
+					inviteMD, found := prevState.FindActiveInviteMDByID(inviteID)
 					if !found {
 						// This is harmless and also we might be canceling
 						// an obsolete invite.
 						continue
 					}
-					inviteUv, err := invite.KeybaseUserVersion()
+					inviteUv, err := inviteMD.Invite.KeybaseUserVersion()
 					if err != nil {
 						return fmt.Errorf("cancelled invite is not valid keybase-type invite: %v", err)
 					}
@@ -1671,7 +1707,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		}
 
 		moveState()
-		t.updateInvites(&res.newState, additions, cancelations)
+		t.updateInvites(&res.newState, additions, cancelations, teamSigMeta)
 	case libkb.LinkTypeSettings:
 		err = enforce(LinkRules{
 			Admin:    TristateOptional,
@@ -2192,21 +2228,23 @@ func (t *teamSigchainPlayer) updateMembership(stateToUpdate *TeamSigChainState, 
 	}
 }
 
-func (t *teamSigchainPlayer) updateInvites(stateToUpdate *TeamSigChainState, additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID) {
+func (t *teamSigchainPlayer) updateInvites(stateToUpdate *TeamSigChainState, additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, teamSigMeta keybase1.TeamSignatureMetadata) {
 	for _, invites := range additions {
 		for _, invite := range invites {
-			stateToUpdate.informNewInvite(invite)
+			stateToUpdate.informNewInvite(invite, teamSigMeta)
 		}
 	}
 	for _, cancelation := range cancelations {
-		stateToUpdate.informCanceledInvite(cancelation)
+		stateToUpdate.informCanceledInvite(cancelation, teamSigMeta)
 	}
 }
 
-func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm) error {
+func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState,
+	completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm,
+	teamSigMeta keybase1.TeamSignatureMetadata) error {
 	for id := range completed {
-		invite, ok := stateToUpdate.inner.ActiveInvites[id]
-		if !ok {
+		inviteMD, found := stateToUpdate.FindActiveInviteMDByID(id)
+		if !found {
 			// Invite doesn't exist or we don't know about it because invite
 			// links were stubbed. We could do a similar check here that we do
 			// in teamSigchainPlayer.useInvites, but we haven't been doing it
@@ -2214,26 +2252,36 @@ func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState, c
 			// wild.
 			continue
 		}
-		isNewStyle, err := IsNewStyleInvite(invite)
+		isNewStyle, err := IsNewStyleInvite(inviteMD.Invite)
 		if err != nil {
 			return err
 		}
 		if isNewStyle {
 			return fmt.Errorf("`completed_invites` for a new-style invite (id: %q)", id)
 		}
-		stateToUpdate.informCompletedInvite(id)
+		stateToUpdate.informCompletedInvite(id, teamSigMeta)
 	}
 	return nil
 }
 
-func (t *teamSigchainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
-	if len(stateToUpdate.inner.ActiveInvites) == 0 {
+func (t *teamSigchainPlayer) obsoleteActiveInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
+	if len(stateToUpdate.inner.InviteMetadatas) == 0 {
 		return
 	}
 
+	m := make(map[keybase1.UID]struct{})
 	for _, uvs := range roleUpdates {
 		for _, uv := range uvs {
-			stateToUpdate.findAndObsoleteInviteForUser(uv.Uid)
+			m[uv.Uid] = struct{}{}
+		}
+	}
+
+	for _, inviteMD := range stateToUpdate.ActiveInvites() {
+		if inviteUv, err := inviteMD.Invite.KeybaseUserVersion(); err == nil {
+			if _, ok := m[inviteUv.Uid]; ok {
+				inviteMD.Status = keybase1.NewTeamInviteMetadataStatusWithObsolete()
+				stateToUpdate.inner.InviteMetadatas[inviteMD.Invite.Id] = inviteMD
+			}
 		}
 	}
 }
@@ -2254,54 +2302,64 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 			return err
 		}
 
-		invite, foundInvite := stateToUpdate.inner.ActiveInvites[inviteID]
-		if foundInvite {
-			isNewStyle, err := IsNewStyleInvite(invite)
-			if err != nil {
-				return err
+		inviteMD, foundInvite := stateToUpdate.FindActiveInviteMDByID(inviteID)
+		if !foundInvite {
+			if hasStubbedLinks {
+				// We didn't find it, possibly because server stubbed it out (we're not allowed to
+				// see it; didn't load with admin perms).
+				continue
+			} else {
+				// We couldn't find the invite, and we have no stubbed links, which
+				// means that inviteID is invalid.
+				return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
 			}
-			if !isNewStyle {
-				return fmt.Errorf("`used_invites` for a non-new-style invite (id: %q)", inviteID)
-			}
-
-			maxUses := invite.MaxUses
-			alreadyUsed := len(stateToUpdate.inner.UsedInvites[inviteID])
-			// Note that we append to stateToUpdate.inner.UsedInvites at the end of this for loop,
-			// so alreadyUsed updates correctly when processing multiple invite pairs.
-			if maxUses.IsUsedUp(alreadyUsed) {
-				return fmt.Errorf("invite %s is expired after %d uses", inviteID, alreadyUsed)
-			}
-
-			// We explicitly don't check invite.Etime here; it's used as a hint for admins.
-			// but not checked in the sigchain player.
-
-			// If we have the invite, also check if invite role matches role
-			// added.
-			var foundUV bool
-			for _, updatedUV := range roleUpdates[invite.Role] {
-				if uv.Eq(updatedUV) {
-					foundUV = true
-					break
-				}
-			}
-			if !foundUV {
-				return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV, invite.Role.HumanString())
-			}
-		} else if !hasStubbedLinks {
-			// We couldn't find the invite, and we have no stubbed links, which
-			// means that inviteID is invalid.
-			return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
 		}
 
+		isNewStyle, err := IsNewStyleInvite(inviteMD.Invite)
+		if err != nil {
+			return err
+		}
+		if !isNewStyle {
+			return fmt.Errorf("`used_invites` for a non-new-style invite (id: %q)", inviteID)
+		}
+
+		maxUses := inviteMD.Invite.MaxUses
+		alreadyUsed := len(inviteMD.UsedInvites)
+		// Note that we append to inviteMD.UsedInvites at the end of this for loop, so alreadyUsed
+		// updates correctly when processing multiple invite pairs.
+		if maxUses.IsUsedUp(alreadyUsed) {
+			return fmt.Errorf("invite %s is expired after %d uses", inviteID, alreadyUsed)
+		}
+
+		// We explicitly don't check invite.Etime here; it's used as a hint for admins.
+		// but not checked in the sigchain player.
+
+		// If we have the invite, also check if invite role matches role
+		// added.
+		var foundUV bool
+		for _, updatedUV := range roleUpdates[inviteMD.Invite.Role] {
+			if uv.Eq(updatedUV) {
+				foundUV = true
+				break
+			}
+		}
+		if !foundUV {
+			return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV,
+				inviteMD.Invite.Role.HumanString())
+		}
+
+		// Because we use information from the UserLog here, useInvites should be called after
+		// updateMembership.
 		logPoint := len(stateToUpdate.inner.UserLog[uv]) - 1
 		if logPoint < 0 {
 			return fmt.Errorf("used_invite for UV %s that was not added to to the team", pair.UV)
 		}
-		stateToUpdate.inner.UsedInvites[inviteID] = append(stateToUpdate.inner.UsedInvites[inviteID],
+		inviteMD.UsedInvites = append(inviteMD.UsedInvites,
 			keybase1.TeamUsedInviteLogPoint{
 				Uv:       uv,
 				LogPoint: logPoint,
 			})
+		stateToUpdate.inner.InviteMetadatas[inviteID] = inviteMD
 	}
 	return nil
 }

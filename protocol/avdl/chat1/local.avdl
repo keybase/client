@@ -1285,6 +1285,7 @@ protocol local {
     BotCommandsAdvertisementTyp typ;
     array<UserBotCommandInput> commands;
     union { null, string } teamName;
+    union { null, ConversationID } convID;
   }
   record AdvertiseBotCommandsLocalRes {
     array<RateLimit> rateLimits;

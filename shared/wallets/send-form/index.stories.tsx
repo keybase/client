@@ -102,8 +102,8 @@ const load = () => {
       provider({
         action: () => {},
         bannerBackground: 'Announcements' as const,
+        bannerText: 'Announcements',
         offerAdvancedSendForm: AdvancedBanner.senderBanner,
-        text: '',
       })
     )
     .add('Send with Advanced Send Banner', () => (

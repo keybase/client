@@ -211,7 +211,11 @@ func (pi *pinentryInstance) Run(arg keybase1.SecretEntryArg) (res *keybase1.Secr
 	case line == "OK":
 		res = &keybase1.SecretEntryRes{}
 	default:
-		return nil, fmt.Errorf("GETPIN response didn't start with D; got %q", line)
+		return nil, fmt.Errorf(
+			"failed to run pinentry: GETPIN response didn't start with D; got %q (see %s for troubleshooting help)",
+			line,
+			"https://github.com/keybase/client/blob/master/go/doc/troubleshooting.md#pinentry-doesnt-work",
+		)
 	}
 
 	return

@@ -8,13 +8,21 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
 
+type Props = {
+  onSubmitChannels?: (channels: Array<string>) => void
+  teamID?: Types.TeamID
+  waiting?: boolean
+  banners?: Array<React.ReactNode>
+}
+
 const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
 
-const CreateChannel = () => {
+const CreateChannel = (props: Props) => {
+  const {onSubmitChannels, waiting} = props
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const teamID = Types.newTeamWizardTeamID
+  const teamID = props.teamID || Types.newTeamWizardTeamID
   const initialChannels = Container.useSelector(s => s.teams.newTeamWizard.channels) ?? [
     'hellos',
     'random',
@@ -35,24 +43,41 @@ const CreateChannel = () => {
     setChannels([...channels])
   }
 
+  const filteredChannels = channels.filter(c => c.trim())
   const onContinue = () =>
-    dispatch(TeamsGen.createSetTeamWizardChannels({channels: channels.filter(c => !!c)}))
+    onSubmitChannels
+      ? onSubmitChannels(filteredChannels)
+      : dispatch(TeamsGen.createSetTeamWizardChannels({channels: filteredChannels}))
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
-  const numChannels = channels.filter(c => !!c.trim()).length
-  const continueLabel = numChannels
+  const numChannels = filteredChannels.length
+  const continueLabel = onSubmitChannels
+    ? `Create ${numChannels} ${pluralize('channel', numChannels)}`
+    : numChannels
     ? `Continue with ${numChannels} ${pluralize('channel', numChannels)}`
     : 'Continue without channels'
+  const submitButton = (
+    <Kb.Button
+      fullWidth={true}
+      label={continueLabel}
+      onClick={onContinue}
+      waiting={!!waiting}
+      disabled={!!props.onSubmitChannels && numChannels === 0}
+    />
+  )
 
   return (
     <Kb.Modal
+      banners={props.banners}
+      backgroundStyle={styles.background}
       onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Create channels" />,
       }}
-      footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
+      mode="DefaultFullHeight"
+      footer={{content: submitButton}}
       allowOverflow={true}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
@@ -70,7 +95,7 @@ const CreateChannel = () => {
           <ChannelInput key={idx} onChange={setChannel(idx)} value={value} onClear={() => onClear(idx)} />
         ))}
         <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
-        {numChannels === 0 && (
+        {numChannels === 0 && !props.onSubmitChannels && (
           <Kb.Text type="BodySmall" style={styles.noChannelsText}>
             Your team will be a simple conversation. You can always make it a big team later by adding
             channels.
@@ -111,19 +136,17 @@ const styles = Styles.styleSheetCreate(() => ({
   addButton: Styles.platformStyles({
     isElectron: {width: 42},
     isMobile: {width: 47},
+    isTablet: {alignSelf: 'flex-start'},
   }),
+  background: {backgroundColor: Styles.globalColors.blueGrey},
   banner: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
-  body: Styles.platformStyles({
-    common: {
-      ...Styles.padding(Styles.globalMargins.small),
-      backgroundColor: Styles.globalColors.blueGrey,
-    },
-    isElectron: {minHeight: 326},
-    isMobile: {...Styles.globalStyles.flexOne},
-  }),
+  body: {
+    ...Styles.padding(Styles.globalMargins.small),
+    flex: 1,
+  },
   input: {...Styles.padding(Styles.globalMargins.xsmall)},
   inputGeneral: {...Styles.padding(Styles.globalMargins.xsmall), opacity: 0.4},
   noChannelsText: {paddingTop: Styles.globalMargins.tiny, width: '100%'},

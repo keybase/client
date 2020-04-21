@@ -119,6 +119,20 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   }
 }
 
+const useNavUpIfRemovedFromTeam = (teamID: Types.TeamID, username: string) => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const waitingKey = Constants.removeMemberWaitingKey(teamID, username)
+  const waiting = Container.useAnyWaiting(waitingKey)
+  const wasWaiting = Container.usePrevious(waiting)
+  React.useEffect(() => {
+    if (wasWaiting && !waiting) {
+      dispatch(nav.safeNavigateUpPayload())
+    }
+  })
+  return wasWaiting && !waiting
+}
+
 type Extra = {title: React.ReactElement}
 type Section = _Section<TeamTreeRowIn, Extra> | _Section<TeamTreeRowNotIn, Extra>
 
@@ -168,6 +182,7 @@ const TeamMember = (props: OwnProps) => {
       <NodeInRow
         node={item}
         idx={index}
+        isParentTeamMe={isMe && teamID == item.teamID}
         username={username}
         expanded={expandedSet.has(item.teamID)}
         setExpanded={newExpanded => {
@@ -180,7 +195,7 @@ const TeamMember = (props: OwnProps) => {
         }}
       />
     ),
-    title: makeTitle(isMe ? 'You are in:' : `${username} is in:`),
+    title: makeTitle(isMe ? 'You are a member of:' : `${username} is a member of:`),
   }
 
   const nodesNotInSection = {
@@ -244,7 +259,7 @@ const TeamMember = (props: OwnProps) => {
         </Kb.Banner>
       )}
       <Kb.SectionList<Section>
-        stickySectionHeadersEnabled={true}
+        stickySectionHeadersEnabled={false}
         renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
         sections={sections}
         keyExtractor={item => `member:${username}:${item.teamname}`}
@@ -394,6 +409,7 @@ const LastActivity = (props: {loading: boolean; teamID: Types.TeamID; username: 
 }
 type NodeInRowProps = {
   idx: number
+  isParentTeamMe: boolean
   node: TeamTreeRowIn
   username: string
   expanded: boolean
@@ -413,15 +429,19 @@ const NodeInRow = (props: NodeInRowProps) => {
       nav.safeNavigateAppendPayload({
         path: [
           {
-            props: {teamID: props.node.teamID, username: props.username},
+            props: {teamID: props.node.teamID, usernames: [props.username]},
             selected: 'teamAddToChannels',
           },
         ],
       })
     )
   const onKickOutWaitingKey = Constants.removeMemberWaitingKey(props.node.teamID, props.username)
-  const onKickOut = () =>
+  const onKickOut = () => {
     dispatch(TeamsGen.createRemoveMember({teamID: props.node.teamID, username: props.username}))
+    if (props.isParentTeamMe) {
+      dispatch(nav.safeNavigateUpPayload())
+    }
+  }
 
   const openTeam = React.useCallback(
     () =>
@@ -440,6 +460,9 @@ const NodeInRow = (props: NodeInRowProps) => {
   const onChangeRole = (role: Types.TeamRoleType) => {
     dispatch(TeamsGen.createEditMembership({role, teamID: props.node.teamID, username: props.username}))
     setOpen(false)
+    if (['reader, writer'].includes(role) && props.isParentTeamMe) {
+      dispatch(nav.safeNavigateUpPayload())
+    }
   }
   const disabledRoles = Container.useSelector(state =>
     Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
@@ -536,7 +559,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     )}
                   </Kb.Box2>
                 </Kb.Box2>
-                {expanded && Styles.isMobile && (
+                {expanded && Styles.isPhone && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
                     {rolePicker}
                   </Kb.Box2>
@@ -552,13 +575,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   </Kb.Box2>
                 )}
                 {expanded && (
-                  <Kb.Box2
-                    direction="horizontal"
-                    gap="tiny"
-                    alignSelf="flex-start"
-                    style={{justifyContent: 'center'}}
-                    fullWidth={true}
-                  >
+                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" fullWidth={true}>
                     <Kb.Icon
                       type="iconfont-hash"
                       sizeType="Small"
@@ -576,7 +593,13 @@ const NodeInRow = (props: NodeInRowProps) => {
                   </Kb.Box2>
                 )}
                 {expanded && (props.node.canAdminister || isMe) && (
-                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
+                  <Kb.Box2
+                    direction="horizontal"
+                    gap="tiny"
+                    alignSelf="flex-start"
+                    gapEnd={Styles.isMobile}
+                    style={styles.paddingBottomMobile}
+                  >
                     <Kb.Button
                       mode="Secondary"
                       onClick={onAddToChannels}
@@ -596,11 +619,9 @@ const NodeInRow = (props: NodeInRowProps) => {
                     )}
                   </Kb.Box2>
                 )}
-
-                {expanded && Styles.isMobile && <Kb.Box2 direction="horizontal" style={{height: 8}} />}
               </Kb.Box2>
             </Kb.Box2>
-            {!Styles.isMobile && (
+            {!Styles.isPhone && (
               <Kb.Box2 direction="horizontal" alignSelf={expanded ? 'flex-start' : 'center'}>
                 {rolePicker}
               </Kb.Box2>
@@ -617,6 +638,7 @@ export const TeamMemberHeader = (props: Props) => {
   const {teamID, username} = props
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const leaving = useNavUpIfRemovedFromTeam(teamID, username)
 
   const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
@@ -631,13 +653,15 @@ export const TeamMemberHeader = (props: Props) => {
 
   const member = teamDetails.members.get(username)
   if (!member) {
-    // loading? should never happen.
-    logger.error('[team member view] no data! this should never happen.')
+    if (!leaving) {
+      // loading? should never happen.
+      logger.error('[team member view] no data! this should never happen.')
+    }
     return null
   }
 
   const buttons = (
-    <Kb.Box2 direction="horizontal" gap="tiny" alignSelf={Styles.isMobile ? 'flex-start' : 'flex-end'}>
+    <Kb.Box2 direction="horizontal" gap="tiny" alignSelf={Styles.isPhone ? 'flex-start' : 'flex-end'}>
       <Kb.Button small={true} label="Chat" onClick={onChat} />
       <Kb.Button small={true} label="View profile" onClick={onViewProfile} mode="Secondary" />
       {username !== yourUsername && <BlockDropdown username={username} />}
@@ -656,12 +680,12 @@ export const TeamMemberHeader = (props: Props) => {
           <Kb.Box2
             direction="horizontal"
             alignItems="center"
-            gap={Styles.isMobile ? 'tiny' : 'xtiny'}
+            gap={Styles.isPhone ? 'tiny' : 'xtiny'}
             alignSelf="flex-start"
           >
             <Kb.Avatar size={16} teamname={teamMeta.teamname} />
             <Kb.Text
-              type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmallSemiboldSecondaryLink'}
+              type={Styles.isPhone ? 'BodySmallSemibold' : 'BodySmallSemiboldSecondaryLink'}
               onClick={onViewTeam}
             >
               {teamMeta.teamname}
@@ -689,9 +713,9 @@ export const TeamMemberHeader = (props: Props) => {
                 </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
-            {!Styles.isMobile && buttons}
+            {!Styles.isPhone && buttons}
           </Kb.Box2>
-          {Styles.isMobile && buttons}
+          {Styles.isPhone && buttons}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
@@ -732,15 +756,15 @@ const BlockDropdown = (props: {username: string}) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   contentCollapsedFixedHeight: Styles.platformStyles({
-    isElectron: {
+    common: {
       height: 48,
     },
-    isMobile: {
+    isPhone: {
       height: 64,
     },
   }),
   expandIcon: Styles.platformStyles({
-    isElectron: {
+    common: {
       alignItems: 'center',
       alignSelf: 'flex-start',
       display: 'flex',
@@ -750,25 +774,24 @@ const styles = Styles.styleSheetCreate(() => ({
       padding: Styles.globalMargins.tiny,
       width: 40,
     },
-    isMobile: {
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      display: 'flex',
-      flexShrink: 0,
+    isPhone: {
       height: 64,
-      justifyContent: 'center',
+      padding: 0,
       width: 10 + Styles.globalMargins.small * 2, // 16px side paddings
     },
   }),
   headerContainer: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
+      paddingBottom: Styles.globalMargins.small,
     },
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
-      paddingBottom: Styles.globalMargins.small,
     },
-    isMobile: {
+    isPhone: {
+      paddingTop: Styles.globalMargins.small,
+    },
+    isTablet: {
       paddingTop: Styles.globalMargins.small,
     },
   }),
@@ -776,15 +799,15 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.padding(0, Styles.globalMargins.small),
   },
   headerText: Styles.platformStyles({
-    isElectron: {
+    common: {
       width: 127,
     },
-    isMobile: {
+    isPhone: {
       flex: 1,
     },
   }),
   headerTextContainer: Styles.platformStyles({
-    isMobile: {paddingBottom: Styles.globalMargins.tiny},
+    isPhone: {paddingBottom: Styles.globalMargins.tiny},
   }),
   inviteButton: {
     minWidth: 56,
@@ -795,17 +818,20 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   membershipContentExpanded: Styles.platformStyles({
-    isElectron: {
+    common: {
       height: 40,
       paddingTop: Styles.globalMargins.tiny,
     },
-    isMobile: {
+    isPhone: {
       height: 48,
       paddingTop: Styles.globalMargins.small,
     },
   }),
   membershipExpanded: Styles.platformStyles({
     isElectron: {
+      paddingBottom: Styles.globalMargins.tiny,
+    },
+    isTablet: {
       paddingBottom: Styles.globalMargins.tiny,
     },
   }),
@@ -820,6 +846,11 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
+  paddingBottomMobile: Styles.platformStyles({
+    isPhone: {
+      paddingBottom: Styles.globalMargins.small,
+    },
+  }),
   reloadButton: {
     marginTop: Styles.globalMargins.tiny,
     minWidth: 56,
@@ -831,20 +862,16 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       marginTop: 10, // does not exist as an official size
     },
-  }),
-  row: Styles.platformStyles({
-    isElectron: {
-      paddingRight: Styles.globalMargins.small,
-    },
-    isMobile: {
-      paddingRight: Styles.globalMargins.small,
+    isTablet: {
+      marginTop: 10, // does not exist as an official size
     },
   }),
+  row: {paddingRight: Styles.globalMargins.small},
   rowCollapsedFixedHeight: Styles.platformStyles({
-    isElectron: {
+    common: {
       height: 49,
     },
-    isMobile: {
+    isPhone: {
       flexShrink: 0,
       height: 65,
     },
