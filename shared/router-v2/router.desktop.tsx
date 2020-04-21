@@ -184,7 +184,10 @@ const LoggedInStackNavigator = createNavigator(
       Main: {screen: TabNavigator},
       ...Shim.shim(modalRoutes),
     },
-    {}
+    {
+      initialRouteKey: 'Main',
+      initialRouteName: 'Main',
+    }
   ),
   {}
 )
@@ -338,7 +341,7 @@ const createElectronApp = Component => {
     getNavState = () => this.navState || this.state.nav
 
     dispatchOldAction = (old: any) => {
-      const actions = Shared.oldActionToNewActions(old, this.navigation) || []
+      const actions = Shared.oldActionToNewActions(old, this.getNavState()) || []
       actions.forEach(a => this.dispatch(a))
     }
   }
