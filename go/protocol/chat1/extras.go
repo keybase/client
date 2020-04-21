@@ -294,6 +294,7 @@ func SnippetChatMessageTypes() []MessageType {
 
 var editableMessageTypesByEdit = []MessageType{
 	MessageType_TEXT,
+	MessageType_ATTACHMENT,
 }
 
 func EditableMessageTypesByEdit() []MessageType {
