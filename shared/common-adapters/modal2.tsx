@@ -273,4 +273,3 @@ const styles = Styles.styleSheetCreate(() => {
 
 export default Modal2
 export {Header2}
-
