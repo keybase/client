@@ -356,7 +356,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
               {props.node.teamname}
             </Kb.Text>
             <Kb.Text type="BodySmall">
-              {props.node.memberCount
+              {props.node.memberCount !== undefined
                 ? `${props.node.memberCount.toLocaleString()} ${pluralize('member', props.node.memberCount)}`
                 : 'Loading members...'}
             </Kb.Text>
@@ -467,9 +467,10 @@ const NodeInRow = (props: NodeInRowProps) => {
     Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 
-  const channelsJoined = Array.from(channelMetas)
-    .map(([_, {channelname}]) => channelname)
-    .join(', #')
+  const channelsJoined =
+    Array.from(channelMetas)
+      .map(([_, {channelname}]) => channelname)
+      .join(', #') || 'general'
 
   const rolePicker = props.node.canAdminister ? (
     <RoleButton
@@ -557,7 +558,12 @@ const NodeInRow = (props: NodeInRowProps) => {
                 )}
                 {expanded && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
-                    <Kb.Icon type="iconfont-typing" sizeType="Small" color={Styles.globalColors.black_20} />
+                    <Kb.Icon
+                      type="iconfont-typing"
+                      sizeType="Small"
+                      color={Styles.globalColors.black_20}
+                      boxStyle={styles.membershipIcon}
+                    />
                     <LastActivity
                       loading={loadingActivity}
                       teamID={props.node.teamID}
@@ -577,7 +583,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                       type="iconfont-hash"
                       sizeType="Small"
                       color={Styles.globalColors.black_20}
-                      style={styles.membershipIcon}
+                      boxStyle={styles.membershipIcon}
                     />
                     <Kb.Text
                       type="BodySmall"
@@ -829,6 +835,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   membershipIcon: {
     flexShrink: 0,
+    paddingTop: Styles.globalMargins.xtiny,
   },
   membershipTeamText: {
     justifyContent: 'center',
