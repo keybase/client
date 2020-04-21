@@ -22,13 +22,13 @@ func TestInvitationArgs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(rec.Args) != 1 {
-		t.Fatalf("recorded args: %d, expected 1", len(rec.Args))
+	if len(rec.Records) != 1 {
+		t.Fatalf("recorded args: %d, expected 1", len(rec.Records))
 	}
-	checkArg(t, rec.Args[0])
-	checkHTTPArg(t, rec.Args[0], "email", email)
-	checkHTTPArg(t, rec.Args[0], "invitation_message", "message")
-	checkHTTPArg(t, rec.Args[0], "note_to_self", "note")
+	checkArg(t, rec.Records[0].Arg)
+	checkHTTPArg(t, rec.Records[0].Arg, "email", email)
+	checkHTTPArg(t, rec.Records[0].Arg, "invitation_message", "message")
+	checkHTTPArg(t, rec.Records[0].Arg, "note_to_self", "note")
 	checkInvitation(t, inv)
 
 	rec.Reset()
@@ -37,12 +37,12 @@ func TestInvitationArgs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(rec.Args) != 1 {
-		t.Fatalf("recorded args: %d, expected 1", len(rec.Args))
+	if len(rec.Records) != 1 {
+		t.Fatalf("recorded args: %d, expected 1", len(rec.Records))
 	}
-	checkArg(t, rec.Args[0])
-	checkHTTPArg(t, rec.Args[0], "invitation_message", "")
-	checkHTTPArg(t, rec.Args[0], "note_to_self", "")
+	checkArg(t, rec.Records[0].Arg)
+	checkHTTPArg(t, rec.Records[0].Arg, "invitation_message", "")
+	checkHTTPArg(t, rec.Records[0].Arg, "note_to_self", "")
 	checkInvitation(t, inv)
 
 	rec.Reset()
@@ -55,13 +55,13 @@ func TestInvitationArgs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(rec.Args) != 1 {
-		t.Fatalf("recorded args: %d, expected 1", len(rec.Args))
+	if len(rec.Records) != 1 {
+		t.Fatalf("recorded args: %d, expected 1", len(rec.Records))
 	}
-	checkArg(t, rec.Args[0])
-	checkHTTPArg(t, rec.Args[0], "assertion", "keybase@twitter")
-	checkHTTPArg(t, rec.Args[0], "invitation_message", "")
-	checkHTTPArg(t, rec.Args[0], "note_to_self", "")
+	checkArg(t, rec.Records[0].Arg)
+	checkHTTPArg(t, rec.Records[0].Arg, "assertion", "keybase@twitter")
+	checkHTTPArg(t, rec.Records[0].Arg, "invitation_message", "")
+	checkHTTPArg(t, rec.Records[0].Arg, "note_to_self", "")
 	checkInvitation(t, inv)
 }
 
@@ -95,7 +95,7 @@ type sendInvitationMock struct {
 }
 
 func newSendInvitationMock() *sendInvitationMock {
-	return &sendInvitationMock{NewAPIArgRecorder()}
+	return &sendInvitationMock{NewAPIArgRecorderWithNullAPI()}
 }
 
 func (s *sendInvitationMock) Post(mctx MetaContext, arg APIArg) (*APIRes, error) {
