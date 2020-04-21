@@ -74,6 +74,23 @@ func (e TransactionTaintedError) Error() string {
 	return fmt.Sprintf("Transaction is in error state: %s", e.inner)
 }
 
+// UserPUKlessError is returned when an attempt is made to add a PUKless user
+// to a transaction that has AllowPUKless=false.
+type UserPUKlessError struct {
+	username string
+	uv       keybase1.UserVersion
+}
+
+func (e UserPUKlessError) Error() string {
+	var userStr string
+	if e.username != "" {
+		userStr = fmt.Sprintf("%s (%s)", e.username, e.uv.String())
+	} else {
+		userStr = e.uv.String()
+	}
+	return fmt.Sprintf("User %s does not have a PUK, cannot be added to this transaction", userStr)
+}
+
 type txPayloadTag int
 
 const (
@@ -344,8 +361,7 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 		g.Log.CDebugf(ctx, "Invite required for %v", uv)
 
 		if !tx.AllowPUKless {
-			return false, fmt.Errorf("User %q (%s) does not have a PUK, cannot be added to this transaction",
-				user.Username, uv.Uid)
+			return false, UserPUKlessError{username: user.Username, uv: uv}
 		}
 	}
 
@@ -893,7 +909,7 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 		}
 	} else {
 		if !tx.AllowPUKless {
-			return fmt.Errorf("User %s cannot be added because they don't have a PUK", uv.String())
+			return UserPUKlessError{uv: uv}
 		}
 		if err := tx.createKeybaseInvite(uv, role); err != nil {
 			return err

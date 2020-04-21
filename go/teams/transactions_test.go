@@ -160,3 +160,74 @@ func TestPreprocessAssertions(t *testing.T) {
 		}
 	}
 }
+
+func TestAllowPukless(t *testing.T) {
+	tc, _, other, teamname := setupPuklessInviteTest(t)
+	defer tc.Cleanup()
+
+	team, err := Load(context.Background(), tc.G, keybase1.LoadTeamArg{
+		Name:      teamname,
+		NeedAdmin: true,
+	})
+	require.NoError(t, err)
+
+	assertError := func(err error) {
+		require.Error(t, err)
+		require.IsType(t, err, UserPUKlessError{})
+		require.Contains(t, err.Error(), other.Username)
+		require.Contains(t, err.Error(), other.GetUserVersion().String())
+	}
+
+	tx := CreateAddMemberTx(team)
+	tx.AllowPUKless = false // explicitly disallow, but it's also the default.
+	err = tx.AddMemberByUsername(context.Background(), other.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	assertError(err)
+
+	err = tx.AddMemberByUV(context.Background(), other.GetUserVersion(), keybase1.TeamRole_WRITER, nil /* botSettings */)
+	assertError(err)
+
+	{
+		username, uv, invite, err := tx.AddOrInviteMemberByAssertion(context.Background(), other.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+		assertError(err)
+		// All this stuff is still returned despite an error
+		require.Equal(t, other.NormalizedUsername(), username)
+		require.Equal(t, other.GetUserVersion(), uv)
+		// But we aren't actually "inviting" them because of transaction setting.
+		require.False(t, invite)
+	}
+
+	{
+		candidate, err := tx.ResolveUPKV2FromAssertion(tc.MetaContext(), other.Username)
+		require.NoError(t, err)
+		username, uv, invite, err := tx.AddOrInviteMemberCandidate(context.Background(), candidate, keybase1.TeamRole_WRITER, nil /* botSettings */)
+		assertError(err)
+		// All this stuff is still returned despite an error
+		require.Equal(t, other.NormalizedUsername(), username)
+		require.Equal(t, other.GetUserVersion(), uv)
+		// But we aren't actually "inviting" them because of transaction setting.
+		require.False(t, invite)
+	}
+}
+
+func TestTaintAllowPukless(t *testing.T) {
+	tc, _, other, teamname := setupPuklessInviteTest(t)
+	defer tc.Cleanup()
+
+	team, err := Load(context.Background(), tc.G, keybase1.LoadTeamArg{
+		Name:      teamname,
+		NeedAdmin: true,
+	})
+	require.NoError(t, err)
+
+	tx := CreateAddMemberTx(team)
+	tx.AllowPUKless = true
+	err = tx.AddMemberByUsername(context.Background(), other.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.NoError(t, err)
+
+	// Disallow PUKless after we have already added a PUKless user.
+	tx.AllowPUKless = false
+	err = tx.Post(tc.MetaContext())
+	require.Error(t, err)
+	// Make sure it's the error about AllowPUKless.
+	require.Contains(t, err.Error(), "AllowPUKless")
+}
