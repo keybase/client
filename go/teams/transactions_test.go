@@ -24,6 +24,7 @@ func TestTransactions1(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := CreateAddMemberTx(team)
+	tx.AllowPUKless = true
 	err = tx.AddMemberByUsername(context.Background(), "t_alice", keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tx.payloads))
