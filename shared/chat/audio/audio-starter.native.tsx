@@ -90,6 +90,7 @@ const AudioStarter = (props: AudioStarterProps) => {
         <Tooltip shouldBeVisible={showToolTip} />
       </Gateway>
       <Kb.TapGestureHandler
+        shouldCancelWhenOutside={false}
         onHandlerStateChange={({nativeEvent}) => {
           if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
             tapLive.current = true
@@ -131,6 +132,7 @@ const AudioStarter = (props: AudioStarterProps) => {
         simultaneousHandlers={panRef}
       >
         <Kb.PanGestureHandler
+          shouldCancelWhenOutside={false}
           minDeltaX={0}
           minDeltaY={0}
           onGestureEvent={({nativeEvent}) => {
