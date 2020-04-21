@@ -15,8 +15,6 @@ import (
 	"text/template"
 )
 
-const emojiDataJSONPath = "../../../shared/node_modules/emoji-datasource/emoji.json"
-
 // EmojiData json parse struct
 type EmojiData struct {
 	Unified     string `json:"unified"`
