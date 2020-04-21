@@ -1302,7 +1302,7 @@ protocol teams {
     string avatarFilename;
     union { null, ImageCropRect } crop;
   }
-  
+
   record TeamCreateFancyInfo {
     string name;
     string description;
@@ -1465,17 +1465,18 @@ protocol teams {
     array<string> malformed;
   }
 
-  record InviteLinkDetails{
-      TeamInviteID inviteID; 
+  record InviteLinkDetails {
+      TeamInviteID inviteID;
+      boolean inviterResetOrDel;
       UID inviterUID;
       string inviterUsername;
-      boolean inviterResetOrDel;
-      boolean teamIsOpen;
-      TeamID teamID;
+      boolean isMember;
+      map<AvatarFormat, AvatarUrl> teamAvatars;
       string teamDesc;
+      TeamID teamID;
+      boolean teamIsOpen;
       TeamName teamName;
       int teamNumMembers;
-      map<AvatarFormat, AvatarUrl> teamAvatars;
   }
 
   InviteLinkDetails getInviteLinkDetails(TeamInviteID inviteID);
