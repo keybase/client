@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -512,6 +513,13 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 }
 
 func TestSeitanPukless(t *testing.T) {
+	// Test what happens if client receives handle Seitan notification with an
+	// acceptance that's of a PUKless user. If a user can't be added as a
+	// crypto-member (using 'team.change_membership' link), they should not be
+	// added at all during Seitan resolution, because adding a type='keybase'
+	// invitation using 'team.invite' link cannot complete Seitan invite
+	// properly.
+
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
@@ -523,8 +531,6 @@ func TestSeitanPukless(t *testing.T) {
 
 	teamName, teamID := createTeam2(tc)
 	t.Logf("Created team %q", teamName.String())
-
-	_ = teamID
 
 	token, err := CreateSeitanTokenV2(context.Background(), tc.G,
 		teamName.String(), keybase1.TeamRole_WRITER, keybase1.SeitanKeyLabel{})
@@ -576,4 +582,87 @@ func TestSeitanPukless(t *testing.T) {
 
 	invite, _, found := team.FindActiveKeybaseInvite(user.GetUID())
 	require.False(t, found, "Found invite for user: %s", spew.Sdump(invite))
+}
+
+func TestSeitanMultipleRequestForOneInvite(t *testing.T) {
+	// Test server sending a Seitan notifications with multiple request for one
+	// Seitan invite. Seitan V1/V2 can never be multiple use, so at most one
+	// request should be handled.
+
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+
+	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	teamName, teamID := createTeam2(tc)
+
+	token, err := CreateSeitanTokenV2(context.Background(), tc.G,
+		teamName.String(), keybase1.TeamRole_WRITER, keybase1.SeitanKeyLabel{})
+	require.NoError(t, err)
+
+	// Create two users
+	var users [2]*kbtest.FakeUser
+	for i := range users {
+		kbtest.Logout(tc)
+
+		user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+		require.NoError(t, err)
+		users[i] = user
+	}
+
+	timeNow := keybase1.ToTime(tc.G.Clock().Now())
+
+	var acceptances [2]acceptedSeitanV2
+	for i, user := range users {
+		kbtest.LogoutAndLoginAs(tc, user)
+		seitanRet, err := generateAcceptanceSeitanV2(SeitanIKeyV2(token), user.GetUserVersion(), timeNow)
+		require.NoError(t, err)
+		acceptances[i] = seitanRet
+	}
+
+	kbtest.LogoutAndLoginAs(tc, admin)
+
+	inviteID, err := acceptances[0].inviteID.TeamInviteID()
+	require.NoError(t, err)
+
+	var seitans [2]keybase1.TeamSeitanRequest
+	for i, user := range users {
+		seitans[i] = keybase1.TeamSeitanRequest{
+			InviteID:    inviteID,
+			Uid:         user.GetUID(),
+			EldestSeqno: user.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(acceptances[i].encoded),
+			Role:        keybase1.TeamRole_WRITER,
+			UnixCTime:   int64(timeNow),
+		}
+	}
+	msg := keybase1.TeamSeitanMsg{
+		TeamID:  teamID,
+		Seitans: seitans[:],
+	}
+	err = HandleTeamSeitan(context.Background(), tc.G, msg)
+	if err != nil {
+		// We are expecting no error, but if there's a specific bug that we can
+		// recognize, inform about it.
+		if strings.Contains(err.Error(), "failed to update invites for") {
+			require.FailNowf(t,
+				"Got error which suggests that bad change_membership was sent to the server.",
+				"%s", err.Error())
+		}
+	}
+	require.NoError(t, err)
+
+	// First request should have been fulfilled, so users[0] should have been
+	// added. Second request should have been ignored.
+	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name:        teamName.String(),
+		NeedAdmin:   true,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	spew.Dump(team.Members())
 }
