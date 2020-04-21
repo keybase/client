@@ -1569,6 +1569,10 @@ func (m *MockChatHelper) convKey(name string, topicName *string) string {
 	return name + ":" + *topicName
 }
 
+func (m *MockChatHelper) BulkAddToConv(context.Context, gregor1.UID, chat1.ConversationID, []string) error {
+	return nil
+}
+
 type MockUIRouter struct {
 	ui libkb.ChatUI
 }

@@ -1109,6 +1109,7 @@ type ChatHelper interface {
 	JourneycardDebugState(context.Context, gregor1.UID, keybase1.TeamID) (string, error)
 	// InTeam gives a best effort to answer team membership based on the current state of the inbox cache
 	InTeam(context.Context, gregor1.UID, keybase1.TeamID) (bool, error)
+	BulkAddToConv(context.Context, gregor1.UID, chat1.ConversationID, []string) error
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)
