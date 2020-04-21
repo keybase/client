@@ -9,7 +9,7 @@ ENV KEYBASE_TEST_ROOT_CERT_PEM_B64=$KEYBASE_TEST_ROOT_CERT_PEM_B64 \
 
 ENTRYPOINT ["kbfsfuse.sh"]
 
-ADD kbfsfuse/kbfsfuse.sh /home/keybase/
-ADD kbfsfuse/kbfsfuse /home/keybase/
-ADD kbfsgit/git-remote-keybase/git-remote-keybase /home/keybase/
-ADD kbfsfuse/revision /home/keybase/kbfs_revision
+ADD --chown=keybase:keybase kbfsfuse/kbfsfuse.sh /home/keybase/
+ADD --chown=keybase:keybase kbfsfuse/kbfsfuse /home/keybase/
+ADD --chown=keybase:keybase kbfsgit/git-remote-keybase/git-remote-keybase /home/keybase/
+ADD --chown=keybase:keybase kbfsfuse/revision /home/keybase/kbfs_revision
