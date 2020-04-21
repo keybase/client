@@ -1068,6 +1068,13 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 		// If the bot is the sender encrypt only for them.
 		if msg.ClientHeader.Sender.Eq(botUID) {
 			if !isMatch {
+				// Bot channel restrictions only apply to CHAT types.
+				if convID != nil && !botSettings.ConvIDAllowed(convID.String()) {
+					conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, *convID, types.InboxSourceDataSourceAll)
+					if err == nil && conv.GetTopicType() != chat1.TopicType_CHAT {
+						return []gregor1.UID{botUID}, nil
+					}
+				}
 				return nil, NewRestrictedBotChannelError()
 			}
 			return []gregor1.UID{botUID}, nil
