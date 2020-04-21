@@ -461,16 +461,18 @@ export class FloatingRolePicker<IncludeSetIndividually extends boolean = false> 
             onHidden={onCancel}
             hideKeyboard={true}
           >
-            <Kb.Box2
-              direction="vertical"
-              fullHeight={Styles.isMobile}
-              style={Styles.collapseStyles([floatingContainerStyle, styles.opaqueContainer])}
-            >
-              {Styles.isMobile && (
-                <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" title="Pick a role" />
-              )}
-              {picker}
-            </Kb.Box2>
+            <Kb.SafeAreaView>
+              <Kb.Box2
+                direction="vertical"
+                fullHeight={Styles.isMobile}
+                style={Styles.collapseStyles([floatingContainerStyle, styles.opaqueContainer])}
+              >
+                {Styles.isMobile && (
+                  <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" title="Pick a role" />
+                )}
+                {picker}
+              </Kb.Box2>
+            </Kb.SafeAreaView>
           </Kb.FloatingBox>
         )}
       </>

@@ -40,8 +40,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const onAddMembers = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
-        // TODO: this route does not exist yet
-        path: [{props: {conversationIDKey, teamID}, selected: 'teamAddToChannel'}],
+        path: [{props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
       })
     )
   const onNavToTeam = () =>
@@ -50,7 +49,9 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         path: [{props: {teamID}, selected: 'team'}],
       })
     )
-  const activityLevel = 'active' // TODO plumbing
+  const activityLevel = Container.useSelector(
+    state => state.teams.activityLevels.channels.get(conversationIDKey) || 'none'
+  )
   const newMemberCount = 1 // TODO plumbing
 
   const callbacks = useHeaderCallbacks(teamID, conversationIDKey)
@@ -75,7 +76,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   }
 
   const menuItems: Array<Kb.MenuItem> = [
-    {onClick: () => {}, title: 'Audience stats'},
     // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
     // It's included in the other place this menu appears.
     ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),

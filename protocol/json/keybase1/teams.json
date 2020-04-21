@@ -4076,6 +4076,13 @@
             null,
             "string"
           ]
+        },
+        {
+          "name": "defaultChannelsOverride",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": "TeamAddMembersResult"

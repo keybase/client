@@ -220,10 +220,17 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "passphrase",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": null,
-      "doc": "accountDelete is for devel/testing to delete the current user's account."
+      "doc": "accountDelete deletes the current user's account."
     },
     "loginOneshot": {
       "request": [
