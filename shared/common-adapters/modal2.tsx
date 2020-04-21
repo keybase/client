@@ -34,15 +34,10 @@ type FooterProps = {
 }
 
 type Props = {
-  allowOverflow?: boolean // desktop only
   banners?: React.ReactNode[]
   children: React.ReactNode
   header?: HeaderProps
-  onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
-  mobileStyle?: Styles.StylesCrossPlatform
-  noScrollView?: boolean // content must push footer to bottom with this on.
-  scrollViewRef?: React.Ref<ScrollView>
 }
 
 const Modal2 = (props: Props) => {
