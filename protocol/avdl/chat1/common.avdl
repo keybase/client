@@ -732,7 +732,9 @@
     // in.
     TLFID_MEMBERS_1,
     // Commands are listed in all conversations of the given team.
-    TLFID_CONVS_2
+    TLFID_CONVS_2,
+    // Commands are listed to the given conversation
+    CONV_3
   }
 
   record TeamMember {

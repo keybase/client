@@ -5950,6 +5950,7 @@ type AdvertiseCommandsParam struct {
 	Typ      BotCommandsAdvertisementTyp `codec:"typ" json:"typ"`
 	Commands []UserBotCommandInput       `codec:"commands" json:"commands"`
 	TeamName *string                     `codec:"teamName,omitempty" json:"teamName,omitempty"`
+	ConvID   *ConversationID             `codec:"convID,omitempty" json:"convID,omitempty"`
 }
 
 func (o AdvertiseCommandsParam) DeepCopy() AdvertiseCommandsParam {
@@ -5973,6 +5974,13 @@ func (o AdvertiseCommandsParam) DeepCopy() AdvertiseCommandsParam {
 			tmp := (*x)
 			return &tmp
 		})(o.TeamName),
+		ConvID: (func(x *ConversationID) *ConversationID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConvID),
 	}
 }
 
