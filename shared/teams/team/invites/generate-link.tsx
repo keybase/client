@@ -23,7 +23,7 @@ type RolePickerProps = {
   onSelectRole: (role: Types.TeamRoleType) => void
   selectedRole: Types.TeamRoleType
   teamRole: Types.TeamRoleType
-  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string}
+  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string | null}
 }
 
 const capitalize = (str: string) => {
@@ -178,10 +178,8 @@ const GenerateLinkModal = (props: Props) => {
 
   const rolePickerProps = {
     disabledReasonsForRolePicker: {
-      admin: `Users can't join open teams as admins.`,
-      owner: `Users can't join open teams as owners.`,
-      reader: '',
-      writer: '',
+      admin: `You can't invite admins via invte link.`,
+      owner: null, //don't even show
     },
     isRolePickerOpen: isRolePickerOpen,
     onCancelRolePicker: () => setRolePickerOpen(false),

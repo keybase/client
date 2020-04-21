@@ -24,9 +24,10 @@ const ChannelRow = (props: ChannelRowProps) => {
   const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
   const canDelete = canPerform.deleteChannel
 
-  const numParticipants = Container.useSelector(
-    state => ChatConstants.getParticipantInfo(state, channel.conversationIDKey).all.length
-  )
+  const numParticipants = Container.useSelector(state => {
+    const participants = ChatConstants.getParticipantInfo(state, channel.conversationIDKey)
+    return participants.name.length || participants.all.length
+  })
   const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const hasAllMembers = details.members.size === numParticipants
   const activityLevel = Container.useSelector(

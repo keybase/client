@@ -1369,7 +1369,8 @@ protocol teams {
   }
 
   // @emailInviteMessage is an argument used as a welcome message in email invitations sent from the server
-  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification, union { null, string } emailInviteMessage);
+  // @defaultChannelsOverride is ConversationIDs to add the members to instead of the team wide settings. if unset, use team wide setting
+  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification, union { null, string } emailInviteMessage, array<string> defaultChannelsOverride);
 
   // allowInaction suppresses errors that come from removing an invite that doesn't exist. Relevant for suppressing errors when calling remove while a remove is already in progress.
   // Note: allowInaction only applies to invite removals, just because that was what was needed.
