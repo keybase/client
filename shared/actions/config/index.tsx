@@ -501,7 +501,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       }
 
       if (
-        ['keybase://private', 'keybase://public', 'keybase://team'].some(prefix =>
+        ['keybase://private/', 'keybase://public/', 'keybase://team/'].some(prefix =>
           state.config.startupLink.startsWith(prefix)
         )
       ) {

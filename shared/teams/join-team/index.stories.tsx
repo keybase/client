@@ -9,6 +9,7 @@ const props: Props = Sb.createNavigator({
     inviterResetOrDel: false,
     inviterUID: '',
     inviterUsername: 'adamjspooner',
+    isMember: false,
     teamAvatars: {},
     teamDesc:
       'A team for fans of Game of Thrones. This is to show the max-width on the team description (460px). Ellipsis after three lines of description. This is a third line blah blah blah blah blah blah blah blah blah blah. This is a third line blah blah blah blah blah blah blah blah blah blah. This is a third line blah blah blah blah blah blah blah blah blah blah.',
