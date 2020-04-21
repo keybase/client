@@ -44,7 +44,7 @@ export type ReviewProps = {
   verificationType: WebOfTrustVerificationType
   voucheeUsername: string
   voucherUsername: string
-  waiting?: undefined | ReviewAction
+  waiting?: ReviewAction
 }
 
 export type Question2Props = {
@@ -583,7 +583,7 @@ const verificationTypeText = (
     case 'other':
       return 'Other'
     default:
-      return `<Unknown verification type: ${verificationType}>`
+      return `Unknown verification type: ${verificationType}`
   }
 }
 
