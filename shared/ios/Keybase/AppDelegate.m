@@ -86,7 +86,14 @@
 
   // To simplify the cover animation raciness
   
-  // make a square of the biggest screen dimension to handle rotate snapshot
+  // With iPads, we had a bug with this resignImageView where if
+  // you backgrounded the app in portrait and then rotated to
+  // landscape while the app was in the background, the resignImageView
+  // in the snapshot would not be covering the entire app and would
+  // display content in the app.  The following code makes the
+  // image view a square in the largest dimensipn of the device so
+  // that when the iPad OS makes the snapshots the image view is
+  // covering in both orientations.
   CGRect screenRect = [UIScreen mainScreen].bounds;
   CGFloat dim = screenRect.size.width;
   if (screenRect.size.height > dim) {
