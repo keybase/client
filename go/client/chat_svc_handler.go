@@ -42,7 +42,7 @@ type ChatServiceHandler interface {
 	GetUnfurlSettingsV1(context.Context) Reply
 	SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply
 	AdvertiseCommandsV1(context.Context, advertiseCommandsOptionsV1) Reply
-	ClearCommandsV1(context.Context) Reply
+	ClearCommandsV1(context.Context, clearCommandsOptionsV1) Reply
 	ListCommandsV1(context.Context, listCommandsOptionsV1) Reply
 	PinV1(context.Context, pinOptionsV1) Reply
 	UnpinV1(context.Context, unpinOptionsV1) Reply
@@ -356,12 +356,37 @@ func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts adver
 	return Reply{Result: res}
 }
 
-func (c *chatServiceHandler) ClearCommandsV1(ctx context.Context) Reply {
+func (c *chatServiceHandler) ClearCommandsV1(ctx context.Context, opts clearCommandsOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
-	res, err := client.ClearBotCommandsLocal(ctx)
+	var filter *chat1.ClearBotCommandsFilter
+	if opts.Filter != nil {
+		typ, err := c.getAdvertTyp(opts.Filter.Typ)
+		if err != nil {
+			return c.errReply(err)
+		}
+		var teamName *string
+		if opts.Filter.TeamName != "" {
+			filterTeamName := opts.Filter.TeamName
+			teamName = &filterTeamName
+		}
+		var convID *chat1.ConversationID
+		if opts.Filter.ConvID != "" {
+			filterConvID, err := chat1.MakeConvID(opts.Filter.ConvID.String())
+			if err != nil {
+				return c.errReply(err)
+			}
+			convID = &filterConvID
+		}
+		filter = &chat1.ClearBotCommandsFilter{
+			Typ:      typ,
+			TeamName: teamName,
+			ConvID:   convID,
+		}
+	}
+	res, err := client.ClearBotCommandsLocal(ctx, filter)
 	if err != nil {
 		return c.errReply(err)
 	}

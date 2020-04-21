@@ -34,7 +34,8 @@ func (c *CmdChatClearCommands) Run() error {
 	if err != nil {
 		return err
 	}
-	if _, err = client.ClearBotCommandsLocal(context.Background()); err != nil {
+	// TODO(marcel): get filter
+	if _, err = client.ClearBotCommandsLocal(context.Background(), nil); err != nil {
 		return err
 	}
 

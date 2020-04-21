@@ -3164,6 +3164,38 @@ func (p AdvertiseCommandsParam) ToRemote(cmdConvID ConversationID, tlfID *TLFID,
 	}
 }
 
+func (p ClearBotCommandsFilter) ToRemote(tlfID *TLFID, convID *ConversationID) (res RemoteClearBotCommandsFilter, err error) {
+	switch p.Typ {
+	case BotCommandsAdvertisementTyp_PUBLIC:
+		return NewRemoteClearBotCommandsFilterWithPublic(RemoteClearBotCommandsFilterPublic{}), nil
+	case BotCommandsAdvertisementTyp_TLFID_CONVS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		}
+		return NewRemoteClearBotCommandsFilterWithTlfidConvs(RemoteClearBotCommandsFilterTLFID{
+			TlfID: *tlfID,
+		}), nil
+	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		}
+		return NewRemoteClearBotCommandsFilterWithTlfidMembers(RemoteClearBotCommandsFilterTLFID{
+			TlfID: *tlfID,
+		}), nil
+	case BotCommandsAdvertisementTyp_CONV:
+		if tlfID != nil {
+			return res, errors.New("TLFID specified")
+		} else if convID == nil {
+			return res, errors.New("no ConvID specified")
+		}
+		return NewRemoteClearBotCommandsFilterWithConv(RemoteClearBotCommandsFilterConv{
+			ConvID: *convID,
+		}), nil
+	default:
+		return res, errors.New("unknown bot advertisement typ")
+	}
+}
+
 func (c UserBotCommandInput) ToOutput(username string) UserBotCommandOutput {
 	return UserBotCommandOutput{
 		Name:                c.Name,

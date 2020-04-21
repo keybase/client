@@ -1301,10 +1301,15 @@ protocol local {
 
   ListBotCommandsLocalRes listPublicBotCommandsLocal(string username);
 
+  record ClearBotCommandsFilter {
+    BotCommandsAdvertisementTyp typ;
+    union { null, string } teamName;
+    union { null, ConversationID } convID;
+  }
   record ClearBotCommandsLocalRes {
     array<RateLimit> rateLimits;
   }
-  ClearBotCommandsLocalRes clearBotCommandsLocal();
+  ClearBotCommandsLocalRes clearBotCommandsLocal(union { null, ClearBotCommandsFilter } filter);
 
   // Pinning
   record PinMessageRes {

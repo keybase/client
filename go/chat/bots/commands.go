@@ -154,16 +154,18 @@ func (b *CachingBotCommandManager) deriveMembersType(ctx context.Context, name s
 	}
 }
 
-func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.AdvertiseCommandsParam) (res chat1.ConversationLocal, err error) {
+func (b *CachingBotCommandManager) createConv(
+	ctx context.Context, typ chat1.BotCommandsAdvertisementTyp, teamName *string, convID *chat1.ConversationID,
+) (res chat1.ConversationLocal, err error) {
 	username, err := b.getMyUsername(ctx)
 	if err != nil {
 		return res, err
 	}
-	switch param.Typ {
+	switch typ {
 	case chat1.BotCommandsAdvertisementTyp_PUBLIC:
-		if param.TeamName != nil {
+		if teamName != nil {
 			return res, errors.New("team name cannot be specified for public advertisements")
-		} else if param.ConvID != nil {
+		} else if convID != nil {
 			return res, errors.New("convID cannot be specified for public advertisements")
 		}
 
@@ -171,29 +173,29 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 			chat1.TopicType_DEV, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PUBLIC)
 		return res, err
 	case chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, chat1.BotCommandsAdvertisementTyp_TLFID_CONVS:
-		if param.TeamName == nil {
+		if teamName == nil {
 			return res, errors.New("missing team name")
-		} else if param.ConvID != nil {
+		} else if convID != nil {
 			return res, errors.New("convID cannot be specified for team advertisments use type 'conv'")
 		}
 
-		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, param.Typ)
-		membersType, err := b.deriveMembersType(ctx, *param.TeamName)
+		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, typ)
+		membersType, err := b.deriveMembersType(ctx, *teamName)
 		if err != nil {
 			return res, err
 		}
-		res, _, err = b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, *param.TeamName, &topicName,
+		res, _, err = b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, *teamName, &topicName,
 			chat1.TopicType_DEV, membersType, keybase1.TLFVisibility_PRIVATE)
 		return res, err
 	case chat1.BotCommandsAdvertisementTyp_CONV:
-		if param.TeamName != nil {
+		if teamName != nil {
 			return res, errors.New("unexpected team name")
-		} else if param.ConvID == nil {
+		} else if convID == nil {
 			return res, errors.New("missing convID")
 		}
 
-		topicName := fmt.Sprintf("___keybase_botcommands_conv_%s_%v", username, param.Typ)
-		convs, err := b.G().ChatHelper.FindConversationsByID(ctx, []chat1.ConversationID{*param.ConvID})
+		topicName := fmt.Sprintf("___keybase_botcommands_conv_%s_%v", username, typ)
+		convs, err := b.G().ChatHelper.FindConversationsByID(ctx, []chat1.ConversationID{*convID})
 		if err != nil {
 			return res, err
 		} else if len(convs) != 1 {
@@ -204,7 +206,7 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 			chat1.TopicType_DEV, conv.Info.MembersType, keybase1.TLFVisibility_PRIVATE)
 		return res, err
 	default:
-		return res, fmt.Errorf("unknown bot advertisement typ %q", param.Typ)
+		return res, fmt.Errorf("unknown bot advertisement typ %q", typ)
 	}
 }
 
@@ -228,7 +230,7 @@ func (b *CachingBotCommandManager) Advertise(ctx context.Context, alias *string,
 	remotes := make([]chat1.RemoteBotCommandsAdvertisement, 0, len(ads))
 	for _, ad := range ads {
 		// create conversations with the commands
-		conv, err := b.createConv(ctx, ad)
+		conv, err := b.createConv(ctx, ad.Typ, ad.TeamName, ad.ConvID)
 		if err != nil {
 			return err
 		}
@@ -273,9 +275,32 @@ func (b *CachingBotCommandManager) Advertise(ctx context.Context, alias *string,
 	return nil
 }
 
-func (b *CachingBotCommandManager) Clear(ctx context.Context) (err error) {
+func (b *CachingBotCommandManager) Clear(ctx context.Context, filter *chat1.ClearBotCommandsFilter) (err error) {
 	defer b.Trace(ctx, &err, "Clear")()
-	if _, err := b.ri().ClearBotCommands(ctx); err != nil {
+	var remote *chat1.RemoteClearBotCommandsFilter
+	if filter != nil {
+		remote = new(chat1.RemoteClearBotCommandsFilter)
+		conv, err := b.createConv(ctx, filter.Typ, filter.TeamName, filter.ConvID)
+		if err != nil {
+			return err
+		}
+
+		var tlfID *chat1.TLFID
+		var convID *chat1.ConversationID
+		switch filter.Typ {
+		case chat1.BotCommandsAdvertisementTyp_PUBLIC:
+		case chat1.BotCommandsAdvertisementTyp_TLFID_CONVS, chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS:
+			tlfID = &conv.Info.Triple.Tlfid
+		case chat1.BotCommandsAdvertisementTyp_CONV:
+			convID = filter.ConvID
+		}
+
+		*remote, err = filter.ToRemote(tlfID, convID)
+		if err != nil {
+			return err
+		}
+	}
+	if _, err := b.ri().ClearBotCommands(ctx, remote); err != nil {
 		return err
 	}
 	return nil
