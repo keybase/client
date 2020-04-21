@@ -955,7 +955,7 @@ func (n *NotifyRouter) HandleDeviceCloneNotification(newClones int) {
 // canSkipNotification checks if the notification can be ignored and the given
 // connection allows skips.
 func (n *NotifyRouter) canSkipNotif(id ConnectionID, canSkip bool) bool {
-	return canSkip && n.getNotificationChannels(id).AllowNotifySkips
+	return canSkip && n.getNotificationChannels(id).AllowChatNotifySkips
 }
 
 func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType chat1.TopicType) bool {
