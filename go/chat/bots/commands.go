@@ -146,7 +146,8 @@ func (b *CachingBotCommandManager) deriveMembersType(ctx context.Context, name s
 		return chat1.ConversationMembersType_IMPTEAMNATIVE, nil
 	default:
 		// https://github.com/keybase/client/blob/249cfcb4b4bd6dcc50d207d0b88eee455a7f6c2d/go/protocol/keybase1/extras.go#L2249
-		if strings.Contains(err.Error(), "team names must be between 2 and 16 characters long") {
+		if strings.Contains(err.Error(), "team names must be between 2 and 16 characters long") ||
+			strings.Contains(err.Error(), "Keybase team names must be letters") {
 			return chat1.ConversationMembersType_IMPTEAMNATIVE, nil
 		}
 		return 0, err
