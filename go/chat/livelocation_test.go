@@ -126,7 +126,7 @@ func (m *mockUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convI
 		ConvID:  convID,
 	})
 	m.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), chat1.TopicType_CHAT,
-		&activity, chat1.ChatActivitySource_LOCAL)
+		&activity, chat1.ChatActivitySource_LOCAL, false)
 }
 
 func checkCoords(t *testing.T, unfurler *mockUnfurler, refcoords []chat1.Coordinate, timeout time.Duration) bool {
