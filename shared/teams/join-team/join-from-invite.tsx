@@ -14,7 +14,7 @@ const JoinFromInvite = () => {
   const error = Container.useSelector(state => state.teams.errorInTeamJoin)
   const loaded = details !== undefined || !!error
   React.useEffect(() => {
-    if (loaded || key === '') {
+    if (loaded) {
       return
     }
     if (key === '') {
