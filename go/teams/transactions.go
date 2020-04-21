@@ -692,7 +692,7 @@ func (tx *AddMemberTx) AddOrInviteMemberByAssertion(ctx context.Context, asserti
 // CanConsumeInvite checks if invite can be used. Has to be called before
 // calling `ConsumeInviteByID` with that invite ID. Does not modify the
 // transaction. When handling team invites, it should be called before
-// `ConsumeInviteByID` to assert that invite is still useable (new-style invites
+// `ConsumeInviteByID` to assert that invite is still usable (new-style invites
 // may be expired or exceeded).
 func (tx *AddMemberTx) CanConsumeInvite(ctx context.Context, inviteID keybase1.TeamInviteID) error {
 	inviteMD, found := tx.team.chain().FindActiveInviteMDByID(inviteID)
@@ -724,6 +724,11 @@ func (tx *AddMemberTx) CanConsumeInvite(ctx context.Context, inviteID keybase1.T
 				return NewInviteLinkAcceptanceError("invite expired at %v which is before the current time of %v; rejecting", etime, now)
 			}
 		}
+	} else {
+		_, alreadyCompleted := tx.completedInvites[inviteID]
+		if alreadyCompleted {
+			return fmt.Errorf("invite ID %s was already completed in this transaction", inviteID)
+		}
 	}
 
 	return nil
@@ -754,6 +759,7 @@ func (tx *AddMemberTx) ConsumeInviteByID(ctx context.Context, inviteID keybase1.
 		tx.usedInviteCount[inviteID]++
 	} else {
 		payload.CompleteInviteID(inviteID, uv.PercentForm())
+		tx.completedInvites[inviteID] = true
 	}
 
 	return nil

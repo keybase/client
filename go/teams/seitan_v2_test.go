@@ -621,6 +621,13 @@ func TestSeitanMultipleRequestForOneInvite(t *testing.T) {
 		seitanRet, err := generateAcceptanceSeitanV2(SeitanIKeyV2(token), user.GetUserVersion(), timeNow)
 		require.NoError(t, err)
 		acceptances[i] = seitanRet
+
+		if i == 0 {
+			// First user has to PostSeitan so invite is changed to ACCEPTED on
+			// the server.
+			err = postSeitanV2(tc.MetaContext(), seitanRet)
+			require.NoError(t, err)
+		}
 	}
 
 	kbtest.LogoutAndLoginAs(tc, admin)
@@ -664,5 +671,6 @@ func TestSeitanMultipleRequestForOneInvite(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	spew.Dump(team.Members())
+	require.True(t, team.IsMember(context.TODO(), users[0].GetUserVersion()))
+	require.False(t, team.IsMember(context.TODO(), users[1].GetUserVersion()))
 }
