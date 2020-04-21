@@ -246,11 +246,9 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       left: Styles.platformStyles({
-        isElectron: {minWidth: 260},
+        common: {width: Styles.globalStyles.mediumSubNavWidth},
         isTablet: {
-          minWidth: 300,
           paddingLeft: Styles.globalMargins.small,
-          width: '30%',
         },
       }),
       markdownOverride: Styles.platformStyles({
