@@ -134,6 +134,10 @@
         {
           "type": "boolean",
           "name": "saltpack"
+        },
+        {
+          "type": "boolean",
+          "name": "allowNotifySkips"
         }
       ]
     }

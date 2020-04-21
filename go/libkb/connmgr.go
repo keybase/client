@@ -123,7 +123,7 @@ func (c *ConnectionManager) RegisterLabelCallback(f LabelCb) {
 	c.Unlock()
 }
 
-func (c *ConnectionManager) HasClientType(clientType keybase1.ClientType) bool {
+func (c *ConnectionManager) hasClientType(clientType keybase1.ClientType) bool {
 	for _, con := range c.ListAllLabeledConnections() {
 		if clientType == con.Details.ClientType {
 			return true
@@ -134,7 +134,7 @@ func (c *ConnectionManager) HasClientType(clientType keybase1.ClientType) bool {
 
 // WaitForClientType returns true if client type is connected, or waits until timeout for the connection
 func (c *ConnectionManager) WaitForClientType(clientType keybase1.ClientType, timeout time.Duration) bool {
-	if c.HasClientType(clientType) {
+	if c.hasClientType(clientType) {
 		return true
 	}
 	ticker := time.NewTicker(time.Second)
@@ -143,7 +143,7 @@ func (c *ConnectionManager) WaitForClientType(clientType keybase1.ClientType, ti
 	for {
 		select {
 		case <-ticker.C:
-			if c.HasClientType(clientType) {
+			if c.hasClientType(clientType) {
 				return true
 			}
 		case <-deadline:

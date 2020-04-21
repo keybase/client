@@ -952,8 +952,10 @@ func (n *NotifyRouter) HandleDeviceCloneNotification(newClones int) {
 	n.G().Log.Debug("- Sent device clone notification")
 }
 
-func (n *NotifyRouter) HasClientType(clientType keybase1.ClientType) bool {
-	return n.cm.HasClientType(clientType)
+// canSkipNotification checks if the notification can be ignored and the given
+// connection allows skips.
+func (n *NotifyRouter) canSkipNotif(id ConnectionID, canSkip bool) bool {
+	return canSkip && n.getNotificationChannels(id).AllowNotifySkips
 }
 
 func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType chat1.TopicType) bool {
@@ -979,7 +981,7 @@ func (n *NotifyRouter) shouldSendChatNotification(id ConnectionID, topicType cha
 }
 
 func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.UID,
-	topicType chat1.TopicType, activity *chat1.ChatActivity, source chat1.ChatActivitySource) {
+	topicType chat1.TopicType, activity *chat1.ChatActivity, source chat1.ChatActivitySource, canSkip bool) {
 	if n == nil {
 		return
 	}
@@ -988,7 +990,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Chat` notification type
-		if n.shouldSendChatNotification(id, topicType) {
+		if n.shouldSendChatNotification(id, topicType) && !n.canSkipNotif(id, canSkip) {
 			wg.Add(1)
 			// In the background do...
 			go func() {

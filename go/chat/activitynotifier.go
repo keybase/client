@@ -63,22 +63,22 @@ func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.U
 		n.Debug(ctx, "invalid activity type: %v", err)
 		return
 	}
-	// If the conversation is not being actively viewed, don't send
+
+	var canSkip bool
+	// If the conversation is not being actively viewed, we can optionally skip
 	// notifications to the UI.
 	if typ == chat1.ChatActivityType_INCOMING_MESSAGE {
 		act := activity.IncomingMessage()
 		if !act.DisplayDesktopNotification && act.Conv != nil &&
 			act.Conv.TeamType == chat1.TeamType_COMPLEX &&
 			!n.G().Syncer.IsSelectedConversation(act.ConvID) &&
-			act.Conv.ReadMsgID+100 < act.Conv.MaxVisibleMsgID &&
-			// Only skip these notifications for GUI clients
-			!n.G().NotifyRouter.HasClientType(keybase1.ClientType_CLI) {
-			n.Debug(ctx, "skipping UI notification %v for %v", typ, act.ConvID)
-			return
+			act.Conv.ReadMsgID+100 < act.Conv.MaxVisibleMsgID {
+			n.Debug(ctx, "canSkip UI notification %v for %v", typ, act.ConvID)
+			canSkip = true
 		}
 	}
 	n.notifyCh <- func() {
-		n.G().NotifyRouter.HandleNewChatActivity(ctx, n.kuid(uid), topicType, activity, source)
+		n.G().NotifyRouter.HandleNewChatActivity(ctx, n.kuid(uid), topicType, activity, source, canSkip)
 	}
 }
 
