@@ -19,17 +19,7 @@ export default function SettingsItem(props: SettingsItemProps) {
   return (
     <ClickableBox
       onClick={props.onClick}
-      style={Styles.collapseStyles([
-        styles.item,
-        props.selected
-          ? {
-              borderLeftColor: Styles.globalColors.blue,
-              borderLeftStyle: 'solid',
-              borderLeftWidth: 3,
-              ...(Styles.isTablet ? {borderRadius: 0} : {}),
-            }
-          : {},
-      ])}
+      style={Styles.collapseStyles([styles.item, props.selected && styles.selected])}
     >
       {props.iconComponent ? (
         <props.iconComponent />
@@ -93,6 +83,16 @@ const styles = Styles.styleSheetCreate(() => ({
   progress: {
     marginLeft: 6,
   },
+  selected: Styles.platformStyles({
+    common: {
+      borderLeftColor: Styles.globalColors.blue,
+      borderLeftStyle: 'solid',
+      borderLeftWidth: 3,
+    },
+    isTablet: {
+      borderRadius: 0,
+    },
+  }),
   selectedText: {
     color: Styles.globalColors.black,
   },
