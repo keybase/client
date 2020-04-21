@@ -476,12 +476,12 @@ func inviteIDFromIkey(t *testing.T, ikey keybase1.SeitanIKeyInvitelink) SCTeamIn
 	return inviteID
 }
 
-func adminCallsHandleTeamSeitanAndReturnsRejectCalls(t *testing.T, tc *libkb.TestContext, admin *kbtest.FakeUser, msg keybase1.TeamSeitanMsg, API *libkb.APIArgRecorder) []libkb.APIRecord {
+func adminCallsHandleTeamSeitanAndReturnsRejectCalls(t *testing.T, tc *libkb.TestContext, admin *kbtest.FakeUser, msg keybase1.TeamSeitanMsg, api *libkb.APIArgRecorder) []libkb.APIRecord {
 	kbtest.LogoutAndLoginAs(*tc, admin)
-	tc.G.API = API
+	tc.G.API = api
 	err := HandleTeamSeitan(context.TODO(), tc.G, msg)
 	require.NoError(t, err)
-	return API.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
+	return api.GetFilteredRecordsAndReset(func(rec *libkb.APIRecord) bool {
 		return rec.Arg.Endpoint == "team/reject_invite_acceptance"
 	})
 }
