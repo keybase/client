@@ -3205,6 +3205,21 @@ func (p ClearBotCommandsFilter) ToRemote(tlfID *TLFID, convID *ConversationID) (
 	}
 }
 
+func GetAdvertTyp(typ string) (BotCommandsAdvertisementTyp, error) {
+	switch typ {
+	case "public":
+		return BotCommandsAdvertisementTyp_PUBLIC, nil
+	case "teamconvs":
+		return BotCommandsAdvertisementTyp_TLFID_CONVS, nil
+	case "teammembers":
+		return BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
+	case "conv":
+		return BotCommandsAdvertisementTyp_CONV, nil
+	default:
+		return BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q, must be one of 'public', 'teamconvs', 'teammembers', or 'conv' see `keybase chat api --help` for more info.", typ)
+	}
+}
+
 func (c UserBotCommandInput) ToOutput(username string) UserBotCommandOutput {
 	return UserBotCommandOutput{
 		Name:                c.Name,

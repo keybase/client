@@ -295,21 +295,6 @@ func (c *chatServiceHandler) GetDeviceInfoV1(ctx context.Context, opts getDevice
 	return Reply{Result: res}
 }
 
-func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertisementTyp, error) {
-	switch typ {
-	case "public":
-		return chat1.BotCommandsAdvertisementTyp_PUBLIC, nil
-	case "teamconvs":
-		return chat1.BotCommandsAdvertisementTyp_TLFID_CONVS, nil
-	case "teammembers":
-		return chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
-	case "conv":
-		return chat1.BotCommandsAdvertisementTyp_CONV, nil
-	default:
-		return chat1.BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q, must be one of 'public', 'teamconvs', 'teammembers', or 'conv' see `keybase chat api --help` for more info.", typ)
-	}
-}
-
 func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts advertiseCommandsOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
@@ -322,7 +307,7 @@ func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts adver
 	}
 	var ads []chat1.AdvertiseCommandsParam
 	for _, ad := range opts.Advertisements {
-		typ, err := c.getAdvertTyp(ad.Typ)
+		typ, err := chat1.GetAdvertTyp(ad.Typ)
 		if err != nil {
 			return c.errReply(err)
 		}
@@ -363,7 +348,7 @@ func (c *chatServiceHandler) ClearCommandsV1(ctx context.Context, opts clearComm
 	}
 	var filter *chat1.ClearBotCommandsFilter
 	if opts.Filter != nil {
-		typ, err := c.getAdvertTyp(opts.Filter.Typ)
+		typ, err := chat1.GetAdvertTyp(opts.Filter.Typ)
 		if err != nil {
 			return c.errReply(err)
 		}
