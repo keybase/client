@@ -147,11 +147,11 @@ class Chat extends React.Component<Props, State> {
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.ScrollView>
           <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
-            <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
               <Kb.Text type="Header">Security</Kb.Text>
             </Kb.Box2>
 
-            <>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
               {!!this.props.groups.get('security')?.settings && (
                 <Group
                   allowEdit={this.props.allowEdit}
@@ -231,7 +231,7 @@ class Chat extends React.Component<Props, State> {
                     )}
                   </>
                 )}
-                <Kb.Box2 direction="vertical" gap="tiny" style={styles.btnContainer}>
+                <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} style={styles.btnContainer}>
                   <Kb.WaitingButton
                     onClick={() =>
                       this.props.onContactSettingsSave(
@@ -253,17 +253,17 @@ class Chat extends React.Component<Props, State> {
                   )}
                 </Kb.Box2>
               </Kb.Box2>
-            </>
+            </Kb.Box2>
 
             <Kb.Divider style={styles.divider} />
 
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="Header">Post link previews?</Kb.Text>
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.innerContainer}>
+              <Kb.Text type="Header">Link previews</Kb.Text>
               <Kb.Text type="BodySmall">
                 Your Keybase app will visit the links you share and automatically post previews.
               </Kb.Text>
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.innerContainer}>
               <Kb.RadioButton
                 key="rbalways"
                 label="Always"
@@ -273,7 +273,7 @@ class Chat extends React.Component<Props, State> {
               />
               <Kb.RadioButton
                 key="rbwhitelist"
-                label="Yes, but only for these sites:"
+                label="Only for some websites"
                 onSelect={() => this._setUnfurlMode(RPCChatTypes.UnfurlMode.whitelisted)}
                 selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.whitelisted}
                 disabled={this.props.unfurlMode === undefined}
@@ -313,7 +313,11 @@ class Chat extends React.Component<Props, State> {
                 disabled={this.props.unfurlMode === undefined}
               />
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" gap="tiny" style={styles.btnContainer}>
+            <Kb.Box2
+              direction="vertical"
+              gap="tiny"
+              style={Styles.collapseStyles([styles.innerContainer, styles.btnContainer])}
+            >
               <Kb.WaitingButton
                 onClick={() => this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist(true))}
                 label="Save"
@@ -385,7 +389,8 @@ const styles = Styles.styleSheetCreate(() => ({
     isMobile: {paddingBottom: Styles.globalMargins.medium, paddingLeft: Styles.globalMargins.small},
   }),
   container: {
-    padding: Styles.globalMargins.small,
+    paddingBottom: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
     width: '100%',
   },
   divider: {
@@ -393,6 +398,10 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   error: {
     color: Styles.globalColors.redDark,
+  },
+  innerContainer: {
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
   save: {
     marginBottom: Styles.globalMargins.small,
