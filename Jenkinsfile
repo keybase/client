@@ -163,43 +163,44 @@ helpers.rootLinuxNode(env, {
             }
             parallel (
               failFast: true,
-              test_xcompilation: { withEnv([
-                "PATH=${env.PATH}:${env.GOPATH}/bin",
-              ]) {
-                if (hasGoChanges) {
-                  def platforms = ["freebsd", "netbsd", "openbsd"]
-                  for (platform in platforms) {
-                      withEnv(["GOOS=${platform}"]) {
-                          println "Testing compilation on ${platform}"
-                          sh "go build -tags production -o keybase_${platform} github.com/keybase/client/go/keybase"
-                          println "End testing compilation on ${platform}"
-                      }
-                  }
-                }
-              }},
-              test_linux_go: { withEnv([
-                "PATH=${env.PATH}:${env.GOPATH}/bin",
-                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                "GPG=/usr/bin/gpg.distrib",
-              ]) {
-                if (hasGoChanges) {
-                  testGo("test_linux_go_", packagesToTest)
-                }
-              }},
-              test_linux_js: { withEnv([
-                "PATH=${env.HOME}/.node/bin:${env.PATH}",
-                "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                "NODE_OPTIONS=--max-old-space-size=4096",
-              ]) {
-                dir("shared") {
-                  stage("JS Tests") {
-                    sh "git config --global user.name 'Keybase Jenkins'"
-                    sh "git config --global user.email 'jenkins@keyba.se'"
-                    sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                  }
-                }
-              }},
+              // TODO: uncomment
+              // test_xcompilation: { withEnv([
+              //   "PATH=${env.PATH}:${env.GOPATH}/bin",
+              // ]) {
+              //   if (hasGoChanges) {
+              //     def platforms = ["freebsd", "netbsd", "openbsd"]
+              //     for (platform in platforms) {
+              //         withEnv(["GOOS=${platform}"]) {
+              //             println "Testing compilation on ${platform}"
+              //             sh "go build -tags production -o keybase_${platform} github.com/keybase/client/go/keybase"
+              //             println "End testing compilation on ${platform}"
+              //         }
+              //     }
+              //   }
+              // }},
+              // test_linux_go: { withEnv([
+              //   "PATH=${env.PATH}:${env.GOPATH}/bin",
+              //   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+              //   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+              //   "GPG=/usr/bin/gpg.distrib",
+              // ]) {
+              //   if (hasGoChanges) {
+              //     testGo("test_linux_go_", packagesToTest)
+              //   }
+              // }},
+              // test_linux_js: { withEnv([
+              //   "PATH=${env.HOME}/.node/bin:${env.PATH}",
+              //   "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+              //   "NODE_OPTIONS=--max-old-space-size=4096",
+              // ]) {
+              //   dir("shared") {
+              //     stage("JS Tests") {
+              //       sh "git config --global user.name 'Keybase Jenkins'"
+              //       sh "git config --global user.email 'jenkins@keyba.se'"
+              //       sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+              //     }
+              //   }
+              // }},
               integrate: { withEnv([
                 "DOCKER_BUILDKIT=1",
               ]) {
@@ -244,9 +245,7 @@ helpers.rootLinuxNode(env, {
             )
           },
           test_windows: {
-            // TODO: If we re-enable tests other than Go tests on
-            // Windows, this check should go away.
-            if (hasGoChanges) {
+            if (false) { // TODO: (hasGoChanges) {
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
@@ -269,56 +268,6 @@ helpers.rootLinuxNode(env, {
                   parallel (
                     test_windows_go: {
                       testGo("test_windows_go_", getPackagesToTest(dependencyFiles))
-                    }
-                  )
-                }}
-              }
-            }
-          },
-          test_macos: {
-            // TODO: remove once macos runners are back up
-            if (false) {
-              def mountDir='/Volumes/untitled/client'
-              helpers.nodeWithCleanup('macstadium', {}, {
-                  sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
-                }) {
-                def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
-                def GOPATH="${BASEDIR}/go"
-                dir(mountDir) {
-                  // Ensure that the mountDir exists
-                  sh "touch test.txt"
-                }
-                withEnv([
-                  "GOPATH=${GOPATH}",
-                  "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                  "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
-                  "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                  "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                  "TMPDIR=${mountDir}",
-                ]) {
-                ws("$GOPATH/src/github.com/keybase/client") {
-                  println "Checkout OS X"
-                  retry(3) {
-                    checkout scm
-                  }
-
-                  parallel (
-                    //test_react_native: {
-                    //  println "Test React Native"
-                    //  dir("react-native") {
-                    //    sh "npm i"
-                    //    lock("iossimulator_${env.NODE_NAME}") {
-                    //      sh "npm run test-ios"
-                    //    }
-                    //  }
-                    //},
-                    test_macos_go: {
-                      if (hasGoChanges) {
-                        dir("go/keybase") {
-                          sh "go build -ldflags \"-s -w\" --tags=production"
-                        }
-                        testGo("test_macos_go_", getPackagesToTest(dependencyFiles))
-                      }
                     }
                   )
                 }}
@@ -548,25 +497,6 @@ def testGoTestSuite(prefix, packagesToTest) {
       'ephemeral'
   ]
   def testSpecMap = [
-    test_macos_go_: [
-      'github.com/keybase/client/go/kbfs/test': [
-        name: 'kbfs_test_fuse',
-        flags: '-tags fuse',
-        timeout: '15m',
-      ],
-      'github.com/keybase/client/go/kbfs/libfuse': [
-        timeout: '3m',
-      ],
-      'github.com/keybase/client/go/libkb': [
-        timeout: '5m',
-      ],
-      'github.com/keybase/client/go/install': [
-        timeout: '30s',
-      ],
-      'github.com/keybase/client/go/launchd': [
-        timeout: '30s',
-      ],
-    ],
     test_linux_go_: [
       '*': [],
       'github.com/keybase/client/go/kbfs/test': [
