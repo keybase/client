@@ -58,9 +58,17 @@ const DefaultChannels = (props: Props) => {
       .concat(channels)
       .filter(c => c.channelname !== 'general')
       .map(c => c.conversationIDKey)
-    setDefaultChannelsRPC([{convs, teamID}], reloadDefaultChannels, error => {
-      console.error(error)
-    })
+    setDefaultChannelsRPC(
+      [{convs, teamID}],
+      () => {
+        setWaiting(false)
+        reloadDefaultChannels()
+      },
+      error => {
+        setWaiting(false)
+        console.error(error)
+      }
+    )
   }
 
   const onRemove = (channel: Types.ChannelNameID) => {
@@ -70,10 +78,17 @@ const DefaultChannels = (props: Props) => {
       channelsCopy.splice(toRemoveIdx, 1)
       const convs = channelsCopy.filter(c => c.channelname !== 'general').map(c => c.conversationIDKey)
       setWaiting(true)
-      setDefaultChannelsRPC([{convs, teamID}], reloadDefaultChannels, error => {
-        setWaiting(false)
-        console.error(error)
-      })
+      setDefaultChannelsRPC(
+        [{convs, teamID}],
+        () => {
+          setWaiting(false)
+          reloadDefaultChannels()
+        },
+        error => {
+          setWaiting(false)
+          console.error(error)
+        }
+      )
     }
   }
 
