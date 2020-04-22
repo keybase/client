@@ -58,7 +58,7 @@ func (l *Treeloader) LoadSync(mctx libkb.MetaContext) (res []keybase1.TeamTreeMe
 	defer mctx.Trace(fmt.Sprintf("Treeloader.LoadSync(%s, %s)",
 		l.targetTeamID, l.targetUV), &err)()
 
-	ch, cancel, err := l.load(mctx)
+	ch, cancel, err := l.loadAsync(mctx)
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +84,7 @@ func (l *Treeloader) LoadSync(mctx libkb.MetaContext) (res []keybase1.TeamTreeMe
 				TargetUsername: l.targetUsername,
 				Guid:           l.guid,
 			})
+		default:
 		}
 	}
 
@@ -94,14 +95,13 @@ func (l *Treeloader) LoadAsync(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace(fmt.Sprintf("Treeloader.LoadAsync(%s, %s)",
 		l.targetTeamID, l.targetUV), &err)()
 
-	ch, cancel, err := l.load(mctx)
+	ch, _, err := l.loadAsync(mctx)
 	if err != nil {
 		return err
 	}
-	defer cancel()
 	go func() {
-		// Because Go channels provide FIFO guarantees, we don't need to check expectedCount against
-		// the number of received partials like RPC clients do.
+		// Because Go channels can be closed, we don't need to check expectedCount against the
+		// number of received partials like RPC clients do.
 		for notification := range ch {
 			switch notification.typ {
 			case treeloaderNotificationTypeDone:
@@ -145,9 +145,9 @@ func newDoneNotification(teamName keybase1.TeamName, expectedCount int) notifica
 	}
 }
 
-func (l *Treeloader) load(mctx libkb.MetaContext) (ch chan notification,
+func (l *Treeloader) loadAsync(mctx libkb.MetaContext) (ch chan notification,
 	cancel context.CancelFunc, err error) {
-	defer mctx.Trace(fmt.Sprintf("Treeloader.load(%s, %s)",
+	defer mctx.Trace(fmt.Sprintf("Treeloader.loadAsync(%s, %s)",
 		l.targetTeamID, l.targetUV), nil)()
 
 	start := time.Now()
@@ -187,20 +187,25 @@ func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamI
 	defer mctx.Trace(fmt.Sprintf("Treeloader.loadRecursive(%s, %s, %s)",
 		l.targetTeamName, l.targetUV, l.targetUsername), nil)()
 
-	// If it is the initial call, the caller passes in the sigchain state so we don't need to reload
-	// it. Otherwise, do a team load.
 	var result keybase1.TeamTreeMembershipResult
 	var subteams []keybase1.TeamIDAndName
-	if targetChainState != nil {
-		result = l.Converter.ProcessSigchainState(mctx, teamName, &targetChainState.inner)
-		subteams = targetChainState.ListSubteams()
-	} else {
-		team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
-		if err != nil {
-			result = l.NewErrorResult(err, teamName)
+	select {
+	case <-mctx.Ctx().Done():
+		result = l.NewErrorResult(mctx.Ctx().Err(), teamName)
+	default:
+		// If it is the initial call, the caller passes in the sigchain state so we don't need to reload
+		// it. Otherwise, do a team load.
+		if targetChainState != nil {
+			result = l.Converter.ProcessSigchainState(mctx, teamName, &targetChainState.inner)
+			subteams = targetChainState.ListSubteams()
 		} else {
-			result = l.Converter.ProcessSigchainState(mctx, teamName, &team.chain().inner)
-			subteams = team.chain().ListSubteams()
+			team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
+			if err != nil {
+				result = l.NewErrorResult(err, teamName)
+			} else {
+				result = l.Converter.ProcessSigchainState(mctx, teamName, &team.chain().inner)
+				subteams = team.chain().ListSubteams()
+			}
 		}
 	}
 	expectedCount = 1

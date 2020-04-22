@@ -2173,6 +2173,11 @@ func TestRemoveMembersHappy(t *testing.T) {
 	require.NoError(t, err, "add a social")
 	_, err = AddMember(context.TODO(), tc.G, name.String(), tAlice, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err, "add a pukless")
+	assertRole(tc, name.String(), alice.Username, keybase1.TeamRole_READER)
+	assertRole(tc, name.String(), bob.Username, keybase1.TeamRole_READER)
+	assertInvite(tc, name.String(), "not_on_kb_yet", "twitter", keybase1.TeamRole_WRITER)
+	tAliceFQUID := "295a7eea607af32040647123732bc819%1"
+	assertInvite(tc, name.String(), tAliceFQUID, "keybase", keybase1.TeamRole_WRITER)
 	res, err = RemoveMembers(context.TODO(), tc.G, teamID, []keybase1.TeamMemberToRemove{
 		rmMaker(alice.Username), rmRecursiveMaker(bob.Username),
 		rmRecursiveMaker(twitterUser), rmMaker(tAlice),
@@ -2198,10 +2203,10 @@ func TestRemoveMembersErrorsBasic(t *testing.T) {
 	require.Error(t, err)
 	require.Len(t, res.Failures, 2)
 	require.NotNil(t, res.Failures[0].ErrorAtTarget)
-	require.Contains(t, res.Failures[0].ErrorAtTarget, "could not find team member in team")
+	require.Contains(t, *res.Failures[0].ErrorAtTarget, "could not find team member in team")
 	require.Nil(t, res.Failures[0].ErrorAtSubtree)
 	require.NotNil(t, res.Failures[1].ErrorAtTarget)
-	require.Contains(t, res.Failures[1].ErrorAtTarget, "could not find team member in team")
+	require.Contains(t, *res.Failures[1].ErrorAtTarget, "could not find team member in team")
 	require.Nil(t, res.Failures[1].ErrorAtSubtree)
 }
 
@@ -2277,7 +2282,7 @@ func TestRemoveMembersHappyTree(t *testing.T) {
 	}, false)
 	require.Error(t, err, "got error for the one not-in-team user")
 	require.Len(t, res.Failures, 1)
-	require.Equal(t, rmMaker("notinteam"), res.Failures[0].TeamMember)
+	require.Equal(t, rmRecursiveMaker("notinteam"), res.Failures[0].TeamMember)
 	require.NotNil(t, res.Failures[0].ErrorAtTarget)
 	require.NotNil(t, res.Failures[0].ErrorAtSubtree)
 

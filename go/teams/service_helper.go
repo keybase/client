@@ -1022,7 +1022,7 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 
 	// Removals
 	teamGetter := func() (*Team, error) {
-		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+		return GetForTeamManagementByTeamID(ctx, g, teamID, false /* needAdmin */)
 	}
 	errstrp := func(e error) *string {
 		if e == nil {
@@ -1063,13 +1063,12 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 	}
 
-	res = keybase1.TeamRemoveMembersResult{Failures: failures}
-	if !shouldNotErrorOnPartialFailure && len(res.Failures) > 0 {
-		err = fmt.Errorf("failed to remove %d members", len(res.Failures))
+	if !shouldNotErrorOnPartialFailure && len(failures) > 0 {
+		err = fmt.Errorf("failed to remove %d members", len(failures))
 	} else {
 		err = nil
 	}
-	return res, err
+	return keybase1.TeamRemoveMembersResult{Failures: failures}, err
 }
 
 // removeMemberFromSubtree removes member from all teams in the subtree of targetTeamID,
@@ -1094,9 +1093,7 @@ func removeMemberFromSubtree(mctx libkb.MetaContext, targetTeamID keybase1.TeamI
 	for _, membership := range teamTreeMemberships {
 		status, _ := membership.Result.S()
 		if status != keybase1.TeamTreeMembershipStatus_OK {
-			// should never happen; no errors because that's the behavior of LoadSync,
-			// and no hidden results because we're not loading ancestors
-			continue
+			return fmt.Errorf("removeMemberFromSubtree: unexpectedly got a non-OK status from Treeloader.LoadSync: %v", status)
 		}
 
 		teamID := membership.Result.Ok().TeamID
@@ -1114,11 +1111,11 @@ func removeMemberFromSubtree(mctx libkb.MetaContext, targetTeamID keybase1.TeamI
 		var memberNotFoundErr *MemberNotFoundInChainError
 		switch {
 		case err == nil:
-		// If the member was not found in the sigchain (either via invite or cryptomember), we can
-		// ignore the error. Because we got team memberships for ourselves and not the user, we
-		// can't use the membership data provided by the Treeloader. (We're not using the
-		// membership data from the treeloader because it does not support looking up by invites).
 		case errors.As(removeErr, &memberNotFoundErr):
+			// If the member was not found in the sigchain (either via invite or cryptomember), we can
+			// ignore the error. Because we got team memberships for ourselves and not the user, we
+			// can't use the membership data provided by the Treeloader. (We're not using the
+			// membership data from the treeloader because it does not support looking up by invites).
 		default:
 			errs = append(errs, fmt.Errorf("failed to remove from %s: %w",
 				membership.TeamName, removeErr))
@@ -1134,6 +1131,8 @@ func RemoveMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	return remove(ctx, g, teamGetter, username)
 }
 
+// RemoveMember removes members by username or assertions. For a function that can handle removal
+// from subteams and inviteIDs, see RemoveMemberSingle and RemoveMembers.
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamName string, username string) error {
 	teamGetter := func() (*Team, error) {
 		return GetForTeamManagementByStringName(ctx, g, teamName, false)

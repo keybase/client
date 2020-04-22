@@ -24,7 +24,7 @@ export default Container.connect(
     return {_invites: teamDetails.invites}
   },
   (dispatch, {teamID}: OwnProps) => ({
-    _onCancelInvite: ({inviteID}: {inviteID: string}) => {
+    _onCancelInvite: (inviteID: string) => {
       dispatch(TeamsGen.createRemovePendingInvite({inviteID, teamID}))
     },
   }),
@@ -35,7 +35,7 @@ export default Container.connect(
       // loading
       return {firstItem: ownProps.firstItem, label: '', onCancelInvite: () => {}, role: 'reader'} as const
     }
-    let onCancelInvite = () => dispatchProps._onCancelInvite({inviteID: ownProps.id})
+    let onCancelInvite = () => dispatchProps._onCancelInvite(ownProps.id)
 
     let label = user.username || user.name || user.email || user.phone
     let subLabel = user.name ? user.phone || user.email : undefined

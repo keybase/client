@@ -475,7 +475,7 @@ func (h *TeamsHandler) TeamRemoveMembers(ctx context.Context, arg keybase1.TeamR
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRemoveMembers(%s, %v)", arg.TeamID, arg), &err)()
 	if len(arg.Members) == 0 {
-		return res, nil
+		return res, errors.New("no members provided to TeamRemoveMembers")
 	}
 
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {

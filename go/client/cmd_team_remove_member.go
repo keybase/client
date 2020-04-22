@@ -73,7 +73,7 @@ Cancel a secret token invite (like sms):
 			},
 			cli.BoolFlag{
 				Name:  "r, recursive",
-				Usage: "recursively remove member from subtree as well; invalid with --invite-id",
+				Usage: "recursively remove member from subtree as well; cannot be used with --invite-id",
 			},
 		},
 	}
@@ -135,7 +135,7 @@ func (c *CmdTeamRemoveMember) Run() error {
 		if err != nil {
 			return err
 		}
-		curStatus, err := configCLI.GetCurrentStatus(context.TODO(), 0)
+		curStatus, err := configCLI.GetCurrentStatus(ctx, 0)
 		if err != nil {
 			return err
 		}
@@ -160,7 +160,7 @@ func (c *CmdTeamRemoveMember) Run() error {
 		return err
 	}
 
-	teamID, err := cli.GetTeamID(context.Background(), c.Team)
+	teamID, err := cli.GetTeamID(ctx, c.Team)
 	if err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func (c *CmdTeamRemoveMember) Run() error {
 			typ = "phone"
 		}
 		actx := externals.MakeStaticAssertionContext(ctx)
-		assertionURL, err := libkb.ParseAssertionURLKeyValue(actx, typ, x, true)
+		assertionURL, err := libkb.ParseAssertionURLKeyValue(actx, typ, x, true /* strict */)
 		if err != nil {
 			return err
 		}
@@ -201,9 +201,9 @@ func (c *CmdTeamRemoveMember) Run() error {
 		Members: []keybase1.TeamMemberToRemove{member},
 	}
 
-	// Use the multi-rpc here in case we want to make allow this command to remove multiple members
-	// at once in the future.
-	if result, err := cli.TeamRemoveMembers(context.Background(), arg); err != nil {
+	// Use the multi-rpc here in case we want to allow this command to remove multiple members at
+	// once in the future.
+	if result, err := cli.TeamRemoveMembers(ctx, arg); err != nil {
 		for _, failure := range result.Failures {
 			member := failure.TeamMember
 			typ, err := member.Type()
