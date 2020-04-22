@@ -47,7 +47,7 @@ type Props = {
   noScrollView?: boolean // content must push footer to bottom with this on.
   backgroundStyle?: Styles.StylesCrossPlatform
   scrollViewRef?: React.Ref<ScrollView>
-  scrollviewStyle?: Styles.StylesCrossPlatform
+  scrollViewContainerStyle?: Styles.StylesCrossPlatform
 
   // Desktop only popup overrides
   popupStyleClose?: Styles.StylesCrossPlatform
@@ -67,7 +67,10 @@ const ModalInner = (props: Props) => (
         ref={props.scrollViewRef}
         alwaysBounceVertical={false}
         style={Styles.collapseStyles([styles.scroll, props.backgroundStyle])}
-        contentContainerStyle={Styles.collapseStyles([styles.scrollContentContainer, props.scrollviewStyle])}
+        contentContainerStyle={Styles.collapseStyles([
+          styles.scrollContentContainer,
+          props.scrollViewContainerStyle,
+        ])}
       >
         {props.children}
       </Kb.ScrollView>

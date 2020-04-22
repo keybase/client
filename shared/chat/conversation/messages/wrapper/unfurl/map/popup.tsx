@@ -52,7 +52,7 @@ const UnfurlMapPopup = (props: Props) => {
   const mapSrc = `http://${httpSrvAddress}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrvToken}&username=${author}`
   return (
     <Kb.Modal
-      scrollviewStyle={{maxWidth: undefined}}
+      scrollViewContainerStyle={{maxWidth: undefined}}
       header={{
         leftButton: (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
