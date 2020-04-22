@@ -111,16 +111,17 @@ const TeamBox = (props: Props) => {
         {!!props.teamSoFar.length &&
           (props.rolePickerProps && !flags.teamsRedesign ? (
             <FloatingRolePicker
+              presetRole={props.rolePickerProps.selectedRole}
               open={props.rolePickerProps.showRolePicker}
-              onConfirm={() => {
+              onConfirm={role => {
+                props.rolePickerProps?.onSelectRole(role)
                 props.rolePickerProps?.changeShowRolePicker(false)
                 props.onFinishTeamBuilding()
               }}
-              onSelectRole={props.rolePickerProps.onSelectRole}
-              selectedRole={props.rolePickerProps.selectedRole}
               onCancel={() => props.rolePickerProps && props.rolePickerProps.changeShowRolePicker(false)}
               disabledRoles={props.rolePickerProps.disabledRoles}
-              confirmLabel={`Add as ${pluralize(props.rolePickerProps.selectedRole, props.teamSoFar.length)}`}
+              confirmLabel={`Add as`}
+              count={props.teamSoFar.length}
               footerComponent={sendNotificationFooter(
                 'Announce them in #general',
                 props.rolePickerProps.sendNotification,

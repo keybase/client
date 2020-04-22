@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import {pluralize} from '../util/string'
 import {RolePickerProps} from '.'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 
@@ -15,18 +14,18 @@ const RolePickerHeaderAction = (props: Props) => {
   const [rolePickerOpen, setRolePickerOpen] = React.useState(
     (props.rolePickerProps && props.rolePickerProps.showRolePicker) || false
   )
-  const onConfirm = () => {
+  const onConfirm = role => {
+    props.rolePickerProps.onSelectRole(role)
     setRolePickerOpen(false)
     props.onFinishTeamBuilding()
   }
   return (
     <FloatingRolePicker
+      presetRole={props.rolePickerProps.selectedRole}
       open={rolePickerOpen}
       onConfirm={onConfirm}
-      onSelectRole={props.rolePickerProps.onSelectRole}
-      selectedRole={props.rolePickerProps.selectedRole}
       onCancel={() => setRolePickerOpen(false)}
-      confirmLabel={`Add as ${pluralize(props.rolePickerProps.selectedRole, props.count)}`}
+      confirmLabel={`Add as`}
       disabledRoles={props.rolePickerProps.disabledRoles}
       footerComponent={sendNotificationFooter(
         'Announce them in #general',
