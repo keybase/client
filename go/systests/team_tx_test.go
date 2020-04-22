@@ -43,6 +43,7 @@ func testTeamTx1(t *testing.T, byUV bool) {
 
 	var err error
 	tx := teams.CreateAddMemberTx(teamObj)
+	tx.AllowPUKless = true
 	if byUV {
 		err = tx.AddMemberByUV(context.Background(), bob.userVersion(), keybase1.TeamRole_WRITER, nil)
 		require.NoError(t, err)
@@ -211,6 +212,7 @@ func TestTeamTxDependency(t *testing.T) {
 	bob.loginAfterResetPukless()
 
 	tx = teams.CreateAddMemberTx(teamObj)
+	tx.AllowPUKless = true
 	_, _, _, err = tx.AddOrInviteMemberByAssertion(context.Background(), fmt.Sprintf("%s@rooter", tracy.username), keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 	err = tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER, nil)
@@ -293,6 +295,7 @@ func TestTeamTxMultipleMembers(t *testing.T) {
 
 	teamObj := ann.loadTeam(team, true /* admin */)
 	tx := teams.CreateAddMemberTx(teamObj)
+	tx.AllowPUKless = true
 	for i := 1; i < 7; i++ {
 		err := tx.AddMemberByUsername(context.Background(), tt.users[i].username, keybase1.TeamRole_WRITER, nil)
 		require.NoError(t, err)

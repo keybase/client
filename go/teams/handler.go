@@ -459,6 +459,8 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		}
 
 		tx := CreateAddMemberTx(team)
+		// NOTE: AddMemberBySBS errors out when encountering PUK-less users,
+		// and this transaction is also set to default AllowPUKless=false.
 		if err := tx.AddMemberBySBS(ctx, verifiedInvitee, invite.Role); err != nil {
 			return err
 		}
@@ -575,9 +577,13 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	}
 
 	var chats []chatSeitanRecip
+
 	// we only reject invalid or used up invites after the transaction was
 	// correctly submitted.
 	var invitesToReject []keybase1.TeamSeitanRequest
+
+	// Only allow crypto-members added through 'team.change_membership' to be
+	// added for Seitan invites (AllowPUKless=false).
 	tx := CreateAddMemberTx(team)
 
 	for _, seitan := range msg.Seitans {
