@@ -3,6 +3,7 @@ import {useSpring, animated} from 'react-spring'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
+import {pluralize} from '../../util/string'
 import {Position} from '../../common-adapters/relative-popup-hoc.types'
 import {TeamRoleType} from '../../constants/types/teams'
 import {StylesCrossPlatform} from '../../styles/css'
@@ -35,10 +36,8 @@ export type Props<IncludeSetIndividually extends boolean> = {
   onCancel?: () => void // If provided, a cancel button will appear
   onConfirm: (selectedRole: Role<IncludeSetIndividually>) => void
   confirmLabel?: string // Defaults to "Make ${selectedRole}"
-  onSelectRole: (role: Role<IncludeSetIndividually>) => void
   footerComponent?: React.ReactNode
   presetRole?: MaybeRole<IncludeSetIndividually> | null
-  selectedRole?: MaybeRole<IncludeSetIndividually> | null
   includeSetIndividually?: IncludeSetIndividually extends true ? boolean : false
   waiting?: boolean
 }
@@ -280,7 +279,10 @@ const Header = () => (
 )
 
 const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<IncludeSetIndividually>) => {
-  const selectedRole = filterRole(props.selectedRole || props.presetRole)
+  const filteredRole = filterRole(props.presetRole)
+  const [selectedRole, setSelectedRole] = React.useState<Role<IncludeSetIndividually>>(
+    filteredRole == null ? ('reader' as Role<IncludeSetIndividually>) : filteredRole
+  )
   // as because convincing TS that filtering this makes it a different type is hard
   const roles = orderedRoles.filter(r => props.includeSetIndividually || r !== 'setIndividually') as Array<
     Role<IncludeSetIndividually>
@@ -293,7 +295,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
         if (disabled === null) {
           return null
         }
-        const onSelect = disabled ? undefined : () => props.onSelectRole(role)
+        const onSelect = disabled ? undefined : () => setSelectedRole(role)
         return (
           <RoleRowWrapper
             key={role as string}
@@ -308,10 +310,11 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
       <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
         {props.footerComponent}
         {footerButtonsHelper(
-          selectedRole && props.selectedRole !== props.presetRole
+          selectedRole && selectedRole !== props.presetRole
             ? () => selectedRole && props.onConfirm(selectedRole)
             : undefined,
-          props.confirmLabel || confirmLabelHelper(filterRole(props.presetRole), selectedRole || null),
+          props.confirmLabel + ` ${pluralize(selectedRole)}` ||
+            confirmLabelHelper(filterRole(props.presetRole), selectedRole || null),
           props.waiting
         )}
       </Kb.Box2>

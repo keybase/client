@@ -84,7 +84,6 @@ const NewTeamInfo = () => {
       : teamWizardState.teamType !== 'other' && teamWizardState.teamType !== 'subteam'
   )
   const [realRole, setRealRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
-  const [selectedRole, setSelectedRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
   const [rolePickerIsOpen, setRolePickerIsOpen] = React.useState(false)
 
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
@@ -196,13 +195,11 @@ const NewTeamInfo = () => {
                 >
                   <Kb.Text type="BodySmall">People will join as</Kb.Text>
                   <FloatingRolePicker
-                    confirmLabel={`Let people in as ${pluralize(selectedRole)}`}
-                    selectedRole={selectedRole}
-                    onSelectRole={setSelectedRole}
+                    confirmLabel={`Let people in as`}
                     presetRole={realRole}
                     floatingContainerStyle={styles.floatingRolePicker}
-                    onConfirm={() => {
-                      setRealRole(selectedRole)
+                    onConfirm={role => {
+                      setRealRole(role)
                       setRolePickerIsOpen(false)
                     }}
                     onCancel={() => setRolePickerIsOpen(false)}
