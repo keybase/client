@@ -1462,10 +1462,7 @@ func (p *blockPrefetcher) run(
 		} else {
 			defer subMan.Unsubscribe(context.TODO(), prefetcherSubKey)
 		}
-		go func() {
-			<-p.shutdownCh
-			subMan.Shutdown(context.Background())
-		}()
+		defer subMan.Shutdown(context.TODO())
 	} else {
 		close(subCh)
 		subCh = nil

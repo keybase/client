@@ -18,10 +18,6 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// SubscriptionManagerClientID identifies a subscriptionManager client. See
-// comment in interfaces.go for more.
-type SubscriptionManagerClientID string
-
 // userPath is always the full path including the /keybase prefix, but may
 // not be canonical or cleaned. The goal is to track whatever the user of this
 // type is dealing with without needing them to know if a path is canonicalized
@@ -100,7 +96,7 @@ type pathSubscriptionRef struct {
 
 type pathSubscription struct {
 	subscriptionIDs map[SubscriptionID]keybase1.PathSubscriptionTopic
-	// Keep track of different paths from input sicne GUI doesn't have a
+	// Keep track of different paths from input since GUI doesn't have a
 	// concept of "cleaned path" yet and when we notify about changes we need
 	// to use the original path that came in with the SubscribePath calls.
 	pathsToNotify   map[string]struct{}
@@ -124,7 +120,7 @@ type nonPathSubscription struct {
 //
 // This is per client. For example, if we have multiple GUI instances, each of
 // them get their own client ID and their subscriptions won't affect each
-// other. The prefetcher also gets its own client ID.
+// other.
 type subscriptionManager struct {
 	clientID SubscriptionManagerClientID
 	config   Config
@@ -224,9 +220,9 @@ func (sm *subscriptionManager) makePathSubscriptionDebouncedNotify(
 	ref pathSubscriptionRef, limit rate.Limit) *debouncedNotify {
 	return debounce(func() {
 		sm.lock.RLock()
-		defer sm.lock.RUnlock()
 		ps, ok := sm.pathSubscriptions[ref]
 		if !ok {
+			sm.lock.RUnlock()
 			return
 		}
 		sids := make([]SubscriptionID, 0, len(ps.subscriptionIDs))
@@ -239,8 +235,13 @@ func (sm *subscriptionManager) makePathSubscriptionDebouncedNotify(
 		for topic := range topicsMap {
 			topics = append(topics, topic)
 		}
-
+		paths := make([]string, 0, len(ps.pathsToNotify))
 		for path := range ps.pathsToNotify {
+			paths = append(paths, path)
+		}
+		sm.lock.RUnlock()
+
+		for _, path := range paths {
 			sm.notifier.OnPathChange(sm.clientID, sids, path, topics)
 		}
 	}, limit)
@@ -250,15 +251,16 @@ func (sm *subscriptionManager) makeNonPathSubscriptionDebouncedNotify(
 	topic keybase1.SubscriptionTopic, limit rate.Limit) *debouncedNotify {
 	return debounce(func() {
 		sm.lock.RLock()
-		defer sm.lock.RUnlock()
 		nps, ok := sm.nonPathSubscriptions[topic]
 		if !ok {
+			sm.lock.RUnlock()
 			return
 		}
 		sids := make([]SubscriptionID, 0, len(nps.subscriptionIDs))
 		for sid := range nps.subscriptionIDs {
 			sids = append(sids, sid)
 		}
+		sm.lock.RUnlock()
 
 		sm.notifier.OnNonPathChange(sm.clientID, sids, topic)
 	}, limit)

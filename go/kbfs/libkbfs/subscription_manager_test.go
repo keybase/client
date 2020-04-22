@@ -64,7 +64,7 @@ func (e sliceMatcherNoOrder) Matches(x interface{}) bool {
 	if vExpected.Len() != vGot.Len() {
 		return false
 	}
-outer: // O(n^2) (to void more complicated reflect) but it's usually small
+outer: // O(n^2) (to avoid more complicated reflect) but it's usually small.
 	for i := 0; i < vExpected.Len(); i++ {
 		for j := 0; j < vGot.Len(); j++ {
 			if reflect.DeepEqual(vExpected.Index(i).Interface(), vGot.Index(j).Interface()) {
