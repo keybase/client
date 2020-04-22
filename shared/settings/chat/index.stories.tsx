@@ -8,6 +8,7 @@ import {Box} from '../../common-adapters/index'
 const actions = {
   onContactSettingsSave: () => Sb.action('onContactSettingsSave'),
   onRefresh: Sb.action('onRefresh'),
+  onToggleSound: Sb.action('onToggleSound'),
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => {
     Sb.action('onUnfurlSave')(mode, whitelist)
   },
@@ -45,6 +46,7 @@ const props = {
     openteam1: false,
   },
   contactSettingsTeamsEnabled: false,
+  sound: false,
   teamMeta,
   unfurlMode: RPCChatTypes.UnfurlMode.whitelisted,
   unfurlWhitelist: [
@@ -72,6 +74,7 @@ const loadErrorProps = {
   contactSettingsIndirectFollowees: false,
   contactSettingsSelectedTeams: {},
   contactSettingsTeamsEnabled: false,
+  sound: false,
   teamMeta: [],
   unfurlError: 'Unable to load link preview settings, please try again.',
   ...actions,

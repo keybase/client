@@ -1,3 +1,4 @@
+import * as ConfigGen from '../../actions/config-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as WaitingGen from '../../actions/waiting-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
@@ -29,6 +30,7 @@ export default Container.namedConnect(
       contactSettingsIndirectFollowees,
       contactSettingsTeams,
       contactSettingsTeamsEnabled,
+      sound: state.config.notifySound, // desktop
       teamMeta: state.teams.teamMeta,
       unfurlError: state.settings.chat.unfurl.unfurlError,
       unfurlMode: state.settings.chat.unfurl.unfurlMode,
@@ -51,6 +53,7 @@ export default Container.namedConnect(
       dispatch(WaitingGen.createDecrementWaiting({key: Constants.contactSettingsLoadWaitingKey}))
       dispatch(SettingsGen.createUnfurlSettingsRefresh())
     },
+    onToggleSound: (notifySound: boolean) => dispatch(ConfigGen.createSetNotifySound({notifySound})),
     onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => {
       dispatch(SettingsGen.createUnfurlSettingsSaved({mode, whitelist: whitelist}))
     },

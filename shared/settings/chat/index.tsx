@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/settings'
+import * as Platform from '../../constants/platform'
 import {TeamMeta, TeamID} from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -11,6 +12,7 @@ export type Props = {
   contactSettingsIndirectFollowees?: boolean
   contactSettingsTeamsEnabled?: boolean
   contactSettingsSelectedTeams: {[K in TeamID]: boolean}
+  sound: boolean
   unfurlMode?: RPCChatTypes.UnfurlMode
   unfurlWhitelist?: Array<string>
   unfurlError?: string
@@ -21,6 +23,7 @@ export type Props = {
     teamsEnabled: boolean,
     teamsList: {[k in TeamID]: boolean}
   ) => void
+  onToggleSound: (notifySound: boolean) => void
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => void
   onRefresh: () => void
   teamMeta: Array<TeamMeta>
@@ -138,7 +141,7 @@ class Chat extends React.Component<Props, State> {
         <Kb.ScrollView>
           <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
             <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="Header">Contact restrictions</Kb.Text>
+              <Kb.Text type="Header">Security</Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Checkbox
@@ -305,7 +308,19 @@ class Chat extends React.Component<Props, State> {
                 </Kb.Text>
               )}
             </Kb.Box2>
+
             <Kb.Divider style={styles.divider} />
+
+            {!Platform.isMobile && !Platform.isLinux && (
+              <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+                <Kb.Text type="Header">Sound</Kb.Text>
+                <Kb.Checkbox
+                  onCheck={this.props.onToggleSound}
+                  checked={this.props.sound}
+                  label="Play a sound for new messages"
+                />
+              </Kb.Box2>
+            )}
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>

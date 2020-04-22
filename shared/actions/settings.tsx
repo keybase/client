@@ -276,28 +276,28 @@ function* refreshNotifications() {
   results.notifications[Constants.securityGroup] = {
     settings: [
       {
-        description: 'Display mobile plaintext notifications',
+        description: 'Show message content in phone chat notifications',
         name: 'plaintextmobile',
         subscribed: !!chatGlobalSettings.settings[
           `${ChatTypes.GlobalAppNotificationSetting.plaintextmobile}`
         ],
       },
       {
-        description: 'Display desktop plaintext notifications',
+        description: 'Show message content in computer chat notifications',
         name: 'plaintextdesktop',
         subscribed: !!chatGlobalSettings.settings[
           `${ChatTypes.GlobalAppNotificationSetting.plaintextdesktop}`
         ],
       },
       {
-        description: "Show others when I'm typing",
+        description: "Show others when you're typing",
         name: 'disabletyping',
         subscribed: !chatGlobalSettings.settings[`${ChatTypes.GlobalAppNotificationSetting.disabletyping}`],
       },
       ...(isAndroid && !isAndroidNewerThanN
         ? [
             {
-              description: 'Use mobile system default notification sound',
+              description: 'Phone: use default sound for new messages',
               name: 'defaultsoundmobile',
               subscribed: !!chatGlobalSettings.settings[
                 `${ChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`

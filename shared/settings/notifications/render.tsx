@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/settings'
-import {isLinux} from '../../constants/platform'
 import {Props} from './index'
 
 const Group = (props: {
@@ -120,19 +119,6 @@ const Notifications = (props: Props) =>
           settings={props.groups.get('security')!.settings}
           unsubscribedFromAll={false}
         />
-      )}
-
-      {!Styles.isMobile && !isLinux && (
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Divider style={styles.divider} />
-          <Kb.Text type="Header">Sound</Kb.Text>
-          <Kb.Checkbox
-            style={styles.checkbox}
-            onCheck={props.onToggleSound || null}
-            checked={!!props.sound}
-            label="Desktop chat notification sound"
-          />
-        </Kb.Box2>
       )}
     </Kb.Box>
   )
