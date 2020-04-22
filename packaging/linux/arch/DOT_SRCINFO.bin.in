@@ -9,7 +9,6 @@ pkgbase = keybase-bin
 	arch = x86_64
 	license = BSD
 	depends = fuse
-	depends = gconf
 	depends = libxss
 	depends = gtk2
 	depends = lsof
