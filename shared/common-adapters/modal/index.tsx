@@ -47,6 +47,7 @@ type Props = {
   noScrollView?: boolean // content must push footer to bottom with this on.
   backgroundStyle?: Styles.StylesCrossPlatform
   scrollViewRef?: React.Ref<ScrollView>
+  scrollViewContainerStyle?: Styles.StylesCrossPlatform
 
   // Desktop only popup overrides
   popupStyleClose?: Styles.StylesCrossPlatform
@@ -66,7 +67,10 @@ const ModalInner = (props: Props) => (
         ref={props.scrollViewRef}
         alwaysBounceVertical={false}
         style={Styles.collapseStyles([styles.scroll, props.backgroundStyle])}
-        contentContainerStyle={styles.scrollContentContainer}
+        contentContainerStyle={Styles.collapseStyles([
+          styles.scrollContentContainer,
+          props.scrollViewContainerStyle,
+        ])}
       >
         {props.children}
       </Kb.ScrollView>
@@ -76,6 +80,8 @@ const ModalInner = (props: Props) => (
     )}
   </>
 )
+
+/** TODO being deprecated. if you change this change modal2 and talk to #frontend **/
 const Modal = (props: Props) =>
   Styles.isMobile || props.fullscreen ? (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>

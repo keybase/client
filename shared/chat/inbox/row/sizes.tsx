@@ -1,16 +1,16 @@
 // In order for the inbox rows to be calculated quickly we use fixed sizes for each type so
 // in order for the list and the rows to ensure they're the same size we keep the sizes here
-import {isMobile} from '../../../styles'
+import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
 
-export const smallRowHeight = isMobile ? 64 : 56
-export const bigRowHeight = isMobile ? 40 : 24
+export const smallRowHeight = Styles.isMobile ? 64 : 56
+export const bigRowHeight = Styles.isMobile ? 40 : 24
 export const bigHeaderHeight = 32
-export const floatingDivider = isMobile ? 48 : 40
-export const inboxWidth = 260
+export const floatingDivider = Styles.isMobile ? 48 : 40
+export const inboxWidth = Styles.globalStyles.mediumSubNavWidth
 
 export const dividerHeight = (showingButton: boolean) => {
-  if (isMobile) {
+  if (Styles.isMobile) {
     return showingButton ? 68 : 44
   } else {
     return showingButton ? 84 : 41

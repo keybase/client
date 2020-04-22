@@ -3873,28 +3873,25 @@ func (o BulkRes) DeepCopy() BulkRes {
 
 type InviteLinkDetails struct {
 	InviteID          TeamInviteID               `codec:"inviteID" json:"inviteID"`
+	InviterResetOrDel bool                       `codec:"inviterResetOrDel" json:"inviterResetOrDel"`
 	InviterUID        UID                        `codec:"inviterUID" json:"inviterUID"`
 	InviterUsername   string                     `codec:"inviterUsername" json:"inviterUsername"`
-	InviterResetOrDel bool                       `codec:"inviterResetOrDel" json:"inviterResetOrDel"`
-	TeamIsOpen        bool                       `codec:"teamIsOpen" json:"teamIsOpen"`
-	TeamID            TeamID                     `codec:"teamID" json:"teamID"`
+	IsMember          bool                       `codec:"isMember" json:"isMember"`
+	TeamAvatars       map[AvatarFormat]AvatarUrl `codec:"teamAvatars" json:"teamAvatars"`
 	TeamDesc          string                     `codec:"teamDesc" json:"teamDesc"`
+	TeamID            TeamID                     `codec:"teamID" json:"teamID"`
+	TeamIsOpen        bool                       `codec:"teamIsOpen" json:"teamIsOpen"`
 	TeamName          TeamName                   `codec:"teamName" json:"teamName"`
 	TeamNumMembers    int                        `codec:"teamNumMembers" json:"teamNumMembers"`
-	TeamAvatars       map[AvatarFormat]AvatarUrl `codec:"teamAvatars" json:"teamAvatars"`
 }
 
 func (o InviteLinkDetails) DeepCopy() InviteLinkDetails {
 	return InviteLinkDetails{
 		InviteID:          o.InviteID.DeepCopy(),
+		InviterResetOrDel: o.InviterResetOrDel,
 		InviterUID:        o.InviterUID.DeepCopy(),
 		InviterUsername:   o.InviterUsername,
-		InviterResetOrDel: o.InviterResetOrDel,
-		TeamIsOpen:        o.TeamIsOpen,
-		TeamID:            o.TeamID.DeepCopy(),
-		TeamDesc:          o.TeamDesc,
-		TeamName:          o.TeamName.DeepCopy(),
-		TeamNumMembers:    o.TeamNumMembers,
+		IsMember:          o.IsMember,
 		TeamAvatars: (func(x map[AvatarFormat]AvatarUrl) map[AvatarFormat]AvatarUrl {
 			if x == nil {
 				return nil
@@ -3907,6 +3904,11 @@ func (o InviteLinkDetails) DeepCopy() InviteLinkDetails {
 			}
 			return ret
 		})(o.TeamAvatars),
+		TeamDesc:       o.TeamDesc,
+		TeamID:         o.TeamID.DeepCopy(),
+		TeamIsOpen:     o.TeamIsOpen,
+		TeamName:       o.TeamName.DeepCopy(),
+		TeamNumMembers: o.TeamNumMembers,
 	}
 }
 
@@ -4561,11 +4563,12 @@ type TeamAddMembersArg struct {
 }
 
 type TeamAddMembersMultiRoleArg struct {
-	SessionID            int            `codec:"sessionID" json:"sessionID"`
-	TeamID               TeamID         `codec:"teamID" json:"teamID"`
-	Users                []UserRolePair `codec:"users" json:"users"`
-	SendChatNotification bool           `codec:"sendChatNotification" json:"sendChatNotification"`
-	EmailInviteMessage   *string        `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
+	SessionID               int            `codec:"sessionID" json:"sessionID"`
+	TeamID                  TeamID         `codec:"teamID" json:"teamID"`
+	Users                   []UserRolePair `codec:"users" json:"users"`
+	SendChatNotification    bool           `codec:"sendChatNotification" json:"sendChatNotification"`
+	EmailInviteMessage      *string        `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
+	DefaultChannelsOverride []string       `codec:"defaultChannelsOverride" json:"defaultChannelsOverride"`
 }
 
 type TeamRemoveMemberArg struct {

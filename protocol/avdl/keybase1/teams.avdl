@@ -1302,7 +1302,7 @@ protocol teams {
     string avatarFilename;
     union { null, ImageCropRect } crop;
   }
-  
+
   record TeamCreateFancyInfo {
     string name;
     string description;
@@ -1369,7 +1369,8 @@ protocol teams {
   }
 
   // @emailInviteMessage is an argument used as a welcome message in email invitations sent from the server
-  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification, union { null, string } emailInviteMessage);
+  // @defaultChannelsOverride is ConversationIDs to add the members to instead of the team wide settings. if unset, use team wide setting
+  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification, union { null, string } emailInviteMessage, array<string> defaultChannelsOverride);
 
   /* Team remove members - start */
   record AssertionTeamMemberToRemove {
@@ -1496,17 +1497,18 @@ protocol teams {
     array<string> malformed;
   }
 
-  record InviteLinkDetails{
-      TeamInviteID inviteID; 
+  record InviteLinkDetails {
+      TeamInviteID inviteID;
+      boolean inviterResetOrDel;
       UID inviterUID;
       string inviterUsername;
-      boolean inviterResetOrDel;
-      boolean teamIsOpen;
-      TeamID teamID;
+      boolean isMember;
+      map<AvatarFormat, AvatarUrl> teamAvatars;
       string teamDesc;
+      TeamID teamID;
+      boolean teamIsOpen;
       TeamName teamName;
       int teamNumMembers;
-      map<AvatarFormat, AvatarUrl> teamAvatars;
   }
 
   InviteLinkDetails getInviteLinkDetails(TeamInviteID inviteID);

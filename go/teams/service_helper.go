@@ -1858,11 +1858,10 @@ func CreateInvitelink(mctx libkb.MetaContext, teamname string,
 	if err != nil {
 		return invitelink, err
 	}
-	url, err := GenerateInvitelinkURL(mctx, ikey, shortID)
-	if err != nil {
-		return invitelink, err
-	}
-	return keybase1.Invitelink{Ikey: ikey, Url: url}, err
+	return keybase1.Invitelink{
+		Ikey: ikey,
+		Url:  GenerateInvitelinkURL(mctx, ikey, shortID),
+	}, err
 }
 
 // CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.

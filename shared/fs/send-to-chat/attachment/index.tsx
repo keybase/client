@@ -15,9 +15,10 @@ import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 
 type Props = Container.RouteProps<{
+  canBack?: boolean
   path?: Types.Path
   incomingShareItems?: Array<RPCTypes.IncomingShareItem>
-  useOriginal: boolean
+  useOriginal?: boolean
   url?: string
 }>
 
@@ -25,6 +26,7 @@ const isChatText = (item: RPCTypes.IncomingShareItem): boolean =>
   item.type === RPCTypes.IncomingShareType.text && !!item.content
 
 const MobileSendAttachmentToChat = (props: Props) => {
+  const canBack = Container.getRouteProps(props, 'canBack', false)
   const incomingShareItems = Container.getRouteProps(props, 'incomingShareItems', undefined)
   const useOriginal = Container.getRouteProps(props, 'useOriginal', false)
   const url = Container.getRouteProps(props, 'url', undefined)
@@ -36,7 +38,10 @@ const MobileSendAttachmentToChat = (props: Props) => {
     // If it's a chat text, we fill it in the compose box instead of sending it
     // as an attachment.
     ?.filter(item => !isChatText(item))
-    ?.map(({originalPath, scaledPath}) => (useOriginal ? originalPath : scaledPath || originalPath))
+    ?.map(({originalPath, scaledPath}) =>
+      useOriginal ? originalPath ?? '' : scaledPath ?? originalPath ?? ''
+    )
+    ?.filter(Boolean)
   const pathsFromUrl = url ? [url] : undefined
   const pathsFromPath = path ? [path] : undefined
   const sendPaths = pathsFromIncomingShare || pathsFromUrl || pathsFromPath || []
@@ -76,15 +81,20 @@ const MobileSendAttachmentToChat = (props: Props) => {
       )
     }
   }
-  const onCancel = () => {
-    dispatch(RouteTreeGen.createClearModals())
-  }
+
+  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
+  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
+
   return (
     <Kb.Modal
       noScrollView={true}
-      onClose={onCancel}
+      onClose={canBack ? onBack : onCancel}
       header={{
-        leftButton: (
+        leftButton: canBack ? (
+          <Kb.Text type="BodyBigLink" onClick={onBack}>
+            Back
+          </Kb.Text>
+        ) : (
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
             Cancel
           </Kb.Text>

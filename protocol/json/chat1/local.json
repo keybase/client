@@ -3782,6 +3782,13 @@
             "string"
           ],
           "name": "teamName"
+        },
+        {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
         }
       ]
     },

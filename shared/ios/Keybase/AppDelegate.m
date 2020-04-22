@@ -85,7 +85,24 @@
   [self.window makeKeyAndVisible];
 
   // To simplify the cover animation raciness
-  self.resignImageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
+  
+  // With iPads, we had a bug with this resignImageView where if
+  // you backgrounded the app in portrait and then rotated to
+  // landscape while the app was in the background, the resignImageView
+  // in the snapshot would not be covering the entire app and would
+  // display content in the app.  The following code makes the
+  // image view a square in the largest dimensipn of the device so
+  // that when the iPad OS makes the snapshots the image view is
+  // covering in both orientations.
+  CGRect screenRect = [UIScreen mainScreen].bounds;
+  CGFloat dim = screenRect.size.width;
+  if (screenRect.size.height > dim) {
+    dim = screenRect.size.height;
+  }
+  CGRect square;
+  square = CGRectMake(screenRect.origin.x, screenRect.origin.y, dim, dim);
+  self.resignImageView = [[UIImageView alloc] initWithFrame:square];
+  
   self.resignImageView.contentMode = UIViewContentModeCenter;
   self.resignImageView.alpha = 0;
   self.resignImageView.backgroundColor = rootView.backgroundColor;

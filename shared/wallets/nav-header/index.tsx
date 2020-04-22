@@ -113,15 +113,12 @@ const styles = Styles.styleSheetCreate(
       },
       left: Styles.platformStyles({
         common: {
-          minWidth: 240,
+          minWidth: Styles.globalStyles.mediumSubNavWidth,
           paddingLeft: Styles.globalMargins.xsmall,
           paddingRight: Styles.globalMargins.xsmall,
+          width: Styles.globalStyles.mediumSubNavWidth,
         },
         isElectron: {...Styles.desktopStyles.windowDraggingClickable},
-        isTablet: {
-          maxWidth: 240,
-          minWidth: 240,
-        },
       }),
       loading: {
         height: 16,

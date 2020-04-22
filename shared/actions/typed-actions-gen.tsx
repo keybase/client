@@ -867,6 +867,7 @@ export type TypedActionsMap = {
   'settings:contactSettingsSaved': settings.ContactSettingsSavedPayload
   'settings:loadHasRandomPw': settings.LoadHasRandomPwPayload
   'settings:loadedHasRandomPw': settings.LoadedHasRandomPwPayload
+  'settings:resetCheckPasswordIsCorrect': settings.ResetCheckPasswordIsCorrectPayload
   'settings:checkPassword': settings.CheckPasswordPayload
   'settings:loadedCheckPassword': settings.LoadedCheckPasswordPayload
   'settings:sendFeedback': settings.SendFeedbackPayload
@@ -938,6 +939,9 @@ export type TypedActionsMap = {
   'teams:inviteToTeamByEmail': teams.InviteToTeamByEmailPayload
   'teams:inviteToTeamByPhone': teams.InviteToTeamByPhonePayload
   'teams:joinTeam': teams.JoinTeamPayload
+  'teams:openInviteLink': teams.OpenInviteLinkPayload
+  'teams:requestInviteLinkDetails': teams.RequestInviteLinkDetailsPayload
+  'teams:updateInviteLinkDetails': teams.UpdateInviteLinkDetailsPayload
   'teams:respondToInviteLink': teams.RespondToInviteLinkPayload
   'teams:launchNewTeamWizardOrModal': teams.LaunchNewTeamWizardOrModalPayload
   'teams:leaveTeam': teams.LeaveTeamPayload

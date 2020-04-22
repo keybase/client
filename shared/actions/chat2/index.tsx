@@ -3433,15 +3433,13 @@ const prepareFulfillRequestForm = (
 
 const addUsersToChannel = async (action: Chat2Gen.AddUsersToChannelPayload, logger: Saga.SagaLogger) => {
   const {conversationIDKey, usernames} = action.payload
+
   try {
     await RPCChatTypes.localBulkAddToConvRpcPromise(
       {convID: Types.keyToConversationID(conversationIDKey), usernames},
       Constants.waitingKeyAddUsersToChannel
     )
-    return [
-      RouteTreeGen.createClearModals(),
-      Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'addedToChannel'}),
-    ]
+    return [RouteTreeGen.createClearModals()]
   } catch (err) {
     logger.error(`addUsersToChannel: ${err.message}`) // surfaced in UI via waiting key
     return false

@@ -156,13 +156,13 @@ func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, arg keybase1.Login
 	return err
 }
 
-func (h *LoginHandler) AccountDelete(ctx context.Context, sessionID int) error {
+func (h *LoginHandler) AccountDelete(ctx context.Context, arg keybase1.AccountDeleteArg) error {
 	uis := libkb.UIs{
-		LogUI:     h.getLogUI(sessionID),
-		SessionID: sessionID,
-		SecretUI:  h.getSecretUI(sessionID, h.G()),
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 	}
-	eng := engine.NewAccountDelete(h.G())
+	eng := engine.NewAccountDelete(h.G(), arg.Passphrase)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
 }

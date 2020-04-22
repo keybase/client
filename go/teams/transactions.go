@@ -714,14 +714,14 @@ func (tx *AddMemberTx) CanConsumeInvite(ctx context.Context, inviteID keybase1.T
 		alreadyUsedBeforeTransaction := len(inviteMD.UsedInvites)
 		alreadyUsed := alreadyUsedBeforeTransaction + tx.usedInviteCount[inviteID]
 		if invite.MaxUses.IsUsedUp(alreadyUsed) {
-			return fmt.Errorf("invite has no more uses left; so cannot add by this invite")
+			return NewInviteLinkAcceptanceError("invite has no more uses left; so cannot add by this invite")
 		}
 
 		if invite.Etime != nil {
 			now := tx.team.G().Clock().Now()
 			etime := keybase1.FromUnixTime(*invite.Etime)
 			if now.After(etime) {
-				return fmt.Errorf("invite expired at %v which is before the current time of %v; rejecting", etime, now)
+				return NewInviteLinkAcceptanceError("invite expired at %v which is before the current time of %v; rejecting", etime, now)
 			}
 		}
 	}

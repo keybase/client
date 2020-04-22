@@ -118,44 +118,37 @@ func GenerateSeitanInvitelinkAcceptanceKey(sikey []byte, uid keybase1.UID, eldes
 // bound from SeitanEncodedIKeyInvitelinkLength
 var invitelinkIKeyRxx = regexp.MustCompile(`/i/t/([a-zA-Z0-9]{16,28})#([a-z0-9+]{16,28})`)
 
-func generateInvitelinkURLPrefix(mctx libkb.MetaContext) (string, error) {
-	serverRoot, err := mctx.G().Env.GetServerURI()
-	if err != nil {
-		return "", err
-	}
+func generateInvitelinkURLPrefix(mctx libkb.MetaContext) string {
 	// NOTE: if you change this url, change invitelinkIKeyRxx too!
-	return fmt.Sprintf("%s/i/t/", serverRoot), nil
+	return fmt.Sprintf("%s/i/t/", libkb.SiteURILookup[mctx.G().Env.GetRunMode()])
 }
 
 func GenerateInvitelinkURL(
 	mctx libkb.MetaContext,
 	ikey keybase1.SeitanIKeyInvitelink,
 	id SCTeamInviteIDShort,
-) (string, error) {
-	prefix, err := generateInvitelinkURLPrefix(mctx)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s%s#%s", prefix, id, ikey), nil
+) string {
+	return fmt.Sprintf("%s%s#%s", generateInvitelinkURLPrefix(mctx), id, ikey)
 }
 
 type TeamInviteLinkDetails struct {
 	libkb.AppStatusEmbed
+	InviterResetOrDel bool                                         `json:"inviter_reset_or_del"`
 	InviterUID        keybase1.UID                                 `json:"inviter_uid"`
 	InviterUsername   string                                       `json:"inviter_username"`
-	InviterResetOrDel int                                          `json:"inviter_reset_or_del"`
-	TeamID            keybase1.TeamID                              `json:"team_id"`
+	IsMember          bool                                         `json:"is_member"`
+	TeamAvatars       map[keybase1.AvatarFormat]keybase1.AvatarUrl `json:"team_avatars"`
 	TeamDescription   string                                       `json:"team_desc"`
+	TeamID            keybase1.TeamID                              `json:"team_id"`
+	TeamIsOpen        bool                                         `json:"team_is_open"`
 	TeamName          string                                       `json:"team_name"`
 	TeamNumMembers    int                                          `json:"team_num_members"`
-	TeamAvatars       map[keybase1.AvatarFormat]keybase1.AvatarUrl `json:"team_avatars"`
-	TeamIsOpen        bool                                         `json:"team_is_open"`
 }
 
 func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID) (info keybase1.InviteLinkDetails, err error) {
 	arg := libkb.APIArg{
 		Endpoint:    "team/get_invite_details",
-		SessionType: libkb.APISessionTypeNONE,
+		SessionType: libkb.APISessionTypeOPTIONAL,
 		Args: libkb.HTTPArgs{
 			"invite_id": libkb.S{Val: string(inviteID)},
 		},
@@ -176,14 +169,15 @@ func GetInviteLinkDetails(mctx libkb.MetaContext, inviteID keybase1.TeamInviteID
 
 	return keybase1.InviteLinkDetails{
 		InviteID:          inviteID,
+		InviterResetOrDel: resp.InviterResetOrDel,
 		InviterUID:        resp.InviterUID,
 		InviterUsername:   resp.InviterUsername,
-		InviterResetOrDel: resp.InviterResetOrDel == 1,
-		TeamID:            resp.TeamID,
-		TeamName:          teamName,
-		TeamDesc:          resp.TeamDescription,
-		TeamNumMembers:    resp.TeamNumMembers,
+		IsMember:          resp.IsMember,
 		TeamAvatars:       resp.TeamAvatars,
+		TeamDesc:          resp.TeamDescription,
+		TeamID:            resp.TeamID,
 		TeamIsOpen:        resp.TeamIsOpen,
+		TeamName:          teamName,
+		TeamNumMembers:    resp.TeamNumMembers,
 	}, nil
 }

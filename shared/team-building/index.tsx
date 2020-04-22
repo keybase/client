@@ -266,6 +266,33 @@ const FilteredServiceTabBar = (
 const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
 
 class TeamBuilding extends React.PureComponent<Props> {
+  static navigationOptions = ({navigation}) => {
+    const namespace = navigation.state.params.namespace
+    const common = {
+      modal2: true,
+      modal2AvoidTabs: false,
+      modal2ClearCover: false,
+      modal2Style: {
+        alignSelf: 'center',
+      },
+      modal2Type: 'DefaultFullHeight',
+    }
+
+    return namespace === 'people'
+      ? {
+          ...common,
+          modal2AvoidTabs: true,
+          modal2ClearCover: true,
+          modal2Style: {
+            alignSelf: 'flex-start',
+            paddingLeft: Styles.globalMargins.xsmall,
+            paddingRight: Styles.globalMargins.xsmall,
+            paddingTop: Styles.globalMargins.mediumLarge,
+          },
+          modal2Type: 'DefaultFullWidth',
+        }
+      : common
+  }
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
 
   sectionListRef = React.createRef<Kb.SectionList<any>>()
@@ -747,58 +774,47 @@ class TeamBuilding extends React.PureComponent<Props> {
     const showContactsBanner =
       Styles.isMobile && (!props.filterServices || props.filterServices.includes('phone'))
 
-    const body = (
-      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
-        {teamBox &&
-          (Styles.isMobile ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              {teamBox}
-            </Kb.Box2>
-          ) : (
-            teamBox
-          ))}
-        {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
-        {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
-          <Kb.Text type="BodySmall">
-            Add up to 14 more people. Need more?
-            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
-              {' '}
-              Make it a team.
-            </Kb.Text>
-          </Kb.Text>
-        )}
-        {(props.namespace !== 'people' || Styles.isMobile) && (
-          <FilteredServiceTabBar
-            filterServices={props.filterServices}
-            selectedService={props.selectedService}
-            onChangeService={props.onChangeService}
-            serviceResultCount={props.serviceResultCount}
-            showServiceResultCount={props.showServiceResultCount}
-            offset={this.offset}
-          />
-        )}
-        {showContactsBanner && (
-          <ContactsBanner
-            {...props}
-            onRedoSearch={() => props.onChangeText(props.searchString)}
-            onRedoRecs={props.fetchUserRecs}
-          />
-        )}
-        {content}
-      </Kb.Box2>
-    )
-
     return (
-      <Kb.Modal
-        onClose={props.onClose}
-        header={this.modalHeader()}
-        allowOverflow={true}
-        noScrollView={true}
-        mode="DefaultFullHeight"
-        {...(props.namespace === 'people' ? peopleModalProps : {})}
-      >
-        {body}
-      </Kb.Modal>
+      <Kb.Modal2 header={this.modalHeader()}>
+        <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
+          {teamBox &&
+            (Styles.isMobile ? (
+              <Kb.Box2 direction="horizontal" fullWidth={true}>
+                {teamBox}
+              </Kb.Box2>
+            ) : (
+              teamBox
+            ))}
+          {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
+          {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
+            <Kb.Text type="BodySmall">
+              Add up to 14 more people. Need more?
+              <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
+                {' '}
+                Make it a team.
+              </Kb.Text>
+            </Kb.Text>
+          )}
+          {(props.namespace !== 'people' || Styles.isMobile) && (
+            <FilteredServiceTabBar
+              filterServices={props.filterServices}
+              selectedService={props.selectedService}
+              onChangeService={props.onChangeService}
+              serviceResultCount={props.serviceResultCount}
+              showServiceResultCount={props.showServiceResultCount}
+              offset={this.offset}
+            />
+          )}
+          {showContactsBanner && (
+            <ContactsBanner
+              {...props}
+              onRedoSearch={() => props.onChangeText(props.searchString)}
+              onRedoRecs={props.fetchUserRecs}
+            />
+          )}
+          {content}
+        </Kb.Box2>
+      </Kb.Modal2>
     )
   }
 }
@@ -918,19 +934,6 @@ const styles = Styles.styleSheetCreate(
         ...Styles.padding(Styles.globalMargins.small),
       },
       peoplePopupStyleClose: Styles.platformStyles({isElectron: {display: 'none'}}),
-      peoplePopupStyleContainer: Styles.platformStyles({
-        isElectron: {
-          width: '100%',
-          ...Styles.padding(0, Styles.globalMargins.xsmall),
-        },
-      }),
-      peoplePopupStyleCover: Styles.platformStyles({
-        isElectron: {
-          alignItems: 'flex-start',
-          backgroundColor: 'initial',
-          ...Styles.padding(Styles.globalMargins.mediumLarge, 0, Styles.globalMargins.large),
-        },
-      }),
       searchHint: {
         paddingLeft: Styles.globalMargins.xlarge,
         paddingRight: Styles.globalMargins.xlarge,
@@ -954,12 +957,5 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
-
-const peopleModalProps: Partial<React.ComponentProps<typeof Kb.Modal>> = {
-  popupStyleClose: styles.peoplePopupStyleClose,
-  popupStyleContainer: styles.peoplePopupStyleContainer,
-  popupStyleCover: styles.peoplePopupStyleCover,
-  popupTabBarShim: true,
-}
 
 export default TeamBuilding

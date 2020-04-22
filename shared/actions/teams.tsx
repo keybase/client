@@ -42,7 +42,6 @@ async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
     return TeamsGen.createSetTeamCreationError({error: error.desc})
   }
 }
-
 const showTeamAfterCreation = (action: TeamsGen.TeamCreatedPayload) => {
   const {teamID, teamname} = action.payload
   if (action.payload.fromChat) {
@@ -64,23 +63,44 @@ const showTeamAfterCreation = (action: TeamsGen.TeamCreatedPayload) => {
         ]),
   ]
 }
-function promptInviteLinkJoin(
+
+const openInviteLink = (_: TeamsGen.OpenInviteLinkPayload) => {
+  return RouteTreeGen.createNavigateAppend({
+    path: ['teamInviteLinkJoin'],
+  })
+}
+const promptInviteLinkJoin = (deeplink: boolean) => (
   params: RPCTypes.MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'],
   response: {result: (boolean) => void}
-) {
+) => {
   return Saga.callUntyped(function*() {
-    yield Saga.put(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: params, selected: 'teamInviteLinkJoin'}],
-        replace: true,
-      })
-    )
+    yield Saga.put(TeamsGen.createUpdateInviteLinkDetails({details: params.details}))
+    if (!deeplink) {
+      yield Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: params, selected: 'teamInviteLinkJoin'}],
+          replace: true,
+        })
+      )
+    }
     const action: TeamsGen.RespondToInviteLinkPayload = yield Saga.take(TeamsGen.respondToInviteLink)
     response.result(action.payload.accept)
   })
 }
 function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
-  const {teamname} = action.payload
+  const {teamname, deeplink} = action.payload
+
+  /*
+    In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
+    alternative flow, but we're not concerned with that here). In that case,
+    we can fully manage the UX from inside of this handler.
+
+    In the "Join team" flow, user pastes their link into the input box, which
+    then calls `joinTeam` on its own. Since we need to switch to another modal,
+    we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
+    do the nav in the modal.
+  */
+
   yield Saga.all([
     Saga.put(TeamsGen.createSetTeamJoinError({error: ''})),
     Saga.put(TeamsGen.createSetTeamJoinSuccess({open: false, success: false, teamname: ''})),
@@ -88,7 +108,7 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
   try {
     const result = yield RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcSaga({
       customResponseIncomingCallMap: {
-        'keybase.1.teamsUi.confirmInviteLinkAccept': promptInviteLinkJoin,
+        'keybase.1.teamsUi.confirmInviteLinkAccept': promptInviteLinkJoin(deeplink || false),
       },
       incomingCallMap: {},
       params: {tokenOrName: teamname},
@@ -107,8 +127,30 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
     const desc =
       error.code === RPCTypes.StatusCode.scteaminvitebadtoken
         ? 'Sorry, that team name or token is not valid.'
+        : error.code === RPCTypes.StatusCode.scnotfound
+        ? 'This invitation is no longer valid, or has expired.'
         : error.desc
     yield Saga.put(TeamsGen.createSetTeamJoinError({error: desc}))
+  }
+}
+const requestInviteLinkDetails = async (state: TypedState, _: TeamsGen.RequestInviteLinkDetailsPayload) => {
+  try {
+    const details = await RPCTypes.teamsGetInviteLinkDetailsRpcPromise({
+      inviteID: state.teams.teamInviteDetails.inviteID,
+    })
+    return TeamsGen.createUpdateInviteLinkDetails({
+      details,
+    })
+  } catch (error) {
+    const desc =
+      error.code === RPCTypes.StatusCode.scteaminvitebadtoken
+        ? 'Sorry, that invite token is not valid.'
+        : error.code === RPCTypes.StatusCode.scnotfound
+        ? 'This invitation is no longer valid, or has expired.'
+        : error.desc
+    return TeamsGen.createSetTeamJoinError({
+      error: desc,
+    })
   }
 }
 
@@ -1575,7 +1617,11 @@ const teamsSaga = function*() {
   yield* Saga.chainAction2(TeamsGen.leftTeam, leftTeam)
   yield* Saga.chainAction(TeamsGen.createNewTeam, createNewTeam)
   yield* Saga.chainAction(TeamsGen.teamCreated, showTeamAfterCreation)
+
   yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam)
+  yield* Saga.chainAction(TeamsGen.openInviteLink, openInviteLink)
+  yield* Saga.chainAction2(TeamsGen.requestInviteLinkDetails, requestInviteLinkDetails)
+
   yield* Saga.chainAction2(TeamsGen.loadTeam, loadTeam)
   yield* Saga.chainAction(TeamsGen.getMembers, getMembers)
   yield* Saga.chainAction2(TeamsGen.createNewTeamFromConversation, createNewTeamFromConversation)

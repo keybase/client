@@ -619,3 +619,15 @@ func (e *MemberNotFoundInChainError) Error() string {
 func (e *MemberNotFoundInChainError) Unwrap() error {
 	return e.err
 }
+
+type InviteLinkAcceptanceError struct {
+	Cause error
+}
+
+func (e InviteLinkAcceptanceError) Error() string {
+	return fmt.Sprintf("InviteLinkAcceptanceError: %s", e.Cause)
+}
+
+func NewInviteLinkAcceptanceError(format string, args ...interface{}) InviteLinkAcceptanceError {
+	return InviteLinkAcceptanceError{fmt.Errorf(format, args...)}
+}

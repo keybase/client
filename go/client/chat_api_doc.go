@@ -105,10 +105,11 @@ Set unfurl settings (thumbnails for sent links):
 
 Advertise available bot commands in the UI:
     {"method": "advertisecommands", "params": {"options":{"alias": "helpbot", "advertisements":[{"type": "public", "commands": [{"name": "help", "description": "Get help using this bot"}]}]}}}
-Note their are three values for "type", "public", "teammembers" and "teamconvs" defined as follows:
+Note the following are valid values for "type": "public", "teammembers", "teamconvs", "conv":
     - public: Commands are publicly viewable by all users.
-    - teammembers: Commands are listed to members of the team in any conversation they are in.
-    - teamconvs:  Commands are listed in all conversations of the given team.
+    - teammembers: Commands are listed to members of the team in any conversation they are in. "team_name" must be specified.
+    - teamconvs:  Commands are listed in all conversations of the given team. "team_name" must be specified.
+    - conv: Commands are listed to the given conversation. "conv_id" must be specified.
 
 Clear bot commands:
     {"method": "clearcommands"}

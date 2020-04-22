@@ -119,6 +119,11 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
       break
     case 'incoming-share':
       return Platform.isIOS && RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']})
+    case 'team-invite-link':
+      return TeamsGen.createOpenInviteLink({
+        inviteID: parts[1],
+        inviteKey: parts[2] || '',
+      })
     default:
     // Fall through to the error return below.
   }

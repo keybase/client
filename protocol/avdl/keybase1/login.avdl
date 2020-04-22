@@ -77,9 +77,9 @@ protocol login {
   void unlockWithPassphrase(int sessionID, string passphrase);
 
   /**
-    accountDelete is for devel/testing to delete the current user's account.
+    accountDelete deletes the current user's account.
     */
-  void accountDelete(int sessionID);
+  void accountDelete(int sessionID, union { null, string } passphrase);
 
   /**
    loginOneshot allows a service to have a "onetime login", without

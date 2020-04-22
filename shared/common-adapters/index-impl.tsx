@@ -178,6 +178,9 @@ module.exports = {
   get Modal() {
     return require('./modal').default
   },
+  get Modal2() {
+    return require('./modal2').default
+  },
   get ModalHeader() {
     return require('./modal').Header
   },

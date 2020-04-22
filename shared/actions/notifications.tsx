@@ -13,6 +13,7 @@ const setupNotifications = async () => {
   try {
     await RPCTypes.notifyCtlSetNotificationsRpcPromise({
       channels: {
+        allowChatNotifySkips: true,
         app: true,
         audit: true,
         badges: true,

@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/chat2'
 import * as Sb from '../../stories/storybook'
-import {isDarwin} from '../../constants/platform'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 import Inbox from '.'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
@@ -499,7 +498,7 @@ const provider = Sb.createPropProviderWithCommon({
     fitler: p.filter,
     filterFocusCount: p.filterFocusCount,
     isLoading: false,
-    hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
+    hotkeys: ['mod+n', 'mod+k'],
     onHotkey: Sb.action('onHotkey'),
     onNewChat: Sb.action('onNewChat'),
     onSelectDown: Sb.action('onSelectDown'),

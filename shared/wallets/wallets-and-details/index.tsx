@@ -29,7 +29,8 @@ const styles = Styles.styleSheetCreate(
         borderStyle: 'solid',
         flexGrow: 0,
         flexShrink: 0,
-        width: 240,
+        minWidth: Styles.globalStyles.mediumSubNavWidth,
+        width: Styles.globalStyles.mediumSubNavWidth,
       },
     } as const)
 )

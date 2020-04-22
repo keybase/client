@@ -176,7 +176,7 @@ android {
     buildTypes {
         // KB:
         debug {
-            applicationIdSuffix ".debug"
+            // applicationIdSuffix ".debug"
         }
 
         // KB:

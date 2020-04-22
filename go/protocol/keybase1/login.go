@@ -90,7 +90,8 @@ type UnlockWithPassphraseArg struct {
 }
 
 type AccountDeleteArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID  int     `codec:"sessionID" json:"sessionID"`
+	Passphrase *string `codec:"passphrase,omitempty" json:"passphrase,omitempty"`
 }
 
 type LoginOneshotArg struct {
@@ -134,8 +135,8 @@ type LoginInterface interface {
 	// Unlock restores access to local key store by priming passphrase stream cache.
 	Unlock(context.Context, int) error
 	UnlockWithPassphrase(context.Context, UnlockWithPassphraseArg) error
-	// accountDelete is for devel/testing to delete the current user's account.
-	AccountDelete(context.Context, int) error
+	// accountDelete deletes the current user's account.
+	AccountDelete(context.Context, AccountDeleteArg) error
 	// loginOneshot allows a service to have a "onetime login", without
 	// provisioning a device. It bootstraps credentials with the given
 	// paperkey
@@ -340,7 +341,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]AccountDeleteArg)(nil), args)
 						return
 					}
-					err = i.AccountDelete(ctx, typedArgs[0].SessionID)
+					err = i.AccountDelete(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -460,9 +461,8 @@ func (c LoginClient) UnlockWithPassphrase(ctx context.Context, __arg UnlockWithP
 	return
 }
 
-// accountDelete is for devel/testing to delete the current user's account.
-func (c LoginClient) AccountDelete(ctx context.Context, sessionID int) (err error) {
-	__arg := AccountDeleteArg{SessionID: sessionID}
+// accountDelete deletes the current user's account.
+func (c LoginClient) AccountDelete(ctx context.Context, __arg AccountDeleteArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.accountDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
