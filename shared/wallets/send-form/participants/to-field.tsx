@@ -201,7 +201,7 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
       // A user is sending to another account, but has no other
       // accounts. Show a "create new account" button.
       return (
-        <Kb.Box2 direction="horizontal" style={{width: 270}}>
+        <ParticipantsRow heading="To" headingAlignment="Right" style={styles.toAccountRow}>
           <Kb.Button
             small={true}
             type="Wallet"
@@ -209,7 +209,7 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
             label="Create a new account"
             onClick={this.props.onCreateNewAccount}
           />
-        </Kb.Box2>
+        </ParticipantsRow>
       )
     }
 
