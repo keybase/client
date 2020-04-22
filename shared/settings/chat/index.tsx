@@ -1,17 +1,21 @@
 import * as React from 'react'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/settings'
+import * as Types from '../../constants/types/settings'
 import * as Platform from '../../constants/platform'
 import {TeamMeta, TeamID} from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {Group} from '../notifications/render'
 
 export type Props = {
+  allowEdit: boolean
   contactSettingsEnabled?: boolean
   contactSettingsError: string
   contactSettingsIndirectFollowees?: boolean
   contactSettingsTeamsEnabled?: boolean
   contactSettingsSelectedTeams: {[K in TeamID]: boolean}
+  groups: Map<string, Types.NotificationsGroupState>
   sound: boolean
   unfurlMode?: RPCChatTypes.UnfurlMode
   unfurlWhitelist?: Array<string>
@@ -23,6 +27,7 @@ export type Props = {
     teamsEnabled: boolean,
     teamsList: {[k in TeamID]: boolean}
   ) => void
+  onToggle: (groupName: string, name: string) => void
   onToggleSound: (notifySound: boolean) => void
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => void
   onRefresh: () => void
@@ -136,6 +141,8 @@ class Chat extends React.Component<Props, State> {
   }
 
   render() {
+    const showDesktopSound = !Platform.isMobile && !Platform.isLinux
+    const showMobileSound = !!this.props.groups.get('sound')?.settings.length
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.ScrollView>
@@ -143,97 +150,110 @@ class Chat extends React.Component<Props, State> {
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text type="Header">Security</Kb.Text>
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Checkbox
-                label="Only let someone message you or add you to a team if..."
-                onCheck={() =>
-                  this.setState(prevState => ({contactSettingsEnabled: !prevState.contactSettingsEnabled}))
-                }
-                checked={!!this.state.contactSettingsEnabled}
-                disabled={this.props.contactSettingsEnabled === undefined}
-              />
-              {!!this.state.contactSettingsEnabled && (
-                <>
-                  <Kb.Box2
-                    direction="vertical"
-                    fullWidth={true}
-                    gap={Styles.isMobile ? 'small' : undefined}
-                    gapStart={Styles.isMobile}
-                    style={styles.checkboxIndented}
-                  >
-                    <Kb.Checkbox
-                      label="You follow them, or..."
-                      checked={true}
-                      disabled={true}
-                      onCheck={null}
-                    />
-                    <Kb.Checkbox
-                      label="You follow someone who follows them, or..."
-                      onCheck={checked =>
-                        this.setState({
-                          contactSettingsIndirectFollowees: checked,
-                        })
-                      }
-                      checked={!!this.state.contactSettingsIndirectFollowees}
-                    />
-                    <Kb.Checkbox
-                      label="They're in one of these teams with you:"
-                      onCheck={checked => this.setState({contactSettingsTeamsEnabled: checked})}
-                      checked={!!this.state.contactSettingsTeamsEnabled}
-                      disabled={false}
-                    />
-                  </Kb.Box2>
 
-                  {this.state.contactSettingsTeamsEnabled && (
+            <>
+              {!!this.props.groups.get('security')?.settings && (
+                <Group
+                  allowEdit={this.props.allowEdit}
+                  groupName="security"
+                  onToggle={this.props.onToggle}
+                  settings={this.props.groups.get('security')!.settings}
+                  unsubscribedFromAll={false}
+                />
+              )}
+
+              <Kb.Box2 direction="vertical" fullWidth={true}>
+                <Kb.Checkbox
+                  label="Only let someone message you or add you to a team if..."
+                  onCheck={() =>
+                    this.setState(prevState => ({contactSettingsEnabled: !prevState.contactSettingsEnabled}))
+                  }
+                  checked={!!this.state.contactSettingsEnabled}
+                  disabled={this.props.contactSettingsEnabled === undefined}
+                />
+                {!!this.state.contactSettingsEnabled && (
+                  <>
                     <Kb.Box2
                       direction="vertical"
                       fullWidth={true}
                       gap={Styles.isMobile ? 'small' : undefined}
-                      gapStart={false}
-                      gapEnd={true}
+                      gapStart={Styles.isMobile}
+                      style={styles.checkboxIndented}
                     >
-                      {this.props.teamMeta.map(teamMeta => (
-                        <TeamRow
-                          checked={this.state.contactSettingsSelectedTeams[teamMeta.id]}
-                          key={teamMeta.id}
-                          isOpen={teamMeta.isOpen}
-                          name={teamMeta.teamname}
-                          onCheck={(checked: boolean) =>
-                            this.setState(prevState => ({
-                              contactSettingsSelectedTeams: {
-                                ...prevState.contactSettingsSelectedTeams,
-                                [teamMeta.id]: checked,
-                              },
-                            }))
-                          }
-                        />
-                      ))}
+                      <Kb.Checkbox
+                        label="You follow them, or..."
+                        checked={true}
+                        disabled={true}
+                        onCheck={null}
+                      />
+                      <Kb.Checkbox
+                        label="You follow someone who follows them, or..."
+                        onCheck={checked =>
+                          this.setState({
+                            contactSettingsIndirectFollowees: checked,
+                          })
+                        }
+                        checked={!!this.state.contactSettingsIndirectFollowees}
+                      />
+                      <Kb.Checkbox
+                        label="They're in one of these teams with you:"
+                        onCheck={checked => this.setState({contactSettingsTeamsEnabled: checked})}
+                        checked={!!this.state.contactSettingsTeamsEnabled}
+                        disabled={false}
+                      />
                     </Kb.Box2>
-                  )}
-                </>
-              )}
-              <Kb.Box2 direction="vertical" gap="tiny" style={styles.btnContainer}>
-                <Kb.WaitingButton
-                  onClick={() =>
-                    this.props.onContactSettingsSave(
-                      !!this.state.contactSettingsEnabled,
-                      !!this.state.contactSettingsIndirectFollowees,
-                      !!this.state.contactSettingsTeamsEnabled,
-                      this.state.contactSettingsSelectedTeams
-                    )
-                  }
-                  label="Save"
-                  small={true}
-                  style={styles.save}
-                  waitingKey={Constants.contactSettingsSaveWaitingKey}
-                />
-                {!!this.props.contactSettingsError && (
-                  <Kb.Text type="BodySmall" style={styles.error}>
-                    {this.props.contactSettingsError}
-                  </Kb.Text>
+
+                    {this.state.contactSettingsTeamsEnabled && (
+                      <Kb.Box2
+                        direction="vertical"
+                        fullWidth={true}
+                        gap={Styles.isMobile ? 'small' : undefined}
+                        gapStart={false}
+                        gapEnd={true}
+                      >
+                        {this.props.teamMeta.map(teamMeta => (
+                          <TeamRow
+                            checked={this.state.contactSettingsSelectedTeams[teamMeta.id]}
+                            key={teamMeta.id}
+                            isOpen={teamMeta.isOpen}
+                            name={teamMeta.teamname}
+                            onCheck={(checked: boolean) =>
+                              this.setState(prevState => ({
+                                contactSettingsSelectedTeams: {
+                                  ...prevState.contactSettingsSelectedTeams,
+                                  [teamMeta.id]: checked,
+                                },
+                              }))
+                            }
+                          />
+                        ))}
+                      </Kb.Box2>
+                    )}
+                  </>
                 )}
+                <Kb.Box2 direction="vertical" gap="tiny" style={styles.btnContainer}>
+                  <Kb.WaitingButton
+                    onClick={() =>
+                      this.props.onContactSettingsSave(
+                        !!this.state.contactSettingsEnabled,
+                        !!this.state.contactSettingsIndirectFollowees,
+                        !!this.state.contactSettingsTeamsEnabled,
+                        this.state.contactSettingsSelectedTeams
+                      )
+                    }
+                    label="Save"
+                    small={true}
+                    style={styles.save}
+                    waitingKey={Constants.contactSettingsSaveWaitingKey}
+                  />
+                  {!!this.props.contactSettingsError && (
+                    <Kb.Text type="BodySmall" style={styles.error}>
+                      {this.props.contactSettingsError}
+                    </Kb.Text>
+                  )}
+                </Kb.Box2>
               </Kb.Box2>
-            </Kb.Box2>
+            </>
 
             <Kb.Divider style={styles.divider} />
 
@@ -309,17 +329,27 @@ class Chat extends React.Component<Props, State> {
               )}
             </Kb.Box2>
 
-            <Kb.Divider style={styles.divider} />
-
-            {!Platform.isMobile && !Platform.isLinux && (
-              <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-                <Kb.Text type="Header">Sound</Kb.Text>
-                <Kb.Checkbox
-                  onCheck={this.props.onToggleSound}
-                  checked={this.props.sound}
-                  label="Play a sound for new messages"
-                />
-              </Kb.Box2>
+            {(showDesktopSound || showMobileSound) && (
+              <>
+                <Kb.Divider style={styles.divider} />
+                <Kb.Text type="Header">Sounds</Kb.Text>}
+                {showDesktopSound && (
+                  <Kb.Checkbox
+                    onCheck={this.props.onToggleSound}
+                    checked={this.props.sound}
+                    label="Play a sound for new messages"
+                  />
+                )}
+                {showMobileSound && (
+                  <Group
+                    allowEdit={this.props.allowEdit}
+                    groupName="sound"
+                    onToggle={this.props.onToggle}
+                    settings={this.props.groups.get('sound')!.settings}
+                    unsubscribedFromAll={false}
+                  />
+                )}
+              </>
             )}
           </Kb.Box2>
         </Kb.ScrollView>

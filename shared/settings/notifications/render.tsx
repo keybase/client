@@ -4,19 +4,19 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/settings'
 import {Props} from './index'
 
-const Group = (props: {
+export const Group = (props: {
   allowEdit: boolean
   groupName: string
   label?: string
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll?: () => void
   settings: Array<Types.NotificationsSettingsState> | null
-  title: string
+  title?: string
   unsub?: string
   unsubscribedFromAll: boolean
 }) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Kb.Text type="Header">{props.title}</Kb.Text>
+    {!!props.title && <Kb.Text type="Header">{props.title}</Kb.Text>}
     {!!props.label && (
       <Kb.Text type="BodySmall" style={styles.label}>
         {props.label}
@@ -49,7 +49,7 @@ const Group = (props: {
           onCheck={props.onToggleUnsubscribeAll || null}
           disabled={!props.allowEdit}
           checked={!!props.unsubscribedFromAll}
-          label={`Unsubscribe me from all ${props.unsub} notifications`}
+          label={`Unsubscribe from all ${props.unsub} notifications`}
         />
       </Kb.Box2>
     )}
@@ -63,7 +63,7 @@ const EmailSection = (props: Props) => (
     onToggle={props.onToggle}
     onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('email')}
     title="Email notifications"
-    unsub="mail"
+    unsub="email"
     settings={props.groups.get('email')!.settings}
     unsubscribedFromAll={props.groups.get('email')!.unsubscribedFromAll}
   />
@@ -102,24 +102,12 @@ const Notifications = (props: Props) =>
           </Kb.Text>
         </Kb.Box2>
       )}
-      <Kb.Divider style={styles.divider} />
       {(!Styles.isMobile || props.mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (
         <>
-          <PhoneSection {...props} />
           <Kb.Divider style={styles.divider} />
+          <PhoneSection {...props} />
         </>
       ) : null}
-
-      {(!Styles.isMobile || props.mobileHasPermissions) && !!props.groups.get('security')?.settings && (
-        <Group
-          allowEdit={props.allowEdit}
-          groupName="security"
-          onToggle={props.onToggle}
-          title="Security"
-          settings={props.groups.get('security')!.settings}
-          unsubscribedFromAll={false}
-        />
-      )}
     </Kb.Box>
   )
 

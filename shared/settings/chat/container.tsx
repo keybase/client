@@ -25,11 +25,14 @@ export default Container.namedConnect(
     const whitelist = state.settings.chat.unfurl.unfurlWhitelist
     const unfurlWhitelist = whitelist ?? emptyList
     return {
+      allowEdit: state.settings.notifications.allowEdit,
       contactSettingsEnabled,
       contactSettingsError: state.settings.chat.contactSettings.error,
       contactSettingsIndirectFollowees,
       contactSettingsTeams,
       contactSettingsTeamsEnabled,
+      groups: state.settings.notifications.groups,
+      mobileHasPermissions: state.push.hasPermissions,
       sound: state.config.notifySound, // desktop
       teamMeta: state.teams.teamMeta,
       unfurlError: state.settings.chat.unfurl.unfurlError,
@@ -48,11 +51,20 @@ export default Container.namedConnect(
       dispatch(SettingsGen.createContactSettingsSaved({enabled, indirectFollowees, teamsEnabled, teamsList}))
     },
     onRefresh: () => {
+      // Security: misc
+      dispatch(SettingsGen.createLoadSettings())
+      dispatch(SettingsGen.createNotificationsRefresh())
+
+      // Security: contact settings
       dispatch(WaitingGen.createIncrementWaiting({key: Constants.contactSettingsLoadWaitingKey}))
       dispatch(SettingsGen.createContactSettingsRefresh())
       dispatch(WaitingGen.createDecrementWaiting({key: Constants.contactSettingsLoadWaitingKey}))
+
+      // Link previews
       dispatch(SettingsGen.createUnfurlSettingsRefresh())
     },
+    onToggle: (group: string, name?: string) =>
+      dispatch(SettingsGen.createNotificationsToggle({group, name})),
     onToggleSound: (notifySound: boolean) => dispatch(ConfigGen.createSetNotifySound({notifySound})),
     onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => {
       dispatch(SettingsGen.createUnfurlSettingsSaved({mode, whitelist: whitelist}))

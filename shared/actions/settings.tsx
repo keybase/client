@@ -71,7 +71,7 @@ const toggleNotifications = async (state: Container.TypedState) => {
   const JSONPayload: Array<{key: string; value: string}> = []
   const chatGlobalArg: {[key: string]: boolean} = {}
   current.groups.forEach((group, groupName) => {
-    if (groupName === Constants.securityGroup) {
+    if (groupName === Constants.securityGroup || groupName === Constants.soundGroup) {
       // Special case this since it will go to chat settings endpoint
       group.settings.forEach(
         setting =>
@@ -270,6 +270,10 @@ function* refreshNotifications() {
         settings: Array<{name: string; description: string; subscribed: boolean}>
         unsub: boolean
       }
+      sound: {
+        settings: Array<{name: string; description: string; subscribed: boolean}>
+        unsub: boolean
+      }
     }
   } = JSON.parse(body)
   // Add security group extra since it does not come from API endpoint
@@ -294,7 +298,12 @@ function* refreshNotifications() {
         name: 'disabletyping',
         subscribed: !chatGlobalSettings.settings[`${ChatTypes.GlobalAppNotificationSetting.disabletyping}`],
       },
-      ...(isAndroid && !isAndroidNewerThanN
+    ],
+    unsub: false,
+  }
+  results.notifications[Constants.soundGroup] = {
+    settings:
+      isAndroid && !isAndroidNewerThanN
         ? [
             {
               description: 'Phone: use default sound for new messages',
@@ -304,8 +313,7 @@ function* refreshNotifications() {
               ],
             },
           ]
-        : []),
-    ],
+        : [],
     unsub: false,
   }
 
@@ -333,6 +341,13 @@ function* refreshNotifications() {
           {
             settings: groups.security.settings.map(settingsToPayload),
             unsubscribedFromAll: groups.security.unsub,
+          },
+        ],
+        [
+          'sound',
+          {
+            settings: groups.sound.settings.map(settingsToPayload),
+            unsubscribedFromAll: groups.sound.unsub,
           },
         ],
       ]),
