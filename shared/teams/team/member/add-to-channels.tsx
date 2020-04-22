@@ -369,11 +369,11 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: Cha
       })
     )
   return Styles.isMobile ? (
-    <Kb.ClickableBox onClick={onSelect}>
+    <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
         <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
           <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
-            <Kb.Text type="Body" lineClamp={1} style={styles.channelText} onClick={onPreviewChannel}>
+            <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
               #{channelMeta.channelname}
             </Kb.Text>
             <Common.ParticipantMeta numParticipants={numParticipants} />
@@ -402,6 +402,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: Cha
               onSelect()
             }
       }
+      onClick={selfMode ? onPreviewChannel : undefined}
       type="Large"
       action={
         selfMode ? (
@@ -420,7 +421,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: Cha
       body={
         <Kb.Box2 direction="vertical" alignItems="stretch">
           <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
-            <Kb.Text type="BodySemibold" className="hover-underline" lineClamp={1} onClick={onPreviewChannel}>
+            <Kb.Text type="BodySemibold" lineClamp={1}>
               #{channelMeta.channelname}
             </Kb.Text>
             {selfMode && <Common.ParticipantMeta numParticipants={numParticipants} />}
