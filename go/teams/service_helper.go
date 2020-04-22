@@ -1110,7 +1110,7 @@ func removeMemberFromSubtree(mctx libkb.MetaContext, targetTeamID keybase1.TeamI
 		removeErr := remove(mctx.Ctx(), mctx.G(), teamGetter, assertion)
 		var memberNotFoundErr *MemberNotFoundInChainError
 		switch {
-		case err == nil:
+		case removeErr == nil:
 		case errors.As(removeErr, &memberNotFoundErr):
 			// If the member was not found in the sigchain (either via invite or cryptomember), we can
 			// ignore the error. Because we got team memberships for ourselves and not the user, we
