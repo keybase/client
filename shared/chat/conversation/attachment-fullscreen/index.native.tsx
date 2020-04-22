@@ -74,7 +74,13 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
       if (this.props.isVideo) {
         const {previewHeight} = this.props
         content = (
-          <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.videoWrapper}>
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            fullHeight={true}
+            centerChildren={true}
+            style={styles.videoWrapper}
+          >
             <RNVideo
               source={{uri: `${this.props.path}&contentforce=true`}}
               onError={e => {
