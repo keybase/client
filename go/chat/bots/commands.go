@@ -154,9 +154,8 @@ func (b *CachingBotCommandManager) deriveMembersType(ctx context.Context, name s
 	}
 }
 
-func (b *CachingBotCommandManager) createConv(
-	ctx context.Context, typ chat1.BotCommandsAdvertisementTyp, teamName *string, convID *chat1.ConversationID,
-) (res chat1.ConversationLocal, err error) {
+func (b *CachingBotCommandManager) createConv(ctx context.Context, typ chat1.BotCommandsAdvertisementTyp,
+	teamName *string, convID *chat1.ConversationID) (res chat1.ConversationLocal, err error) {
 	username, err := b.getMyUsername(ctx)
 	if err != nil {
 		return res, err
@@ -280,16 +279,16 @@ func (b *CachingBotCommandManager) Clear(ctx context.Context, filter *chat1.Clea
 	var remote *chat1.RemoteClearBotCommandsFilter
 	if filter != nil {
 		remote = new(chat1.RemoteClearBotCommandsFilter)
-		conv, err := b.createConv(ctx, filter.Typ, filter.TeamName, filter.ConvID)
-		if err != nil {
-			return err
-		}
 
 		var tlfID *chat1.TLFID
 		var convID *chat1.ConversationID
 		switch filter.Typ {
 		case chat1.BotCommandsAdvertisementTyp_PUBLIC:
 		case chat1.BotCommandsAdvertisementTyp_TLFID_CONVS, chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS:
+			conv, err := b.createConv(ctx, filter.Typ, filter.TeamName, filter.ConvID)
+			if err != nil {
+				return err
+			}
 			tlfID = &conv.Info.Triple.Tlfid
 		case chat1.BotCommandsAdvertisementTyp_CONV:
 			convID = filter.ConvID

@@ -3167,10 +3167,17 @@ func (p AdvertiseCommandsParam) ToRemote(cmdConvID ConversationID, tlfID *TLFID,
 func (p ClearBotCommandsFilter) ToRemote(tlfID *TLFID, convID *ConversationID) (res RemoteClearBotCommandsFilter, err error) {
 	switch p.Typ {
 	case BotCommandsAdvertisementTyp_PUBLIC:
+		if tlfID != nil {
+			return res, errors.New("TLFID specified for public advertisement")
+		} else if convID != nil {
+			return res, errors.New("ConvID specified for public advertisement")
+		}
 		return NewRemoteClearBotCommandsFilterWithPublic(RemoteClearBotCommandsFilterPublic{}), nil
 	case BotCommandsAdvertisementTyp_TLFID_CONVS:
 		if tlfID == nil {
 			return res, errors.New("no TLFID specified")
+		} else if convID != nil {
+			return res, errors.New("ConvID specified")
 		}
 		return NewRemoteClearBotCommandsFilterWithTlfidConvs(RemoteClearBotCommandsFilterTLFID{
 			TlfID: *tlfID,
@@ -3178,6 +3185,8 @@ func (p ClearBotCommandsFilter) ToRemote(tlfID *TLFID, convID *ConversationID) (
 	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
 		if tlfID == nil {
 			return res, errors.New("no TLFID specified")
+		} else if convID != nil {
+			return res, errors.New("ConvID specified")
 		}
 		return NewRemoteClearBotCommandsFilterWithTlfidMembers(RemoteClearBotCommandsFilterTLFID{
 			TlfID: *tlfID,
