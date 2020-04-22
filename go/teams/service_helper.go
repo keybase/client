@@ -1196,7 +1196,7 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 	})
 }
 
-func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, email string, allowInaction bool) (err error) {
+func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, email string) (err error) {
 	g.CTrace(ctx, "CancelEmailInvite", &err)
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)

@@ -1392,24 +1392,19 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	}
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
 
-	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, teamID, address, false))
-	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, teamID, address, true))
-	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, teamID, address, true), "doesnt error when canceling a canceled invite with allowInaction")
-	require.Error(t, CancelEmailInvite(context.TODO(), tc.G, teamID, address, false), "errors when canceling a canceled invite without allowInaction")
+	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, teamID, address))
 
 	assertNoInvite(tc, name, address, "email")
 
 	// check error type for an email address with no invite
-	err := CancelEmailInvite(context.TODO(), tc.G, teamID, "nope@keybase.io", false)
+	err := CancelEmailInvite(context.TODO(), tc.G, teamID, "nope@keybase.io")
 	if err == nil {
 		t.Fatal("expected error canceling email invite for unknown email address")
 	}
-	if _, ok := err.(libkb.NotFoundError); !ok {
-		t.Errorf("expected libkb.NotFoundError, got %T", err)
-	}
+	require.IsType(t, err, &MemberNotFoundInChainError{})
 
 	// check error type for unknown team
-	err = CancelEmailInvite(context.TODO(), tc.G, "notateam", address, false)
+	err = CancelEmailInvite(context.TODO(), tc.G, "notateam", address)
 	if err == nil {
 		t.Fatal("expected error canceling email invite for unknown team")
 	}
