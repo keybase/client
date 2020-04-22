@@ -394,20 +394,20 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [TeamsGen.addMembersWizardSetDefaultChannels]: (draftState, action) => {
     const {toAdd, toRemove} = action.payload
-    if (!draftState.addMembersWizard.defaultChannels) {
+    if (!draftState.addMembersWizard.addToChannels) {
       // we're definitely setting these manually now
-      draftState.addMembersWizard.defaultChannels = []
+      draftState.addMembersWizard.addToChannels = []
     }
-    const defaultChannels = draftState.addMembersWizard.defaultChannels
+    const addToChannels = draftState.addMembersWizard.addToChannels
     toAdd?.forEach(channel => {
-      if (!defaultChannels.find(dc => dc.conversationIDKey === channel.conversationIDKey)) {
-        defaultChannels?.push(channel)
+      if (!addToChannels.find(dc => dc.conversationIDKey === channel.conversationIDKey)) {
+        addToChannels?.push(channel)
       }
     })
     const maybeRemoveIdx =
-      (toRemove && defaultChannels.findIndex(dc => dc.conversationIDKey === toRemove.conversationIDKey)) ?? -1
+      (toRemove && addToChannels.findIndex(dc => dc.conversationIDKey === toRemove.conversationIDKey)) ?? -1
     if (maybeRemoveIdx >= 0) {
-      defaultChannels.splice(maybeRemoveIdx, 1)
+      addToChannels.splice(maybeRemoveIdx, 1)
     }
   },
   [TeamsGen.setNewTeamRequests]: (draftState, action) => {

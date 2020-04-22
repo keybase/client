@@ -189,8 +189,8 @@ export type AddingMember = {
   note?: string // note is for imp tofu assertions that got turned into usernames. It doesn't go to the server but it displays to the user in the confirm screen.
 }
 export type AddMembersWizardState = {
+  addToChannels: Array<ChannelNameID> | undefined
   addingMembers: Array<AddingMember>
-  defaultChannels: Array<ChannelNameID> | undefined // undefined -> unchanged from default
   justFinished: boolean
   role: AddingMemberTeamRoleType | 'setIndividually'
   teamID: TeamID
