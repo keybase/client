@@ -263,7 +263,13 @@ class Chat extends React.Component<Props, State> {
                 Your Keybase app will visit the links you share and automatically post previews.
               </Kb.Text>
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.innerContainer}>
+            <Kb.Box2
+              direction="vertical"
+              fullWidth={true}
+              gap="xtiny"
+              gapStart={true}
+              style={styles.innerContainer}
+            >
               <Kb.RadioButton
                 key="rbalways"
                 label="Always"
@@ -278,33 +284,31 @@ class Chat extends React.Component<Props, State> {
                 selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.whitelisted}
                 disabled={this.props.unfurlMode === undefined}
               />
-              <Kb.ScrollView style={styles.whitelist}>
-                {this._getUnfurlWhitelist(false).map(w => {
-                  const wlremoved = this._isUnfurlWhitelistRemoved(w)
-                  return (
-                    <React.Fragment key={w}>
-                      <Kb.Box2
-                        fullWidth={true}
-                        direction="horizontal"
-                        style={Styles.collapseStyles([
-                          wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
-                          styles.whitelistRowContainer,
-                        ])}
+              {this._getUnfurlWhitelist(false).map((w, idx) => {
+                const wlremoved = this._isUnfurlWhitelistRemoved(w)
+                return (
+                  <React.Fragment key={w}>
+                    {idx !== 0 && <Kb.Divider style={styles.whitelistDivider} />}
+                    <Kb.Box2
+                      fullWidth={true}
+                      direction="horizontal"
+                      style={Styles.collapseStyles([
+                        wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
+                        styles.whitelistRowContainer,
+                      ])}
+                    >
+                      <Kb.Text type="BodySemibold">{w}</Kb.Text>
+                      <Kb.Text
+                        type="BodyPrimaryLink"
+                        style={wlremoved ? {color: Styles.globalColors.whiteOrWhite} : undefined}
+                        onClick={() => this._toggleUnfurlWhitelist(w)}
                       >
-                        <Kb.Text type="BodySemibold">{w}</Kb.Text>
-                        <Kb.Text
-                          type="BodyPrimaryLink"
-                          style={wlremoved ? {color: Styles.globalColors.whiteOrWhite} : undefined}
-                          onClick={() => this._toggleUnfurlWhitelist(w)}
-                        >
-                          {wlremoved ? 'Restore' : 'Remove'}
-                        </Kb.Text>
-                      </Kb.Box2>
-                      <Kb.Divider />
-                    </React.Fragment>
-                  )
-                })}
-              </Kb.ScrollView>
+                        {wlremoved ? 'Restore' : 'Remove'}
+                      </Kb.Text>
+                    </Kb.Box2>
+                  </React.Fragment>
+                )
+              })}
               <Kb.RadioButton
                 key="rbnever"
                 label="Never"
@@ -431,33 +435,13 @@ const styles = Styles.styleSheetCreate(() => ({
   teamText: {
     alignSelf: 'flex-start',
   },
-  whitelist: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-      borderColor: Styles.globalColors.greyLight,
-      borderRadius: Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      height: 150,
-    },
-    isElectron: {
-      marginLeft: 22,
-      minWidth: 305,
-    },
-    isPhone: {
-      width: '100%',
-    },
-    isTablet: {
-      width: Styles.globalStyles.largeWidthPercent,
-    },
-  }),
+  whitelistDivider: {
+    marginLeft: Styles.globalMargins.small,
+  },
   whitelistRowContainer: {
     flexShrink: 0,
     justifyContent: 'space-between',
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.xtiny,
+    padding: Styles.globalMargins.small,
   },
 }))
 
