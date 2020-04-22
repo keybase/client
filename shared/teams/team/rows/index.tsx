@@ -192,7 +192,7 @@ export const useSubteamsSections = (
   if (!flags.teamsRedesign) {
     sections.push(makeSingleRow('subteam-intro', () => <SubteamIntroRow teamID={teamID} />))
   }
-  if (yourOperations.manageSubteams && (!flags.teamsRedesign || subteams.length)) {
+  if (yourOperations.manageSubteams && (!flags.teamsRedesign || details.subteams.size)) {
     sections.push(makeSingleRow('subteam-add', () => <SubteamAddRow teamID={teamID} />))
   }
   sections.push({
@@ -201,11 +201,11 @@ export const useSubteamsSections = (
     renderItem: ({item, index}) => <SubteamTeamRow teamID={item} firstItem={index === 0} />,
   })
 
-  if (flags.teamsRedesign && subteams.length) {
+  if (flags.teamsRedesign && details.subteams.size) {
     sections.push(makeSingleRow('subteam-info', () => <SubteamInfoRow />))
   } else if (flags.teamsRedesign) {
     sections.push(makeSingleRow('subteam-none', () => <EmptyRow teamID={teamID} type="subteams" />))
-  } else if (!subteams.length) {
+  } else if (!details.subteams.size) {
     sections.push(makeSingleRow('subteam-none', () => <SubteamNoneRow />))
   }
   return sections
