@@ -35,9 +35,9 @@ export type Props<IncludeSetIndividually extends boolean> = {
   disabledRoles?: {[K in Role<IncludeSetIndividually>]?: DisabledReason}
   onCancel?: () => void // If provided, a cancel button will appear
   onConfirm: (selectedRole: Role<IncludeSetIndividually>) => void
-  confirmLabel?: string // Defaults to "Make ${selectedRole}"
+  confirmLabel?: string // Defaults to "Make"
   footerComponent?: React.ReactNode
-  presetRole?: MaybeRole<IncludeSetIndividually> | null
+  presetRole: MaybeRole<IncludeSetIndividually>
   includeSetIndividually?: IncludeSetIndividually extends true ? boolean : false
   waiting?: boolean
 }
@@ -262,7 +262,15 @@ const footerButtonsHelper = (
   </Kb.ButtonBar>
 )
 
-const confirmLabelHelper = (presetRole: Role<any> | null, selectedRole: Role<any> | null): string => {
+const confirmLabelHelper = (
+  presetRole: Role<any> | null,
+  selectedRole: Role<any> | null,
+  confirmLabel?: string
+): string => {
+  if (confirmLabel != null && selectedRole != null) {
+    return confirmLabel + ` ${pluralize(selectedRole)}`
+  }
+
   const label = selectedRole && selectedRole.toLowerCase()
   if (label && presetRole === selectedRole) {
     return `Saved`
@@ -283,6 +291,11 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
   const [selectedRole, setSelectedRole] = React.useState<Role<IncludeSetIndividually>>(
     filteredRole ?? ('reader' as Role<IncludeSetIndividually>)
   )
+  // React.useEffect(() => {
+  //   const newRole = filterRole(props.presetRole) ?? ('reader' as Role<IncludeSetIndividually>)
+  //   setSelectedRole(newRole)
+  // }, [props.presetRole])
+
   // as because convincing TS that filtering this makes it a different type is hard
   const roles = orderedRoles.filter(r => props.includeSetIndividually || r !== 'setIndividually') as Array<
     Role<IncludeSetIndividually>
@@ -313,8 +326,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
           selectedRole && selectedRole !== props.presetRole
             ? () => selectedRole && props.onConfirm(selectedRole)
             : undefined,
-          props.confirmLabel + ` ${pluralize(selectedRole)}` ||
-            confirmLabelHelper(filterRole(props.presetRole), selectedRole || null),
+          confirmLabelHelper(filterRole(props.presetRole), selectedRole || null, props.confirmLabel),
           props.waiting
         )}
       </Kb.Box2>
