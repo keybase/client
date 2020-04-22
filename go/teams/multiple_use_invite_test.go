@@ -698,4 +698,7 @@ func TestSeitanInviteLinkPukless(t *testing.T) {
 
 	invite, _, found := team.FindActiveKeybaseInvite(user.GetUID())
 	require.False(t, found, "Expected not to find invite for user: %s", spew.Sdump(invite))
+
+	uvs := team.AllUserVersionsByUID(context.Background(), user.GetUID())
+	require.Len(t, uvs, 0, "Expected user not to end up in a team as cryptomember (?)")
 }
