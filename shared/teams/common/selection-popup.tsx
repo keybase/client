@@ -83,9 +83,11 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   // This is a bit of a hack to work around the floating box displaying above modals on mobile.
   // Probably it's not worth thinking about the root problem until we're on nav 5.
   const [focused, setFocused] = React.useState(true)
-  Container.useFocusBlur(
-    () => setFocused(true),
-    () => setFocused(false)
+  Container.useFocusEffect(
+    React.useCallback(() => {
+      setFocused(true)
+      return () => setFocused(false)
+    }, [])
   )
 
   // For boosting the list to scroll not behind the popup on mobile

@@ -93,8 +93,11 @@ const Team = (props: Props) => {
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const dispatch = Container.useDispatch()
-  const onBlur = React.useCallback(() => dispatch(TeamsGen.createTeamSeen({teamID})), [dispatch, teamID])
-  Container.useFocusBlur(undefined, onBlur)
+  Container.useFocusEffect(
+    React.useCallback(() => {
+      return () => dispatch(TeamsGen.createTeamSeen({teamID}))
+    }, [dispatch, teamID])
+  )
 
   useTeamsSubscribe()
   useTeamDetailsSubscribe(teamID)
