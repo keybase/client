@@ -11,7 +11,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from './settings-gen'
 import * as WaitingGen from './waiting-gen'
 import trim from 'lodash/trim'
-import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
+import {isAndroid, isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import * as Container from '../util/container'
 import openURL from '../util/open-url'
@@ -294,9 +294,8 @@ function* refreshNotifications() {
         name: 'disabletyping',
         subscribed: !chatGlobalSettings.settings[`${ChatTypes.GlobalAppNotificationSetting.disabletyping}`],
       },
-      ...(isAndroidNewerThanN
-        ? []
-        : [
+      ...(isAndroid && !isAndroidNewerThanN
+        ? [
             {
               description: 'Use mobile system default notification sound',
               name: 'defaultsoundmobile',
@@ -304,7 +303,8 @@ function* refreshNotifications() {
                 `${ChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`
               ],
             },
-          ]),
+          ]
+        : []),
     ],
     unsub: false,
   }
