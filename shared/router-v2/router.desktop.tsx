@@ -185,7 +185,9 @@ const LoggedInStackNavigator = createNavigator(
       ...Shim.shim(modalRoutes),
     },
     {
+      // @ts-ignore
       initialRouteKey: 'Main',
+      // @ts-ignore
       initialRouteName: 'Main',
     }
   ),
