@@ -65,11 +65,8 @@ ChooseComponent.navigationOptions = (ownProps: OwnProps) => {
   const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
   return Container.isMobile
     ? {
-        header: (
-          <MobileHeader
-            path={path}
-            onBack={ownProps.navigation.isFirstRouteInParent() ? undefined : ownProps.navigation.pop}
-          />
+        header: ({previous}) => (
+          <MobileHeader path={path} onBack={previous ? ownProps.navigation.pop : undefined} />
         ),
         useHeaderHeight: () => useMobileHeaderHeight(path),
       }

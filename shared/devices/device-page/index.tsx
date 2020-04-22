@@ -144,7 +144,7 @@ const DevicePage = (props: Props) => {
   )
 }
 DevicePage.navigationOptions = {
-  header: undefined,
+  title: ' ',
 }
 
 const styles = Styles.styleSheetCreate(

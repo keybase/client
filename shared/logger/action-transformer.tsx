@@ -81,9 +81,11 @@ const actionTransformMap = {
   [WaitingGen.clearWaiting]: fullOutput,
 }
 
-const transformActionForLog = (action: any, state: TypedState) =>
-  actionTransformMap[action.type]
-    ? actionTransformMap[action.type](action, state)
-    : defaultTransformer(action)
+KB.debugConsoleLog('REMOVE THIS')
+const transformActionForLog = (action: any, state: TypedState) => action
+// const transformActionForLog = (action: any, state: TypedState) =>
+// actionTransformMap[action.type]
+// ? actionTransformMap[action.type](action, state)
+// : defaultTransformer(action)
 
 export default transformActionForLog

@@ -43,7 +43,7 @@ export type LeftActionProps = {
   leftAction?: 'back' | 'cancel' | null
   leftActionText?: string
   theme?: 'light' | 'dark' // defaults to 'light',
-  onLeftAction: (() => void) | null
+  onLeftAction?: (() => void) | null
   customIconColor?: string
 }
 

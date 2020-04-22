@@ -9,7 +9,7 @@ import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getVisiblePath} from '../../../constants/router2'
 import {getFullname} from '../../../constants/users'
 import * as Tabs from '../../../constants/tabs'
-import {withNavigation} from 'react-navigation'
+import {ParamList} from '../../routes-types'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -121,14 +121,9 @@ const Connected = Container.connect(
   }
 )(HeaderBranch)
 
-const GrabConvoID = ({navigation}) => {
-  return (
-    <Connected
-      conversationIDKey={navigation.getParam('conversationIDKey', Constants.noConversationIDKey)}
-      progress={null}
-    />
-  )
+const GrabConvoID = () => {
+  const route = Container.useRoute<Container.RouteProp<ParamList, 'chatConversation'>>()
+  return <Connected conversationIDKey={route.params.conversationIDKey} progress={null} />
 }
-const ConnectedWrapper = withNavigation(GrabConvoID)
 
-export default () => <ConnectedWrapper />
+export default GrabConvoID

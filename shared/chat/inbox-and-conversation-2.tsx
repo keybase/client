@@ -9,7 +9,7 @@ import InfoPanel from './conversation/info-panel/container'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
-import {withNavigation} from '@react-navigation/core'
+import {RouteProp, ParamListBase} from '@react-navigation/native'
 
 type Props = {
   navigation?: any
@@ -54,12 +54,16 @@ const InboxAndConversation = (props: Props) => {
   )
 }
 
-InboxAndConversation.navigationOptions = {
-  header: undefined,
-  headerTitle: withNavigation(Header),
-  headerTitleContainerStyle: {left: 0, right: 0},
-}
-
 const Memoed = React.memo(InboxAndConversation)
 Container.hoistNonReactStatic(Memoed, InboxAndConversation)
 export default Memoed
+
+export const screenOptions = ({
+  route,
+}: {
+  route: Container.RouteProp<{conversationIDKey: Types.ConversationIDKey}, 'chatRoot'>
+}) => ({
+  header: undefined,
+  headerTitle: <Header conversationIDKey={route.params.conversationIDKey} />,
+  headerTitleContainerStyle: {left: 0, right: 0},
+})

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
-import RouterSwitcheroo from '../router-v2/switcheroo'
+import RouterV3 from '../router-v3'
 import {GatewayDest} from '@chardskarth/react-gateway'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors/container'
@@ -19,7 +19,7 @@ const Main = (_: Props) => {
       <Kb.NativeStatusBar
         barStyle={Styles.isAndroid ? 'default' : isDarkMode ? 'light-content' : 'dark-content'}
       />
-      <RouterSwitcheroo />
+      <RouterV3 />
       <GatewayDest
         name="popup-root"
         component={ViewForGatewayDest}

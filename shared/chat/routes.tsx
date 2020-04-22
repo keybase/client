@@ -31,11 +31,16 @@ export const newRoutes = {
   chatEnterPaperkey: {
     getScreen: (): typeof ChatEnterPaperkey => require('./conversation/rekey/enter-paper-key').default,
   },
+}
+
+export const v3Routes = {
   chatRoot: {
-    getScreen: (): typeof ChatRoot =>
-      ChatConstants.isSplit
-        ? require('./inbox-and-conversation-2').default
-        : require('./inbox/defer-loading').default,
+    component: ChatConstants.isSplit
+      ? require('./inbox-and-conversation-2').default
+      : require('./inbox/defer-loading').default,
+    options: ChatConstants.isSplit
+      ? require('./inbox-and-conversation-2').screenOptions
+      : require('./inbox/defer-loading').screenOptions,
   },
 }
 
