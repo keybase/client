@@ -271,13 +271,16 @@ const tabStyles = Styles.styleSheetCreate(
           right: 8,
           top: 3,
         },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          justifyContent: 'center',
+        },
         isTablet: {
-          marginRight: Styles.globalMargins.tiny,
+          // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
+          minWidth: Styles.globalMargins.xlarge,
         },
       }),
-      container: {
-        justifyContent: 'center',
-      },
       label: {marginLeft: Styles.globalMargins.medium},
       labelDarkMode: {color: Styles.globalColors.black_50},
       labelDarkModeFocused: {color: Styles.globalColors.black},
