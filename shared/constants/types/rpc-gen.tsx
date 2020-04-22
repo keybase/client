@@ -2530,6 +2530,7 @@ export enum StatusCode {
   scnoop = 2638,
   scteaminvitebadcancel = 2645,
   scteaminvitebadtoken = 2646,
+  scteaminvitecompletionmissing = 2648,
   scteambadnamereserveddb = 2650,
   scteamtarduplicate = 2663,
   scteamtarnotfound = 2664,

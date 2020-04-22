@@ -1,7 +1,7 @@
 package teams
 
 import (
-	"strings"
+	"errors"
 	"testing"
 	"time"
 
@@ -659,12 +659,14 @@ func TestSeitanMultipleRequestForOneInvite(t *testing.T) {
 	}
 	err = HandleTeamSeitan(context.Background(), tc.G, msg)
 	if err != nil {
-		// We are expecting no error, but if there's a specific bug that we can
-		// recognize, inform about it.
-		if strings.Contains(err.Error(), "failed to update invites for") {
-			require.FailNowf(t,
-				"Got error which suggests that bad change_membership was sent to the server.",
-				"%s", err.Error())
+		if err, ok := errors.Unwrap(err).(libkb.AppStatusError); ok {
+			// We are expecting no error, but if there's a specific bug that we can
+			// recognize, inform about it.
+			if err.Code == int(keybase1.StatusCode_SCTeamInviteCompletionMissing) {
+				require.FailNowf(t,
+					"Got error which suggests that bad change_membership was sent to the server.",
+					"%s", err.Error())
+			}
 		}
 	}
 	require.NoError(t, err)

@@ -209,7 +209,7 @@ func TestAllowPukless(t *testing.T) {
 	}
 }
 
-func TestTaintAllowPukless(t *testing.T) {
+func TestPostAllowPUKless(t *testing.T) {
 	tc, _, other, teamname := setupPuklessInviteTest(t)
 	defer tc.Cleanup()
 

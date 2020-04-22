@@ -160,6 +160,7 @@ const (
 	StatusCode_SCNoOp                                      StatusCode = 2638
 	StatusCode_SCTeamInviteBadCancel                       StatusCode = 2645
 	StatusCode_SCTeamInviteBadToken                        StatusCode = 2646
+	StatusCode_SCTeamInviteCompletionMissing               StatusCode = 2648
 	StatusCode_SCTeamBadNameReservedDB                     StatusCode = 2650
 	StatusCode_SCTeamTarDuplicate                          StatusCode = 2663
 	StatusCode_SCTeamTarNotFound                           StatusCode = 2664
@@ -410,6 +411,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCNoOp":                                      2638,
 	"SCTeamInviteBadCancel":                       2645,
 	"SCTeamInviteBadToken":                        2646,
+	"SCTeamInviteCompletionMissing":               2648,
 	"SCTeamBadNameReservedDB":                     2650,
 	"SCTeamTarDuplicate":                          2663,
 	"SCTeamTarNotFound":                           2664,
@@ -658,6 +660,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2638: "SCNoOp",
 	2645: "SCTeamInviteBadCancel",
 	2646: "SCTeamInviteBadToken",
+	2648: "SCTeamInviteCompletionMissing",
 	2650: "SCTeamBadNameReservedDB",
 	2663: "SCTeamTarDuplicate",
 	2664: "SCTeamTarNotFound",
