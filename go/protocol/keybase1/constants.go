@@ -197,6 +197,7 @@ const (
 	StatusCode_SCTeamStorageBadGeneration                  StatusCode = 2761
 	StatusCode_SCTeamStorageNotFound                       StatusCode = 2762
 	StatusCode_SCTeamContactSettingsBlock                  StatusCode = 2763
+	StatusCode_SCTeamSeitanInviteNeedPUK                   StatusCode = 2770
 	StatusCode_SCEphemeralKeyBadGeneration                 StatusCode = 2900
 	StatusCode_SCEphemeralKeyUnexpectedBox                 StatusCode = 2901
 	StatusCode_SCEphemeralKeyMissingBox                    StatusCode = 2902
@@ -446,6 +447,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamStorageBadGeneration":                  2761,
 	"SCTeamStorageNotFound":                       2762,
 	"SCTeamContactSettingsBlock":                  2763,
+	"SCTeamSeitanInviteNeedPUK":                   2770,
 	"SCEphemeralKeyBadGeneration":                 2900,
 	"SCEphemeralKeyUnexpectedBox":                 2901,
 	"SCEphemeralKeyMissingBox":                    2902,
@@ -693,6 +695,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2761: "SCTeamStorageBadGeneration",
 	2762: "SCTeamStorageNotFound",
 	2763: "SCTeamContactSettingsBlock",
+	2770: "SCTeamSeitanInviteNeedPUK",
 	2900: "SCEphemeralKeyBadGeneration",
 	2901: "SCEphemeralKeyUnexpectedBox",
 	2902: "SCEphemeralKeyMissingBox",

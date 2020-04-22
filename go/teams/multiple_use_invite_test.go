@@ -213,6 +213,7 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 	// Test various cases where an acceptance is malformed and should be
 	// rejected. Rejections for over-used invites are tested in
 	// TestSeitanHandleExceededInvite.
+
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
@@ -630,18 +631,21 @@ func newDropRejectCallsAPI(origAPI libkb.API) *libkb.APIArgRecorder {
 }
 
 func TestSeitanInviteLinkPukless(t *testing.T) {
+	// Test server sending us team invite link request with a valid acceptance
+	// key, but the user is PUK-less so they can't be added using
+	// 'team.change_membership' link.
+
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
 	tc.Tp.SkipSendingSystemChatMessages = true
+
 	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 	t.Logf("Admin username: %s", admin.Username)
 
 	teamName, teamID := createTeam2(tc)
 	t.Logf("Created team %q", teamName.String())
-
-	_ = teamID
 
 	maxUses := keybase1.TeamInviteMaxUses(1)
 	invLink, err := CreateInvitelink(tc.MetaContext(), teamName.String(), keybase1.TeamRole_READER,

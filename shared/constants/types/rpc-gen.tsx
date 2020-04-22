@@ -2567,6 +2567,7 @@ export enum StatusCode {
   scteamstoragebadgeneration = 2761,
   scteamstoragenotfound = 2762,
   scteamcontactsettingsblock = 2763,
+  scteamseitaninviteneedpuk = 2770,
   scephemeralkeybadgeneration = 2900,
   scephemeralkeyunexpectedbox = 2901,
   scephemeralkeymissingbox = 2902,

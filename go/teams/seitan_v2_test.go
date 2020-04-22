@@ -551,6 +551,13 @@ func TestSeitanPukless(t *testing.T) {
 	seitanRet, err := generateAcceptanceSeitanV2(SeitanIKeyV2(token), user.GetUserVersion(), timeNow)
 	require.NoError(t, err)
 
+	// Can't post this acceptance when we don't have a PUK.
+	err = postSeitanV2(tc.MetaContext(), seitanRet)
+	require.Error(t, err)
+	require.IsType(t, libkb.AppStatusError{}, err)
+	require.EqualValues(t, keybase1.StatusCode_SCTeamSeitanInviteNeedPUK, err.(libkb.AppStatusError).Code)
+
+	// But server could still send it to us, e.g. due to a bug.
 	kbtest.LogoutAndLoginAs(tc, admin)
 
 	inviteID, err := seitanRet.inviteID.TeamInviteID()
