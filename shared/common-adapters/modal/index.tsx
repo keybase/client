@@ -80,6 +80,8 @@ const ModalInner = (props: Props) => (
     )}
   </>
 )
+
+/** TODO being deprecated. if you change this change modal2 and talk to #frontend **/
 const Modal = (props: Props) =>
   Styles.isMobile || props.fullscreen ? (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>

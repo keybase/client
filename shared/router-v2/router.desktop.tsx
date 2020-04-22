@@ -38,121 +38,219 @@ import OutOfDate from '../app/out-of-date'
 const noScreenProps = {}
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top
-class AppView extends React.PureComponent<NavigationViewProps<any>> {
-  render() {
-    const navigation = this.props.navigation
-    const index = navigation.state.index
-    const activeRootKey = navigation.state.routes[index].key
-    const descriptor = this.props.descriptors[activeRootKey]
-    const childNav = descriptor.navigation
-    const selectedTab = nameToTab[descriptor.state.routeName]
-    // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
-    const direction = descriptor.options.headerTransparent ? 'vertical' : 'verticalReverse'
-    const activeIndex = getActiveIndex(navigation.state)
-    const activeKey = getActiveKey(navigation.state)
+const AppView = React.memo((props: NavigationViewProps<any>) => {
+  const {navigation, descriptors} = props
+  const {state} = navigation
+  const {index, routes} = state
+  const {key} = routes[index]
+  const descriptor = descriptors[key]
+  const {navigation: childNav, state: childState, options} = descriptor
+  const {routeName} = childState
+  const selectedTab = nameToTab[routeName]
+  // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
+  const direction = options.headerTransparent ? 'vertical' : 'verticalReverse'
+  const activeIndex = getActiveIndex(state)
+  const activeKey = getActiveKey(state)
 
-    const sceneView = (
-      <SceneView
-        navigation={childNav}
-        component={descriptor.getComponent()}
-        screenProps={this.props.screenProps || noScreenProps}
-      />
-    )
-    // if the header is transparent this needs to be on the same layer
-    const scene = descriptor.options.headerTransparent ? (
-      <Kb.Box2 direction="vertical" style={styles.transparentSceneUnderHeader}>
-        {sceneView}
-      </Kb.Box2>
-    ) : (
-      <Kb.BoxGrow style={styles.sceneContainer}>{sceneView}</Kb.BoxGrow>
-    )
+  const sceneView = (
+    <SceneView
+      navigation={childNav}
+      component={descriptor.getComponent()}
+      screenProps={props.screenProps || noScreenProps}
+    />
+  )
+  // if the header is transparent this needs to be on the same layer
+  const scene = descriptor.options.headerTransparent ? (
+    <Kb.Box2 direction="vertical" style={styles.transparentSceneUnderHeader}>
+      {sceneView}
+    </Kb.Box2>
+  ) : (
+    <Kb.BoxGrow style={styles.sceneContainer}>{sceneView}</Kb.BoxGrow>
+  )
 
-    return (
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <Kb.Box2
-          direction={direction}
-          fullHeight={true}
-          style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
-        >
-          {scene}
-          <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
-            {/*
+  return (
+    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+      <Kb.Box2
+        direction={direction}
+        fullHeight={true}
+        style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
+      >
+        {scene}
+        <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
+          {/*
           // @ts-ignore Header typing not finished yet */}
-            <Header
-              loggedIn={!!selectedTab}
-              options={descriptor.options}
-              onPop={() => childNav.goBack(activeKey)}
-              allowBack={activeIndex !== 0}
-            />
-          </Kb.Box2>
+          <Header
+            loggedIn={!!selectedTab}
+            options={descriptor.options}
+            onPop={() => childNav.goBack(activeKey)}
+            allowBack={activeIndex !== 0}
+          />
         </Kb.Box2>
       </Kb.Box2>
-    )
+    </Kb.Box2>
+  )
+})
+
+const mouseResetValue = -9999
+const mouseDistanceThreshold = 5
+
+const ModalView = React.memo((props: NavigationViewProps<any>) => {
+  const {navigation, descriptors} = props
+  const {state} = navigation
+  const {index, routes} = state
+  const {key} = routes[index]
+  const descriptor = descriptors[key]
+  const {navigation: childNav, getComponent} = descriptor
+
+  // We render the app below us
+  const appKey = routes[0].key
+  const appNav = navigation.getChildNavigation(appKey)
+  const appDescriptor = descriptors[appKey]
+
+  const Component = getComponent()
+  const getNavigationOptions: undefined | Object | ((n: {navigation: typeof childNav}) => Object) =
+    // @ts-ignore
+    Component?.navigationOptions
+  let navigationOptions: undefined | Object
+  if (typeof getNavigationOptions === 'function') {
+    navigationOptions = getNavigationOptions({navigation: childNav})
+  } else if (typeof getNavigationOptions === 'object') {
+    navigationOptions = getNavigationOptions
   }
-}
+  // @ts-ignore
+  const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover, modal2Type} = navigationOptions ?? {}
 
-class ModalView extends React.PureComponent<NavigationViewProps<any>> {
-  render() {
-    const navigation = this.props.navigation
-    const index = navigation.state.index
-    const activeKey = navigation.state.routes[index].key
-    const descriptor = this.props.descriptors[activeKey]
-    const childNav = descriptor.navigation
+  const popRef = React.useRef(navigation.pop)
+  React.useEffect(() => {
+    popRef.current = navigation.pop
+  }, [navigation])
 
-    // We render the app below us
-    const appKey = this.props.navigation.state.routes[0].key
-    const appNav = this.props.navigation.getChildNavigation(appKey)
-    const appDescriptor = this.props.descriptors[appKey]
+  const backgroundRef = React.useRef(null)
+  // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
+  // window around to count
+  const [mouseDownX, setMouseDownX] = React.useState(mouseResetValue)
+  const [mouseDownY, setMouseDownY] = React.useState(mouseResetValue)
+  const onMouseDown = React.useCallback(
+    (e: React.MouseEvent) => {
+      const {screenX, screenY, target} = e.nativeEvent
+      if (target !== backgroundRef.current) {
+        return
+      }
+      setMouseDownX(screenX)
+      setMouseDownY(screenY)
+    },
+    [setMouseDownX, setMouseDownY]
+  )
+  const onMouseUp = React.useCallback(
+    (e: React.MouseEvent) => {
+      const {screenX, screenY, target} = e.nativeEvent
+      if (target !== backgroundRef.current) {
+        return
+      }
+      const delta = Math.abs(screenX - mouseDownX) + Math.abs(screenY - mouseDownY)
+      const dismiss = delta < mouseDistanceThreshold
+      setMouseDownX(mouseResetValue)
+      setMouseDownY(mouseResetValue)
+      if (dismiss) {
+        popRef.current?.()
+      }
+    },
+    [setMouseDownX, setMouseDownY, mouseDownX, mouseDownY]
+  )
+  // if the modals change clear this value
+  React.useEffect(() => {
+    setMouseDownX(mouseResetValue)
+    setMouseDownY(mouseResetValue)
+  }, [index])
 
-    // TODO we might want all the click handling / grey background stuff handled by the routing
-    return (
-      <>
-        <SceneView
-          key="AppLayer"
-          navigation={appNav}
-          component={appDescriptor.getComponent()}
-          screenProps={this.props.screenProps || noScreenProps}
-        />
-        {index > 0 && (
-          <Kb.Box2 direction="vertical" style={styles.modalContainer}>
-            <SceneView
-              key="ModalLayer"
-              navigation={childNav}
-              component={descriptor.getComponent()}
-              screenProps={this.props.screenProps || noScreenProps}
-            />
+  let modal: React.ReactNode = null
+
+  if (index > 0) {
+    if (modal2) {
+      modal = (
+        <Kb.Box2
+          key="background"
+          direction="horizontal"
+          ref={backgroundRef}
+          style={Styles.collapseStyles([styles.modal2Container, modal2ClearCover && styles.modal2ClearCover])}
+          onMouseDown={onMouseDown as any}
+          onMouseUp={onMouseUp as any}
+        >
+          {modal2AvoidTabs && (
+            <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
+          )}
+          <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.modal2Style, modal2Style])}>
+            <Kb.Box2 direction="vertical" style={modalModeToStyle.get(modal2Type ?? 'Default')}>
+              <SceneView
+                key="ModalLayer"
+                navigation={childNav}
+                component={Component}
+                screenProps={props.screenProps || noScreenProps}
+              />
+              {!modal2ClearCover && (
+                <Kb.Icon
+                  type="iconfont-close"
+                  onClick={() => popRef.current?.()}
+                  color={Styles.globalColors.whiteOrWhite_75}
+                  hoverColor={Styles.globalColors.white_40OrWhite_40}
+                  style={styles.modal2CloseIcon}
+                />
+              )}
+            </Kb.Box2>
           </Kb.Box2>
-        )}
-        <GlobalError />
-        <OutOfDate />
-      </>
-    )
+        </Kb.Box2>
+      )
+    } else {
+      modal = (
+        <Kb.Box2 key="background" direction="vertical" style={styles.modalContainer}>
+          <SceneView
+            key="ModalLayer"
+            navigation={childNav}
+            component={Component}
+            screenProps={props.screenProps || noScreenProps}
+          />
+        </Kb.Box2>
+      )
+    }
   }
-}
 
-class TabView extends React.PureComponent<NavigationViewProps<any>> {
-  render() {
-    const navigation = this.props.navigation
-    const index = navigation.state.index
-    const activeKey = navigation.state.routes[index].key
-    const descriptor = this.props.descriptors[activeKey]
-    const childNav = descriptor.navigation
-    const selectedTab = descriptor.state.routeName
-    const sceneView = (
+  return (
+    <>
       <SceneView
-        navigation={childNav}
-        component={descriptor.getComponent()}
-        screenProps={this.props.screenProps || noScreenProps}
+        key="AppLayer"
+        navigation={appNav}
+        component={appDescriptor.getComponent()}
+        screenProps={props.screenProps || noScreenProps}
       />
-    )
-    return (
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <TabBar navigation={navigation} selectedTab={selectedTab as Tabs.AppTab} />
-        {sceneView}
-      </Kb.Box2>
-    )
-  }
-}
+      {modal}
+      <GlobalError />
+      <OutOfDate />
+    </>
+  )
+})
+
+const TabView = React.memo((props: NavigationViewProps<any>) => {
+  const {navigation, descriptors} = props
+  const {state} = navigation
+  const {index, routes} = state
+  const {key} = routes[index]
+  const descriptor = descriptors[key]
+  const {navigation: childNav, state: childState} = descriptor
+  const {routeName} = childState
+  const sceneView = (
+    <SceneView
+      navigation={childNav}
+      component={descriptor.getComponent()}
+      screenProps={props.screenProps || noScreenProps}
+    />
+  )
+  return (
+    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+      <TabBar navigation={navigation} selectedTab={routeName as Tabs.AppTab} />
+      {sceneView}
+    </Kb.Box2>
+  )
+})
 
 const tabs = Shared.desktopTabs
 
@@ -217,7 +315,7 @@ const RootStackNavigator = createSwitchNavigator(
 
 type Subscriber = (data: {action: Object | null; lastState: Object | null; state: any; type: string}) => void
 
-const createElectronApp = Component => {
+const createElectronApp = (Component: any) => {
   // Based on https://github.com/react-navigation/react-navigation-native/blob/master/src/createAppContainer.js
   class ElectronApp extends React.PureComponent<any, any> {
     private navState: any = null // always use this value and not whats in state since thats async
@@ -239,7 +337,7 @@ const createElectronApp = Component => {
     }
 
     componentDidMount() {
-      let action = this.initialAction
+      const action = this.initialAction
       // maybe slightly unsafe but keeping this close to the reference
       // eslint-disable-next-line
       let startupState = this.state.nav
@@ -352,6 +450,15 @@ const createElectronApp = Component => {
 
 const ElectronApp: any = createElectronApp(RootStackNavigator)
 
+const modalModeCommon = Styles.platformStyles({
+  isElectron: {
+    ...Styles.desktopStyles.boxShadow,
+    backgroundColor: Styles.globalColors.white,
+    borderRadius: Styles.borderRadius,
+    pointerEvents: 'auto',
+    position: 'relative',
+  },
+})
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -369,10 +476,73 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
-      modalContainer: {...Styles.globalStyles.fillAbsolute},
+      modal2AvoidTabs: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: undefined,
+          height: 0,
+          pointerEvents: 'none',
+        },
+      }),
+      modal2ClearCover: {backgroundColor: undefined},
+      modal2CloseIcon: Styles.platformStyles({
+        isElectron: {
+          cursor: 'pointer',
+          padding: Styles.globalMargins.tiny,
+          position: 'absolute',
+          right: Styles.globalMargins.tiny * -4,
+          top: 0,
+        },
+      }),
+      modal2Container: {
+        ...Styles.globalStyles.fillAbsolute,
+        backgroundColor: Styles.globalColors.black_50OrBlack_60,
+      },
+      modal2Style: Styles.platformStyles({
+        isElectron: {flexGrow: 1, pointerEvents: 'none'},
+      }),
+      modalContainer: {
+        ...Styles.globalStyles.fillAbsolute,
+      },
+      modalModeDefault: Styles.platformStyles({
+        common: {...modalModeCommon},
+        isElectron: {
+          maxHeight: 560,
+          width: 400,
+        },
+      }),
+      modalModeDefaultFullHeight: Styles.platformStyles({
+        common: {...modalModeCommon},
+        isElectron: {
+          height: 560,
+          width: 400,
+        },
+      }),
+      modalModeDefaultFullWidth: Styles.platformStyles({
+        common: {...modalModeCommon},
+        isElectron: {
+          height: 560,
+          width: '100%',
+        },
+      }),
+      modalModeWide: Styles.platformStyles({
+        common: {...modalModeCommon},
+        isElectron: {
+          height: 400,
+          width: 560,
+        },
+      }),
       sceneContainer: {flexDirection: 'column'},
       transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
     } as const)
 )
+
+type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide'
+
+const modalModeToStyle = new Map<ModalType, Styles.StylesCrossPlatform>([
+  ['Default', styles.modalModeDefault],
+  ['DefaultFullHeight', styles.modalModeDefaultFullHeight],
+  ['DefaultFullWidth', styles.modalModeDefaultFullWidth],
+  ['Wide', styles.modalModeWide],
+])
 
 export default ElectronApp
