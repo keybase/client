@@ -42,12 +42,12 @@ type Props = {
   onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
   fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
-  fullWidthScrollview?: boolean // only affects tablet, disables max width for scrollview content when provided
   mode: 'Default' | 'DefaultFullHeight' | 'Wide'
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean // content must push footer to bottom with this on.
   backgroundStyle?: Styles.StylesCrossPlatform
   scrollViewRef?: React.Ref<ScrollView>
+  scrollviewStyle?: Styles.StylesCrossPlatform
 
   // Desktop only popup overrides
   popupStyleClose?: Styles.StylesCrossPlatform
@@ -67,10 +67,7 @@ const ModalInner = (props: Props) => (
         ref={props.scrollViewRef}
         alwaysBounceVertical={false}
         style={Styles.collapseStyles([styles.scroll, props.backgroundStyle])}
-        contentContainerStyle={Styles.collapseStyles([
-          Styles.isTablet && !props.fullWidthScrollview ? {maxWidth: 600} : undefined,
-          styles.scrollContentContainer,
-        ])}
+        contentContainerStyle={Styles.collapseStyles([styles.scrollContentContainer, props.scrollviewStyle])}
       >
         {props.children}
       </Kb.ScrollView>
@@ -333,6 +330,7 @@ const styles = Styles.styleSheetCreate(() => {
       },
       isTablet: {
         alignSelf: 'center',
+        maxWidth: 600,
       },
     }),
   }
