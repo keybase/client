@@ -86,8 +86,8 @@ const styles = Styles.styleSheetCreate(() => ({
   selected: Styles.platformStyles({
     common: {
       borderLeftColor: Styles.globalColors.blue,
-      borderLeftStyle: 'solid',
       borderLeftWidth: 3,
+      borderStyle: 'solid',
     },
     isTablet: {
       borderRadius: 0,
