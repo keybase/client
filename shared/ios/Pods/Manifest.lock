@@ -291,15 +291,17 @@ PODS:
     - React-Core
   - RNAudio (4.3.0):
     - React
+  - RNCMaskedView (0.1.10):
+    - React
   - RNFastImage (7.0.2):
     - React
     - SDWebImage (~> 5.0)
     - SDWebImageWebPCoder (~> 0.2.3)
-  - RNGestureHandler (1.5.2):
+  - RNGestureHandler (1.6.1):
     - React
-  - RNReanimated (1.2.0):
+  - RNReanimated (1.8.0):
     - React
-  - RNScreens (1.0.0-alpha.23):
+  - RNScreens (2.5.0):
     - React
   - SDWebImage (5.2.5):
     - SDWebImage/Core (= 5.2.5)
@@ -374,6 +376,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - RNAudio (from `../node_modules/react-native-audio`)
+  - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -503,6 +506,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/rn-fetch-blob"
   RNAudio:
     :path: "../node_modules/react-native-audio"
+  RNCMaskedView:
+    :path: "../node_modules/@react-native-community/masked-view"
   RNFastImage:
     :path: "../node_modules/react-native-fast-image"
   RNGestureHandler:
@@ -600,10 +605,11 @@ SPEC CHECKSUMS:
   ReactCommon: 198c7c8d3591f975e5431bec1b0b3b581aa1c5dd
   rn-fetch-blob: 2509def10b0fd8ff10e22da284264be34b2231f6
   RNAudio: cae2991f2dccb75163f260b60da8051717b959fa
+  RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
   RNFastImage: 9b0c22643872bb7494c8d87bbbb66cc4c0d9e7a2
-  RNGestureHandler: 946a7691e41df61e2c4b1884deab41a4cdc3afff
-  RNReanimated: 1b52415c4302f198cb581282a0166690bad62c43
-  RNScreens: f28b48b8345f2f5f39ed6195518291515032a788
+  RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
+  RNReanimated: 955cf4068714003d2f1a6e2bae3fb1118f359aff
+  RNScreens: ac02d0e4529f08ced69f5580d416f968a6ec3a1d
   SDWebImage: 4eabf2fa6695c95c47724214417a9c036c965e4a
   SDWebImageWebPCoder: 947093edd1349d820c40afbd9f42acb6cdecd987
   UMBarCodeScannerInterface: d5a6fdc98ed6241225b0a8432a7f4e2b397668bc
@@ -622,4 +628,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 843dc6df133334007d13b5c34a0fd83194e7fa0e
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.1
