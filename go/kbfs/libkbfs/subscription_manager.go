@@ -19,6 +19,11 @@ import (
 	"golang.org/x/time/rate"
 )
 
+const (
+	folderBranchPollingInterval           = time.Second
+	maxPurgeableSubscriptionManagerClient = 3
+)
+
 // userPath is always the full path including the /keybase prefix, but may
 // not be canonical or cleaned. The goal is to track whatever the user of this
 // type is dealing with without needing them to know if a path is canonicalized
@@ -331,8 +336,6 @@ func (sm *subscriptionManager) subscribePathWithFolderBranchLocked(
 	return nil
 }
 
-const folderBranchPollingInterval = time.Second
-
 func (sm *subscriptionManager) cancelAndDeleteFolderBranchPollerLocked(
 	sid SubscriptionID) (deleted bool) {
 	if cancel, ok := sm.folderBranchPollerCancelers[sid]; ok {
@@ -367,7 +370,7 @@ func (sm *subscriptionManager) pollOnFolderBranchForSubscribePathRequest(
 			}
 
 			// We have a folderBranch now! Go ahead and complete the
-			// sbuscription, and send a notification too.
+			// subscription, and send a notification too.
 
 			sm.lock.Lock()
 			defer sm.lock.Unlock()
@@ -412,6 +415,14 @@ func (sm *subscriptionManager) subscribePathWithoutFolderBranchLocked(
 func (sm *subscriptionManager) SubscribePath(ctx context.Context,
 	sid SubscriptionID, path string, topic keybase1.PathSubscriptionTopic,
 	deduplicateInterval *time.Duration) error {
+	// Lock at the beginnning to protect against racing with unsubscribe.
+	// Specifically, we don't want to launch the poller if an unsubscribe call
+	// for this sid comes in before we get fb from
+	// parsedPath.getFolderBranch().
+	//
+	// We could still end up with a lingering subscription if unsubscribe
+	// happens too fast and RPC somehow gives use the unsubscribe call before
+	// the subscribe call, but that's probably rare enough to ignore here.
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
 
@@ -440,10 +451,6 @@ func (sm *subscriptionManager) SubscribePath(ctx context.Context,
 func (sm *subscriptionManager) SubscribeNonPath(
 	ctx context.Context, sid SubscriptionID, topic keybase1.SubscriptionTopic,
 	deduplicateInterval *time.Duration) error {
-	// Lock at the beginnning to protect against racing with unsubscribe. We
-	// could still endup lingering subscription if unsubscribe happens to fast
-	// and RPC somehow gives use the unsubscribe call before the subscribe
-	// call, but that's probably rare enough to ignore here.
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
 	subscriptionIDSetter, err := sm.checkSubscriptionIDLocked(sid)
@@ -627,8 +634,6 @@ type subscriptionManagerManager struct {
 	subscriptionManagers   map[SubscriptionManagerClientID]*subscriptionManager
 	purgeableClientIDsFIFO []SubscriptionManagerClientID
 }
-
-const maxPurgeableSubscriptionManagerClient = 3
 
 func newSubscriptionManagerManager(config Config) *subscriptionManagerManager {
 	return &subscriptionManagerManager{
