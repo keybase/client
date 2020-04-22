@@ -725,11 +725,7 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
 }
 
 export const getSharePathArrayDescription = (paths: Array<Types.LocalPath>): string => {
-  return !paths.length
-    ? '<empty>'
-    : paths.length === 1
-    ? Types.getPathName(paths[0])
-    : `${paths.length} items`
+  return !paths.length ? '' : paths.length === 1 ? Types.getPathName(paths[0]) : `${paths.length} items`
 }
 
 export const getDestinationPickerPathName = (picker: Types.DestinationPicker): string =>
@@ -738,7 +734,9 @@ export const getDestinationPickerPathName = (picker: Types.DestinationPicker): s
     : picker.source.type === Types.DestinationPickerSource.IncomingShare
     ? Array.isArray(picker.source.source)
       ? getSharePathArrayDescription(
-          picker.source.source.map(({originalPath}) => Types.getLocalPathName(originalPath))
+          picker.source.source
+            .map(({originalPath}) => (originalPath ? Types.getLocalPathName(originalPath) : ''))
+            .filter(Boolean)
         )
       : picker.source.source
     : ''

@@ -668,24 +668,27 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
             } as RPCTypes.Path,
           },
         ]
-      : state.fs.destinationPicker.source.source.map(item => ({
-          dest: Constants.pathToRPCPath(
-            Types.pathConcat(
-              action.payload.destinationParentPath,
-              Types.getLocalPathName(item.originalPath)
-              // We use the local path name here since we only care about file name.
-            )
-          ),
-          opID: Constants.makeUUID() as string,
-          overwriteExistingFiles: false,
-          src: {
-            PathType: RPCTypes.PathType.local,
-            // @ts-ignore
-            local: state.fs.destinationPicker.source.useOriginal
-              ? item.originalPath
-              : item.scaledPath || item.originalPath,
-          } as RPCTypes.Path,
-        }))
+      : state.fs.destinationPicker.source.source
+          .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
+          .filter(({originalPath}) => !!originalPath)
+          .map(({originalPath, scaledPath}) => ({
+            dest: Constants.pathToRPCPath(
+              Types.pathConcat(
+                action.payload.destinationParentPath,
+                Types.getLocalPathName(originalPath)
+                // We use the local path name here since we only care about file name.
+              )
+            ),
+            opID: Constants.makeUUID() as string,
+            overwriteExistingFiles: false,
+            src: {
+              PathType: RPCTypes.PathType.local,
+              // @ts-ignore
+              local: state.fs.destinationPicker.source.useOriginal
+                ? originalPath
+                : scaledPath || originalPath,
+            } as RPCTypes.Path,
+          }))
 
   try {
     const rpc =

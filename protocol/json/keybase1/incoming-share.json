@@ -26,11 +26,17 @@
           "name": "type"
         },
         {
-          "type": "string",
+          "type": [
+            null,
+            "string"
+          ],
           "name": "originalPath"
         },
         {
-          "type": "int",
+          "type": [
+            null,
+            "int"
+          ],
           "name": "originalSize"
         },
         {
