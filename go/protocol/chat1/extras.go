@@ -24,14 +24,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const (
-	// we will show some representation of an exploded message in the UI for a
-	// day
-	ShowExplosionLifetime = time.Hour * 24
+// we will show some representation of an exploded message in the UI for a week
+const ShowExplosionLifetime = time.Hour * 24 * 7
 
-	// If a conversation is larger, only admins can @channel.
-	MaxChanMentionConvSize = 100
-)
+// If a conversation is larger, only admins can @channel.
+const MaxChanMentionConvSize = 100
 
 func (i FlipGameIDStr) String() string {
 	return string(i)
