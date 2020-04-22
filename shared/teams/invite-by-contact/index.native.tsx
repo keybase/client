@@ -2,7 +2,6 @@ import * as Kb from '../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'
-import {pluralize} from '../../util/string'
 import {TeamRoleType} from '../../constants/types/teams'
 import {Contact} from '../common/use-contacts.native'
 
@@ -114,10 +113,12 @@ export const InviteByContact = (props: InviteByContactProps) => {
             />
           </Kb.Box2>
           <FloatingRolePicker
-            confirmLabel={`Invite as ${pluralize(props.selectedRole)}`}
-            selectedRole={props.selectedRole}
-            onSelectRole={props.onRoleChange}
-            onConfirm={() => controlRolePicker(false)}
+            presetRole={props.selectedRole}
+            confirmLabel={`Invite as`}
+            onConfirm={role => {
+              props.onRoleChange(role)
+              controlRolePicker(false)
+            }}
             open={isRolePickerOpen}
             position="bottom center"
             disabledRoles={{owner: 'Cannot invite an owner via email.'}}

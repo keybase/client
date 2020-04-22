@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'
 import capitalize from 'lodash/capitalize'
 import {TeamRoleType} from '../../constants/types/teams'
-import {pluralize} from '../../util/string'
 
 export type Props = {
   errorMessage: string
@@ -61,16 +60,12 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     this.setState({isRolePickerOpen: false})
   }
 
-  onConfirmRolePicker = () => {
-    this.setState({isRolePickerOpen: false})
+  onConfirmRolePicker = role => {
+    this.setState({isRolePickerOpen: false, role})
   }
 
   onOpenRolePicker = () => {
     this.setState({isRolePickerOpen: true})
-  }
-
-  onSelectRole = (role: TeamRoleType) => {
-    this.setState({role})
   }
 
   componentWillUnmount() {
@@ -111,9 +106,8 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
                 Add these team members to {props.name} as:
               </Kb.Text>
               <FloatingRolePicker
-                confirmLabel={`Invite as ${pluralize(this.state.role)}`}
-                selectedRole={this.state.role}
-                onSelectRole={this.onSelectRole}
+                presetRole={this.state.role}
+                confirmLabel={`Invite as`}
                 floatingContainerStyle={styles.floatingRolePicker}
                 onConfirm={this.onConfirmRolePicker}
                 onCancel={this.onCancelRolePicker}

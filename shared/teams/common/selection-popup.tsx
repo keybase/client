@@ -281,13 +281,9 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const roles = members.map(username => teamDetails.members.get(username)?.type)
   const currentRole = allSameOrNull(roles)
-  const [role, setRole] = React.useState(currentRole ?? null)
 
   const [showingPicker, _setShowingPicker] = React.useState(false)
   const setShowingPicker = (show: boolean) => {
-    if (show) {
-      setRole(currentRole ?? null)
-    }
     _setShowingPicker(show)
   }
 
@@ -309,15 +305,13 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
   return (
     <FloatingRolePicker
       presetRole={currentRole}
-      selectedRole={role}
-      onSelectRole={setRole}
       onConfirm={onChangeRoles}
       onCancel={() => setShowingPicker(false)}
       position="top center"
       open={showingPicker}
       disabledRoles={disabledReasons}
       waiting={waiting}
-      confirmLabel={role ? `Make ${pluralize(role, members.length)}` : undefined}
+      count={members.length}
     >
       <Kb.Button
         label="Edit role"

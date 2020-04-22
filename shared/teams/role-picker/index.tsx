@@ -40,6 +40,7 @@ export type Props<IncludeSetIndividually extends boolean> = {
   presetRole: MaybeRole<IncludeSetIndividually>
   includeSetIndividually?: IncludeSetIndividually extends true ? boolean : false
   waiting?: boolean
+  count?: number
 }
 
 type RoleRowProps = {
@@ -264,20 +265,23 @@ const footerButtonsHelper = (
 
 const confirmLabelHelper = (
   presetRole: Role<any> | null,
-  selectedRole: Role<any> | null,
-  confirmLabel?: string
+  selectedRole: Role<any>,
+  confirmLabel?: string,
+  count?: number
 ): string => {
-  if (confirmLabel != null && selectedRole != null) {
-    return confirmLabel + ` ${pluralize(selectedRole)}`
-  }
-
-  const label = selectedRole && selectedRole.toLowerCase()
-  if (label && presetRole === selectedRole) {
+  if (presetRole === selectedRole) {
     return `Saved`
   }
 
-  const makeLabel = selectedRole === 'setIndividually' ? 'Set Individually' : `Make ${label}`
-  return label ? makeLabel : `Pick a role`
+  if (count == null) {
+    count = 2 // Default plural
+  }
+
+  if (confirmLabel != null && selectedRole !== 'setIndividually') {
+    return confirmLabel + ` ${pluralize(selectedRole, count)}`
+  }
+
+  return selectedRole === 'setIndividually' ? 'Set Individually' : `Make ${pluralize(selectedRole, count)}`
 }
 
 const Header = () => (
@@ -326,7 +330,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
           selectedRole && selectedRole !== props.presetRole
             ? () => selectedRole && props.onConfirm(selectedRole)
             : undefined,
-          confirmLabelHelper(filterRole(props.presetRole), selectedRole || null, props.confirmLabel),
+          confirmLabelHelper(filterRole(props.presetRole), selectedRole, props.confirmLabel, props.count),
           props.waiting
         )}
       </Kb.Box2>
