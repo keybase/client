@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -18,7 +18,7 @@ type onlineStatusTracker struct {
 	cancel   func()
 	config   Config
 	onChange func()
-	log      logger.Logger
+	vlog     *libkb.VDebugLog
 
 	lock          sync.RWMutex
 	currentStatus keybase1.KbfsOnlineStatus
@@ -131,7 +131,7 @@ const (
 func ostFsm(
 	ctx context.Context,
 	wg *sync.WaitGroup,
-	log logger.Logger,
+	vlog *libkb.VDebugLog,
 	initialState ostState,
 	// sideEffects carries events about side effects caused by the FSM
 	// transitions. Caller should handle these effects and make things actually
@@ -163,7 +163,7 @@ func ostFsm(
 		return
 	default:
 	}
-	log.CDebugf(ctx, "ostFsm initialState=%s", initialState)
+	vlog.CLogf(ctx, libkb.VLog1, "ostFsm initialState=%s", initialState)
 
 	state := initialState
 	for {
@@ -268,7 +268,7 @@ func ostFsm(
 		}
 
 		if previousState != state {
-			log.CDebugf(ctx, "ostFsm state=%s", state)
+			vlog.CLogf(ctx, libkb.VLog1, "ostFsm state=%s", state)
 			onlineStatus := state.getOnlineStatus()
 			if previousState.getOnlineStatus() != onlineStatus {
 				select {
@@ -313,7 +313,7 @@ func (ost *onlineStatusTracker) run(ctx context.Context) {
 	}
 
 	ost.wg.Add(1)
-	go ostFsm(ctx, ost.wg, ost.log,
+	go ostFsm(ctx, ost.wg, ost.vlog,
 		initialState, sideEffects, onlineStatusUpdates,
 		ost.userIn, ost.userOut, tryingTimerUp, connected, disconnected)
 
@@ -369,7 +369,7 @@ func (ost *onlineStatusTracker) run(ctx context.Context) {
 			}
 		case onlineStatus := <-onlineStatusUpdates:
 			ost.updateOnlineStatus(onlineStatus)
-			ost.log.CDebugf(ctx, "ost onlineStatus=%d", onlineStatus)
+			ost.vlog.CLogf(ctx, libkb.VLog1, "ost onlineStatus=%d", onlineStatus)
 		case <-ctx.Done():
 			return
 		}
@@ -401,14 +401,14 @@ func (ost *onlineStatusTracker) userInOut(clientID string, clientIsIn bool) {
 // any backoff timer for reconnecting to the mdserver.
 func (ost *onlineStatusTracker) UserIn(ctx context.Context, clientID string) {
 	ost.userInOut(clientID, true)
-	ost.log.CDebugf(ctx, "UserIn clientID=%s", clientID)
+	ost.vlog.CLogf(ctx, libkb.VLog1, "UserIn clientID=%s", clientID)
 }
 
 // UserOut tells the onlineStatusTracker that user is not looking at the Fs
 // tab in GUI anymore.  GUI.
 func (ost *onlineStatusTracker) UserOut(ctx context.Context, clientID string) {
 	ost.userInOut(clientID, false)
-	ost.log.CDebugf(ctx, "UserOut clientID=%s", clientID)
+	ost.vlog.CLogf(ctx, libkb.VLog1, "UserOut clientID=%s", clientID)
 }
 
 // GetOnlineStatus implements the OnlineStatusTracker interface.
@@ -421,12 +421,13 @@ func (ost *onlineStatusTracker) GetOnlineStatus() keybase1.KbfsOnlineStatus {
 func newOnlineStatusTracker(
 	config Config, onChange func()) *onlineStatusTracker {
 	ctx, cancel := context.WithCancel(context.Background())
+	log := config.MakeLogger("onlineStatusTracker")
 	ost := &onlineStatusTracker{
 		cancel:        cancel,
 		config:        config,
 		onChange:      onChange,
 		currentStatus: keybase1.KbfsOnlineStatus_ONLINE,
-		log:           config.MakeLogger("onlineStatusTracker"),
+		vlog:          config.MakeVLogger(log),
 		userIsLooking: make(map[string]bool),
 		userIn:        make(chan struct{}),
 		userOut:       make(chan struct{}),
