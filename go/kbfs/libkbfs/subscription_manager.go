@@ -216,30 +216,37 @@ func (sm *subscriptionManager) unregisterForChangesLocked(fb data.FolderBranch) 
 	sm.subscriptionCountByFolderBranch[fb]--
 }
 
+func (sm *subscriptionManager) preparePathNotification(
+	ref pathSubscriptionRef) (sids []SubscriptionID,
+	paths []string, topics []keybase1.PathSubscriptionTopic) {
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
+
+	ps, ok := sm.pathSubscriptions[ref]
+	if !ok {
+		return
+	}
+	sids = make([]SubscriptionID, 0, len(ps.subscriptionIDs))
+	topicsMap := make(map[keybase1.PathSubscriptionTopic]struct{})
+	for sid, topic := range ps.subscriptionIDs {
+		sids = append(sids, sid)
+		topicsMap[topic] = struct{}{}
+	}
+	topics = make([]keybase1.PathSubscriptionTopic, 0, len(topicsMap))
+	for topic := range topicsMap {
+		topics = append(topics, topic)
+	}
+	paths = make([]string, 0, len(ps.pathsToNotify))
+	for path := range ps.pathsToNotify {
+		paths = append(paths, path)
+	}
+	return sids, paths, topics
+}
+
 func (sm *subscriptionManager) makePathSubscriptionDebouncedNotify(
 	ref pathSubscriptionRef, limit rate.Limit) *debouncedNotify {
 	return debounce(func() {
-		sm.lock.RLock()
-		ps, ok := sm.pathSubscriptions[ref]
-		if !ok {
-			sm.lock.RUnlock()
-			return
-		}
-		sids := make([]SubscriptionID, 0, len(ps.subscriptionIDs))
-		topicsMap := make(map[keybase1.PathSubscriptionTopic]struct{})
-		for sid, topic := range ps.subscriptionIDs {
-			sids = append(sids, sid)
-			topicsMap[topic] = struct{}{}
-		}
-		topics := make([]keybase1.PathSubscriptionTopic, 0, len(topicsMap))
-		for topic := range topicsMap {
-			topics = append(topics, topic)
-		}
-		paths := make([]string, 0, len(ps.pathsToNotify))
-		for path := range ps.pathsToNotify {
-			paths = append(paths, path)
-		}
-		sm.lock.RUnlock()
+		sids, paths, topics := sm.preparePathNotification(ref)
 
 		for _, path := range paths {
 			sm.notifier.OnPathChange(sm.clientID, sids, path, topics)
@@ -247,21 +254,25 @@ func (sm *subscriptionManager) makePathSubscriptionDebouncedNotify(
 	}, limit)
 }
 
+func (sm *subscriptionManager) prepareNonPathNotification(
+	topic keybase1.SubscriptionTopic) (sids []SubscriptionID) {
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
+	nps, ok := sm.nonPathSubscriptions[topic]
+	if !ok {
+		return
+	}
+	sids = make([]SubscriptionID, 0, len(nps.subscriptionIDs))
+	for sid := range nps.subscriptionIDs {
+		sids = append(sids, sid)
+	}
+	return sids
+}
+
 func (sm *subscriptionManager) makeNonPathSubscriptionDebouncedNotify(
 	topic keybase1.SubscriptionTopic, limit rate.Limit) *debouncedNotify {
 	return debounce(func() {
-		sm.lock.RLock()
-		nps, ok := sm.nonPathSubscriptions[topic]
-		if !ok {
-			sm.lock.RUnlock()
-			return
-		}
-		sids := make([]SubscriptionID, 0, len(nps.subscriptionIDs))
-		for sid := range nps.subscriptionIDs {
-			sids = append(sids, sid)
-		}
-		sm.lock.RUnlock()
-
+		sids := sm.prepareNonPathNotification(topic)
 		sm.notifier.OnNonPathChange(sm.clientID, sids, topic)
 	}, limit)
 }
