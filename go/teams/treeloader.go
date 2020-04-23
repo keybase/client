@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"context"
 	"fmt"
 	"sync/atomic"
 	"time"
@@ -19,6 +20,8 @@ type Treeloader struct {
 	targetTeamID   keybase1.TeamID
 	guid           int
 
+	includeAncestors bool
+
 	// initial computed values
 	targetUV       keybase1.UserVersion
 	targetTeamName keybase1.TeamName
@@ -30,7 +33,7 @@ type Treeloader struct {
 var _ TreeloaderStateConverter = &Treeloader{}
 
 func NewTreeloader(mctx libkb.MetaContext, targetUsername string,
-	targetTeamID keybase1.TeamID, guid int) (*Treeloader, error) {
+	targetTeamID keybase1.TeamID, guid int, includeAncestors bool) (*Treeloader, error) {
 
 	larg := libkb.NewLoadUserArgWithMetaContext(mctx).WithName(targetUsername).WithForcePoll(true)
 	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(larg)
@@ -39,17 +42,112 @@ func NewTreeloader(mctx libkb.MetaContext, targetUsername string,
 	}
 
 	l := &Treeloader{
-		targetUsername: targetUsername,
-		targetTeamID:   targetTeamID,
-		guid:           guid,
-		targetUV:       upak.Current.ToUserVersion(),
+		targetUsername:   targetUsername,
+		targetTeamID:     targetTeamID,
+		guid:             guid,
+		targetUV:         upak.Current.ToUserVersion(),
+		includeAncestors: includeAncestors,
 	}
 	l.Converter = l
 	return l, nil
 }
 
-func (l *Treeloader) Load(mctx libkb.MetaContext) error {
-	defer mctx.Trace(fmt.Sprintf("Treeloader.Load(%s, %s)",
+// LoadSync requires all loads to succeed, or errors out.
+func (l *Treeloader) LoadSync(mctx libkb.MetaContext) (res []keybase1.TeamTreeMembership,
+	err error) {
+	defer mctx.Trace(fmt.Sprintf("Treeloader.LoadSync(%s, %s)",
+		l.targetTeamID, l.targetUV), &err)()
+
+	ch, cancel, err := l.loadAsync(mctx)
+	if err != nil {
+		return nil, err
+	}
+	// Stop load if we error out early
+	defer cancel()
+	for notification := range ch {
+		switch notification.typ {
+		case treeloaderNotificationTypePartial:
+			s, err := notification.partialNotification.S()
+			if err != nil {
+				return nil, fmt.Errorf("Treeloader.LoadSync: failed to load subtree; bailing: %s",
+					err)
+			}
+			if s == keybase1.TeamTreeMembershipStatus_ERROR {
+				return nil, fmt.Errorf("Treeloader.LoadSync: failed to load subtree; bailing: %s",
+					notification.partialNotification.Error().Message)
+			}
+
+			res = append(res, keybase1.TeamTreeMembership{
+				Result:         *notification.partialNotification,
+				TeamName:       notification.teamName.String(),
+				TargetTeamID:   l.targetTeamID,
+				TargetUsername: l.targetUsername,
+				Guid:           l.guid,
+			})
+		default:
+		}
+	}
+
+	return res, nil
+}
+
+func (l *Treeloader) LoadAsync(mctx libkb.MetaContext) (err error) {
+	defer mctx.Trace(fmt.Sprintf("Treeloader.LoadAsync(%s, %s)",
+		l.targetTeamID, l.targetUV), &err)()
+
+	ch, _, err := l.loadAsync(mctx)
+	if err != nil {
+		return err
+	}
+	go func() {
+		// Because Go channels can be closed, we don't need to check expectedCount against the
+		// number of received partials like RPC clients do.
+		for notification := range ch {
+			switch notification.typ {
+			case treeloaderNotificationTypeDone:
+				l.notifyDone(mctx, *notification.doneNotification)
+			case treeloaderNotificationTypePartial:
+				l.notifyPartial(mctx, notification.teamName, *notification.partialNotification)
+			}
+		}
+	}()
+
+	return nil
+}
+
+type treeloaderNotificationType int
+
+const (
+	treeloaderNotificationTypeDone    = 0
+	treeloaderNotificationTypePartial = 1
+)
+
+type notification struct {
+	typ                 treeloaderNotificationType
+	teamName            keybase1.TeamName
+	partialNotification *keybase1.TeamTreeMembershipResult
+	doneNotification    *int
+}
+
+func newPartialNotification(teamName keybase1.TeamName,
+	result keybase1.TeamTreeMembershipResult) notification {
+	return notification{
+		typ:                 treeloaderNotificationTypePartial,
+		teamName:            teamName,
+		partialNotification: &result,
+	}
+}
+func newDoneNotification(teamName keybase1.TeamName, expectedCount int) notification {
+	return notification{
+		typ:              treeloaderNotificationTypeDone,
+		teamName:         teamName,
+		doneNotification: &expectedCount,
+	}
+}
+
+func (l *Treeloader) loadAsync(mctx libkb.MetaContext) (ch chan notification,
+	cancel context.CancelFunc, err error) {
+	defer mctx.Trace(fmt.Sprintf("Treeloader.loadAsync(%s, %s)",
 		l.targetTeamID, l.targetUV), nil)()
 
 	start := time.Now()
@@ -57,50 +155,61 @@ func (l *Treeloader) Load(mctx libkb.MetaContext) error {
 	target, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(),
 		l.targetTeamID, true /* needAdmin */)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	l.targetTeamName = target.Name()
 
-	// Load rest of team tree asynchronously.
-	go func(imctx libkb.MetaContext, start time.Time, targetChainState *TeamSigChainState) {
-		expectedCount := l.loadRecursive(imctx, l.targetTeamID, l.targetTeamName, targetChainState)
-		l.notifyDone(imctx, int(expectedCount))
+	ch = make(chan notification)
+	imctx, cancel := mctx.BackgroundWithLogTags().WithContextCancel()
 
+	// Load rest of team tree asynchronously.
+	go func(imctx libkb.MetaContext, start time.Time, targetChainState *TeamSigChainState,
+		ch chan notification) {
+		expectedCount := l.loadRecursive(imctx, l.targetTeamID, l.targetTeamName,
+			targetChainState, ch)
+		ch <- newDoneNotification(l.targetTeamName, int(expectedCount))
+		close(ch)
 		imctx.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
 			EventType: keybase1.PerfEventType_TEAMTREELOAD,
 			Message: fmt.Sprintf("Loaded %d teams in tree for %s",
 				expectedCount, l.targetTeamName),
 			Ctime: keybase1.ToTime(start),
 		})
-	}(mctx.BackgroundWithLogTags(), start, target.chain())
+	}(imctx, start, target.chain(), ch)
 
-	return nil
+	return ch, cancel, nil
 }
 
 func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	teamName keybase1.TeamName, targetChainState *TeamSigChainState) (expectedCount int32) {
+	teamName keybase1.TeamName, targetChainState *TeamSigChainState,
+	ch chan notification) (expectedCount int32) {
 	defer mctx.Trace(fmt.Sprintf("Treeloader.loadRecursive(%s, %s, %s)",
 		l.targetTeamName, l.targetUV, l.targetUsername), nil)()
 
-	// If it is the initial call, the caller passes in the sigchain state so we don't need to reload
-	// it. Otherwise, do a team load.
 	var result keybase1.TeamTreeMembershipResult
 	var subteams []keybase1.TeamIDAndName
-	if targetChainState != nil {
-		result = l.Converter.ProcessSigchainState(mctx, teamName, &targetChainState.inner)
-		subteams = targetChainState.ListSubteams()
-	} else {
-		team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
-		if err != nil {
-			result = l.NewErrorResult(err, teamName)
+	select {
+	case <-mctx.Ctx().Done():
+		result = l.NewErrorResult(mctx.Ctx().Err(), teamName)
+	default:
+		// If it is the initial call, the caller passes in the sigchain state so we don't need to reload
+		// it. Otherwise, do a team load.
+		if targetChainState != nil {
+			result = l.Converter.ProcessSigchainState(mctx, teamName, &targetChainState.inner)
+			subteams = targetChainState.ListSubteams()
 		} else {
-			result = l.Converter.ProcessSigchainState(mctx, teamName, &team.chain().inner)
-			subteams = team.chain().ListSubteams()
+			team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
+			if err != nil {
+				result = l.NewErrorResult(err, teamName)
+			} else {
+				result = l.Converter.ProcessSigchainState(mctx, teamName, &team.chain().inner)
+				subteams = team.chain().ListSubteams()
+			}
 		}
 	}
 	expectedCount = 1
-	l.notifyPartial(mctx, teamName, result)
+	ch <- newPartialNotification(teamName, result)
 	s, _ := result.S()
 	if s == keybase1.TeamTreeMembershipStatus_ERROR {
 		mctx.Debug("Treeloader.loadRecursive: short-circuiting load due to failure: %+v", result)
@@ -112,9 +221,9 @@ func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamI
 	eg, ctx := errgroup.WithContext(mctx.Ctx())
 	mctx = mctx.WithContext(ctx)
 	// Load ancestors
-	if np == nodePositionTarget && !teamName.IsRootTeam() {
+	if l.includeAncestors && np == nodePositionTarget && !teamName.IsRootTeam() {
 		eg.Go(func() error {
-			incr := l.loadAncestors(mctx, teamID, teamName)
+			incr := l.loadAncestors(mctx, teamID, teamName, ch)
 			mctx.Debug("Treeloader.loadRecursive: loaded %d teams from ancestors", incr)
 			atomic.AddInt32(&expectedCount, incr)
 			return nil
@@ -127,7 +236,7 @@ func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamI
 		idAndName := idAndName
 		// This is unbounded but assuming subteam spread isn't too high, should be ok.
 		eg.Go(func() error {
-			incr := l.loadRecursive(mctx, idAndName.Id, idAndName.Name, nil)
+			incr := l.loadRecursive(mctx, idAndName.Id, idAndName.Name, nil, ch)
 			mctx.Debug("Treeloader.loadRecursive: loaded %d teams from subtree", incr)
 			atomic.AddInt32(&expectedCount, incr)
 			return nil
@@ -140,7 +249,7 @@ func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamI
 }
 
 func (l *Treeloader) loadAncestors(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	teamName keybase1.TeamName) (expectedCount int32) {
+	teamName keybase1.TeamName, ch chan notification) (expectedCount int32) {
 	defer mctx.Trace(fmt.Sprintf("Treeloader.loadAncestors"), nil)()
 
 	handleAncestor := func(t keybase1.TeamSigChainState, ancestorTeamName keybase1.TeamName) error {
@@ -155,7 +264,7 @@ func (l *Treeloader) loadAncestors(mctx libkb.MetaContext, teamID keybase1.TeamI
 		if s == keybase1.TeamTreeMembershipStatus_ERROR {
 			return fmt.Errorf("failed to load ancestor: %s", result.Error().Message)
 		}
-		l.notifyPartial(mctx, ancestorTeamName, result)
+		ch <- newPartialNotification(ancestorTeamName, result)
 		return nil
 	}
 	err := mctx.G().GetTeamLoader().MapTeamAncestors(
@@ -175,7 +284,7 @@ func (l *Treeloader) loadAncestors(mctx libkb.MetaContext, teamID keybase1.TeamI
 		nameFailedAt := keybase1.TeamName{Parts: teamName.Parts[:idx+1]}
 
 		expectedCount = maxInt32(0, int32(e.failedLoadingAtAncestorIdx))
-		l.notifyPartial(mctx, nameFailedAt, l.NewErrorResult(err, nameFailedAt))
+		ch <- newPartialNotification(nameFailedAt, l.NewErrorResult(err, nameFailedAt))
 	default:
 		// Should never happen, since MapTeamAncestors should wrap every error as a
 		// MapAncestorsError.
@@ -183,7 +292,7 @@ func (l *Treeloader) loadAncestors(mctx libkb.MetaContext, teamID keybase1.TeamI
 		// Also not sure if it failed at a root for now, so say we didn't to err on the side of
 		// caution.
 		mctx.Debug("loadTeamAncestorsMemberships: map failed for unknown reason: %s", e)
-		l.notifyPartial(mctx, teamName, l.NewErrorResult(e, teamName))
+		ch <- newPartialNotification(teamName, l.NewErrorResult(e, teamName))
 	}
 	return expectedCount
 }

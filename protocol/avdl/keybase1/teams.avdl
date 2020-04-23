@@ -1372,22 +1372,54 @@ protocol teams {
   // @defaultChannelsOverride is ConversationIDs to add the members to instead of the team wide settings. if unset, use team wide setting
   TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification, union { null, string } emailInviteMessage, array<string> defaultChannelsOverride);
 
-  // allowInaction suppresses errors that come from removing an invite that doesn't exist. Relevant for suppressing errors when calling remove while a remove is already in progress.
-  // Note: allowInaction only applies to invite removals, just because that was what was needed.
-  void teamRemoveMember(int sessionID, TeamID teamID, string username, string email, TeamInviteID inviteID, boolean allowInaction);
-
-  record TeamMemberToRemove {
-    string username;
-    string email;
+  /* Team remove members - start */
+  record AssertionTeamMemberToRemove {
+    string assertion;
+    boolean removeFromSubtree;
+  }
+  record InviteTeamMemberToRemove {
     TeamInviteID inviteID;
-    boolean allowInaction;
   }
-
+  enum TeamMemberToRemoveType {
+    // ASSERTION can be passed to remove Keybase users, pukless Keybase-type invites, social
+    // invites, or email or phone-type invites.
+    ASSERTION_0,
+    INVITEID_1
+  }
+  variant TeamMemberToRemove switch (TeamMemberToRemoveType type) {
+    case ASSERTION: AssertionTeamMemberToRemove;
+    case INVITEID: InviteTeamMemberToRemove;
+  }
+  record RemoveTeamMemberFailure {
+    TeamMemberToRemove teamMember;
+    union {null, string} errorAtTarget;
+    union {null, string} errorAtSubtree;
+  }
   record TeamRemoveMembersResult {
-    array<TeamMemberToRemove> failures;
+    array<RemoveTeamMemberFailure> failures;
   }
-
-  TeamRemoveMembersResult teamRemoveMembers(int sessionID, TeamID teamID, array<TeamMemberToRemove> users);
+  // teamRemoveMember always returns an error if there was a failure.
+  void teamRemoveMember(int sessionID, TeamID teamID, TeamMemberToRemove member);
+  // teamRemoveMembers tries to remove the team members or invites specified in the argument. If it
+  // fails at some preliminary step, it will return an error. Otherwise, it will return no error and
+  // a list of members that were not able to be removed, for whatever reason (network failure,
+  // permissions issues, races, etc.).
+  // For non-invite members (except for keybase-type invites), one can optionally remove the member
+  // from all subteams recursively as well by passing removeFromSubtree. Failure in this
+  // step is recorded separately from failure in removal from teamID.
+  TeamRemoveMembersResult teamRemoveMembers(
+    int sessionID,
+    TeamID teamID,
+    array<TeamMemberToRemove> members,
+    // Pass noErrorOnPartialFailure if the returned error should be nil in the case there
+    // were some successes and some failures. It is the caller's responsibility to check
+    // TeamRemoveMembersResult and handle the errors. However, the call can still error out in the
+    // normal means if the RPC fails at a preliminary step.
+    // This is mainly used for the GUI because it cannot both get an error and inspect the results
+    // at the same time.
+    boolean noErrorOnPartialFailure
+  );
+  /* Team remove members - end */
 
   void teamLeave(int sessionID, string name, boolean permanent);
 

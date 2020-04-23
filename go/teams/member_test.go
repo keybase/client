@@ -477,17 +477,18 @@ func TestMembersRemove(t *testing.T) {
 
 	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_READER)
 
-	rolePairA := keybase1.TeamMemberToRemove{
-		Username: otherA.Username,
-	}
-
-	rolePairB := keybase1.TeamMemberToRemove{
-		Username: otherB.Username,
-	}
+	rolePairA := keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{
+		Assertion:         otherA.Username,
+		RemoveFromSubtree: false,
+	})
+	rolePairB := keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{
+		Assertion:         otherB.Username,
+		RemoveFromSubtree: false,
+	})
 
 	users := []keybase1.TeamMemberToRemove{rolePairA, rolePairB}
 
-	res, err := RemoveMembers(context.TODO(), tc.G, teamID, users)
+	res, err := RemoveMembers(context.TODO(), tc.G, teamID, users, false)
 
 	assertRole(tc, name.String(), otherA.Username, keybase1.TeamRole_NONE)
 	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_NONE)
@@ -1391,24 +1392,19 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	}
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
 
-	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, teamID, address, false))
-	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, teamID, address, true))
-	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, teamID, address, true), "doesnt error when canceling a canceled invite with allowInaction")
-	require.Error(t, CancelEmailInvite(context.TODO(), tc.G, teamID, address, false), "errors when canceling a canceled invite without allowInaction")
+	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, teamID, address))
 
 	assertNoInvite(tc, name, address, "email")
 
 	// check error type for an email address with no invite
-	err := CancelEmailInvite(context.TODO(), tc.G, teamID, "nope@keybase.io", false)
+	err := CancelEmailInvite(context.TODO(), tc.G, teamID, "nope@keybase.io")
 	if err == nil {
 		t.Fatal("expected error canceling email invite for unknown email address")
 	}
-	if _, ok := err.(libkb.NotFoundError); !ok {
-		t.Errorf("expected libkb.NotFoundError, got %T", err)
-	}
+	require.IsType(t, err, &MemberNotFoundInChainError{})
 
 	// check error type for unknown team
-	err = CancelEmailInvite(context.TODO(), tc.G, "notateam", address, false)
+	err = CancelEmailInvite(context.TODO(), tc.G, "notateam", address)
 	if err == nil {
 		t.Fatal("expected error canceling email invite for unknown team")
 	}
@@ -2132,4 +2128,220 @@ func TestTeamPlayerNoRoleChange(t *testing.T) {
 	// That didn't change UserLog - no change in role, didn't add a checkpoint.
 	require.Len(t, state.inner.UserLog[testUV], 1)
 	require.EqualValues(t, 2, state.inner.UserLog[testUV][0].SigMeta.SigChainLocation.Seqno)
+}
+
+var rmMaker = func(assertion string) keybase1.TeamMemberToRemove {
+	return keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{
+		Assertion:         assertion,
+		RemoveFromSubtree: false,
+	})
+}
+var rmRecursiveMaker = func(assertion string) keybase1.TeamMemberToRemove {
+	return keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{
+		Assertion:         assertion,
+		RemoveFromSubtree: true,
+	})
+}
+
+func TestRemoveMembersHappy(t *testing.T) {
+	tc, _, alice, bob, name, teamID := memberSetupMultipleWithTeamID(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleReader(context.TODO(), tc.G, name.String(), alice.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	res, err := RemoveMembers(context.TODO(), tc.G, teamID, []keybase1.TeamMemberToRemove{rmMaker(alice.Username)}, false)
+	require.NoError(t, err)
+	require.Len(t, res.Failures, 0)
+	assertRole(tc, name.String(), alice.Username, keybase1.TeamRole_NONE)
+
+	if err := SetRoleReader(context.TODO(), tc.G, name.String(), alice.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := SetRoleReader(context.TODO(), tc.G, name.String(), bob.Username); err != nil {
+		t.Fatal(err)
+	}
+	twitterUser := "not_on_kb_yet@twitter"
+	tAlice := "t_alice"
+	_, err = AddMember(context.TODO(), tc.G, name.String(), twitterUser, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err, "add a social")
+	_, err = AddMember(context.TODO(), tc.G, name.String(), tAlice, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err, "add a pukless")
+	assertRole(tc, name.String(), alice.Username, keybase1.TeamRole_READER)
+	assertRole(tc, name.String(), bob.Username, keybase1.TeamRole_READER)
+	assertInvite(tc, name.String(), "not_on_kb_yet", "twitter", keybase1.TeamRole_WRITER)
+	tAliceFQUID := "295a7eea607af32040647123732bc819%1"
+	assertInvite(tc, name.String(), tAliceFQUID, "keybase", keybase1.TeamRole_WRITER)
+	res, err = RemoveMembers(context.TODO(), tc.G, teamID, []keybase1.TeamMemberToRemove{
+		rmMaker(alice.Username), rmRecursiveMaker(bob.Username),
+		rmRecursiveMaker(twitterUser), rmMaker(tAlice),
+	}, false)
+	require.NoError(t, err)
+	require.Len(t, res.Failures, 0)
+	assertRole(tc, name.String(), alice.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, name.String(), bob.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, name.String(), twitterUser, keybase1.TeamRole_NONE)
+	assertRole(tc, name.String(), tAlice, keybase1.TeamRole_NONE)
+}
+
+func TestRemoveMembersErrorsBasic(t *testing.T) {
+	tc, _, _, _, _, teamID := memberSetupMultipleWithTeamID(t)
+	defer tc.Cleanup()
+
+	twitterUser := "not_on_kb_yet@twitter"
+	tAlice := "t_alice"
+	res, err := RemoveMembers(context.TODO(), tc.G, teamID, []keybase1.TeamMemberToRemove{
+		rmMaker(tAlice),
+		rmMaker(twitterUser),
+	}, false)
+	require.Error(t, err)
+	require.Len(t, res.Failures, 2)
+	require.NotNil(t, res.Failures[0].ErrorAtTarget)
+	require.Contains(t, *res.Failures[0].ErrorAtTarget, "could not find team member in team")
+	require.Nil(t, res.Failures[0].ErrorAtSubtree)
+	require.NotNil(t, res.Failures[1].ErrorAtTarget)
+	require.Contains(t, *res.Failures[1].ErrorAtTarget, "could not find team member in team")
+	require.Nil(t, res.Failures[1].ErrorAtSubtree)
+}
+
+func TestRemoveMembersJustAfterUpgrade(t *testing.T) {
+	ownerTC := SetupTest(t, "team", 1)
+	defer ownerTC.Cleanup()
+	aliceTC := SetupTest(t, "team", 1)
+	defer aliceTC.Cleanup()
+
+	_, err := kbtest.CreateAndSignupFakeUser("team", ownerTC.G)
+	require.NoError(t, err)
+
+	alice, err := kbtest.CreateAndSignupFakeUser("team", aliceTC.G)
+	require.NoError(t, err)
+
+	name, teamID := createTeam2(ownerTC)
+	t.Logf("Created team %q", name)
+
+	t.Logf("Test that a just-upgraded admin can remove invited members (previously stubbed links)")
+	if err := SetRoleReader(context.TODO(), ownerTC.G, name.String(), alice.Username); err != nil {
+		t.Fatal(err)
+	}
+	redditUser := "new@reddit"
+	_, err = AddMember(context.TODO(), ownerTC.G, name.String(), redditUser, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+
+	_, err = Load(context.TODO(), aliceTC.G, keybase1.LoadTeamArg{
+		Name:        name.String(),
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	t.Logf("set as admin")
+	if err := SetRoleAdmin(context.TODO(), ownerTC.G, name.String(), alice.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("try to remove members")
+	_, err = RemoveMembers(context.TODO(), aliceTC.G, teamID, []keybase1.TeamMemberToRemove{
+		rmMaker(redditUser),
+	}, false)
+	require.NoError(t, err)
+}
+
+func TestRemoveMembersHappyTree(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	admin, err := kbtest.CreateAndSignupFakeUser("trm", tc.G)
+	require.NoError(t, err)
+	alice, err := kbtest.CreateAndSignupFakeUser("trm", tc.G)
+	require.NoError(t, err)
+	bob, err := kbtest.CreateAndSignupFakeUser("trm", tc.G)
+	require.NoError(t, err)
+	twitterUser := "not_on_kb_yet@twitter"
+	redditUser := "hello@reddit"
+	tAlice := "t_alice"
+
+	parentTeamName, err := keybase1.TeamNameFromString(admin.Username + "T")
+	require.NoError(t, err)
+	_, err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String(), keybase1.TeamSettings{})
+	require.NoError(t, err)
+	subteamBasename := "bbb"
+	_, err = CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName, keybase1.TeamRole_NONE /* addSelfAs */)
+	require.NoError(t, err)
+	subteamName, err := parentTeamName.Append(subteamBasename)
+	require.NoError(t, err)
+	subsubteamBasename := "ccc"
+	_, err = CreateSubteam(context.TODO(), tc.G, subsubteamBasename, subteamName, keybase1.TeamRole_NONE /* addSelfAs */)
+	require.NoError(t, err)
+	subsubteamName, err := subteamName.Append(subsubteamBasename)
+	require.NoError(t, err)
+	subsubsubteamBasename := "ddd"
+	_, err = CreateSubteam(context.TODO(), tc.G, subsubsubteamBasename, subsubteamName, keybase1.TeamRole_NONE /* addSelfAs */)
+	require.NoError(t, err)
+	subsubsubteamName, err := subsubteamName.Append(subsubsubteamBasename)
+	require.NoError(t, err)
+
+	_, err = AddMember(context.TODO(), tc.G, parentTeamName.String(), alice.Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tc.G, subteamName.String(), alice.Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tc.G, subteamName.String(), twitterUser, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tc.G, subteamName.String(), redditUser, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tc.G, subteamName.String(), tAlice, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tc.G, subsubteamName.String(), alice.Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tc.G, subsubteamName.String(), bob.Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tc.G, subsubteamName.String(), tAlice, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tc.G, subsubsubteamName.String(), twitterUser, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+
+	reddittype, err := TeamInviteTypeFromString(tc.MetaContext(), "reddit")
+	require.NoError(t, err)
+	redditInvite, err := memberInvite(context.TODO(), tc.G, subteamName.String(), "hello", reddittype)
+	require.NoError(t, err)
+	redditInviteID := redditInvite.Id
+
+	subteam, err := GetForTestByStringName(context.TODO(), tc.G, subteamName.String())
+	require.NoError(t, err)
+	res, err := RemoveMembers(context.TODO(), tc.G, subteam.ID, []keybase1.TeamMemberToRemove{
+		rmRecursiveMaker(alice.Username),
+		rmRecursiveMaker(twitterUser),
+		keybase1.NewTeamMemberToRemoveWithInviteid(keybase1.InviteTeamMemberToRemove{
+			InviteID: redditInviteID,
+		}),
+		rmMaker(tAlice),
+		rmRecursiveMaker("notinteam"),
+	}, false)
+	require.Error(t, err, "got error for the one not-in-team user")
+	require.Len(t, res.Failures, 1)
+	require.Equal(t, rmRecursiveMaker("notinteam"), res.Failures[0].TeamMember)
+	require.NotNil(t, res.Failures[0].ErrorAtTarget)
+	require.NotNil(t, res.Failures[0].ErrorAtSubtree)
+
+	tAliceFQUID := "295a7eea607af32040647123732bc819%1"
+	assertRole(tc, subteamName.String(), alice.Username, keybase1.TeamRole_NONE)
+	assertNoInvite(tc, subteamName.String(), "not_on_kb_yet", "twitter")
+	assertNoInvite(tc, subteamName.String(), "hello", "reddit")
+	assertNoInvite(tc, subteamName.String(), tAliceFQUID, "keybase")
+	assertRole(tc, subsubteamName.String(), alice.Username, keybase1.TeamRole_NONE)
+	assertInvite(tc, subsubteamName.String(), tAliceFQUID, "keybase", keybase1.TeamRole_WRITER)
+	assertNoInvite(tc, subsubteamName.String(), "not_on_kb_yet", "twitter")
+	assertNoInvite(tc, subsubsubteamName.String(), "not_on_kb_yet", "twitter")
+
+	t.Logf("test removing self")
+	_, err = AddMember(context.TODO(), tc.G, subteamName.String(), admin.Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tc.G, subsubsubteamName.String(), admin.Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+	res, err = RemoveMembers(context.TODO(), tc.G, subteam.ID, []keybase1.TeamMemberToRemove{
+		rmRecursiveMaker(admin.Username),
+	}, false)
+	require.NoError(t, err)
+	require.Len(t, res.Failures, 0)
+	assertRole(tc, subteamName.String(), admin.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, subsubsubteamName.String(), admin.Username, keybase1.TeamRole_NONE)
 }

@@ -441,7 +441,7 @@ func TestImplicitInvalidLinks(t *testing.T) {
 		// Removing existing pukless member should be illegal
 		invite, _, found := teamObj.FindActiveKeybaseInvite(cat.GetUID())
 		require.True(t, found)
-		err := removeInviteID(context.Background(), teamObj, invite.Id, false)
+		err := removeInviteID(context.Background(), teamObj, invite.Id)
 		RequirePrecheckError(err)
 	}
 }
