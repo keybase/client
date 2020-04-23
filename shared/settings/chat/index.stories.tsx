@@ -47,6 +47,7 @@ const props = {
     closedteam3: true,
     openteam1: false,
   },
+  contactSettingsTeamsEnabled: false,
   groups: new Map([
     [
       'security',
@@ -72,7 +73,6 @@ const props = {
       },
     ],
   ]),
-  contactSettingsTeamsEnabled: false,
   sound: false,
   teamMeta,
   unfurlMode: RPCChatTypes.UnfurlMode.whitelisted,
