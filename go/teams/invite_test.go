@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -299,6 +300,28 @@ func makeTestSCForInviteLink() SCTeamInvite {
 		Name: keybase1.TeamInviteName("test"),
 		ID:   NewInviteID(),
 	}
+}
+
+func makeTestTeamSectionWithInviteLink(team *Team, role keybase1.TeamRole, maxUses *keybase1.TeamInviteMaxUses, etime *keybase1.UnixTime) (SCTeamSection, keybase1.TeamInviteID) {
+	teamSectionForInvite := makeTestSCTeamSection(team)
+	sectionInvite := makeTestSCForInviteLink()
+	sectionInvite.MaxUses = maxUses
+	sectionInvite.Etime = etime
+
+	scTeamInvites := SCTeamInvites{}
+	switch role {
+	case keybase1.TeamRole_READER:
+		scTeamInvites.Readers = &[]SCTeamInvite{sectionInvite}
+	case keybase1.TeamRole_WRITER:
+		scTeamInvites.Writers = &[]SCTeamInvite{sectionInvite}
+	default:
+		panic(fmt.Errorf("invalid role for test invite link %v", role))
+	}
+
+	teamSectionForInvite.Invites = &scTeamInvites
+
+	inviteID := keybase1.TeamInviteID(sectionInvite.ID)
+	return teamSectionForInvite, inviteID
 }
 
 func TestTeamPlayerInviteMaxUses(t *testing.T) {
@@ -844,4 +867,52 @@ func TestTeamPlayerUsedInviteMultipleTimes(t *testing.T) {
 		require.Equal(t, i, ulp.LogPoint)
 		require.Equal(t, testUV, ulp.Uv)
 	}
+}
+
+func TestTeamPlayerDoubleUsedInvites(t *testing.T) {
+	// Check change_membership link that adds one member, but has same
+	// used_invites pairs for that member for some reason.
+
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
+
+	maxUses := keybase1.TeamMaxUsesInfinite
+	teamSectionForInvite, inviteID := makeTestTeamSectionWithInviteLink(team, keybase1.TeamRole_READER, &maxUses, nil /* etime */)
+
+	// Add invite link
+	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+	_, found := state.FindActiveInviteMDByID(inviteID)
+	require.True(t, found)
+
+	// Add member using that invite, with duplicated UsedInvites
+	teamSectionCM := makeTestSCTeamSection(team)
+	teamSectionCM.Members = &SCTeamMembers{
+		Readers: &[]SCTeamMember{SCTeamMember(testUV)},
+	}
+	teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+		{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
+		{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
+	}
+
+	state, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+		teamSectionCM, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+
+	spew.Dump(state.inner.InviteMetadatas[inviteID].UsedInvites)
+	/*
+		([]keybase1.TeamUsedInviteLogPoint) (len=2 cap=2) {
+			(keybase1.TeamUsedInviteLogPoint) {
+				Uv: (keybase1.UserVersion) c7c88a2436470ad4eb43ac5acaa21119%1,
+				LogPoint: (int) 0
+			},
+			(keybase1.TeamUsedInviteLogPoint) {
+				Uv: (keybase1.UserVersion) c7c88a2436470ad4eb43ac5acaa21119%1,
+				LogPoint: (int) 0
+			}
+		}
+	*/
 }
