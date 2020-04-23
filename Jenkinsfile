@@ -66,10 +66,12 @@ helpers.rootLinuxNode(env, {
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
   def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'master'
-  def mysqlImage = docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql")
-  def sqsdImage = docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/sqsd")
-  def kbwebImage = docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb:${kbwebTag}")
-  def glibcImage = docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc")
+  def images = [
+    docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc"),
+    docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql"),
+    docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/sqsd"),
+    docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb:${kbwebTag}"),
+  ]
   def kbfsfuseImage
 
   def kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
@@ -80,7 +82,6 @@ helpers.rootLinuxNode(env, {
   ws("${env.GOPATH}/src/github.com/keybase/client") {
 
     stage("Setup") {
-      sh "docker rmi keybaseprivate/mysql || echo 'No mysql image to remove'"
       docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
         parallel (
           checkout: {
@@ -99,18 +100,13 @@ helpers.rootLinuxNode(env, {
               env.COMMIT_HASH = readFile('go/revision')
             }
           },
-          pull_glibc: {
-            glibcImage.pull()
-          },
-          pull_mysql: {
-            mysqlImage.pull()
-          },
-          pull_sqsd: {
-            sqsdImage.pull()
-          },
-          pull_kbweb: {
-            kbwebImage.pull()
-            kbwebImage.tag('latest')
+          pull_images: {
+            docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
+              for (i in images) {
+                i.pull()
+                i.tag('latest')
+              }
+            }
           },
           remove_dockers: {
             sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
