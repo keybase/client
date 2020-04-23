@@ -1030,7 +1030,7 @@ func (m *ChatRemoteMock) AdvertiseBotCommands(ctx context.Context, ads []chat1.R
 	return res, errors.New("AdvertiseBotCommands not mocked")
 }
 
-func (m *ChatRemoteMock) ClearBotCommands(ctx context.Context) (res chat1.ClearBotCommandsRes, err error) {
+func (m *ChatRemoteMock) ClearBotCommands(ctx context.Context, filter *chat1.RemoteClearBotCommandsFilter) (res chat1.ClearBotCommandsRes, err error) {
 	return res, errors.New("ClearBotCommands not mocked")
 }
 

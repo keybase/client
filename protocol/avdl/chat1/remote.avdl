@@ -378,11 +378,24 @@ protocol remote {
   record AdvertiseBotCommandsRes {
     union { null, RateLimit } rateLimit;
   }
+  record RemoteClearBotCommandsFilterPublic { }
+  record RemoteClearBotCommandsFilterTLFID {
+    TLFID tlfID;
+  }
+  record RemoteClearBotCommandsFilterConv {
+    ConversationID convID;
+  }
+  variant RemoteClearBotCommandsFilter switch(BotCommandsAdvertisementTyp typ) {
+    case PUBLIC: RemoteClearBotCommandsFilterPublic;
+    case TLFID_MEMBERS: RemoteClearBotCommandsFilterTLFID;
+    case TLFID_CONVS: RemoteClearBotCommandsFilterTLFID;
+    case CONV: RemoteClearBotCommandsFilterConv;
+  }
   record ClearBotCommandsRes {
     union { null, RateLimit } rateLimit;
   }
   AdvertiseBotCommandsRes advertiseBotCommands(array<RemoteBotCommandsAdvertisement> ads);
-  ClearBotCommandsRes clearBotCommands();
+  ClearBotCommandsRes clearBotCommands(union { null, RemoteClearBotCommandsFilter } filter);
 
   enum BotInfoResponseTyp {
     UPTODATE_0,

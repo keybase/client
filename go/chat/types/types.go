@@ -685,7 +685,9 @@ func (d DummyBotCommandManager) Advertise(ctx context.Context, alias *string,
 	return nil
 }
 
-func (d DummyBotCommandManager) Clear(context.Context) error { return nil }
+func (d DummyBotCommandManager) Clear(context.Context, *chat1.ClearBotCommandsFilter) error {
+	return nil
+}
 
 func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (*chat1.ConversationID, error) {
 	return nil, nil

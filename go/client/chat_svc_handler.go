@@ -42,7 +42,7 @@ type ChatServiceHandler interface {
 	GetUnfurlSettingsV1(context.Context) Reply
 	SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply
 	AdvertiseCommandsV1(context.Context, advertiseCommandsOptionsV1) Reply
-	ClearCommandsV1(context.Context) Reply
+	ClearCommandsV1(context.Context, clearCommandsOptionsV1) Reply
 	ListCommandsV1(context.Context, listCommandsOptionsV1) Reply
 	PinV1(context.Context, pinOptionsV1) Reply
 	UnpinV1(context.Context, unpinOptionsV1) Reply
@@ -295,21 +295,6 @@ func (c *chatServiceHandler) GetDeviceInfoV1(ctx context.Context, opts getDevice
 	return Reply{Result: res}
 }
 
-func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertisementTyp, error) {
-	switch typ {
-	case "public":
-		return chat1.BotCommandsAdvertisementTyp_PUBLIC, nil
-	case "teamconvs":
-		return chat1.BotCommandsAdvertisementTyp_TLFID_CONVS, nil
-	case "teammembers":
-		return chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
-	case "conv":
-		return chat1.BotCommandsAdvertisementTyp_CONV, nil
-	default:
-		return chat1.BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q, must be one of 'public', 'teamconvs', 'teammembers', or 'conv' see `keybase chat api --help` for more info.", typ)
-	}
-}
-
 func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts advertiseCommandsOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
@@ -322,7 +307,7 @@ func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts adver
 	}
 	var ads []chat1.AdvertiseCommandsParam
 	for _, ad := range opts.Advertisements {
-		typ, err := c.getAdvertTyp(ad.Typ)
+		typ, err := chat1.GetAdvertTyp(ad.Typ)
 		if err != nil {
 			return c.errReply(err)
 		}
@@ -356,12 +341,37 @@ func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts adver
 	return Reply{Result: res}
 }
 
-func (c *chatServiceHandler) ClearCommandsV1(ctx context.Context) Reply {
+func (c *chatServiceHandler) ClearCommandsV1(ctx context.Context, opts clearCommandsOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
-	res, err := client.ClearBotCommandsLocal(ctx)
+	var filter *chat1.ClearBotCommandsFilter
+	if opts.Filter != nil {
+		typ, err := chat1.GetAdvertTyp(opts.Filter.Typ)
+		if err != nil {
+			return c.errReply(err)
+		}
+		var teamName *string
+		if opts.Filter.TeamName != "" {
+			filterTeamName := opts.Filter.TeamName
+			teamName = &filterTeamName
+		}
+		var convID *chat1.ConversationID
+		if opts.Filter.ConvID != "" {
+			filterConvID, err := chat1.MakeConvID(opts.Filter.ConvID.String())
+			if err != nil {
+				return c.errReply(err)
+			}
+			convID = &filterConvID
+		}
+		filter = &chat1.ClearBotCommandsFilter{
+			Typ:      typ,
+			TeamName: teamName,
+			ConvID:   convID,
+		}
+	}
+	res, err := client.ClearBotCommandsLocal(ctx, filter)
 	if err != nil {
 		return c.errReply(err)
 	}

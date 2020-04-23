@@ -605,6 +605,14 @@ func (o listCommandsOptionsV1) Check() error {
 	return nil
 }
 
+type clearCommandsOptionsV1 struct {
+	Filter *chat1.ClearCommandAPIParam `json:"filter"`
+}
+
+func (o clearCommandsOptionsV1) Check() error {
+	return nil
+}
+
 type pinOptionsV1 struct {
 	Channel        ChatChannel
 	ConversationID chat1.ConvIDStr `json:"conversation_id"`
@@ -977,7 +985,16 @@ func (a *ChatAPI) AdvertiseCommandsV1(ctx context.Context, c Call, w io.Writer) 
 }
 
 func (a *ChatAPI) ClearCommandsV1(ctx context.Context, c Call, w io.Writer) error {
-	return a.encodeReply(c, a.svcHandler.ClearCommandsV1(ctx), w)
+	var opts clearCommandsOptionsV1
+	if len(c.Params.Options) != 0 {
+		if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+			return err
+		}
+		if err := opts.Check(); err != nil {
+			return err
+		}
+	}
+	return a.encodeReply(c, a.svcHandler.ClearCommandsV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) ListCommandsV1(ctx context.Context, c Call, w io.Writer) error {

@@ -3827,6 +3827,30 @@
     },
     {
       "type": "record",
+      "name": "ClearBotCommandsFilter",
+      "fields": [
+        {
+          "type": "BotCommandsAdvertisementTyp",
+          "name": "typ"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "teamName"
+        },
+        {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ClearBotCommandsLocalRes",
       "fields": [
         {
@@ -5772,7 +5796,15 @@
       "response": "ListBotCommandsLocalRes"
     },
     "clearBotCommandsLocal": {
-      "request": [],
+      "request": [
+        {
+          "name": "filter",
+          "type": [
+            null,
+            "ClearBotCommandsFilter"
+          ]
+        }
+      ],
       "response": "ClearBotCommandsLocalRes"
     },
     "pinMessage": {
