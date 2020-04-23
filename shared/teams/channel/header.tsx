@@ -19,7 +19,7 @@ type HeaderTitleProps = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
-  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID)).teamname
+  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const channelMeta = useChannelMeta(teamID, conversationIDKey)
   const channelname = channelMeta?.channelname ?? ''
   const description = channelMeta?.description ?? ''
@@ -91,47 +91,48 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   ))
 
   const bottomDescriptorsAndButtons = (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny" gapStart={!Styles.isMobile}>
-      {!!description && (
-        <Kb.Text type="Body" lineClamp={3}>
-          {description}
-        </Kb.Text>
-      )}
-      {numParticipants !== -1 && (
-        <Kb.Text type="BodySmall">
-          {numParticipants.toLocaleString()} {pluralize('member', numParticipants)}
-          {!!newMemberCount && ' · ' + newMemberCount.toLocaleString() + ' new this week'}
-        </Kb.Text>
-      )}
-      <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-        <Activity level={activityLevel} />
-      </Kb.Box2>
-      <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-        {yourOperations.chat && <Kb.Button label="View" onClick={callbacks.onChat} small={true} />}
-        {yourOperations.editChannelDescription && (
-          <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
+    <>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny" gapStart={!Styles.isMobile}>
+        {!!description && (
+          <Kb.Text type="Body" lineClamp={3}>
+            {description}
+          </Kb.Text>
         )}
-        {!Styles.isMobile && (
+        {numParticipants !== -1 && (
+          <Kb.Text type="BodySmall">
+            {numParticipants.toLocaleString()} {pluralize('member', numParticipants)}
+            {!!newMemberCount && ' · ' + newMemberCount.toLocaleString() + ' new this week'}
+          </Kb.Text>
+        )}
+        <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+          <Activity level={activityLevel} />
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
+          {yourOperations.chat && <Kb.Button label="View" onClick={callbacks.onChat} small={true} />}
+          {yourOperations.editChannelDescription && (
+            <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
+          )}
+          {!Styles.isMobile && (
+            <Kb.Button
+              label="Add members"
+              onClick={onAddMembers}
+              small={true}
+              mode="Secondary"
+              style={styles.addMembersButton}
+            />
+          )}
           <Kb.Button
-            label="Add members"
-            onClick={onAddMembers}
-            small={true}
             mode="Secondary"
-            style={styles.addMembersButton}
+            small={true}
+            icon="iconfont-ellipsis"
+            iconColor={Styles.globalColors.blue}
+            ref={popupAnchor}
+            onClick={toggleShowingPopup}
           />
-        )}
-        <Kb.Button
-          mode="Secondary"
-          small={true}
-          icon="iconfont-ellipsis"
-          iconColor={Styles.globalColors.blue}
-          ref={popupAnchor}
-          onClick={toggleShowingPopup}
-        />
-        {/*TODO: why does the popup take up space and move the info icon over to the right?*/}
-        {popup}
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+      {popup}
+    </>
   )
 
   const tip = (
