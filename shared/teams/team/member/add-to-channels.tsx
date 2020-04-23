@@ -41,7 +41,6 @@ const getChannelsForList = memoize(
     return {
       channelMetaGeneral: general,
       channelMetasAll: [general, ...sortedList],
-      channelMetasFiltered: sortedList,
       convIDKeysAvailable,
     }
   }
@@ -57,7 +56,7 @@ const AddToChannels = (props: Props) => {
 
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
   const participantMap = Container.useSelector(s => s.chat2.participantMap)
-  const {channelMetasAll, channelMetasFiltered, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(
+  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(
     channelMetas,
     participantMap,
     usernames
