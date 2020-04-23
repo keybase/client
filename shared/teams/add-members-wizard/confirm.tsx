@@ -218,10 +218,8 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
         presetRole={storeRole}
         onCancel={storeRole === role ? () => setShowingMenu(false) : undefined}
         onConfirm={onConfirmRole}
-        confirmLabel="Save as"
         includeSetIndividually={!Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
         disabledRoles={disabledRoles}
-        count={memberCount}
       >
         <Kb.InlineDropdown
           textWrapperType="BodySmallSemibold"
@@ -335,9 +333,7 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
             presetRole={individualRole}
             onCancel={individualRole === rolePickerRole ? () => setShowingMenu(false) : undefined}
             onConfirm={onConfirmRole}
-            confirmLabel={`Add as`}
             disabledRoles={isPhoneEmail ? disabledRolesForPhoneEmailIndividual : props.disabledRoles}
-            count={1} // This rolepicker is for individuals
           >
             <Kb.InlineDropdown
               textWrapperType="BodySmallSemibold"

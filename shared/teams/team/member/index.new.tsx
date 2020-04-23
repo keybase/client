@@ -366,7 +366,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
         {props.node.canAdminister && (
           <Kb.Box2 direction="horizontal" alignSelf="center">
             <FloatingRolePicker
-              presetRole={'writer'}
+              presetRole="writer"
               onConfirm={role => {
                 onAdd(role)
                 setOpen(false)
@@ -501,7 +501,6 @@ const NodeInRow = (props: NodeInRowProps) => {
         position="top right"
         open={open}
         disabledRoles={disabledRoles}
-        count={1} // Always singular
       />
       <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>

@@ -159,7 +159,6 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
                 Anyone will be able to join immediately. Users will join as
               </Kb.Text>
               <FloatingRolePicker
-                confirmLabel={`Let in as`}
                 floatingContainerStyle={styles.floatingRolePicker}
                 onConfirm={props.onConfirmRolePicker}
                 onCancel={props.onCancelRolePicker}

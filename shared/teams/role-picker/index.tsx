@@ -3,7 +3,6 @@ import {useSpring, animated} from 'react-spring'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
-import {pluralize} from '../../util/string'
 import {Position} from '../../common-adapters/relative-popup-hoc.types'
 import {TeamRoleType} from '../../constants/types/teams'
 import {StylesCrossPlatform} from '../../styles/css'
@@ -35,12 +34,10 @@ export type Props<IncludeSetIndividually extends boolean> = {
   disabledRoles?: {[K in Role<IncludeSetIndividually>]?: DisabledReason}
   onCancel?: () => void // If provided, a cancel button will appear
   onConfirm: (selectedRole: Role<IncludeSetIndividually>) => void
-  confirmLabel?: string // Defaults to "Make"
   footerComponent?: React.ReactNode
   presetRole: MaybeRole<IncludeSetIndividually>
   includeSetIndividually?: IncludeSetIndividually extends true ? boolean : false
   waiting?: boolean
-  count?: number
 }
 
 type RoleRowProps = {
@@ -263,25 +260,12 @@ const footerButtonsHelper = (
   </Kb.ButtonBar>
 )
 
-const confirmLabelHelper = (
-  presetRole: Role<any> | null,
-  selectedRole: Role<any>,
-  confirmLabel?: string,
-  count?: number
-): string => {
+const confirmLabelHelper = (presetRole: Role<any> | null, selectedRole: Role<any>): string => {
   if (presetRole === selectedRole) {
     return `Saved`
   }
 
-  if (count == null) {
-    count = 2 // Default plural
-  }
-
-  if (confirmLabel != null && selectedRole !== 'setIndividually') {
-    return confirmLabel + ` ${pluralize(selectedRole, count)}`
-  }
-
-  return selectedRole === 'setIndividually' ? 'Set Individually' : `Make ${pluralize(selectedRole, count)}`
+  return selectedRole === 'setIndividually' ? 'Set Individually' : `Save`
 }
 
 const Header = () => (
@@ -295,10 +279,10 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
   const [selectedRole, setSelectedRole] = React.useState<Role<IncludeSetIndividually>>(
     filteredRole ?? ('reader' as Role<IncludeSetIndividually>)
   )
-  // React.useEffect(() => {
-  //   const newRole = filterRole(props.presetRole) ?? ('reader' as Role<IncludeSetIndividually>)
-  //   setSelectedRole(newRole)
-  // }, [props.presetRole])
+  React.useEffect(() => {
+    const newRole = filterRole(props.presetRole) ?? ('reader' as Role<IncludeSetIndividually>)
+    setSelectedRole(newRole)
+  }, [props.presetRole])
 
   // as because convincing TS that filtering this makes it a different type is hard
   const roles = orderedRoles.filter(r => props.includeSetIndividually || r !== 'setIndividually') as Array<
@@ -330,7 +314,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
           selectedRole && selectedRole !== props.presetRole
             ? () => selectedRole && props.onConfirm(selectedRole)
             : undefined,
-          confirmLabelHelper(filterRole(props.presetRole), selectedRole, props.confirmLabel, props.count),
+          confirmLabelHelper(filterRole(props.presetRole), selectedRole),
           props.waiting
         )}
       </Kb.Box2>

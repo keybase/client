@@ -114,7 +114,6 @@ export const InviteByContact = (props: InviteByContactProps) => {
           </Kb.Box2>
           <FloatingRolePicker
             presetRole={props.selectedRole}
-            confirmLabel={`Invite as`}
             onConfirm={role => {
               props.onRoleChange(role)
               controlRolePicker(false)

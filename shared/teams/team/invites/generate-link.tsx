@@ -32,7 +32,6 @@ const InviteRolePicker = (props: RolePickerProps) => {
   return (
     <FloatingRolePicker
       presetRole={props.teamRole}
-      confirmLabel={`Let in as`}
       onConfirm={props.onConfirmRolePicker}
       onCancel={props.onCancelRolePicker}
       position="bottom center"

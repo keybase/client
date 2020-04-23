@@ -195,7 +195,6 @@ const NewTeamInfo = () => {
                 >
                   <Kb.Text type="BodySmall">People will join as</Kb.Text>
                   <FloatingRolePicker
-                    confirmLabel={`Let people in as`}
                     presetRole={realRole}
                     floatingContainerStyle={styles.floatingRolePicker}
                     onConfirm={role => {

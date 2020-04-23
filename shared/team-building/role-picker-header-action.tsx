@@ -25,7 +25,6 @@ const RolePickerHeaderAction = (props: Props) => {
       open={rolePickerOpen}
       onConfirm={onConfirm}
       onCancel={() => setRolePickerOpen(false)}
-      confirmLabel={`Add as`}
       disabledRoles={props.rolePickerProps.disabledRoles}
       footerComponent={sendNotificationFooter(
         'Announce them in #general',

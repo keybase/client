@@ -107,7 +107,6 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
               </Kb.Text>
               <FloatingRolePicker
                 presetRole={this.state.role}
-                confirmLabel={`Invite as`}
                 floatingContainerStyle={styles.floatingRolePicker}
                 onConfirm={this.onConfirmRolePicker}
                 onCancel={this.onCancelRolePicker}

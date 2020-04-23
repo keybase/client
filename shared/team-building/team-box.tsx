@@ -119,8 +119,6 @@ const TeamBox = (props: Props) => {
               }}
               onCancel={() => props.rolePickerProps && props.rolePickerProps.changeShowRolePicker(false)}
               disabledRoles={props.rolePickerProps.disabledRoles}
-              confirmLabel={`Add as`}
-              count={props.teamSoFar.length}
               footerComponent={sendNotificationFooter(
                 'Announce them in #general',
                 props.rolePickerProps.sendNotification,

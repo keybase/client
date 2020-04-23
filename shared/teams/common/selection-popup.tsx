@@ -311,7 +311,6 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
       open={showingPicker}
       disabledRoles={disabledReasons}
       waiting={waiting}
-      count={members.length}
     >
       <Kb.Button
         label="Edit role"

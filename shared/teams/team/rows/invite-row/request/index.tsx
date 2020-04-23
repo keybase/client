@@ -48,7 +48,7 @@ const TeamRequestRowOld = (props: Props) => {
       </Kb.ClickableBox>
       <Kb.Box style={styles.floatingRolePickerContainer}>
         <FloatingRolePicker
-          presetRole={'writer'}
+          presetRole="writer"
           floatingContainerStyle={styles.floatingRolePicker}
           footerComponent={props.footerComponent}
           onConfirm={props.onConfirmRolePicker}
@@ -56,7 +56,6 @@ const TeamRequestRowOld = (props: Props) => {
           position="bottom left"
           open={props.isRolePickerOpen}
           disabledRoles={props.disabledReasonsForRolePicker}
-          count={1} // Singular
         >
           <Kb.Button label="Let in as..." onClick={onAccept} small={true} style={styles.letInButton} />
         </FloatingRolePicker>
@@ -150,7 +149,7 @@ const TeamRequestRowNew = (props: Props) => {
       action={
         <Kb.Box2 direction="horizontal">
           <FloatingRolePicker
-            presetRole={'writer'}
+            presetRole="writer"
             floatingContainerStyle={styles.floatingRolePicker}
             footerComponent={props.footerComponent}
             onConfirm={props.onConfirmRolePicker}
@@ -158,7 +157,6 @@ const TeamRequestRowNew = (props: Props) => {
             position="bottom left"
             open={props.isRolePickerOpen}
             disabledRoles={props.disabledReasonsForRolePicker}
-            count={1} // Singular
           >
             <Kb.Button label={approveWord} onClick={onAccept} small={true} style={styles.letInButton} />
           </FloatingRolePicker>
