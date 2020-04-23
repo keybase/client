@@ -3057,10 +3057,23 @@ func IsDeletedConvError(err error) bool {
 
 func TextPaymentsToTransactionIDs(textPayments []chat1.TextPayment) (txIDs []stellar1.TransactionID) {
 	for _, payment := range textPayments {
-		if payment.Result.Sent__ != nil {
-			txID := stellar1.TransactionIDFromPaymentID(*payment.Result.Sent__)
+		if payment.Result.IsTyp(chat1.TextPaymentResultTyp_SENT) {
+			txID := stellar1.TransactionIDFromPaymentID(payment.Result.Sent())
 			txIDs = append(txIDs, txID)
 		}
 	}
 	return txIDs
+}
+
+func GetMessageBodyTxIDs(mtype chat1.MessageType, body chat1.MessageBody) []stellar1.TransactionID {
+	switch mtype {
+	case chat1.MessageType_SENDPAYMENT:
+		txID := stellar1.TransactionIDFromPaymentID(body.Sendpayment().PaymentID)
+		return []stellar1.TransactionID{txID}
+	case chat1.MessageType_TEXT:
+		if len(body.Text().Payments) > 0 {
+			return TextPaymentsToTransactionIDs(body.Text().Payments)
+		}
+	}
+	return []stellar1.TransactionID{}
 }

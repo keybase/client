@@ -430,13 +430,8 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 
 		// Check that txIDs on the client header match the body, if relevant
 		if unboxed.ClientHeader.TxIDs != nil {
-			var bodyTxIDs []stellar1.TransactionID
-			if bodyTyp == chat1.MessageType_SENDPAYMENT {
-				bodyTxIDs = []stellar1.TransactionID{stellar1.TransactionIDFromPaymentID(body.Sendpayment__.PaymentID)}
-			} else if bodyTyp == chat1.MessageType_TEXT && len(body.Text__.Payments) > 0 {
-				bodyTxIDs = utils.TextPaymentsToTransactionIDs(body.Text__.Payments)
-			}
-			if !stellar1.TransactionIDsEq(&bodyTxIDs, unboxed.ClientHeader.TxIDs) {
+			bodyTxIDs := utils.GetMessageBodyTxIDs(bodyTyp, body)
+			if !stellar1.TransactionIDsPtrEq(&bodyTxIDs, unboxed.ClientHeader.TxIDs) {
 				err := fmt.Errorf("client header txIDs do not match body: %v(header) != %v(body)",
 					unboxed.ClientHeader.TxIDs, bodyTxIDs)
 				return NewPermanentUnboxingError(err)
@@ -939,6 +934,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	}
 
 	// Open header and verify against VerifyKey
+
 	headerPacked, err := b.signEncryptOpen(boxed.HeaderCiphertext.AsSignEncrypted(), headerEncryptionKey,
 		boxed.VerifyKey, kbcrypto.SignaturePrefixChatMBv2)
 	if err != nil {
@@ -1209,8 +1205,8 @@ func (b *Boxer) compareHeadersMBV2orV3(ctx context.Context, hServer chat1.Messag
 	}
 
 	// TxIDs (only present in V3 and greater)
-	if version > chat1.MessageBoxedVersion_V2 && !stellar1.TransactionIDsEq(hServer.TxIDs, hSigned.TxIDs) {
-		return NewPermanentUnboxingError(NewHeaderMismatchError("TxID"))
+	if version > chat1.MessageBoxedVersion_V2 && !stellar1.TransactionIDsPtrEq(hServer.TxIDs, hSigned.TxIDs) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("TxIDs"))
 	}
 
 	return nil
@@ -1859,6 +1855,7 @@ func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.Messag
 		KbfsCryptKeysUsed: messagePlaintext.ClientHeader.KbfsCryptKeysUsed,
 		EphemeralMetadata: messagePlaintext.ClientHeader.EphemeralMetadata,
 		BotUID:            messagePlaintext.ClientHeader.BotUID,
+		TxIDs:             messagePlaintext.ClientHeader.TxIDs,
 		// In MessageBoxed.V2 HeaderSignature is nil.
 		HeaderSignature: nil,
 	})

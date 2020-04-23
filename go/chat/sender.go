@@ -1159,6 +1159,10 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	s.Debug(ctx, "Send: uid: %s in conversation %s (tlfName: %s) with status: %v", sender,
 		conv.GetConvID(), conv.Info.TlfName, conv.ReaderInfo.Status)
 
+	// Add txIDs to client header, if relevant
+	bodyTxIDs := utils.GetMessageBodyTxIDs(msg.ClientHeader.MessageType, msg.MessageBody)
+	msg.ClientHeader.TxIDs = &bodyTxIDs
+
 	// If we are in preview mode, then just join the conversation right now.
 	switch conv.ReaderInfo.Status {
 	case chat1.ConversationMemberStatus_PREVIEW, chat1.ConversationMemberStatus_NEVER_JOINED:
@@ -1378,6 +1382,11 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 	if err != nil {
 		return nil, nil, err
 	}
+
+	// Add txIDs to client header, if relevant
+	bodyTxIDs := utils.GetMessageBodyTxIDs(msg.ClientHeader.MessageType, msg.MessageBody)
+	msg.ClientHeader.TxIDs = &bodyTxIDs
+
 	// The strategy here is to select the larger prev between what the UI provides, and what we have
 	// stored locally. If we just use the UI version, then we can race for creating ordinals in
 	// Outbox.PushMessage. However, in rare cases we might not have something locally, in that case just

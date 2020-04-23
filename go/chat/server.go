@@ -765,11 +765,6 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, err
 	}
 
-	if arg.Msg.MessageBody.MessageType__ == chat1.MessageType_TEXT && len(arg.Msg.MessageBody.Text__.Payments) > 0 {
-		txIDs := utils.TextPaymentsToTransactionIDs(arg.Msg.MessageBody.Text__.Payments)
-		arg.Msg.ClientHeader.TxIDs = &txIDs
-	}
-
 	var prepareOpts chat1.SenderPrepareOptions
 	prepareOpts.ReplyTo = arg.ReplyTo
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
@@ -1141,13 +1136,6 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
 		arg.Msg.MessageBody, arg.ReplyTo); err != nil {
 		return res, err
-	}
-	if arg.Msg.MessageBody.MessageType__ == chat1.MessageType_TEXT && len(arg.Msg.MessageBody.Text__.Payments) > 0 {
-		for _, payment := range arg.Msg.MessageBody.Text__.Payments {
-			if payment.Result.Sent__ != nil {
-
-			}
-		}
 	}
 
 	// Create non block sender
