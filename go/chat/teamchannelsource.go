@@ -322,7 +322,7 @@ func (c *TeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1
 			return conv.TopicName, nil
 		}
 	}
-	return "", fmt.Errorf("no convs found with conv ID")
+	return "", fmt.Errorf("no convs found with convID")
 }
 
 func (c *TeamChannelSource) GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (res int, err error) {
