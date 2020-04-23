@@ -1369,8 +1369,8 @@ protocol teams {
   }
 
   // @emailInviteMessage is an argument used as a welcome message in email invitations sent from the server
-  // @defaultChannelsOverride is ConversationIDs to add the members to instead of the team wide settings. if unset, use team wide setting
-  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification, union { null, string } emailInviteMessage, array<string> defaultChannelsOverride);
+  // @addToChannels is ConversationIDs to add the members to as well as the team wide setting.
+  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification, union { null, string } emailInviteMessage, array<string> addToChannels);
 
   /* Team remove members - start */
   record AssertionTeamMemberToRemove {

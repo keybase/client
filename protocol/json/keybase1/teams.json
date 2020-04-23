@@ -4140,7 +4140,7 @@
           ]
         },
         {
-          "name": "defaultChannelsOverride",
+          "name": "addToChannels",
           "type": {
             "type": "array",
             "items": "string"

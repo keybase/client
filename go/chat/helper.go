@@ -1377,3 +1377,78 @@ func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType c
 	g.GetLog().CDebugf(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
 	return NewKBFSNameInfoSource(g)
 }
+
+func (h *Helper) BulkAddToConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, usernames []string) error {
+	if len(usernames) == 0 {
+		return fmt.Errorf("Unable to BulkAddToConv, no users specified")
+	}
+
+	rc, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	conv := rc.Conv
+	mt := conv.Metadata.MembersType
+	switch mt {
+	case chat1.ConversationMembersType_TEAM:
+	default:
+		return fmt.Errorf("BulkAddToConv only available to TEAM conversations. Found %v conv", mt)
+	}
+
+	boxer := NewBoxer(h.G())
+	sender := NewBlockingSender(h.G(), boxer, h.ri)
+	sendBulkAddToConv := func(ctx context.Context, sender *BlockingSender, usernames []string, convID chat1.ConversationID, info types.NameInfo) error {
+		subBody := chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
+			Usernames: usernames,
+		})
+		body := chat1.NewMessageBodyWithSystem(subBody)
+		msg := chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				TlfName:     info.CanonicalName,
+				MessageType: chat1.MessageType_SYSTEM,
+			},
+			MessageBody: body,
+		}
+		status := chat1.ConversationMemberStatus_ACTIVE
+		_, _, err = sender.Send(ctx, convID, msg, 0, nil, &chat1.SenderSendOptions{
+			JoinMentionsAs: &status,
+		}, nil)
+		return err
+	}
+
+	info, err := CreateNameInfoSource(ctx, h.G(), mt).LookupName(
+		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC, "")
+	if err != nil {
+		return err
+	}
+	// retry the add a few times to prevent races. Each time we remove members
+	// that are already part of the conversation.
+	toExclude := make(map[keybase1.UID]bool)
+	for i := 0; i < 4 && len(usernames) > 0; i++ {
+		h.Debug(ctx, "BulkAddToConv: trying to add %v", usernames)
+		err = sendBulkAddToConv(ctx, sender, usernames, convID, info)
+		switch e := err.(type) {
+		case nil:
+			return nil
+		case libkb.ChatUsersAlreadyInConversationError:
+			// remove the usernames which are already part of the conversation and retry
+			for _, uid := range e.Uids {
+				toExclude[uid] = true
+			}
+			var usernamesToRetry []string
+			for _, username := range usernames {
+				if !toExclude[libkb.UsernameToUID(username)] {
+					usernamesToRetry = append(usernamesToRetry, username)
+				}
+			}
+			usernames = usernamesToRetry
+			if len(usernamesToRetry) == 0 {
+				// don't let this bubble up if everyone is already in the channel
+				err = nil
+			}
+		default:
+			return e
+		}
+	}
+	return err
+}

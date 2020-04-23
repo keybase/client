@@ -81,8 +81,8 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 	if err != nil {
 		return teamID, err
 	}
-	var errs []error
 
+	var errs []error
 	err = teams.SetTeamShowcase(ctx, h.G().ExternalG(), teamID, &teamInfo.Showcase, &teamInfo.Description, nil)
 	if err != nil {
 		errs = append(errs, err)
@@ -96,9 +96,9 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 			errs = append(errs, err)
 		}
 	}
-
+	uid := gregor1.UID(h.G().GetMyUID().ToBytes())
 	for _, topicName := range teamInfo.ChatChannels {
-		_, _, err = h.G().ChatHelper.NewConversation(ctx, gregor1.UID(h.G().GetMyUID().ToBytes()), teamInfo.Name,
+		_, _, err = h.G().ChatHelper.NewConversation(ctx, uid, teamInfo.Name,
 			&topicName, chat1.TopicType_CHAT, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
 		if err != nil {
 			errs = append(errs, err)
@@ -119,6 +119,8 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 			Users:                teamInfo.Users,
 			SendChatNotification: false,
 			EmailInviteMessage:   teamInfo.EmailInviteMessage,
+			// Add users to the default channels.
+			AddToChannels: nil,
 		}
 
 		unaddedUsers, err := h.TeamAddMembersMultiRole(ctx, arg4)
@@ -129,6 +131,7 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 			errs = append(errs, fmt.Errorf("could not add members to team: %v", unaddedUsers.NotAdded))
 		}
 	}
+
 	if errs == nil {
 		return teamID, nil
 	}
@@ -137,7 +140,6 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 		combinedErrString += ", " + err.Error()
 	}
 	return teamID, errors.New(combinedErrString)
-
 }
 
 func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.TeamCreateWithSettingsArg) (res keybase1.TeamCreateResult, err error) {
@@ -431,6 +433,7 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 	default:
 		return res, err
 	}
+	res = keybase1.TeamAddMembersResult{NotAdded: notAdded}
 
 	// AddMembers succeeded
 	if arg.SendChatNotification {
@@ -456,13 +459,30 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 		}()
 	}
 
-	res = keybase1.TeamAddMembersResult{NotAdded: notAdded}
+	var usernames []string
+	for _, user := range arg.Users {
+		// the server handles bot membership, skip these users
+		if !user.Role.IsBotLike() {
+			usernames = append(usernames, user.Assertion)
+		}
+	}
+	uid := gregor1.UID(h.G().GetMyUID().ToBytes())
+	for _, convIDStr := range arg.AddToChannels {
+		convID, err := chat1.MakeConvID(convIDStr)
+		if err != nil {
+			return res, err
+		}
+		err = h.G().ChatHelper.BulkAddToConv(ctx, uid, convID, usernames)
+		if err != nil {
+			return res, err
+		}
+	}
 	return res, nil
 }
 
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRemoveMember(%s, %v)", arg.TeamID, arg), &err)()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRemoveMember(%s, %+v)", arg.TeamID, arg), &err)()
 
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err

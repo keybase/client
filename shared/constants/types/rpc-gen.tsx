@@ -1432,7 +1432,7 @@ export type MessageTypes = {
     outParam: TeamAddMemberResult
   }
   'keybase.1.teams.teamAddMembersMultiRole': {
-    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean; readonly emailInviteMessage?: String | null; readonly defaultChannelsOverride?: Array<String> | null}
+    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean; readonly emailInviteMessage?: String | null; readonly addToChannels?: Array<String> | null}
     outParam: TeamAddMembersResult
   }
   'keybase.1.teams.teamCreate': {
