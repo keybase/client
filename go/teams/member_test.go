@@ -2228,11 +2228,11 @@ func TestRemoveMembersJustAfterUpgrade(t *testing.T) {
 	_, err = AddMember(context.TODO(), ownerTC.G, name.String(), redditUser, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
-	tm, err := Load(context.TODO(), aliceTC.G, keybase1.LoadTeamArg{
+	_, err = Load(context.TODO(), aliceTC.G, keybase1.LoadTeamArg{
 		Name:        name.String(),
 		ForceRepoll: true,
 	})
-	t.Logf("# INVITES %#v\n", tm.Data.Chain.InviteMetadatas)
+	require.NoError(t, err)
 
 	t.Logf("set as admin")
 	if err := SetRoleAdmin(context.TODO(), ownerTC.G, name.String(), alice.Username); err != nil {
