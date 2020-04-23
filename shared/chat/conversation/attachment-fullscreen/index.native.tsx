@@ -70,6 +70,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
   _setLoaded = () => this.setState({loaded: true})
   render() {
     let content: React.ReactNode = null
+    let spinner: React.ReactNode = null
     if (this.props.path) {
       if (this.props.isVideo) {
         const {previewHeight} = this.props
@@ -123,8 +124,8 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
         }
       }
     }
-    if (!content) {
-      content = (
+    if (!this.state.loaded) {
+      spinner = (
         <Kb.Box2
           direction="vertical"
           style={styles.progressWrapper}
@@ -144,6 +145,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
         fullWidth={true}
         fullHeight={true}
       >
+        {spinner}
         <Kb.NativeStatusBar hidden={true} />
         <ShowToastAfterSaving transferState={this.props.message.transferState} />
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerWrapper}>
