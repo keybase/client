@@ -561,6 +561,13 @@
         {
           "type": "ConversationID",
           "name": "convID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "convIDs"
         }
       ]
     },

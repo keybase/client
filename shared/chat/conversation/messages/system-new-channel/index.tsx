@@ -6,6 +6,7 @@ import UserNotice from '../user-notice'
 
 type Props = {
   message: Types.MessageSystemNewChannel
+  onManageChannels: () => void
 }
 
 const NewChannel = (props: Props) => {
@@ -16,7 +17,7 @@ const NewChannel = (props: Props) => {
       ...styles.text,
     },
   } as const
-  const {message} = props
+  const {message, onManageChannels} = props
   return (
     <UserNotice>
       <Kb.Markdown
@@ -27,6 +28,13 @@ const NewChannel = (props: Props) => {
       >
         {message.text}
       </Kb.Markdown>
+      <Kb.Text
+        onClick={onManageChannels}
+        type="BodySmallSemiboldSecondaryLink"
+        style={{color: Styles.globalColors.blueDark}}
+      >
+        Browse other channels
+      </Kb.Text>
     </UserNotice>
   )
 }
