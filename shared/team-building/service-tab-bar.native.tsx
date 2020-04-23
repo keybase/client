@@ -24,6 +24,33 @@ const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
 const bigWidth = Math.max(smallWidth, 92)
 const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
 
+// On tablet add an additional "serivce" item that is only a bottom border that extends to the end of the ScrollView
+const TabletBottomBorderExtension = React.memo((props: {offset: number; servicesCount: number}) => {
+  const translateY = Kb.ReAnimated.interpolate(props.offset, {
+    inputRange: [-100, 0, 100, 9999],
+    outputRange: [0, 0, -8, -8],
+  })
+
+  return (
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={{position: 'relative'}}>
+      <AnimatedBox2
+        direction="horizontal"
+        fullWidth={true}
+        style={Styles.collapseStyles([
+          {
+            borderBottomWidth: 1,
+            borderColor: Styles.globalColors.black_10,
+            bottom: 0,
+            height: 2,
+            position: 'absolute',
+          },
+          {transform: [{translateY}]},
+        ])}
+      />
+    </Kb.Box2>
+  )
+})
+
 const ServiceIcon = React.memo((props: IconProps) => {
   const color = props.isActive ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
 
@@ -158,7 +185,7 @@ export class ServiceTabBar extends React.PureComponent<Props> {
         scrollEventThrottle={1000}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{height: '100%'}}
+        contentContainerStyle={Styles.collapseStyles([{height: '100%'}, Styles.isTablet && {width: '100%'}])}
         style={{
           flexGrow: 0,
           flexShrink: 0,
@@ -179,6 +206,9 @@ export class ServiceTabBar extends React.PureComponent<Props> {
             isActive={props.selectedService === service}
           />
         ))}
+        {Styles.isTablet ? (
+          <TabletBottomBorderExtension offset={props.offset} servicesCount={props.services.length} />
+        ) : null}
       </Kb.ReAnimated.ScrollView>
     )
   }

@@ -2903,7 +2903,7 @@ func (h *Server) AdvertiseBotCommandsLocal(ctx context.Context, arg chat1.Advert
 	return res, nil
 }
 
-func (h *Server) ClearBotCommandsLocal(ctx context.Context) (res chat1.ClearBotCommandsLocalRes, err error) {
+func (h *Server) ClearBotCommandsLocal(ctx context.Context, filter *chat1.ClearBotCommandsFilter) (res chat1.ClearBotCommandsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, &err, "ClearBotCommandsLocal")()
@@ -2912,7 +2912,7 @@ func (h *Server) ClearBotCommandsLocal(ctx context.Context) (res chat1.ClearBotC
 	if err != nil {
 		return res, err
 	}
-	if err := h.G().BotCommandManager.Clear(ctx); err != nil {
+	if err := h.G().BotCommandManager.Clear(ctx, filter); err != nil {
 		return res, err
 	}
 	return res, nil

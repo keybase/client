@@ -36,6 +36,10 @@ protocol notifyCtl {
     boolean runtimestats;
     boolean featuredBots;
     boolean saltpack;
+    // Let the service determine if certain notifications can be skipped. Most
+    // useful for the GUI since the service knows what conversation is selected
+    // and can skip updates for things not currently on the screen.
+    boolean allowChatNotifySkips;
   }
 
   void setNotifications(NotificationChannels channels);

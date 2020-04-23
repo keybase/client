@@ -121,9 +121,6 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       marginTop: Styles.globalMargins.tiny,
     },
-    isTablet: {
-      alignSelf: 'flex-start',
-    },
   }),
   rowContainer: {
     alignSelf: 'flex-start',

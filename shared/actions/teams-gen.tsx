@@ -50,11 +50,13 @@ export const loadTeamTree = 'teams:loadTeamTree'
 export const loadWelcomeMessage = 'teams:loadWelcomeMessage'
 export const loadedWelcomeMessage = 'teams:loadedWelcomeMessage'
 export const manageChatChannels = 'teams:manageChatChannels'
+export const openInviteLink = 'teams:openInviteLink'
 export const reAddToTeam = 'teams:reAddToTeam'
 export const removeMember = 'teams:removeMember'
 export const removeParticipant = 'teams:removeParticipant'
 export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
+export const requestInviteLinkDetails = 'teams:requestInviteLinkDetails'
 export const respondToInviteLink = 'teams:respondToInviteLink'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
@@ -117,6 +119,7 @@ export const toggleInvitesCollapsed = 'teams:toggleInvitesCollapsed'
 export const unsubscribeTeamDetails = 'teams:unsubscribeTeamDetails'
 export const unsubscribeTeamList = 'teams:unsubscribeTeamList'
 export const updateChannelName = 'teams:updateChannelName'
+export const updateInviteLinkDetails = 'teams:updateInviteLinkDetails'
 export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
@@ -214,7 +217,7 @@ type _InviteToTeamByPhonePayload = {
   readonly fullName: string
   readonly loadingKey?: string
 }
-type _JoinTeamPayload = {readonly teamname: string}
+type _JoinTeamPayload = {readonly teamname: string; readonly deeplink?: boolean}
 type _LaunchNewTeamWizardOrModalPayload = {readonly subteamOf?: Types.TeamID}
 type _LeaveTeamPayload = {
   readonly teamname: string
@@ -230,19 +233,16 @@ type _LoadedWelcomeMessagePayload = {
   readonly message: RPCChatTypes.WelcomeMessageDisplay
 }
 type _ManageChatChannelsPayload = {readonly teamID: Types.TeamID}
+type _OpenInviteLinkPayload = {readonly inviteID: string; readonly inviteKey: string}
 type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveMemberPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveParticipantPayload = {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
-type _RemovePendingInvitePayload = {
-  readonly teamID: Types.TeamID
-  readonly email?: string
-  readonly username?: string
-  readonly inviteID?: string
-}
+type _RemovePendingInvitePayload = {readonly teamID: Types.TeamID; readonly inviteID: string}
 type _RenameTeamPayload = {readonly oldName: string; readonly newName: string}
+type _RequestInviteLinkDetailsPayload = void
 type _RespondToInviteLinkPayload = {readonly accept: boolean}
 type _SaveChannelMembershipPayload = {
   readonly teamID: Types.TeamID
@@ -388,6 +388,7 @@ type _UpdateChannelNamePayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newChannelName: string
 }
+type _UpdateInviteLinkDetailsPayload = {readonly details: RPCTypes.InviteLinkDetails}
 type _UpdateTopicPayload = {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -408,6 +409,16 @@ export const createAddMembersWizardPushMembers = (
   payload: _AddMembersWizardPushMembersPayload
 ): AddMembersWizardPushMembersPayload => ({payload, type: addMembersWizardPushMembers})
 /**
+ * Called by the modal if the key is missing
+ */
+export const createRequestInviteLinkDetails = (
+  payload: _RequestInviteLinkDetailsPayload
+): RequestInviteLinkDetailsPayload => ({payload, type: requestInviteLinkDetails})
+/**
+ * Called either by the join team UI or invite links when the modal appears
+ */
+export const createJoinTeam = (payload: _JoinTeamPayload): JoinTeamPayload => ({payload, type: joinTeam})
+/**
  * Change the set of default channels we're adding these users to.
  */
 export const createAddMembersWizardSetDefaultChannels = (
@@ -420,6 +431,12 @@ export const createFinishedNewTeamWizard = (
   payload: _FinishedNewTeamWizardPayload
 ): FinishedNewTeamWizardPayload => ({payload, type: finishedNewTeamWizard})
 /**
+ * Completes the invite link decision flow, processed by joinTeam
+ */
+export const createRespondToInviteLink = (
+  payload: _RespondToInviteLinkPayload
+): RespondToInviteLinkPayload => ({payload, type: respondToInviteLink})
+/**
  * Don't eagerly reload team list anymore.
  */
 export const createUnsubscribeTeamList = (
@@ -431,6 +448,13 @@ export const createUnsubscribeTeamList = (
 export const createGetActivityForTeams = (
   payload: _GetActivityForTeamsPayload
 ): GetActivityForTeamsPayload => ({payload, type: getActivityForTeams})
+/**
+ * First stage of the invite link process, opens the modal
+ */
+export const createOpenInviteLink = (payload: _OpenInviteLinkPayload): OpenInviteLinkPayload => ({
+  payload,
+  type: openInviteLink,
+})
 /**
  * Gets the team retention policy and stores in `state.entities.teams.teamIDToRetentionPolicy`.
  */
@@ -490,6 +514,12 @@ export const createRenameTeam = (payload: _RenameTeamPayload): RenameTeamPayload
   payload,
   type: renameTeam,
 })
+/**
+ * Saves the details from the API in the store, prompting the user to make a decision
+ */
+export const createUpdateInviteLinkDetails = (
+  payload: _UpdateInviteLinkDetailsPayload
+): UpdateInviteLinkDetailsPayload => ({payload, type: updateInviteLinkDetails})
 /**
  * Set filtering and sort order for main team list. Leaves existing for undefinted params.
  */
@@ -675,7 +705,6 @@ export const createInviteToTeamByEmail = (
 export const createInviteToTeamByPhone = (
   payload: _InviteToTeamByPhonePayload
 ): InviteToTeamByPhonePayload => ({payload, type: inviteToTeamByPhone})
-export const createJoinTeam = (payload: _JoinTeamPayload): JoinTeamPayload => ({payload, type: joinTeam})
 export const createLaunchNewTeamWizardOrModal = (
   payload: _LaunchNewTeamWizardOrModalPayload = Object.freeze({})
 ): LaunchNewTeamWizardOrModalPayload => ({payload, type: launchNewTeamWizardOrModal})
@@ -703,9 +732,6 @@ export const createRemoveParticipant = (payload: _RemoveParticipantPayload): Rem
 export const createRemovePendingInvite = (
   payload: _RemovePendingInvitePayload
 ): RemovePendingInvitePayload => ({payload, type: removePendingInvite})
-export const createRespondToInviteLink = (
-  payload: _RespondToInviteLinkPayload
-): RespondToInviteLinkPayload => ({payload, type: respondToInviteLink})
 export const createSaveChannelMembership = (
   payload: _SaveChannelMembershipPayload
 ): SaveChannelMembershipPayload => ({payload, type: saveChannelMembership})
@@ -1008,6 +1034,10 @@ export type ManageChatChannelsPayload = {
   readonly payload: _ManageChatChannelsPayload
   readonly type: typeof manageChatChannels
 }
+export type OpenInviteLinkPayload = {
+  readonly payload: _OpenInviteLinkPayload
+  readonly type: typeof openInviteLink
+}
 export type ReAddToTeamPayload = {readonly payload: _ReAddToTeamPayload; readonly type: typeof reAddToTeam}
 export type RemoveMemberPayload = {readonly payload: _RemoveMemberPayload; readonly type: typeof removeMember}
 export type RemoveParticipantPayload = {
@@ -1019,6 +1049,10 @@ export type RemovePendingInvitePayload = {
   readonly type: typeof removePendingInvite
 }
 export type RenameTeamPayload = {readonly payload: _RenameTeamPayload; readonly type: typeof renameTeam}
+export type RequestInviteLinkDetailsPayload = {
+  readonly payload: _RequestInviteLinkDetailsPayload
+  readonly type: typeof requestInviteLinkDetails
+}
 export type RespondToInviteLinkPayload = {
   readonly payload: _RespondToInviteLinkPayload
   readonly type: typeof respondToInviteLink
@@ -1249,6 +1283,10 @@ export type UpdateChannelNamePayload = {
   readonly payload: _UpdateChannelNamePayload
   readonly type: typeof updateChannelName
 }
+export type UpdateInviteLinkDetailsPayload = {
+  readonly payload: _UpdateInviteLinkDetailsPayload
+  readonly type: typeof updateInviteLinkDetails
+}
 export type UpdateTopicPayload = {readonly payload: _UpdateTopicPayload; readonly type: typeof updateTopic}
 export type UploadTeamAvatarPayload = {
   readonly payload: _UploadTeamAvatarPayload
@@ -1300,11 +1338,13 @@ export type Actions =
   | LoadWelcomeMessagePayload
   | LoadedWelcomeMessagePayload
   | ManageChatChannelsPayload
+  | OpenInviteLinkPayload
   | ReAddToTeamPayload
   | RemoveMemberPayload
   | RemoveParticipantPayload
   | RemovePendingInvitePayload
   | RenameTeamPayload
+  | RequestInviteLinkDetailsPayload
   | RespondToInviteLinkPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload
@@ -1367,6 +1407,7 @@ export type Actions =
   | UnsubscribeTeamDetailsPayload
   | UnsubscribeTeamListPayload
   | UpdateChannelNamePayload
+  | UpdateInviteLinkDetailsPayload
   | UpdateTopicPayload
   | UploadTeamAvatarPayload
   | {type: 'common:resetStore', payload: {}}

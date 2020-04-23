@@ -7,6 +7,7 @@ import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as ChatGen from '../../../actions/chat2-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
@@ -351,6 +352,7 @@ type ChannelRowProps = {
   reloadChannels: () => Promise<undefined>
 }
 const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: ChannelRowProps) => {
+  const dispatch = Container.useDispatch()
   const selfMode = mode === 'self'
   const numParticipants = Container.useSelector(s => {
     const participants = ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey)
@@ -359,8 +361,15 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: Cha
   const activityLevel = Container.useSelector(
     s => s.teams.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )
+  const onPreviewChannel = () =>
+    dispatch(
+      ChatGen.createPreviewConversation({
+        conversationIDKey: channelMeta.conversationIDKey,
+        reason: 'manageView',
+      })
+    )
   return Styles.isMobile ? (
-    <Kb.ClickableBox onClick={onSelect}>
+    <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
         <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
           <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
@@ -393,6 +402,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: Cha
               onSelect()
             }
       }
+      onClick={selfMode ? onPreviewChannel : undefined}
       type="Large"
       action={
         selfMode ? (
@@ -432,12 +442,13 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: Cha
           )}
         </Kb.Box2>
       }
-      containerStyleOverride={{marginLeft: 16, marginRight: 8}}
+      containerStyleOverride={styles.channelRowContainer}
     />
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  channelRowContainer: {marginLeft: 16, marginRight: 8},
   channelText: {flexShrink: 1},
   disabled: {opacity: 0.4},
   headerItem: {backgroundColor: Styles.globalColors.blueGrey},

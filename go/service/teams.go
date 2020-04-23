@@ -482,59 +482,27 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRemoveMember(%s, u:%q, e:%q, i:%q, a:%v)",
-		arg.TeamID, arg.Username, arg.Email, arg.InviteID, arg.AllowInaction), &err)()
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRemoveMember(%s, %+v)", arg.TeamID, arg), &err)()
 
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
 	}
 
-	var exclusiveActions []string
-	if len(arg.Username) > 0 {
-		exclusiveActions = append(exclusiveActions, "username")
-	}
-	if len(arg.Email) > 0 {
-		exclusiveActions = append(exclusiveActions, "email")
-	}
-	if len(arg.InviteID) > 0 {
-		exclusiveActions = append(exclusiveActions, "inviteID")
-	}
-	if len(exclusiveActions) > 1 {
-		return fmt.Errorf("TeamRemoveMember can only do 1 of %v at a time", exclusiveActions)
-	}
-
-	if len(arg.Email) > 0 {
-		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received email address, using CancelEmailInvite for %q in team %q", arg.Email, arg.TeamID)
-		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.TeamID, arg.Email, arg.AllowInaction)
-	} else if len(arg.InviteID) > 0 {
-		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received inviteID, using CancelInviteByID for %q in team %q", arg.InviteID, arg.TeamID)
-		return teams.CancelInviteByID(ctx, h.G().ExternalG(), arg.TeamID, arg.InviteID, arg.AllowInaction)
-	}
-	// Note: AllowInaction is not supported for non-invite removes.
-	h.G().Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", arg.Username, arg.TeamID)
-	return teams.RemoveMemberByID(ctx, h.G().ExternalG(), arg.TeamID, arg.Username)
+	return teams.RemoveMemberSingle(ctx, h.G().ExternalG(), arg.TeamID, arg.Member)
 }
 
 func (h *TeamsHandler) TeamRemoveMembers(ctx context.Context, arg keybase1.TeamRemoveMembersArg) (res keybase1.TeamRemoveMembersResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	debugString := "0"
-	if len(arg.Users) > 0 {
-		debugString = fmt.Sprintf("'%v'", arg.Users[0].Username)
-		if len(arg.Users) > 1 {
-			debugString = fmt.Sprintf("'%v' + %v more", arg.Users[0].Username, len(arg.Users)-1)
-		}
-	}
-	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRemoveMembers(%s, %s)", arg.TeamID, debugString),
-		&err)()
-	if len(arg.Users) == 0 {
-		return res, nil
+	defer h.G().CTrace(ctx, fmt.Sprintf("TeamRemoveMembers(%s, %v)", arg.TeamID, arg), &err)()
+	if len(arg.Members) == 0 {
+		return res, errors.New("no members provided to TeamRemoveMembers")
 	}
 
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return res, err
 	}
 
-	return teams.RemoveMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
+	return teams.RemoveMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Members, arg.NoErrorOnPartialFailure)
 }
 
 func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) (err error) {
@@ -997,11 +965,12 @@ func (h *TeamsHandler) LoadTeamTreeMembershipsAsync(ctx context.Context,
 		arg.TeamID, arg.Username, arg.SessionID), &err)()
 
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
-	loader, err := teams.NewTreeloader(mctx, arg.Username, arg.TeamID, arg.SessionID)
+	loader, err := teams.NewTreeloader(mctx, arg.Username, arg.TeamID,
+		arg.SessionID, true /* includeAncestors */)
 	if err != nil {
 		return res, err
 	}
-	err = loader.Load(mctx)
+	err = loader.LoadAsync(mctx)
 	if err != nil {
 		return res, err
 	}

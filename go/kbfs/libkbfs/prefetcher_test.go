@@ -2371,6 +2371,14 @@ func TestPrefetcherCellularPause(t *testing.T) {
 	last = <-callCh
 	require.Equal(t, keybase1.MobileNetworkState_CELLULAR, last)
 
+	t.Log("Make sure we get a wait channel right away")
+	ptr := makeRandomBlockPointer(t)
+	ctx, cancel := context.WithTimeout(
+		context.Background(), individualTestTimeout)
+	defer cancel()
+	_, err := q.Prefetcher().WaitChannelForBlockPrefetch(ctx, ptr)
+	require.NoError(t, err)
+
 	t.Log("Unpause it to make it notify again")
 	stateCh <- keybase1.MobileNetworkState_NONE
 	notifySyncCh(t, prefetchSyncCh)

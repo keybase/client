@@ -16,12 +16,14 @@ import (
 	"github.com/keybase/client/go/teams/hidden"
 )
 
-// AddMemberTx helps build a transaction that may contain multiple
-// team sigchain links. The caller can use the transaction to add users
-// to a team whether they be pukful, pukless, or social assertions.
-// Behind the scenes cryptomembers and invites may be removed if
-// they are for stale versions of the addees.
-// Not threadsafe.
+// AddMemberTx helps build a transaction that may contain multiple team
+// sigchain links. The caller can use the transaction to add users to a team
+// whether they be PUKful or PUKless users, social or server-trust assertions.
+//
+// Behind the scenes cryptomembers and invites may be removed if they are for
+// stale versions of the addees.
+//
+// Not thread-safe.
 type AddMemberTx struct {
 	team     *Team
 	payloads []txPayload
@@ -45,6 +47,16 @@ type AddMemberTx struct {
 
 	// Caller can set the following to affect how AddMemberTx:
 
+	// Allow adding users who do not have active Per User Key. Users without
+	// PUK will be added using a 'team.invite' link with type='keybase'
+	// invites.
+	//
+	// If this setting is 'false' (which is the default), it forces AddMemberTx
+	// to never add type='keybase' invites, and only `team.change_membership`
+	// is allowed for adding Keybase users as members. Calls to AddMember*
+	// functions that with a user that does not have a PUK result in an error.
+	AllowPUKless bool
+
 	// Override whether the team key is rotated.
 	SkipKeyRotation *bool
 
@@ -60,6 +72,23 @@ type TransactionTaintedError struct {
 
 func (e TransactionTaintedError) Error() string {
 	return fmt.Sprintf("Transaction is in error state: %s", e.inner)
+}
+
+// UserPUKlessError is returned when an attempt is made to add a PUKless user
+// to a transaction that has AllowPUKless=false.
+type UserPUKlessError struct {
+	username string
+	uv       keybase1.UserVersion
+}
+
+func (e UserPUKlessError) Error() string {
+	var userStr string
+	if e.username != "" {
+		userStr = fmt.Sprintf("%s (%s)", e.username, e.uv.String())
+	} else {
+		userStr = e.uv.String()
+	}
+	return fmt.Sprintf("User %s does not have a PUK, cannot be added to this transaction", userStr)
 }
 
 type txPayloadTag int
@@ -330,6 +359,10 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	hasPUK := len(user.PerUserKeys) > 0
 	if !hasPUK {
 		g.Log.CDebugf(ctx, "Invite required for %v", uv)
+
+		if !tx.AllowPUKless {
+			return false, UserPUKlessError{username: user.Username, uv: uv}
+		}
 	}
 
 	normalizedUsername := libkb.NewNormalizedUsername(user.Username)
@@ -692,7 +725,7 @@ func (tx *AddMemberTx) AddOrInviteMemberByAssertion(ctx context.Context, asserti
 // CanConsumeInvite checks if invite can be used. Has to be called before
 // calling `ConsumeInviteByID` with that invite ID. Does not modify the
 // transaction. When handling team invites, it should be called before
-// `ConsumeInviteByID` to assert that invite is still useable (new-style invites
+// `ConsumeInviteByID` to assert that invite is still usable (new-style invites
 // may be expired or exceeded).
 func (tx *AddMemberTx) CanConsumeInvite(ctx context.Context, inviteID keybase1.TeamInviteID) error {
 	inviteMD, found := tx.team.chain().FindActiveInviteMDByID(inviteID)
@@ -724,6 +757,11 @@ func (tx *AddMemberTx) CanConsumeInvite(ctx context.Context, inviteID keybase1.T
 				return NewInviteLinkAcceptanceError("invite expired at %v which is before the current time of %v; rejecting", etime, now)
 			}
 		}
+	} else {
+		_, alreadyCompleted := tx.completedInvites[inviteID]
+		if alreadyCompleted {
+			return fmt.Errorf("invite ID %s was already completed in this transaction", inviteID)
+		}
 	}
 
 	return nil
@@ -754,6 +792,7 @@ func (tx *AddMemberTx) ConsumeInviteByID(ctx context.Context, inviteID keybase1.
 		tx.usedInviteCount[inviteID]++
 	} else {
 		payload.CompleteInviteID(inviteID, uv.PercentForm())
+		tx.completedInvites[inviteID] = true
 	}
 
 	return nil
@@ -869,6 +908,9 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 			return err
 		}
 	} else {
+		if !tx.AllowPUKless {
+			return UserPUKlessError{uv: uv}
+		}
 		if err := tx.createKeybaseInvite(uv, role); err != nil {
 			return err
 		}
@@ -1051,6 +1093,13 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			}
 			section.Entropy = entropy
 			sections = append(sections, section)
+
+			if !tx.AllowPUKless && p.Tag == txPayloadTagInviteKeybase && section.Invites.HasNewInvites() {
+				// This means we broke contract somewhere or that tx.AllowPUKless
+				// was changed to false after adding PUKless user. Better fail here
+				// instead of doing unexpected.
+				return fmt.Errorf("Found payload with new Keybase invites but AllowPUKless is false")
+			}
 		default:
 			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown tag: %v", p.Tag)
 		}

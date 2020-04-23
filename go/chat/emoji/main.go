@@ -2,18 +2,88 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"go/format"
+	"io/ioutil"
 	"log"
 	"os"
+	"sort"
+	"strconv"
+	"strings"
 	"text/template"
 )
 
+// EmojiData json parse struct
+type EmojiData struct {
+	Unified     string `json:"unified"`
+	ShortName   string `json:"short_name"`
+	ObsoletedBy string `json:"obsoleted_by"`
+}
+
+// UnifiedToChar renders a character from its hexadecimal codepoint
+func UnifiedToChar(unified string) (string, error) {
+	codes := strings.Split(unified, "-")
+	var sb strings.Builder
+	for _, code := range codes {
+		s, err := strconv.ParseInt(code, 16, 32)
+		if err != nil {
+			return "", err
+		}
+		sb.WriteRune(rune(s))
+	}
+	return sb.String(), nil
+}
+
+func createEmojiDataCodeMap(path string) (map[string]string, map[string][]string, error) {
+	emojiFile, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var data []EmojiData
+	if err := json.Unmarshal(emojiFile, &data); err != nil {
+		return nil, nil, err
+	}
+
+	// emojiRevCodeMap maps unicode characters to lists of short codes.
+
+	emojiCodeMap := make(map[string]string)
+	emojiRevCodeMap := make(map[string][]string)
+	for _, emoji := range data {
+		if len(emoji.ShortName) == 0 || len(emoji.Unified) == 0 {
+			continue
+		}
+		unified := emoji.Unified
+		if len(emoji.ObsoletedBy) > 0 {
+			unified = emoji.ObsoletedBy
+		}
+		unicode, err := UnifiedToChar(unified)
+		if err != nil {
+			return nil, nil, err
+		}
+		unicode = fmt.Sprintf("%+q", strings.ToLower(unicode))
+		emojiCodeMap[emoji.ShortName] = unicode
+		emojiRevCodeMap[unicode] = append(emojiRevCodeMap[unicode], emoji.ShortName)
+	}
+
+	// ensure deterministic ordering for aliases
+	for _, value := range emojiRevCodeMap {
+		sort.Slice(value, func(i, j int) bool {
+			if len(value[i]) == len(value[j]) {
+				return value[i] < value[j]
+			}
+			return len(value[i]) < len(value[j])
+		})
+	}
+
+	return emojiCodeMap, emojiRevCodeMap, nil
+}
+
 // adapted from https://github.com/kyokomi/emoji/ to only use the emoji-data
 // emoji source
-var pkgName string
-var fileName string
+var pkgName, inName, outName string
 
 // TemplateData emoji_codemap.go template
 type TemplateData struct {
@@ -63,9 +133,10 @@ func createCodeMapSource(pkgName string, emojiCodeMap map[string]string, emojiRe
 
 func main() {
 	flag.StringVar(&pkgName, "pkg", "storage", "output package")
-	flag.StringVar(&fileName, "o", "../storage/emoji_codemap.go", "output file")
+	flag.StringVar(&outName, "o", "../storage/emoji_codemap.go", "output file")
+	flag.StringVar(&inName, "i", "../../../shared/node_modules/emoji-datasource/emoji.json", "input file")
 	flag.Parse()
-	codeMap, revCodeMap, err := createEmojiDataCodeMap()
+	codeMap, revCodeMap, err := createEmojiDataCodeMap(inName)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -75,8 +146,8 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	os.Remove(fileName)
-	file, err := os.Create(fileName)
+	os.Remove(outName)
+	file, err := os.Create(outName)
 	if err != nil {
 		log.Fatalln(err)
 	}

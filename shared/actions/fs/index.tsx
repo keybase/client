@@ -417,7 +417,7 @@ const dismissDownload = (action: FsGen.DismissDownloadPayload) =>
 const upload = async (_: Container.TypedState, action: FsGen.UploadPayload) => {
   try {
     await RPCTypes.SimpleFSSimpleFSStartUploadRpcPromise({
-      sourceLocalPath: action.payload.localPath,
+      sourceLocalPath: Types.getNormalizedLocalPath(action.payload.localPath),
       targetParentPath: Constants.pathToRPCPath(action.payload.parentPath).kbfs,
     })
     return false
@@ -664,28 +664,33 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
             overwriteExistingFiles: false,
             src: {
               PathType: RPCTypes.PathType.local,
-              local: Types.localPathToString(state.fs.destinationPicker.source.source),
+              local: Types.getNormalizedLocalPath(
+                Types.localPathToString(state.fs.destinationPicker.source.source)
+              ),
             } as RPCTypes.Path,
           },
         ]
-      : state.fs.destinationPicker.source.source.map(item => ({
-          dest: Constants.pathToRPCPath(
-            Types.pathConcat(
-              action.payload.destinationParentPath,
-              Types.getLocalPathName(item.originalPath)
-              // We use the local path name here since we only care about file name.
-            )
-          ),
-          opID: Constants.makeUUID() as string,
-          overwriteExistingFiles: false,
-          src: {
-            PathType: RPCTypes.PathType.local,
-            // @ts-ignore
-            local: state.fs.destinationPicker.source.useOriginal
-              ? item.originalPath
-              : item.scaledPath || item.originalPath,
-          } as RPCTypes.Path,
-        }))
+      : state.fs.destinationPicker.source.source
+          .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
+          .filter(({originalPath}) => !!originalPath)
+          .map(({originalPath, scaledPath}) => ({
+            dest: Constants.pathToRPCPath(
+              Types.pathConcat(
+                action.payload.destinationParentPath,
+                Types.getLocalPathName(originalPath)
+                // We use the local path name here since we only care about file name.
+              )
+            ),
+            opID: Constants.makeUUID() as string,
+            overwriteExistingFiles: false,
+            src: {
+              PathType: RPCTypes.PathType.local,
+              local: Types.getNormalizedLocalPath(
+                // @ts-ignore
+                state.fs.destinationPicker.source.useOriginal ? originalPath : scaledPath || originalPath
+              ),
+            } as RPCTypes.Path,
+          }))
 
   try {
     const rpc =
