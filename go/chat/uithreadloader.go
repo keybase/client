@@ -93,6 +93,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, c
 	groupers := []msgGrouper{
 		newJoinLeaveGrouper(t.G(), uid, convID, dataSource),
 		newBulkAddGrouper(t.G(), uid, convID, dataSource),
+		newChannelGrouper(t.G(), uid, convID, dataSource),
 		newAddedToTeamGrouper(t.G(), uid, convID, dataSource),
 		newErrGrouper(t.G(), uid, convID, dataSource),
 	}

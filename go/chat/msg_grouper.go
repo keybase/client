@@ -183,6 +183,54 @@ func (gr *bulkAddGrouper) makeCombined(ctx context.Context, grouped []chat1.Mess
 	return &msg
 }
 
+// group NEWCHANNEL system messages
+type channelGrouper struct {
+	uid gregor1.UID
+}
+
+var _ msgGrouper = (*channelGrouper)(nil)
+
+func newChannelGrouper(g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
+	dataSource types.InboxSourceDataSourceTyp) *channelGrouper {
+	return &channelGrouper{
+		uid: uid,
+	}
+}
+
+func (gr *channelGrouper) matches(ctx context.Context, msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
+	if !(msg.IsValid() && msg.Valid().ClientHeader.Sender.Eq(gr.uid)) {
+		return false
+	}
+	body := msg.Valid().MessageBody
+	if !body.IsType(chat1.MessageType_SYSTEM) {
+		return false
+	}
+	sysBod := msg.Valid().MessageBody.System()
+	typ, err := sysBod.SystemType()
+	return err == nil && typ == chat1.MessageSystemType_NEWCHANNEL
+}
+
+func (gr *channelGrouper) makeCombined(ctx context.Context, grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
+	if len(grouped) == 0 {
+		return nil
+	}
+
+	var convIDs []chat1.ConversationID
+	var mentions []chat1.ChannelNameMention
+	for _, msg := range grouped {
+		convIDs = append(convIDs, msg.Valid().MessageBody.System().Newchannel().ConvID)
+		mentions = append(mentions, msg.Valid().ChannelNameMentions...)
+	}
+
+	mvalid := grouped[0].Valid()
+	sysBod := mvalid.MessageBody.System().Newchannel()
+	sysBod.ConvIDs = convIDs
+	mvalid.ChannelNameMentions = mentions
+	mvalid.MessageBody = chat1.NewMessageBodyWithSystem(chat1.NewMessageSystemWithNewchannel(sysBod))
+	msg := chat1.NewMessageUnboxedWithValid(mvalid)
+	return &msg
+}
+
 // group ADDEDTOTEAM system messages
 type addedToTeamGrouper struct {
 	globals.Contextified

@@ -2999,6 +2999,10 @@ func (m MessageSystem) String() string {
 			body.AssertionService)
 	case MessageSystemType_NEWCHANNEL:
 		body := m.Newchannel()
+		if len(body.ConvIDs) > 1 {
+			return fmt.Sprintf("@%s created #%s and %d other new channels",
+				body.Creator, body.NameAtCreation, len(body.ConvIDs)-1)
+		}
 		return fmt.Sprintf("@%s created a new channel #%s",
 			body.Creator, body.NameAtCreation)
 	default:
