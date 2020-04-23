@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -870,8 +869,11 @@ func TestTeamPlayerUsedInviteMultipleTimes(t *testing.T) {
 }
 
 func TestTeamPlayerDoubleUsedInvites(t *testing.T) {
-	// Check change_membership link that adds one member, but has same
-	// used_invites pairs for that member for some reason.
+	// Check change_membership link that adds one member, but has same used_invites
+	// pairs for that member for some reason. Note that server checks for this as
+	// well - it fails when it tries to complete the acceptance for a user more
+	// than once (TEAM_INVITE_USE_ACCEPTANCE_MISSING), and it doesn't allow one
+	// user to have more than one acceptance pending (TEAM_SEITAN_REQUEST_PENDING).
 
 	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
 	defer tc.Cleanup()
@@ -898,21 +900,9 @@ func TestTeamPlayerDoubleUsedInvites(t *testing.T) {
 		{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
 	}
 
-	state, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+	_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 		teamSectionCM, me, nil /* merkleRoot */)
-	require.NoError(t, err)
-
-	spew.Dump(state.inner.InviteMetadatas[inviteID].UsedInvites)
-	/*
-		([]keybase1.TeamUsedInviteLogPoint) (len=2 cap=2) {
-			(keybase1.TeamUsedInviteLogPoint) {
-				Uv: (keybase1.UserVersion) c7c88a2436470ad4eb43ac5acaa21119%1,
-				LogPoint: (int) 0
-			},
-			(keybase1.TeamUsedInviteLogPoint) {
-				Uv: (keybase1.UserVersion) c7c88a2436470ad4eb43ac5acaa21119%1,
-				LogPoint: (int) 0
-			}
-		}
-	*/
+	requirePrecheckError(t, err)
+	require.Contains(t, err.Error(), "duplicate used_invite for UV")
+	require.Contains(t, err.Error(), testUV.PercentForm())
 }

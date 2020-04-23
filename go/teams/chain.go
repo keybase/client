@@ -2286,6 +2286,7 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 		return nil
 	}
 
+	seenUVs := make(map[keybase1.UserVersion]bool)
 	hasStubbedLinks := stateToUpdate.HasAnyStubbedLinks()
 	for _, pair := range used {
 		inviteID, err := pair.InviteID.TeamInviteID()
@@ -2341,6 +2342,11 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 			return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV,
 				inviteMD.Invite.Role.HumanString())
 		}
+
+		if seen := seenUVs[uv]; seen {
+			return fmt.Errorf("duplicate used_invite for UV %s", pair.UV)
+		}
+		seenUVs[uv] = true
 
 		// Because we use information from the UserLog here, useInvites should be called after
 		// updateMembership.
