@@ -415,21 +415,27 @@ func (sm *subscriptionManager) subscribePathWithoutFolderBranchLocked(
 func (sm *subscriptionManager) SubscribePath(ctx context.Context,
 	sid SubscriptionID, path string, topic keybase1.PathSubscriptionTopic,
 	deduplicateInterval *time.Duration) error {
-	// Lock at the beginnning to protect against racing with unsubscribe.
-	// Specifically, we don't want to launch the poller if an unsubscribe call
-	// for this sid comes in before we get fb from
-	// parsedPath.getFolderBranch().
-	//
-	// We could still end up with a lingering subscription if unsubscribe
-	// happens too fast and RPC somehow gives use the unsubscribe call before
-	// the subscribe call, but that's probably rare enough to ignore here.
-	sm.lock.Lock()
-	defer sm.lock.Unlock()
-
 	parsedPath, err := parsePath(userPath(path))
 	if err != nil {
 		return err
 	}
+
+	// Lock here to protect against racing with unsubscribe.  Specifically, we
+	// don't want to launch the poller if an unsubscribe call for this sid
+	// comes in before we get fb from parsedPath.getFolderBranch().
+	//
+	// We could still end up with a lingering subscription if unsubscribe
+	// happens too fast and RPC somehow gives use the unsubscribe call before
+	// the subscribe call, but that's probably rare enough to ignore here.
+	//
+	// In the future if this end up contributing a deadlock because
+	// folderBranch starts using the subscription manager somehow, we can add a
+	// "recently unsubscribed" cache to the subscription manager and move this
+	// lock further down. This cache should also mitigate the issue where the
+	// unsubscribe call gets deliverd before subscribe.
+	sm.lock.Lock()
+	defer sm.lock.Unlock()
+
 	fb, err := parsedPath.getFolderBranch(ctx, sm.config)
 	if err != nil {
 		return err
