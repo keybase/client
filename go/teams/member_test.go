@@ -2075,17 +2075,24 @@ func TestTeamPlayerNoRoleChange(t *testing.T) {
 		teamSectionCM, me, nil /* merkleRoot */)
 	require.NoError(t, err)
 
-	require.Len(t, state.inner.UserLog[testUV], 1)
-	require.EqualValues(t, 2, state.inner.UserLog[testUV][0].SigMeta.SigChainLocation.Seqno)
+	userLog := state.inner.UserLog[testUV]
+	require.Len(t, userLog, 1)
+	require.Equal(t, keybase1.TeamRole_WRITER, userLog[0].Role)
+	require.EqualValues(t, 2, userLog[0].SigMeta.SigChainLocation.Seqno)
 
 	// Append the same link again: "change" Writer testUV to Writer.
 	state, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 		teamSectionCM, me, nil /* merkleRoot */)
 	require.NoError(t, err)
 
-	// That didn't change UserLog - no change in role, didn't add a checkpoint.
-	require.Len(t, state.inner.UserLog[testUV], 1)
-	require.EqualValues(t, 2, state.inner.UserLog[testUV][0].SigMeta.SigChainLocation.Seqno)
+	// That adds a new UserLog point with proper SigChainLocation, and the same
+	// role (writer).
+	userLog = state.inner.UserLog[testUV]
+	require.Len(t, userLog, 2)
+	for i, lp := range userLog {
+		require.Equal(t, keybase1.TeamRole_WRITER, lp.Role)
+		require.EqualValues(t, 2+i, lp.SigMeta.SigChainLocation.Seqno)
+	}
 }
 
 var rmMaker = func(assertion string) keybase1.TeamMemberToRemove {

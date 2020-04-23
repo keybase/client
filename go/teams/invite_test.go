@@ -756,8 +756,9 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 		teamSectionCM, me, nil /* merkleRoot */)
 	require.NoError(t, err)
 
-	require.Len(t, state.inner.UserLog[testUV], 1)
-	require.EqualValues(t, 3, state.inner.UserLog[testUV][0].SigMeta.SigChainLocation.Seqno)
+	userLog := state.inner.UserLog[testUV]
+	require.Len(t, userLog, 1)
+	require.EqualValues(t, 3, userLog[0].SigMeta.SigChainLocation.Seqno)
 
 	// Add member again, with similar link, but using the invite.
 	// (re-use teamSectionCM)
@@ -768,12 +769,79 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 		teamSectionCM, me, nil /* merkleRoot */)
 	require.NoError(t, err)
 
-	// That didn't change UserLog - no change in role, didn't add a checkpoint.
-	require.Len(t, state.inner.UserLog[testUV], 1)
+	// This creates a new log point in UserLog
+	userLog = state.inner.UserLog[testUV]
+	require.Len(t, userLog, 2)
+	for i, lp := range userLog {
+		require.Equal(t, keybase1.TeamRole_READER, lp.Role)
+		require.EqualValues(t, 3+i, lp.SigMeta.SigChainLocation.Seqno)
+	}
 
-	// ...which makes the usedInvites weird with the log pointer:
-	require.Len(t, state.inner.InviteMetadatas[inviteID].UsedInvites, 1)
-	require.Equal(t, testUV, state.inner.InviteMetadatas[inviteID].UsedInvites[0].Uv)
-	// this would be the wrong log point: testUV did not accept invite at that point
-	require.Equal(t, 0, state.inner.InviteMetadatas[inviteID].UsedInvites[0].LogPoint)
+	// And the used invite references this latest log point.
+	inviteMD, found := state.inner.InviteMetadatas[inviteID]
+	require.True(t, found)
+	require.Len(t, inviteMD.UsedInvites, 1)
+	require.Equal(t, 1, inviteMD.UsedInvites[0].LogPoint)
+	require.Equal(t, testUV, inviteMD.UsedInvites[0].Uv)
+}
+
+func TestTeamPlayerUsedInviteMultipleTimes(t *testing.T) {
+	// See TestTeamPlayerNoRoleChange in members_test.go and
+	// TestTeamPlayerUsedInviteWithNoRoleChange above.
+	//
+	// Very similar to the test above, but instead of accepting an invite link
+	// after we were already a member, we accept invite once to become a
+	// member, and then (presumably) accept the same invite again, and get
+	// added again, with no role change.
+
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
+
+	// Add multi use invite.
+	teamSectionForInvite := makeTestSCTeamSection(team)
+	sectionInvite := makeTestSCForInviteLink()
+	maxUses := keybase1.TeamMaxUsesInfinite
+	sectionInvite.MaxUses = &maxUses
+	inviteID := keybase1.TeamInviteID(sectionInvite.ID)
+	teamSectionForInvite.Invites = &SCTeamInvites{
+		Readers: &[]SCTeamInvite{sectionInvite},
+	}
+
+	// Add invite link
+	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+	_, found := state.FindActiveInviteMDByID(inviteID)
+	require.True(t, found)
+
+	// Add member using that invite, twice
+	teamSectionCM := makeTestSCTeamSection(team)
+	teamSectionCM.Members = &SCTeamMembers{
+		Readers: &[]SCTeamMember{SCTeamMember(testUV)},
+	}
+	teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+		{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
+	}
+	for i := 0; i < 2; i++ {
+		state, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+			teamSectionCM, me, nil /* merkleRoot */)
+		require.NoError(t, err)
+	}
+
+	userLog := state.inner.UserLog[testUV]
+	require.Len(t, userLog, 2)
+	for i, lp := range userLog {
+		require.Equal(t, keybase1.TeamRole_READER, lp.Role)
+		require.EqualValues(t, 3+i, lp.SigMeta.SigChainLocation.Seqno)
+	}
+
+	inviteMD, found := state.inner.InviteMetadatas[inviteID]
+	require.True(t, found)
+	require.Len(t, inviteMD.UsedInvites, 2)
+	for i, ulp := range inviteMD.UsedInvites {
+		require.Equal(t, i, ulp.LogPoint)
+		require.Equal(t, testUV, ulp.Uv)
+	}
 }
