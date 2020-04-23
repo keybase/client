@@ -32,7 +32,6 @@ func newCmdChatClearCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		Usage: "Specify a team",
 	}, cli.StringFlag{
 		Name:  "type",
-		Value: "public",
 		Usage: "Specify an advertisement type. The valid values are \"public\", \"teammembers\", \"teamconvs\", \"conv\"",
 	})
 	return cli.Command{
@@ -110,11 +109,19 @@ func (c *CmdChatClearCommands) ParseArgv(ctx *cli.Context) (err error) {
 			return err
 		}
 		c.teamName = ctx.String("team-name")
+		channel := ctx.String("channel")
 		switch c.adType {
 		case chat1.BotCommandsAdvertisementTyp_PUBLIC:
+			if c.teamName != "" {
+				return fmt.Errorf("--team-name is unexpected for type %q", typString)
+			} else if channel != "" {
+				return fmt.Errorf("--channel is unexpected for type %q", typString)
+			}
 		case chat1.BotCommandsAdvertisementTyp_TLFID_CONVS, chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS:
 			if c.teamName == "" {
 				return fmt.Errorf("--team-name required for type %q", typString)
+			} else if channel != "" {
+				return fmt.Errorf("--channel is unexpected for type %q", typString)
 			}
 		case chat1.BotCommandsAdvertisementTyp_CONV:
 			if c.teamName == "" {
@@ -124,6 +131,8 @@ func (c *CmdChatClearCommands) ParseArgv(ctx *cli.Context) (err error) {
 				return err
 			}
 		}
+	} else if ctx.NumFlags() != 0 {
+		return fmt.Errorf("no flags are expected when a --type is not specified")
 	}
 	return nil
 }
