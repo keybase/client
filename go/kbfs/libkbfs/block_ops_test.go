@@ -135,7 +135,9 @@ func (config testBlockOpsConfig) GetSettingsDB() *SettingsDB {
 	return nil
 }
 
-func (config testBlockOpsConfig) SubscriptionManager() SubscriptionManager {
+func (config testBlockOpsConfig) SubscriptionManager(
+	_ SubscriptionManagerClientID, _ bool,
+	_ SubscriptionNotifier) SubscriptionManager {
 	return config.subscriptionManager
 }
 
