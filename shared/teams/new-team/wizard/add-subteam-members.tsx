@@ -52,12 +52,12 @@ const AddSubteamMembers = () => {
   const doneLabel = selectedMembers.size ? 'Done' : 'Skip'
 
   const renderItem = (_: number, m: Types.MemberInfo) => {
-    const onSelect = (selected: boolean) => {
+    const selected = selectedMembers.has(m.username)
+    const onSelect = () => {
       // TODO: ensure performance (see Y2K-1666)
-      selected ? selectedMembers.add(m.username) : selectedMembers.delete(m.username)
+      !selected ? selectedMembers.add(m.username) : selectedMembers.delete(m.username)
       setSelectedMembers(new Set([...selectedMembers]))
     }
-    const selected = selectedMembers.has(m.username)
 
     return (
       <Kb.ListItem2
@@ -74,7 +74,7 @@ const AddSubteamMembers = () => {
         action={<Kb.CheckCircle checked={selectedMembers.has(m.username)} onCheck={onSelect} />}
         firstItem={true}
         key={m.username}
-        onClick={() => onSelect(!selected)}
+        onClick={() => onSelect()}
       />
     )
   }
