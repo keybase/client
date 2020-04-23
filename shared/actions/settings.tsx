@@ -11,7 +11,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from './settings-gen'
 import * as WaitingGen from './waiting-gen'
 import trim from 'lodash/trim'
-import {isAndroid, isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
+import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import * as Container from '../util/container'
 import openURL from '../util/open-url'
@@ -302,18 +302,17 @@ function* refreshNotifications() {
     unsub: false,
   }
   results.notifications[Constants.soundGroup] = {
-    settings:
-      isAndroid && !isAndroidNewerThanN
-        ? [
-            {
-              description: 'Phone: use default sound for new messages',
-              name: 'defaultsoundmobile',
-              subscribed: !!chatGlobalSettings.settings[
-                `${ChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`
-              ],
-            },
-          ]
-        : [],
+    settings: isAndroidNewerThanN
+      ? []
+      : [
+          {
+            description: 'Phone/tablet: use default sound for new messages',
+            name: 'defaultsoundmobile',
+            subscribed: !!chatGlobalSettings.settings[
+              `${ChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`
+            ],
+          },
+        ],
     unsub: false,
   }
 

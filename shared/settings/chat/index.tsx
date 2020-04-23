@@ -340,23 +340,27 @@ class Chat extends React.Component<Props, State> {
             {(showDesktopSound || showMobileSound) && (
               <>
                 <Kb.Divider style={styles.divider} />
-                <Kb.Text type="Header">Sounds</Kb.Text>}
-                {showDesktopSound && (
-                  <Kb.Checkbox
-                    onCheck={this.props.onToggleSound}
-                    checked={this.props.sound}
-                    label="Play a sound for new messages"
-                  />
-                )}
-                {showMobileSound && (
-                  <Group
-                    allowEdit={this.props.allowEdit}
-                    groupName="sound"
-                    onToggle={this.props.onToggle}
-                    settings={this.props.groups.get('sound')!.settings}
-                    unsubscribedFromAll={false}
-                  />
-                )}
+                <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.innerContainer}>
+                  <Kb.Text type="Header">Sounds</Kb.Text>
+                  <>
+                    {showDesktopSound && (
+                      <Kb.Checkbox
+                        onCheck={this.props.onToggleSound}
+                        checked={this.props.sound}
+                        label="Play a sound for new messages"
+                      />
+                    )}
+                    {showMobileSound && (
+                      <Group
+                        allowEdit={this.props.allowEdit}
+                        groupName="sound"
+                        onToggle={this.props.onToggle}
+                        settings={this.props.groups.get('sound')!.settings}
+                        unsubscribedFromAll={false}
+                      />
+                    )}
+                  </>
+                </Kb.Box2>
               </>
             )}
           </Kb.Box2>
@@ -384,6 +388,7 @@ const TeamRow = ({checked, isOpen, name, onCheck}) => (
     </Kb.Box2>
   </Kb.Box2>
 )
+
 const styles = Styles.styleSheetCreate(() => ({
   btnContainer: {
     alignSelf: 'flex-start',
@@ -435,14 +440,25 @@ const styles = Styles.styleSheetCreate(() => ({
   teamText: {
     alignSelf: 'flex-start',
   },
-  whitelistDivider: {
-    marginLeft: Styles.globalMargins.small,
-  },
-  whitelistRowContainer: {
-    flexShrink: 0,
-    justifyContent: 'space-between',
-    padding: Styles.globalMargins.small,
-  },
+  whitelistDivider: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      marginLeft: Styles.globalMargins.mediumLarge,
+    },
+  }),
+  whitelistRowContainer: Styles.platformStyles({
+    common: {
+      flexShrink: 0,
+      justifyContent: 'space-between',
+      marginLeft: Styles.globalMargins.tiny,
+      padding: Styles.globalMargins.small,
+    },
+    isMobile: {
+      marginLeft: Styles.globalMargins.small,
+    },
+  }),
 }))
 
 export default Chat

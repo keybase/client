@@ -42,7 +42,7 @@ export const Group = (props: {
         ))}
     </Kb.Box2>
     {!!props.unsub && (
-      <Kb.Box2 direction="vertical" alignSelf="flex-start">
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" fullWidth={true}>
         <Kb.Text type="BodySmall">Or</Kb.Text>
         <Kb.Checkbox
           style={{marginTop: Styles.globalMargins.xtiny}}
