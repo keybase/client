@@ -41,7 +41,7 @@ export default Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps) => {
         <Kb.Button
           mode="Secondary"
           small={true}
-          label="Enable Finder integration"
+          label={`Enable ${fileUIName} integration`}
           onClick={props.toggleShowingMenu}
           ref={props.setAttachmentRef}
         />
