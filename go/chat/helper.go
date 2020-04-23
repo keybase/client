@@ -194,7 +194,7 @@ func (h *Helper) FindConversations(ctx context.Context,
 	oneChat := true
 	var tname string
 	if topicName != nil {
-		tname = *topicName
+		tname = utils.SanitizeTopicName(*topicName)
 	}
 	convs, err := FindConversations(ctx, h.G(), h.DebugLabeler, types.InboxSourceDataSourceAll, h.ri, uid,
 		name, topicType, membersType, vis, tname, &oneChat)
@@ -1092,7 +1092,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 	var findConvsTopicName string
 	if n.topicName != nil {
-		findConvsTopicName = *n.topicName
+		findConvsTopicName = utils.SanitizeTopicName(*n.topicName)
 	}
 	info, err := n.getNameInfo(ctx)
 	if err != nil {

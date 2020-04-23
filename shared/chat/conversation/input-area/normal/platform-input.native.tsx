@@ -534,7 +534,8 @@ const styles = Styles.styleSheetCreate(
       },
       iconContainer: {
         height: 28,
-        marginRight: -4,
+        marginRight: -Styles.globalMargins.xtiny,
+        marginTop: Styles.globalMargins.tiny,
         position: 'relative',
         width: 28,
       },
@@ -550,10 +551,6 @@ const styles = Styles.styleSheetCreate(
           marginRight: Styles.globalMargins.tiny,
           minHeight: 0,
           paddingTop: Styles.globalMargins.tiny,
-        },
-        isAndroid: {
-          // This is to counteract some intrinsic margins the android view has
-          marginTop: -8,
         },
       }),
       inputContainer: {

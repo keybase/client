@@ -1,5 +1,6 @@
 import logger from '../logger'
 import * as Constants from '../constants/team-building'
+import * as RouterConstants from '../constants/router2'
 import * as TeamBuildingTypes from '../constants/types/team-building'
 import * as TeamBuildingGen from './team-building-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -8,7 +9,17 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import {validateEmailAddress} from '../util/email-address'
 
-const closeTeamBuilding = () => RouteTreeGen.createNavigateUp()
+const closeTeamBuilding = () => {
+  const modals = RouterConstants.getModalStack()
+  const routeNames = [...namespaceToRoute.values()]
+  const routeName = modals[modals.length - 1]?.routeName
+
+  if (routeNames.indexOf(routeName) !== -1) {
+    return RouteTreeGen.createNavigateUp()
+  }
+  return false
+}
+
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
 type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace; includeContacts: boolean}}
 
@@ -144,10 +155,35 @@ export function filterForNs<S, A, L, R>(
 const makeCustomResetStore = () =>
   TeamBuildingTypes.allowedNamespace.map(namespace => TeamBuildingGen.createTbResetStore({namespace}))
 
+const namespaceToRoute = new Map([
+  ['chat2', 'chatNewChat'],
+  ['crypto', 'cryptoTeamBuilder'],
+  ['teams', 'teamsTeamBuilder'],
+  ['people', 'peopleTeamBuilder'],
+  ['wallets', 'walletTeamBuilder'],
+])
+
+const maybeCancelTeamBuilding = (namespace: TeamBuildingTypes.AllowedNamespace) => (
+  action: RouteTreeGen.OnNavChangedPayload
+) => {
+  const {prev, next} = action.payload
+
+  const wasTeamBuilding = namespaceToRoute.get(namespace) === prev[prev.length - 1]?.routeName
+  if (wasTeamBuilding) {
+    // team building or modal on top of that still
+    const isTeamBuilding = next[prev.length - 1] === prev[prev.length - 1]
+    if (!isTeamBuilding) {
+      return TeamBuildingGen.createCancelTeamBuilding({namespace})
+    }
+  }
+  return false
+}
+
 export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
   yield* Saga.chainAction2(TeamBuildingGen.resetStore, makeCustomResetStore)
   yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
   yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
+  yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeCancelTeamBuilding(namespace))
   // Navigation, before creating
   yield* Saga.chainAction2(
     [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],

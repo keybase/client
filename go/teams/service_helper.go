@@ -426,6 +426,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 
 		tx := CreateAddMemberTx(t)
+		tx.AllowPUKless = true
 		tx.EmailInviteMsg = emailInviteMsg
 		resolvedUsername, uv, invite, err := tx.AddOrInviteMemberByAssertion(ctx, username, role, botSettings)
 		if err != nil {
@@ -509,6 +510,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 
 		tx := CreateAddMemberTx(team)
+		tx.AllowPUKless = true
 		tx.EmailInviteMsg = emailInviteMsg
 
 		type sweepEntry struct {
@@ -693,6 +695,7 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 		}
 
 		tx := CreateAddMemberTx(t)
+		tx.AllowPUKless = true
 		if err := tx.ReAddMemberToImplicitTeam(ctx, uv, hasPUK, targetRole, existingBotSettings); err != nil {
 			return err
 		}
@@ -1776,11 +1779,10 @@ func CreateInvitelink(mctx libkb.MetaContext, teamname string,
 	if err != nil {
 		return invitelink, err
 	}
-	url, err := GenerateInvitelinkURL(mctx, ikey, shortID)
-	if err != nil {
-		return invitelink, err
-	}
-	return keybase1.Invitelink{Ikey: ikey, Url: url}, err
+	return keybase1.Invitelink{
+		Ikey: ikey,
+		Url:  GenerateInvitelinkURL(mctx, ikey, shortID),
+	}, err
 }
 
 // CreateTLF is called by KBFS when a TLF ID is associated with an implicit team.

@@ -89,7 +89,7 @@ protocol api {
     string alias;
     boolean isCrossTeam;
     union { null, ConvIDStr } convID;
-    union { null, MessageID } messageID; 
+    union { null, MessageID } messageID;
   }
 
   record MsgTextContent {
@@ -360,6 +360,9 @@ protocol api {
     @optional(true)
     @jsonkey("team_name")
     string teamName;
+    @jsonkey("conv_id")
+    @optional(true)
+    ConvIDStr convID;
   }
 
   record ResetConvMemberAPI {

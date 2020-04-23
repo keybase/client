@@ -354,7 +354,7 @@ const useHeaderCallbacks = (teamID: TeamID) => {
   const onManageInvites = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteHistory'}]}))
   const onGenerateLink = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksModal'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksGenerate'}]}))
 
   return {
     onAddSelf,

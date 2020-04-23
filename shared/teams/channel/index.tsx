@@ -157,6 +157,7 @@ const Channel = (props: OwnProps) => {
             teamID={teamID}
             username={item}
             firstItem={index === 0}
+            isGeneral={meta.channelname === 'general'}
           />
         ),
         title: `Members (${participants.length})`,

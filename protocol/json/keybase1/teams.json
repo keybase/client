@@ -3179,6 +3179,10 @@
           "name": "inviteID"
         },
         {
+          "type": "boolean",
+          "name": "inviterResetOrDel"
+        },
+        {
           "type": "UID",
           "name": "inviterUID"
         },
@@ -3188,27 +3192,7 @@
         },
         {
           "type": "boolean",
-          "name": "inviterResetOrDel"
-        },
-        {
-          "type": "boolean",
-          "name": "teamIsOpen"
-        },
-        {
-          "type": "TeamID",
-          "name": "teamID"
-        },
-        {
-          "type": "string",
-          "name": "teamDesc"
-        },
-        {
-          "type": "TeamName",
-          "name": "teamName"
-        },
-        {
-          "type": "int",
-          "name": "teamNumMembers"
+          "name": "isMember"
         },
         {
           "type": {
@@ -3217,6 +3201,26 @@
             "keys": "AvatarFormat"
           },
           "name": "teamAvatars"
+        },
+        {
+          "type": "string",
+          "name": "teamDesc"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "boolean",
+          "name": "teamIsOpen"
+        },
+        {
+          "type": "TeamName",
+          "name": "teamName"
+        },
+        {
+          "type": "int",
+          "name": "teamNumMembers"
         }
       ]
     },

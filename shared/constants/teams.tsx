@@ -249,6 +249,7 @@ const emptyState: Types.State = {
   teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamIDToWelcomeMessage: new Map(),
+  teamInviteDetails: {inviteID: '', inviteKey: ''},
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
@@ -405,7 +406,7 @@ const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
 const onlyOwnersCanTurnTeamMembersIntoOwners = {owner: 'Only owners can turn team members into owners.'}
 const roleChangeSub = {
   admin: 'You must be at least an admin to make role changes.',
-  owner: 'Subteams cannot have owners',
+  owner: 'Subteams cannot have owners.',
   reader: 'You must be at least an admin to make role changes.',
   writer: 'You must be at least an admin to make role changes.',
 }
@@ -939,6 +940,13 @@ export const dedupAddingMembeers = (
     }
   }
   return existing
+}
+
+export const coerceAssertionRole = (mem: Types.AddingMember): Types.AddingMember => {
+  if (mem.assertion.includes('@') && ['admin, owner'].includes(mem.role)) {
+    return {...mem, role: 'writer'}
+  }
+  return mem
 }
 
 export const lastActiveStatusToActivityLevel: {

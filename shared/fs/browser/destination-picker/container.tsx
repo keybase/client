@@ -95,7 +95,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   }
 
   const index = getIndex(ownProps)
-  const showHeaderBackInsteadOfCancel = isShare && index > 0
+  const showHeaderBackInsteadOfCancel = isShare // && index > 0
   const targetName = Constants.getDestinationPickerPathName(destPicker)
   const props = {
     index,

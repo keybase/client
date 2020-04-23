@@ -647,6 +647,7 @@ type RealOwnProps = Container.RouteProps<{
 }>
 
 class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
+  static navigationOptions = Connected.navigationOptions
   state: LocalState = initialState
 
   changeShowRolePicker = (showRolePicker: boolean) => this.setState({showRolePicker})
