@@ -51,32 +51,33 @@ const AddSubteamMembers = () => {
     : 'Continue without members'
   const doneLabel = selectedMembers.size ? 'Done' : 'Skip'
 
-  const renderItem = (_: number, m: Types.MemberInfo) => (
-    <Kb.ListItem2
-      type="Small"
-      icon={<Kb.Avatar username={m.username} size={32} />}
-      body={
-        <Kb.Box2 direction="vertical">
-          <Kb.ConnectedUsernames type="BodySemibold" usernames={[m.username]} />
-          <Kb.Text type="BodySmall" lineClamp={1}>
-            {m.fullName}
-          </Kb.Text>
-        </Kb.Box2>
-      }
-      action={
-        <Kb.CheckCircle
-          checked={selectedMembers.has(m.username)}
-          onCheck={check => {
-            // TODO: ensure performance (see Y2K-1666)
-            check ? selectedMembers.add(m.username) : selectedMembers.delete(m.username)
-            setSelectedMembers(new Set([...selectedMembers]))
-          }}
-        />
-      }
-      firstItem={true}
-      key={m.username}
-    />
-  )
+  const renderItem = (_: number, m: Types.MemberInfo) => {
+    const selected = selectedMembers.has(m.username)
+    const onSelect = () => {
+      // TODO: ensure performance (see Y2K-1666)
+      !selected ? selectedMembers.add(m.username) : selectedMembers.delete(m.username)
+      setSelectedMembers(new Set([...selectedMembers]))
+    }
+
+    return (
+      <Kb.ListItem2
+        type="Small"
+        icon={<Kb.Avatar username={m.username} size={32} />}
+        body={
+          <Kb.Box2 direction="vertical">
+            <Kb.ConnectedUsernames type="BodySemibold" usernames={[m.username]} />
+            <Kb.Text type="BodySmall" lineClamp={1}>
+              {m.fullName}
+            </Kb.Text>
+          </Kb.Box2>
+        }
+        action={<Kb.CheckCircle checked={selectedMembers.has(m.username)} onCheck={onSelect} />}
+        firstItem={true}
+        key={m.username}
+        onClick={() => onSelect()}
+      />
+    )
+  }
   return (
     <Kb.Modal
       allowOverflow={true}
