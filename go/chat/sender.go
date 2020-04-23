@@ -1058,6 +1058,20 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	var botUIDs []gregor1.UID
 	for uv, botSettings := range teamBotSettings {
 		botUID := gregor1.UID(uv.Uid.ToBytes())
+
+		// If the bot is the sender encrypt only for them.
+		if msg.ClientHeader.Sender.Eq(botUID) {
+			if convID == nil || botSettings.ConvIDAllowed(convID.String()) {
+				return []gregor1.UID{botUID}, nil
+			}
+			// Bot channel restrictions only apply to CHAT types.
+			conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, *convID, types.InboxSourceDataSourceAll)
+			if err == nil && conv.GetTopicType() != chat1.TopicType_CHAT {
+				return []gregor1.UID{botUID}, nil
+			}
+			return nil, NewRestrictedBotChannelError()
+		}
+
 		isMatch, err := bots.ApplyTeamBotSettings(ctx, s.G(), botUID, botSettings, *msg,
 			convID, mentionMap, s.DebugLabeler)
 		if err != nil {
@@ -1065,20 +1079,6 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 		}
 		s.Debug(ctx, "applyTeamBotSettings: applied settings for %+v for botuid: %v, senderUID: %v, convID: %v isMatch: %v",
 			botSettings, uv.Uid, msg.ClientHeader.Sender, convID, isMatch)
-		// If the bot is the sender encrypt only for them.
-		if msg.ClientHeader.Sender.Eq(botUID) {
-			if !isMatch {
-				// Bot channel restrictions only apply to CHAT types.
-				if convID != nil && !botSettings.ConvIDAllowed(convID.String()) {
-					conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, *convID, types.InboxSourceDataSourceAll)
-					if err == nil && conv.GetTopicType() != chat1.TopicType_CHAT {
-						return []gregor1.UID{botUID}, nil
-					}
-				}
-				return nil, NewRestrictedBotChannelError()
-			}
-			return []gregor1.UID{botUID}, nil
-		}
 		if isMatch {
 			botUIDs = append(botUIDs, botUID)
 		}
