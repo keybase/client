@@ -646,9 +646,10 @@ func (o MessageSystemSbsResolve) DeepCopy() MessageSystemSbsResolve {
 }
 
 type MessageSystemNewChannel struct {
-	Creator        string         `codec:"creator" json:"creator"`
-	NameAtCreation string         `codec:"nameAtCreation" json:"nameAtCreation"`
-	ConvID         ConversationID `codec:"convID" json:"convID"`
+	Creator        string           `codec:"creator" json:"creator"`
+	NameAtCreation string           `codec:"nameAtCreation" json:"nameAtCreation"`
+	ConvID         ConversationID   `codec:"convID" json:"convID"`
+	ConvIDs        []ConversationID `codec:"convIDs" json:"convIDs"`
 }
 
 func (o MessageSystemNewChannel) DeepCopy() MessageSystemNewChannel {
@@ -656,6 +657,17 @@ func (o MessageSystemNewChannel) DeepCopy() MessageSystemNewChannel {
 		Creator:        o.Creator,
 		NameAtCreation: o.NameAtCreation,
 		ConvID:         o.ConvID.DeepCopy(),
+		ConvIDs: (func(x []ConversationID) []ConversationID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ConvIDs),
 	}
 }
 
@@ -6036,6 +6048,32 @@ func (o ListBotCommandsLocalRes) DeepCopy() ListBotCommandsLocalRes {
 	}
 }
 
+type ClearBotCommandsFilter struct {
+	Typ      BotCommandsAdvertisementTyp `codec:"typ" json:"typ"`
+	TeamName *string                     `codec:"teamName,omitempty" json:"teamName,omitempty"`
+	ConvID   *ConversationID             `codec:"convID,omitempty" json:"convID,omitempty"`
+}
+
+func (o ClearBotCommandsFilter) DeepCopy() ClearBotCommandsFilter {
+	return ClearBotCommandsFilter{
+		Typ: o.Typ.DeepCopy(),
+		TeamName: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.TeamName),
+		ConvID: (func(x *ConversationID) *ConversationID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConvID),
+	}
+}
+
 type ClearBotCommandsLocalRes struct {
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 }
@@ -6983,6 +7021,7 @@ type ListPublicBotCommandsLocalArg struct {
 }
 
 type ClearBotCommandsLocalArg struct {
+	Filter *ClearBotCommandsFilter `codec:"filter,omitempty" json:"filter,omitempty"`
 }
 
 type PinMessageArg struct {
@@ -7218,7 +7257,7 @@ type LocalInterface interface {
 	AdvertiseBotCommandsLocal(context.Context, AdvertiseBotCommandsLocalArg) (AdvertiseBotCommandsLocalRes, error)
 	ListBotCommandsLocal(context.Context, ConversationID) (ListBotCommandsLocalRes, error)
 	ListPublicBotCommandsLocal(context.Context, string) (ListBotCommandsLocalRes, error)
-	ClearBotCommandsLocal(context.Context) (ClearBotCommandsLocalRes, error)
+	ClearBotCommandsLocal(context.Context, *ClearBotCommandsFilter) (ClearBotCommandsLocalRes, error)
 	PinMessage(context.Context, PinMessageArg) (PinMessageRes, error)
 	UnpinMessage(context.Context, ConversationID) (PinMessageRes, error)
 	IgnorePinnedMessage(context.Context, ConversationID) error
@@ -8535,7 +8574,12 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.ClearBotCommandsLocal(ctx)
+					typedArgs, ok := args.(*[1]ClearBotCommandsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ClearBotCommandsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ClearBotCommandsLocal(ctx, typedArgs[0].Filter)
 					return
 				},
 			},
@@ -9438,8 +9482,9 @@ func (c LocalClient) ListPublicBotCommandsLocal(ctx context.Context, username st
 	return
 }
 
-func (c LocalClient) ClearBotCommandsLocal(ctx context.Context) (res ClearBotCommandsLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.clearBotCommandsLocal", []interface{}{ClearBotCommandsLocalArg{}}, &res, 0*time.Millisecond)
+func (c LocalClient) ClearBotCommandsLocal(ctx context.Context, filter *ClearBotCommandsFilter) (res ClearBotCommandsLocalRes, err error) {
+	__arg := ClearBotCommandsLocalArg{Filter: filter}
+	err = c.Cli.Call(ctx, "chat.1.local.clearBotCommandsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

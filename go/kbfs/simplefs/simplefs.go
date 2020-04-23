@@ -90,12 +90,12 @@ var errNoAccess = simpleFSError{code: keybase1.StatusCode_SCSimpleFSNoAccess, re
 func translateErr(err error) error {
 	cause := errors.Cause(err)
 
-	switch cause {
-	case os.ErrExist:
+	switch {
+	case os.IsExist(cause):
 		return errNameExists
-	case os.ErrNotExist:
+	case os.IsNotExist(cause):
 		return errNotExist
-	case os.ErrPermission:
+	case cause == os.ErrPermission:
 		return errNoAccess
 	}
 

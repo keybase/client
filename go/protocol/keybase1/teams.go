@@ -3637,33 +3637,167 @@ func (o UserRolePair) DeepCopy() UserRolePair {
 	}
 }
 
+type AssertionTeamMemberToRemove struct {
+	Assertion         string `codec:"assertion" json:"assertion"`
+	RemoveFromSubtree bool   `codec:"removeFromSubtree" json:"removeFromSubtree"`
+}
+
+func (o AssertionTeamMemberToRemove) DeepCopy() AssertionTeamMemberToRemove {
+	return AssertionTeamMemberToRemove{
+		Assertion:         o.Assertion,
+		RemoveFromSubtree: o.RemoveFromSubtree,
+	}
+}
+
+type InviteTeamMemberToRemove struct {
+	InviteID TeamInviteID `codec:"inviteID" json:"inviteID"`
+}
+
+func (o InviteTeamMemberToRemove) DeepCopy() InviteTeamMemberToRemove {
+	return InviteTeamMemberToRemove{
+		InviteID: o.InviteID.DeepCopy(),
+	}
+}
+
+type TeamMemberToRemoveType int
+
+const (
+	TeamMemberToRemoveType_ASSERTION TeamMemberToRemoveType = 0
+	TeamMemberToRemoveType_INVITEID  TeamMemberToRemoveType = 1
+)
+
+func (o TeamMemberToRemoveType) DeepCopy() TeamMemberToRemoveType { return o }
+
+var TeamMemberToRemoveTypeMap = map[string]TeamMemberToRemoveType{
+	"ASSERTION": 0,
+	"INVITEID":  1,
+}
+
+var TeamMemberToRemoveTypeRevMap = map[TeamMemberToRemoveType]string{
+	0: "ASSERTION",
+	1: "INVITEID",
+}
+
+func (e TeamMemberToRemoveType) String() string {
+	if v, ok := TeamMemberToRemoveTypeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type TeamMemberToRemove struct {
-	Username      string       `codec:"username" json:"username"`
-	Email         string       `codec:"email" json:"email"`
-	InviteID      TeamInviteID `codec:"inviteID" json:"inviteID"`
-	AllowInaction bool         `codec:"allowInaction" json:"allowInaction"`
+	Type__      TeamMemberToRemoveType       `codec:"type" json:"type"`
+	Assertion__ *AssertionTeamMemberToRemove `codec:"assertion,omitempty" json:"assertion,omitempty"`
+	Inviteid__  *InviteTeamMemberToRemove    `codec:"inviteid,omitempty" json:"inviteid,omitempty"`
+}
+
+func (o *TeamMemberToRemove) Type() (ret TeamMemberToRemoveType, err error) {
+	switch o.Type__ {
+	case TeamMemberToRemoveType_ASSERTION:
+		if o.Assertion__ == nil {
+			err = errors.New("unexpected nil value for Assertion__")
+			return ret, err
+		}
+	case TeamMemberToRemoveType_INVITEID:
+		if o.Inviteid__ == nil {
+			err = errors.New("unexpected nil value for Inviteid__")
+			return ret, err
+		}
+	}
+	return o.Type__, nil
+}
+
+func (o TeamMemberToRemove) Assertion() (res AssertionTeamMemberToRemove) {
+	if o.Type__ != TeamMemberToRemoveType_ASSERTION {
+		panic("wrong case accessed")
+	}
+	if o.Assertion__ == nil {
+		return
+	}
+	return *o.Assertion__
+}
+
+func (o TeamMemberToRemove) Inviteid() (res InviteTeamMemberToRemove) {
+	if o.Type__ != TeamMemberToRemoveType_INVITEID {
+		panic("wrong case accessed")
+	}
+	if o.Inviteid__ == nil {
+		return
+	}
+	return *o.Inviteid__
+}
+
+func NewTeamMemberToRemoveWithAssertion(v AssertionTeamMemberToRemove) TeamMemberToRemove {
+	return TeamMemberToRemove{
+		Type__:      TeamMemberToRemoveType_ASSERTION,
+		Assertion__: &v,
+	}
+}
+
+func NewTeamMemberToRemoveWithInviteid(v InviteTeamMemberToRemove) TeamMemberToRemove {
+	return TeamMemberToRemove{
+		Type__:     TeamMemberToRemoveType_INVITEID,
+		Inviteid__: &v,
+	}
 }
 
 func (o TeamMemberToRemove) DeepCopy() TeamMemberToRemove {
 	return TeamMemberToRemove{
-		Username:      o.Username,
-		Email:         o.Email,
-		InviteID:      o.InviteID.DeepCopy(),
-		AllowInaction: o.AllowInaction,
+		Type__: o.Type__.DeepCopy(),
+		Assertion__: (func(x *AssertionTeamMemberToRemove) *AssertionTeamMemberToRemove {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Assertion__),
+		Inviteid__: (func(x *InviteTeamMemberToRemove) *InviteTeamMemberToRemove {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Inviteid__),
+	}
+}
+
+type RemoveTeamMemberFailure struct {
+	TeamMember     TeamMemberToRemove `codec:"teamMember" json:"teamMember"`
+	ErrorAtTarget  *string            `codec:"errorAtTarget,omitempty" json:"errorAtTarget,omitempty"`
+	ErrorAtSubtree *string            `codec:"errorAtSubtree,omitempty" json:"errorAtSubtree,omitempty"`
+}
+
+func (o RemoveTeamMemberFailure) DeepCopy() RemoveTeamMemberFailure {
+	return RemoveTeamMemberFailure{
+		TeamMember: o.TeamMember.DeepCopy(),
+		ErrorAtTarget: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ErrorAtTarget),
+		ErrorAtSubtree: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ErrorAtSubtree),
 	}
 }
 
 type TeamRemoveMembersResult struct {
-	Failures []TeamMemberToRemove `codec:"failures" json:"failures"`
+	Failures []RemoveTeamMemberFailure `codec:"failures" json:"failures"`
 }
 
 func (o TeamRemoveMembersResult) DeepCopy() TeamRemoveMembersResult {
 	return TeamRemoveMembersResult{
-		Failures: (func(x []TeamMemberToRemove) []TeamMemberToRemove {
+		Failures: (func(x []RemoveTeamMemberFailure) []RemoveTeamMemberFailure {
 			if x == nil {
 				return nil
 			}
-			ret := make([]TeamMemberToRemove, len(x))
+			ret := make([]RemoveTeamMemberFailure, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -4429,27 +4563,25 @@ type TeamAddMembersArg struct {
 }
 
 type TeamAddMembersMultiRoleArg struct {
-	SessionID               int            `codec:"sessionID" json:"sessionID"`
-	TeamID                  TeamID         `codec:"teamID" json:"teamID"`
-	Users                   []UserRolePair `codec:"users" json:"users"`
-	SendChatNotification    bool           `codec:"sendChatNotification" json:"sendChatNotification"`
-	EmailInviteMessage      *string        `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
-	DefaultChannelsOverride []string       `codec:"defaultChannelsOverride" json:"defaultChannelsOverride"`
+	SessionID            int            `codec:"sessionID" json:"sessionID"`
+	TeamID               TeamID         `codec:"teamID" json:"teamID"`
+	Users                []UserRolePair `codec:"users" json:"users"`
+	SendChatNotification bool           `codec:"sendChatNotification" json:"sendChatNotification"`
+	EmailInviteMessage   *string        `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
+	AddToChannels        []string       `codec:"addToChannels" json:"addToChannels"`
 }
 
 type TeamRemoveMemberArg struct {
-	SessionID     int          `codec:"sessionID" json:"sessionID"`
-	TeamID        TeamID       `codec:"teamID" json:"teamID"`
-	Username      string       `codec:"username" json:"username"`
-	Email         string       `codec:"email" json:"email"`
-	InviteID      TeamInviteID `codec:"inviteID" json:"inviteID"`
-	AllowInaction bool         `codec:"allowInaction" json:"allowInaction"`
+	SessionID int                `codec:"sessionID" json:"sessionID"`
+	TeamID    TeamID             `codec:"teamID" json:"teamID"`
+	Member    TeamMemberToRemove `codec:"member" json:"member"`
 }
 
 type TeamRemoveMembersArg struct {
-	SessionID int                  `codec:"sessionID" json:"sessionID"`
-	TeamID    TeamID               `codec:"teamID" json:"teamID"`
-	Users     []TeamMemberToRemove `codec:"users" json:"users"`
+	SessionID               int                  `codec:"sessionID" json:"sessionID"`
+	TeamID                  TeamID               `codec:"teamID" json:"teamID"`
+	Members                 []TeamMemberToRemove `codec:"members" json:"members"`
+	NoErrorOnPartialFailure bool                 `codec:"noErrorOnPartialFailure" json:"noErrorOnPartialFailure"`
 }
 
 type TeamLeaveArg struct {

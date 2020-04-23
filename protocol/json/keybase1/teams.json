@@ -3083,23 +3083,81 @@
     },
     {
       "type": "record",
-      "name": "TeamMemberToRemove",
+      "name": "AssertionTeamMemberToRemove",
       "fields": [
         {
           "type": "string",
-          "name": "username"
-        },
-        {
-          "type": "string",
-          "name": "email"
-        },
-        {
-          "type": "TeamInviteID",
-          "name": "inviteID"
+          "name": "assertion"
         },
         {
           "type": "boolean",
-          "name": "allowInaction"
+          "name": "removeFromSubtree"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InviteTeamMemberToRemove",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamMemberToRemoveType",
+      "symbols": [
+        "ASSERTION_0",
+        "INVITEID_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "TeamMemberToRemove",
+      "switch": {
+        "type": "TeamMemberToRemoveType",
+        "name": "type"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "ASSERTION",
+            "def": false
+          },
+          "body": "AssertionTeamMemberToRemove"
+        },
+        {
+          "label": {
+            "name": "INVITEID",
+            "def": false
+          },
+          "body": "InviteTeamMemberToRemove"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RemoveTeamMemberFailure",
+      "fields": [
+        {
+          "type": "TeamMemberToRemove",
+          "name": "teamMember"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "errorAtTarget"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "errorAtSubtree"
         }
       ]
     },
@@ -3110,7 +3168,7 @@
         {
           "type": {
             "type": "array",
-            "items": "TeamMemberToRemove"
+            "items": "RemoveTeamMemberFailure"
           },
           "name": "failures"
         }
@@ -4082,7 +4140,7 @@
           ]
         },
         {
-          "name": "defaultChannelsOverride",
+          "name": "addToChannels",
           "type": {
             "type": "array",
             "items": "string"
@@ -4102,20 +4160,8 @@
           "type": "TeamID"
         },
         {
-          "name": "username",
-          "type": "string"
-        },
-        {
-          "name": "email",
-          "type": "string"
-        },
-        {
-          "name": "inviteID",
-          "type": "TeamInviteID"
-        },
-        {
-          "name": "allowInaction",
-          "type": "boolean"
+          "name": "member",
+          "type": "TeamMemberToRemove"
         }
       ],
       "response": null
@@ -4131,11 +4177,15 @@
           "type": "TeamID"
         },
         {
-          "name": "users",
+          "name": "members",
           "type": {
             "type": "array",
             "items": "TeamMemberToRemove"
           }
+        },
+        {
+          "name": "noErrorOnPartialFailure",
+          "type": "boolean"
         }
       ],
       "response": "TeamRemoveMembersResult"

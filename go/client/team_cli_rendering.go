@@ -108,6 +108,8 @@ func (c *teamMembersRenderer) outputInvites(invites map[keybase1.TeamInviteID]ke
 		switch category {
 		case keybase1.TeamInviteCategory_EMAIL:
 			trailer = fmt.Sprintf("(* invited via email by %s)", annotatedInvite.InviterUsername)
+		case keybase1.TeamInviteCategory_PHONE:
+			trailer = fmt.Sprintf("(* invited via phone by %s)", annotatedInvite.InviterUsername)
 		case keybase1.TeamInviteCategory_SEITAN:
 			trailer = fmt.Sprintf("(* invited via secret token by %s)%s",
 				annotatedInvite.InviterUsername, inviteIDTrailer)

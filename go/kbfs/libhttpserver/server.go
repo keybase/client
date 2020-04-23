@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libmime"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbhttp"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -33,6 +34,7 @@ const fsCacheSize = 64
 type Server struct {
 	config          libkbfs.Config
 	logger          logger.Logger
+	vlog            *libkb.VDebugLog
 	appStateUpdater env.AppStateUpdater
 	cancel          func()
 
@@ -164,27 +166,27 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 // For example:
 //     /team/keybase/file.txt?token=1234567890abcdef1234567890abcdef
 func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
-	s.logger.Debug("Incoming request from %q: %s", req.UserAgent(), req.URL)
+	s.vlog.Log(libkb.VLog1, "Incoming request from %q: %s", req.UserAgent(), req.URL)
 	addr, err := s.server.Addr()
 	if err != nil {
-		s.logger.Debug("serve: failed to get HTTP server address: %s", err)
+		s.logger.Error("serve: failed to get HTTP server address: %s", err)
 		s.handleInternalServerError(w)
 		return
 	}
 	if req.Host != addr {
-		s.logger.Debug("Host %s didn't match addr %s, failing request to protect against DNS rebinding", req.Host, addr)
+		s.logger.Warning("Host %s didn't match addr %s, failing request to protect against DNS rebinding", req.Host, addr)
 		s.handleBadRequest(w)
 		return
 	}
 	token := req.URL.Query().Get("token")
 	currentToken, err := s.CurrentToken()
 	if err != nil {
-		s.logger.Debug("serve: failed to get current token: %s", err)
+		s.logger.Error("serve: failed to get current token: %s", err)
 		s.handleInternalServerError(w)
 		return
 	}
 	if len(token) == 0 || token != currentToken {
-		s.logger.Info("Invalid token %q", token)
+		s.vlog.Log(libkb.VLog1, "Invalid token %q", token)
 		s.handleInvalidToken(w)
 		return
 	}
@@ -253,7 +255,7 @@ func (s *Server) monitorAppState(ctx context.Context) {
 				continue
 			}
 			if err := s.restart(); err != nil {
-				s.logger.Warning("(Re)starting server failed: %v", err)
+				s.logger.Error("(Re)starting server failed: %v", err)
 			}
 		}
 	}
@@ -267,6 +269,7 @@ func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 		appStateUpdater: appStateUpdater,
 		config:          config,
 		logger:          logger,
+		vlog:            config.MakeVLogger(logger),
 	}
 	if s.fs, err = lru.New(fsCacheSize); err != nil {
 		return nil, err

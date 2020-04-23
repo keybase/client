@@ -834,36 +834,34 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 		s.Debug(ctx, "Harvest: failed to get alias lookup: %s", err)
 		return res, err
 	}
-	var emojis chat1.UserEmojis
+	shouldSync := false
 	switch mode {
 	case types.EmojiHarvestModeNormal:
-		emojis, _, err = s.getNoSet(ctx, uid, &convID, chat1.EmojiFetchOpts{
-			GetCreationInfo: false,
-			GetAliases:      true,
-			OnlyInTeam:      false,
-		})
-		if err != nil {
-			s.Debug(ctx, "Harvest: failed to get emojis: %s", err)
-			return res, err
+		shouldSync = true
+		if len(aliasMap) == 0 {
+			s.Debug(ctx, "Harvest: no alias map, fetching fresh")
+			_, aliasMap, err = s.getNoSet(ctx, uid, &convID, chat1.EmojiFetchOpts{
+				GetCreationInfo: false,
+				GetAliases:      true,
+				OnlyInTeam:      false,
+			})
+			if err != nil {
+				s.Debug(ctx, "Harvest: failed to get emojis: %s", err)
+				return res, err
+			}
 		}
 	case types.EmojiHarvestModeFast:
 		// skip this, just use alias map in fast mode
 	}
-	if len(emojis.Emojis) == 0 && len(aliasMap) == 0 {
+	if len(aliasMap) == 0 {
 		return nil, nil
 	}
-	groupMap := make(map[string]chat1.Emoji)
-	for _, group := range emojis.Emojis {
-		for _, emoji := range group.Emojis {
-			groupMap[emoji.Alias] = emoji
-		}
-	}
-	s.Debug(ctx, "Harvest: num emojis: conv: %d alias: %d", len(groupMap), len(aliasMap))
+	s.Debug(ctx, "Harvest: num emojis: alias: %d", len(aliasMap))
 	for _, match := range matches {
 		// try group map first
-		if emoji, ok := groupMap[match.name]; ok {
+		if emoji, ok := aliasMap[match.name]; ok {
 			var resEmoji chat1.HarvestedEmoji
-			if emoji.IsCrossTeam {
+			if emoji.IsCrossTeam && shouldSync {
 				if resEmoji, err = s.syncCrossTeam(ctx, uid, chat1.HarvestedEmoji{
 					Alias:  match.name,
 					Source: emoji.RemoteSource,
@@ -879,12 +877,6 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 				}
 			}
 			res = append(res, resEmoji)
-		} else if emoji, ok := aliasMap[match.name]; ok {
-			// then any aliases we know about from the last Get call
-			res = append(res, chat1.HarvestedEmoji{
-				Alias:  match.name,
-				Source: emoji.RemoteSource,
-			})
 		}
 	}
 	return res, nil

@@ -965,6 +965,20 @@ func (o AdvertiseCommandAPIParam) DeepCopy() AdvertiseCommandAPIParam {
 	}
 }
 
+type ClearCommandAPIParam struct {
+	Typ      string    `codec:"typ" json:"type"`
+	TeamName string    `codec:"teamName,omitempty" json:"team_name,omitempty"`
+	ConvID   ConvIDStr `codec:"convID,omitempty" json:"conv_id,omitempty"`
+}
+
+func (o ClearCommandAPIParam) DeepCopy() ClearCommandAPIParam {
+	return ClearCommandAPIParam{
+		Typ:      o.Typ,
+		TeamName: o.TeamName,
+		ConvID:   o.ConvID.DeepCopy(),
+	}
+}
+
 type ResetConvMemberAPI struct {
 	ConversationID ConvIDStr `codec:"conversationID" json:"conversationID"`
 	Username       string    `codec:"username" json:"username"`

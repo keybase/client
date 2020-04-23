@@ -474,11 +474,14 @@ function* removeMember(_: TypedState, action: TeamsGen.RemoveMemberPayload, logg
   try {
     yield RPCTypes.teamsTeamRemoveMemberRpcPromise(
       {
-        allowInaction: true,
-        email: '',
-        inviteID: '',
+        member: {
+          assertion: {
+            assertion: username,
+            removeFromSubtree: false,
+          },
+          type: RPCTypes.TeamMemberToRemoveType.assertion,
+        },
         teamID,
-        username,
       },
       [Constants.teamWaitingKey(teamID), Constants.removeMemberWaitingKey(teamID, username)]
     )
@@ -493,32 +496,22 @@ function* removePendingInvite(
   action: TeamsGen.RemovePendingInvitePayload,
   logger: Saga.SagaLogger
 ) {
-  const {teamID, username, email, inviteID} = action.payload
-  // Disallow call with any pair of username, email, and ID to avoid black-bar
-  // errors.
-  if ((!!username && !!email) || (!!username && !!inviteID) || (!!email && !!inviteID)) {
-    const errMsg = 'Supplied more than one form of identification to removePendingInvite'
-    logger.error(errMsg)
-    throw new Error(errMsg)
-  }
-
+  const {teamID, inviteID} = action.payload
   try {
     yield RPCTypes.teamsTeamRemoveMemberRpcPromise(
       {
-        allowInaction: true,
-        email: email ?? '',
-        inviteID: inviteID ?? '',
+        member: {
+          inviteid: {
+            inviteID,
+          },
+          type: RPCTypes.TeamMemberToRemoveType.inviteid,
+        },
         teamID,
-        username: username ?? '',
       },
-      [
-        Constants.teamWaitingKey(teamID),
-        // only one of (username, email, inviteID) is truth-y
-        Constants.removeMemberWaitingKey(teamID, username || email || inviteID || ''),
-      ]
+      [Constants.teamWaitingKey(teamID), Constants.removeMemberWaitingKey(teamID, inviteID)]
     )
   } catch (err) {
-    logger.error('Failed to remove member or pending invite', err)
+    logger.error('Failed to remove pending invite', err)
   }
 }
 

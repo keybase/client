@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -14,12 +13,10 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 )
@@ -90,249 +87,19 @@ func (t *UIThreadLoader) IsOffline(ctx context.Context) bool {
 	return t.offline
 }
 
-func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs []chat1.MessageUnboxed,
-	matches func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool, makeCombined func([]chat1.MessageUnboxed) *chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
-	var grouped []chat1.MessageUnboxed
-	addGrouped := func() {
-		if len(grouped) == 0 {
-			return
-		}
-		msg := makeCombined(grouped)
-		if msg != nil {
-			res = append(res, *msg)
-		}
-		grouped = nil
-	}
-	for _, msg := range msgs {
-		if matches(msg, grouped) {
-			grouped = append(grouped, msg)
-			continue
-		}
-		addGrouped()
-		// some match functions may depend on messages in grouped, so after we clear it
-		// this message might be a candidate to get grouped.
-		if matches(msg, grouped) {
-			grouped = append(grouped, msg)
-		} else {
-			res = append(res, msg)
-		}
-	}
-	addGrouped()
-	return res
-}
-
 func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tv chat1.ThreadView, dataSource types.InboxSourceDataSourceTyp) (res chat1.ThreadView, err error) {
-	// group JOIN/LEAVE messages
-	newMsgs := t.groupGeneric(ctx, uid, tv.Messages,
-		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
-			if !msg.IsValid() {
-				return false
-			}
-			body := msg.Valid().MessageBody
-			if !(body.IsType(chat1.MessageType_JOIN) || body.IsType(chat1.MessageType_LEAVE)) {
-				return false
-			}
-			if msg.Valid().ClientHeader.Sender.Eq(uid) {
-				return false
-			}
-			for _, g := range grouped {
-				if g.Valid().SenderUsername == msg.Valid().SenderUsername {
-					return false
-				}
-			}
-			return true
-		},
-		func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
-			var joiners, leavers []string
-			for _, j := range grouped {
-				if j.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
-					joiners = append(joiners, j.Valid().SenderUsername)
-				} else {
-					leavers = append(leavers, j.Valid().SenderUsername)
-				}
-			}
-			mvalid := grouped[0].Valid()
-			mvalid.ClientHeader.MessageType = chat1.MessageType_JOIN
-			mvalid.MessageBody = chat1.NewMessageBodyWithJoin(chat1.MessageJoin{
-				Joiners: joiners,
-				Leavers: leavers,
-			})
-			msg := chat1.NewMessageUnboxedWithValid(mvalid)
-			return &msg
-		})
-
-	var activeMap map[string]struct{}
-	// group BULKADDTOCONV system messages
-	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
-		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
-			if !msg.IsValid() {
-				return false
-			}
-			body := msg.Valid().MessageBody
-			if !body.IsType(chat1.MessageType_SYSTEM) {
-				return false
-			}
-			sysBod := msg.Valid().MessageBody.System()
-			typ, err := sysBod.SystemType()
-			return err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV
-		},
-		func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
-			var filteredUsernames, usernames []string
-			for _, j := range grouped {
-				if j.Valid().MessageBody.IsType(chat1.MessageType_SYSTEM) {
-					body := j.Valid().MessageBody.System()
-					typ, err := body.SystemType()
-					if err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV {
-						usernames = append(usernames, body.Bulkaddtoconv().Usernames...)
-					}
-				}
-			}
-
-			if activeMap == nil && len(usernames) > 0 {
-				activeMap = make(map[string]struct{})
-				allList, err := t.G().ParticipantsSource.Get(ctx, uid, convID, dataSource)
-				if err == nil {
-					for _, uid := range allList {
-						activeMap[uid.String()] = struct{}{}
-					}
-				} else {
-					t.Debug(ctx, "groupGeneric: failed to form active map, could not get participants: %s",
-						err)
-				}
-			}
-
-			// filter the usernames for people that are actually part of the team
-			for _, username := range usernames {
-				uid, err := t.G().GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(username))
-				if err != nil {
-					continue
-				}
-				if _, ok := activeMap[uid.String()]; ok {
-					filteredUsernames = append(filteredUsernames, username)
-				}
-			}
-			if len(filteredUsernames) == 0 {
-				return nil
-			}
-
-			mvalid := grouped[0].Valid()
-			mvalid.ClientHeader.MessageType = chat1.MessageType_SYSTEM
-			mvalid.MessageBody = chat1.NewMessageBodyWithSystem(chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
-				Usernames: filteredUsernames,
-			}))
-			msg := chat1.NewMessageUnboxedWithValid(mvalid)
-			return &msg
-		})
-
-	// group ADDEDTOTEAM system messages
-	var ownUsername *string
-	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
-		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
-			if !msg.IsValid() {
-				return false
-			}
-			body := msg.Valid().MessageBody
-			if !body.IsType(chat1.MessageType_SYSTEM) {
-				return false
-			}
-			sysBod := msg.Valid().MessageBody.System()
-			typ, err := sysBod.SystemType()
-			if !(err == nil && typ == chat1.MessageSystemType_ADDEDTOTEAM) {
-				return false
-			}
-			if ownUsername == nil {
-				un, err := t.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
-				if err != nil {
-					t.Debug(ctx, "unable to lookup username %v", err)
-				} else {
-					uns := un.String()
-					ownUsername = &uns
-				}
-			}
-			if ownUsername != nil && *ownUsername == sysBod.Addedtoteam().Addee {
-				return false
-			}
-			if sysBod.Addedtoteam().Role.IsRestrictedBot() {
-				return false
-			}
-
-			// only group messages from a single adder
-			if len(grouped) > 0 {
-				body := grouped[0].Valid().MessageBody
-				if body.IsType(chat1.MessageType_SYSTEM) {
-					sysBod2 := msg.Valid().MessageBody.System()
-					typ, err := sysBod2.SystemType()
-					return (err == nil && typ == chat1.MessageSystemType_ADDEDTOTEAM &&
-						sysBod2.Addedtoteam().Adder == sysBod.Addedtoteam().Adder)
-				}
-			}
-			return true
-		},
-		func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
-			usernames := map[string]struct{}{}
-			for _, j := range grouped {
-				if j.Valid().MessageBody.IsType(chat1.MessageType_SYSTEM) {
-					body := j.Valid().MessageBody.System()
-					typ, err := body.SystemType()
-					if err == nil && typ == chat1.MessageSystemType_ADDEDTOTEAM {
-						sysBod := body.Addedtoteam()
-						usernames[sysBod.Addee] = struct{}{}
-					}
-				}
-			}
-			if len(usernames) == 0 {
-				return nil
-			}
-
-			bulkAdds := []string{}
-			for username := range usernames {
-				bulkAdds = append(bulkAdds, username)
-			}
-
-			mvalid := grouped[0].Valid()
-			mvalid.ClientHeader.MessageType = chat1.MessageType_SYSTEM
-			mvalid.MessageBody = chat1.NewMessageBodyWithSystem(chat1.NewMessageSystemWithAddedtoteam(chat1.MessageSystemAddedToTeam{
-				BulkAdds: bulkAdds,
-				Adder:    mvalid.MessageBody.System().Addedtoteam().Adder,
-			}))
-			msg := chat1.NewMessageUnboxedWithValid(mvalid)
-			return &msg
-		})
-
-	// group duplicate ephemeral errors
-	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
-		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
-			if !msg.IsError() {
-				return false
-			} else if msg.Error().IsEphemeralError() && msg.Error().IsEphemeralExpired(time.Now()) {
-				return false
-			}
-			// group the same error message from the same sender
-			for _, g := range grouped {
-				if !(g.Error().SenderUsername == msg.Error().SenderUsername &&
-					g.Error().ErrMsg == msg.Error().ErrMsg) {
-					return false
-				}
-			}
-			return true
-		},
-		func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
-			if len(grouped) == 0 {
-				return nil
-			}
-
-			merr := grouped[0].Error()
-			if grouped[0].IsEphemeral() {
-				merr.ErrMsg = ephemeral.PluralizeErrorMessage(merr.ErrMsg, len(grouped))
-			} else if len(grouped) > 1 {
-				merr.ErrMsg = fmt.Sprintf("%s (occurred %d times)", merr.ErrMsg, len(grouped))
-			}
-			msg := chat1.NewMessageUnboxedWithError(merr)
-			return &msg
-		})
-
-	tv.Messages = newMsgs
+	// The following messages are consolidated for presentation
+	groupers := []msgGrouper{
+		newJoinLeaveGrouper(t.G(), uid, convID, dataSource),
+		newBulkAddGrouper(t.G(), uid, convID, dataSource),
+		newChannelGrouper(t.G(), uid, convID, dataSource),
+		newAddedToTeamGrouper(t.G(), uid, convID, dataSource),
+		newErrGrouper(t.G(), uid, convID, dataSource),
+	}
+	for _, grouper := range groupers {
+		tv.Messages = groupGeneric(ctx, tv.Messages, grouper)
+	}
 	return tv, nil
 }
 

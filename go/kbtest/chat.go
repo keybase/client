@@ -1030,7 +1030,7 @@ func (m *ChatRemoteMock) AdvertiseBotCommands(ctx context.Context, ads []chat1.R
 	return res, errors.New("AdvertiseBotCommands not mocked")
 }
 
-func (m *ChatRemoteMock) ClearBotCommands(ctx context.Context) (res chat1.ClearBotCommandsRes, err error) {
+func (m *ChatRemoteMock) ClearBotCommands(ctx context.Context, filter *chat1.RemoteClearBotCommandsFilter) (res chat1.ClearBotCommandsRes, err error) {
 	return res, errors.New("ClearBotCommands not mocked")
 }
 
@@ -1567,6 +1567,10 @@ func (m *MockChatHelper) convKey(name string, topicName *string) string {
 		return name + ":general"
 	}
 	return name + ":" + *topicName
+}
+
+func (m *MockChatHelper) BulkAddToConv(context.Context, gregor1.UID, chat1.ConversationID, []string) error {
+	return nil
 }
 
 type MockUIRouter struct {

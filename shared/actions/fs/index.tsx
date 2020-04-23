@@ -417,7 +417,7 @@ const dismissDownload = (action: FsGen.DismissDownloadPayload) =>
 const upload = async (_: Container.TypedState, action: FsGen.UploadPayload) => {
   try {
     await RPCTypes.SimpleFSSimpleFSStartUploadRpcPromise({
-      sourceLocalPath: action.payload.localPath,
+      sourceLocalPath: Types.getNormalizedLocalPath(action.payload.localPath),
       targetParentPath: Constants.pathToRPCPath(action.payload.parentPath).kbfs,
     })
     return false
@@ -664,7 +664,9 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
             overwriteExistingFiles: false,
             src: {
               PathType: RPCTypes.PathType.local,
-              local: Types.localPathToString(state.fs.destinationPicker.source.source),
+              local: Types.getNormalizedLocalPath(
+                Types.localPathToString(state.fs.destinationPicker.source.source)
+              ),
             } as RPCTypes.Path,
           },
         ]
@@ -683,10 +685,10 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
             overwriteExistingFiles: false,
             src: {
               PathType: RPCTypes.PathType.local,
-              // @ts-ignore
-              local: state.fs.destinationPicker.source.useOriginal
-                ? originalPath
-                : scaledPath || originalPath,
+              local: Types.getNormalizedLocalPath(
+                // @ts-ignore
+                state.fs.destinationPicker.source.useOriginal ? originalPath : scaledPath || originalPath
+              ),
             } as RPCTypes.Path,
           }))
 

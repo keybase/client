@@ -211,7 +211,7 @@ func TestTeamOpenBans(t *testing.T) {
 
 	removeRunner := client.NewCmdTeamRemoveMemberRunner(own.tc.G)
 	removeRunner.Team = team
-	removeRunner.Username = bob.username
+	removeRunner.Assertion = bob.username
 	removeRunner.Force = true
 	err = removeRunner.Run()
 	require.NoError(t, err)

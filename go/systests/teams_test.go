@@ -403,7 +403,7 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 func (u *userPlusDevice) removeTeamMember(team, username string) {
 	rm := client.NewCmdTeamRemoveMemberRunner(u.tc.G)
 	rm.Team = team
-	rm.Username = username
+	rm.Assertion = username
 	rm.Force = true
 	err := rm.Run()
 	require.NoError(u.tc.T, err)
