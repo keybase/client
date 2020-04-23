@@ -1022,7 +1022,7 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 
 	// Removals
 	teamGetter := func() (*Team, error) {
-		return GetForTeamManagementByTeamID(ctx, g, teamID, false /* needAdmin */)
+		return GetForTeamManagementByTeamID(ctx, g, teamID, true /* needAdmin */)
 	}
 	errstrp := func(e error) *string {
 		if e == nil {
@@ -1104,7 +1104,7 @@ func removeMemberFromSubtree(mctx libkb.MetaContext, targetTeamID keybase1.TeamI
 		}
 
 		teamGetter := func() (*Team, error) {
-			return GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, false)
+			return GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
 		}
 
 		removeErr := remove(mctx.Ctx(), mctx.G(), teamGetter, assertion)
@@ -1126,7 +1126,7 @@ func removeMemberFromSubtree(mctx libkb.MetaContext, targetTeamID keybase1.TeamI
 
 func RemoveMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {
 	teamGetter := func() (*Team, error) {
-		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+		return GetForTeamManagementByTeamID(ctx, g, teamID, true)
 	}
 	return remove(ctx, g, teamGetter, username)
 }
@@ -1135,7 +1135,7 @@ func RemoveMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 // from subteams and inviteIDs, see RemoveMemberSingle and RemoveMembers.
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamName string, username string) error {
 	teamGetter := func() (*Team, error) {
-		return GetForTeamManagementByStringName(ctx, g, teamName, false)
+		return GetForTeamManagementByStringName(ctx, g, teamName, true)
 	}
 	return remove(ctx, g, teamGetter, username)
 }

@@ -2205,6 +2205,47 @@ func TestRemoveMembersErrorsBasic(t *testing.T) {
 	require.Nil(t, res.Failures[1].ErrorAtSubtree)
 }
 
+func TestRemoveMembersJustAfterUpgrade(t *testing.T) {
+	ownerTC := SetupTest(t, "team", 1)
+	defer ownerTC.Cleanup()
+	aliceTC := SetupTest(t, "team", 1)
+	defer aliceTC.Cleanup()
+
+	_, err := kbtest.CreateAndSignupFakeUser("team", ownerTC.G)
+	require.NoError(t, err)
+
+	alice, err := kbtest.CreateAndSignupFakeUser("team", aliceTC.G)
+	require.NoError(t, err)
+
+	name, teamID := createTeam2(ownerTC)
+	t.Logf("Created team %q", name)
+
+	t.Logf("Test that a just-upgraded admin can remove invited members (previously stubbed links)")
+	if err := SetRoleReader(context.TODO(), ownerTC.G, name.String(), alice.Username); err != nil {
+		t.Fatal(err)
+	}
+	redditUser := "new@reddit"
+	_, err = AddMember(context.TODO(), ownerTC.G, name.String(), redditUser, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+
+	tm, err := Load(context.TODO(), aliceTC.G, keybase1.LoadTeamArg{
+		Name:        name.String(),
+		ForceRepoll: true,
+	})
+	t.Logf("# INVITES %#v\n", tm.Data.Chain.InviteMetadatas)
+
+	t.Logf("set as admin")
+	if err := SetRoleAdmin(context.TODO(), ownerTC.G, name.String(), alice.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("try to remove members")
+	_, err = RemoveMembers(context.TODO(), aliceTC.G, teamID, []keybase1.TeamMemberToRemove{
+		rmMaker(redditUser),
+	}, false)
+	require.NoError(t, err)
+}
+
 func TestRemoveMembersHappyTree(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
