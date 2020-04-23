@@ -88,10 +88,13 @@ func (writer *autoFlushingBufferedWriter) backgroundFlush() {
 
 			writer.backupWriter.Flush()
 		case <-writer.shutdown:
-			close(writer.timer.shutdownCh)
+			writer.timer.shutdownCh <- struct{}{}
 			writer.bufferedWriter.Flush()
 			// If anyone is listening, notify them that we are done shutting down.
-			close(writer.doneShutdown)
+			select {
+			case writer.doneShutdown <- struct{}{}:
+			default:
+			}
 			return
 		}
 	}
@@ -151,7 +154,10 @@ func EnableBufferedLogging() {
 // Shutdown shuts down logger, flushing remaining logs if a backend with
 // buffering is used.
 func Shutdown() {
-	close(stdErrLoggingShutdown)
-	// Wait till logger is done
-	<-stdErrLoggingShutdownDone
+	select {
+	case stdErrLoggingShutdown <- struct{}{}:
+		// Wait till logger is done
+		<-stdErrLoggingShutdownDone
+	default:
+	}
 }
