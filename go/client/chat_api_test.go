@@ -316,7 +316,7 @@ func (c *chatEcho) AdvertiseCommandsV1(context.Context, advertiseCommandsOptions
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) ClearCommandsV1(context.Context) Reply {
+func (c *chatEcho) ClearCommandsV1(context.Context, clearCommandsOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 

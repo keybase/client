@@ -365,6 +365,18 @@ protocol api {
     ConvIDStr convID;
   }
 
+  // Similar to AdvertiseCommandParam but intended for the json API
+  record ClearCommandAPIParam {
+    @jsonkey("type")
+    string typ;
+    @optional(true)
+    @jsonkey("team_name")
+    string teamName;
+    @jsonkey("conv_id")
+    @optional(true)
+    ConvIDStr convID;
+  }
+
   record ResetConvMemberAPI {
     ConvIDStr conversationID;
     string username;

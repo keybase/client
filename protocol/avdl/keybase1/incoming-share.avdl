@@ -11,11 +11,15 @@ protocol incomingShare {
 
   record IncomingShareItem {
     IncomingShareType type;
-    string originalPath;
-    int originalSize;
+    union{null, string} originalPath;
+    union{null, int} originalSize;
     union{null, string} scaledPath;
     union{null, int} scaledSize;
     union{null, string} thumbnailPath;
+    // When share type is text, and text is within a predefined length, this is
+    // populated so we can just pre-fill chat input. If only this field is
+    // filled and originalPath is null, this is a chat-only share, usually from
+    // a browser URL share.
     union {null, string} content;
   }
 

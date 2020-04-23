@@ -166,6 +166,17 @@ const BOOL isSimulator = NO;
   });
 }
 
+// No path; this is chatOnly.
+- (void)completeItemAndAppendManifestType:(NSString*)type content:(NSString*)content {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.manifest addObject: @{
+      @"type": type,
+      @"content": content,
+    }];
+    [self completeProcessingItemAlreadyInMainThread];
+  });
+}
+
 - (void)completeItemAndAppendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL content:(NSString*)content {
   dispatch_async(dispatch_get_main_queue(), ^{
     [self.manifest addObject: @{
@@ -209,7 +220,12 @@ const BOOL isSimulator = NO;
 
 NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit in chat
 
-- (void) handleText:(NSString *)text loadError:(NSError *)error {
+- (void) handleText:(NSString *)text chatOnly:(BOOL)chatOnly loadError:(NSError *)error {
+  if (chatOnly && text.length < TEXT_LENGTH_THRESHOLD) {
+    [self completeItemAndAppendManifestType:@"text" content:text];
+    return;
+  } // If length is too large, just ignore the chatOnly flag.
+  
   // We write the text into a file regardless because this could go to KBFS.
   // But if the text is short enough, we also include it in the manifest so
   // GUI can easily pre-fill it into the chat compose box.
@@ -250,14 +266,14 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
     if (self.attributedContentText != nil){
-      [self handleText: [NSString stringWithFormat:@"%@ %@", self.attributedContentText, url.absoluteString] loadError:error];
+      [self handleText: [NSString stringWithFormat:@"%@ %@", self.attributedContentText, url.absoluteString] chatOnly:true loadError:error];
     }else{
-      [self handleText: url.absoluteString loadError:error];
+      [self handleText: url.absoluteString chatOnly:true loadError:error];
     }
   };
   
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
-    [self handleText:text loadError:error];
+    [self handleText:text chatOnly:false loadError:error];
   };
   
   NSItemProviderCompletionHandler imageHandler = ^(UIImage* image, NSError* error) {

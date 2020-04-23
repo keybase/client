@@ -127,7 +127,7 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 
 	remove := client.NewCmdTeamRemoveMemberRunner(g)
 	remove.Team = team
-	remove.Username = tt.users[1].username
+	remove.Assertion = tt.users[1].username
 	remove.Force = true // avoid Yes/No prompt
 	err = remove.Run()
 	require.NoError(t, err)

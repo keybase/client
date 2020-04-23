@@ -918,6 +918,7 @@ export type IconType =
   | 'icon-zcash-logo-48'
   | 'icon-zcash-logo-64'
   | 'iconfont-add'
+  | 'iconfont-add-solid'
   | 'iconfont-airplane'
   | 'iconfont-app-close'
   | 'iconfont-app-maximize'
@@ -1058,7 +1059,7 @@ export type IconType =
   | 'iconfont-qr-code'
   | 'iconfont-question-mark'
   | 'iconfont-radio'
-  | 'iconfont-radio-update'
+  | 'iconfont-radio-solid'
   | 'iconfont-reacji'
   | 'iconfont-refresh'
   | 'iconfont-reload'
@@ -9524,6 +9525,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-add-solid': {
+    charCode: 0xe9c8,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-airplane': {
     charCode: 0xe9bb,
     gridSize: 16,
@@ -10224,7 +10230,7 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-radio-update': {
+  'iconfont-radio-solid': {
     charCode: 0xe998,
     gridSize: 16,
     isFont: true,

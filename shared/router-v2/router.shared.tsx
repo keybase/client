@@ -3,22 +3,9 @@ import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
-import {modalRoutes, tabRoots} from './routes'
+import {tabRoots} from './routes'
 import logger from '../logger'
 import {getActiveKey} from './util'
-
-const getNumModals = navigation => {
-  const path = Constants._getModalStackForNavigator(navigation.state)
-  let numModals = 0
-  path.reverse().some(p => {
-    if (modalRoutes[p.routeName]) {
-      numModals++
-      return false
-    }
-    return true
-  })
-  return numModals
-}
 
 export const phoneTabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab, Tabs.settingsTab]
 export const tabletTabs = [
@@ -43,13 +30,13 @@ export const desktopTabs = [
 
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
 // actual routing actions (or make RouteTreeGen append/up the only action)
-export const oldActionToNewActions = (action: any, navigation: any, allowAppendDupe?: boolean) => {
+export const oldActionToNewActions = (action: any, navigationState: any, allowAppendDupe?: boolean) => {
   switch (action.type) {
     case RouteTreeGen.setParams: {
       return [NavigationActions.setParams({key: action.payload.key, params: action.payload.params})]
     }
     case RouteTreeGen.navigateAppend: {
-      if (!navigation) {
+      if (!navigationState) {
         return
       }
       const p = action.payload.path.last
@@ -72,7 +59,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
         return
       }
 
-      const path = Constants._getVisiblePathForNavigator(navigation.state)
+      const path = Constants._getVisiblePathForNavigator(navigationState)
       const visible = path[path.length - 1]
       if (visible) {
         if (!allowAppendDupe && routeName === visible.routeName && shallowEqual(visible.params, params)) {
@@ -83,7 +70,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
 
       if (action.payload.fromKey) {
         const {fromKey} = action.payload
-        const activeKey = getActiveKey(navigation.state)
+        const activeKey = getActiveKey(navigationState)
         if (fromKey !== activeKey) {
           logger.warn('Skipping append on wrong screen')
           return
@@ -103,13 +90,12 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       return [NavigationActions.navigate({routeName: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]
     }
     case RouteTreeGen.clearModals: {
-      const numModals = getNumModals(navigation)
-      return numModals ? [StackActions.pop({n: numModals})] : []
+      return [StackActions.popToTop({key: 'loggedIn'})]
     }
     case RouteTreeGen.navigateUp:
       return [NavigationActions.back({key: action.payload.fromKey})]
     case RouteTreeGen.navUpToScreen: {
-      const fullPath = Constants._getFullRouteForNavigator(navigation.state)
+      const fullPath = Constants._getFullRouteForNavigator(navigationState)
       const popActions: Array<unknown> = []
       const isInStack = fullPath.reverse().some(r => {
         if (r.routeName === action.payload.routeName) {
@@ -123,7 +109,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
     case RouteTreeGen.resetStack: {
       // TODO check for append dupes within these
       const actions = action.payload.actions.reduce(
-        (arr, a) => [...arr, ...(oldActionToNewActions(a, navigation, true) || [])],
+        (arr, a) => [...arr, ...(oldActionToNewActions(a, navigationState, true) || [])],
         // 'loggedOut' is the root
         action.payload.tab === 'loggedOut'
           ? []

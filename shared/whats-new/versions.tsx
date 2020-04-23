@@ -28,7 +28,7 @@ export const Version = ({children}: {children: React.ReactNode}) => {
 
 export const VersionTitle = ({title}: {title: string}) => (
   <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
-    <Kb.Text type="BodySemibold" style={styles.versionTitle}>
+    <Kb.Text type="BodySmallSemibold" style={styles.versionTitle}>
       {title}
     </Kb.Text>
   </Kb.Box2>

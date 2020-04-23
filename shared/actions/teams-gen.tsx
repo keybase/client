@@ -240,12 +240,7 @@ type _RemoveParticipantPayload = {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
-type _RemovePendingInvitePayload = {
-  readonly teamID: Types.TeamID
-  readonly email?: string
-  readonly username?: string
-  readonly inviteID?: string
-}
+type _RemovePendingInvitePayload = {readonly teamID: Types.TeamID; readonly inviteID: string}
 type _RenameTeamPayload = {readonly oldName: string; readonly newName: string}
 type _RequestInviteLinkDetailsPayload = void
 type _RespondToInviteLinkPayload = {readonly accept: boolean}

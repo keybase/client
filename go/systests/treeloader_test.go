@@ -37,14 +37,14 @@ func loadTeamTree(t *testing.T, tmctx libkb.MetaContext, notifications *teamNoti
 
 	guid := rand.Int()
 
-	l, err := teams.NewTreeloader(tmctx, username, teamID, guid)
+	l, err := teams.NewTreeloader(tmctx, username, teamID, guid, true /* includeAncestors */)
 	if err != nil {
 		return nil, err
 	}
 	if failureTeamIDs != nil {
 		l.Converter = newMockConverter(failureTeamIDs, l)
 	}
-	err = l.Load(tmctx)
+	err = l.LoadAsync(tmctx)
 	if err != nil {
 		return nil, err
 	}

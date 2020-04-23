@@ -271,13 +271,16 @@ const tabStyles = Styles.styleSheetCreate(
           right: 8,
           top: 3,
         },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          justifyContent: 'center',
+        },
         isTablet: {
-          marginRight: Styles.globalMargins.tiny,
+          // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
+          minWidth: Styles.globalMargins.xlarge,
         },
       }),
-      container: {
-        justifyContent: 'center',
-      },
       label: {marginLeft: Styles.globalMargins.medium},
       labelDarkMode: {color: Styles.globalColors.black_50},
       labelDarkModeFocused: {color: Styles.globalColors.black},
@@ -306,6 +309,8 @@ const LoggedInStackNavigator = createStackNavigator(
     bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
     cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
     headerMode: 'none',
+    initialRouteKey: 'Main',
+    initialRouteName: 'Main',
     mode: 'modal',
   }
 )
@@ -349,14 +354,13 @@ const AppContainer = createAppContainer(RootStackNavigator)
 class RNApp extends React.PureComponent<Props> {
   private nav: any = null
 
-  // TODO remove this eventually, just so we can handle the old style actions
   dispatchOldAction = (old: any) => {
     const nav = this.nav
     if (!nav) {
       throw new Error('Missing nav?')
     }
 
-    const actions = Shared.oldActionToNewActions(old, nav._navigation) || []
+    const actions = Shared.oldActionToNewActions(old, this.getNavState()) || []
     try {
       actions.forEach(a => nav.dispatch(a))
     } catch (e) {
@@ -374,6 +378,11 @@ class RNApp extends React.PureComponent<Props> {
 
   getNavState = () => {
     const n = this.nav
+    // try the local internal state first, this should be synchronously correct
+    if (n._navState) {
+      return n._navState
+    }
+    // else fallback to the react state version
     return (n && n.state && n.state.nav) || null
   }
 

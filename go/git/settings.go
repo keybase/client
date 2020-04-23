@@ -58,9 +58,14 @@ func convertTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext,
 			channelName, err := g.ChatHelper.GetChannelTopicName(ctx, teamID,
 				chat1.TopicType_CHAT, convID)
 			if err != nil {
-				return keybase1.GitTeamRepoSettings{}, err
+				// This error is non-fatal, show that chat is disabled and let
+				// the user chose something else.
+				settings.ChatDisabled = true
+				settings.ChannelName = nil
+				g.Log.CDebugf(ctx, "unable to get channel name: %v", err)
+			} else {
+				settings.ChannelName = &channelName
 			}
-			settings.ChannelName = &channelName
 		}
 	}
 

@@ -6,6 +6,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 
@@ -86,12 +87,15 @@ loop:
 			continue loop
 		}
 
-		fiOriginal, err := os.Stat(jsonItem.OriginalPath)
-		if err != nil {
-			mctx.Debug("incoming-share: stat error on original: %v", err)
-			return nil, err
+		var originalSize int
+		if len(jsonItem.OriginalPath) > 0 {
+			fiOriginal, err := os.Stat(jsonItem.OriginalPath)
+			if err != nil {
+				mctx.Debug("incoming-share: stat error on original: %v", err)
+				return nil, err
+			}
+			originalSize = int(fiOriginal.Size())
 		}
-		originalSize := int(fiOriginal.Size())
 
 		var scaledSize int
 		if len(jsonItem.ScaledPath) > 0 {
@@ -105,13 +109,18 @@ loop:
 
 		items = append(items, keybase1.IncomingShareItem{
 			Type:          t,
-			OriginalPath:  jsonItem.OriginalPath,
-			OriginalSize:  originalSize,
+			OriginalPath:  strPtr(jsonItem.OriginalPath),
+			OriginalSize:  numPtr(originalSize),
 			ScaledPath:    strPtr(jsonItem.ScaledPath),
 			ScaledSize:    numPtr(scaledSize),
 			ThumbnailPath: strPtr(jsonItem.ThumbnailPath),
 			Content:       strPtr(jsonItem.Content),
 		})
 	}
+
+	if len(items) == 0 {
+		return nil, errors.New("empty incoming share")
+	}
+
 	return items, nil
 }

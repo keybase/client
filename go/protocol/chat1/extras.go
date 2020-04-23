@@ -24,14 +24,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const (
-	// we will show some representation of an exploded message in the UI for a
-	// day
-	ShowExplosionLifetime = time.Hour * 24
+// we will show some representation of an exploded message in the UI for a week
+const ShowExplosionLifetime = time.Hour * 24 * 7
 
-	// If a conversation is larger, only admins can @channel.
-	MaxChanMentionConvSize = 100
-)
+// If a conversation is larger, only admins can @channel.
+const MaxChanMentionConvSize = 100
 
 func (i FlipGameIDStr) String() string {
 	return string(i)
@@ -294,6 +291,7 @@ func SnippetChatMessageTypes() []MessageType {
 
 var editableMessageTypesByEdit = []MessageType{
 	MessageType_TEXT,
+	MessageType_ATTACHMENT,
 }
 
 func EditableMessageTypesByEdit() []MessageType {
@@ -3160,6 +3158,62 @@ func (p AdvertiseCommandsParam) ToRemote(cmdConvID ConversationID, tlfID *TLFID,
 		}), nil
 	default:
 		return res, errors.New("unknown bot advertisement typ")
+	}
+}
+
+func (p ClearBotCommandsFilter) ToRemote(tlfID *TLFID, convID *ConversationID) (res RemoteClearBotCommandsFilter, err error) {
+	switch p.Typ {
+	case BotCommandsAdvertisementTyp_PUBLIC:
+		if tlfID != nil {
+			return res, errors.New("TLFID specified for public advertisement")
+		} else if convID != nil {
+			return res, errors.New("ConvID specified for public advertisement")
+		}
+		return NewRemoteClearBotCommandsFilterWithPublic(RemoteClearBotCommandsFilterPublic{}), nil
+	case BotCommandsAdvertisementTyp_TLFID_CONVS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		} else if convID != nil {
+			return res, errors.New("ConvID specified")
+		}
+		return NewRemoteClearBotCommandsFilterWithTlfidConvs(RemoteClearBotCommandsFilterTLFID{
+			TlfID: *tlfID,
+		}), nil
+	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		} else if convID != nil {
+			return res, errors.New("ConvID specified")
+		}
+		return NewRemoteClearBotCommandsFilterWithTlfidMembers(RemoteClearBotCommandsFilterTLFID{
+			TlfID: *tlfID,
+		}), nil
+	case BotCommandsAdvertisementTyp_CONV:
+		if tlfID != nil {
+			return res, errors.New("TLFID specified")
+		} else if convID == nil {
+			return res, errors.New("no ConvID specified")
+		}
+		return NewRemoteClearBotCommandsFilterWithConv(RemoteClearBotCommandsFilterConv{
+			ConvID: *convID,
+		}), nil
+	default:
+		return res, errors.New("unknown bot advertisement typ")
+	}
+}
+
+func GetAdvertTyp(typ string) (BotCommandsAdvertisementTyp, error) {
+	switch typ {
+	case "public":
+		return BotCommandsAdvertisementTyp_PUBLIC, nil
+	case "teamconvs":
+		return BotCommandsAdvertisementTyp_TLFID_CONVS, nil
+	case "teammembers":
+		return BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
+	case "conv":
+		return BotCommandsAdvertisementTyp_CONV, nil
+	default:
+		return BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q, must be one of 'public', 'teamconvs', 'teammembers', or 'conv' see `keybase chat api --help` for more info.", typ)
 	}
 }
 
