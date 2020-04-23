@@ -469,11 +469,6 @@ func (t TeamSigChainState) GetSubteamName(id keybase1.TeamID) (*keybase1.TeamNam
 // Must be called with seqno's and events in correct order.
 // Idempotent if called correctly.
 func (t *TeamSigChainState) inform(u keybase1.UserVersion, role keybase1.TeamRole, sigMeta keybase1.SignatureMetadata) {
-	currentRole := t.getUserRole(u)
-	if currentRole == role {
-		// no change in role, no new checkpoint needed
-		return
-	}
 	t.inner.UserLog[u] = append(t.inner.UserLog[u], keybase1.UserLogPoint{
 		Role:    role,
 		SigMeta: sigMeta,
