@@ -105,7 +105,13 @@ const AudioRecorder = (props: Props) => {
       />
       {!visible ? null : (
         <Gateway into="convOverlay">
-          <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+          <Kb.Box2
+            direction="vertical"
+            fullHeight={true}
+            fullWidth={true}
+            style={styles.container}
+            pointerEvents="box-none"
+          >
             <AudioButton
               ampScale={ampScale}
               closeDown={closingDown}
@@ -222,6 +228,7 @@ const AudioButton = (props: ButtonProps) => {
   return (
     <>
       <Kb.NativeAnimated.View
+        pointerEvents="box-none"
         style={{
           backgroundColor: Styles.globalColors.white,
           borderRadius: outerSize / 2,
@@ -415,6 +422,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
     </Kb.NativeAnimated.View>
   ) : (
     <Kb.NativeAnimated.View
+      pointerEvents="box-none"
       style={{
         bottom: 35,
         opacity: props.translate,
@@ -432,7 +440,9 @@ const AudioSlideToCancel = (props: CancelProps) => {
     >
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
         <Kb.Icon sizeType="Tiny" type="iconfont-arrow-left" />
-        <Kb.Text type="BodySmall">Slide to cancel</Kb.Text>
+        <Kb.Text type="BodySmall" onClick={props.onCancel}>
+          Slide to cancel
+        </Kb.Text>
       </Kb.Box2>
     </Kb.NativeAnimated.View>
   )
