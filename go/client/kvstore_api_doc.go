@@ -1,16 +1,19 @@
 package client
 
-const kvStoreAPIDoc = `"keybase kvstore api" provides a JSON API to fast, encrypted key-value storage. The "entryKey" and "namespace" fields are visible to the Keybase servers, "entryValue" is encrypted with the per-team-key. 
+const kvStoreAPIDoc = `"keybase kvstore api" provides a JSON API to fast, encrypted key-value storage. The "entryKey" and "namespace" fields are visible to the Keybase servers, "entryValue" is encrypted with the per-team-key.
 
-If team is not specified, then the command defaults to using the logged-in user's implicit self-team (only your user can see and decrypt this).
+If team is not specified, then the command defaults to your implicit self-team (only you can see and decrypt) because that's probably what you want.
 
 EXAMPLES:
 
-Get an entry (always returns the latest revision, non-existent entries have a revision of 0):
-	{"method": "get", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities"}}}
+Put an entry in your implicit self-team (i.e. only decryptable by you):
+	{"method": "put", "params": {"options": {"team": "yourname,yourname", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
 
-Put an entry for yourself:
-	{"method": "put", "params": {"options": {"namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
+Get an entry in your implicit self-team:
+	{"method": "get", "params": {"options": {"team": "yourname,yourname", "namespace": "pw-manager", "entryKey": "geocities"}}}
+
+Get an entry for a named team (always returns the latest revision, non-existent entries have a revision of 0):
+	{"method": "get", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities"}}}
 
 Put an encrypted entry for anyone in team phoenix:
 	{"method": "put", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
