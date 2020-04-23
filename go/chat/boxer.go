@@ -934,7 +934,6 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	}
 
 	// Open header and verify against VerifyKey
-
 	headerPacked, err := b.signEncryptOpen(boxed.HeaderCiphertext.AsSignEncrypted(), headerEncryptionKey,
 		boxed.VerifyKey, kbcrypto.SignaturePrefixChatMBv2)
 	if err != nil {
