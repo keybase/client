@@ -37,6 +37,7 @@ const InviteRolePicker = (props: RolePickerProps) => {
       position="bottom center"
       open={props.isRolePickerOpen}
       disabledRoles={props.disabledReasonsForRolePicker}
+      plural={true}
     >
       <InlineDropdown
         label={capitalize(pluralize(props.teamRole))}
