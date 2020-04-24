@@ -25,16 +25,8 @@ export default Container.connect(
     return {_invites: teamDetails.invites}
   },
   (dispatch, {teamID}: OwnProps) => ({
-    _onCancelInvite: ({
-      email,
-      username,
-      inviteID,
-    }: {
-      email?: string
-      username?: string
-      inviteID?: string
-    }) => {
-      dispatch(TeamsGen.createRemovePendingInvite({email, inviteID, teamID, username}))
+    _onCancelInvite: (inviteID: string) => {
+      dispatch(TeamsGen.createRemovePendingInvite({inviteID, teamID}))
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -44,24 +36,7 @@ export default Container.connect(
       // loading
       return {firstItem: ownProps.firstItem, label: '', onCancelInvite: () => {}, role: 'reader'} as const
     }
-    let onCancelInvite: undefined | (() => void)
-    // TODO: can we just do this by invite ID always?
-    if (user.email) {
-      onCancelInvite = () =>
-        dispatchProps._onCancelInvite({
-          email: user.email,
-        })
-    } else if (user.username) {
-      onCancelInvite = () =>
-        dispatchProps._onCancelInvite({
-          username: user.username,
-        })
-    } else if (user.name || user.phone) {
-      onCancelInvite = () =>
-        dispatchProps._onCancelInvite({
-          inviteID: ownProps.id,
-        })
-    }
+    const onCancelInvite = () => dispatchProps._onCancelInvite(ownProps.id)
 
     let label = user.username || user.name || user.email || user.phone
     let subLabel = user.name ? user.phone || user.email : undefined

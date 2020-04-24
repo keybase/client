@@ -1001,6 +1001,29 @@
     },
     {
       "type": "record",
+      "name": "ClearCommandAPIParam",
+      "fields": [
+        {
+          "type": "string",
+          "name": "typ",
+          "jsonkey": "type"
+        },
+        {
+          "type": "string",
+          "name": "teamName",
+          "optional": true,
+          "jsonkey": "team_name"
+        },
+        {
+          "type": "ConvIDStr",
+          "name": "convID",
+          "jsonkey": "conv_id",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ResetConvMemberAPI",
       "fields": [
         {

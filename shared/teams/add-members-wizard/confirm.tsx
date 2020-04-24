@@ -31,11 +31,12 @@ const disabledRolesSubteam = {
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
 
-  const {teamID, addingMembers, defaultChannels} = Container.useSelector(s => s.teams.addMembersWizard)
+  const {teamID, addingMembers, addToChannels} = Container.useSelector(s => s.teams.addMembersWizard)
   const isSubteam = Container.useSelector(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
   const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
+  const isInTeam = Container.useSelector(s => Constants.getRole(s, teamID) !== 'none')
 
   // TODO: consider useMemoing these
   const anyNonKeybase = addingMembers.some(m => m.assertion.includes('@'))
@@ -66,7 +67,7 @@ const AddMembersConfirm = () => {
         addMembers(
           [
             {
-              defaultChannelsOverride: defaultChannels
+              addToChannels: addToChannels
                 ?.filter(c => c.channelname !== 'general')
                 .map(c => c.conversationIDKey),
               emailInviteMessage: emailMessage || undefined,
@@ -127,7 +128,7 @@ const AddMembersConfirm = () => {
             />
           </Kb.Box2>
         </Kb.Box2>
-        {isBigTeam && someKeybaseUsers && <DefaultChannels teamID={teamID} />}
+        {isBigTeam && someKeybaseUsers && isInTeam && <DefaultChannels teamID={teamID} />}
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
@@ -359,12 +360,11 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
 const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
   const dispatch = Container.useDispatch()
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
-  const defaultChannelsFromStore = Container.useSelector(s => s.teams.addMembersWizard.defaultChannels)
+  const addToChannels = Container.useSelector(s => s.teams.addMembersWizard.addToChannels)
   const allKeybaseUsers = Container.useSelector(
     s => !s.teams.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
   )
-  const onChangeFromDefault = () =>
-    dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: defaultChannels}))
+  const onChangeFromDefault = () => dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: []}))
   const onAdd = (toAdd: Array<Types.ChannelNameID>) =>
     dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd}))
   const onRemove = (toRemove: Types.ChannelNameID) =>
@@ -375,14 +375,6 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
       <Kb.Box2 direction="vertical" fullWidth={true}>
         {defaultChannelsWaiting ? (
           <Kb.ProgressIndicator />
-        ) : defaultChannelsFromStore ? (
-          <ChannelsWidget
-            disableGeneral={true}
-            teamID={teamID}
-            channels={defaultChannelsFromStore}
-            onAddChannel={onAdd}
-            onRemoveChannel={onRemove}
-          />
         ) : (
           <>
             <Kb.Text type="BodySmall">
@@ -398,13 +390,25 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
                 </Kb.Text>
               ))}
               .{' '}
-              <Kb.Text type="BodySmallPrimaryLink" onClick={onChangeFromDefault}>
-                Change this
-              </Kb.Text>
+              {!addToChannels && (
+                <Kb.Text type="BodySmallPrimaryLink" onClick={onChangeFromDefault}>
+                  Add channels
+                </Kb.Text>
+              )}
             </Kb.Text>
           </>
         )}
       </Kb.Box2>
+      {addToChannels && (
+        <ChannelsWidget
+          disableGeneral={true}
+          teamID={teamID}
+          channels={addToChannels}
+          disabledChannels={defaultChannels}
+          onAddChannel={onAdd}
+          onRemoveChannel={onRemove}
+        />
+      )}
     </Kb.Box2>
   )
 }

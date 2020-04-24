@@ -213,9 +213,7 @@
     },
     "removePendingInvite": {
       "teamID": "Types.TeamID",
-      "email?": "string",
-      "username?": "string",
-      "inviteID?": "string"
+      "inviteID": "string"
     },
     "ignoreRequest": {
       "teamID": "Types.TeamID",

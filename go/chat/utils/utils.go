@@ -1775,14 +1775,15 @@ func systemMsgPresentText(ctx context.Context, uid gregor1.UID, msg chat1.Messag
 	}
 	switch typ {
 	case chat1.MessageSystemType_NEWCHANNEL:
-		if len(msg.ChannelNameMentions) != 1 {
-			return ""
-		}
-		author := ""
+		var author string
 		if uid.Eq(msg.ClientHeader.Sender) {
 			author = "You "
 		}
-		return fmt.Sprintf("%screated a new channel #%s", author, msg.ChannelNameMentions[0].TopicName)
+		if len(msg.ChannelNameMentions) == 1 {
+			return fmt.Sprintf("%screated a new channel #%s", author, msg.ChannelNameMentions[0].TopicName)
+		} else if len(msg.ChannelNameMentions) > 1 {
+			return fmt.Sprintf("%screated #%s and %d other new channels", author, msg.ChannelNameMentions[0].TopicName, len(sysMsg.Newchannel().ConvIDs)-1)
+		}
 	default:
 	}
 	return ""

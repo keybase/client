@@ -7,6 +7,7 @@ import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as ChatGen from '../../../actions/chat2-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
@@ -19,7 +20,11 @@ type Props = Container.RouteProps<{
 }>
 
 const getChannelsForList = memoize(
-  (channels: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>) => {
+  (
+    channels: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>,
+    participantMap: Map<ChatTypes.ConversationIDKey, ChatTypes.ParticipantInfo>,
+    usernames: string[]
+  ) => {
     const processed = [...channels.values()].reduce(
       ({list, general}: {general: ChatTypes.ConversationMeta; list: Array<ChatTypes.ConversationMeta>}, c) =>
         c.channelname === 'general' ? {general: c, list} : {general, list: [...list, c]},
@@ -27,10 +32,17 @@ const getChannelsForList = memoize(
     )
     const {list, general} = processed
     const sortedList = list.sort((a, b) => a.channelname.localeCompare(b.channelname))
+    const convIDKeysAvailable = sortedList
+      .map(c => c.conversationIDKey)
+      .filter(convIDKey => {
+        const participants = participantMap.get(convIDKey)?.all
+        // At least one person is not in the channel
+        return usernames.some(member => !participants?.includes(member))
+      })
     return {
       channelMetaGeneral: general,
       channelMetasAll: [general, ...sortedList],
-      channelMetasFiltered: sortedList,
+      convIDKeysAvailable,
     }
   }
 )
@@ -44,9 +56,13 @@ const AddToChannels = (props: Props) => {
   const mode = Container.getRouteProps(props, 'usernames', undefined) ? 'others' : 'self'
 
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
-  const {channelMetasAll, channelMetasFiltered, channelMetaGeneral} = getChannelsForList(channelMetas)
-
   const participantMap = Container.useSelector(s => s.chat2.participantMap)
+  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(
+    channelMetas,
+    participantMap,
+    usernames
+  )
+
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
   const [filtering, setFiltering] = React.useState(false)
@@ -57,7 +73,10 @@ const AddToChannels = (props: Props) => {
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => ({
       channelMeta: c,
-      numMembers: participantMap.get(c.conversationIDKey)?.name?.length ?? 0,
+      numMembers:
+        participantMap.get(c.conversationIDKey)?.name?.length ??
+        participantMap.get(c.conversationIDKey)?.all?.length ??
+        0,
       type: 'channel' as const,
     })),
   ]
@@ -72,9 +91,8 @@ const AddToChannels = (props: Props) => {
       setSelected(new Set(selected))
     }
   }
-  const onSelectAll = () =>
-    setSelected(new Set([...channelMetasFiltered.values()].map(c => c.conversationIDKey)))
-  const onSelectNone = () => setSelected(new Set())
+  const onSelectAll = () => setSelected(new Set(convIDKeysAvailable))
+  const onSelectNone = convIDKeysAvailable.length === 0 ? undefined : () => setSelected(new Set())
 
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
   const onCreate = () =>
@@ -106,7 +124,7 @@ const AddToChannels = (props: Props) => {
   const renderItem = (_, item: Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
-        const allSelected = selected.size === channelMetasFiltered.length
+        const allSelected = selected.size === convIDKeysAvailable.length
         return (
           <HeaderRow
             key="{header}"
@@ -129,6 +147,7 @@ const AddToChannels = (props: Props) => {
             onSelect={() => onSelect(item.channelMeta.conversationIDKey)}
             mode={mode}
             reloadChannels={reloadChannels}
+            usernames={usernames}
           />
         )
     }
@@ -237,7 +256,7 @@ const HeaderRow = ({mode, onCreate, onSelectAll, onSelectNone}) => (
     style={Styles.collapseStyles([styles.item, styles.headerItem, mode === 'self' && styles.itemSelf])}
   >
     <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
-    {mode === 'self' ? (
+    {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
       <Kb.Box /> // box so that the other item aligns to the left
     ) : (
       <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
@@ -349,25 +368,35 @@ type ChannelRowProps = {
   onSelect: () => void
   mode: 'self' | 'others'
   reloadChannels: () => Promise<undefined>
+  usernames: string[]
 }
-const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: ChannelRowProps) => {
+const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, usernames}: ChannelRowProps) => {
+  const dispatch = Container.useDispatch()
   const selfMode = mode === 'self'
-  const numParticipants = Container.useSelector(s => {
-    const participants = ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey)
-    return participants.name.length || participants.all.length
+  const participants = Container.useSelector(s => {
+    const info = ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey)
+    return info.name.length ? info.name : info.all
   })
   const activityLevel = Container.useSelector(
     s => s.teams.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )
+  const allInChannel = usernames.every(member => participants.includes(member))
+  const onPreviewChannel = () =>
+    dispatch(
+      ChatGen.createPreviewConversation({
+        conversationIDKey: channelMeta.conversationIDKey,
+        reason: 'manageView',
+      })
+    )
   return Styles.isMobile ? (
-    <Kb.ClickableBox onClick={onSelect}>
+    <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
         <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
           <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
             <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
               #{channelMeta.channelname}
             </Kb.Text>
-            <Common.ParticipantMeta numParticipants={numParticipants} />
+            <Common.ParticipantMeta numParticipants={participants.length} />
           </Kb.Box2>
           <Common.Activity level={activityLevel} />
         </Kb.Box2>
@@ -375,9 +404,9 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: Cha
           <SelfChannelActions meta={channelMeta} reloadChannels={reloadChannels} />
         ) : (
           <Kb.CheckCircle
-            checked={selected}
+            checked={selected || allInChannel}
             onCheck={onSelect}
-            disabled={channelMeta.channelname === 'general'}
+            disabled={channelMeta.channelname === 'general' || allInChannel}
           />
         )}
       </Kb.Box2>
@@ -385,7 +414,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: Cha
   ) : (
     <Kb.ListItem2
       onMouseDown={
-        selfMode
+        selfMode || channelMeta.channelname === 'general' || allInChannel
           ? undefined
           : evt => {
               // using onMouseDown so we can prevent blurring the search filter
@@ -393,13 +422,15 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: Cha
               onSelect()
             }
       }
+      onClick={selfMode ? onPreviewChannel : undefined}
       type="Large"
       action={
         selfMode ? (
           <SelfChannelActions meta={channelMeta} reloadChannels={reloadChannels} />
         ) : (
           <Kb.CheckCircle
-            checked={selected}
+            checked={selected || allInChannel}
+            disabled={channelMeta.channelname === 'general' || allInChannel}
             onCheck={() => {
               /* ListItem onMouseDown triggers this */
             }}
@@ -414,12 +445,12 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: Cha
             <Kb.Text type="BodySemibold" lineClamp={1}>
               #{channelMeta.channelname}
             </Kb.Text>
-            {selfMode && <Common.ParticipantMeta numParticipants={numParticipants} />}
+            {selfMode && <Common.ParticipantMeta numParticipants={participants.length} />}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
             {!selfMode && (
               <Kb.Text type="BodySmall">
-                {numParticipants} {pluralize('member', numParticipants)} •
+                {participants.length} {pluralize('member', participants.length)}
               </Kb.Text>
             )}
             <Kb.Text type="BodySmall">{activityLevel !== 'none' && !selfMode && ' • '}</Kb.Text>
@@ -432,12 +463,13 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels}: Cha
           )}
         </Kb.Box2>
       }
-      containerStyleOverride={{marginLeft: 16, marginRight: 8}}
+      containerStyleOverride={styles.channelRowContainer}
     />
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  channelRowContainer: {marginLeft: 16, marginRight: 8},
   channelText: {flexShrink: 1},
   disabled: {opacity: 0.4},
   headerItem: {backgroundColor: Styles.globalColors.blueGrey},

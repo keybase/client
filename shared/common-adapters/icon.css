@@ -146,7 +146,7 @@
 .icon-gen-iconfont-reply::before {content: "\e995";}
 .icon-gen-iconfont-number-pad::before {content: "\e996";}
 .icon-gen-iconfont-radio::before {content: "\e997";}
-.icon-gen-iconfont-radio-update::before {content: "\e998";}
+.icon-gen-iconfont-radio-solid::before {content: "\e998";}
 .icon-gen-iconfont-app-un-maximize::before {content: "\e999";}
 .icon-gen-iconfont-unhide::before {content: "\e99a";}
 .icon-gen-iconfont-nav-2-robot::before {content: "\e99b";}
@@ -193,4 +193,5 @@
 .icon-gen-iconfont-file-solid::before {content: "\e9c5";}
 .icon-gen-iconfont-pin-solid::before {content: "\e9c6";}
 .icon-gen-iconfont-people-solid::before {content: "\e9c7";}
+.icon-gen-iconfont-add-solid::before {content: "\e9c8";}
 

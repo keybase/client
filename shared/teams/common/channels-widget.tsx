@@ -9,6 +9,7 @@ import {useAllChannelMetas} from './channel-hooks'
 type Props = {
   channels: Array<Types.ChannelNameID>
   disableGeneral?: boolean
+  disabledChannels?: Array<Types.ChannelNameID>
   onAddChannel: (toAdd: Array<Types.ChannelNameID>) => void
   onRemoveChannel: (toRemove: Types.ChannelNameID) => void
   teamID: Types.TeamID
@@ -22,27 +23,32 @@ const ChannelsWidget = (props: Props) => (
       teamID={props.teamID}
       selected={props.channels}
       disableGeneral={props.disableGeneral}
+      disabledChannels={props.disabledChannels}
     />
-    <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
-      {props.channels.map(channel => (
-        <ChannelPill
-          key={channel.channelname}
-          channelname={channel.channelname}
-          onRemove={channel.channelname === 'general' ? undefined : () => props.onRemoveChannel(channel)}
-        />
-      ))}
-    </Kb.Box2>
+    {!!props.channels.length && (
+      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
+        {props.channels.map(channel => (
+          <ChannelPill
+            key={channel.channelname}
+            channelname={channel.channelname}
+            onRemove={channel.channelname === 'general' ? undefined : () => props.onRemoveChannel(channel)}
+          />
+        ))}
+      </Kb.Box2>
+    )}
   </Kb.Box2>
 )
 
 type ChannelInputProps = {
   disableGeneral?: boolean
+  disabledChannels?: Array<Types.ChannelNameID>
   onAdd: (toAdd: Array<Types.ChannelNameID>) => void
   selected: Array<Types.ChannelNameID>
   teamID: Types.TeamID
 }
 
-const ChannelInputDesktop = ({disableGeneral, onAdd, selected, teamID}: ChannelInputProps) => {
+const ChannelInputDesktop = (props: ChannelInputProps) => {
+  const {disableGeneral, disabledChannels, onAdd, selected, teamID} = props
   const [filter, setFilter] = React.useState('')
 
   const {channelMetas} = useAllChannelMetas(teamID)
@@ -50,7 +56,8 @@ const ChannelInputDesktop = ({disableGeneral, onAdd, selected, teamID}: ChannelI
     .filter(
       c =>
         !selected.find(channel => channel.conversationIDKey === c.conversationIDKey) &&
-        (!disableGeneral || c.channelname !== 'general')
+        (!disableGeneral || c.channelname !== 'general') &&
+        (!disabledChannels || !disabledChannels.some(dc => dc.conversationIDKey === c.conversationIDKey))
     )
     .map(c => ({
       label: `#${c.channelname}`,
@@ -84,7 +91,8 @@ const ChannelInputDesktop = ({disableGeneral, onAdd, selected, teamID}: ChannelI
   )
 }
 
-const ChannelInputMobile = ({disableGeneral, onAdd, selected, teamID}: ChannelInputProps) => {
+const ChannelInputMobile = (props: ChannelInputProps) => {
+  const {disableGeneral, disabledChannels, onAdd, selected, teamID} = props
   const [showingPopup, setShowingPopup] = React.useState(false)
   const onComplete = (channels: Array<Types.ChannelNameID>) => {
     setShowingPopup(false)
@@ -109,7 +117,7 @@ const ChannelInputMobile = ({disableGeneral, onAdd, selected, teamID}: ChannelIn
           teamID={teamID}
           onCancel={() => setShowingPopup(false)}
           onComplete={onComplete}
-          disabledChannels={selected}
+          disabledChannels={[...selected, ...(disabledChannels || [])]}
           hideGeneral={disableGeneral}
         />
       )}

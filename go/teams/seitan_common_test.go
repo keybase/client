@@ -66,7 +66,7 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion SeitanVersion) {
 
 	t.Logf("Checked that invite was added correctly, removing invite by id")
 
-	err = CancelInviteByID(context.TODO(), tc.G, teamID, inviteID, false /* allowInaction */)
+	err = CancelInviteByID(context.TODO(), tc.G, teamID, inviteID)
 	require.NoError(t, err)
 
 	t.Logf("Removed, checking if there are no active invites")

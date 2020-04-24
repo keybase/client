@@ -81,7 +81,14 @@ const DisplayCurrencyDropdown = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  dropdown: {width: '100%'},
+  dropdown: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-start',
+    },
+    isElectron: {
+      ...Styles.globalStyles.fullWidth,
+    },
+  }),
   progressIndicator: {
     height: 22,
     width: 22,

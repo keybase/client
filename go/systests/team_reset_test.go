@@ -443,14 +443,14 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 
 	cli := ann.getTeamsClient()
 	err := cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
-		TeamID:   team.ID,
-		Username: bob.username,
+		TeamID: team.ID,
+		Member: keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{Assertion: bob.username}),
 	})
 	require.NoError(t, err)
 
 	err = cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
-		TeamID:   team.ID,
-		Username: joe.username,
+		TeamID: team.ID,
+		Member: keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{Assertion: joe.username}),
 	})
 	require.NoError(t, err)
 
@@ -494,8 +494,8 @@ func TestTeamRemoveMemberAfterDelete(t *testing.T) {
 
 	cli := ann.getTeamsClient()
 	err = cli.TeamRemoveMember(context.Background(), keybase1.TeamRemoveMemberArg{
-		TeamID:   team.ID,
-		Username: bob.username,
+		TeamID: team.ID,
+		Member: keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{Assertion: bob.username}),
 	})
 	require.NoError(t, err)
 
@@ -661,8 +661,8 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner, removeAfterReset 
 
 	if removeAfterReset {
 		err := ann.getTeamsClient().TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
-			TeamID:   team.ID,
-			Username: bob.username,
+			TeamID: team.ID,
+			Member: keybase1.NewTeamMemberToRemoveWithAssertion(keybase1.AssertionTeamMemberToRemove{Assertion: bob.username}),
 		})
 		require.NoError(t, err)
 		return

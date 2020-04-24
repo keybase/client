@@ -12,14 +12,13 @@ import (
 type color int
 
 const (
-	colorBlack = iota + 30
+	_ = iota + 30
 	colorRed
 	colorGreen
 	colorYellow
-	colorBlue
+	_
 	colorMagenta
 	colorCyan
-	colorWhite
 )
 
 var (
@@ -49,10 +48,10 @@ func colorSeqBold(color color) string {
 
 func doFmtVerbLevelColor(layout string, level Level, output io.Writer) {
 	if layout == "bold" {
-		output.Write([]byte(boldcolors[level]))
+		_, _ = output.Write([]byte(boldcolors[level]))
 	} else if layout == "reset" {
-		output.Write([]byte("\033[0m"))
+		_, _ = output.Write([]byte("\033[0m"))
 	} else {
-		output.Write([]byte(colors[level]))
+		_, _ = output.Write([]byte(colors[level]))
 	}
 }

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import {Question1, Question2, Proof} from '.'
+import {Question1, Question2, Review, Proof} from '.'
 import sortBy from 'lodash/sortBy'
 
 // snapshot of tracker2 assertions: DEBUGStore.getState().tracker2.usernameToDetails.get("mlsteele").assertions
@@ -306,12 +306,46 @@ const storyProofs: Proof[] = [
   ...x,
 }))
 
-const props = {
+const questionProps = {
   initialVerificationType: 'in_person' as 'in_person',
   onBack: Sb.action('onBack'),
   onSubmit: Sb.action('onSubmit'),
   proofs: [...sampleProofs, ...storyProofs],
   voucheeUsername: 'weijiekohyalenus',
+}
+
+const reviewProps = {
+  firstDraft: true,
+  onAccept: Sb.action('onAccept'),
+  onProposeEdits: Sb.action('onProposeEdits'),
+  onReject: Sb.action('onReject'),
+  otherText: '',
+  proofs: [],
+  statement:
+    'Cécile and I have worked together at Keybase since 2015, where she’s served as Product Designer.',
+  verificationType: 'in_person' as 'in_person',
+  voucheeUsername: 'cecileb',
+  voucherUsername: 'weijiekohyalenus',
+}
+
+const longStatement = {
+  // max length statement
+  statement: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut morbi tincidunt augue interdum velit euismod in pellentesque.\n\nIaculis urna id volutpat lacus laoreet non curabitur gravida. Vel risus commodo viverra maecenas accumsan lacus vel facilisis volutpat. Viverra ipsum nunc aliquet bibendum enim facilisis gravida neque convallis. Nec sagittis aliquam malesuada bibendum arcu vitae elementum curabitur vitae. Posuere sollicitudin aliquam ultrices sagittis orci. Nulla porttitor massa id neque aliquam. Natoque penatibus et magnis dis parturient. Tempus quam pellentesque nec nam aliquam semmes. Lorem ipsum dolor amet consectetur.`,
+}
+
+const longVoucheeUsername = {
+  voucheeUsername: 'weijiekohyalenus',
+  voucherUsername: 'cecileb',
+}
+
+const reviewVtOther = {
+  otherText: 'You think darkness is your ally. But you merely adopted the dark; I was born in it, moldy.', // max length
+  verificationType: 'other' as 'other',
+}
+
+const reviewVtProofs = {
+  proofs: [...sampleProofs, ...storyProofs],
+  verificationType: 'proofs' as 'proofs',
 }
 
 const errorProps = {
@@ -321,11 +355,18 @@ const errorProps = {
 const load = () => {
   Sb.storiesOf('Profile/WotAuthor', module)
     .addDecorator(Sb.createPropProviderWithCommon())
-    .add('Question1', () => <Question1 {...props} />)
-    .add('Question2', () => <Question2 {...props} />)
-    .add('Question1 error', () => <Question1 {...props} {...errorProps} />)
-    .add('Question2 error', () => <Question2 {...props} {...errorProps} />)
-    .add('Question2 spinning', () => <Question2 {...props} waiting={true} />)
+    .add('Question1', () => <Question1 {...questionProps} />)
+    .add('Question1 error', () => <Question1 {...questionProps} {...errorProps} />)
+    .add('Question2 error', () => <Question2 {...questionProps} {...errorProps} />)
+    .add('Question2', () => <Question2 {...questionProps} />)
+    .add('Question2 spinning', () => <Question2 {...questionProps} waiting={true} />)
+    .add('Review', () => <Review {...reviewProps} />)
+    .add('Review proofs', () => <Review {...reviewProps} {...reviewVtProofs} {...longStatement} />)
+    .add('Review after edits & other', () => (
+      <Review {...reviewProps} {...reviewVtOther} firstDraft={false} />
+    ))
+    .add('Review error', () => <Review {...reviewProps} {...errorProps} {...longVoucheeUsername} />)
+    .add('Review spinning', () => <Review {...reviewProps} waiting="accept" />)
 }
 
 export default load
