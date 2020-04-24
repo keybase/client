@@ -47,6 +47,7 @@ type storageCommandAdvertisement struct {
 	UntrustedTeamRole keybase1.TeamRole
 	UID               gregor1.UID
 	Username          string
+	Typ               chat1.BotCommandsAdvertisementTyp
 }
 
 type commandsStorage struct {
@@ -343,7 +344,8 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 		return res, alias, nil
 	}
 
-	cmdDedup := make(map[string]bool)
+	cmdOutputs := make(map[string]chat1.UserBotCommandOutput)
+	cmdDedup := make(map[string]chat1.BotCommandsAdvertisementTyp)
 	for _, ad := range s.Advertisements {
 		ad.Username = libkb.NewNormalizedUsername(ad.Username).String()
 		if ad.Advertisement.Alias != nil {
@@ -351,12 +353,17 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 		}
 		for _, cmd := range ad.Advertisement.Commands {
 			key := cmd.Name + ad.Username
-			if !cmdDedup[key] {
-				res = append(res, cmd.ToOutput(ad.Username))
-				cmdDedup[key] = true
+			if typ, ok := cmdDedup[key]; !ok || ad.Typ > typ {
+				cmdOutputs[key] = cmd.ToOutput(ad.Username)
+				cmdDedup[key] = ad.Typ
 			}
 		}
 	}
+	res = make([]chat1.UserBotCommandOutput, 0, len(cmdOutputs))
+	for _, cmd := range cmdOutputs {
+		res = append(res, cmd)
+	}
+
 	sort.Slice(res, func(i, j int) bool {
 		l := res[i]
 		r := res[j]
@@ -483,7 +490,7 @@ func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job *commandU
 }
 
 func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, convID chat1.ConversationID,
-	botUID gregor1.UID, untrustedTeamRole keybase1.TeamRole) (res *storageCommandAdvertisement) {
+	botUID gregor1.UID, untrustedTeamRole keybase1.TeamRole, typ chat1.BotCommandsAdvertisementTyp) (res *storageCommandAdvertisement) {
 	b.Debug(ctx, "getConvAdvertisement: reading commands from: %s for uid: %s", convID, botUID)
 	tv, err := b.G().ConvSource.Pull(ctx, convID, b.uid, chat1.GetThreadReason_BOTCOMMANDS, nil,
 		&chat1.GetThreadQuery{
@@ -520,6 +527,7 @@ func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, con
 	res.Username = msg.Valid().SenderUsername
 	res.UID = botUID
 	res.UntrustedTeamRole = untrustedTeamRole
+	res.Typ = typ
 
 	return res
 }
@@ -554,7 +562,7 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job *comma
 			Version: storageVersion,
 		}
 		for _, cconv := range botInfo.CommandConvs {
-			ad := b.getConvAdvertisement(ctx, cconv.ConvID, cconv.Uid, cconv.UntrustedTeamRole)
+			ad := b.getConvAdvertisement(ctx, cconv.ConvID, cconv.Uid, cconv.UntrustedTeamRole, cconv.Typ)
 			if ad != nil {
 				s.Advertisements = append(s.Advertisements, *ad)
 			}

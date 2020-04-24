@@ -725,6 +725,9 @@
   }
 
   // Bot Commands
+  // NOTE: When adding a new advertisement type, ensure that the deduplication priorities make sense:
+  // Currently conv > teamconvs > teamembs > public
+  // https://github.com/keybase/client/blob/666b5237b92e4388796a3eeeafada41584aa9091/go/chat/bots/commands.go#L356
   enum BotCommandsAdvertisementTyp {
     // Commands are publicly viewable by all users
     PUBLIC_0,
