@@ -5,6 +5,7 @@ import ChatAddToChannel from './conversation/info-panel/add-to-channel/container
 import ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
 import ChatAttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import ChatAttachmentGetTitles from './conversation/attachment-get-titles/container'
+import SendToChat from './send-to-chat'
 import {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
 import ChatCreateChannel from './create-channel/container'
 import ChatDeleteHistoryWarning from './delete-history-warning/container'
@@ -110,5 +111,8 @@ export const newModalRoutes = {
   chatUnfurlMapPopup: {
     getScreen: (): typeof ChatUnfurlMapPopup =>
       require('./conversation/messages/wrapper/unfurl/map/popup').default,
+  },
+  sendToChat: {
+    getScreen: (): typeof SendToChat => require('./send-to-chat').default,
   },
 }

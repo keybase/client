@@ -1,0 +1,293 @@
+import * as React from 'react'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
+import * as Container from '../util/container'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as FsTypes from '../constants/types/fs'
+import * as FsConstants from '../constants/fs'
+import * as FsCommon from '../fs/common'
+import * as FsGen from '../actions/fs-gen'
+import * as ConfigGen from '../actions/config-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Platform from '../constants/platform'
+import * as SettingsConstants from '../constants/settings'
+import {MobileSendToChat} from '../chat/send-to-chat'
+import useRPC from '../util/use-rpc'
+
+const makeRightButton = (items: Array<RPCTypes.IncomingShareItem>) => {
+  const originalTotalSize = items.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
+  const scaledTotalSize = items.reduce((bytes, item) => bytes + (item.scaledSize ?? 0), 0)
+  const originalOnly = originalTotalSize <= scaledTotalSize
+
+  const useOriginalValue = Container.useSelector(state =>
+    originalOnly ? true : state.config.incomingShareUseOriginal
+  )
+  const dispatch = Container.useDispatch()
+  const setUseOriginal = (useOriginal: boolean) =>
+    dispatch(ConfigGen.createSetIncomingShareUseOriginal({useOriginal}))
+
+  const {popup, showingPopup, setShowingPopup} = Kb.usePopup(() => (
+    <Kb.FloatingMenu
+      closeOnSelect={true}
+      visible={showingPopup}
+      onHidden={() => setShowingPopup(false)}
+      items={[
+        {
+          icon: useOriginalValue ? 'iconfont-check' : undefined,
+          onClick: () => setUseOriginal(true),
+          title: `Keep full size (${FsConstants.humanizeBytes(originalTotalSize, 1)})`,
+        },
+        {
+          icon: useOriginalValue ? undefined : 'iconfont-check',
+          onClick: () => setUseOriginal(false),
+          title: `Compress (${FsConstants.humanizeBytes(scaledTotalSize, 1)})`,
+        },
+      ]}
+    />
+  ))
+  return originalOnly ? null : (
+    <>
+      <Kb.Icon type="iconfont-gear" padding="tiny" onClick={() => setShowingPopup(true)} />
+      {showingPopup && popup}
+    </>
+  )
+}
+
+const getContentDescription = (items: Array<RPCTypes.IncomingShareItem>) => {
+  if (items.length === 0) {
+    return undefined
+  }
+  if (items.length > 1) {
+    return items.some(({type}) => type !== items[0].type) ? (
+      <Kb.Text type="BodyTiny">{items.length} items</Kb.Text>
+    ) : (
+      <Kb.Text type="BodyTiny">
+        {items.length} {incomingShareTypeToString(items[0].type, false, true)}
+      </Kb.Text>
+    )
+  }
+
+  if (items[0].content) {
+    // If it's a text snippet, just say "1 text snippet" and don't show text
+    // file name. We can get a file name here if the payload is from a text
+    // selection (rather than URL).
+    return <Kb.Text type="BodyTiny">1 {incomingShareTypeToString(items[0].type, false, false)}</Kb.Text>
+  }
+
+  // If it's a URL, originalPath is not populated.
+  const name = items[0].originalPath && FsTypes.getLocalPathName(items[0].originalPath)
+  return name ? (
+    <FsCommon.Filename type="BodyTiny" filename={name} />
+  ) : (
+    <Kb.Text type="BodyTiny">1 {incomingShareTypeToString(items[0].type, false, false)}</Kb.Text>
+  )
+}
+
+const useHeader = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
+  const dispatch = Container.useDispatch()
+  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
+  return {
+    leftButton: (
+      <Kb.Text type="BodyBigLink" onClick={onCancel}>
+        Cancel
+      </Kb.Text>
+    ),
+    rightButton: makeRightButton(incomingShareItems),
+    title: (
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+        {getContentDescription(incomingShareItems)}
+        <Kb.Text type="BodyBig">Share to...</Kb.Text>
+      </Kb.Box2>
+    ),
+  }
+}
+
+const useFooter = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
+  const dispatch = Container.useDispatch()
+  const saveInFiles = () => {
+    dispatch(FsGen.createSetIncomingShareSource({source: incomingShareItems}))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              headerRightButton: makeRightButton(incomingShareItems),
+              index: 0,
+            },
+            selected: 'destinationPicker',
+          },
+        ],
+      })
+    )
+  }
+  return isChatOnly(incomingShareItems)
+    ? undefined
+    : {
+        content: (
+          <Kb.ClickableBox style={styles.footer} onClick={saveInFiles}>
+            <Kb.Icon type="iconfont-file" color={Styles.globalColors.blue} style={styles.footerIcon} />
+            <Kb.Text type="BodyBigLink">Save in Files</Kb.Text>
+          </Kb.ClickableBox>
+        ),
+      }
+}
+
+type IncomingShareProps = {
+  incomingShareItems: Array<RPCTypes.IncomingShareItem>
+}
+
+const IncomingShare = (props: IncomingShareProps) => {
+  const {sendPaths, text} = props.incomingShareItems.reduce(
+    ({sendPaths, text}, item) => {
+      if (item.content) {
+        return {sendPaths, text: item.content}
+      }
+      if (item.originalPath) {
+        return {sendPaths: [...sendPaths, item.originalPath], text}
+      }
+      return {sendPaths, text}
+    },
+    {sendPaths: [] as Array<string>, text: undefined as string | undefined}
+  )
+  return (
+    <Kb.Modal header={useHeader(props.incomingShareItems)} footer={useFooter(props.incomingShareItems)}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
+          <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Modal>
+  )
+}
+
+const IncomingShareError = () => {
+  const dispatch = Container.useDispatch()
+  const erroredSendFeedback = () => {
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {feedback: `iOS share failure`},
+            selected: SettingsConstants.feedbackTab,
+          },
+        ],
+      })
+    )
+  }
+  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
+
+  return (
+    <Kb.Modal
+      header={{
+        leftButton: (
+          <Kb.Text type="BodyBigLink" onClick={onCancel}>
+            Cancel
+          </Kb.Text>
+        ),
+      }}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
+        <Kb.Text type="BodySmall">Whoops! Something went wrong.</Kb.Text>
+        <Kb.Button label="Please let us know" onClick={erroredSendFeedback} />
+      </Kb.Box2>
+    </Kb.Modal>
+  )
+}
+
+const useIncomingShareItems = () => {
+  const [incomingShareItems, setIncomingShareItems] = React.useState<Array<RPCTypes.IncomingShareItem>>([])
+  const [incomingShareError, setIncomingShareError] = React.useState<any>(undefined)
+
+  // iOS
+  const rpc = useRPC(RPCTypes.incomingShareGetIncomingShareItemsRpcPromise)
+  const getIncomingShareItemsIOS = React.useCallback(() => {
+    if (!Platform.isIOS) {
+      return
+    }
+
+    rpc(
+      [undefined],
+      items => setIncomingShareItems(items || []),
+      err => setIncomingShareError(err)
+    )
+  }, [rpc, setIncomingShareError, setIncomingShareItems])
+  React.useEffect(getIncomingShareItemsIOS, [getIncomingShareItemsIOS])
+
+  // Android
+  const androidShare = Container.useSelector(state => state.config.androidShare)
+  const getIncomingShareItemsAndroid = React.useCallback(() => {
+    if (!Platform.isAndroid || !androidShare) {
+      return
+    }
+
+    const item =
+      androidShare.type === RPCTypes.IncomingShareType.file
+        ? {
+            originalPath: androidShare.url,
+            type: RPCTypes.IncomingShareType.file,
+          }
+        : {
+            content: androidShare.text,
+            type: RPCTypes.IncomingShareType.text,
+          }
+    setIncomingShareItems([item])
+  }, [androidShare, setIncomingShareItems])
+  React.useEffect(getIncomingShareItemsAndroid, [getIncomingShareItemsAndroid])
+
+  return {
+    incomingShareError,
+    incomingShareItems,
+  }
+}
+
+const IncomingShareMain = () => {
+  const {incomingShareError, incomingShareItems} = useIncomingShareItems()
+  return incomingShareError ? (
+    <IncomingShareError />
+  ) : incomingShareItems?.length ? (
+    <IncomingShare incomingShareItems={incomingShareItems} />
+  ) : (
+    <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
+      <Kb.ProgressIndicator type="Large" />
+    </Kb.Box2>
+  )
+}
+
+export default IncomingShareMain
+
+const styles = Styles.styleSheetCreate(() => ({
+  footer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  footerIcon: {
+    marginRight: Styles.globalMargins.tiny,
+  },
+}))
+
+const incomingShareTypeToString = (
+  type: RPCTypes.IncomingShareType,
+  capitalize: boolean,
+  plural: boolean
+): string => {
+  switch (type) {
+    case RPCTypes.IncomingShareType.file:
+      return (capitalize ? 'File' : 'file') + (plural ? 's' : '')
+    case RPCTypes.IncomingShareType.text:
+      return (capitalize ? 'Text snippet' : 'text snippet') + (plural ? 's' : '')
+    case RPCTypes.IncomingShareType.image:
+      return (capitalize ? 'Image' : 'image') + (plural ? 's' : '')
+    case RPCTypes.IncomingShareType.video:
+      return (capitalize ? 'Video' : 'video') + (plural ? 's' : '')
+  }
+}
+
+const isChatOnly = (items?: Array<RPCTypes.IncomingShareItem>): boolean =>
+  items?.length === 1 &&
+  items[0].type === RPCTypes.IncomingShareType.text &&
+  !!items[0].content &&
+  !items[0].originalPath
+

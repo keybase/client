@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as Types from '../../../constants/types/chat2'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import ConversationList from './conversation-list'
 
 type Props = {

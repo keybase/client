@@ -78,7 +78,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: Own
   _sendAttachmentToChat: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {path}, selected: 'sendAttachmentToChat'}],
+        path: [{props: {sendPaths: [path]}, selected: 'sendToChat'}],
       })
     )
   },
