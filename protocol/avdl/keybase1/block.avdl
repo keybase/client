@@ -61,8 +61,13 @@ protocol block {
   ChallengeInfo getSessionChallenge();
   void authenticateSession(string signature);
 
+  // Block contents are encrypted and barely compressible, so just skip
+  // compression to save CPU and RAM on bserver.
+  @compression_type("none")
   void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
+  @compression_type("none")
   void putBlockAgain(string folder, BlockReference ref, string blockKey, bytes buf);
+  @compression_type("none")
   GetBlockRes getBlock(BlockIdCombo bid, string folder, boolean sizeOnly);
   GetBlockSizesRes getBlockSizes(array<BlockIdCombo> bids, string folder);
 
