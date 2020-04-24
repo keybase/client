@@ -3238,13 +3238,6 @@ func GetAdvertTyp(typ string) (BotCommandsAdvertisementTyp, error) {
 	}
 }
 
-var AdvertRanking = map[BotCommandsAdvertisementTyp]int{
-	BotCommandsAdvertisementTyp_PUBLIC:        0,
-	BotCommandsAdvertisementTyp_TLFID_MEMBERS: 1,
-	BotCommandsAdvertisementTyp_TLFID_CONVS:   2,
-	BotCommandsAdvertisementTyp_CONV:          3,
-}
-
 func (c UserBotCommandInput) ToOutput(username string) UserBotCommandOutput {
 	return UserBotCommandOutput{
 		Name:                c.Name,

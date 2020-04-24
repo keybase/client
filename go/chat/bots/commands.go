@@ -353,7 +353,7 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 		}
 		for _, cmd := range ad.Advertisement.Commands {
 			key := cmd.Name + ad.Username
-			if typ, ok := cmdDedup[key]; !ok || chat1.AdvertRanking[ad.Typ] > chat1.AdvertRanking[typ] {
+			if typ, ok := cmdDedup[key]; !ok || ad.Typ > typ {
 				cmdOutputs[key] = cmd.ToOutput(ad.Username)
 				cmdDedup[key] = ad.Typ
 			}
