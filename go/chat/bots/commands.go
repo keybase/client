@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -19,7 +18,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -138,23 +136,6 @@ func (b *CachingBotCommandManager) getMyUsername(ctx context.Context) (string, e
 	return nn.String(), nil
 }
 
-func (b *CachingBotCommandManager) deriveMembersType(ctx context.Context, name string) (chat1.ConversationMembersType, error) {
-	_, err := teams.Load(ctx, b.G().GlobalContext, keybase1.LoadTeamArg{Name: name})
-	switch err.(type) {
-	case nil:
-		return chat1.ConversationMembersType_TEAM, nil
-	case teams.TeamDoesNotExistError:
-		return chat1.ConversationMembersType_IMPTEAMNATIVE, nil
-	default:
-		// https://github.com/keybase/client/blob/249cfcb4b4bd6dcc50d207d0b88eee455a7f6c2d/go/protocol/keybase1/extras.go#L2249
-		if strings.Contains(err.Error(), "team names must be between 2 and 16 characters long") ||
-			strings.Contains(err.Error(), "Keybase team names must be letters") {
-			return chat1.ConversationMembersType_IMPTEAMNATIVE, nil
-		}
-		return 0, err
-	}
-}
-
 func (b *CachingBotCommandManager) createConv(ctx context.Context, typ chat1.BotCommandsAdvertisementTyp,
 	teamName *string, convID *chat1.ConversationID) (res chat1.ConversationLocal, err error) {
 	username, err := b.getMyUsername(ctx)
@@ -180,12 +161,8 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, typ chat1.Bot
 		}
 
 		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, typ)
-		membersType, err := b.deriveMembersType(ctx, *teamName)
-		if err != nil {
-			return res, err
-		}
 		res, _, err = b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, *teamName, &topicName,
-			chat1.TopicType_DEV, membersType, keybase1.TLFVisibility_PRIVATE)
+			chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
 		return res, err
 	case chat1.BotCommandsAdvertisementTyp_CONV:
 		if teamName != nil {
