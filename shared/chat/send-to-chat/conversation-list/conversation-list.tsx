@@ -1,12 +1,12 @@
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Types from '../../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as Container from '../../../../util/container'
-import * as Styles from '../../../../styles'
-import logger from '../../../../logger'
+import * as Kb from '../../../common-adapters'
+import * as Types from '../../../constants/types/chat2'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as Container from '../../../util/container'
+import * as Styles from '../../../styles'
+import logger from '../../../logger'
 import debounce from 'lodash/debounce'
-import {Avatars, TeamAvatar} from '../../../../chat/avatars'
+import {Avatars, TeamAvatar} from '../../avatars'
 
 /* This is used in Fs tab for sending attachments to chat. Please check to make
  * sure it doesn't break there if you make changes to this file. */

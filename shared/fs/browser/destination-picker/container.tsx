@@ -8,9 +8,14 @@ import {isMobile} from '../../../constants/platform'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as React from 'react'
 
-type OwnProps = Container.RouteProps<{index: number}>
+type OwnProps = Container.RouteProps<{
+  headerRightButton?: React.ReactNode
+  index: number
+}>
 
 const getIndex = (ownProps: OwnProps) => Container.getRouteProps(ownProps, 'index', 0)
+const getHeaderRightButton = (ownProps: OwnProps) =>
+  Container.getRouteProps(ownProps, 'headerRightButton', undefined)
 const getDestinationParentPath = (dp: Types.DestinationPicker, ownProps: OwnProps): Types.Path =>
   dp.destinationParentPath[getIndex(ownProps)] ||
   (dp.source.type === Types.DestinationPickerSource.MoveOrCopy
@@ -98,6 +103,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const showHeaderBackInsteadOfCancel = isShare // && index > 0
   const targetName = Constants.getDestinationPickerPathName(destPicker)
   const props = {
+    headerRightButton: getHeaderRightButton(ownProps),
     index,
     isShare,
     // If we are are dealing with incoming share, the first view is root,

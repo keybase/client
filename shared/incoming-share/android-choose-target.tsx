@@ -16,7 +16,6 @@ const AndroidChooseTarget = () => {
           dispatch(
             FsGen.createSetIncomingShareSource({
               source: FsTypes.stringToLocalPath(share.url),
-              useOriginal: true,
             })
           )
           dispatch(

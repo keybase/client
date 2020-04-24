@@ -119,7 +119,7 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
       }
       break
     case 'incoming-share':
-      return Platform.isIOS && RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']})
+      return Platform.isIOS && RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']})
     case 'team-invite-link':
       return TeamsGen.createOpenInviteLink({
         inviteID: parts[1],

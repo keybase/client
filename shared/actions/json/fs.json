@@ -180,8 +180,7 @@
     },
     "showMoveOrCopy": {"initialDestinationParentPath": "Types.Path"},
     "setIncomingShareSource": {
-      "source": "Types.LocalPath | Array<RPCTypes.IncomingShareItem>",
-      "useOriginal": "boolean"
+      "source": "Types.LocalPath | Array<RPCTypes.IncomingShareItem>"
     },
     "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
     "move": {"destinationParentPath": "Types.Path"},
