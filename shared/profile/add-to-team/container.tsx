@@ -84,8 +84,8 @@ export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTea
         {...rest}
         disabledReasonsForRolePicker={ownerDisabledReason ? {owner: ownerDisabledReason} : {}}
         onOpenRolePicker={() => this.setState({rolePickerOpen: true})}
-        onConfirmRolePicker={() => {
-          this.setState({rolePickerOpen: false})
+        onConfirmRolePicker={role => {
+          this.setState({rolePickerOpen: false, selectedRole: role})
         }}
         footerComponent={() => (
           <>
@@ -100,7 +100,6 @@ export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTea
         }}
         selectedRole={this.state.selectedRole}
         onToggle={this.toggleTeamSelected}
-        onSelectRole={selectedRole => this.setState({selectedRole})}
         onSave={this.onSave}
         selectedTeams={this.state.selectedTeams}
       />

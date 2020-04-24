@@ -319,7 +319,6 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
     Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
   )
 
-  const [role, setRole] = React.useState<Types.TeamRoleType>('writer')
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -367,14 +366,13 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
         {props.node.canAdminister && (
           <Kb.Box2 direction="horizontal" alignSelf="center">
             <FloatingRolePicker
-              onConfirm={() => {
+              presetRole="writer"
+              onConfirm={role => {
                 onAdd(role)
                 setOpen(false)
               }}
-              onSelectRole={setRole}
               open={open}
               onCancel={() => setOpen(false)}
-              selectedRole={role}
               disabledRoles={disabledRoles}
             >
               <Kb.WaitingButton
@@ -458,6 +456,7 @@ const NodeInRow = (props: NodeInRowProps) => {
   const [role, setRole] = React.useState<Types.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
   const onChangeRole = (role: Types.TeamRoleType) => {
+    setRole(role)
     dispatch(TeamsGen.createEditMembership({role, teamID: props.node.teamID, username: props.username}))
     setOpen(false)
     if (['reader, writer'].includes(role) && props.isParentTeamMe) {
@@ -486,7 +485,7 @@ const NodeInRow = (props: NodeInRowProps) => {
       containerStyle={Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
       loading={changingRole}
       onClick={() => setOpen(true)}
-      selectedRole={props.node.role}
+      selectedRole={role}
     />
   ) : (
     <></>
@@ -495,11 +494,9 @@ const NodeInRow = (props: NodeInRowProps) => {
   return (
     <>
       <FloatingRolePicker
-        selectedRole={role}
-        onSelectRole={setRole}
+        presetRole={props.node.role}
         onConfirm={onChangeRole}
         onCancel={() => {
-          setRole(props.node.role)
           setOpen(false)
         }}
         position="top right"

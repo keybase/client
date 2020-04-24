@@ -211,6 +211,10 @@ func (md modeDefault) DiskCacheCompactionEnabled() bool {
 	return true
 }
 
+func (md modeDefault) EditHistoryPrefetchingEnabled() bool {
+	return false
+}
+
 // Minimal mode:
 
 type modeMinimal struct {
@@ -394,6 +398,10 @@ func (mm modeMinimal) DbWriteBufferSize() int {
 }
 
 func (mm modeMinimal) DiskCacheCompactionEnabled() bool {
+	return false
+}
+
+func (mm modeMinimal) EditHistoryPrefetchingEnabled() bool {
 	return false
 }
 
