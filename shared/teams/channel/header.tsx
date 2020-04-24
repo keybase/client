@@ -5,12 +5,26 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import {ConversationIDKey} from '../../constants/types/chat2'
+import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
+import {ConversationIDKey, keyToConversationID} from '../../constants/types/chat2'
 import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import {Activity} from '../common'
 import * as TeamsGen from '../../actions/teams-gen'
-import {useChannelMeta} from '../common/channel-hooks'
+
+const useRecentJoins = (conversationIDKey: ConversationIDKey) => {
+  const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
+  const getRecentJoinsRPC = Container.useRPC(RPCChatGen.localGetRecentJoinsLocalRpcPromise)
+  React.useEffect(() => {
+    setRecentJoins(undefined)
+    getRecentJoinsRPC(
+      [{convID: keyToConversationID(conversationIDKey)}],
+      r => setRecentJoins(r),
+      () => {}
+    )
+  }, [conversationIDKey, getRecentJoinsRPC, setRecentJoins])
+  return recentJoins
+}
 
 type HeaderTitleProps = {
   teamID: TeamID
@@ -20,9 +34,8 @@ type HeaderTitleProps = {
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
-  const channelMeta = useChannelMeta(teamID, conversationIDKey)
-  const channelname = channelMeta?.channelname ?? ''
-  const description = channelMeta?.description ?? ''
+  const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const {channelname, description} = channelInfo
   const numParticipants = Container.useSelector(
     s => ChatConstants.getParticipantInfo(s, conversationIDKey).all.length
   )
@@ -52,7 +65,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const activityLevel = Container.useSelector(
     state => state.teams.activityLevels.channels.get(conversationIDKey) || 'none'
   )
-  const newMemberCount = 1 // TODO plumbing
+  const newMemberCount = useRecentJoins(conversationIDKey)
 
   const callbacks = useHeaderCallbacks(teamID, conversationIDKey)
 
