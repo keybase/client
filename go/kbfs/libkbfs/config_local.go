@@ -1838,15 +1838,11 @@ func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
 func (c *ConfigLocal) SubscriptionManager(
 	clientID SubscriptionManagerClientID, purgeable bool,
 	notifier SubscriptionNotifier) SubscriptionManager {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
 	return c.subscriptionManagerManager.get(clientID, purgeable, notifier)
 }
 
 // SubscriptionManagerPublisher implements the Config interface.
 func (c *ConfigLocal) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
 	return c.subscriptionManagerManager
 }
 
