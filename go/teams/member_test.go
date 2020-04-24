@@ -1924,7 +1924,7 @@ func TestGetUntrustedTeamInfo(t *testing.T) {
 	require.Equal(t, description, ret.Description)
 	require.Equal(t, false, ret.InTeam)
 	require.Equal(t, true, ret.Open)
-	require.Equal(t, 6, ret.NumMembers) // TRIAGE-1922 restricted bots are counted for now
+	require.Equal(t, 5, ret.NumMembers)
 	require.Len(t, ret.PublicAdmins, 1)
 	require.Equal(t, fus[publicAdmin].Username, ret.PublicAdmins[0])
 	require.Len(t, ret.PublicMembers, 2)
