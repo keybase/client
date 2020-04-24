@@ -1227,19 +1227,13 @@ func (k *KeybaseServiceBase) NotifyFavoritesChanged(ctx context.Context) error {
 
 // OnPathChange implements the SubscriptionNotifier interface.
 func (k *KeybaseServiceBase) OnPathChange(
-	clientID SubscriptionManagerClientID,
-	subscriptionIDs []SubscriptionID, path string,
-	topics []keybase1.PathSubscriptionTopic) {
-	subscriptionIDStrings := make([]string, 0, len(subscriptionIDs))
-	for _, sid := range subscriptionIDs {
-		subscriptionIDStrings = append(subscriptionIDStrings, string(sid))
-	}
+	subscriptionID SubscriptionID, path string,
+	topic keybase1.PathSubscriptionTopic) {
 	err := k.kbfsClient.FSSubscriptionNotifyPathEvent(
 		context.Background(), keybase1.FSSubscriptionNotifyPathEventArg{
-			ClientID:        string(clientID),
-			SubscriptionIDs: subscriptionIDStrings,
-			Path:            path,
-			Topics:          topics,
+			SubscriptionID: string(subscriptionID),
+			Path:           path,
+			Topic:          topic,
 		})
 	if err != nil {
 		k.log.CDebugf(
@@ -1249,17 +1243,11 @@ func (k *KeybaseServiceBase) OnPathChange(
 
 // OnNonPathChange implements the SubscriptionNotifier interface.
 func (k *KeybaseServiceBase) OnNonPathChange(
-	clientID SubscriptionManagerClientID,
-	subscriptionIDs []SubscriptionID, topic keybase1.SubscriptionTopic) {
-	subscriptionIDStrings := make([]string, 0, len(subscriptionIDs))
-	for _, sid := range subscriptionIDs {
-		subscriptionIDStrings = append(subscriptionIDStrings, string(sid))
-	}
+	subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
 	err := k.kbfsClient.FSSubscriptionNotifyEvent(context.Background(),
 		keybase1.FSSubscriptionNotifyEventArg{
-			ClientID:        string(clientID),
-			SubscriptionIDs: subscriptionIDStrings,
-			Topic:           topic,
+			SubscriptionID: string(subscriptionID),
+			Topic:          topic,
 		})
 	if err != nil {
 		k.log.CDebugf(

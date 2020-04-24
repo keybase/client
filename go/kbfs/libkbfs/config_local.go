@@ -167,7 +167,8 @@ type ConfigLocal struct {
 	quotaUsage      map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage
 	rekeyFSMLimiter *OngoingWorkLimiter
 
-	subscriptionManagerManager *subscriptionManagerManager
+	subscriptionManager          SubscriptionManager
+	subscriptionManagerPublisher SubscriptionManagerPublisher
 }
 
 // DiskCacheMode represents the mode of initialization for the disk cache.
@@ -305,7 +306,8 @@ func NewConfigLocal(mode InitMode,
 	config.conflictResolutionDB = openCRDB(config)
 	config.settingsDB = openSettingsDB(config)
 
-	config.subscriptionManagerManager = newSubscriptionManagerManager(config)
+	config.subscriptionManager, config.subscriptionManagerPublisher =
+		newSubscriptionManager(config)
 
 	return config
 }
@@ -1152,7 +1154,7 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 		kbfsServ.Shutdown()
 	}
 
-	c.subscriptionManagerManager.Shutdown(ctx)
+	c.subscriptionManager.Shutdown(ctx)
 
 	if len(errorList) == 1 {
 		return errorList[0]
@@ -1835,19 +1837,17 @@ func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
 }
 
 // SubscriptionManager implements the Config interface.
-func (c *ConfigLocal) SubscriptionManager(
-	clientID SubscriptionManagerClientID, purgeable bool,
-	notifier SubscriptionNotifier) SubscriptionManager {
+func (c *ConfigLocal) SubscriptionManager() SubscriptionManager {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	return c.subscriptionManagerManager.get(clientID, purgeable, notifier)
+	return c.subscriptionManager
 }
 
 // SubscriptionManagerPublisher implements the Config interface.
 func (c *ConfigLocal) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	return c.subscriptionManagerManager
+	return c.subscriptionManagerPublisher
 }
 
 // KbEnv implements the Config interface.
