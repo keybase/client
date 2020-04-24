@@ -780,6 +780,10 @@
         {
           "type": "gregor1.Time",
           "name": "mtime"
+        },
+        {
+          "type": "BotCommandsAdvertisementTyp",
+          "name": "typ"
         }
       ]
     },
