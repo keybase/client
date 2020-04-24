@@ -255,6 +255,8 @@ export default Container.namedConnect(
           text: new HiddenString(body),
         })
       ),
+    _onFetchEmoji: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey})),
     _onGiphyToggle: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey})),
     _onPostMessage: (
@@ -277,7 +279,6 @@ export default Container.namedConnect(
     clearInboxFilter: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
     onChannelSuggestionsTriggered: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey})),
-    onFetchEmoji: () => dispatch(Chat2Gen.createFetchUserEmoji({})),
     onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
     onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
@@ -335,7 +336,7 @@ export default Container.namedConnect(
         dispatchProps.onChannelSuggestionsTriggered(stateProps.conversationIDKey),
       onEditLastMessage: () =>
         dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
-      onFetchEmoji: dispatchProps.onFetchEmoji,
+      onFetchEmoji: () => dispatchProps._onFetchEmoji(stateProps.conversationIDKey),
       onFilePickerError: dispatchProps.onFilePickerError,
       onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
       onRequestScrollDown: ownProps.onRequestScrollDown,
