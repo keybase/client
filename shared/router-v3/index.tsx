@@ -1,24 +1,19 @@
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as ConfigGen from '../actions/config-gen'
 import * as Shared from './shared'
 import logger from '../logger'
 import {NavigationContainer, NavigationContainerRef} from '@react-navigation/native'
-import {createStackNavigator} from '@react-navigation/stack'
 import NavTabs from './tabs'
-import {modalRoutes} from './routes'
-import {memoize} from '../util/memoize'
-
-const ModalStack = createStackNavigator()
+import {modalScreens} from './routes'
+import {ModalStack} from './stack'
 
 const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}) => {
   const {navRef} = props
   const dispatch = Container.useDispatch()
 
-  // TEMP
+  KB.debugConsoleLog('TEMP')
   window.NOJIMA = navRef
-  // TEMP
 
   React.useEffect(() => {
     if (!navRef) {
@@ -56,13 +51,10 @@ const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}
   return null
 })
 
-const getModals = memoize(() =>
-  Object.keys(modalRoutes).map(name => {
-    // TODO is there a way to defer the require now?
-    const Component = modalRoutes[name].getScreen()
-    return <ModalStack.Screen key={name} name={name} component={Component} />
-  })
-)
+const tabsAndModals = [
+  ...modalScreens,
+  <ModalStack.Screen key="Tabs" name="Tabs" component={NavTabs} options={{headerShown: false}} />,
+]
 
 const RouterV3 = () => {
   const [nav, setNav] = React.useState<NavigationContainerRef | null>(null)
@@ -82,10 +74,7 @@ const RouterV3 = () => {
         }}
       >
         <ModalStack.Navigator mode="modal" screenOptions={defaultModalScreenOptions} initialRouteName="Tabs">
-          {[
-            <ModalStack.Screen key="Tabs" name="Tabs" component={NavTabs} options={{headerShown: false}} />,
-            ...getModals(),
-          ]}
+          {tabsAndModals}
         </ModalStack.Navigator>
       </NavigationContainer>
     </>

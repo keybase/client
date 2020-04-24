@@ -1,10 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
+import * as Constants from '../constants/chat2'
+import * as Types from '../constants/types/chat2'
 import ChatConversation from './conversation/container'
 import ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
 import ChatAddToChannel from './conversation/info-panel/add-to-channel/container'
 import ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
-import ChatAttachmentFullscreen from './conversation/attachment-fullscreen/container'
+import ChatAttachmentFullscreenType from './conversation/attachment-fullscreen/container'
 import ChatAttachmentGetTitles from './conversation/attachment-get-titles/container'
 import {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
 import ChatCreateChannel from './create-channel/container'
@@ -26,8 +28,8 @@ import ChatConfirmRemoveBot from './conversation/bot/confirm'
 import ChatPDF from './pdf'
 import * as ChatConstants from '../constants/chat2'
 import flags from '../util/feature-flags'
-import {Stack} from '../router-v3/stack'
-import {ScreenProps} from '../router-v3/types'
+import {Stack, ModalStack} from '../router-v3/stack'
+import {ScreenProps, ModalScreenProps} from '../router-v3/types'
 
 // TODO port
 const newRoutes = {
@@ -50,8 +52,8 @@ const ChatRoot = (props: ScreenProps<'chatRoot'>) => {
 export const screens = [
   <Stack.Screen
     key="chatRoot"
-    component={ChatRoot}
     name="chatRoot"
+    component={ChatRoot}
     options={props => {
       if (ChatConstants.isSplit) {
         const Header = require('./header').default
@@ -75,6 +77,32 @@ export const screens = [
   />,
 ]
 
+const ChatAttachmentFullscreen = (props: ModalScreenProps<'chatAttachmentFullscreen'>) => {
+  const AttachmentFullscreen = require('./conversation/attachment-fullscreen/container')
+    .default as typeof ChatAttachmentFullscreenType
+  const {
+    conversationIDKey = Constants.noConversationIDKey,
+    ordinal = Types.numberToOrdinal(0),
+  } = props.route.params
+  return <AttachmentFullscreen conversationIDKey={conversationIDKey} ordinal={ordinal} />
+}
+
+KB.debugConsoleLog('TODO safeAreaStyle?')
+export const modalScreens = [
+  <ModalStack.Screen
+    key="chatAttachmentFullscreen"
+    name="chatAttachmentFullscreen"
+    component={ChatAttachmentFullscreen}
+    options={
+      {
+        // safeAreaStyle: {
+        // backgroundColor: 'black', // true black
+        // },
+      }
+    }
+  />,
+]
+
 // TODO port
 const newModalRoutes = {
   chatAddToChannel: flags.teamsRedesign
@@ -86,10 +114,6 @@ const newModalRoutes = {
         getScreen: (): typeof ChatAddToChannel =>
           require('./conversation/info-panel/add-to-channel/container').default,
       },
-  chatAttachmentFullscreen: {
-    getScreen: (): typeof ChatAttachmentFullscreen =>
-      require('./conversation/attachment-fullscreen/container').default,
-  },
   chatAttachmentGetTitles: {
     getScreen: (): typeof ChatAttachmentGetTitles =>
       require('./conversation/attachment-get-titles/container').default,

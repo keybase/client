@@ -1,8 +1,8 @@
 // Collects all the routable screens in the app
 import * as React from 'react'
-import {Stack} from './stack'
+import {Stack, ModalStack} from './stack'
 // New nav5 style
-import {screens as chatScreens} from '../chat/routes-v3'
+import {screens as chatScreens, modalScreens as chatModalScreens} from '../chat/routes-v3'
 
 // TODO deprecate these old route defs
 import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
@@ -29,6 +29,16 @@ const convertOldRouteToScreenShortTerm = routeMap =>
     return <Stack.Screen key={routeName} name={routeName} component={Component} options={options} />
   })
 
+const convertOldModalRouteToModalScreenShortTerm = routeMap =>
+  Object.keys(routeMap).map(routeName => {
+    const def = routeMap[routeName]
+    const {getScreen} = def
+    const Component = getScreen()
+    const options = Component.navigationOptions
+    // @ts-ignore
+    return <ModalStack.Screen key={routeName} name={routeName} component={Component} options={options} />
+  })
+
 const convertedScreens = [...chatScreens]
 /** TODO deprecate */
 const notYetConvertedScreens = [
@@ -50,7 +60,7 @@ const notYetConvertedLoggedOutScreens = [loggedOutRoutes, signupNewRoutes].map(
   convertOldRouteToScreenShortTerm
 )
 
-const convertedModalScreens = []
+const convertedModalScreens = [...chatModalScreens]
 /** TODO deprecate */
 const notYetConvertedModalScreens = [
   chatNewModalRoutes,
@@ -66,7 +76,7 @@ const notYetConvertedModalScreens = [
   teamsNewModalRoutes,
   walletsNewModalRoutes,
   incomingShareNewModalRoutes,
-].map(convertOldRouteToScreenShortTerm)
+].map(convertOldModalRouteToModalScreenShortTerm)
 
 export const screens = [...notYetConvertedScreens, ...convertedScreens]
 export const loggedOutScreens = [...notYetConvertedLoggedOutScreens, ...convertedLoggedOutScreens]

@@ -1,7 +1,7 @@
 import {StackNavigationProp} from '@react-navigation/stack'
 import {RouteProp} from '@react-navigation/native'
 
-import {ParamList as ChatParamList} from '../chat/route-types'
+import {ParamList as ChatParamList, ModalParamList as ChatModalParamList} from '../chat/route-types'
 import {ParamList as CryptoParamList} from '../crypto/route-types'
 import {ParamList as FSParamList} from '../fs/route-types'
 import {ParamList as GitParamList} from '../git/route-types'
@@ -25,7 +25,17 @@ export type ParamList = ChatParamList &
   TeamsParamList &
   WalletsParamList
 
+// TODO
+export type ModalParamList = {
+  Tabs: undefined
+} & ChatModalParamList
+
 export type ScreenProps<NAME extends keyof ParamList> = {
   navigation: StackNavigationProp<ParamList, NAME>
   route: RouteProp<ParamList, NAME>
+}
+
+export type ModalScreenProps<NAME extends keyof ModalParamList> = {
+  navigation: StackNavigationProp<ModalParamList, NAME>
+  route: RouteProp<ModalParamList, NAME>
 }

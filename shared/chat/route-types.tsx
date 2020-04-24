@@ -8,3 +8,10 @@ export type ParamList = {
     conversationIDKey: Types.ConversationIDKey
   }
 }
+
+export type ModalParamList = {
+  chatAttachmentFullscreen: {
+    conversationIDKey: Types.ConversationIDKey
+    ordinal: Types.Ordinal
+  }
+}

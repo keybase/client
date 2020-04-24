@@ -12,11 +12,14 @@ import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
-type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey; ordinal: Types.Ordinal}>
+type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey
+  ordinal: Types.Ordinal
+}
 
 const Connected = (props: OwnProps) => {
-  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', Constants.noConversationIDKey)
-  const inOrdinal = Container.getRouteProps(props, 'ordinal', 0)
+  const {conversationIDKey} = props
+  const inOrdinal = props.ordinal
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const [autoPlay, setAutoPlay] = React.useState(true)
   const dispatch = Container.useDispatch()
@@ -108,9 +111,4 @@ const Connected = (props: OwnProps) => {
   )
 }
 
-Connected.navigationOptions = {
-  safeAreaStyle: {
-    backgroundColor: 'black', // true black
-  },
-}
 export default Connected
