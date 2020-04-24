@@ -652,26 +652,6 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
             src: Constants.pathToRPCPath(state.fs.destinationPicker.source.path),
           },
         ]
-      : !Array.isArray(state.fs.destinationPicker.source.source)
-      ? [
-          {
-            dest: Constants.pathToRPCPath(
-              Types.pathConcat(
-                action.payload.destinationParentPath,
-                Types.getLocalPathName(state.fs.destinationPicker.source.source)
-                // We use the local path name here since we only care about file name.
-              )
-            ),
-            opID: Constants.makeUUID() as string,
-            overwriteExistingFiles: false,
-            src: {
-              PathType: RPCTypes.PathType.local,
-              local: Types.getNormalizedLocalPath(
-                Types.localPathToString(state.fs.destinationPicker.source.source)
-              ),
-            } as RPCTypes.Path,
-          },
-        ]
       : state.fs.destinationPicker.source.source
           .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
           .filter(({originalPath}) => !!originalPath)
@@ -689,7 +669,7 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
               PathType: RPCTypes.PathType.local,
               local: Types.getNormalizedLocalPath(
                 // @ts-ignore
-                state.fs.destinationPicker.source.useOriginal ? originalPath : scaledPath || originalPath
+                state.config.incomingShareUseOriginal ? originalPath : scaledPath || originalPath
               ),
             } as RPCTypes.Path,
           }))

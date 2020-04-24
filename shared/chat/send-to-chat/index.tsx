@@ -46,7 +46,7 @@ const MobileSendToChatRoutable = (props: RoutableProps) => {
             Cancel
           </Kb.Text>
         ),
-        title: Constants.getSharePathArrayDescription(sendPaths),
+        title: Constants.getSharePathArrayDescription(sendPaths || []),
       }}
     >
       <MobileSendToChat
@@ -98,7 +98,7 @@ export const MobileSendToChat = (props: Props) => {
 }
 
 const DesktopSendToChat = (props: RoutableProps) => {
-  const sendPaths = Container.getRouteProps(props, 'sendPaths', undefined) ?? Constants.defaultPath
+  const sendPaths = Container.getRouteProps(props, 'sendPaths', undefined) ?? []
   const [title, setTitle] = React.useState('')
   const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
@@ -130,7 +130,9 @@ const DesktopSendToChat = (props: RoutableProps) => {
       <DesktopSendToChatRender
         enabled={conversationIDKey !== ChatConstants.noConversationIDKey}
         convName={convName}
-        path={path}
+        // If we ever support sending multiples from desktop this will need to
+        // change.
+        path={sendPaths[0]}
         title={title}
         setTitle={setTitle}
         onSend={onSend}

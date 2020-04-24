@@ -14,18 +14,45 @@ import * as SettingsConstants from '../constants/settings'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import useRPC from '../util/use-rpc'
 
-const makeRightButton = (items: Array<RPCTypes.IncomingShareItem>) => {
-  const originalTotalSize = items.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
-  const scaledTotalSize = items.reduce((bytes, item) => bytes + (item.scaledSize ?? 0), 0)
+let useOriginalServiceMock = true
+
+export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
+  const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
+  const scaledTotalSize = incomingShareItems.reduce(
+    (bytes, item) => bytes + (item.scaledSize ?? item.originalSize ?? 0),
+    0
+  )
   const originalOnly = originalTotalSize <= scaledTotalSize
 
-  const useOriginalValue = Container.useSelector(state =>
-    originalOnly ? true : state.config.incomingShareUseOriginal
-  )
   const dispatch = Container.useDispatch()
-  const setUseOriginal = (useOriginal: boolean) =>
-    dispatch(ConfigGen.createSetIncomingShareUseOriginal({useOriginal}))
+  const setUseOriginalInStore = React.useCallback(
+    (useOriginal: boolean) => dispatch(ConfigGen.createSetIncomingShareUseOriginal({useOriginal})),
+    [dispatch]
+  )
+  const setUseOriginalInService = React.useCallback(
+    (useOriginal: boolean) => {
+      // TODO
+      useOriginalServiceMock = useOriginal
+    },
+    [
+      /*dispatch*/
+    ]
+  )
+  const setUseOriginalFromUI = (useOriginal: boolean) => {
+    !originalOnly && setUseOriginalInStore(useOriginal)
+    setUseOriginalInService(useOriginal)
+  }
 
+  React.useEffect(() => {
+    originalOnly && dispatch(ConfigGen.createSetIncomingShareUseOriginal({useOriginal: true}))
+  }, [originalOnly, dispatch])
+
+  React.useEffect(() => {
+    // TODO get useOriginal from service
+    !originalOnly && setUseOriginalInStore(useOriginalServiceMock)
+  }, [originalOnly, setUseOriginalInStore])
+
+  const useOriginalValue = Container.useSelector(state => state.config.incomingShareUseOriginal)
   const {popup, showingPopup, setShowingPopup} = Kb.usePopup(() => (
     <Kb.FloatingMenu
       closeOnSelect={true}
@@ -34,18 +61,27 @@ const makeRightButton = (items: Array<RPCTypes.IncomingShareItem>) => {
       items={[
         {
           icon: useOriginalValue ? 'iconfont-check' : undefined,
-          onClick: () => setUseOriginal(true),
+          onClick: () => setUseOriginalFromUI(true),
           title: `Keep full size (${FsConstants.humanizeBytes(originalTotalSize, 1)})`,
         },
         {
           icon: useOriginalValue ? undefined : 'iconfont-check',
-          onClick: () => setUseOriginal(false),
+          onClick: () => setUseOriginalFromUI(false),
           title: `Compress (${FsConstants.humanizeBytes(scaledTotalSize, 1)})`,
         },
       ]}
     />
   ))
-  return originalOnly ? null : (
+
+  if (originalOnly) {
+    return null
+  }
+
+  if (useOriginalValue === undefined) {
+    return <Kb.ProgressIndicator />
+  }
+
+  return (
     <>
       <Kb.Icon type="iconfont-gear" padding="tiny" onClick={() => setShowingPopup(true)} />
       {showingPopup && popup}
@@ -92,7 +128,7 @@ const useHeader = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
         Cancel
       </Kb.Text>
     ),
-    rightButton: makeRightButton(incomingShareItems),
+    rightButton: <OriginalOrCompressedButton incomingShareItems={incomingShareItems} />,
     title: (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         {getContentDescription(incomingShareItems)}
@@ -111,7 +147,7 @@ const useFooter = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
         path: [
           {
             props: {
-              headerRightButton: makeRightButton(incomingShareItems),
+              headerRightButton: <OriginalOrCompressedButton incomingShareItems={incomingShareItems} />,
               index: 0,
             },
             selected: 'destinationPicker',
@@ -137,10 +173,14 @@ type IncomingShareProps = {
 }
 
 const IncomingShare = (props: IncomingShareProps) => {
+  const useOriginalValue = Container.useSelector(state => state.config.incomingShareUseOriginal)
   const {sendPaths, text} = props.incomingShareItems.reduce(
     ({sendPaths, text}, item) => {
       if (item.content) {
         return {sendPaths, text: item.content}
+      }
+      if (!useOriginalValue && item.scaledPath) {
+        return {sendPaths: [...sendPaths, item.scaledPath], text}
       }
       if (item.originalPath) {
         return {sendPaths: [...sendPaths, item.originalPath], text}
@@ -290,4 +330,3 @@ const isChatOnly = (items?: Array<RPCTypes.IncomingShareItem>): boolean =>
   items[0].type === RPCTypes.IncomingShareType.text &&
   !!items[0].content &&
   !items[0].originalPath
-

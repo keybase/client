@@ -395,7 +395,7 @@ const onShowPermissionsPrompt = (
 const onAndroidShare = (state: Container.TypedState) => {
   // already loaded, so just go now
   if (routeToInitialScreenOnce && state.config.startupDetailsLoaded) {
-    return RouteTreeGen.createNavigateAppend({path: ['androidChooseTarget']})
+    return RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']})
   }
   return false
 }
@@ -546,7 +546,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       return [
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
         RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
-        RouteTreeGen.createNavigateAppend({path: ['androidChooseTarget']}),
+        RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']}),
       ]
     }
 
