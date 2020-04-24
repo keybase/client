@@ -9,7 +9,7 @@ import {memoize} from '../util/memoize'
 import * as TeamBuildingConstants from './team-building'
 import {RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
-import {noConversationIDKey} from './chat2'
+import {noConversationIDKey, getParticipantInfo} from './chat2'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
@@ -117,6 +117,12 @@ export const getTeamChannelInfo = (
   teamID: Types.TeamID,
   conversationIDKey: ChatTypes.ConversationIDKey
 ) => state.teams.channelInfo.get(teamID)?.get(conversationIDKey) ?? emptyTeamChannelInfo
+
+// no bots
+export const getTeamChannelMembers = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) => {
+  const participants = getParticipantInfo(state, conversationIDKey)
+  return participants.all // TODO this should exclude bots, name is empty for some reason
+}
 
 export const teamRoleByEnum = ((m: {[K in Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
   const mInv: {[K in RPCTypes.TeamRole]?: Types.MaybeTeamRoleType} = {}
