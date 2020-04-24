@@ -6,8 +6,9 @@ import * as Kbfs from '../fs/common'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
-import {createBottomTabNavigator, BottomTabBarProps} from '@react-navigation/bottom-tabs'
-import {tabStacks} from './stacks'
+import {BottomTabBarProps} from '@react-navigation/bottom-tabs'
+import {tabs} from './tab-stacks'
+import {Tab} from './tab-factory'
 
 const icons = new Map<string, Kb.IconType>([
   [Tabs.chatTab, 'iconfont-nav-2-chat'],
@@ -85,17 +86,18 @@ const TabBar = (props: BottomTabBarProps) => {
   )
 }
 
-const Tab = createBottomTabNavigator()
-
-const NavTabs = () => {
-  return (
-    <Tab.Navigator initialRouteName="blankTab" backBehavior="none" tabBar={props => <TabBar {...props} />}>
-      {tabStacks.map(({name, component}) => (
-        <Tab.Screen key={name} name={name} component={component} />
-      ))}
-    </Tab.Navigator>
-  )
-}
+const NavTabs = () => (
+  <Tab.Navigator
+    initialRouteName="blankTab"
+    backBehavior="none"
+    tabBar={props => <TabBar {...props} />}
+    screenOptions={p => {
+      console.log('aaaa', p)
+    }}
+  >
+    {tabs}
+  </Tab.Navigator>
+)
 
 const styles = Styles.styleSheetCreate(() => ({
   badge: {

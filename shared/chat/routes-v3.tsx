@@ -28,7 +28,7 @@ import ChatConfirmRemoveBot from './conversation/bot/confirm'
 import ChatPDF from './pdf'
 import * as ChatConstants from '../constants/chat2'
 import flags from '../util/feature-flags'
-import {Stack, ModalStack} from '../router-v3/stack'
+import {Stack, ModalStack} from '../router-v3/stack-factory'
 import {ScreenProps, ModalScreenProps} from '../router-v3/types'
 
 // TODO port

@@ -6,7 +6,7 @@ import logger from '../logger'
 import {NavigationContainer, NavigationContainerRef} from '@react-navigation/native'
 import NavTabs from './tabs'
 import {modalScreens} from './routes'
-import {ModalStack} from './stack'
+import {ModalStack} from './stack-factory'
 
 const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}) => {
   const {navRef} = props

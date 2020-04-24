@@ -1,6 +1,6 @@
 // Collects all the routable screens in the app
 import * as React from 'react'
-import {Stack, ModalStack} from './stack'
+import {Stack, ModalStack} from './stack-factory'
 // New nav5 style
 import {screens as chatScreens, modalScreens as chatModalScreens} from '../chat/routes-v3'
 
