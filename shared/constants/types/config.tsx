@@ -64,7 +64,7 @@ export type State = {
   globalError?: Error | RPCError
   httpSrvAddress: string
   httpSrvToken: string
-  incomingShareUseOriginal: boolean
+  incomingShareUseOriginal?: boolean
   justDeletedSelf?: string
   loggedIn: boolean
   logoutHandshakeWaiters: Map<string, number>

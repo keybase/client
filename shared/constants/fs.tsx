@@ -724,7 +724,7 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
   return 'conversation'
 }
 
-export const getSharePathArrayDescription = (paths: Array<Types.LocalPath>): string => {
+export const getSharePathArrayDescription = (paths: Array<Types.LocalPath | string>): string => {
   return !paths.length ? '' : paths.length === 1 ? Types.getPathName(paths[0]) : `${paths.length} items`
 }
 
@@ -859,14 +859,15 @@ export const getPathStatusIconInMergeProps = (
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
-  navigateAppend: typeof RouteTreeGen.createNavigateAppend
+  navigateAppend: typeof RouteTreeGen.createNavigateAppend,
+  headerRightButton?: React.ReactNode
 ): Array<TypedActions> => [
   FsGen.createSetDestinationPickerParentPath({
     index,
     path,
   }),
   navigateAppend({
-    path: [{props: {index}, selected: 'destinationPicker'}],
+    path: [{props: {headerRightButton, index}, selected: 'destinationPicker'}],
   }),
 ]
 
