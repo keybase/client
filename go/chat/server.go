@@ -1699,13 +1699,6 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 	if err != nil {
 		return res, err
 	}
-	return h.deleteConversationLocal(ctx, uid, arg)
-}
-
-// deleteConversationLocal contains the functionality of
-// DeleteConversationLocal split off for easier testing.
-func (h *Server) deleteConversationLocal(ctx context.Context, uid gregor1.UID,
-	arg chat1.DeleteConversationLocalArg) (res chat1.DeleteConversationLocalRes, err error) {
 	ui := h.getChatUI(arg.SessionID)
 	confirmed := arg.Confirmed
 	if !confirmed {
@@ -1720,7 +1713,6 @@ func (h *Server) deleteConversationLocal(ctx context.Context, uid gregor1.UID,
 	if !confirmed {
 		return res, errors.New("channel delete unconfirmed")
 	}
-
 	if err := h.G().InboxSource.RemoteDeleteConversation(ctx, uid, arg.ConvID); err != nil {
 		return res, err
 	}
