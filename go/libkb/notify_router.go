@@ -2689,7 +2689,7 @@ func (n *NotifyRouter) HandleHTTPSrvInfoUpdate(ctx context.Context, info keybase
 	})
 }
 
-func (n *NotifyRouter) HandleHandleKeybaseLink(ctx context.Context, link string) {
+func (n *NotifyRouter) HandleHandleKeybaseLink(ctx context.Context, link string, deferred bool) {
 	if n == nil {
 		return
 	}
@@ -2698,7 +2698,10 @@ func (n *NotifyRouter) HandleHandleKeybaseLink(ctx context.Context, link string)
 			go func() {
 				_ = (keybase1.NotifyServiceClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).HandleKeybaseLink(ctx, link)
+				}).HandleKeybaseLink(ctx, keybase1.HandleKeybaseLinkArg{
+					Link:     link,
+					Deferred: deferred,
+				})
 			}()
 		}
 		return true
