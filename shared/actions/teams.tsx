@@ -888,8 +888,9 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
           teamname,
         })
       )
+    } else {
+      yield Saga.put(TeamsGen.createLoadTeamChannelList({teamID}))
     }
-    // TODO: else, reload the channel list
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
   }
@@ -1231,7 +1232,8 @@ const deleteChannelConfirmed = async (action: TeamsGen.DeleteChannelConfirmedPay
     },
     Constants.teamWaitingKey(teamID)
   )
-  return false
+  // TODO TRIAGE-3029 the channel still shows up in this call
+  return TeamsGen.createLoadTeamChannelList({teamID})
 }
 
 const deleteMultiChannelsConfirmed = async (action: TeamsGen.DeleteMultiChannelsConfirmedPayload) => {
