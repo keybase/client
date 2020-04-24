@@ -359,6 +359,7 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 			}
 		}
 	}
+	res = make([]chat1.UserBotCommandOutput, 0, len(cmdOutputs))
 	for _, cmd := range cmdOutputs {
 		res = append(res, cmd)
 	}
