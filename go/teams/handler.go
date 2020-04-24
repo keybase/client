@@ -702,6 +702,7 @@ func rejectInviteLinkAcceptances(mctx libkb.MetaContext, requests []keybase1.Tea
 				"invite_id":    libkb.S{Val: string(request.InviteID)},
 				"uid":          libkb.S{Val: request.Uid.String()},
 				"eldest_seqno": libkb.I{Val: int(request.EldestSeqno)},
+				"akey":         libkb.S{Val: string(request.Akey)},
 			},
 		}
 
