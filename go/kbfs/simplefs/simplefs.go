@@ -159,7 +159,9 @@ type SimpleFS struct {
 
 	localHTTPServer *libhttpserver.Server
 
-	subscriptionNotifier libkbfs.SubscriptionNotifier
+	subscriber libkbfs.Subscriber
+
+	onlineStatusTracker libkbfs.OnlineStatusTracker
 
 	downloadManager *downloadManager
 	uploadManager   *uploadManager
@@ -195,26 +197,24 @@ var _ libkbfs.SubscriptionNotifier = subscriptionNotifier{}
 
 // OnNonPathChange implements the libkbfs.SubscriptionNotifier interface.
 func (s subscriptionNotifier) OnPathChange(
-	clientID libkbfs.SubscriptionManagerClientID,
-	subscriptionIDs []libkbfs.SubscriptionID,
-	path string, topics []keybase1.PathSubscriptionTopic) {
+	subscriptionID libkbfs.SubscriptionID,
+	path string, topic keybase1.PathSubscriptionTopic) {
 	ks := s.config.KeybaseService()
 	if ks == nil {
 		return
 	}
-	ks.OnPathChange(clientID, subscriptionIDs, path, topics)
+	ks.OnPathChange(subscriptionID, path, topic)
 }
 
 // OnPathChange implements the libkbfs.SubscriptionNotifier interface.
 func (s subscriptionNotifier) OnNonPathChange(
-	clientID libkbfs.SubscriptionManagerClientID,
-	subscriptionIDs []libkbfs.SubscriptionID,
+	subscriptionID libkbfs.SubscriptionID,
 	topic keybase1.SubscriptionTopic) {
 	ks := s.config.KeybaseService()
 	if ks == nil {
 		return
 	}
-	ks.OnNonPathChange(clientID, subscriptionIDs, topic)
+	ks.OnNonPathChange(subscriptionID, topic)
 }
 
 func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *SimpleFS {
@@ -241,16 +241,17 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 	k := &SimpleFS{
 		config: config,
 
-		handles:              map[keybase1.OpID]*handle{},
-		inProgress:           map[keybase1.OpID]*inprogress{},
-		log:                  log,
-		vlog:                 config.MakeVLogger(log),
-		newFS:                defaultNewFS,
-		idd:                  libkbfs.NewImpatientDebugDumperForForcedDumps(config),
-		indexer:              indexer,
-		localHTTPServer:      localHTTPServer,
-		subscriptionNotifier: subscriptionNotifier{config},
-		httpClient:           &http.Client{},
+		handles:             map[keybase1.OpID]*handle{},
+		inProgress:          map[keybase1.OpID]*inprogress{},
+		log:                 log,
+		vlog:                config.MakeVLogger(log),
+		newFS:               defaultNewFS,
+		idd:                 libkbfs.NewImpatientDebugDumperForForcedDumps(config),
+		indexer:             indexer,
+		localHTTPServer:     localHTTPServer,
+		subscriber:          config.SubscriptionManager().Subscriber(subscriptionNotifier{config}),
+		onlineStatusTracker: config.SubscriptionManager().OnlineStatusTracker(),
+		httpClient:          &http.Client{},
 	}
 	k.downloadManager = newDownloadManager(k)
 	k.uploadManager = newUploadManager(k)
@@ -2965,20 +2966,19 @@ func (k *SimpleFS) SimpleFSForceStuckConflict(
 }
 
 // SimpleFSGetOnlineStatus implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSGetOnlineStatus(
-	ctx context.Context, clientID string) (keybase1.KbfsOnlineStatus, error) {
-	return k.subscriptionManager(clientID).OnlineStatusTracker().GetOnlineStatus(), nil
+func (k *SimpleFS) SimpleFSGetOnlineStatus(ctx context.Context) (keybase1.KbfsOnlineStatus, error) {
+	return k.onlineStatusTracker.GetOnlineStatus(), nil
 }
 
 // SimpleFSUserIn implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSUserIn(ctx context.Context, clientID string) error {
-	k.subscriptionManager(clientID).OnlineStatusTracker().UserIn(ctx, clientID)
+	k.onlineStatusTracker.UserIn(ctx, clientID)
 	return nil
 }
 
 // SimpleFSUserOut implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSUserOut(ctx context.Context, clientID string) error {
-	k.subscriptionManager(clientID).OnlineStatusTracker().UserOut(ctx, clientID)
+	k.onlineStatusTracker.UserOut(ctx, clientID)
 	return nil
 }
 
@@ -3172,13 +3172,6 @@ func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
 	return res, nil
 }
 
-func (k *SimpleFS) subscriptionManager(
-	clientID string) libkbfs.SubscriptionManager {
-	return k.config.SubscriptionManager(
-		libkbfs.SubscriptionManagerClientID(clientID), true,
-		k.subscriptionNotifier)
-}
-
 // SimpleFSSubscribePath implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSubscribePath(
 	ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) (err error) {
@@ -3191,9 +3184,7 @@ func (k *SimpleFS) SimpleFSSubscribePath(
 		return err
 	}
 	interval := time.Second * time.Duration(arg.DeduplicateIntervalSecond)
-	return k.subscriptionManager(arg.ClientID).SubscribePath(
-		ctx, libkbfs.SubscriptionID(arg.SubscriptionID),
-		arg.KbfsPath, arg.Topic, &interval)
+	return k.subscriber.SubscribePath(ctx, libkbfs.SubscriptionID(arg.SubscriptionID), arg.KbfsPath, arg.Topic, &interval)
 }
 
 // SimpleFSSubscribeNonPath implements the SimpleFSInterface.
@@ -3204,8 +3195,7 @@ func (k *SimpleFS) SimpleFSSubscribeNonPath(
 		return err
 	}
 	interval := time.Second * time.Duration(arg.DeduplicateIntervalSecond)
-	return k.subscriptionManager(arg.ClientID).SubscribeNonPath(
-		ctx, libkbfs.SubscriptionID(arg.SubscriptionID), arg.Topic, &interval)
+	return k.subscriber.SubscribeNonPath(ctx, libkbfs.SubscriptionID(arg.SubscriptionID), arg.Topic, &interval)
 }
 
 // SimpleFSUnsubscribe implements the SimpleFSInterface.
@@ -3215,8 +3205,7 @@ func (k *SimpleFS) SimpleFSUnsubscribe(
 	if err != nil {
 		return err
 	}
-	k.subscriptionManager(arg.ClientID).Unsubscribe(
-		ctx, libkbfs.SubscriptionID(arg.SubscriptionID))
+	k.subscriber.Unsubscribe(ctx, libkbfs.SubscriptionID(arg.SubscriptionID))
 	return nil
 }
 

@@ -245,10 +245,10 @@ func (d *notificationDisplay) RuntimeStatsUpdate(
 }
 
 func (d *notificationDisplay) FSSubscriptionNotify(_ context.Context, arg keybase1.FSSubscriptionNotifyArg) error {
-	return d.printf("FS subscription notify: %v %s\n", arg.SubscriptionIDs, arg.Topic.String())
+	return d.printf("FS subscription notify: %s %s\n", arg.SubscriptionID, arg.Topic.String())
 }
 func (d *notificationDisplay) FSSubscriptionNotifyPath(_ context.Context, arg keybase1.FSSubscriptionNotifyPathArg) error {
-	return d.printf("FS subscription notify path: %v %q %v\n", arg.SubscriptionIDs, arg.Path, arg.Topics)
+	return d.printf("FS subscription notify path: %s %q %s\n", arg.SubscriptionID, arg.Path, arg.Topic.String())
 }
 func (d *notificationDisplay) IdentifyUpdate(_ context.Context, arg keybase1.IdentifyUpdateArg) error {
 	return d.printf("identify update: ok:%v broken:%v\n", arg.OkUsernames, arg.BrokenUsernames)

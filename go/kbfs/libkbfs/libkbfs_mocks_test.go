@@ -2504,27 +2504,27 @@ func (mr *MockKeybaseServiceMockRecorder) NotifySyncStatus(arg0, arg1 interface{
 }
 
 // OnNonPathChange mocks base method.
-func (m *MockKeybaseService) OnNonPathChange(arg0 SubscriptionManagerClientID, arg1 []SubscriptionID, arg2 keybase1.SubscriptionTopic) {
+func (m *MockKeybaseService) OnNonPathChange(arg0 SubscriptionID, arg1 keybase1.SubscriptionTopic) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "OnNonPathChange", arg0, arg1, arg2)
+	m.ctrl.Call(m, "OnNonPathChange", arg0, arg1)
 }
 
 // OnNonPathChange indicates an expected call of OnNonPathChange.
-func (mr *MockKeybaseServiceMockRecorder) OnNonPathChange(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockKeybaseServiceMockRecorder) OnNonPathChange(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnNonPathChange", reflect.TypeOf((*MockKeybaseService)(nil).OnNonPathChange), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnNonPathChange", reflect.TypeOf((*MockKeybaseService)(nil).OnNonPathChange), arg0, arg1)
 }
 
 // OnPathChange mocks base method.
-func (m *MockKeybaseService) OnPathChange(arg0 SubscriptionManagerClientID, arg1 []SubscriptionID, arg2 string, arg3 []keybase1.PathSubscriptionTopic) {
+func (m *MockKeybaseService) OnPathChange(arg0 SubscriptionID, arg1 string, arg2 keybase1.PathSubscriptionTopic) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "OnPathChange", arg0, arg1, arg2, arg3)
+	m.ctrl.Call(m, "OnPathChange", arg0, arg1, arg2)
 }
 
 // OnPathChange indicates an expected call of OnPathChange.
-func (mr *MockKeybaseServiceMockRecorder) OnPathChange(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockKeybaseServiceMockRecorder) OnPathChange(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnPathChange", reflect.TypeOf((*MockKeybaseService)(nil).OnPathChange), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnPathChange", reflect.TypeOf((*MockKeybaseService)(nil).OnPathChange), arg0, arg1, arg2)
 }
 
 // PutGitMetadata mocks base method.
@@ -4335,27 +4335,27 @@ func (m *MockSubscriptionNotifier) EXPECT() *MockSubscriptionNotifierMockRecorde
 }
 
 // OnNonPathChange mocks base method.
-func (m *MockSubscriptionNotifier) OnNonPathChange(arg0 SubscriptionManagerClientID, arg1 []SubscriptionID, arg2 keybase1.SubscriptionTopic) {
+func (m *MockSubscriptionNotifier) OnNonPathChange(arg0 SubscriptionID, arg1 keybase1.SubscriptionTopic) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "OnNonPathChange", arg0, arg1, arg2)
+	m.ctrl.Call(m, "OnNonPathChange", arg0, arg1)
 }
 
 // OnNonPathChange indicates an expected call of OnNonPathChange.
-func (mr *MockSubscriptionNotifierMockRecorder) OnNonPathChange(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockSubscriptionNotifierMockRecorder) OnNonPathChange(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnNonPathChange", reflect.TypeOf((*MockSubscriptionNotifier)(nil).OnNonPathChange), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnNonPathChange", reflect.TypeOf((*MockSubscriptionNotifier)(nil).OnNonPathChange), arg0, arg1)
 }
 
 // OnPathChange mocks base method.
-func (m *MockSubscriptionNotifier) OnPathChange(arg0 SubscriptionManagerClientID, arg1 []SubscriptionID, arg2 string, arg3 []keybase1.PathSubscriptionTopic) {
+func (m *MockSubscriptionNotifier) OnPathChange(arg0 SubscriptionID, arg1 string, arg2 keybase1.PathSubscriptionTopic) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "OnPathChange", arg0, arg1, arg2, arg3)
+	m.ctrl.Call(m, "OnPathChange", arg0, arg1, arg2)
 }
 
 // OnPathChange indicates an expected call of OnPathChange.
-func (mr *MockSubscriptionNotifierMockRecorder) OnPathChange(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockSubscriptionNotifierMockRecorder) OnPathChange(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnPathChange", reflect.TypeOf((*MockSubscriptionNotifier)(nil).OnPathChange), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnPathChange", reflect.TypeOf((*MockSubscriptionNotifier)(nil).OnPathChange), arg0, arg1, arg2)
 }
 
 // MockSubscriptionManagerPublisher is a mock of SubscriptionManagerPublisher interface.

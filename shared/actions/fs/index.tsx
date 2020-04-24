@@ -18,8 +18,6 @@ import {errorToActionOrThrow} from './shared'
 import {NotifyPopup} from '../../native/notifications'
 import {RPCError} from '../../util/errors'
 
-const clientID = Constants.makeUUID()
-
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
     case RPCTypes.FolderType.private:
@@ -766,7 +764,7 @@ const finishManualCR = async (action: FsGen.FinishManualConflictResolutionPayloa
 // and we deserve a black bar.
 const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
   try {
-    const onlineStatus = await RPCTypes.SimpleFSSimpleFSGetOnlineStatusRpcPromise({clientID})
+    const onlineStatus = await RPCTypes.SimpleFSSimpleFSGetOnlineStatusRpcPromise()
     return FsGen.createKbfsDaemonOnlineStatusChanged({onlineStatus})
   } catch (error) {
     if (n > 0) {
@@ -865,7 +863,6 @@ const subscriptionDeduplicateIntervalSecond = 1
 const subscribePath = async (action: FsGen.SubscribePathPayload) => {
   try {
     await RPCTypes.SimpleFSSimpleFSSubscribePathRpcPromise({
-      clientID,
       deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
       kbfsPath: Types.pathToString(action.payload.path),
@@ -885,7 +882,6 @@ const subscribePath = async (action: FsGen.SubscribePathPayload) => {
 const subscribeNonPath = async (action: FsGen.SubscribeNonPathPayload) => {
   try {
     await RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
-      clientID,
       deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
       subscriptionID: action.payload.subscriptionID,
@@ -900,7 +896,6 @@ const subscribeNonPath = async (action: FsGen.SubscribeNonPathPayload) => {
 const unsubscribe = async (action: FsGen.UnsubscribePayload) => {
   try {
     await RPCTypes.SimpleFSSimpleFSUnsubscribeRpcPromise({
-      clientID,
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
       subscriptionID: action.payload.subscriptionID,
     })
@@ -908,25 +903,17 @@ const unsubscribe = async (action: FsGen.UnsubscribePayload) => {
 }
 
 const onPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload) => {
-  const {clientID: clientIDFromNotification, path, topics} = action.payload.params
-  if (clientIDFromNotification !== clientID) {
-    return null
+  const {path, topic} = action.payload.params
+  switch (topic) {
+    case RPCTypes.PathSubscriptionTopic.children:
+      return FsGen.createFolderListLoad({path: Types.stringToPath(path), recursive: false})
+    case RPCTypes.PathSubscriptionTopic.stat:
+      return FsGen.createLoadPathMetadata({path: Types.stringToPath(path)})
   }
-  return topics?.map(topic => {
-    switch (topic) {
-      case RPCTypes.PathSubscriptionTopic.children:
-        return FsGen.createFolderListLoad({path: Types.stringToPath(path), recursive: false})
-      case RPCTypes.PathSubscriptionTopic.stat:
-        return FsGen.createLoadPathMetadata({path: Types.stringToPath(path)})
-    }
-  })
 }
 
 const onNonPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload) => {
-  const {clientID: clientIDFromNotification, topic} = action.payload.params
-  if (clientIDFromNotification !== clientID) {
-    return null
-  }
+  const {topic} = action.payload.params
   switch (topic) {
     case RPCTypes.SubscriptionTopic.favorites:
       return FsGen.createFavoritesLoad()
@@ -1037,8 +1024,10 @@ const loadFilesTabBadge = async () => {
   return false
 }
 
-const userIn = () => RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID}).catch(() => {})
-const userOut = () => RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID}).catch(() => {})
+const userInOutClientKey = Constants.makeUUID()
+const userIn = () => RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID: userInOutClientKey}).catch(() => {})
+const userOut = () =>
+  RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID: userInOutClientKey}).catch(() => {})
 
 let fsBadgeSubscriptionID: string = ''
 

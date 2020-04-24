@@ -103,26 +103,16 @@
     "FSSubscriptionNotifyPath": {
       "request": [
         {
-          "name": "clientID",
+          "name": "subscriptionID",
           "type": "string"
-        },
-        {
-          "name": "subscriptionIDs",
-          "type": {
-            "type": "array",
-            "items": "string"
-          }
         },
         {
           "name": "path",
           "type": "string"
         },
         {
-          "name": "topics",
-          "type": {
-            "type": "array",
-            "items": "PathSubscriptionTopic"
-          }
+          "name": "topic",
+          "type": "PathSubscriptionTopic"
         }
       ],
       "response": null,
@@ -132,15 +122,8 @@
     "FSSubscriptionNotify": {
       "request": [
         {
-          "name": "clientID",
+          "name": "subscriptionID",
           "type": "string"
-        },
-        {
-          "name": "subscriptionIDs",
-          "type": {
-            "type": "array",
-            "items": "string"
-          }
         },
         {
           "name": "topic",

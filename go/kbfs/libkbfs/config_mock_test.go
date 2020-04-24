@@ -143,8 +143,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.mode = modeTest{NewInitModeFromType(InitDefault)}
 	config.conflictResolutionDB = openCRDB(config)
 
-	config.subscriptionManagerManager = newSubscriptionManagerManager(config)
 	config.mockSubscriptionManagerPublisher = NewMockSubscriptionManagerPublisher(gomock.NewController(ctr.t))
+	config.subscriptionManagerPublisher = config.mockSubscriptionManagerPublisher
 	config.mockSubscriptionManagerPublisher.EXPECT().PublishChange(
 		keybase1.SubscriptionTopic_FAVORITES).AnyTimes()
 	config.mockSubscriptionManagerPublisher.EXPECT().PublishChange(

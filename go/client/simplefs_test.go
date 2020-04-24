@@ -269,7 +269,7 @@ func (s SimpleFSMock) SimpleFSSyncConfigAndStatus(
 
 // SimpleFSGetOnlineStatus implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSGetOnlineStatus(
-	_ context.Context, _ string) (keybase1.KbfsOnlineStatus, error) {
+	_ context.Context) (keybase1.KbfsOnlineStatus, error) {
 	return keybase1.KbfsOnlineStatus_ONLINE, nil
 }
 
