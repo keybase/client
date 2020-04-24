@@ -227,6 +227,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </>
   )
 
+  const additionalValidIndicator = validInviteLinkCount > 1 ? `(${validInviteLinkCount} active)` : ''
   const addInviteAndLinkBox =
     justFinishedAddWizard && !meta.showcasing ? (
       <FeatureTeamCard teamID={props.teamID} />
@@ -248,9 +249,15 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         {flags.teamInvites &&
           (mostRecentInviteLink ? (
             <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
-              <InviteItem inviteLink={mostRecentInviteLink} teamID={props.teamID} mode="header" />
+              <InviteItem
+                inviteLink={mostRecentInviteLink}
+                teamID={props.teamID}
+                style={styles.inviteLinkContainer}
+                showDetails={false}
+                showExpireAction={false}
+              />
               <Kb.Text type="BodyTiny" onClick={callbacks.onManageInvites} className="hover-underline">
-                Manage invite links ({validInviteLinkCount} active)
+                Manage invite links {additionalValidIndicator}
               </Kb.Text>
             </Kb.Box2>
           ) : (
@@ -458,6 +465,15 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
       },
       illustration: {borderRadius: 4, overflow: 'hidden', width: '100%'},
+      inviteLinkContainer: Styles.platformStyles({
+        common: {
+          borderColor: 'none',
+          borderRadius: 0,
+          borderStyle: undefined,
+          borderWidth: 0,
+          padding: 0,
+        },
+      }),
       marginBottomRightTiny: {
         marginBottom: Styles.globalMargins.tiny,
         marginRight: Styles.globalMargins.tiny,

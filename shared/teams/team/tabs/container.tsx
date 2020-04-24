@@ -26,7 +26,7 @@ export default Container.connect(
         Constants.teamTarsWaitingKey(teamMeta.teamname)
       ),
       newTeamRequests: state.teams.newTeamRequests,
-      numInvites: teamDetails.validInvites?.size ?? 0,
+      numInvites: teamDetails.invites?.size ?? 0,
       numRequests: teamDetails.requests?.size ?? 0,
       numSubteams: teamDetails.subteams?.size ?? 0,
       resetUserCount: Constants.getTeamResetUsers(state, teamMeta.teamname).size,

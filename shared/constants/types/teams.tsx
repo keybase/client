@@ -62,7 +62,7 @@ export type MemberInfoWithLastActivity = MemberInfo & {
   lastActivity?: number
 }
 
-export type ValidInviteInfo = {
+export type InviteInfo = {
   email: string
   phone: string
   name: string
@@ -116,7 +116,7 @@ export type TeamDetails = {
   members: Map<string, MemberInfo>
   settings: TeamSettings2
   // Legacy invites that are guaranteed to be active
-  validInvites: Set<ValidInviteInfo>
+  invites: Set<InviteInfo>
   // Invitelinks, some of which may be invalid already; most recent first
   inviteLinks: Array<InviteLink>
   subteams: Set<TeamID>

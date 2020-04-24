@@ -123,15 +123,15 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
     }
     sections.push(requestsSection)
   }
-  if (details.validInvites?.size) {
+  if (details.invites?.size) {
     empty = false
     sections.push({
       collapsed,
-      data: collapsed ? [] : [...details.validInvites].sort(sortInvites),
+      data: collapsed ? [] : [...details.invites].sort(sortInvites),
       key: 'member-invites',
       onToggleCollapsed,
       renderItem: ({index, item}) => <InviteRow teamID={teamID} id={item.id} firstItem={index == 0} />,
-      title: `Invitations (${details.validInvites.size})`,
+      title: `Invitations (${details.invites.size})`,
     })
   }
   if (empty && !flags.teamsRedesign) {

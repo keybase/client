@@ -109,7 +109,15 @@ const InviteHistory = (props: Props) => {
           <Kb.SectionList
             sections={sections}
             keyExtractor={item => item.id}
-            renderItem={({item}) => <InviteItem inviteLink={item} teamID={teamID} mode={'history'} />}
+            renderItem={({item}) => (
+              <InviteItem
+                inviteLink={item}
+                teamID={teamID}
+                style={styles.wideMargins}
+                showDetails={true}
+                showExpireAction={true}
+              />
+            )}
             contentContainerStyle={styles.listContent}
             stickySectionHeadersEnabled={true}
           />
@@ -125,6 +133,11 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   tabs: {
     backgroundColor: Styles.globalColors.white,
+  },
+  wideMargins: {
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.small,
   },
 }))
 

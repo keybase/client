@@ -171,7 +171,7 @@ const GenerateLinkModal = (props: Props) => {
             Here is your link. Share it cautiously as anyone who has it can join the team.
           </Kb.Text>
 
-          <InviteItem inviteLink={inviteLink} teamID={teamID} mode={'generate'} />
+          <InviteItem inviteLink={inviteLink} teamID={teamID} showDetails={false} showExpireAction={true} />
 
           {!inviteLink.isValid && (
             <Kb.Text type="BodySmallSemiboldPrimaryLink" onClick={() => setInviteLinkURL('')}>

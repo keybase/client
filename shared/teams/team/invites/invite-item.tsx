@@ -5,16 +5,20 @@ import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
 
-export type Mode = 'header' | 'settings' | 'history' | 'generate'
-
 export const InviteItem = ({
+  alignSelf,
   inviteLink,
+  showDetails,
+  showExpireAction,
+  style,
   teamID,
-  mode,
 }: {
+  alignSelf?: 'flex-start'
   inviteLink: Types.InviteLink
+  showDetails: boolean
+  showExpireAction: boolean
+  style?: Styles.StylesCrossPlatform
   teamID: Types.TeamID
-  mode: Mode
 }) => {
   const dispatch = Container.useDispatch()
   const yourUsername = Container.useSelector(s => s.config.username)
@@ -30,12 +34,9 @@ export const InviteItem = ({
   return (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([
-        mode !== 'header' && styles.inviteContainer,
-        mode === 'history' && styles.wideMargins,
-      ])}
+      style={Styles.collapseStyles([styles.inviteContainer, style])}
       gap="xtiny"
-      alignSelf={mode === 'settings' ? 'flex-start' : null}
+      alignSelf={alignSelf}
     >
       <Kb.CopyText
         text={inviteLink.url}
@@ -46,7 +47,7 @@ export const InviteItem = ({
         <Kb.Text type="BodySmall">
           Invites as {inviteLink.role} • {inviteLink.validityDescription}
         </Kb.Text>
-        {mode === 'history' && (
+        {showDetails && (
           <Kb.Text type="BodySmall">
             Created by{' '}
             {inviteLink.creatorUsername === yourUsername ? (
@@ -73,7 +74,7 @@ export const InviteItem = ({
             )}
           </Kb.Text>
         )}
-        {['history', 'generate'].includes(mode) && inviteLink.isValid && (
+        {showExpireAction && inviteLink.isValid && (
           <Kb.Box2
             direction="horizontal"
             alignSelf="flex-start"
@@ -108,10 +109,5 @@ const styles = Styles.styleSheetCreate(() => ({
     borderStyle: 'solid',
     borderWidth: 1,
     padding: Styles.globalMargins.tiny,
-  },
-  wideMargins: {
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
   },
 }))

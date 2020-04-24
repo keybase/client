@@ -23,18 +23,25 @@ const InviteLinks = (props: Props) => {
   const onViewHistory = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamInviteHistory'}]}))
 
+  const additionalValidIndicator = validInviteLinkCount > 1 ? `(${validInviteLinkCount} active)` : ''
   return (
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="flex-start">
-      <Kb.Text type="BodySmallSemibold">Invite links ({validInviteLinkCount} active)</Kb.Text>
+      <Kb.Text type="BodySmallSemibold">Invite links {additionalValidIndicator}</Kb.Text>
       <Kb.Text type="BodySmall">
         Invite people to the team by sharing {mostRecentInviteLink ? 'this link:' : 'a link.'}
       </Kb.Text>
       {mostRecentInviteLink && (
-        <InviteItem inviteLink={mostRecentInviteLink} teamID={teamID} mode={'settings'} />
+        <InviteItem
+          inviteLink={mostRecentInviteLink}
+          teamID={teamID}
+          alignSelf="flex-start"
+          showDetails={false}
+          showExpireAction={false}
+        />
       )}
       <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny" alignSelf="flex-start">
         <Kb.Button small={true} mode="Secondary" label="Generate invite link" onClick={onGenLink} />
-        <Kb.Button small={true} mode="Secondary" label={`Manage invite links`} onClick={onViewHistory} />
+        <Kb.Button small={true} mode="Secondary" label="Manage invite links" onClick={onViewHistory} />
       </Kb.Box2>
     </Kb.Box2>
   )

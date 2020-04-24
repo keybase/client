@@ -20,7 +20,7 @@ const extractPhoneNumber = (name: string, region: string): string | null => {
 // contacts and show whether the contact is invited already or not. Returns a
 // mapping of potential contact values to invite IDs.
 const mapExistingInvitesToValues = (
-  invites: Types.TeamDetails['validInvites'],
+  invites: Types.TeamDetails['invites'],
   region: string
 ): Map<string, string> => {
   const ret = new Map<string, string>()
@@ -48,7 +48,7 @@ const TeamInviteByContact = (props: Props) => {
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
   const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
-  const invites = Container.useSelector(state => Constants.getTeamDetails(state, teamID).validInvites)
+  const invites = Container.useSelector(state => Constants.getTeamDetails(state, teamID).invites)
 
   useTeamDetailsSubscribe(teamID)
 

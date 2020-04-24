@@ -86,7 +86,7 @@ export const rpcDetailsToMemberInfos = (
   return new Map(infos)
 }
 
-export const emptyInviteInfo = Object.freeze<Types.ValidInviteInfo>({
+export const emptyInviteInfo = Object.freeze<Types.InviteInfo>({
   email: '',
   id: '',
   name: '',
@@ -748,7 +748,7 @@ export const teamListToMeta = (
   )
 }
 
-type InviteDetails = {inviteLinks: Array<Types.InviteLink>; validInvites: Set<Types.ValidInviteInfo>}
+type InviteDetails = {inviteLinks: Array<Types.InviteLink>; invites: Set<Types.InviteInfo>}
 const annotatedInvitesToInviteDetails = (
   annotatedInvites: Array<RPCTypes.AnnotatedTeamInvite> = []
 ): InviteDetails =>
@@ -757,7 +757,7 @@ const annotatedInvitesToInviteDetails = (
       const inviteMD = annotatedInvite.inviteMetadata
       const teamInvite = inviteMD.invite
 
-      const {validInvites, inviteLinks} = invitesAndLinks
+      const {invites, inviteLinks} = invitesAndLinks
       const role = teamRoleByEnum[teamInvite.role]
       if (!role || role === 'none') {
         return invitesAndLinks
@@ -789,7 +789,7 @@ const annotatedInvitesToInviteDetails = (
         if (teamInvite.type.c === RPCTypes.TeamInviteCategory.sbs) {
           username = annotatedInvite.displayName
         }
-        validInvites.add({
+        invites.add({
           email: teamInvite.type.c === RPCTypes.TeamInviteCategory.email ? annotatedInvite.displayName : '',
           id: teamInvite.id,
           name: [RPCTypes.TeamInviteCategory.seitan].includes(teamInvite.type.c)
@@ -802,17 +802,17 @@ const annotatedInvitesToInviteDetails = (
       }
       return invitesAndLinks
     },
-    {inviteLinks: [], validInvites: new Set()}
+    {inviteLinks: [], invites: new Set()}
   )
 
 export const emptyTeamDetails: Types.TeamDetails = {
   description: '',
   inviteLinks: [],
+  invites: new Set(),
   members: new Map(),
   requests: new Set(),
   settings: {open: false, openJoinAs: 'reader', tarsDisabled: false, teamShowcased: false},
   subteams: new Set(),
-  validInvites: new Set(),
 }
 
 export const emptyTeamSettings = Object.freeze(emptyTeamDetails.settings)
@@ -981,21 +981,13 @@ export const maybeGetSparseMemberInfo = (state: TypedState, teamID, username) =>
 }
 
 export const countValidInviteLinks = (inviteLinks: Array<Types.InviteLink>): Number => {
-  var c = 0
-  for (const inviteLink of inviteLinks) {
+  return inviteLinks.reduce((t, inviteLink) => {
     if (inviteLink.isValid) {
-      c++
+      return t + 1
     }
-  }
-  return c
+    return t
+  }, 0)
 }
 
-export const maybeGetMostRecentValidInviteLink = (
-  inviteLinks: Array<Types.InviteLink>
-): Types.InviteLink | undefined => {
-  const validInviteLinks = inviteLinks.filter(inviteLink => inviteLink.isValid)
-  if (!validInviteLinks) {
-    return undefined
-  }
-  return validInviteLinks[0]
-}
+export const maybeGetMostRecentValidInviteLink = (inviteLinks: Array<Types.InviteLink>) =>
+  inviteLinks.find(inviteLink => inviteLink.isValid)
