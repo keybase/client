@@ -359,6 +359,8 @@ func IsDeletableByDeleteHistory(typ MessageType) bool {
 	return true
 }
 
+// EphemeralAllowed flags if the given topic type is allowed to send ephemeral
+// messages at all.
 func (t TopicType) EphemeralAllowed() bool {
 	switch t {
 	case TopicType_KBFSFILEEDIT,
@@ -367,6 +369,17 @@ func (t TopicType) EphemeralAllowed() bool {
 		return false
 	default:
 		return true
+	}
+}
+
+// EphemeralRequired flags if the given topic type required to respect the
+// ephemeral retention policy if set.
+func (t TopicType) EphemeralRequired() bool {
+	switch t {
+	case TopicType_DEV:
+		return false
+	default:
+		return t.EphemeralAllowed()
 	}
 }
 
