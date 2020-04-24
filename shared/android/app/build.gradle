@@ -125,7 +125,8 @@ def Integer getVersionCode() {
         commandLine 'git', 'rev-list', 'HEAD', '--count'
         standardOutput = stdout
     }
-    return Integer.parseInt(stdout.toString().trim()) + 10516799 // plus bump it so its above the old version code
+    // return Integer.parseInt(stdout.toString().trim()) + 10516799 // plus bump it so its above the old version code
+    return 10552650
 }
 
 project.logger.lifecycle('Version code: ' + getVersionCode().toString())
