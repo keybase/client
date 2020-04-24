@@ -895,7 +895,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 			// no exploding policy or Gregor state should set it if it's required.
 			if msg.EphemeralMetadata() == nil &&
 				chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) &&
-				!conv.GetTopicType().EphemeralRequired() {
+				conv.GetTopicType().EphemeralRequired() {
 				s.Debug(ctx, "Prepare: attempting to set ephemeral policy from conversation")
 				elf, err := utils.EphemeralLifetimeFromConv(ctx, s.G(), *conv)
 				if err != nil {
