@@ -118,7 +118,7 @@ export const getTeamChannelInfo = (
   conversationIDKey: ChatTypes.ConversationIDKey
 ) => state.teams.channelInfo.get(teamID)?.get(conversationIDKey) ?? emptyTeamChannelInfo
 
-// no bots
+/** no bots */
 export const getTeamChannelMembers = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) => {
   const participants = getParticipantInfo(state, conversationIDKey)
   return participants.all // TODO this should exclude bots, name is empty for some reason

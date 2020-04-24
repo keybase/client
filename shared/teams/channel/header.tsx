@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as ChatConstants from '../../constants/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import {ConversationIDKey, keyToConversationID} from '../../constants/types/chat2'
@@ -37,7 +36,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname, description} = channelInfo
   const numParticipants = Container.useSelector(
-    s => ChatConstants.getParticipantInfo(s, conversationIDKey).all.length
+    s => Constants.getTeamChannelMembers(s, conversationIDKey).length
   )
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel
