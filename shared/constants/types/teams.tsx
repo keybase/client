@@ -57,6 +57,7 @@ export type MemberInfo = SparseMemberInfo & {
   username: string
   fullName: string
   status: MemberStatus
+  needsPUK: boolean
 }
 export type MemberInfoWithLastActivity = MemberInfo & {
   lastActivity?: number
