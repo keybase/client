@@ -95,11 +95,17 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
             },
           ],
           members: new Map([
-            ['alice', {fullName: 'alice', status: 'active', type: 'admin', username: 'alice'}],
-            ['jeff', {fullName: 'Jeff', status: 'active', type: 'reader', username: 'jeff'}],
+            [
+              'alice',
+              {fullName: 'alice', needsPUK: false, status: 'active', type: 'admin', username: 'alice'},
+            ],
+            ['jeff', {fullName: 'Jeff', needsPUK: false, status: 'active', type: 'reader', username: 'jeff'}],
             // prettier-ignore
-            ['paula', {fullName: 'Paula Superlonglastnamelikereallylongforreal', status: 'active', type: 'writer', username: 'paula'}],
-            ['andonuts', {fullName: '', status: 'active', type: 'writer', username: 'andonuts'}],
+            ['paula', {fullName: 'Paula Superlonglastnamelikereallylongforreal', needsPUK: true, status: 'active', type: 'writer', username: 'paula'}],
+            [
+              'andonuts',
+              {fullName: '', needsPUK: false, status: 'active', type: 'writer', username: 'andonuts'},
+            ],
           ]),
           subteams: new Set([subteam1, subteam2]),
         },
@@ -109,7 +115,10 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
         {
           ...Constants.emptyTeamDetails,
           members: new Map([
-            ['andonuts', {fullName: '', status: 'active', type: 'owner', username: 'andonuts'}],
+            [
+              'andonuts',
+              {fullName: '', needsPUK: false, status: 'active', type: 'owner', username: 'andonuts'},
+            ],
           ]),
         },
       ],
@@ -120,7 +129,13 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
           members: new Map(
             names.map(n => [
               n.toLowerCase().split(' ')[0],
-              {fullName: n, status: 'active', type: 'writer', username: n.toLowerCase().split(' ')[0]},
+              {
+                fullName: n,
+                needsPUK: false,
+                status: 'active',
+                type: 'writer',
+                username: n.toLowerCase().split(' ')[0],
+              },
             ])
           ),
         },

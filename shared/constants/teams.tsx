@@ -61,6 +61,7 @@ export const updateChannelNameWaitingKey = (teamID: Types.TeamID) => `updateChan
 
 export const initialMemberInfo = Object.freeze<Types.MemberInfo>({
   fullName: '',
+  needsPUK: false,
   status: 'active',
   type: 'reader',
   username: '',
@@ -70,15 +71,19 @@ export const rpcDetailsToMemberInfos = (
   members: Array<RPCTypes.TeamMemberDetails>
 ): Map<string, Types.MemberInfo> => {
   const infos: Array<[string, Types.MemberInfo]> = []
-  members.forEach(({fullName, joinTime, status, username, role}) => {
+  members.forEach(({fullName, joinTime, needsPUK, status, username, role}) => {
     const maybeRole = teamRoleByEnum[role]
+    if (!maybeRole || maybeRole === 'none') {
+      return
+    }
     infos.push([
       username,
       {
         fullName,
         joinTime: joinTime || undefined,
+        needsPUK,
         status: rpcMemberStatusToStatus[status],
-        type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
+        type: maybeRole,
         username,
       },
     ])
@@ -824,11 +829,12 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
   const maybeOpenJoinAs = teamRoleByEnum[t.settings.joinAs] ?? 'reader'
   const members = new Map<string, Types.MemberInfo>()
   t.members?.forEach(member => {
-    const {fullName, status, username} = member
+    const {fullName, needsPUK, status, username} = member
     const maybeRole = teamRoleByEnum[member.role]
     members.set(username, {
       fullName,
       joinTime: member.joinTime || undefined,
+      needsPUK,
       status: rpcMemberStatusToStatus[status],
       type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
       username,

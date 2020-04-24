@@ -70,7 +70,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     ? `All members (${numParticipants.toLocaleString()})`
     : `${numParticipants.toLocaleString()} ${pluralize('member', numParticipants)}`
   const body = (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start" style={styles.row}>
       <Kb.Text type="BodySemibold" lineClamp={1}>
         #{channel.channelname}
       </Kb.Text>
@@ -103,7 +103,11 @@ const ChannelRow = (props: ChannelRowProps) => {
     <Kb.Box2
       direction="horizontal"
       gap="tiny"
-      style={canPerform.deleteChannel ? styles.mobileMarginsHack : undefined}
+      style={Styles.collapseStyles([
+        styles.actionButtons,
+        canPerform.deleteChannel ? styles.mobileMarginsHack : undefined,
+      ])}
+      alignSelf="flex-start"
     >
       {popup}
       <Kb.Button
@@ -152,9 +156,15 @@ const ChannelRow = (props: ChannelRowProps) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      actionButtons: {
+        paddingTop: Styles.globalMargins.tiny,
+      },
       checkCircle: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       listItemMargin: {marginLeft: 0},
       mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
+      row: {
+        paddingTop: Styles.globalMargins.xtiny,
+      },
       selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
       unselected: {backgroundColor: Styles.globalColors.white},
       widenClickableArea: {margin: -5, padding: 5},
