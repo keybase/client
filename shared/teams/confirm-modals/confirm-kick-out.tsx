@@ -4,9 +4,7 @@ import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
-// import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {RPCError} from '../../util/errors'
 
 type Props = Container.RouteProps<{members: string[]; teamID: Types.TeamID}>
@@ -26,7 +24,6 @@ const ConfirmKickOut = (props: Props) => {
   const [result, setResult] = React.useState<RPCTypes.TeamRemoveMembersResult>({failures: []})
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState<RPCError | null>(null)
-  console.log(result, error)
   const removeMembers = React.useCallback(() => {
     setWaiting(true)
     const teamMemberToRemoves = members.map(member => {
@@ -49,19 +46,21 @@ const ConfirmKickOut = (props: Props) => {
         setWaiting(false)
       }
     )
-  }, [teamID, members, removeMembersRPC, subteamsToo])
+  }, [teamID, members, removeMembersRPC, subteamsToo, waiting, setWaiting])
 
   const onRemove = () => {
-    // Initialize
-    React.useEffect(removeMembers, [removeMembers])
+    removeMembers()
   }
+
+  const anyError = error || result?.failures?.length
 
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
-    if (wasWaiting && !waiting) {
-      dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'team'}))
+    if (wasWaiting && !waiting && !anyError) {
+      // TODO this breaks the app, [team member view] no data! this should never happen
+      dispatch(nav.safeNavigateUpPayload())
     }
-  }, [waiting, wasWaiting, dispatch])
+  }, [waiting, wasWaiting, dispatch, error, result, nav])
 
   const prompt = (
     <Kb.Text center={true} type="Header" style={styles.prompt}>
@@ -105,13 +104,13 @@ const ConfirmKickOut = (props: Props) => {
             }
             style={Styles.globalStyles.fullWidth}
           />
-          {error || result.failures?.length ? (
+          {anyError ? (
             <Kb.Banner color="red">
               {error ? (
                 <Kb.BannerParagraph
                   key="removeMembersTotalError"
                   bannerColor="red"
-                  content={[`Unable to remove members: ${error}`]}
+                  content={[`Unable to remove members: ${error.message}`]}
                 />
               ) : (
                 <></>
@@ -121,7 +120,7 @@ const ConfirmKickOut = (props: Props) => {
                   <Kb.BannerParagraph
                     key="removeMembersPartialError"
                     bannerColor="red"
-                    content={['The following members could not be removed:']}
+                    content={['The following errors occurred:']}
                   />
                   {result.failures.map((failure, idx) => {
                     var where = ``
@@ -160,8 +159,8 @@ const ConfirmKickOut = (props: Props) => {
       }
       onCancel={onCancel}
       onConfirm={onRemove}
-      confirmText="Kick out"
-      // waitingKey={waitingKeys}
+      confirmText={anyError ? 'Retry' : 'Kick out'}
+      waiting={waiting}
     />
   )
 }
