@@ -317,9 +317,10 @@ class EditAvatar extends React.Component<Props, State> {
           mode="DefaultFullHeight"
           onClose={this.props.onClose}
           header={{
-            leftButton: this.props.wizard ? (
-              <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />
-            ) : null,
+            leftButton:
+              this.props.wizard || this.props.showBack ? (
+                <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />
+              ) : null,
             rightButton: this.props.wizard ? (
               <Kb.Button
                 label="Skip"

@@ -36,6 +36,9 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
   }
 
   _onFocus = () => {
+    if (this.props.disabled) {
+      return
+    }
     this.setState({focused: true})
     this.props.onFocus && this.props.onFocus()
   }

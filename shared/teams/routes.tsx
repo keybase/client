@@ -11,6 +11,7 @@ import TeamAddEmoji from './emojis/add-emoji'
 import TeamAddEmojiAlias from './emojis/add-alias'
 import TeamEditChannel from './channel'
 import TeamEditTeamDescription from './edit-team-description'
+import TeamEditTeamInfo from './team/team-info'
 import TeamEditWelcomeMessage from './edit-team-welcome-message'
 import TeamInviteByEmail from './invite-by-email/container'
 import TeamInviteByContact from './invite-by-contact/container'
@@ -123,6 +124,9 @@ export const newModalRoutes = {
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
   teamEditTeamDescription: {
     getScreen: (): typeof TeamEditTeamDescription => require('./edit-team-description').default,
+  },
+  teamEditTeamInfo: {
+    getScreen: (): typeof TeamEditTeamInfo => require('./team/team-info').default,
   },
   teamEditWelcomeMessage: {
     getScreen: (): typeof TeamEditWelcomeMessage => require('./edit-team-welcome-message').default,

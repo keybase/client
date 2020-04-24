@@ -5,6 +5,7 @@ import * as Types from '../../constants/types/teams'
 
 type TeamProps = {
   createdTeam?: boolean
+  showBack?: boolean
   teamID: Types.TeamID
   teamname: string
   type: 'team'
