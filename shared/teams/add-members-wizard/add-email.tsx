@@ -56,7 +56,6 @@ const AddEmail = (props: Props) => {
 
   return (
     <Kb.Modal
-      onClose={onBack}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Email list" />,

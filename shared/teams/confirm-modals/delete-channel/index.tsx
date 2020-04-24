@@ -82,14 +82,11 @@ const DeleteChannel = (props: Props) => {
     )
   }
 
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
-
   return (
     <Kb.ConfirmModal
       confirmText={`Delete ${pluralize('channel', channelnames.length)}`}
       description="This cannot be undone. All messages in the channel will be lost."
       header={<Header />}
-      onCancel={onClose}
       onConfirm={onDelete}
       prompt={
         <Kb.Text type="Header" center={true} style={styles.prompt}>

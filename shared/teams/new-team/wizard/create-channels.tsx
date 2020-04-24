@@ -3,7 +3,6 @@ import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
@@ -49,7 +48,6 @@ const CreateChannel = (props: Props) => {
       ? onSubmitChannels(filteredChannels)
       : dispatch(TeamsGen.createSetTeamWizardChannels({channels: filteredChannels}))
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
   const numChannels = filteredChannels.length
   const continueLabel = onSubmitChannels
@@ -71,7 +69,6 @@ const CreateChannel = (props: Props) => {
     <Kb.Modal
       banners={props.banners}
       backgroundStyle={styles.background}
-      onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Create channels" />,

@@ -44,7 +44,7 @@ const AddFromWhere = () => {
   return (
     <Kb.Modal
       allowOverflow={true}
-      onClose={onClose}
+      onClose={newTeam ? undefined : onClose} // Only show the close button if we're not coming from the new team wizard
       banners={
         createTeamError
           ? [

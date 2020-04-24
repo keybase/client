@@ -62,6 +62,8 @@ const PaperKey = () => {
 }
 PaperKey.navigationOptions = {
   gesturesEnabled: false,
+  modal2: true,
+  modal2NoClose: true,
 }
 
 const borderWidth = 3

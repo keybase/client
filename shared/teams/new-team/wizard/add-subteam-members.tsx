@@ -6,7 +6,6 @@ import {ModalTitle} from '../../common'
 import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
 import {pluralize} from '../../../util/string'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 
@@ -19,7 +18,6 @@ const AddSubteamMembers = () => {
   const filterL = filter.toLowerCase()
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onClose = () => dispatch(RouteTreeGen.createClearModals())
   const onContinue = () =>
     selectedMembers.size
       ? dispatch(TeamsGen.createSetTeamWizardSubteamMembers({members: [...selectedMembers]}))
@@ -82,7 +80,6 @@ const AddSubteamMembers = () => {
     <Kb.Modal
       allowOverflow={true}
       mode="DefaultFullHeight"
-      onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         rightButton: Styles.isMobile ? (

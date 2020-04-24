@@ -6,7 +6,7 @@ import * as AutoresetGen from '../../actions/autoreset-gen'
 
 type OwnProps = {}
 
-export default connect(
+const ConnectedRenderError = connect(
   state => ({
     _username: state.provision.username,
     error: state.provision.finalError,
@@ -25,3 +25,10 @@ export default connect(
     onAccountReset: () => d._onAccountReset(s._username),
   })
 )(RenderError)
+
+// @ts-ignore
+ConnectedRenderError.navigationOptions = {
+  modal2: true,
+}
+
+export default ConnectedRenderError
