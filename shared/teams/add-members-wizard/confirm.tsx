@@ -206,7 +206,6 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
   const [showingMenu, setShowingMenu] = React.useState(false)
   const storeRole = Container.useSelector(s => s.teams.addMembersWizard.role)
   const [role, setRole] = React.useState<RoleType>(storeRole)
-  const onSelectRole = (newRole: RoleType) => setRole(newRole)
   const onConfirmRole = (newRole: RoleType) => {
     setRole(newRole)
     setShowingMenu(false)
@@ -219,10 +218,7 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
         open={showingMenu}
         presetRole={storeRole}
         onCancel={storeRole === role ? () => setShowingMenu(false) : undefined}
-        selectedRole={role || 'writer'}
-        onSelectRole={onSelectRole}
         onConfirm={onConfirmRole}
-        confirmLabel="Save"
         includeSetIndividually={!Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
         disabledRoles={disabledRoles}
       >
@@ -307,7 +303,6 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
     setRole(individualRole)
     setShowingMenu(true)
   }
-  const onSelectRole = newRole => setRole(newRole)
   const onConfirmRole = newRole => {
     setRole(newRole)
     setShowingMenu(false)
@@ -338,10 +333,7 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
             open={showingMenu}
             presetRole={individualRole}
             onCancel={individualRole === rolePickerRole ? () => setShowingMenu(false) : undefined}
-            selectedRole={rolePickerRole}
-            onSelectRole={onSelectRole}
             onConfirm={onConfirmRole}
-            confirmLabel={`Add as ${rolePickerRole}`}
             disabledRoles={isPhoneEmail ? disabledRolesForPhoneEmailIndividual : props.disabledRoles}
           >
             <Kb.InlineDropdown

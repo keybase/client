@@ -20,8 +20,6 @@ type RolePickerProps = {
   onCancelRolePicker: () => void
   onConfirmRolePicker: (role: Types.TeamRoleType) => void
   onOpenRolePicker: () => void
-  onSelectRole: (role: Types.TeamRoleType) => void
-  selectedRole: Types.TeamRoleType
   teamRole: Types.TeamRoleType
   disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string | null}
 }
@@ -33,9 +31,7 @@ const capitalize = (str: string) => {
 const InviteRolePicker = (props: RolePickerProps) => {
   return (
     <FloatingRolePicker
-      confirmLabel={`Let in as ${pluralize(props.teamRole)}`}
-      selectedRole={props.selectedRole}
-      onSelectRole={props.onSelectRole}
+      presetRole={props.teamRole}
       onConfirm={props.onConfirmRolePicker}
       onCancel={props.onCancelRolePicker}
       position="bottom center"
@@ -120,7 +116,6 @@ const GenerateLinkModal = (props: Props) => {
   const [validity, setValidity] = React.useState(validityOneYear)
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [teamRole, setTeamRole] = React.useState<Types.TeamRoleType>('reader')
-  const [selectedRole, setSelectedRole] = React.useState<Types.TeamRoleType>('reader')
   const [inviteDuration, setInviteDuration] = React.useState('')
   const [inviteLinkURL, setInviteLinkURL] = React.useState('')
 
@@ -183,13 +178,11 @@ const GenerateLinkModal = (props: Props) => {
     },
     isRolePickerOpen: isRolePickerOpen,
     onCancelRolePicker: () => setRolePickerOpen(false),
-    onConfirmRolePicker: () => {
+    onConfirmRolePicker: role => {
       setRolePickerOpen(false)
-      setTeamRole(selectedRole)
+      setTeamRole(role)
     },
     onOpenRolePicker: () => setRolePickerOpen(true),
-    onSelectRole: (role: Types.TeamRoleType) => setSelectedRole(role),
-    selectedRole: selectedRole,
     teamRole: teamRole,
   }
 
