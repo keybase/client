@@ -138,7 +138,8 @@ func (h *KVStoreHandler) getKVEntryLocked(ctx context.Context, arg keybase1.GetK
 		return res, err
 	}
 	var entryValue *string
-	if apiRes.Ciphertext != nil && len(*apiRes.Ciphertext) > 0 /* deleted or non-existent */ {
+	if apiRes.Ciphertext != nil && len(*apiRes.Ciphertext) > 0 {
+		// ciphertext coming back from the server is available to be unboxed (has previously been set, and was not previously deleted)
 		cleartext, err := h.Boxer.Unbox(mctx, entryID, apiRes.Revision, *apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID)
 		if err != nil {
 			mctx.Debug("error unboxing %+v: %v", entryID, err)
