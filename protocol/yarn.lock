@@ -17,9 +17,10 @@ amdefine@>=0.0.4:
   resolved "https://registry.yarnpkg.com/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
   integrity sha1-SlKCrBZHKek2Gbz9OtFR+BfOkfU=
 
-"avdl-compiler@https://github.com/keybase/node-avdl-compiler.git#xgess/picnic-1133-allow-serializing-nulls":
-  version "1.4.8"
-  resolved "https://github.com/keybase/node-avdl-compiler.git#fb1cee0be45eb46d5b67c5d960366518947a6483"
+avdl-compiler@1.4.9:
+  version "1.4.9"
+  resolved "https://registry.yarnpkg.com/avdl-compiler/-/avdl-compiler-1.4.9.tgz#a8915cf54a132c18817093625db3a8cfb27f70c6"
+  integrity sha512-hlgSVK+X1Bl2iV+fOZR8YSqU+X6tuoBBTPuf+TLImMEmK0cs32hGtevbrIaTcQESdxQb1/l3BFFeD6MNQ0RFGQ==
   dependencies:
     avdl2json "^2.2.5"
     iced-error "0.0.9"
