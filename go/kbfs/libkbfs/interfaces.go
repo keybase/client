@@ -2054,6 +2054,9 @@ type InitMode interface {
 	// DiskCacheCompactionEnabled indicates whether the local disk
 	// block cache should trigger compaction automatically.
 	DiskCacheCompactionEnabled() bool
+	// EditHistoryPrefetchingEnabled indicates whether we should
+	// auto-prefetch the most recently-edited files.
+	EditHistoryPrefetchingEnabled() bool
 
 	ldbutils.DbWriteBufferSizeGetter
 }

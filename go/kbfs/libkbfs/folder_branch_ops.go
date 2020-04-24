@@ -1393,6 +1393,7 @@ func (fbo *folderBranchOps) kickOffPartialSyncIfNeeded(
 		// using the recently-edited files list, storing the blocks in
 		// the working set cache.
 		if !fbo.config.Mode().TLFEditHistoryEnabled() ||
+			!fbo.config.Mode().EditHistoryPrefetchingEnabled() ||
 			fbo.config.Mode().DefaultBlockRequestAction() == BlockRequestSolo {
 			return
 		}
@@ -9708,6 +9709,10 @@ func (fbo *folderBranchOps) recomputeEditHistory(
 func (fbo *folderBranchOps) kickOffEditActivityPartialSync(
 	ctx context.Context, lState *kbfssync.LockState,
 	rmd ImmutableRootMetadata) (err error) {
+	if !fbo.config.Mode().EditHistoryPrefetchingEnabled() {
+		return
+	}
+
 	defer func() {
 		if err != nil {
 			fbo.log.CDebugf(
