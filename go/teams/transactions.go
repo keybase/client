@@ -409,7 +409,7 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	// a 'newer' UV with a greater eldest seqno.
 	// So, if we're an admin re-adding an owner who does not yet have a PUK
 	// then don't try to remove the owner's pre-reset UV.
-	exceptAdminsRemovingOwners := !hasPUK || g.TestOptions.NoRemovePukfulOwnersOnReadmitAfterReset
+	exceptAdminsRemovingOwners := !hasPUK
 	tx.sweepCryptoMembers(ctx, uv.Uid, exceptAdminsRemovingOwners)
 
 	if !hasPUK {

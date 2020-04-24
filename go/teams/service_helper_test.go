@@ -29,12 +29,7 @@ func TestGetAnnotatedTeamIdiosyncrasies(t *testing.T) {
 
 	tc.G.UIDMapper.SetTestingNoCachingMode(true)
 
-	// for charlie
-	tc.G.TestOptions.NoRemovePukfulOwnersOnReadmitAfterReset = true
-
 	ali, err := kbtest.CreateAndSignupFakeUser("alih", tc.G)
-	require.NoError(t, err)
-	cha, err := kbtest.CreateAndSignupFakeUser("chah", tc.G)
 	require.NoError(t, err)
 	del, err := kbtest.CreateAndSignupFakeUser("delh", tc.G)
 	require.NoError(t, err)
@@ -47,17 +42,14 @@ func TestGetAnnotatedTeamIdiosyncrasies(t *testing.T) {
 
 	_, err = AddMember(ctx, tc.G, name.String(), ali.Username, keybase1.TeamRole_OWNER, nil)
 	require.NoError(t, err)
-	_, err = AddMember(ctx, tc.G, name.String(), cha.Username, keybase1.TeamRole_OWNER, nil)
-	require.NoError(t, err)
 	_, err = AddMember(ctx, tc.G, name.String(), del.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	tm, err := GetAnnotatedTeam(ctx, tc.G, ID)
 	require.NoError(t, err)
-	require.Len(t, tm.Members, 4)
+	require.Len(t, tm.Members, 3)
 	require.Equal(t, 1, countMember(t, tm.Members, adm.Username, false, keybase1.TeamMemberStatus_ACTIVE))
 	require.Equal(t, 1, countMember(t, tm.Members, ali.Username, false, keybase1.TeamMemberStatus_ACTIVE))
-	require.Equal(t, 1, countMember(t, tm.Members, cha.Username, false, keybase1.TeamMemberStatus_ACTIVE))
 	require.Equal(t, 1, countMember(t, tm.Members, del.Username, false, keybase1.TeamMemberStatus_ACTIVE))
 
 	t.Logf("ali resets but doesnt log back in")
@@ -66,27 +58,15 @@ func TestGetAnnotatedTeamIdiosyncrasies(t *testing.T) {
 	require.NoError(t, err)
 	kbtest.ResetAccount(tc, ali)
 
-	t.Logf("cha resets and logs back in")
-	kbtest.Logout(tc)
-	err = cha.Login(tc.G)
-	require.NoError(t, err)
-	kbtest.ResetAccount(tc, cha)
-	err = cha.Login(tc.G)
-	require.NoError(t, err)
-
 	kbtest.Logout(tc)
 	err = del.Login(tc.G)
 	require.NoError(t, err)
 
 	err = reAddMemberAfterResetInner(ctx, tc.G, ID, ali.Username)
 	require.NoError(t, err)
-	err = reAddMemberAfterResetInner(ctx, tc.G, ID, cha.Username)
-	require.NoError(t, err)
 	team, err := GetForTestByStringName(context.TODO(), tc.G, name.String())
 	require.NoError(t, err)
 	require.True(t, team.IsMember(ctx, ali.GetUserVersion()), "ali is a cryptomember, though reset")
-	require.True(t, team.IsMember(ctx, keybase1.UserVersion{Uid: cha.GetUID(), EldestSeqno: 2}), "new cha is a cryptomember")
-	require.True(t, team.IsMember(ctx, keybase1.UserVersion{Uid: cha.GetUID(), EldestSeqno: 1}), "old cha is a cryptomember too, since he wasn't sweeped")
 	resetUV := keybase1.UserVersion{
 		Uid:         ali.GetUID(),
 		EldestSeqno: 0,
@@ -95,9 +75,8 @@ func TestGetAnnotatedTeamIdiosyncrasies(t *testing.T) {
 	assertInvite(tc, name.String(), resetUV.String(), "keybase", keybase1.TeamRole_ADMIN)
 	tm, err = GetAnnotatedTeam(ctx, tc.G, ID)
 	require.NoError(t, err)
-	require.Len(t, tm.Members, 4, "GetAnnotatedTeam returns only one result for Ali/Cha each anyway, filtering out inactive owners")
+	require.Len(t, tm.Members, 3, "GetAnnotatedTeam returns only one result for Ali anyway, filtering out inactive owners")
 	require.Equal(t, 1, countMember(t, tm.Members, ali.Username, true, keybase1.TeamMemberStatus_ACTIVE), "ali added as a kb invite")
-	require.Equal(t, 1, countMember(t, tm.Members, cha.Username, false, keybase1.TeamMemberStatus_ACTIVE), "cha added as crypto member")
 }
 
 func TestGetAnnotatedTeamKeybaseInvites(t *testing.T) {

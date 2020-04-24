@@ -187,9 +187,8 @@ type GlobalContext struct {
 }
 
 type GlobalTestOptions struct {
-	NoBug3964Repair                         bool
-	NoAutorotateOnBoxAuditRetry             bool
-	NoRemovePukfulOwnersOnReadmitAfterReset bool
+	NoBug3964Repair             bool
+	NoAutorotateOnBoxAuditRetry bool
 }
 
 func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
