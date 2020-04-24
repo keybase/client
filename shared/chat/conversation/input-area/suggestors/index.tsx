@@ -4,6 +4,8 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import invert from 'lodash/invert'
 import SuggestionList from './suggestion-list'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import {BotCommandUpdateStatus} from '../normal/shared'
 
 export type TransformerData = {
   text: string
@@ -48,6 +50,7 @@ type AddSuggestorsProps = {
   onChannelSuggestionsTriggered: () => void
   onFetchEmoji: () => void
   renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
+  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatus
   suggestionListStyle?: Styles.StylesCrossPlatform
   suggestionOverlayStyle?: Styles.StylesCrossPlatform
   suggestionSpinnerStyle?: Styles.StylesCrossPlatform
@@ -368,7 +371,15 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
       let suggestionsVisible = false
       const results = this._getResults()
-      if (results.data.length || results.loading) {
+      const suggestBotCommandsUpdateStatus = this.props.suggestBotCommandsUpdateStatus
+      if (suggestBotCommandsUpdateStatus.typ === RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating) {
+        console.warn("OKAY I'M GONNA SHOW A SPINNER")
+      }
+      if (
+        results.data.length ||
+        results.loading ||
+        suggestBotCommandsUpdateStatus.typ === RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating
+      ) {
         suggestionsVisible = true
         const active = this.state.active
         const content = results.data.length ? (
@@ -386,11 +397,17 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
               renderItem={this._itemRenderer}
               selectedIndex={this.state.selected}
             />
-            {results.loading && (
+            {(results.loading ||
+              this.props.suggestBotCommandsUpdateStatus.typ ===
+                RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating) && (
               <Kb.ProgressIndicator
                 type={Styles.isMobile ? undefined : 'Large'}
                 style={this.props.suggestionSpinnerStyle}
               />
+            )}
+            {this.props.suggestBotCommandsUpdateStatus.typ ===
+              RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating && (
+              <BotCommandUpdateStatus status={suggestBotCommandsUpdateStatus.typ} />
             )}
           </>
         ) : (
@@ -444,6 +461,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           {overlay}
           <WrappedComponent
             {...(wrappedOP as WrappedOwnProps)}
+            suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus.typ}
             suggestionsVisible={suggestionsVisible}
             ref={this._setAttachmentRef}
             inputRef={this._inputRef}
