@@ -1,6 +1,6 @@
 import logger from '../logger'
 import * as Constants from '../constants/team-building'
-import * as RouterConstants from '../constants/router2'
+import * as RouterConstants from '../constants/router3'
 import * as TeamBuildingTypes from '../constants/types/team-building'
 import * as TeamBuildingGen from './team-building-gen'
 import * as RouteTreeGen from './route-tree-gen'

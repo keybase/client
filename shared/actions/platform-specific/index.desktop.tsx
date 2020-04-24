@@ -15,7 +15,7 @@ import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
-import {_getNavigator} from '../../constants/router2'
+import {_getNavigator} from '../../constants/router3'
 
 const {resolve} = KB.path
 const {argv, env, pid} = KB.process

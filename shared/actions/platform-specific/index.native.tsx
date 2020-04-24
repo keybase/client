@@ -3,7 +3,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as PushConstants from '../../constants/push'
-import * as RouterConstants from '../../constants/router2'
+import * as RouterConstants from '../../constants/router3'
 import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Chat2Gen from '../chat2-gen'
@@ -41,7 +41,7 @@ import Geolocation from '@react-native-community/geolocation'
 // @ts-ignore strict
 import {AudioRecorder} from 'react-native-audio'
 import * as Haptics from 'expo-haptics'
-import {_getNavigator} from '../../constants/router2'
+import {_getNavigator} from '../../constants/router3'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {

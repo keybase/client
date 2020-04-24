@@ -1,10 +1,7 @@
-import * as React from 'react'
-import * as Kb from '../common-adapters'
 import ChatConversation from './conversation/container'
 import ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
 import ChatAddToChannel from './conversation/info-panel/add-to-channel/container'
 import ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
-import ChatAttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import ChatAttachmentGetTitles from './conversation/attachment-get-titles/container'
 import {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
 import ChatCreateChannel from './create-channel/container'
@@ -26,6 +23,7 @@ import ChatConfirmRemoveBot from './conversation/bot/confirm'
 import ChatPDF from './pdf'
 import flags from '../util/feature-flags'
 
+/** TODO deprecate **/
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
   chatEnterPaperkey: {
@@ -33,6 +31,7 @@ export const newRoutes = {
   },
 }
 
+/** TODO deprecate **/
 export const newModalRoutes = {
   chatAddToChannel: flags.teamsRedesign
     ? {
@@ -43,10 +42,6 @@ export const newModalRoutes = {
         getScreen: (): typeof ChatAddToChannel =>
           require('./conversation/info-panel/add-to-channel/container').default,
       },
-  chatAttachmentFullscreen: {
-    getScreen: (): typeof ChatAttachmentFullscreen =>
-      require('./conversation/attachment-fullscreen/container').default,
-  },
   chatAttachmentGetTitles: {
     getScreen: (): typeof ChatAttachmentGetTitles =>
       require('./conversation/attachment-get-titles/container').default,

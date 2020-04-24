@@ -112,4 +112,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export {HeaderNewChatButton}
+export default HeaderNewChatButton

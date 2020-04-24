@@ -361,7 +361,6 @@ const propsInboxCommon = {
   hasBigTeams: false,
   isLoading: false,
   isSearching: false,
-  navKey: 'nav',
   neverLoaded: false,
   onNewChat: Sb.action('onNewChat'),
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),

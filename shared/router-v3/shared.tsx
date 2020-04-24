@@ -1,7 +1,7 @@
 import {StackActions, CommonActions} from '@react-navigation/core'
 // import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Constants from '../constants/router2'
+import * as Constants from '../constants/router3'
 // import * as Tabs from '../constants/tabs'
 //import {modalRoutes, tabRoots} from './routes'
 // import logger from '../logger'

@@ -22,7 +22,7 @@ import * as WalletTypes from '../../constants/types/wallets'
 import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
-import * as Router2Constants from '../../constants/router2'
+import * as Router3Constants from '../../constants/router3'
 import * as Platform from '../../constants/platform'
 import commonTeamBuildingSaga, {filterForNs} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
@@ -1824,7 +1824,7 @@ function* messageSend(
   ]
   const onHideConfirm = ({canceled}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDone']['inParam']) =>
     Saga.callUntyped(function*() {
-      const visibleScreen = Router2Constants.getVisibleScreen()
+      const visibleScreen = Router3Constants.getVisibleScreen()
       if (visibleScreen && visibleScreen.routeName === confirmRouteName) {
         yield Saga.put(RouteTreeGen.createClearModals())
       }
@@ -2539,7 +2539,7 @@ const navigateToInbox = (
 
 const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   const {conversationIDKey, reason} = action.payload
-  const visible = Router2Constants.getVisibleScreen()
+  const visible = Router3Constants.getVisibleScreen()
   const visibleConvo = visible?.params?.conversationIDKey
   const visibleRouteName = visible?.routeName
 
@@ -2548,8 +2548,8 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     return false
   }
 
-  const modalPath = Router2Constants.getModalStack()
-  const mainPath = Router2Constants.getMainStack()
+  const modalPath = Router3Constants.getModalStack()
+  const mainPath = Router3Constants.getMainStack()
 
   const modalClearAction = modalPath.length > 0 ? [RouteTreeGen.createClearModals()] : []
   const tabSwitchAction =
@@ -3669,7 +3669,7 @@ const refreshBotSettings = async (action: Chat2Gen.RefreshBotSettingsPayload, lo
 const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
   const {conversationIDKey, show, tab} = action.payload
   if (Container.isPhone) {
-    const visibleScreen = Router2Constants.getVisibleScreen()
+    const visibleScreen = Router3Constants.getVisibleScreen()
     if ((visibleScreen?.routeName === 'chatInfoPanel') !== show) {
       return show
         ? RouteTreeGen.createNavigateAppend({

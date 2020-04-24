@@ -10,7 +10,6 @@ import {isPhone} from '../../constants/platform'
 import {Props} from '.'
 
 type OwnProps = {
-  navKey: string
   conversationIDKey?: Types.ConversationIDKey
 }
 
@@ -129,8 +128,7 @@ const Connected = Container.namedConnect(
     setInboxNumSmallRows: (rows: number) => dispatch(Chat2Gen.createSetInboxNumSmallRows({rows})),
     toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {navKey} = ownProps
+  (stateProps, dispatchProps, _ownProps: OwnProps) => {
     const bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
     const hasBigTeams = !!bigTeams.length
     const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
@@ -185,7 +183,6 @@ const Connected = Container.namedConnect(
       inboxNumSmallRows: stateProps.inboxNumSmallRows,
       isLoading: stateProps.isLoading,
       isSearching: stateProps.isSearching,
-      navKey,
       neverLoaded: stateProps.neverLoaded,
       onNewChat: dispatchProps.onNewChat,
       onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,

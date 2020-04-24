@@ -63,7 +63,7 @@ export const screens = [
           headerTitleContainerStyle: {left: 0, right: 0},
         }
       } else {
-        const HeaderNewChatButton = require('./new-chat-button').default
+        const HeaderNewChatButton = require('./inbox/new-chat-button').default
         return {
           headerRight: () => <HeaderNewChatButton />,
           headerTitle: () => (

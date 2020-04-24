@@ -12,13 +12,12 @@ import TeamMenu from '../../conversation/info-panel/menu/container'
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
-  navKey: string
   teamname: string
   teamID: TeamTypes.TeamID
 }
 
 const BigTeamHeader = React.memo((props: Props) => {
-  const {navKey, teamID, teamname, conversationIDKey} = props
+  const {teamID, teamname, conversationIDKey} = props
   const dispatch = Container.useDispatch()
 
   const badgeSubscribe = Container.useSelector(
@@ -28,7 +27,6 @@ const BigTeamHeader = React.memo((props: Props) => {
   const onClick = () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        fromKey: navKey,
         path: [TabsContants.teamsTab, {props: {teamID}, selected: 'team'}],
       })
     )

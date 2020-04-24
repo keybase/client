@@ -9,7 +9,7 @@ import {
   SceneView,
 } from '@react-navigation/core'
 import {RoutedOnboarding} from './onboarding/container'
-import * as Shim from '../router-v2/shim'
+// import * as Shim from '../router-v2/shim'
 import Wallet from './wallet/container'
 import * as Container from '../util/container'
 
@@ -43,11 +43,13 @@ class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
   }
 }
 
-const WalletsSubNavigator = createNavigator(
-  WalletsSubNav,
-  StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
-  {}
-)
+KB.debugConsoleLog('TODO')
+const WalletsSubNavigator = () => null
+// const WalletsSubNavigator = createNavigator(
+// WalletsSubNav,
+// StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
+// {}
+// )
 const OnboardingOrWalletsNavigator = createSwitchNavigator(
   {
     onboarding: RoutedOnboarding,

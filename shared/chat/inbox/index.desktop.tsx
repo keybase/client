@@ -201,7 +201,6 @@ class Inbox extends React.Component<T.Props, State> {
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
           isTeam: row.isTeam || false,
-          navKey: this.props.navKey,
           selected: row.type === 'big' || row.type === 'small' ? row.selected : false,
           snippet: row.snippet,
           snippetDecoration: row.snippetDecoration,

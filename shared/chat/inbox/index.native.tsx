@@ -89,7 +89,6 @@ class Inbox extends React.PureComponent<T.Props, State> {
         channelname: row.channelname,
         conversationIDKey: row.conversationIDKey,
         isTeam: row.isTeam,
-        navKey: this.props.navKey,
         selected: row.type === 'big' || row.type === 'small' ? row.selected : false,
         snippet: row.snippet,
         snippetDecoration: row.snippetDecoration,

@@ -7,8 +7,7 @@ let _everFocused = false
 
 const Deferred = () => {
   _everFocused = _everFocused || Container.useIsFocused()
-  const route = Container.useRoute()
-  return _everFocused ? <Inbox navKey={route.key} /> : null
+  return _everFocused ? <Inbox /> : null
 }
 
 export default Deferred

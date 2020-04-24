@@ -19,7 +19,7 @@ import * as LoginConstants from '../../constants/login'
 import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
 import * as Tabs from '../../constants/tabs'
-import * as Router2 from '../../constants/router2'
+import * as Router3 from '../../constants/router3'
 import * as Platform from '../../constants/platform'
 import URL from 'url-parse'
 import {noVersion} from '../../constants/whats-new'
@@ -406,7 +406,7 @@ const onAndroidShare = (state: Container.TypedState) => {
 let routeToInitialScreenOnce = false
 const routeToInitialScreen2 = (state: Container.TypedState) => {
   // bail if we don't have a navigator and loaded
-  if (!Router2._getNavigator()) {
+  if (!Router3._getNavigator()) {
     return
   }
   if (!state.config.startupDetailsLoaded) {
@@ -441,7 +441,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   if (routeToInitialScreenOnce) {
     if (state.config.loggedIn) {
       // already logged in?
-      if (Router2.getVisiblePath()?.[0]?.routeName === 'loggedIn') {
+      if (Router3.getVisiblePath()?.[0]?.routeName === 'loggedIn') {
         return false
       }
 
@@ -620,7 +620,7 @@ const updateServerConfig = async (state: Container.TypedState, action: ConfigGen
 
 const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
-  Router2._setNavigator(navigator)
+  Router3._setNavigator(navigator)
 }
 
 const newNavigation = (
@@ -634,7 +634,7 @@ const newNavigation = (
     | RouteTreeGen.SwitchTabPayload
     | RouteTreeGen.ResetStackPayload
 ) => {
-  const n = Router2._getNavigator()
+  const n = Router3._getNavigator()
   n && n.dispatchOldAction(action)
 }
 

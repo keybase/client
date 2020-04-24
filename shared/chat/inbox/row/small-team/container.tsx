@@ -10,7 +10,6 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   isTeam: boolean
-  navKey: string
   name: string
   selected: boolean
   snippet?: string

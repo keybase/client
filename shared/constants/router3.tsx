@@ -1,5 +1,5 @@
 import {NavState, Navigator} from './types/route-tree'
-import {getActiveKey as _getActiveKey} from '../router-v2/util'
+// import {getActiveKey as _getActiveKey} from '../router-v2/util'
 
 let _navigator: Navigator | undefined
 // Private API only used by config sagas
@@ -120,6 +120,8 @@ export const getFullRoute = () => {
 }
 
 export const getActiveKey = (): string => {
-  if (!_navigator) return ''
-  return _getActiveKey(_navigator.getNavState())
+  KB.debugConsoleLog('FIX?')
+  return ''
+  // if (!_navigator) return ''
+  // return _getActiveKey(_navigator.getNavState())
 }

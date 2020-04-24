@@ -17,7 +17,7 @@ import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
-import * as Router2Constants from '../constants/router2'
+import * as Router3Constants from '../constants/router3'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import openSMS from '../util/sms'
@@ -880,7 +880,7 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
     }
 
     // Dismiss the create channel dialog.
-    const visibleScreen = Router2Constants.getVisibleScreen()
+    const visibleScreen = Router3Constants.getVisibleScreen()
     if (visibleScreen && visibleScreen.routeName === 'chatCreateChannel') {
       yield Saga.put(RouteTreeGen.createClearModals())
     }

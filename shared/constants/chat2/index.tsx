@@ -15,7 +15,7 @@ import {
 } from '../types/chat2/common'
 import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
-import * as Router2 from '../router2'
+import * as Router3 from '../router3'
 import HiddenString from '../../util/hidden-string'
 import {memoize} from '../../util/memoize'
 import * as TeamConstants from '../teams'
@@ -242,7 +242,7 @@ export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   (state.chat2.unreadMap.get(id) || 0) > 0
 export const getSelectedConversation = (): Types.ConversationIDKey => {
-  const maybeVisibleScreen = Router2.getVisibleScreen()
+  const maybeVisibleScreen = Router3.getVisibleScreen()
   if (maybeVisibleScreen?.routeName === threadRouteName) {
     return maybeVisibleScreen.params?.conversationIDKey ?? noConversationIDKey
   }
@@ -301,7 +301,7 @@ export const isUserActivelyLookingAtThisThread = (
   if (!isSplit) {
     chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
   } else {
-    const maybeVisibleScreen = Router2.getVisibleScreen()
+    const maybeVisibleScreen = Router3.getVisibleScreen()
     chatThreadSelected =
       (maybeVisibleScreen === null || maybeVisibleScreen === undefined
         ? undefined

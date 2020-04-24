@@ -11,7 +11,7 @@ import * as Styles from '../styles'
 import {ProxySettings} from './proxy/container'
 import {anyErrors, anyWaiting} from '../constants/waiting'
 import {isMobile, isLinux, isWindows} from '../constants/platform'
-import {toggleRenderDebug} from '../router-v2/shim.shared'
+// import {toggleRenderDebug} from '../router-v2/shim.shared'
 
 let initialUseNativeFrame: boolean | undefined
 
@@ -243,12 +243,12 @@ const Developer = () => {
             mode="Secondary"
             style={styles.developerButtons}
           />
-          <Kb.Button
+          {/*<Kb.Button
             label="Toggle Render Stats"
             onClick={toggleRenderDebug}
             mode="Secondary"
             style={styles.developerButtons}
-          />
+            />*/}
 
           <Kb.Button
             waiting={traceInProgress}

@@ -10,7 +10,7 @@ import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Flow from '../util/flow'
-import * as Router2Constants from '../constants/router2'
+import * as Router3Constants from '../constants/router3'
 import HiddenString from '../util/hidden-string'
 import _logger from '../logger'
 import * as Tabs from '../constants/tabs'
@@ -950,7 +950,7 @@ const cancelRequest = async (action: WalletsGen.CancelRequestPayload, logger: Sa
 }
 
 const maybeNavigateAwayFromSendForm = () => {
-  const path = Router2Constants.getModalStack()
+  const path = Router3Constants.getModalStack()
   const actions: Array<TypedActions> = []
   // pop off any routes that are part of the popup
   path.reverse().some(p => {

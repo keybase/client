@@ -11,7 +11,6 @@ import * as Types from '../../../constants/types/chat2'
 type Props = {
   channelname: string
   conversationIDKey: Types.ConversationIDKey
-  navKey: string
   selected: boolean
 }
 

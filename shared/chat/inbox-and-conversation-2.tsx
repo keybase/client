@@ -6,7 +6,7 @@ import InboxSearch from './inbox-search/container'
 import Conversation from './conversation/container'
 import InfoPanel from './conversation/info-panel/container'
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as Types from '../constants/typeschat2'
+import * as Types from '../constants/types/chat2'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 
@@ -42,7 +42,7 @@ const InboxAndConversation = (props: Props) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
       {!Container.isTablet && inboxSearch ? <InboxSearch /> : <Inbox conversationIDKey={conversationIDKey} />}
-      <Conversation navigation={props.navigation} />
+      <Conversation conversationIDKey={conversationIDKey} />
       {infoPanelShowing && <InfoPanel conversationIDKey={conversationIDKey} />}
     </Kb.Box2>
   )
