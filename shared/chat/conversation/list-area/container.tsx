@@ -29,17 +29,21 @@ const throttledLoadOlder = throttle(
 )
 
 const throttledJumpToUnread = throttle(
-    (dispatch: Container.TypedDispatch, conversationIDKey: Types.ConversationIDKey, lastUnreadId?: Types.MessageID) => {
-        const id = lastUnreadId ? lastUnreadId : 0
-        dispatch(
-            Chat2Gen.createReplyJump({
-                conversationIDKey: conversationIDKey,
-                messageID: id,
-            }))
-    },
-    1000
+  (
+    dispatch: Container.TypedDispatch,
+    conversationIDKey: Types.ConversationIDKey,
+    lastUnreadId?: Types.MessageID
+  ) => {
+    const id = lastUnreadId ? lastUnreadId : 0
+    dispatch(
+      Chat2Gen.createReplyJump({
+        conversationIDKey: conversationIDKey,
+        messageID: id,
+      })
+    )
+  },
+  1000
 )
-
 
 export default Container.connect(
   (state, {conversationIDKey}: OwnProps) => {
@@ -69,7 +73,8 @@ export default Container.connect(
   },
   (dispatch, {conversationIDKey}: OwnProps) => ({
     copyToClipboard: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
-    loadLastUnreadMessage: (lastUnreadId?: Types.MessageID) => throttledJumpToUnread(dispatch, conversationIDKey, lastUnreadId),
+    loadLastUnreadMessage: (lastUnreadId?: Types.MessageID) =>
+      throttledJumpToUnread(dispatch, conversationIDKey, lastUnreadId),
     loadNewerMessages: () => throttledLoadNewer(dispatch, conversationIDKey),
     loadOlderMessages: () => throttledLoadOlder(dispatch, conversationIDKey),
     markInitiallyLoadedThreadAsRead: () =>

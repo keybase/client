@@ -21,7 +21,7 @@ import throttle from 'lodash/throttle'
 import chunk from 'lodash/chunk'
 import {globalMargins} from '../../../styles/shared'
 import {memoize} from '../../../util/memoize'
-import JumpToLastRead from "./jump-to-last-read";
+import JumpToLastRead from './jump-to-last-read'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -156,7 +156,7 @@ class Thread extends React.PureComponent<Props, State> {
 
     this.props.loadLastUnreadMessage()
 
-    return;
+    return
   }
 
   private scrollDown = () => {
@@ -534,11 +534,12 @@ class Thread extends React.PureComponent<Props, State> {
       <div>Debug info: {this.isLockedToBottom() ? 'Locked to bottom' : 'Not locked to bottom'}</div>
     ) : null
 
-    const lastUnread = (this.props.lastUnreadMessageID !== this.props.lastMessageID && this.showLastReadBox === true) ?
-        (<JumpToLastRead onClick={this.scrollToUnread} style={styles.jumpToLastRead}/>) : null
+    const lastUnread =
+      this.props.lastUnreadMessageID !== this.props.lastMessageID && this.showLastReadBox === true ? (
+        <JumpToLastRead onClick={this.scrollToUnread} style={styles.jumpToLastRead} />
+      ) : null
 
-    if (!lastUnread)
-      this.showLastReadBox = false
+    if (!lastUnread) this.showLastReadBox = false
 
     return (
       <ErrorBoundary>
