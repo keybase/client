@@ -10,11 +10,7 @@ import (
 
 // defaultBackend is the backend used for all logging calls.
 var defaultBackend LeveledBackend
-var defaultBackendMutex sync.Mutex
-
-func init() {
-	defaultBackendMutex = sync.Mutex{}
-}
+var defaultBackendMutex sync.RWMutex
 
 // Backend is the interface which a log backend need to implement to be able to
 // be used as a logging backend.
@@ -33,8 +29,8 @@ func SetBackend(backends ...Backend) LeveledBackend {
 	}
 
 	defaultBackendMutex.Lock()
+	defer defaultBackendMutex.Unlock()
 	defaultBackend = AddModuleLevel(backend)
-	defaultBackendMutex.Unlock()
 	return defaultBackend
 }
 
