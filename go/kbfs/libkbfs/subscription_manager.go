@@ -12,10 +12,16 @@ import (
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"golang.org/x/time/rate"
+)
+
+const (
+	folderBranchPollingInterval           = time.Second
+	maxPurgeableSubscriptionManagerClient = 3
 )
 
 // userPath is always the full path including the /keybase prefix, but may
@@ -124,6 +130,7 @@ type nonPathSubscription struct {
 type subscriptionManager struct {
 	clientID SubscriptionManagerClientID
 	config   Config
+	log      logger.Logger
 	notifier SubscriptionNotifier
 
 	onlineStatusTracker *onlineStatusTracker
@@ -136,6 +143,7 @@ type subscriptionManager struct {
 	nonPathSubscriptionIDToTopic    map[SubscriptionID]keybase1.SubscriptionTopic
 	subscriptionIDs                 map[SubscriptionID]bool
 	subscriptionCountByFolderBranch map[data.FolderBranch]int
+	folderBranchPollerCancelers     map[SubscriptionID]context.CancelFunc
 }
 
 func (sm *subscriptionManager) notifyOnlineStatus() {
@@ -157,9 +165,11 @@ func newSubscriptionManager(clientID SubscriptionManagerClientID, config Config,
 		nonPathSubscriptionIDToTopic:    make(map[SubscriptionID]keybase1.SubscriptionTopic),
 		clientID:                        clientID,
 		config:                          config,
+		log:                             config.MakeLogger("SubMan"),
 		notifier:                        notifier,
 		subscriptionIDs:                 make(map[SubscriptionID]bool),
 		subscriptionCountByFolderBranch: make(map[data.FolderBranch]int),
+		folderBranchPollerCancelers:     make(map[SubscriptionID]context.CancelFunc),
 	}
 	sm.onlineStatusTracker = newOnlineStatusTracker(config, sm.notifyOnlineStatus)
 	return sm
@@ -277,41 +287,31 @@ func (sm *subscriptionManager) makeNonPathSubscriptionDebouncedNotify(
 	}, limit)
 }
 
-// SubscribePath implements the SubscriptionManager interface.
-func (sm *subscriptionManager) SubscribePath(ctx context.Context,
-	sid SubscriptionID, path string, topic keybase1.PathSubscriptionTopic,
-	deduplicateInterval *time.Duration) error {
-	parsedPath, err := parsePath(userPath(path))
-	if err != nil {
-		return err
-	}
-	fb, err := parsedPath.getFolderBranch(ctx, sm.config)
-	if err != nil {
-		return err
-	}
-	if fb == (data.FolderBranch{}) {
-		// ignore non-existent TLF.
-		// TODO: deal with this case HOTPOTP-501
-		return nil
-	}
-	nitp := getCleanInTlfPath(parsedPath)
+type subscribePathRequest struct {
+	sid                 SubscriptionID
+	path                string // original, uncleaned path from GUI
+	topic               keybase1.PathSubscriptionTopic
+	deduplicateInterval *time.Duration
+}
 
+func (sm *subscriptionManager) subscribePathWithFolderBranchLocked(
+	req subscribePathRequest,
+	parsedPath *parsedPath, fb data.FolderBranch) error {
+	nitp := getCleanInTlfPath(parsedPath)
 	ref := pathSubscriptionRef{
 		folderBranch: fb,
 		path:         nitp,
 	}
 
-	sm.lock.Lock()
-	defer sm.lock.Unlock()
-	subscriptionIDSetter, err := sm.checkSubscriptionIDLocked(sid)
+	subscriptionIDSetter, err := sm.checkSubscriptionIDLocked(req.sid)
 	if err != nil {
 		return err
 	}
 	sm.registerForChangesLocked(ref.folderBranch)
 
 	limit := rate.Inf
-	if deduplicateInterval != nil {
-		limit = rate.Every(*deduplicateInterval)
+	if req.deduplicateInterval != nil {
+		limit = rate.Every(*req.deduplicateInterval)
 	}
 	ps, ok := sm.pathSubscriptions[ref]
 	if !ok {
@@ -328,11 +328,128 @@ func (sm *subscriptionManager) SubscribePath(ctx context.Context,
 		ps.debouncedNotify.shutdown()
 		ps.debouncedNotify = sm.makePathSubscriptionDebouncedNotify(ref, limit)
 	}
-	ps.subscriptionIDs[sid] = topic
-	ps.pathsToNotify[path] = struct{}{}
+	ps.subscriptionIDs[req.sid] = req.topic
+	ps.pathsToNotify[req.path] = struct{}{}
 
-	sm.pathSubscriptionIDToRef[sid] = ref
+	sm.pathSubscriptionIDToRef[req.sid] = ref
 	subscriptionIDSetter()
+	return nil
+}
+
+func (sm *subscriptionManager) cancelAndDeleteFolderBranchPollerLocked(
+	sid SubscriptionID) (deleted bool) {
+	if cancel, ok := sm.folderBranchPollerCancelers[sid]; ok {
+		cancel()
+		delete(sm.folderBranchPollerCancelers, sid)
+		return true
+	}
+	return false
+}
+
+func (sm *subscriptionManager) cancelAndDeleteFolderBranchPoller(
+	sid SubscriptionID) (deleted bool) {
+	sm.lock.Lock()
+	defer sm.lock.Unlock()
+	return sm.cancelAndDeleteFolderBranchPollerLocked(sid)
+}
+
+func (sm *subscriptionManager) pollOnFolderBranchForSubscribePathRequest(
+	ctx context.Context, req subscribePathRequest, parsedPath *parsedPath) {
+	ticker := time.NewTicker(folderBranchPollingInterval)
+	for {
+		select {
+		case <-ticker.C:
+			fb, err := parsedPath.getFolderBranch(ctx, sm.config)
+			if err != nil {
+				_ = sm.cancelAndDeleteFolderBranchPoller(req.sid)
+				return
+			}
+
+			if fb == (data.FolderBranch{}) {
+				continue
+			}
+
+			// We have a folderBranch now! Go ahead and complete the
+			// subscription, and send a notification too.
+
+			sm.lock.Lock()
+			defer sm.lock.Unlock()
+			// Check if we're done while holding the lock to protect
+			// against racing against unsubscribe.
+			select {
+			case <-ctx.Done():
+				// No need to call cancelAndDeleteFolderBranchPollerLocked here
+				// since we always cancel and delete at the same tiem and if
+				// it's canceled it must have been deleted too.
+				return
+			default:
+			}
+
+			err = sm.subscribePathWithFolderBranchLocked(req, parsedPath, fb)
+			if err != nil {
+				sm.log.CErrorf(ctx,
+					"subscribePathWithFolderBranchLocked sid=%s err=%v", req.sid, err)
+			}
+
+			sm.notifier.OnPathChange(
+				sm.clientID, []SubscriptionID{req.sid},
+				req.path, []keybase1.PathSubscriptionTopic{req.topic})
+
+			_ = sm.cancelAndDeleteFolderBranchPollerLocked(req.sid)
+			return
+		case <-ctx.Done():
+			_ = sm.cancelAndDeleteFolderBranchPoller(req.sid)
+			return
+		}
+	}
+}
+
+func (sm *subscriptionManager) subscribePathWithoutFolderBranchLocked(
+	req subscribePathRequest, parsedPath *parsedPath) {
+	ctx, cancel := context.WithCancel(context.Background())
+	sm.folderBranchPollerCancelers[req.sid] = cancel
+	go sm.pollOnFolderBranchForSubscribePathRequest(ctx, req, parsedPath)
+}
+
+// SubscribePath implements the SubscriptionManager interface.
+func (sm *subscriptionManager) SubscribePath(ctx context.Context,
+	sid SubscriptionID, path string, topic keybase1.PathSubscriptionTopic,
+	deduplicateInterval *time.Duration) error {
+	parsedPath, err := parsePath(userPath(path))
+	if err != nil {
+		return err
+	}
+
+	// Lock here to protect against racing with unsubscribe.  Specifically, we
+	// don't want to launch the poller if an unsubscribe call for this sid
+	// comes in before we get fb from parsedPath.getFolderBranch().
+	//
+	// We could still end up with a lingering subscription if unsubscribe
+	// happens too fast and RPC somehow gives use the unsubscribe call before
+	// the subscribe call, but that's probably rare enough to ignore here.
+	//
+	// In the future if this end up contributing a deadlock because
+	// folderBranch starts using the subscription manager somehow, we can add a
+	// "recently unsubscribed" cache to the subscription manager and move this
+	// lock further down. This cache should also mitigate the issue where the
+	// unsubscribe call gets deliverd before subscribe.
+	sm.lock.Lock()
+	defer sm.lock.Unlock()
+
+	fb, err := parsedPath.getFolderBranch(ctx, sm.config)
+	if err != nil {
+		return err
+	}
+	req := subscribePathRequest{
+		sid:                 sid,
+		path:                path,
+		topic:               topic,
+		deduplicateInterval: deduplicateInterval,
+	}
+	if fb != (data.FolderBranch{}) {
+		return sm.subscribePathWithFolderBranchLocked(req, parsedPath, fb)
+	}
+	sm.subscribePathWithoutFolderBranchLocked(req, parsedPath)
 	return nil
 }
 
@@ -374,6 +491,12 @@ func (sm *subscriptionManager) SubscribeNonPath(
 
 func (sm *subscriptionManager) unsubscribePathLocked(
 	ctx context.Context, subscriptionID SubscriptionID) {
+	// First check if this is a subscription we don't yet have a folderBranch
+	// for.
+	if sm.cancelAndDeleteFolderBranchPollerLocked(subscriptionID) {
+		return
+	}
+
 	ref, ok := sm.pathSubscriptionIDToRef[subscriptionID]
 	if !ok {
 		return
@@ -517,8 +640,6 @@ type subscriptionManagerManager struct {
 	subscriptionManagers   map[SubscriptionManagerClientID]*subscriptionManager
 	purgeableClientIDsFIFO []SubscriptionManagerClientID
 }
-
-const maxPurgeableSubscriptionManagerClient = 3
 
 func newSubscriptionManagerManager(config Config) *subscriptionManagerManager {
 	return &subscriptionManagerManager{
