@@ -25,8 +25,9 @@ func TestConcurrentContext(t *testing.T) {
 		eg.Go(func() error {
 			for j := 0; j < 50; j++ {
 				CtxAddMessageCacheSkips(ctx, convID, []chat1.MessageUnboxed{
-					chat1.MessageUnboxed{},
-					chat1.MessageUnboxed{},
+					// drop two empty msgs in
+					{},
+					{},
 				})
 			}
 			return nil
