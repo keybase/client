@@ -11,11 +11,12 @@ import {Activity} from '../../../common'
 import {pluralize} from '../../../../util/string'
 
 type ChannelRowProps = {
-  channel: ChatTypes.ConversationMeta
+  conversationIDKey: ChatTypes.ConversationIDKey
   teamID: Types.TeamID
 }
 const ChannelRow = (props: ChannelRowProps) => {
-  const {channel, teamID} = props
+  const {conversationIDKey, teamID} = props
+  const channel = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const isGeneral = channel.channelname === 'general'
 
   const selected = Container.useSelector(

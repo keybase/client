@@ -479,6 +479,15 @@
       "_description": "Set filtering and sort order for main team list. Leaves existing for undefinted params.",
       "filter?": "string",
       "sortOrder?": "Types.TeamListSort"
+    },
+    "loadTeamChannelList": {
+      "_description": "Load info for rendering the channel list on the team page.",
+      "teamID": "Types.TeamID"
+    },
+    "teamChannelListLoaded": {
+      "_description": "Loaded channel list for team.",
+      "teamID": "Types.TeamID",
+      "channels": "Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>"
     }
   }
 }

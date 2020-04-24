@@ -10,7 +10,6 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Constants from '../../../constants/chat2'
 import {Section as _Section} from '../../../common-adapters/section-list'
 import flags from '../../../util/feature-flags'
-import {useAllChannelMetas} from '../../common/channel-hooks'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import MemberRow from './member-row/container'
 import {BotRow, AddBotRow} from './bot-row'
@@ -141,17 +140,16 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
 }
 export const useChannelsSections = (
   teamID: Types.TeamID,
-  yourOperations: Types.TeamOperations,
-  shouldActuallyLoad: boolean
+  yourOperations: Types.TeamOperations
 ): Array<Section> => {
   const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
-  const {channelMetas, loadingChannels} = useAllChannelMetas(teamID, !shouldActuallyLoad /* dontCallRPC */)
+  const channels = Container.useSelector(state => state.teams.channelInfo.get(teamID))
   const canCreate = Container.useSelector(state => Constants.getCanPerformByID(state, teamID).createChannel)
 
   if (!isBig) {
     return [makeSingleRow('channel-empty', () => <EmptyRow type="channelsEmpty" teamID={teamID} />)]
   }
-  if (loadingChannels) {
+  if (!channels) {
     return [makeSingleRow('channel-loading', () => <LoadingRow />)]
   }
   const createRow = canCreate
@@ -160,7 +158,7 @@ export const useChannelsSections = (
   return [
     ...createRow,
     {
-      data: [...channelMetas.values()].sort((a, b) =>
+      data: [...channels.values()].sort((a, b) =>
         a.channelname === 'general'
           ? -1
           : b.channelname === 'general'
@@ -168,9 +166,9 @@ export const useChannelsSections = (
           : a.channelname.localeCompare(b.channelname)
       ),
       key: 'channel-channels',
-      renderItem: ({item}) => <ChannelRow teamID={teamID} channel={item} />,
+      renderItem: ({item}) => <ChannelRow teamID={teamID} conversationIDKey={item.conversationIDKey} />,
     },
-    channelMetas?.size < 5 && yourOperations.createChannel
+    channels.size < 5 && yourOperations.createChannel
       ? makeSingleRow('channel-few', () => <EmptyRow type="channelsFew" teamID={teamID} />)
       : makeSingleRow('channel-info', () => <ChannelFooterRow />),
   ]

@@ -9,6 +9,7 @@ import {memoize} from '../util/memoize'
 import * as TeamBuildingConstants from './team-building'
 import {RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
+import {noConversationIDKey} from './chat2'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
@@ -104,6 +105,18 @@ export const emptyEmailInviteError = Object.freeze<Types.EmailInviteError>({
   malformed: new Set<string>(),
   message: '',
 })
+
+const emptyTeamChannelInfo: Types.TeamChannelInfo = {
+  channelname: '',
+  conversationIDKey: noConversationIDKey,
+  description: '',
+}
+
+export const getTeamChannelInfo = (
+  state: TypedState,
+  teamID: Types.TeamID,
+  conversationIDKey: ChatTypes.ConversationIDKey
+) => state.teams.channelInfo.get(teamID)?.get(conversationIDKey) ?? emptyTeamChannelInfo
 
 export const teamRoleByEnum = ((m: {[K in Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
   const mInv: {[K in RPCTypes.TeamRole]?: Types.MaybeTeamRoleType} = {}
@@ -212,6 +225,7 @@ const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
+  channelInfo: new Map(),
   channelSelectedMembers: new Map(),
   creatingChannels: false,
   deletedTeams: [],
