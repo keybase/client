@@ -432,12 +432,8 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 
 	tc.Tp.SkipSendingSystemChatMessages = true
 
-	user2, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	kbtest.Logout(tc)
-
-	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	user2 := kbtest.TCreateFakeUser(tc)
+	admin := kbtest.TCreateFakeUser(tc)
 
 	teamName, teamID := createTeam2(tc)
 	t.Logf("Created team %q", teamName.String())
@@ -603,8 +599,7 @@ func TestSeitanMultipleRequestForOneInvite(t *testing.T) {
 
 	tc.Tp.SkipSendingSystemChatMessages = true
 
-	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	admin := kbtest.TCreateFakeUser(tc)
 
 	teamName, teamID := createTeam2(tc)
 
@@ -615,11 +610,7 @@ func TestSeitanMultipleRequestForOneInvite(t *testing.T) {
 	// Create two users
 	var users [2]*kbtest.FakeUser
 	for i := range users {
-		kbtest.Logout(tc)
-
-		user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-		require.NoError(t, err)
-		users[i] = user
+		users[i] = kbtest.TCreateFakeUser(tc)
 	}
 
 	timeNow := keybase1.ToTime(tc.G.Clock().Now())
@@ -684,4 +675,212 @@ func TestSeitanMultipleRequestForOneInvite(t *testing.T) {
 
 	require.True(t, team.IsMember(context.TODO(), users[0].GetUserVersion()))
 	require.False(t, team.IsMember(context.TODO(), users[1].GetUserVersion()))
+}
+
+func TestAcceptingMultipleSeitanV2ForOneTeam(t *testing.T) {
+	// Test one user accepting multiple seitan v2 tokens for one team.
+
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+	admin := kbtest.TCreateFakeUser(tc)
+
+	teamName, teamID := createTeam2(tc)
+
+	// Make 3 seitan invites with different roles. User will accept all 3 of
+	// them, but user should be added as the highest role, and rest of invites
+	// should be canceled.
+	inviteRoles := [3]keybase1.TeamRole{
+		keybase1.TeamRole_READER,
+		keybase1.TeamRole_WRITER,
+		keybase1.TeamRole_READER,
+	}
+
+	var ikeys [3]keybase1.SeitanIKeyV2
+	for i := range ikeys {
+		token, err := CreateSeitanTokenV2(tc.Context(), tc.G, teamName.String(),
+			inviteRoles[i], keybase1.SeitanKeyLabel{})
+		require.NoError(t, err)
+		ikeys[i] = token
+	}
+
+	user := kbtest.TCreateFakeUser(tc)
+
+	timeNow := keybase1.ToTime(tc.G.Clock().Now())
+
+	// Accept invites and prepare seitan requests for TeamSeitanMsg.
+	var inviteIDs [3]keybase1.TeamInviteID
+	var seitans [3]keybase1.TeamSeitanRequest
+	for i := range seitans {
+		token := SeitanIKeyV2(ikeys[i])
+		seitanRet, err := generateAcceptanceSeitanV2(token, user.GetUserVersion(), timeNow)
+		require.NoError(t, err)
+
+		err = postSeitanV2(tc.MetaContext(), seitanRet)
+		require.NoError(t, err)
+
+		inviteID, err := seitanRet.inviteID.TeamInviteID()
+		require.NoError(t, err)
+
+		seitans[i] = keybase1.TeamSeitanRequest{
+			InviteID:    inviteID,
+			Uid:         user.GetUID(),
+			EldestSeqno: user.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(seitanRet.encoded),
+			Role:        inviteRoles[i],
+			UnixCTime:   int64(timeNow),
+		}
+
+		// Save invite ID - will need it later to check which ones got canceled.
+		inviteIDs[i] = inviteID
+	}
+
+	// Handle seitan message as admin
+	kbtest.LogoutAndLoginAs(tc, admin)
+	msg := keybase1.TeamSeitanMsg{
+		TeamID:  teamID,
+		Seitans: seitans[:],
+	}
+	err := HandleTeamSeitan(context.Background(), tc.G, msg)
+	require.NoError(t, err)
+
+	// Check if user was added with correct role and if invites have expected
+	// statuses.
+	teamObj, err := loadTeamForAdmin(tc, teamName.String())
+	require.NoError(t, err)
+
+	memberRole, err := teamObj.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, memberRole)
+
+	require.Equal(t, 0, teamObj.NumActiveInvites())
+	for i, inviteID := range inviteIDs {
+		// None of the invites should be left active.
+		_, found := teamObj.chain().FindActiveInviteMDByID(inviteID)
+		require.False(t, found)
+
+		md := teamObj.chain().inner.InviteMetadatas[inviteID]
+		statusCode, err := md.Status.Code()
+		require.NoError(t, err)
+		switch i {
+		case 0, 2:
+			// Invites 0 and 2 should have been canceled during seitan handling.
+			require.Equal(t, keybase1.TeamInviteMetadataStatusCode_CANCELLED, statusCode,
+				"bad status for invite i=%d", i)
+		case 1:
+			// And invite 1 was completed when user was added.
+			require.Equal(t, keybase1.TeamInviteMetadataStatusCode_COMPLETED, statusCode,
+				"bad status for invite i=%d", i)
+		}
+	}
+}
+
+func TestAcceptingMultipleSeitanV2ForTeamUpgrade(t *testing.T) {
+	// Similar to TestAcceptingMultipleSeitanV2ForOneTeam, but user is already
+	// in the team as READER, and posts three acceptance keys for 3 distinct
+	// invites - READER (1), WRITER (2), WRITER (3). It should upgrade them to
+	// WRITER using invite (2), and cancel invites (1) and (3).
+
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+	user := kbtest.TCreateFakeUser(tc)
+	admin := kbtest.TCreateFakeUser(tc)
+
+	teamName, teamID := createTeam2(tc)
+
+	// Make 3 seitan invites with different roles. User will accept all 3 of
+	// them, but they should be added as the highest role, and rest of invites
+	// should be canceled.
+	inviteRoles := [3]keybase1.TeamRole{
+		keybase1.TeamRole_READER,
+		keybase1.TeamRole_WRITER,
+		keybase1.TeamRole_WRITER,
+	}
+
+	var ikeys [3]keybase1.SeitanIKeyV2
+	for i := range ikeys {
+		token, err := CreateSeitanTokenV2(tc.Context(), tc.G, teamName.String(),
+			inviteRoles[i], keybase1.SeitanKeyLabel{})
+		require.NoError(t, err)
+		ikeys[i] = token
+	}
+
+	// Admin adds user as READER.
+	_, err := AddMemberByID(tc.Context(), tc.G, teamID, user.Username, keybase1.TeamRole_READER,
+		nil /* botSettings */, nil /* emailMsg */)
+	require.NoError(t, err)
+
+	// User accepts all 3 invites and generates TeamSeitanRequests for admin to
+	// handle in HandleTeamSeitan.
+	kbtest.LogoutAndLoginAs(tc, user)
+
+	timeNow := keybase1.ToTime(tc.G.Clock().Now())
+
+	var inviteIDs [3]keybase1.TeamInviteID
+	var seitans [3]keybase1.TeamSeitanRequest
+	for i := range seitans {
+		token := SeitanIKeyV2(ikeys[i])
+		seitanRet, err := generateAcceptanceSeitanV2(token, user.GetUserVersion(), timeNow)
+		require.NoError(t, err)
+
+		err = postSeitanV2(tc.MetaContext(), seitanRet)
+		require.NoError(t, err)
+
+		inviteID, err := seitanRet.inviteID.TeamInviteID()
+		require.NoError(t, err)
+
+		seitans[i] = keybase1.TeamSeitanRequest{
+			InviteID:    inviteID,
+			Uid:         user.GetUID(),
+			EldestSeqno: user.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(seitanRet.encoded),
+			Role:        inviteRoles[i],
+			UnixCTime:   int64(timeNow),
+		}
+
+		// Save invite ID - will need it later to check which ones got canceled.
+		inviteIDs[i] = inviteID
+	}
+
+	kbtest.LogoutAndLoginAs(tc, admin)
+	msg := keybase1.TeamSeitanMsg{
+		TeamID:  teamID,
+		Seitans: seitans[:],
+	}
+	err = HandleTeamSeitan(context.Background(), tc.G, msg)
+	require.NoError(t, err)
+
+	// Check if user was added with correct role and if invites have expected
+	// statuses.
+	teamObj, err := loadTeamForAdmin(tc, teamName.String())
+	require.NoError(t, err)
+
+	memberRole, err := teamObj.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, memberRole)
+
+	// None of the invites should be active - invite 1, 3 should be canceled,
+	// and invite 2 completed.
+	require.Equal(t, 0, teamObj.NumActiveInvites())
+	for i, inviteID := range inviteIDs {
+		_, found := teamObj.chain().FindActiveInviteMDByID(inviteID)
+		require.False(t, found)
+
+		md := teamObj.chain().inner.InviteMetadatas[inviteID]
+		statusCode, err := md.Status.Code()
+		require.NoError(t, err)
+		switch i {
+		case 0, 2:
+			// Invites 0 and 2 should have been canceled during seitan handling.
+			require.Equal(t, keybase1.TeamInviteMetadataStatusCode_CANCELLED, statusCode,
+				"bad status for invite i=%d", i)
+		case 1:
+			// And invite 1 was completed when user was added.
+			require.Equal(t, keybase1.TeamInviteMetadataStatusCode_COMPLETED, statusCode,
+				"bad status for invite i=%d", i)
+		}
+	}
 }

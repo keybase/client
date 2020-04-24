@@ -242,6 +242,7 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 	if _, err = rand.Read(buf); err != nil {
 		return
 	}
+
 	// Uniquify name, since multiple tests may use the same name.
 	develName := fmt.Sprintf("%s_%s", name, hex.EncodeToString(buf))
 

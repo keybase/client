@@ -18,36 +18,29 @@ import (
 func TestTeamInviteStubbing(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
-	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	_ = kbtest.TCreateFakeUser(tc)
 
 	tc2 := SetupTest(t, "team", 1)
 	defer tc2.Cleanup()
-	user2, err := kbtest.CreateAndSignupFakeUserPaper("team", tc2.G)
-	require.NoError(t, err)
+	user2 := kbtest.TCreateFakeUser(tc2)
 
 	teamname := createTeam(tc)
 
 	t.Logf("Created team %s", teamname)
 
-	_, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		Name:      teamname,
-		NeedAdmin: true,
-	})
+	_, err := loadTeamForAdmin(tc, teamname)
 	require.NoError(t, err)
 
 	maxUses := keybase1.TeamInviteMaxUses(10)
-	inviteLink, err := CreateInvitelink(tc.MetaContext(), teamname, keybase1.TeamRole_READER, maxUses, nil /* etime */)
+	inviteLink, err := CreateInvitelink(tc.MetaContext(), teamname, keybase1.TeamRole_READER,
+		maxUses, nil /* etime */)
 	require.NoError(t, err)
 
 	wasSeitan, err := ParseAndAcceptSeitanToken(tc2.MetaContext(), &teamsUI{}, inviteLink.Ikey.String())
 	require.NoError(t, err)
 	require.True(t, wasSeitan)
 
-	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		Name:      teamname,
-		NeedAdmin: true,
-	})
+	teamObj, err := loadTeamForAdmin(tc, teamname)
 	require.NoError(t, err)
 
 	var inviteID keybase1.TeamInviteID
@@ -60,12 +53,11 @@ func TestTeamInviteStubbing(t *testing.T) {
 	err = changeReq.AddUVWithRole(user2.GetUserVersion(), keybase1.TeamRole_READER, nil /* botSettings */)
 	require.NoError(t, err)
 	changeReq.UseInviteID(inviteID, user2.GetUserVersion().PercentForm())
-	err = teamObj.ChangeMembershipWithOptions(context.TODO(), changeReq, ChangeMembershipOptions{})
+	err = teamObj.ChangeMembershipWithOptions(tc.Context(), changeReq, ChangeMembershipOptions{})
 	require.NoError(t, err)
 
 	// User 2 loads team
-
-	teamObj2, err := Load(context.TODO(), tc2.G, keybase1.LoadTeamArg{
+	teamObj2, err := Load(tc2.Context(), tc2.G, keybase1.LoadTeamArg{
 		Name:      teamname,
 		NeedAdmin: false,
 	})
@@ -73,13 +65,11 @@ func TestTeamInviteStubbing(t *testing.T) {
 	require.Len(t, teamObj2.chain().ActiveInvites(), 0, "invites were stubbed")
 
 	// User 1 makes User 2 admin
-
-	err = SetRoleAdmin(context.TODO(), tc.G, teamname, user2.Username)
+	err = SetRoleAdmin(tc.Context(), tc.G, teamname, user2.Username)
 	require.NoError(t, err)
 
-	// User 2 loads team again
-
-	teamObj, err = Load(context.TODO(), tc2.G, keybase1.LoadTeamArg{
+	// User 2 loads team again (NeedAdmin=true this time)
+	teamObj, err = Load(tc.Context(), tc2.G, keybase1.LoadTeamArg{
 		Name:      teamname,
 		NeedAdmin: true,
 	})
@@ -121,12 +111,8 @@ func TestSeitanHandleExceededInvite(t *testing.T) {
 	clock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(clock)
 
-	user2, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	kbtest.Logout(tc)
-
-	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	user2 := kbtest.TCreateFakeUser(tc)
+	admin := kbtest.TCreateFakeUser(tc)
 
 	teamName, teamID := createTeam2(tc)
 	t.Logf("Created team %s", teamName)
@@ -195,10 +181,7 @@ func TestSeitanHandleExceededInvite(t *testing.T) {
 	// fails (with a generic error)
 	assertRejectInviteArgs(t, record, accepted.inviteID, uv.Uid, uv.EldestSeqno, msg.Seitans[0].Akey, "acceptance not found")
 
-	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		Name:      teamName.String(),
-		NeedAdmin: true,
-	})
+	teamObj, err := loadTeamForAdmin(tc, teamName.String())
 	require.NoError(t, err)
 
 	// The person shouldn't have been added
@@ -219,12 +202,8 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 
 	tc.Tp.SkipSendingSystemChatMessages = true
 
-	user2, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	kbtest.Logout(tc)
-
-	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	user2 := kbtest.TCreateFakeUser(tc)
+	admin := kbtest.TCreateFakeUser(tc)
 
 	teamName, teamID := createTeam2(tc)
 	t.Logf("Created team %s", teamName)
@@ -332,11 +311,8 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 	record = records[0]
 	assertRejectInviteArgs(t, record, inviteID, uv.Uid, uv.EldestSeqno, msg4.Seitans[0].Akey, "")
 
-	ensureTeamOnlyHasAdminMember := func() {
-		teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-			Name:      teamName.String(),
-			NeedAdmin: true,
-		})
+	{
+		teamObj, err := loadTeamForAdmin(tc, teamName.String())
 		require.NoError(t, err)
 
 		// The person shouldn't have been added
@@ -346,7 +322,6 @@ func TestSeitanHandleSeitanRejectsWhenAppropriate(t *testing.T) {
 		uvs := members.AllUserVersions()
 		require.Equal(t, []keybase1.UserVersion{admin.GetUserVersion()}, uvs)
 	}
-	ensureTeamOnlyHasAdminMember()
 }
 
 func TestSeitanHandleExpiredInvite(t *testing.T) {
@@ -361,16 +336,9 @@ func TestSeitanHandleExpiredInvite(t *testing.T) {
 	clock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(clock)
 
-	user2, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	kbtest.Logout(tc)
-
-	user3, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	kbtest.Logout(tc)
-
-	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	user2 := kbtest.TCreateFakeUser(tc)
+	user3 := kbtest.TCreateFakeUser(tc)
+	admin := kbtest.TCreateFakeUser(tc)
 
 	teamName, teamID := createTeam2(tc)
 	t.Logf("Created team %s", teamName)
@@ -401,10 +369,7 @@ func TestSeitanHandleExpiredInvite(t *testing.T) {
 	assertRejectInviteArgs(t, record, SCTeamInviteID(msg3.Seitans[0].InviteID), user3.GetUID(), user3.GetUserVersion().EldestSeqno, msg3.Seitans[0].Akey, "")
 
 	// ensure team has user2 and admin but not user3
-	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		Name:      teamName.String(),
-		NeedAdmin: true,
-	})
+	teamObj, err := loadTeamForAdmin(tc, teamName.String())
 	require.NoError(t, err)
 
 	members, err := teamObj.Members()
@@ -420,16 +385,9 @@ func TestSeitanHandleRequestAfterRoleChange(t *testing.T) {
 
 	tc.Tp.SkipSendingSystemChatMessages = true
 
-	user2, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	kbtest.Logout(tc)
-
-	user3, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	kbtest.Logout(tc)
-
-	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	user2 := kbtest.TCreateFakeUser(tc)
+	user3 := kbtest.TCreateFakeUser(tc)
+	admin := kbtest.TCreateFakeUser(tc)
 
 	teamName, teamID := createTeam2(tc)
 	t.Logf("Created team %s", teamName)
@@ -476,11 +434,8 @@ func TestSeitanHandleRequestAfterRoleChange(t *testing.T) {
 	require.Len(t, records, 1, "one acceptance should be rejected")
 	assertRejectInviteArgs(t, records[0], inviteID, user2.GetUID(), user2.EldestSeqno, msg2.Seitans[0].Akey, "")
 
-	// Ensure team has only user3 and admin.
-	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		Name:      teamName.String(),
-		NeedAdmin: true,
-	})
+	// ensure team has only user3 and admin
+	teamObj, err := loadTeamForAdmin(tc, teamName.String())
 	require.NoError(t, err)
 
 	members, err := teamObj.Members()
@@ -496,24 +451,17 @@ func TestSeitanHandleFutureInvite(t *testing.T) {
 
 	tc.Tp.SkipSendingSystemChatMessages = true
 
-	user2, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	kbtest.Logout(tc)
-
-	user3, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	kbtest.Logout(tc)
-
-	admin, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	user2 := kbtest.TCreateFakeUser(tc)
+	user3 := kbtest.TCreateFakeUser(tc)
+	admin := kbtest.TCreateFakeUser(tc)
 
 	teamName, teamID := createTeam2(tc)
 	t.Logf("Created team %s", teamName)
 
 	// Add team invite link which expires in 10 minutes.
 	expTime := keybase1.ToUnixTime(time.Now().Add(10 * time.Minute))
-	invLink, err := CreateInvitelink(tc.MetaContext(), teamName.String(), keybase1.TeamRole_READER, keybase1.TeamMaxUsesInfinite,
-		&expTime)
+	invLink, err := CreateInvitelink(tc.MetaContext(), teamName.String(), keybase1.TeamRole_READER,
+		keybase1.TeamMaxUsesInfinite, &expTime)
 	require.NoError(t, err)
 
 	origAPI := tc.G.API
@@ -541,10 +489,7 @@ func TestSeitanHandleFutureInvite(t *testing.T) {
 	require.Len(t, records, 0, "no acceptance should be rejected")
 
 	// ensure team has only user3 and admin
-	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		Name:      teamName.String(),
-		NeedAdmin: true,
-	})
+	teamObj, err := loadTeamForAdmin(tc, teamName.String())
 	require.NoError(t, err)
 
 	members, err := teamObj.Members()
@@ -667,22 +612,316 @@ func TestSeitanInviteLinkPukless(t *testing.T) {
 			UnixCTime:   timeNow,
 		}},
 	}
-	err = HandleTeamSeitan(context.Background(), tc.G, msg)
+	err = HandleTeamSeitan(tc.Context(), tc.G, msg)
 	require.NoError(t, err)
 
 	// HandleTeamSeitan should not have added an invite for user. If it has, it
 	// also hasn't "used invite" properly (`team.invite` link does not have
 	// `use_invites` field even if it adds type=keybase invites).
-	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		Name:        teamName.String(),
-		NeedAdmin:   true,
-		ForceRepoll: true,
-	})
+	team, err := loadTeamForAdmin(tc, teamName.String())
 	require.NoError(t, err)
 
 	invite, _, found := team.FindActiveKeybaseInvite(user.GetUID())
 	require.False(t, found, "Expected not to find invite for user: %s", spew.Sdump(invite))
 
-	uvs := team.AllUserVersionsByUID(context.Background(), user.GetUID())
+	uvs := team.AllUserVersionsByUID(tc.Context(), user.GetUID())
 	require.Len(t, uvs, 0, "Expected user not to end up in a team as cryptomember (?)")
+}
+
+func TestAcceptMultipleInviteLinkForOneTeam(t *testing.T) {
+	// Test one user accepting multiple invite links tokens for one team.
+
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+	admin := kbtest.TCreateFakeUser(tc)
+
+	teamName, teamID := createTeam2(tc)
+
+	// Make 3 seitan invite links with different roles. User will accept all 3
+	// of them, but they should be added as the highest role, and other
+	// requests should be rejected.
+	inviteRoles := [3]keybase1.TeamRole{
+		keybase1.TeamRole_READER,
+		keybase1.TeamRole_WRITER,
+		keybase1.TeamRole_READER,
+	}
+
+	var ilinks [3]keybase1.Invitelink
+	for i := range ilinks {
+		maxUses := keybase1.TeamMaxUsesInfinite
+		token, err := CreateInvitelink(tc.MetaContext(), teamName.String(),
+			inviteRoles[i], maxUses, nil /* etime */)
+		require.NoError(t, err)
+		ilinks[i] = token
+	}
+
+	user := kbtest.TCreateFakeUser(tc)
+
+	uv := user.GetUserVersion()
+	unixNow := tc.G.Clock().Now().Unix()
+
+	var inviteIDs [3]keybase1.TeamInviteID
+	var seitans [3]keybase1.TeamSeitanRequest
+	for i := range seitans {
+		seitanRet, err := generateAcceptanceSeitanInviteLink(ilinks[i].Ikey, uv, unixNow)
+		require.NoError(t, err)
+
+		err = postSeitanInviteLink(tc.MetaContext(), seitanRet)
+		require.NoError(t, err)
+
+		inviteID, err := seitanRet.inviteID.TeamInviteID()
+		require.NoError(t, err)
+
+		seitans[i] = keybase1.TeamSeitanRequest{
+			InviteID:    inviteID,
+			Uid:         user.GetUID(),
+			EldestSeqno: user.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(seitanRet.encoded),
+			Role:        keybase1.TeamRole_WRITER,
+			UnixCTime:   unixNow,
+		}
+
+		inviteIDs[i] = inviteID
+	}
+
+	kbtest.LogoutAndLoginAs(tc, admin)
+	msg := keybase1.TeamSeitanMsg{
+		TeamID:  teamID,
+		Seitans: seitans[:],
+	}
+	rejections, err := handleTeamSeitanInternal(tc.MetaContext(), msg)
+	require.NoError(t, err)
+	require.Len(t, rejections, 2)
+	require.Equal(t, rejections[0].InviteID, inviteIDs[0])
+	require.Equal(t, rejections[1].InviteID, inviteIDs[2])
+	for _, v := range rejections {
+		require.Equal(t, user.GetUID(), v.UID)
+		require.Equal(t, user.EldestSeqno, v.EldestSeqno)
+		// TODO: Flaky right now because of the tribute check during rejection.
+		// require.NoError(t, v.err)
+	}
+
+	// Check if user was added with correct role and if invites have expected
+	// statuses.
+	teamObj, err := loadTeamForAdmin(tc, teamName.String())
+	require.NoError(t, err)
+
+	memberRole, err := teamObj.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, memberRole)
+
+	// All invites were infinite uses, they should still be active.
+	require.Equal(t, 3, teamObj.NumActiveInvites())
+
+	for i, inviteID := range inviteIDs {
+		_, found := teamObj.chain().FindActiveInviteMDByID(inviteID)
+		require.True(t, found)
+
+		md := teamObj.chain().inner.InviteMetadatas[inviteID]
+		statusCode, err := md.Status.Code()
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamInviteMetadataStatusCode_ACTIVE, statusCode)
+
+		switch i {
+		case 0, 2:
+			require.Len(t, md.UsedInvites, 0)
+		case 1:
+			// Invite 1 should have been used to add user.
+			require.Len(t, md.UsedInvites, 1)
+		}
+	}
+}
+
+func TestAcceptMultipleInviteLinkForTeamUpgrade(t *testing.T) {
+	// Similar to TestAcceptMultipleInviteLinkForOneTeam, but user is already
+	// in the team as READER, and uses three distinct invite links - READER
+	// (1), WRITER (2), WRITER (3). It should upgrade them to WRITER using
+	// invite (2), and reject requests for invites (1) and (3).
+
+	// Skipping because it's not possible to use an invite link to upgrade
+	// yourself right now - server prevents accepting an invite link if you are
+	// already in the team.
+	t.Skip()
+
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+	user := kbtest.TCreateFakeUser(tc)
+	admin := kbtest.TCreateFakeUser(tc)
+
+	teamName, teamID := createTeam2(tc)
+
+	// Make 3 seitan invite links with different roles. User will accept all 3
+	// of them, but they should be added as the highest role, and other
+	// requests should be rejected.
+	inviteRoles := [3]keybase1.TeamRole{
+		keybase1.TeamRole_READER,
+		keybase1.TeamRole_WRITER,
+		keybase1.TeamRole_WRITER,
+	}
+
+	var ilinks [3]keybase1.Invitelink
+	for i := range ilinks {
+		maxUses := keybase1.TeamMaxUsesInfinite
+		token, err := CreateInvitelink(tc.MetaContext(), teamName.String(),
+			inviteRoles[i], maxUses, nil /* etime */)
+		require.NoError(t, err)
+		ilinks[i] = token
+	}
+
+	_, err := AddMemberByID(tc.Context(), tc.G, teamID, user.Username, keybase1.TeamRole_READER,
+		nil /* botSettings */, nil /* emailMsg */)
+	require.NoError(t, err)
+
+	kbtest.LogoutAndLoginAs(tc, user)
+
+	uv := user.GetUserVersion()
+	unixNow := tc.G.Clock().Now().Unix()
+
+	var inviteIDs [3]keybase1.TeamInviteID
+	var seitans [3]keybase1.TeamSeitanRequest
+	for i := range seitans {
+		seitanRet, err := generateAcceptanceSeitanInviteLink(ilinks[i].Ikey, uv, unixNow)
+		require.NoError(t, err)
+
+		err = postSeitanInviteLink(tc.MetaContext(), seitanRet)
+		require.NoError(t, err)
+
+		inviteID, err := seitanRet.inviteID.TeamInviteID()
+		require.NoError(t, err)
+
+		seitans[i] = keybase1.TeamSeitanRequest{
+			InviteID:    inviteID,
+			Uid:         user.GetUID(),
+			EldestSeqno: user.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(seitanRet.encoded),
+			Role:        keybase1.TeamRole_WRITER,
+			UnixCTime:   unixNow,
+		}
+
+		inviteIDs[i] = inviteID
+	}
+
+	kbtest.LogoutAndLoginAs(tc, admin)
+	msg := keybase1.TeamSeitanMsg{
+		TeamID:  teamID,
+		Seitans: seitans[:],
+	}
+	err = HandleTeamSeitan(tc.Context(), tc.G, msg)
+	require.NoError(t, err)
+
+	// TODO: If this test ever gets enabled, check if user was added properly.
+}
+
+func TestAcceptMultipleInviteLinksExceeded(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+	user1 := kbtest.TCreateFakeUser(tc)
+	user2 := kbtest.TCreateFakeUser(tc)
+	admin := kbtest.TCreateFakeUser(tc)
+
+	teamName, teamID := createTeam2(tc)
+
+	// Create two invite links, one for READER with infinite uses, and one for
+	// WRITER with MaxUses=1.
+	var err error
+	var ilinks [2]keybase1.Invitelink
+	maxUses := keybase1.TeamMaxUsesInfinite
+	ilinks[0], err = CreateInvitelink(tc.MetaContext(), teamName.String(),
+		keybase1.TeamRole_READER, maxUses, nil /* etime */)
+	require.NoError(t, err)
+	maxUses, err = keybase1.NewTeamInviteFiniteUses(1)
+	require.NoError(t, err)
+	ilinks[1], err = CreateInvitelink(tc.MetaContext(), teamName.String(),
+		keybase1.TeamRole_WRITER, maxUses, nil /* etime */)
+	require.NoError(t, err)
+
+	// Send the acceptances in the following order:
+	// User 1 accepts invite[0] (READER)
+	// User 2 accepts invite[1] (WRITER, exceeds the invite)
+	// User 1 accepts invite[1] (WRITER, but it's already exceeded)
+
+	// Depending on the order of how the requests are handled, either user 1 or
+	// user 2 can be added as writer. But we ant to ensure of them being added
+	// in the order of requests, so even with the logic of finding the
+	// highest-role invite, User 1 should be added with READER role.
+
+	acceptSeitan := func(user *kbtest.FakeUser, ikey keybase1.SeitanIKeyInvitelink, role keybase1.TeamRole) keybase1.TeamSeitanRequest {
+		kbtest.LogoutAndLoginAs(tc, user)
+
+		unixNow := tc.G.Clock().Now().Unix()
+		seitanRet, err := generateAcceptanceSeitanInviteLink(ikey, user.GetUserVersion(), unixNow)
+		require.NoError(t, err)
+
+		// Ignore error - we are overusing invite here and this API will try to
+		// prevent us.
+		_ = postSeitanInviteLink(tc.MetaContext(), seitanRet)
+
+		inviteID, err := seitanRet.inviteID.TeamInviteID()
+		require.NoError(t, err)
+
+		return keybase1.TeamSeitanRequest{
+			InviteID:    inviteID,
+			Uid:         user.GetUID(),
+			EldestSeqno: user.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(seitanRet.encoded),
+			// role is ignored in HandleTeamSeitan, but server passes the correct one anyway.
+			Role:      role,
+			UnixCTime: unixNow,
+		}
+	}
+
+	var seitans [3]keybase1.TeamSeitanRequest
+	seitans[0] = acceptSeitan(user1, ilinks[0].Ikey, keybase1.TeamRole_READER)
+	seitans[1] = acceptSeitan(user2, ilinks[1].Ikey, keybase1.TeamRole_WRITER)
+	seitans[2] = acceptSeitan(user1, ilinks[1].Ikey, keybase1.TeamRole_WRITER)
+
+	inviteIDs := [2]keybase1.TeamInviteID{seitans[0].InviteID, seitans[1].InviteID}
+
+	kbtest.LogoutAndLoginAs(tc, admin)
+	msg := keybase1.TeamSeitanMsg{
+		TeamID:  teamID,
+		Seitans: seitans[:],
+	}
+	rejections, err := handleTeamSeitanInternal(tc.MetaContext(), msg)
+	require.NoError(t, err)
+	require.Len(t, rejections, 1)
+	require.Equal(t, user1.GetUID(), rejections[0].UID)
+	require.Equal(t, user1.EldestSeqno, rejections[0].EldestSeqno)
+	require.Equal(t, inviteIDs[1], rejections[0].InviteID)
+	// We should be able to reject this acceptance because server shouldn't have let us post it in the first place.
+	require.Error(t, rejections[0].err)
+
+	// Inspect the team to check if users were added properly.
+	teamObj, err := loadTeamForAdmin(tc, teamName.String())
+	require.NoError(t, err)
+
+	// User 1 should be added as READER.
+	memberRole, err := teamObj.MemberRole(tc.Context(), user1.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_READER, memberRole)
+
+	// User 2 should be added as WRITER.
+	memberRole, err = teamObj.MemberRole(tc.Context(), user2.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, memberRole)
+
+	for i, inviteID := range inviteIDs {
+		_, found := teamObj.chain().FindActiveInviteMDByID(inviteID)
+		require.True(t, found)
+
+		md := teamObj.chain().inner.InviteMetadatas[inviteID]
+		require.Len(t, md.UsedInvites, 1)
+		switch i {
+		case 0:
+			require.Equal(t, md.UsedInvites[0].Uv, user1.GetUserVersion())
+		case 1:
+			require.Equal(t, md.UsedInvites[0].Uv, user2.GetUserVersion())
+		}
+	}
 }
