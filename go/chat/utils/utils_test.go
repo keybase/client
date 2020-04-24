@@ -1018,16 +1018,21 @@ func TestGetMessageBodyTxIDs(t *testing.T) {
 	pID1 := stellar1.PaymentID("AHHHHH1")
 	pID2 := stellar1.PaymentID("AHHHHH2")
 
+	payment1 := chat1.TextPayment{Username: "alice", PaymentText: "1XLM@alice", Result: chat1.NewTextPaymentResultWithSent(pID1)}
+	payment2 := chat1.TextPayment{Username: "alice", PaymentText: "1XLM@alice", Result: chat1.NewTextPaymentResultWithSent(pID2)}
+
 	bodyTxIDs := GetMessageBodyTxIDs(chat1.MessageType_TEXT, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body:     "+1xml@alice +5xlm@bob",
-		Payments: []chat1.TextPayment{chat1.TextPayment{Username: "alice", PaymentText: "1XLM@alice", Result: chat1.NewTextPaymentResultWithSent(pID1)}, chat1.TextPayment{Username: "alice", PaymentText: "1XLM@alice", Result: chat1.NewTextPaymentResultWithSent(pID2)}}}))
+		Payments: []chat1.TextPayment{payment1, payment2}}))
 	require.Equal(t, 2, len(bodyTxIDs))
 	require.True(t, bodyTxIDs[0] == stellar1.TransactionIDFromPaymentID(pID1))
 	require.True(t, bodyTxIDs[1] == stellar1.TransactionIDFromPaymentID(pID2))
 
+	payment1.Result = chat1.NewTextPaymentResultWithError("oof")
+	payment2.Result = chat1.NewTextPaymentResultWithError("oof")
 	bodyTxIDs = GetMessageBodyTxIDs(chat1.MessageType_TEXT, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body:     "+1xml@alice +5xlm@bob",
-		Payments: []chat1.TextPayment{chat1.TextPayment{Username: "alice", PaymentText: "1XLM@alice", Result: chat1.NewTextPaymentResultWithError("oof")}, chat1.TextPayment{Username: "alice", PaymentText: "1XLM@alice", Result: chat1.NewTextPaymentResultWithError("oof")}}}))
+		Payments: []chat1.TextPayment{payment1, payment2}}))
 	require.Equal(t, 0, len(bodyTxIDs))
 
 	bodyTxIDs = GetMessageBodyTxIDs(chat1.MessageType_SENDPAYMENT, chat1.NewMessageBodyWithSendpayment(chat1.MessageSendPayment{PaymentID: pID1}))

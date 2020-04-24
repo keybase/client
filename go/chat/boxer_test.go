@@ -1886,6 +1886,7 @@ func TestSendPayment(t *testing.T) {
 	ctx := newTestContextWithTlfMock(tc, tlf)
 
 	ni, err := tlf.LookupID(ctx, u.Username, false)
+	require.NoError(t, err)
 	msg := sendPaymentMsgWithSender(t, txID, uid, mbVersion)
 	msg.ClientHeader.Conv.Tlfid = ni.ID
 	msg.ClientHeader.TlfPublic = false
@@ -1926,6 +1927,7 @@ func TestSendPaymentWithTxID(t *testing.T) {
 	ctx := newTestContextWithTlfMock(tc, tlf)
 
 	ni, err := tlf.LookupID(ctx, u.Username, false)
+	require.NoError(t, err)
 	msg := sendPaymentMsgWithSender(t, txID, uid, mbVersion)
 	msg.ClientHeader.Conv.Tlfid = ni.ID
 	msg.ClientHeader.TlfPublic = false
@@ -1965,6 +1967,7 @@ func TestSendPaymentWithWrongTxID(t *testing.T) {
 	ctx := newTestContextWithTlfMock(tc, tlf)
 
 	ni, err := tlf.LookupID(ctx, u.Username, false)
+	require.NoError(t, err)
 	msg := sendPaymentMsgWithSender(t, txID, uid, mbVersion)
 	msg.ClientHeader.Conv.Tlfid = ni.ID
 	msg.ClientHeader.TlfPublic = false
