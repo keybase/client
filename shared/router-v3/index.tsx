@@ -65,7 +65,7 @@ const getModals = memoize(() =>
 )
 
 const RouterV3 = () => {
-  const [nav, setNav] = React.useState<NavigationContainerRef>(null)
+  const [nav, setNav] = React.useState<NavigationContainerRef | null>(null)
   const navIsSet = React.useRef(false)
   // TODO chagne routes
   //const loggedIn = Container.useSelector(state => state.config.loggedIn)

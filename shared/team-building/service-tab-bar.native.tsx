@@ -42,7 +42,14 @@ const ServiceIcon = React.memo((props: IconProps) => {
 
   return (
     <Kb.ClickableBox onClick={() => props.onClick(props.service)} style={{position: 'relative'}}>
-      <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, {width}]}>
+      <AnimatedBox2
+        direction="vertical"
+        style={[
+          styles.serviceIconContainer,
+          // @ts-ignore TODO maybe allow animated values
+          {width},
+        ]}
+      >
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
           {serviceIdToBadge(props.service) && (
             <Kb.Badge
@@ -55,7 +62,14 @@ const ServiceIcon = React.memo((props: IconProps) => {
           )}
           <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
         </Kb.Box2>
-        <AnimatedBox2 direction="vertical" style={[styles.labelContainer, {opacity}]}>
+        <AnimatedBox2
+          direction="vertical"
+          style={[
+            styles.labelContainer,
+            // @ts-ignore TODO maybe allow animated values
+            {opacity},
+          ]}
+        >
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
             <Kb.Box2 direction="vertical">
               {props.label.map((label, i) => (

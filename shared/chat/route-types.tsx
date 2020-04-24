@@ -4,5 +4,7 @@ export type ParamList = {
   chatConversation: {
     conversationIDKey: Types.ConversationIDKey
   }
-  chatRoot: undefined
+  chatRoot: {
+    conversationIDKey: Types.ConversationIDKey
+  }
 }

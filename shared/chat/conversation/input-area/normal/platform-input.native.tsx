@@ -253,6 +253,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
             flexShrink: 1,
             minHeight: 0,
           },
+          // @ts-ignore TODO fix animated
           this.state.expanded || this.state.animating
             ? {height: this.animateHeight, maxHeight: 9999}
             : // workaround auto height not working?
@@ -435,6 +436,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
           onClick={expandInput}
           type="iconfont-arrow-full-up"
           fontSize={18}
+          // @ts-ignore TODO fix animated
           style={{
             transform: [{rotate: concat(add(45, rotate), 'deg'), scale: 0.7}],
           }}
@@ -446,6 +448,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
           onClick={expandInput}
           type="iconfont-arrow-full-up"
           fontSize={18}
+          // @ts-ignore TODO fix animated
           style={{
             transform: [
               {

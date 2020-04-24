@@ -4,22 +4,21 @@ import * as Kb from '../common-adapters'
 import Inbox from './inbox/container'
 import InboxSearch from './inbox-search/container'
 import Conversation from './conversation/container'
-import Header from './header'
 import InfoPanel from './conversation/info-panel/container'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as Types from '../constants/typeschat2'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
-import {RouteProp, ParamListBase} from '@react-navigation/native'
 
 type Props = {
-  navigation?: any
+  conversationIDKey: Types.ConversationIDKey
 }
 
 const InboxAndConversation = (props: Props) => {
+  const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
-  const conversationIDKey = props.navigation.state?.params?.conversationIDKey
   const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
   const needSelectConvoID = Container.useSelector(state => {
     if (validConvoID) {
@@ -28,7 +27,6 @@ const InboxAndConversation = (props: Props) => {
     const first = state.chat2.inboxLayout?.smallTeams?.[0]
     return first?.convID
   })
-  const navKey = props.navigation.state.key
 
   React.useEffect(() => {
     if (needSelectConvoID) {
@@ -43,11 +41,7 @@ const InboxAndConversation = (props: Props) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-      {!Container.isTablet && inboxSearch ? (
-        <InboxSearch />
-      ) : (
-        <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
-      )}
+      {!Container.isTablet && inboxSearch ? <InboxSearch /> : <Inbox conversationIDKey={conversationIDKey} />}
       <Conversation navigation={props.navigation} />
       {infoPanelShowing && <InfoPanel conversationIDKey={conversationIDKey} />}
     </Kb.Box2>
@@ -57,13 +51,3 @@ const InboxAndConversation = (props: Props) => {
 const Memoed = React.memo(InboxAndConversation)
 Container.hoistNonReactStatic(Memoed, InboxAndConversation)
 export default Memoed
-
-export const screenOptions = ({
-  route,
-}: {
-  route: Container.RouteProp<{conversationIDKey: Types.ConversationIDKey}, 'chatRoot'>
-}) => ({
-  header: undefined,
-  headerTitle: <Header conversationIDKey={route.params.conversationIDKey} />,
-  headerTitleContainerStyle: {left: 0, right: 0},
-})

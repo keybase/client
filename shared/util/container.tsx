@@ -30,6 +30,7 @@ export function getRouteProps<O extends _RouteProps<any>, R extends GetRouteType
   key: K,
   notSetVal: R[K] // this could go away if we type the routes better and ensure its always passed as a prop
 ): R[K] {
+  // @ts-ignore
   const val = ownProps.route.params?.[key]
   return val === undefined ? notSetVal : val
 }
@@ -40,6 +41,7 @@ export function getRoutePropsOr<O extends _RouteProps<any>, R extends GetRouteTy
   key: K,
   notSetVal: D
 ): R[K] | D {
+  // @ts-ignore
   const val = ownProps.route.params?.[key]
   return val === undefined ? notSetVal : val
 }

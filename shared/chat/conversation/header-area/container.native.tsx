@@ -9,7 +9,7 @@ import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getVisiblePath} from '../../../constants/router2'
 import {getFullname} from '../../../constants/users'
 import * as Tabs from '../../../constants/tabs'
-import {ParamList} from '../../routes-types'
+import {ScreenProps} from '../../../router-v3/types'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -122,7 +122,7 @@ const Connected = Container.connect(
 )(HeaderBranch)
 
 const GrabConvoID = () => {
-  const route = Container.useRoute<Container.RouteProp<ParamList, 'chatConversation'>>()
+  const route = Container.useRoute<ScreenProps<'chatConversation'>['route']>()
   return <Connected conversationIDKey={route.params.conversationIDKey} progress={null} />
 }
 

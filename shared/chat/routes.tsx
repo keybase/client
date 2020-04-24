@@ -1,6 +1,7 @@
+import * as React from 'react'
+import * as Kb from '../common-adapters'
 import ChatConversation from './conversation/container'
 import ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
-import ChatRoot from './inbox/container'
 import ChatAddToChannel from './conversation/info-panel/add-to-channel/container'
 import ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
 import ChatAttachmentFullscreen from './conversation/attachment-fullscreen/container'
@@ -23,24 +24,12 @@ import ChatInstallBotPick from './conversation/bot/team-picker'
 import ChatSearchBot from './conversation/bot/search'
 import ChatConfirmRemoveBot from './conversation/bot/confirm'
 import ChatPDF from './pdf'
-import * as ChatConstants from '../constants/chat2'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
   chatEnterPaperkey: {
     getScreen: (): typeof ChatEnterPaperkey => require('./conversation/rekey/enter-paper-key').default,
-  },
-}
-
-export const v3Routes = {
-  chatRoot: {
-    component: ChatConstants.isSplit
-      ? require('./inbox-and-conversation-2').default
-      : require('./inbox/defer-loading').default,
-    options: ChatConstants.isSplit
-      ? require('./inbox-and-conversation-2').screenOptions
-      : require('./inbox/defer-loading').screenOptions,
   },
 }
 

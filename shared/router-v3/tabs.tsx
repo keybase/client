@@ -1,3 +1,4 @@
+// The main navigation tabs
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters/mobile.native'
@@ -5,11 +6,8 @@ import * as Kbfs from '../fs/common'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
-import {LeftAction} from '../common-adapters/header-hoc'
 import {createBottomTabNavigator, BottomTabBarProps} from '@react-navigation/bottom-tabs'
-import {createStackNavigator, StackNavigationOptions} from '@react-navigation/stack'
-import {routes, v3Routes, ParamList} from './routes'
-import {memoize} from '../util/memoize'
+import {tabStacks} from './stacks'
 
 const icons = new Map<string, Kb.IconType>([
   [Tabs.chatTab, 'iconfont-nav-2-chat'],
@@ -88,108 +86,13 @@ const TabBar = (props: BottomTabBarProps) => {
 }
 
 const Tab = createBottomTabNavigator()
-const Stack = createStackNavigator<ParamList>()
-
-/** TODO drepreate **/
-const convertNavigationOptionsToStackOptions = (C: any): any => {
-  const {navigationOptions} = C
-
-  if (!navigationOptions) {
-    return undefined
-  }
-
-  return navigationOptions
-}
-
-console.log('aaaa routes', routes)
-
-const getScreens = memoize(() => [
-  // TODO deprecate this at some point
-  ...Object.keys(routes).map(name => {
-    // TODO is there a way to defer the require now?
-    const Component = routes[name].getScreen()
-    const options = convertNavigationOptionsToStackOptions(Component)
-    // @ts-ignore
-    return <Stack.Screen key={name} name={name} component={Component} options={options} />
-  }),
-  ...Object.keys(v3Routes).map(name => {
-    return <Stack.Screen key={name} name={name} {...v3Routes[name]} />
-  }),
-])
-
-const BlankTab = () => null
-const PeopleStack = () => (
-  <Stack.Navigator initialRouteName="peopleRoot" screenOptions={defaultScreenOptions}>
-    {getScreens()}
-  </Stack.Navigator>
-)
-const ChatStack = () => (
-  <Stack.Navigator initialRouteName="chatRoot" screenOptions={defaultScreenOptions}>
-    {getScreens()}
-  </Stack.Navigator>
-)
-const FSStack = () => (
-  <Stack.Navigator initialRouteName="fsRoot" screenOptions={defaultScreenOptions}>
-    {getScreens()}
-  </Stack.Navigator>
-)
-const TeamsStack = () => (
-  <Stack.Navigator initialRouteName="teamsRoot" screenOptions={defaultScreenOptions}>
-    {getScreens()}
-  </Stack.Navigator>
-)
-const SettingsStack = () => (
-  <Stack.Navigator initialRouteName="settingsRoot" screenOptions={defaultScreenOptions}>
-    {getScreens()}
-  </Stack.Navigator>
-)
-
-const defaultScreenOptions: StackNavigationOptions = {
-  cardStyle: {
-    backgroundColor: Styles.globalColors.white,
-  },
-  headerLeft: ({canGoBack, onPress, tintColor}) =>
-    canGoBack ? (
-      <LeftAction
-        badgeNumber={0}
-        leftAction="back"
-        onLeftAction={onPress} // react navigation makes sure this onPress can only happen once
-        customIconColor={tintColor}
-      />
-    ) : null,
-  headerRight: undefined,
-  headerStyle: {
-    get backgroundColor() {
-      return Styles.globalColors.fastBlank
-    },
-    get borderBottomColor() {
-      return Styles.globalColors.black_10
-    },
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-    elevation: undefined, // since we use screen on android turn off drop shadow
-  },
-  headerTitle: ({children}) => (
-    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
-      {children}
-    </Kb.Text>
-  ),
-}
 
 const NavTabs = () => {
   return (
-    <Tab.Navigator
-      initialRouteName="blankTab"
-      backBehavior="none"
-      tabBar={props => <TabBar {...props} />}
-      screenOptions={defaultScreenOptions}
-    >
-      <Tab.Screen name="blankTab" component={BlankTab} />
-      <Tab.Screen name="tabs.peopleTab" component={PeopleStack} />
-      <Tab.Screen name="tabs.chatTab" component={ChatStack} />
-      <Tab.Screen name="tabs.fsTab" component={FSStack} />
-      <Tab.Screen name="tabs.teamsTab" component={TeamsStack} />
-      <Tab.Screen name="tabs.settingsTab" component={SettingsStack} />
+    <Tab.Navigator initialRouteName="blankTab" backBehavior="none" tabBar={props => <TabBar {...props} />}>
+      {tabStacks.map(({name, component}) => (
+        <Tab.Screen key={name} name={name} component={component} />
+      ))}
     </Tab.Navigator>
   )
 }
@@ -213,7 +116,6 @@ const styles = Styles.styleSheetCreate(() => ({
     right: Styles.globalMargins.small,
     width: Styles.globalMargins.small,
   },
-  headerTitle: {color: Styles.globalColors.black},
   tab: Styles.platformStyles({
     common: {
       paddingBottom: 6,
