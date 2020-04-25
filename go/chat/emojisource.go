@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -319,13 +318,13 @@ func (s *DevConvEmojiSource) fromURL(ctx context.Context, url string) (string, e
 	if err != nil {
 		return "", err
 	}
-	tmpfile, err := ioutil.TempFile(filepath.Dir(filename), filepath.Base(filename))
+	file, err := os.Create(filename)
 	if err != nil {
 		return "", err
 	}
 
-	_, err = io.Copy(tmpfile, resp.Body)
-	return tmpfile.Name(), err
+	_, err = io.Copy(file, resp.Body)
+	return file.Name(), err
 }
 
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
