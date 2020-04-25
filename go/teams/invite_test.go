@@ -355,6 +355,7 @@ func TestTeamPlayerEtime(t *testing.T) {
 		require.Contains(t, err.Error(), inviteID)
 	}
 
+	// Try a valid etime
 	etime := keybase1.ToUnixTime(time.Now())
 	invite.Etime = &etime
 	invite.MaxUses = &singleUse
@@ -368,6 +369,16 @@ func TestTeamPlayerEtime(t *testing.T) {
 	require.Len(t, state.ActiveInvites(), 1)
 	_, found := state.FindActiveInviteMDByID(keybase1.TeamInviteID(inviteID))
 	require.True(t, found)
+
+	// Can use Etime without MaxUses?
+	invite.Etime = &etime
+	invite.MaxUses = nil
+	section.Invites = &SCTeamInvites{
+		Readers: &[]SCTeamInvite{invite},
+	}
+	state, err = appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		section, me, nil /* merkleRoot */)
+	require.NoError(t, err)
 }
 
 func TestTeamPlayerInviteLinksImplicitTeam(t *testing.T) {
