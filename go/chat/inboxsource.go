@@ -192,6 +192,15 @@ func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid g
 	return nil
 }
 
+func (b *baseInboxSource) RemoteDeleteConversation(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (err error) {
+	defer b.Trace(ctx, &err, "RemoteDeleteConversation")()
+	if _, err = b.getChatInterface().DeleteConversation(ctx, convID); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (b *baseInboxSource) createConversationLocalizer(ctx context.Context, typ types.ConversationLocalizerTyp,
 	localizeCb chan types.AsyncInboxResult) conversationLocalizer {
 	switch typ {
@@ -1665,6 +1674,18 @@ func (s *HybridInboxSource) RemoteSetConversationStatus(ctx context.Context, uid
 		return err
 	}
 	return s.createInbox().SetStatus(ctx, uid, 0, convID, status)
+}
+
+func (s *HybridInboxSource) RemoteDeleteConversation(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (err error) {
+	defer s.maybeNuke(ctx, uid, &convID, &err)
+	if err := s.baseInboxSource.RemoteDeleteConversation(ctx, uid, convID); err != nil {
+		return err
+	}
+	return s.createInbox().ConversationsUpdate(ctx, uid, 0, []chat1.ConversationUpdate{{
+		ConvID:    convID,
+		Existence: chat1.ConversationExistence_DELETED,
+	}})
 }
 
 func (s *HybridInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
