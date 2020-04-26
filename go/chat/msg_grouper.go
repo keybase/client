@@ -66,20 +66,12 @@ func newJoinLeaveGrouper(g *globals.Context, uid gregor1.UID, convID chat1.Conve
 }
 
 func (gr *joinLeaveGrouper) matches(ctx context.Context, msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
-	if !msg.IsValid() {
+	if !msg.IsValid() || msg.Valid().ClientHeader.Sender.Eq(gr.uid) {
 		return false
 	}
 	body := msg.Valid().MessageBody
 	if !(body.IsType(chat1.MessageType_JOIN) || body.IsType(chat1.MessageType_LEAVE)) {
 		return false
-	}
-	if msg.Valid().ClientHeader.Sender.Eq(gr.uid) {
-		return false
-	}
-	for _, g := range grouped {
-		if g.Valid().SenderUsername == msg.Valid().SenderUsername {
-			return false
-		}
 	}
 	return true
 }
@@ -198,7 +190,10 @@ func newChannelGrouper(g *globals.Context, uid gregor1.UID, convID chat1.Convers
 }
 
 func (gr *channelGrouper) matches(ctx context.Context, msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
-	if !(msg.IsValid() && msg.Valid().ClientHeader.Sender.Eq(gr.uid)) {
+	if !msg.IsValid() {
+		return false
+	}
+	if len(grouped) > 0 && !grouped[0].SenderEq(msg) {
 		return false
 	}
 	body := msg.Valid().MessageBody
@@ -249,7 +244,10 @@ func newAddedToTeamGrouper(g *globals.Context, uid gregor1.UID, convID chat1.Con
 }
 
 func (gr *addedToTeamGrouper) matches(ctx context.Context, msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
-	if !msg.IsValid() {
+	if !(msg.IsValid() && msg.Valid().ClientHeader.Sender.Eq(gr.uid)) {
+		return false
+	}
+	if len(grouped) > 0 && !grouped[0].SenderEq(msg) {
 		return false
 	}
 	body := msg.Valid().MessageBody
@@ -261,6 +259,7 @@ func (gr *addedToTeamGrouper) matches(ctx context.Context, msg chat1.MessageUnbo
 	if !(err == nil && typ == chat1.MessageSystemType_ADDEDTOTEAM) {
 		return false
 	}
+	// We want to show a link to the bot settings
 	if sysBod.Addedtoteam().Role.IsRestrictedBot() {
 		return false
 	}
@@ -272,17 +271,6 @@ func (gr *addedToTeamGrouper) matches(ctx context.Context, msg chat1.MessageUnbo
 	}
 	if gr.ownUsername == sysBod.Addedtoteam().Addee {
 		return false
-	}
-
-	// only group messages from a single adder
-	if len(grouped) > 0 {
-		body := grouped[0].Valid().MessageBody
-		if body.IsType(chat1.MessageType_SYSTEM) {
-			sysBod2 := msg.Valid().MessageBody.System()
-			typ, err := sysBod2.SystemType()
-			return (err == nil && typ == chat1.MessageSystemType_ADDEDTOTEAM &&
-				sysBod2.Addedtoteam().Adder == sysBod.Addedtoteam().Adder)
-		}
 	}
 	return true
 }
@@ -334,12 +322,8 @@ func (gr *errGrouper) matches(ctx context.Context, msg chat1.MessageUnboxed, gro
 	} else if msg.Error().IsEphemeralError() && msg.Error().IsEphemeralExpired(time.Now()) {
 		return false
 	}
-	// group the same error message from the same sender
-	for _, g := range grouped {
-		if !(g.Error().SenderUsername == msg.Error().SenderUsername &&
-			g.Error().ErrMsg == msg.Error().ErrMsg) {
-			return false
-		}
+	if len(grouped) > 0 && !grouped[0].SenderEq(msg) {
+		return false
 	}
 	return true
 }
