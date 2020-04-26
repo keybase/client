@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"go.uber.org/zap"
 )
@@ -17,17 +19,19 @@ import (
 type mysqlActivityStatsStorer struct {
 	logger *zap.Logger
 	db     *sql.DB
+	clock  libkbfs.Clock
 
 	lock  sync.RWMutex
 	tlfs  map[tlf.ID]time.Time
 	hosts map[string]time.Time
 }
 
-func newMySQLActivityStatsStorerNoStart(
+func newMySQLActivityStatsStorerNoStart(clock libkbfs.Clock,
 	db *sql.DB, logger *zap.Logger) *mysqlActivityStatsStorer {
 	return &mysqlActivityStatsStorer{
 		logger: logger,
 		db:     db,
+		clock:  clock,
 		tlfs:   make(map[tlf.ID]time.Time),
 		hosts:  make(map[string]time.Time),
 	}
@@ -37,7 +41,7 @@ func newMySQLActivityStatsStorerNoStart(
 // activities on a MySQL database.
 func NewMySQLActivityStatsStorer(
 	db *sql.DB, logger *zap.Logger) ActivityStatsStorer {
-	s := newMySQLActivityStatsStorerNoStart(db, logger)
+	s := newMySQLActivityStatsStorerNoStart(data.WallClock{}, db, logger)
 	// TODO shutdown()
 	go s.insertLoop(context.Background())
 	return s
@@ -137,8 +141,8 @@ func (s *mysqlActivityStatsStorer) getActiveHosts(
 func (s *mysqlActivityStatsStorer) stageInserts(tlfID tlf.ID, host string) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	s.tlfs[tlfID] = time.Now()
-	s.hosts[host] = time.Now()
+	s.tlfs[tlfID] = s.clock.Now()
+	s.hosts[host] = s.clock.Now()
 }
 
 const mysqlStatInsertInterval = 4 * time.Second
@@ -167,7 +171,7 @@ func (s *mysqlActivityStatsStorer) GetActives(dur time.Duration) (
 	activeTlfs int, activeHosts int, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), mysqlGetActivesTimeout)
 	defer cancel()
-	since := time.Now().Add(-dur)
+	since := s.clock.Now().Add(-dur)
 	if activeTlfs, err = s.getActiveTlfs(ctx, since); err != nil {
 		return 0, 0, err
 	}

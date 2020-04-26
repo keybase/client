@@ -13,6 +13,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"go.uber.org/zap"
 )
@@ -156,7 +157,7 @@ func MigrateActivityStatsStorerFromFileBasedToMySQL(
 		return
 	}
 	logger.Info("create tables")
-	mysqlStorer := newMySQLActivityStatsStorerNoStart(db, logger)
+	mysqlStorer := newMySQLActivityStatsStorerNoStart(data.WallClock{}, db, logger)
 	err = mysqlStorer.createTablesIfNotExists(context.Background())
 	if err != nil {
 		logger.Error("create tables", zap.Error(err))
