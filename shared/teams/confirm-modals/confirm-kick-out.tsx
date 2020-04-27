@@ -28,15 +28,15 @@ const ConfirmKickOut = (props: Props) => {
     setWaiting(true)
     const teamMemberToRemoves = members.map(member => {
       return {
-        type: 0, // TODO how do I get RPCTypes.TeamMemberToRemoveType.assertion to typecheck?
         assertion: {
           assertion: member,
           removeFromSubtree: subteamsToo,
         },
+        type: 0, // TODO how do I get RPCTypes.TeamMemberToRemoveType.assertion to typecheck?
       }
     })
     removeMembersRPC(
-      [{teamID, members: teamMemberToRemoves, noErrorOnPartialFailure: true}],
+      [{members: teamMemberToRemoves, noErrorOnPartialFailure: true, teamID}],
       result => {
         setResult(result)
         setWaiting(false)
@@ -46,7 +46,7 @@ const ConfirmKickOut = (props: Props) => {
         setWaiting(false)
       }
     )
-  }, [teamID, members, removeMembersRPC, subteamsToo, waiting, setWaiting])
+  }, [teamID, members, removeMembersRPC, subteamsToo, setWaiting])
 
   const onRemove = () => {
     removeMembers()
@@ -60,7 +60,7 @@ const ConfirmKickOut = (props: Props) => {
       // TODO this breaks the app, [team member view] no data! this should never happen
       dispatch(nav.safeNavigateUpPayload())
     }
-  }, [waiting, wasWaiting, dispatch, error, result, nav])
+  }, [waiting, wasWaiting, dispatch, error, result, nav, anyError])
 
   const prompt = (
     <Kb.Text center={true} type="Header" style={styles.prompt}>
