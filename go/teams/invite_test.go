@@ -376,7 +376,7 @@ func TestTeamPlayerEtime(t *testing.T) {
 	section.Invites = &SCTeamInvites{
 		Readers: &[]SCTeamInvite{invite},
 	}
-	state, err = appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+	_, err = appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		section, me, nil /* merkleRoot */)
 	require.NoError(t, err)
 }
