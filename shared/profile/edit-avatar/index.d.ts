@@ -16,6 +16,7 @@ type ProfileProps = {
   createdTeam?: false
   onSkip?: undefined
   type: 'profile'
+  showBack?: false
   wizard?: false
 }
 
