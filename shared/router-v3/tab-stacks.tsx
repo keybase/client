@@ -7,33 +7,23 @@ import {screens} from './routes'
 import {StackNavigationOptions} from '@react-navigation/stack'
 import {Stack} from './stack-factory'
 import {Tab} from './tab-factory'
+import {KeyboardAvoidingView} from 'react-native'
 
 const BlankTab = () => null
-const PeopleStack = () => (
-  <Stack.Navigator initialRouteName="peopleRoot" screenOptions={defaultScreenOptions}>
-    {screens}
-  </Stack.Navigator>
+
+const makeStack = (initialRouteName: string) => () => (
+  <KeyboardAvoidingView behavior={Styles.isIOS ? 'padding' : undefined} style={styles.keyboardAvoiding}>
+    <Stack.Navigator initialRouteName={initialRouteName} screenOptions={defaultScreenOptions}>
+      {screens}
+    </Stack.Navigator>
+  </KeyboardAvoidingView>
 )
-const ChatStack = () => (
-  <Stack.Navigator initialRouteName="chatRoot" screenOptions={defaultScreenOptions}>
-    {screens}
-  </Stack.Navigator>
-)
-const FSStack = () => (
-  <Stack.Navigator initialRouteName="fsRoot" screenOptions={defaultScreenOptions}>
-    {screens}
-  </Stack.Navigator>
-)
-const TeamsStack = () => (
-  <Stack.Navigator initialRouteName="teamsRoot" screenOptions={defaultScreenOptions}>
-    {screens}
-  </Stack.Navigator>
-)
-const SettingsStack = () => (
-  <Stack.Navigator initialRouteName="settingsRoot" screenOptions={defaultScreenOptions}>
-    {screens}
-  </Stack.Navigator>
-)
+
+const PeopleStack = makeStack('peopleRoot')
+const ChatStack = makeStack('chatRoot')
+const FSStack = makeStack('fsRoot')
+const TeamsStack = makeStack('teamsRoot')
+const SettingsStack = makeStack('settingsRoot')
 
 const defaultScreenOptions: StackNavigationOptions = {
   cardStyle: {
@@ -69,6 +59,7 @@ const defaultScreenOptions: StackNavigationOptions = {
 
 const styles = Styles.styleSheetCreate(() => ({
   headerTitle: {color: Styles.globalColors.black},
+  keyboardAvoiding: {height: '100%', width: '100%'},
 }))
 
 const tabsOptions = ({route}) => {

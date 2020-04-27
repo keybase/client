@@ -93,8 +93,8 @@ const NavTabs = () => {
       initialRouteName="blankTab"
       backBehavior="none"
       tabBar={props => <TabBar {...props} />}
-      screenOptions={p => {
-        console.log('aaaa', p)
+      options={{
+        keyboardHidesTabBar: Styles.isAndroid,
       }}
     >
       {tabs}
