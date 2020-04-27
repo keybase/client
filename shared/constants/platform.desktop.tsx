@@ -128,14 +128,14 @@ export const appColorSchemeChanged = () => {}
 export const isRemoteDebuggerAttached = false
 
 const getTimeLocale = () => {
-  if (isLinux) {
-    locale = process.env.LC_ALL || process.env.LC_CTIME || process.env.LANG
-    if (locale) {
-      return locale.slice(0, 2)
-    }
-    return {}
+  if (!isLinux) {
+    return Intl.DateTimeFormat().resolvedOptions().locale
   }
-  return Intl.DateTimeFormat().resolvedOptions().locale
+  const locale = process.env.LC_ALL || process.env.LC_CTIME || process.env.LANG
+  if (locale) {
+    return locale.slice(0, 2)
+  }
+  return {}
 }
 const uses24HourClockF = () => {
   try {
