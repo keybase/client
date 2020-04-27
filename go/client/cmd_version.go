@@ -98,8 +98,7 @@ func (v *CmdVersion) runAssertMatching() error {
 	}
 	conf, err := cli.GetConfig(context.TODO(), 0)
 	if err != nil {
-		v.G().Log.Debug("no service running: %v", err)
-		return nil
+		return err
 	}
 	clients, err := cli.GetClientStatus(context.TODO(), 0)
 	if err != nil {
