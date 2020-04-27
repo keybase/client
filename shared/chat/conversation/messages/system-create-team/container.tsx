@@ -39,9 +39,10 @@ export default Container.connect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     creator: ownProps.message.creator,
-    isAdmin: stateProps.isAdmin,
+    isAdmin: stateProps.isAdmin || stateProps.you === ownProps.message.creator,
     onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamID, ownProps.message.conversationIDKey),
     team: stateProps.team,
+    teamID: stateProps.teamID,
     you: stateProps.you,
   })
 )(SystemCreateTeam)
