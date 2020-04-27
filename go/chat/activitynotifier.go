@@ -58,6 +58,14 @@ func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.U
 	if activity == nil {
 		return
 	}
+	switch topicType {
+	case chat1.TopicType_KBFSFILEEDIT:
+		if libkb.IsMobilePlatform() {
+			n.Debug(ctx, "skipping file edit notify on mobile")
+			return
+		}
+	default:
+	}
 	typ, err := activity.ActivityType()
 	if err != nil {
 		n.Debug(ctx, "invalid activity type: %v", err)
