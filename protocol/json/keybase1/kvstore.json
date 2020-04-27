@@ -24,8 +24,12 @@
           "name": "entryKey"
         },
         {
-          "type": "string",
-          "name": "entryValue"
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "entryValue",
+          "nullSerializable": true
         },
         {
           "type": "int",
