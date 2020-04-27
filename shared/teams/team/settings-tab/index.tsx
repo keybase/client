@@ -238,10 +238,6 @@ export class Settings extends React.Component<Props, State> {
     }
   }
 
-  componentDidMount() {
-    this.props.loadWelcomeMessage()
-  }
-
   componentDidUpdate(prevProps: Props) {
     if (
       this.props.ignoreAccessRequests !== prevProps.ignoreAccessRequests ||
@@ -358,7 +354,8 @@ export class Settings extends React.Component<Props, State> {
               <InviteLinks teamID={this.props.teamID} />
             </Kb.Box2>
           )}
-          {flags.teamsRedesign &&
+          {false &&
+            flags.teamsRedesign &&
             this.props.yourOperations.editTeamDescription &&
             (this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
               <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
