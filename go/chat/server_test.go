@@ -4509,6 +4509,55 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			require.Fail(t, "failed to get members update")
 		}
 
+		t.Logf("user 0 removes user 1 from the new convo")
+		_, err = ctc.as(t, users[0]).chatLocalHandler().RemoveFromConversationLocal(ctx, chat1.RemoveFromConversationLocalArg{
+			ConvID:    ncres.Conv.GetConvID(),
+			Usernames: []string{users[1].Username},
+		})
+		require.NoError(t, err)
+		select {
+		case convID := <-listener1.leftConv:
+			require.Equal(t, convID, getTLFRes.Convs[1].GetConvID())
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get left notification")
+		}
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_REMOVED, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+
+		t.Logf("rejoin user 1 into new convo manually")
+		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{
+			TlfName:    conv.TlfName,
+			TopicType:  chat1.TopicType_CHAT,
+			Visibility: keybase1.TLFVisibility_PRIVATE,
+			TopicName:  topicName,
+		})
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+		select {
+		case conv := <-listener1.joinedConv:
+			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
+			require.Equal(t, topicName, conv.Channel)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get joined notification")
+		}
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
+			require.Equal(t, 1, len(act.Members))
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Members[0].Status)
+			require.Equal(t, users[1].Username, act.Members[0].Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+
 		t.Logf("@mention in user2")
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("FAIL: @%s", users[2].Username),
@@ -4529,7 +4578,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		case convID := <-listener1.leftConv:
 			require.Equal(t, convID, getTLFRes.Convs[1].GetConvID())
 		case <-time.After(20 * time.Second):
-			require.Fail(t, "failed to get joined notification")
+			require.Fail(t, "failed to get left notification")
 		}
 		select {
 		case act := <-listener0.membersUpdate:

@@ -5278,6 +5278,28 @@ func (o DeleteConversationLocalRes) DeepCopy() DeleteConversationLocalRes {
 	}
 }
 
+type RemoveFromConversationLocalRes struct {
+	Offline    bool        `codec:"offline" json:"offline"`
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o RemoveFromConversationLocalRes) DeepCopy() RemoveFromConversationLocalRes {
+	return RemoveFromConversationLocalRes{
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type GetTLFConversationsLocalRes struct {
 	Convs      []InboxUIItem `codec:"convs" json:"convs"`
 	Offline    bool          `codec:"offline" json:"offline"`
@@ -6849,6 +6871,11 @@ type DeleteConversationLocalArg struct {
 	Confirmed   bool           `codec:"confirmed" json:"confirmed"`
 }
 
+type RemoveFromConversationLocalArg struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	Usernames []string       `codec:"usernames" json:"usernames"`
+}
+
 type GetTLFConversationsLocalArg struct {
 	TlfName     string                  `codec:"tlfName" json:"tlfName"`
 	TopicType   TopicType               `codec:"topicType" json:"topicType"`
@@ -7222,6 +7249,7 @@ type LocalInterface interface {
 	LeaveConversationLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
 	PreviewConversationByIDLocal(context.Context, ConversationID) (PreviewConversationLocalRes, error)
 	DeleteConversationLocal(context.Context, DeleteConversationLocalArg) (DeleteConversationLocalRes, error)
+	RemoveFromConversationLocal(context.Context, RemoveFromConversationLocalArg) (RemoveFromConversationLocalRes, error)
 	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
 	GetChannelMembershipsLocal(context.Context, GetChannelMembershipsLocalArg) (GetChannelMembershipsLocalRes, error)
 	GetMutualTeamsLocal(context.Context, []string) (GetMutualTeamsLocalRes, error)
@@ -8070,6 +8098,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.DeleteConversationLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"removeFromConversationLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]RemoveFromConversationLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RemoveFromConversationLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RemoveFromConversationLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.RemoveFromConversationLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -9293,6 +9336,11 @@ func (c LocalClient) PreviewConversationByIDLocal(ctx context.Context, convID Co
 
 func (c LocalClient) DeleteConversationLocal(ctx context.Context, __arg DeleteConversationLocalArg) (res DeleteConversationLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.deleteConversationLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) RemoveFromConversationLocal(ctx context.Context, __arg RemoveFromConversationLocalArg) (res RemoveFromConversationLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.removeFromConversationLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

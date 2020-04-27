@@ -1893,6 +1893,10 @@ func (r *DeleteConversationLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *RemoveFromConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *SearchRegexpRes) SetOffline() {
 	r.Offline = true
 }
@@ -2274,6 +2278,14 @@ func (r *DeleteConversationLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *RemoveFromConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *RemoveFromConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *GetTLFConversationsLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -2473,6 +2485,19 @@ func (r *DeleteConversationRemoteRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *DeleteConversationRemoteRes) SetRateLimits(rl []RateLimit) {
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
+}
+
+func (r *RemoveFromConversationRemoteRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *RemoveFromConversationRemoteRes) SetRateLimits(rl []RateLimit) {
 	if len(rl) > 0 {
 		r.RateLimit = &rl[0]
 	}

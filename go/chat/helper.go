@@ -922,6 +922,24 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 	return utils.GetVerifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceRemoteOnly)
 }
 
+func RemoveFromConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, convID chat1.ConversationID, usernames []string) (err error) {
+	users := make([]gregor1.UID, len(usernames))
+	for i, username := range usernames {
+		uid, err := g.GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(username))
+		if err != nil {
+			return fmt.Errorf("error resolving user %s: %s", username, err)
+		}
+		users[i] = uid.ToBytes()
+	}
+
+	_, err = ri().RemoveFromConversation(ctx, chat1.RemoveFromConversationArg{
+		ConvID: convID,
+		Users:  users,
+	})
+	return err
+}
+
 type NewConvFindExistingMode int
 
 const (
