@@ -38,9 +38,23 @@ export type NotificationsSettingsState = {
   description: string
 }
 
+export type NotificationsGroupStateFromServer = {
+  notifications: {
+    [key: string]: {
+      settings: Array<{
+        description: string
+        description_h: string
+        name: string
+        subscribed: boolean
+      }>
+      unsub: boolean
+    }
+  }
+}
+
 export type NotificationsGroupState = {
   settings: Array<NotificationsSettingsState>
-  unsubscribedFromAll: boolean
+  unsub: boolean
 }
 
 export type NotificationSettingsStateGroups = Map<string, NotificationsGroupState>
