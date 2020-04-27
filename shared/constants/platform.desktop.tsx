@@ -135,7 +135,7 @@ const getTimeLocale = () => {
   if (locale) {
     return locale.slice(0, 2)
   }
-  return {}
+  return []
 }
 const uses24HourClockF = () => {
   try {
