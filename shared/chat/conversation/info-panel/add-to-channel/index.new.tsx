@@ -3,10 +3,11 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as ChatConstants from '../../../../constants/chat2'
 import * as ChatTypes from '../../../../constants/types/chat2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as TeamConstants from '../../../../constants/teams'
 import * as TeamTypes from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
+import * as RPCChatGen from '../../../../constants/types/rpc-chat-gen'
+import * as TeamsGen from '../../../../actions/teams-gen'
 import {useTeamDetailsSubscribe} from '../../../../teams/subscriber'
 import {pluralize} from '../../../../util/string'
 import {memoize} from '../../../../util/memoize'
@@ -49,10 +50,23 @@ const AddToChannel = (props: Props) => {
 
   useTeamDetailsSubscribe(teamID)
 
+  const [waiting, setWaiting] = React.useState(false)
+  const addToChannel = Container.useRPC(RPCChatGen.localBulkAddToConvRpcPromise)
+
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
   const onAdd = () => {
-    dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames: [...toAdd]}))
-    onClose()
+    setWaiting(true)
+    addToChannel(
+      [{convID: ChatTypes.keyToConversationID(conversationIDKey), usernames: [...toAdd]}],
+      () => {
+        setWaiting(false)
+        dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+        onClose()
+      },
+      () => {
+        setWaiting(false)
+      }
+    )
   }
 
   const loading = !allMembers.length
@@ -69,7 +83,7 @@ const AddToChannel = (props: Props) => {
           undefined
         ),
         rightButton: Styles.isMobile && toAdd.size && (
-          <Kb.Text type="BodyBigLink" onClick={onAdd}>
+          <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : onAdd}>
             Add
           </Kb.Text>
         ),
@@ -92,6 +106,7 @@ const AddToChannel = (props: Props) => {
                     onClick={onAdd}
                     disabled={!toAdd.size}
                     style={Styles.globalStyles.flexOne}
+                    waiting={waiting}
                   />
                 </Kb.Box2>
               ),
