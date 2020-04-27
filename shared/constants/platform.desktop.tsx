@@ -126,6 +126,23 @@ export {runMode}
 export const appColorSchemeChanged = () => {}
 
 export const isRemoteDebuggerAttached = false
-export const uses24HourClock = new Date('1999 Jan 1 20:00')
-  .toLocaleString(Intl.DateTimeFormat().resolvedOptions().locale)
-  .includes(' 20:')
+
+const getTimeLocale = () => {
+  if (!isLinux) {
+    return Intl.DateTimeFormat().resolvedOptions().locale
+  }
+  const locale = process.env.LC_ALL || process.env.LC_TIME || process.env.LANG
+  if (locale) {
+    return locale.slice(0, 2)
+  }
+  return []
+}
+const uses24HourClockF = () => {
+  try {
+    return new Date('1999 Jan 1 20:00').toLocaleString(getTimeLocale()).includes(' 20:')
+  } catch {
+    // unknown locale
+    return false
+  }
+}
+export const uses24HourClock = uses24HourClockF()
