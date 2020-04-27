@@ -50,7 +50,7 @@ type AddSuggestorsProps = {
   onChannelSuggestionsTriggered: () => void
   onFetchEmoji: () => void
   renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
-  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatus
+  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
   suggestionListStyle?: Styles.StylesCrossPlatform
   suggestionOverlayStyle?: Styles.StylesCrossPlatform
   suggestionSpinnerStyle?: Styles.StylesCrossPlatform
@@ -372,13 +372,10 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       let suggestionsVisible = false
       const results = this._getResults()
       const suggestBotCommandsUpdateStatus = this.props.suggestBotCommandsUpdateStatus
-      if (suggestBotCommandsUpdateStatus.typ === RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating) {
-        console.warn("OKAY I'M GONNA SHOW A SPINNER")
-      }
       if (
         results.data.length ||
         results.loading ||
-        suggestBotCommandsUpdateStatus.typ === RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating
+        suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
       ) {
         suggestionsVisible = true
         const active = this.state.active
@@ -397,17 +394,17 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
               renderItem={this._itemRenderer}
               selectedIndex={this.state.selected}
             />
-            {(results.loading ||
-              this.props.suggestBotCommandsUpdateStatus.typ ===
-                RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating) && (
+            {results.loading && (
               <Kb.ProgressIndicator
                 type={Styles.isMobile ? undefined : 'Large'}
                 style={this.props.suggestionSpinnerStyle}
               />
             )}
-            {this.props.suggestBotCommandsUpdateStatus.typ ===
-              RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating && (
-              <BotCommandUpdateStatus status={suggestBotCommandsUpdateStatus.typ} />
+            {this.props.suggestBotCommandsUpdateStatus !==
+              RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank && (
+              <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
+                <BotCommandUpdateStatus status={suggestBotCommandsUpdateStatus} />
+              </Kb.Box2>
             )}
           </>
         ) : (
@@ -461,7 +458,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           {overlay}
           <WrappedComponent
             {...(wrappedOP as WrappedOwnProps)}
-            suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus.typ}
+            suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
             suggestionsVisible={suggestionsVisible}
             ref={this._setAttachmentRef}
             inputRef={this._inputRef}
@@ -482,6 +479,13 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  commandStatusContainer: {
+    backgroundColor: Styles.globalColors.white,
+    bottom: 0,
+    height: 22,
+    justifyContent: 'center',
+    position: 'absolute',
+  },
   spinnerBackground: Styles.platformStyles({
     common: {
       justifyContent: 'center',
