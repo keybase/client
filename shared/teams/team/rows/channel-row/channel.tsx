@@ -50,7 +50,18 @@ const ChannelRow = (props: ChannelRowProps) => {
   const onNavToSettings = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
-        path: [{props: {...props, selectedTab: 'settings' as const}, selected: 'teamChannel'}],
+        path: [
+          {
+            props: {
+              ...props,
+              conversationIDKey: channel.conversationIDKey,
+              isPreview:
+                channel.membershipType === 'youArePreviewing' || channel.membershipType === 'notMember',
+              selectedTab: 'settings' as const,
+            },
+            selected: 'teamChannel',
+          },
+        ],
       })
     )
 

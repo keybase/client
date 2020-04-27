@@ -3073,7 +3073,7 @@ func (c Coordinate) MarshalJSON() ([]byte, error) {
 
 // Incremented if the client hash algorithm changes. If this value is changed
 // be sure to add a case in the BotInfo.Hash() function.
-const ClientBotInfoHashVers BotInfoHashVers = 1
+const ClientBotInfoHashVers BotInfoHashVers = 2
 
 // Incremented if the server sends down bad data and needs to bust client
 // caches.
@@ -3093,6 +3093,8 @@ func (b BotInfo) Hash() BotInfoHash {
 	switch b.ClientHashVers {
 	case 0, 1:
 		b.hashV1(hash)
+	case 2:
+		b.hashV2(hash)
 	default:
 		// Every valid client version should be specifically handled, unit
 		// tests verify that we have a non-empty hash output.
@@ -3112,6 +3114,21 @@ func (b BotInfo) hashV1(hash hash.Hash) {
 		hash.Write(cconv.Uid)
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.UntrustedTeamRole), 10)))
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
+	}
+}
+
+func (b BotInfo) hashV2(hash hash.Hash) {
+	sort.Slice(b.CommandConvs, func(i, j int) bool {
+		ikey := b.CommandConvs[i].Uid.String() + b.CommandConvs[i].ConvID.String()
+		jkey := b.CommandConvs[j].Uid.String() + b.CommandConvs[j].ConvID.String()
+		return ikey < jkey
+	})
+	for _, cconv := range b.CommandConvs {
+		hash.Write(cconv.ConvID)
+		hash.Write(cconv.Uid)
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.UntrustedTeamRole), 10)))
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Typ), 10)))
 	}
 }
 

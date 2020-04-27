@@ -83,10 +83,6 @@ type XdgPosix struct {
 
 func (x XdgPosix) Normalize(s string) string { return s }
 
-func (x XdgPosix) DownloadsDir() string {
-	return filepath.Join(x.Home(false), "Downloads")
-}
-
 func (x XdgPosix) Home(emptyOk bool) string {
 	ret := x.getHome()
 	if len(ret) == 0 && !emptyOk {
@@ -155,7 +151,13 @@ func (x XdgPosix) SharedCacheDir() string  { return x.CacheDir() }
 func (x XdgPosix) SandboxCacheDir() string { return "" } // Unsupported
 func (x XdgPosix) DataDir() string         { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
 func (x XdgPosix) SharedDataDir() string   { return x.DataDir() }
-
+func (x XdgPosix) DownloadsDir() string {
+	xdgSpecified := x.getenv("XDG_DOWNLOAD_DIR")
+	if xdgSpecified != "" {
+		return xdgSpecified
+	}
+	return filepath.Join(x.Home(false), "Downloads")
+}
 func (x XdgPosix) RuntimeDir() string { return x.dirHelper("XDG_RUNTIME_DIR", ".config") }
 func (x XdgPosix) InfoDir() string    { return x.RuntimeDir() }
 

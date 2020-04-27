@@ -266,7 +266,8 @@
           "type": "bytes"
         }
       ],
-      "response": null
+      "response": null,
+      "compression_type": "none"
     },
     "putBlockAgain": {
       "request": [
@@ -287,7 +288,8 @@
           "type": "bytes"
         }
       ],
-      "response": null
+      "response": null,
+      "compression_type": "none"
     },
     "getBlock": {
       "request": [
@@ -304,7 +306,8 @@
           "type": "boolean"
         }
       ],
-      "response": "GetBlockRes"
+      "response": "GetBlockRes",
+      "compression_type": "none"
     },
     "getBlockSizes": {
       "request": [

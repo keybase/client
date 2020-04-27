@@ -288,6 +288,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           flex: 1,
           height: '100%',
+          paddingBottom: Styles.globalMargins.small,
           paddingTop: Styles.globalMargins.small,
         },
         isTablet: {alignSelf: 'center', maxWidth: 600},

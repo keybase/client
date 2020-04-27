@@ -28,9 +28,7 @@ type RolePickerProps = {
   onCancelRolePicker: () => void
   onConfirmRolePicker: (role: Types.TeamRoleType) => void
   onEditMembership: () => void
-  onSelectRole: (role: Types.TeamRoleType) => void
   footerComponent: React.ReactNode
-  selectedRole: Types.TeamRoleType | null
 }
 
 export type Props = {} & RowProps & RolePickerProps
@@ -50,8 +48,7 @@ const TeamRequestRowOld = (props: Props) => {
       </Kb.ClickableBox>
       <Kb.Box style={styles.floatingRolePickerContainer}>
         <FloatingRolePicker
-          selectedRole={props.selectedRole}
-          onSelectRole={props.onSelectRole}
+          presetRole="writer"
           floatingContainerStyle={styles.floatingRolePicker}
           footerComponent={props.footerComponent}
           onConfirm={props.onConfirmRolePicker}
@@ -152,8 +149,7 @@ const TeamRequestRowNew = (props: Props) => {
       action={
         <Kb.Box2 direction="horizontal">
           <FloatingRolePicker
-            selectedRole={props.selectedRole}
-            onSelectRole={props.onSelectRole}
+            presetRole="writer"
             floatingContainerStyle={styles.floatingRolePicker}
             footerComponent={props.footerComponent}
             onConfirm={props.onConfirmRolePicker}
