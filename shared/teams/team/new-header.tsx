@@ -467,7 +467,7 @@ const styles = Styles.styleSheetCreate(
       illustration: {borderRadius: 4, overflow: 'hidden', width: '100%'},
       inviteLinkContainer: Styles.platformStyles({
         common: {
-          borderColor: 'none',
+          borderColor: 'transparent',
           borderRadius: 0,
           borderStyle: undefined,
           borderWidth: 0,
