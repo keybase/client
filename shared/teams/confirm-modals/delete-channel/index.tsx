@@ -63,7 +63,6 @@ const DeleteChannel = (props: Props) => {
   }
 
   const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
 
   const onDelete = () => {
     dispatch(
