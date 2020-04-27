@@ -131,7 +131,7 @@ const getTimeLocale = () => {
   if (!isLinux) {
     return Intl.DateTimeFormat().resolvedOptions().locale
   }
-  const locale = process.env.LC_ALL || process.env.LC_CTIME || process.env.LANG
+  const locale = process.env.LC_ALL || process.env.LC_TIME || process.env.LANG
   if (locale) {
     return locale.slice(0, 2)
   }
