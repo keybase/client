@@ -205,6 +205,7 @@ const NewTeamInfo = () => {
                     position="bottom center"
                     open={rolePickerIsOpen}
                     disabledRoles={cannotJoinAsOwner}
+                    plural={true}
                   >
                     <InlineDropdown
                       label={pluralize(realRole)}

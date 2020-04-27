@@ -3,6 +3,7 @@ import {useSpring, animated} from 'react-spring'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
+import {pluralize} from '../../util/string'
 import {Position} from '../../common-adapters/relative-popup-hoc.types'
 import {TeamRoleType} from '../../constants/types/teams'
 import {StylesCrossPlatform} from '../../styles/css'
@@ -36,6 +37,7 @@ export type Props<IncludeSetIndividually extends boolean> = {
   onConfirm: (selectedRole: Role<IncludeSetIndividually>) => void
   footerComponent?: React.ReactNode
   presetRole: MaybeRole<IncludeSetIndividually>
+  plural?: boolean
   includeSetIndividually?: IncludeSetIndividually extends true ? boolean : false
   waiting?: boolean
 }
@@ -103,15 +105,16 @@ type RoleRowWrapperProps = {
   onSelect?: () => void
   disabledReason?: string
   role: Role<true>
+  plural: boolean
 }
 const RoleRowWrapper = (props: RoleRowWrapperProps) => {
-  const {role, selected, onSelect, disabledReason} = props
+  const {role, selected, onSelect, disabledReason, plural} = props
   const roleInfo = rolesMetaInfo(role)
 
   // @ts-ignore spring is confused that I'm animating different things on desktop vs mobile
   const style = useSpring({
     ...(Styles.isMobile ? {flexGrow: selected ? 1 : 0} : {height: selected ? 160 : 42}),
-    config: {tension: Styles.isMobile ? 215 : 230},
+    config: {tension: Styles.isMobile ? 250 : 260},
   })
   const AnimatedClickableBox = animated(Kb.ClickableBox)
 
@@ -120,7 +123,11 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
       <Kb.Divider />
       <RoleRow
         selected={selected}
-        title={role === 'setIndividually' ? 'Set Individually' : capitalize(role as string)}
+        title={
+          role === 'setIndividually'
+            ? 'Set Individually'
+            : pluralize(capitalize(role as string), plural ? 2 : 1)
+        }
         body={[
           roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0),
           roleAbilities(roleInfo.cants, false, true),
@@ -304,6 +311,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
             disabledReason={disabled}
             onSelect={onSelect}
             selected={selectedRole === role}
+            plural={props.plural ?? false}
           />
         )
       })}
@@ -311,8 +319,10 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
       <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
         {props.footerComponent}
         {footerButtonsHelper(
-          selectedRole && selectedRole !== props.presetRole
-            ? () => selectedRole && props.onConfirm(selectedRole)
+          selectedRole
+            ? selectedRole === props.presetRole
+              ? () => {}
+              : () => props.onConfirm(selectedRole)
             : undefined,
           confirmLabelHelper(filterRole(props.presetRole), selectedRole),
           props.waiting
@@ -353,7 +363,7 @@ const styles = Styles.styleSheetCreate(
           borderRadius: Styles.borderRadius,
           borderStyle: 'solid',
           borderWidth: 1,
-          boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Styles.globalColors.black_20_on_white}`,
+          boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Styles.globalColors.black_20OrBlack}`,
           minHeight: 350,
           width: 310,
         },
