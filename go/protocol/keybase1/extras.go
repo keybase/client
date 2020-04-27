@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbtime"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -2206,9 +2207,9 @@ func (s TeamMemberStatus) IsDeleted() bool {
 	return s == TeamMemberStatus_DELETED
 }
 
-func FilterInactiveMembers(arg []TeamMemberDetails) (ret []TeamMemberDetails) {
+func FilterInactiveReadersWriters(arg []TeamMemberDetails) (ret []TeamMemberDetails) {
 	for _, v := range arg {
-		if v.Status.IsActive() {
+		if v.Status.IsActive() || (v.Role != TeamRole_READER && v.Role != TeamRole_WRITER) {
 			ret = append(ret, v)
 		}
 	}
@@ -2676,12 +2677,8 @@ func NewTeamInviteFiniteUses(maxUses int) (v TeamInviteMaxUses, err error) {
 	return TeamInviteMaxUses(maxUses), nil
 }
 
-func (e TeamInviteMaxUses) IsInfiniteUses() bool {
-	return e == TeamMaxUsesInfinite
-}
-
-func (e TeamInviteMaxUses) IsValid() bool {
-	return e > 0 || e == TeamMaxUsesInfinite
+func (e *TeamInviteMaxUses) IsNotNilAndValid() bool {
+	return e != nil && (*e > 0 || *e == TeamMaxUsesInfinite)
 }
 
 func max(a, b int) int {
@@ -2691,27 +2688,136 @@ func max(a, b int) int {
 	return b
 }
 
-func (e *TeamInviteMaxUses) String(alreadyUsed int) string {
-	if e != nil && e.IsInfiniteUses() {
+func (ti TeamInvite) UsesLeftString(alreadyUsed int) string {
+	if ti.IsInfiniteUses() {
 		return "unlimited uses left"
 	}
 	var maxUses int
-	if e == nil {
+	if ti.MaxUses == nil {
 		maxUses = 1
 	} else {
-		maxUses = int(*e)
+		maxUses = int(*ti.MaxUses)
 	}
-	return fmt.Sprintf("%d/%d uses left", max(maxUses-alreadyUsed, 0), maxUses)
+	return formatItems("use", "uses", max(maxUses-alreadyUsed, 0))
 }
 
-func (e TeamInviteMaxUses) IsUsedUp(alreadyUsed int) bool {
-	if !e.IsValid() {
-		return true
+func (ti TeamInvite) IsInfiniteUses() bool {
+	return ti.MaxUses != nil && *ti.MaxUses == TeamMaxUsesInfinite
+}
+
+func (ti TeamInvite) IsUsedUp(alreadyUsed int) bool {
+	maxUses := ti.MaxUses
+	if maxUses == nil {
+		return alreadyUsed >= 1
 	}
-	if e == TeamMaxUsesInfinite {
+	if *maxUses == TeamMaxUsesInfinite {
 		return false
 	}
-	return alreadyUsed >= int(e)
+	return alreadyUsed >= int(*maxUses)
+}
+
+func (ti TeamInvite) IsExpired(now time.Time) bool {
+	if ti.Etime == nil {
+		return false
+	}
+	etime := FromUnixTime(*ti.Etime)
+	return now.After(etime)
+}
+
+func formatItems(singular string, plural string, count int) string {
+	if count == 1 {
+		return "1 " + singular
+	}
+	return fmt.Sprintf("%d %s", count, plural)
+}
+
+// ComputeValidity is used for invitelinks, but is accurate for other invites as well.
+// It computes whether the invite is still valid (i.e., if it can still be used),
+// and a short description of when it was invalidated or under what conditions it can
+// be later invalidated.
+func (md TeamInviteMetadata) ComputeValidity(now time.Time,
+	userLog map[UserVersion][]UserLogPoint) (isValid bool, validityDescription string) {
+
+	isInvalid := false
+	invalidationAction := ""
+	var invalidationTime *time.Time
+	var usedInviteCount int
+	code, _ := md.Status.Code()
+	switch code {
+	case TeamInviteMetadataStatusCode_ACTIVE:
+		isExpired := md.Invite.IsExpired(now)
+		if isExpired {
+			expireTime := md.Invite.Etime.Time()
+			invalidationTime = &expireTime
+		}
+		usedInvites := md.UsedInvites
+		// If this is an old-style invite that was completed; it wouldn't be ACTIVE anymore,
+		// so we can assume len(usedInvites) is correct, since it should be empty (implying
+		// the invite is not UsedUp.
+		isUsedUp := md.Invite.IsUsedUp(len(usedInvites))
+		if isUsedUp {
+			// implies usedInvites is nonempty
+			usedInvites := md.UsedInvites
+			teamUserLogPoint := usedInvites[len(usedInvites)-1]
+			logPoint := userLog[teamUserLogPoint.Uv][teamUserLogPoint.LogPoint]
+			usedUpTime := logPoint.SigMeta.Time.Time()
+			if invalidationTime == nil || usedUpTime.Before(*invalidationTime) {
+				invalidationTime = &usedUpTime
+			}
+		}
+		if isExpired || isUsedUp {
+			isInvalid = true
+			invalidationAction = "Expired"
+		}
+		usedInviteCount = len(usedInvites)
+	case TeamInviteMetadataStatusCode_OBSOLETE:
+		isInvalid = true
+		invalidationAction = "Obsoleted"
+		// no invalidation time for obsoletes
+		usedInviteCount = 0
+	case TeamInviteMetadataStatusCode_CANCELLED:
+		isInvalid = true
+		invalidationAction = "Cancelled"
+		cancelTime := md.Status.Cancelled().TeamSigMeta.SigMeta.Time.Time()
+		invalidationTime = &cancelTime
+		usedInviteCount = len(md.UsedInvites)
+	case TeamInviteMetadataStatusCode_COMPLETED:
+		isInvalid = true
+		invalidationAction = "Completed"
+		completeTime := md.Status.Completed().TeamSigMeta.SigMeta.Time.Time()
+		invalidationTime = &completeTime
+		usedInviteCount = 1
+	default:
+		return false, fmt.Sprintf("unknown invite status %v", code)
+	}
+
+	if isInvalid {
+		ret := ""
+		ret += invalidationAction
+		if invalidationTime != nil {
+			invalidationDeltaFormatted := kbtime.RelTime(*invalidationTime, now, "", "")
+			ret += " " + invalidationDeltaFormatted + " ago"
+		}
+		return false, ret
+	}
+
+	if md.Invite.Etime == nil && md.Invite.IsInfiniteUses() {
+		return true, "Does not expire"
+	}
+
+	ret := "Expires"
+	if md.Invite.Etime != nil {
+		expirationTimeConverted := FromUnixTime(*md.Invite.Etime)
+		expirationDeltaFormatted := kbtime.RelTime(expirationTimeConverted, now, "", "")
+		ret += " in " + expirationDeltaFormatted
+	}
+	if md.Invite.Etime != nil && !md.Invite.IsInfiniteUses() {
+		ret += " or"
+	}
+	if !md.Invite.IsInfiniteUses() {
+		ret += " after " + md.Invite.UsesLeftString(usedInviteCount)
+	}
+	return true, ret
 }
 
 func (m MemberInfo) TeamName() (TeamName, error) {
@@ -4078,19 +4184,6 @@ func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
 	return true
 }
 
-func (t TeamMembersDetails) All() (res []TeamMemberDetails) {
-	size := len(t.Admins) + len(t.Bots) + len(t.Owners) + len(t.Writers) + len(t.Readers) +
-		len(t.RestrictedBots)
-	res = make([]TeamMemberDetails, 0, size)
-	return append(res,
-		append(t.Admins,
-			append(t.Bots,
-				append(t.Owners,
-					append(t.Readers,
-						append(t.RestrictedBots,
-							append(t.Writers)...)...)...)...)...)...)
-}
-
 func (t SeitanIKeyInvitelink) String() string {
 	return string(t)
 }
@@ -4119,5 +4212,43 @@ func NewTeamInviteMetadata(invite TeamInvite, teamSigMeta TeamSignatureMetadata)
 		Invite:      invite,
 		TeamSigMeta: teamSigMeta,
 		Status:      NewTeamInviteMetadataStatusWithActive(),
+	}
+}
+
+func (a AnnotatedTeam) ToLegacyTeamDetails() TeamDetails {
+	var members TeamMembersDetails
+	for _, member := range a.Members {
+		switch member.Role {
+		case TeamRole_RESTRICTEDBOT:
+			members.RestrictedBots = append(members.RestrictedBots, member)
+		case TeamRole_BOT:
+			members.Bots = append(members.Bots, member)
+		case TeamRole_READER:
+			members.Readers = append(members.Readers, member)
+		case TeamRole_WRITER:
+			members.Writers = append(members.Writers, member)
+		case TeamRole_ADMIN:
+			members.Admins = append(members.Admins, member)
+		case TeamRole_OWNER:
+			members.Owners = append(members.Owners, member)
+		}
+	}
+
+	annotatedActiveInvites := make(map[TeamInviteID]AnnotatedTeamInvite)
+	for _, annotatedInvite := range a.Invites {
+		code, _ := annotatedInvite.InviteMetadata.Status.Code()
+		if code != TeamInviteMetadataStatusCode_ACTIVE {
+			continue
+		}
+		annotatedActiveInvites[annotatedInvite.InviteMetadata.Invite.Id] = annotatedInvite
+	}
+
+	return TeamDetails{
+		Name:                   a.Name,
+		Members:                members,
+		KeyGeneration:          a.KeyGeneration,
+		AnnotatedActiveInvites: annotatedActiveInvites,
+		Settings:               a.Settings,
+		Showcase:               a.Showcase,
 	}
 }

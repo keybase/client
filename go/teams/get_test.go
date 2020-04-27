@@ -133,14 +133,9 @@ func TestTeamDetailsAsImplicitAdmin(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("loads the subteam")
-	team, err := Details(context.Background(), tcs[0].G, teamName.String()+".bbb")
+	team, err := GetAnnotatedTeamByName(context.Background(), tcs[0].G, teamName.String()+".bbb")
 	require.NoError(t, err)
-	require.Len(t, team.Members.Owners, 0, "should be no team members in subteam")
-	require.Len(t, team.Members.Admins, 0, "should be no team members in subteam")
-	require.Len(t, team.Members.Writers, 0, "should be no team members in subteam")
-	require.Len(t, team.Members.Readers, 0, "should be no team members in subteam")
-	require.Len(t, team.Members.Bots, 0, "should be no team members in subteam")
-	require.Len(t, team.Members.RestrictedBots, 0, "should be no team members in subteam")
+	require.Len(t, team.Members, 0, "should be no team members in subteam")
 }
 
 // Test loading when you have become an admin after

@@ -1997,7 +1997,7 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 			if res.MaxUses == nil {
 				return nil, nil, NewInviteError(id, fmt.Errorf("new-style but has no max-uses"))
 			}
-			if !res.MaxUses.IsValid() {
+			if !res.MaxUses.IsNotNilAndValid() {
 				return nil, nil, NewInviteError(id, fmt.Errorf("invalid max_uses %d", *res.MaxUses))
 			}
 			if res.Etime != nil {
@@ -2323,11 +2323,10 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 			return fmt.Errorf("`used_invites` for a non-new-style invite (id: %q)", inviteID)
 		}
 
-		maxUses := inviteMD.Invite.MaxUses
 		alreadyUsed := len(inviteMD.UsedInvites)
 		// Note that we append to inviteMD.UsedInvites at the end of this for loop, so alreadyUsed
 		// updates correctly when processing multiple invite pairs.
-		if maxUses.IsUsedUp(alreadyUsed) {
+		if inviteMD.Invite.IsUsedUp(alreadyUsed) {
 			return fmt.Errorf("invite %s is expired after %d uses", inviteID, alreadyUsed)
 		}
 

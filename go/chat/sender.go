@@ -676,13 +676,11 @@ func (s *BlockingSender) getUsernamesForMentions(ctx context.Context, uid gregor
 		if err != nil {
 			return res, err
 		}
-		details, err := teams.MembersDetails(ctx, s.G().ExternalG(), team)
+		members, err := teams.MembersDetails(ctx, s.G().ExternalG(), team)
 		if err != nil {
 			return res, err
 		}
-		allMembers := details.All()
-		res = make([]string, 0, len(allMembers))
-		for _, memb := range allMembers {
+		for _, memb := range members {
 			res = append(res, memb.Username)
 		}
 		return res, nil

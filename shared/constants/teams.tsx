@@ -68,35 +68,25 @@ export const initialMemberInfo = Object.freeze<Types.MemberInfo>({
 })
 
 export const rpcDetailsToMemberInfos = (
-  allRoleMembers: RPCTypes.TeamMembersDetails
+  members: Array<RPCTypes.TeamMemberDetails>
 ): Map<string, Types.MemberInfo> => {
   const infos: Array<[string, Types.MemberInfo]> = []
-  const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner', 'bot', 'restrictedbot']
-  const typeToKey: Types.TypeMap = {
-    admin: 'admins',
-    bot: 'bots',
-    owner: 'owners',
-    reader: 'readers',
-    restrictedbot: 'restrictedBots',
-    writer: 'writers',
-  }
-  types.forEach(type => {
-    const key = typeToKey[type]
-    // @ts-ignore strict
-    const members: Array<RPCTypes.TeamMemberDetails> = (allRoleMembers[key] || []) as any
-    members.forEach(({fullName, joinTime, needsPUK, status, username}) => {
-      infos.push([
+  members.forEach(({fullName, joinTime, needsPUK, status, username, role}) => {
+    const maybeRole = teamRoleByEnum[role]
+    if (!maybeRole || maybeRole === 'none') {
+      return
+    }
+    infos.push([
+      username,
+      {
+        fullName,
+        joinTime: joinTime || undefined,
+        needsPUK,
+        status: rpcMemberStatusToStatus[status],
+        type: maybeRole,
         username,
-        {
-          fullName,
-          joinTime: joinTime || undefined,
-          needsPUK,
-          status: rpcMemberStatusToStatus[status],
-          type,
-          username,
-        },
-      ])
-    })
+      },
+    ])
   })
   return new Map(infos)
 }
@@ -763,65 +753,66 @@ export const teamListToMeta = (
   )
 }
 
-type InviteDetails = {inviteLinks: Set<Types.InviteLink>; invites: Set<Types.InviteInfo>}
+type InviteDetails = {inviteLinks: Array<Types.InviteLink>; invites: Set<Types.InviteInfo>}
 const annotatedInvitesToInviteDetails = (
-  invitesData: Array<RPCTypes.AnnotatedTeamInvite> = []
+  annotatedInvites: Array<RPCTypes.AnnotatedTeamInvite> = []
 ): InviteDetails =>
-  invitesData.reduce<InviteDetails>(
-    (invitesAndLinks, invite) => {
+  annotatedInvites.reduce<InviteDetails>(
+    (invitesAndLinks, annotatedInvite) => {
+      const inviteMD = annotatedInvite.inviteMetadata
+      const teamInvite = inviteMD.invite
+
       const {invites, inviteLinks} = invitesAndLinks
-      const role = teamRoleByEnum[invite.inviteMetadata.invite.role]
+      const role = teamRoleByEnum[teamInvite.role]
       if (!role || role === 'none') {
         return invitesAndLinks
       }
 
-      if (invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.invitelink) {
-        const lastJoinedUsername = invite.annotatedUsedInvites
-          ? invite.annotatedUsedInvites[invite.annotatedUsedInvites.length - 1]?.username
-          : ''
-        inviteLinks.add({
-          creatorUsername: invite.inviterUsername,
-          expirationTime: invite.inviteMetadata.invite.etime ?? 0,
-          expired: Date.now() / 1000 > (invite.inviteMetadata.invite.etime ?? 0), // TODO Y2K-1715 get from invite
-          id: invite.inviteMetadata.invite.id,
+      if (annotatedInvite.inviteExt.c === RPCTypes.TeamInviteCategory.invitelink) {
+        const ext = annotatedInvite.inviteExt.invitelink
+        const annotatedUsedInvites = ext.annotatedUsedInvites ?? []
+        const lastJoinedUsername = annotatedUsedInvites
+          ? annotatedUsedInvites[annotatedUsedInvites.length - 1]?.username
+          : undefined
+        inviteLinks.push({
+          creatorUsername: annotatedInvite.inviterUsername,
+          id: teamInvite.id,
+          isValid: annotatedInvite.isValid,
           lastJoinedUsername,
-          maxUses: invite.inviteMetadata.invite.maxUses ?? 0,
-          numUses: invite.annotatedUsedInvites?.length ?? 0,
+          numUses: annotatedUsedInvites.length,
           role,
-          url: invite.displayName,
+          url: annotatedInvite.displayName,
+          validityDescription: annotatedInvite.validityDescription,
         })
       } else {
+        // skip invalid invites for non-invitelinks
+        if (!annotatedInvite.isValid) {
+          return invitesAndLinks
+        }
+
         let username = ''
-        if (invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.sbs) {
-          username = invite.displayName
+        if (teamInvite.type.c === RPCTypes.TeamInviteCategory.sbs) {
+          username = annotatedInvite.displayName
         }
         invites.add({
-          email:
-            invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.email
-              ? invite.displayName
-              : '',
-          id: invite.inviteMetadata.invite.id,
-          name: [RPCTypes.TeamInviteCategory.seitan, RPCTypes.TeamInviteCategory.invitelink].includes(
-            invite.inviteMetadata.invite.type.c
-          )
-            ? invite.displayName
+          email: teamInvite.type.c === RPCTypes.TeamInviteCategory.email ? annotatedInvite.displayName : '',
+          id: teamInvite.id,
+          name: [RPCTypes.TeamInviteCategory.seitan].includes(teamInvite.type.c)
+            ? annotatedInvite.displayName
             : '',
-          phone:
-            invite.inviteMetadata.invite.type.c === RPCTypes.TeamInviteCategory.phone
-              ? invite.displayName
-              : '',
+          phone: teamInvite.type.c === RPCTypes.TeamInviteCategory.phone ? annotatedInvite.displayName : '',
           role,
           username,
         })
       }
       return invitesAndLinks
     },
-    {inviteLinks: new Set(), invites: new Set()}
+    {inviteLinks: [], invites: new Set()}
   )
 
 export const emptyTeamDetails: Types.TeamDetails = {
   description: '',
-  inviteLinks: new Set(),
+  inviteLinks: [],
   invites: new Set(),
   members: new Map(),
   requests: new Set(),
@@ -838,11 +829,11 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
   const maybeOpenJoinAs = teamRoleByEnum[t.settings.joinAs] ?? 'reader'
   const members = new Map<string, Types.MemberInfo>()
   t.members?.forEach(member => {
-    const {fullName, needsPUK, status, username} = member.details
+    const {fullName, needsPUK, status, username} = member
     const maybeRole = teamRoleByEnum[member.role]
     members.set(username, {
       fullName,
-      joinTime: member.details.joinTime || undefined,
+      joinTime: member.joinTime || undefined,
       needsPUK,
       status: rpcMemberStatusToStatus[status],
       type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
@@ -994,3 +985,15 @@ export const maybeGetSparseMemberInfo = (state: TypedState, teamID, username) =>
   }
   return state.teams.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
 }
+
+export const countValidInviteLinks = (inviteLinks: Array<Types.InviteLink>): Number => {
+  return inviteLinks.reduce((t, inviteLink) => {
+    if (inviteLink.isValid) {
+      return t + 1
+    }
+    return t
+  }, 0)
+}
+
+export const maybeGetMostRecentValidInviteLink = (inviteLinks: Array<Types.InviteLink>) =>
+  inviteLinks.find(inviteLink => inviteLink.isValid)

@@ -104,11 +104,10 @@ export type TeamMeta = {
 
 export type InviteLink = {
   creatorUsername: string
-  expirationTime: number // unix time
-  expired: boolean
   id: string
-  lastJoinedUsername: string
-  maxUses: number
+  isValid: boolean
+  validityDescription: string
+  lastJoinedUsername?: string
   numUses: number
   role: TeamRoleType
   url: string
@@ -117,8 +116,10 @@ export type InviteLink = {
 export type TeamDetails = {
   members: Map<string, MemberInfo>
   settings: TeamSettings2
+  // Legacy invites that are guaranteed to be active
   invites: Set<InviteInfo>
-  inviteLinks: Set<InviteLink>
+  // Invitelinks, some of which may be invalid already; most recent first
+  inviteLinks: Array<InviteLink>
   subteams: Set<TeamID>
   requests: Set<JoinRequest>
   description: string
