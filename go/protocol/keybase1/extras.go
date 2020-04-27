@@ -2728,7 +2728,7 @@ func formatItems(singular string, plural string, count int) string {
 	if count == 1 {
 		return "1 " + singular
 	}
-	return fmt.Sprintf("%d %ss", count, plural)
+	return fmt.Sprintf("%d %s", count, plural)
 }
 
 // ComputeValidity is used for invitelinks, but is accurate for other invites as well.
