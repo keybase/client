@@ -10,10 +10,11 @@ import * as Container from '../../../../util/container'
 import {useTeamDetailsSubscribe} from '../../../../teams/subscriber'
 import {pluralize} from '../../../../util/string'
 import {memoize} from '../../../../util/memoize'
-import {ModalTitle} from '../../../../teams/common'
+import {ModalTitle, useChannelParticipants} from '../../../../teams/common'
 
 type Props = Container.RouteProps<{
   conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: TeamTypes.TeamID
 }>
 
 const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
@@ -28,6 +29,7 @@ const AddToChannel = (props: Props) => {
     'conversationIDKey',
     ChatConstants.noConversationIDKey
   )
+  const teamID = Container.getRouteProps(props, 'teamID', TeamTypes.noTeamID)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
@@ -35,8 +37,10 @@ const AddToChannel = (props: Props) => {
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
 
-  const {channelname, teamID} = Container.useSelector(s => ChatConstants.getMeta(s, conversationIDKey))
-  const participants = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey)).all
+  const {channelname} = Container.useSelector(s =>
+    TeamConstants.getTeamChannelInfo(s, teamID, conversationIDKey)
+  )
+  const participants = useChannelParticipants(teamID, conversationIDKey) ?? []
   const teamDetails = Container.useSelector(s => TeamConstants.getTeamDetails(s, teamID))
   const allMembers = sortMembers(teamDetails.members)
   const membersFiltered = allMembers.filter(
