@@ -1232,7 +1232,6 @@ const deleteChannelConfirmed = async (action: TeamsGen.DeleteChannelConfirmedPay
     },
     Constants.teamWaitingKey(teamID)
   )
-  // TODO TRIAGE-3029 the channel still shows up in this call
   return TeamsGen.createLoadTeamChannelList({teamID})
 }
 
