@@ -166,6 +166,7 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
                 open={props.isRolePickerOpen}
                 disabledRoles={props.disabledReasonsForRolePicker}
                 presetRole={props.newOpenTeamRole}
+                plural={true}
               >
                 <InlineDropdown
                   label={pluralize(props.newOpenTeamRole)}

@@ -919,3 +919,21 @@ func TestOpenSweepHandler(t *testing.T) {
 	require.Equal(t, curSeqno, team.CurrentSeqno())
 	require.EqualValues(t, 1, team.Generation())
 }
+
+func TestTeamSettings(t *testing.T) {
+	tc, _, _, _, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	// Change settings to open team.
+	err := ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_WRITER,
+	})
+	require.NoError(t, err)
+
+	team, err := GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+	settings := team.Settings()
+	require.Equal(t, settings.Open, true)
+	require.Equal(t, settings.JoinAs, keybase1.TeamRole_WRITER)
+}

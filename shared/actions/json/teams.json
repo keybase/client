@@ -271,16 +271,6 @@
       "loadingKey": "string",
       "isLoading": "boolean"
     },
-    "setTeamDetails": {
-      "teamID": "Types.TeamID",
-      "teamname": "string",
-      "members": "RPCTypes.TeamMembersDetails",
-      "settings": "RPCTypes.TeamSettings",
-      "invites": "Array<Types.InviteInfo>",
-      "subteams": "Array<Types.Teamname>",
-      "requests": "Map<string, Array<RPCTypes.TeamJoinRequest>>",
-      "subteamIDs": "Set<Types.TeamID>"
-    },
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",
       "teamNameToID": "Map<Types.Teamname, string>",

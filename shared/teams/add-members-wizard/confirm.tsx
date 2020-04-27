@@ -221,6 +221,7 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
         onConfirm={onConfirmRole}
         includeSetIndividually={!Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
         disabledRoles={disabledRoles}
+        plural={memberCount !== 1}
       >
         <Kb.InlineDropdown
           textWrapperType="BodySmallSemibold"

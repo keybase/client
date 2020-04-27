@@ -124,13 +124,13 @@ func (c *CmdTeamListMemberships) Run() error {
 }
 
 func (c *CmdTeamListMemberships) runGet(cli keybase1.TeamsClient) error {
-	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.team})
+	res, err := cli.GetAnnotatedTeamByName(context.Background(), c.team)
 	if err != nil {
 		return err
 	}
 
 	renderer := newTeamMembersRenderer(c.G(), c.json, c.showInviteID)
-	return renderer.output(details, c.team, c.verbose)
+	return renderer.output(res, c.team, c.verbose)
 }
 
 func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {

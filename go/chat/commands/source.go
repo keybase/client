@@ -92,9 +92,7 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdMute],
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
-	}
-	if s.isAdmin() {
-		common = append(common, cmds[cmdAddEmoji])
+		cmds[cmdAddEmoji],
 	}
 	if s.G().IsMobileAppType() || s.G().GetRunMode() == libkb.DevelRunMode {
 		common = append(common, cmds[cmdLocation])

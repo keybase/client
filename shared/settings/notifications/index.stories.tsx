@@ -15,7 +15,7 @@ const props = {
             subscribed: true,
           },
         ],
-        unsubscribedFromAll: false,
+        unsub: false,
       },
     ],
     [
@@ -43,7 +43,7 @@ const props = {
             subscribed: true,
           },
         ],
-        unsubscribedFromAll: false,
+        unsub: false,
       },
     ],
   ]),
@@ -58,7 +58,7 @@ const props = {
 }
 
 const unsubProps = {...props}
-unsubProps.groups.get('email')!.unsubscribedFromAll = true
+unsubProps.groups.get('email')!.unsub = true
 
 const load = () => {
   Sb.storiesOf('Settings/Notifications', module)

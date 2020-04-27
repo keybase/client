@@ -23,7 +23,7 @@ func newCmdChatAddEmoji(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	return cli.Command{
 		Name:         "emoji-add",
 		Usage:        "Add an emoji",
-		ArgumentHelp: "<conversation> <alias> <filename>",
+		ArgumentHelp: "<conversation> <alias> <filename or url>",
 		Action: func(c *cli.Context) {
 			cmd := &CmdChatAddEmoji{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "emoji-add", c)
