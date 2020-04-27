@@ -26,13 +26,13 @@ const ConfirmKickOut = (props: Props) => {
   const [error, setError] = React.useState<RPCError | null>(null)
   const removeMembers = React.useCallback(() => {
     setWaiting(true)
-    const teamMemberToRemoves = members.map(member => {
+    const teamMemberToRemoves = members.map<RPCTypes.TeamMemberToRemove>(member => {
       return {
         assertion: {
           assertion: member,
           removeFromSubtree: subteamsToo,
         },
-        type: 0, // TODO how do I get RPCTypes.TeamMemberToRemoveType.assertion to typecheck?
+        type: RPCTypes.TeamMemberToRemoveType.assertion,
       }
     })
     removeMembersRPC(
