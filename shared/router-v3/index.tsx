@@ -1,5 +1,6 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Kb from '../common-adapters'
 import * as Container from '../util/container'
 import * as Constants from '../constants/router3'
 import * as React from 'react'
@@ -7,6 +8,7 @@ import * as Shared from './shared'
 import * as Styles from '../styles'
 import NavTabs from './tabs'
 import logger from '../logger'
+import {useSafeArea} from '../common-adapters/safe-area-view'
 import {ModalStack} from './stack-factory'
 import {NavigationContainer, NavigationContainerRef} from '@react-navigation/native'
 import {modalScreens} from './routes'
@@ -95,9 +97,27 @@ const RouterV3 = () => {
   )
 }
 
-const defaultModalScreenOptions = {
-  cardStyle: {backgroundColor: Styles.globalColors.white},
-  headerShown: false,
+const ModalHeader = () => {
+  const insets = useSafeArea()
+  return <Kb.Box2 direction="vertical" style={{paddingTop: insets.top}} />
+}
+
+const defaultModalScreenOptions = ({route}) => {
+  const isTabs = route.name === 'Tabs'
+  const common = {
+    cardStyle: {backgroundColor: Styles.globalColors.white},
+  }
+
+  return isTabs
+    ? {
+        ...common,
+        headerShown: false,
+      }
+    : {
+        ...common,
+        header: () => <ModalHeader />,
+        headerShown: true,
+      }
 }
 
 export default RouterV3
