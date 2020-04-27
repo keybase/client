@@ -62,7 +62,10 @@ const CreateSubteams = () => {
         style={styles.body}
         gap={Styles.isMobile ? 'xsmall' : 'tiny'}
       >
-        <Kb.Text type="BodySmall">Channels can be joined by anyone in the team, unlike subteams.</Kb.Text>
+        <Kb.Text type="BodySmall">
+          Subteams are cryptographically distinct, and can welcome people who aren’t elsewhere in your team
+          hierarchy.
+        </Kb.Text>
         {subteams.map((value, idx) => (
           <Kb.NewInput
             value={value}
@@ -85,6 +88,7 @@ const styles = Styles.styleSheetCreate(() => ({
   addButton: Styles.platformStyles({
     isElectron: {width: 42},
     isMobile: {width: 47},
+    isTablet: {alignSelf: 'flex-start'},
   }),
   banner: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.blue, height: 96},
