@@ -266,8 +266,8 @@ const FilteredServiceTabBar = (
 const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
 
 class TeamBuilding extends React.PureComponent<Props> {
-  static navigationOptions = ({navigation}) => {
-    const namespace = navigation.state.params.namespace
+  static navigationOptions = ({route}) => {
+    const namespace = route.params.namespace
     const common = {
       modal2: true,
       modal2AvoidTabs: false,

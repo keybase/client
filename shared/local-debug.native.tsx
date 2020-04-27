@@ -109,7 +109,7 @@ if (nativeBridge.serverConfig) {
 
 KB.debugConsoleLog('TEMP')
 console.disableYellowBox = true
-config.enableActionLogging = false
+config.enableActionLogging = true
 config.enableStoreLogging = false
 config.printRPC = false
 config.printOutstandingRPCs = false

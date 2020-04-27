@@ -1,12 +1,15 @@
-import * as React from 'react'
-import * as Container from '../util/container'
 import * as ConfigGen from '../actions/config-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Container from '../util/container'
+import * as Constants from '../constants/router3'
+import * as React from 'react'
 import * as Shared from './shared'
-import logger from '../logger'
-import {NavigationContainer, NavigationContainerRef} from '@react-navigation/native'
+import * as Styles from '../styles'
 import NavTabs from './tabs'
-import {modalScreens} from './routes'
+import logger from '../logger'
 import {ModalStack} from './stack-factory'
+import {NavigationContainer, NavigationContainerRef} from '@react-navigation/native'
+import {modalScreens} from './routes'
 
 const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}) => {
   const {navRef} = props
@@ -51,20 +54,31 @@ const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}
   return null
 })
 
-const tabsAndModals = [
-  ...modalScreens,
-  <ModalStack.Screen key="Tabs" name="Tabs" component={NavTabs} options={{headerShown: false}} />,
-]
+const tabsAndModals = [...modalScreens, <ModalStack.Screen key="Tabs" name="Tabs" component={NavTabs} />]
 
 const RouterV3 = () => {
   const [nav, setNav] = React.useState<NavigationContainerRef | null>(null)
   const navIsSet = React.useRef(false)
+  const dispatch = Container.useDispatch()
+
+  /** used to stash the previous stack so we can do diffs */
+  const prevStack = React.useRef<any>([])
+  const onNavigationStateChange = React.useCallback(
+    (state: any) => {
+      const next = Constants.findVisibleRoute([], state)
+      const prev = prevStack.current ?? []
+      prevStack.current = next
+      dispatch(RouteTreeGen.createOnNavChanged({next, prev}))
+    },
+    [dispatch]
+  )
   // TODO chagne routes
   //const loggedIn = Container.useSelector(state => state.config.loggedIn)
   return (
     <>
       <ReduxPlumbing navRef={nav} />
       <NavigationContainer
+        onStateChange={onNavigationStateChange}
         ref={r => {
           if (!navIsSet.current) {
             navIsSet.current = true
@@ -82,9 +96,8 @@ const RouterV3 = () => {
 }
 
 const defaultModalScreenOptions = {
-  cardStyle: {
-    // backgroundColor: 'red',
-  },
+  cardStyle: {backgroundColor: Styles.globalColors.white},
+  headerShown: false,
 }
 
 export default RouterV3

@@ -24,7 +24,7 @@ export const findVisibleRoute = (arr: Array<NavState>, s: NavState): Array<NavSt
   if (!s.routes) return s
   const route = s.routes[s.index]
   if (!route) return arr
-  if (route.routes) return findVisibleRoute([...arr, route], route)
+  if (route?.state?.routes) return findVisibleRoute([...arr, route], route.state)
   return [...arr, route]
 }
 

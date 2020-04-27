@@ -21,11 +21,7 @@ type _ClearModalsPayload = void
 type _NavUpToScreenPayload = {readonly routeName: string}
 type _NavigateAppendPayload = {readonly fromKey?: string; readonly path: any; readonly replace?: boolean}
 type _NavigateUpPayload = {readonly fromKey?: string}
-type _OnNavChangedPayload = {
-  readonly prev: Array<Types.NavState>
-  readonly next: Array<Types.NavState>
-  readonly navAction: any
-}
+type _OnNavChangedPayload = {readonly prev: Array<Types.NavState>; readonly next: Array<Types.NavState>}
 type _ResetStackPayload = {
   readonly tab: Tabs.AppTab | 'loggedOut'
   readonly actions: Array<any>
