@@ -86,18 +86,21 @@ const TabBar = (props: BottomTabBarProps) => {
   )
 }
 
-const NavTabs = () => (
-  <Tab.Navigator
-    initialRouteName="blankTab"
-    backBehavior="none"
-    tabBar={props => <TabBar {...props} />}
-    screenOptions={p => {
-      console.log('aaaa', p)
-    }}
-  >
-    {tabs}
-  </Tab.Navigator>
-)
+const NavTabs = () => {
+  console.log('aaa tab render')
+  return (
+    <Tab.Navigator
+      initialRouteName="blankTab"
+      backBehavior="none"
+      tabBar={props => <TabBar {...props} />}
+      screenOptions={p => {
+        console.log('aaaa', p)
+      }}
+    >
+      {tabs}
+    </Tab.Navigator>
+  )
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   badge: {

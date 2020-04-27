@@ -1,46 +1,51 @@
-import * as React from 'react'
-import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
+import * as React from 'react'
 import * as Types from '../constants/types/chat2'
-import ChatConversation from './conversation/container'
-import ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
+import BlockModal from './blocking/block-modal/container'
 import ChatAddToChannel from './conversation/info-panel/add-to-channel/container'
 import ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
 import ChatAttachmentFullscreenType from './conversation/attachment-fullscreen/container'
 import ChatAttachmentGetTitles from './conversation/attachment-get-titles/container'
-import {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
+import ChatConfirmRemoveBot from './conversation/bot/confirm'
+import ChatConversationType from './conversation/container'
+import ChatConversationHeaderArea from './conversation/header-area/container'
 import ChatCreateChannel from './create-channel/container'
 import ChatDeleteHistoryWarning from './delete-history-warning/container'
 import ChatEditChannel from './manage-channels/edit-channel-container'
+import ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
 import ChatInfoPanel from './conversation/info-panel/container'
-import ChatManageChannels from './manage-channels/container'
-import ChatNewChat from '../team-building/container'
-import ChatPaymentsConfirm from './payments/confirm/container'
-import ChatShowNewTeamDialog from './new-team-dialog-container'
-import ChatLocationPopup from './conversation/input-area/normal/location-popup'
-import ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
-import PunycodeLinkWarning from './punycode-link-warning'
-import BlockModal from './blocking/block-modal/container'
 import ChatInstallBot from './conversation/bot/install'
 import ChatInstallBotPick from './conversation/bot/team-picker'
-import ChatSearchBot from './conversation/bot/search'
-import ChatConfirmRemoveBot from './conversation/bot/confirm'
+import ChatLocationPopup from './conversation/input-area/normal/location-popup'
+import ChatManageChannels from './manage-channels/container'
+import ChatNewChat from '../team-building/container'
 import ChatPDF from './pdf'
-import * as ChatConstants from '../constants/chat2'
+import ChatPaymentsConfirm from './payments/confirm/container'
+import ChatSearchBot from './conversation/bot/search'
+import ChatShowNewTeamDialog from './new-team-dialog-container'
+import ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
+import PunycodeLinkWarning from './punycode-link-warning'
 import flags from '../util/feature-flags'
-import {Stack, ModalStack} from '../router-v3/stack-factory'
+import {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
 import {ScreenProps, ModalScreenProps} from '../router-v3/types'
+import {Stack, ModalStack} from '../router-v3/stack-factory'
 
 // TODO port
 const newRoutes = {
-  chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
   chatEnterPaperkey: {
     getScreen: (): typeof ChatEnterPaperkey => require('./conversation/rekey/enter-paper-key').default,
   },
 }
 
+const ChatConversation = (props: ScreenProps<'chatConversation'>) => {
+  const Conversation = require('./conversation/container').default as typeof ChatConversationType
+  return <Conversation conversationIDKey={props.route.params.conversationIDKey} />
+}
+
 const ChatRoot = (props: ScreenProps<'chatRoot'>) => {
-  if (ChatConstants.isSplit) {
+  if (Constants.isSplit) {
     const InboxAndConversation = require('./inbox-and-conversation-2').default
     return <InboxAndConversation conversationIDKey={props.route.params.conversationIDKey} />
   } else {
@@ -55,7 +60,7 @@ export const screens = [
     name="chatRoot"
     component={ChatRoot}
     options={props => {
-      if (ChatConstants.isSplit) {
+      if (Constants.isSplit) {
         const Header = require('./header').default
         return {
           header: undefined,
@@ -73,6 +78,18 @@ export const screens = [
           ),
         }
       }
+    }}
+  />,
+  <Stack.Screen
+    key="chatConversation"
+    name="chatConversation"
+    component={ChatConversation}
+    options={{
+      headerLeft: () => null,
+      headerTitle: () => <ChatConversationHeaderArea />,
+      headerTitleContainerStyle: {
+        width: '100%',
+      },
     }}
   />,
 ]

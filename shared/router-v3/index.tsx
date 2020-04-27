@@ -83,7 +83,7 @@ const RouterV3 = () => {
 
 const defaultModalScreenOptions = {
   cardStyle: {
-    backgroundColor: 'red',
+    // backgroundColor: 'red',
   },
 }
 

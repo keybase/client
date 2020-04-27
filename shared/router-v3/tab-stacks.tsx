@@ -72,8 +72,10 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const tabsOptions = ({route}) => {
+  const routeName = route.state ? route.state.routes[route.state.index].name : route.params?.screen
+
   return {
-    tabBarVisible: route.name !== 'chatConversation',
+    tabBarVisible: routeName !== 'chatConversation',
   }
 }
 

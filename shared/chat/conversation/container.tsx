@@ -7,7 +7,6 @@ import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
-import HeaderArea from './header-area/container'
 
 type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 
@@ -58,15 +57,6 @@ const Conversation = (p: SwitchProps) => {
     default:
       return <NoConversation />
   }
-}
-
-// @ts-ignore
-Conversation.navigationOptions = {
-  headerLeft: null,
-  headerTitle: () => <HeaderArea />,
-  headerTitleContainerStyle: {
-    width: '100%',
-  },
 }
 
 const ConversationMemoed = React.memo(Conversation)

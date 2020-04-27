@@ -25,7 +25,6 @@ import flags from '../util/feature-flags'
 
 /** TODO deprecate **/
 export const newRoutes = {
-  chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
   chatEnterPaperkey: {
     getScreen: (): typeof ChatEnterPaperkey => require('./conversation/rekey/enter-paper-key').default,
   },
