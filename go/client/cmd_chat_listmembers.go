@@ -86,11 +86,12 @@ func (c *CmdChatListMembers) Run() (err error) {
 	if c.topicName != "" && c.topicName != "general" {
 		// filter annotatedTeam
 		var newMembers []keybase1.TeamMemberDetails
+	outer:
 		for _, member := range annotatedTeam.Members {
 			for _, convMember := range convMembers {
 				if convMember == member.Username {
 					newMembers = append(newMembers, member)
-					continue
+					continue outer
 				}
 			}
 		}

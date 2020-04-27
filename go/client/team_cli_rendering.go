@@ -27,13 +27,13 @@ func newTeamMembersRenderer(g *libkb.GlobalContext, json, showInviteID bool) *te
 
 func (c *teamMembersRenderer) output(t keybase1.AnnotatedTeam, team string, verbose bool) error {
 	if c.json {
-		return c.outputJSON(t)
+		return c.outputJSON(t.ToLegacyTeamDetails())
 	}
 
 	return c.outputTerminal(t, team, verbose)
 }
 
-func (c *teamMembersRenderer) outputJSON(t keybase1.AnnotatedTeam) error {
+func (c *teamMembersRenderer) outputJSON(t keybase1.TeamDetails) error {
 	b, err := json.MarshalIndent(t, "", "    ")
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func (c *teamMembersRenderer) outputTerminal(t keybase1.AnnotatedTeam, team stri
 		case keybase1.TeamMemberStatus_DELETED:
 			status = " (inactive due to account delete)"
 		}
-		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s%s\n", team, member.Role, member.Username, member.FullName, status)
+		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s%s\n", team, member.Role.HumanString(), member.Username, member.FullName, status)
 	}
 	c.outputInvites(t.Invites)
 	c.tabw.Flush()

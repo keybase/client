@@ -2698,7 +2698,7 @@ func (ti TeamInvite) UsesLeftString(alreadyUsed int) string {
 	} else {
 		maxUses = int(*ti.MaxUses)
 	}
-	return formatItems("use", max(maxUses-alreadyUsed, 0))
+	return formatItems("use", "uses", max(maxUses-alreadyUsed, 0))
 }
 
 func (ti TeamInvite) IsInfiniteUses() bool {
@@ -2724,11 +2724,11 @@ func (ti TeamInvite) IsExpired(now time.Time) bool {
 	return now.After(etime)
 }
 
-func formatItems(item string, count int) string {
+func formatItems(singular string, plural string, count int) string {
 	if count == 1 {
-		return "1 " + item
+		return "1 " + singular
 	}
-	return fmt.Sprintf("%d %ss", count, item)
+	return fmt.Sprintf("%d %ss", count, plural)
 }
 
 // ComputeValidity is used for invitelinks, but is accurate for other invites as well.
