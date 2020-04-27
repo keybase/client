@@ -68,6 +68,14 @@
           "name": "content"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "IncomingShareCompressPreference",
+      "symbols": [
+        "ORIGINAL_0",
+        "COMPRESSED_1"
+      ]
     }
   ],
   "messages": {
@@ -77,6 +85,19 @@
         "type": "array",
         "items": "IncomingShareItem"
       }
+    },
+    "getCompressPreference": {
+      "request": [],
+      "response": "IncomingShareCompressPreference"
+    },
+    "setCompressPreference": {
+      "request": [
+        {
+          "name": "preference",
+          "type": "IncomingShareCompressPreference"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

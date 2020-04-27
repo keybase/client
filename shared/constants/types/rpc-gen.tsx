@@ -951,9 +951,17 @@ export type MessageTypes = {
     inParam: {readonly username: String; readonly reason: IdentifyReason; readonly forceDisplay?: Boolean}
     outParam: void
   }
+  'keybase.1.incomingShare.getCompressPreference': {
+    inParam: void
+    outParam: IncomingShareCompressPreference
+  }
   'keybase.1.incomingShare.getIncomingShareItems': {
     inParam: void
     outParam: Array<IncomingShareItem> | null
+  }
+  'keybase.1.incomingShare.setCompressPreference': {
+    inParam: {readonly preference: IncomingShareCompressPreference}
+    outParam: void
   }
   'keybase.1.install.fuseStatus': {
     inParam: {readonly bundleVersion: String}
@@ -1970,6 +1978,11 @@ export enum IdentifyReasonType {
 export enum IdentityVisibility {
   private = 0,
   public = 1,
+}
+
+export enum IncomingShareCompressPreference {
+  original = 0,
+  compressed = 1,
 }
 
 export enum IncomingShareType {
@@ -3851,7 +3864,9 @@ export const identify3Identify3FollowUserRpcPromise = (params: MessageTypes['key
 export const identify3Identify3IgnoreUserRpcPromise = (params: MessageTypes['keybase.1.identify3.identify3IgnoreUser']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.identify3.identify3IgnoreUser']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.identify3.identify3IgnoreUser', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const identify3Identify3RpcSaga = (p: {params: MessageTypes['keybase.1.identify3.identify3']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.identify3.identify3', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const identifyIdentify2RpcPromise = (params: MessageTypes['keybase.1.identify.identify2']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.identify.identify2']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.identify.identify2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const incomingShareGetCompressPreferenceRpcPromise = (params: MessageTypes['keybase.1.incomingShare.getCompressPreference']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.incomingShare.getCompressPreference']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.incomingShare.getCompressPreference', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const incomingShareGetIncomingShareItemsRpcPromise = (params: MessageTypes['keybase.1.incomingShare.getIncomingShareItems']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.incomingShare.getIncomingShareItems']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.incomingShare.getIncomingShareItems', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const incomingShareSetCompressPreferenceRpcPromise = (params: MessageTypes['keybase.1.incomingShare.setCompressPreference']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.incomingShare.setCompressPreference']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.incomingShare.setCompressPreference', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const installFuseStatusRpcPromise = (params: MessageTypes['keybase.1.install.fuseStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.fuseStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.fuseStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const installInstallFuseRpcPromise = (params: MessageTypes['keybase.1.install.installFuse']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.installFuse']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.installFuse', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const installInstallKBFSRpcPromise = (params: MessageTypes['keybase.1.install.installKBFS']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.installKBFS']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.installKBFS', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

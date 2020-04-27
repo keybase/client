@@ -14,8 +14,6 @@ import * as SettingsConstants from '../constants/settings'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import useRPC from '../util/use-rpc'
 
-let useOriginalServiceMock = true
-
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
   const scaledTotalSize = incomingShareItems.reduce(
@@ -29,28 +27,38 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
     (useOriginal: boolean) => dispatch(ConfigGen.createSetIncomingShareUseOriginal({useOriginal})),
     [dispatch]
   )
-  const setUseOriginalInService = React.useCallback(
-    (useOriginal: boolean) => {
-      // TODO
-      useOriginalServiceMock = useOriginal
-    },
-    [
-      /*dispatch*/
-    ]
-  )
+  const setUseOriginalInService = React.useCallback((useOriginal: boolean) => {
+    RPCTypes.incomingShareSetCompressPreferenceRpcPromise({
+      preference: useOriginal
+        ? RPCTypes.IncomingShareCompressPreference.original
+        : RPCTypes.IncomingShareCompressPreference.compressed,
+    })
+  }, [])
+
+  // If it's original only, set original in store.
+  React.useEffect(() => {
+    originalOnly && setUseOriginalInStore(true)
+  }, [originalOnly, setUseOriginalInStore])
+
+  // From service to store, but only if this is not original only.
+  const getRPC = useRPC(RPCTypes.incomingShareGetCompressPreferenceRpcPromise)
+  const syncCompressPreferenceFromServiceToStore = React.useCallback(() => {
+    getRPC(
+      [undefined],
+      pref => setUseOriginalInStore(pref === RPCTypes.IncomingShareCompressPreference.original),
+      err => {
+        throw err
+      }
+    )
+  }, [getRPC, setUseOriginalInStore])
+  React.useEffect(() => {
+    !originalOnly && syncCompressPreferenceFromServiceToStore()
+  }, [originalOnly, syncCompressPreferenceFromServiceToStore])
+
   const setUseOriginalFromUI = (useOriginal: boolean) => {
     !originalOnly && setUseOriginalInStore(useOriginal)
     setUseOriginalInService(useOriginal)
   }
-
-  React.useEffect(() => {
-    originalOnly && dispatch(ConfigGen.createSetIncomingShareUseOriginal({useOriginal: true}))
-  }, [originalOnly, dispatch])
-
-  React.useEffect(() => {
-    // TODO get useOriginal from service
-    !originalOnly && setUseOriginalInStore(useOriginalServiceMock)
-  }, [originalOnly, setUseOriginalInStore])
 
   const useOriginalValue = Container.useSelector(state => state.config.incomingShareUseOriginal)
   const {popup, showingPopup, setShowingPopup} = Kb.usePopup(() => (

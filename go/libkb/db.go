@@ -21,6 +21,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBIncomingSharePreference        = 0xa4
 	DBChatUserEmojis                 = 0xa5
 	DBChatInboxIndex                 = 0xa6
 	DBChatInboxConvs                 = 0xa7

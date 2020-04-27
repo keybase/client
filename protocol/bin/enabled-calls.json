@@ -235,6 +235,8 @@
   "keybase.1.identify3.identify3FollowUser": {"promise": true},
   "keybase.1.identify3.identify3IgnoreUser": {"promise": true},
   "keybase.1.incomingShare.getIncomingShareItems": {"promise": true},
+  "keybase.1.incomingShare.getCompressPreference": {"promise": true},
+  "keybase.1.incomingShare.setCompressPreference": {"promise": true},
   "keybase.1.install.fuseStatus": {"promise": true},
   "keybase.1.install.installFuse": {"promise": true},
   "keybase.1.install.installKBFS": {"promise": true},

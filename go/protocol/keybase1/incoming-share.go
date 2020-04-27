@@ -100,11 +100,46 @@ func (o IncomingShareItem) DeepCopy() IncomingShareItem {
 	}
 }
 
+type IncomingShareCompressPreference int
+
+const (
+	IncomingShareCompressPreference_ORIGINAL   IncomingShareCompressPreference = 0
+	IncomingShareCompressPreference_COMPRESSED IncomingShareCompressPreference = 1
+)
+
+func (o IncomingShareCompressPreference) DeepCopy() IncomingShareCompressPreference { return o }
+
+var IncomingShareCompressPreferenceMap = map[string]IncomingShareCompressPreference{
+	"ORIGINAL":   0,
+	"COMPRESSED": 1,
+}
+
+var IncomingShareCompressPreferenceRevMap = map[IncomingShareCompressPreference]string{
+	0: "ORIGINAL",
+	1: "COMPRESSED",
+}
+
+func (e IncomingShareCompressPreference) String() string {
+	if v, ok := IncomingShareCompressPreferenceRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type GetIncomingShareItemsArg struct {
+}
+
+type GetCompressPreferenceArg struct {
+}
+
+type SetCompressPreferenceArg struct {
+	Preference IncomingShareCompressPreference `codec:"preference" json:"preference"`
 }
 
 type IncomingShareInterface interface {
 	GetIncomingShareItems(context.Context) ([]IncomingShareItem, error)
+	GetCompressPreference(context.Context) (IncomingShareCompressPreference, error)
+	SetCompressPreference(context.Context, IncomingShareCompressPreference) error
 }
 
 func IncomingShareProtocol(i IncomingShareInterface) rpc.Protocol {
@@ -121,6 +156,31 @@ func IncomingShareProtocol(i IncomingShareInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getCompressPreference": {
+				MakeArg: func() interface{} {
+					var ret [1]GetCompressPreferenceArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetCompressPreference(ctx)
+					return
+				},
+			},
+			"setCompressPreference": {
+				MakeArg: func() interface{} {
+					var ret [1]SetCompressPreferenceArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetCompressPreferenceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetCompressPreferenceArg)(nil), args)
+						return
+					}
+					err = i.SetCompressPreference(ctx, typedArgs[0].Preference)
+					return
+				},
+			},
 		},
 	}
 }
@@ -131,5 +191,16 @@ type IncomingShareClient struct {
 
 func (c IncomingShareClient) GetIncomingShareItems(ctx context.Context) (res []IncomingShareItem, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.incomingShare.getIncomingShareItems", []interface{}{GetIncomingShareItemsArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c IncomingShareClient) GetCompressPreference(ctx context.Context) (res IncomingShareCompressPreference, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.incomingShare.getCompressPreference", []interface{}{GetCompressPreferenceArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c IncomingShareClient) SetCompressPreference(ctx context.Context, preference IncomingShareCompressPreference) (err error) {
+	__arg := SetCompressPreferenceArg{Preference: preference}
+	err = c.Cli.Call(ctx, "keybase.1.incomingShare.setCompressPreference", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

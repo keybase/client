@@ -124,3 +124,27 @@ loop:
 
 	return items, nil
 }
+
+func (h *IncomingShareHandler) dbKey() libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBIncomingSharePreference,
+		Key: "v0-compress-preference",
+	}
+}
+
+func (h *IncomingShareHandler) GetCompressPreference(ctx context.Context) (
+	pref keybase1.IncomingShareCompressPreference, err error) {
+	found, err := h.G().GetKVStore().GetInto(&pref, h.dbKey())
+	if err != nil {
+		return keybase1.IncomingShareCompressPreference_ORIGINAL, err
+	}
+	if !found {
+		return keybase1.IncomingShareCompressPreference_ORIGINAL, nil
+	}
+	return pref, nil
+}
+
+func (h *IncomingShareHandler) SetCompressPreference(ctx context.Context,
+	preference keybase1.IncomingShareCompressPreference) error {
+	return h.G().GetKVStore().PutObj(h.dbKey(), nil, preference)
+}
