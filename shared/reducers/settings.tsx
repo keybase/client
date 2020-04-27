@@ -44,10 +44,10 @@ const notificationActions: Container.ActionHandler<Actions, Types.State> = {
 
     const groupMap = notifications.groups.get(group) ?? {
       settings: [],
-      unsubscribedFromAll: false,
+      unsub: false,
     }
 
-    const {settings, unsubscribedFromAll} = groupMap
+    const {settings, unsub} = groupMap
     if (!settings) {
       logger.warn('Trying to toggle unknown settings')
       return
@@ -57,7 +57,7 @@ const notificationActions: Container.ActionHandler<Actions, Types.State> = {
     notifications.groups.set(group, {
       settings: settings.map(s => updateSubscribe(s, group)),
       // No name means toggle the unsubscribe option
-      unsubscribedFromAll: !name && !unsubscribedFromAll,
+      unsub: !name && !unsub,
     })
   },
   [SettingsGen.notificationsSaved]: draftState => {

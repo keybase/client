@@ -45,6 +45,32 @@ const props = {
     openteam1: false,
   },
   contactSettingsTeamsEnabled: false,
+  groups: new Map([
+    [
+      'security',
+      {
+        settings: [
+          {
+            description: 'Show message content in phone chat notifications',
+            name: 'plaintextmobile',
+            subscribed: true,
+          },
+          {
+            description: 'Show message content in computer chat notifications',
+            name: 'plaintextdesktop',
+            subscribed: true,
+          },
+          {
+            description: "Show others when you're typing",
+            name: 'disabletyping',
+            subscribed: true,
+          },
+        ],
+        unsub: false,
+      },
+    ],
+  ]),
+  sound: false,
   teamMeta,
   unfurlMode: RPCChatTypes.UnfurlMode.whitelisted,
   unfurlWhitelist: [

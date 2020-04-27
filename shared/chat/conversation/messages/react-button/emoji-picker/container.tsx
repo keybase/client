@@ -354,6 +354,8 @@ export const Routable = (routableProps: RoutableProps) => {
     Constants.noConversationIDKey
   )
   const small = Container.getRouteProps(routableProps, 'small', undefined)
+  const hideFrequentEmoji = Container.getRouteProps(routableProps, 'hideFrequentEmoji', undefined)
+  const onlyTeamCustomEmoji = Container.getRouteProps(routableProps, 'onlyTeamCustomEmoji', undefined)
   const onPickAction = Container.getRouteProps(routableProps, 'onPickAction', undefined)
   const onPickAddToMessageOrdinal = Container.getRouteProps(
     routableProps,
@@ -376,6 +378,8 @@ export const Routable = (routableProps: RoutableProps) => {
       onPickAction={onPickAction}
       onPickAddToMessageOrdinal={onPickAddToMessageOrdinal}
       onDidPick={onDidPick}
+      hideFrequentEmoji={hideFrequentEmoji}
+      onlyTeamCustomEmoji={onlyTeamCustomEmoji}
     />
   )
 }

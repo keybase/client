@@ -886,12 +886,14 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 		if !conv.GetTopicType().EphemeralAllowed() {
 			if msg.EphemeralMetadata() != nil {
-				return res, errors.New("emoji messages cannot be ephemeral")
+				return res, fmt.Errorf("%v messages cannot be ephemeral", conv.GetTopicType())
 			}
 		} else {
-			// If no ephemeral data set, then let's double check to make sure no exploding policy
-			// or Gregor state should set it
-			if msg.EphemeralMetadata() == nil && chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) {
+			// If no ephemeral data set, then let's double check to make sure
+			// no exploding policy or Gregor state should set it if it's required.
+			if msg.EphemeralMetadata() == nil &&
+				chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) &&
+				conv.GetTopicType().EphemeralRequired() {
 				s.Debug(ctx, "Prepare: attempting to set ephemeral policy from conversation")
 				elf, err := utils.EphemeralLifetimeFromConv(ctx, s.G(), *conv)
 				if err != nil {
@@ -906,12 +908,11 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 				}
 			}
 
-			metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
+			msg.ClientHeader.EphemeralMetadata, err = s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
 			if err != nil {
 				s.Debug(ctx, "Prepare: error getting superseder ephemeral metadata: %s", err)
 				return res, err
 			}
-			msg.ClientHeader.EphemeralMetadata = metadata
 		}
 	}
 
