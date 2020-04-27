@@ -8,7 +8,7 @@ import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import {ConversationIDKey, keyToConversationID} from '../../constants/types/chat2'
 import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
-import {Activity} from '../common'
+import {Activity, useChannelParticipants} from '../common'
 import * as TeamsGen from '../../actions/teams-gen'
 
 const useRecentJoins = (conversationIDKey: ConversationIDKey) => {
@@ -35,9 +35,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname, description} = channelInfo
-  const numParticipants = Container.useSelector(
-    s => Constants.getTeamChannelMembers(s, conversationIDKey).length
-  )
+  const numParticipants = useChannelParticipants(teamID, conversationIDKey)?.length ?? 0
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel
 

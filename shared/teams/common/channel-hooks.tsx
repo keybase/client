@@ -13,6 +13,24 @@ function filterNull<A>(arr: Array<A | null>): Array<A> {
   return arr.filter(a => a !== null) as Array<A>
 }
 
+// Filter bots out using team role info, isolate to only when related state changes
+export const useChannelParticipants = (
+  teamID: Types.TeamID,
+  conversationIDKey: ChatTypes.ConversationIDKey
+) => {
+  const participants = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey).all)
+  const teamMembers = Container.useSelector(s => Constants.getTeamDetails(s, teamID).members)
+  const [noBots, setNoBots] = React.useState<Array<string> | undefined>(undefined)
+  React.useEffect(() => {
+    // default to putting them in the list if not in teamMembers
+    const newNoBots = participants.filter(
+      username => !['bot', 'restrictedBot'].includes(teamMembers.get(username)?.type ?? '')
+    )
+    setNoBots(newNoBots)
+  }, [participants, teamMembers])
+  return noBots
+}
+
 export const useAllChannelMetas = (
   teamID: Types.TeamID,
   dontCallRPC?: boolean

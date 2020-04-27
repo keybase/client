@@ -6,7 +6,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Styles from '../../../../styles'
-import {Activity} from '../../../common'
+import {Activity, useChannelParticipants} from '../../../common'
 import {pluralize} from '../../../../util/string'
 
 type ChannelRowProps = {
@@ -24,9 +24,7 @@ const ChannelRow = (props: ChannelRowProps) => {
   const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
   const canDelete = canPerform.deleteChannel
 
-  const numParticipants = Container.useSelector(
-    state => Constants.getTeamChannelMembers(state, conversationIDKey).length
-  )
+  const numParticipants = useChannelParticipants(teamID, conversationIDKey)?.length ?? 0
   const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const hasAllMembers = details.members.size === numParticipants
   const activityLevel = Container.useSelector(
@@ -56,8 +54,6 @@ const ChannelRow = (props: ChannelRowProps) => {
             props: {
               ...props,
               conversationIDKey: channel.conversationIDKey,
-              isPreview:
-                channel.membershipType === 'youArePreviewing' || channel.membershipType === 'notMember',
               selectedTab: 'settings' as const,
             },
             selected: 'teamChannel',

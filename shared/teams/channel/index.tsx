@@ -12,7 +12,7 @@ import * as UsersGen from '../../actions/users-gen'
 import * as BotsGen from '../../actions/bots-gen'
 import {Section} from '../../common-adapters/section-list'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
-import SelectionPopup from '../common/selection-popup'
+import {SelectionPopup, useChannelParticipants} from '../common'
 import ChannelTabs from './tabs'
 import ChannelHeader from './header'
 import {TabKey} from './tabs'
@@ -107,7 +107,7 @@ const Channel = (props: OwnProps) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', '')
   const providedTab = Container.getRouteProps(props, 'selectedTab', undefined)
 
-  const {bots, participants} = Container.useSelector(
+  const {bots, participants: _participants} = Container.useSelector(
     state => ChatConstants.getBotsAndParticipants(state, conversationIDKey, true /* sort */),
     isEqual // do a deep comparison so as to not render thrash
   )
@@ -119,7 +119,8 @@ const Channel = (props: OwnProps) => {
   )
 
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
-  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, participants, bots)
+  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants, bots)
+  const participants = useChannelParticipants(teamID, conversationIDKey) ?? []
 
   // Make the actual sections (consider farming this out into another function or file)
   const headerSection = {
