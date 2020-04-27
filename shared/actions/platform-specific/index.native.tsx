@@ -239,7 +239,7 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
 let _lastPersist = ''
 function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
-  const mainOrModal = path && path[1] && path[1].routeName
+  const mainOrModal = path && path[1] && path[1].name
 
   let param = {}
   let routeName = ''
@@ -247,18 +247,18 @@ function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRo
     const tab = path && path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
     if (!tab) return
     // top level tab?
-    if (tab.routeName === 'tabs.chatTab') {
+    if (tab.name === 'tabs.chatTab') {
       const convo = path && path[path.length - 1]
       // a specific convo?
-      if (convo.routeName === 'chatConversation') {
-        routeName = convo.routeName
+      if (convo.name === 'chatConversation') {
+        routeName = convo.name
         param = {selectedConversationIDKey: convo.params?.conversationIDKey}
       } else {
         // just the inbox
-        routeName = tab.routeName
+        routeName = tab.name
       }
-    } else if (Tabs.isValidInitialTabString(tab.routeName)) {
-      routeName = tab.routeName
+    } else if (Tabs.isValidInitialTabString(tab.name)) {
+      routeName = tab.name
     } else {
       return // don't write, keep the last
     }

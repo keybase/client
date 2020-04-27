@@ -360,8 +360,8 @@ function* maybeDoneWithLogoutHandshake(state: Container.TypedState) {
 let lastTab: Tabs.Tab | undefined
 const stashLastRoute = (_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) => {
   const {path} = action.payload
-  if (path?.[1]?.routeName === 'Main') {
-    lastTab = path?.[2].routeName
+  if (path?.[1]?.name === 'Main') {
+    lastTab = path?.[2].name
   }
 }
 
@@ -440,8 +440,9 @@ const routeToInitialScreen = (state: Container.TypedState) => {
 
   if (routeToInitialScreenOnce) {
     if (state.config.loggedIn) {
+      KB.debugConsoleLog('TODO FIX')
       // already logged in?
-      if (Router3.getVisiblePath()?.[0]?.routeName === 'loggedIn') {
+      if (Router3.getVisiblePath()?.[0]?.name === 'loggedIn') {
         return false
       }
 

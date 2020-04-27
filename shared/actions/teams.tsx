@@ -1611,7 +1611,7 @@ const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogge
 
 const maybeClearBadges = (action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  if (prev[2]?.routeName === Tabs.teamsTab && next[2]?.routeName !== Tabs.teamsTab) {
+  if (prev[2]?.name === Tabs.teamsTab && next[2]?.name !== Tabs.teamsTab) {
     return TeamsGen.createClearNavBadges()
   }
   return false

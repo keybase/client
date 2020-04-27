@@ -243,7 +243,7 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   (state.chat2.unreadMap.get(id) || 0) > 0
 export const getSelectedConversation = (): Types.ConversationIDKey => {
   const maybeVisibleScreen = Router3.getVisibleScreen()
-  if (maybeVisibleScreen?.routeName === threadRouteName) {
+  if (maybeVisibleScreen?.name === threadRouteName) {
     return maybeVisibleScreen.params?.conversationIDKey ?? noConversationIDKey
   }
   return noConversationIDKey
@@ -305,7 +305,7 @@ export const isUserActivelyLookingAtThisThread = (
     chatThreadSelected =
       (maybeVisibleScreen === null || maybeVisibleScreen === undefined
         ? undefined
-        : maybeVisibleScreen.routeName) === threadRouteName
+        : maybeVisibleScreen.name) === threadRouteName
   }
 
   return (

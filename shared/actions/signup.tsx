@@ -225,8 +225,8 @@ const maybeClearJustSignedUpEmail = (
   // Clear "just signed up email" when you leave the people tab after signup
   if (
     state.signup.justSignedUpEmail &&
-    prev[2]?.routeName === Tabs.peopleTab &&
-    next[2]?.routeName !== Tabs.peopleTab
+    prev[2]?.name === Tabs.peopleTab &&
+    next[2]?.name !== Tabs.peopleTab
   ) {
     return SignupGen.createClearJustSignedUpEmail()
   }

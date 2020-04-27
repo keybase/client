@@ -1825,7 +1825,7 @@ function* messageSend(
   const onHideConfirm = ({canceled}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDone']['inParam']) =>
     Saga.callUntyped(function*() {
       const visibleScreen = Router3Constants.getVisibleScreen()
-      if (visibleScreen && visibleScreen.routeName === confirmRouteName) {
+      if (visibleScreen && visibleScreen.name === confirmRouteName) {
         yield Saga.put(RouteTreeGen.createClearModals())
       }
       if (canceled) {
@@ -2541,7 +2541,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   const {conversationIDKey, reason} = action.payload
   const visible = Router3Constants.getVisibleScreen()
   const visibleConvo = visible?.params?.conversationIDKey
-  const visibleRouteName = visible?.routeName
+  const visibleRouteName = visible?.name
 
   if (visibleRouteName !== Constants.threadRouteName && reason === 'findNewestConversation') {
     // service is telling us to change our selection but we're not looking, ignore
@@ -2553,7 +2553,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
 
   const modalClearAction = modalPath.length > 0 ? [RouteTreeGen.createClearModals()] : []
   const tabSwitchAction =
-    mainPath[1]?.routeName !== Tabs.chatTab ? [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})] : []
+    mainPath[1]?.name !== Tabs.chatTab ? [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})] : []
 
   // we select the chat tab and change the params
   if (Constants.isSplit) {
@@ -3670,7 +3670,7 @@ const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
   const {conversationIDKey, show, tab} = action.payload
   if (Container.isPhone) {
     const visibleScreen = Router3Constants.getVisibleScreen()
-    if ((visibleScreen?.routeName === 'chatInfoPanel') !== show) {
+    if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
       return show
         ? RouteTreeGen.createNavigateAppend({
             path: [{props: {conversationIDKey, tab}, selected: 'chatInfoPanel'}],
@@ -3691,16 +3691,16 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
   const p = prev[prev.length - 1]
   const n = next[next.length - 1]
 
-  const wasModal = prev[1]?.routeName !== 'Main'
-  const isModal = next[1]?.routeName !== 'Main'
+  const wasModal = prev[1]?.name !== 'Main'
+  const isModal = next[1]?.name !== 'Main'
 
   // ignore if changes involve a modal
   if (wasModal || isModal) {
     return
   }
 
-  const wasChat = p?.routeName === Constants.threadRouteName
-  const isChat = n?.routeName === Constants.threadRouteName
+  const wasChat = p?.name === Constants.threadRouteName
+  const isChat = n?.name === Constants.threadRouteName
 
   // nothing to do with chat
   if (!wasChat && !isChat) {
@@ -3745,7 +3745,7 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
 
 const maybeChatTabSelected = (action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  if (prev[2]?.routeName !== Tabs.chatTab && next[2]?.routeName === Tabs.chatTab) {
+  if (prev[2]?.name !== Tabs.chatTab && next[2]?.name === Tabs.chatTab) {
     return Chat2Gen.createTabSelected()
   }
   return false

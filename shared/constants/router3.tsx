@@ -31,13 +31,7 @@ export const findVisibleRoute = (arr: Array<NavState>, s: NavState): Array<NavSt
 // Private API only used by config sagas
 const findModalRoute = (s: NavState) => {
   if (!s) return []
-  const loggedInOut = s.routes && s.routes[s.index]
-  // only logged in has modals
-  if (!loggedInOut || loggedInOut.routeName !== 'loggedIn') {
-    return []
-  }
-
-  return loggedInOut.routes ? loggedInOut.routes.slice(1) : []
+  return s.routes?.slice(1) ?? []
 }
 const findMainRoute = (s: NavState) => {
   if (!s) return []
