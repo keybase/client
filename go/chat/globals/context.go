@@ -43,29 +43,21 @@ type identModeData struct {
 }
 
 func CtxKeyFinder(ctx context.Context, g *Context) types.KeyFinder {
-	var kf types.KeyFinder
-	var ok bool
-	val := ctx.Value(kfKey)
-	if kf, ok = val.(types.KeyFinder); ok {
+	if kf, ok := ctx.Value(kfKey).(types.KeyFinder); ok {
 		return kf
 	}
 	return g.CtxFactory.NewKeyFinder()
 }
 
 func CtxUPAKFinder(ctx context.Context, g *Context) types.UPAKFinder {
-	var up types.UPAKFinder
-	var ok bool
-	val := ctx.Value(upKey)
-	if up, ok = val.(types.UPAKFinder); ok {
+	if up, ok := ctx.Value(upKey).(types.UPAKFinder); ok {
 		return up
 	}
 	return g.CtxFactory.NewUPAKFinder()
 }
 
 func CtxIdentifyMode(ctx context.Context) (ib keybase1.TLFIdentifyBehavior, breaks *[]keybase1.TLFIdentifyFailure, ok bool) {
-	var imd identModeData
-	val := ctx.Value(identModeKey)
-	if imd, ok = val.(identModeData); ok {
+	if imd, ok := ctx.Value(identModeKey).(identModeData); ok {
 		return imd.mode, imd.breaks, ok
 	}
 	return keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, false
@@ -80,10 +72,7 @@ func CtxAddIdentifyMode(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
 }
 
 func CtxIdentifyNotifier(ctx context.Context) types.IdentifyNotifier {
-	var in types.IdentifyNotifier
-	var ok bool
-	val := ctx.Value(inKey)
-	if in, ok = val.(types.IdentifyNotifier); ok {
+	if in, ok := ctx.Value(inKey).(types.IdentifyNotifier); ok {
 		return in
 	}
 	return nil
@@ -94,12 +83,10 @@ func CtxModifyIdentifyNotifier(ctx context.Context, notifier types.IdentifyNotif
 }
 
 func CtxAddRateLimit(ctx context.Context, rl []chat1.RateLimit) {
-	val := ctx.Value(ctxMutexKey)
-	if l, ok := val.(sync.RWMutex); ok {
+	if l, ok := ctx.Value(ctxMutexKey).(*sync.RWMutex); ok {
 		l.Lock()
 		defer l.Unlock()
-		val = ctx.Value(rlKey)
-		if existingRL, ok := val.(map[string]chat1.RateLimit); ok {
+		if existingRL, ok := ctx.Value(rlKey).(map[string]chat1.RateLimit); ok {
 			for _, r := range rl {
 				existingRL[r.Name] = r
 			}
@@ -108,12 +95,10 @@ func CtxAddRateLimit(ctx context.Context, rl []chat1.RateLimit) {
 }
 
 func CtxRateLimits(ctx context.Context) (res []chat1.RateLimit) {
-	val := ctx.Value(ctxMutexKey)
-	if l, ok := val.(sync.RWMutex); ok {
+	if l, ok := ctx.Value(ctxMutexKey).(*sync.RWMutex); ok {
 		l.RLock()
 		defer l.RUnlock()
-		val = ctx.Value(rlKey)
-		if existingRL, ok := val.(map[string]chat1.RateLimit); ok {
+		if existingRL, ok := ctx.Value(rlKey).(map[string]chat1.RateLimit); ok {
 			for _, rl := range existingRL {
 				res = append(res, rl)
 			}
@@ -123,12 +108,10 @@ func CtxRateLimits(ctx context.Context) (res []chat1.RateLimit) {
 }
 
 func CtxAddMessageCacheSkips(ctx context.Context, convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
-	val := ctx.Value(ctxMutexKey)
-	if l, ok := val.(sync.RWMutex); ok {
+	if l, ok := ctx.Value(ctxMutexKey).(*sync.RWMutex); ok {
 		l.Lock()
 		defer l.Unlock()
-		val = ctx.Value(messageSkipsKey)
-		if existingSkips, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); ok {
+		if existingSkips, ok := ctx.Value(messageSkipsKey).(map[chat1.ConvIDStr]MessageCacheSkip); ok {
 			existingSkips[convID.ConvIDStr()] = MessageCacheSkip{
 				ConvID: convID,
 				Msgs:   append(existingSkips[convID.ConvIDStr()].Msgs, msgs...),
@@ -143,12 +126,10 @@ type MessageCacheSkip struct {
 }
 
 func CtxMessageCacheSkips(ctx context.Context) (res []MessageCacheSkip) {
-	val := ctx.Value(ctxMutexKey)
-	if l, ok := val.(sync.RWMutex); ok {
+	if l, ok := ctx.Value(ctxMutexKey).(*sync.RWMutex); ok {
 		l.RLock()
 		defer l.RUnlock()
-		val = ctx.Value(messageSkipsKey)
-		if existingSkips, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); ok {
+		if existingSkips, ok := ctx.Value(messageSkipsKey).(map[chat1.ConvIDStr]MessageCacheSkip); ok {
 			for _, skips := range existingSkips {
 				res = append(res, skips)
 			}
@@ -162,16 +143,14 @@ func CtxModifyUnboxMode(ctx context.Context, unboxMode types.UnboxMode) context.
 }
 
 func CtxUnboxMode(ctx context.Context) types.UnboxMode {
-	val := ctx.Value(unboxModeKey)
-	if unboxMode, ok := val.(types.UnboxMode); ok {
+	if unboxMode, ok := ctx.Value(unboxModeKey).(types.UnboxMode); ok {
 		return unboxMode
 	}
 	return types.UnboxModeFull
 }
 
 func CtxOverrideNameInfoSource(ctx context.Context) (types.NameInfoSource, bool) {
-	val := ctx.Value(nameInfoOverrideKey)
-	if ni, ok := val.(types.NameInfoSource); ok {
+	if ni, ok := ctx.Value(nameInfoOverrideKey).(types.NameInfoSource); ok {
 		return ni, true
 	}
 	return nil, false
@@ -182,10 +161,7 @@ func CtxAddOverrideNameInfoSource(ctx context.Context, ni types.NameInfoSource) 
 }
 
 func CtxTrace(ctx context.Context) (string, bool) {
-	var trace string
-	var ok bool
-	val := ctx.Value(chatTraceKey)
-	if trace, ok = val.(string); ok {
+	if trace, ok := ctx.Value(chatTraceKey).(string); ok {
 		return trace, true
 	}
 	return "", false
@@ -210,8 +186,7 @@ func CtxAddLogTags(ctx context.Context, g *Context) context.Context {
 }
 
 func IsLocalizerCancelableCtx(ctx context.Context) bool {
-	val := ctx.Value(localizerCancelableKey)
-	if bval, ok := val.(bool); ok && bval {
+	if bval, ok := ctx.Value(localizerCancelableKey).(bool); ok && bval {
 		return true
 	}
 	return false
@@ -229,8 +204,7 @@ func CtxRemoveLocalizerCancelable(ctx context.Context) context.Context {
 }
 
 func IsEmojiHarvesterCtx(ctx context.Context) bool {
-	val := ctx.Value(emojiHarvesterKey)
-	if bval, ok := val.(bool); ok && bval {
+	if bval, ok := ctx.Value(emojiHarvesterKey).(bool); ok && bval {
 		return true
 	}
 	return false
@@ -249,32 +223,25 @@ func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 	if _, _, ok := CtxIdentifyMode(res); !ok {
 		res = CtxAddIdentifyMode(res, mode, breaks)
 	}
-	val := res.Value(kfKey)
-	if _, ok := val.(types.KeyFinder); !ok {
+	if _, ok := res.Value(kfKey).(types.KeyFinder); !ok {
 		res = context.WithValue(res, kfKey, g.CtxFactory.NewKeyFinder())
 	}
-	val = res.Value(inKey)
-	if _, ok := val.(types.IdentifyNotifier); !ok {
+	if _, ok := res.Value(inKey).(types.IdentifyNotifier); !ok {
 		res = context.WithValue(res, inKey, notifier)
 	}
-	val = res.Value(upKey)
-	if _, ok := val.(types.UPAKFinder); !ok {
+	if _, ok := res.Value(upKey).(types.UPAKFinder); !ok {
 		res = context.WithValue(res, upKey, g.CtxFactory.NewUPAKFinder())
 	}
-	val = res.Value(ctxMutexKey)
-	if _, ok := val.(sync.RWMutex); !ok {
-		res = context.WithValue(res, ctxMutexKey, sync.RWMutex{})
+	if _, ok := res.Value(ctxMutexKey).(*sync.RWMutex); !ok {
+		res = context.WithValue(res, ctxMutexKey, &sync.RWMutex{})
 	}
-	val = res.Value(rlKey)
-	if _, ok := val.(map[string]chat1.RateLimit); !ok {
+	if _, ok := res.Value(rlKey).(map[string]chat1.RateLimit); !ok {
 		res = context.WithValue(res, rlKey, make(map[string]chat1.RateLimit))
 	}
-	val = res.Value(messageSkipsKey)
-	if _, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); !ok {
+	if _, ok := res.Value(messageSkipsKey).(map[chat1.ConvIDStr]MessageCacheSkip); !ok {
 		res = context.WithValue(res, messageSkipsKey, make(map[chat1.ConvIDStr]MessageCacheSkip))
 	}
-	val = res.Value(unboxModeKey)
-	if _, ok := val.(types.UnboxMode); !ok {
+	if _, ok := res.Value(unboxModeKey).(types.UnboxMode); !ok {
 		res = context.WithValue(res, unboxModeKey, types.UnboxModeFull)
 	}
 	if _, ok := CtxTrace(res); !ok {
@@ -284,7 +251,6 @@ func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 }
 
 func BackgroundChatCtx(sourceCtx context.Context, g *Context) context.Context {
-
 	rctx := libkb.CopyTagsToBackground(sourceCtx)
 
 	in := CtxIdentifyNotifier(sourceCtx)
