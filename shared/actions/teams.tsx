@@ -1046,6 +1046,8 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload) 
 
 const teamChangedByID = (state: TypedState, action: EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload) => {
   const {teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = action.payload.params
+  // Any of the Seqnos can be 0, which means that it was unknown at the source
+  // at the time when this notification was generated.
   const version = state.teams.teamVersion.get(teamID)
   let versionChanged = true
   if (version) {
@@ -1055,11 +1057,6 @@ const teamChangedByID = (state: TypedState, action: EngineGen.Keybase1NotifyTeam
       latestSeqno > version.latestSeqno
   }
   const shouldLoad = versionChanged && !!state.teams.teamDetailsSubscriptionCount.get(teamID)
-  console.log('zzz', 'teamChangedByID', action.payload.params)
-  console.log('zzz', 'known', version)
-  console.log('zzz', 'subs:', state.teams.teamDetailsSubscriptionCount)
-  console.log('zzz', 'changed:', versionChanged, 'should load', shouldLoad)
-  console.log('zzz -------')
   return [
     TeamsGen.createSetTeamVersion({teamID, version: {latestHiddenSeqno, latestOffchainSeqno, latestSeqno}}),
     shouldLoad && TeamsGen.createLoadTeam({teamID}),
