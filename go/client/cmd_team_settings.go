@@ -84,14 +84,14 @@ Clear the team description:
 				Name:  "disable-access-requests",
 				Usage: "[yes|no] Set whether it should be possible to access request to this team",
 			},
-			cli.StringFlag{
-				Name:  "welcome-message",
-				Usage: "Set a welcome message for new team members. Empty string for no welcome message.",
-			},
-			cli.BoolFlag{
-				Name:  "reset-welcome-message",
-				Usage: "Reset the welcome message to the default.",
-			},
+			// cli.StringFlag{
+			// 	Name:  "welcome-message",
+			// 	Usage: "Set a welcome message for new team members. Empty string for no welcome message.",
+			// },
+			// cli.BoolFlag{
+			// 	Name:  "reset-welcome-message",
+			// 	Usage: "Reset the welcome message to the default.",
+			// },
 		},
 	}
 }
