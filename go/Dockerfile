@@ -1,4 +1,4 @@
-FROM keybaseprivate/glibc
+FROM 897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc
 MAINTAINER Keybase <admin@keybase.io>
 
 # Remove openssl once KBFSDocker changes are in
