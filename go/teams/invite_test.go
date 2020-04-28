@@ -301,6 +301,30 @@ func makeTestSCForInviteLink() SCTeamInvite {
 	}
 }
 
+func makeTestTeamSectionWithInviteLink(team *Team, role keybase1.TeamRole, maxUses *keybase1.TeamInviteMaxUses,
+	etime *keybase1.UnixTime) (SCTeamSection, keybase1.TeamInviteID) {
+
+	teamSectionForInvite := makeTestSCTeamSection(team)
+	sectionInvite := makeTestSCForInviteLink()
+	sectionInvite.MaxUses = maxUses
+	sectionInvite.Etime = etime
+
+	scTeamInvites := SCTeamInvites{}
+	switch role {
+	case keybase1.TeamRole_READER:
+		scTeamInvites.Readers = &[]SCTeamInvite{sectionInvite}
+	case keybase1.TeamRole_WRITER:
+		scTeamInvites.Writers = &[]SCTeamInvite{sectionInvite}
+	default:
+		panic(fmt.Errorf("invalid role for test invite link %v", role))
+	}
+
+	teamSectionForInvite.Invites = &scTeamInvites
+
+	inviteID := keybase1.TeamInviteID(sectionInvite.ID)
+	return teamSectionForInvite, inviteID
+}
+
 func TestTeamPlayerInviteMaxUses(t *testing.T) {
 	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
 	defer tc.Cleanup()
@@ -436,14 +460,9 @@ func TestTeamPlayerInviteLinkBadAdds(t *testing.T) {
 	testUV3 := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_doug_t"), EldestSeqno: 1}
 	testUV4 := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_bob_t"), EldestSeqno: 1}
 
-	teamSectionForInvite := makeTestSCTeamSection(team)
-	sectionInvite := makeTestSCForInviteLink()
 	maxUses := keybase1.TeamInviteMaxUses(100)
-	sectionInvite.MaxUses = &maxUses
-	inviteID := sectionInvite.ID
-	teamSectionForInvite.Invites = &SCTeamInvites{
-		Readers: &[]SCTeamInvite{sectionInvite},
-	}
+	teamSectionForInvite, inviteID := makeTestTeamSectionWithInviteLink(team, keybase1.TeamRole_READER,
+		&maxUses, nil /* etime */)
 
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
@@ -459,7 +478,7 @@ func TestTeamPlayerInviteLinkBadAdds(t *testing.T) {
 			Writers: &[]SCTeamMember{SCTeamMember(testUV)},
 		}
 		teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
-			{InviteID: inviteID, UV: testUV.PercentForm()},
+			{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
 		}
 		_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 			teamSectionCM, me, nil /* merkleRoot */)
@@ -478,7 +497,7 @@ func TestTeamPlayerInviteLinkBadAdds(t *testing.T) {
 			}
 			// But used_invites uv doesn't match.
 			teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
-				{InviteID: inviteID, UV: badUV.PercentForm()},
+				{InviteID: SCTeamInviteID(inviteID), UV: badUV.PercentForm()},
 			}
 			_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 				teamSectionCM, me, nil /* merkleRoot */)
@@ -492,7 +511,7 @@ func TestTeamPlayerInviteLinkBadAdds(t *testing.T) {
 		teamSectionCM := makeTestSCTeamSection(team)
 		teamSectionCM.Members = &SCTeamMembers{}
 		teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
-			{InviteID: inviteID, UV: testUV.PercentForm()},
+			{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
 		}
 		_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 			teamSectionCM, me, nil /* merkleRoot */)
@@ -509,8 +528,8 @@ func TestTeamPlayerInviteLinkBadAdds(t *testing.T) {
 		}
 		// But used_invites uv doesn't match.
 		teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
-			{InviteID: inviteID, UV: testUV.PercentForm()},
-			{InviteID: inviteID, UV: testUV4.PercentForm()},
+			{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
+			{InviteID: SCTeamInviteID(inviteID), UV: testUV4.PercentForm()},
 		}
 		_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 			teamSectionCM, me, nil /* merkleRoot */)
@@ -576,14 +595,10 @@ func TestTeamPlayerBadCompletedInvites(t *testing.T) {
 
 	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
 
-	teamSectionForInvite := makeTestSCTeamSection(team)
-	sectionInvite := makeTestSCForInviteLink()
+	// Add multi use invite.
 	maxUses := keybase1.TeamInviteMaxUses(10)
-	sectionInvite.MaxUses = &maxUses
-	inviteID := keybase1.TeamInviteID(sectionInvite.ID)
-	teamSectionForInvite.Invites = &SCTeamInvites{
-		Readers: &[]SCTeamInvite{sectionInvite},
-	}
+	teamSectionForInvite, inviteID := makeTestTeamSectionWithInviteLink(team, keybase1.TeamRole_READER,
+		&maxUses, nil /*etime */)
 
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
@@ -609,6 +624,10 @@ func TestTeamInvite64BitEtime(t *testing.T) {
 	// Load a chain from JSON file where there is an invite with `etime` in far
 	// future - 3020, so 32bit signed int is not enough to store that - and see
 	// if we can work with that UnixTime value.
+
+	// NOTE: Right now server will not allow etimes after 2038 just to be safe,
+	// so this test only works in server-less context (sigchains loaded from
+	// file or constructed in tests).
 
 	team, _ := runUnitFromFilename(t, "multiple_use_invite_1000_years.json")
 
@@ -642,16 +661,8 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 	}
 
 	maxUses := keybase1.TeamInviteMaxUses(1)
-
-	scInvite := makeTestSCForInviteLink()
-	scInvite.MaxUses = &maxUses
-
-	inviteID := scInvite.ID
-
-	teamSectionForInvite := makeTestSCTeamSection(team)
-	teamSectionForInvite.Invites = &SCTeamInvites{
-		Readers: &[]SCTeamInvite{scInvite},
-	}
+	teamSectionForInvite, inviteID := makeTestTeamSectionWithInviteLink(team, keybase1.TeamRole_READER,
+		&maxUses, nil /* etime */)
 
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
@@ -667,8 +678,8 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 			Readers: &[]SCTeamMember{SCTeamMember(testUVs[0]), SCTeamMember(testUVs[1])},
 		}
 		teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
-			{InviteID: inviteID, UV: testUVs[0].PercentForm()},
-			{InviteID: inviteID, UV: testUVs[1].PercentForm()},
+			{InviteID: SCTeamInviteID(inviteID), UV: testUVs[0].PercentForm()},
+			{InviteID: SCTeamInviteID(inviteID), UV: testUVs[1].PercentForm()},
 		}
 		_, err := appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 			teamSectionCM, me, nil /* merkleRoot */)
@@ -684,7 +695,7 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 			Readers: &[]SCTeamMember{SCTeamMember(testUVs[0]), SCTeamMember(testUVs[1])},
 		}
 		teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
-			{InviteID: inviteID, UV: testUVs[0].PercentForm()},
+			{InviteID: SCTeamInviteID(inviteID), UV: testUVs[0].PercentForm()},
 		}
 		state, err := appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 			teamSectionCM, me, nil /* merkleRoot */)
@@ -703,7 +714,7 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 				Readers: &[]SCTeamMember{SCTeamMember(uv)},
 			}
 			teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
-				{InviteID: inviteID, UV: uv.PercentForm()},
+				{InviteID: SCTeamInviteID(inviteID), UV: uv.PercentForm()},
 			}
 			newState, err := appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 				teamSectionCM, me, nil /* merkleRoot */)
@@ -732,14 +743,9 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
 
 	// Add multi use invite.
-	teamSectionForInvite := makeTestSCTeamSection(team)
-	sectionInvite := makeTestSCForInviteLink()
 	maxUses := keybase1.TeamInviteMaxUses(10)
-	sectionInvite.MaxUses = &maxUses
-	inviteID := keybase1.TeamInviteID(sectionInvite.ID)
-	teamSectionForInvite.Invites = &SCTeamInvites{
-		Readers: &[]SCTeamInvite{sectionInvite},
-	}
+	teamSectionForInvite, inviteID := makeTestTeamSectionWithInviteLink(team, keybase1.TeamRole_READER,
+		&maxUses, nil /*etime */)
 
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
@@ -756,8 +762,11 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 		teamSectionCM, me, nil /* merkleRoot */)
 	require.NoError(t, err)
 
-	require.Len(t, state.inner.UserLog[testUV], 1)
-	require.EqualValues(t, 3, state.inner.UserLog[testUV][0].SigMeta.SigChainLocation.Seqno)
+	userLog := state.inner.UserLog[testUV]
+	require.Len(t, userLog, 1)
+	require.Equal(t, keybase1.TeamRole_READER, userLog[0].Role)
+	require.Equal(t, state.GetLatestSeqno(), userLog[0].SigMeta.SigChainLocation.Seqno)
+	require.EqualValues(t, 3, state.GetLatestSeqno())
 
 	// Add member again, with similar link, but using the invite.
 	// (re-use teamSectionCM)
@@ -768,12 +777,115 @@ func TestTeamPlayerUsedInviteWithNoRoleChange(t *testing.T) {
 		teamSectionCM, me, nil /* merkleRoot */)
 	require.NoError(t, err)
 
-	// That didn't change UserLog - no change in role, didn't add a checkpoint.
-	require.Len(t, state.inner.UserLog[testUV], 1)
+	// This creates a new log point in UserLog
+	userLog = state.inner.UserLog[testUV]
+	require.Len(t, userLog, 2)
+	for i, lp := range userLog {
+		require.Equal(t, keybase1.TeamRole_READER, lp.Role)
+		require.EqualValues(t, 3+i, lp.SigMeta.SigChainLocation.Seqno)
+	}
 
-	// ...which makes the usedInvites weird with the log pointer:
-	require.Len(t, state.inner.InviteMetadatas[inviteID].UsedInvites, 1)
-	require.Equal(t, testUV, state.inner.InviteMetadatas[inviteID].UsedInvites[0].Uv)
-	// this would be the wrong log point: testUV did not accept invite at that point
-	require.Equal(t, 0, state.inner.InviteMetadatas[inviteID].UsedInvites[0].LogPoint)
+	// And the used invite references this latest log point.
+	inviteMD, found := state.inner.InviteMetadatas[inviteID]
+	require.True(t, found)
+	require.Len(t, inviteMD.UsedInvites, 1)
+	require.Equal(t, 1, inviteMD.UsedInvites[0].LogPoint)
+	require.Equal(t, testUV, inviteMD.UsedInvites[0].Uv)
+}
+
+func TestTeamPlayerUsedInviteMultipleTimes(t *testing.T) {
+	// See TestTeamPlayerNoRoleChange in members_test.go and
+	// TestTeamPlayerUsedInviteWithNoRoleChange above.
+	//
+	// Very similar to the test above, but instead of accepting an invite link
+	// after we were already a member, we accept invite once to become a
+	// member, and then (presumably) accept the same invite again, and get
+	// added again, with no role change.
+
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
+
+	// Add multi use invite.
+	maxUses := keybase1.TeamMaxUsesInfinite
+	teamSectionForInvite, inviteID := makeTestTeamSectionWithInviteLink(team, keybase1.TeamRole_READER,
+		&maxUses, nil /*etime */)
+
+	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+	_, found := state.FindActiveInviteMDByID(inviteID)
+	require.True(t, found)
+
+	// Add member using that invite, twice
+	teamSectionCM := makeTestSCTeamSection(team)
+	teamSectionCM.Members = &SCTeamMembers{
+		Readers: &[]SCTeamMember{SCTeamMember(testUV)},
+	}
+	teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+		{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
+	}
+	for i := 0; i < 2; i++ {
+		state, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+			teamSectionCM, me, nil /* merkleRoot */)
+		require.NoError(t, err)
+	}
+
+	// There should be two UUserLog entries
+	userLog := state.inner.UserLog[testUV]
+	require.Len(t, userLog, 2)
+	for i, lp := range userLog {
+		require.Equal(t, keybase1.TeamRole_READER, lp.Role)
+		require.EqualValues(t, 3+i, lp.SigMeta.SigChainLocation.Seqno)
+	}
+
+	// And two UsedInvites entries
+	inviteMD, found := state.inner.InviteMetadatas[inviteID]
+	require.True(t, found)
+	require.Len(t, inviteMD.UsedInvites, 2)
+	for i, ulp := range inviteMD.UsedInvites {
+		// Log point is 0 for first add and 1 for the second.
+		require.Equal(t, i, ulp.LogPoint)
+		require.Equal(t, testUV, ulp.Uv)
+	}
+}
+
+func TestTeamPlayerDoubleUsedInvites(t *testing.T) {
+	// Check change_membership link that adds one member, but has same used_invites
+	// pairs for that member for some reason. Note that server checks for this as
+	// well - it fails when it tries to complete the acceptance for a user more
+	// than once (TEAM_INVITE_USE_ACCEPTANCE_MISSING), and it doesn't allow one
+	// user to have more than one acceptance pending (TEAM_SEITAN_REQUEST_PENDING).
+
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
+
+	maxUses := keybase1.TeamMaxUsesInfinite
+	teamSectionForInvite, inviteID := makeTestTeamSectionWithInviteLink(team, keybase1.TeamRole_READER, &maxUses, nil /* etime */)
+
+	// Add invite link
+	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		teamSectionForInvite, me, nil /* merkleRoot */)
+	require.NoError(t, err)
+	_, found := state.FindActiveInviteMDByID(inviteID)
+	require.True(t, found)
+
+	// Add member using that invite, with duplicated UsedInvites
+	teamSectionCM := makeTestSCTeamSection(team)
+	teamSectionCM.Members = &SCTeamMembers{
+		Readers: &[]SCTeamMember{SCTeamMember(testUV)},
+	}
+	teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
+		{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
+		{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
+	}
+
+	_, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+		teamSectionCM, me, nil /* merkleRoot */)
+	requirePrecheckError(t, err)
+	require.Contains(t, err.Error(), "duplicate used_invite for UV")
+	require.Contains(t, err.Error(), testUV.PercentForm())
 }
