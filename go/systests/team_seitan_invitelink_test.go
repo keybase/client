@@ -166,7 +166,7 @@ func TestCreateSeitanInvitelinkWithDuration(t *testing.T) {
 	now := alice.tc.G.Clock().Now()
 
 	maxUses := keybase1.TeamMaxUsesInfinite
-	expireAfter := "1000 Y"
+	expireAfter := "10 Y"
 	_, err := alice.teamsClient.TeamCreateSeitanInvitelinkWithDuration(
 		context.TODO(),
 		keybase1.TeamCreateSeitanInvitelinkWithDurationArg{
@@ -185,7 +185,7 @@ func TestCreateSeitanInvitelinkWithDuration(t *testing.T) {
 		require.NotNil(t, invite.MaxUses)
 		require.Equal(t, keybase1.TeamMaxUsesInfinite, *invite.MaxUses)
 		require.NotNil(t, invite.Etime)
-		require.Equal(t, now.Year()+1000, invite.Etime.Time().Year())
+		require.Equal(t, now.Year()+10, invite.Etime.Time().Year())
 		require.Equal(t, keybase1.TeamMaxUsesInfinite, *invite.MaxUses)
 		tic, err := invite.Type.C()
 		require.NoError(t, err)
