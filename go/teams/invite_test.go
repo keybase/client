@@ -726,7 +726,7 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 			}
 		}
 
-		require.Len(t, state.inner.InviteMetadatas[keybase1.TeamInviteID(inviteID)].UsedInvites, 1)
+		require.Len(t, state.inner.InviteMetadatas[inviteID].UsedInvites, 1)
 		require.Len(t, state.GetAllUVs(), 2) // team creator and one person added in loop above
 	}
 }
