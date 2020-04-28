@@ -156,14 +156,12 @@ export default Container.connect(
         })
       }
     }
-    if (stateProps.canLeaveTeam) {
-      items.push({
-        danger: true,
-        icon: 'iconfont-team-leave',
-        onClick: dispatchProps.onLeaveTeam,
-        title: 'Leave team',
-      })
-    }
+    items.push({
+      danger: true,
+      icon: 'iconfont-team-leave',
+      onClick: dispatchProps.onLeaveTeam,
+      title: 'Leave team',
+    })
     if (stateProps.canDeleteTeam) {
       items.push({
         danger: true,

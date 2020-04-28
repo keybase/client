@@ -9,7 +9,6 @@ type Props = {
   stillLoadingTeam: boolean
 }
 
-// TODO update this to the new design
 const ReallyLeaveTeam = (props: Props) => (
   <Kb.Modal
     mode="Wide"
@@ -22,11 +21,13 @@ const ReallyLeaveTeam = (props: Props) => (
             onClick={props.onBack}
             label="Got it"
             fullWidth={true}
+            type="Dim"
             disabled={props.stillLoadingTeam}
           />
         </Kb.ButtonBar>
       ),
       hideBorder: true,
+      style: styles.footer,
     }}
   >
     {props.stillLoadingTeam ? (
@@ -41,7 +42,7 @@ const ReallyLeaveTeam = (props: Props) => (
           You can't leave the {props.name} team because you're the only owner.
         </Kb.Text>
         <Kb.Text type="Body" center={true} style={styles.bodyText}>
-          You'll have to add another user as an owner before you can leave {props.name}, or{' '}
+          You'll have to add another user as an owner before you can leave {props.name}. Or, you can{' '}
           <Kb.Text type="BodyPrimaryLink" onClick={props.onDeleteTeam}>
             delete the&nbsp;team
           </Kb.Text>
@@ -54,8 +55,20 @@ const ReallyLeaveTeam = (props: Props) => (
 
 const styles = Styles.styleSheetCreate(() => ({
   bodyText: Styles.platformStyles({isElectron: {maxWidth: 430}}),
-  buttonBar: {minHeight: undefined},
+  buttonBar: {
+    minHeight: undefined,
+  },
   container: Styles.platformStyles({isMobile: {...Styles.padding(0, Styles.globalMargins.small)}}),
+  footer: Styles.platformStyles({
+    common: {
+      borderTopColor: Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      padding: 0,
+    },
+    isElectron: {
+      borderTopStyle: 'solid',
+    },
+  }),
   headerText: {maxWidth: 380},
   leaveIcon: {bottom: -10, position: 'absolute', right: -10},
 }))
