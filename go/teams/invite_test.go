@@ -467,7 +467,7 @@ func TestTeamPlayerInviteLinkBadAdds(t *testing.T) {
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
 	require.NoError(t, err)
-	_, found := state.FindActiveInviteMDByID(keybase1.TeamInviteID(inviteID))
+	_, found := state.FindActiveInviteMDByID(inviteID)
 	require.True(t, found)
 
 	{
@@ -667,7 +667,7 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 	state, err := appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
 		teamSectionForInvite, me, nil /* merkleRoot */)
 	require.NoError(t, err)
-	_, found := state.FindActiveInviteMDByID(keybase1.TeamInviteID(inviteID))
+	_, found := state.FindActiveInviteMDByID(inviteID)
 	require.True(t, found)
 
 	{
@@ -700,7 +700,7 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 		state, err := appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 			teamSectionCM, me, nil /* merkleRoot */)
 		require.NoError(t, err)
-		require.Len(t, state.inner.InviteMetadatas[keybase1.TeamInviteID(inviteID)].UsedInvites, 1)
+		require.Len(t, state.inner.InviteMetadatas[inviteID].UsedInvites, 1)
 		require.Len(t, state.GetAllUVs(), 3) // team creator and two people added in this link
 	}
 
