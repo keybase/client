@@ -159,44 +159,43 @@ helpers.rootLinuxNode(env, {
             }
             parallel (
               failFast: true,
-              // TODO: uncomment
-              // test_xcompilation: { withEnv([
-              //   "PATH=${env.PATH}:${env.GOPATH}/bin",
-              // ]) {
-              //   if (hasGoChanges) {
-              //     def platforms = ["freebsd", "netbsd", "openbsd"]
-              //     for (platform in platforms) {
-              //         withEnv(["GOOS=${platform}"]) {
-              //             println "Testing compilation on ${platform}"
-              //             sh "go build -tags production -o keybase_${platform} github.com/keybase/client/go/keybase"
-              //             println "End testing compilation on ${platform}"
-              //         }
-              //     }
-              //   }
-              // }},
-              // test_linux_go: { withEnv([
-              //   "PATH=${env.PATH}:${env.GOPATH}/bin",
-              //   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-              //   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-              //   "GPG=/usr/bin/gpg.distrib",
-              // ]) {
-              //   if (hasGoChanges) {
-              //     testGo("test_linux_go_", packagesToTest)
-              //   }
-              // }},
-              // test_linux_js: { withEnv([
-              //   "PATH=${env.HOME}/.node/bin:${env.PATH}",
-              //   "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-              //   "NODE_OPTIONS=--max-old-space-size=4096",
-              // ]) {
-              //   dir("shared") {
-              //     stage("JS Tests") {
-              //       sh "git config --global user.name 'Keybase Jenkins'"
-              //       sh "git config --global user.email 'jenkins@keyba.se'"
-              //       sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-              //     }
-              //   }
-              // }},
+              test_xcompilation: { withEnv([
+                "PATH=${env.PATH}:${env.GOPATH}/bin",
+              ]) {
+                if (hasGoChanges) {
+                  def platforms = ["freebsd", "netbsd", "openbsd"]
+                  for (platform in platforms) {
+                      withEnv(["GOOS=${platform}"]) {
+                          println "Testing compilation on ${platform}"
+                          sh "go build -tags production -o keybase_${platform} github.com/keybase/client/go/keybase"
+                          println "End testing compilation on ${platform}"
+                      }
+                  }
+                }
+              }},
+              test_linux_go: { withEnv([
+                "PATH=${env.PATH}:${env.GOPATH}/bin",
+                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                "GPG=/usr/bin/gpg.distrib",
+              ]) {
+                if (hasGoChanges) {
+                  testGo("test_linux_go_", packagesToTest)
+                }
+              }},
+              test_linux_js: { withEnv([
+                "PATH=${env.HOME}/.node/bin:${env.PATH}",
+                "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                "NODE_OPTIONS=--max-old-space-size=4096",
+              ]) {
+                dir("shared") {
+                  stage("JS Tests") {
+                    sh "git config --global user.name 'Keybase Jenkins'"
+                    sh "git config --global user.email 'jenkins@keyba.se'"
+                    sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                  }
+                }
+              }},
               integrate: { withEnv([
                 "DOCKER_BUILDKIT=1",
               ]) {
@@ -242,7 +241,7 @@ helpers.rootLinuxNode(env, {
             )
           },
           test_windows: {
-            if (false) { // TODO: (hasGoChanges) {
+            if (hasGoChanges) {
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
