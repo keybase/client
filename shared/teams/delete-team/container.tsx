@@ -31,7 +31,7 @@ export default Container.connect(
     onDelete: () => dispatchProps.onDelete(stateProps.teamID),
     subteamNames: stateProps.teamDetails.subteams.size
       ? [...stateProps.teamDetails.subteams]
-          .map(subteamID => stateProps.teamMetas.get(subteamID)?.teamname)
+          .map(subteamID => stateProps.teamMetas.get(subteamID)?.teamname ?? '')
           .filter(name => !!name)
       : undefined,
     teamID: stateProps.teamID,
