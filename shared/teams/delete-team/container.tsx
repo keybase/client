@@ -12,9 +12,12 @@ export default Container.connect(
   (state, ownProps: OwnProps) => {
     const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
     const {teamname} = Constants.getTeamMeta(state, teamID)
+    const teamDetails = Constants.getTeamDetails(state, teamID)
     return {
       deleteWaiting: anyWaiting(state, Constants.deleteTeamWaitingKey(teamID)),
+      teamDetails,
       teamID,
+      teamMetas: state.teams.teamMeta,
       teamname,
     }
   },
@@ -26,6 +29,11 @@ export default Container.connect(
     deleteWaiting: stateProps.deleteWaiting,
     onBack: stateProps.deleteWaiting ? () => {} : dispatchProps.onBack,
     onDelete: () => dispatchProps.onDelete(stateProps.teamID),
+    subteamNames: stateProps.teamDetails.subteams.size
+      ? [...stateProps.teamDetails.subteams]
+          .map(subteamID => stateProps.teamMetas.get(subteamID)?.teamname)
+          .filter(name => !!name)
+      : undefined,
     teamID: stateProps.teamID,
     teamname: stateProps.teamname,
   })

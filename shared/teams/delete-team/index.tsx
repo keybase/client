@@ -4,11 +4,13 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
+import {pluralize} from '../../util/string'
 
 export type Props = {
   deleteWaiting: boolean
   onBack: () => void
   onDelete: () => void
+  subteamNames?: Array<string>
   teamID: Types.TeamID
   teamname: string
 }
@@ -74,6 +76,22 @@ const ReallyDeleteTeam = (props: Props) => {
       dispatch(WaitingGen.createClearWaiting({key: Constants.deleteTeamWaitingKey(teamID)}))
     }
   }, [dispatch, teamID])
+
+  if (props.subteamNames) {
+    return (
+      <Kb.ConfirmModal
+        content={
+          <Kb.Text type="Body" center={true}>
+            Before you can delete <Kb.Text type="BodySemibold">{props.teamname}</Kb.Text>, delete its{' '}
+            {props.subteamNames.length} {pluralize('subteam', props.subteamNames.length)}:{' '}
+            <Kb.Text type="BodySemibold">{props.subteamNames.join(', ')}</Kb.Text>.
+          </Kb.Text>
+        }
+        header={<Header {...props} />}
+        prompt={`You can't delete ${props.teamname} because it has subteams.`}
+      />
+    )
+  }
 
   return (
     <Kb.ConfirmModal
