@@ -974,6 +974,10 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	}
 	s.Debug(ctx, "applyTeamBotSettings: matched %d bots, applied %v", len(botUIDs), msg.ClientHeader.BotUID)
 
+	// Add txIDs to client header, if relevant
+	bodyTxIDs := utils.GetMessageBodyTxIDs(msg.ClientHeader.MessageType, msg.MessageBody)
+	msg.ClientHeader.TxIDs = &bodyTxIDs
+
 	encInfo, err := s.boxer.GetEncryptionInfo(ctx, &msg, membersType, skp)
 	if err != nil {
 		s.Debug(ctx, "Prepare: error getting encryption info: %s", err)
@@ -1158,10 +1162,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	s.Debug(ctx, "Send: uid: %s in conversation %s (tlfName: %s) with status: %v", sender,
 		conv.GetConvID(), conv.Info.TlfName, conv.ReaderInfo.Status)
-
-	// Add txIDs to client header, if relevant
-	bodyTxIDs := utils.GetMessageBodyTxIDs(msg.ClientHeader.MessageType, msg.MessageBody)
-	msg.ClientHeader.TxIDs = &bodyTxIDs
 
 	// If we are in preview mode, then just join the conversation right now.
 	switch conv.ReaderInfo.Status {
@@ -1382,10 +1382,6 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 	if err != nil {
 		return nil, nil, err
 	}
-
-	// Add txIDs to client header, if relevant
-	bodyTxIDs := utils.GetMessageBodyTxIDs(msg.ClientHeader.MessageType, msg.MessageBody)
-	msg.ClientHeader.TxIDs = &bodyTxIDs
 
 	// The strategy here is to select the larger prev between what the UI provides, and what we have
 	// stored locally. If we just use the UI version, then we can race for creating ordinals in

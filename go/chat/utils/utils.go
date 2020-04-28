@@ -3075,5 +3075,5 @@ func GetMessageBodyTxIDs(mtype chat1.MessageType, body chat1.MessageBody) []stel
 			return TextPaymentsToTransactionIDs(body.Text().Payments)
 		}
 	}
-	return []stellar1.TransactionID{}
+	return nil
 }
