@@ -77,16 +77,12 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingBottom: 64, // footer height
     },
   }),
-  footer: Styles.platformStyles({
-    common: {
-      borderTopColor: Styles.globalColors.black_10,
-      borderTopWidth: 1,
-      padding: 0,
-    },
-    isElectron: {
-      borderTopStyle: 'solid',
-    },
-  }),
+  footer: {
+    borderTopColor: Styles.globalColors.black_10,
+    borderTopWidth: 1,
+    borderStyle: 'solid',
+    padding: 0,
+  },
   headerText: {maxWidth: 380},
   leaveIcon: Styles.platformStyles({
     common: {
