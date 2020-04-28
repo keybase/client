@@ -92,9 +92,8 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       alignItems: 'center',
       backgroundColor: Styles.globalColors.red,
-      borderColor: Styles.globalColors.whiteOrBlack,
+      borderColor: Styles.globalColors.white,
       borderStyle: 'solid',
-      borderWidth: 2,
       color: Styles.globalColors.white,
       display: 'flex',
       flexDirection: 'column',
@@ -106,12 +105,14 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       borderRadius: 12,
+      borderWidth: 2,
       height: 26,
       lineHeight: 26,
       width: 26,
     },
     isMobile: {
       borderRadius: 16,
+      borderWidth: 3.5,
       height: 34,
       lineHeight: 34,
       width: 34,
