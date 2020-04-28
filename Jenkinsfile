@@ -606,7 +606,7 @@ def testGoTestSuite(prefix, packagesToTest) {
         timeout: '30s',
       ],
       'github.com/keybase/client/go/systests': [
-        citogo_extra: '-parallel=8',
+        // citogo_extra: '-parallel=8', TODO: re-enable later
       ],
     ],
     test_windows_go_: [
