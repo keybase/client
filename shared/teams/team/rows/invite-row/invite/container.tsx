@@ -4,6 +4,7 @@ import * as Container from '../../../../../util/container'
 import {TeamInviteRow} from '.'
 import {InviteInfo, TeamID} from '../../../../../constants/types/teams'
 import flags from '../../../../../util/feature-flags'
+import {formatPhoneNumber} from '../../../../../util/phone-numbers'
 
 type OwnProps = {
   id: string
@@ -35,7 +36,7 @@ export default Container.connect(
       // loading
       return {firstItem: ownProps.firstItem, label: '', onCancelInvite: () => {}, role: 'reader'} as const
     }
-    let onCancelInvite = () => dispatchProps._onCancelInvite(ownProps.id)
+    const onCancelInvite = () => dispatchProps._onCancelInvite(ownProps.id)
 
     let label = user.username || user.name || user.email || user.phone
     let subLabel = user.name ? user.phone || user.email : undefined
@@ -44,6 +45,10 @@ export default Container.connect(
       label = match[1]
       subLabel = match[2]
     }
+    try {
+      label = label === user.phone ? formatPhoneNumber('+' + label) : label
+      subLabel = subLabel === user.phone ? formatPhoneNumber('+' + subLabel) : subLabel
+    } catch {}
 
     if (!flags.teamsRedesign && subLabel) {
       label = `${label} (${subLabel})`
