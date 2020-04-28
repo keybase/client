@@ -67,8 +67,7 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	}
 
 	res := &keybase1.AnnotatedTeamList{
-		Teams:                  nil,
-		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
+		Teams: nil,
 	}
 
 	if len(teams) == 0 {

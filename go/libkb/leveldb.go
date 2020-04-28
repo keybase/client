@@ -166,11 +166,14 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 			l.db, err = leveldb.OpenFile(fn, l.Opts())
 			if _, ok := err.(*errors.ErrCorrupted); ok {
 				l.G().Log.Debug("| LevelDb was corrupted; attempting recovery (%v)", err)
-				l.db, err = leveldb.RecoverFile(fn, nil)
-				if err != nil {
-					l.G().Log.Debug("| Recovery failed: %v", err)
+				var recoveryError error
+				l.db, recoveryError = leveldb.RecoverFile(fn, nil)
+				if recoveryError != nil {
+					l.G().Log.Debug("| Recovery failed: %v", recoveryError)
 				} else {
 					l.G().Log.Debug("| Recovery succeeded!")
+					// wipe the outer error since it's fixed now
+					err = nil
 				}
 			}
 			l.G().Log.Debug("- LevelDb.open -> %s", ErrToOk(err))

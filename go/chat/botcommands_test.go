@@ -159,12 +159,6 @@ func TestBotCommandManager(t *testing.T) {
 		}},
 		TeamName: &teamConv.TlfName,
 	}, chat1.AdvertiseCommandsParam{
-		Typ: chat1.BotCommandsAdvertisementTyp_TLFID_CONVS,
-		Commands: []chat1.UserBotCommandInput{{
-			Name: "teamconvonly_implicit",
-		}},
-		TeamName: &impConv.TlfName,
-	}, chat1.AdvertiseCommandsParam{
 		Typ: chat1.BotCommandsAdvertisementTyp_CONV,
 		Commands: []chat1.UserBotCommandInput{{
 			Name: "conv",
@@ -187,7 +181,7 @@ func TestBotCommandManager(t *testing.T) {
 
 	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(cmds))
+	require.Equal(t, 2, len(cmds))
 	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
 	require.NoError(t, err)
 	require.Equal(t, 4, len(cmds))
@@ -212,4 +206,14 @@ func TestBotCommandManager(t *testing.T) {
 	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
 	require.NoError(t, err)
 	require.Equal(t, 8, len(cmds))
+
+	// impteams can't advertise on team types
+	commands = append(commands, chat1.AdvertiseCommandsParam{
+		Typ: chat1.BotCommandsAdvertisementTyp_TLFID_CONVS,
+		Commands: []chat1.UserBotCommandInput{{
+			Name: "teamconvonly_implicit",
+		}},
+		TeamName: &impConv.TlfName,
+	})
+	require.Error(t, tc.Context().BotCommandManager.Advertise(ctx, &alias, commands))
 }

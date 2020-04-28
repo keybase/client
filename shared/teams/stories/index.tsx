@@ -82,19 +82,18 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
         {
           ...Constants.emptyTeamDetails,
           description: 'A team for people who live in story books, or for people who like story books',
-          inviteLinks: new Set([
+          inviteLinks: [
             {
               creatorUsername: 'max',
-              expirationTime: 0,
-              expired: false,
               id: 'inviteLinkID',
+              isValid: true,
               lastJoinedUsername: 'chris',
-              maxUses: 100,
               numUses: 12,
               role: 'writer' as const,
               url: 'https://keybase.io/invite/link/2942',
+              validityDescription: 'Expires after 100 uses',
             },
-          ]),
+          ],
           members: new Map([
             [
               'alice',

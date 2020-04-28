@@ -351,6 +351,10 @@
             "Time"
           ],
           "name": "joinTime"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
         }
       ]
     },
@@ -1390,26 +1394,85 @@
           "name": "inviterUsername"
         },
         {
-          "type": "UserVersion",
-          "name": "inviteeUv"
-        },
-        {
           "type": "string",
           "name": "teamName"
         },
         {
-          "type": [
-            null,
-            "TeamMemberStatus"
-          ],
+          "type": "boolean",
+          "name": "isValid"
+        },
+        {
+          "type": "string",
+          "name": "validityDescription"
+        },
+        {
+          "type": "AnnotatedTeamInviteExt",
+          "name": "inviteExt"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KeybaseInviteExt",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "inviteeUv"
+        },
+        {
+          "type": "TeamMemberStatus",
           "name": "status"
         },
+        {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InvitelinkInviteExt",
+      "fields": [
         {
           "type": {
             "type": "array",
             "items": "AnnotatedTeamUsedInviteLogPoint"
           },
           "name": "annotatedUsedInvites"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "AnnotatedTeamInviteExt",
+      "switch": {
+        "type": "TeamInviteCategory",
+        "name": "c"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "KEYBASE",
+            "def": false
+          },
+          "body": "KeybaseInviteExt"
+        },
+        {
+          "label": {
+            "name": "INVITELINK",
+            "def": false
+          },
+          "body": "InvitelinkInviteExt"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
         }
       ]
     },
@@ -2720,14 +2783,6 @@
             "items": "AnnotatedMemberInfo"
           },
           "name": "teams"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "AnnotatedTeamInvite",
-            "keys": "TeamInviteID"
-          },
-          "name": "annotatedActiveInvites"
         }
       ]
     },
@@ -3625,20 +3680,6 @@
     },
     {
       "type": "record",
-      "name": "AnnotatedTeamMemberDetails",
-      "fields": [
-        {
-          "type": "TeamMemberDetails",
-          "name": "details"
-        },
-        {
-          "type": "TeamRole",
-          "name": "role"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "AnnotatedTeam",
       "fields": [
         {
@@ -3656,7 +3697,7 @@
         {
           "type": {
             "type": "array",
-            "items": "AnnotatedTeamMemberDetails"
+            "items": "TeamMemberDetails"
           },
           "name": "members"
         },
@@ -3668,6 +3709,18 @@
           "name": "invites"
         },
         {
+          "type": "TeamSettings",
+          "name": "settings"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "keyGeneration"
+        },
+        {
+          "type": "TeamShowcase",
+          "name": "showcase"
+        },
+        {
           "type": {
             "type": "array",
             "items": "TeamJoinRequest"
@@ -3677,14 +3730,6 @@
         {
           "type": "boolean",
           "name": "tarsDisabled"
-        },
-        {
-          "type": "TeamSettings",
-          "name": "settings"
-        },
-        {
-          "type": "TeamShowcase",
-          "name": "showcase"
         }
       ]
     },
@@ -3913,19 +3958,6 @@
       ],
       "response": "TeamDetails"
     },
-    "teamGetMembers": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "name",
-          "type": "string"
-        }
-      ],
-      "response": "TeamMembersDetails"
-    },
     "teamGetMembersByID": {
       "request": [
         {
@@ -3935,19 +3967,6 @@
         {
           "name": "id",
           "type": "TeamID"
-        }
-      ],
-      "response": "TeamMembersDetails"
-    },
-    "teamImplicitAdmins": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "teamName",
-          "type": "string"
         }
       ],
       "response": {
@@ -4958,6 +4977,15 @@
         {
           "name": "teamID",
           "type": "TeamID"
+        }
+      ],
+      "response": "AnnotatedTeam"
+    },
+    "getAnnotatedTeamByName": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "string"
         }
       ],
       "response": "AnnotatedTeam"

@@ -467,13 +467,7 @@ func (t TeamSigChainState) GetSubteamName(id keybase1.TeamID) (*keybase1.TeamNam
 // Inform the UserLog and Bots of a user's role.
 // Mutates the UserLog and Bots.
 // Must be called with seqno's and events in correct order.
-// Idempotent if called correctly.
 func (t *TeamSigChainState) inform(u keybase1.UserVersion, role keybase1.TeamRole, sigMeta keybase1.SignatureMetadata) {
-	currentRole := t.getUserRole(u)
-	if currentRole == role {
-		// no change in role, no new checkpoint needed
-		return
-	}
 	t.inner.UserLog[u] = append(t.inner.UserLog[u], keybase1.UserLogPoint{
 		Role:    role,
 		SigMeta: sigMeta,
@@ -1997,7 +1991,7 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 			if res.MaxUses == nil {
 				return nil, nil, NewInviteError(id, fmt.Errorf("new-style but has no max-uses"))
 			}
-			if !res.MaxUses.IsValid() {
+			if !res.MaxUses.IsNotNilAndValid() {
 				return nil, nil, NewInviteError(id, fmt.Errorf("invalid max_uses %d", *res.MaxUses))
 			}
 			if res.Etime != nil {
@@ -2291,6 +2285,7 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 		return nil
 	}
 
+	seenUVs := make(map[keybase1.UserVersion]bool)
 	hasStubbedLinks := stateToUpdate.HasAnyStubbedLinks()
 	for _, pair := range used {
 		inviteID, err := pair.InviteID.TeamInviteID()
@@ -2323,11 +2318,10 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 			return fmt.Errorf("`used_invites` for a non-new-style invite (id: %q)", inviteID)
 		}
 
-		maxUses := inviteMD.Invite.MaxUses
 		alreadyUsed := len(inviteMD.UsedInvites)
 		// Note that we append to inviteMD.UsedInvites at the end of this for loop, so alreadyUsed
 		// updates correctly when processing multiple invite pairs.
-		if maxUses.IsUsedUp(alreadyUsed) {
+		if inviteMD.Invite.IsUsedUp(alreadyUsed) {
 			return fmt.Errorf("invite %s is expired after %d uses", inviteID, alreadyUsed)
 		}
 
@@ -2347,6 +2341,11 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 			return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV,
 				inviteMD.Invite.Role.HumanString())
 		}
+
+		if seen := seenUVs[uv]; seen {
+			return fmt.Errorf("duplicate used_invite for UV %s", pair.UV)
+		}
+		seenUVs[uv] = true
 
 		// Because we use information from the UserLog here, useInvites should be called after
 		// updateMembership.

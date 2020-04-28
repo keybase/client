@@ -1257,7 +1257,7 @@ const getMembers = async (action: TeamsGen.GetMembersPayload, logger: Saga.SagaL
     const res = await RPCTypes.teamsTeamGetMembersByIDRpcPromise({
       id: teamID,
     })
-    const members = Constants.rpcDetailsToMemberInfos(res)
+    const members = Constants.rpcDetailsToMemberInfos(res ?? [])
     return TeamsGen.createSetMembers({members, teamID})
   } catch (error) {
     logger.error(`Error updating members for ${teamID}: ${error.desc}`)

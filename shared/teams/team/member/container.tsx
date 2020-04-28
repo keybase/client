@@ -13,7 +13,6 @@ type OwnProps = Container.RouteProps<{username: string; teamID: Types.TeamID}>
 
 type State = {
   rolePickerOpen: boolean
-  selectedRole: Types.TeamRoleType | null
 }
 
 type Props = MemberProps & {
@@ -26,7 +25,6 @@ export class TeamMemberStateWrapper extends React.Component<Props, State> {
   }
   state = {
     rolePickerOpen: false,
-    selectedRole: null,
   }
 
   render() {
@@ -40,8 +38,6 @@ export class TeamMemberStateWrapper extends React.Component<Props, State> {
           this.props.onEditRole(role)
           this.setState({rolePickerOpen: false})
         }}
-        onSelectRole={selectedRole => this.setState({selectedRole})}
-        selectedRole={this.state.selectedRole}
       />
     )
   }

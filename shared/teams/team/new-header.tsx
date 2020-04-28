@@ -12,7 +12,7 @@ import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import flags from '../../util/feature-flags'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
-import {formatExpirationTimeForInviteLink} from '../../util/timestamp'
+import {InviteItem} from './invites/invite-item'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
   const dispatch = Container.useDispatch()
@@ -97,9 +97,8 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
 
-  const inviteLinks = details.inviteLinks ? [...details.inviteLinks] : []
-  // TODO: how to get the most recent nonexpired link
-  const mostRecentInviteLink = inviteLinks.length ? inviteLinks[0] : undefined
+  const mostRecentInviteLink = Constants.maybeGetMostRecentValidInviteLink(details.inviteLinks)
+  const validInviteLinkCount = Constants.countValidInviteLinks(details.inviteLinks)
 
   const callbacks = useHeaderCallbacks(teamID)
 
@@ -228,6 +227,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </>
   )
 
+  const additionalValidIndicator = validInviteLinkCount > 1 ? `(${validInviteLinkCount} active)` : ''
   const addInviteAndLinkBox =
     justFinishedAddWizard && !meta.showcasing ? (
       <FeatureTeamCard teamID={props.teamID} />
@@ -249,15 +249,15 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         {flags.teamInvites &&
           (mostRecentInviteLink ? (
             <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
-              <Kb.Box2 direction="horizontal">
-                <Kb.CopyText text={mostRecentInviteLink.url} />
-              </Kb.Box2>
-              <Kb.Text type="BodySmall">
-                Invites as {mostRecentInviteLink.role} · Expires{' '}
-                {formatExpirationTimeForInviteLink(mostRecentInviteLink.expirationTime)}
-              </Kb.Text>
+              <InviteItem
+                inviteLink={mostRecentInviteLink}
+                teamID={props.teamID}
+                style={styles.inviteLinkContainer}
+                showDetails={false}
+                showExpireAction={false}
+              />
               <Kb.Text type="BodyTiny" onClick={callbacks.onManageInvites} className="hover-underline">
-                Manage invite links
+                Manage invite links {additionalValidIndicator}
               </Kb.Text>
             </Kb.Box2>
           ) : (
@@ -465,6 +465,15 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
       },
       illustration: {borderRadius: 4, overflow: 'hidden', width: '100%'},
+      inviteLinkContainer: Styles.platformStyles({
+        common: {
+          borderColor: 'transparent',
+          borderRadius: 0,
+          borderStyle: undefined,
+          borderWidth: 0,
+          padding: 0,
+        },
+      }),
       marginBottomRightTiny: {
         marginBottom: Styles.globalMargins.tiny,
         marginRight: Styles.globalMargins.tiny,

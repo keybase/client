@@ -42,7 +42,6 @@ type RolePickerProps = {
   onCancelRolePicker: () => void
   onConfirmRolePicker: (role: Types.TeamRoleType) => void
   onOpenRolePicker: () => void
-  onSelectRole: (role: Types.TeamRoleType) => void
   newOpenTeamRole: Types.TeamRoleType
   disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string}
 }
@@ -54,7 +53,6 @@ type NewSettings = {
   newPublicityTeam: boolean
   newOpenTeam: boolean
   newOpenTeamRole: Types.TeamRoleType
-  selectedOpenTeamRole: Types.TeamRoleType
   newRetentionPolicy: RetentionPolicy | null
 }
 
@@ -161,15 +159,14 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
                 Anyone will be able to join immediately. Users will join as
               </Kb.Text>
               <FloatingRolePicker
-                confirmLabel={`Let in as ${pluralize(props.newOpenTeamRole)}`}
-                selectedRole={props.newOpenTeamRole}
-                onSelectRole={props.onSelectRole}
                 floatingContainerStyle={styles.floatingRolePicker}
                 onConfirm={props.onConfirmRolePicker}
                 onCancel={props.onCancelRolePicker}
                 position="bottom center"
                 open={props.isRolePickerOpen}
                 disabledRoles={props.disabledReasonsForRolePicker}
+                presetRole={props.newOpenTeamRole}
+                plural={true}
               >
                 <InlineDropdown
                   label={pluralize(props.newOpenTeamRole)}
@@ -214,13 +211,9 @@ const toRolePickerPropsHelper = (state: State, setState) => ({
   },
   isRolePickerOpen: state.isRolePickerOpen,
   newOpenTeamRole: state.newOpenTeamRole,
-  onCancelRolePicker: () => setState({isRolePickerOpen: false, newOpenTeamRole: state.selectedOpenTeamRole}),
-  onConfirmRolePicker: () => setState({isRolePickerOpen: false, selectedOpenTeamRole: state.newOpenTeamRole}),
+  onCancelRolePicker: () => setState({isRolePickerOpen: false}),
+  onConfirmRolePicker: role => setState({isRolePickerOpen: false, newOpenTeamRole: role}),
   onOpenRolePicker: () => setState({isRolePickerOpen: true}),
-  onSelectRole: (role: Types.TeamRoleType) =>
-    setState({
-      newOpenTeamRole: role,
-    }),
 })
 
 export class Settings extends React.Component<Props, State> {
@@ -244,10 +237,6 @@ export class Settings extends React.Component<Props, State> {
       retentionPolicyDecreased: false,
       selectedOpenTeamRole: p.openTeamRole,
     }
-  }
-
-  componentDidMount() {
-    this.props.loadWelcomeMessage()
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -366,7 +355,8 @@ export class Settings extends React.Component<Props, State> {
               <InviteLinks teamID={this.props.teamID} />
             </Kb.Box2>
           )}
-          {flags.teamsRedesign &&
+          {false &&
+            flags.teamsRedesign &&
             this.props.yourOperations.editTeamDescription &&
             (this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
               <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>

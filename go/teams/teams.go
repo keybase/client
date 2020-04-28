@@ -362,6 +362,13 @@ func (t *Team) UserLastRoleChangeTime(u keybase1.UserVersion) (time keybase1.Tim
 	return t.chain().GetUserLastRoleChangeTime(u)
 }
 
+func (t *Team) Settings() keybase1.TeamSettings {
+	return keybase1.TeamSettings{
+		Open:   t.IsOpen(),
+		JoinAs: t.chain().inner.OpenTeamJoinAs,
+	}
+}
+
 func (t *Team) Members() (keybase1.TeamMembers, error) {
 	var members keybase1.TeamMembers
 

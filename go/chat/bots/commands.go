@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -19,7 +18,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -47,6 +45,7 @@ type storageCommandAdvertisement struct {
 	UntrustedTeamRole keybase1.TeamRole
 	UID               gregor1.UID
 	Username          string
+	Typ               chat1.BotCommandsAdvertisementTyp
 }
 
 type commandsStorage struct {
@@ -137,23 +136,6 @@ func (b *CachingBotCommandManager) getMyUsername(ctx context.Context) (string, e
 	return nn.String(), nil
 }
 
-func (b *CachingBotCommandManager) deriveMembersType(ctx context.Context, name string) (chat1.ConversationMembersType, error) {
-	_, err := teams.Load(ctx, b.G().GlobalContext, keybase1.LoadTeamArg{Name: name})
-	switch err.(type) {
-	case nil:
-		return chat1.ConversationMembersType_TEAM, nil
-	case teams.TeamDoesNotExistError:
-		return chat1.ConversationMembersType_IMPTEAMNATIVE, nil
-	default:
-		// https://github.com/keybase/client/blob/249cfcb4b4bd6dcc50d207d0b88eee455a7f6c2d/go/protocol/keybase1/extras.go#L2249
-		if strings.Contains(err.Error(), "team names must be between 2 and 16 characters long") ||
-			strings.Contains(err.Error(), "Keybase team names must be letters") {
-			return chat1.ConversationMembersType_IMPTEAMNATIVE, nil
-		}
-		return 0, err
-	}
-}
-
 func (b *CachingBotCommandManager) createConv(ctx context.Context, typ chat1.BotCommandsAdvertisementTyp,
 	teamName *string, convID *chat1.ConversationID) (res chat1.ConversationLocal, err error) {
 	username, err := b.getMyUsername(ctx)
@@ -179,12 +161,8 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, typ chat1.Bot
 		}
 
 		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, typ)
-		membersType, err := b.deriveMembersType(ctx, *teamName)
-		if err != nil {
-			return res, err
-		}
 		res, _, err = b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, *teamName, &topicName,
-			chat1.TopicType_DEV, membersType, keybase1.TLFVisibility_PRIVATE)
+			chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
 		return res, err
 	case chat1.BotCommandsAdvertisementTyp_CONV:
 		if teamName != nil {
@@ -343,7 +321,8 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 		return res, alias, nil
 	}
 
-	cmdDedup := make(map[string]bool)
+	cmdOutputs := make(map[string]chat1.UserBotCommandOutput)
+	cmdDedup := make(map[string]chat1.BotCommandsAdvertisementTyp)
 	for _, ad := range s.Advertisements {
 		ad.Username = libkb.NewNormalizedUsername(ad.Username).String()
 		if ad.Advertisement.Alias != nil {
@@ -351,12 +330,17 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 		}
 		for _, cmd := range ad.Advertisement.Commands {
 			key := cmd.Name + ad.Username
-			if !cmdDedup[key] {
-				res = append(res, cmd.ToOutput(ad.Username))
-				cmdDedup[key] = true
+			if typ, ok := cmdDedup[key]; !ok || ad.Typ > typ {
+				cmdOutputs[key] = cmd.ToOutput(ad.Username)
+				cmdDedup[key] = ad.Typ
 			}
 		}
 	}
+	res = make([]chat1.UserBotCommandOutput, 0, len(cmdOutputs))
+	for _, cmd := range cmdOutputs {
+		res = append(res, cmd)
+	}
+
 	sort.Slice(res, func(i, j int) bool {
 		l := res[i]
 		r := res[j]
@@ -483,7 +467,7 @@ func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job *commandU
 }
 
 func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, convID chat1.ConversationID,
-	botUID gregor1.UID, untrustedTeamRole keybase1.TeamRole) (res *storageCommandAdvertisement) {
+	botUID gregor1.UID, untrustedTeamRole keybase1.TeamRole, typ chat1.BotCommandsAdvertisementTyp) (res *storageCommandAdvertisement) {
 	b.Debug(ctx, "getConvAdvertisement: reading commands from: %s for uid: %s", convID, botUID)
 	tv, err := b.G().ConvSource.Pull(ctx, convID, b.uid, chat1.GetThreadReason_BOTCOMMANDS, nil,
 		&chat1.GetThreadQuery{
@@ -520,6 +504,7 @@ func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, con
 	res.Username = msg.Valid().SenderUsername
 	res.UID = botUID
 	res.UntrustedTeamRole = untrustedTeamRole
+	res.Typ = typ
 
 	return res
 }
@@ -554,7 +539,7 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job *comma
 			Version: storageVersion,
 		}
 		for _, cconv := range botInfo.CommandConvs {
-			ad := b.getConvAdvertisement(ctx, cconv.ConvID, cconv.Uid, cconv.UntrustedTeamRole)
+			ad := b.getConvAdvertisement(ctx, cconv.ConvID, cconv.Uid, cconv.UntrustedTeamRole, cconv.Typ)
 			if ad != nil {
 				s.Advertisements = append(s.Advertisements, *ad)
 			}

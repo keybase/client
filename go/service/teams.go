@@ -209,22 +209,22 @@ func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (re
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTrace(ctx, fmt.Sprintf("TeamGet(%s)", arg.Name), &err)()
 
-	res, err = teams.Details(ctx, h.G().ExternalG(), arg.Name)
+	t, err := teams.GetAnnotatedTeamByName(ctx, h.G().ExternalG(), arg.Name)
 	if err != nil {
 		return res, err
 	}
-	return h.teamGet(ctx, res, arg.Name)
+	return t.ToLegacyTeamDetails(), nil
 }
 
 func (h *TeamsHandler) TeamGetByID(ctx context.Context, arg keybase1.TeamGetByIDArg) (res keybase1.TeamDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTrace(ctx, fmt.Sprintf("TeamGetByID(%s)", arg.Id), &err)()
 
-	res, err = teams.DetailsByID(ctx, h.G().ExternalG(), arg.Id)
+	t, err := teams.GetAnnotatedTeam(ctx, h.G().ExternalG(), arg.Id)
 	if err != nil {
 		return res, err
 	}
-	return h.teamGet(ctx, res, arg.Id.String())
+	return t.ToLegacyTeamDetails(), nil
 }
 
 func (h *TeamsHandler) GetAnnotatedTeam(ctx context.Context, arg keybase1.TeamID) (res keybase1.AnnotatedTeam, err error) {
@@ -234,51 +234,22 @@ func (h *TeamsHandler) GetAnnotatedTeam(ctx context.Context, arg keybase1.TeamID
 	return teams.GetAnnotatedTeam(ctx, h.G().ExternalG(), arg)
 }
 
-func (h *TeamsHandler) teamGet(ctx context.Context, details keybase1.TeamDetails, teamDescriptor string) (keybase1.TeamDetails, error) {
-	if details.Settings.Open {
-		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", teamDescriptor)
-		details.Members.Writers = keybase1.FilterInactiveMembers(details.Members.Writers)
-		details.Members.Readers = keybase1.FilterInactiveMembers(details.Members.Readers)
-	}
-	return details, nil
+func (h *TeamsHandler) GetAnnotatedTeamByName(ctx context.Context, arg string) (res keybase1.AnnotatedTeam, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTrace(ctx, fmt.Sprintf("GetAnnotatedTeam(%s)", arg), &err)()
+
+	return teams.GetAnnotatedTeamByName(ctx, h.G().ExternalG(), arg)
 }
 
-func (h *TeamsHandler) TeamGetMembersByID(ctx context.Context, arg keybase1.TeamGetMembersByIDArg) (res keybase1.TeamMembersDetails, err error) {
+func (h *TeamsHandler) TeamGetMembersByID(ctx context.Context, arg keybase1.TeamGetMembersByIDArg) (res []keybase1.TeamMemberDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTrace(ctx, fmt.Sprintf("TeamGetMembersByID(%s)", arg.Id), &err)()
-	t, err := teams.Load(ctx, h.G().ExternalG(), keybase1.LoadTeamArg{
-		ID: arg.Id,
-	})
+
+	t, err := teams.GetAnnotatedTeam(ctx, h.G().ExternalG(), arg.Id)
 	if err != nil {
 		return res, err
 	}
-	return teams.MembersDetails(ctx, h.G().ExternalG(), t)
-}
-
-func (h *TeamsHandler) TeamGetMembers(ctx context.Context, arg keybase1.TeamGetMembersArg) (res keybase1.TeamMembersDetails, err error) {
-	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTrace(ctx, fmt.Sprintf("TeamGetMembers(%s)", arg.Name), &err)()
-	t, err := teams.Load(ctx, h.G().ExternalG(), keybase1.LoadTeamArg{
-		Name: arg.Name,
-	})
-	if err != nil {
-		return res, err
-	}
-	return teams.MembersDetails(ctx, h.G().ExternalG(), t)
-}
-
-func (h *TeamsHandler) TeamImplicitAdmins(ctx context.Context, arg keybase1.TeamImplicitAdminsArg) (res []keybase1.TeamMemberDetails, err error) {
-	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTrace(ctx, fmt.Sprintf("TeamImplicitAdmins(%s)", arg.TeamName), &err)()
-	teamName, err := keybase1.TeamNameFromString(arg.TeamName)
-	if err != nil {
-		return nil, err
-	}
-	teamID, err := teams.ResolveNameToID(ctx, h.G().ExternalG(), teamName)
-	if err != nil {
-		return nil, err
-	}
-	return teams.ImplicitAdmins(ctx, h.G().ExternalG(), teamID)
+	return t.Members, nil
 }
 
 func (h *TeamsHandler) TeamListUnverified(ctx context.Context, arg keybase1.TeamListUnverifiedArg) (res keybase1.AnnotatedTeamList, err error) {

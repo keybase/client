@@ -66,7 +66,7 @@ type getEntryAPIRes struct {
 	EntryKey          string                        `json:"entry_key"`
 	TeamKeyGen        keybase1.PerTeamKeyGeneration `json:"team_key_gen"`
 	Revision          int                           `json:"revision"`
-	Ciphertext        string                        `json:"ciphertext"`
+	Ciphertext        *string                       `json:"ciphertext"`
 	FormatVersion     int                           `json:"format_version"`
 	WriterUID         keybase1.UID                  `json:"uid"`
 	WriterEldestSeqno keybase1.Seqno                `json:"eldest_seqno"`
@@ -131,21 +131,23 @@ func (h *KVStoreHandler) getKVEntryLocked(ctx context.Context, arg keybase1.GetK
 		return res, err
 	}
 	// check the server response against the local cache
-	err = mctx.G().GetKVRevisionCache().Check(mctx, entryID, &apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.Revision)
+	err = mctx.G().GetKVRevisionCache().Check(mctx, entryID, apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.Revision)
 	if err != nil {
 		err = fmt.Errorf("error comparing the entry from the server to what's in the local cache: %s", err)
 		mctx.Debug("%+v: %s", entryID, err)
 		return res, err
 	}
-	var cleartext string
-	if apiRes.Ciphertext != "" /* deleted or non-existent */ {
-		cleartext, err = h.Boxer.Unbox(mctx, entryID, apiRes.Revision, apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID)
+	var entryValue *string
+	if apiRes.Ciphertext != nil && len(*apiRes.Ciphertext) > 0 {
+		// ciphertext coming back from the server is available to be unboxed (has previously been set, and was not previously deleted)
+		cleartext, err := h.Boxer.Unbox(mctx, entryID, apiRes.Revision, *apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID)
 		if err != nil {
 			mctx.Debug("error unboxing %+v: %v", entryID, err)
 			return res, err
 		}
+		entryValue = &cleartext
 	}
-	err = mctx.G().GetKVRevisionCache().Put(mctx, entryID, &apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.Revision)
+	err = mctx.G().GetKVRevisionCache().Put(mctx, entryID, apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.Revision)
 	if err != nil {
 		err = fmt.Errorf("error putting newly fetched values into the local cache: %s", err)
 		mctx.Debug("%+v: %s", entryID, err)
@@ -155,7 +157,7 @@ func (h *KVStoreHandler) getKVEntryLocked(ctx context.Context, arg keybase1.GetK
 		TeamName:   arg.TeamName,
 		Namespace:  arg.Namespace,
 		EntryKey:   arg.EntryKey,
-		EntryValue: cleartext,
+		EntryValue: entryValue,
 		Revision:   apiRes.Revision,
 	}, nil
 }

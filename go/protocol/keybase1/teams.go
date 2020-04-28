@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.8 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.9 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/teams.avdl
 
 package keybase1
@@ -504,6 +504,7 @@ type TeamMemberDetails struct {
 	NeedsPUK bool             `codec:"needsPUK" json:"needsPUK"`
 	Status   TeamMemberStatus `codec:"status" json:"status"`
 	JoinTime *Time            `codec:"joinTime,omitempty" json:"joinTime,omitempty"`
+	Role     TeamRole         `codec:"role" json:"role"`
 }
 
 func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
@@ -520,6 +521,7 @@ func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.JoinTime),
+		Role: o.Role.DeepCopy(),
 	}
 }
 
@@ -1767,29 +1769,49 @@ func (o TeamInvite) DeepCopy() TeamInvite {
 }
 
 type AnnotatedTeamInvite struct {
-	InviteMetadata       TeamInviteMetadata                `codec:"inviteMetadata" json:"inviteMetadata"`
-	DisplayName          TeamInviteDisplayName             `codec:"displayName" json:"displayName"`
-	InviterUsername      string                            `codec:"inviterUsername" json:"inviterUsername"`
-	InviteeUv            UserVersion                       `codec:"inviteeUv" json:"inviteeUv"`
-	TeamName             string                            `codec:"teamName" json:"teamName"`
-	Status               *TeamMemberStatus                 `codec:"status,omitempty" json:"status,omitempty"`
-	AnnotatedUsedInvites []AnnotatedTeamUsedInviteLogPoint `codec:"annotatedUsedInvites" json:"annotatedUsedInvites"`
+	InviteMetadata      TeamInviteMetadata     `codec:"inviteMetadata" json:"inviteMetadata"`
+	DisplayName         TeamInviteDisplayName  `codec:"displayName" json:"displayName"`
+	InviterUsername     string                 `codec:"inviterUsername" json:"inviterUsername"`
+	TeamName            string                 `codec:"teamName" json:"teamName"`
+	IsValid             bool                   `codec:"isValid" json:"isValid"`
+	ValidityDescription string                 `codec:"validityDescription" json:"validityDescription"`
+	InviteExt           AnnotatedTeamInviteExt `codec:"inviteExt" json:"inviteExt"`
 }
 
 func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 	return AnnotatedTeamInvite{
-		InviteMetadata:  o.InviteMetadata.DeepCopy(),
-		DisplayName:     o.DisplayName.DeepCopy(),
-		InviterUsername: o.InviterUsername,
-		InviteeUv:       o.InviteeUv.DeepCopy(),
-		TeamName:        o.TeamName,
-		Status: (func(x *TeamMemberStatus) *TeamMemberStatus {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Status),
+		InviteMetadata:      o.InviteMetadata.DeepCopy(),
+		DisplayName:         o.DisplayName.DeepCopy(),
+		InviterUsername:     o.InviterUsername,
+		TeamName:            o.TeamName,
+		IsValid:             o.IsValid,
+		ValidityDescription: o.ValidityDescription,
+		InviteExt:           o.InviteExt.DeepCopy(),
+	}
+}
+
+type KeybaseInviteExt struct {
+	InviteeUv UserVersion      `codec:"inviteeUv" json:"inviteeUv"`
+	Status    TeamMemberStatus `codec:"status" json:"status"`
+	FullName  FullName         `codec:"fullName" json:"fullName"`
+	Username  string           `codec:"username" json:"username"`
+}
+
+func (o KeybaseInviteExt) DeepCopy() KeybaseInviteExt {
+	return KeybaseInviteExt{
+		InviteeUv: o.InviteeUv.DeepCopy(),
+		Status:    o.Status.DeepCopy(),
+		FullName:  o.FullName.DeepCopy(),
+		Username:  o.Username,
+	}
+}
+
+type InvitelinkInviteExt struct {
+	AnnotatedUsedInvites []AnnotatedTeamUsedInviteLogPoint `codec:"annotatedUsedInvites" json:"annotatedUsedInvites"`
+}
+
+func (o InvitelinkInviteExt) DeepCopy() InvitelinkInviteExt {
+	return InvitelinkInviteExt{
 		AnnotatedUsedInvites: (func(x []AnnotatedTeamUsedInviteLogPoint) []AnnotatedTeamUsedInviteLogPoint {
 			if x == nil {
 				return nil
@@ -1801,6 +1823,88 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 			}
 			return ret
 		})(o.AnnotatedUsedInvites),
+	}
+}
+
+type AnnotatedTeamInviteExt struct {
+	C__          TeamInviteCategory   `codec:"c" json:"c"`
+	Keybase__    *KeybaseInviteExt    `codec:"keybase,omitempty" json:"keybase,omitempty"`
+	Invitelink__ *InvitelinkInviteExt `codec:"invitelink,omitempty" json:"invitelink,omitempty"`
+}
+
+func (o *AnnotatedTeamInviteExt) C() (ret TeamInviteCategory, err error) {
+	switch o.C__ {
+	case TeamInviteCategory_KEYBASE:
+		if o.Keybase__ == nil {
+			err = errors.New("unexpected nil value for Keybase__")
+			return ret, err
+		}
+	case TeamInviteCategory_INVITELINK:
+		if o.Invitelink__ == nil {
+			err = errors.New("unexpected nil value for Invitelink__")
+			return ret, err
+		}
+	}
+	return o.C__, nil
+}
+
+func (o AnnotatedTeamInviteExt) Keybase() (res KeybaseInviteExt) {
+	if o.C__ != TeamInviteCategory_KEYBASE {
+		panic("wrong case accessed")
+	}
+	if o.Keybase__ == nil {
+		return
+	}
+	return *o.Keybase__
+}
+
+func (o AnnotatedTeamInviteExt) Invitelink() (res InvitelinkInviteExt) {
+	if o.C__ != TeamInviteCategory_INVITELINK {
+		panic("wrong case accessed")
+	}
+	if o.Invitelink__ == nil {
+		return
+	}
+	return *o.Invitelink__
+}
+
+func NewAnnotatedTeamInviteExtWithKeybase(v KeybaseInviteExt) AnnotatedTeamInviteExt {
+	return AnnotatedTeamInviteExt{
+		C__:       TeamInviteCategory_KEYBASE,
+		Keybase__: &v,
+	}
+}
+
+func NewAnnotatedTeamInviteExtWithInvitelink(v InvitelinkInviteExt) AnnotatedTeamInviteExt {
+	return AnnotatedTeamInviteExt{
+		C__:          TeamInviteCategory_INVITELINK,
+		Invitelink__: &v,
+	}
+}
+
+func NewAnnotatedTeamInviteExtDefault(c TeamInviteCategory) AnnotatedTeamInviteExt {
+	return AnnotatedTeamInviteExt{
+		C__: c,
+	}
+}
+
+func (o AnnotatedTeamInviteExt) DeepCopy() AnnotatedTeamInviteExt {
+	return AnnotatedTeamInviteExt{
+		C__: o.C__.DeepCopy(),
+		Keybase__: (func(x *KeybaseInviteExt) *KeybaseInviteExt {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Keybase__),
+		Invitelink__: (func(x *InvitelinkInviteExt) *InvitelinkInviteExt {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Invitelink__),
 	}
 }
 
@@ -3247,8 +3351,7 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 }
 
 type AnnotatedTeamList struct {
-	Teams                  []AnnotatedMemberInfo                `codec:"teams" json:"teams"`
-	AnnotatedActiveInvites map[TeamInviteID]AnnotatedTeamInvite `codec:"annotatedActiveInvites" json:"annotatedActiveInvites"`
+	Teams []AnnotatedMemberInfo `codec:"teams" json:"teams"`
 }
 
 func (o AnnotatedTeamList) DeepCopy() AnnotatedTeamList {
@@ -3264,18 +3367,6 @@ func (o AnnotatedTeamList) DeepCopy() AnnotatedTeamList {
 			}
 			return ret
 		})(o.Teams),
-		AnnotatedActiveInvites: (func(x map[TeamInviteID]AnnotatedTeamInvite) map[TeamInviteID]AnnotatedTeamInvite {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[TeamInviteID]AnnotatedTeamInvite, len(x))
-			for k, v := range x {
-				kCopy := k.DeepCopy()
-				vCopy := v.DeepCopy()
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.AnnotatedActiveInvites),
 	}
 }
 
@@ -4213,28 +4304,17 @@ func (o UserTeamVersionUpdate) DeepCopy() UserTeamVersionUpdate {
 	}
 }
 
-type AnnotatedTeamMemberDetails struct {
-	Details TeamMemberDetails `codec:"details" json:"details"`
-	Role    TeamRole          `codec:"role" json:"role"`
-}
-
-func (o AnnotatedTeamMemberDetails) DeepCopy() AnnotatedTeamMemberDetails {
-	return AnnotatedTeamMemberDetails{
-		Details: o.Details.DeepCopy(),
-		Role:    o.Role.DeepCopy(),
-	}
-}
-
 type AnnotatedTeam struct {
-	TeamID                       TeamID                       `codec:"teamID" json:"teamID"`
-	Name                         string                       `codec:"name" json:"name"`
-	TransitiveSubteamsUnverified SubteamListResult            `codec:"transitiveSubteamsUnverified" json:"transitiveSubteamsUnverified"`
-	Members                      []AnnotatedTeamMemberDetails `codec:"members" json:"members"`
-	Invites                      []AnnotatedTeamInvite        `codec:"invites" json:"invites"`
-	JoinRequests                 []TeamJoinRequest            `codec:"joinRequests" json:"joinRequests"`
-	TarsDisabled                 bool                         `codec:"tarsDisabled" json:"tarsDisabled"`
-	Settings                     TeamSettings                 `codec:"settings" json:"settings"`
-	Showcase                     TeamShowcase                 `codec:"showcase" json:"showcase"`
+	TeamID                       TeamID                `codec:"teamID" json:"teamID"`
+	Name                         string                `codec:"name" json:"name"`
+	TransitiveSubteamsUnverified SubteamListResult     `codec:"transitiveSubteamsUnverified" json:"transitiveSubteamsUnverified"`
+	Members                      []TeamMemberDetails   `codec:"members" json:"members"`
+	Invites                      []AnnotatedTeamInvite `codec:"invites" json:"invites"`
+	Settings                     TeamSettings          `codec:"settings" json:"settings"`
+	KeyGeneration                PerTeamKeyGeneration  `codec:"keyGeneration" json:"keyGeneration"`
+	Showcase                     TeamShowcase          `codec:"showcase" json:"showcase"`
+	JoinRequests                 []TeamJoinRequest     `codec:"joinRequests" json:"joinRequests"`
+	TarsDisabled                 bool                  `codec:"tarsDisabled" json:"tarsDisabled"`
 }
 
 func (o AnnotatedTeam) DeepCopy() AnnotatedTeam {
@@ -4242,11 +4322,11 @@ func (o AnnotatedTeam) DeepCopy() AnnotatedTeam {
 		TeamID:                       o.TeamID.DeepCopy(),
 		Name:                         o.Name,
 		TransitiveSubteamsUnverified: o.TransitiveSubteamsUnverified.DeepCopy(),
-		Members: (func(x []AnnotatedTeamMemberDetails) []AnnotatedTeamMemberDetails {
+		Members: (func(x []TeamMemberDetails) []TeamMemberDetails {
 			if x == nil {
 				return nil
 			}
-			ret := make([]AnnotatedTeamMemberDetails, len(x))
+			ret := make([]TeamMemberDetails, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -4264,6 +4344,9 @@ func (o AnnotatedTeam) DeepCopy() AnnotatedTeam {
 			}
 			return ret
 		})(o.Invites),
+		Settings:      o.Settings.DeepCopy(),
+		KeyGeneration: o.KeyGeneration.DeepCopy(),
+		Showcase:      o.Showcase.DeepCopy(),
 		JoinRequests: (func(x []TeamJoinRequest) []TeamJoinRequest {
 			if x == nil {
 				return nil
@@ -4276,8 +4359,6 @@ func (o AnnotatedTeam) DeepCopy() AnnotatedTeam {
 			return ret
 		})(o.JoinRequests),
 		TarsDisabled: o.TarsDisabled,
-		Settings:     o.Settings.DeepCopy(),
-		Showcase:     o.Showcase.DeepCopy(),
 	}
 }
 
@@ -4502,19 +4583,9 @@ type TeamGetArg struct {
 	Name      string `codec:"name" json:"name"`
 }
 
-type TeamGetMembersArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Name      string `codec:"name" json:"name"`
-}
-
 type TeamGetMembersByIDArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Id        TeamID `codec:"id" json:"id"`
-}
-
-type TeamImplicitAdminsArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	TeamName  string `codec:"teamName" json:"teamName"`
 }
 
 type TeamListUnverifiedArg struct {
@@ -4850,6 +4921,10 @@ type GetAnnotatedTeamArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
+type GetAnnotatedTeamByNameArg struct {
+	TeamName string `codec:"teamName" json:"teamName"`
+}
+
 type LoadTeamTreeMembershipsAsyncArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TeamID    TeamID `codec:"teamID" json:"teamID"`
@@ -4863,9 +4938,7 @@ type TeamsInterface interface {
 	TeamCreateFancy(context.Context, TeamCreateFancyArg) (TeamID, error)
 	TeamGetByID(context.Context, TeamGetByIDArg) (TeamDetails, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
-	TeamGetMembers(context.Context, TeamGetMembersArg) (TeamMembersDetails, error)
-	TeamGetMembersByID(context.Context, TeamGetMembersByIDArg) (TeamMembersDetails, error)
-	TeamImplicitAdmins(context.Context, TeamImplicitAdminsArg) ([]TeamMemberDetails, error)
+	TeamGetMembersByID(context.Context, TeamGetMembersByIDArg) ([]TeamMemberDetails, error)
 	TeamListUnverified(context.Context, TeamListUnverifiedArg) (AnnotatedTeamList, error)
 	TeamListTeammates(context.Context, TeamListTeammatesArg) (AnnotatedTeamList, error)
 	TeamListVerified(context.Context, TeamListVerifiedArg) (AnnotatedTeamList, error)
@@ -4941,6 +5014,7 @@ type TeamsInterface interface {
 	Ftl(context.Context, FastTeamLoadArg) (FastTeamLoadRes, error)
 	GetTeamRoleMap(context.Context) (TeamRoleMapAndVersion, error)
 	GetAnnotatedTeam(context.Context, TeamID) (AnnotatedTeam, error)
+	GetAnnotatedTeamByName(context.Context, string) (AnnotatedTeam, error)
 	LoadTeamTreeMembershipsAsync(context.Context, LoadTeamTreeMembershipsAsyncArg) (TeamTreeInitial, error)
 }
 
@@ -5038,21 +5112,6 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
-			"teamGetMembers": {
-				MakeArg: func() interface{} {
-					var ret [1]TeamGetMembersArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]TeamGetMembersArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]TeamGetMembersArg)(nil), args)
-						return
-					}
-					ret, err = i.TeamGetMembers(ctx, typedArgs[0])
-					return
-				},
-			},
 			"teamGetMembersByID": {
 				MakeArg: func() interface{} {
 					var ret [1]TeamGetMembersByIDArg
@@ -5065,21 +5124,6 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamGetMembersByID(ctx, typedArgs[0])
-					return
-				},
-			},
-			"teamImplicitAdmins": {
-				MakeArg: func() interface{} {
-					var ret [1]TeamImplicitAdminsArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]TeamImplicitAdminsArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]TeamImplicitAdminsArg)(nil), args)
-						return
-					}
-					ret, err = i.TeamImplicitAdmins(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5933,6 +5977,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getAnnotatedTeamByName": {
+				MakeArg: func() interface{} {
+					var ret [1]GetAnnotatedTeamByNameArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetAnnotatedTeamByNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetAnnotatedTeamByNameArg)(nil), args)
+						return
+					}
+					ret, err = i.GetAnnotatedTeamByName(ctx, typedArgs[0].TeamName)
+					return
+				},
+			},
 			"loadTeamTreeMembershipsAsync": {
 				MakeArg: func() interface{} {
 					var ret [1]LoadTeamTreeMembershipsAsyncArg
@@ -5987,18 +6046,8 @@ func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDet
 	return
 }
 
-func (c TeamsClient) TeamGetMembers(ctx context.Context, __arg TeamGetMembersArg) (res TeamMembersDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetMembers", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c TeamsClient) TeamGetMembersByID(ctx context.Context, __arg TeamGetMembersByIDArg) (res TeamMembersDetails, err error) {
+func (c TeamsClient) TeamGetMembersByID(ctx context.Context, __arg TeamGetMembersByIDArg) (res []TeamMemberDetails, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetMembersByID", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c TeamsClient) TeamImplicitAdmins(ctx context.Context, __arg TeamImplicitAdminsArg) (res []TeamMemberDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamImplicitAdmins", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -6315,6 +6364,12 @@ func (c TeamsClient) GetTeamRoleMap(ctx context.Context) (res TeamRoleMapAndVers
 func (c TeamsClient) GetAnnotatedTeam(ctx context.Context, teamID TeamID) (res AnnotatedTeam, err error) {
 	__arg := GetAnnotatedTeamArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getAnnotatedTeam", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) GetAnnotatedTeamByName(ctx context.Context, teamName string) (res AnnotatedTeam, err error) {
+	__arg := GetAnnotatedTeamByNameArg{TeamName: teamName}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getAnnotatedTeamByName", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

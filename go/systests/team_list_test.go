@@ -123,7 +123,6 @@ func TestTeamList(t *testing.T) {
 
 	check := func(list *keybase1.AnnotatedTeamList) {
 		require.Equal(t, 1, len(list.Teams))
-		require.Equal(t, 0, len(list.AnnotatedActiveInvites))
 
 		teamInfo := list.Teams[0]
 		require.Equal(t, team.name, teamInfo.FqName)
@@ -200,7 +199,6 @@ func TestTeamListOpenTeams(t *testing.T) {
 
 	check := func(list *keybase1.AnnotatedTeamList) {
 		require.Equal(t, 2, len(list.Teams))
-		require.Equal(t, 0, len(list.AnnotatedActiveInvites))
 		for _, teamInfo := range list.Teams {
 			if teamInfo.TeamID == id1 {
 				require.False(t, teamInfo.IsOpenTeam)
@@ -274,7 +272,6 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 
 	check := func(list *keybase1.AnnotatedTeamList) {
 		require.Equal(t, 1, len(list.Teams))
-		require.Equal(t, 0, len(list.AnnotatedActiveInvites))
 
 		teamInfo := list.Teams[0]
 		require.Equal(t, team, teamInfo.FqName)

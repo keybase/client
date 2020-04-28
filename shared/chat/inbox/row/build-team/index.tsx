@@ -15,7 +15,6 @@ const BuildTeam = React.memo((_: {}) => {
     dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
   }
   const onJoinTeam = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
     dispatch(nav.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
   }
 

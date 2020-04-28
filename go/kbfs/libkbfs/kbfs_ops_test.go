@@ -4931,12 +4931,21 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	checkStatus(fNode, NoPrefetch)
 }
 
+type modeTestWithPrefetch struct {
+	modeTest
+}
+
+func (mtwp modeTestWithPrefetch) EditHistoryPrefetchingEnabled() bool {
+	return true
+}
+
 func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
-	config.SetMode(modeTest{NewInitModeFromType(InitDefault)})
+	config.SetMode(
+		modeTestWithPrefetch{modeTest{NewInitModeFromType(InitDefault)}})
 	config.SetVLogLevel(libkb.VLog2String)
 
 	name := "u1"
@@ -4956,7 +4965,8 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	// config2 is the writer.
 	config2 := ConfigAsUser(config, u1)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	config2.SetMode(modeTest{NewInitModeFromType(InitDefault)})
+	config2.SetMode(
+		modeTestWithPrefetch{modeTest{NewInitModeFromType(InitDefault)}})
 	kbfsOps2 := config2.KBFSOps()
 
 	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})

@@ -367,6 +367,7 @@ protocol remote {
     ConversationID convID;
     CommandConvVers vers;
     gregor1.Time mtime;
+    BotCommandsAdvertisementTyp typ;
   }
   record BotInfo {
     // server version controls busting client caches.

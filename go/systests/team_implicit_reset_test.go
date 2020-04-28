@@ -227,7 +227,7 @@ func TestImplicitTeamResetAndSBSBringback(t *testing.T) {
 	require.Equal(t, 0, len(invites), "leftover invite")
 }
 
-func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
+func testImplicitResetParameterized(t *testing.T, startPUK, getPUKAfter bool) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -305,11 +305,11 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 }
 
 func TestImplicitTeamResetNoPUKtoNoPUK(t *testing.T) {
-	testImplicitResetParametrized(t, false /* startPUK */, false /* getPUKAfter */)
+	testImplicitResetParameterized(t, false /* startPUK */, false /* getPUKAfter */)
 }
 
 func TestImplicitTeamResetNoPUKtoPUK(t *testing.T) {
-	testImplicitResetParametrized(t, false /* startPUK */, true /* getPUKAfter */)
+	testImplicitResetParameterized(t, false /* startPUK */, true /* getPUKAfter */)
 }
 
 func TestImplicitTeamResetPUKtoNoPUK(t *testing.T) {
@@ -320,7 +320,7 @@ func TestImplicitTeamResetPUKtoNoPUK(t *testing.T) {
 	// people in the team at the time:
 	//   ann, PUKful bob, PUKless (invited) bob.
 
-	testImplicitResetParametrized(t, true /* startPUK */, false /* getPUKAfter */)
+	testImplicitResetParameterized(t, true /* startPUK */, false /* getPUKAfter */)
 }
 
 func TestImplicitTeamResetNoPukEncore(t *testing.T) {

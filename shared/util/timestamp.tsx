@@ -204,9 +204,6 @@ export function formatTimeForPeopleItem(time: number): string {
   })
 }
 
-export const formatExpirationTimeForInviteLink = (etime: number) =>
-  etime === 0 ? '10,000 ys' : dateFns.formatDistanceToNow(etime * 1000)
-
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
