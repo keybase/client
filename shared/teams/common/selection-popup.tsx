@@ -93,6 +93,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   if (!onSelectableTab || (Styles.isMobile && !selectedCount) || !focused) {
     return null
   }
+  const {bottom} = Kb.useSafeArea()
   const popup = (
     <Kb.Box2
       fullWidth={Styles.isMobile}
@@ -107,7 +108,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
       onLayout={Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
       {Styles.isPhone && (
-        <Kb.Text style={styles.topLink} type="BodyPrimaryLink" onClick={onCancel}>
+        <Kb.Text style={styles.topLink} type="BodyBigLink" onClick={onCancel}>
           Cancel
         </Kb.Text>
       )}
@@ -122,6 +123,8 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
 
       {!Styles.isPhone && <Kb.BoxGrow />}
       {children}
+      {/* bottom safe area */}
+      {Styles.isPhone && <Kb.Box style={{height: bottom}} />}
     </Kb.Box2>
   )
   return Styles.isMobile ? (
