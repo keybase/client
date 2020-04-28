@@ -89,6 +89,7 @@ const ReallyDeleteTeam = (props: Props) => {
         }
         header={<Header {...props} />}
         prompt={`You can't delete ${props.teamname} because it has subteams.`}
+        onCancel={props.onBack}
       />
     )
   }
