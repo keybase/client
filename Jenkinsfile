@@ -679,7 +679,7 @@ def testGoTestSuite(prefix, packagesToTest) {
               if (testSpec.no_citogo) {
                 sh "./${testBinary} -test.timeout ${testSpec.timeout}"
               } else {
-                sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testBinary} --timeout 150s ${testSpec.citogo_extra || ''}"
+                sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testBinary} --timeout 150s ${testSpec.citogo_extra ? testSpec.citogo_extra : ''}"
               }
             }
           }
