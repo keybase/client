@@ -2310,3 +2310,84 @@ func TestRemoveMembersHappyTree(t *testing.T) {
 	assertRole(tc, subteamName.String(), admin.Username, keybase1.TeamRole_NONE)
 	assertRole(tc, subsubsubteamName.String(), admin.Username, keybase1.TeamRole_NONE)
 }
+
+func TestTeamPlayerIdempotentChangesAssertRole(t *testing.T) {
+	// Test change_memberships that do not change role  and if they work
+	// correctly with AssertWasRoleOrAboveAt function.
+
+	tc, team, me := setupTestForPrechecks(t, false /* implicitTeam */)
+	defer tc.Cleanup()
+
+	uvAlice := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice"), EldestSeqno: 1}
+	uvBob := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_bob"), EldestSeqno: 1}
+
+	// Initial setup:
+	// Add Alice as a writer and Bob as an admin, in separate links.
+
+	memberLists := []*SCTeamMembers{
+		&SCTeamMembers{Writers: &[]SCTeamMember{SCTeamMember(uvAlice)}},
+		&SCTeamMembers{Admins: &[]SCTeamMember{SCTeamMember(uvBob)}},
+	}
+
+	var err error
+	var state *TeamSigChainState
+	for _, v := range memberLists {
+		teamSectionCM := makeTestSCTeamSection(team)
+		teamSectionCM.Members = v
+		state, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+			teamSectionCM, me, nil /* merkleRoot */)
+		require.NoError(t, err)
+	}
+
+	require.EqualValues(t, 3, state.GetLatestSeqno())
+
+	makeScl := func(seqno int) keybase1.SigChainLocation {
+		return keybase1.SigChainLocation{
+			Seqno:   keybase1.Seqno(seqno),
+			SeqType: keybase1.SeqType_SEMIPRIVATE,
+		}
+	}
+
+	err = state.AssertWasRoleOrAboveAt(uvAlice, keybase1.TeamRole_WRITER, makeScl(1))
+	require.Error(t, err)
+	require.IsType(t, PermissionError{}, err)
+
+	for i := 1; i <= 2; i++ {
+		// Bob was only added at seqno 3, so at seqnos 1 and 2 they weren't an
+		// admin yet.
+		err = state.AssertWasRoleOrAboveAt(uvBob, keybase1.TeamRole_ADMIN, makeScl(i))
+		require.Error(t, err)
+		require.IsType(t, AdminPermissionError{}, err)
+	}
+
+	err = state.AssertWasRoleOrAboveAt(uvAlice, keybase1.TeamRole_WRITER, makeScl(2))
+	require.NoError(t, err)
+
+	err = state.AssertWasRoleOrAboveAt(uvBob, keybase1.TeamRole_ADMIN, makeScl(3))
+	require.NoError(t, err)
+
+	// Using memberLists, do bunch of idempotent role changes
+	for i := 0; i < 2; i++ {
+		for _, v := range memberLists {
+			teamSectionCM := makeTestSCTeamSection(team)
+			teamSectionCM.Members = v
+			state, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
+				teamSectionCM, me, nil /* merkleRoot */)
+			require.NoError(t, err)
+		}
+	}
+
+	require.EqualValues(t, 7, state.GetLatestSeqno())
+
+	// Alice is still a writer at every of the new seqnos.
+	for i := 2; i <= 7; i++ {
+		err = state.AssertWasRoleOrAboveAt(uvAlice, keybase1.TeamRole_WRITER, makeScl(i))
+		require.NoError(t, err)
+	}
+
+	// Bob is still an admin at every of the new seqnos.
+	for i := 3; i <= 7; i++ {
+		err = state.AssertWasRoleOrAboveAt(uvBob, keybase1.TeamRole_ADMIN, makeScl(i))
+		require.NoError(t, err)
+	}
+}
