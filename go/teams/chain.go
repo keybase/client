@@ -2001,6 +2001,10 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 			}
 		}
 
+		// NOTE: We are allowing etime without max_uses right now in sigchain
+		// player. It would rejected on the server though. We want to allow
+		// this now in case we do expiring invites in the future.
+
 		category, categoryErr := res.Type.C()
 		// Do not error out if there's a new invite category we don't recognize
 		if categoryErr == nil && category == keybase1.TeamInviteCategory_INVITELINK {
