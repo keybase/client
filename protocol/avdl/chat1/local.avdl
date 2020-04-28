@@ -1083,7 +1083,6 @@ protocol local {
   }
   DeleteConversationLocalRes deleteConversationLocal(int sessionID, ConversationID convID, string channelName, boolean confirmed);
   record RemoveFromConversationLocalRes {
-    boolean offline;
     array<RateLimit> rateLimits;
   }
   RemoveFromConversationLocalRes removeFromConversationLocal(ConversationID convID, array<string> usernames);

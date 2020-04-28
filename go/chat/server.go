@@ -1725,13 +1725,7 @@ func (h *Server) RemoveFromConversationLocal(ctx context.Context, arg chat1.Remo
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
 	defer h.Trace(ctx, &err, fmt.Sprintf("RemoveFromConversation(%s)", arg.ConvID))()
-	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	defer func() {
-		if res.Offline {
-			h.Debug(ctx, "RemoveFromConversationLocal: result obtained offline")
-		}
-	}()
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return res, err
 	}
@@ -1739,7 +1733,6 @@ func (h *Server) RemoveFromConversationLocal(ctx context.Context, arg chat1.Remo
 	if err != nil {
 		return res, err
 	}
-	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
 

@@ -3258,10 +3258,6 @@
       "name": "RemoveFromConversationLocalRes",
       "fields": [
         {
-          "type": "boolean",
-          "name": "offline"
-        },
-        {
           "type": {
             "type": "array",
             "items": "RateLimit"

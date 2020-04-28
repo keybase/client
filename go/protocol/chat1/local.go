@@ -5279,13 +5279,11 @@ func (o DeleteConversationLocalRes) DeepCopy() DeleteConversationLocalRes {
 }
 
 type RemoveFromConversationLocalRes struct {
-	Offline    bool        `codec:"offline" json:"offline"`
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 }
 
 func (o RemoveFromConversationLocalRes) DeepCopy() RemoveFromConversationLocalRes {
 	return RemoveFromConversationLocalRes{
-		Offline: o.Offline,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
 				return nil

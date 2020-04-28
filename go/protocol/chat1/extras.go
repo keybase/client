@@ -1893,10 +1893,6 @@ func (r *DeleteConversationLocalRes) SetOffline() {
 	r.Offline = true
 }
 
-func (r *RemoveFromConversationLocalRes) SetOffline() {
-	r.Offline = true
-}
-
 func (r *SearchRegexpRes) SetOffline() {
 	r.Offline = true
 }
