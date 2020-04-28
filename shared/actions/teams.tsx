@@ -1055,6 +1055,11 @@ const teamChangedByID = (state: TypedState, action: EngineGen.Keybase1NotifyTeam
       latestSeqno > version.latestSeqno
   }
   const shouldLoad = versionChanged && !!state.teams.teamDetailsSubscriptionCount.get(teamID)
+  console.log('zzz', 'teamChangedByID', action.payload.params)
+  console.log('zzz', 'known', version)
+  console.log('zzz', 'subs:', state.teams.teamDetailsSubscriptionCount)
+  console.log('zzz', 'changed:', versionChanged, 'should load', shouldLoad)
+  console.log('zzz -------')
   return [
     TeamsGen.createSetTeamVersion({teamID, version: {latestHiddenSeqno, latestOffchainSeqno, latestSeqno}}),
     shouldLoad && TeamsGen.createLoadTeam({teamID}),
