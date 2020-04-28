@@ -82,38 +82,36 @@ helpers.rootLinuxNode(env, {
   ws("${env.GOPATH}/src/github.com/keybase/client") {
 
     stage("Setup") {
-      docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
-        parallel (
-          checkout: {
-            retry(3) {
-              checkout scm
-              sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
-              sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
-              env.AUTHOR_NAME = readFile('.author_name')
-              env.AUTHOR_EMAIL = readFile('.author_email')
-              sh 'rm .author_name .author_email'
-              sh 'echo -n $(git rev-parse HEAD) > go/revision'
-              sh "git add go/revision"
-              env.GIT_COMMITTER_NAME = 'Jenkins'
-              env.GIT_COMMITTER_EMAIL = 'ci@keybase.io'
-              sh 'git commit --author="Jenkins <ci@keybase.io>" -am "revision file added"'
-              env.COMMIT_HASH = readFile('go/revision')
+      parallel (
+        checkout: {
+          retry(3) {
+            checkout scm
+            sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
+            sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
+            env.AUTHOR_NAME = readFile('.author_name')
+            env.AUTHOR_EMAIL = readFile('.author_email')
+            sh 'rm .author_name .author_email'
+            sh 'echo -n $(git rev-parse HEAD) > go/revision'
+            sh "git add go/revision"
+            env.GIT_COMMITTER_NAME = 'Jenkins'
+            env.GIT_COMMITTER_EMAIL = 'ci@keybase.io'
+            sh 'git commit --author="Jenkins <ci@keybase.io>" -am "revision file added"'
+            env.COMMIT_HASH = readFile('go/revision')
+          }
+        },
+        pull_images: {
+          docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
+            for (i in images) {
+              i.pull()
+              i.tag('latest')
             }
-          },
-          pull_images: {
-            docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
-              for (i in images) {
-                i.pull()
-                i.tag('latest')
-              }
-            }
-          },
-          remove_dockers: {
-            sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
-            sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
-          },
-        )
-      }
+          }
+        },
+        remove_dockers: {
+          sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
+          sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
+        },
+      )
     }
 
     def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
