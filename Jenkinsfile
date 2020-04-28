@@ -219,9 +219,9 @@ helpers.rootLinuxNode(env, {
                       docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
                         kbfsfuseImage.push(env.BUILD_TAG)
                       }
-                      if (true) { // TODO: env.BRANCH_NAME == "master" && cause != "upstream") {
+                      if (env.BRANCH_NAME == "master" && cause != "upstream") {
                         build([
-                          job: "/kbfs-server/PR-675", // TODO: revert to kbfs-server/master
+                          job: "/kbfs-server/master",
                           parameters: [
                             string(
                               name: 'kbfsProjectName',
