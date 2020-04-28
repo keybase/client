@@ -36,7 +36,7 @@ export type Props<IncludeSetIndividually extends boolean> = {
   onCancel?: () => void // If provided, a cancel button will appear
   onConfirm: (selectedRole: Role<IncludeSetIndividually>) => void
   footerComponent?: React.ReactNode
-  presetRole: MaybeRole<IncludeSetIndividually>
+  presetRole?: MaybeRole<IncludeSetIndividually>
   plural?: boolean
   includeSetIndividually?: IncludeSetIndividually extends true ? boolean : false
   waiting?: boolean
