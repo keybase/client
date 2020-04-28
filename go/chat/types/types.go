@@ -887,3 +887,10 @@ func (d DummyEphemeralTracker) Clear(ctx context.Context, convID chat1.Conversat
 }
 func (d DummyEphemeralTracker) OnDbNuke(mctx libkb.MetaContext) error { return nil }
 func (d DummyEphemeralTracker) OnLogout(mctx libkb.MetaContext) error { return nil }
+
+type DummyCtxFactory struct{}
+
+var _ ContextFactory = (*DummyCtxFactory)(nil)
+
+func (d DummyCtxFactory) NewKeyFinder() KeyFinder   { return nil }
+func (d DummyCtxFactory) NewUPAKFinder() UPAKFinder { return nil }
