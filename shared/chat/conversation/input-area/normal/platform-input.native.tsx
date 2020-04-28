@@ -2,7 +2,6 @@ import * as ImagePicker from 'expo-image-picker'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
 import {isLargeScreen} from '../../../../constants/platform'
@@ -14,7 +13,6 @@ import MoreMenuPopup from './moremenu-popup'
 import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
-import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {indefiniteArticle} from '../../../../util/string'
 import {isOpen} from '../../../../util/keyboard'
@@ -232,16 +230,9 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
   }
 
   render() {
-    const {suggestionsVisible, suggestBotCommandsUpdateStatus, onCancelEditing, isEditing} = this.props
+    const {suggestionsVisible, onCancelEditing, isEditing} = this.props
     const {conversationIDKey, cannotWrite, onBlur, onFocus, onSelectionChange, maxInputArea} = this.props
     const {isExploding, explodingModeSeconds, showTypingStatus} = this.props
-
-    const commandUpdateStatus = suggestBotCommandsUpdateStatus !==
-      RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank &&
-      (suggestionsVisible ||
-        suggestBotCommandsUpdateStatus === RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating) && (
-        <BotCommandUpdateStatus status={suggestBotCommandsUpdateStatus} />
-      )
 
     return (
       <AnimatedBox2
@@ -281,7 +272,6 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
             ])
           }
         </Kb.ReAnimated.Code>
-        {commandUpdateStatus}
         {this.getMenu()}
         {showTypingStatus && !suggestionsVisible && <Typing conversationIDKey={conversationIDKey} />}
         <Kb.Box2

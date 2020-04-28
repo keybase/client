@@ -5,7 +5,6 @@ import * as Styles from '../../../../styles'
 import invert from 'lodash/invert'
 import SuggestionList from './suggestion-list'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import {BotCommandUpdateStatus} from '../normal/shared'
 
 export type TransformerData = {
   text: string
@@ -393,18 +392,13 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
               }
               renderItem={this._itemRenderer}
               selectedIndex={this.state.selected}
+              suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
             />
             {results.loading && (
               <Kb.ProgressIndicator
                 type={Styles.isMobile ? undefined : 'Large'}
                 style={this.props.suggestionSpinnerStyle}
               />
-            )}
-            {this.props.suggestBotCommandsUpdateStatus !==
-              RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank && (
-              <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
-                <BotCommandUpdateStatus status={suggestBotCommandsUpdateStatus} />
-              </Kb.Box2>
             )}
           </>
         ) : (
@@ -479,13 +473,18 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  commandStatusContainer: {
-    backgroundColor: Styles.globalColors.white,
-    bottom: 0,
-    height: 22,
-    justifyContent: 'center',
-    position: 'absolute',
-  },
+  commandStatusContainer: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      justifyContent: 'center',
+    },
+    isElectron: {
+      bottom: 0,
+      height: 22,
+      position: 'absolute',
+    },
+    isMobile: {},
+  }),
   spinnerBackground: Styles.platformStyles({
     common: {
       justifyContent: 'center',
