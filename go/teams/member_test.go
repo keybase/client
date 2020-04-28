@@ -2325,8 +2325,8 @@ func TestTeamPlayerIdempotentChangesAssertRole(t *testing.T) {
 	// Add Alice as a writer and Bob as an admin, in separate links.
 
 	memberLists := []*SCTeamMembers{
-		&SCTeamMembers{Writers: &[]SCTeamMember{SCTeamMember(uvAlice)}},
-		&SCTeamMembers{Admins: &[]SCTeamMember{SCTeamMember(uvBob)}},
+		{Writers: &[]SCTeamMember{SCTeamMember(uvAlice)}},
+		{Admins: &[]SCTeamMember{SCTeamMember(uvBob)}},
 	}
 
 	var err error
