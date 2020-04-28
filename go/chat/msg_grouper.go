@@ -73,6 +73,11 @@ func (gr *joinLeaveGrouper) matches(ctx context.Context, msg chat1.MessageUnboxe
 	if !(body.IsType(chat1.MessageType_JOIN) || body.IsType(chat1.MessageType_LEAVE)) {
 		return false
 	}
+	for _, g := range grouped {
+		if g.Valid().SenderUsername == msg.Valid().SenderUsername {
+			return false
+		}
+	}
 	return true
 }
 
