@@ -371,6 +371,8 @@ func TestTeamPlayerEtime(t *testing.T) {
 	require.True(t, found)
 
 	// Can use Etime without MaxUses?
+	// This is allowed in the sigchain player but not the server. See
+	// `TestTeamPlayerBadUsedInvites` for another invites like that.
 	invite.Etime = &etime
 	invite.MaxUses = nil
 	section.Invites = &SCTeamInvites{
@@ -530,16 +532,29 @@ func TestTeamPlayerBadUsedInvites(t *testing.T) {
 
 	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
 
-	// Seitan invite without `max_uses` or `etime`.
-	scInvite1 := makeTestSCForInviteLink()
-
-	// Seitan invite with `etime`.
-	scInvite2 := makeTestSCForInviteLink()
 	etime := keybase1.ToUnixTime(time.Now())
-	scInvite2.Etime = &etime
+	testInvites := []SCTeamInvite{
+		// Seitan invite link invite without `max_uses` or `etime`. (not
+		// possible on the real server)
+		makeTestSCForInviteLink(),
+		// Rooter invite, also no `max_uses` or `etime`.
+		{
+			Type: "rooter",
+			Name: keybase1.TeamInviteName("alice"),
+			ID:   NewInviteID(),
+		},
+		// Rooter invite with `etime` - not allowed by the server right now,
+		// but allowed by sigchain player.
+		{
+			Type:  "rooter",
+			Name:  keybase1.TeamInviteName("alice"),
+			ID:    NewInviteID(),
+			Etime: &etime,
+		},
+	}
 
 	teamSectionForInvite := makeTestSCTeamSection(team)
-	for _, scInvite := range []SCTeamInvite{scInvite1, scInvite2} {
+	for _, scInvite := range testInvites {
 		inviteID := scInvite.ID
 		teamSectionForInvite.Invites = &SCTeamInvites{
 			Readers: &[]SCTeamInvite{scInvite},
