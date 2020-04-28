@@ -33,21 +33,29 @@ const ReallyLeaveTeam = (props: Props) => (
     {props.stillLoadingTeam ? (
       <Kb.ProgressIndicator type="Huge" />
     ) : (
-      <Kb.Box2 direction="vertical" alignItems="center" gap="medium" style={styles.container}>
-        <Kb.Box2 direction="vertical" style={Styles.globalStyles.positionRelative}>
-          <Kb.Avatar teamname={props.name} size={64} />
-          <Kb.Icon type="icon-team-leave-28" style={styles.leaveIcon} />
-        </Kb.Box2>
-        <Kb.Text type="Header" center={true} style={styles.headerText}>
-          You can't leave the {props.name} team because you're the only owner.
-        </Kb.Text>
-        <Kb.Text type="Body" center={true} style={styles.bodyText}>
-          You'll have to add another user as an owner before you can leave {props.name}. Or, you can{' '}
-          <Kb.Text type="BodyPrimaryLink" onClick={props.onDeleteTeam}>
-            delete the&nbsp;team
+      <Kb.Box2
+        direction="vertical"
+        alignItems="center"
+        fullHeight={true}
+        style={styles.container}
+        centerChildren={true}
+      >
+        <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} style={Styles.globalStyles.flexBoxCenter}>
+          <Kb.Box2 direction="vertical" style={Styles.globalStyles.positionRelative}>
+            <Kb.Avatar teamname={props.name} size={Styles.isMobile ? 96 : 64} />
+            <Kb.Icon type="iconfont-leave" style={styles.leaveIcon} />
+          </Kb.Box2>
+          <Kb.Text type="Header" center={true} style={styles.headerText}>
+            You can't leave the {props.name} team because you're the only owner.
           </Kb.Text>
-          .
-        </Kb.Text>
+          <Kb.Text type="Body" center={true} style={styles.bodyText}>
+            You'll have to add another user as an owner before you can leave {props.name}. Or, you can{' '}
+            <Kb.Text type="BodyPrimaryLink" onClick={props.onDeleteTeam}>
+              delete the&nbsp;team
+            </Kb.Text>
+            .
+          </Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
     )}
   </Kb.Modal>
@@ -58,7 +66,17 @@ const styles = Styles.styleSheetCreate(() => ({
   buttonBar: {
     minHeight: undefined,
   },
-  container: Styles.platformStyles({isMobile: {...Styles.padding(0, Styles.globalMargins.small)}}),
+  container: Styles.platformStyles({
+    isElectron: {
+      height: '100%',
+      marginBottom: 48, // footer height
+      width: '100%',
+    },
+    isMobile: {
+      ...Styles.padding(0, Styles.globalMargins.small),
+      paddingBottom: 64, // footer height
+    },
+  }),
   footer: Styles.platformStyles({
     common: {
       borderTopColor: Styles.globalColors.black_10,
@@ -70,7 +88,35 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   headerText: {maxWidth: 380},
-  leaveIcon: {bottom: -10, position: 'absolute', right: -10},
+  leaveIcon: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.red,
+      borderColor: Styles.globalColors.whiteOrBlack,
+      borderStyle: 'solid',
+      borderWidth: 2,
+      color: Styles.globalColors.white,
+      display: 'flex',
+      flexDirection: 'column',
+      bottom: -10,
+      right: -10,
+      justifyContent: 'center',
+      position: 'absolute',
+      textAlign: 'center',
+    },
+    isElectron: {
+      borderRadius: 12,
+      height: 26,
+      lineHeight: 26,
+      width: 26,
+    },
+    isMobile: {
+      borderRadius: 16,
+      height: 34,
+      lineHeight: 34,
+      width: 34,
+    },
+  }),
 }))
 
 export default ReallyLeaveTeam
