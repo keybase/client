@@ -215,78 +215,12 @@ type TabProps = {
   badge?: number
 }
 
-type AnimationState = 'none' | 'encrypt' | 'decrypt'
-
 const Tab = React.memo((props: TabProps) => {
   const {tab, index, isSelected, onTabClick, badge} = props
-  const [hovering, setHovering] = React.useState(false)
-  const isCrypto = tab === Tabs.cryptoTab
-  const tabData = data[tab]
-  const {label} = tabData
-  const labelLength = label.length - 1
-
-  const [animationState, setAnimationState] = React.useState<AnimationState>('none')
-  // right of divider is 'normal'
-  const [divider, setDivider] = React.useState(labelLength)
-
-  Kb.useInterval(
-    () => {
-      if (animationState === 'encrypt') {
-        if (divider < labelLength) {
-          setDivider(divider + 1)
-        } else {
-          setAnimationState('none')
-        }
-      } else if (animationState === 'decrypt') {
-        if (divider >= 0) {
-          setDivider(divider - 1)
-        } else {
-          setAnimationState('none')
-        }
-      }
-    },
-    animationState === 'none' ? undefined : 50
-  )
-
-  React.useEffect(() => {
-    if (!isCrypto) return
-
-    if (hovering) {
-      setAnimationState('decrypt')
-    } else {
-      if (animationState === 'decrypt') {
-        setAnimationState('encrypt')
-      }
-    }
-  }, [isCrypto, hovering, animationState])
-
-  let animatedLabel: string | React.ReactNode
-  if (isCrypto) {
-    const parts = label.split('')
-    const encrypted = parts.slice(0, divider + 1)
-    const decrypted = parts.slice(divider + 1)
-    animatedLabel = (
-      <Kb.Text type="BodySmallSemibold">
-        <Kb.Text type="BodySmallSemibold" className="tab-label tab-encrypted">
-          {encrypted}
-        </Kb.Text>
-        <Kb.Text type="BodySmallSemibold" className="tab-label">
-          {decrypted}
-        </Kb.Text>
-      </Kb.Text>
-    )
-  } else {
-    animatedLabel = label
-  }
+  const {label} = data[tab]
 
   return (
-    <Kb.ClickableBox
-      feedback={false}
-      key={tab}
-      onClick={() => onTabClick(tab)}
-      onMouseOver={isCrypto ? () => setHovering(true) : undefined}
-      onMouseLeave={isCrypto ? () => setHovering(false) : undefined}
-    >
+    <Kb.ClickableBox feedback={false} key={tab} onClick={() => onTabClick(tab)}>
       <Kb.WithTooltip
         tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
         toastClassName="tab-tooltip"
@@ -303,7 +237,7 @@ const Tab = React.memo((props: TabProps) => {
             {tab === Tabs.fsTab && <FilesTabBadge />}
           </Kb.Box2>
           <Kb.Text className="tab-label" type="BodySmallSemibold">
-            {animatedLabel}
+            {label}
           </Kb.Text>
           {!!badge && <Kb.Badge className="tab-badge" badgeNumber={badge} />}
         </Kb.Box2>
