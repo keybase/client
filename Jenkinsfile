@@ -125,7 +125,7 @@ helpers.rootLinuxNode(env, {
     println "Has JS changes: " + hasJSChanges
     def dependencyFiles = [:]
 
-    if (hasGoChanges && env.CHANGE_TARGET) {
+    if (hasGoChanges && env.CHANGE_TARGET && !hasJenkinsfileChanges) {
       dir("go") {
         sh "make gen-deps"
         dependencyFiles = [
