@@ -6,12 +6,15 @@ helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-help
 
 def withKbweb(closure) {
   try {
-    retry(5) {
-      sh "docker-compose up -d mysql.local"
+    withEnv(["COMPOSE_HTTP_TIMEOUT=120"]) {
+      retry(5) {
+        sh "docker-compose down"
+        sh "docker-compose up -d mysql.local"
+      }
+      // Give MySQL a few seconds to start up.
+      sleep(10)
+      sh "docker-compose up -d kbweb.local"
     }
-    // Give MySQL a few seconds to start up.
-    sleep(10)
-    sh "docker-compose up -d kbweb.local"
 
     closure()
   } catch (ex) {
