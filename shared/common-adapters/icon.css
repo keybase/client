@@ -173,7 +173,7 @@
 .icon-gen-iconfont-verify::before {content: "\e9b0";}
 .icon-gen-iconfont-unlock::before {content: "\e9b1";}
 .icon-gen-iconfont-bot::before {content: "\e9b2";}
-.icon-gen-iconfont-campfire-burning::before {content: "\e9b3";}
+.icon-gen-iconfont-campfire-burning::before {content: "\e9cb";}
 .icon-gen-iconfont-campfire-out::before {content: "\e9b4";}
 .icon-gen-iconfont-envelope::before {content: "\e9b5";}
 .icon-gen-iconfont-person-raisedarms::before {content: "\e9b6";}
@@ -196,4 +196,5 @@
 .icon-gen-iconfont-add-solid::before {content: "\e9c8";}
 .icon-gen-iconfont-forward::before {content: "\e9c9";}
 .icon-gen-iconfont-crown::before {content: "\e9ca";}
+.icon-gen-iconfont-sort-alpha::before {content: "\e9cc";}
 

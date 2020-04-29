@@ -1075,6 +1075,7 @@ export type IconType =
   | 'iconfont-share-android'
   | 'iconfont-shh'
   | 'iconfont-skull'
+  | 'iconfont-sort-alpha'
   | 'iconfont-spade'
   | 'iconfont-star'
   | 'iconfont-stellar-request'
@@ -9643,7 +9644,7 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: true,
   },
   'iconfont-campfire-burning': {
-    charCode: 0xe9b3,
+    charCode: 0xe9cb,
     gridSize: 16,
     isFont: true,
   },
@@ -10310,6 +10311,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   'iconfont-skull': {
     charCode: 0xe98c,
     gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-sort-alpha': {
+    charCode: 0xe9cc,
+    gridSize: 16,
     isFont: true,
   },
   'iconfont-spade': {
