@@ -165,9 +165,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.medium,
       },
       finderIntegrationContent: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.medium,
+        padding: Styles.globalMargins.small,
       },
       spinner: {
         height: 16,

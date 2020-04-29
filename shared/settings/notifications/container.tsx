@@ -4,7 +4,6 @@ import * as SettingsGen from '../../actions/settings-gen'
 import * as Container from '../../util/container'
 import Notifications, {Props} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as ConfigGen from '../../actions/config-gen'
 import * as Constants from '../../constants/settings'
 
 type OwnProps = {}
@@ -40,7 +39,6 @@ export default Container.connect(
     allowEdit: state.settings.notifications.allowEdit,
     mobileHasPermissions: state.push.hasPermissions,
     showEmailSection: !!state.settings.email.emails && state.settings.email.emails.size > 0,
-    sound: state.config.notifySound,
     waitingForResponse: Container.anyWaiting(state, Constants.settingsWaitingKey),
   }),
   dispatch => ({
@@ -52,7 +50,6 @@ export default Container.connect(
     },
     onToggle: (group: string, name?: string) =>
       dispatch(SettingsGen.createNotificationsToggle({group, name})),
-    onToggleSound: (notifySound: boolean) => dispatch(ConfigGen.createSetNotifySound({notifySound})),
     onToggleUnsubscribeAll: (group: string) => dispatch(SettingsGen.createNotificationsToggle({group})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
@@ -61,7 +58,6 @@ export default Container.connect(
     groups: stateProps._groups,
     mobileHasPermissions: stateProps.mobileHasPermissions,
     showEmailSection: stateProps.showEmailSection,
-    sound: stateProps.sound,
     waitingForResponse: stateProps.waitingForResponse,
   })
 )(ReloadableNotifications)

@@ -139,45 +139,53 @@ const Advanced = () => {
 
   return (
     <Kb.ScrollView style={styles.scrollview}>
-      <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
-        {settingLockdownMode && <Kb.ProgressIndicator />}
-        <LockdownCheckbox hasRandomPW={hasRandomPW} settingLockdownMode={settingLockdownMode} />
-        {!!setLockdownModeError && (
-          <Kb.Text type="BodySmall" style={styles.error}>
-            {setLockdownModeError}
-          </Kb.Text>
-        )}
-        {!hasRandomPW && (
-          <Kb.Checkbox
-            checked={rememberPassword}
-            labelComponent={
-              <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
-                <Kb.Text type="Body">Always stay logged in</Kb.Text>
-                <Kb.Text type="BodySmall">
-                  You won't be asked for your password when restarting the app or your device.
-                </Kb.Text>
-              </Kb.Box2>
-            }
-            onCheck={onChangeRememberPassword}
-          />
-        )}
-        {isLinux ? <UseNativeFrame /> : null}
-        {!Styles.isMobile && (
-          <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
-        )}
-        {!Styles.isMobile && (
-          <Kb.Checkbox
-            label={
-              'Disable spellchecking' +
-              (initialDisableSpellCheck.current === disableSpellCheck ? '' : ' (restart required)')
-            }
-            disabled={disableSpellCheck === undefined}
-            checked={!!disableSpellCheck}
-            onCheck={onToggleDisableSpellcheck}
-          />
-        )}
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+          {settingLockdownMode && <Kb.ProgressIndicator />}
+          <LockdownCheckbox hasRandomPW={hasRandomPW} settingLockdownMode={settingLockdownMode} />
+          {!!setLockdownModeError && (
+            <Kb.Text type="BodySmall" style={styles.error}>
+              {setLockdownModeError}
+            </Kb.Text>
+          )}
+          {!hasRandomPW && (
+            <Kb.Checkbox
+              checked={rememberPassword}
+              labelComponent={
+                <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+                  <Kb.Text type="Body">Always stay logged in</Kb.Text>
+                  <Kb.Text type="BodySmall">
+                    You won't be asked for your password when restarting the app or your device.
+                  </Kb.Text>
+                </Kb.Box2>
+              }
+              onCheck={onChangeRememberPassword}
+            />
+          )}
+          {isLinux ? <UseNativeFrame /> : null}
+          {!Styles.isMobile && (
+            <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
+          )}
+          {!Styles.isMobile && (
+            <Kb.Checkbox
+              label={
+                'Disable spellchecking' +
+                (initialDisableSpellCheck.current === disableSpellCheck ? '' : ' (restart required)')
+              }
+              disabled={disableSpellCheck === undefined}
+              checked={!!disableSpellCheck}
+              onCheck={onToggleDisableSpellcheck}
+            />
+          )}
+        </Kb.Box2>
         <Kb.Divider style={styles.proxyDivider} />
-        <ProxySettings />
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([styles.section, {paddingTop: 0}])}
+        >
+          <ProxySettings />
+        </Kb.Box2>
         <Developer />
       </Kb.Box2>
     </Kb.ScrollView>
@@ -314,9 +322,21 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   scrollview: {
-    ...Styles.padding(0, Styles.globalMargins.small),
     width: '100%',
   },
+  section: Styles.platformStyles({
+    common: {
+      ...Styles.padding(
+        Styles.globalMargins.small,
+        Styles.globalMargins.mediumLarge,
+        Styles.globalMargins.medium,
+        Styles.globalMargins.small
+      ),
+    },
+    isElectron: {
+      maxWidth: 600,
+    },
+  }),
   text: Styles.platformStyles({
     isElectron: {
       cursor: 'default',
