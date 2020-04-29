@@ -217,6 +217,10 @@
           "type": "string"
         },
         {
+          "name": "sigID",
+          "type": "SigID"
+        },
+        {
           "name": "reaction",
           "type": "WotReactionType"
         }

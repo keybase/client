@@ -178,6 +178,7 @@ type WotVouchCLIArg struct {
 type WotReactArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Voucher   string          `codec:"voucher" json:"voucher"`
+	SigID     SigID           `codec:"sigID" json:"sigID"`
 	Reaction  WotReactionType `codec:"reaction" json:"reaction"`
 }
 

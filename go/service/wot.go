@@ -121,13 +121,14 @@ func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactA
 	}
 	var reactingVouch *keybase1.WotVouch
 	for _, attestation := range myVouches {
-		if attestation.Voucher.Eq(expectedVoucher) {
+		if attestation.Voucher.Eq(expectedVoucher) && attestation.VouchProof.Eq(arg.SigID) {
 			reactingVouch = &attestation
 			break
 		}
 	}
 	if reactingVouch == nil {
-		return fmt.Errorf("could not find an attestation of you by %s", arg.Voucher)
+		mctx.Debug("WotReact could not find attestation for %v %v", expectedVoucher, arg.SigID)
+		return fmt.Errorf("could not find attestation")
 	}
 
 	switch reactingVouch.Status {

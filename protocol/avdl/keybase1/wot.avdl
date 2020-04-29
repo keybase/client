@@ -48,7 +48,7 @@ protocol wot {
     REJECT_0,
     ACCEPT_1
   }
-  void wotReact(int sessionID, string voucher, WotReactionType reaction);
+  void wotReact(int sessionID, string voucher, SigID sigID, WotReactionType reaction);
 
   record WotVouch {
     WotStatusType status;
