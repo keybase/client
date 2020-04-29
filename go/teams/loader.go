@@ -1032,11 +1032,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		// Send a notification if we used to have the name cached and it has changed at all.
 		changeSet := keybase1.TeamChangeSet{Renamed: true}
 		go l.G().NotifyRouter.HandleTeamChangedByID(context.Background(), chain.GetID(), chain.GetLatestSeqno(),
-			chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno(), keybase1.Seqno(0), keybase1.TeamChangedSource_LOCAL)
+			chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno(), keybase1.Seqno(0), keybase1.TeamChangedSource_LOCAL_RENAME)
 		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(), cachedName.String(), chain.GetLatestSeqno(),
-			chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno(), keybase1.Seqno(0), keybase1.TeamChangedSource_LOCAL)
+			chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno(), keybase1.Seqno(0), keybase1.TeamChangedSource_LOCAL_RENAME)
 		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(), newName.String(), chain.GetLatestSeqno(),
-			chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno(), keybase1.Seqno(0), keybase1.TeamChangedSource_LOCAL)
+			chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno(), keybase1.Seqno(0), keybase1.TeamChangedSource_LOCAL_RENAME)
 	}
 
 	// Check request constraints
