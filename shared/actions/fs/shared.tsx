@@ -3,7 +3,11 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../fs-gen'
 
-const noAccessErrorCodes = [RPCTypes.StatusCode.scsimplefsnoaccess, RPCTypes.StatusCode.scteamnotfound]
+const noAccessErrorCodes = [
+  RPCTypes.StatusCode.scsimplefsnoaccess,
+  RPCTypes.StatusCode.scteamnotfound,
+  RPCTypes.StatusCode.scteamreaderror,
+]
 
 export const errorToActionOrThrow = (
   error: any,
