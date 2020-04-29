@@ -1083,6 +1083,7 @@ export type IconType =
   | 'iconfont-stellar-send'
   | 'iconfont-stop'
   | 'iconfont-success'
+  | 'iconfont-team'
   | 'iconfont-team-join'
   | 'iconfont-team-leave'
   | 'iconfont-text-code'
@@ -10351,6 +10352,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-success': {
     charCode: 0xe95c,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-team': {
+    charCode: 0xe9cd,
     gridSize: 16,
     isFont: true,
   },
