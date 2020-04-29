@@ -2219,7 +2219,9 @@ func (n *serverChatListener) ChatWelcomeMessageLoaded(teamID keybase1.TeamID,
 	_ chat1.WelcomeMessageDisplay) {
 	n.welcomeMessage <- teamID
 }
-func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno) {
+func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool,
+	changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno, source keybase1.TeamChangedSource) {
+
 	n.teamChangedByID <- keybase1.TeamChangedByIDArg{
 		TeamID:            teamID,
 		LatestSeqno:       latestSeqno,
