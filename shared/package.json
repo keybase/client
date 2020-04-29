@@ -120,7 +120,7 @@
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#nojima/keybase-fixes-off-master",
     "react-native-reanimated": "1.8.0",
     "react-native-safe-area-context": "0.7.3",
-    "react-native-screens": "2.5.0",
+    "react-native-screens": "2.7.0",
     "react-native-unimodules": "0.7.0-rc.1",
     "react-native-video": "5.0.2",
     "react-native-webview": "8.0.5",

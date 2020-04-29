@@ -58,6 +58,17 @@ const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}
 
 const tabsAndModals = [...modalScreens, <ModalStack.Screen key="Tabs" name="Tabs" component={NavTabs} />]
 
+const theme = {
+  colors: {
+    background: Styles.globalColors.white,
+    border: Styles.globalColors.black_10,
+    card: Styles.globalColors.white,
+    primary: Styles.globalColors.black,
+    text: Styles.globalColors.black,
+  },
+  dark: false,
+}
+
 const RouterV3 = () => {
   const [nav, setNav] = React.useState<NavigationContainerRef | null>(null)
   const navIsSet = React.useRef(false)
@@ -81,6 +92,7 @@ const RouterV3 = () => {
       <ReduxPlumbing navRef={nav} />
       <NavigationContainer
         onStateChange={onNavigationStateChange}
+        theme={theme}
         ref={r => {
           if (!navIsSet.current) {
             navIsSet.current = true

@@ -5,4 +5,3 @@ export const Stack = createStackNavigator<ParamList>()
 
 /** The modal stack on top of the tabs */
 export const ModalStack = createStackNavigator<ModalParamList>()
-
