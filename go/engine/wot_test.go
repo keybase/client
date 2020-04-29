@@ -193,7 +193,7 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.EqualValues(t, bobVouch, vouches[0])
 	charlieVouch := vouches[1]
 	require.Equal(t, keybase1.WotStatusType_PROPOSED, charlieVouch.Status)
-	require.Equal(t, confidence, *charlieVouch.Confidence)
+	require.Equal(t, confidence, charlieVouch.Confidence)
 	t.Log("alice sees two pending vouches")
 
 	// alice gets just charlie's vouch using FetchWotVouches
@@ -266,7 +266,7 @@ func TestWebOfTrustAccept(t *testing.T) {
 	require.Equal(t, keybase1.WotStatusType_ACCEPTED, vouch.Status)
 	require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
 	require.Equal(t, vouchText, vouch.VouchText)
-	require.EqualValues(t, confidence, *vouch.Confidence)
+	require.EqualValues(t, confidence, vouch.Confidence)
 
 	vouches, err = libkb.FetchWotVouches(mctxB, libkb.FetchWotVouchesArg{Vouchee: aliceName})
 	require.NoError(t, err)
@@ -275,7 +275,7 @@ func TestWebOfTrustAccept(t *testing.T) {
 	require.Equal(t, keybase1.WotStatusType_ACCEPTED, vouch.Status)
 	require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
 	require.Equal(t, vouchText, vouch.VouchText)
-	require.EqualValues(t, confidence, *vouch.Confidence)
+	require.EqualValues(t, confidence, vouch.Confidence)
 }
 
 func TestWebOfTrustReject(t *testing.T) {
