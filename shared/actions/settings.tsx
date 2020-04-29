@@ -294,8 +294,8 @@ function* refreshNotifications() {
       ? []
       : [
           {
-            description: 'Phone/tablet: use default sound for new messages',
-            description_h: 'Phone/tablet: use default sound for new messages',
+            description: 'Phone: use default sound for new messages',
+            description_h: 'Phone: use default sound for new messages',
             name: 'defaultsoundmobile',
             subscribed: !!chatGlobalSettings.settings[
               `${ChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`

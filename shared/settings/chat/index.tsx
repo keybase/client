@@ -284,32 +284,45 @@ class Chat extends React.Component<Props, State> {
                 selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.whitelisted}
                 disabled={this.props.unfurlMode === undefined}
               />
-              {this._getUnfurlMode() === RPCChatTypes.UnfurlMode.whitelisted &&
-                this._getUnfurlWhitelist(false).map((w, idx) => {
-                  const wlremoved = this._isUnfurlWhitelistRemoved(w)
-                  return (
-                    <React.Fragment key={w}>
-                      {idx !== 0 && <Kb.Divider style={styles.whitelistDivider} />}
-                      <Kb.Box2
-                        fullWidth={true}
-                        direction="horizontal"
-                        style={Styles.collapseStyles([
-                          wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
-                          styles.whitelistRowContainer,
-                        ])}
-                      >
-                        <Kb.Text type="BodySemibold">{w}</Kb.Text>
-                        <Kb.Text
-                          type="BodyPrimaryLink"
-                          style={wlremoved ? {color: Styles.globalColors.whiteOrWhite} : undefined}
-                          onClick={() => this._toggleUnfurlWhitelist(w)}
+              {this._getUnfurlMode() === RPCChatTypes.UnfurlMode.whitelisted && (
+                <Kb.ScrollView style={styles.whitelist}>
+                  {this._getUnfurlWhitelist(false).map((w, idx) => {
+                    const wlremoved = this._isUnfurlWhitelistRemoved(w)
+                    return (
+                      <Kb.Box key={w} style={styles.whitelistInner}>
+                        {idx === 0 && <Kb.Box style={styles.whitelistOuter} />}
+                        <Kb.Box2
+                          fullWidth={true}
+                          direction="horizontal"
+                          style={Styles.collapseStyles([
+                            wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
+                            styles.whitelistRowContainer,
+                          ])}
                         >
-                          {wlremoved ? 'Restore' : 'Remove'}
-                        </Kb.Text>
-                      </Kb.Box2>
-                    </React.Fragment>
-                  )
-                })}
+                          <Kb.Text type="BodySemibold">{w}</Kb.Text>
+                          {wlremoved ? (
+                            <Kb.Text
+                              type="BodyPrimaryLink"
+                              style={styles.removeText}
+                              onClick={() => this._toggleUnfurlWhitelist(w)}
+                            >
+                              Restore
+                            </Kb.Text>
+                          ) : (
+                            <Kb.Box style={{position: 'relative'}}>
+                              <Kb.Icon
+                                onClick={() => this._toggleUnfurlWhitelist(w)}
+                                style={styles.removeIcon}
+                                type="iconfont-trash"
+                              />
+                            </Kb.Box>
+                          )}
+                        </Kb.Box2>
+                      </Kb.Box>
+                    )
+                  })}
+                </Kb.ScrollView>
+              )}
               <Kb.RadioButton
                 key="rbnever"
                 label="Never"
@@ -398,11 +411,16 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {paddingLeft: Styles.globalMargins.medium},
     isMobile: {paddingBottom: Styles.globalMargins.medium, paddingLeft: Styles.globalMargins.small},
   }),
-  container: {
-    paddingBottom: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-    width: '100%',
-  },
+  container: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
+      width: '100%',
+    },
+    isElectron: {
+      maxWidth: 600,
+    },
+  }),
   divider: {
     marginBottom: Styles.globalMargins.small,
   },
@@ -412,6 +430,16 @@ const styles = Styles.styleSheetCreate(() => ({
   innerContainer: {
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
+  },
+  removeIcon: Styles.platformStyles({
+    isElectron: {
+      position: 'absolute',
+      right: 0,
+      top: 4,
+    },
+  }),
+  removeText: {
+    color: Styles.globalColors.black,
   },
   save: {
     marginBottom: Styles.globalMargins.small,
@@ -441,23 +469,40 @@ const styles = Styles.styleSheetCreate(() => ({
   teamText: {
     alignSelf: 'flex-start',
   },
-  whitelistDivider: Styles.platformStyles({
+  whitelist: Styles.platformStyles({
     common: {
-      marginLeft: Styles.globalMargins.medium,
+      alignSelf: 'flex-start',
+      backgroundColor: Styles.globalColors.blueGrey,
+      marginBottom: Styles.globalMargins.xtiny,
+      marginLeft: 22,
+      marginTop: Styles.globalMargins.xtiny,
+      paddingRight: Styles.globalMargins.medium,
+    },
+    isElectron: {
+      height: 150,
+      width: '100%',
     },
     isMobile: {
-      marginLeft: Styles.globalMargins.mediumLarge,
+      width: '95%',
     },
   }),
+  whitelistInner: {
+    marginBottom: 1,
+    paddingRight: Styles.globalMargins.tiny,
+  },
+  whitelistOuter: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
   whitelistRowContainer: Styles.platformStyles({
     common: {
+      backgroundColor: Styles.globalColors.white,
       flexShrink: 0,
+      height: 40,
       justifyContent: 'space-between',
       marginLeft: Styles.globalMargins.tiny,
-      padding: Styles.globalMargins.small,
-    },
-    isMobile: {
-      marginLeft: Styles.globalMargins.small,
+      padding: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
 }))
