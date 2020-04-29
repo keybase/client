@@ -142,7 +142,7 @@ const ConnectedAvatar = Container.connect(
       return m
     }, {})
     const url = ownProps.imageOverrideUrl
-      ? `url(${ownProps.imageOverrideUrl})`
+      ? `url("${encodeURI(ownProps.imageOverrideUrl)}")`
       : stateProps._httpSrvAddress && name
       ? urlsToImgSet(urlMap, ownProps.size)
       : iconTypeToImgSet(
