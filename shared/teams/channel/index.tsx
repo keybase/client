@@ -120,7 +120,7 @@ const Channel = (props: OwnProps) => {
 
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants, bots)
-  const participants = useChannelParticipants(teamID, conversationIDKey) ?? []
+  const participants = useChannelParticipants(teamID, conversationIDKey)
 
   // Make the actual sections (consider farming this out into another function or file)
   const headerSection = {

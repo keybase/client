@@ -20,15 +20,13 @@ export const useChannelParticipants = (
 ) => {
   const participants = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey).all)
   const teamMembers = Container.useSelector(s => Constants.getTeamDetails(s, teamID).members)
-  const [noBots, setNoBots] = React.useState<Array<string> | undefined>(undefined)
-  React.useEffect(() => {
-    // default to putting them in the list if not in teamMembers
-    const newNoBots = participants.filter(
-      username => !['bot', 'restrictedBot'].includes(teamMembers.get(username)?.type ?? '')
-    )
-    setNoBots(newNoBots)
-  }, [participants, teamMembers])
-  return noBots
+  return React.useMemo(
+    () =>
+      participants.filter(
+        username => !['bot', 'restrictedBot'].includes(teamMembers.get(username)?.type ?? '')
+      ),
+    [participants, teamMembers]
+  )
 }
 
 export const useAllChannelMetas = (

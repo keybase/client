@@ -35,7 +35,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
   const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname, description} = channelInfo
-  const numParticipants = useChannelParticipants(teamID, conversationIDKey)?.length ?? 0
+  const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel
 
