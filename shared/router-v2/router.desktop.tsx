@@ -156,7 +156,7 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
         popRef.current?.()
       }
     },
-    [setMouseDownX, setMouseDownY, mouseDownX, mouseDownY]
+    [setMouseDownX, setMouseDownY, mouseDownX, mouseDownY, modal2NoClose]
   )
   // if the modals change clear this value
   React.useEffect(() => {
