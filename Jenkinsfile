@@ -616,6 +616,9 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/chat': [
         disable: true,
       ],
+      'github.com/keybase/client/go/kbfs/libdokan': [
+        parallel: 1,
+      ],
     ],
   ]
   def getOverallTimeout = { testSpec ->
@@ -633,6 +636,7 @@ def testGoTestSuite(prefix, packagesToTest) {
       flags: '',
       timeout: '30m',
       dirPath: dirPath,
+      parallel: 16,
     ]
   }
   def getPackageTestSpec = { pkg ->
@@ -652,7 +656,7 @@ def testGoTestSuite(prefix, packagesToTest) {
     return false
   }
 
-  println "Building ${packagesToTest.size()} test(s)"
+  println "Compiling ${packagesToTest.size()} test(s)"
   def allTestSpecs = [:]
   packagesToTest.each { pkg, _ ->
     def testSpec = getPackageTestSpec(pkg)
@@ -686,7 +690,7 @@ def testGoTestSuite(prefix, packagesToTest) {
             if (testSpec.no_citogo) {
               sh "./${testSpec.testBinary} -test.timeout ${testSpec.timeout}"
             } else {
-              sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testSpec.testBinary} --timeout 150s -parallel=16 ${testSpec.citogo_extra ? testSpec.citogo_extra : ''}"
+              sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testSpec.testBinary} --timeout 150s -parallel=${testSpec.parallel} ${testSpec.citogo_extra ? testSpec.citogo_extra : ''}"
             }
           }
         }
