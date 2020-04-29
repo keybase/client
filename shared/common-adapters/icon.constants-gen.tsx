@@ -941,6 +941,7 @@ export type IconType =
   | 'iconfont-calculator'
   | 'iconfont-camera'
   | 'iconfont-camera-solid'
+  | 'iconfont-campfire'
   | 'iconfont-campfire-burning'
   | 'iconfont-campfire-out'
   | 'iconfont-caret-down'
@@ -9643,8 +9644,13 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-campfire-burning': {
+  'iconfont-campfire': {
     charCode: 0xe9cb,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-campfire-burning': {
+    charCode: 0xe9b3,
     gridSize: 16,
     isFont: true,
   },
