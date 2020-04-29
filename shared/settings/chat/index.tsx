@@ -310,11 +310,13 @@ class Chat extends React.Component<Props, State> {
                             </Kb.Text>
                           ) : (
                             <Kb.Box style={{position: 'relative'}}>
-                              <Kb.Icon
-                                onClick={() => this._toggleUnfurlWhitelist(w)}
-                                style={styles.removeIcon}
-                                type="iconfont-trash"
-                              />
+                              <Kb.WithTooltip tooltip="Remove">
+                                <Kb.Icon
+                                  onClick={() => this._toggleUnfurlWhitelist(w)}
+                                  style={styles.removeIcon}
+                                  type="iconfont-trash"
+                                />
+                              </Kb.WithTooltip>
                             </Kb.Box>
                           )}
                         </Kb.Box2>
@@ -417,9 +419,6 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingTop: Styles.globalMargins.small,
       width: '100%',
     },
-    isElectron: {
-      maxWidth: 600,
-    },
   }),
   divider: {
     marginBottom: Styles.globalMargins.small,
@@ -427,10 +426,15 @@ const styles = Styles.styleSheetCreate(() => ({
   error: {
     color: Styles.globalColors.redDark,
   },
-  innerContainer: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
+  innerContainer: Styles.platformStyles({
+    common: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+    isElectron: {
+      maxWidth: 600,
+    },
+  }),
   removeIcon: Styles.platformStyles({
     isElectron: {
       position: 'absolute',

@@ -125,7 +125,7 @@ const styles = Styles.styleSheetCreate(
       label: {marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny},
       loading: {alignItems: 'center', flex: 1, justifyContent: 'center'},
       main: Styles.platformStyles({
-        common: {flex: 1, padding: Styles.globalMargins.small, width: '100%'},
+        common: {flex: 1, padding: Styles.globalMargins.small, paddingRight: 0, width: '100%'},
         isElectron: Styles.desktopStyles.scrollable,
       }),
     } as const)
