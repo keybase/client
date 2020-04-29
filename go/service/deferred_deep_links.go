@@ -1,7 +1,6 @@
 package service
 
 import (
-	"strings"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -35,10 +34,6 @@ func (c installReferrerHandler) CallbackWithString(s string) {
 			m.Warning("Error in SetAndroidInstallReferrerChecked: %v", err)
 		}
 	}()
-
-	// Play Store seems to replace our URL-encoded plus sign with a space, so we
-	// need to work around it.
-	s = strings.Replace(s, " ", "+", -1)
 
 	m.Debug("Waiting for the GUI to be ready to receive notifications")
 	if !c.G().UIRouter.WaitForUIType(libkb.HomeUIKind, 30*time.Second) {
