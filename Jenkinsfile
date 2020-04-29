@@ -474,6 +474,8 @@ def testGoBuilds(prefix, packagesToTest) {
   }
 }
 
+// Not resumable, which is fine
+@NonCPS
 def testGoTestSuite(prefix, packagesToTest) {
   def dirs = getTestDirsNix()
   def goversion = sh(returnStdout: true, script: "go version").trim()
