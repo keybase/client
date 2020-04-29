@@ -474,8 +474,6 @@ def testGoBuilds(prefix, packagesToTest) {
   }
 }
 
-// Not resumable, which is fine
-@NonCPS
 def testGoTestSuite(prefix, packagesToTest) {
   def dirs = getTestDirsNix()
   def goversion = sh(returnStdout: true, script: "go version").trim()
@@ -663,6 +661,7 @@ def testGoTestSuite(prefix, packagesToTest) {
   def packageTestList = []
   packageTestList.addAll(packageTestSet)
   def allTestSpecs = [:]
+  def i = 0
   def workers = (1..8).collect{n -> [
     "worker_${n}",
     {
@@ -672,11 +671,12 @@ def testGoTestSuite(prefix, packagesToTest) {
 
         // Concurrency hack
         lock("${env.BUILD_TAG}-compiling") {
-          if (packageTestList.size() == 0) {
+          if (packageTestList.size() == i) {
             done = true
           } else {
-            def pkg = packageTestList.removeAt(0)
+            def pkg = packageTestList.getAt(i)
             spec = allTestSpecs[pkg]
+            i++
           }
         }
         if (done) {
