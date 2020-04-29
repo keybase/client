@@ -659,9 +659,9 @@ def testGoTestSuite(prefix, packagesToTest) {
   packageTestList.addAll(packageTestSet)
   def allTestSpecs = [:]
   def i = 0
-  def workers = (1..8).collect{n -> [
-    "worker_${n}",
-    {
+  def workers = [:]
+  for (n in (1..8)) {
+    workers[n] = {
       def done = false
       for (; !done;) {
         def spec
@@ -680,6 +680,7 @@ def testGoTestSuite(prefix, packagesToTest) {
             spec = allTestSpecs[pkg]
             println "Incrementing i from ${i} (${lockID})"
             i++
+            println "Incremented i to ${i} (${lockID})"
           }
         }
         println "Outside lock ${lockID}, i=${i}"
@@ -691,7 +692,7 @@ def testGoTestSuite(prefix, packagesToTest) {
         testSpec.closure()
       }
     }
-  ]}.collectEntries{it}
+  }
   packagesToTest.each { pkg, _ ->
     def testSpec = getPackageTestSpec(pkg)
     if (testSpec) {
