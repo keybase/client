@@ -706,6 +706,22 @@ func (o DeleteConversationRemoteRes) DeepCopy() DeleteConversationRemoteRes {
 	}
 }
 
+type RemoveFromConversationRemoteRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o RemoveFromConversationRemoteRes) DeepCopy() RemoveFromConversationRemoteRes {
+	return RemoveFromConversationRemoteRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetMessageBeforeRes struct {
 	MsgID     MessageID  `codec:"msgID" json:"msgID"`
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
@@ -1754,6 +1770,11 @@ type DeleteConversationArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
+type RemoveFromConversationArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Users  []gregor1.UID  `codec:"users" json:"users"`
+}
+
 type GetMessageBeforeArg struct {
 	ConvID ConversationID      `codec:"convID" json:"convID"`
 	Age    gregor1.DurationSec `codec:"age" json:"age"`
@@ -1901,6 +1922,7 @@ type RemoteInterface interface {
 	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	PreviewConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	DeleteConversation(context.Context, ConversationID) (DeleteConversationRemoteRes, error)
+	RemoveFromConversation(context.Context, RemoveFromConversationArg) (RemoveFromConversationRemoteRes, error)
 	GetMessageBefore(context.Context, GetMessageBeforeArg) (GetMessageBeforeRes, error)
 	GetTLFConversations(context.Context, GetTLFConversationsArg) (GetTLFConversationsRes, error)
 	SetAppNotificationSettings(context.Context, SetAppNotificationSettingsArg) (SetAppNotificationSettingsRes, error)
@@ -2290,6 +2312,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.DeleteConversation(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
+			"removeFromConversation": {
+				MakeArg: func() interface{} {
+					var ret [1]RemoveFromConversationArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RemoveFromConversationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RemoveFromConversationArg)(nil), args)
+						return
+					}
+					ret, err = i.RemoveFromConversation(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2802,6 +2839,11 @@ func (c RemoteClient) PreviewConversation(ctx context.Context, convID Conversati
 func (c RemoteClient) DeleteConversation(ctx context.Context, convID ConversationID) (res DeleteConversationRemoteRes, err error) {
 	__arg := DeleteConversationArg{ConvID: convID}
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.deleteConversation", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) RemoveFromConversation(ctx context.Context, __arg RemoveFromConversationArg) (res RemoveFromConversationRemoteRes, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.removeFromConversation", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
