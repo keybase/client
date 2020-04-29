@@ -485,8 +485,8 @@ def testGoTestSuite(prefix, packagesToTest) {
   println "Building citogo"
   sh '(cd citogo && go install)'
 
-  def packageTestList = packagesToTest.keySet()
-  println "Go packages to test:\n${packageTestList.join('\n')}"
+  def packageTestSet = packagesToTest.keySet()
+  println "Go packages to test:\n${packageTestSet.join('\n')}"
 
   def tests = [:]
   def testSpecMap = [
@@ -637,6 +637,7 @@ def testGoTestSuite(prefix, packagesToTest) {
       timeout: '30m',
       dirPath: dirPath,
       parallel: 16,
+      pkg: pkg,
     ]
   }
   def getPackageTestSpec = { pkg ->
@@ -656,21 +657,47 @@ def testGoTestSuite(prefix, packagesToTest) {
     return false
   }
 
-  println "Compiling ${packagesToTest.size()} test(s)"
+  println "Compiling ${packageTestSet.size()} test(s)"
+  def packageTestList = []
+  packageTestList.addAll(packageTestSet)
   def allTestSpecs = [:]
+  def workers = (1..8).collect{n -> [
+    "worker_${n}",
+    {
+      def done = false
+      for (; !done;) {
+        def spec
+
+        // Concurrency hack
+        lock("${env.BUILD_TAG}-compiling") {
+          if (packageTestList.size() == 0) {
+            done = true
+          } else {
+            def pkg = packageTestList.removeAt(0)
+            spec = allTestSpecs[pkg]
+          }
+        }
+        if (done) {
+          break
+        }
+        testSpec.closure()
+      }
+    }
+  ]}.collectEntries{it}
   packagesToTest.each { pkg, _ ->
     def testSpec = getPackageTestSpec(pkg)
-    if (!testSpec) {
-      return
+    if (testSpec) {
+      testSpec.testBinary = "${testSpec.name}.test"
+      testSpec.closure = {
+        println "Building tests for ${testSpec.dirPath}"
+        dir(testSpec.dirPath) {
+          sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.testBinary}"
+        }
+      }.curry()
+      allTestSpecs[pkg] = testSpec
     }
-
-    testSpec.testBinary = "${testSpec.name}.test"
-    println "Building tests for ${testSpec.dirPath}"
-    dir(testSpec.dirPath) {
-      sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.testBinary}"
-    }
-    allTestSpecs[pkg] = testSpec
   }
+  parallel(workers)
 
   println "Running ${allTestSpecs.size()} test(s)"
   helpers.waitForURLWithTimeout(prefix, env.KEYBASE_SERVER_URI, 600)
