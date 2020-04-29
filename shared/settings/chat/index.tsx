@@ -295,8 +295,8 @@ class Chat extends React.Component<Props, State> {
                           fullWidth={true}
                           direction="horizontal"
                           style={Styles.collapseStyles([
-                            wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
                             styles.whitelistRowContainer,
+                            wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
                           ])}
                         >
                           <Kb.Text type="BodySemibold">{w}</Kb.Text>
