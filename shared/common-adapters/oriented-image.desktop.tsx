@@ -5,6 +5,7 @@ import noop from 'lodash/noop'
 import isNumber from 'lodash/isNumber'
 import logger from '../logger'
 import {Props} from './oriented-image'
+import {StylesCrossPlatform} from 'styles'
 
 type State = {
   srcTransformed: string
@@ -71,10 +72,23 @@ const transformMap: {[K in string]: TransformFn} = {
     ctx.rotate((-90 * Math.PI) / 180)
   },
 }
-
-const ImageRef = React.forwardRef((props, ref) => (
-  // @ts-ignore codemod issue
-  <img src={props.src} style={props.style} onDragStart={props.onDragStart} onLoad={props.onLoad} ref={ref} />
+type ImageRefProps = {
+  src: string
+  style?: StylesCrossPlatform
+  onDragStart?: (e: React.SyntheticEvent) => void
+  onLoad?: (e: React.SyntheticEvent) => void
+  onError?: () => void
+}
+// @ts-ignore I can't figure out the ref typing
+const ImageRef = React.forwardRef((props: ImageRefProps, ref: React.RefObject<HTMLImageElement>) => (
+  <img
+    src={props.src}
+    style={props.style as React.CSSProperties}
+    onDragStart={props.onDragStart}
+    onLoad={props.onLoad}
+    ref={ref}
+    onError={props.onError}
+  />
 ))
 
 /*
@@ -149,6 +163,9 @@ class OrientedImage extends React.Component<Props, State> {
     /* eslint-disable-next-line no-undef */
     const img = new Image()
     img.onload = () => this._drawCanvasOrientation(img, orientation)
+    img.onerror = () => {
+      this.props.onError?.()
+    }
     img.src = src
   }
 
@@ -271,6 +288,7 @@ class OrientedImage extends React.Component<Props, State> {
             style={this.props.style}
             onDragStart={this.props.onDragStart}
             onLoad={this.props.onLoad}
+            onError={this.props.onError}
           />
         )}
         <canvas ref={el => (this._canvasRef = el)} style={styleCanvas} />
