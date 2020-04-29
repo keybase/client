@@ -159,7 +159,7 @@ const SortHeader = () => {
           title: sortOrderToTitle.activity,
         },
         {
-          icon: 'iconfont-text-code',
+          icon: 'iconfont-sort-alpha',
           onClick: () => onChangeSort('alphabetical'),
           title: sortOrderToTitle.alphabetical,
         },
