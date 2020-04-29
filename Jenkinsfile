@@ -213,7 +213,7 @@ helpers.rootLinuxNode(env, {
                       sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
                       sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
                       sh "cp ${env.GOPATH}/bin/git-remote-keybase ./kbfsgit/git-remote-keybase/git-remote-keybase"
-                      withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64']]) {
+                      withCredentials([string(credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64')]) {
                         def kbfsCert = sh(returnStdout: true, script: "echo \"$KBFS_DOCKER_CERT_B64\" | sed 's/ //g' | base64 -d")
                         kbfsfuseImage = docker.build('897413463132.dkr.ecr.us-east-1.amazonaws.com/client', "--build-arg KEYBASE_TEST_ROOT_CERT_PEM=\"$kbfsCert\" .")
                       }
@@ -486,13 +486,6 @@ def testGoTestSuite(prefix, packagesToTest) {
   println "Go packages to test:\n${packageTestList.join('\n')}"
 
   def tests = [:]
-  def specialTests = [:]
-  def specialTestFilter = [
-      'chat', 'engine', 'teams', 'chat_storage', 'systests', 'kbfs_libdokan',
-      'kbfs_test_race', 'stellar_stellarsvc', 'tlfupgrade', 'service',
-      'saltpackkeys', 'kbfs_libkbfs', 'kbfs_test', 'identify3', 'git',
-      'ephemeral'
-  ]
   def testSpecMap = [
     test_linux_go_: [
       '*': [],
@@ -655,62 +648,47 @@ def testGoTestSuite(prefix, packagesToTest) {
     }
     return false
   }
+
+  println "Building ${packagesToTest.size()} test(s)"
+  def allTestSpecs = [:]
   packagesToTest.each { pkg, _ ->
     def testSpec = getPackageTestSpec(pkg)
     if (!testSpec) {
       return
     }
 
-    def testBinary = "${testSpec.name}.test"
-    def test = {
-      println "Building tests for ${testSpec.dirPath}"
-      dir(testSpec.dirPath) {
-        sh "go test -vet=off -c ${testSpec.flags} -o ${testBinary}"
-        // Only run the test if a test binary should have been produced.
-        if (fileExists(testBinary)) {
-          withCredentials([
-            [$class: 'StringBinding', credentialsId: 'citogo-flake-webhook', variable : 'CITOGO_FLAKE_WEBHOOK'],
-            [$class: 'StringBinding', credentialsId: 'citogo-aws-secret-access-key', variable : 'CITOGO_AWS_SECRET_ACCESS_KEY'],
-            [$class: 'StringBinding', credentialsId: 'citogo-aws-access-key-id', variable : 'CITOGO_AWS_ACCESS_KEY_ID'],
-            [$class: 'StringBinding', credentialsId: 'citogo-master-fail-webhook', variable : 'CITOGO_MASTER_FAIL_WEBHOOK']
-          ]) {
-            println "Running tests for ${testSpec.dirPath}"
-            def t = getOverallTimeout(testSpec)
-            timeout(activity: true, time: t.time, unit: t.unit) {
-              if (testSpec.no_citogo) {
-                sh "./${testBinary} -test.timeout ${testSpec.timeout}"
-              } else {
-                sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testBinary} --timeout 150s ${testSpec.citogo_extra ? testSpec.citogo_extra : ''}"
-              }
+    testSpec.testBinary = "${testSpec.name}.test"
+    println "Building tests for ${testSpec.dirPath}"
+    dir(testSpec.dirPath) {
+      sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.testBinary}"
+    }
+    allTestSpecs[pkg] = testSpec
+  }
+
+  println "Running ${allTestSpecs.size()} test(s)"
+  helpers.waitForURLWithTimeout(prefix, env.KEYBASE_SERVER_URI, 600)
+  allTestSpecs.each { pkg, testSpec ->
+    dir(testSpec.dirPath) {
+      // Only run the test if a test binary should have been produced.
+      if (fileExists(testSpec.testBinary)) {
+        withCredentials([
+          string(credentialsId: 'citogo-flake-webhook', variable : 'CITOGO_FLAKE_WEBHOOK'),
+          string(credentialsId: 'citogo-aws-secret-access-key', variable : 'CITOGO_AWS_SECRET_ACCESS_KEY'),
+          string(credentialsId: 'citogo-aws-access-key-id', variable : 'CITOGO_AWS_ACCESS_KEY_ID'),
+          string(credentialsId: 'citogo-master-fail-webhook', variable : 'CITOGO_MASTER_FAIL_WEBHOOK'),
+        ]) {
+          println "Running tests for ${testSpec.dirPath}"
+          def t = getOverallTimeout(testSpec)
+          timeout(activity: true, time: t.time, unit: t.unit) {
+            if (testSpec.no_citogo) {
+              sh "./${testSpec.testBinary} -test.timeout ${testSpec.timeout}"
+            } else {
+              sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testSpec.testBinary} --timeout 150s -parallel=16 ${testSpec.citogo_extra ? testSpec.citogo_extra : ''}"
             }
           }
         }
       }
     }
-    if (testSpec.name in specialTestFilter) {
-      specialTests["${prefix}${testSpec.name}"] = test
-    } else {
-      tests["${prefix}${testSpec.name}"] = test
-    }
-  }
-
-  // Schedule the tests
-  def parallelTests = []
-  def testBatch = [:]
-  tests.each { name, closure ->
-    if (testBatch.size() == 6) {
-      parallelTests << testBatch
-      testBatch = [:]
-    }
-    testBatch[name] = closure
-  }
-  if (testBatch.size() > 0) {
-    parallelTests << testBatch
-  }
-  parallelTests << specialTests
-  helpers.waitForURLWithTimeout(prefix, env.KEYBASE_SERVER_URI, 600)
-  parallelTests.each { batch ->
-    parallel(batch)
   }
 }
 
