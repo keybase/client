@@ -326,7 +326,9 @@ func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 	// caches. So we use a read lock.
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
-	if cache.syncCache != nil &&
+	if cache.syncCache == nil && cacheType == DiskBlockSyncCache {
+		return 0, 0, errors.New("Sync cache not enabled")
+	} else if cache.syncCache != nil &&
 		(cacheType == DiskBlockAnyCache || cacheType == DiskBlockSyncCache) {
 		numRemoved, sizeRemoved, err = cache.syncCache.Delete(ctx, blockIDs)
 		if err != nil {
@@ -335,8 +337,6 @@ func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 		if cacheType == DiskBlockSyncCache {
 			return numRemoved, sizeRemoved, err
 		}
-	} else if cacheType == DiskBlockSyncCache {
-		return 0, 0, errors.New("Sync cache not enabled")
 	}
 
 	wsNumRemoved, wsSizeRemoved, err := cache.workingSetCache.Delete(
