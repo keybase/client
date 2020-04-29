@@ -30,10 +30,14 @@ const styles = Styles.styleSheetCreate(() => ({
     marginBottom: Styles.globalMargins.tiny,
   },
   header: Styles.platformStyles({
-    common: Styles.padding(0, Styles.globalMargins.tiny),
     isElectron: {
-      paddingTop: Styles.globalMargins.small,
+      padding: Styles.globalMargins.small,
     },
+    isMobile: Styles.padding(
+      Styles.globalMargins.medium,
+      Styles.globalMargins.tiny,
+      Styles.globalMargins.small
+    ),
   }),
 }))
 
