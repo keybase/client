@@ -132,19 +132,21 @@ func (h *IncomingShareHandler) dbKey() libkb.DbKey {
 	}
 }
 
-func (h *IncomingShareHandler) GetCompressPreference(ctx context.Context) (
-	pref keybase1.IncomingShareCompressPreference, err error) {
+func (h *IncomingShareHandler) GetPreference(ctx context.Context) (
+	pref keybase1.IncomingSharePreference, err error) {
 	found, err := h.G().GetKVStore().GetInto(&pref, h.dbKey())
 	if err != nil {
-		return keybase1.IncomingShareCompressPreference_ORIGINAL, err
+		return keybase1.IncomingSharePreference{}, err
 	}
-	if !found {
-		return keybase1.IncomingShareCompressPreference_ORIGINAL, nil
+	if found {
+		return pref, nil
 	}
-	return pref, nil
+	return keybase1.IncomingSharePreference{
+		CompressPreference: keybase1.IncomingShareCompressPreference_ORIGINAL,
+	}, nil
 }
 
-func (h *IncomingShareHandler) SetCompressPreference(ctx context.Context,
-	preference keybase1.IncomingShareCompressPreference) error {
+func (h *IncomingShareHandler) SetPreference(ctx context.Context,
+	preference keybase1.IncomingSharePreference) error {
 	return h.G().GetKVStore().PutObj(h.dbKey(), nil, preference)
 }

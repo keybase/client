@@ -76,6 +76,16 @@
         "ORIGINAL_0",
         "COMPRESSED_1"
       ]
+    },
+    {
+      "type": "record",
+      "name": "IncomingSharePreference",
+      "fields": [
+        {
+          "type": "IncomingShareCompressPreference",
+          "name": "compressPreference"
+        }
+      ]
     }
   ],
   "messages": {
@@ -86,15 +96,15 @@
         "items": "IncomingShareItem"
       }
     },
-    "getCompressPreference": {
+    "getPreference": {
       "request": [],
-      "response": "IncomingShareCompressPreference"
+      "response": "IncomingSharePreference"
     },
-    "setCompressPreference": {
+    "setPreference": {
       "request": [
         {
           "name": "preference",
-          "type": "IncomingShareCompressPreference"
+          "type": "IncomingSharePreference"
         }
       ],
       "response": null

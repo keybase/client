@@ -29,6 +29,9 @@ protocol incomingShare {
     ORIGINAL_0,
     COMPRESSED_1
   }
-  IncomingShareCompressPreference getCompressPreference();
-  void setCompressPreference(IncomingShareCompressPreference preference);
+  record IncomingSharePreference {
+    IncomingShareCompressPreference compressPreference;
+  }
+  IncomingSharePreference getPreference();
+  void setPreference(IncomingSharePreference preference);
 }

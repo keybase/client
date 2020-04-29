@@ -28,10 +28,10 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
     [dispatch]
   )
   const setUseOriginalInService = React.useCallback((useOriginal: boolean) => {
-    RPCTypes.incomingShareSetCompressPreferenceRpcPromise({
+    RPCTypes.incomingShareSetPreferenceRpcPromise({
       preference: useOriginal
-        ? RPCTypes.IncomingShareCompressPreference.original
-        : RPCTypes.IncomingShareCompressPreference.compressed,
+        ? {compressPreference: RPCTypes.IncomingShareCompressPreference.original}
+        : {compressPreference: RPCTypes.IncomingShareCompressPreference.compressed},
     })
   }, [])
 
@@ -41,11 +41,12 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   }, [originalOnly, setUseOriginalInStore])
 
   // From service to store, but only if this is not original only.
-  const getRPC = useRPC(RPCTypes.incomingShareGetCompressPreferenceRpcPromise)
+  const getRPC = useRPC(RPCTypes.incomingShareGetPreferenceRpcPromise)
   const syncCompressPreferenceFromServiceToStore = React.useCallback(() => {
     getRPC(
       [undefined],
-      pref => setUseOriginalInStore(pref === RPCTypes.IncomingShareCompressPreference.original),
+      pref =>
+        setUseOriginalInStore(pref.compressPreference === RPCTypes.IncomingShareCompressPreference.original),
       err => {
         throw err
       }

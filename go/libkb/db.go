@@ -137,7 +137,8 @@ func IsPermDbKey(typ ObjType) bool {
 		DBSavedContacts,
 		DBContactResolution,
 		DBTeambotKeyWrongKID,
-		DBMisc:
+		DBMisc,
+		DBIncomingSharePreference:
 		return true
 	default:
 		return false
