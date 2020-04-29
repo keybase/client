@@ -174,6 +174,7 @@ const TeamRequestRowNew = (props: Props) => {
       }
       onClick={props.isRolePickerOpen ? undefined : () => onOpenProfile(username)}
       firstItem={props.firstItem}
+      style={styles.bg}
     />
   )
 }
@@ -186,6 +187,7 @@ const styleCharm = {
 } as const
 
 const styles = Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Styles.globalColors.white},
   clickContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
