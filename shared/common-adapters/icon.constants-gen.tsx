@@ -964,6 +964,7 @@ export type IconType =
   | 'iconfont-contact-book'
   | 'iconfont-contact-card'
   | 'iconfont-copy'
+  | 'iconfont-crown'
   | 'iconfont-crown-admin'
   | 'iconfont-crown-owner'
   | 'iconfont-diamond'
@@ -994,6 +995,7 @@ export type IconType =
   | 'iconfont-folder-public'
   | 'iconfont-folder-public-me'
   | 'iconfont-folder-up'
+  | 'iconfont-forward'
   | 'iconfont-gear'
   | 'iconfont-gif'
   | 'iconfont-hamburger'
@@ -9755,6 +9757,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-crown': {
+    charCode: 0xe9ca,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-crown-admin': {
     charCode: 0xe914,
     gridSize: 16,
@@ -9902,6 +9909,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-folder-up': {
     charCode: 0xe928,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-forward': {
+    charCode: 0xe9c9,
     gridSize: 16,
     isFont: true,
   },
