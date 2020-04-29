@@ -1,7 +1,7 @@
+import './check-circle.css'
 import * as React from 'react'
 import * as Styles from '../styles'
 import Icon from './icon'
-import {Color} from '../styles'
 
 const Kb = {Icon}
 
@@ -11,7 +11,8 @@ type Props = {
   className?: string
   disabled?: boolean
   fontSize?: number
-  selectedColor?: Color
+  selectedColor?: Styles.Color
+  selectedHoverColor?: Styles.Color
   style?: Styles.StylesCrossPlatform
 }
 
@@ -23,21 +24,30 @@ const CheckCircle = (props: Props) => {
       evt.stopPropagation()
     }
   }
+  const [hover, setHover] = React.useState(false)
+  const onMouseEnter = () => setHover(true)
+  const onMouseLeave = () => setHover(false)
+
   return (
     <Kb.Icon
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       type={props.checked ? 'iconfont-success' : 'iconfont-circle'}
-      color={
+      colorOverride={
         props.disabled
-          ? Styles.globalColors.black_10
-          : props.checked
-          ? props.selectedColor ?? Styles.globalColors.blue
-          : Styles.globalColors.black_20
+          ? hover
+            ? Styles.globalColors.black_20
+            : Styles.globalColors.black_10
+          : hover
+          ? props.selectedHoverColor ?? Styles.globalColors.blueDark
+          : props.selectedColor ?? Styles.globalColors.blue
       }
       onClick={onClick}
       fontSize={props.fontSize}
-      className={Styles.classNames(!props.disabled && 'checkCircle', props.className)}
+      className={Styles.classNames(props.disabled && 'checkCircle__disabled', props.className)}
       style={props.style}
     />
   )
 }
+
 export default CheckCircle
