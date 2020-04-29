@@ -163,7 +163,10 @@ helpers.rootLinuxNode(env, {
               test_xcompilation: { withEnv([
                 "PATH=${env.PATH}:${env.GOPATH}/bin",
               ]) {
-                if (hasGoChanges) {
+                if (env.BRANCH_NAME == "master" && cause != "upstream") {
+                  // We only cross compile when we're on a master build and we
+                  // weren't triggered by upstream. i.e. potentially breaking
+                  // changes.
                   def platforms = ["freebsd", "netbsd", "openbsd"]
                   for (platform in platforms) {
                       withEnv(["GOOS=${platform}"]) {
