@@ -135,7 +135,7 @@ const JoinFromInvite = () => {
           />
           <Kb.Button type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
         </Kb.Box2>
-        {error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
+        {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
         <Kb.Box style={Styles.globalStyles.flexOne} />
         <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
           <Kb.Avatar

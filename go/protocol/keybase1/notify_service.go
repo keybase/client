@@ -26,7 +26,8 @@ type HTTPSrvInfoUpdateArg struct {
 }
 
 type HandleKeybaseLinkArg struct {
-	Link string `codec:"link" json:"link"`
+	Link     string `codec:"link" json:"link"`
+	Deferred bool   `codec:"deferred" json:"deferred"`
 }
 
 type ShutdownArg struct {
@@ -35,7 +36,7 @@ type ShutdownArg struct {
 
 type NotifyServiceInterface interface {
 	HTTPSrvInfoUpdate(context.Context, HttpSrvInfo) error
-	HandleKeybaseLink(context.Context, string) error
+	HandleKeybaseLink(context.Context, HandleKeybaseLinkArg) error
 	Shutdown(context.Context, int) error
 }
 
@@ -69,7 +70,7 @@ func NotifyServiceProtocol(i NotifyServiceInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]HandleKeybaseLinkArg)(nil), args)
 						return
 					}
-					err = i.HandleKeybaseLink(ctx, typedArgs[0].Link)
+					err = i.HandleKeybaseLink(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -102,8 +103,7 @@ func (c NotifyServiceClient) HTTPSrvInfoUpdate(ctx context.Context, info HttpSrv
 	return
 }
 
-func (c NotifyServiceClient) HandleKeybaseLink(ctx context.Context, link string) (err error) {
-	__arg := HandleKeybaseLinkArg{Link: link}
+func (c NotifyServiceClient) HandleKeybaseLink(ctx context.Context, __arg HandleKeybaseLinkArg) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyService.handleKeybaseLink", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

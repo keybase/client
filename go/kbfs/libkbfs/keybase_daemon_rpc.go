@@ -455,7 +455,7 @@ func (s *notifyServiceHandler) HTTPSrvInfoUpdate(_ context.Context, info keybase
 	return nil
 }
 
-func (s *notifyServiceHandler) HandleKeybaseLink(_ context.Context, _ string) error {
+func (s *notifyServiceHandler) HandleKeybaseLink(_ context.Context, _ keybase1.HandleKeybaseLinkArg) error {
 	return nil
 }
 
