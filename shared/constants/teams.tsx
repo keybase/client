@@ -9,7 +9,6 @@ import {memoize} from '../util/memoize'
 import * as TeamBuildingConstants from './team-building'
 import {RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
-import {noConversationIDKey} from './chat2'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
@@ -108,7 +107,7 @@ export const emptyEmailInviteError = Object.freeze<Types.EmailInviteError>({
 
 const emptyTeamChannelInfo: Types.TeamChannelInfo = {
   channelname: '',
-  conversationIDKey: noConversationIDKey,
+  conversationIDKey: '', // would be noConversationIDKey but causes import cycle
   description: '',
 }
 
