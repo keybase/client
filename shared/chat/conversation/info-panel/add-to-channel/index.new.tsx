@@ -51,6 +51,7 @@ const AddToChannel = (props: Props) => {
   useTeamDetailsSubscribe(teamID)
 
   const [waiting, setWaiting] = React.useState(false)
+  const [error, setError] = React.useState('')
   const addToChannel = Container.useRPC(RPCChatGen.localBulkAddToConvRpcPromise)
 
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
@@ -63,7 +64,8 @@ const AddToChannel = (props: Props) => {
         dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
         onClose()
       },
-      () => {
+      e => {
+        setError(e.message)
         setWaiting(false)
       }
     )
@@ -114,6 +116,15 @@ const AddToChannel = (props: Props) => {
       }
       onClose={onClose}
       allowOverflow={true}
+      banners={
+        error
+          ? [
+              <Kb.Banner color="red" key="err">
+                {error}
+              </Kb.Banner>,
+            ]
+          : []
+      }
     >
       <Kb.SearchFilter
         onChange={text => setFilter(text)}
