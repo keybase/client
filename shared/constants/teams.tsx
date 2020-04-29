@@ -105,6 +105,18 @@ export const emptyEmailInviteError = Object.freeze<Types.EmailInviteError>({
   message: '',
 })
 
+const emptyTeamChannelInfo: Types.TeamChannelInfo = {
+  channelname: '',
+  conversationIDKey: '', // would be noConversationIDKey but causes import cycle
+  description: '',
+}
+
+export const getTeamChannelInfo = (
+  state: TypedState,
+  teamID: Types.TeamID,
+  conversationIDKey: ChatTypes.ConversationIDKey
+) => state.teams.channelInfo.get(teamID)?.get(conversationIDKey) ?? emptyTeamChannelInfo
+
 export const teamRoleByEnum = ((m: {[K in Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
   const mInv: {[K in RPCTypes.TeamRole]?: Types.MaybeTeamRoleType} = {}
   for (const roleStr in m) {
@@ -212,6 +224,7 @@ const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
+  channelInfo: new Map(),
   channelSelectedMembers: new Map(),
   creatingChannels: false,
   deletedTeams: [],

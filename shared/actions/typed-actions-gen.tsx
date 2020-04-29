@@ -1023,6 +1023,8 @@ export type TypedActionsMap = {
   'teams:getActivityForTeams': teams.GetActivityForTeamsPayload
   'teams:setActivityLevels': teams.SetActivityLevelsPayload
   'teams:setTeamListFilterSort': teams.SetTeamListFilterSortPayload
+  'teams:loadTeamChannelList': teams.LoadTeamChannelListPayload
+  'teams:teamChannelListLoaded': teams.TeamChannelListLoadedPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

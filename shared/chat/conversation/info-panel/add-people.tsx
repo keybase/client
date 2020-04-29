@@ -73,10 +73,10 @@ const AddPeople = connect(
   dispatch => {
     return {
       _onAddPeople: (teamID: TeamTypes.TeamID) => dispatch(TeamsGen.createStartAddMembersWizard({teamID})),
-      _onAddToChannel: (conversationIDKey: Types.ConversationIDKey) => {
+      _onAddToChannel: (conversationIDKey: Types.ConversationIDKey, teamID: TeamTypes.TeamID) => {
         dispatch(
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {conversationIDKey}, selected: 'chatAddToChannel'}],
+            path: [{props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
           })
         )
       },
@@ -86,7 +86,7 @@ const AddPeople = connect(
     isAdmin: o.isAdmin,
     isGeneralChannel: o.isGeneralChannel,
     onAddPeople: () => d._onAddPeople(s.teamID),
-    onAddToChannel: () => d._onAddToChannel(o.conversationIDKey),
+    onAddToChannel: () => d._onAddToChannel(o.conversationIDKey, s.teamID),
   })
 )(Kb.OverlayParentHOC(_AddPeople))
 

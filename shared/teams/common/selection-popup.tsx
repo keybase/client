@@ -9,7 +9,6 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {pluralize} from '../../util/string'
 import {FloatingRolePicker} from '../role-picker'
-import {useChannelMeta} from './channel-hooks'
 
 type UnselectableTab = string
 type TeamSelectableTab = 'teamMembers' | 'teamChannels'
@@ -346,8 +345,8 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
   const membersSet = Container.useSelector(
     s => s.teams.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
   )
-  const channelMeta = useChannelMeta(teamID, conversationIDKey)
-  const channelname = channelMeta?.channelname ?? ''
+  const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const {channelname} = channelInfo
 
   if (!membersSet) {
     // we shouldn't be rendered

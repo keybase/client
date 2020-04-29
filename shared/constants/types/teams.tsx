@@ -164,6 +164,12 @@ export type TeamTreeMemberships = {
   memberships: Array<RPCTypes.TeamTreeMembership>
 }
 
+export type TeamChannelInfo = {
+  channelname: string
+  conversationIDKey: ConversationIDKey
+  description: string
+}
+
 export type TeamWizardTeamType = 'friends' | 'project' | 'community' | 'other' | 'subteam'
 
 export type NewTeamWizardState = {
@@ -222,6 +228,7 @@ export type State = {
   readonly addMembersWizard: AddMembersWizardState
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
+  readonly channelInfo: Map<TeamID, Map<ConversationIDKey, TeamChannelInfo>>
   readonly channelSelectedMembers: Map<ConversationIDKey, Set<string>>
   readonly creatingChannels: boolean
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
