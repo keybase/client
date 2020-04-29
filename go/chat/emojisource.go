@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"image/gif"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
@@ -302,9 +304,39 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 	return nil
 }
 
+func (s *DevConvEmojiSource) fromURL(ctx context.Context, url string) (string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	obid, err := storage.NewOutboxID()
+	if err != nil {
+		return "", err
+	}
+	filename, err := s.G().AttachmentUploader.GetUploadTempFile(ctx, obid, "tmp-emoji")
+	if err != nil {
+		return "", err
+	}
+	file, err := os.Create(filename)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = io.Copy(file, resp.Body)
+	return file.Name(), err
+}
+
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string, allowOverwrite bool) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, &err, "Add")()
+	if strings.HasPrefix(filename, "http://") || strings.HasPrefix(filename, "https://") {
+		filename, err = s.fromURL(ctx, filename)
+		if err != nil {
+			return res, err
+		}
+		defer func() { _ = os.Remove(filename) }()
+	}
 	if alias, err = s.validateCustomEmoji(ctx, alias, filename); err != nil {
 		return res, err
 	}
@@ -834,36 +866,34 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 		s.Debug(ctx, "Harvest: failed to get alias lookup: %s", err)
 		return res, err
 	}
-	var emojis chat1.UserEmojis
+	shouldSync := false
 	switch mode {
 	case types.EmojiHarvestModeNormal:
-		emojis, _, err = s.getNoSet(ctx, uid, &convID, chat1.EmojiFetchOpts{
-			GetCreationInfo: false,
-			GetAliases:      true,
-			OnlyInTeam:      false,
-		})
-		if err != nil {
-			s.Debug(ctx, "Harvest: failed to get emojis: %s", err)
-			return res, err
+		shouldSync = true
+		if len(aliasMap) == 0 {
+			s.Debug(ctx, "Harvest: no alias map, fetching fresh")
+			_, aliasMap, err = s.getNoSet(ctx, uid, &convID, chat1.EmojiFetchOpts{
+				GetCreationInfo: false,
+				GetAliases:      true,
+				OnlyInTeam:      false,
+			})
+			if err != nil {
+				s.Debug(ctx, "Harvest: failed to get emojis: %s", err)
+				return res, err
+			}
 		}
 	case types.EmojiHarvestModeFast:
 		// skip this, just use alias map in fast mode
 	}
-	if len(emojis.Emojis) == 0 && len(aliasMap) == 0 {
+	if len(aliasMap) == 0 {
 		return nil, nil
 	}
-	groupMap := make(map[string]chat1.Emoji)
-	for _, group := range emojis.Emojis {
-		for _, emoji := range group.Emojis {
-			groupMap[emoji.Alias] = emoji
-		}
-	}
-	s.Debug(ctx, "Harvest: num emojis: conv: %d alias: %d", len(groupMap), len(aliasMap))
+	s.Debug(ctx, "Harvest: num emojis: alias: %d", len(aliasMap))
 	for _, match := range matches {
 		// try group map first
-		if emoji, ok := groupMap[match.name]; ok {
+		if emoji, ok := aliasMap[match.name]; ok {
 			var resEmoji chat1.HarvestedEmoji
-			if emoji.IsCrossTeam {
+			if emoji.IsCrossTeam && shouldSync {
 				if resEmoji, err = s.syncCrossTeam(ctx, uid, chat1.HarvestedEmoji{
 					Alias:  match.name,
 					Source: emoji.RemoteSource,
@@ -879,12 +909,6 @@ func (s *DevConvEmojiSource) Harvest(ctx context.Context, body string, uid grego
 				}
 			}
 			res = append(res, resEmoji)
-		} else if emoji, ok := aliasMap[match.name]; ok {
-			// then any aliases we know about from the last Get call
-			res = append(res, chat1.HarvestedEmoji{
-				Alias:  match.name,
-				Source: emoji.RemoteSource,
-			})
 		}
 	}
 	return res, nil

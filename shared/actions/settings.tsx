@@ -87,7 +87,7 @@ const toggleNotifications = async (state: Container.TypedState) => {
       )
       JSONPayload.push({
         key: `unsub|${groupName}`,
-        value: group.unsubscribedFromAll ? '1' : '0',
+        value: group.unsub ? '1' : '0',
       })
     }
   })
@@ -260,27 +260,13 @@ function* refreshNotifications() {
 
   yield Saga.cancel(delayThenEmptyTask)
 
-  const results: {
-    notifications: {
-      email: {
-        settings: Array<{name: string; description: string; subscribed: boolean}>
-        unsub: boolean
-      }
-      security: {
-        settings: Array<{name: string; description: string; subscribed: boolean}>
-        unsub: boolean
-      }
-      sound: {
-        settings: Array<{name: string; description: string; subscribed: boolean}>
-        unsub: boolean
-      }
-    }
-  } = JSON.parse(body)
+  const results: Types.NotificationsGroupStateFromServer = JSON.parse(body)
   // Add security group extra since it does not come from API endpoint
   results.notifications[Constants.securityGroup] = {
     settings: [
       {
         description: 'Show message content in phone chat notifications',
+        description_h: 'Show message content in phone chat notifications',
         name: 'plaintextmobile',
         subscribed: !!chatGlobalSettings.settings[
           `${ChatTypes.GlobalAppNotificationSetting.plaintextmobile}`
@@ -288,6 +274,7 @@ function* refreshNotifications() {
       },
       {
         description: 'Show message content in computer chat notifications',
+        description_h: 'Show message content in computer chat notifications',
         name: 'plaintextdesktop',
         subscribed: !!chatGlobalSettings.settings[
           `${ChatTypes.GlobalAppNotificationSetting.plaintextdesktop}`
@@ -295,6 +282,7 @@ function* refreshNotifications() {
       },
       {
         description: "Show others when you're typing",
+        description_h: "Show others when you're typing",
         name: 'disabletyping',
         subscribed: !chatGlobalSettings.settings[`${ChatTypes.GlobalAppNotificationSetting.disabletyping}`],
       },
@@ -307,6 +295,7 @@ function* refreshNotifications() {
       : [
           {
             description: 'Phone/tablet: use default sound for new messages',
+            description_h: 'Phone/tablet: use default sound for new messages',
             name: 'defaultsoundmobile',
             subscribed: !!chatGlobalSettings.settings[
               `${ChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`
@@ -315,41 +304,9 @@ function* refreshNotifications() {
         ],
     unsub: false,
   }
-
-  const settingsToPayload = (s: {description: string; subscribed: boolean; name: string}) =>
-    ({
-      description: s.description,
-      name: s.name,
-      subscribed: s.subscribed,
-    } || [])
-
-  const groups = results.notifications
-
   yield Saga.put(
     SettingsGen.createNotificationsRefreshed({
-      notifications: new Map([
-        [
-          'email',
-          {
-            settings: groups.email.settings.map(settingsToPayload),
-            unsubscribedFromAll: groups.email.unsub,
-          },
-        ],
-        [
-          'security',
-          {
-            settings: groups.security.settings.map(settingsToPayload),
-            unsubscribedFromAll: groups.security.unsub,
-          },
-        ],
-        [
-          'sound',
-          {
-            settings: groups.sound.settings.map(settingsToPayload),
-            unsubscribedFromAll: groups.sound.unsub,
-          },
-        ],
-      ]),
+      notifications: new Map(Object.entries(results.notifications)),
     })
   )
 }

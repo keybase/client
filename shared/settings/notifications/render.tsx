@@ -65,7 +65,7 @@ const EmailSection = (props: Props) => (
     title="Email notifications"
     unsub="email"
     settings={props.groups.get('email')!.settings}
-    unsubscribedFromAll={props.groups.get('email')!.unsubscribedFromAll}
+    unsubscribedFromAll={props.groups.get('email')!.unsub}
   />
 )
 const PhoneSection = (props: Props) => (
@@ -78,7 +78,7 @@ const PhoneSection = (props: Props) => (
     title="Phone notifications"
     unsub="phone"
     settings={props.groups.get('app_push')!.settings}
-    unsubscribedFromAll={props.groups.get('app_push')!.unsubscribedFromAll}
+    unsubscribedFromAll={props.groups.get('app_push')!.unsub}
   />
 )
 const Notifications = (props: Props) =>

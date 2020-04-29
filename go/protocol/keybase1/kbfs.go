@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.8 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.9 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/kbfs.avdl
 
 package keybase1
@@ -53,14 +53,16 @@ type FSFavoritesChangedEventArg struct {
 }
 
 type FSSubscriptionNotifyPathEventArg struct {
-	SubscriptionID string                `codec:"subscriptionID" json:"subscriptionID"`
-	Path           string                `codec:"path" json:"path"`
-	Topic          PathSubscriptionTopic `codec:"topic" json:"topic"`
+	ClientID        string                  `codec:"clientID" json:"clientID"`
+	SubscriptionIDs []string                `codec:"subscriptionIDs" json:"subscriptionIDs"`
+	Path            string                  `codec:"path" json:"path"`
+	Topics          []PathSubscriptionTopic `codec:"topics" json:"topics"`
 }
 
 type FSSubscriptionNotifyEventArg struct {
-	SubscriptionID string            `codec:"subscriptionID" json:"subscriptionID"`
-	Topic          SubscriptionTopic `codec:"topic" json:"topic"`
+	ClientID        string            `codec:"clientID" json:"clientID"`
+	SubscriptionIDs []string          `codec:"subscriptionIDs" json:"subscriptionIDs"`
+	Topic           SubscriptionTopic `codec:"topic" json:"topic"`
 }
 
 type CreateTLFArg struct {

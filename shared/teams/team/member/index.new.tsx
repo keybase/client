@@ -319,7 +319,6 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
     Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
   )
 
-  const [role, setRole] = React.useState<Types.TeamRoleType>('writer')
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -357,7 +356,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
               {props.node.teamname}
             </Kb.Text>
             <Kb.Text type="BodySmall">
-              {props.node.memberCount
+              {props.node.memberCount !== undefined
                 ? `${props.node.memberCount.toLocaleString()} ${pluralize('member', props.node.memberCount)}`
                 : 'Loading members...'}
             </Kb.Text>
@@ -367,14 +366,13 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
         {props.node.canAdminister && (
           <Kb.Box2 direction="horizontal" alignSelf="center">
             <FloatingRolePicker
-              onConfirm={() => {
+              presetRole="writer"
+              onConfirm={role => {
                 onAdd(role)
                 setOpen(false)
               }}
-              onSelectRole={setRole}
               open={open}
               onCancel={() => setOpen(false)}
-              selectedRole={role}
               disabledRoles={disabledRoles}
             >
               <Kb.WaitingButton
@@ -458,6 +456,7 @@ const NodeInRow = (props: NodeInRowProps) => {
   const [role, setRole] = React.useState<Types.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
   const onChangeRole = (role: Types.TeamRoleType) => {
+    setRole(role)
     dispatch(TeamsGen.createEditMembership({role, teamID: props.node.teamID, username: props.username}))
     setOpen(false)
     if (['reader, writer'].includes(role) && props.isParentTeamMe) {
@@ -476,16 +475,17 @@ const NodeInRow = (props: NodeInRowProps) => {
     Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 
-  const channelsJoined = Array.from(channelMetas)
-    .map(([_, {channelname}]) => channelname)
-    .join(', #')
+  const channelsJoined =
+    Array.from(channelMetas)
+      .map(([_, {channelname}]) => channelname)
+      .join(', #') || 'general'
 
   const rolePicker = props.node.canAdminister ? (
     <RoleButton
       containerStyle={Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
       loading={changingRole}
       onClick={() => setOpen(true)}
-      selectedRole={props.node.role}
+      selectedRole={role}
     />
   ) : (
     <></>
@@ -494,11 +494,9 @@ const NodeInRow = (props: NodeInRowProps) => {
   return (
     <>
       <FloatingRolePicker
-        selectedRole={role}
-        onSelectRole={setRole}
+        presetRole={props.node.role}
         onConfirm={onChangeRole}
         onCancel={() => {
-          setRole(props.node.role)
           setOpen(false)
         }}
         position="top right"
@@ -566,7 +564,12 @@ const NodeInRow = (props: NodeInRowProps) => {
                 )}
                 {expanded && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
-                    <Kb.Icon type="iconfont-typing" sizeType="Small" color={Styles.globalColors.black_20} />
+                    <Kb.Icon
+                      type="iconfont-typing"
+                      sizeType="Small"
+                      color={Styles.globalColors.black_20}
+                      boxStyle={styles.membershipIcon}
+                    />
                     <LastActivity
                       loading={loadingActivity}
                       teamID={props.node.teamID}
@@ -580,7 +583,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                       type="iconfont-hash"
                       sizeType="Small"
                       color={Styles.globalColors.black_20}
-                      style={styles.membershipIcon}
+                      boxStyle={styles.membershipIcon}
                     />
                     <Kb.Text
                       type="BodySmall"
@@ -837,6 +840,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   membershipIcon: {
     flexShrink: 0,
+    paddingTop: Styles.globalMargins.xtiny,
   },
   membershipTeamText: {
     justifyContent: 'center',

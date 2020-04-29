@@ -676,13 +676,11 @@ func (s *BlockingSender) getUsernamesForMentions(ctx context.Context, uid gregor
 		if err != nil {
 			return res, err
 		}
-		details, err := teams.MembersDetails(ctx, s.G().ExternalG(), team)
+		members, err := teams.MembersDetails(ctx, s.G().ExternalG(), team)
 		if err != nil {
 			return res, err
 		}
-		allMembers := details.All()
-		res = make([]string, 0, len(allMembers))
-		for _, memb := range allMembers {
+		for _, memb := range members {
 			res = append(res, memb.Username)
 		}
 		return res, nil
@@ -888,12 +886,14 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 		if !conv.GetTopicType().EphemeralAllowed() {
 			if msg.EphemeralMetadata() != nil {
-				return res, errors.New("emoji messages cannot be ephemeral")
+				return res, fmt.Errorf("%v messages cannot be ephemeral", conv.GetTopicType())
 			}
 		} else {
-			// If no ephemeral data set, then let's double check to make sure no exploding policy
-			// or Gregor state should set it
-			if msg.EphemeralMetadata() == nil && chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) {
+			// If no ephemeral data set, then let's double check to make sure
+			// no exploding policy or Gregor state should set it if it's required.
+			if msg.EphemeralMetadata() == nil &&
+				chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) &&
+				conv.GetTopicType().EphemeralRequired() {
 				s.Debug(ctx, "Prepare: attempting to set ephemeral policy from conversation")
 				elf, err := utils.EphemeralLifetimeFromConv(ctx, s.G(), *conv)
 				if err != nil {
@@ -908,12 +908,11 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 				}
 			}
 
-			metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
+			msg.ClientHeader.EphemeralMetadata, err = s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
 			if err != nil {
 				s.Debug(ctx, "Prepare: error getting superseder ephemeral metadata: %s", err)
 				return res, err
 			}
-			msg.ClientHeader.EphemeralMetadata = metadata
 		}
 	}
 
@@ -1058,6 +1057,20 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	var botUIDs []gregor1.UID
 	for uv, botSettings := range teamBotSettings {
 		botUID := gregor1.UID(uv.Uid.ToBytes())
+
+		// If the bot is the sender encrypt only for them.
+		if msg.ClientHeader.Sender.Eq(botUID) {
+			if convID == nil || botSettings.ConvIDAllowed(convID.String()) {
+				return []gregor1.UID{botUID}, nil
+			}
+			// Bot channel restrictions only apply to CHAT types.
+			conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, *convID, types.InboxSourceDataSourceAll)
+			if err == nil && conv.GetTopicType() != chat1.TopicType_CHAT {
+				return []gregor1.UID{botUID}, nil
+			}
+			return nil, NewRestrictedBotChannelError()
+		}
+
 		isMatch, err := bots.ApplyTeamBotSettings(ctx, s.G(), botUID, botSettings, *msg,
 			convID, mentionMap, s.DebugLabeler)
 		if err != nil {
@@ -1065,13 +1078,6 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 		}
 		s.Debug(ctx, "applyTeamBotSettings: applied settings for %+v for botuid: %v, senderUID: %v, convID: %v isMatch: %v",
 			botSettings, uv.Uid, msg.ClientHeader.Sender, convID, isMatch)
-		// If the bot is the sender encrypt only for them.
-		if msg.ClientHeader.Sender.Eq(botUID) {
-			if !isMatch {
-				return nil, NewRestrictedBotChannelError()
-			}
-			return []gregor1.UID{botUID}, nil
-		}
 		if isMatch {
 			botUIDs = append(botUIDs, botUID)
 		}

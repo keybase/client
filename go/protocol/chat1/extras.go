@@ -24,14 +24,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const (
-	// we will show some representation of an exploded message in the UI for a
-	// day
-	ShowExplosionLifetime = time.Hour * 24
+// we will show some representation of an exploded message in the UI for a week
+const ShowExplosionLifetime = time.Hour * 24 * 7
 
-	// If a conversation is larger, only admins can @channel.
-	MaxChanMentionConvSize = 100
-)
+// If a conversation is larger, only admins can @channel.
+const MaxChanMentionConvSize = 100
 
 func (i FlipGameIDStr) String() string {
 	return string(i)
@@ -294,6 +291,7 @@ func SnippetChatMessageTypes() []MessageType {
 
 var editableMessageTypesByEdit = []MessageType{
 	MessageType_TEXT,
+	MessageType_ATTACHMENT,
 }
 
 func EditableMessageTypesByEdit() []MessageType {
@@ -361,6 +359,8 @@ func IsDeletableByDeleteHistory(typ MessageType) bool {
 	return true
 }
 
+// EphemeralAllowed flags if the given topic type is allowed to send ephemeral
+// messages at all.
 func (t TopicType) EphemeralAllowed() bool {
 	switch t {
 	case TopicType_KBFSFILEEDIT,
@@ -369,6 +369,17 @@ func (t TopicType) EphemeralAllowed() bool {
 		return false
 	default:
 		return true
+	}
+}
+
+// EphemeralRequired flags if the given topic type required to respect the
+// ephemeral retention policy if set.
+func (t TopicType) EphemeralRequired() bool {
+	switch t {
+	case TopicType_DEV:
+		return false
+	default:
+		return t.EphemeralAllowed()
 	}
 }
 
@@ -400,6 +411,22 @@ func (hash Hash) String() string {
 
 func (hash Hash) Eq(other Hash) bool {
 	return bytes.Equal(hash, other)
+}
+
+func (m MessageUnboxed) SenderEq(o MessageUnboxed) bool {
+	if state, err := m.State(); err == nil {
+		if ostate, err := o.State(); err == nil && state == ostate {
+			switch state {
+			case MessageUnboxedState_VALID:
+				return m.Valid().SenderEq(o.Valid())
+			case MessageUnboxedState_ERROR:
+				return m.Error().SenderEq(o.Error())
+			case MessageUnboxedState_OUTBOX:
+				return m.Outbox().SenderEq(o.Outbox())
+			}
+		}
+	}
+	return false
 }
 
 func (m MessageUnboxed) OutboxID() *OutboxID {
@@ -819,6 +846,14 @@ func (m MessageUnboxedError) HideExplosion(maxDeletedUpto MessageID, now time.Ti
 	return etime.Time().Add(ShowExplosionLifetime).Before(now) || m.MessageID < maxDeletedUpto
 }
 
+func (m MessageUnboxedError) SenderEq(o MessageUnboxedError) bool {
+	return m.SenderUsername == o.SenderUsername
+}
+
+func (m OutboxRecord) SenderEq(o OutboxRecord) bool {
+	return m.Msg.ClientHeader.Sender.Eq(o.Msg.ClientHeader.Sender)
+}
+
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
 	if m.ClientHeader.MessageType != MessageType_DELETEHISTORY {
 		return res, fmt.Errorf("message is %v not %v", m.ClientHeader.MessageType, MessageType_DELETEHISTORY)
@@ -894,6 +929,10 @@ func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
 		return *o == *r
 	}
 	return (o == nil) && (r == nil)
+}
+
+func (m MessageUnboxedValid) SenderEq(o MessageUnboxedValid) bool {
+	return m.ClientHeader.Sender.Eq(o.ClientHeader.Sender)
 }
 
 func (m MessageUnboxedValid) HasPairwiseMacs() bool {
@@ -3001,6 +3040,10 @@ func (m MessageSystem) String() string {
 			body.AssertionService)
 	case MessageSystemType_NEWCHANNEL:
 		body := m.Newchannel()
+		if len(body.ConvIDs) > 1 {
+			return fmt.Sprintf("@%s created #%s and %d other new channels",
+				body.Creator, body.NameAtCreation, len(body.ConvIDs)-1)
+		}
 		return fmt.Sprintf("@%s created a new channel #%s",
 			body.Creator, body.NameAtCreation)
 	default:
@@ -3071,7 +3114,7 @@ func (c Coordinate) MarshalJSON() ([]byte, error) {
 
 // Incremented if the client hash algorithm changes. If this value is changed
 // be sure to add a case in the BotInfo.Hash() function.
-const ClientBotInfoHashVers BotInfoHashVers = 1
+const ClientBotInfoHashVers BotInfoHashVers = 2
 
 // Incremented if the server sends down bad data and needs to bust client
 // caches.
@@ -3091,6 +3134,8 @@ func (b BotInfo) Hash() BotInfoHash {
 	switch b.ClientHashVers {
 	case 0, 1:
 		b.hashV1(hash)
+	case 2:
+		b.hashV2(hash)
 	default:
 		// Every valid client version should be specifically handled, unit
 		// tests verify that we have a non-empty hash output.
@@ -3110,6 +3155,21 @@ func (b BotInfo) hashV1(hash hash.Hash) {
 		hash.Write(cconv.Uid)
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.UntrustedTeamRole), 10)))
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
+	}
+}
+
+func (b BotInfo) hashV2(hash hash.Hash) {
+	sort.Slice(b.CommandConvs, func(i, j int) bool {
+		ikey := b.CommandConvs[i].Uid.String() + b.CommandConvs[i].ConvID.String()
+		jkey := b.CommandConvs[j].Uid.String() + b.CommandConvs[j].ConvID.String()
+		return ikey < jkey
+	})
+	for _, cconv := range b.CommandConvs {
+		hash.Write(cconv.ConvID)
+		hash.Write(cconv.Uid)
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.UntrustedTeamRole), 10)))
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Typ), 10)))
 	}
 }
 
@@ -3160,6 +3220,62 @@ func (p AdvertiseCommandsParam) ToRemote(cmdConvID ConversationID, tlfID *TLFID,
 		}), nil
 	default:
 		return res, errors.New("unknown bot advertisement typ")
+	}
+}
+
+func (p ClearBotCommandsFilter) ToRemote(tlfID *TLFID, convID *ConversationID) (res RemoteClearBotCommandsFilter, err error) {
+	switch p.Typ {
+	case BotCommandsAdvertisementTyp_PUBLIC:
+		if tlfID != nil {
+			return res, errors.New("TLFID specified for public advertisement")
+		} else if convID != nil {
+			return res, errors.New("ConvID specified for public advertisement")
+		}
+		return NewRemoteClearBotCommandsFilterWithPublic(RemoteClearBotCommandsFilterPublic{}), nil
+	case BotCommandsAdvertisementTyp_TLFID_CONVS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		} else if convID != nil {
+			return res, errors.New("ConvID specified")
+		}
+		return NewRemoteClearBotCommandsFilterWithTlfidConvs(RemoteClearBotCommandsFilterTLFID{
+			TlfID: *tlfID,
+		}), nil
+	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		} else if convID != nil {
+			return res, errors.New("ConvID specified")
+		}
+		return NewRemoteClearBotCommandsFilterWithTlfidMembers(RemoteClearBotCommandsFilterTLFID{
+			TlfID: *tlfID,
+		}), nil
+	case BotCommandsAdvertisementTyp_CONV:
+		if tlfID != nil {
+			return res, errors.New("TLFID specified")
+		} else if convID == nil {
+			return res, errors.New("no ConvID specified")
+		}
+		return NewRemoteClearBotCommandsFilterWithConv(RemoteClearBotCommandsFilterConv{
+			ConvID: *convID,
+		}), nil
+	default:
+		return res, errors.New("unknown bot advertisement typ")
+	}
+}
+
+func GetAdvertTyp(typ string) (BotCommandsAdvertisementTyp, error) {
+	switch typ {
+	case "public":
+		return BotCommandsAdvertisementTyp_PUBLIC, nil
+	case "teamconvs":
+		return BotCommandsAdvertisementTyp_TLFID_CONVS, nil
+	case "teammembers":
+		return BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
+	case "conv":
+		return BotCommandsAdvertisementTyp_CONV, nil
+	default:
+		return BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q, must be one of 'public', 'teamconvs', 'teammembers', or 'conv' see `keybase chat api --help` for more info.", typ)
 	}
 }
 

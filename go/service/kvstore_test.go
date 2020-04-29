@@ -48,7 +48,7 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	}
 	getRes, err := handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
-	require.Equal(t, "", getRes.EntryValue)
+	require.Nil(t, getRes.EntryValue)
 	require.Equal(t, 0, getRes.Revision)
 	// and list
 	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
@@ -76,7 +76,7 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	// fetch it and assert that it's now correct
 	getRes, err = handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
-	require.Equal(t, cleartextSecret, getRes.EntryValue)
+	require.Equal(t, cleartextSecret, *getRes.EntryValue)
 
 	updatedSecret := `Contrary to popular belief, Lorem Ipsum is not simply
 		random text. It has roots in a piece of classical Latin literature
@@ -93,7 +93,7 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	require.Equal(t, 2, putRes.Revision)
 	getRes, err = handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
-	require.Equal(t, updatedSecret, getRes.EntryValue)
+	require.Equal(t, updatedSecret, *getRes.EntryValue)
 
 	// another user cannot see or edit this entry
 	tcEve := kvTestSetup(t)
@@ -179,7 +179,7 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	}
 	getRes, err := bobHandler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
-	require.Equal(t, string(cleartextSecret), getRes.EntryValue)
+	require.Equal(t, string(cleartextSecret), *getRes.EntryValue)
 	require.Equal(t, 1, getRes.Revision)
 	listEntriesArg := keybase1.ListKVEntriesArg{TeamName: teamName, Namespace: namespace}
 	expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 1}
@@ -232,7 +232,7 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	t.Logf("charlie can write to the entry")
 	getRes, err = charlieHandler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
-	require.Equal(t, string(cleartextSecret), getRes.EntryValue)
+	require.Equal(t, string(cleartextSecret), *getRes.EntryValue)
 	require.Equal(t, 2, getRes.Revision)
 	listNamespacesRes, err := charlieHandler.ListKVNamespaces(ctx, listNamespacesArg)
 	require.NoError(t, err)
@@ -304,7 +304,7 @@ func TestKVDelete(t *testing.T) {
 	require.Equal(t, teamName, getRes.TeamName)
 	require.Equal(t, namespace, getRes.Namespace)
 	require.Equal(t, entryKey, getRes.EntryKey)
-	require.Equal(t, "", getRes.EntryValue)
+	require.Nil(t, getRes.EntryValue)
 	t.Logf("fetching a deleted entry has the correct revision and empty value")
 
 	// delete it again
@@ -324,7 +324,7 @@ func TestKVDelete(t *testing.T) {
 	getRes, err = handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
 	require.Equal(t, 3, getRes.Revision)
-	require.Equal(t, "secret value", getRes.EntryValue)
+	require.Equal(t, "secret value", *getRes.EntryValue)
 
 	// delete it again
 	delRes, err = handler.DelKVEntry(mctx.Ctx(), delArg)
@@ -558,7 +558,7 @@ func TestKVEncryptionAndVerification(t *testing.T) {
 	}
 	getRes, err := handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
-	require.Equal(t, secretData, getRes.EntryValue)
+	require.Equal(t, secretData, *getRes.EntryValue)
 	require.Equal(t, 3, getRes.Revision)
 	t.Logf("entry exists for team at revision 3 and key generation 3")
 
@@ -818,8 +818,8 @@ func TestKVStoreRace(t *testing.T) {
 	}
 	getRes, err := handler1.GetKVEntry(ctx1, getArg)
 	require.NoError(t, err)
-	require.Equal(t, secretData, getRes.EntryValue)
+	require.Equal(t, secretData, *getRes.EntryValue)
 	getRes, err = handler2.GetKVEntry(ctx2, getArg)
 	require.NoError(t, err)
-	require.Equal(t, secretData, getRes.EntryValue)
+	require.Equal(t, secretData, *getRes.EntryValue)
 }

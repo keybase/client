@@ -73,12 +73,16 @@ func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, super
 	if mvalid.MessageBody.IsType(chat1.MessageType_TEXT) {
 		payments = mvalid.MessageBody.Text().Payments
 		replyTo = mvalid.MessageBody.Text().ReplyTo
+		mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body:     superMsg.Valid().MessageBody.Edit().Body,
+			Payments: payments,
+			ReplyTo:  replyTo,
+		})
+	} else if mvalid.MessageBody.IsType(chat1.MessageType_ATTACHMENT) {
+		body := mvalid.MessageBody.Attachment()
+		body.Object.Title = superMsg.Valid().MessageBody.Edit().Body
+		mvalid.MessageBody = chat1.NewMessageBodyWithAttachment(body)
 	}
-	mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body:     superMsg.Valid().MessageBody.Edit().Body,
-		Payments: payments,
-		ReplyTo:  replyTo,
-	})
 	mvalid.AtMentions = superMsg.Valid().AtMentions
 	mvalid.AtMentionUsernames = superMsg.Valid().AtMentionUsernames
 	mvalid.ChannelMention = superMsg.Valid().ChannelMention
@@ -323,7 +327,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				// exploding message.
 				if newMsg.IsValid() && (!newMsg.IsEphemeral() ||
 					(maxDeletedUpTo != nil && newMsg.HideExplosion(*maxDeletedUpTo, time.Now()))) {
-					t.Debug(ctx, "skipping: %d because it was deleted or a long exploded ephemeral message",
+					t.Debug(ctx, "skipping: %d because it not valid full",
 						msg.GetMessageID())
 					xformDelete(msg.GetMessageID())
 					continue

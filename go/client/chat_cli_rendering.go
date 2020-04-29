@@ -584,6 +584,9 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		} else {
 			mv.Body += " (...)"
 		}
+		if m.ServerHeader.SupersededBy > 0 {
+			mv.Body += " (edited)"
+		}
 	case chat1.MessageType_EDIT:
 		mv.Renderable = false
 		// Return the edit body for display in the original

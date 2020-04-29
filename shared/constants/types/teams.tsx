@@ -57,6 +57,7 @@ export type MemberInfo = SparseMemberInfo & {
   username: string
   fullName: string
   status: MemberStatus
+  needsPUK: boolean
 }
 export type MemberInfoWithLastActivity = MemberInfo & {
   lastActivity?: number
@@ -103,11 +104,10 @@ export type TeamMeta = {
 
 export type InviteLink = {
   creatorUsername: string
-  expirationTime: number // unix time
-  expired: boolean
   id: string
-  lastJoinedUsername: string
-  maxUses: number
+  isValid: boolean
+  validityDescription: string
+  lastJoinedUsername?: string
   numUses: number
   role: TeamRoleType
   url: string
@@ -116,8 +116,10 @@ export type InviteLink = {
 export type TeamDetails = {
   members: Map<string, MemberInfo>
   settings: TeamSettings2
+  // Legacy invites that are guaranteed to be active
   invites: Set<InviteInfo>
-  inviteLinks: Set<InviteLink>
+  // Invitelinks, some of which may be invalid already; most recent first
+  inviteLinks: Array<InviteLink>
   subteams: Set<TeamID>
   requests: Set<JoinRequest>
   description: string
@@ -189,8 +191,8 @@ export type AddingMember = {
   note?: string // note is for imp tofu assertions that got turned into usernames. It doesn't go to the server but it displays to the user in the confirm screen.
 }
 export type AddMembersWizardState = {
+  addToChannels: Array<ChannelNameID> | undefined
   addingMembers: Array<AddingMember>
-  defaultChannels: Array<ChannelNameID> | undefined // undefined -> unchanged from default
   justFinished: boolean
   role: AddingMemberTeamRoleType | 'setIndividually'
   teamID: TeamID

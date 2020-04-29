@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.8 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.9 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/block.avdl
 
 package keybase1
@@ -625,17 +625,17 @@ func (c BlockClient) AuthenticateSession(ctx context.Context, signature string) 
 }
 
 func (c BlockClient) PutBlock(ctx context.Context, __arg PutBlockArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.block.putBlock", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.block.putBlock", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) PutBlockAgain(ctx context.Context, __arg PutBlockAgainArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.block.putBlockAgain", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.block.putBlockAgain", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) GetBlock(ctx context.Context, __arg GetBlockArg) (res GetBlockRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.block.getBlock", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.block.getBlock", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

@@ -681,6 +681,10 @@ export const getLocalPathName = (localPath: LocalPath): string => {
   return ''
 }
 export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
+
+// SimpleFS always uses forward slashes for local paths. So we need to convert
+// them on Windows before sending over.
+// TODO: move this conversion to Go side
 export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
   localSep === '\\' ? p.replace(/\\/g, '/') : p
 

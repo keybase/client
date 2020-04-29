@@ -113,6 +113,8 @@ Note the following are valid values for "type": "public", "teammembers", "teamco
 
 Clear bot commands:
     {"method": "clearcommands"}
+Note that there is an optional filter for this method. The valid values for "type" are "public", "teammembers", "teamconvs", "conv":
+    {"method": "clearcommands", "params": {"options": {"filter": {"type": "teamconvs", "team_name": "treehouse"}}}}
 
 List bot commands for a conversation:
     {"method": "listcommands", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}

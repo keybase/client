@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/profiling"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -31,268 +30,176 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application, includeKBFSKeys)
 }
 
-// GetAnnotatedTeam bundles up various data, both on and off chain, about a
-// specific team for consumption by the GUI. In particular, it supplies almost all of the information on a team's
-// subpage in the Teams tab
-func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (res keybase1.AnnotatedTeam, err error) {
-	tracer := g.CTimeTracer(ctx, "TeamDetails", true)
+// GetAnnotatedTeam bundles up various data, both on and off chain, about a specific team for
+// consumption by the UI. In particular, it supplies almost all of the information on a team's
+// subpage in the Teams tab.
+// It always repolls to ensure latest version of a team, but member infos (username, full name, if
+// they reset or not) are subject to UIDMapper caching.
+func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res keybase1.AnnotatedTeam, err error) {
+	tracer := g.CTimeTracer(ctx, "GetAnnotatedTeam", true)
 	defer tracer.Finish()
 
 	mctx := libkb.NewMetaContext(ctx, g)
 
 	tracer.Stage("load team")
-	t, err := GetMaybeAdminByID(ctx, g, id, id.IsPublic())
-	if err != nil {
-		return res, err
-	}
-	det, err := details(mctx, t, tracer)
+	t, err := GetMaybeAdminByID(ctx, g, teamID, teamID.IsPublic())
 	if err != nil {
 		return res, err
 	}
 
-	transitiveSubteamsUnverified, err := ListSubteamsUnverified(mctx, t.Data.Name)
+	settings := t.Settings()
+
+	tracer.Stage("members & invites")
+	members, annotatedInvites, err := GetAnnotatedInvitesAndMembersForUI(mctx, t)
+	if err != nil {
+		return res, err
+	}
+	members = membersFilterDeletedUsers(mctx.Ctx(), mctx.G(), members)
+	members = membersHideInactiveDuplicates(mctx.Ctx(), mctx.G(), members)
+	if settings.Open {
+		g.Log.CDebugf(ctx, "GetAnnotatedTeam: %q is an open team, filtering reset writers and readers", t.Name().String())
+		members = keybase1.FilterInactiveReadersWriters(members)
+	}
+
+	tracer.Stage("transitive subteams")
+	transitiveSubteamsUnverified, err := ListSubteamsUnverified(mctx, t.Name())
 	if err != nil {
 		return res, err
 	}
 
-	var members []keybase1.AnnotatedTeamMemberDetails
-	for _, details := range det.Members.Owners {
-		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_OWNER})
-	}
-	for _, details := range det.Members.Admins {
-		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_ADMIN})
-	}
-	for _, details := range det.Members.Writers {
-		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_WRITER})
-	}
-	for _, details := range det.Members.Readers {
-		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_READER})
-	}
-	for _, details := range det.Members.Bots {
-		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_BOT})
-	}
-	for _, details := range det.Members.RestrictedBots {
-		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_RESTRICTEDBOT})
-	}
-
-	var invites []keybase1.AnnotatedTeamInvite
-	for _, invite := range det.AnnotatedActiveInvites {
-		invites = append(invites, invite)
-	}
-
-	name := t.Data.Name.String()
+	teamNameStr := t.Name().String()
 	myRole, err := t.myRole(ctx)
-	var isAdmin bool
 	if err != nil {
-		g.Log.CDebugf(ctx, "Error getting role; skipping getting requests: %v", err)
-	} else {
-		isAdmin = myRole.IsOrAbove(keybase1.TeamRole_ADMIN)
+		return res, err
 	}
 	var joinRequests []keybase1.TeamJoinRequest
 	var tarsDisabled bool
-	if isAdmin {
-		joinRequests, err = ListRequests(ctx, g, &name)
+	if myRole.IsOrAbove(keybase1.TeamRole_ADMIN) {
+		joinRequests, err = ListRequests(ctx, g, &teamNameStr)
 		if err != nil {
 			return res, err
 		}
-		tarsDisabled, err = GetTarsDisabled(ctx, g, id)
+		tarsDisabled, err = GetTarsDisabled(ctx, g, teamID)
 		if err != nil {
 			return res, err
 		}
 	}
 
-	showcase, err := GetTeamShowcase(ctx, g, id)
+	showcase, err := GetTeamShowcase(ctx, g, teamID)
 	if err != nil {
 		return res, err
 	}
 
-	res = keybase1.AnnotatedTeam{
-		TeamID:                       id,
-		Name:                         t.Data.Name.String(),
+	return keybase1.AnnotatedTeam{
+		TeamID:                       teamID,
+		Name:                         t.Name().String(),
 		TransitiveSubteamsUnverified: transitiveSubteamsUnverified,
-
-		Members:      members,
-		Invites:      invites,
-		JoinRequests: joinRequests,
-
-		TarsDisabled: tarsDisabled,
-		Settings:     det.Settings,
-		Showcase:     showcase,
-	}
-	return res, nil
+		Members:                      members,
+		Invites:                      annotatedInvites,
+		Settings:                     settings,
+		JoinRequests:                 joinRequests,
+		TarsDisabled:                 tarsDisabled,
+		KeyGeneration:                t.Generation(),
+		Showcase:                     showcase,
+	}, nil
 }
 
-// DetailsByID returns TeamDetails for team name. Keybase-type invites are
-// returned as members. It always repolls to ensure latest version of
-// a team, but member infos (username, full name, if they reset or not)
-// are subject to UIDMapper caching.
-func DetailsByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (res keybase1.TeamDetails, err error) {
-	tracer := g.CTimeTracer(ctx, "TeamDetails", true)
-	defer tracer.Finish()
-
-	tracer.Stage("load team")
-	t, err := GetMaybeAdminByID(ctx, g, id, id.IsPublic())
+func GetAnnotatedTeamByName(ctx context.Context, g *libkb.GlobalContext, teamName string) (res keybase1.AnnotatedTeam, err error) {
+	nameParsed, err := keybase1.TeamNameFromString(teamName)
 	if err != nil {
 		return res, err
 	}
-	return details(libkb.NewMetaContext(ctx, g), t, tracer)
+	teamID, err := ResolveNameToID(ctx, g, nameParsed)
+	if err != nil {
+		return res, err
+	}
+	return GetAnnotatedTeam(ctx, g, teamID)
 }
 
-// Details returns TeamDetails for team name. Keybase-type invites are
-// returned as members. It always repolls to ensure latest version of
-// a team, but member infos (username, full name, if they reset or not)
-// are subject to UIDMapper caching.
 func Details(ctx context.Context, g *libkb.GlobalContext, name string) (res keybase1.TeamDetails, err error) {
-	tracer := g.CTimeTracer(ctx, "TeamDetails", true)
-	defer tracer.Finish()
-
-	// Assume private team
-	public := false
-
-	tracer.Stage("load team")
-	t, err := GetMaybeAdminByStringName(ctx, g, name, public)
+	t, err := GetAnnotatedTeamByName(ctx, g, name)
 	if err != nil {
 		return res, err
 	}
-	return details(libkb.NewMetaContext(ctx, g), t, tracer)
+	return t.ToLegacyTeamDetails(), nil
 }
 
-func details(mctx libkb.MetaContext, t *Team, tracer profiling.TimeTracer) (res keybase1.TeamDetails, err error) {
-	res.KeyGeneration = t.Generation()
-	tracer.Stage("members")
-	res.Members, err = MembersDetails(mctx.Ctx(), mctx.G(), t)
-	if err != nil {
-		return res, err
+func membersFilterDeletedUsers(ctx context.Context, g *libkb.GlobalContext, members []keybase1.TeamMemberDetails) (ret []keybase1.TeamMemberDetails) {
+	for _, member := range members {
+		if member.Status != keybase1.TeamMemberStatus_DELETED {
+			ret = append(ret, member)
+		} else {
+			g.Log.CDebugf(ctx, "membersHideDeletedUsers filtered out row: %v %v", member.Uv, member.Status)
+		}
 	}
-
-	tracer.Stage("invites")
-	res.AnnotatedActiveInvites, err = AnnotateInvitesNoPUKless(mctx, t, &res.Members)
-	if err != nil {
-		return res, err
-	}
-
-	membersHideDeletedUsers(mctx.Ctx(), mctx.G(), &res.Members)
-	membersHideInactiveDuplicates(mctx.Ctx(), mctx.G(), &res.Members)
-
-	res.Settings.Open = t.IsOpen()
-	res.Settings.JoinAs = t.chain().inner.OpenTeamJoinAs
-	res.Name = t.Name().String()
-	return res, nil
+	return ret
 }
 
-// List all the admins of ancestor teams.
-// Includes admins of the specified team only if they are also admins of ancestor teams.
-func ImplicitAdmins(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res []keybase1.TeamMemberDetails, err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("teams::ImplicitAdmins(%v)", teamID), &err)()
-	if teamID.IsRootTeam() {
-		// Root teams have only explicit admins.
-		return nil, nil
+// If a UID appears multiple times with different TeamMemberStatus, only show the 'ACTIVE' version.
+// This can happen when an owner resets and is re-added by an admin (though the admin could
+// choose to remove the old owner if they so wished).
+func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, members []keybase1.TeamMemberDetails) (ret []keybase1.TeamMemberDetails) {
+	seenActive := make(map[keybase1.UID]bool)
+	// Scan for active rows
+	for _, member := range members {
+		if member.Status == keybase1.TeamMemberStatus_ACTIVE {
+			seenActive[member.Uv.Uid] = true
+		}
 	}
-	uvs, err := g.GetTeamLoader().ImplicitAdmins(ctx, teamID)
+	// Filter out superseded inactive rows
+	for _, member := range members {
+		if member.Status == keybase1.TeamMemberStatus_ACTIVE || !seenActive[member.Uv.Uid] {
+			ret = append(ret, member)
+		} else {
+			g.Log.CDebugf(ctx, "membersHideInactiveDuplicates filtered out row: %v %v", member.Uv, member.Status)
+		}
+	}
+	return ret
+}
+
+func MembersDetails(ctx context.Context, g *libkb.GlobalContext, t *Team) (ret []keybase1.TeamMemberDetails, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
+	m, err := t.Members()
 	if err != nil {
 		return nil, err
 	}
 
-	return userVersionsToDetails(libkb.NewMetaContext(ctx, g), uvs, nil)
-}
-
-func membersHideDeletedUsers(ctx context.Context, g *libkb.GlobalContext, members *keybase1.TeamMembersDetails) {
-	lists := []*[]keybase1.TeamMemberDetails{
-		&members.Owners,
-		&members.Admins,
-		&members.Writers,
-		&members.Readers,
-		&members.Bots,
-		&members.RestrictedBots,
-	}
-	for _, rows := range lists {
-		filtered := []keybase1.TeamMemberDetails{}
-		for _, row := range *rows {
-			if row.Status != keybase1.TeamMemberStatus_DELETED {
-				filtered = append(filtered, row)
-			} else {
-				g.Log.CDebugf(ctx, "membersHideDeletedUsers filtered out row: %v %v", row.Uv, row.Status)
-			}
-		}
-		*rows = filtered
-	}
-}
-
-// If a UID appears multiple times with different TeamMemberStatus, only show the 'ACTIVE' version.
-// This can happen when an owner resets and is re-added as an admin by an admin.
-// Mutates `members`
-func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, members *keybase1.TeamMembersDetails) {
-	// If a UID appears multiple times with different TeamMemberStatus, only show the 'ACTIVE' version.
-	// This can happen when an owner resets and is re-added as an admin by an admin.
-	seenActive := make(map[keybase1.UID]bool)
-	lists := []*[]keybase1.TeamMemberDetails{
-		&members.Owners,
-		&members.Admins,
-		&members.Writers,
-		&members.Readers,
-		&members.Bots,
-		&members.RestrictedBots,
-	}
-	// Scan for active rows
-	for _, rows := range lists {
-		for _, row := range *rows {
-			if row.Status == keybase1.TeamMemberStatus_ACTIVE {
-				seenActive[row.Uv.Uid] = true
-			}
-		}
-	}
-	// Filter out superseded inactive rows
-	for _, rows := range lists {
-		filtered := []keybase1.TeamMemberDetails{}
-		for _, row := range *rows {
-			if row.Status == keybase1.TeamMemberStatus_ACTIVE || !seenActive[row.Uv.Uid] {
-				filtered = append(filtered, row)
-			} else {
-				g.Log.CDebugf(ctx, "membersHideInactiveDuplicates filtered out row: %v %v", row.Uv, row.Status)
-			}
-		}
-		*rows = filtered
-	}
-}
-
-func MembersDetails(ctx context.Context, g *libkb.GlobalContext, t *Team) (ret keybase1.TeamMembersDetails, err error) {
-	mctx := libkb.NewMetaContext(ctx, g)
-
-	m, err := t.Members()
+	owners, err := userVersionsToDetails(mctx, m.Owners, t)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
-
-	ret.Owners, err = userVersionsToDetails(mctx, m.Owners, t)
+	admins, err := userVersionsToDetails(mctx, m.Admins, t)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
-	ret.Admins, err = userVersionsToDetails(mctx, m.Admins, t)
+	writers, err := userVersionsToDetails(mctx, m.Writers, t)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
-	ret.Writers, err = userVersionsToDetails(mctx, m.Writers, t)
+	readers, err := userVersionsToDetails(mctx, m.Readers, t)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
-	ret.Readers, err = userVersionsToDetails(mctx, m.Readers, t)
+	bots, err := userVersionsToDetails(mctx, m.Bots, t)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
-	ret.Bots, err = userVersionsToDetails(mctx, m.Bots, t)
+	restrictedBots, err := userVersionsToDetails(mctx, m.RestrictedBots, t)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
-	ret.RestrictedBots, err = userVersionsToDetails(mctx, m.RestrictedBots, t)
-	if err != nil {
-		return ret, err
-	}
+	ret = append(ret, owners...)
+	ret = append(ret, admins...)
+	ret = append(ret, writers...)
+	ret = append(ret, readers...)
+	ret = append(ret, bots...)
+	ret = append(ret, restrictedBots...)
 	return ret, nil
 }
 
 // userVersionsToDetails returns a slice of TeamMemberDetails objects, to be
-// used in relation to a specific team. The *Team parameter is optional, and
-// used to compute the joinTime in which the user joined the team.
+// used in relation to a specific team. It requires the *Team parameter to get
+// the role and joinTime.
 func userVersionsToDetails(mctx libkb.MetaContext, uvs []keybase1.UserVersion, t *Team) (ret []keybase1.TeamMemberDetails, err error) {
 	uids := make([]keybase1.UID, len(uvs))
 	for i, uv := range uvs {
@@ -319,11 +226,16 @@ func userVersionsToDetails(mctx libkb.MetaContext, uvs []keybase1.UserVersion, t
 			}
 			fullName = pkg.FullName.FullName
 		}
+		role, err := t.chain().GetUserRole(uv)
+		if err != nil {
+			return nil, err
+		}
 		ret[i] = keybase1.TeamMemberDetails{
 			Uv:       uvs[i],
 			Username: pkg.NormalizedUsername.String(),
 			FullName: fullName,
 			Status:   status,
+			Role:     role,
 		}
 		if status == keybase1.TeamMemberStatus_ACTIVE && t != nil {
 			joinTime, err := t.UserLastJoinTime(uv)
@@ -426,6 +338,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 
 		tx := CreateAddMemberTx(t)
+		tx.AllowPUKless = true
 		tx.EmailInviteMsg = emailInviteMsg
 		resolvedUsername, uv, invite, err := tx.AddOrInviteMemberByAssertion(ctx, username, role, botSettings)
 		if err != nil {
@@ -509,6 +422,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 
 		tx := CreateAddMemberTx(team)
+		tx.AllowPUKless = true
 		tx.EmailInviteMsg = emailInviteMsg
 
 		type sweepEntry struct {
@@ -693,6 +607,7 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 		}
 
 		tx := CreateAddMemberTx(t)
+		tx.AllowPUKless = true
 		if err := tx.ReAddMemberToImplicitTeam(ctx, uv, hasPUK, targetRole, existingBotSettings); err != nil {
 			return err
 		}
@@ -832,7 +747,7 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamGetter fu
 	g.Log.CDebugf(ctx, "team %s: edit member %s, member is an invite link", t.ID, username)
 
 	// Note that there could be a problem if removeMemberInvite works but AddMember doesn't
-	// as the original invite will be lost.  But the user will get an error and can try
+	// as the original invite will be lost. But the user will get an error and can try
 	// again.
 	if err := removeMemberInvite(ctx, g, t, username, uv); err != nil {
 		g.Log.CDebugf(ctx, "editMemberInvite error in removeMemberInvite: %s", err)
@@ -982,61 +897,160 @@ func MemberRoleFromID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	return role, err
 }
 
-func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.TeamMemberToRemove) (res keybase1.TeamRemoveMembersResult, err error) {
-	teamGetter := func() (*Team, error) {
-		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+func RemoveMemberSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	member keybase1.TeamMemberToRemove) (err error) {
+	members := []keybase1.TeamMemberToRemove{member}
+	res, err := RemoveMembers(ctx, g, teamID, members, false /* NoErrorOnPartialFailure */)
+	if err != nil {
+		msg := fmt.Sprintf("failed to remove member: %s", err)
+		if len(res.Failures) > 0 {
+			if res.Failures[0].ErrorAtTarget != nil {
+				msg += "; " + *res.Failures[0].ErrorAtTarget
+			}
+			if res.Failures[0].ErrorAtSubtree != nil {
+				msg += "; " + *res.Failures[0].ErrorAtSubtree
+			}
+		}
+		err = errors.New(msg)
 	}
+	return err
+}
 
-	var failedToRemove []keybase1.TeamMemberToRemove
+func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	members []keybase1.TeamMemberToRemove, shouldNotErrorOnPartialFailure bool,
+) (res keybase1.TeamRemoveMembersResult, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 
-	for _, user := range users {
-		exclusiveActions := user.Username + user.Email + string(user.InviteID)
-		lenExclActions := len(exclusiveActions)
-
-		if lenExclActions > len(user.Username) && lenExclActions > len(user.Email) && lenExclActions > len(user.InviteID) {
-			g.Log.CDebugf(ctx, "RemoveMembers: can only do 1 of [username: %s, email: %s, inviteID: %s] at a time", user.Username, user.Email, user.InviteID)
-			failedToRemove = append(failedToRemove, user)
-			continue
-		}
-
-		if len(user.Email) > 0 {
-			g.Log.CDebugf(ctx, "RemoveMembers: received email address, using CancelEmailInvite for %q in team %q", user.Email, teamID)
-			err = CancelEmailInvite(ctx, g, teamID, user.Email, user.AllowInaction)
-			if err != nil {
-				failedToRemove = append(failedToRemove, user)
-			}
-			continue
-		} else if len(user.InviteID) > 0 {
-			g.Log.CDebugf(ctx, "RemoveMembers: received inviteID, using CancelInviteByID for %q in team %q", user.InviteID, teamID)
-			err = CancelInviteByID(ctx, g, teamID, user.InviteID, user.AllowInaction)
-			if err != nil {
-				failedToRemove = append(failedToRemove, user)
-			}
-			continue
-		}
-		// Note: AllowInaction is not supported for non-invite removes.
-		g.Log.CDebugf(ctx, "RemoveMembers: using RemoveMember for %q in team %q", user.Username, teamID)
-		err := remove(ctx, g, teamGetter, user.Username)
+	// Preliminary checks
+	for _, member := range members {
+		typ, err := member.Type()
 		if err != nil {
-			failedToRemove = append(failedToRemove, user)
+			return res, err
+		}
+		switch typ {
+		case keybase1.TeamMemberToRemoveType_ASSERTION:
+		case keybase1.TeamMemberToRemoveType_INVITEID:
+		default:
+			return res, fmt.Errorf("unknown TeamMemberToRemoveType %v", typ)
 		}
 	}
 
-	res = keybase1.TeamRemoveMembersResult{Failures: failedToRemove}
+	// Removals
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByTeamID(ctx, g, teamID, true /* needAdmin */)
+	}
+	errstrp := func(e error) *string {
+		if e == nil {
+			return nil
+		}
+		s := e.Error()
+		return &s
+	}
+	var failures []keybase1.RemoveTeamMemberFailure
+	for _, member := range members {
+		typ, _ := member.Type()
+		switch typ {
+		case keybase1.TeamMemberToRemoveType_ASSERTION:
+			targetErr := remove(ctx, g, teamGetter, member.Assertion().Assertion)
+			var subtreeErr error
+			if member.Assertion().RemoveFromSubtree {
+				if targetErr == nil {
+					subtreeErr = removeMemberFromSubtree(mctx, teamID, member.Assertion().Assertion)
+				} else {
+					subtreeErr = errors.New("did not attempt to remove from subtree since removal failed at specified team")
+				}
+			}
+			if targetErr != nil || subtreeErr != nil {
+				failures = append(failures, keybase1.RemoveTeamMemberFailure{
+					TeamMember:     member,
+					ErrorAtTarget:  errstrp(targetErr),
+					ErrorAtSubtree: errstrp(subtreeErr),
+				})
+			}
+		case keybase1.TeamMemberToRemoveType_INVITEID:
+			targetErr := CancelInviteByID(ctx, g, teamID, member.Inviteid().InviteID)
+			if targetErr != nil {
+				failures = append(failures, keybase1.RemoveTeamMemberFailure{
+					TeamMember:     member,
+					ErrorAtSubtree: errstrp(targetErr),
+				})
+			}
+		}
+	}
 
-	return res, nil
+	if !shouldNotErrorOnPartialFailure && len(failures) > 0 {
+		err = fmt.Errorf("failed to remove %d members", len(failures))
+	} else {
+		err = nil
+	}
+	return keybase1.TeamRemoveMembersResult{Failures: failures}, err
+}
+
+// removeMemberFromSubtree removes member from all teams in the subtree of targetTeamID,
+// *not including* targetTeamID itself
+func removeMemberFromSubtree(mctx libkb.MetaContext, targetTeamID keybase1.TeamID,
+	assertion string) error {
+	// We don't care about the roles; we just want the list of teams. So we can pass our
+	// own username.
+	myUsername := mctx.G().Env.GetUsername()
+	guid := 0
+	treeloader, err := NewTreeloader(mctx, myUsername.String(), targetTeamID, guid,
+		false /* includeAncestors */)
+	if err != nil {
+		return fmt.Errorf("could not start loading subteams: %w", err)
+	}
+	// All or nothing; we can assume all results will be OK.
+	teamTreeMemberships, err := treeloader.LoadSync(mctx)
+	if err != nil {
+		return fmt.Errorf("could not load subteams: %w", err)
+	}
+	var errs []error
+	for _, membership := range teamTreeMemberships {
+		status, _ := membership.Result.S()
+		if status != keybase1.TeamTreeMembershipStatus_OK {
+			return fmt.Errorf("removeMemberFromSubtree: unexpectedly got a non-OK status from Treeloader.LoadSync: %v", status)
+		}
+
+		teamID := membership.Result.Ok().TeamID
+
+		// Don't remove member from the targetTeam; just the subtree
+		if teamID == targetTeamID {
+			continue
+		}
+
+		teamGetter := func() (*Team, error) {
+			return GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
+		}
+
+		removeErr := remove(mctx.Ctx(), mctx.G(), teamGetter, assertion)
+		var memberNotFoundErr *MemberNotFoundInChainError
+		switch {
+		case removeErr == nil:
+		case errors.As(removeErr, &memberNotFoundErr):
+			// If the member was not found in the sigchain (either via invite or cryptomember), we can
+			// ignore the error. Because we got team memberships for ourselves and not the user, we
+			// can't use the membership data provided by the Treeloader. (We're not using the
+			// membership data from the treeloader because it does not support looking up by invites).
+		default:
+			errs = append(errs, fmt.Errorf("failed to remove from %s: %w",
+				membership.TeamName, removeErr))
+		}
+	}
+	return libkb.CombineErrors(errs...)
 }
 
 func RemoveMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {
 	teamGetter := func() (*Team, error) {
-		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+		return GetForTeamManagementByTeamID(ctx, g, teamID, true)
 	}
 	return remove(ctx, g, teamGetter, username)
 }
 
-func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+// RemoveMember removes members by username or assertions. For a function that can handle removal
+// from subteams and inviteIDs, see RemoveMemberSingle and RemoveMembers.
+func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamName string, username string) error {
 	teamGetter := func() (*Team, error) {
-		return GetForTeamManagementByStringName(ctx, g, teamname, false)
+		return GetForTeamManagementByStringName(ctx, g, teamName, true)
 	}
 	return remove(ctx, g, teamGetter, username)
 }
@@ -1071,7 +1085,7 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 		}
 
 		if inviteRequired && !uv.Uid.Exists() {
-			// Remove a social (non-keybase) invite.
+			// Remove a non-keybase invite.
 			return removeMemberInvite(ctx, g, t, username, uv)
 		}
 
@@ -1082,8 +1096,8 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 		if err != nil {
-			return libkb.NotFoundError{Msg: fmt.Sprintf(
-				"user %q is not a member of team %q", username, t.Name())}
+			return NewMemberNotFoundInChainError(libkb.NotFoundError{Msg: fmt.Sprintf(
+				"user %q is not a member of team %q", username, t.Name())})
 		}
 
 		removePermanently := t.IsOpen() ||
@@ -1097,7 +1111,7 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 	})
 }
 
-func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, email string, allowInaction bool) (err error) {
+func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, email string) (err error) {
 	g.CTrace(ctx, "CancelEmailInvite", &err)
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
@@ -1109,11 +1123,11 @@ func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamID keyba
 			return errors.New("Invalid email address")
 		}
 
-		return removeMemberInviteOfType(ctx, g, t, keybase1.TeamInviteName(email), "email", allowInaction)
+		return removeMemberInviteOfType(ctx, g, t, keybase1.TeamInviteName(email), "email")
 	})
 }
 
-func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, inviteID keybase1.TeamInviteID, allowInaction bool) (err error) {
+func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, inviteID keybase1.TeamInviteID) (err error) {
 	g.CTrace(ctx, "CancelInviteByID", &err)
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
@@ -1127,7 +1141,7 @@ func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 			return fmt.Errorf("Invalid invite ID: %s", err)
 		}
 
-		return removeInviteID(ctx, t, inviteID, allowInaction)
+		return removeInviteID(ctx, t, inviteID)
 	})
 }
 
@@ -1633,11 +1647,10 @@ func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		typ = ptyp
 	}
 
-	const allowInaction = false
-	return removeMemberInviteOfType(ctx, g, team, lookingFor, typ, allowInaction)
+	return removeMemberInviteOfType(ctx, g, team, lookingFor, typ)
 }
 
-func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team *Team, inviteName keybase1.TeamInviteName, typ string, allowInaction bool) error {
+func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team *Team, inviteName keybase1.TeamInviteName, typ string) error {
 	g.Log.CDebugf(ctx, "looking for active invite in %s for %s/%s", team.Name(), typ, inviteName)
 
 	// make sure this is a valid invite type
@@ -1664,14 +1677,11 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 		}
 
 		g.Log.CDebugf(ctx, "found invite %s for %s/%s, removing it", inv.Id, validatedType, inviteName)
-		return removeInviteID(ctx, team, inv.Id, allowInaction)
+		return removeInviteID(ctx, team, inv.Id)
 	}
 
-	g.Log.CDebugf(ctx, "no invites found to remove for %s/%s allowInaction:%v", validatedType, inviteName, allowInaction)
-	if allowInaction {
-		return nil
-	}
-	return libkb.NotFoundError{}
+	g.Log.CDebugf(ctx, "no invites found to remove for %s/%s", validatedType, inviteName)
+	return NewMemberNotFoundInChainError(libkb.NotFoundError{})
 }
 
 func removeKeybaseTypeInviteForUID(ctx context.Context, g *libkb.GlobalContext, team *Team, uid keybase1.UID) (err error) {
@@ -1699,7 +1709,7 @@ func removeKeybaseTypeInviteForUID(ctx context.Context, g *libkb.GlobalContext, 
 	}
 
 	g.Log.CDebugf(ctx, "no keybase-invites found to remove %s", uid)
-	return libkb.NotFoundError{}
+	return NewMemberNotFoundInChainError(libkb.NotFoundError{})
 }
 
 func removeMultipleInviteIDs(ctx context.Context, team *Team, invIDs []keybase1.TeamInviteID) error {
@@ -1713,26 +1723,13 @@ func removeMultipleInviteIDs(ctx context.Context, team *Team, invIDs []keybase1.
 	return team.postTeamInvites(ctx, invites)
 }
 
-func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID, allowInaction bool) (err error) {
+func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID) (err error) {
 	defer team.MetaContext(ctx).Trace("remoteInviteID", &err)()
 	cancelList := []SCTeamInviteID{SCTeamInviteID(invID)}
 	invites := SCTeamInvites{
 		Cancel: &cancelList,
 	}
-	err = team.postTeamInvites(ctx, invites)
-	if allowInaction {
-		switch err.(type) {
-		case libkb.NotFoundError:
-			team.MetaContext(ctx).Debug("remoteInviteID suppressing error due to allowInaction: %v", err)
-			return nil
-		default:
-		}
-		if libkb.IsAppStatusCode(err, keybase1.StatusCode_SCTeamInviteBadCancel) {
-			team.MetaContext(ctx).Debug("remoteInviteID suppressing error due to allowInaction: %v", err)
-			return nil
-		}
-	}
-	return err
+	return team.postTeamInvites(ctx, invites)
 }
 
 func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (keybase1.SeitanIKey, error) {

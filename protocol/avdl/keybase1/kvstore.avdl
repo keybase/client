@@ -7,7 +7,7 @@ protocol kvstore {
     string teamName;
     string namespace;
     string entryKey;
-    string entryValue;
+    @nullSerializable(true) union { null, string } entryValue;
     int revision;
   }
 

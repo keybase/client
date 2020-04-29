@@ -11,8 +11,6 @@ type RolePickerSpecificProps = {
   onCancelRolePicker: () => void
   onConfirmRolePicker: (role: Types.TeamRoleType) => void
   onEditMembership: () => void
-  onSelectRole: (role: Types.TeamRoleType) => void
-  selectedRole: Types.TeamRoleType | null
 }
 
 export type MemberProps = {
@@ -132,9 +130,7 @@ export const TeamMember = (props: Props) => {
         </Kb.Button>
         {props.admin && user.type !== 'bot' && user.type !== 'restrictedbot' && (
           <FloatingRolePicker
-            selectedRole={props.selectedRole}
             presetRole={props.user.type}
-            onSelectRole={props.onSelectRole}
             floatingContainerStyle={styles.floatingRolePicker}
             onConfirm={props.onConfirmRolePicker}
             onCancel={props.onCancelRolePicker}

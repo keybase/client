@@ -685,7 +685,9 @@ func (d DummyBotCommandManager) Advertise(ctx context.Context, alias *string,
 	return nil
 }
 
-func (d DummyBotCommandManager) Clear(context.Context) error { return nil }
+func (d DummyBotCommandManager) Clear(context.Context, *chat1.ClearBotCommandsFilter) error {
+	return nil
+}
 
 func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (*chat1.ConversationID, error) {
 	return nil, nil
@@ -887,3 +889,10 @@ func (d DummyEphemeralTracker) Clear(ctx context.Context, convID chat1.Conversat
 }
 func (d DummyEphemeralTracker) OnDbNuke(mctx libkb.MetaContext) error { return nil }
 func (d DummyEphemeralTracker) OnLogout(mctx libkb.MetaContext) error { return nil }
+
+type DummyCtxFactory struct{}
+
+var _ ContextFactory = (*DummyCtxFactory)(nil)
+
+func (d DummyCtxFactory) NewKeyFinder() KeyFinder   { return nil }
+func (d DummyCtxFactory) NewUPAKFinder() UPAKFinder { return nil }

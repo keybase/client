@@ -56,7 +56,6 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion SeitanVersion) {
 
 		// Test rest of the params, unrelated to Seitan.
 		require.Equal(t, key, invite.Id)
-		require.Equal(t, keybase1.UserVersion{}, aInvite.InviteeUv)
 		require.Equal(t, user.GetUserVersion(), invite.Inviter)
 		require.Equal(t, user.Username, aInvite.InviterUsername)
 		require.Equal(t, teamName.String(), aInvite.TeamName)
@@ -66,7 +65,7 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion SeitanVersion) {
 
 	t.Logf("Checked that invite was added correctly, removing invite by id")
 
-	err = CancelInviteByID(context.TODO(), tc.G, teamID, inviteID, false /* allowInaction */)
+	err = CancelInviteByID(context.TODO(), tc.G, teamID, inviteID)
 	require.NoError(t, err)
 
 	t.Logf("Removed, checking if there are no active invites")

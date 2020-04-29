@@ -780,6 +780,10 @@
         {
           "type": "gregor1.Time",
           "name": "mtime"
+        },
+        {
+          "type": "BotCommandsAdvertisementTyp",
+          "name": "typ"
         }
       ]
     },
@@ -814,6 +818,69 @@
             "RateLimit"
           ],
           "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RemoteClearBotCommandsFilterPublic",
+      "fields": []
+    },
+    {
+      "type": "record",
+      "name": "RemoteClearBotCommandsFilterTLFID",
+      "fields": [
+        {
+          "type": "TLFID",
+          "name": "tlfID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RemoteClearBotCommandsFilterConv",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "RemoteClearBotCommandsFilter",
+      "switch": {
+        "type": "BotCommandsAdvertisementTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "PUBLIC",
+            "def": false
+          },
+          "body": "RemoteClearBotCommandsFilterPublic"
+        },
+        {
+          "label": {
+            "name": "TLFID_MEMBERS",
+            "def": false
+          },
+          "body": "RemoteClearBotCommandsFilterTLFID"
+        },
+        {
+          "label": {
+            "name": "TLFID_CONVS",
+            "def": false
+          },
+          "body": "RemoteClearBotCommandsFilterTLFID"
+        },
+        {
+          "label": {
+            "name": "CONV",
+            "def": false
+          },
+          "body": "RemoteClearBotCommandsFilterConv"
         }
       ]
     },
@@ -1691,7 +1758,15 @@
       "response": "AdvertiseBotCommandsRes"
     },
     "clearBotCommands": {
-      "request": [],
+      "request": [
+        {
+          "name": "filter",
+          "type": [
+            null,
+            "RemoteClearBotCommandsFilter"
+          ]
+        }
+      ],
       "response": "ClearBotCommandsRes"
     },
     "getBotInfo": {

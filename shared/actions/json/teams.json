@@ -213,9 +213,7 @@
     },
     "removePendingInvite": {
       "teamID": "Types.TeamID",
-      "email?": "string",
-      "username?": "string",
-      "inviteID?": "string"
+      "inviteID": "string"
     },
     "ignoreRequest": {
       "teamID": "Types.TeamID",
@@ -272,16 +270,6 @@
       "teamname": "string",
       "loadingKey": "string",
       "isLoading": "boolean"
-    },
-    "setTeamDetails": {
-      "teamID": "Types.TeamID",
-      "teamname": "string",
-      "members": "RPCTypes.TeamMembersDetails",
-      "settings": "RPCTypes.TeamSettings",
-      "invites": "Array<Types.InviteInfo>",
-      "subteams": "Array<Types.Teamname>",
-      "requests": "Map<string, Array<RPCTypes.TeamJoinRequest>>",
-      "subteamIDs": "Set<Types.TeamID>"
     },
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",

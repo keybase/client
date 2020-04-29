@@ -19,7 +19,6 @@ type OwnProps = {
 
 type State = {
   rolePickerOpen: boolean
-  selectedRole: Types.TeamRoleType
   sendNotification: boolean
 }
 
@@ -31,7 +30,6 @@ type ExtraProps = {
 class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, State> {
   state = {
     rolePickerOpen: false,
-    selectedRole: 'writer' as 'writer',
     sendNotification: true,
   }
   _setRef = false
@@ -56,8 +54,6 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
           this.setState({rolePickerOpen: false})
           letIn(!this.props.reset && this.state.sendNotification, role)
         }}
-        onSelectRole={selectedRole => this.setState({selectedRole})}
-        selectedRole={this.state.selectedRole}
       />
     )
   }

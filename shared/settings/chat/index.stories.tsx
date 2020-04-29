@@ -69,7 +69,7 @@ const props = {
             subscribed: true,
           },
         ],
-        unsubscribedFromAll: false,
+        unsub: false,
       },
     ],
   ]),

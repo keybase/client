@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.8 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.9 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/constants.avdl
 
 package keybase1
@@ -160,6 +160,7 @@ const (
 	StatusCode_SCNoOp                                      StatusCode = 2638
 	StatusCode_SCTeamInviteBadCancel                       StatusCode = 2645
 	StatusCode_SCTeamInviteBadToken                        StatusCode = 2646
+	StatusCode_SCTeamInviteCompletionMissing               StatusCode = 2648
 	StatusCode_SCTeamBadNameReservedDB                     StatusCode = 2650
 	StatusCode_SCTeamTarDuplicate                          StatusCode = 2663
 	StatusCode_SCTeamTarNotFound                           StatusCode = 2664
@@ -197,6 +198,7 @@ const (
 	StatusCode_SCTeamStorageBadGeneration                  StatusCode = 2761
 	StatusCode_SCTeamStorageNotFound                       StatusCode = 2762
 	StatusCode_SCTeamContactSettingsBlock                  StatusCode = 2763
+	StatusCode_SCTeamSeitanInviteNeedPUK                   StatusCode = 2770
 	StatusCode_SCEphemeralKeyBadGeneration                 StatusCode = 2900
 	StatusCode_SCEphemeralKeyUnexpectedBox                 StatusCode = 2901
 	StatusCode_SCEphemeralKeyMissingBox                    StatusCode = 2902
@@ -409,6 +411,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCNoOp":                                      2638,
 	"SCTeamInviteBadCancel":                       2645,
 	"SCTeamInviteBadToken":                        2646,
+	"SCTeamInviteCompletionMissing":               2648,
 	"SCTeamBadNameReservedDB":                     2650,
 	"SCTeamTarDuplicate":                          2663,
 	"SCTeamTarNotFound":                           2664,
@@ -446,6 +449,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamStorageBadGeneration":                  2761,
 	"SCTeamStorageNotFound":                       2762,
 	"SCTeamContactSettingsBlock":                  2763,
+	"SCTeamSeitanInviteNeedPUK":                   2770,
 	"SCEphemeralKeyBadGeneration":                 2900,
 	"SCEphemeralKeyUnexpectedBox":                 2901,
 	"SCEphemeralKeyMissingBox":                    2902,
@@ -656,6 +660,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2638: "SCNoOp",
 	2645: "SCTeamInviteBadCancel",
 	2646: "SCTeamInviteBadToken",
+	2648: "SCTeamInviteCompletionMissing",
 	2650: "SCTeamBadNameReservedDB",
 	2663: "SCTeamTarDuplicate",
 	2664: "SCTeamTarNotFound",
@@ -693,6 +698,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2761: "SCTeamStorageBadGeneration",
 	2762: "SCTeamStorageNotFound",
 	2763: "SCTeamContactSettingsBlock",
+	2770: "SCTeamSeitanInviteNeedPUK",
 	2900: "SCEphemeralKeyBadGeneration",
 	2901: "SCEphemeralKeyUnexpectedBox",
 	2902: "SCEphemeralKeyMissingBox",

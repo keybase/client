@@ -398,17 +398,13 @@ func TestImplicitInvalidLinks(t *testing.T) {
 	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
 	require.NoError(t, err)
 
-	RequirePrecheckError := func(err error) {
-		requirePrecheckError(t, err)
-	}
-
 	{
 		// Adding entirely new member should be illegal
 		req := keybase1.TeamChangeReq{
 			Owners: []keybase1.UserVersion{pam.GetUserVersion()},
 		}
 		err := teamObj.ChangeMembership(context.Background(), req)
-		RequirePrecheckError(err)
+		requirePrecheckError(t, err)
 	}
 
 	{
@@ -419,13 +415,13 @@ func TestImplicitInvalidLinks(t *testing.T) {
 			ID:   NewInviteID(),
 		}
 		err := teamObj.postInvite(context.Background(), invite, keybase1.TeamRole_OWNER)
-		RequirePrecheckError(err)
+		requirePrecheckError(t, err)
 	}
 
 	{
 		// Adding new social invite never works
 		_, err := teamObj.inviteSBSMember(context.Background(), ann.Username+"@rooter", keybase1.TeamRole_OWNER)
-		RequirePrecheckError(err)
+		requirePrecheckError(t, err)
 	}
 
 	{
@@ -434,15 +430,15 @@ func TestImplicitInvalidLinks(t *testing.T) {
 			None: []keybase1.UserVersion{bob.GetUserVersion()},
 		}
 		err := teamObj.ChangeMembership(context.Background(), req)
-		RequirePrecheckError(err)
+		requirePrecheckError(t, err)
 	}
 
 	{
 		// Removing existing pukless member should be illegal
 		invite, _, found := teamObj.FindActiveKeybaseInvite(cat.GetUID())
 		require.True(t, found)
-		err := removeInviteID(context.Background(), teamObj, invite.Id, false)
-		RequirePrecheckError(err)
+		err := removeInviteID(context.Background(), teamObj, invite.Id)
+		requirePrecheckError(t, err)
 	}
 }
 

@@ -27,6 +27,7 @@ export default connect(
     return {
       following: state.config.following.has(username),
       fullName: state.config.username === username ? 'You' : info.fullName,
+      needsPUK: info.needsPUK,
       roleType: info.type,
       status: info.status,
       teamID,
@@ -79,6 +80,7 @@ export default connect(
     firstItem: ownProps.firstItem,
     following: stateProps.following,
     fullName: stateProps.fullName,
+    needsPUK: stateProps.needsPUK,
     onBlock: dispatchProps.onBlock,
     onChat: dispatchProps.onChat,
     onClick: dispatchProps.onClick,

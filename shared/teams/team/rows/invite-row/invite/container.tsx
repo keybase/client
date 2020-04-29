@@ -4,6 +4,7 @@ import * as Container from '../../../../../util/container'
 import {TeamInviteRow} from '.'
 import {InviteInfo, TeamID} from '../../../../../constants/types/teams'
 import flags from '../../../../../util/feature-flags'
+import {formatPhoneNumber} from '../../../../../util/phone-numbers'
 
 type OwnProps = {
   id: string
@@ -24,16 +25,8 @@ export default Container.connect(
     return {_invites: teamDetails.invites}
   },
   (dispatch, {teamID}: OwnProps) => ({
-    _onCancelInvite: ({
-      email,
-      username,
-      inviteID,
-    }: {
-      email?: string
-      username?: string
-      inviteID?: string
-    }) => {
-      dispatch(TeamsGen.createRemovePendingInvite({email, inviteID, teamID, username}))
+    _onCancelInvite: (inviteID: string) => {
+      dispatch(TeamsGen.createRemovePendingInvite({inviteID, teamID}))
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -43,24 +36,7 @@ export default Container.connect(
       // loading
       return {firstItem: ownProps.firstItem, label: '', onCancelInvite: () => {}, role: 'reader'} as const
     }
-    let onCancelInvite: undefined | (() => void)
-    if (user.email) {
-      onCancelInvite = () =>
-        dispatchProps._onCancelInvite({
-          email: user.email,
-        })
-    } else if (user.username) {
-      onCancelInvite = () =>
-        dispatchProps._onCancelInvite({
-          username: user.username,
-        })
-    } else if (user.name || user.phone) {
-      onCancelInvite = () =>
-        dispatchProps._onCancelInvite({
-          inviteID: ownProps.id,
-        })
-    }
-    // TODO: can we just do this by invite ID always?
+    const onCancelInvite = () => dispatchProps._onCancelInvite(ownProps.id)
 
     let label = user.username || user.name || user.email || user.phone
     let subLabel = user.name ? user.phone || user.email : undefined
@@ -69,6 +45,10 @@ export default Container.connect(
       label = match[1]
       subLabel = match[2]
     }
+    try {
+      label = label === user.phone ? formatPhoneNumber('+' + label) : label
+      subLabel = subLabel === user.phone ? formatPhoneNumber('+' + subLabel) : subLabel
+    } catch {}
 
     if (!flags.teamsRedesign && subLabel) {
       label = `${label} (${subLabel})`

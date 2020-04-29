@@ -69,6 +69,75 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
   state = {loaded: false}
   _setLoaded = () => this.setState({loaded: true})
   render() {
+    let content: React.ReactNode = null
+    let spinner: React.ReactNode = null
+    if (this.props.path) {
+      if (this.props.isVideo) {
+        const {previewHeight} = this.props
+        content = (
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            fullHeight={true}
+            centerChildren={true}
+            style={styles.videoWrapper}
+          >
+            <RNVideo
+              source={{uri: `${this.props.path}&contentforce=true`}}
+              onError={e => {
+                logger.error(`Error loading vid: ${JSON.stringify(e)}`)
+              }}
+              onLoad={this._setLoaded}
+              paused={true}
+              controls={true}
+              style={{
+                height: Math.max(previewHeight, 100),
+                width: '100%',
+              }}
+              resizeMode="contain"
+            />
+          </Kb.Box2>
+        )
+      } else {
+        if (Styles.isIOS) {
+          content = (
+            <AutoMaxSizeImage
+              source={{uri: `${this.props.path}`}}
+              onLoad={this._setLoaded}
+              opacity={this.state.loaded ? 1 : 0}
+            />
+          )
+        } else {
+          content = (
+            <Kb.ZoomableImage
+              uri={this.props.path}
+              onLoad={this._setLoaded}
+              style={{
+                height: '100%',
+                opacity: this.state.loaded ? 1 : 0,
+                overflow: 'hidden',
+                position: 'relative',
+                width: '100%',
+              }}
+            />
+          )
+        }
+      }
+    }
+    if (!this.state.loaded) {
+      spinner = (
+        <Kb.Box2
+          direction="vertical"
+          style={styles.progressWrapper}
+          centerChildren={true}
+          fullHeight={true}
+          fullWidth={true}
+        >
+          <Kb.ProgressIndicator style={styles.progressIndicator} white={true} />
+        </Kb.Box2>
+      )
+    }
+
     return (
       <Kb.Box2
         direction="vertical"
@@ -76,6 +145,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
         fullWidth={true}
         fullHeight={true}
       >
+        {spinner}
         <Kb.NativeStatusBar hidden={true} />
         <ShowToastAfterSaving transferState={this.props.message.transferState} />
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerWrapper}>
@@ -86,63 +156,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
             All media
           </Kb.Text>
         </Kb.Box2>
-
-        <Kb.BoxGrow>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexGrow}>
-            {!!this.props.path && this.props.isVideo ? (
-              <Kb.Box2
-                direction="vertical"
-                fullWidth={true}
-                centerChildren={true}
-                style={styles.videoWrapper}
-              >
-                <RNVideo
-                  source={{uri: `${this.props.path}&contentforce=true`}}
-                  onError={e => {
-                    logger.error(`Error loading vid: ${JSON.stringify(e)}`)
-                  }}
-                  onLoad={this._setLoaded}
-                  paused={true}
-                  controls={true}
-                  style={{
-                    height: this.props.previewHeight,
-                    width: this.props.previewWidth,
-                  }}
-                  resizeMode="contain"
-                />
-              </Kb.Box2>
-            ) : Styles.isIOS ? (
-              <AutoMaxSizeImage
-                source={{uri: `${this.props.path}`}}
-                onLoad={this._setLoaded}
-                opacity={this.state.loaded ? 1 : 0}
-              />
-            ) : (
-              <Kb.ZoomableImage
-                uri={this.props.path}
-                onLoad={this._setLoaded}
-                style={{
-                  height: '100%',
-                  opacity: this.state.loaded ? 1 : 0,
-                  overflow: 'hidden',
-                  position: 'relative',
-                  width: '100%',
-                }}
-              />
-            )}
-            {!this.state.loaded && (
-              <Kb.Box2
-                direction="vertical"
-                style={styles.progressWrapper}
-                centerChildren={true}
-                fullHeight={true}
-                fullWidth={true}
-              >
-                <Kb.ProgressIndicator style={styles.progressIndicator} white={true} />
-              </Kb.Box2>
-            )}
-          </Kb.Box2>
-        </Kb.BoxGrow>
+        <Kb.BoxGrow>{content}</Kb.BoxGrow>
         <Kb.Icon
           type="iconfont-ellipsis"
           style={styles.headerFooter}

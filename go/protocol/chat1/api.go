@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.8 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.9 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/api.avdl
 
 package chat1
@@ -960,6 +960,20 @@ func (o AdvertiseCommandAPIParam) DeepCopy() AdvertiseCommandAPIParam {
 			}
 			return ret
 		})(o.Commands),
+		TeamName: o.TeamName,
+		ConvID:   o.ConvID.DeepCopy(),
+	}
+}
+
+type ClearCommandAPIParam struct {
+	Typ      string    `codec:"typ" json:"type"`
+	TeamName string    `codec:"teamName,omitempty" json:"team_name,omitempty"`
+	ConvID   ConvIDStr `codec:"convID,omitempty" json:"conv_id,omitempty"`
+}
+
+func (o ClearCommandAPIParam) DeepCopy() ClearCommandAPIParam {
+	return ClearCommandAPIParam{
+		Typ:      o.Typ,
 		TeamName: o.TeamName,
 		ConvID:   o.ConvID.DeepCopy(),
 	}

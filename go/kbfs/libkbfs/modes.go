@@ -207,6 +207,14 @@ func (md modeDefault) DbWriteBufferSize() int {
 	return 10 * opt.MiB // 10 MB
 }
 
+func (md modeDefault) DiskCacheCompactionEnabled() bool {
+	return true
+}
+
+func (md modeDefault) EditHistoryPrefetchingEnabled() bool {
+	return false
+}
+
 // Minimal mode:
 
 type modeMinimal struct {
@@ -389,6 +397,14 @@ func (mm modeMinimal) DbWriteBufferSize() int {
 	return 1 * opt.KiB // 1 KB
 }
 
+func (mm modeMinimal) DiskCacheCompactionEnabled() bool {
+	return false
+}
+
+func (mm modeMinimal) EditHistoryPrefetchingEnabled() bool {
+	return false
+}
+
 // Single op mode:
 
 type modeSingleOp struct {
@@ -481,6 +497,10 @@ func (mso modeSingleOp) BackgroundWorkPeriod() time.Duration {
 
 func (mso modeSingleOp) IsSingleOp() bool {
 	return true
+}
+
+func (mso modeSingleOp) DiskCacheCompactionEnabled() bool {
+	return false
 }
 
 // Single-op mode with QR:
@@ -621,6 +641,10 @@ func (mc modeConstrained) DelayInitialConnect() bool {
 
 func (mc modeConstrained) DbWriteBufferSize() int {
 	return 100 * opt.KiB // 100 KB
+}
+
+func (mc modeConstrained) DiskCacheCompactionEnabled() bool {
+	return false
 }
 
 // Memory limited mode

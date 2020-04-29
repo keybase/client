@@ -351,6 +351,10 @@
             "Time"
           ],
           "name": "joinTime"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
         }
       ]
     },
@@ -1390,26 +1394,85 @@
           "name": "inviterUsername"
         },
         {
-          "type": "UserVersion",
-          "name": "inviteeUv"
-        },
-        {
           "type": "string",
           "name": "teamName"
         },
         {
-          "type": [
-            null,
-            "TeamMemberStatus"
-          ],
+          "type": "boolean",
+          "name": "isValid"
+        },
+        {
+          "type": "string",
+          "name": "validityDescription"
+        },
+        {
+          "type": "AnnotatedTeamInviteExt",
+          "name": "inviteExt"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KeybaseInviteExt",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "inviteeUv"
+        },
+        {
+          "type": "TeamMemberStatus",
           "name": "status"
         },
+        {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InvitelinkInviteExt",
+      "fields": [
         {
           "type": {
             "type": "array",
             "items": "AnnotatedTeamUsedInviteLogPoint"
           },
           "name": "annotatedUsedInvites"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "AnnotatedTeamInviteExt",
+      "switch": {
+        "type": "TeamInviteCategory",
+        "name": "c"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "KEYBASE",
+            "def": false
+          },
+          "body": "KeybaseInviteExt"
+        },
+        {
+          "label": {
+            "name": "INVITELINK",
+            "def": false
+          },
+          "body": "InvitelinkInviteExt"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
         }
       ]
     },
@@ -2720,14 +2783,6 @@
             "items": "AnnotatedMemberInfo"
           },
           "name": "teams"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "AnnotatedTeamInvite",
-            "keys": "TeamInviteID"
-          },
-          "name": "annotatedActiveInvites"
         }
       ]
     },
@@ -3083,23 +3138,81 @@
     },
     {
       "type": "record",
-      "name": "TeamMemberToRemove",
+      "name": "AssertionTeamMemberToRemove",
       "fields": [
         {
           "type": "string",
-          "name": "username"
-        },
-        {
-          "type": "string",
-          "name": "email"
-        },
-        {
-          "type": "TeamInviteID",
-          "name": "inviteID"
+          "name": "assertion"
         },
         {
           "type": "boolean",
-          "name": "allowInaction"
+          "name": "removeFromSubtree"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InviteTeamMemberToRemove",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamMemberToRemoveType",
+      "symbols": [
+        "ASSERTION_0",
+        "INVITEID_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "TeamMemberToRemove",
+      "switch": {
+        "type": "TeamMemberToRemoveType",
+        "name": "type"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "ASSERTION",
+            "def": false
+          },
+          "body": "AssertionTeamMemberToRemove"
+        },
+        {
+          "label": {
+            "name": "INVITEID",
+            "def": false
+          },
+          "body": "InviteTeamMemberToRemove"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RemoveTeamMemberFailure",
+      "fields": [
+        {
+          "type": "TeamMemberToRemove",
+          "name": "teamMember"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "errorAtTarget"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "errorAtSubtree"
         }
       ]
     },
@@ -3110,7 +3223,7 @@
         {
           "type": {
             "type": "array",
-            "items": "TeamMemberToRemove"
+            "items": "RemoveTeamMemberFailure"
           },
           "name": "failures"
         }
@@ -3567,20 +3680,6 @@
     },
     {
       "type": "record",
-      "name": "AnnotatedTeamMemberDetails",
-      "fields": [
-        {
-          "type": "TeamMemberDetails",
-          "name": "details"
-        },
-        {
-          "type": "TeamRole",
-          "name": "role"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "AnnotatedTeam",
       "fields": [
         {
@@ -3598,7 +3697,7 @@
         {
           "type": {
             "type": "array",
-            "items": "AnnotatedTeamMemberDetails"
+            "items": "TeamMemberDetails"
           },
           "name": "members"
         },
@@ -3610,6 +3709,18 @@
           "name": "invites"
         },
         {
+          "type": "TeamSettings",
+          "name": "settings"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "keyGeneration"
+        },
+        {
+          "type": "TeamShowcase",
+          "name": "showcase"
+        },
+        {
           "type": {
             "type": "array",
             "items": "TeamJoinRequest"
@@ -3619,14 +3730,6 @@
         {
           "type": "boolean",
           "name": "tarsDisabled"
-        },
-        {
-          "type": "TeamSettings",
-          "name": "settings"
-        },
-        {
-          "type": "TeamShowcase",
-          "name": "showcase"
         }
       ]
     },
@@ -3855,19 +3958,6 @@
       ],
       "response": "TeamDetails"
     },
-    "teamGetMembers": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "name",
-          "type": "string"
-        }
-      ],
-      "response": "TeamMembersDetails"
-    },
     "teamGetMembersByID": {
       "request": [
         {
@@ -3877,19 +3967,6 @@
         {
           "name": "id",
           "type": "TeamID"
-        }
-      ],
-      "response": "TeamMembersDetails"
-    },
-    "teamImplicitAdmins": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "teamName",
-          "type": "string"
         }
       ],
       "response": {
@@ -4082,7 +4159,7 @@
           ]
         },
         {
-          "name": "defaultChannelsOverride",
+          "name": "addToChannels",
           "type": {
             "type": "array",
             "items": "string"
@@ -4102,20 +4179,8 @@
           "type": "TeamID"
         },
         {
-          "name": "username",
-          "type": "string"
-        },
-        {
-          "name": "email",
-          "type": "string"
-        },
-        {
-          "name": "inviteID",
-          "type": "TeamInviteID"
-        },
-        {
-          "name": "allowInaction",
-          "type": "boolean"
+          "name": "member",
+          "type": "TeamMemberToRemove"
         }
       ],
       "response": null
@@ -4131,11 +4196,15 @@
           "type": "TeamID"
         },
         {
-          "name": "users",
+          "name": "members",
           "type": {
             "type": "array",
             "items": "TeamMemberToRemove"
           }
+        },
+        {
+          "name": "noErrorOnPartialFailure",
+          "type": "boolean"
         }
       ],
       "response": "TeamRemoveMembersResult"
@@ -4908,6 +4977,15 @@
         {
           "name": "teamID",
           "type": "TeamID"
+        }
+      ],
+      "response": "AnnotatedTeam"
+    },
+    "getAnnotatedTeamByName": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "string"
         }
       ],
       "response": "AnnotatedTeam"

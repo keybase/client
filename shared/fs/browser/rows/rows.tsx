@@ -125,7 +125,7 @@ class Rows extends React.PureComponent<Props> {
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         {// The folder is empty so these should all be header rows.
         this.props.items.map(item => item.rowType === RowTypes.RowType.Header && item.node)}
-        <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true}>
+        <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true} gap="small">
           <Kb.Text type="BodySmall">
             {this.props.emptyMode === 'empty'
               ? 'This folder is empty.'

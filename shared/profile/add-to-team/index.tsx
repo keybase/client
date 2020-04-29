@@ -22,7 +22,6 @@ type RolePickerProps = {
   onCancelRolePicker: () => void
   onConfirmRolePicker: (role: Types.TeamRoleType) => void
   onOpenRolePicker: () => void
-  onSelectRole: (role: Types.TeamRoleType) => void
   selectedRole: Types.TeamRoleType
   disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string}
 }
@@ -161,8 +160,7 @@ class AddToTeam extends React.Component<Props> {
               {this.props.them} will be added as a
             </Kb.Text>
             <FloatingRolePicker
-              selectedRole={this.props.selectedRole}
-              onSelectRole={this.props.onSelectRole}
+              presetRole={this.props.selectedRole}
               floatingContainerStyle={styles.floatingRolePicker}
               footerComponent={this.props.footerComponent}
               onConfirm={this.props.onConfirmRolePicker}

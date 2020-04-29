@@ -436,12 +436,15 @@ func (k *KeybaseDaemonLocal) PutGitMetadata(
 }
 
 // OnPathChange implements the SubscriptionNotifier interface.
-func (k *KeybaseDaemonLocal) OnPathChange(subscriptionID SubscriptionID, path string, topic keybase1.PathSubscriptionTopic) {
+func (k *KeybaseDaemonLocal) OnPathChange(
+	clientID SubscriptionManagerClientID,
+	subscriptionIDs []SubscriptionID, path string, topics []keybase1.PathSubscriptionTopic) {
 }
 
 // OnNonPathChange implements the SubscriptionNotifier interface.
 func (k *KeybaseDaemonLocal) OnNonPathChange(
-	subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
+	clientID SubscriptionManagerClientID,
+	subscriptionIDs []SubscriptionID, topic keybase1.SubscriptionTopic) {
 }
 
 // Shutdown implements KeybaseDaemon for KeybaseDaemonLocal.

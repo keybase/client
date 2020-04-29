@@ -100,11 +100,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyFS.FSSubscriptionNotify': {
-    inParam: {readonly subscriptionID: String; readonly topic: SubscriptionTopic}
+    inParam: {readonly clientID: String; readonly subscriptionIDs?: Array<String> | null; readonly topic: SubscriptionTopic}
     outParam: void
   }
   'keybase.1.NotifyFS.FSSubscriptionNotifyPath': {
-    inParam: {readonly subscriptionID: String; readonly path: String; readonly topic: PathSubscriptionTopic}
+    inParam: {readonly clientID: String; readonly subscriptionIDs?: Array<String> | null; readonly path: String; readonly topics?: Array<PathSubscriptionTopic> | null}
     outParam: void
   }
   'keybase.1.NotifyFS.FSSyncActivity': {
@@ -328,7 +328,7 @@ export type MessageTypes = {
     outParam: GUIFileContext
   }
   'keybase.1.SimpleFS.simpleFSGetOnlineStatus': {
-    inParam: void
+    inParam: {readonly clientID: String}
     outParam: KbfsOnlineStatus
   }
   'keybase.1.SimpleFS.simpleFSGetUploadStatus': {
@@ -404,11 +404,11 @@ export type MessageTypes = {
     outParam: Dirent
   }
   'keybase.1.SimpleFS.simpleFSSubscribeNonPath': {
-    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly subscriptionID: String; readonly topic: SubscriptionTopic; readonly deduplicateIntervalSecond: Int}
+    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly clientID: String; readonly subscriptionID: String; readonly topic: SubscriptionTopic; readonly deduplicateIntervalSecond: Int}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSubscribePath': {
-    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly subscriptionID: String; readonly kbfsPath: String; readonly topic: PathSubscriptionTopic; readonly deduplicateIntervalSecond: Int}
+    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly clientID: String; readonly subscriptionID: String; readonly kbfsPath: String; readonly topic: PathSubscriptionTopic; readonly deduplicateIntervalSecond: Int}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus': {
@@ -420,7 +420,7 @@ export type MessageTypes = {
     outParam: FSSyncStatus
   }
   'keybase.1.SimpleFS.simpleFSUnsubscribe': {
-    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly subscriptionID: String}
+    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly clientID: String; readonly subscriptionID: String}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSUserEditHistory': {
@@ -1432,7 +1432,7 @@ export type MessageTypes = {
     outParam: TeamAddMemberResult
   }
   'keybase.1.teams.teamAddMembersMultiRole': {
-    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean; readonly emailInviteMessage?: String | null; readonly defaultChannelsOverride?: Array<String> | null}
+    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean; readonly emailInviteMessage?: String | null; readonly addToChannels?: Array<String> | null}
     outParam: TeamAddMembersResult
   }
   'keybase.1.teams.teamCreate': {
@@ -1467,13 +1467,9 @@ export type MessageTypes = {
     inParam: {readonly id: TeamID}
     outParam: TeamDetails
   }
-  'keybase.1.teams.teamGetMembers': {
-    inParam: {readonly name: String}
-    outParam: TeamMembersDetails
-  }
   'keybase.1.teams.teamGetMembersByID': {
     inParam: {readonly id: TeamID}
-    outParam: TeamMembersDetails
+    outParam: Array<TeamMemberDetails> | null
   }
   'keybase.1.teams.teamIgnoreRequest': {
     inParam: {readonly name: String; readonly username: String}
@@ -1504,7 +1500,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.teams.teamRemoveMember': {
-    inParam: {readonly teamID: TeamID; readonly username: String; readonly email: String; readonly inviteID: TeamInviteID; readonly allowInaction: Boolean}
+    inParam: {readonly teamID: TeamID; readonly member: TeamMemberToRemove}
     outParam: void
   }
   'keybase.1.teams.teamRename': {
@@ -2530,6 +2526,7 @@ export enum StatusCode {
   scnoop = 2638,
   scteaminvitebadcancel = 2645,
   scteaminvitebadtoken = 2646,
+  scteaminvitecompletionmissing = 2648,
   scteambadnamereserveddb = 2650,
   scteamtarduplicate = 2663,
   scteamtarnotfound = 2664,
@@ -2567,6 +2564,7 @@ export enum StatusCode {
   scteamstoragebadgeneration = 2761,
   scteamstoragenotfound = 2762,
   scteamcontactsettingsblock = 2763,
+  scteamseitaninviteneedpuk = 2770,
   scephemeralkeybadgeneration = 2900,
   scephemeralkeyunexpectedbox = 2901,
   scephemeralkeymissingbox = 2902,
@@ -2702,6 +2700,11 @@ export enum TeamMemberStatus {
   deleted = 2,
 }
 
+export enum TeamMemberToRemoveType {
+  assertion = 0,
+  inviteid = 1,
+}
+
 export enum TeamRole {
   none = 0,
   reader = 1,
@@ -2817,11 +2820,12 @@ export type APIUserServiceSummary = {readonly serviceName: APIUserServiceID; rea
 export type AirdropDetails = {readonly uid: UID; readonly kid: BinaryKID; readonly vid: VID; readonly vers: String; readonly time: Time}
 export type AllProvisionedUsernames = {readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly hasProvisionedUser: Boolean}
 export type AnnotatedMemberInfo = {readonly userID: UID; readonly teamID: TeamID; readonly username: String; readonly fullName: String; readonly fqName: String; readonly isImplicitTeam: Boolean; readonly impTeamDisplayName: String; readonly isOpenTeam: Boolean; readonly role: TeamRole; readonly implicit?: ImplicitRole | null; readonly needsPUK: Boolean; readonly memberCount: Int; readonly eldestSeqno: Seqno; readonly allowProfilePromote: Boolean; readonly isMemberShowcased: Boolean; readonly status: TeamMemberStatus}
-export type AnnotatedTeam = {readonly teamID: TeamID; readonly name: String; readonly transitiveSubteamsUnverified: SubteamListResult; readonly members?: Array<AnnotatedTeamMemberDetails> | null; readonly invites?: Array<AnnotatedTeamInvite> | null; readonly joinRequests?: Array<TeamJoinRequest> | null; readonly tarsDisabled: Boolean; readonly settings: TeamSettings; readonly showcase: TeamShowcase}
-export type AnnotatedTeamInvite = {readonly inviteMetadata: TeamInviteMetadata; readonly displayName: TeamInviteDisplayName; readonly inviterUsername: String; readonly inviteeUv: UserVersion; readonly teamName: String; readonly status?: TeamMemberStatus | null; readonly annotatedUsedInvites?: Array<AnnotatedTeamUsedInviteLogPoint> | null}
-export type AnnotatedTeamList = {readonly teams?: Array<AnnotatedMemberInfo> | null; readonly annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}}
-export type AnnotatedTeamMemberDetails = {readonly details: TeamMemberDetails; readonly role: TeamRole}
+export type AnnotatedTeam = {readonly teamID: TeamID; readonly name: String; readonly transitiveSubteamsUnverified: SubteamListResult; readonly members?: Array<TeamMemberDetails> | null; readonly invites?: Array<AnnotatedTeamInvite> | null; readonly settings: TeamSettings; readonly keyGeneration: PerTeamKeyGeneration; readonly showcase: TeamShowcase; readonly joinRequests?: Array<TeamJoinRequest> | null; readonly tarsDisabled: Boolean}
+export type AnnotatedTeamInvite = {readonly inviteMetadata: TeamInviteMetadata; readonly displayName: TeamInviteDisplayName; readonly inviterUsername: String; readonly teamName: String; readonly isValid: Boolean; readonly validityDescription: String; readonly inviteExt: AnnotatedTeamInviteExt}
+export type AnnotatedTeamInviteExt = {c: TeamInviteCategory.keybase; keybase: KeybaseInviteExt} | {c: TeamInviteCategory.invitelink; invitelink: InvitelinkInviteExt} | {c: TeamInviteCategory.none} | {c: TeamInviteCategory.unknown} | {c: TeamInviteCategory.email} | {c: TeamInviteCategory.sbs} | {c: TeamInviteCategory.seitan} | {c: TeamInviteCategory.phone}
+export type AnnotatedTeamList = {readonly teams?: Array<AnnotatedMemberInfo> | null}
 export type AnnotatedTeamUsedInviteLogPoint = {readonly username: String; readonly teamUsedInviteLogPoint: TeamUsedInviteLogPoint}
+export type AssertionTeamMemberToRemove = {readonly assertion: String; readonly removeFromSubtree: Boolean}
 export type Audit = {readonly time: Time; readonly mms: /* maxMerkleSeqno */ Seqno; readonly mcs: /* maxChainSeqno */ Seqno; readonly mhs: /* maxHiddenSeqno */ Seqno; readonly mmp: /* maxMerkleProbe */ Seqno}
 export type AuditHistory = {readonly ID: TeamID; readonly public: Boolean; readonly priorMerkleSeqno: Seqno; readonly version: AuditVersion; readonly audits?: Array<Audit> | null; readonly preProbes: {[key: string]: Probe}; readonly postProbes: {[key: string]: Probe}; readonly tails: {[key: string]: LinkID}; readonly hiddenTails: {[key: string]: LinkID}; readonly preProbesToRetry?: Array<Seqno> | null; readonly postProbesToRetry?: Array<Seqno> | null; readonly skipUntil: Time}
 export type AvatarClearCacheMsg = {readonly name: String; readonly formats?: Array<AvatarFormat> | null; readonly typ: AvatarUpdateType}
@@ -3028,7 +3032,9 @@ export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* 
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly serviceMap: {[key: string]: String}}
 export type InviteCounts = {readonly inviteCount: Int; readonly percentageChange: Double; readonly showNumInvites: Boolean; readonly showFire: Boolean; readonly tooltipMarkdown: String}
 export type InviteLinkDetails = {readonly inviteID: TeamInviteID; readonly inviterResetOrDel: Boolean; readonly inviterUID: UID; readonly inviterUsername: String; readonly isMember: Boolean; readonly teamAvatars: {[key: string]: AvatarUrl}; readonly teamDesc: String; readonly teamID: TeamID; readonly teamIsOpen: Boolean; readonly teamName: TeamName; readonly teamNumMembers: Int}
+export type InviteTeamMemberToRemove = {readonly inviteID: TeamInviteID}
 export type Invitelink = {readonly ikey: SeitanIKeyInvitelink; readonly url: String}
+export type InvitelinkInviteExt = {readonly annotatedUsedInvites?: Array<AnnotatedTeamUsedInviteLogPoint> | null}
 export type KBFSArchivedParam = {KBFSArchivedType: KBFSArchivedType.revision; revision: KBFSRevision} | {KBFSArchivedType: KBFSArchivedType.time; time: Time} | {KBFSArchivedType: KBFSArchivedType.timeString; timeString: String} | {KBFSArchivedType: KBFSArchivedType.relTimeString; relTimeString: String}
 export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam; readonly identifyBehavior?: TLFIdentifyBehavior | null}
 export type KBFSPath = {readonly path: String; readonly identifyBehavior?: TLFIdentifyBehavior | null}
@@ -3041,7 +3047,7 @@ export type KBFSTeamSettings = {readonly tlfID: TLFID}
 export type KID = String
 export type KVDeleteEntryResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly revision: Int}
 export type KVEntryID = {readonly teamID: TeamID; readonly namespace: String; readonly entryKey: String}
-export type KVGetResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly entryValue: String; readonly revision: Int}
+export type KVGetResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly entryValue?: String | null; readonly revision: Int}
 export type KVListEntryKey = {readonly entryKey: String; readonly revision: Int}
 export type KVListEntryResult = {readonly teamName: String; readonly namespace: String; readonly entryKeys?: Array<KVListEntryKey> | null}
 export type KVListNamespaceResult = {readonly teamName: String; readonly namespaces?: Array<String> | null}
@@ -3052,6 +3058,7 @@ export type KeyBundle = {readonly version: Int; readonly bundle: Bytes}
 export type KeyBundleResponse = {readonly WriterBundle: KeyBundle; readonly ReaderBundle: KeyBundle}
 export type KeyHalf = {readonly user: UID; readonly deviceKID: KID; readonly key: Bytes}
 export type KeyInfo = {readonly fingerprint: String; readonly key: String; readonly desc: String}
+export type KeybaseInviteExt = {readonly inviteeUv: UserVersion; readonly status: TeamMemberStatus; readonly fullName: FullName; readonly username: String}
 export type KeybaseTime = {readonly unix: Time; readonly chain: Seqno}
 export type LeaseID = String
 export type LinkCheckResult = {readonly proofId: Int; readonly proofResult: ProofResult; readonly snoozedResult: ProofResult; readonly torWarning: Boolean; readonly tmpTrackExpireTime: Time; readonly cached?: CheckResult | null; readonly diff?: TrackDiff | null; readonly remoteDiff?: TrackDiff | null; readonly hint?: SigHint | null; readonly breaksTracking: Boolean}
@@ -3164,6 +3171,7 @@ export type RekeyRequest = {readonly folderID: String; readonly revision: Long}
 export type RemoteProof = {readonly proofType: ProofType; readonly key: String; readonly value: String; readonly displayMarkup: String; readonly sigID: SigID; readonly mTime: Time}
 export type RemoteTrack = {readonly username: String; readonly uid: UID; readonly linkID: LinkID}
 export type RemoveArgs = {readonly opID: OpID; readonly path: Path; readonly recursive: Boolean}
+export type RemoveTeamMemberFailure = {readonly teamMember: TeamMemberToRemove; readonly errorAtTarget?: String | null; readonly errorAtSubtree?: String | null}
 export type RepoID = String
 export type ResetLink = {readonly ctime: UnixTime; readonly merkleRoot: ResetMerkleRoot; readonly prev: ResetPrev; readonly resetSeqno: Seqno; readonly type: ResetType; readonly uid: UID}
 export type ResetMerkleRoot = {readonly hashMeta: HashMeta; readonly seqno: Seqno}
@@ -3304,11 +3312,11 @@ export type TeamKBFSKeyRefresher = {readonly generation: Int; readonly appType: 
 export type TeamLegacyTLFUpgradeChainInfo = {readonly keysetHash: TeamEncryptedKBFSKeysetHash; readonly teamGeneration: PerTeamKeyGeneration; readonly legacyGeneration: Int; readonly appType: TeamApplication}
 export type TeamList = {readonly teams?: Array<MemberInfo> | null}
 export type TeamMember = {readonly uid: UID; readonly role: TeamRole; readonly eldestSeqno: Seqno; readonly status: TeamMemberStatus; readonly botSettings?: TeamBotSettings | null}
-export type TeamMemberDetails = {readonly uv: UserVersion; readonly username: String; readonly fullName: FullName; readonly needsPUK: Boolean; readonly status: TeamMemberStatus; readonly joinTime?: Time | null}
+export type TeamMemberDetails = {readonly uv: UserVersion; readonly username: String; readonly fullName: FullName; readonly needsPUK: Boolean; readonly status: TeamMemberStatus; readonly joinTime?: Time | null; readonly role: TeamRole}
 export type TeamMemberOutFromReset = {readonly teamID: TeamID; readonly teamName: String; readonly resetUser: TeamResetUser}
 export type TeamMemberOutReset = {readonly teamID: TeamID; readonly teamname: String; readonly username: String; readonly uid: UID; readonly id: Gregor1.MsgID}
 export type TeamMemberRole = {readonly uid: UID; readonly username: String; readonly fullName: FullName; readonly role: TeamRole}
-export type TeamMemberToRemove = {readonly username: String; readonly email: String; readonly inviteID: TeamInviteID; readonly allowInaction: Boolean}
+export type TeamMemberToRemove = {type: TeamMemberToRemoveType.assertion; assertion: AssertionTeamMemberToRemove} | {type: TeamMemberToRemoveType.inviteid; inviteid: InviteTeamMemberToRemove}
 export type TeamMembers = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null; readonly restrictedBots?: Array<UserVersion> | null}
 export type TeamMembersDetails = {readonly owners?: Array<TeamMemberDetails> | null; readonly admins?: Array<TeamMemberDetails> | null; readonly writers?: Array<TeamMemberDetails> | null; readonly readers?: Array<TeamMemberDetails> | null; readonly bots?: Array<TeamMemberDetails> | null; readonly restrictedBots?: Array<TeamMemberDetails> | null}
 export type TeamName = {readonly parts?: Array<TeamNamePart> | null}
@@ -3321,7 +3329,7 @@ export type TeamOperation = {readonly manageMembers: Boolean; readonly manageSub
 export type TeamPlusApplicationKeys = {readonly id: TeamID; readonly name: String; readonly implicit: Boolean; readonly public: Boolean; readonly application: TeamApplication; readonly writers?: Array<UserVersion> | null; readonly onlyReaders?: Array<UserVersion> | null; readonly onlyRestrictedBots?: Array<UserVersion> | null; readonly applicationKeys?: Array<TeamApplicationKey> | null}
 export type TeamProfileAddEntry = {readonly teamID: TeamID; readonly teamName: TeamName; readonly open: Boolean; readonly disabledReason: String}
 export type TeamRefreshers = {readonly needKeyGeneration: PerTeamKeyGeneration; readonly needApplicationsAtGenerations: {[key: string]: Array<TeamApplication> | null}; readonly needApplicationsAtGenerationsWithKBFS: {[key: string]: Array<TeamApplication> | null}; readonly wantMembers?: Array<UserVersion> | null; readonly wantMembersRole: TeamRole; readonly needKBFSKeyGeneration: TeamKBFSKeyRefresher}
-export type TeamRemoveMembersResult = {readonly failures?: Array<TeamMemberToRemove> | null}
+export type TeamRemoveMembersResult = {readonly failures?: Array<RemoveTeamMemberFailure> | null}
 export type TeamRequestAccessResult = {readonly open: Boolean}
 export type TeamResetUser = {readonly username: String; readonly uid: UID; readonly eldestSeqno: Seqno; readonly isDelete: Boolean}
 export type TeamRoleMapAndVersion = {readonly teams: {[key: string]: TeamRolePair}; readonly version: UserTeamVersion}
@@ -3925,7 +3933,6 @@ export const teamsTeamDeleteRpcSaga = (p: {params: MessageTypes['keybase.1.teams
 export const teamsTeamEditMemberRpcPromise = (params: MessageTypes['keybase.1.teams.teamEditMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamEditMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamEditMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetByIDRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetByID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetByID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetByID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetMembersByIDRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetMembersByID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetMembersByID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetMembersByID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const teamsTeamGetMembersRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetMembers']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetMembers']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetMembers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetRpcPromise = (params: MessageTypes['keybase.1.teams.teamGet']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGet']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGet', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamIgnoreRequestRpcPromise = (params: MessageTypes['keybase.1.teams.teamIgnoreRequest']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamIgnoreRequest']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamIgnoreRequest', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamLeaveRpcPromise = (params: MessageTypes['keybase.1.teams.teamLeave']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamLeave']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamLeave', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4334,7 +4341,6 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.streamUi.reset'
 // 'keybase.1.streamUi.write'
 // 'keybase.1.teams.teamCreateWithSettings'
-// 'keybase.1.teams.teamImplicitAdmins'
 // 'keybase.1.teams.teamListTeammates'
 // 'keybase.1.teams.teamListVerified'
 // 'keybase.1.teams.teamListSubteamsRecursive'
@@ -4363,6 +4369,7 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.teams.profileTeamLoad'
 // 'keybase.1.teams.getTeamName'
 // 'keybase.1.teams.ftl'
+// 'keybase.1.teams.getAnnotatedTeamByName'
 // 'keybase.1.teamsUi.confirmRootTeamDelete'
 // 'keybase.1.teamsUi.confirmSubteamDelete'
 // 'keybase.1.teamsUi.confirmInviteLinkAccept'

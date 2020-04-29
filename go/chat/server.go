@@ -1695,17 +1695,10 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 			h.Debug(ctx, "DeleteConversationLocal: result obtained offline")
 		}
 	}()
-	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
-
-	return h.deleteConversationLocal(ctx, arg)
-}
-
-// deleteConversationLocal contains the functionality of
-// DeleteConversationLocal split off for easier testing.
-func (h *Server) deleteConversationLocal(ctx context.Context, arg chat1.DeleteConversationLocalArg) (res chat1.DeleteConversationLocalRes, err error) {
 	ui := h.getChatUI(arg.SessionID)
 	confirmed := arg.Confirmed
 	if !confirmed {
@@ -1720,9 +1713,7 @@ func (h *Server) deleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 	if !confirmed {
 		return res, errors.New("channel delete unconfirmed")
 	}
-
-	_, err = h.remoteClient().DeleteConversation(ctx, arg.ConvID)
-	if err != nil {
+	if err := h.G().InboxSource.RemoteDeleteConversation(ctx, uid, arg.ConvID); err != nil {
 		return res, err
 	}
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
@@ -2731,94 +2722,18 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 	if err != nil {
 		return err
 	}
-	if len(arg.Usernames) == 0 {
-		return fmt.Errorf("Unable to BulkAddToConv, no users specified")
-	}
-
-	rc, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
-	if err != nil {
-		return err
-	}
-	conv := rc.Conv
-	mt := conv.Metadata.MembersType
-	switch mt {
-	case chat1.ConversationMembersType_TEAM:
-	default:
-		return fmt.Errorf("BulkAddToConv only available to TEAM conversations. Found %v conv", mt)
-	}
-
-	info, err := CreateNameInfoSource(ctx, h.G(), mt).LookupName(
-		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC, "")
-	if err != nil {
-		return err
-	}
-
-	boxer := NewBoxer(h.G())
-	sender := NewBlockingSender(h.G(), boxer, h.remoteClient)
-
-	usernamesToAdd := arg.Usernames
-	toExclude := make(map[keybase1.UID]bool)
-
-	// retry the add a few times to prevent races. Each time we remove members that are already part of the conversation.
-	for i := 0; i < 4 && len(usernamesToAdd) > 0; i++ {
-		h.Debug(ctx, "BulkAddToConv: trying to add %v", usernamesToAdd)
-		err = sendBulkAddToConv(ctx, sender, usernamesToAdd, arg.ConvID, info)
-		switch e := err.(type) {
-		case nil:
-			return nil
-		case libkb.ChatUsersAlreadyInConversationError:
-			// remove the usernames which are already part of the conversation and retry
-			for _, uid := range e.Uids {
-				toExclude[uid] = true
-			}
-			var usernamesToRetry []string
-			for _, username := range usernamesToAdd {
-				if !toExclude[libkb.UsernameToUID(username)] {
-					usernamesToRetry = append(usernamesToRetry, username)
-				}
-			}
-			usernamesToAdd = usernamesToRetry
-			if len(usernamesToRetry) == 0 {
-				// don't let this bubble up if everyone is already in the channel
-				err = nil
-			}
-		default:
-			return e
-		}
-	}
-	return err
-}
-
-func sendBulkAddToConv(ctx context.Context, sender *BlockingSender, usernames []string, convID chat1.ConversationID, info types.NameInfo) (err error) {
-	subBody := chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
-		Usernames: usernames,
-	})
-	body := chat1.NewMessageBodyWithSystem(subBody)
-	msg := chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			TlfName:     info.CanonicalName,
-			MessageType: chat1.MessageType_SYSTEM,
-		},
-		MessageBody: body,
-	}
-	status := chat1.ConversationMemberStatus_ACTIVE
-	_, _, err = sender.Send(ctx, convID, msg, 0, nil, &chat1.SenderSendOptions{
-		JoinMentionsAs: &status,
-	}, nil)
-	return err
+	return h.G().ChatHelper.BulkAddToConv(ctx, uid, arg.ConvID, arg.Usernames)
 }
 
 func (h *Server) BulkAddToManyConvs(ctx context.Context, arg chat1.BulkAddToManyConvsArg) (err error) {
-	for _, conv := range arg.Conversations {
-		err = h.BulkAddToConv(ctx, chat1.BulkAddToConvArg{
-			ConvID:    conv,
+	for _, convID := range arg.Conversations {
+		if err = h.BulkAddToConv(ctx, chat1.BulkAddToConvArg{
+			ConvID:    convID,
 			Usernames: arg.Usernames,
-		})
-		if err != nil {
+		}); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -2979,7 +2894,7 @@ func (h *Server) AdvertiseBotCommandsLocal(ctx context.Context, arg chat1.Advert
 	return res, nil
 }
 
-func (h *Server) ClearBotCommandsLocal(ctx context.Context) (res chat1.ClearBotCommandsLocalRes, err error) {
+func (h *Server) ClearBotCommandsLocal(ctx context.Context, filter *chat1.ClearBotCommandsFilter) (res chat1.ClearBotCommandsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, &err, "ClearBotCommandsLocal")()
@@ -2988,7 +2903,7 @@ func (h *Server) ClearBotCommandsLocal(ctx context.Context) (res chat1.ClearBotC
 	if err != nil {
 		return res, err
 	}
-	if err := h.G().BotCommandManager.Clear(ctx); err != nil {
+	if err := h.G().BotCommandManager.Clear(ctx, filter); err != nil {
 		return res, err
 	}
 	return res, nil

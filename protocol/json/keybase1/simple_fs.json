@@ -1544,7 +1544,12 @@
       "response": "FolderWithFavFlags"
     },
     "simpleFSGetOnlineStatus": {
-      "request": [],
+      "request": [
+        {
+          "name": "clientID",
+          "type": "string"
+        }
+      ],
       "response": "KbfsOnlineStatus"
     },
     "simpleFSCheckReachability": {
@@ -1627,6 +1632,10 @@
           ]
         },
         {
+          "name": "clientID",
+          "type": "string"
+        },
+        {
           "name": "subscriptionID",
           "type": "string"
         },
@@ -1655,6 +1664,10 @@
           ]
         },
         {
+          "name": "clientID",
+          "type": "string"
+        },
+        {
           "name": "subscriptionID",
           "type": "string"
         },
@@ -1677,6 +1690,10 @@
             null,
             "TLFIdentifyBehavior"
           ]
+        },
+        {
+          "name": "clientID",
+          "type": "string"
         },
         {
           "name": "subscriptionID",

@@ -14,6 +14,7 @@ export type Props = {
   firstItem: boolean
   following: boolean
   fullName: string
+  needsPUK: boolean
   onBlock: () => void
   onChat: () => void
   onClick: () => void
@@ -66,6 +67,8 @@ export const TeamMemberRow = (props: Props) => {
     if (props.status === 'deleted') {
       resetLabel = 'Has deleted their account'
     }
+  } else if (props.needsPUK) {
+    resetLabel = ' • Needs to update Keybase'
   }
 
   const roleLabel = !!active && !!props.roleType && typeToLabel[props.roleType]
@@ -214,7 +217,7 @@ export const TeamMemberRow = (props: Props) => {
       </Kb.Box2>
     )
 
-    const canEnterMemberPage = props.youCanManageMembers && active
+    const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
     const massActionsProps = props.youCanManageMembers
       ? {
           containerStyleOverride: styles.listItemMargin,
