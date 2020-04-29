@@ -604,9 +604,6 @@ def testGoTestSuite(prefix, packagesToTest) {
         flags: '-race',
         timeout: '30s',
       ],
-      'github.com/keybase/client/go/systests': [
-        // citogo_extra: '-parallel=8', TODO: re-enable later
-      ],
     ],
     test_windows_go_: [
       '*': [],
@@ -670,18 +667,27 @@ def testGoTestSuite(prefix, packagesToTest) {
         def spec
 
         // Concurrency hack
-        lock("${env.BUILD_TAG}-compiling") {
-          if (packageTestList.size() == i) {
+        def lockID = "${env.BUILD_TAG}-compiling"
+        lock(lockID) {
+          println "Inside lock ${lockID}, i=${i}"
+          if (packageTestList.size() <= i) {
+            println "Past the size of the list, setting done=true (${lockID})"
             done = true
           } else {
-            def pkg = packageTestList.getAt(i)
+            println "Getting pkg (${lockID})"
+            def pkg = packageTestList[i]
+            println "Getting spec for pkg ${pkg} (${lockID})"
             spec = allTestSpecs[pkg]
+            println "Incrementing i from ${i} (${lockID})"
             i++
           }
         }
+        println "Outside lock ${lockID}, i=${i}"
         if (done) {
+          println "Done step ${lockID}"
           break
         }
+        println "Running closure ${testSpec.pkg}"
         testSpec.closure()
       }
     }
