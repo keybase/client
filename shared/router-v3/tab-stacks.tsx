@@ -41,7 +41,7 @@ const defaultScreenOptions: StackNavigationOptions = {
   headerRight: undefined,
   headerStyle: {
     get backgroundColor() {
-      return Styles.globalColors.fastBlank
+      return Styles.globalColors.white
     },
     get borderBottomColor() {
       return Styles.globalColors.black_10
@@ -49,6 +49,7 @@ const defaultScreenOptions: StackNavigationOptions = {
     borderBottomWidth: 1,
     borderStyle: 'solid',
     elevation: undefined, // since we use screen on android turn off drop shadow
+    height: 64, // MUST be height else the card won't figure out the size
   },
   headerTitle: ({children}) => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
