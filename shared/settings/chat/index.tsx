@@ -284,31 +284,32 @@ class Chat extends React.Component<Props, State> {
                 selected={this._getUnfurlMode() === RPCChatTypes.UnfurlMode.whitelisted}
                 disabled={this.props.unfurlMode === undefined}
               />
-              {this._getUnfurlWhitelist(false).map((w, idx) => {
-                const wlremoved = this._isUnfurlWhitelistRemoved(w)
-                return (
-                  <React.Fragment key={w}>
-                    {idx !== 0 && <Kb.Divider style={styles.whitelistDivider} />}
-                    <Kb.Box2
-                      fullWidth={true}
-                      direction="horizontal"
-                      style={Styles.collapseStyles([
-                        wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
-                        styles.whitelistRowContainer,
-                      ])}
-                    >
-                      <Kb.Text type="BodySemibold">{w}</Kb.Text>
-                      <Kb.Text
-                        type="BodyPrimaryLink"
-                        style={wlremoved ? {color: Styles.globalColors.whiteOrWhite} : undefined}
-                        onClick={() => this._toggleUnfurlWhitelist(w)}
+              {this._getUnfurlMode() === RPCChatTypes.UnfurlMode.whitelisted &&
+                this._getUnfurlWhitelist(false).map((w, idx) => {
+                  const wlremoved = this._isUnfurlWhitelistRemoved(w)
+                  return (
+                    <React.Fragment key={w}>
+                      {idx !== 0 && <Kb.Divider style={styles.whitelistDivider} />}
+                      <Kb.Box2
+                        fullWidth={true}
+                        direction="horizontal"
+                        style={Styles.collapseStyles([
+                          wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
+                          styles.whitelistRowContainer,
+                        ])}
                       >
-                        {wlremoved ? 'Restore' : 'Remove'}
-                      </Kb.Text>
-                    </Kb.Box2>
-                  </React.Fragment>
-                )
-              })}
+                        <Kb.Text type="BodySemibold">{w}</Kb.Text>
+                        <Kb.Text
+                          type="BodyPrimaryLink"
+                          style={wlremoved ? {color: Styles.globalColors.whiteOrWhite} : undefined}
+                          onClick={() => this._toggleUnfurlWhitelist(w)}
+                        >
+                          {wlremoved ? 'Restore' : 'Remove'}
+                        </Kb.Text>
+                      </Kb.Box2>
+                    </React.Fragment>
+                  )
+                })}
               <Kb.RadioButton
                 key="rbnever"
                 label="Never"
