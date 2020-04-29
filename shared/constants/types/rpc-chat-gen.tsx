@@ -1423,6 +1423,8 @@ export type RemoteClearBotCommandsFilterPublic = {}
 export type RemoteClearBotCommandsFilterTLFID = {readonly tlfID: TLFID}
 export type RemoteUserTypingUpdate = {readonly uid: Gregor1.UID; readonly deviceID: Gregor1.DeviceID; readonly convID: ConversationID; readonly typing: Boolean; readonly t: /* teamType */ TeamType}
 export type RemoveEmojiRes = {readonly rateLimit?: RateLimit | null}
+export type RemoveFromConversationLocalRes = {readonly rateLimits?: Array<RateLimit> | null}
+export type RemoveFromConversationRemoteRes = {readonly rateLimit?: RateLimit | null}
 export type ResetConvMember = {readonly username: String; readonly uid: Gregor1.UID; readonly conv: ConversationID}
 export type ResetConvMemberAPI = {readonly conversationID: ConvIDStr; readonly username: String}
 export type ResetConversationMember = {readonly convID: ConversationID; readonly uid: Gregor1.UID}
@@ -1814,6 +1816,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.postFileAttachmentLocal'
 // 'chat.1.local.DownloadAttachmentLocal'
 // 'chat.1.local.joinConversationLocal'
+// 'chat.1.local.removeFromConversationLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
 // 'chat.1.local.loadFlip'
@@ -1874,6 +1877,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.remote.leaveConversation'
 // 'chat.1.remote.previewConversation'
 // 'chat.1.remote.deleteConversation'
+// 'chat.1.remote.removeFromConversation'
 // 'chat.1.remote.getMessageBefore'
 // 'chat.1.remote.getTLFConversations'
 // 'chat.1.remote.setAppNotificationSettings'

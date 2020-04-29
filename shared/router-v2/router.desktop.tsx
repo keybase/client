@@ -165,6 +165,13 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
 
   let modal: React.ReactNode = null
 
+  const modalModeToStyle = new Map<ModalType, Styles.StylesCrossPlatform>([
+    ['Default', styles.modalModeDefault],
+    ['DefaultFullHeight', styles.modalModeDefaultFullHeight],
+    ['DefaultFullWidth', styles.modalModeDefaultFullWidth],
+    ['Wide', styles.modalModeWide],
+  ])
+
   if (index > 0) {
     if (modal2) {
       modal = (
@@ -450,99 +457,91 @@ const createElectronApp = (Component: any) => {
 
 const ElectronApp: any = createElectronApp(RootStackNavigator)
 
-const modalModeCommon = Styles.platformStyles({
-  isElectron: {
-    ...Styles.desktopStyles.boxShadow,
-    backgroundColor: Styles.globalColors.white,
-    borderRadius: Styles.borderRadius,
-    pointerEvents: 'auto',
-    position: 'relative',
-  },
-})
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      contentArea: {
+const styles = Styles.styleSheetCreate(() => {
+  const modalModeCommon = Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.boxShadow,
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: Styles.borderRadius,
+      pointerEvents: 'auto',
+      position: 'relative',
+    },
+  })
+  return {
+    contentArea: {
+      flexGrow: 1,
+      position: 'relative',
+    },
+    contentAreaLogin: Styles.platformStyles({
+      isElectron: {
         flexGrow: 1,
         position: 'relative',
       },
-      contentAreaLogin: Styles.platformStyles({
-        isElectron: {
-          flexGrow: 1,
-          position: 'relative',
-        },
-        isMobile: {
-          flexGrow: 1,
-          position: 'relative',
-        },
-      }),
-      modal2AvoidTabs: Styles.platformStyles({
-        isElectron: {
-          backgroundColor: undefined,
-          height: 0,
-          pointerEvents: 'none',
-        },
-      }),
-      modal2ClearCover: {backgroundColor: undefined},
-      modal2CloseIcon: Styles.platformStyles({
-        isElectron: {
-          cursor: 'pointer',
-          padding: Styles.globalMargins.tiny,
-          position: 'absolute',
-          right: Styles.globalMargins.tiny * -4,
-          top: 0,
-        },
-      }),
-      modal2Container: {
-        ...Styles.globalStyles.fillAbsolute,
-        backgroundColor: Styles.globalColors.black_50OrBlack_60,
+      isMobile: {
+        flexGrow: 1,
+        position: 'relative',
       },
-      modal2Style: Styles.platformStyles({
-        isElectron: {flexGrow: 1, pointerEvents: 'none'},
-      }),
-      modalContainer: {
-        ...Styles.globalStyles.fillAbsolute,
+    }),
+    modal2AvoidTabs: Styles.platformStyles({
+      isElectron: {
+        backgroundColor: undefined,
+        height: 0,
+        pointerEvents: 'none',
       },
-      modalModeDefault: Styles.platformStyles({
-        common: {...modalModeCommon},
-        isElectron: {
-          maxHeight: 560,
-          width: 400,
-        },
-      }),
-      modalModeDefaultFullHeight: Styles.platformStyles({
-        common: {...modalModeCommon},
-        isElectron: {
-          height: 560,
-          width: 400,
-        },
-      }),
-      modalModeDefaultFullWidth: Styles.platformStyles({
-        common: {...modalModeCommon},
-        isElectron: {
-          height: 560,
-          width: '100%',
-        },
-      }),
-      modalModeWide: Styles.platformStyles({
-        common: {...modalModeCommon},
-        isElectron: {
-          height: 400,
-          width: 560,
-        },
-      }),
-      sceneContainer: {flexDirection: 'column'},
-      transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
-    } as const)
-)
+    }),
+    modal2ClearCover: {backgroundColor: undefined},
+    modal2CloseIcon: Styles.platformStyles({
+      isElectron: {
+        cursor: 'pointer',
+        padding: Styles.globalMargins.tiny,
+        position: 'absolute',
+        right: Styles.globalMargins.tiny * -4,
+        top: 0,
+      },
+    }),
+    modal2Container: {
+      ...Styles.globalStyles.fillAbsolute,
+      backgroundColor: Styles.globalColors.black_50OrBlack_60,
+    },
+    modal2Style: Styles.platformStyles({
+      isElectron: {flexGrow: 1, pointerEvents: 'none'},
+    }),
+    modalContainer: {
+      ...Styles.globalStyles.fillAbsolute,
+    },
+    modalModeDefault: Styles.platformStyles({
+      common: {...modalModeCommon},
+      isElectron: {
+        maxHeight: 560,
+        width: 400,
+      },
+    }),
+    modalModeDefaultFullHeight: Styles.platformStyles({
+      common: {...modalModeCommon},
+      isElectron: {
+        height: 560,
+        width: 400,
+      },
+    }),
+    modalModeDefaultFullWidth: Styles.platformStyles({
+      common: {...modalModeCommon},
+      isElectron: {
+        height: 560,
+        width: '100%',
+      },
+    }),
+    modalModeWide: Styles.platformStyles({
+      common: {...modalModeCommon},
+      isElectron: {
+        height: 400,
+        width: 560,
+      },
+    }),
+    sceneContainer: {flexDirection: 'column'},
+    transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
+  } as const
+})
 
 type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide'
-
-const modalModeToStyle = new Map<ModalType, Styles.StylesCrossPlatform>([
-  ['Default', styles.modalModeDefault],
-  ['DefaultFullHeight', styles.modalModeDefaultFullHeight],
-  ['DefaultFullWidth', styles.modalModeDefaultFullWidth],
-  ['Wide', styles.modalModeWide],
-])
 
 export default ElectronApp

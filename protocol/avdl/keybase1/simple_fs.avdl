@@ -521,7 +521,7 @@ protocol SimpleFS {
     TRYING_1,
     ONLINE_2
   }
-  KbfsOnlineStatus simpleFSGetOnlineStatus();
+  KbfsOnlineStatus simpleFSGetOnlineStatus(string clientID);
 
   // This is called when GUI learns about a OS level network status change, and
   // causes mdserver_remote to check reachability with a Dial. Then it either
@@ -580,12 +580,26 @@ protocol SimpleFS {
     STAT_1
   }
 
-  // Caller needs to make sure subscriptionID is unique. Notifications are
-  // delivered through notify_fs.
-  void simpleFSSubscribePath(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID, string kbfsPath, PathSubscriptionTopic topic, int deduplicateIntervalSecond);
-  void simpleFSSubscribeNonPath(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID, SubscriptionTopic topic, int deduplicateIntervalSecond);
+  // Caller needs to make sure subscriptionID is unique.
+  //
+  // Notifications are delivered through notify_fs. It's OK to subscribe on the
+  // same thing multiple times as long as subscriptionIDs are unique.
+  //
+  // Caller should pass in a clientID that's consistent within a single run.
+  // For example, all GUI calls should use the same clientID that can be
+  // randomly generated when the app starts.
+  //
+  // ClientIDs are included in the notification so caller can verify if
+  // the notification is for them or not.
+  //
+  // We only keep subscriptions for up to 3 clientIDs, to avoid sending
+  // unnecessary notifications for dead clients.
+  void simpleFSSubscribePath(union{ null, TLFIdentifyBehavior }
+  identifyBehavior, string clientID, string subscriptionID, string kbfsPath,
+  PathSubscriptionTopic topic, int deduplicateIntervalSecond);
+  void simpleFSSubscribeNonPath(union{ null, TLFIdentifyBehavior } identifyBehavior, string clientID, string subscriptionID, SubscriptionTopic topic, int deduplicateIntervalSecond);
 
-  void simpleFSUnsubscribe(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID);
+  void simpleFSUnsubscribe(union{ null, TLFIdentifyBehavior } identifyBehavior, string clientID, string subscriptionID);
 
   record DownloadInfo {
     string downloadID;

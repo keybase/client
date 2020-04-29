@@ -103,7 +103,7 @@ export const TeamMemberRow = (props: Props) => {
 
         <Kb.Box2 direction="vertical" style={styles.nameContainer}>
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-            <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} />
+            <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} colorFollowing={true} />
           </Kb.Box>
 
           <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">

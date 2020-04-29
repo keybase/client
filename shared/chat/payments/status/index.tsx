@@ -145,11 +145,15 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.purple_10OrPurple,
         borderRadius: Styles.globalMargins.xxtiny,
         color: Styles.globalColors.purpleDarkOrWhite,
+        paddingLeft: Styles.globalMargins.xtiny,
+        paddingRight: Styles.globalMargins.xtiny,
       },
       completed: {
         backgroundColor: Styles.globalColors.purple_10OrPurple,
         borderRadius: Styles.globalMargins.xxtiny,
         color: Styles.globalColors.purpleDarkOrWhite,
+        paddingLeft: Styles.globalMargins.xtiny,
+        paddingRight: Styles.globalMargins.xtiny,
       },
       container: Styles.platformStyles({
         isElectron: {
@@ -160,6 +164,8 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.red_10OrRed,
         borderRadius: Styles.globalMargins.xxtiny,
         color: Styles.globalColors.redDarkOrWhite,
+        paddingLeft: Styles.globalMargins.xtiny,
+        paddingRight: Styles.globalMargins.xtiny,
       },
       iconBoxStyle: Styles.platformStyles({
         isElectron: {
@@ -170,6 +176,8 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.greyLight,
         borderRadius: Styles.globalMargins.xxtiny,
         color: Styles.globalColors.black_50OrWhite,
+        paddingLeft: Styles.globalMargins.xtiny,
+        paddingRight: Styles.globalMargins.xtiny,
       },
     } as const)
 )

@@ -390,6 +390,7 @@ func TestTeamPlayerEtime(t *testing.T) {
 		require.Contains(t, err.Error(), inviteID)
 	}
 
+	// Try a valid etime
 	etime := keybase1.ToUnixTime(time.Now())
 	invite.Etime = &etime
 	invite.MaxUses = &singleUse
@@ -403,6 +404,18 @@ func TestTeamPlayerEtime(t *testing.T) {
 	require.Len(t, state.ActiveInvites(), 1)
 	_, found := state.FindActiveInviteMDByID(keybase1.TeamInviteID(inviteID))
 	require.True(t, found)
+
+	// Can use Etime without MaxUses?
+	// This is allowed in the sigchain player but not the server. See
+	// `TestTeamPlayerBadUsedInvites` for another invites like that.
+	invite.Etime = &etime
+	invite.MaxUses = nil
+	section.Invites = &SCTeamInvites{
+		Readers: &[]SCTeamInvite{invite},
+	}
+	_, err = appendSigToState(t, team, nil /* state */, libkb.LinkTypeInvite,
+		section, me, nil /* merkleRoot */)
+	require.NoError(t, err)
 }
 
 func TestTeamPlayerInviteLinksImplicitTeam(t *testing.T) {
@@ -549,16 +562,29 @@ func TestTeamPlayerBadUsedInvites(t *testing.T) {
 
 	testUV := keybase1.UserVersion{Uid: libkb.UsernameToUID("t_alice_t"), EldestSeqno: 1}
 
-	// Seitan invite without `max_uses` or `etime`.
-	scInvite1 := makeTestSCForInviteLink()
-
-	// Seitan invite with `etime`.
-	scInvite2 := makeTestSCForInviteLink()
 	etime := keybase1.ToUnixTime(time.Now())
-	scInvite2.Etime = &etime
+	testInvites := []SCTeamInvite{
+		// Seitan invite link invite without `max_uses` or `etime`. (not
+		// possible on the real server)
+		makeTestSCForInviteLink(),
+		// Rooter invite, also no `max_uses` or `etime`.
+		{
+			Type: "rooter",
+			Name: keybase1.TeamInviteName("alice"),
+			ID:   NewInviteID(),
+		},
+		// Rooter invite with `etime` - not allowed by the server right now,
+		// but allowed by sigchain player.
+		{
+			Type:  "rooter",
+			Name:  keybase1.TeamInviteName("alice"),
+			ID:    NewInviteID(),
+			Etime: &etime,
+		},
+	}
 
 	teamSectionForInvite := makeTestSCTeamSection(team)
-	for _, scInvite := range []SCTeamInvite{scInvite1, scInvite2} {
+	for _, scInvite := range testInvites {
 		inviteID := scInvite.ID
 		teamSectionForInvite.Invites = &SCTeamInvites{
 			Readers: &[]SCTeamInvite{scInvite},
@@ -726,7 +752,7 @@ func TestTeamPlayerExhaustedMaxUses(t *testing.T) {
 			}
 		}
 
-		require.Len(t, state.inner.InviteMetadatas[keybase1.TeamInviteID(inviteID)].UsedInvites, 1)
+		require.Len(t, state.inner.InviteMetadatas[inviteID].UsedInvites, 1)
 		require.Len(t, state.GetAllUVs(), 2) // team creator and one person added in loop above
 	}
 }
