@@ -118,7 +118,7 @@ const TeamRequestRowNew = (props: Props) => {
         <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={username} />
-            <Kb.Box2 direction="horizontal">
+            <Kb.Box2 direction="horizontal" alignSelf="flex-start">
               {(isNew || reset) && (
                 <Kb.Meta
                   title={reset ? 'locked out' : 'please decide'}
