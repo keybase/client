@@ -661,7 +661,7 @@ def testGoTestSuite(prefix, packagesToTest) {
   def i = 0
   def workers = [:]
   for (n in (1..8)) {
-    workers[n] = {
+    workers["worker_${n}"] = {
       def done = false
       for (; !done;) {
         def spec
@@ -682,6 +682,7 @@ def testGoTestSuite(prefix, packagesToTest) {
             i++
             println "Incremented i to ${i} (${lockID})"
           }
+          println "Leaving lock ${lockID}, i=${i}"
         }
         println "Outside lock ${lockID}, i=${i}"
         if (done) {
