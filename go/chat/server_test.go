@@ -7938,13 +7938,18 @@ func TestTeamBotChannelMembership(t *testing.T) {
 
 		pollForSeqno := func(expectedSeqno keybase1.Seqno) {
 			found := false
+			timeout := time.After(30 * time.Second)
 			for !found {
 				select {
 				case teamChange := <-listener.teamChangedByID:
 					found = teamChange.TeamID == teamID &&
 						teamChange.LatestSeqno == expectedSeqno
-				case <-time.After(20 * time.Second):
-					require.Fail(t, "no event received")
+					if !found {
+						t.Logf("Got teamChangedByID, but not one we are looking for: %s", spew.Sdump(teamChange))
+					}
+				case <-timeout:
+					require.Failf(t, "teamChangedByID not received",
+						"team id: %s, waiting for seqno: %d", teamID, expectedSeqno)
 				}
 			}
 		}
@@ -7958,6 +7963,8 @@ func TestTeamBotChannelMembership(t *testing.T) {
 			BotSettings: &keybase1.TeamBotSettings{},
 		})
 		require.NoError(t, err)
+		// AddBotMember should have posted two links: change_membership and bot_settings. Wait
+		// for seqno=3.
 		pollForSeqno(3)
 		consumeMembersUpdate(t, listener)
 		consumeMembersUpdate(t, listener)
@@ -7989,7 +7996,9 @@ func TestTeamBotChannelMembership(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		pollForSeqno(5)
+		// `EditBotMember` should have posted two links: change_membership and bot_settings. Wait
+		// for seqno=6.
+		pollForSeqno(6)
 		consumeMembersUpdate(t, listener)
 		consumeMembersUpdate(t, listener)
 		consumeMembersUpdate(t, botuaListener2)
