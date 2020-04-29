@@ -611,7 +611,7 @@ func runRotate(t *testing.T, createTeamEK bool) {
 	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_WRITER)
 
 	bob.revokePaperKey()
-	ann.waitForRotateByID(teamID, keybase1.Seqno(3))
+	ann.waitForAnyRotateByID(teamID, keybase1.Seqno(2) /* toSeqno */, keybase1.Seqno(1) /* toHiddenSeqno */)
 
 	storage := annMctx.G().GetTeamEKBoxStorage()
 	teamEK, err := storage.Get(annMctx, teamID, expectedGeneration, nil)

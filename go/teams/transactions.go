@@ -1246,9 +1246,10 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 
+	// nextSeqno-1 should be the sequence number of last link that we sent.
 	err = team.notify(mctx.Ctx(), keybase1.TeamChangeSet{MembershipChanged: true}, nextSeqno-1)
 	if err != nil {
-		return err
+		mctx.Warning("Failed to send team change notification: %s", err)
 	}
 
 	team.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)

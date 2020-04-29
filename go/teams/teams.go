@@ -738,7 +738,9 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 		mctx.Warning("Failed to ratchet forward team chain: %s", tmp.Error())
 	}
 
-	// We rotated the key but didn't change the visibile chain
+	// We rotated the key but didn't change the visibile chain.
+	// TODO: We should be able to send a local notification here with
+	// new hidden chain seqno.
 	return t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{KeyRotated: true})
 }
 
@@ -2678,7 +2680,7 @@ func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet, lates
 		err = HintLatestSeqno(m, t.ID, latestSeqno)
 	}
 	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), latestSeqno, t.IsImplicit(),
-		changes, keybase1.Seqno(0), keybase1.Seqno(0), keybase1.TeamChangedSource_LOCAL)
+		changes, keybase1.Seqno(0) /* hiddenSeqno */, keybase1.Seqno(0) /* offchainSeqno */, keybase1.TeamChangedSource_LOCAL)
 	return err
 }
 
