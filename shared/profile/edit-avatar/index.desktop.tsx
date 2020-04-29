@@ -340,11 +340,12 @@ class EditAvatar extends React.Component<Props, State> {
           allowOverflow={true}
           footer={{
             content: (
-              <Kb.Button
+              <Kb.WaitingButton
                 fullWidth={true}
-                label="Continue"
+                label={this.props.wizard ? 'Continue' : 'Save'}
                 onClick={this.onSave}
                 disabled={!this.state.hasPreview}
+                waitingKey={null}
               />
             ),
           }}

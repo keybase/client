@@ -31,10 +31,10 @@ const TeamInfo = (props: Props) => {
     (description === teamDetails.description && newName === _leafName) || newName.length < 3
   const waiting = Container.useAnyWaiting(Constants.teamWaitingKey(teamID), Constants.teamRenameWaitingKey)
 
-  const errors = [
-    ['rename', Container.useAnyErrors(Constants.teamRenameWaitingKey)?.message],
-    ['desc', Container.useSelector(state => state.teams.errorInEditDescription)],
-  ]
+  const errors = {
+    desc: Container.useSelector(state => state.teams.errorInEditDescription),
+    rename: Container.useAnyErrors(Constants.teamRenameWaitingKey)?.message,
+  }
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onSave = () => {
@@ -56,7 +56,7 @@ const TeamInfo = (props: Props) => {
       mode="DefaultFullHeight"
       onClose={onBack}
       header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
+        leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : undefined,
         title: <ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />,
       }}
       footer={{
@@ -70,11 +70,11 @@ const TeamInfo = (props: Props) => {
           />
         ),
       }}
-      banners={errors
-        .filter(e => !!e[1])
-        .map(e => (
-          <Kb.Banner color="red" key={e[0]}>
-            {e[1]!}
+      banners={Object.keys(errors)
+        .filter(k => !!errors[k])
+        .map(k => (
+          <Kb.Banner color="red" key={k}>
+            {errors[k]!}
           </Kb.Banner>
         ))}
       allowOverflow={true}
