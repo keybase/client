@@ -27,8 +27,8 @@ func init() {
 const (
 	minScoringMinutes = 1           // one minute
 	maxScoringMinutes = 7 * 24 * 60 // one week
-	frequencyWeight   = 1
-	mtimeWeight       = 2
+	frequencyWeight   = 2
+	mtimeWeight       = 1
 	reacjiDiskVersion = 3
 )
 

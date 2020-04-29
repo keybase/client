@@ -164,7 +164,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyService.handleKeybaseLink': {
-    inParam: {readonly link: String}
+    inParam: {readonly link: String; readonly deferred: Boolean}
     outParam: void
   }
   'keybase.1.NotifyService.shutdown': {

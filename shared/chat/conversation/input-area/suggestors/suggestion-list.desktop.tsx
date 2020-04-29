@@ -2,7 +2,9 @@ import * as React from 'react'
 import ReactList from 'react-list'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {Props} from './suggestion-list'
+import {BotCommandUpdateStatus} from '../normal/shared'
 
 class SuggestionList extends React.Component<Props> {
   private listRef = React.createRef<ReactList>()
@@ -36,6 +38,12 @@ class SuggestionList extends React.Component<Props> {
             type="uniform"
           />
         </Kb.ScrollView>
+        {this.props.suggestBotCommandsUpdateStatus &&
+          this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank && (
+            <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
+              <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
+            </Kb.Box2>
+          )}
       </Kb.Box2>
     )
   }
@@ -44,6 +52,11 @@ class SuggestionList extends React.Component<Props> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      commandStatusContainer: {
+        backgroundColor: Styles.globalColors.white,
+        justifyContent: 'center',
+        ...Styles.padding(Styles.globalMargins.xxtiny, 0),
+      },
       fullHeight: {height: '100%'},
       listContainer: {backgroundColor: Styles.globalColors.white, borderRadius: 4, maxHeight: 224},
     } as const)

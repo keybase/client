@@ -1,13 +1,9 @@
 package service
 
 import (
-	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 )
 
 type StringReceiver interface {
@@ -39,47 +35,16 @@ func (c installReferrerHandler) CallbackWithString(s string) {
 		}
 	}()
 
-	// TODO remove this log line before the feature is released: invite links
-	// are sensitive and we do not want to log them.
-	m.Warning("installReferrerHandler InstallReferrerListener got %v", s)
-
-	// This could be expanded to all sorts of deferred deep links, not just
-	// invite links.
-	inviteKey, found, err := parseInstallReferrer(s)
-	if err != nil {
-		m.Warning("Error in parseInstallReferrer: %v", err)
-		return
-	}
-	if !found {
-		m.Debug("installReferrerHandler#CallbackWithString: invite not found")
-		return
-	}
-
 	m.Debug("Waiting for the GUI to be ready to receive notifications")
 	if !c.G().UIRouter.WaitForUIType(libkb.HomeUIKind, 30*time.Second) {
 		c.M().Debug("Dropping notification of referrer information: GUI did not connect in time")
 		return
 	}
 	m.Debug("Notifying GUI of deferred deep invite link")
-	c.G().NotifyRouter.HandleHandleKeybaseLink(c.M().Ctx(), "keybase://invite/"+string(inviteKey))
+	c.G().NotifyRouter.HandleHandleKeybaseLink(c.M().Ctx(), s, true)
 }
 
 var _ StringReceiver = installReferrerHandler{}
-
-var installReferrerLinkRegExp = regexp.MustCompile("invite\\%3D([" + teams.KBase30EncodeStd + "\\+]+)")
-
-func parseInstallReferrer(s string) (key keybase1.SeitanIKeyInvitelink, found bool, err error) {
-	matches := installReferrerLinkRegExp.FindStringSubmatch(s)
-	switch len(matches) {
-	case 0:
-		// invite link key not found
-		return "", false, nil
-	case 2:
-		return keybase1.SeitanIKeyInvitelink(matches[1]), true, nil
-	default:
-		return "", false, fmt.Errorf("Could not parse install referrer for seitan invite link: got %v matches", len(matches))
-	}
-}
 
 func (d *Service) startInstallReferrerListener(m libkb.MetaContext) {
 	m = m.WithLogTag("IRL")

@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import {formatDurationShort} from '../../../../util/timestamp'
@@ -11,7 +10,6 @@ import WalletsIcon from './wallets-icon/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
-import {BotCommandUpdateStatus} from './shared'
 import {indefiniteArticle} from '../../../../util/string'
 import {EmojiPickerDesktop} from '../../messages/react-button/emoji-picker/container'
 
@@ -183,12 +181,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
         onKeyDown={this._globalKeyDownPressHandler}
         onKeyPress={this._globalKeyDownPressHandler}
       >
-        {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank &&
-          (this.props.suggestionsVisible ||
-            this.props.suggestBotCommandsUpdateStatus ===
-              RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating) && (
-            <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
-          )}
         <Kb.Box style={styles.container}>
           <Kb.Box
             style={Styles.collapseStyles([
