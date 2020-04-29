@@ -4,4 +4,4 @@
 package libkb
 
 // Version is the current version (should be MAJOR.MINOR.PATCH)
-const Version = "5.4.2"
+const Version = "5.4.3"
