@@ -934,7 +934,11 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 	defer s.Trace(ctx, nil, "Decorate")()
 	emojiMap := make(map[string]chat1.EmojiRemoteSource, len(emojis))
 	for _, emoji := range emojis {
-		emojiMap[emoji.Alias] = emoji.Source
+		// If we have conflicts on alias, use the first one. This helps make dealing with reactions
+		// better, since we really want the first reaction on an alias to always be displayed.
+		if _, ok := emojiMap[emoji.Alias]; !ok {
+			emojiMap[emoji.Alias] = emoji.Source
+		}
 	}
 	offset := 0
 	added := 0
