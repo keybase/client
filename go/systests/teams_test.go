@@ -146,7 +146,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
 
 	tt.users[1].revokePaperKey()
-	tt.users[0].waitForRotateByID(teamID, keybase1.Seqno(3))
+	tt.users[0].waitForAnyRotateByID(teamID, keybase1.Seqno(2) /* toSeqno */, keybase1.Seqno(1) /* toHiddenSeqno */)
 
 	// check that key was rotated for team
 	after, err := GetTeamForTestByStringName(context.TODO(), tt.users[0].tc.G, teamName.String())
