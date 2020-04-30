@@ -181,7 +181,7 @@
     "@types/react-is": "16.7.1",
     "@types/react-list": "0.8.5",
     "@types/react-measure": "2.0.6",
-    "@types/react-native": "0.62.0",
+    "@types/react-native": "0.62",
     "@types/react-native-video": "5.0.1",
     "@types/react-navigation": "3.4.0",
     "@types/react-transition-group": "4.2.4",

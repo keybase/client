@@ -13,15 +13,21 @@ export type Props = {
   teamPolicy: RetentionPolicy
 }
 
-const iconType = Styles.isMobile ? 'icon-message-retention-48' : 'icon-message-retention-32'
-
 const RetentionNotice = (props: Props) => {
   Container.useDepChangeEffect(() => {
     props.measure && props.measure()
   }, [props.canChange, props.policy, props.teamPolicy])
+
+  const iconType =
+    props.teamPolicy.type === 'explode' || props.policy.type === 'explode'
+      ? 'iconfont-bomb-solid'
+      : 'iconfont-timer-solid'
+
   return (
     <Kb.Box style={styles.container}>
-      <Kb.Icon type={iconType} style={styles.icon} />
+      <Kb.Box style={styles.iconBox}>
+        <Kb.Icon color={Styles.globalColors.black_20} fontSize={20} type={iconType} />
+      </Kb.Box>
       {!!props.explanation && (
         <Kb.Text center={true} type="BodySmallSemibold">
           {props.explanation}
@@ -29,7 +35,7 @@ const RetentionNotice = (props: Props) => {
       )}
       {props.canChange && (
         <Kb.Text
-          type="BodySmallSemibold"
+          type="BodySmallPrimaryLink"
           style={{color: Styles.globalColors.blueDark}}
           onClick={props.onChange}
         >
@@ -54,10 +60,8 @@ const styles = Styles.styleSheetCreate(
         paddingTop: Styles.globalMargins.small,
         width: '100%',
       },
-      icon: {
-        height: Styles.isMobile ? 48 : 32,
+      iconBox: {
         marginBottom: Styles.globalMargins.tiny,
-        width: Styles.isMobile ? 48 : 32,
       },
     } as const)
 )

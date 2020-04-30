@@ -22,7 +22,7 @@
 .icon-gen-iconfont-arrow-right::before {content: "\e905";}
 .icon-gen-iconfont-arrow-up::before {content: "\e906";}
 .icon-gen-iconfont-attachment::before {content: "\e907";}
-.icon-gen-iconfont-bomb::before {content: "\e908";}
+.icon-gen-iconfont-bomb-solid::before {content: "\e908";}
 .icon-gen-iconfont-boom::before {content: "\e909";}
 .icon-gen-iconfont-camera::before {content: "\e90a";}
 .icon-gen-iconfont-camera-solid::before {content: "\e90b";}
@@ -200,4 +200,6 @@
 .icon-gen-iconfont-sort-alpha::before {content: "\e9cc";}
 .icon-gen-iconfont-team::before {content: "\e9cd";}
 .icon-gen-iconfont-nav-2-fm::before {content: "\e9ce";}
+.icon-gen-iconfont-timer-solid::before {content: "\e9d0";}
+.icon-gen-iconfont-bomb::before {content: "\e9d1";}
 
