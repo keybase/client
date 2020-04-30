@@ -79,9 +79,33 @@ const AddMembersConfirm = () => {
               })),
             },
           ],
-          _ => {
-            // TODO handle users not added?
-            dispatch(TeamsGen.createFinishedAddMembersWizard())
+          res => {
+            if (
+              (res.notAddedForBrokenFollow && res.notAddedForBrokenFollow.length > 0) ||
+              (res.notAddedForContactRestrictions && res.notAddedForContactRestrictions.length > 0)
+            ) {
+              const usernamesWithBrokenFollow = res.notAddedForBrokenFollow?.map(elem => elem.username)
+              const usernamesWithContactRestr = res.notAddedForContactRestrictions?.map(elem => elem.username)
+              dispatch(
+                RouteTreeGen.createNavigateAppend({
+                  path: [
+                    {
+                      props: {
+                        // possibly the source could be different here, as now
+                        // we do not return errors when all additions fail due
+                        // to follow or contact restrictions
+                        source: 'teamAddSomeFailed',
+                        usernamesWithBrokenFollow,
+                        usernamesWithContactRestr,
+                      },
+                      selected: 'contactRestricted',
+                    },
+                  ],
+                })
+              )
+            } else {
+              dispatch(TeamsGen.createFinishedAddMembersWizard())
+            }
           },
           err => {
             setWaiting(false)

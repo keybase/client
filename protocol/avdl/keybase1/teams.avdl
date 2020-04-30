@@ -1244,7 +1244,8 @@ protocol teams {
   }
 
   record TeamAddMembersResult {
-    array<User> notAdded;
+    array<User> notAddedForContactRestrictions;
+    array<User> notAddedForBrokenFollow;
   }
 
   record TeamJoinRequest {

@@ -127,8 +127,11 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 		if err != nil {
 			errs = append(errs, err)
 		}
-		if len(unaddedUsers.NotAdded) > 0 {
-			errs = append(errs, fmt.Errorf("could not add members to team: %v", unaddedUsers.NotAdded))
+		if len(unaddedUsers.NotAddedForContactRestrictions) > 0 {
+			errs = append(errs, fmt.Errorf("could not add members to team due to contact restrictions: %v", unaddedUsers.NotAddedForContactRestrictions))
+		}
+		if len(unaddedUsers.NotAddedForBrokenFollow) > 0 {
+			errs = append(errs, fmt.Errorf("could not add members to team as their proofs after you followed them: %v", unaddedUsers.NotAddedForBrokenFollow))
 		}
 	}
 
@@ -369,7 +372,8 @@ func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddM
 	return h.TeamAddMembersMultiRole(ctx, arg2)
 }
 
-func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1.TeamAddMembersMultiRoleArg) (res keybase1.TeamAddMembersResult, err error) {
+func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context,
+	arg keybase1.TeamAddMembersMultiRoleArg) (res keybase1.TeamAddMembersResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 
 	debugString := "0"
@@ -389,22 +393,11 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 		return res, err
 	}
 
-	added, notAdded, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users, arg.EmailInviteMessage)
-	switch err := err.(type) {
-	case nil:
-	case teams.AddMembersError:
-		switch e := err.Err.(type) {
-		case libkb.IdentifySummaryError:
-			// Return the IdentifySummaryError, which is exportable.
-			// Frontend presents this error specifically.
-			return res, e
-		default:
-			return res, err
-		}
-	default:
+	var added []teams.AddMembersRes
+	added, res.NotAddedForContactRestrictions, res.NotAddedForBrokenFollow, err = teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users, arg.EmailInviteMessage)
+	if err != nil {
 		return res, err
 	}
-	res = keybase1.TeamAddMembersResult{NotAdded: notAdded}
 
 	// AddMembers succeeded
 	if arg.SendChatNotification {

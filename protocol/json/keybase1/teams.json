@@ -2816,7 +2816,14 @@
             "type": "array",
             "items": "User"
           },
-          "name": "notAdded"
+          "name": "notAddedForContactRestrictions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "User"
+          },
+          "name": "notAddedForBrokenFollow"
         }
       ]
     },

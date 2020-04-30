@@ -97,12 +97,12 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
     const e: RPCError = err
     if (e.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       const users = e.fields?.filter((elem: any) => elem.key === 'usernames')
-      const usernames = users?.map((elem: any) => elem.value)
+      const usernamesWithContactRestr = users?.map((elem: any) => elem.value)
       // Don't leave the user on a broken FS dir screen.
       return [
         RouteTreeGen.createNavigateUp(),
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {source: 'newFolder', usernames}, selected: 'contactRestricted'}],
+          path: [{props: {source: 'newFolder', usernamesWithContactRestr}, selected: 'contactRestricted'}],
         }),
       ]
     }

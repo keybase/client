@@ -1637,6 +1637,8 @@ func NewIdentifiesFailedError() IdentifiesFailedError {
 
 //=============================================================================
 
+// IdentifySummaryError happens only when a user's proofs have changed
+// (broken) since the last time you followed them.
 type IdentifySummaryError struct {
 	username NormalizedUsername
 	problems []string
@@ -1666,6 +1668,10 @@ func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 
 func (e IdentifySummaryError) Problems() []string {
 	return e.problems
+}
+
+func (e IdentifySummaryError) Username() NormalizedUsername {
+	return e.username
 }
 
 func IsIdentifyProofError(err error) bool {

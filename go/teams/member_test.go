@@ -1664,13 +1664,13 @@ func TestFollowResetAdd(t *testing.T) {
 	require.True(t, libkb.IsIdentifyProofError(err))
 
 	// AddMembers also fails
-	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, []keybase1.UserRolePair{{Assertion: bob.Username, Role: keybase1.TeamRole_ADMIN}}, nil /* emailInviteMsg */)
-	require.Error(t, err)
-	amerr, ok := err.(AddMembersError)
-	require.True(t, ok)
-	require.True(t, libkb.IsIdentifyProofError(amerr.Err))
-	require.Nil(t, added)
-	require.Nil(t, notAdded)
+	added, notAddedForContactRestrictions, notAddedForBrokenFollow, err := AddMembers(context.TODO(), tc.G, teamID, []keybase1.UserRolePair{{Assertion: bob.Username, Role: keybase1.TeamRole_ADMIN}}, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+	require.Len(t, added, 0)
+	require.Len(t, notAddedForContactRestrictions, 0)
+	require.Len(t, notAddedForBrokenFollow, 1)
+	require.Equal(t, notAddedForBrokenFollow[0].Uid, bob.GetUID())
+	require.Equal(t, notAddedForBrokenFollow[0].Username, bob.Username)
 
 	// alice succeeds in removing charlie from the team, since her broken tracking statement
 	// is ignored for a team removal.
@@ -1772,12 +1772,13 @@ func TestAddMembersWithRestrictiveContactSettings(t *testing.T) {
 		{Assertion: bob.Username, Role: keybase1.TeamRole_WRITER},
 		{Assertion: charlie.Username, Role: keybase1.TeamRole_WRITER},
 	}
-	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, users, nil /* emailInviteMsg */)
+	added, notAddedForContactRestrictions, notAddedForBrokenFollow, err := AddMembers(context.TODO(), tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(added))
+	require.Len(t, added, 1)
 	require.Equal(t, libkb.NewNormalizedUsername(bob.Username), added[0].Username)
-	require.Equal(t, 1, len(notAdded))
-	require.Equal(t, libkb.NewNormalizedUsername(charlie.Username).String(), notAdded[0].Username)
+	require.Len(t, notAddedForContactRestrictions, 1)
+	require.Equal(t, libkb.NewNormalizedUsername(charlie.Username).String(), notAddedForContactRestrictions[0].Username)
+	require.Len(t, notAddedForBrokenFollow, 0)
 }
 
 func TestAddMembersWithRestrictiveContactSettingsFailIfNoneAdded(t *testing.T) {
@@ -1822,7 +1823,7 @@ func TestAddMembersWithRestrictiveContactSettingsFailIfNoneAdded(t *testing.T) {
 		{Assertion: bob.Username, Role: keybase1.TeamRole_WRITER},
 		{Assertion: charlie.Username, Role: keybase1.TeamRole_WRITER},
 	}
-	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, users, nil /* emailInviteMsg */)
+	added, notAddedForContactRestrictions, notAddedForBrokenFollow, err := AddMembers(context.TODO(), tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.Error(t, err)
 	require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
 	usernames := err.(libkb.TeamContactSettingsBlockError).BlockedUsernames()
@@ -1833,7 +1834,8 @@ func TestAddMembersWithRestrictiveContactSettingsFailIfNoneAdded(t *testing.T) {
 	}
 	require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
 	require.Nil(t, added)
-	require.Nil(t, notAdded)
+	require.Nil(t, notAddedForContactRestrictions)
+	require.Nil(t, notAddedForBrokenFollow)
 }
 
 func TestGetUntrustedTeamInfo(t *testing.T) {
@@ -1863,7 +1865,7 @@ func TestGetUntrustedTeamInfo(t *testing.T) {
 
 	teamName, teamID := createTeam2(*tcs[owner])
 	team := teamName.String()
-	added, notAdded, err := AddMembers(context.TODO(), tcs[owner].G, teamID, []keybase1.UserRolePair{
+	added, notAdded1, notAdded2, err := AddMembers(context.TODO(), tcs[owner].G, teamID, []keybase1.UserRolePair{
 		{Assertion: fus[publicAdmin].Username, Role: keybase1.TeamRole_ADMIN},
 		{Assertion: fus[privateAdmin].Username, Role: keybase1.TeamRole_ADMIN},
 		{Assertion: fus[publicReader].Username, Role: keybase1.TeamRole_READER},
@@ -1871,7 +1873,8 @@ func TestGetUntrustedTeamInfo(t *testing.T) {
 		{Assertion: fus[restrictedBot].Username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{Cmds: false, Mentions: true}},
 	}, nil)
 	require.NoError(t, err)
-	require.Len(t, notAdded, 0)
+	require.Len(t, notAdded1, 0)
+	require.Len(t, notAdded2, 0)
 	require.Len(t, added, 5)
 	t.Logf("Created team %q", team)
 
