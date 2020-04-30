@@ -447,6 +447,7 @@ func (k *KeybaseDaemonLocal) OnNonPathChange(
 	subscriptionIDs []SubscriptionID, topic keybase1.SubscriptionTopic) {
 }
 
+// GetKVStoreClient implements the KeybaseService interface.
 func (k *KeybaseDaemonLocal) GetKVStoreClient() keybase1.KvstoreInterface {
 	return nil
 }
