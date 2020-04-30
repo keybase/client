@@ -1400,6 +1400,7 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 
 	t.Log("Prefetching shouldn't happen because the disk caches are full.")
 	waitForPrefetchOrBust(ctx, t, q.Prefetcher(), rootPtr)
+	q.TogglePrefetcher(false, nil, nil)
 }
 
 func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {

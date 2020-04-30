@@ -622,6 +622,9 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/kbfs/libdokan': [
         parallel: 1,
       ],
+      'github.com/keybase/client/go/kbfs/kbfsdokan': [
+        compileAlone: true,
+      ],
     ],
   ]
   def getOverallTimeout = { testSpec ->
@@ -667,25 +670,31 @@ def testGoTestSuite(prefix, packagesToTest) {
     def testSpec = getPackageTestSpec(pkg)
     if (testSpec) {
       testSpec.testBinary = "${testSpec.name}.test"
-      packageTestCompileList.add({
-        sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
-      })
-      packageTestRunList.add({ spec ->
-        dir(spec.dirPath) {
-          // Only run the test if a test binary should have been produced.
-          if (fileExists(spec.testBinary)) {
-            println "Running tests for ${spec.dirPath}"
-            def t = getOverallTimeout(spec)
-            timeout(activity: true, time: t.time, unit: t.unit) {
-              if (spec.no_citogo) {
-                sh "./${spec.testBinary} -test.timeout ${spec.timeout}"
-              } else {
-                sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${spec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${spec.testBinary} --timeout 150s -parallel=${spec.parallel} ${spec.citogo_extra ? spec.citogo_extra : ''}"
+      packageTestCompileList.add([
+        closure: {
+          sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
+        },
+        alone: !!testSpec.alone,
+      ])
+      packageTestRunList.add([
+        closure: { spec ->
+          dir(spec.dirPath) {
+            // Only run the test if a test binary should have been produced.
+            if (fileExists(spec.testBinary)) {
+              println "Running tests for ${spec.dirPath}"
+              def t = getOverallTimeout(spec)
+              timeout(activity: true, time: t.time, unit: t.unit) {
+                if (spec.no_citogo) {
+                  sh "./${spec.testBinary} -test.timeout ${spec.timeout}"
+                } else {
+                  sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${spec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${spec.testBinary} --timeout 150s -parallel=${spec.parallel} ${spec.citogo_extra ? spec.citogo_extra : ''}"
+                }
               }
             }
           }
-        }
-      }.curry(testSpec))
+        }.curry(testSpec),
+        alone: !!testSpec.alone,
+      ])
     }
   }
   executeInWorkers(3, true /* runFirstItemAlone */, packageTestCompileList)
@@ -709,27 +718,29 @@ def executeInWorkers(numWorkers, runFirstItemAlone, queue) {
     workers["worker_${n}"] = {
       def done = false
       for (; !done;) {
-        def closure
+        def item
+        def alone
 
         // Concurrency hack
         def lockID = "${env.BUILD_TAG}"
         lock(lockID) {
           if (i < queue.size()) {
-            closure = queue.getAt(i)
+            item = queue.getAt(i)
             i++
           } else {
             done = true
           }
-          // Run first closure on its own if requested
-          if (runFirstItemAlone && i == 1) {
-            closure()
+          // Run first item on its own if requested
+          alone = item.alone || (runFirstItemAlone && i == 1)
+          if (alone) {
+            item.closure()
           }
         }
         if (done) {
           break
         }
-        if (!runFirstItemAlone || i != 1) {
-          closure()
+        if (!alone) {
+          item.closure()
         }
       }
     }
