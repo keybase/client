@@ -3,10 +3,10 @@ import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Types from '../../../../../constants/types/teams'
 import * as Constants from '../../../../../constants/teams'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as Container from '../../../../../util/container'
 import {sendNotificationFooter} from '../../../../role-picker'
 import {TeamRequestRow, RowProps} from '.'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
-import {connect} from '../../../../../util/container'
 
 type OwnProps = {
   ctime: number
@@ -59,7 +59,7 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
   }
 }
 
-export default connect(
+export default Container.connect(
   (state, {fullName, username, teamID}: OwnProps) => {
     const {teamname} = Constants.getTeamMeta(state, teamID)
 
@@ -70,6 +70,7 @@ export default connect(
       disabledReasonsForRolePicker: Constants.getDisabledReasonsForRolePicker(state, teamID, username),
       fullName, // MemberRow has a special case for "You" but it's impossible to see your join req
       teamname,
+      waiting: Container.anyWaiting(state, Constants.addMemberWaitingKey(teamID, username)),
     }
   },
   (dispatch, {reset, username, teamID}) => ({
@@ -106,6 +107,7 @@ export default connect(
       reset: ownProps.reset,
       teamID: ownProps.teamID,
       username: ownProps.username,
+      waiting: stateProps.waiting,
     }
   }
 )(RequestRowStateWrapper)
