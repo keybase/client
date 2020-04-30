@@ -680,9 +680,8 @@ def testGoTestSuite(prefix, packagesToTest) {
         if (done) {
           break
         }
-        println "Building tests for ${testSpec.dirPath}"
-        dir(testSpec.dirPath) {
-          sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.testBinary}"
+        if (testSpec) {
+          sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
         }
       }
     }
@@ -694,6 +693,7 @@ def testGoTestSuite(prefix, packagesToTest) {
       allTestSpecs[pkg] = testSpec
     }
   }
+  workers.failFast = true
   parallel(workers)
 
   println "Running ${allTestSpecs.size()} test(s)"
