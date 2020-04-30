@@ -447,6 +447,10 @@ func (k *KeybaseDaemonLocal) OnNonPathChange(
 	subscriptionIDs []SubscriptionID, topic keybase1.SubscriptionTopic) {
 }
 
+func (k *KeybaseDaemonLocal) GetKVStoreClient() keybase1.KvstoreInterface {
+	return nil
+}
+
 // Shutdown implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Shutdown() {
 	k.favoriteStore.Shutdown()

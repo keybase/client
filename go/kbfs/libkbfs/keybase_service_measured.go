@@ -392,6 +392,11 @@ func (k KeybaseServiceMeasured) OnNonPathChange(
 	})
 }
 
+// GetKVStoreClient implements the KeybaseService interface.
+func (k KeybaseServiceMeasured) GetKVStoreClient() keybase1.KvstoreInterface {
+	return k.delegate.GetKVStoreClient()
+}
+
 // Shutdown implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) Shutdown() {
