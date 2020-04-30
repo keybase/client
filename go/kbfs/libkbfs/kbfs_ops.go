@@ -1770,7 +1770,7 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 			"Handle %s for existing folder unexpectedly has no TLF ID",
 			handle.GetCanonicalName())
 	}
-	fs.favs.RefreshCacheWhenMTimeChanged(ctx)
+	fs.favs.RefreshCacheWhenMTimeChanged(ctx, handle.TlfID())
 }
 
 // Reset implements the KBFSOps interface for KBFSOpsStandard.
