@@ -16,6 +16,6 @@ elif [ -z "$nopull" ]; then
 fi
 
 # We don't go get -u for dependencies since we assume this is used on vendored
-# packages, or dependencies are updated manually.
+# packages, packages using gomodules, or dependencies are updated manually.
 
 go install "$package"

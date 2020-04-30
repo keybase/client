@@ -60,9 +60,7 @@ ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s
 gomobileinit ()
 {
   echo "Build gomobile..."
-  mkdir -p "$GOPATH/src/golang.org/x"
-  rsync -pr --ignore-times "$client_dir/go/vendor/golang.org/x" "$GOPATH/src/golang.org"
-  go install golang.org/x/mobile/cmd/{gomobile,gobind}
+  go install golang.org/x/mobile/cmd/{gomobile,gobind}@a42111704963f4f0d1266674e1e97489aa8dcca0
   echo "Doing gomobile init"
   if [ "$arg" = "android" ]; then
     gomobile init -ndk $ANDROID_HOME/ndk-bundle
