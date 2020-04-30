@@ -340,10 +340,7 @@ const useHeaderCallbacks = (teamID: TeamID) => {
         )
     : undefined
   const onEditDescription = yourOperations.editTeamDescription
-    ? () =>
-        dispatch(
-          nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamEditTeamDescription'}]})
-        )
+    ? () => dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamEditTeamInfo'}]}))
     : undefined
   const onRename = yourOperations.renameTeam
     ? () =>

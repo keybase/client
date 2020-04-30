@@ -323,9 +323,10 @@ class EditAvatar extends React.Component<Props, State> {
           mode="DefaultFullHeight"
           onClose={this.props.onClose}
           header={{
-            leftButton: this.props.wizard ? (
-              <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />
-            ) : null,
+            leftButton:
+              this.props.wizard || this.props.showBack ? (
+                <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />
+              ) : null,
             rightButton: this.props.wizard ? (
               <Kb.Button
                 label="Skip"
@@ -345,11 +346,12 @@ class EditAvatar extends React.Component<Props, State> {
           allowOverflow={true}
           footer={{
             content: (
-              <Kb.Button
+              <Kb.WaitingButton
                 fullWidth={true}
-                label="Continue"
+                label={this.props.wizard ? 'Continue' : 'Save'}
                 onClick={this.onSave}
                 disabled={!this.state.hasPreview}
+                waitingKey={null}
               />
             ),
           }}
