@@ -33,6 +33,7 @@ import (
 // for acme/autocert.
 type CertStoreType string
 
+// Possible cert store types.
 const (
 	NoCertStore      CertStoreType = ""
 	DiskCertStore    CertStoreType = "disk"
