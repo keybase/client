@@ -50,7 +50,7 @@ func NewMySQLActivityStatsStorer(
 func (s *mysqlActivityStatsStorer) createTablesIfNotExists(
 	ctx context.Context) (err error) {
 	if _, err = s.db.ExecContext(ctx, `
-        CREATE TABLE stats_tlf IF NOT EXISTS (
+        CREATE TABLE IF NOT EXISTS stats_tlf (
           id          bigint unsigned NOT NULL AUTO_INCREMENT,
           tlf_id      char(32)        NOT NULL,
           active_time datetime(3)     NOT NULL,
@@ -63,7 +63,7 @@ func (s *mysqlActivityStatsStorer) createTablesIfNotExists(
 		return err
 	}
 	if _, err = s.db.ExecContext(ctx, `
-        CREATE TABLE stats_host IF NOT EXISTS (
+        CREATE TABLE IF NOT EXISTS stats_host (
           id          bigint unsigned NOT NULL AUTO_INCREMENT,
           -- max key length is 767. floor(767/4)==191
           domain      varchar(191)    NOT NULL, 
