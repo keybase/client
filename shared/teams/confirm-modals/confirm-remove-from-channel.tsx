@@ -25,6 +25,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
   )
 
   const [waiting, setWaiting] = React.useState(false)
+  const [error, setError] = React.useState('')
   const channelInfo = Container.useSelector(state =>
     Constants.getTeamChannelInfo(state, teamID, conversationIDKey)
   )
@@ -54,7 +55,10 @@ const ConfirmRemoveFromChannel = (props: Props) => {
         dispatch(nav.safeNavigateUpPayload())
         dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
       },
-      err => {}
+      err => {
+        setWaiting(false)
+        setError(err.message)
+      }
     )
   }
 
@@ -78,6 +82,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
       onConfirm={onRemove}
       confirmText="Remove from channel"
       waiting={waiting}
+      error={error}
     />
   )
 }
