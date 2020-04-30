@@ -13,19 +13,19 @@ const palette = {
   default: {
     dark: {
       base: Styles.globalColors.black_20,
-      hover: Styles.globalColors.blue,
-      disabledBase: Styles.globalColors.black_20,
-      disabledHover: Styles.globalColors.black_35,
       checked: Styles.globalColors.blue,
       checkedHover: Styles.globalColors.blueLight,
+      disabledBase: Styles.globalColors.black_20,
+      disabledHover: Styles.globalColors.black_35,
+      hover: Styles.globalColors.blue,
     },
     light: {
       base: Styles.globalColors.black_10,
-      hover: Styles.globalColors.blue,
-      disabledBase: Styles.globalColors.black_10,
-      disabledHover: Styles.globalColors.black_20,
       checked: Styles.globalColors.blue,
       checkedHover: Styles.globalColors.blueDark,
+      disabledBase: Styles.globalColors.black_10,
+      disabledHover: Styles.globalColors.black_20,
+      hover: Styles.globalColors.blue,
     },
   },
 }
