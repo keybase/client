@@ -655,50 +655,19 @@ def testGoTestSuite(prefix, packagesToTest) {
   }
 
   println "Compiling ${packageTestSet.size()} test(s)"
-  def packageTestList = []
-  packageTestList.addAll(packageTestSet)
+  def packageTestCompileList = []
   def allTestSpecs = [:]
-  def i = 0
-  def workers = [:]
-  for (n = 1; n <= 3; n++) {
-    workers["worker_${n}"] = {
-      def done = false
-      for (; !done;) {
-        def testSpec
-
-        // Concurrency hack
-        def lockID = "${env.BUILD_TAG}-compiling"
-        lock(lockID) {
-          if (i < packageTestList.size()) {
-            def pkg = packageTestList.getAt(i)
-            testSpec = allTestSpecs[pkg]
-            i++
-          } else {
-            done = true
-          }
-          // Do the first one under lock so we don't repeat dep building work.
-          if (i == 1 && testSpec) {
-            sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
-          }
-        }
-        if (done) {
-          break
-        }
-        if (testSpec && i != 0) {
-          sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
-        }
-      }
-    }
-  }
   packagesToTest.each { pkg, _ ->
     def testSpec = getPackageTestSpec(pkg)
     if (testSpec) {
       testSpec.testBinary = "${testSpec.name}.test"
       allTestSpecs[pkg] = testSpec
+      packageTestCompileList.add({
+        sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
+      })
     }
   }
-  workers.failFast = true
-  parallel(workers)
+  executeInWorkers(3, true, packageTestCompileList)
 
   println "Running ${allTestSpecs.size()} test(s)"
   helpers.waitForURLWithTimeout(prefix, env.KEYBASE_SERVER_URI, 600)
@@ -725,6 +694,42 @@ def testGoTestSuite(prefix, packagesToTest) {
       }
     }
   }
+}
+
+def executeInWorkers(numWorkers, runFirstItemAlone, queue) {
+  def workers = [:]
+  def i = 0
+  for (n = 1; n <= numWorkers; n++) {
+    workers["worker_${n}"] = {
+      def done = false
+      for (; !done;) {
+        def closure
+
+        // Concurrency hack
+        def lockID = "${env.BUILD_TAG}"
+        lock(lockID) {
+          if (i < queue.size()) {
+            closure = queue.getAt(i)
+            i++
+          } else {
+            done = true
+          }
+          // Run first closure on its own if requested
+          if (runFirstItemAlone && i == 1) {
+            closure()
+          }
+        }
+        if (done) {
+          break
+        }
+        if (!runFirstItemAlone || i != 1) {
+          closure()
+        }
+      }
+    }
+  }
+  workers.failFast = true
+  parallel(workers)
 }
 
 def checkDiffs(dirs, addressMessage) {
