@@ -4,71 +4,63 @@ import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {memoize} from '../../util/memoize'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import {RPCError} from '../../util/errors'
 
 type Props = Container.RouteProps<{members: string[]; teamID: Types.TeamID}>
-
-const getSubteamNames = memoize((state: Container.TypedState, teamID: Types.TeamID): [
-  string[],
-  Types.TeamID[]
-] => {
-  const subteamIDs = [...Constants.getTeamDetails(state, teamID).subteams]
-  return [subteamIDs.map(id => Constants.getTeamMeta(state, id).teamname), subteamIDs]
-})
 
 const ConfirmKickOut = (props: Props) => {
   const members = Container.getRouteProps(props, 'members', [])
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const [subteamsToo, setSubteamsToo] = React.useState(false)
 
-  const [subteams, subteamIDs] = Container.useSelector(state => getSubteamNames(state, teamID))
   const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
-  const waitingKeys = ([] as string[]).concat.apply(
-    members.map(member => Constants.removeMemberWaitingKey(teamID, member)),
-    members.map(member => subteamIDs.map(subteamID => Constants.removeMemberWaitingKey(subteamID, member)))
-  )
-  const waiting = Container.useAnyWaiting(...waitingKeys)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
 
-  // TODO(Y2K-1592): do this in one RPC
-  const onRemove = () => {
-    dispatch(
-      TeamsGen.createTeamSetMemberSelected({
-        clearAll: true,
-        selected: false,
-        teamID: teamID,
-        username: '',
-      })
+  const removeMembersRPC = Container.useRPC(RPCTypes.teamsTeamRemoveMembersRpcPromise)
+  const [result, setResult] = React.useState<RPCTypes.TeamRemoveMembersResult>({failures: []})
+  const [waiting, setWaiting] = React.useState(false)
+  const [error, setError] = React.useState<RPCError | null>(null)
+  const removeMembers = React.useCallback(() => {
+    setWaiting(true)
+    const teamMemberToRemoves = members.map<RPCTypes.TeamMemberToRemove>(member => {
+      return {
+        assertion: {
+          assertion: member,
+          removeFromSubtree: subteamsToo,
+        },
+        type: RPCTypes.TeamMemberToRemoveType.assertion,
+      }
+    })
+    removeMembersRPC(
+      [{members: teamMemberToRemoves, noErrorOnPartialFailure: true, teamID}],
+      result => {
+        setResult(result)
+        setWaiting(false)
+      },
+      err => {
+        setError(err)
+        setWaiting(false)
+      }
     )
+  }, [teamID, members, removeMembersRPC, subteamsToo, setWaiting])
 
-    members.forEach(member =>
-      dispatch(
-        TeamsGen.createRemoveMember({
-          teamID,
-          username: member,
-        })
-      )
-    )
-    if (subteamsToo) {
-      subteamIDs.forEach(subteamID =>
-        members.forEach(member =>
-          dispatch(TeamsGen.createRemoveMember({teamID: subteamID, username: member}))
-        )
-      )
-    }
+  const onRemove = () => {
+    removeMembers()
   }
+
+  const anyError = error || result?.failures?.length
 
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
-    if (wasWaiting && !waiting) {
-      dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'team'}))
+    if (wasWaiting && !waiting && !anyError) {
+      // TODO this breaks the app, [team member view] no data! this should never happen
+      dispatch(nav.safeNavigateUpPayload())
     }
-  }, [waiting, wasWaiting, dispatch])
+  }, [waiting, wasWaiting, dispatch, error, result, nav, anyError])
 
   const prompt = (
     <Kb.Text center={true} type="Header" style={styles.prompt}>
@@ -102,24 +94,73 @@ const ConfirmKickOut = (props: Props) => {
             They will lose access to all the team chats and folders, and they won’t be able to get back unless
             an admin invites them.
           </Kb.Text>
-          {subteams.length != 0 && (
-            <Kb.Checkbox
-              checked={subteamsToo}
-              onCheck={setSubteamsToo}
-              labelComponent={
-                <Kb.Text type="Body" style={Styles.globalStyles.flexOne}>
-                  Also kick them out of all subteams: <Kb.Text type="BodyBold">{subteams.join(', ')}</Kb.Text>
-                </Kb.Text>
-              }
-              style={Styles.globalStyles.fullWidth}
-            />
+          <Kb.Checkbox
+            checked={subteamsToo}
+            onCheck={setSubteamsToo}
+            labelComponent={
+              <Kb.Text type="Body" style={Styles.globalStyles.flexOne}>
+                Also kick them out of any subteams of {teamname}
+              </Kb.Text>
+            }
+            style={Styles.globalStyles.fullWidth}
+          />
+          {anyError ? (
+            <Kb.Banner color="red">
+              {error ? (
+                <Kb.BannerParagraph
+                  key="removeMembersTotalError"
+                  bannerColor="red"
+                  content={[`Unable to remove members: ${error.message}`]}
+                />
+              ) : (
+                <></>
+              )}
+              {result.failures?.length ? (
+                <>
+                  <Kb.BannerParagraph
+                    key="removeMembersPartialError"
+                    bannerColor="red"
+                    content={['The following errors occurred:']}
+                  />
+                  {result.failures.map((failure, idx) => {
+                    var where = ``
+                    if (failure.errorAtTarget) {
+                      where += `from ${teamname}`
+                    }
+                    if (failure.errorAtTarget && failure.errorAtSubtree) {
+                      where += ` and `
+                    }
+                    if (failure.errorAtSubtree) {
+                      where += `from ${teamname}'s subteams`
+                    }
+                    var who = ``
+                    if (failure.teamMember.type == RPCTypes.TeamMemberToRemoveType.assertion) {
+                      who = failure.teamMember.assertion.assertion
+                    } else if (failure.teamMember.type == RPCTypes.TeamMemberToRemoveType.inviteid) {
+                      who = 'invite ' + failure.teamMember.inviteid.inviteID
+                    }
+                    return (
+                      <Kb.BannerParagraph
+                        key={'removeMembersErrorRow' + idx.toString()}
+                        bannerColor="red"
+                        content={`• failed to remove ${who} ${where}`}
+                      />
+                    )
+                  })}
+                </>
+              ) : (
+                <></>
+              )}
+            </Kb.Banner>
+          ) : (
+            <></>
           )}
         </Kb.Box2>
       }
       onCancel={onCancel}
       onConfirm={onRemove}
-      confirmText="Kick out"
-      waitingKey={waitingKeys}
+      confirmText={anyError ? 'Retry' : 'Kick out'}
+      waiting={waiting}
     />
   )
 }

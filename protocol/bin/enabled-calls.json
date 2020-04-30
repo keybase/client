@@ -329,6 +329,7 @@
   "keybase.1.teams.teamProfileAddList": {"promise": true},
   "keybase.1.teams.teamReAddMemberAfterReset": {"promise": true},
   "keybase.1.teams.teamRemoveMember": {"promise": true},
+  "keybase.1.teams.teamRemoveMembers": {"promise": true},
   "keybase.1.teams.teamRename": {"promise": true},
   "keybase.1.teams.teamSetSettings": {"promise": true},
   "keybase.1.teams.untrustedTeamExists": {"promise": true},

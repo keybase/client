@@ -16,6 +16,7 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {formatTimeForTeamMember, formatTimeRelativeToNow} from '../../../util/timestamp'
 import {Section as _Section} from '../../../common-adapters/section-list'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import isEqual from 'lodash/isEqual'
 
 type Props = {
@@ -433,8 +434,17 @@ const NodeInRow = (props: NodeInRowProps) => {
         ],
       })
     )
-  const onKickOutWaitingKey = Constants.removeMemberWaitingKey(props.node.teamID, props.username)
   const onKickOut = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {props: {members: [props.username], teamID: props.node.teamID}, selected: 'teamReallyRemoveMember'},
+        ],
+      })
+    )
+  }
+  const onLeaveWaitingKey = Constants.removeMemberWaitingKey(props.node.teamID, props.username)
+  const onLeave = () => {
     dispatch(TeamsGen.createRemoveMember({teamID: props.node.teamID, username: props.username}))
     if (props.isParentTeamMe) {
       dispatch(nav.safeNavigateUpPayload())
@@ -614,10 +624,10 @@ const NodeInRow = (props: NodeInRowProps) => {
                         mode="Secondary"
                         icon={isMe ? 'iconfont-leave' : 'iconfont-block'}
                         type="Danger"
-                        onClick={onKickOut}
+                        onClick={isMe ? onLeave : onKickOut}
                         label={isMe ? 'Leave' : 'Kick out'}
                         small={true}
-                        waitingKey={onKickOutWaitingKey}
+                        waitingKey={isMe ? onLeaveWaitingKey : null}
                       />
                     )}
                   </Kb.Box2>

@@ -23,6 +23,7 @@ export type Props = {
   onConfirmDeactivated?: boolean
   prompt: React.ReactNode
   waitingKey?: string | string[]
+  waiting?: boolean
 }
 
 const ConfirmModal = (props: Props) => (
@@ -59,6 +60,7 @@ const ConfirmModal = (props: Props) => (
               onClick={props.onCancel}
               style={styles.button}
               waitingKey={props.waitingKey || null}
+              waiting={props.waiting}
             />
           )}
           <WaitingButton
@@ -69,6 +71,7 @@ const ConfirmModal = (props: Props) => (
             onClick={props.onConfirm}
             style={styles.button}
             waitingKey={props.waitingKey || null}
+            waiting={props.waiting}
           />
         </ButtonBar>
       ),

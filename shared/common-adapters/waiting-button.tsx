@@ -12,12 +12,14 @@ type ButtonProps = React.ComponentProps<typeof Button>
 export type OwnProps = {
   onlyDisable?: boolean // Must supply waiting key if this is true,
   waitingKey: Array<string> | string | null
+  waiting?: boolean
 } & ButtonProps
 
 export type Props = {
   onlyDisable?: boolean
   storeWaiting: boolean
   waitingKey: Array<string> | string | null
+  waiting?: boolean
 } & ButtonProps
 
 /* Waiting button is a <Kb.Button /> with handling of waiting states.
@@ -57,7 +59,7 @@ class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
         {...buttonProps}
         onClick={this._onClick}
         disabled={this.props.onlyDisable ? waiting || this.props.disabled : this.props.disabled}
-        waiting={this.props.onlyDisable ? false : waiting}
+        waiting={this.props.waiting ?? (this.props.onlyDisable ? false : waiting)}
       />
     )
   }
