@@ -9,14 +9,6 @@ import * as Container from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Kbfs from '../../common'
 
-/*
- * This banner is used as part of a list in folder view and it's important to
- * have accurate height measured. If you change layout that results in height
- * change, please remember to update height accordingly.
- *
- */
-export const height = 224
-
 type Props = {
   alwaysShow?: boolean | null
   driverStatus: Types.DriverStatus
@@ -88,10 +80,7 @@ const Banner = (props: BannerProps) => (
     direction="horizontal"
     fullWidth={true}
     centerChildren={true}
-    style={Styles.collapseStyles([
-      styles.container,
-      {backgroundColor: backgroundToBackgroundColor(props.background)},
-    ])}
+    style={{backgroundColor: backgroundToBackgroundColor(props.background)}}
   >
     <Kb.Icon
       type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}
@@ -136,7 +125,7 @@ const Banner = (props: BannerProps) => (
     </Kb.Box2>
     <Kb.Box style={Styles.globalStyles.flexGrow} />
     {!!props.onDismiss && (
-      <Kb.Box2 direction="vertical" fullHeight={true}>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start">
         <Kb.Icon
           type="iconfont-close"
           onClick={props.onDismiss}
@@ -288,11 +277,6 @@ const styles = Styles.styleSheetCreate(
         maxWidth: Styles.globalMargins.large * 14 + Styles.globalMargins.mediumLarge * 2,
         padding: Styles.globalMargins.mediumLarge,
       },
-      container: {
-        height,
-        maxHeight: height,
-        minHeight: height,
-      },
       dismissIcon: Styles.platformStyles({
         isElectron: {
           display: 'block',
@@ -300,6 +284,8 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       fancyIcon: {
+        marginBottom: Styles.globalMargins.medium,
+        marginTop: Styles.globalMargins.medium,
         paddingLeft: Styles.globalMargins.large + Styles.globalMargins.tiny,
         paddingRight: Styles.globalMargins.small,
       },
