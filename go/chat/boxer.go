@@ -96,6 +96,7 @@ func (b *Boxer) makeErrorMessageFromPieces(ctx context.Context, err types.Unboxi
 	msgID chat1.MessageID, msgType chat1.MessageType, ctime gregor1.Time,
 	sender gregor1.UID, senderDevice gregor1.DeviceID, botUID *gregor1.UID,
 	isEphemeral bool, explodedBy *string, etime gregor1.Time) chat1.MessageUnboxed {
+	// TODO: add txID when those errors should be shown
 	e := chat1.MessageUnboxedError{
 		ErrType:        err.ExportType(),
 		ErrMsg:         err.Error(),
@@ -1057,6 +1058,7 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 			return chat1.MessageClientHeaderVerified{}, nil,
 				NewPermanentUnboxingError(fmt.Errorf("HeaderSignature non-nil in MBV2"))
 		}
+
 		return chat1.MessageClientHeaderVerified{
 			Conv:              hp.Conv,
 			TlfName:           hp.TlfName,
@@ -1207,7 +1209,6 @@ func (b *Boxer) compareHeadersMBV2orV3(ctx context.Context, hServer chat1.Messag
 	if version > chat1.MessageBoxedVersion_V2 && !stellar1.TransactionIDsPtrEq(hServer.TxIDs, hSigned.TxIDs) {
 		return NewPermanentUnboxingError(NewHeaderMismatchError("TxIDs"))
 	}
-
 	return nil
 }
 

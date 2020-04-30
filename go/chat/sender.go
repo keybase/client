@@ -976,7 +976,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// Add txIDs to client header, if relevant
 	bodyTxIDs := utils.GetMessageBodyTxIDs(msg.ClientHeader.MessageType, msg.MessageBody)
-	msg.ClientHeader.TxIDs = &bodyTxIDs
+	if len(bodyTxIDs) > 0 {
+		msg.ClientHeader.TxIDs = &bodyTxIDs
+	}
 
 	encInfo, err := s.boxer.GetEncryptionInfo(ctx, &msg, membersType, skp)
 	if err != nil {
