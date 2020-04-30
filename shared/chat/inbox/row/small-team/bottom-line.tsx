@@ -101,7 +101,7 @@ const BottomLine = React.memo((props: Props) => {
         )
         break
       case RPCChatTypes.SnippetDecoration.explodingMessage:
-        snippetDecoration = SnippetDecoration('iconfont-timer', defaultIconColor)
+        snippetDecoration = SnippetDecoration('iconfont-bomb', defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.explodedMessage:
         snippetDecoration = (

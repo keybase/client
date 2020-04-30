@@ -233,7 +233,7 @@ class InfoPanelMenu extends React.Component<Props> {
         items.push(teamHeader)
       }
       items.push(channelItem, {
-        icon: 'iconfont-people',
+        icon: 'iconfont-info',
         onClick: props.onViewTeam,
         title: 'Team info',
       })

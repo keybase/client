@@ -1350,15 +1350,27 @@ func (p *blockPrefetcher) handleAppStateChange(
 }
 
 type prefetcherSubscriber struct {
-	ch chan<- struct{}
+	ch       chan<- struct{}
+	clientID SubscriptionManagerClientID
+}
+
+func makePrefetcherSubscriptionManagerClientID() SubscriptionManagerClientID {
+	return SubscriptionManagerClientID(
+		fmt.Sprintf("prefetcher-%d", time.Now().UnixNano()))
 }
 
 func (ps prefetcherSubscriber) OnPathChange(
-	_ SubscriptionID, _ string, _ keybase1.PathSubscriptionTopic) {
+	_ SubscriptionManagerClientID,
+	_ []SubscriptionID, _ string, _ []keybase1.PathSubscriptionTopic) {
 }
 
 func (ps prefetcherSubscriber) OnNonPathChange(
-	_ SubscriptionID, _ keybase1.SubscriptionTopic) {
+	clientID SubscriptionManagerClientID,
+	_ []SubscriptionID, _ keybase1.SubscriptionTopic) {
+	if clientID != ps.clientID {
+		return
+	}
+
 	select {
 	case ps.ch <- struct{}{}:
 	default:
@@ -1463,22 +1475,29 @@ func (p *blockPrefetcher) run(
 
 	// Subscribe to settings updates while waiting for the network to
 	// change.
-	subMan := p.config.SubscriptionManager()
-	var subCh chan struct{}
+	subCh := make(chan struct{}, 1)
+	clientID := makePrefetcherSubscriptionManagerClientID()
+	subMan := p.config.SubscriptionManager(
+		clientID, false,
+		prefetcherSubscriber{
+			ch:       subCh,
+			clientID: clientID,
+		})
 	if subMan != nil {
-		subCh = make(chan struct{}, 1)
-
 		const prefetcherSubKey = "prefetcherSettings"
-		sub := subMan.Subscriber(prefetcherSubscriber{subCh})
-		err := sub.SubscribeNonPath(
+		err := subMan.SubscribeNonPath(
 			context.TODO(), prefetcherSubKey,
 			keybase1.SubscriptionTopic_SETTINGS, nil)
 		if err != nil {
 			p.log.CDebugf(
 				context.TODO(), "Error subscribing to settings: %+v", err)
 		} else {
-			defer sub.Unsubscribe(context.TODO(), prefetcherSubKey)
+			defer subMan.Unsubscribe(context.TODO(), prefetcherSubKey)
 		}
+		defer subMan.Shutdown(context.TODO())
+	} else {
+		close(subCh)
+		subCh = nil
 	}
 
 	for {

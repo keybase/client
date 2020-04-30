@@ -7,8 +7,11 @@ import * as FsGen from '../../../actions/fs-gen'
 import {isMobile} from '../../../constants/platform'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as React from 'react'
+import {OriginalOrCompressedButton} from '../../../incoming-share'
 
-type OwnProps = Container.RouteProps<{index: number}>
+type OwnProps = Container.RouteProps<{
+  index: number
+}>
 
 const getIndex = (ownProps: OwnProps) => Container.getRouteProps(ownProps, 'index', 0)
 const getDestinationParentPath = (dp: Types.DestinationPicker, ownProps: OwnProps): Types.Path =>
@@ -55,6 +58,12 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const destPicker = Container.useSelector(state => state.fs.destinationPicker)
   const isShare = destPicker.source.type === Types.DestinationPickerSource.IncomingShare
   const pathItems = Container.useSelector(state => state.fs.pathItems)
+  const headerRightButton =
+    destPicker.source.type === Types.DestinationPickerSource.IncomingShare ? (
+      <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />
+    ) : (
+      undefined
+    )
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -98,6 +107,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const showHeaderBackInsteadOfCancel = isShare // && index > 0
   const targetName = Constants.getDestinationPickerPathName(destPicker)
   const props = {
+    headerRightButton,
     index,
     isShare,
     // If we are are dealing with incoming share, the first view is root,

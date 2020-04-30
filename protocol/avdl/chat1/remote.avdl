@@ -264,6 +264,10 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
   DeleteConversationRemoteRes deleteConversation(ConversationID convID);
+  record RemoveFromConversationRemoteRes {
+    union { null, RateLimit } rateLimit;
+  }
+  RemoveFromConversationRemoteRes removeFromConversation(ConversationID convID, array<gregor1.UID> users);
 
   record GetMessageBeforeRes {
     MessageID msgID;

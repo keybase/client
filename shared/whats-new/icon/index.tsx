@@ -32,7 +32,7 @@ const Icon = (props: Props) => {
   return props.newRelease ? (
     Styles.isMobile ? (
       <Kb.Icon
-        type="iconfont-radio"
+        type="iconfont-nav-2-fm"
         onClick={props.onClick}
         color={Styles.globalColors.blue}
         style={Styles.collapseStyles([{marginRight: Styles.globalMargins.small}, props.style])}
@@ -73,8 +73,9 @@ const Icon = (props: Props) => {
     )
   ) : Styles.isMobile ? (
     <Kb.Icon
-      type="iconfont-radio"
-      color={Styles.globalColors.black_20}
+      fontSize={24}
+      type="iconfont-nav-2-fm"
+      color={Styles.globalColors.black_50}
       style={Styles.collapseStyles([{marginRight: Styles.globalMargins.small}, props.style])}
     />
   ) : (

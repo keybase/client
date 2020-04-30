@@ -166,6 +166,7 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
                 open={props.isRolePickerOpen}
                 disabledRoles={props.disabledReasonsForRolePicker}
                 presetRole={props.newOpenTeamRole}
+                plural={true}
               >
                 <InlineDropdown
                   label={pluralize(props.newOpenTeamRole)}
@@ -236,10 +237,6 @@ export class Settings extends React.Component<Props, State> {
       retentionPolicyDecreased: false,
       selectedOpenTeamRole: p.openTeamRole,
     }
-  }
-
-  componentDidMount() {
-    this.props.loadWelcomeMessage()
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -358,7 +355,8 @@ export class Settings extends React.Component<Props, State> {
               <InviteLinks teamID={this.props.teamID} />
             </Kb.Box2>
           )}
-          {flags.teamsRedesign &&
+          {false &&
+            flags.teamsRedesign &&
             this.props.yourOperations.editTeamDescription &&
             (this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
               <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>

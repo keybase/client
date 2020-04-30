@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"image/gif"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
@@ -302,9 +304,39 @@ func (s *DevConvEmojiSource) validateFile(ctx context.Context, filename string) 
 	return nil
 }
 
+func (s *DevConvEmojiSource) fromURL(ctx context.Context, url string) (string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	obid, err := storage.NewOutboxID()
+	if err != nil {
+		return "", err
+	}
+	filename, err := s.G().AttachmentUploader.GetUploadTempFile(ctx, obid, "tmp-emoji")
+	if err != nil {
+		return "", err
+	}
+	file, err := os.Create(filename)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = io.Copy(file, resp.Body)
+	return file.Name(), err
+}
+
 func (s *DevConvEmojiSource) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	alias, filename string, allowOverwrite bool) (res chat1.EmojiRemoteSource, err error) {
 	defer s.Trace(ctx, &err, "Add")()
+	if strings.HasPrefix(filename, "http://") || strings.HasPrefix(filename, "https://") {
+		filename, err = s.fromURL(ctx, filename)
+		if err != nil {
+			return res, err
+		}
+		defer func() { _ = os.Remove(filename) }()
+	}
 	if alias, err = s.validateCustomEmoji(ctx, alias, filename); err != nil {
 		return res, err
 	}
@@ -902,7 +934,11 @@ func (s *DevConvEmojiSource) Decorate(ctx context.Context, body string, uid greg
 	defer s.Trace(ctx, nil, "Decorate")()
 	emojiMap := make(map[string]chat1.EmojiRemoteSource, len(emojis))
 	for _, emoji := range emojis {
-		emojiMap[emoji.Alias] = emoji.Source
+		// If we have conflicts on alias, use the first one. This helps make dealing with reactions
+		// better, since we really want the first reaction on an alias to always be displayed.
+		if _, ok := emojiMap[emoji.Alias]; !ok {
+			emojiMap[emoji.Alias] = emoji.Source
+		}
 	}
 	offset := 0
 	added := 0

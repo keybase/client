@@ -4,6 +4,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import invert from 'lodash/invert'
 import SuggestionList from './suggestion-list'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 export type TransformerData = {
   text: string
@@ -48,6 +49,7 @@ type AddSuggestorsProps = {
   onChannelSuggestionsTriggered: () => void
   onFetchEmoji: () => void
   renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
+  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
   suggestionListStyle?: Styles.StylesCrossPlatform
   suggestionOverlayStyle?: Styles.StylesCrossPlatform
   suggestionSpinnerStyle?: Styles.StylesCrossPlatform
@@ -368,7 +370,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
       let suggestionsVisible = false
       const results = this._getResults()
-      if (results.data.length || results.loading) {
+      const suggestBotCommandsUpdateStatus = this.props.suggestBotCommandsUpdateStatus
+      if (
+        results.data.length ||
+        results.loading ||
+        suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
+      ) {
         suggestionsVisible = true
         const active = this.state.active
         const content = results.data.length ? (
@@ -385,6 +392,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
               }
               renderItem={this._itemRenderer}
               selectedIndex={this.state.selected}
+              suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
             />
             {results.loading && (
               <Kb.ProgressIndicator
@@ -444,6 +452,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           {overlay}
           <WrappedComponent
             {...(wrappedOP as WrappedOwnProps)}
+            suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
             suggestionsVisible={suggestionsVisible}
             ref={this._setAttachmentRef}
             inputRef={this._inputRef}
@@ -464,6 +473,18 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  commandStatusContainer: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      justifyContent: 'center',
+    },
+    isElectron: {
+      bottom: 0,
+      height: 22,
+      position: 'absolute',
+    },
+    isMobile: {},
+  }),
   spinnerBackground: Styles.platformStyles({
     common: {
       justifyContent: 'center',

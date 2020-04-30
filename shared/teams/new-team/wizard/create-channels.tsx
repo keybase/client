@@ -52,10 +52,11 @@ const CreateChannel = (props: Props) => {
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
   const numChannels = filteredChannels.length
+  // numChannels does not include the #general channel, so take it into account for tha label.
   const continueLabel = onSubmitChannels
-    ? `Create ${numChannels} ${pluralize('channel', numChannels)}`
+    ? `Create ${numChannels + 1} ${pluralize('channel', numChannels + 1)}`
     : numChannels
-    ? `Continue with ${numChannels} ${pluralize('channel', numChannels)}`
+    ? `Continue with ${numChannels + 1} ${pluralize('channel', numChannels + 1)}`
     : 'Continue without channels'
   const submitButton = (
     <Kb.Button

@@ -43,9 +43,30 @@ const names = [
   'Hermione Granger',
   'Marietta Edgecombe',
 ]
+const channels = new Map<string, Types.TeamChannelInfo>([
+  ['0', {channelname: 'general', conversationIDKey: '0', description: ''}],
+  ['1', {channelname: 'random', conversationIDKey: '1', description: ''}],
+  ['2', {channelname: 'hellos', conversationIDKey: '2', description: ''}],
+  ['3', {channelname: 'NY_MemorialDay', conversationIDKey: '3', description: 'zapu is in town'}],
+  ['4', {channelname: 'sandwiches', conversationIDKey: '4', description: 'the worst foods'}],
+  ['5', {channelname: 'soups', conversationIDKey: '5', description: 'the best foods'}],
+  ['6', {channelname: 'stir-fry', conversationIDKey: '6', description: ''}],
+  ['7', {channelname: 'ice-cream', conversationIDKey: '7', description: ''}],
+  ['8', {channelname: 'salad', conversationIDKey: '8', description: ''}],
+  ['9', {channelname: 'veg', conversationIDKey: '9', description: ''}],
+  ['10', {channelname: 'plate-presentation', conversationIDKey: '10', description: ''}],
+  ['11', {channelname: 'team-sqawk', conversationIDKey: '11', description: ''}],
+  ['12', {channelname: 'team-birbs', conversationIDKey: '12', description: ''}],
+  ['13', {channelname: 'team-beasts', conversationIDKey: '13', description: ''}],
+  ['14', {channelname: 'team-dogs-of-the-sea-and-other-creatures', conversationIDKey: '14', description: ''}],
+])
 export const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
   const aliceSparseMemberInfoRoot: Types.TreeloaderSparseMemberInfo = {type: 'admin'}
   const aliceSparseMemberInfoSub: Types.TreeloaderSparseMemberInfo = {type: 'none'}
+
+  const channelInfo = new Map<Types.TeamID, Map<string, Types.TeamChannelInfo>>(
+    fakeTeamIDs.map(tid => [tid, channels])
+  )
 
   draftState.chat2.inboxLayout = {
     bigTeams: [
@@ -71,6 +92,7 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
         [teamID3, 'active'],
       ]),
     },
+    channelInfo,
     newTeamWizard: {
       ...draftState.teams.newTeamWizard,
       name: 'greenpeace',
@@ -82,19 +104,18 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
         {
           ...Constants.emptyTeamDetails,
           description: 'A team for people who live in story books, or for people who like story books',
-          inviteLinks: new Set([
+          inviteLinks: [
             {
               creatorUsername: 'max',
-              expirationTime: 0,
-              expired: false,
               id: 'inviteLinkID',
+              isValid: true,
               lastJoinedUsername: 'chris',
-              maxUses: 100,
               numUses: 12,
               role: 'writer' as const,
               url: 'https://keybase.io/invite/link/2942',
+              validityDescription: 'Expires after 100 uses',
             },
-          ]),
+          ],
           members: new Map([
             [
               'alice',

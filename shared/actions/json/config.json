@@ -182,6 +182,9 @@
       "_description": "Intent fired with a share url",
       "url?": "string",
       "text?": "string"
+    },
+    "setIncomingShareUseOriginal": {
+      "useOriginal": "boolean"
     }
   }
 }

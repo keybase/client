@@ -907,6 +907,10 @@ func (m *ChatRemoteMock) DeleteConversation(ctx context.Context, convID chat1.Co
 	return chat1.DeleteConversationRemoteRes{}, nil
 }
 
+func (m *ChatRemoteMock) RemoveFromConversation(ctx context.Context, arg chat1.RemoveFromConversationArg) (chat1.RemoveFromConversationRemoteRes, error) {
+	return chat1.RemoveFromConversationRemoteRes{}, nil
+}
+
 func (m *ChatRemoteMock) GetMessageBefore(ctx context.Context, arg chat1.GetMessageBeforeArg) (chat1.GetMessageBeforeRes, error) {
 	// Ignore age and get the latest message
 	var latest chat1.MessageID

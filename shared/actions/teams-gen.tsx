@@ -46,6 +46,7 @@ export const launchNewTeamWizardOrModal = 'teams:launchNewTeamWizardOrModal'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
 export const loadTeam = 'teams:loadTeam'
+export const loadTeamChannelList = 'teams:loadTeamChannelList'
 export const loadTeamTree = 'teams:loadTeamTree'
 export const loadWelcomeMessage = 'teams:loadWelcomeMessage'
 export const loadedWelcomeMessage = 'teams:loadedWelcomeMessage'
@@ -80,7 +81,6 @@ export const setPublicity = 'teams:setPublicity'
 export const setSubteamFilter = 'teams:setSubteamFilter'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
 export const setTeamCreationError = 'teams:setTeamCreationError'
-export const setTeamDetails = 'teams:setTeamDetails'
 export const setTeamInfo = 'teams:setTeamInfo'
 export const setTeamInviteError = 'teams:setTeamInviteError'
 export const setTeamJoinError = 'teams:setTeamJoinError'
@@ -111,6 +111,7 @@ export const settingsError = 'teams:settingsError'
 export const showTeamByName = 'teams:showTeamByName'
 export const startAddMembersWizard = 'teams:startAddMembersWizard'
 export const startNewTeamWizard = 'teams:startNewTeamWizard'
+export const teamChannelListLoaded = 'teams:teamChannelListLoaded'
 export const teamCreated = 'teams:teamCreated'
 export const teamLoaded = 'teams:teamLoaded'
 export const teamSeen = 'teams:teamSeen'
@@ -225,6 +226,7 @@ type _LeaveTeamPayload = {
   readonly context: 'teams' | 'chat'
 }
 type _LeftTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
+type _LoadTeamChannelListPayload = {readonly teamID: Types.TeamID}
 type _LoadTeamPayload = {readonly _subscribe?: boolean; readonly teamID: Types.TeamID}
 type _LoadTeamTreePayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _LoadWelcomeMessagePayload = {readonly teamID: Types.TeamID}
@@ -289,16 +291,6 @@ type _SetPublicityPayload = {readonly teamID: Types.TeamID; readonly settings: T
 type _SetSubteamFilterPayload = {readonly filter: string; readonly parentTeam?: Types.TeamID}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
 type _SetTeamCreationErrorPayload = {readonly error: string}
-type _SetTeamDetailsPayload = {
-  readonly teamID: Types.TeamID
-  readonly teamname: string
-  readonly members: RPCTypes.TeamMembersDetails
-  readonly settings: RPCTypes.TeamSettings
-  readonly invites: Array<Types.InviteInfo>
-  readonly subteams: Array<Types.Teamname>
-  readonly requests: Map<string, Array<RPCTypes.TeamJoinRequest>>
-  readonly subteamIDs: Set<Types.TeamID>
-}
 type _SetTeamInfoPayload = {
   readonly teamnames: Set<Types.Teamname>
   readonly teamNameToID: Map<Types.Teamname, string>
@@ -367,6 +359,10 @@ type _ShowTeamByNamePayload = {
 }
 type _StartAddMembersWizardPayload = {readonly teamID: Types.TeamID}
 type _StartNewTeamWizardPayload = void
+type _TeamChannelListLoadedPayload = {
+  readonly teamID: Types.TeamID
+  readonly channels: Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>
+}
 type _TeamCreatedPayload = {
   readonly fromChat: boolean
   readonly teamID: Types.TeamID
@@ -462,6 +458,12 @@ export const createGetTeamRetentionPolicy = (
   payload: _GetTeamRetentionPolicyPayload
 ): GetTeamRetentionPolicyPayload => ({payload, type: getTeamRetentionPolicy})
 /**
+ * Load info for rendering the channel list on the team page.
+ */
+export const createLoadTeamChannelList = (
+  payload: _LoadTeamChannelListPayload
+): LoadTeamChannelListPayload => ({payload, type: loadTeamChannelList})
+/**
  * Load team details if we are stale.
  *
  * `_subscribe` is for use by teams/subscriber only.
@@ -483,6 +485,12 @@ export const createLoadWelcomeMessage = (payload: _LoadWelcomeMessagePayload): L
   payload,
   type: loadWelcomeMessage,
 })
+/**
+ * Loaded channel list for team.
+ */
+export const createTeamChannelListLoaded = (
+  payload: _TeamChannelListLoadedPayload
+): TeamChannelListLoadedPayload => ({payload, type: teamChannelListLoaded})
 /**
  * Loaded welcome message for new team members
  */
@@ -782,10 +790,6 @@ export const createSetTeamAccessRequestsPending = (
 export const createSetTeamCreationError = (
   payload: _SetTeamCreationErrorPayload
 ): SetTeamCreationErrorPayload => ({payload, type: setTeamCreationError})
-export const createSetTeamDetails = (payload: _SetTeamDetailsPayload): SetTeamDetailsPayload => ({
-  payload,
-  type: setTeamDetails,
-})
 export const createSetTeamInfo = (payload: _SetTeamInfoPayload): SetTeamInfoPayload => ({
   payload,
   type: setTeamInfo,
@@ -1020,6 +1024,10 @@ export type LaunchNewTeamWizardOrModalPayload = {
 }
 export type LeaveTeamPayload = {readonly payload: _LeaveTeamPayload; readonly type: typeof leaveTeam}
 export type LeftTeamPayload = {readonly payload: _LeftTeamPayload; readonly type: typeof leftTeam}
+export type LoadTeamChannelListPayload = {
+  readonly payload: _LoadTeamChannelListPayload
+  readonly type: typeof loadTeamChannelList
+}
 export type LoadTeamPayload = {readonly payload: _LoadTeamPayload; readonly type: typeof loadTeam}
 export type LoadTeamTreePayload = {readonly payload: _LoadTeamTreePayload; readonly type: typeof loadTeamTree}
 export type LoadWelcomeMessagePayload = {
@@ -1139,10 +1147,6 @@ export type SetTeamCreationErrorPayload = {
   readonly payload: _SetTeamCreationErrorPayload
   readonly type: typeof setTeamCreationError
 }
-export type SetTeamDetailsPayload = {
-  readonly payload: _SetTeamDetailsPayload
-  readonly type: typeof setTeamDetails
-}
 export type SetTeamInfoPayload = {readonly payload: _SetTeamInfoPayload; readonly type: typeof setTeamInfo}
 export type SetTeamInviteErrorPayload = {
   readonly payload: _SetTeamInviteErrorPayload
@@ -1260,6 +1264,10 @@ export type StartNewTeamWizardPayload = {
   readonly payload: _StartNewTeamWizardPayload
   readonly type: typeof startNewTeamWizard
 }
+export type TeamChannelListLoadedPayload = {
+  readonly payload: _TeamChannelListLoadedPayload
+  readonly type: typeof teamChannelListLoaded
+}
 export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
 export type TeamLoadedPayload = {readonly payload: _TeamLoadedPayload; readonly type: typeof teamLoaded}
 export type TeamSeenPayload = {readonly payload: _TeamSeenPayload; readonly type: typeof teamSeen}
@@ -1333,6 +1341,7 @@ export type Actions =
   | LaunchNewTeamWizardOrModalPayload
   | LeaveTeamPayload
   | LeftTeamPayload
+  | LoadTeamChannelListPayload
   | LoadTeamPayload
   | LoadTeamTreePayload
   | LoadWelcomeMessagePayload
@@ -1368,7 +1377,6 @@ export type Actions =
   | SetSubteamFilterPayload
   | SetTeamAccessRequestsPendingPayload
   | SetTeamCreationErrorPayload
-  | SetTeamDetailsPayload
   | SetTeamInfoPayload
   | SetTeamInviteErrorPayload
   | SetTeamJoinErrorPayload
@@ -1399,6 +1407,7 @@ export type Actions =
   | ShowTeamByNamePayload
   | StartAddMembersWizardPayload
   | StartNewTeamWizardPayload
+  | TeamChannelListLoadedPayload
   | TeamCreatedPayload
   | TeamLoadedPayload
   | TeamSeenPayload

@@ -333,21 +333,18 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     }
   },
   [FsGen.showIncomingShare]: (draftState, action) => {
-    draftState.destinationPicker.source =
-      draftState.destinationPicker.source.type === Types.DestinationPickerSource.IncomingShare
-        ? draftState.destinationPicker.source
-        : ({
-            source: Types.stringToLocalPath(''),
-            type: Types.DestinationPickerSource.IncomingShare,
-            useOriginal: false,
-          } as const)
+    if (draftState.destinationPicker.source.type !== Types.DestinationPickerSource.IncomingShare) {
+      draftState.destinationPicker.source = {
+        source: [],
+        type: Types.DestinationPickerSource.IncomingShare,
+      } as Types.IncomingShareSource
+    }
     draftState.destinationPicker.destinationParentPath = [action.payload.initialDestinationParentPath]
   },
   [FsGen.setIncomingShareSource]: (draftState, action) => {
     draftState.destinationPicker.source = {
       source: action.payload.source,
       type: Types.DestinationPickerSource.IncomingShare,
-      useOriginal: action.payload.useOriginal,
     } as const
   },
   [FsGen.setPathItemActionMenuView]: (draftState, action) => {

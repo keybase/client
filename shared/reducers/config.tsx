@@ -343,6 +343,9 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
       }
     }
   },
+  [ConfigGen.setIncomingShareUseOriginal]: (draftState, action) => {
+    draftState.incomingShareUseOriginal = action.payload.useOriginal
+  },
   [GregorGen.pushState]: (draftState, action) => {
     const items = action.payload.state
     draftState.allowAnimatedEmojis = !items.find(i => i.item && i.item.category === 'emojianimations')

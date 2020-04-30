@@ -46,6 +46,7 @@ export const setAccounts = 'config:setAccounts'
 export const setDarkModePreference = 'config:setDarkModePreference'
 export const setDefaultUsername = 'config:setDefaultUsername'
 export const setDeletedSelf = 'config:setDeletedSelf'
+export const setIncomingShareUseOriginal = 'config:setIncomingShareUseOriginal'
 export const setNavigator = 'config:setNavigator'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
@@ -138,6 +139,7 @@ type _SetDarkModePreferencePayload = {
 }
 type _SetDefaultUsernamePayload = {readonly username: string}
 type _SetDeletedSelfPayload = {readonly deletedUsername: string}
+type _SetIncomingShareUseOriginalPayload = {readonly useOriginal: boolean}
 type _SetNavigatorPayload = {readonly navigator: any}
 type _SetNotifySoundPayload = {readonly notifySound: boolean}
 type _SetOpenAtLoginPayload = {readonly openAtLogin: boolean}
@@ -384,6 +386,9 @@ export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload): SetDelete
   payload,
   type: setDeletedSelf,
 })
+export const createSetIncomingShareUseOriginal = (
+  payload: _SetIncomingShareUseOriginalPayload
+): SetIncomingShareUseOriginalPayload => ({payload, type: setIncomingShareUseOriginal})
 export const createSetNavigator = (payload: _SetNavigatorPayload): SetNavigatorPayload => ({
   payload,
   type: setNavigator,
@@ -536,6 +541,10 @@ export type SetDeletedSelfPayload = {
   readonly payload: _SetDeletedSelfPayload
   readonly type: typeof setDeletedSelf
 }
+export type SetIncomingShareUseOriginalPayload = {
+  readonly payload: _SetIncomingShareUseOriginalPayload
+  readonly type: typeof setIncomingShareUseOriginal
+}
 export type SetNavigatorPayload = {readonly payload: _SetNavigatorPayload; readonly type: typeof setNavigator}
 export type SetNotifySoundPayload = {
   readonly payload: _SetNotifySoundPayload
@@ -640,6 +649,7 @@ export type Actions =
   | SetDarkModePreferencePayload
   | SetDefaultUsernamePayload
   | SetDeletedSelfPayload
+  | SetIncomingShareUseOriginalPayload
   | SetNavigatorPayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload

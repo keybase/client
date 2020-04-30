@@ -1082,6 +1082,10 @@ protocol local {
     array<RateLimit> rateLimits;
   }
   DeleteConversationLocalRes deleteConversationLocal(int sessionID, ConversationID convID, string channelName, boolean confirmed);
+  record RemoveFromConversationLocalRes {
+    array<RateLimit> rateLimits;
+  }
+  RemoveFromConversationLocalRes removeFromConversationLocal(ConversationID convID, array<string> usernames);
 
   record GetTLFConversationsLocalRes {
     array<InboxUIItem> convs;

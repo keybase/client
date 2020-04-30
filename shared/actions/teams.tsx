@@ -888,8 +888,9 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
           teamname,
         })
       )
+    } else {
+      yield Saga.put(TeamsGen.createLoadTeamChannelList({teamID}))
     }
-    // TODO: else, reload the channel list
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
   }
@@ -1231,7 +1232,7 @@ const deleteChannelConfirmed = async (action: TeamsGen.DeleteChannelConfirmedPay
     },
     Constants.teamWaitingKey(teamID)
   )
-  return false
+  return TeamsGen.createLoadTeamChannelList({teamID})
 }
 
 const deleteMultiChannelsConfirmed = async (action: TeamsGen.DeleteMultiChannelsConfirmedPayload) => {
@@ -1257,7 +1258,7 @@ const getMembers = async (action: TeamsGen.GetMembersPayload, logger: Saga.SagaL
     const res = await RPCTypes.teamsTeamGetMembersByIDRpcPromise({
       id: teamID,
     })
-    const members = Constants.rpcDetailsToMemberInfos(res)
+    const members = Constants.rpcDetailsToMemberInfos(res ?? [])
     return TeamsGen.createSetMembers({members, teamID})
   } catch (error) {
     logger.error(`Error updating members for ${teamID}: ${error.desc}`)
@@ -1610,6 +1611,53 @@ const maybeClearBadges = (action: RouteTreeGen.OnNavChangedPayload) => {
   return false
 }
 
+const loadTeamChannelList = async (
+  state: TypedState,
+  action: TeamsGen.LoadTeamChannelListPayload,
+  logger
+) => {
+  const {teamID} = action.payload
+  const teamname = Constants.getTeamMeta(state, teamID).teamname
+  if (!teamname) {
+    logger.warn('bailing on no teamMeta')
+    return
+  }
+  try {
+    const {convs} = await RPCChatTypes.localGetTLFConversationsLocalRpcPromise({
+      membersType: RPCChatTypes.ConversationMembersType.team,
+      tlfName: teamname,
+      topicType: RPCChatTypes.TopicType.chat,
+    })
+    const channels =
+      (convs || []).reduce<Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>>((res, inboxUIItem) => {
+        const conversationIDKey = ChatTypes.stringToConversationIDKey(inboxUIItem.convID)
+        res.set(conversationIDKey, {
+          channelname: inboxUIItem.channel,
+          conversationIDKey,
+          description: inboxUIItem.headline,
+        })
+        return res
+      }, new Map()) ?? new Map()
+
+    // ensure we refresh participants, but don't fail the saga if this somehow fails
+    try {
+      ;[...channels.values()].forEach(
+        async ({conversationIDKey}) =>
+          await RPCChatTypes.localRefreshParticipantsRpcPromise({
+            convID: ChatTypes.keyToConversationID(conversationIDKey),
+          })
+      )
+    } catch (e) {
+      logger.error('this should never happen', e)
+    }
+
+    return TeamsGen.createTeamChannelListLoaded({channels, teamID})
+  } catch (err) {
+    logger.warn(err)
+  }
+  return false
+}
+
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam)
@@ -1724,6 +1772,9 @@ const teamsSaga = function*() {
 
   yield* Saga.chainAction(TeamsGen.teamSeen, teamSeen)
   yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeClearBadges)
+
+  // Channels list + page
+  yield* Saga.chainAction2(TeamsGen.loadTeamChannelList, loadTeamChannelList)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

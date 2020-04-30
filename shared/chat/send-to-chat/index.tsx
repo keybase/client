@@ -1,59 +1,71 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
-import * as Kb from '../../../common-adapters'
-import * as Kbfs from '../../common'
-import * as Styles from '../../../styles'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as ChatTypes from '../../../constants/types/chat2'
-import * as ChatConstants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
-import HiddenString from '../../../util/hidden-string'
+import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
+import * as Kb from '../../common-adapters'
+import * as Kbfs from '../../fs/common'
+import * as Styles from '../../styles'
+import * as Chat2Gen from '../../actions/chat2-gen'
+import * as ChatTypes from '../../constants/types/chat2'
+import * as ChatConstants from '../../constants/chat2'
+import * as Container from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import HiddenString from '../../util/hidden-string'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 
-type Props = Container.RouteProps<{
+type Props = {
   canBack?: boolean
-  path?: Types.Path
-  incomingShareItems?: Array<RPCTypes.IncomingShareItem>
-  useOriginal?: boolean
-  url?: string
-}>
 
-const isChatText = (item: RPCTypes.IncomingShareItem): boolean =>
-  item.type === RPCTypes.IncomingShareType.text && !!item.content
+  isFromShareExtension?: boolean
+  text?: string // incoming share (text)
+  sendPaths?: Array<string> // KBFS or incoming share (files)
+}
+type RoutableProps = Container.RouteProps<Props>
 
-const MobileSendAttachmentToChat = (props: Props) => {
+const MobileSendToChatRoutable = (props: RoutableProps) => {
   const canBack = Container.getRouteProps(props, 'canBack', false)
-  const incomingShareItems = Container.getRouteProps(props, 'incomingShareItems', undefined)
-  const useOriginal = Container.getRouteProps(props, 'useOriginal', false)
-  const url = Container.getRouteProps(props, 'url', undefined)
-  const path = Container.getRouteProps(props, 'path', undefined)
-  const isFromShareExtension = !!Container.getRouteProps(props, 'incomingShareItems', undefined)
-  const dispatch = Container.useDispatch()
+  const isFromShareExtension = Container.getRouteProps(props, 'isFromShareExtension', undefined)
+  const sendPaths = Container.getRouteProps(props, 'sendPaths', undefined)
+  const text = Container.getRouteProps(props, 'text', undefined)
 
-  const pathsFromIncomingShare = incomingShareItems
-    // If it's a chat text, we fill it in the compose box instead of sending it
-    // as an attachment.
-    ?.filter(item => !isChatText(item))
-    ?.map(({originalPath, scaledPath}) =>
-      useOriginal ? originalPath ?? '' : scaledPath ?? originalPath ?? ''
-    )
-    ?.filter(Boolean)
-  const pathsFromUrl = url ? [url] : undefined
-  const pathsFromPath = path ? [path] : undefined
-  const sendPaths = pathsFromIncomingShare || pathsFromUrl || pathsFromPath || []
-  const text =
-    incomingShareItems
-      ?.filter(isChatText)
-      ?.map(({content}) => content)
-      ?.join(' ') || ''
+  const dispatch = Container.useDispatch()
+  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
+  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
+
+  return (
+    <Kb.Modal
+      noScrollView={true}
+      onClose={canBack ? onBack : onCancel}
+      header={{
+        leftButton: canBack ? (
+          <Kb.Text type="BodyBigLink" onClick={onBack}>
+            Back
+          </Kb.Text>
+        ) : (
+          <Kb.Text type="BodyBigLink" onClick={onCancel}>
+            Cancel
+          </Kb.Text>
+        ),
+        title: Constants.getSharePathArrayDescription(sendPaths || []),
+      }}
+    >
+      <MobileSendToChat
+        canBack={canBack}
+        isFromShareExtension={isFromShareExtension}
+        sendPaths={sendPaths}
+        text={text}
+      />
+    </Kb.Modal>
+  )
+}
+
+export const MobileSendToChat = (props: Props) => {
+  const {isFromShareExtension, sendPaths, text} = props
+  const dispatch = Container.useDispatch()
 
   const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
     text && dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: new HiddenString(text)}))
-    if (sendPaths.length) {
+    if (sendPaths?.length) {
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [
@@ -82,33 +94,11 @@ const MobileSendAttachmentToChat = (props: Props) => {
     }
   }
 
-  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
-
-  return (
-    <Kb.Modal
-      noScrollView={true}
-      onClose={canBack ? onBack : onCancel}
-      header={{
-        leftButton: canBack ? (
-          <Kb.Text type="BodyBigLink" onClick={onBack}>
-            Back
-          </Kb.Text>
-        ) : (
-          <Kb.Text type="BodyBigLink" onClick={onCancel}>
-            Cancel
-          </Kb.Text>
-        ),
-        title: Constants.getSharePathArrayDescription(sendPaths),
-      }}
-    >
-      <ConversationList {...props} onSelect={onSelect} />
-    </Kb.Modal>
-  )
+  return <ConversationList {...props} onSelect={onSelect} />
 }
 
-const DesktopSendAttachmentToChat = (props: Props) => {
-  const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
+const DesktopSendToChat = (props: RoutableProps) => {
+  const sendPaths = Container.getRouteProps(props, 'sendPaths', undefined) ?? []
   const [title, setTitle] = React.useState('')
   const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
@@ -122,23 +112,27 @@ const DesktopSendAttachmentToChat = (props: Props) => {
     setConvName(convname)
   }
   const onSend = () => {
-    dispatch(
-      Chat2Gen.createAttachmentsUpload({
-        conversationIDKey,
-        paths: [{outboxID: null, path: Types.pathToString(path)}],
-        titles: [title],
-        tlfName: `${username},${convName.split('#')[0]}`,
-      })
+    sendPaths?.forEach(path =>
+      dispatch(
+        Chat2Gen.createAttachmentsUpload({
+          conversationIDKey,
+          paths: [{outboxID: null, path: Types.pathToString(path)}],
+          titles: [title],
+          tlfName: `${username},${convName.split('#')[0]}`,
+        })
+      )
     )
     dispatch(RouteTreeGen.createClearModals())
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'files'}))
   }
   return (
     <Kb.PopupWrapper>
-      <DesktopSendAttachmentToChatRender
+      <DesktopSendToChatRender
         enabled={conversationIDKey !== ChatConstants.noConversationIDKey}
         convName={convName}
-        path={path}
+        // If we ever support sending multiples from desktop this will need to
+        // change.
+        path={sendPaths[0]}
         title={title}
         setTitle={setTitle}
         onSend={onSend}
@@ -149,7 +143,7 @@ const DesktopSendAttachmentToChat = (props: Props) => {
   )
 }
 
-type DesktopSendAttachmentToChatRenderProps = {
+type DesktopSendToChatRenderProps = {
   enabled: boolean
   convName: string
   path: Types.Path
@@ -160,7 +154,7 @@ type DesktopSendAttachmentToChatRenderProps = {
   onSelect: (convID: ChatTypes.ConversationIDKey, convName: string) => void
 }
 
-export const DesktopSendAttachmentToChatRender = (props: DesktopSendAttachmentToChatRenderProps) => {
+export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => {
   return (
     <>
       <Kb.Box2 direction="vertical" style={desktopStyles.container} centerChildren={true}>
@@ -199,9 +193,9 @@ export const DesktopSendAttachmentToChatRender = (props: DesktopSendAttachmentTo
   )
 }
 
-const SendAttachmentToChat = Styles.isMobile ? MobileSendAttachmentToChat : DesktopSendAttachmentToChat
+const SendToChat = Styles.isMobile ? MobileSendToChatRoutable : DesktopSendToChat
 
-export default SendAttachmentToChat
+export default SendToChat
 
 const desktopStyles = Styles.styleSheetCreate(
   () =>

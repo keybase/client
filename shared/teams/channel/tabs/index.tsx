@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
@@ -18,13 +17,8 @@ export type Props = {
 }
 
 const ChannelTabs = (props: Props) => {
-  const {selectedTab, setSelectedTab, teamID} = props
-  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const {selectedTab, setSelectedTab} = props
   const error = Container.useSelector(state => state.teams.errorInAddToTeam)
-  const waiting = Container.useAnyWaiting(
-    Constants.teamWaitingKey(teamMeta.id),
-    Constants.teamTarsWaitingKey(teamMeta.teamname)
-  )
   const tabs: Array<TabType<TabKey>> = [
     {title: 'members' as const},
     {title: 'attachments' as const},
@@ -42,7 +36,6 @@ const ChannelTabs = (props: Props) => {
           onSelect={setSelectedTab}
           style={styles.tabContainer}
           tabStyle={styles.tab}
-          showProgressIndicator={!Styles.isMobile && waiting}
         />
       </Kb.Box>
       {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}

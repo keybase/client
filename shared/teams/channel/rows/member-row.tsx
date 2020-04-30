@@ -197,7 +197,7 @@ const ChannelMemberRow = (props: Props) => {
       ? ([
           {
             danger: true,
-            icon: 'iconfont-block',
+            icon: 'iconfont-user-block',
             onClick: onBlock,
             title: 'Block',
           },

@@ -204,6 +204,7 @@ export const makeAddEmailError = (err: RPCError): string => {
   return err.message
 }
 export const securityGroup = 'security'
+export const soundGroup = 'sound'
 export const traceInProgressKey = 'settings:traceInProgress'
 export const traceInProgress = (state: TypedState) => WaitingConstants.anyWaiting(state, traceInProgressKey)
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'

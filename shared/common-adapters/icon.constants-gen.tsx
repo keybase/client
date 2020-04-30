@@ -941,6 +941,7 @@ export type IconType =
   | 'iconfont-calculator'
   | 'iconfont-camera'
   | 'iconfont-camera-solid'
+  | 'iconfont-campfire'
   | 'iconfont-campfire-burning'
   | 'iconfont-campfire-out'
   | 'iconfont-caret-down'
@@ -964,6 +965,7 @@ export type IconType =
   | 'iconfont-contact-book'
   | 'iconfont-contact-card'
   | 'iconfont-copy'
+  | 'iconfont-crown'
   | 'iconfont-crown-admin'
   | 'iconfont-crown-owner'
   | 'iconfont-diamond'
@@ -994,6 +996,7 @@ export type IconType =
   | 'iconfont-folder-public'
   | 'iconfont-folder-public-me'
   | 'iconfont-folder-up'
+  | 'iconfont-forward'
   | 'iconfont-gear'
   | 'iconfont-gif'
   | 'iconfont-hamburger'
@@ -1029,6 +1032,7 @@ export type IconType =
   | 'iconfont-nav-2-crypto'
   | 'iconfont-nav-2-devices'
   | 'iconfont-nav-2-files'
+  | 'iconfont-nav-2-fm'
   | 'iconfont-nav-2-git'
   | 'iconfont-nav-2-hamburger'
   | 'iconfont-nav-2-more'
@@ -1073,12 +1077,14 @@ export type IconType =
   | 'iconfont-share-android'
   | 'iconfont-shh'
   | 'iconfont-skull'
+  | 'iconfont-sort-alpha'
   | 'iconfont-spade'
   | 'iconfont-star'
   | 'iconfont-stellar-request'
   | 'iconfont-stellar-send'
   | 'iconfont-stop'
   | 'iconfont-success'
+  | 'iconfont-team'
   | 'iconfont-team-join'
   | 'iconfont-team-leave'
   | 'iconfont-text-code'
@@ -9640,6 +9646,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-campfire': {
+    charCode: 0xe9cb,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-campfire-burning': {
     charCode: 0xe9b3,
     gridSize: 16,
@@ -9752,6 +9763,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-copy': {
     charCode: 0xe9bf,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-crown': {
+    charCode: 0xe9ca,
     gridSize: 16,
     isFont: true,
   },
@@ -9902,6 +9918,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-folder-up': {
     charCode: 0xe928,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-forward': {
+    charCode: 0xe9c9,
     gridSize: 16,
     isFont: true,
   },
@@ -10077,6 +10098,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-nav-2-files': {
     charCode: 0xe97e,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-fm': {
+    charCode: 0xe9ce,
     gridSize: 24,
     isFont: true,
   },
@@ -10300,6 +10326,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     gridSize: 24,
     isFont: true,
   },
+  'iconfont-sort-alpha': {
+    charCode: 0xe9cc,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-spade': {
     charCode: 0xe979,
     gridSize: 16,
@@ -10327,6 +10358,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-success': {
     charCode: 0xe95c,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-team': {
+    charCode: 0xe9cd,
     gridSize: 16,
     isFont: true,
   },

@@ -12,6 +12,7 @@ import messagePopup from './conversation/messages/message-popup/index.stories'
 import paymentStatus from './payments/status/index.stories'
 import pinnedMsg from './conversation/pinned-message/index.stories'
 import replyPreview from './conversation/reply-preview/index.stories'
+import sendToChatStories from './send-to-chat/index.stories'
 import setExplodingMessage from './conversation/messages/set-explode-popup/index.stories'
 import suggestors from './conversation/input-area/suggestors/index.stories'
 import messages from './conversation/messages/index.stories'
@@ -38,6 +39,7 @@ const load = () => {
     paymentStatus,
     pinnedMsg,
     replyPreview,
+    sendToChatStories,
     setExplodingMessage,
     suggestors,
     thread,

@@ -152,14 +152,14 @@ const SortHeader = () => {
     <Kb.FloatingMenu
       attachTo={getAttachmentRef}
       items={[
-        {icon: 'iconfont-crown-owner', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
+        {icon: 'iconfont-team', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
         {
-          icon: 'iconfont-campfire-burning',
+          icon: 'iconfont-campfire',
           onClick: () => onChangeSort('activity'),
           title: sortOrderToTitle.activity,
         },
         {
-          icon: 'iconfont-text-code',
+          icon: 'iconfont-sort-alpha',
           onClick: () => onChangeSort('alphabetical'),
           title: sortOrderToTitle.alphabetical,
         },

@@ -66,9 +66,6 @@ const onHTTPSrvInfoUpdated = (action: EngineGen.Keybase1NotifyServiceHTTPSrvInfo
     token: action.payload.params.info.token,
   })
 
-const onHandleLink = (action: EngineGen.Keybase1NotifyServiceHandleKeybaseLinkPayload) =>
-  DeeplinksGen.createHandleKeybaseLink({link: action.payload.params.link})
-
 const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
   const {uid} = state.config
   logger.info(`getFollowerInfo: init; uid=${uid}`)
@@ -398,7 +395,7 @@ const onShowPermissionsPrompt = (
 const onAndroidShare = (state: Container.TypedState) => {
   // already loaded, so just go now
   if (routeToInitialScreenOnce && state.config.startupDetailsLoaded) {
-    return RouteTreeGen.createNavigateAppend({path: ['androidChooseTarget']})
+    return RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']})
   }
   return false
 }
@@ -549,7 +546,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       return [
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
         RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
-        RouteTreeGen.createNavigateAppend({path: ['androidChooseTarget']}),
+        RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']}),
       ]
     }
 
@@ -868,7 +865,6 @@ function* configSaga() {
   yield* Saga.chainAction2(EngineGen.disconnected, onDisconnected)
   yield* Saga.chainAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
   yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHandleKeybaseLink, onHandleLink)
 
   // Listen for updates to `whatsNewLastSeenVersion`
   yield* Saga.chainAction(GregorGen.pushState, gregorPushState)

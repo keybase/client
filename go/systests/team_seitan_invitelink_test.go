@@ -111,10 +111,13 @@ func TestTeamInviteLinkAfterLeave(t *testing.T) {
 	// Bob leaves.
 	bob.leave(teamName.String())
 
-	// Make sure Bob gets different akey when accepting again.
+	// Make sure Bob gets different akey when accepting again, and that Alice
+	// doesn't hit the "invite link was accepted before last change membership"
+	// when handling seitan.
 	clock := clockwork.NewFakeClockAt(time.Now())
 	clock.Advance(1 * time.Second)
 	bob.tc.G.SetClock(clock)
+	alice.tc.G.SetClock(clock)
 
 	// Bob accepts the same invite again.
 	err = bob.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
@@ -166,7 +169,7 @@ func TestCreateSeitanInvitelinkWithDuration(t *testing.T) {
 	now := alice.tc.G.Clock().Now()
 
 	maxUses := keybase1.TeamMaxUsesInfinite
-	expireAfter := "1000 Y"
+	expireAfter := "10 Y"
 	_, err := alice.teamsClient.TeamCreateSeitanInvitelinkWithDuration(
 		context.TODO(),
 		keybase1.TeamCreateSeitanInvitelinkWithDurationArg{
@@ -185,7 +188,7 @@ func TestCreateSeitanInvitelinkWithDuration(t *testing.T) {
 		require.NotNil(t, invite.MaxUses)
 		require.Equal(t, keybase1.TeamMaxUsesInfinite, *invite.MaxUses)
 		require.NotNil(t, invite.Etime)
-		require.Equal(t, now.Year()+1000, invite.Etime.Time().Year())
+		require.Equal(t, now.Year()+10, invite.Etime.Time().Year())
 		require.Equal(t, keybase1.TeamMaxUsesInfinite, *invite.MaxUses)
 		tic, err := invite.Type.C()
 		require.NoError(t, err)

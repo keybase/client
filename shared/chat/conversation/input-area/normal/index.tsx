@@ -480,12 +480,9 @@ class Input extends React.Component<InputProps, InputState> {
         gap="tiny"
       >
         {Constants.isSpecialMention(username) ? (
-          <Kb.Icon
-            type="iconfont-people"
-            style={styles.paddingXTiny}
-            color={Styles.globalColors.blue}
-            fontSize={24}
-          />
+          <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
+            <Kb.Icon type="iconfont-people" color={Styles.globalColors.blueDark} fontSize={16} />
+          </Kb.Box2>
         ) : (
           <Kb.Avatar username={username} size={32} />
         )}
@@ -690,8 +687,16 @@ const styles = Styles.styleSheetCreate(
       fixSuggestionHeight: Styles.platformStyles({
         isMobile: {height: 48},
       }),
-      paddingXTiny: {
-        padding: Styles.globalMargins.xtiny,
+      iconPeople: {
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.white,
+        borderColor: Styles.globalColors.black_10,
+        borderRadius: 16,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        height: 32,
+        justifyContent: 'center',
+        width: 32,
       },
       suggestionBase: {
         alignItems: 'center',

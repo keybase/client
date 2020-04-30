@@ -17,10 +17,10 @@ amdefine@>=0.0.4:
   resolved "https://registry.yarnpkg.com/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
   integrity sha1-SlKCrBZHKek2Gbz9OtFR+BfOkfU=
 
-avdl-compiler@1.4.8:
-  version "1.4.8"
-  resolved "https://registry.yarnpkg.com/avdl-compiler/-/avdl-compiler-1.4.8.tgz#012abef6f669c35a68eb5104ea4ff19f1b1895ae"
-  integrity sha512-dMLeZtz5Hc84BXkjoC/mXwa9WQsGMtvyhVXetmIH0zKhwe7WDKus6+sbV8ZDi4G5EBCRb0mR2QawRmdrZAK2OQ==
+avdl-compiler@1.4.9:
+  version "1.4.9"
+  resolved "https://registry.yarnpkg.com/avdl-compiler/-/avdl-compiler-1.4.9.tgz#a8915cf54a132c18817093625db3a8cfb27f70c6"
+  integrity sha512-hlgSVK+X1Bl2iV+fOZR8YSqU+X6tuoBBTPuf+TLImMEmK0cs32hGtevbrIaTcQESdxQb1/l3BFFeD6MNQ0RFGQ==
   dependencies:
     avdl2json "^2.2.5"
     iced-error "0.0.9"

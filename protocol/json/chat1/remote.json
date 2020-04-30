@@ -526,6 +526,19 @@
     },
     {
       "type": "record",
+      "name": "RemoveFromConversationRemoteRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetMessageBeforeRes",
       "fields": [
         {
@@ -1524,6 +1537,22 @@
         }
       ],
       "response": "DeleteConversationRemoteRes"
+    },
+    "removeFromConversation": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "users",
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          }
+        }
+      ],
+      "response": "RemoveFromConversationRemoteRes"
     },
     "getMessageBefore": {
       "request": [

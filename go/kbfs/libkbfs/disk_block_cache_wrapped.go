@@ -249,6 +249,10 @@ func (cache *diskBlockCacheWrapped) GetPrefetchStatus(
 
 	// Try the sync cache first unless working set cache is required.
 	if cacheType != DiskBlockWorkingSetCache {
+		if cache.syncCache == nil {
+			return NoPrefetch, errors.New("Sync cache not enabled")
+		}
+
 		md, err := cache.syncCache.GetMetadata(ctx, blockID)
 		switch errors.Cause(err) {
 		case nil:
@@ -322,7 +326,10 @@ func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 	// caches. So we use a read lock.
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
-	if cacheType == DiskBlockAnyCache || cacheType == DiskBlockSyncCache {
+	if cache.syncCache == nil && cacheType == DiskBlockSyncCache {
+		return 0, 0, errors.New("Sync cache not enabled")
+	} else if cache.syncCache != nil &&
+		(cacheType == DiskBlockAnyCache || cacheType == DiskBlockSyncCache) {
 		numRemoved, sizeRemoved, err = cache.syncCache.Delete(ctx, blockIDs)
 		if err != nil {
 			return 0, 0, err
@@ -504,7 +511,7 @@ func (cache *diskBlockCacheWrapped) GetTlfSize(
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
 
-	if cacheType != DiskBlockWorkingSetCache {
+	if cacheType != DiskBlockWorkingSetCache && cache.syncCache != nil {
 		// Either sync cache only, or both.
 		syncSize, err := cache.syncCache.GetTlfSize(ctx, tlfID)
 		if err != nil {
@@ -533,7 +540,7 @@ func (cache *diskBlockCacheWrapped) GetTlfIDs(
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
 
-	if cacheType != DiskBlockWorkingSetCache {
+	if cacheType != DiskBlockWorkingSetCache && cache.syncCache != nil {
 		// Either sync cache only, or both.
 		tlfIDs, err = cache.syncCache.GetTlfIDs(ctx)
 		if err != nil {
@@ -576,7 +583,7 @@ func (cache *diskBlockCacheWrapped) WaitUntilStarted(
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
 
-	if cacheType != DiskBlockWorkingSetCache {
+	if cacheType != DiskBlockWorkingSetCache && cache.syncCache != nil {
 		err = cache.syncCache.WaitUntilStarted()
 		if err != nil {
 			return err

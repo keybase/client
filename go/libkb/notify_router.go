@@ -102,7 +102,7 @@ type NotifyListener interface {
 	BoxAuditError(msg string)
 	RuntimeStatsUpdate(*keybase1.RuntimeStats)
 	HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)
-	HandleKeybaseLink(link string)
+	HandleKeybaseLink(link string, deferred bool)
 	IdentifyUpdate(okUsernames []string, brokenUsernames []string)
 	Reachability(keybase1.Reachability)
 	FeaturedBotsUpdate(bots []keybase1.FeaturedBot, limit, offset int)
@@ -237,12 +237,12 @@ func (n *NoopNotifyListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber
 func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
 func (n *NoopNotifyListener) EmailsChanged(list []keybase1.Email, category string, email keybase1.EmailAddress) {
 }
-func (n *NoopNotifyListener) PasswordChanged()                          {}
-func (n *NoopNotifyListener) RootAuditError(msg string)                 {}
-func (n *NoopNotifyListener) BoxAuditError(msg string)                  {}
-func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
-func (n *NoopNotifyListener) HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)    {}
-func (n *NoopNotifyListener) HandleKeybaseLink(link string)             {}
+func (n *NoopNotifyListener) PasswordChanged()                             {}
+func (n *NoopNotifyListener) RootAuditError(msg string)                    {}
+func (n *NoopNotifyListener) BoxAuditError(msg string)                     {}
+func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats)    {}
+func (n *NoopNotifyListener) HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)       {}
+func (n *NoopNotifyListener) HandleKeybaseLink(link string, deferred bool) {}
 func (n *NoopNotifyListener) IdentifyUpdate(okUsernames []string, brokenUsernames []string) {
 }
 func (n *NoopNotifyListener) Reachability(keybase1.Reachability)                                {}
@@ -2689,7 +2689,7 @@ func (n *NotifyRouter) HandleHTTPSrvInfoUpdate(ctx context.Context, info keybase
 	})
 }
 
-func (n *NotifyRouter) HandleHandleKeybaseLink(ctx context.Context, link string) {
+func (n *NotifyRouter) HandleHandleKeybaseLink(ctx context.Context, link string, deferred bool) {
 	if n == nil {
 		return
 	}
@@ -2698,13 +2698,16 @@ func (n *NotifyRouter) HandleHandleKeybaseLink(ctx context.Context, link string)
 			go func() {
 				_ = (keybase1.NotifyServiceClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).HandleKeybaseLink(ctx, link)
+				}).HandleKeybaseLink(ctx, keybase1.HandleKeybaseLinkArg{
+					Link:     link,
+					Deferred: deferred,
+				})
 			}()
 		}
 		return true
 	})
 	n.runListeners(func(listener NotifyListener) {
-		listener.HandleKeybaseLink(link)
+		listener.HandleKeybaseLink(link, deferred)
 	})
 }
 

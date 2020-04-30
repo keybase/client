@@ -3,7 +3,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platform from '../constants/platform'
 import {encryptTab} from '../constants/crypto'
-import {displayTab} from '../constants/settings'
+import {cryptoTab, displayTab} from '../constants/settings'
 import {keybaseFM} from '../constants/whats-new'
 import NewFeatureRow from './new-feature-row'
 
@@ -83,10 +83,10 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-5.2.0-crypto"
         noSeparator={true}
         onPrimaryButtonClick={() => {
-          onNavigate({path: [{selected: encryptTab}]})
+          onNavigate({path: [{selected: Platform.isMobile ? cryptoTab : encryptTab}]})
         }}
         primaryButtonClassName="buttonNyctographicHover"
-        primaryButtonText={Styles.isMobile ? '' : 'Try it'}
+        primaryButtonText="Try it"
         seen={seen}
       >
         Encrypt, decrypt, sign, and verify all from within Keybase.{' '}

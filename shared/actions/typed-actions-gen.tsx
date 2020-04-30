@@ -308,6 +308,7 @@ export type TypedActionsMap = {
   'config:loadOnStart': config.LoadOnStartPayload
   'config:showShareActionSheet': config.ShowShareActionSheetPayload
   'config:androidShare': config.AndroidSharePayload
+  'config:setIncomingShareUseOriginal': config.SetIncomingShareUseOriginalPayload
   'crypto:clearRecipients': crypto.ClearRecipientsPayload
   'crypto:clearInput': crypto.ClearInputPayload
   'crypto:downloadEncryptedText': crypto.DownloadEncryptedTextPayload
@@ -969,7 +970,6 @@ export type TypedActionsMap = {
   'teams:setTeamJoinSuccess': teams.SetTeamJoinSuccessPayload
   'teams:setTeamRetentionPolicy': teams.SetTeamRetentionPolicyPayload
   'teams:setTeamLoadingInvites': teams.SetTeamLoadingInvitesPayload
-  'teams:setTeamDetails': teams.SetTeamDetailsPayload
   'teams:setTeamInfo': teams.SetTeamInfoPayload
   'teams:setTeamProfileAddList': teams.SetTeamProfileAddListPayload
   'teams:setTeamAccessRequestsPending': teams.SetTeamAccessRequestsPendingPayload
@@ -1023,6 +1023,8 @@ export type TypedActionsMap = {
   'teams:getActivityForTeams': teams.GetActivityForTeamsPayload
   'teams:setActivityLevels': teams.SetActivityLevelsPayload
   'teams:setTeamListFilterSort': teams.SetTeamListFilterSortPayload
+  'teams:loadTeamChannelList': teams.LoadTeamChannelListPayload
+  'teams:teamChannelListLoaded': teams.TeamChannelListLoadedPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

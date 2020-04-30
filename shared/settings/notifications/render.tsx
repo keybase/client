@@ -2,22 +2,21 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/settings'
-import {isLinux} from '../../constants/platform'
 import {Props} from './index'
 
-const Group = (props: {
+export const Group = (props: {
   allowEdit: boolean
   groupName: string
   label?: string
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll?: () => void
   settings: Array<Types.NotificationsSettingsState> | null
-  title: string
+  title?: string
   unsub?: string
   unsubscribedFromAll: boolean
 }) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Kb.Text type="Header">{props.title}</Kb.Text>
+    {!!props.title && <Kb.Text type="Header">{props.title}</Kb.Text>}
     {!!props.label && (
       <Kb.Text type="BodySmall" style={styles.label}>
         {props.label}
@@ -43,14 +42,14 @@ const Group = (props: {
         ))}
     </Kb.Box2>
     {!!props.unsub && (
-      <Kb.Box2 direction="vertical" alignSelf="flex-start">
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" fullWidth={true}>
         <Kb.Text type="BodySmall">Or</Kb.Text>
         <Kb.Checkbox
           style={{marginTop: Styles.globalMargins.xtiny}}
           onCheck={props.onToggleUnsubscribeAll || null}
           disabled={!props.allowEdit}
           checked={!!props.unsubscribedFromAll}
-          label={`Unsubscribe me from all ${props.unsub} notifications`}
+          label={`Unsubscribe from all ${props.unsub} notifications`}
         />
       </Kb.Box2>
     )}
@@ -64,9 +63,9 @@ const EmailSection = (props: Props) => (
     onToggle={props.onToggle}
     onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('email')}
     title="Email notifications"
-    unsub="mail"
+    unsub="email"
     settings={props.groups.get('email')!.settings}
-    unsubscribedFromAll={props.groups.get('email')!.unsubscribedFromAll}
+    unsubscribedFromAll={props.groups.get('email')!.unsub}
   />
 )
 const PhoneSection = (props: Props) => (
@@ -79,7 +78,7 @@ const PhoneSection = (props: Props) => (
     title="Phone notifications"
     unsub="phone"
     settings={props.groups.get('app_push')!.settings}
-    unsubscribedFromAll={props.groups.get('app_push')!.unsubscribedFromAll}
+    unsubscribedFromAll={props.groups.get('app_push')!.unsub}
   />
 )
 const Notifications = (props: Props) =>
@@ -103,37 +102,12 @@ const Notifications = (props: Props) =>
           </Kb.Text>
         </Kb.Box2>
       )}
-      <Kb.Divider style={styles.divider} />
       {(!Styles.isMobile || props.mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (
         <>
-          <PhoneSection {...props} />
           <Kb.Divider style={styles.divider} />
+          <PhoneSection {...props} />
         </>
       ) : null}
-
-      {(!Styles.isMobile || props.mobileHasPermissions) && !!props.groups.get('security')?.settings && (
-        <Group
-          allowEdit={props.allowEdit}
-          groupName="security"
-          onToggle={props.onToggle}
-          title="Security"
-          settings={props.groups.get('security')!.settings}
-          unsubscribedFromAll={false}
-        />
-      )}
-
-      {!Styles.isMobile && !isLinux && (
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Divider style={styles.divider} />
-          <Kb.Text type="Header">Sound</Kb.Text>
-          <Kb.Checkbox
-            style={styles.checkbox}
-            onCheck={props.onToggleSound || null}
-            checked={!!props.sound}
-            label="Desktop chat notification sound"
-          />
-        </Kb.Box2>
-      )}
     </Kb.Box>
   )
 
@@ -151,7 +125,7 @@ const styles = Styles.styleSheetCreate(
       label: {marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny},
       loading: {alignItems: 'center', flex: 1, justifyContent: 'center'},
       main: Styles.platformStyles({
-        common: {flex: 1, padding: Styles.globalMargins.small, width: '100%'},
+        common: {flex: 1, padding: Styles.globalMargins.small, paddingRight: 0, width: '100%'},
         isElectron: Styles.desktopStyles.scrollable,
       }),
     } as const)

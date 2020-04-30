@@ -173,6 +173,7 @@ type InboxSource interface {
 		localizeTyp ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan AsyncInboxResult, error)
 	RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		status chat1.ConversationStatus) error
+	RemoteDeleteConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 	Search(ctx context.Context, uid gregor1.UID, query string, limit int,
 		emptyMode InboxSourceSearchEmptyMode) ([]RemoteConversation, error)
 	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,

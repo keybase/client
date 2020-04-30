@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Sb from '../../../../stories/storybook'
+import * as Sb from '../../../stories/storybook'
 import {ConversationListRender} from './conversation-list'
-import {Box} from '../../../../common-adapters'
+import {Box} from '../../../common-adapters'
 
 const props = {
   onSelect: Sb.action('onSelect'),

@@ -10,6 +10,7 @@ import * as Kb from '../../common-adapters'
 import flags from '../../util/feature-flags'
 import capitalize from 'lodash/capitalize'
 import * as Styles from '../../styles'
+import {pluralize} from '../../util/string'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -19,13 +20,12 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
-  const teamDetails = Constants.getTeamDetails(state, teamID)
   const {teamname, role, memberCount} = Constants.getTeamMeta(state, teamID)
   const yourOperations = Constants.getCanPerformByID(state, teamID)
   const isBigTeam = Constants.isBigTeam(state, teamID)
   return {
     canCreateSubteam: yourOperations.manageSubteams,
-    canDeleteTeam: yourOperations.deleteTeam && teamDetails.subteams?.size === 0,
+    canDeleteTeam: yourOperations.deleteTeam,
     canInvite: yourOperations.manageMembers,
     canLeaveTeam: !Constants.isLastOwner(state, teamID) && role !== 'none',
     canManageChat: yourOperations.renameChannel,
@@ -78,7 +78,11 @@ const TeamMenu = (props: Props) => {
     <Kb.ConnectedNameWithIcon
       teamname={teamname}
       title={teamname}
-      metaOne={<Kb.Text type="BodySmall">{memberCount} members</Kb.Text>}
+      metaOne={
+        <Kb.Text type="BodySmall">
+          {memberCount} {pluralize('member', memberCount)}
+        </Kb.Text>
+      }
       metaTwo={
         <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny">
           {(role === 'admin' || role === 'owner') && (
@@ -91,7 +95,7 @@ const TeamMenu = (props: Props) => {
           <Kb.Text type="BodySmall">{capitalize(role)}</Kb.Text>
         </Kb.Box2>
       }
-      containerStyle={{padding: 4}}
+      containerStyle={styles.headerContainer}
     />
   )
   return (
@@ -105,6 +109,17 @@ const TeamMenu = (props: Props) => {
     />
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  headerContainer: Styles.platformStyles({
+    common: {
+      ...Styles.padding(Styles.globalMargins.xtiny),
+    },
+    isElectron: {
+      paddingTop: Styles.globalMargins.small,
+    },
+  }),
+}))
 
 export default Container.connect(
   mapStateToProps,
@@ -130,7 +145,7 @@ export default Container.connect(
         items.push({
           icon: 'iconfont-folder-open',
           onClick: () => dispatchProps.onOpenFolder(stateProps.teamname),
-          title: 'Open folder',
+          title: 'Open team folder',
         })
       }
       if (items.length > 0 && (stateProps.canLeaveTeam || stateProps.canDeleteTeam)) {
@@ -152,22 +167,20 @@ export default Container.connect(
         items.push({
           icon: 'iconfont-folder-open',
           onClick: () => dispatchProps.onOpenFolder(stateProps.teamname),
-          title: 'Open folder',
+          title: 'Open team folder',
         })
       }
     }
-    if (stateProps.canLeaveTeam) {
-      items.push({
-        danger: true,
-        icon: 'iconfont-team-leave',
-        onClick: dispatchProps.onLeaveTeam,
-        title: 'Leave team',
-      })
-    }
+    items.push({
+      danger: true,
+      icon: 'iconfont-team-leave',
+      onClick: dispatchProps.onLeaveTeam,
+      title: 'Leave team',
+    })
     if (stateProps.canDeleteTeam) {
       items.push({
         danger: true,
-        icon: 'iconfont-remove',
+        icon: 'iconfont-trash',
         onClick: dispatchProps.onDeleteTeam,
         title: 'Delete team',
       })

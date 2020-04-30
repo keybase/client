@@ -326,7 +326,8 @@ func (sikey SeitanSIKey) GenerateAcceptanceKey(uid keybase1.UID, eldestSeqno key
 // tokens, since we don't mistakenly want to send botched Seitan tokens to the
 // server.
 func IsSeitany(s string) bool {
-	return len(s) > seitanEncodedIKeyInvitelinkPlusOffset && strings.IndexByte(s, '+') > 1
+	// use the minimum seitan offset value
+	return len(s) > seitanEncodedIKeyPlusOffset && strings.IndexByte(s, '+') > 1
 }
 
 // DeriveSeitanVersionFromToken returns possible seitan version based on the
@@ -338,11 +339,13 @@ func DeriveSeitanVersionFromToken(token string) (version SeitanVersion, err erro
 	switch {
 	case !IsSeitany(token):
 		return 0, errors.New("Invalid token, not seitan-y")
-	case token[seitanEncodedIKeyPlusOffset] == '+':
+	case len(token) > seitanEncodedIKeyPlusOffset && token[seitanEncodedIKeyPlusOffset] == '+':
 		return SeitanVersion1, nil
-	case token[seitanEncodedIKeyV2PlusOffset] == '+':
+	case len(token) > seitanEncodedIKeyV2PlusOffset && token[seitanEncodedIKeyV2PlusOffset] == '+':
 		return SeitanVersion2, nil
-	case token[seitanEncodedIKeyInvitelinkPlusOffset] == '+':
+	case len(token) > seitanEncodedIKeyInvitelinkPlusOffset &&
+		token[seitanEncodedIKeyInvitelinkPlusOffset] == '+':
+
 		return SeitanVersionInvitelink, nil
 	default:
 		return 0, errors.New("Invalid token, invalid '+' position")

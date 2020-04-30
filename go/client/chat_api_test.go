@@ -35,6 +35,7 @@ type handlerTracker struct {
 	joinV1              int
 	leaveV1             int
 	addToChannelV1      int
+	removeFromChannelV1 int
 	loadFlipV1          int
 	getUnfurlSettingsV1 int
 	setUnfurlSettingsV1 int
@@ -138,6 +139,11 @@ func (h *handlerTracker) LeaveV1(context.Context, Call, io.Writer) error {
 
 func (h *handlerTracker) AddToChannelV1(context.Context, Call, io.Writer) error {
 	h.addToChannelV1++
+	return nil
+}
+
+func (h *handlerTracker) RemoveFromChannelV1(context.Context, Call, io.Writer) error {
+	h.removeFromChannelV1++
 	return nil
 }
 
@@ -300,6 +306,10 @@ func (c *chatEcho) AddToChannelV1(context.Context, addToChannelOptionsV1) Reply 
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) RemoveFromChannelV1(context.Context, removeFromChannelOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 func (c *chatEcho) LoadFlipV1(context.Context, loadFlipOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
@@ -365,28 +375,29 @@ func (c *chatEcho) EmojiRemoveV1(context.Context, emojiRemoveOptionsV1) Reply {
 }
 
 type topTest struct {
-	input             string
-	output            string
-	err               error
-	listV1            int
-	readV1            int
-	sendV1            int
-	editV1            int
-	reactionV1        int
-	deleteV1          int
-	attachV1          int
-	downloadV1        int
-	markV1            int
-	searchInboxV1     int
-	searchRegexpV1    int
-	joinV1            int
-	leaveV1           int
-	addToChannelV1    int
-	listConvsOnNameV1 int
-	pinV1             int
-	unpinV1           int
-	getDeviceInfoV1   int
-	listMembersV1     int
+	input               string
+	output              string
+	err                 error
+	listV1              int
+	readV1              int
+	sendV1              int
+	editV1              int
+	reactionV1          int
+	deleteV1            int
+	attachV1            int
+	downloadV1          int
+	markV1              int
+	searchInboxV1       int
+	searchRegexpV1      int
+	joinV1              int
+	leaveV1             int
+	addToChannelV1      int
+	removeFromChannelV1 int
+	listConvsOnNameV1   int
+	pinV1               int
+	unpinV1             int
+	getDeviceInfoV1     int
+	listMembersV1       int
 }
 
 var topTests = []topTest{
@@ -493,6 +504,9 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		}
 		if h.addToChannelV1 != test.addToChannelV1 {
 			t.Errorf("test %d: input %s => addToChannelV1 = %d, expected %d", i, test.input, h.addToChannelV1, test.addToChannelV1)
+		}
+		if h.removeFromChannelV1 != test.removeFromChannelV1 {
+			t.Errorf("test %d: input %s => removeFromChannelV1 = %d, expected %d", i, test.input, h.removeFromChannelV1, test.removeFromChannelV1)
 		}
 		if h.listConvsOnNameV1 != test.listConvsOnNameV1 {
 			t.Errorf("test %d: input %s => listConvsOnNameV1 = %d, expected %d",

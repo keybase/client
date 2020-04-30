@@ -39,6 +39,10 @@
         {
           "name": "link",
           "type": "string"
+        },
+        {
+          "name": "deferred",
+          "type": "boolean"
         }
       ],
       "response": null,

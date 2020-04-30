@@ -436,6 +436,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.teamListSort = sortOrder
     }
   },
+  [TeamsGen.teamChannelListLoaded]: (draftState, action) => {
+    const {channels, teamID} = action.payload
+    draftState.channelInfo.set(teamID, channels)
+  },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
     draftState.teamIDToWelcomeMessage.set(teamID, message)

@@ -3,6 +3,7 @@ package attachments
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"image/color/palette"
@@ -128,6 +129,15 @@ func previewVideoBlank(ctx context.Context, log utils.DebugLabeler, src io.Reade
 
 // previewImage will resize a single-frame image.
 func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename, contentType string) (res *PreviewRes, err error) {
+	defer func() {
+		// decoding ico images can cause a panic, let's catch anything here.
+		// https://github.com/biessek/golang-ico/issues/4
+		if r := recover(); r != nil {
+			log.Debug(ctx, "Recovered %v", r)
+			res = nil
+			err = fmt.Errorf("unable to preview image: %v", r)
+		}
+	}()
 	defer log.Trace(ctx, &err, "previewImage")()
 	// images.Decode in camlistore correctly handles exif orientation information.
 	log.Debug(ctx, "previewImage: decoding image")

@@ -1034,8 +1034,8 @@ var kbfsPathInnerRegExp = func() *regexp.Regexp {
 	// e.g. alice@twitter
 	const regularAssertion = `[-_a-zA-Z0-9.+]+@[a-zA-Z.]+`
 	// e.g. [bob@keybase.io]@email
-	const atContainingAssertion = `\[[-_a-zA-Z0-9.]+@[-_a-zA-Z0-9.]+\]@[a-zA-Z.]+`
-	const socialAssertion = `(?:` + regularAssertion + `)|(?:` + atContainingAssertion + `)`
+	const emailAssertion = `\[[-_+a-zA-Z0-9.]+@[-_a-zA-Z0-9.]+\]@[a-zA-Z.]+`
+	const socialAssertion = `(?:` + regularAssertion + `)|(?:` + emailAssertion + `)`
 	const user = `(?:(?:` + kbun.UsernameRE + `)|(?:` + socialAssertion + `))`
 	const usernames = user + `(?:,` + user + `)*`
 	const teamName = kbun.UsernameRE + `(?:\.` + kbun.UsernameRE + `)*`

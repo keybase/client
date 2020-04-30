@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.8 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.9 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/simple_fs.avdl
 
 package keybase1
@@ -1852,6 +1852,7 @@ type SimpleFSGetFolderArg struct {
 }
 
 type SimpleFSGetOnlineStatusArg struct {
+	ClientID string `codec:"clientID" json:"clientID"`
 }
 
 type SimpleFSCheckReachabilityArg struct {
@@ -1889,6 +1890,7 @@ type SimpleFSGetStatsArg struct {
 
 type SimpleFSSubscribePathArg struct {
 	IdentifyBehavior          *TLFIdentifyBehavior  `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
+	ClientID                  string                `codec:"clientID" json:"clientID"`
 	SubscriptionID            string                `codec:"subscriptionID" json:"subscriptionID"`
 	KbfsPath                  string                `codec:"kbfsPath" json:"kbfsPath"`
 	Topic                     PathSubscriptionTopic `codec:"topic" json:"topic"`
@@ -1897,6 +1899,7 @@ type SimpleFSSubscribePathArg struct {
 
 type SimpleFSSubscribeNonPathArg struct {
 	IdentifyBehavior          *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
+	ClientID                  string               `codec:"clientID" json:"clientID"`
 	SubscriptionID            string               `codec:"subscriptionID" json:"subscriptionID"`
 	Topic                     SubscriptionTopic    `codec:"topic" json:"topic"`
 	DeduplicateIntervalSecond int                  `codec:"deduplicateIntervalSecond" json:"deduplicateIntervalSecond"`
@@ -1904,6 +1907,7 @@ type SimpleFSSubscribeNonPathArg struct {
 
 type SimpleFSUnsubscribeArg struct {
 	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
+	ClientID         string               `codec:"clientID" json:"clientID"`
 	SubscriptionID   string               `codec:"subscriptionID" json:"subscriptionID"`
 }
 
@@ -2084,7 +2088,7 @@ type SimpleFSInterface interface {
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
 	SimpleFSSyncConfigAndStatus(context.Context, *TLFIdentifyBehavior) (SyncConfigAndStatusRes, error)
 	SimpleFSGetFolder(context.Context, KBFSPath) (FolderWithFavFlags, error)
-	SimpleFSGetOnlineStatus(context.Context) (KbfsOnlineStatus, error)
+	SimpleFSGetOnlineStatus(context.Context, string) (KbfsOnlineStatus, error)
 	SimpleFSCheckReachability(context.Context) error
 	SimpleFSSetDebugLevel(context.Context, string) error
 	SimpleFSSettings(context.Context) (FSSettings, error)
@@ -2667,7 +2671,12 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.SimpleFSGetOnlineStatus(ctx)
+					typedArgs, ok := args.(*[1]SimpleFSGetOnlineStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSGetOnlineStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSGetOnlineStatus(ctx, typedArgs[0].ClientID)
 					return
 				},
 			},
@@ -3356,8 +3365,9 @@ func (c SimpleFSClient) SimpleFSGetFolder(ctx context.Context, path KBFSPath) (r
 	return
 }
 
-func (c SimpleFSClient) SimpleFSGetOnlineStatus(ctx context.Context) (res KbfsOnlineStatus, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetOnlineStatus", []interface{}{SimpleFSGetOnlineStatusArg{}}, &res, 0*time.Millisecond)
+func (c SimpleFSClient) SimpleFSGetOnlineStatus(ctx context.Context, clientID string) (res KbfsOnlineStatus, err error) {
+	__arg := SimpleFSGetOnlineStatusArg{ClientID: clientID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetOnlineStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

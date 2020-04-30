@@ -1695,17 +1695,10 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 			h.Debug(ctx, "DeleteConversationLocal: result obtained offline")
 		}
 	}()
-	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
-
-	return h.deleteConversationLocal(ctx, arg)
-}
-
-// deleteConversationLocal contains the functionality of
-// DeleteConversationLocal split off for easier testing.
-func (h *Server) deleteConversationLocal(ctx context.Context, arg chat1.DeleteConversationLocalArg) (res chat1.DeleteConversationLocalRes, err error) {
 	ui := h.getChatUI(arg.SessionID)
 	confirmed := arg.Confirmed
 	if !confirmed {
@@ -1720,12 +1713,26 @@ func (h *Server) deleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 	if !confirmed {
 		return res, errors.New("channel delete unconfirmed")
 	}
-
-	_, err = h.remoteClient().DeleteConversation(ctx, arg.ConvID)
-	if err != nil {
+	if err := h.G().InboxSource.RemoteDeleteConversation(ctx, uid, arg.ConvID); err != nil {
 		return res, err
 	}
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
+	return res, nil
+}
+
+func (h *Server) RemoveFromConversationLocal(ctx context.Context, arg chat1.RemoveFromConversationLocalArg) (res chat1.RemoveFromConversationLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, &err, fmt.Sprintf("RemoveFromConversation(%s)", arg.ConvID))()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return res, err
+	}
+	err = RemoveFromConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, arg.ConvID, arg.Usernames)
+	if err != nil {
+		return res, err
+	}
 	return res, nil
 }
 

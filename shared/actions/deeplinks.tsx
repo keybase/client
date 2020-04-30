@@ -3,6 +3,7 @@ import * as Constants from '../constants/config'
 import * as Container from '../util/container'
 import * as DeeplinksGen from './deeplinks-gen'
 import * as ConfigGen from './config-gen'
+import * as EngineGen from './engine-gen-gen'
 import * as Platform from '../constants/platform'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -118,7 +119,7 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
       }
       break
     case 'incoming-share':
-      return Platform.isIOS && RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']})
+      return Platform.isIOS && RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']})
     case 'team-invite-link':
       return TeamsGen.createOpenInviteLink({
         inviteID: parts[1],
@@ -133,6 +134,16 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
       path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
     }),
   ]
+}
+
+const handleServiceAppLink = (action: EngineGen.Keybase1NotifyServiceHandleKeybaseLinkPayload) => {
+  const link = action.payload.params.link
+  if (action.payload.params.deferred && !link.startsWith('keybase://team-invite-link/')) {
+    return
+  }
+  return DeeplinksGen.createHandleKeybaseLink({
+    link: link,
+  })
 }
 
 const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPayload) => {
@@ -208,6 +219,7 @@ const handleSaltpackOpenFile = (
 
 function* deeplinksSaga() {
   yield* Saga.chainAction2(DeeplinksGen.link, handleAppLink)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHandleKeybaseLink, handleServiceAppLink)
   yield* Saga.chainAction(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
   yield* Saga.chainAction2(DeeplinksGen.saltpackFileOpen, handleSaltpackOpenFile)
 }

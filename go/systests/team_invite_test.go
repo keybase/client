@@ -313,8 +313,8 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	require.Equal(t, details.Members.Admins[0].Username, bob.username)
 }
 
-func testImpTeamWithRooterParametrized(t *testing.T, public bool) {
-	t.Logf("testImpTeamWithRooterParametrized(public=%t)", public)
+func testImpTeamWithRooterParameterized(t *testing.T, public bool) {
+	t.Logf("testImpTeamWithRooterParameterized(public=%t)", public)
 
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -368,8 +368,8 @@ func testImpTeamWithRooterParametrized(t *testing.T, public bool) {
 }
 
 func TestImpTeamWithRooter(t *testing.T) {
-	testImpTeamWithRooterParametrized(t, false /* public */)
-	testImpTeamWithRooterParametrized(t, true /* public */)
+	testImpTeamWithRooterParameterized(t, false /* public */)
+	testImpTeamWithRooterParameterized(t, true /* public */)
 }
 
 func TestImpTeamWithRooterConflict(t *testing.T) {
@@ -690,7 +690,7 @@ func teamInviteRemoveIfHigherRole(t *testing.T, waitForRekeyd bool) {
 }
 
 func TestTeamInviteRemoveIfHigherRole(t *testing.T) {
-	// This test is parametrized. waitForRekeyd=true will wait for
+	// This test is parameterized. waitForRekeyd=true will wait for
 	// real rekeyd notification, waitForRekeyd=false will call SBS
 	// handler manually.
 	teamInviteRemoveIfHigherRole(t, true /* waitForRekeyd */)
