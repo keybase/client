@@ -676,11 +676,15 @@ def testGoTestSuite(prefix, packagesToTest) {
           } else {
             done = true
           }
+          // Do the first one under lock so we don't repeat dep building work.
+          if (i == 0 && testSpec) {
+            sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
+          }
         }
         if (done) {
           break
         }
-        if (testSpec) {
+        if (testSpec && i != 0) {
           sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
         }
       }
