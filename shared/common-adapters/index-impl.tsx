@@ -1,4 +1,5 @@
-import * as React from 'react'
+KB.debugConsoleLog('TEMP')
+require('react')
 
 module.exports = {
   get Animated() {

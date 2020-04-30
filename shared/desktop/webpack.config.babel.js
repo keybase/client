@@ -26,7 +26,11 @@ const config = (_, {mode}) => {
       options: {
         cacheDirectory: true,
         ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
-        plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
+        plugins: [
+          ...(isHot && !nodeThread
+            ? ['react-hot-loader/babel', '@babel/transform-flow-strip-types']
+            : ['@babel/transform-flow-strip-types']),
+        ],
         presets: [
           ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '8.0.2'}}],
           '@babel/preset-typescript',
@@ -47,7 +51,7 @@ const config = (_, {mode}) => {
         use: ['null-loader'],
       },
       {
-        exclude: /((node_modules\/(?!universalify|react-redux|redux-saga|react-gateway))|\/dist\/)/,
+        exclude: /((node_modules\/(?!universalify|react-redux|redux-saga|react-gateway|react-native-gesture-handler|react-native-screens|react-native))|\/dist\/)/,
         test: /\.(ts|js)x?$/,
         use: [babelRule],
       },
@@ -62,6 +66,11 @@ const config = (_, {mode}) => {
       },
       {
         include: path.resolve(__dirname, '../images/install'),
+        test: [/.*\.(gif|png)$/],
+        use: [fileLoaderRule],
+      },
+      {
+        include: path.resolve(__dirname, '../node_modules/@react-navigation/stack/lib/module/views/assets'),
         test: [/.*\.(gif|png)$/],
         use: [fileLoaderRule],
       },
@@ -112,6 +121,9 @@ const config = (_, {mode}) => {
       alias['react-redux'] = 'react-redux/dist/react-redux.js'
     }
 
+    // react-native-webish
+    alias['react-native$'] = path.resolve(__dirname, '../common-adapters/react-native-webish/index.tsx')
+
     return {
       bail: true,
       context: path.resolve(__dirname, '..'),
@@ -132,7 +144,17 @@ const config = (_, {mode}) => {
       ],
       resolve: {
         alias,
-        extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json'],
+        extensions: [
+          '.desktop.js',
+          '.desktop.tsx',
+          '.web.js',
+          '.js',
+          '.jsx',
+          '.tsx',
+          '.ts',
+          '.json',
+          '.ios.js',
+        ],
       },
       stats: {
         ...(isDev

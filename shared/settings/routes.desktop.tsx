@@ -1,8 +1,8 @@
 import * as Constants from '../constants/settings'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
-import * as Shim from '../router-v2/shim'
+// import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
+// import * as Shim from '../router-v2/shim'
 import DevicesTab from '../devices/container'
 import GitTab from '../git/container'
 import FsTab from './files/container'
@@ -66,15 +66,17 @@ class SettingsSubNav extends React.PureComponent<NavigationViewProps<any>> {
     )
   }
 }
-const SettingsSubNavigator = createNavigator(
-  SettingsSubNav,
-  StackRouter(Shim.shim(settingsSubRoutes), {initialRouteName: Constants.accountTab}),
-  {}
-)
+KB.debugConsoleLog('TODO')
+const SettingsSubNavigator = () => null
+// const SettingsSubNavigator = createNavigator(
+// SettingsSubNav,
+// StackRouter(Shim.shim(settingsSubRoutes), {initialRouteName: Constants.accountTab}),
+// {}
+// )
 
-SettingsSubNavigator.navigationOptions = {
-  title: 'Settings',
-}
+// SettingsSubNavigator.navigationOptions = {
+// title: 'Settings',
+// }
 
 export const newRoutes = {
   // MUST use screen and not getScreen for subnavs!

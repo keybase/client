@@ -1,7 +1,7 @@
 // The main navigation tabs
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as Kb from '../common-adapters/mobile.native'
+import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
@@ -40,7 +40,7 @@ const TabBarIcon = ({focused, name, ...rest}) => {
   )
   return (
     // note 'rest' required by TouchableWithoutFeedback, see docs
-    <Kb.NativeView {...rest}>
+    <Kb.Box {...rest}>
       <Kb.Icon
         type={icons.get(name) ?? ('iconfont-nav-2-hamburger' as const)}
         fontSize={32}
@@ -49,7 +49,7 @@ const TabBarIcon = ({focused, name, ...rest}) => {
       />
       {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
       {name === Tabs.fsTab && <FilesTabBadge />}
-    </Kb.NativeView>
+    </Kb.Box>
   )
 }
 
