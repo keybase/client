@@ -46,6 +46,9 @@ const useTabsState = (
       if (selectedTab !== 'settings' && t === 'settings') {
         dispatch(TeamsGen.createSettingsError({error: ''}))
       }
+      if (selectedTab !== 'channels' && t === 'channels') {
+        dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+      }
       _setSelectedTab(t)
     },
     [teamID, selectedTab, dispatch]
@@ -121,7 +124,7 @@ const Team = (props: Props) => {
   const membersSections = useMembersSections(teamID, teamMeta, teamDetails, yourOperations)
   const botSections = useBotSections(teamID, teamMeta, teamDetails, yourOperations)
   const invitesSections = useInvitesSections(teamID, teamDetails)
-  const channelsSections = useChannelsSections(teamID, yourOperations, selectedTab === 'channels')
+  const channelsSections = useChannelsSections(teamID, yourOperations)
   const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations)
   const emojiSections = useEmojiSections(teamID, selectedTab === 'emoji')
 

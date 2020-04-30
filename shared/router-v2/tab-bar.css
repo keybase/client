@@ -75,13 +75,6 @@
   display: none !important;
 }
 
-.tab .tab-encrypted {
-  color: #a8ccff;
-  font-family: Nyctographic;
-  font-size: 12px;
-  letter-spacing: 0.1em;
-}
-
 .invite-friends-little {
   border-radius: 4px;
 }

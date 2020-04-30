@@ -7,7 +7,6 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
-import {useChannelMeta} from '../common/channel-hooks'
 
 type Props = Container.RouteProps<{
   members: string[]
@@ -26,8 +25,10 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const waitingKeys = members.map(member => Constants.removeFromChannelWaitingKey(conversationIDKey, member))
   const waiting = Container.useAnyWaiting(...waitingKeys)
-  const channelMeta = useChannelMeta(teamID, conversationIDKey)
-  const channelname = channelMeta?.channelname ?? ''
+  const channelInfo = Container.useSelector(state =>
+    Constants.getTeamChannelInfo(state, teamID, conversationIDKey)
+  )
+  const {channelname} = channelInfo
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()

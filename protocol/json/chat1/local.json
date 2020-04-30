@@ -3255,6 +3255,19 @@
     },
     {
       "type": "record",
+      "name": "RemoveFromConversationLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetTLFConversationsLocalRes",
       "fields": [
         {
@@ -5324,6 +5337,22 @@
         }
       ],
       "response": "DeleteConversationLocalRes"
+    },
+    "removeFromConversationLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "usernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": "RemoveFromConversationLocalRes"
     },
     "getTLFConversationsLocal": {
       "request": [

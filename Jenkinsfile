@@ -6,12 +6,15 @@ helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-help
 
 def withKbweb(closure) {
   try {
-    retry(5) {
-      sh "docker-compose up -d mysql.local"
+    withEnv(["COMPOSE_HTTP_TIMEOUT=120"]) {
+      retry(5) {
+        sh "docker-compose down"
+        sh "docker-compose up -d mysql.local"
+      }
+      // Give MySQL a few seconds to start up.
+      sleep(10)
+      sh "docker-compose up -d kbweb.local"
     }
-    // Give MySQL a few seconds to start up.
-    sleep(10)
-    sh "docker-compose up -d kbweb.local"
 
     closure()
   } catch (ex) {
@@ -22,7 +25,6 @@ def withKbweb(closure) {
     sh "docker ps -a"
     sh "docker-compose stop"
     helpers.logContainer('docker-compose', 'mysql')
-    helpers.logContainer('docker-compose', 'gregor')
     logKbwebServices(kbwebName)
     throw ex
   } finally {
@@ -56,101 +58,63 @@ helpers.rootLinuxNode(env, {
             defaultValue: '',
             description: 'The project name of the upstream kbweb build',
         ),
-        string(
-            name: 'gregorProjectName',
-            defaultValue: '',
-            description: 'The project name of the upstream gregor build',
-        ),
     ]),
   ])
 
+  def kbwebProjectName = env.kbwebProjectName
+  def cause = helpers.getCauseString(currentBuild)
+  println "Cause: ${cause}"
+  println "Pull Request ID: ${env.CHANGE_ID}"
+
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
-  def mysqlImage = docker.image("keybaseprivate/mysql")
-  def gregorImage = docker.image("keybaseprivate/kbgregor")
-  def kbwebImage = docker.image("keybaseprivate/kbweb")
-  def glibcImage = docker.image("keybaseprivate/glibc")
-  def clientImage = null
+  def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'master'
+  def images = [
+    docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc"),
+    docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql"),
+    docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/sqsd"),
+    docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb:${kbwebTag}"),
+  ]
+  def kbfsfuseImage
 
   def kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
 
   println "Running on host $kbwebNodePrivateIP"
   println "Setting up build: ${env.BUILD_TAG}"
 
-  def cause = helpers.getCauseString(currentBuild)
-  println "Cause: ${cause}"
-  println "Pull Request ID: ${env.CHANGE_ID}"
-
   ws("${env.GOPATH}/src/github.com/keybase/client") {
 
     stage("Setup") {
-      sh "docker rmi keybaseprivate/mysql || echo 'No mysql image to remove'"
-      docker.withRegistry("", "docker-hub-creds") {
-        parallel (
-          checkout: {
-            retry(3) {
-              checkout scm
-              sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
-              sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
-              env.AUTHOR_NAME = readFile('.author_name')
-              env.AUTHOR_EMAIL = readFile('.author_email')
-              sh 'rm .author_name .author_email'
-              sh 'echo -n $(git rev-parse HEAD) > go/revision'
-              sh "git add go/revision"
-              env.GIT_COMMITTER_NAME = 'Jenkins'
-              env.GIT_COMMITTER_EMAIL = 'ci@keybase.io'
-              sh 'git commit --author="Jenkins <ci@keybase.io>" -am "revision file added"'
-              env.COMMIT_HASH = readFile('go/revision')
+      parallel (
+        checkout: {
+          retry(3) {
+            checkout scm
+            sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
+            sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
+            env.AUTHOR_NAME = readFile('.author_name')
+            env.AUTHOR_EMAIL = readFile('.author_email')
+            sh 'rm .author_name .author_email'
+            sh 'echo -n $(git rev-parse HEAD) > go/revision'
+            sh "git add go/revision"
+            env.GIT_COMMITTER_NAME = 'Jenkins'
+            env.GIT_COMMITTER_EMAIL = 'ci@keybase.io'
+            sh 'git commit --author="Jenkins <ci@keybase.io>" -am "revision file added"'
+            env.COMMIT_HASH = readFile('go/revision')
+          }
+        },
+        pull_images: {
+          docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
+            for (i in images) {
+              i.pull()
+              i.tag('latest')
             }
-          },
-          pull_glibc: {
-            glibcImage.pull()
-          },
-          pull_mysql: {
-            mysqlImage.pull()
-          },
-          pull_gregor: {
-            if (cause == "upstream" && kbwebProjectName != '') {
-                retry(3) {
-                    step([$class: 'CopyArtifact',
-                            projectName: "${kbwebProjectName}",
-                            filter: 'kbgregor.tar.gz',
-                            fingerprintArtifacts: true,
-                            selector: [$class: 'TriggeredBuildSelector',
-                                allowUpstreamDependencies: false,
-                                fallbackToLastSuccessful: false,
-                                upstreamFilterStrategy: 'UseGlobalSetting'],
-                            target: '.'])
-                    sh "gunzip -c kbgregor.tar.gz | docker load"
-                }
-            } else {
-                gregorImage.pull()
-            }
-          },
-          pull_kbweb: {
-            if (cause == "upstream" && kbwebProjectName != '') {
-                retry(3) {
-                    step([$class: 'CopyArtifact',
-                            projectName: "${kbwebProjectName}",
-                            filter: 'kbweb.tar.gz',
-                            fingerprintArtifacts: true,
-                            selector: [$class: 'TriggeredBuildSelector',
-                                allowUpstreamDependencies: false,
-                                fallbackToLastSuccessful: false,
-                                upstreamFilterStrategy: 'UseGlobalSetting'],
-                            target: '.'])
-                    sh "gunzip -c kbweb.tar.gz | docker load"
-                }
-            } else {
-                kbwebImage.pull()
-            }
-          },
-          remove_dockers: {
-            sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
-            sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
-          },
-        )
-      }
+          }
+        },
+        remove_dockers: {
+          sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
+          sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
+        },
+      )
     }
 
     def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
@@ -204,7 +168,7 @@ helpers.rootLinuxNode(env, {
                   for (platform in platforms) {
                       withEnv(["GOOS=${platform}"]) {
                           println "Testing compilation on ${platform}"
-                          sh "go build -tags production github.com/keybase/client/go/keybase"
+                          sh "go build -tags production -o keybase_${platform} github.com/keybase/client/go/keybase"
                           println "End testing compilation on ${platform}"
                       }
                   }
@@ -233,7 +197,9 @@ helpers.rootLinuxNode(env, {
                   }
                 }
               }},
-              integrate: {
+              integrate: { withEnv([
+                "DOCKER_BUILDKIT=1",
+              ]) {
                 // Build the client docker first so we can immediately kick off KBFS
                 def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
                 if (hasGoChanges && hasKBFSChanges) {
@@ -241,43 +207,41 @@ helpers.rootLinuxNode(env, {
                   dir('go') {
                     sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/keybase"
                     sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                    clientImage = docker.build("keybaseprivate/kbclient")
-                    // TODO: only do this when we need to run at least one KBFS test.
+                    docker.build("kbclient")
                     dir('kbfs') {
                       sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/kbfs/kbfsfuse"
                       sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
                       sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
                       sh "cp ${env.GOPATH}/bin/git-remote-keybase ./kbfsgit/git-remote-keybase/git-remote-keybase"
                       withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64']]) {
-                        println "Building Docker"
-                        sh '''
-                          set +x
-                          KBFS_DOCKER_CERT="$(echo $KBFS_DOCKER_CERT_B64 | sed 's/ //g' | base64 -d)"
-                          docker build -t keybaseprivate/kbfsfuse \
-                              --build-arg KEYBASE_TEST_ROOT_CERT_PEM="$KBFS_DOCKER_CERT" \
-                              --build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64="$KBFS_DOCKER_CERT_B64" .
-                        '''
+                        def kbfsCert = sh(returnStdout: true, script: "echo \"$KBFS_DOCKER_CERT_B64\" | sed 's/ //g' | base64 -d")
+                        kbfsfuseImage = docker.build('897413463132.dkr.ecr.us-east-1.amazonaws.com/client', "--build-arg KEYBASE_TEST_ROOT_CERT_PEM=\"$kbfsCert\" .")
                       }
-                      sh "docker save keybaseprivate/kbfsfuse | gzip > kbfsfuse.tar.gz"
-                      archive("kbfsfuse.tar.gz")
-                      build([
+                      docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
+                        kbfsfuseImage.push(env.BUILD_TAG)
+                      }
+                      if (env.BRANCH_NAME == "master" && cause != "upstream") {
+                        build([
                           job: "/kbfs-server/master",
                           parameters: [
                             string(
                               name: 'kbfsProjectName',
-                              value: env.JOB_NAME,
+                              value: env.BUILD_TAG,
+                            ),
+                            string(
+                              name: 'kbwebProjectName',
+                              value: kbwebTag,
                             ),
                           ]
-                      ])
+                        ])
+                      }
                     }
                   }
                 }
-              },
+              }},
             )
           },
           test_windows: {
-            // TODO: If we re-enable tests other than Go tests on
-            // Windows, this check should go away.
             if (hasGoChanges) {
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
@@ -307,65 +271,14 @@ helpers.rootLinuxNode(env, {
               }
             }
           },
-          test_macos: {
-            // TODO: remove once macos runners are back up
-            if (false) {
-              def mountDir='/Volumes/untitled/client'
-              helpers.nodeWithCleanup('macstadium', {}, {
-                  sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
-                }) {
-                def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
-                def GOPATH="${BASEDIR}/go"
-                dir(mountDir) {
-                  // Ensure that the mountDir exists
-                  sh "touch test.txt"
-                }
-                withEnv([
-                  "GOPATH=${GOPATH}",
-                  "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                  "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
-                  "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                  "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                  "TMPDIR=${mountDir}",
-                ]) {
-                ws("$GOPATH/src/github.com/keybase/client") {
-                  println "Checkout OS X"
-                  retry(3) {
-                    checkout scm
-                  }
-
-                  parallel (
-                    //test_react_native: {
-                    //  println "Test React Native"
-                    //  dir("react-native") {
-                    //    sh "npm i"
-                    //    lock("iossimulator_${env.NODE_NAME}") {
-                    //      sh "npm run test-ios"
-                    //    }
-                    //  }
-                    //},
-                    test_macos_go: {
-                      if (hasGoChanges) {
-                        dir("go/keybase") {
-                          sh "go build -ldflags \"-s -w\" --tags=production"
-                        }
-                        testGo("test_macos_go_", getPackagesToTest(dependencyFiles))
-                      }
-                    }
-                  )
-                }}
-              }
-            }
-          },
         )
       }
     }
 
     stage("Push") {
       if (env.BRANCH_NAME == "master" && cause != "upstream") {
-        docker.withRegistry("https://docker.io", "docker-hub-creds") {
-          clientImage.push()
-          sh "docker push keybaseprivate/kbfsfuse"
+        docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
+          kbfsfuseImage.push('master')
         }
       } else {
         println "Not pushing docker"
@@ -468,14 +381,14 @@ def testGo(prefix, packagesToTest) {
 def testGoBuilds(prefix, packagesToTest) {
   if (prefix == "test_linux_go_") {
     dir("keybase") {
-      sh "go build -ldflags \"-s -w\" -buildmode=pie --tags=production"
+      sh "go build -o keybase_production -ldflags \"-s -w\" -buildmode=pie --tags=production"
     }
     dir("fuzz") {
       sh "go build -tags gofuzz ./..."
     }
   } else if (prefix == "test_windows_go_") {
     dir("keybase") {
-      sh "go build -ldflags \"-s -w\" --tags=production"
+      sh "go build -o keybase_production -ldflags \"-s -w\" --tags=production"
     }
   }
 
@@ -581,25 +494,6 @@ def testGoTestSuite(prefix, packagesToTest) {
       'ephemeral'
   ]
   def testSpecMap = [
-    test_macos_go_: [
-      'github.com/keybase/client/go/kbfs/test': [
-        name: 'kbfs_test_fuse',
-        flags: '-tags fuse',
-        timeout: '15m',
-      ],
-      'github.com/keybase/client/go/kbfs/libfuse': [
-        timeout: '3m',
-      ],
-      'github.com/keybase/client/go/libkb': [
-        timeout: '5m',
-      ],
-      'github.com/keybase/client/go/install': [
-        timeout: '30s',
-      ],
-      'github.com/keybase/client/go/launchd': [
-        timeout: '30s',
-      ],
-    ],
     test_linux_go_: [
       '*': [],
       'github.com/keybase/client/go/kbfs/test': [
@@ -714,6 +608,9 @@ def testGoTestSuite(prefix, packagesToTest) {
         flags: '-race',
         timeout: '30s',
       ],
+      'github.com/keybase/client/go/systests': [
+        // citogo_extra: '-parallel=8', TODO: re-enable later
+      ],
     ],
     test_windows_go_: [
       '*': [],
@@ -783,7 +680,7 @@ def testGoTestSuite(prefix, packagesToTest) {
               if (testSpec.no_citogo) {
                 sh "./${testBinary} -test.timeout ${testSpec.timeout}"
               } else {
-                sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testBinary} --timeout 150s ${testSpec.citogo_extra || ''}"
+                sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testBinary} --timeout 150s ${testSpec.citogo_extra ? testSpec.citogo_extra : ''}"
               }
             }
           }

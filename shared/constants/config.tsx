@@ -136,6 +136,7 @@ export const initialState: Types.State = {
   following: new Set(),
   httpSrvAddress: '',
   httpSrvToken: '',
+  incomingShareUseOriginal: undefined,
   justDeletedSelf: '',
   loggedIn: false,
   logoutHandshakeVersion: 1,

@@ -3,14 +3,27 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as ChatConstants from '../../constants/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import {ConversationIDKey} from '../../constants/types/chat2'
+import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
+import {ConversationIDKey, keyToConversationID} from '../../constants/types/chat2'
 import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
-import {Activity} from '../common'
+import {Activity, useChannelParticipants} from '../common'
 import * as TeamsGen from '../../actions/teams-gen'
-import {useChannelMeta} from '../common/channel-hooks'
+
+const useRecentJoins = (conversationIDKey: ConversationIDKey) => {
+  const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
+  const getRecentJoinsRPC = Container.useRPC(RPCChatGen.localGetRecentJoinsLocalRpcPromise)
+  React.useEffect(() => {
+    setRecentJoins(undefined)
+    getRecentJoinsRPC(
+      [{convID: keyToConversationID(conversationIDKey)}],
+      r => setRecentJoins(r),
+      () => {}
+    )
+  }, [conversationIDKey, getRecentJoinsRPC, setRecentJoins])
+  return recentJoins
+}
 
 type HeaderTitleProps = {
   teamID: TeamID
@@ -19,13 +32,10 @@ type HeaderTitleProps = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
-  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID)).teamname
-  const channelMeta = useChannelMeta(teamID, conversationIDKey)
-  const channelname = channelMeta?.channelname ?? ''
-  const description = channelMeta?.description ?? ''
-  const numParticipants = Container.useSelector(
-    s => ChatConstants.getParticipantInfo(s, conversationIDKey).all.length
-  )
+  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
+  const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const {channelname, description} = channelInfo
+  const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel
 
@@ -52,7 +62,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const activityLevel = Container.useSelector(
     state => state.teams.activityLevels.channels.get(conversationIDKey) || 'none'
   )
-  const newMemberCount = 1 // TODO plumbing
+  const newMemberCount = useRecentJoins(conversationIDKey)
 
   const callbacks = useHeaderCallbacks(teamID, conversationIDKey)
 
@@ -91,47 +101,48 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   ))
 
   const bottomDescriptorsAndButtons = (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny" gapStart={!Styles.isMobile}>
-      {!!description && (
-        <Kb.Text type="Body" lineClamp={3}>
-          {description}
-        </Kb.Text>
-      )}
-      {numParticipants !== -1 && (
-        <Kb.Text type="BodySmall">
-          {numParticipants.toLocaleString()} {pluralize('member', numParticipants)}
-          {!!newMemberCount && ' · ' + newMemberCount.toLocaleString() + ' new this week'}
-        </Kb.Text>
-      )}
-      <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-        <Activity level={activityLevel} />
-      </Kb.Box2>
-      <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-        {yourOperations.chat && <Kb.Button label="View" onClick={callbacks.onChat} small={true} />}
-        {yourOperations.editChannelDescription && (
-          <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
+    <>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny" gapStart={!Styles.isMobile}>
+        {!!description && (
+          <Kb.Text type="Body" lineClamp={3}>
+            {description}
+          </Kb.Text>
         )}
-        {!Styles.isMobile && (
+        {numParticipants !== -1 && (
+          <Kb.Text type="BodySmall">
+            {numParticipants.toLocaleString()} {pluralize('member', numParticipants)}
+            {!!newMemberCount && ' · ' + newMemberCount.toLocaleString() + ' new this week'}
+          </Kb.Text>
+        )}
+        <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+          <Activity level={activityLevel} />
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
+          {yourOperations.chat && <Kb.Button label="View" onClick={callbacks.onChat} small={true} />}
+          {yourOperations.editChannelDescription && (
+            <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
+          )}
+          {!Styles.isMobile && (
+            <Kb.Button
+              label="Add members"
+              onClick={onAddMembers}
+              small={true}
+              mode="Secondary"
+              style={styles.addMembersButton}
+            />
+          )}
           <Kb.Button
-            label="Add members"
-            onClick={onAddMembers}
-            small={true}
             mode="Secondary"
-            style={styles.addMembersButton}
+            small={true}
+            icon="iconfont-ellipsis"
+            iconColor={Styles.globalColors.blue}
+            ref={popupAnchor}
+            onClick={toggleShowingPopup}
           />
-        )}
-        <Kb.Button
-          mode="Secondary"
-          small={true}
-          icon="iconfont-ellipsis"
-          iconColor={Styles.globalColors.blue}
-          ref={popupAnchor}
-          onClick={toggleShowingPopup}
-        />
-        {/*TODO: why does the popup take up space and move the info icon over to the right?*/}
-        {popup}
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+      {popup}
+    </>
   )
 
   const tip = (

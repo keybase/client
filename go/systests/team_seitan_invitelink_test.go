@@ -111,10 +111,13 @@ func TestTeamInviteLinkAfterLeave(t *testing.T) {
 	// Bob leaves.
 	bob.leave(teamName.String())
 
-	// Make sure Bob gets different akey when accepting again.
+	// Make sure Bob gets different akey when accepting again, and that Alice
+	// doesn't hit the "invite link was accepted before last change membership"
+	// when handling seitan.
 	clock := clockwork.NewFakeClockAt(time.Now())
 	clock.Advance(1 * time.Second)
 	bob.tc.G.SetClock(clock)
+	alice.tc.G.SetClock(clock)
 
 	// Bob accepts the same invite again.
 	err = bob.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{

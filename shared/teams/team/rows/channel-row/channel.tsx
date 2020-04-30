@@ -2,20 +2,20 @@ import * as React from 'react'
 import * as Types from '../../../../constants/types/teams'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/teams'
-import * as ChatConstants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Styles from '../../../../styles'
-import {Activity} from '../../../common'
+import {Activity, useChannelParticipants} from '../../../common'
 import {pluralize} from '../../../../util/string'
 
 type ChannelRowProps = {
-  channel: ChatTypes.ConversationMeta
+  conversationIDKey: ChatTypes.ConversationIDKey
   teamID: Types.TeamID
 }
 const ChannelRow = (props: ChannelRowProps) => {
-  const {channel, teamID} = props
+  const {conversationIDKey, teamID} = props
+  const channel = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const isGeneral = channel.channelname === 'general'
 
   const selected = Container.useSelector(
@@ -24,10 +24,7 @@ const ChannelRow = (props: ChannelRowProps) => {
   const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
   const canDelete = canPerform.deleteChannel
 
-  const numParticipants = Container.useSelector(state => {
-    const participants = ChatConstants.getParticipantInfo(state, channel.conversationIDKey)
-    return participants.name.length || participants.all.length
-  })
+  const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
   const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const hasAllMembers = details.members.size === numParticipants
   const activityLevel = Container.useSelector(
@@ -36,8 +33,10 @@ const ChannelRow = (props: ChannelRowProps) => {
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onSelect = (selected: boolean) => {
-    dispatch(TeamsGen.createSetChannelSelected({channel: channel.conversationIDKey, selected, teamID}))
+  const onSelect = (newSelected: boolean) => {
+    dispatch(
+      TeamsGen.createSetChannelSelected({channel: channel.conversationIDKey, selected: newSelected, teamID})
+    )
   }
   const navPropsForAction = {
     conversationIDKey: channel.conversationIDKey,
@@ -55,8 +54,6 @@ const ChannelRow = (props: ChannelRowProps) => {
             props: {
               ...props,
               conversationIDKey: channel.conversationIDKey,
-              isPreview:
-                channel.membershipType === 'youArePreviewing' || channel.membershipType === 'notMember',
               selectedTab: 'settings' as const,
             },
             selected: 'teamChannel',

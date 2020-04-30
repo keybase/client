@@ -413,6 +413,22 @@ func (hash Hash) Eq(other Hash) bool {
 	return bytes.Equal(hash, other)
 }
 
+func (m MessageUnboxed) SenderEq(o MessageUnboxed) bool {
+	if state, err := m.State(); err == nil {
+		if ostate, err := o.State(); err == nil && state == ostate {
+			switch state {
+			case MessageUnboxedState_VALID:
+				return m.Valid().SenderEq(o.Valid())
+			case MessageUnboxedState_ERROR:
+				return m.Error().SenderEq(o.Error())
+			case MessageUnboxedState_OUTBOX:
+				return m.Outbox().SenderEq(o.Outbox())
+			}
+		}
+	}
+	return false
+}
+
 func (m MessageUnboxed) OutboxID() *OutboxID {
 	if state, err := m.State(); err == nil {
 		switch state {
@@ -830,6 +846,14 @@ func (m MessageUnboxedError) HideExplosion(maxDeletedUpto MessageID, now time.Ti
 	return etime.Time().Add(ShowExplosionLifetime).Before(now) || m.MessageID < maxDeletedUpto
 }
 
+func (m MessageUnboxedError) SenderEq(o MessageUnboxedError) bool {
+	return m.SenderUsername == o.SenderUsername
+}
+
+func (m OutboxRecord) SenderEq(o OutboxRecord) bool {
+	return m.Msg.ClientHeader.Sender.Eq(o.Msg.ClientHeader.Sender)
+}
+
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
 	if m.ClientHeader.MessageType != MessageType_DELETEHISTORY {
 		return res, fmt.Errorf("message is %v not %v", m.ClientHeader.MessageType, MessageType_DELETEHISTORY)
@@ -905,6 +929,10 @@ func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
 		return *o == *r
 	}
 	return (o == nil) && (r == nil)
+}
+
+func (m MessageUnboxedValid) SenderEq(o MessageUnboxedValid) bool {
+	return m.ClientHeader.Sender.Eq(o.ClientHeader.Sender)
 }
 
 func (m MessageUnboxedValid) HasPairwiseMacs() bool {
@@ -2246,6 +2274,14 @@ func (r *DeleteConversationLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *RemoveFromConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *RemoveFromConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *GetTLFConversationsLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -2445,6 +2481,19 @@ func (r *DeleteConversationRemoteRes) GetRateLimit() (res []RateLimit) {
 }
 
 func (r *DeleteConversationRemoteRes) SetRateLimits(rl []RateLimit) {
+	if len(rl) > 0 {
+		r.RateLimit = &rl[0]
+	}
+}
+
+func (r *RemoveFromConversationRemoteRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *RemoveFromConversationRemoteRes) SetRateLimits(rl []RateLimit) {
 	if len(rl) > 0 {
 		r.RateLimit = &rl[0]
 	}

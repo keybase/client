@@ -38,6 +38,7 @@ type ChatServiceHandler interface {
 	JoinV1(context.Context, joinOptionsV1) Reply
 	LeaveV1(context.Context, leaveOptionsV1) Reply
 	AddToChannelV1(context.Context, addToChannelOptionsV1) Reply
+	RemoveFromChannelV1(context.Context, removeFromChannelOptionsV1) Reply
 	LoadFlipV1(context.Context, loadFlipOptionsV1) Reply
 	GetUnfurlSettingsV1(context.Context) Reply
 	SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply
@@ -201,6 +202,29 @@ func (c *chatServiceHandler) AddToChannelV1(ctx context.Context, opts addToChann
 		return c.errReply(err)
 	}
 	return Reply{Result: true}
+}
+
+func (c *chatServiceHandler) RemoveFromChannelV1(ctx context.Context, opts removeFromChannelOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, rl, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.RemoveFromConversationLocal(ctx, chat1.RemoveFromConversationLocalArg{
+		ConvID:    convID,
+		Usernames: opts.Usernames,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	allLimits := append(rl, res.RateLimits...)
+	cres := chat1.EmptyRes{
+		RateLimits: c.aggRateLimits(allLimits),
+	}
+	return Reply{Result: cres}
 }
 
 func (c *chatServiceHandler) LoadFlipV1(ctx context.Context, opts loadFlipOptionsV1) Reply {

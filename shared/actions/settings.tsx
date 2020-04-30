@@ -71,7 +71,7 @@ const toggleNotifications = async (state: Container.TypedState) => {
   const JSONPayload: Array<{key: string; value: string}> = []
   const chatGlobalArg: {[key: string]: boolean} = {}
   current.groups.forEach((group, groupName) => {
-    if (groupName === Constants.securityGroup) {
+    if (groupName === Constants.securityGroup || groupName === Constants.soundGroup) {
       // Special case this since it will go to chat settings endpoint
       group.settings.forEach(
         setting =>
@@ -265,40 +265,43 @@ function* refreshNotifications() {
   results.notifications[Constants.securityGroup] = {
     settings: [
       {
-        description: 'Display mobile plaintext notifications',
-        description_h: 'Display mobile plaintext notifications',
+        description: 'Show message content in phone chat notifications',
+        description_h: 'Show message content in phone chat notifications',
         name: 'plaintextmobile',
         subscribed: !!chatGlobalSettings.settings[
           `${ChatTypes.GlobalAppNotificationSetting.plaintextmobile}`
         ],
       },
       {
-        description: 'Display desktop plaintext notifications',
-        description_h: 'Display desktop plaintext notifications',
+        description: 'Show message content in computer chat notifications',
+        description_h: 'Show message content in computer chat notifications',
         name: 'plaintextdesktop',
         subscribed: !!chatGlobalSettings.settings[
           `${ChatTypes.GlobalAppNotificationSetting.plaintextdesktop}`
         ],
       },
       {
-        description: "Show others when I'm typing",
-        description_h: "Show others when I'm typing",
+        description: "Show others when you're typing",
+        description_h: "Show others when you're typing",
         name: 'disabletyping',
         subscribed: !chatGlobalSettings.settings[`${ChatTypes.GlobalAppNotificationSetting.disabletyping}`],
       },
-      ...(isAndroidNewerThanN
-        ? []
-        : [
-            {
-              description: 'Use mobile system default notification sound',
-              description_h: 'Use mobile system default notification sound',
-              name: 'defaultsoundmobile',
-              subscribed: !!chatGlobalSettings.settings[
-                `${ChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`
-              ],
-            },
-          ]),
     ],
+    unsub: false,
+  }
+  results.notifications[Constants.soundGroup] = {
+    settings: isAndroidNewerThanN
+      ? []
+      : [
+          {
+            description: 'Phone: use default sound for new messages',
+            description_h: 'Phone: use default sound for new messages',
+            name: 'defaultsoundmobile',
+            subscribed: !!chatGlobalSettings.settings[
+              `${ChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`
+            ],
+          },
+        ],
     unsub: false,
   }
   yield Saga.put(
