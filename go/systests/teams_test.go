@@ -146,7 +146,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	tt.users[0].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
 
 	tt.users[1].revokePaperKey()
-	tt.users[0].waitForRotateByID(teamID, keybase1.Seqno(3))
+	tt.users[0].waitForAnyRotateByID(teamID, keybase1.Seqno(2) /* toSeqno */, keybase1.Seqno(1) /* toHiddenSeqno */)
 
 	// check that key was rotated for team
 	after, err := GetTeamForTestByStringName(context.TODO(), tt.users[0].tc.G, teamName.String())
@@ -627,25 +627,28 @@ func (u *userPlusDevice) waitForAnyRotateByID(teamID keybase1.TeamID, toSeqno ke
 	// jump start the clkr queue processing loop
 	u.kickTeamRekeyd()
 
-	// process 10 team rotations or 10s worth of time
-	for i := 0; i < 10; i++ {
+	// process 20 team rotate notifications or 10s worth of time
+	timeout := time.After(10 * time.Second * libkb.CITimeMultiplier(u.tc.G))
+	for i := 0; i < 20; i++ {
 		select {
 		case arg := <-u.notifications.changeCh:
-			u.tc.T.Logf("rotate received: %+v", arg)
+			u.tc.T.Logf("rotate received: %s", spew.Sdump(arg))
 			if arg.TeamID.Eq(teamID) && arg.Changes.KeyRotated && arg.LatestSeqno == toSeqno && (toHiddenSeqno == keybase1.Seqno(0) || toHiddenSeqno == arg.LatestHiddenSeqno) {
 				u.tc.T.Logf("rotate matched!")
 				return
 			}
 			u.tc.T.Logf("ignoring rotate message")
-		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
+		case <-timeout:
+			require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", teamID))
+			return
 		}
 	}
-	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", teamID))
 }
 
 func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
-	// process 10 team rotations or 10s worth of time
-	for i := 0; i < 10; i++ {
+	// process 20 team rotate notifications or 10s worth of time
+	timeout := time.After(10 * time.Second * libkb.CITimeMultiplier(u.tc.G))
+	for i := 0; i < 20; i++ {
 		select {
 		case arg := <-u.notifications.changeCh:
 			u.tc.T.Logf("membership change received: %+v", arg)
@@ -654,10 +657,11 @@ func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, to
 				return
 			}
 			u.tc.T.Logf("ignoring change message (expected team = %v, seqno = %d)", teamID, toSeqno)
-		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
+		case <-timeout:
+			require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", teamID))
+			return
 		}
 	}
-	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", teamID))
 }
 
 func (u *userPlusDevice) waitForTeamChangeRenamed(teamID keybase1.TeamID) {

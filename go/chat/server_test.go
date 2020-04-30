@@ -2219,7 +2219,9 @@ func (n *serverChatListener) ChatWelcomeMessageLoaded(teamID keybase1.TeamID,
 	_ chat1.WelcomeMessageDisplay) {
 	n.welcomeMessage <- teamID
 }
-func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno) {
+func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool,
+	changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno, source keybase1.TeamChangedSource) {
+
 	n.teamChangedByID <- keybase1.TeamChangedByIDArg{
 		TeamID:            teamID,
 		LatestSeqno:       latestSeqno,
@@ -7936,13 +7938,18 @@ func TestTeamBotChannelMembership(t *testing.T) {
 
 		pollForSeqno := func(expectedSeqno keybase1.Seqno) {
 			found := false
+			timeout := time.After(30 * time.Second)
 			for !found {
 				select {
 				case teamChange := <-listener.teamChangedByID:
 					found = teamChange.TeamID == teamID &&
 						teamChange.LatestSeqno == expectedSeqno
-				case <-time.After(20 * time.Second):
-					require.Fail(t, "no event received")
+					if !found {
+						t.Logf("Got teamChangedByID, but not one we are looking for: %s", spew.Sdump(teamChange))
+					}
+				case <-timeout:
+					require.Failf(t, "teamChangedByID not received",
+						"team id: %s, waiting for seqno: %d", teamID, expectedSeqno)
 				}
 			}
 		}
@@ -7956,6 +7963,8 @@ func TestTeamBotChannelMembership(t *testing.T) {
 			BotSettings: &keybase1.TeamBotSettings{},
 		})
 		require.NoError(t, err)
+		// AddBotMember should have posted two links: change_membership and bot_settings. Wait
+		// for seqno=3.
 		pollForSeqno(3)
 		consumeMembersUpdate(t, listener)
 		consumeMembersUpdate(t, listener)
@@ -7987,7 +7996,9 @@ func TestTeamBotChannelMembership(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		pollForSeqno(5)
+		// `EditBotMember` should have posted two links: change_membership and bot_settings. Wait
+		// for seqno=6.
+		pollForSeqno(6)
 		consumeMembersUpdate(t, listener)
 		consumeMembersUpdate(t, listener)
 		consumeMembersUpdate(t, botuaListener2)

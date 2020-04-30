@@ -249,7 +249,8 @@ func TestTeamTxSweepMembers(t *testing.T) {
 	t.Logf("Bob (%s) resets and reprovisions, he is now: %v", bob.username, bob.userVersion())
 
 	// Wait for CLKR and RotateKey link.
-	ann.waitForRotateByID(ann.loadTeam(team, false /* admin */).ID, keybase1.Seqno(3))
+	teamID := ann.loadTeam(team, false /* admin */).ID
+	ann.waitForAnyRotateByID(teamID, keybase1.Seqno(2) /* toSeqno */, keybase1.Seqno(1) /* toHiddenSeqno */)
 
 	teamObj := ann.loadTeam(team, true /* admin */)
 	tx := teams.CreateAddMemberTx(teamObj)
