@@ -3,17 +3,19 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as ChatConstants from '../../../../constants/chat2'
 import * as ChatTypes from '../../../../constants/types/chat2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as TeamConstants from '../../../../constants/teams'
 import * as TeamTypes from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
+import * as RPCChatGen from '../../../../constants/types/rpc-chat-gen'
+import * as TeamsGen from '../../../../actions/teams-gen'
 import {useTeamDetailsSubscribe} from '../../../../teams/subscriber'
 import {pluralize} from '../../../../util/string'
 import {memoize} from '../../../../util/memoize'
-import {ModalTitle} from '../../../../teams/common'
+import {ModalTitle, useChannelParticipants} from '../../../../teams/common'
 
 type Props = Container.RouteProps<{
   conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: TeamTypes.TeamID
 }>
 
 const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
@@ -28,6 +30,7 @@ const AddToChannel = (props: Props) => {
     'conversationIDKey',
     ChatConstants.noConversationIDKey
   )
+  const teamID = Container.getRouteProps(props, 'teamID', TeamTypes.noTeamID)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
@@ -35,8 +38,10 @@ const AddToChannel = (props: Props) => {
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
 
-  const {channelname, teamID} = Container.useSelector(s => ChatConstants.getMeta(s, conversationIDKey))
-  const participants = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey)).all
+  const {channelname} = Container.useSelector(s =>
+    TeamConstants.getTeamChannelInfo(s, teamID, conversationIDKey)
+  )
+  const participants = useChannelParticipants(teamID, conversationIDKey)
   const teamDetails = Container.useSelector(s => TeamConstants.getTeamDetails(s, teamID))
   const allMembers = sortMembers(teamDetails.members)
   const membersFiltered = allMembers.filter(
@@ -45,10 +50,25 @@ const AddToChannel = (props: Props) => {
 
   useTeamDetailsSubscribe(teamID)
 
+  const [waiting, setWaiting] = React.useState(false)
+  const [error, setError] = React.useState('')
+  const addToChannel = Container.useRPC(RPCChatGen.localBulkAddToConvRpcPromise)
+
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
   const onAdd = () => {
-    dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames: [...toAdd]}))
-    onClose()
+    setWaiting(true)
+    addToChannel(
+      [{convID: ChatTypes.keyToConversationID(conversationIDKey), usernames: [...toAdd]}],
+      () => {
+        setWaiting(false)
+        dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+        onClose()
+      },
+      e => {
+        setError(e.message)
+        setWaiting(false)
+      }
+    )
   }
 
   const loading = !allMembers.length
@@ -65,7 +85,7 @@ const AddToChannel = (props: Props) => {
           undefined
         ),
         rightButton: Styles.isMobile && toAdd.size && (
-          <Kb.Text type="BodyBigLink" onClick={onAdd}>
+          <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : onAdd}>
             Add
           </Kb.Text>
         ),
@@ -88,6 +108,7 @@ const AddToChannel = (props: Props) => {
                     onClick={onAdd}
                     disabled={!toAdd.size}
                     style={Styles.globalStyles.flexOne}
+                    waiting={waiting}
                   />
                 </Kb.Box2>
               ),
@@ -95,6 +116,15 @@ const AddToChannel = (props: Props) => {
       }
       onClose={onClose}
       allowOverflow={true}
+      banners={
+        error
+          ? [
+              <Kb.Banner color="red" key="err">
+                {error}
+              </Kb.Banner>,
+            ]
+          : []
+      }
     >
       <Kb.SearchFilter
         onChange={text => setFilter(text)}

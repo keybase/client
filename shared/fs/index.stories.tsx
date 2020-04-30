@@ -6,7 +6,6 @@ import footerStories from './footer/index.stories'
 import navHeaderStories from './nav-header/index.stories'
 import topBarStories from './top-bar/index.stories'
 import rowStories from './browser/rows/index.stories'
-import sendAttachmentToChatStories from './send-to-chat/attachment/index.stories'
 import simpleScreensStories from './simple-screens/index.stories'
 
 export default () =>
@@ -19,6 +18,5 @@ export default () =>
     navHeaderStories,
     topBarStories,
     rowStories,
-    sendAttachmentToChatStories,
     simpleScreensStories,
   ].forEach(l => l())

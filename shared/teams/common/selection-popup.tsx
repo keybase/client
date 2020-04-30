@@ -9,7 +9,6 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {pluralize} from '../../util/string'
 import {FloatingRolePicker} from '../role-picker'
-import {useChannelMeta} from './channel-hooks'
 
 type UnselectableTab = string
 type TeamSelectableTab = 'teamMembers' | 'teamChannels'
@@ -93,6 +92,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   if (!onSelectableTab || (Styles.isMobile && !selectedCount) || !focused) {
     return null
   }
+  const {bottom} = Kb.useSafeArea()
   const popup = (
     <Kb.Box2
       fullWidth={Styles.isMobile}
@@ -107,7 +107,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
       onLayout={Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
       {Styles.isPhone && (
-        <Kb.Text style={styles.topLink} type="BodyPrimaryLink" onClick={onCancel}>
+        <Kb.Text style={styles.topLink} type="BodyBigLink" onClick={onCancel}>
           Cancel
         </Kb.Text>
       )}
@@ -122,11 +122,13 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
 
       {!Styles.isPhone && <Kb.BoxGrow />}
       {children}
+      {/* bottom safe area */}
+      {Styles.isPhone && <Kb.Box style={{height: bottom}} />}
     </Kb.Box2>
   )
   return Styles.isMobile ? (
     <>
-      {<Kb.Box style={{height: height > 48 ? height - 48 : 0}} />}
+      {<Kb.Box style={{height: height > 48 ? height - 48 - bottom : -bottom}} />}
       <Kb.FloatingBox>{popup}</Kb.FloatingBox>
     </>
   ) : (
@@ -346,8 +348,8 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
   const membersSet = Container.useSelector(
     s => s.teams.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
   )
-  const channelMeta = useChannelMeta(teamID, conversationIDKey)
-  const channelname = channelMeta?.channelname ?? ''
+  const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const {channelname} = channelInfo
 
   if (!membersSet) {
     // we shouldn't be rendered

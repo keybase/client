@@ -403,6 +403,10 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID; readonly messageID: MessageID; readonly backInTime: Boolean; readonly assetTypes?: Array<AssetMetadataType> | null; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: GetNextAttachmentMessageLocalRes
   }
+  'chat.1.local.getRecentJoinsLocal': {
+    inParam: {readonly convID: ConversationID}
+    outParam: Int
+  }
   'chat.1.local.getStaticConfig': {
     inParam: void
     outParam: StaticConfig
@@ -1699,6 +1703,7 @@ export const localGetLastActiveForTLFRpcPromise = (params: MessageTypes['chat.1.
 export const localGetLastActiveForTeamsRpcPromise = (params: MessageTypes['chat.1.local.getLastActiveForTeams']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getLastActiveForTeams']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getLastActiveForTeams', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetMutualTeamsLocalRpcPromise = (params: MessageTypes['chat.1.local.getMutualTeamsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getMutualTeamsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getMutualTeamsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetNextAttachmentMessageLocalRpcPromise = (params: MessageTypes['chat.1.local.getNextAttachmentMessageLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getNextAttachmentMessageLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getNextAttachmentMessageLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetRecentJoinsLocalRpcPromise = (params: MessageTypes['chat.1.local.getRecentJoinsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getRecentJoinsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getRecentJoinsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetStaticConfigRpcPromise = (params: MessageTypes['chat.1.local.getStaticConfig']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getStaticConfig']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getStaticConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTLFConversationsLocalRpcPromise = (params: MessageTypes['chat.1.local.getTLFConversationsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getTLFConversationsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTLFConversationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTeamRetentionLocalRpcPromise = (params: MessageTypes['chat.1.local.getTeamRetentionLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getTeamRetentionLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTeamRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1824,7 +1829,6 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.listBotCommandsLocal'
 // 'chat.1.local.clearBotCommandsLocal'
 // 'chat.1.local.teamIDFromTLFName'
-// 'chat.1.local.getRecentJoinsLocal'
 // 'chat.1.local.getLastActiveAtLocal'
 // 'chat.1.local.getParticipants'
 // 'chat.1.local.addEmoji'

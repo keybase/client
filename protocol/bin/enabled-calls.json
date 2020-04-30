@@ -29,6 +29,7 @@
   "chat.1.local.getLastActiveForTeams": {"promise": true},
   "chat.1.local.getMutualTeamsLocal": {"promise": true},
   "chat.1.local.getNextAttachmentMessageLocal": {"promise": true},
+  "chat.1.local.getRecentJoinsLocal": {"promise": true},
   "chat.1.local.getStaticConfig": {"promise": true},
   "chat.1.local.getTLFConversationsLocal": {"promise": true},
   "chat.1.local.getTeamRetentionLocal": {"promise": true},

@@ -146,7 +146,7 @@ export default Container.connect(
         items.push({
           icon: 'iconfont-folder-open',
           onClick: () => dispatchProps.onOpenFolder(stateProps.teamname),
-          title: 'Open folder',
+          title: 'Open team folder',
         })
       }
       if (items.length > 0 && (stateProps.canLeaveTeam || stateProps.canDeleteTeam)) {
@@ -168,7 +168,7 @@ export default Container.connect(
         items.push({
           icon: 'iconfont-folder-open',
           onClick: () => dispatchProps.onOpenFolder(stateProps.teamname),
-          title: 'Open folder',
+          title: 'Open team folder',
         })
       }
     }
@@ -181,7 +181,7 @@ export default Container.connect(
     if (stateProps.canDeleteTeam) {
       items.push({
         danger: true,
-        icon: 'iconfont-remove',
+        icon: 'iconfont-trash',
         onClick: dispatchProps.onDeleteTeam,
         title: 'Delete team',
       })

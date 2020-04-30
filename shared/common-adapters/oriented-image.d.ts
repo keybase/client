@@ -7,6 +7,7 @@ export type Props = {
   style?: StylesCrossPlatform
   onDragStart?: (e: React.SyntheticEvent) => void
   onLoad?: (e: React.SyntheticEvent) => void
+  onError?: () => void
 }
 
 export default class OrientedImage extends React.Component<Props> {

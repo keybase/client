@@ -20,6 +20,7 @@ export type RowProps = {
   teamID: Types.TeamID
   username: string
   reset?: boolean
+  waiting: boolean
 }
 
 type RolePickerProps = {
@@ -149,7 +150,6 @@ const TeamRequestRowNew = (props: Props) => {
       action={
         <Kb.Box2 direction="horizontal">
           <FloatingRolePicker
-            presetRole="writer"
             floatingContainerStyle={styles.floatingRolePicker}
             footerComponent={props.footerComponent}
             onConfirm={props.onConfirmRolePicker}
@@ -158,7 +158,13 @@ const TeamRequestRowNew = (props: Props) => {
             open={props.isRolePickerOpen}
             disabledRoles={props.disabledReasonsForRolePicker}
           >
-            <Kb.Button label={approveWord} onClick={onAccept} small={true} style={styles.letInButton} />
+            <Kb.Button
+              label={approveWord}
+              onClick={onAccept}
+              small={true}
+              style={styles.letInButton}
+              waiting={props.waiting}
+            />
           </FloatingRolePicker>
           <Kb.Button
             mode="Secondary"
@@ -174,7 +180,7 @@ const TeamRequestRowNew = (props: Props) => {
       }
       onClick={props.isRolePickerOpen ? undefined : () => onOpenProfile(username)}
       firstItem={props.firstItem}
-      style={styles.bg}
+      style={props.waiting ? styles.disabled : styles.bg}
     />
   )
 }
@@ -219,6 +225,7 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 56,
     },
   }),
+  disabled: {backgroundColor: Styles.globalColors.white, opacity: 0.4},
   floatingRolePicker: Styles.platformStyles({
     isElectron: {
       position: 'relative',
