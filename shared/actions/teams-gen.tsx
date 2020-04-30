@@ -11,6 +11,7 @@ export const typePrefix = 'teams:'
 export const addMembersWizardPushMembers = 'teams:addMembersWizardPushMembers'
 export const addMembersWizardRemoveMember = 'teams:addMembersWizardRemoveMember'
 export const addMembersWizardSetDefaultChannels = 'teams:addMembersWizardSetDefaultChannels'
+export const addMembersWizardSetMembers = 'teams:addMembersWizardSetMembers'
 export const addParticipant = 'teams:addParticipant'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
@@ -130,6 +131,10 @@ type _AddMembersWizardRemoveMemberPayload = {readonly assertion: string}
 type _AddMembersWizardSetDefaultChannelsPayload = {
   readonly toAdd?: Array<Types.ChannelNameID>
   readonly toRemove?: Types.ChannelNameID
+}
+type _AddMembersWizardSetMembersPayload = {
+  readonly members: Array<Types.AddingMember>
+  readonly membersAlreadyInTeam: Array<string>
 }
 type _AddParticipantPayload = {
   readonly teamID: Types.TeamID
@@ -399,7 +404,7 @@ type _UploadTeamAvatarPayload = {
 
 // Action Creators
 /**
- * Add pending members to the add members wizard and show the confirm screen.
+ * Add list of members to the add members wizard and show the confirm screen.
  */
 export const createAddMembersWizardPushMembers = (
   payload: _AddMembersWizardPushMembersPayload
@@ -548,6 +553,12 @@ export const createSetActivityLevels = (payload: _SetActivityLevelsPayload): Set
   payload,
   type: setActivityLevels,
 })
+/**
+ * Set member list for add members wizard confirmation screen, and members that are already in team and has been skipped.
+ */
+export const createAddMembersWizardSetMembers = (
+  payload: _AddMembersWizardSetMembersPayload
+): AddMembersWizardSetMembersPayload => ({payload, type: addMembersWizardSetMembers})
 /**
  * Set the role for a pending member in the add member wizard.
  */
@@ -911,6 +922,10 @@ export type AddMembersWizardRemoveMemberPayload = {
 export type AddMembersWizardSetDefaultChannelsPayload = {
   readonly payload: _AddMembersWizardSetDefaultChannelsPayload
   readonly type: typeof addMembersWizardSetDefaultChannels
+}
+export type AddMembersWizardSetMembersPayload = {
+  readonly payload: _AddMembersWizardSetMembersPayload
+  readonly type: typeof addMembersWizardSetMembers
 }
 export type AddParticipantPayload = {
   readonly payload: _AddParticipantPayload
@@ -1307,6 +1322,7 @@ export type Actions =
   | AddMembersWizardPushMembersPayload
   | AddMembersWizardRemoveMemberPayload
   | AddMembersWizardSetDefaultChannelsPayload
+  | AddMembersWizardSetMembersPayload
   | AddParticipantPayload
   | AddTeamWithChosenChannelsPayload
   | AddToTeamPayload

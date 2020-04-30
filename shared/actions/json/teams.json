@@ -379,8 +379,13 @@
       "creatingChannels": "boolean"
     },
     "addMembersWizardPushMembers": {
-      "_description": "Add pending members to the add members wizard and show the confirm screen.",
+      "_description": "Add list of members to the add members wizard and show the confirm screen.",
       "members": "Array<Types.AddingMember>"
+    },
+    "addMembersWizardSetMembers": {
+      "_description": "Set member list for add members wizard confirmation screen, and members that are already in team and has been skipped.",
+      "members": "Array<Types.AddingMember>",
+      "membersAlreadyInTeam": "Array<string>"
     },
     "addMembersWizardRemoveMember": {
       "_description": "Remove a pending member from the add members wizard.",

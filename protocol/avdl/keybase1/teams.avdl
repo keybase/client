@@ -1840,4 +1840,18 @@ protocol teams {
   // a `guid`: an opaque integer that happens to be the sessionID the initial RPC was called
   // with. Each notification for the same load will contain the same `guid`.
   TeamTreeInitial loadTeamTreeMembershipsAsync(int sessionID, TeamID teamID, string username);
+
+  // Given a list of assertions, check which ones are already in the team either
+  // as members on invites, and return a list of them. User has to be an admin of
+  // the team.
+  //
+  // It doesn't try to resolve assertions. If there's an assertion for
+  // 'alice@rooter' that resolves to 'alice' (Keybase user), and 'alice' is
+  // already in the team, 'alice@rooter' won't end up in the returned list.
+  //
+  // Compound assertion are ignored, as invites for compound assertions are not
+  // allowed. Technically, a user targetted by compound assertion could be in the
+  // team, assertion would have to be resolved to figure this out, which this
+  // function does not do
+  array<string> findAssertionsInTeamNoResolve(int sessionID, TeamID teamID, array<string> assertions);
 }

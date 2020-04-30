@@ -998,6 +998,7 @@ export type TypedActionsMap = {
   'teams:setAddMembersWizardIndividualRole': teams.SetAddMembersWizardIndividualRolePayload
   'teams:setCreatingChannels': teams.SetCreatingChannelsPayload
   'teams:addMembersWizardPushMembers': teams.AddMembersWizardPushMembersPayload
+  'teams:addMembersWizardSetMembers': teams.AddMembersWizardSetMembersPayload
   'teams:addMembersWizardRemoveMember': teams.AddMembersWizardRemoveMemberPayload
   'teams:addMembersWizardSetDefaultChannels': teams.AddMembersWizardSetDefaultChannelsPayload
   'teams:cancelAddMembersWizard': teams.CancelAddMembersWizardPayload

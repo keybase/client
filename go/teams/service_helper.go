@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/externals"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/avatars"
@@ -2195,4 +2197,73 @@ func GetTeamIDByNameRPC(mctx libkb.MetaContext, teamName string) (res keybase1.T
 		return "", err
 	}
 	return id, nil
+}
+
+func FindAssertionsInTeamNoResolve(mctx libkb.MetaContext, teamID keybase1.TeamID, assertions []string) (ret []string, err error) {
+	team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
+	if err != nil {
+		return nil, err
+	}
+
+	actx := externals.MakeAssertionContext(mctx)
+	for _, assertionStr := range assertions {
+		assertion, err := libkb.AssertionParseAndOnly(actx, assertionStr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse assertion %q: %w", assertionStr, err)
+		}
+
+		urls := assertion.CollectUrls(nil)
+		if len(urls) > 1 {
+			continue
+		}
+
+		url := urls[0]
+		if url.IsKeybase() {
+			// Load the user to get the right eldest seqno. We don't want
+			// untrusted seqnos here from uidmapper, because UI might be
+			// making decisions about whom to add to the team basing on
+			// results from this function.
+			loadUserArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithName(url.GetValue()).WithPublicKeyOptional()
+			user, err := libkb.LoadUser(loadUserArg)
+			if err != nil {
+				return nil, fmt.Errorf("error when loading user for assertion %q: %w", assertionStr, err)
+			}
+			if user.GetStatus() != keybase1.StatusCode_SCOk {
+				// User is deleted or something. Just skip for now.
+				continue
+			}
+			uv := user.ToUserVersion()
+			_, kbInviteUV, found := team.FindActiveKeybaseInvite(user.GetUID())
+			if found && kbInviteUV.Eq(uv) {
+				ret = append(ret, assertionStr)
+				continue
+			}
+
+			teamUVs := team.AllUserVersionsByUID(mctx.Ctx(), user.GetUID())
+			for _, teamUV := range teamUVs {
+				if teamUV.Eq(uv) {
+					ret = append(ret, assertionStr)
+					break
+				}
+				// or else user is in the team but with old UV, so it's fine to
+				// add them again.
+			}
+		} else {
+			social, err := assertion.ToSocialAssertion()
+			if err != nil {
+				return nil, fmt.Errorf(
+					"Don't know what to do with %q - not a social assertion or keybase username: %w",
+					assertionStr, err)
+			}
+			hasInvite, err := team.HasActiveInvite(mctx, social.TeamInviteName(), social.TeamInviteType())
+			if err != nil {
+				return nil, fmt.Errorf("Failed checking %q: %w", assertionStr, err)
+			}
+			if hasInvite {
+				ret = append(ret, assertionStr)
+			}
+		}
+	}
+
+	return ret, nil
 }

@@ -199,6 +199,10 @@ export type AddingMember = {
 export type AddMembersWizardState = {
   addToChannels: Array<ChannelNameID> | undefined
   addingMembers: Array<AddingMember>
+  // Assertions that were "added" through "Add people" but will not be added to
+  // the team because they are already in it. This state only holds the list of
+  // redundant assertions from the last "Add people" action.
+  membersAlreadyInTeam: Array<string>
   justFinished: boolean
   role: AddingMemberTeamRoleType | 'setIndividually'
   teamID: TeamID

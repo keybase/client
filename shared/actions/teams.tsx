@@ -1583,7 +1583,31 @@ const finishedNewTeamWizard = (action: TeamsGen.FinishedNewTeamWizardPayload) =>
   RouteTreeGen.createNavigateAppend({path: [{props: {teamID: action.payload.teamID}, selected: 'team'}]}),
 ]
 
-const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
+const addMembersWizardPushMembers = async (
+  state: TypedState,
+  action: TeamsGen.AddMembersWizardPushMembersPayload
+) => {
+  const {teamID} = state.teams.addMembersWizard
+
+  const membersAlreadyInTeam =
+    (await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
+      assertions: action.payload.members.map(x => x.assertion),
+      teamID,
+    })) ?? []
+
+  let members = Constants.dedupAddingMembeers(
+    state.teams.addMembersWizard.addingMembers,
+    action.payload.members
+      .filter(x => !membersAlreadyInTeam.includes(x.assertion))
+      .map(Constants.coerceAssertionRole)
+  )
+
+  return [
+    TeamsGen.createAddMembersWizardSetMembers({members, membersAlreadyInTeam}),
+    RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}),
+  ]
+}
+
 const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
 
 const manageChatChannels = (action: TeamsGen.ManageChatChannelsPayload) =>
@@ -1766,7 +1790,7 @@ const teamsSaga = function*() {
 
   // Add members wizard
   yield* Saga.chainAction(TeamsGen.startAddMembersWizard, startAddMembersWizard)
-  yield* Saga.chainAction(TeamsGen.addMembersWizardPushMembers, addMembersWizardPushMembers)
+  yield* Saga.chainAction2(TeamsGen.addMembersWizardPushMembers, addMembersWizardPushMembers)
   yield* Saga.chainAction(
     [TeamsGen.cancelAddMembersWizard, TeamsGen.finishedAddMembersWizard],
     navAwayFromAddMembersWizard

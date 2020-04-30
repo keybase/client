@@ -4931,6 +4931,12 @@ type LoadTeamTreeMembershipsAsyncArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
+type FindAssertionsInTeamNoResolveArg struct {
+	SessionID  int      `codec:"sessionID" json:"sessionID"`
+	TeamID     TeamID   `codec:"teamID" json:"teamID"`
+	Assertions []string `codec:"assertions" json:"assertions"`
+}
+
 type TeamsInterface interface {
 	GetUntrustedTeamInfo(context.Context, TeamName) (UntrustedTeamInfo, error)
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
@@ -5016,6 +5022,7 @@ type TeamsInterface interface {
 	GetAnnotatedTeam(context.Context, TeamID) (AnnotatedTeam, error)
 	GetAnnotatedTeamByName(context.Context, string) (AnnotatedTeam, error)
 	LoadTeamTreeMembershipsAsync(context.Context, LoadTeamTreeMembershipsAsyncArg) (TeamTreeInitial, error)
+	FindAssertionsInTeamNoResolve(context.Context, FindAssertionsInTeamNoResolveArg) ([]string, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -6007,6 +6014,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"findAssertionsInTeamNoResolve": {
+				MakeArg: func() interface{} {
+					var ret [1]FindAssertionsInTeamNoResolveArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FindAssertionsInTeamNoResolveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FindAssertionsInTeamNoResolveArg)(nil), args)
+						return
+					}
+					ret, err = i.FindAssertionsInTeamNoResolve(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -6375,5 +6397,10 @@ func (c TeamsClient) GetAnnotatedTeamByName(ctx context.Context, teamName string
 
 func (c TeamsClient) LoadTeamTreeMembershipsAsync(ctx context.Context, __arg LoadTeamTreeMembershipsAsyncArg) (res TeamTreeInitial, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamTreeMembershipsAsync", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) FindAssertionsInTeamNoResolve(ctx context.Context, __arg FindAssertionsInTeamNoResolveArg) (res []string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.findAssertionsInTeamNoResolve", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

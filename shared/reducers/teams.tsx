@@ -366,11 +366,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setJustFinishedAddMembersWizard]: (draftState, action) => {
     draftState.addMembersWizard.justFinished = action.payload.justFinished
   },
-  [TeamsGen.addMembersWizardPushMembers]: (draftState, action) => {
-    draftState.addMembersWizard.addingMembers = Constants.dedupAddingMembeers(
-      draftState.addMembersWizard.addingMembers,
-      action.payload.members.map(Constants.coerceAssertionRole)
-    )
+  [TeamsGen.addMembersWizardSetMembers]: (draftState, action) => {
+    draftState.addMembersWizard.addingMembers = action.payload.members
+    draftState.addMembersWizard.membersAlreadyInTeam = action.payload.membersAlreadyInTeam
+
     if (
       ['admin', 'owner'].includes(draftState.addMembersWizard.role) &&
       action.payload.members.some(m => m.assertion.includes('@'))

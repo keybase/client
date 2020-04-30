@@ -1383,6 +1383,10 @@ export type MessageTypes = {
     inParam: {readonly s: Stream; readonly buf: Bytes}
     outParam: Int
   }
+  'keybase.1.teams.findAssertionsInTeamNoResolve': {
+    inParam: {readonly teamID: TeamID; readonly assertions?: Array<String> | null}
+    outParam: Array<String> | null
+  }
   'keybase.1.teams.getAnnotatedTeam': {
     inParam: {readonly teamID: TeamID}
     outParam: AnnotatedTeam
@@ -3931,6 +3935,7 @@ export const signupCheckUsernameAvailableRpcPromise = (params: MessageTypes['key
 export const signupGetInvitationCodeRpcPromise = (params: MessageTypes['keybase.1.signup.getInvitationCode']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.signup.getInvitationCode']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.signup.getInvitationCode', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const signupInviteRequestRpcPromise = (params: MessageTypes['keybase.1.signup.inviteRequest']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.signup.inviteRequest']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.signup.inviteRequest', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const signupSignupRpcSaga = (p: {params: MessageTypes['keybase.1.signup.signup']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.signup.signup', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
+export const teamsFindAssertionsInTeamNoResolveRpcPromise = (params: MessageTypes['keybase.1.teams.findAssertionsInTeamNoResolve']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.findAssertionsInTeamNoResolve']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.findAssertionsInTeamNoResolve', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetAnnotatedTeamRpcPromise = (params: MessageTypes['keybase.1.teams.getAnnotatedTeam']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getAnnotatedTeam']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getAnnotatedTeam', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetInviteLinkDetailsRpcPromise = (params: MessageTypes['keybase.1.teams.getInviteLinkDetails']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getInviteLinkDetails']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getInviteLinkDetails', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsGetTarsDisabledRpcPromise = (params: MessageTypes['keybase.1.teams.getTarsDisabled']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.getTarsDisabled']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.getTarsDisabled', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
