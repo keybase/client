@@ -667,17 +667,17 @@ def testGoTestSuite(prefix, packagesToTest) {
       packageTestCompileList.add({
         sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
       })
-      packageTestRunList.add({ testSpec ->
-        dir(testSpec.dirPath) {
+      packageTestRunList.add({ spec ->
+        dir(spec.dirPath) {
           // Only run the test if a test binary should have been produced.
-          if (fileExists(testSpec.testBinary)) {
-            println "Running tests for ${testSpec.dirPath}"
-            def t = getOverallTimeout(testSpec)
+          if (fileExists(spec.testBinary)) {
+            println "Running tests for ${spec.dirPath}"
+            def t = getOverallTimeout(spec)
             timeout(activity: true, time: t.time, unit: t.unit) {
-              if (testSpec.no_citogo) {
-                sh "./${testSpec.testBinary} -test.timeout ${testSpec.timeout}"
+              if (spec.no_citogo) {
+                sh "./${spec.testBinary} -test.timeout ${spec.timeout}"
               } else {
-                sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testSpec.testBinary} --timeout 150s -parallel=${testSpec.parallel} ${testSpec.citogo_extra ? testSpec.citogo_extra : ''}"
+                sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${spec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${spec.testBinary} --timeout 150s -parallel=${spec.parallel} ${spec.citogo_extra ? spec.citogo_extra : ''}"
               }
             }
           }
