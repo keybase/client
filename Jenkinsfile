@@ -669,18 +669,21 @@ def testGoTestSuite(prefix, packagesToTest) {
         // Concurrency hack
         def lockID = "${env.BUILD_TAG}-compiling"
         lock(lockID) {
-          if (packageTestList.size() <= i) {
-            done = true
-          } else {
-            def pkg = packageTestList[i]
+          if (i < packageTestList.size()) {
+            def pkg = packageTestList.getAt(i)
             testSpec = allTestSpecs[pkg]
             i++
+          } else {
+            done = true
           }
         }
         if (done) {
           break
         }
-        testSpec.closure()
+        println "Building tests for ${testSpec.dirPath}"
+        dir(testSpec.dirPath) {
+          sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.testBinary}"
+        }
       }
     }
   }
@@ -688,12 +691,6 @@ def testGoTestSuite(prefix, packagesToTest) {
     def testSpec = getPackageTestSpec(pkg)
     if (testSpec) {
       testSpec.testBinary = "${testSpec.name}.test"
-      testSpec.closure = {
-        println "Building tests for ${testSpec.dirPath}"
-        dir(testSpec.dirPath) {
-          sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.testBinary}"
-        }
-      }.curry()
       allTestSpecs[pkg] = testSpec
     }
   }
