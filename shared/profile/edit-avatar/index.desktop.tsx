@@ -21,6 +21,7 @@ type State = {
   dragStopY: number
   dragging: boolean
   dropping: boolean
+  error: boolean
   hasPreview: boolean
   imageSource: string
   loading: boolean
@@ -50,6 +51,7 @@ class EditAvatar extends React.Component<Props, State> {
       dragStopY: 0,
       dragging: false,
       dropping: false,
+      error: false,
       hasPreview: false,
       imageSource: '',
       loading: false,
@@ -85,7 +87,7 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   private pickFile = () => {
-    this.setState({loading: true})
+    this.setState({error: false, loading: true})
     const fileList = this.filePickerFiles()
     const paths: Array<string> = fileList.length
       ? Array.prototype.map
@@ -108,7 +110,7 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   private onDrop = (e: React.DragEvent<any>) => {
-    this.setState({dropping: false, loading: true})
+    this.setState({dropping: false, error: false, loading: true})
     if (!this.validDrag(e)) {
       return
     }
@@ -153,6 +155,10 @@ class EditAvatar extends React.Component<Props, State> {
 
   private paintImage = (path: string) => {
     this.setState({imageSource: path})
+  }
+
+  private onImageError = () => {
+    this.setState({error: true, hasPreview: false, loading: false})
   }
 
   private onImageLoad = (e: React.SyntheticEvent<any>) => {
@@ -347,12 +353,23 @@ class EditAvatar extends React.Component<Props, State> {
               />
             ),
           }}
+          banners={[
+            ...(this.props.error
+              ? [
+                  <Kb.Banner color="red" key="propsError">
+                    {this.props.error}
+                  </Kb.Banner>,
+                ]
+              : []),
+            ...(this.state.error
+              ? [
+                  <Kb.Banner color="red" key="stateError">
+                    The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
+                  </Kb.Banner>,
+                ]
+              : []),
+          ]}
         >
-          {!!this.props.error && (
-            <Kb.Banner color="red">
-              <Kb.BannerParagraph bannerColor="red" content={this.props.error} />
-            </Kb.Banner>
-          )}
           <Kb.Box
             className={Styles.classNames({dropping: this.state.dropping})}
             onDragLeave={this.onDragLeave}
@@ -416,6 +433,7 @@ class EditAvatar extends React.Component<Props, State> {
                 } as const)}
                 onDragStart={e => e.preventDefault()}
                 onLoad={this.onImageLoad}
+                onError={this.onImageError}
               />
               {!this.state.loading && !this.state.hasPreview && (
                 <Kb.Icon
