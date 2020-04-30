@@ -1195,9 +1195,12 @@
         {
           "type": [
             null,
-            "stellar1.TransactionID"
+            {
+              "type": "array",
+              "items": "stellar1.TransactionID"
+            }
           ],
-          "name": "txID",
+          "name": "txIDs",
           "mpackkey": "t",
           "jsonkey": "t"
         }
@@ -1295,6 +1298,18 @@
           "name": "botUID",
           "mpackkey": "b",
           "jsonkey": "b"
+        },
+        {
+          "type": [
+            null,
+            {
+              "type": "array",
+              "items": "stellar1.TransactionID"
+            }
+          ],
+          "name": "txIDs",
+          "mpackkey": "t",
+          "jsonkey": "t"
         }
       ]
     },

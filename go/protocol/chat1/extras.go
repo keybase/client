@@ -3444,3 +3444,11 @@ func TeamToChatMembersDetails(details keybase1.TeamMembersDetails) ChatMembersDe
 		RestrictedBots: TeamToChatMemberDetails(details.RestrictedBots),
 	}
 }
+
+func (r TextPaymentResult) IsTyp(typ TextPaymentResultTyp) bool {
+	rtyp, err := r.ResultTyp()
+	if err != nil {
+		return false
+	}
+	return rtyp == typ
+}
