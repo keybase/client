@@ -610,6 +610,9 @@ def testGoTestSuite(prefix, packagesToTest) {
         flags: '-race',
         timeout: '30s',
       ],
+      'github.com/keybase/client/go/kbfs/kbfsdokan': [
+        disable: true,
+      ],
     ],
     test_windows_go_: [
       '*': [],
@@ -617,6 +620,9 @@ def testGoTestSuite(prefix, packagesToTest) {
         disable: true,
       ],
       'github.com/keybase/client/go/chat': [
+        disable: true,
+      ],
+      'github.com/keybase/client/go/teams': [
         disable: true,
       ],
       'github.com/keybase/client/go/kbfs/libdokan': [
@@ -668,7 +674,7 @@ def testGoTestSuite(prefix, packagesToTest) {
   def packageTestRunList = []
   packagesToTest.each { pkg, _ ->
     def testSpec = getPackageTestSpec(pkg)
-    if (testSpec) {
+    if (testSpec && !testSpec.disable) {
       testSpec.testBinary = "${testSpec.name}.test"
       packageTestCompileList.add([
         closure: {
