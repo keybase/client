@@ -1032,6 +1032,7 @@ export type IconType =
   | 'iconfont-nav-2-crypto'
   | 'iconfont-nav-2-devices'
   | 'iconfont-nav-2-files'
+  | 'iconfont-nav-2-fm'
   | 'iconfont-nav-2-git'
   | 'iconfont-nav-2-hamburger'
   | 'iconfont-nav-2-more'
@@ -10097,6 +10098,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-nav-2-files': {
     charCode: 0xe97e,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-fm': {
+    charCode: 0xe9ce,
     gridSize: 24,
     isFont: true,
   },
