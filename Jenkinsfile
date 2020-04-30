@@ -492,6 +492,9 @@ def testGoTestSuite(prefix, packagesToTest) {
   def testSpecMap = [
     test_linux_go_: [
       '*': [],
+      'github.com/keybase/client/go/chat': [
+        parallel: 1,
+      ],
       'github.com/keybase/client/go/chat/attachments': [
         parallel: 1,
       ],
