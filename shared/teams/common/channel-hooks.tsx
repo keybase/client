@@ -22,9 +22,10 @@ export const useChannelParticipants = (
   const teamMembers = Container.useSelector(s => Constants.getTeamDetails(s, teamID).members)
   return React.useMemo(
     () =>
-      participants.filter(
-        username => !['bot', 'restrictedBot'].includes(teamMembers.get(username)?.type ?? '')
-      ),
+      participants.filter(username => {
+        const maybeMember = teamMembers.get(username)
+        return maybeMember && maybeMember.type !== 'bot' && maybeMember.type !== 'restrictedbot'
+      }),
     [participants, teamMembers]
   )
 }
