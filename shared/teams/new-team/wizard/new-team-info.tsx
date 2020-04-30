@@ -105,7 +105,7 @@ const NewTeamInfo = () => {
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
-      onClose={onClose}
+      onClose={parentName ? onClose : undefined} // This is the first page of the process for subteams only
       header={{
         leftButton:
           teamWizardState.teamType === 'subteam' ? (

@@ -3,7 +3,6 @@ import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/teams'
 import * as Styles from '../../../styles'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
@@ -35,7 +34,6 @@ const CreateSubteams = () => {
   const onContinue = () =>
     dispatch(TeamsGen.createSetTeamWizardSubteams({subteams: subteams.filter(s => !!s)}))
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
   const numSubteams = subteams.filter(c => !!c.trim()).length
   const continueLabel = numSubteams
@@ -44,7 +42,6 @@ const CreateSubteams = () => {
 
   return (
     <Kb.Modal
-      onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Create subteams" />,

@@ -93,7 +93,6 @@ const AddMembersConfirm = () => {
 
   return (
     <Kb.Modal
-      onClose={onLeave}
       allowOverflow={true}
       mode="DefaultFullHeight"
       header={{

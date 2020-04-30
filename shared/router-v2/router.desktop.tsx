@@ -118,7 +118,8 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
     navigationOptions = getNavigationOptions
   }
   // @ts-ignore
-  const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover, modal2Type} = navigationOptions ?? {}
+  const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover, modal2NoClose, modal2Type} =
+    navigationOptions ?? {}
 
   const popRef = React.useRef(navigation.pop)
   React.useEffect(() => {
@@ -151,11 +152,11 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
       const dismiss = delta < mouseDistanceThreshold
       setMouseDownX(mouseResetValue)
       setMouseDownY(mouseResetValue)
-      if (dismiss) {
+      if (dismiss && !modal2NoClose) {
         popRef.current?.()
       }
     },
-    [setMouseDownX, setMouseDownY, mouseDownX, mouseDownY]
+    [setMouseDownX, setMouseDownY, mouseDownX, mouseDownY, modal2NoClose]
   )
   // if the modals change clear this value
   React.useEffect(() => {
@@ -194,7 +195,7 @@ const ModalView = React.memo((props: NavigationViewProps<any>) => {
                 component={Component}
                 screenProps={props.screenProps || noScreenProps}
               />
-              {!modal2ClearCover && (
+              {!modal2ClearCover && !modal2NoClose && (
                 <Kb.Icon
                   type="iconfont-close"
                   onClick={() => popRef.current?.()}
