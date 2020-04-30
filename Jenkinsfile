@@ -664,32 +664,22 @@ def testGoTestSuite(prefix, packagesToTest) {
     workers["worker_${n}"] = {
       def done = false
       for (; !done;) {
-        def spec
+        def testSpec
 
         // Concurrency hack
         def lockID = "${env.BUILD_TAG}-compiling"
         lock(lockID) {
-          println "Inside lock ${lockID}, i=${i}"
           if (packageTestList.size() <= i) {
-            println "Past the size of the list, setting done=true (${lockID})"
             done = true
           } else {
-            println "Getting pkg (${lockID})"
             def pkg = packageTestList[i]
-            println "Getting spec for pkg ${pkg} (${lockID})"
-            spec = allTestSpecs[pkg]
-            println "Incrementing i from ${i} (${lockID})"
+            testSpec = allTestSpecs[pkg]
             i++
-            println "Incremented i to ${i} (${lockID})"
           }
-          println "Leaving lock ${lockID}, i=${i}"
         }
-        println "Outside lock ${lockID}, i=${i}"
         if (done) {
-          println "Done step ${lockID}"
           break
         }
-        println "Running closure ${testSpec.pkg}"
         testSpec.closure()
       }
     }
