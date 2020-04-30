@@ -21,7 +21,7 @@ type mysqlActivityStatsStorer struct {
 	db     *sql.DB
 	clock  libkbfs.Clock
 
-	lock  sync.RWMutex
+	lock  sync.Mutex
 	tlfs  map[tlf.ID]time.Time
 	hosts map[string]time.Time
 }
@@ -82,12 +82,12 @@ func (s *mysqlActivityStatsStorer) createTablesIfNotExists(
 const mysqlStatFlushTimeout = time.Minute / 2
 
 func (s *mysqlActivityStatsStorer) flushInserts() {
-	s.lock.RLock()
+	s.lock.Lock()
 	tlfs := s.tlfs
 	hosts := s.hosts
 	s.tlfs = make(map[tlf.ID]time.Time)
 	s.hosts = make(map[string]time.Time)
-	s.lock.RUnlock()
+	s.lock.Unlock()
 
 	ctx, cancel := context.WithTimeout(context.Background(), mysqlStatFlushTimeout)
 	defer cancel()
