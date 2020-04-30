@@ -23,7 +23,6 @@ export type Props = {
   showOverrideNotice: boolean
   showSaveIndicator: boolean
   teamID: TeamsTypes.TeamID
-  type: 'simple' | 'auto'
   saveRetentionPolicy: (policy: RetentionPolicy) => void
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void
   onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => void
@@ -46,19 +45,14 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
   _timeoutID: ReturnType<typeof setInterval> | undefined
   _showSaved: boolean = false
 
-  // We just updated the state with a new selection, do we show the warning
-  // dialog ourselves or do we call back up to the parent?
   _handleSelection = () => {
     const selected = this.state.selected
     const changed = !policyEquals(this.state.selected, this.props.policy)
     const decreased =
       policyToComparable(selected, this.props.teamPolicy) <
       policyToComparable(this.props.policy, this.props.teamPolicy)
-    if (this.props.type === 'simple') {
-      this.props.onSelect?.(selected, changed, decreased)
-      return
-    }
-    // auto case; show dialog if decreased, set immediately if not
+
+    // show dialog if decreased, set immediately if not
     if (!changed) {
       // noop
       return
@@ -142,8 +136,6 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
   _setInitialSelected = (policy?: RetentionPolicy) => {
     const p = policy || this.props.policy
     this.setState({selected: p})
-    // tell parent that nothing has changed
-    this.props.type === 'simple' && this.props.onSelect?.(p, false, false)
   }
 
   _label = () => {

@@ -1,6 +1,5 @@
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
-import {RetentionPolicy} from '../../../constants/types/retention-policy'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
 import {Settings} from '.'
@@ -39,16 +38,6 @@ export default Container.connect(
     }
   },
   (dispatch, {teamID}: OwnProps) => ({
-    _showRetentionWarning: (
-      policy: RetentionPolicy,
-      onConfirm: () => void,
-      entityType: 'big team' | 'small team'
-    ) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {entityType, onConfirm, policy}, selected: 'retentionWarning'}],
-        })
-      ),
     clearError: () => dispatch(TeamsGen.createSettingsError({error: ''})),
     loadWelcomeMessage: () => dispatch(TeamsGen.createLoadWelcomeMessage({teamID})),
     onEditWelcomeMessage: () => {
@@ -58,8 +47,6 @@ export default Container.connect(
     },
     savePublicity: (settings: Types.PublicitySettings) =>
       dispatch(TeamsGen.createSetPublicity({settings, teamID})),
-    saveRetentionPolicy: (policy: RetentionPolicy) =>
-      dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamID})),
     showOpenTeamWarning: (isOpenTeam: boolean, onConfirm: () => void, teamname: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -72,20 +59,7 @@ export default Container.connect(
       ...stateProps,
       loadWelcomeMessage: dispatchProps.loadWelcomeMessage,
       onEditWelcomeMessage: dispatchProps.onEditWelcomeMessage,
-      savePublicity: (
-        settings: Types.PublicitySettings,
-        showRetentionWarning: boolean,
-        policy: RetentionPolicy | null
-      ) => {
-        if (policy && stateProps.yourOperations.setRetentionPolicy) {
-          showRetentionWarning &&
-            dispatchProps._showRetentionWarning(
-              policy,
-              () => dispatchProps.saveRetentionPolicy(policy),
-              stateProps.isBigTeam ? 'big team' : 'small team'
-            )
-          !showRetentionWarning && dispatchProps.saveRetentionPolicy(policy)
-        }
+      savePublicity: (settings: Types.PublicitySettings) => {
         dispatchProps.savePublicity(settings)
         dispatchProps.clearError()
       },

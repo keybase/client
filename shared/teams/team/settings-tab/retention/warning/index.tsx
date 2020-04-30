@@ -14,7 +14,7 @@ type Props = {
 const iconType = Styles.isMobile ? 'icon-message-retention-64' : 'icon-message-retention-48'
 const explodeIconType = 'icon-illustration-exploding-messages-240'
 
-const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => void}) =>
+const Wrapper = ({children}: {children: React.ReactNode}) =>
   Styles.isMobile ? (
     <Kb.ScrollView
       style={{...Styles.globalStyles.fillAbsolute, ...Styles.globalStyles.flexBoxColumn}}
@@ -22,7 +22,7 @@ const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => v
       children={children}
     />
   ) : (
-    <Kb.PopupDialog onClose={onBack} children={children} />
+    <Kb.PopupDialog children={children} />
   )
 
 const RetentionWarning = (props: Props) => {
@@ -34,7 +34,7 @@ const RetentionWarning = (props: Props) => {
   }
   const convType: string = getConvType(props.entityType)
   return (
-    <Wrapper onBack={props.onBack}>
+    <Wrapper>
       <Kb.Box style={styles.container}>
         <Kb.Icon type={props.exploding ? explodeIconType : iconType} style={styles.iconStyle} />
         <Kb.Text center={true} type="Header" style={styles.headerStyle}>
