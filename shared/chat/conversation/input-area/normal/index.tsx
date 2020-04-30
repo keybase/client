@@ -688,14 +688,14 @@ const styles = Styles.styleSheetCreate(
         isMobile: {height: 48},
       }),
       iconPeople: {
-        backgroundColor: Styles.globalColors.white,
-        borderRadius: 16,
         alignItems: 'center',
-        justifyContent: 'center',
+        backgroundColor: Styles.globalColors.white,
         borderColor: Styles.globalColors.black_10,
+        borderRadius: 16,
         borderStyle: 'solid',
         borderWidth: 1,
         height: 32,
+        justifyContent: 'center',
         width: 32,
       },
       suggestionBase: {
