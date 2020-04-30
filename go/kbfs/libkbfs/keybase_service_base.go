@@ -521,10 +521,15 @@ func (k *KeybaseServiceBase) Identify(
 	switch err.(type) {
 	case nil:
 	case libkb.NoSigChainError, libkb.UserDeletedError:
+		ei.OnError(ctx)
+		// But if the username is blame, just return it, since the
+		// returned username would be useless and confusing.
+		if res.Ul.Name == "" {
+			return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
+		}
 		k.log.CDebugf(ctx,
 			"Ignoring error (%s) for user %s with no sigchain; "+
 				"error type=%T", err, res.Ul.Name, err)
-		ei.OnError(ctx)
 	default:
 		// If the caller is waiting for breaks, let them know we got an error.
 		ei.OnError(ctx)
