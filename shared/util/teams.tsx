@@ -40,13 +40,13 @@ function makeRetentionNotice(
   let explanation = ''
   switch (policy.type) {
     case 'expire': {
-      explanation = `will be automatically deleted after ${policy.title}.`
+      explanation = `will auto-delete after ${policy.title}.`
       break
     }
     case 'inherit': {
-      explanation = `${
-        teamPolicy.type === 'explode' ? 'will explode' : 'will be automatically deleted'
-      } after ${teamPolicy.title}`
+      explanation = `${teamPolicy.type === 'explode' ? 'will explode' : 'will auto-delete'} after ${
+        teamPolicy.title
+      }`
       explanation += teamType === 'small' ? '.' : ', the team default.'
       break
     }
