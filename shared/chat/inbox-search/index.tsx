@@ -93,7 +93,6 @@ class InboxSearch extends React.Component<Props, State> {
       <OpenTeamRow
         description={item.description}
         name={item.name}
-        id={item.id}
         memberCount={item.memberCount}
         inTeam={item.inTeam}
         publicAdmins={item.publicAdmins}
@@ -382,7 +381,7 @@ type OpenTeamProps = Types.InboxSearchOpenTeamHit & {
 }
 const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
-  const {name, description, memberCount, publicAdmins, id, inTeam, isSelected} = p
+  const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
   const dispatch = Container.useDispatch()
   const showingDueToSelect = React.useRef(false)
   const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup<Kb.Box2>(attachTo => (
