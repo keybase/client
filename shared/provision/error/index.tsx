@@ -286,6 +286,10 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
   }
 }
 
+Render.navigationOptions = {
+  modal2: true,
+}
+
 const styles = styleSheetCreate(
   () =>
     ({

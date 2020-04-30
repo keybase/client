@@ -26,9 +26,4 @@ const ConnectedRenderError = connect(
   })
 )(RenderError)
 
-// @ts-ignore
-ConnectedRenderError.navigationOptions = {
-  modal2: true,
-}
-
 export default ConnectedRenderError
