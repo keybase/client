@@ -399,7 +399,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
       onJoinTeam={() => dispatch(TeamsGen.createJoinTeam({teamname: name}))}
       onViewTeam={() => {
         dispatch(RouteTreeGen.createClearModals())
-        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID: id}, selected: 'team'}]}))
+        dispatch(TeamsGen.createShowTeamByName({teamname: name}))
       }}
       publicAdmins={publicAdmins ?? []}
       visible={showingPopup}
