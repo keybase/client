@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/xurls"
+	"mvdan.cc/xurls/v2"
 
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/unfurl/display"
