@@ -389,7 +389,6 @@ const styles = Styles.styleSheetCreate(
         isPhone: {
           borderRadius: 8,
           flexGrow: 1,
-          margin: Styles.globalMargins.tiny,
         },
         isTablet: {
           borderRadius: 4,
