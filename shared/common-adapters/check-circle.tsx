@@ -5,14 +5,39 @@ import Icon from './icon'
 
 const Kb = {Icon}
 
+/*
+  If you'd like to add a new color variant, add it to the palette below and use
+  its key as the "color" prop.
+*/
+const palette = {
+  default: {
+    dark: {
+      base: Styles.globalColors.black_20,
+      hover: Styles.globalColors.blue,
+      disabledBase: Styles.globalColors.black_20,
+      disabledHover: Styles.globalColors.black_35,
+      checked: Styles.globalColors.blue,
+      checkedHover: Styles.globalColors.blueLight,
+    },
+    light: {
+      base: Styles.globalColors.black_10,
+      hover: Styles.globalColors.blue,
+      disabledBase: Styles.globalColors.black_10,
+      disabledHover: Styles.globalColors.black_20,
+      checked: Styles.globalColors.blue,
+      checkedHover: Styles.globalColors.blueDark,
+    },
+  },
+}
+export type Color = keyof typeof palette
+
 type Props = {
-  onCheck?: (newCheckedValue: boolean) => void
+  color?: Color
   checked: boolean
   className?: string
   disabled?: boolean
   fontSize?: number
-  selectedColor?: Styles.Color
-  selectedHoverColor?: Styles.Color
+  onCheck?: (newCheckedValue: boolean) => void
   style?: Styles.StylesCrossPlatform
 }
 
@@ -24,27 +49,17 @@ const CheckCircle = (props: Props) => {
       evt.stopPropagation()
     }
   }
-  const [hover, setHover] = React.useState(false)
-  const onMouseEnter = () => setHover(true)
-  const onMouseLeave = () => setHover(false)
+
+  const colors = palette[props.color || 'default'][Styles.isDarkMode() ? 'dark' : 'light']
 
   return (
     <Kb.Icon
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
       type={props.checked ? 'iconfont-success' : 'iconfont-circle'}
-      colorOverride={
-        props.disabled
-          ? hover
-            ? Styles.globalColors.black_20
-            : Styles.globalColors.black_10
-          : hover
-          ? props.selectedHoverColor ?? Styles.globalColors.blueDark
-          : props.selectedColor ?? Styles.globalColors.blue
-      }
       onClick={onClick}
       fontSize={props.fontSize}
-      className={Styles.classNames(props.disabled && 'checkCircle__disabled', props.className)}
+      color={props.disabled ? colors.disabledBase : props.checked ? colors.checked : colors.base}
+      hoverColor={props.disabled ? colors.disabledHover : props.checked ? colors.checkedHover : colors.hover}
+      className={Styles.classNames(props.disabled && `checkCircle__disabled`, props.className)}
       style={props.style}
     />
   )
