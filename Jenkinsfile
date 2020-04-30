@@ -660,7 +660,7 @@ def testGoTestSuite(prefix, packagesToTest) {
   def allTestSpecs = [:]
   def i = 0
   def workers = [:]
-  for (n = 1; n <= 4; n++) {
+  for (n = 1; n <= 3; n++) {
     workers["worker_${n}"] = {
       def done = false
       for (; !done;) {
