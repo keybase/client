@@ -25,8 +25,9 @@ export default function SettingsItem(props: SettingsItemProps) {
         <props.iconComponent />
       ) : props.icon ? (
         <Icon
+          fontSize={24}
           type={props.icon}
-          color={Styles.globalColors.black_20}
+          color={Styles.globalColors.black_50}
           style={{marginRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.tiny}}
         />
       ) : null}

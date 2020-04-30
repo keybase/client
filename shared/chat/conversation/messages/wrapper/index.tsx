@@ -596,11 +596,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               />
             )}
             {this.props.isRevoked && (
-              <Kb.Icon
-                type="iconfont-rip"
-                style={styles.paddingLeftTiny}
-                color={Styles.globalColors.black_20}
-              />
+              <Kb.WithTooltip tooltip="Revoked device">
+                <Kb.Icon
+                  type="iconfont-rip"
+                  style={styles.paddingLeftTiny}
+                  color={Styles.globalColors.black_35}
+                />
+              </Kb.WithTooltip>
             )}
             {this.props.showCoinsIcon && (
               <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />

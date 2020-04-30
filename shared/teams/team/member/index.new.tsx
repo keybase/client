@@ -612,10 +612,10 @@ const NodeInRow = (props: NodeInRowProps) => {
                     {!(isMe && amLastOwner) && (
                       <Kb.WaitingButton
                         mode="Secondary"
-                        icon={isMe ? 'iconfont-leave' : 'iconfont-block'}
+                        icon={isMe ? 'iconfont-team-leave' : 'iconfont-block'}
                         type="Danger"
                         onClick={onKickOut}
-                        label={isMe ? 'Leave' : 'Kick out'}
+                        label={isMe ? 'Leave team' : 'Kick out'}
                         small={true}
                         waitingKey={onKickOutWaitingKey}
                       />
