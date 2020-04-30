@@ -2,8 +2,11 @@
 
 set -e -u -o pipefail # Fail on error
 
+GOMOBILE_VERSION="4c31acba000778d337c0e4f32091cc923b3363d2"
+
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $dir
+client_go_dir="$dir/../../go"
+cd $client_go_dir
 
 arg=${1:-}
 
@@ -28,7 +31,6 @@ else
     keybase_build="$current_date+$commit_short"
 fi
 
-skip_gomobile_init=${SKIP_GOMOBILE_INIT:-}
 check_ci=${CHECK_CI:-}
 
 IFS=: read -a GOPATH_ARRAY <<< "$GOPATH"
@@ -36,7 +38,6 @@ GOPATH0=${GOPATH_ARRAY[0]}
 
 # Original sources
 client_dir="$GOPATH0/src/github.com/keybase/client"
-client_go_dir="$client_dir/go"
 
 echo "Using GOPATH: $GOPATH"
 
@@ -53,20 +54,14 @@ if [ "$check_ci" = "1" ]; then
   release wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
 fi
 
-package="github.com/keybase/client/go/bind"
+package="./bind"
 tags=${TAGS:-"prerelease production"}
-ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
+ldflags="-X libkb.PrereleaseBuild=$keybase_build -s -w"
 
-gomobileinit ()
+build_gomobile ()
 {
   echo "Build gomobile..."
-  go install golang.org/x/mobile/cmd/{gomobile,gobind}@a42111704963f4f0d1266674e1e97489aa8dcca0
-  echo "Doing gomobile init"
-  if [ "$arg" = "android" ]; then
-    gomobile init -ndk $ANDROID_HOME/ndk-bundle
-  else
-    gomobile init
-  fi
+  GO111MODULE=on go get golang.org/x/mobile/cmd/{gomobile,gobind}@$GOMOBILE_VERSION
 }
 
 if [ "$arg" = "ios" ]; then
@@ -77,8 +72,7 @@ if [ "$arg" = "ios" ]; then
   OUTPUT="$(gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
   set -e
   if [[ $OUTPUT == *gomobile* ]]; then
-    echo "Running gomobile init cause: $OUTPUT"
-    gomobileinit
+    build_gomobile
     gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package"
   else
     echo $OUTPUT
@@ -91,8 +85,7 @@ elif [ "$arg" = "android" ]; then
   OUTPUT="$(gomobile bind -target=android -tags="android $tags" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
   set -e
   if [[ $OUTPUT == *gomobile* ]]; then
-    echo "Running gomobile init cause: $OUTPUT"
-    gomobileinit
+    build_gomobile
     gomobile bind -target=android -tags="android $tags" -ldflags "$ldflags" -o "$android_dest" "$package"
   else
     echo $OUTPUT
@@ -102,3 +95,7 @@ else
   echo "Nothing to build, you need to specify 'ios' or 'android'"
   exit 1
 fi
+
+# Clean up changes to go.mod
+go mod tidy
+

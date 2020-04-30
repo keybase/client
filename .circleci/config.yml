@@ -1,11 +1,11 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/go-path/src/github.com/keybase/client
+    working_directory: ~/client
     parallelism: 1
 
     docker:
-    - image: keybaseprivate/circleci-client@sha256:db626a8307a0daa7ab9d7f124bc0e3c2ca29046bd5218974f5f817fb00544149
+    - image: marceloneil/circleci-client@sha256:8d39a394d45a5e65832e9644423e725d5b2f6013b7c6b4df0813578b40365a39
 
     steps:
     ##
@@ -28,7 +28,7 @@ jobs:
         working_directory: shared
         command: yarn jetify
 
-    - run: ls -la $GOPATH/src/github.com/keybase/client/shared/android/keybaselib/keybaselib.aar
+    - run: ls -la shared/android/keybaselib/keybaselib.aar
 
     # Build a debug version of the app
     # Bundle JS separately because doing it in the gradle build is buggy
