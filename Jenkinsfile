@@ -492,6 +492,9 @@ def testGoTestSuite(prefix, packagesToTest) {
   def testSpecMap = [
     test_linux_go_: [
       '*': [],
+      'github.com/keybase/client/go/chat/attachments': [
+        parallel: 1,
+      ],
       'github.com/keybase/client/go/kbfs/test': [
         name: 'kbfs_test_fuse',
         flags: '-tags fuse',
@@ -633,7 +636,7 @@ def testGoTestSuite(prefix, packagesToTest) {
       flags: '',
       timeout: '30m',
       dirPath: dirPath,
-      parallel: 16,
+      parallel: 4,
       pkg: pkg,
     ]
   }
@@ -656,43 +659,43 @@ def testGoTestSuite(prefix, packagesToTest) {
 
   println "Compiling ${packageTestSet.size()} test(s)"
   def packageTestCompileList = []
-  def allTestSpecs = [:]
+  def packageTestRunList = []
   packagesToTest.each { pkg, _ ->
     def testSpec = getPackageTestSpec(pkg)
     if (testSpec) {
       testSpec.testBinary = "${testSpec.name}.test"
-      allTestSpecs[pkg] = testSpec
       packageTestCompileList.add({
         sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
       })
-    }
-  }
-  executeInWorkers(3, true, packageTestCompileList)
-
-  println "Running ${allTestSpecs.size()} test(s)"
-  helpers.waitForURLWithTimeout(prefix, env.KEYBASE_SERVER_URI, 600)
-  allTestSpecs.each { pkg, testSpec ->
-    dir(testSpec.dirPath) {
-      // Only run the test if a test binary should have been produced.
-      if (fileExists(testSpec.testBinary)) {
-        withCredentials([
-          string(credentialsId: 'citogo-flake-webhook', variable : 'CITOGO_FLAKE_WEBHOOK'),
-          string(credentialsId: 'citogo-aws-secret-access-key', variable : 'CITOGO_AWS_SECRET_ACCESS_KEY'),
-          string(credentialsId: 'citogo-aws-access-key-id', variable : 'CITOGO_AWS_ACCESS_KEY_ID'),
-          string(credentialsId: 'citogo-master-fail-webhook', variable : 'CITOGO_MASTER_FAIL_WEBHOOK'),
-        ]) {
-          println "Running tests for ${testSpec.dirPath}"
-          def t = getOverallTimeout(testSpec)
-          timeout(activity: true, time: t.time, unit: t.unit) {
-            if (testSpec.no_citogo) {
-              sh "./${testSpec.testBinary} -test.timeout ${testSpec.timeout}"
-            } else {
-              sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testSpec.testBinary} --timeout 150s -parallel=${testSpec.parallel} ${testSpec.citogo_extra ? testSpec.citogo_extra : ''}"
+      packageTestRunList.add({ testSpec ->
+        dir(testSpec.dirPath) {
+          // Only run the test if a test binary should have been produced.
+          if (fileExists(testSpec.testBinary)) {
+            println "Running tests for ${testSpec.dirPath}"
+            def t = getOverallTimeout(testSpec)
+            timeout(activity: true, time: t.time, unit: t.unit) {
+              if (testSpec.no_citogo) {
+                sh "./${testSpec.testBinary} -test.timeout ${testSpec.timeout}"
+              } else {
+                sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testSpec.testBinary} --timeout 150s -parallel=${testSpec.parallel} ${testSpec.citogo_extra ? testSpec.citogo_extra : ''}"
+              }
             }
           }
         }
-      }
+      }.curry(testSpec))
     }
+  }
+  executeInWorkers(3, true /* runFirstItemAlone */, packageTestCompileList)
+
+  helpers.waitForURLWithTimeout(prefix, env.KEYBASE_SERVER_URI, 600)
+  println "Running ${packageTestSet.size()} test(s)"
+  withCredentials([
+    string(credentialsId: 'citogo-flake-webhook', variable : 'CITOGO_FLAKE_WEBHOOK'),
+    string(credentialsId: 'citogo-aws-secret-access-key', variable : 'CITOGO_AWS_SECRET_ACCESS_KEY'),
+    string(credentialsId: 'citogo-aws-access-key-id', variable : 'CITOGO_AWS_ACCESS_KEY_ID'),
+    string(credentialsId: 'citogo-master-fail-webhook', variable : 'CITOGO_MASTER_FAIL_WEBHOOK'),
+  ]) {
+    executeInWorkers(4, false /* runFirstItemAlone */, packageTestRunList)
   }
 }
 
