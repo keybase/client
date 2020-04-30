@@ -65,7 +65,6 @@ export type InboxSearchOpenTeamHit = {
   name: string
   memberCount: number
   publicAdmins: Array<string>
-  id: Team.TeamID
 }
 
 export type InboxSearchInfo = {
