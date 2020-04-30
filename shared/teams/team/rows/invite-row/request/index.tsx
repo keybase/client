@@ -107,7 +107,7 @@ const TeamRequestRowNew = (props: Props) => {
       closeOnSelect={true}
       attachTo={attachTo}
       position="bottom left"
-      positionFallbacks={['top left']}
+      positionFallbacks={['left center' as const, 'top left' as const]}
     />
   ))
 
@@ -119,7 +119,7 @@ const TeamRequestRowNew = (props: Props) => {
         <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={username} />
-            <Kb.Box2 direction="horizontal">
+            <Kb.Box2 direction="horizontal" alignSelf="flex-start">
               {(isNew || reset) && (
                 <Kb.Meta
                   title={reset ? 'locked out' : 'please decide'}
@@ -180,7 +180,7 @@ const TeamRequestRowNew = (props: Props) => {
       }
       onClick={props.isRolePickerOpen ? undefined : () => onOpenProfile(username)}
       firstItem={props.firstItem}
-      style={props.waiting ? styles.disabled : undefined}
+      style={props.waiting ? styles.disabled : styles.bg}
     />
   )
 }
@@ -193,6 +193,7 @@ const styleCharm = {
 } as const
 
 const styles = Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Styles.globalColors.white},
   clickContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -224,7 +225,7 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 56,
     },
   }),
-  disabled: {opacity: 0.4},
+  disabled: {backgroundColor: Styles.globalColors.white, opacity: 0.4},
   floatingRolePicker: Styles.platformStyles({
     isElectron: {
       position: 'relative',
