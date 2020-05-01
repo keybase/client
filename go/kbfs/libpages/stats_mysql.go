@@ -50,7 +50,7 @@ func NewMySQLActivityStatsStorer(
 func (s *mysqlActivityStatsStorer) createTablesIfNotExists(
 	ctx context.Context) (err error) {
 	if _, err = s.db.ExecContext(ctx, `
-        CREATE TABLE stats_tlf (
+        CREATE TABLE IF NOT EXISTS stats_tlf (
           id          bigint unsigned NOT NULL AUTO_INCREMENT,
           tlf_id      char(32)        NOT NULL,
           active_time datetime(3)     NOT NULL,
@@ -58,20 +58,21 @@ func (s *mysqlActivityStatsStorer) createTablesIfNotExists(
           PRIMARY KEY                 (id),
           UNIQUE KEY  idx_tlf_id      (tlf_id),
           KEY         idx_active_time (active_time)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `); err != nil {
 		return err
 	}
 	if _, err = s.db.ExecContext(ctx, `
-        CREATE TABLE stats_host (
+        CREATE TABLE IF NOT EXISTS stats_host (
           id          bigint unsigned NOT NULL AUTO_INCREMENT,
-          domain      varchar(256)    NOT NULL,
+          -- max key length is 767. floor(767/4)==191
+          domain      varchar(191)    NOT NULL, 
           active_time datetime(3)     NOT NULL,
 
           PRIMARY KEY                 (id),
           UNIQUE KEY  idx_domain      (domain),
           KEY         idx_active_time (active_time)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `); err != nil {
 		return err
 	}
