@@ -30,8 +30,8 @@ export const useChannelMeta = (
   _: Types.TeamID,
   convID: ChatTypes.ConversationIDKey
 ): ChatTypes.ConversationMeta => ({
+  ...ChatConstants.makeConversationMeta(),
   channelname: 'hellos',
   conversationIDKey: convID,
   description: 'hello hello hello hello hello',
-  ...ChatConstants.makeConversationMeta(),
 })

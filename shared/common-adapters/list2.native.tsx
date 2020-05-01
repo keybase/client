@@ -26,7 +26,7 @@ class List2<T> extends PureComponent<Props<T>> {
         return {index, length: itemHeight, offset: itemHeight * index}
       }
       case 'variable':
-        return {index, ...this.props.itemHeight.getItemLayout(index, data ? data[index] : undefined)}
+        return {...this.props.itemHeight.getItemLayout(index, data ? data[index] : undefined)}
       default:
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.itemHeight)
         return {index, length: 0, offset: 0}

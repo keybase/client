@@ -211,7 +211,11 @@ const GenerateLinkModal = (props: Props) => {
           Invite people to {teamname} by sharing a link:
         </Kb.Text>
 
-        <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} fullWidth={true} ref={popupAnchor}>
+        <Kb.Box2
+          direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+          fullWidth={true}
+          ref={popupAnchor as any}
+        >
           <Kb.Text type="BodySmall" style={styles.rowTitle}>
             Validity
           </Kb.Text>

@@ -202,6 +202,7 @@ class TransportShared extends RobustTransport {
       type: 'engineToServer',
     })
 
+    // @ts-ignore
     wrappedInvoke(arg)
   }
 }

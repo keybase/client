@@ -77,8 +77,6 @@ const AppView = React.memo((props: NavigationViewProps<any>) => {
       >
         {scene}
         <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
-          {/*
-          // @ts-ignore Header typing not finished yet */}
           <Header
             loggedIn={!!selectedTab}
             options={descriptor.options}

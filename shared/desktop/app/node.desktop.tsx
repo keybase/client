@@ -359,7 +359,6 @@ const plumbEvents = () => {
         const opts = {
           frame: false,
           fullscreen: false,
-          height: 300,
           resizable: false,
           show: false, // Start hidden and show when we actually get props
           titleBarStyle: 'customButtonsOnHover' as const,
@@ -368,7 +367,6 @@ const plumbEvents = () => {
             nodeIntegrationInWorker: false,
             preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
           },
-          width: 500,
           ...action.payload.windowOpts,
         }
 

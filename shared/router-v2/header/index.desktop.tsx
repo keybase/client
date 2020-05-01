@@ -9,6 +9,12 @@ import SyncingFolders from './syncing-folders'
 import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'
 import * as ReactIs from 'react-is'
 
+type OwnProps = {
+  allowBack: boolean
+  loggedIn: boolean
+  onPop: () => void
+  options: any
+}
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
@@ -329,14 +335,11 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  useNativeFrame: state.config.useNativeFrame,
-})
-
-const mapDispatchToProps = () => ({})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: any) => ({
-  ...s,
-  ...d,
-  ...o,
-}))(Header)
+export default Container.connect(
+  state => ({useNativeFrame: state.config.useNativeFrame}),
+  () => {},
+  (s, _d, o: OwnProps) => ({
+    ...s,
+    ...o,
+  })
+)(Header)

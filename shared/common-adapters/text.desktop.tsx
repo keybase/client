@@ -94,7 +94,7 @@ function externalGetStyle(
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   // pipe positive color through because caller probably isn't using class
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}
-  const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
+  const cursorStyle: any = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
   const selectableStyle = selectable
