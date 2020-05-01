@@ -337,7 +337,7 @@ const styles = Styles.styleSheetCreate(
 
 export default Container.connect(
   state => ({useNativeFrame: state.config.useNativeFrame}),
-  () => {},
+  () => ({}),
   (s, _d, o: OwnProps) => ({
     ...s,
     ...o,
