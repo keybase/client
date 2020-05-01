@@ -43,42 +43,21 @@ func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
 }
 
 func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, name string) {
-	tc = SetupTest(t, "team", 1)
-
-	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	err = tc.Logout()
-	require.NoError(t, err)
-
-	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	err = tc.Logout()
-	require.NoError(t, err)
-
-	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-
-	name = createTeam(tc)
-	t.Logf("Created team %q", name)
-
-	return tc, owner, otherA, otherB, name
+	tc, owner, otherA, otherB, teamName, _ := memberSetupMultipleWithTeamID(t)
+	return tc, owner, otherA, otherB, teamName.String()
 }
 
 func memberSetupMultipleWithTeamID(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, name keybase1.TeamName, teamID keybase1.TeamID) {
 	tc = SetupTest(t, "team", 1)
 
-	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	err = tc.Logout()
-	require.NoError(t, err)
-
-	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	err = tc.Logout()
-	require.NoError(t, err)
-
-	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	for i, ptr := range []**kbtest.FakeUser{&otherA, &otherB, &owner} {
+		if i > 0 {
+			kbtest.Logout(tc)
+		}
+		user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+		require.NoError(t, err)
+		*ptr = user
+	}
 
 	name, teamID = createTeam2(tc)
 	t.Logf("Created team %q", name)
