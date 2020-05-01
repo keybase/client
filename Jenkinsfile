@@ -200,9 +200,7 @@ helpers.rootLinuxNode(env, {
                   }
                 }
               }},
-              integrate: { withEnv([
-                "DOCKER_BUILDKIT=1",
-              ]) {
+              integrate: {
                 // Build the client docker first so we can immediately kick off KBFS
                 def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
                 if (hasGoChanges && hasKBFSChanges) {
@@ -241,7 +239,7 @@ helpers.rootLinuxNode(env, {
                     }
                   }
                 }
-              }},
+              },
             )
           },
           test_windows: {
