@@ -1587,15 +1587,27 @@ const addMembersWizardPushMembers = async (
   state: TypedState,
   action: TeamsGen.AddMembersWizardPushMembersPayload
 ) => {
-  const {teamID} = state.teams.addMembersWizard
+  const wizardState = state.teams.addMembersWizard
+
+  // Find assertions that we are going to call FindAssertionsInTeam~ on to see
+  // if they are already in team. Skip all that are already in the wizard. We
+  // are only checking assertions, because it's fast - checking usernames
+  // should be unnecessary (UI doesn't let you add users that are already in
+  // the team) and is much slower because it has to load the users.
+  const newAssertions = action.payload.members.filter(
+    ({assertion}) =>
+      assertion.includes('@') && !wizardState.addingMembers.find(x => x.assertion === assertion)
+  )
 
   const membersAlreadyInTeam =
-    (await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
-      assertions: action.payload.members.map(x => x.assertion),
-      teamID,
-    })) ?? []
+    (newAssertions.length > 0
+      ? await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
+          assertions: newAssertions.map(x => x.assertion),
+          teamID: wizardState.teamID,
+        })
+      : undefined) ?? []
 
-  let members = Constants.dedupAddingMembeers(
+  const members = Constants.dedupAddingMembeers(
     state.teams.addMembersWizard.addingMembers,
     action.payload.members
       .filter(x => !membersAlreadyInTeam.includes(x.assertion))
