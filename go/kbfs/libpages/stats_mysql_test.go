@@ -76,13 +76,25 @@ func TestMySQLActivityStatsStorer(t *testing.T) {
 
 	// Now we're at 02:00
 
-	activeTlfs, activeHosts, err := storer.GetActives(time.Minute)
-	require.NoError(t, err)
-	require.Equal(t, 1, activeTlfs)
-	require.Equal(t, 2, activeHosts)
+	check := func() {
+		activeTlfs, activeHosts, err := storer.GetActives(time.Minute)
+		require.NoError(t, err)
+		require.Equal(t, 1, activeTlfs)
+		require.Equal(t, 2, activeHosts)
 
-	activeTlfs, activeHosts, err = storer.GetActives(2 * time.Minute)
-	require.NoError(t, err)
-	require.Equal(t, 2, activeTlfs)
-	require.Equal(t, 3, activeHosts)
+		activeTlfs, activeHosts, err = storer.GetActives(2 * time.Minute)
+		require.NoError(t, err)
+		require.Equal(t, 2, activeTlfs)
+		require.Equal(t, 3, activeHosts)
+	}
+	check()
+
+	t.Logf("make sure older time don't override newer time")
+	clock.Add(-5 * time.Minute)
+	storer.RecordActives(tlfID1, host1)
+	storer.RecordActives(tlfID1, host2)
+	storer.RecordActives(tlfID2, host3)
+	clock.Add(5 * time.Minute)
+	storer.flushInserts()
+	check()
 }

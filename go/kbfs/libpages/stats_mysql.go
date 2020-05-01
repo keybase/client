@@ -98,7 +98,7 @@ func (s *mysqlActivityStatsStorer) flushInserts() {
             INSERT INTO stats_tlf (tlf_id, active_time)
                 VALUES (?, ?)
             ON DUPLICATE KEY UPDATE
-                active_time = GREATEST(VALUES(active_time), ?)`,
+                active_time = GREATEST(active_time, ?)`,
 			tlfID.String(), t, t); err != nil {
 			s.logger.Warn("INSERT INTO stats_tlf", zap.Error(err))
 		}
@@ -108,7 +108,7 @@ func (s *mysqlActivityStatsStorer) flushInserts() {
             INSERT INTO stats_host (domain, active_time)
                 VALUES (?, ?) 
             ON DUPLICATE KEY UPDATE
-                active_time = GREATEST(VALUES(active_time), ?)`,
+                active_time = GREATEST(active_time, ?)`,
 			host, t, t); err != nil {
 			s.logger.Warn("INSERT INTO stats_host", zap.Error(err))
 		}
