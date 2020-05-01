@@ -678,7 +678,7 @@ def testGoTestSuite(prefix, packagesToTest) {
         closure: {
           sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
         },
-        alone: !!testSpec.alone,
+        alone: !!testSpec.compileAlone,
       ])
       packageTestRunList.add([
         closure: { spec ->
@@ -697,7 +697,7 @@ def testGoTestSuite(prefix, packagesToTest) {
             }
           }
         }.curry(testSpec),
-        alone: !!testSpec.alone,
+        alone: !!testSpec.runAlone,
       ])
     }
   }
