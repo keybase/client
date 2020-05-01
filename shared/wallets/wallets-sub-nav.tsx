@@ -50,13 +50,14 @@ const WalletsSubNavigator = () => null
 // StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
 // {}
 // )
-const OnboardingOrWalletsNavigator = createSwitchNavigator(
-  {
-    onboarding: RoutedOnboarding,
-    walletsubnav: WalletsSubNavigator,
-  },
-  {initialRouteName: 'walletsubnav'}
-)
+const OnboardingOrWalletsNavigator = () => null
+// const OnboardingOrWalletsNavigator = createSwitchNavigator(
+// {
+// onboarding: RoutedOnboarding,
+// walletsubnav: WalletsSubNavigator,
+// },
+// {initialRouteName: 'walletsubnav'}
+// )
 
 type OnboardingOrWalletsProps = NavigationViewProps<any> & {acceptedDisclaimer: boolean}
 

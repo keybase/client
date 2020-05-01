@@ -32,7 +32,8 @@ export const newRoutes = {
     ? {getScreen: () => require('./wallet/container').default}
     : // MUST use screen and not getScreen for subnavs!
       {
-        get screen() {
+        // get screen() {
+        getScreen() {
           return require('./wallets-sub-nav').default
         },
       },

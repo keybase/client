@@ -9,6 +9,7 @@ import * as FsConstants from '../constants/fs'
 import {BottomTabBarProps} from '@react-navigation/bottom-tabs'
 import {tabs} from './tab-stacks'
 import {Tab} from './tab-factory'
+import {NativeTouchableWithoutFeedback} from 'react-native'
 
 const icons = new Map<string, Kb.IconType>([
   [Tabs.chatTab, 'iconfont-nav-2-chat'],

@@ -64,7 +64,8 @@ export const newRoutes = {
   // Crypto tab is driven by the sub nav on desktop
   cryptoRoot: {
     // MUST use screen and not getScreen for subnavs!
-    screen: CryptoSubNavigator,
+    // screen: CryptoSubNavigator,
+    getScreen: () => CryptoSubNavigator, // TEMP
   },
 }
 
