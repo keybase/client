@@ -1314,7 +1314,8 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	syncCache := cache.syncCache
@@ -1372,7 +1373,8 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
 	require.NoError(t, err)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p2Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p2Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
@@ -1400,7 +1402,6 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 
 	t.Log("Prefetching shouldn't happen because the disk caches are full.")
 	waitForPrefetchOrBust(ctx, t, q.Prefetcher(), rootPtr)
-	q.TogglePrefetcher(false, nil, nil)
 }
 
 func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
