@@ -607,7 +607,8 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 	q, bg, config := initPrefetcherTest(t)
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize an empty direct dir block.")
@@ -825,7 +826,8 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	q, bg, config := initPrefetcherTest(t)
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	kmd := makeKMD()
@@ -842,7 +844,8 @@ func TestPrefetcherForRequestedSync(t *testing.T) {
 	q, bg, config := initPrefetcherTest(t)
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	kmd := makeKMD()
@@ -854,7 +857,8 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	q, bg, config := initPrefetcherTest(t)
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
@@ -1009,7 +1013,8 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1159,7 +1164,8 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1220,7 +1226,8 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
 	require.NoError(t, err)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p2Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p2Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
@@ -1410,7 +1417,8 @@ func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1465,7 +1473,8 @@ func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1528,7 +1537,8 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1622,7 +1632,8 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1739,7 +1750,8 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1869,7 +1881,8 @@ func TestPrefetcherReschedules(t *testing.T) {
 
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	syncCache := cache.syncCache
@@ -1933,7 +1946,8 @@ func TestPrefetcherReschedules(t *testing.T) {
 	// prefetcher operation.  If we do, we introduce racy behavior
 	// where sometimes the prefetcher will be able to write stuff to
 	// the cache, and sometimes not.
-	q.TogglePrefetcher(true, prefetchSyncCh, prefetchDoneCh)
+	p2Ch := q.TogglePrefetcher(true, prefetchSyncCh, prefetchDoneCh)
+	defer func() { <-p2Ch }()
 	q.Prefetcher().(*blockPrefetcher).makeNewBackOff = func() backoff.BackOff {
 		return &backoff.ZeroBackOff{}
 	}
@@ -2041,7 +2055,8 @@ func TestPrefetcherWithDedupBlocks(t *testing.T) {
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -2109,7 +2124,8 @@ func TestPrefetcherWithCanceledDedupBlocks(t *testing.T) {
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: root -> a -> b")
@@ -2231,7 +2247,8 @@ func TestPrefetcherCancelTlfPrefetches(t *testing.T) {
 	defer cancel()
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
-	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	p1Ch := q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	defer func() { <-p1Ch }()
 	notifySyncCh(t, prefetchSyncCh)
 
 	kmd1 := libkeytest.NewEmptyKeyMetadata(tlf.FakeID(1, tlf.Private), 1)
