@@ -146,7 +146,6 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 		DebugLabeler:  utils.NewDebugLabeler(g.ExternalG(), "BackgroundConvLoader", false),
 		stopCh:        make(chan struct{}),
 		suspendCh:     make(chan chan struct{}, 10),
-		loadCh:        make(chan *clTask, 100),
 		identNotifier: NewCachingIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
 		resumeWait:    time.Second,
@@ -451,6 +450,7 @@ func (b *BackgroundConvLoader) loadLoop(uid gregor1.UID, stopCh chan struct{}) e
 
 func (b *BackgroundConvLoader) newQueue() {
 	b.queue = newJobQueue(1000)
+	b.loadCh = make(chan *clTask, 100)
 }
 
 func (b *BackgroundConvLoader) retriableError(err error) bool {
