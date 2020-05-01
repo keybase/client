@@ -92,7 +92,6 @@ export const TeamMemberRow = (props: Props) => {
         checked={selected}
         onCheck={onSelect}
         key={`check-${props.username}`}
-        selectedColor={Styles.isDarkMode() ? Styles.globalColors.black : undefined}
         style={styles.widenClickableArea}
       />
     )
