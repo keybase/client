@@ -1,17 +1,25 @@
+import './check-circle.css'
 import * as React from 'react'
 import * as Styles from '../styles'
 import Icon from './icon'
-import {Color} from '../styles'
 
 const Kb = {Icon}
 
 type Props = {
-  onCheck?: (newCheckedValue: boolean) => void
+  color?: Styles.Color
+  hoverColor?: Styles.Color
+
   checked: boolean
-  className?: string
+  checkedColor?: Styles.Color
+  checkedHoverColor?: Styles.Color
+
   disabled?: boolean
+  disabledColor?: Styles.Color
+  disabledHoverColor?: Styles.Color
+
+  className?: string
   fontSize?: number
-  selectedColor?: Color
+  onCheck?: (newCheckedValue: boolean) => void
   style?: Styles.StylesCrossPlatform
 }
 
@@ -23,21 +31,30 @@ const CheckCircle = (props: Props) => {
       evt.stopPropagation()
     }
   }
+
   return (
     <Kb.Icon
       type={props.checked ? 'iconfont-success' : 'iconfont-circle'}
-      color={
-        props.disabled
-          ? Styles.globalColors.black_10
-          : props.checked
-          ? props.selectedColor ?? Styles.globalColors.blue
-          : Styles.globalColors.black_20
-      }
       onClick={onClick}
       fontSize={props.fontSize}
-      className={Styles.classNames(!props.disabled && 'checkCircle', props.className)}
+      color={
+        props.disabled
+          ? props.disabledColor || Styles.globalColors.black_10OrWhite_20
+          : props.checked
+          ? props.checkedColor || Styles.globalColors.blue
+          : props.color || Styles.globalColors.black_10OrWhite_20
+      }
+      hoverColor={
+        props.disabled
+          ? props.disabledHoverColor || Styles.globalColors.black_20OrWhite_35
+          : props.checked
+          ? props.checkedHoverColor || Styles.globalColors.blueDarkOrBlueLight
+          : props.disabledHoverColor || Styles.globalColors.black_20OrWhite_35
+      }
+      className={Styles.classNames(props.disabled && `checkCircle__disabled`, props.className)}
       style={props.style}
     />
   )
 }
+
 export default CheckCircle

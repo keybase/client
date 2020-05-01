@@ -17,6 +17,14 @@ protocol NotifyTeam {
     boolean misc;
   }
 
+  // These notifications either come from API server through gregor,
+  // or are spawned locally when a team change is being made.
+  enum TeamChangedSource {
+    SERVER_0,
+    LOCAL_1,
+    LOCAL_RENAME_2 // local notification sent when subteam rename is detected
+  }
+
   // All fields are unverified
   void teamChangedByID(
     TeamID teamID,
@@ -24,7 +32,8 @@ protocol NotifyTeam {
     boolean implicitTeam,
     TeamChangeSet changes,
     Seqno latestHiddenSeqno,
-    Seqno latestOffchainSeqno
+    Seqno latestOffchainSeqno,
+    TeamChangedSource source
   ) oneway;
 
   // All fields are unverified
@@ -34,7 +43,8 @@ protocol NotifyTeam {
     boolean implicitTeam,
     TeamChangeSet changes,
     Seqno latestHiddenSeqno,
-    Seqno latestOffchainSeqno
+    Seqno latestOffchainSeqno,
+    TeamChangedSource source
   ) oneway;
 
   void teamDeleted(TeamID teamID) oneway;

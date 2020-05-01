@@ -1701,10 +1701,9 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
     Saga.put(
       Chat2Gen.createInboxSearchOpenTeamsResults({
         results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchOpenTeamHit>>((arr, h) => {
-          const {description, name, id, memberCount, inTeam} = h
+          const {description, name, memberCount, inTeam} = h
           arr.push({
             description: description ?? '',
-            id: Types.stringToConversationIDKey(id),
             inTeam,
             memberCount,
             name,
@@ -1980,7 +1979,12 @@ const previewConversationTeam = async (
 ) => {
   const {conversationIDKey, highlightMessageID, teamname, reason} = action.payload
   if (conversationIDKey) {
-    if (reason === 'messageLink' || reason === 'teamMention' || reason === 'channelHeader') {
+    if (
+      reason === 'messageLink' ||
+      reason === 'teamMention' ||
+      reason === 'channelHeader' ||
+      reason === 'manageView'
+    ) {
       // Add preview channel to inbox
       await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
         convID: Types.keyToConversationID(conversationIDKey),

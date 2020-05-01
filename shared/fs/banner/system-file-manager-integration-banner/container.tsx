@@ -1,10 +1,6 @@
-import * as React from 'react'
-import Banner, {height} from './index'
+import Banner from './index'
 import * as FsGen from '../../../actions/fs-gen'
-import * as Types from '../../../constants/types/fs'
-import * as RowTypes from '../../browser/rows/types'
 import {namedConnect} from '../../../util/container'
-import {isMobile} from '../../../constants/platform'
 
 type OwnProps = {
   alwaysShow?: boolean | null
@@ -29,17 +25,3 @@ const ConnectedBanner = namedConnect(
 )(Banner)
 
 export default ConnectedBanner
-
-export const asRows = isMobile
-  ? () => []
-  : (_: Types.Path, showBanner: boolean): Array<RowTypes.HeaderRowItem> =>
-      showBanner
-        ? [
-            {
-              height,
-              key: 'file-ui-banner',
-              node: <ConnectedBanner />,
-              rowType: RowTypes.RowType.Header,
-            },
-          ]
-        : []

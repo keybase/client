@@ -31,6 +31,15 @@
     },
     {
       "type": "enum",
+      "name": "TeamChangedSource",
+      "symbols": [
+        "SERVER_0",
+        "LOCAL_1",
+        "LOCAL_RENAME_2"
+      ]
+    },
+    {
+      "type": "enum",
       "name": "AvatarUpdateType",
       "symbols": [
         "NONE_0",
@@ -65,6 +74,10 @@
         {
           "name": "latestOffchainSeqno",
           "type": "Seqno"
+        },
+        {
+          "name": "source",
+          "type": "TeamChangedSource"
         }
       ],
       "response": null,
@@ -95,6 +108,10 @@
         {
           "name": "latestOffchainSeqno",
           "type": "Seqno"
+        },
+        {
+          "name": "source",
+          "type": "TeamChangedSource"
         }
       ],
       "response": null,

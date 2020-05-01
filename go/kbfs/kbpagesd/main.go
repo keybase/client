@@ -6,11 +6,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/libgit"
@@ -31,6 +34,7 @@ var (
 	fStathatEZKey  string
 	fStathatPrefix string
 	fBlacklist     string
+	fMySQLDSN      string
 )
 
 func init() {
@@ -47,6 +51,8 @@ func init() {
 	// whitelist should be dynamically configurable.
 	flag.StringVar(&fBlacklist, "blacklist", "",
 		"a comma-separated list of domains to block")
+	flag.StringVar(&fMySQLDSN, "mysql-dsn", "",
+		"enable MySQL based storage and use this as the DSN")
 }
 
 func newLogger(isCLI bool) (*zap.Logger, error) {
@@ -96,6 +102,28 @@ func removeEmpty(strs []string) (ret []string) {
 		}
 	}
 	return ret
+}
+
+func getStatsActivityStorerOrBust(
+	logger *zap.Logger) libpages.ActivityStatsStorer {
+	if len(fMySQLDSN) == 0 {
+		fileBasedStorer, err := libpages.NewFileBasedActivityStatsStorer(
+			activityStatsPath, logger)
+		if err != nil {
+			logger.Panic(
+				"libpages.NewFileBasedActivityStatsStorer", zap.Error(err))
+			return nil
+		}
+		return fileBasedStorer
+	}
+
+	db, err := sql.Open("mysql", fMySQLDSN)
+	if err != nil {
+		logger.Panic("open mysql", zap.Error(err))
+		return nil
+	}
+	mysqlStorer := libpages.NewMySQLActivityStatsStorer(db, logger)
+	return mysqlStorer
 }
 
 const activityStatsReportInterval = 5 * time.Minute
@@ -166,12 +194,7 @@ func main() {
 
 	var statsReporter libpages.StatsReporter
 	if len(fStathatEZKey) != 0 {
-		activityStorer, err := libpages.NewFileBasedActivityStatsStorer(
-			activityStatsPath, logger)
-		if err != nil {
-			logger.Panic(
-				"libpages.NewFileBasedActivityStatsStorer", zap.Error(err))
-		}
+		activityStorer := getStatsActivityStorerOrBust(logger)
 		enabler := &libpages.ActivityStatsEnabler{
 			Durations: []libpages.NameableDuration{
 				{

@@ -596,6 +596,12 @@
 			"revisionTime": "2018-12-15T01:52:07Z"
 		},
 		{
+			"checksumSHA1": "DjIB4Erdu6l/CAHWkF5pEiTJ8ic=",
+			"path": "github.com/go-sql-driver/mysql",
+			"revision": "681ffa848bae8d0d7b1a452963c0705b132308f7",
+			"revisionTime": "2020-03-11T11:32:36Z"
+		},
+		{
 			"checksumSHA1": "ApSLjc10RxzqUffxOBlTMqJmiGk=",
 			"path": "github.com/gobwas/glob",
 			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
