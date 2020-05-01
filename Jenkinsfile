@@ -327,7 +327,7 @@ def getPackagesToTest(dependencyFiles) {
     if (env.CHANGE_TARGET && !env.hasJenkinsfileChanges) {
       // The Jenkinsfile hasn't changed, so we try to run a minimal set of
       // tests to capture the changes in this PR.
-      def fetchChangeTarget()
+      fetchChangeTarget()
       def diffFileList = getDiffFileList()
       def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | grep '^go\\/' | sed 's/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/' | sort | uniq\"").trim().split()
       def diffPackagesAsString = diffPackageList.join(' ')
