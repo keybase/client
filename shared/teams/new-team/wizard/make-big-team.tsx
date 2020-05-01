@@ -3,7 +3,6 @@ import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/teams'
 import * as Styles from '../../../styles'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {ModalTitle} from '../../common'
 
@@ -12,7 +11,6 @@ const MakeBigTeam = () => {
   const nav = Container.useSafeNavigation()
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onClose = () => dispatch(RouteTreeGen.createClearModals())
   const onSubmit = (isBig: boolean) => dispatch(TeamsGen.createSetTeamWizardTeamSize({isBig}))
 
   const teamID = Types.newTeamWizardTeamID
@@ -20,7 +18,6 @@ const MakeBigTeam = () => {
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
-      onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Make it a big team?" />,

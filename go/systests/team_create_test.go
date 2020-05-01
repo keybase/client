@@ -42,12 +42,13 @@ func testSubteamCreate(t *testing.T, joinSubteam bool) {
 		require.EqualValues(t, 1, teamObj.CurrentSeqno(), "expecting just one link in team")
 	} else {
 		require.Equal(t, keybase1.TeamRole_NONE, role, "role should be NONE")
-		// Expecting 3 links: subteam_head, leave, rotate_key
-		ann.waitForRotateByID(teamObj.ID, keybase1.Seqno(3))
+		// Expecting 2 links in main chain: subteam_head, leave
+		// And a link in hidden chain after leave: rotate_key
+		ann.waitForAnyRotateByID(teamObj.ID, keybase1.Seqno(2) /* toSeqno */, keybase1.Seqno(1) /* toHiddenSeqno */)
 	}
 }
 
 func TestSubteamCreate(t *testing.T) {
-	testSubteamCreate(t, false)
-	testSubteamCreate(t, true)
+	t.Run("just create", func(t *testing.T) { testSubteamCreate(t, false) })
+	t.Run("create and join", func(t *testing.T) { testSubteamCreate(t, true) })
 }

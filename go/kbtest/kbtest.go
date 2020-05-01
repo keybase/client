@@ -369,7 +369,7 @@ type TeamNotifyListener struct {
 
 var _ libkb.NotifyListener = (*TeamNotifyListener)(nil)
 
-func (n *TeamNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno) {
+func (n *TeamNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno, source keybase1.TeamChangedSource) {
 	n.changeByIDCh <- keybase1.TeamChangedByIDArg{
 		TeamID:            teamID,
 		LatestSeqno:       latestSeqno,
@@ -378,7 +378,7 @@ func (n *TeamNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno
 		LatestHiddenSeqno: latestHiddenSeqno,
 	}
 }
-func (n *TeamNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno) {
+func (n *TeamNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno, source keybase1.TeamChangedSource) {
 	n.changeByNameCh <- keybase1.TeamChangedByNameArg{
 		TeamName:          teamName,
 		LatestSeqno:       latestSeqno,

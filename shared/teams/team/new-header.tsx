@@ -117,10 +117,10 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   )
 
   const topDescriptors = (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny" style={styles.flexShrink}>
+    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" style={styles.flexShrink}>
       <Kb.Box2
         direction={Styles.isPhone ? 'vertical' : 'horizontal'}
-        gap="xtiny"
+        gap="xxtiny"
         alignSelf="flex-start"
         style={styles.flexShrink}
       >
@@ -141,7 +141,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         )}
       </Kb.Box2>
       {!!meta.role && (
-        <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
+        <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-start">
           {(meta.role === 'admin' || meta.role === 'owner') && (
             <Kb.Icon
               color={meta.role === 'owner' ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
@@ -176,7 +176,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
 
   const bottomDescriptorsAndButtons = (
     <>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny">
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Styles.isPhone}>
         {!!details.description && (
           <Kb.Text
             type="Body"
@@ -340,10 +340,7 @@ const useHeaderCallbacks = (teamID: TeamID) => {
         )
     : undefined
   const onEditDescription = yourOperations.editTeamDescription
-    ? () =>
-        dispatch(
-          nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamEditTeamDescription'}]})
-        )
+    ? () => dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamEditTeamInfo'}]}))
     : undefined
   const onRename = yourOperations.renameTeam
     ? () =>
@@ -389,7 +386,6 @@ const styles = Styles.styleSheetCreate(
         isPhone: {
           borderRadius: 8,
           flexGrow: 1,
-          margin: Styles.globalMargins.tiny,
         },
         isTablet: {
           borderRadius: 4,

@@ -23,9 +23,12 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
   const [focused, setFocused] = React.useState(false)
   const {onBlur, onFocus} = props
   const _onFocus = React.useCallback(() => {
+    if (props.disabled) {
+      return
+    }
     setFocused(true)
     onFocus && onFocus()
-  }, [onFocus])
+  }, [onFocus, props.disabled])
   const _onBlur = React.useCallback(() => {
     setFocused(false)
     onBlur && onBlur()

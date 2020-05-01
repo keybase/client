@@ -16,6 +16,7 @@ type OwnProps = Container.RouteProps<{
   image?: ImagePicker.ImagePickerResult
   // Team-only
   sendChatNotification?: boolean
+  showBack?: boolean
   teamID?: Types.TeamID
   createdTeam?: boolean
   wizard?: boolean
@@ -105,6 +106,7 @@ export default Container.connect(
             }
           },
           onSkip: dispatchProps.onSkip,
+          showBack: Container.getRouteProps(ownProps, 'showBack', false),
           teamID: stateProps.teamID,
           teamname: stateProps.teamname!,
           type: 'team' as const,

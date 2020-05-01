@@ -116,7 +116,8 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.padding(Styles.globalMargins.xtiny),
     },
     isElectron: {
-      paddingTop: Styles.globalMargins.small,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: 20,
     },
   }),
 }))
@@ -125,7 +126,7 @@ export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const items: Kb.MenuItems = []
+    const items: Kb.MenuItems = flags.teamsRedesign ? ['Divider'] : []
     if (flags.teamsRedesign) {
       if (stateProps.canInvite) {
         items.push({

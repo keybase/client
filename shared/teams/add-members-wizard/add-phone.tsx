@@ -60,7 +60,6 @@ const AddPhone = () => {
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
-      onClose={onBack}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Phone list" />,

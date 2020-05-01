@@ -7,6 +7,7 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 
 type Props = Container.RouteProps<{
   members: string[]
@@ -23,8 +24,8 @@ const ConfirmRemoveFromChannel = (props: Props) => {
     ChatConstants.noConversationIDKey
   )
 
-  const waitingKeys = members.map(member => Constants.removeFromChannelWaitingKey(conversationIDKey, member))
-  const waiting = Container.useAnyWaiting(...waitingKeys)
+  const [waiting, setWaiting] = React.useState(false)
+  const [error, setError] = React.useState('')
   const channelInfo = Container.useSelector(state =>
     Constants.getTeamChannelInfo(state, teamID, conversationIDKey)
   )
@@ -34,27 +35,32 @@ const ConfirmRemoveFromChannel = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
 
-  // TODO(Y2K-1592): do this in one RPC
+  const removeFromChannel = Container.useRPC(RPCChatGen.localRemoveFromConversationLocalRpcPromise)
+
   const onRemove = () => {
-    dispatch(
-      TeamsGen.createChannelSetMemberSelected({
-        clearAll: true,
-        conversationIDKey,
-        selected: false,
-        username: '',
-      })
+    setWaiting(true)
+    setTimeout(() => setWaiting(false), 1000)
+    removeFromChannel(
+      [{convID: ChatTypes.keyToConversationID(conversationIDKey), usernames: members}],
+      _ => {
+        setWaiting(false)
+        dispatch(
+          TeamsGen.createChannelSetMemberSelected({
+            clearAll: true,
+            conversationIDKey,
+            selected: false,
+            username: '',
+          })
+        )
+        dispatch(nav.safeNavigateUpPayload())
+        dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+      },
+      err => {
+        setWaiting(false)
+        setError(err.message)
+      }
     )
-
-    members.forEach(member => console.log(`TODO: ${member} wants to leave channel, not implemented yet`))
   }
-
-  const wasWaiting = Container.usePrevious(waiting)
-  React.useEffect(() => {
-    // TODO: refactor to `useRPC`
-    if (wasWaiting && !waiting) {
-      onCancel()
-    }
-  }, [waiting, wasWaiting, onCancel])
 
   const prompt = `Remove ${Constants.stringifyPeople(members)} from #${channelname}?`
   const header = (
@@ -75,7 +81,8 @@ const ConfirmRemoveFromChannel = (props: Props) => {
       onCancel={onCancel}
       onConfirm={onRemove}
       confirmText="Remove from channel"
-      waitingKey={waitingKeys}
+      waiting={waiting}
+      error={error}
     />
   )
 }

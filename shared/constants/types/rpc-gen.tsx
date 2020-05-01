@@ -196,11 +196,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyTeam.teamChangedByID': {
-    inParam: {readonly teamID: TeamID; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet; readonly latestHiddenSeqno: Seqno; readonly latestOffchainSeqno: Seqno}
+    inParam: {readonly teamID: TeamID; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet; readonly latestHiddenSeqno: Seqno; readonly latestOffchainSeqno: Seqno; readonly source: TeamChangedSource}
     outParam: void
   }
   'keybase.1.NotifyTeam.teamChangedByName': {
-    inParam: {readonly teamName: String; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet; readonly latestHiddenSeqno: Seqno; readonly latestOffchainSeqno: Seqno}
+    inParam: {readonly teamName: String; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet; readonly latestHiddenSeqno: Seqno; readonly latestOffchainSeqno: Seqno; readonly source: TeamChangedSource}
     outParam: void
   }
   'keybase.1.NotifyTeam.teamDeleted': {
@@ -2669,6 +2669,12 @@ export enum TeamApplication {
   seitanInviteToken = 5,
   stellarRelay = 6,
   kvstore = 7,
+}
+
+export enum TeamChangedSource {
+  server = 0,
+  local = 1,
+  localRename = 2,
 }
 
 export enum TeamEphemeralKeyType {
