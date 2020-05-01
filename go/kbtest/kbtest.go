@@ -468,6 +468,14 @@ func GenerateTestPhoneNumber() string {
 	return fmt.Sprintf("1555%s", string(ret))
 }
 
+func GenerateRandomEmailAddress(t libkb.TestingTB) keybase1.EmailAddress {
+	buf := make([]byte, 5)
+	_, err := rand.Read(buf)
+	require.NoError(t, err)
+	email := fmt.Sprintf("%s@example.org", hex.EncodeToString(buf))
+	return keybase1.EmailAddress(email)
+}
+
 type getCodeResponse struct {
 	libkb.AppStatusEmbed
 	VerificationCode string `json:"verification_code"`

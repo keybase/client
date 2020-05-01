@@ -1,8 +1,6 @@
 package teams
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"sort"
 	"testing"
@@ -792,19 +790,11 @@ func TestMemberAddEmail(t *testing.T) {
 	}
 }
 
-func randomEmailAddress(t *testing.T) keybase1.EmailAddress {
-	buf := make([]byte, 5)
-	_, err := rand.Read(buf)
-	require.NoError(t, err)
-	email := fmt.Sprintf("%s@example.org", hex.EncodeToString(buf))
-	return keybase1.EmailAddress(email)
-}
-
 func TestMemberAddEmailBulk(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	existingUserEmail := randomEmailAddress(t)
+	existingUserEmail := kbtest.GenerateRandomEmailAddress(t)
 	blob := string(existingUserEmail) + ", h@j.k,u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
 
 	// create a user with a searchable email to test addEmailsBulk resolves existing users correctly.
@@ -2309,6 +2299,73 @@ func TestRemoveMembersHappyTree(t *testing.T) {
 	require.Len(t, res.Failures, 0)
 	assertRole(tc, subteamName.String(), admin.Username, keybase1.TeamRole_NONE)
 	assertRole(tc, subsubsubteamName.String(), admin.Username, keybase1.TeamRole_NONE)
+}
+
+func TestFindAssertionsInTeamForInvites(t *testing.T) {
+	tc, admin, teamName, teamID := memberSetupWithID(t)
+	defer tc.Cleanup()
+
+	_ = admin
+	_ = teamName
+
+	phone := kbtest.GenerateTestPhoneNumber()
+
+	err := InviteEmailPhoneMember(context.TODO(), tc.G, teamID, phone, "phone", keybase1.TeamRole_READER)
+	require.NoError(t, err)
+
+	{
+		assertions := []string{
+			phone + "@phone",
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, phone+"@phone", ret[0])
+	}
+
+	{
+		phone2 := kbtest.GenerateTestPhoneNumber()
+		assertions := []string{
+			phone2 + "@phone",
+			phone + "@phone",
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, phone+"@phone", ret[0])
+	}
+
+	email := kbtest.GenerateRandomEmailAddress(t)
+	err = InviteEmailPhoneMember(context.TODO(), tc.G, teamID, email.String(), "email", keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	{
+		assertions := []string{
+			fmt.Sprintf("[%s]@email", email),
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, assertions[0], ret[0])
+	}
+
+	email2 := kbtest.GenerateRandomEmailAddress(t)
+	err = InviteEmailPhoneMember(context.TODO(), tc.G, teamID, email2.String(), "email", keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	{
+		var assertions []string
+		assertions = append(assertions, fmt.Sprintf("[%s]@email", email2))
+		for i := 0; i < 5; i++ {
+			assertions = append(assertions, fmt.Sprintf("[%s]@email", kbtest.GenerateRandomEmailAddress(t)))
+		}
+		assertions = append(assertions, fmt.Sprintf("[%s]@email", email))
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, assertions[0], ret[0])
+		require.Equal(t, assertions[6], ret[1])
+	}
 }
 
 func TestTeamPlayerIdempotentChangesAssertRole(t *testing.T) {
