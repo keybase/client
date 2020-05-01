@@ -11,9 +11,6 @@ type Props = {
   onBack: () => void
 }
 
-const iconType = Styles.isMobile ? 'icon-message-retention-64' : 'icon-message-retention-48'
-const explodeIconType = 'icon-illustration-exploding-messages-240'
-
 const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => void}) =>
   Styles.isMobile ? (
     <Kb.ScrollView
@@ -36,14 +33,20 @@ const RetentionWarning = (props: Props) => {
   return (
     <Wrapper onBack={props.onBack}>
       <Kb.Box style={styles.container}>
-        <Kb.Icon type={props.exploding ? explodeIconType : iconType} style={styles.iconStyle} />
+        <Kb.Box style={styles.iconBoxStyle}>
+          <Kb.Icon
+            color={props.exploding ? Styles.globalColors.black : Styles.globalColors.black_20}
+            fontSize={48}
+            type={props.exploding ? 'iconfont-bomb-solid' : 'iconfont-timer-solid'}
+          />
+        </Kb.Box>
         <Kb.Text center={true} type="Header" style={styles.headerStyle}>
-          {props.exploding ? 'Explode' : 'Destroy'} chat messages after {props.timePeriod}?
+          {props.exploding ? 'Explode' : 'Auto-delete'} messages after {props.timePeriod}?
         </Kb.Text>
         <Kb.Text center={true} type="Body" style={styles.bodyStyle}>
           You are about to set the messages in this {convType} to{' '}
-          {props.exploding ? 'explode after ' : 'be deleted after '}
-          <Kb.Text type="BodySemibold">{props.timePeriod}.</Kb.Text>{' '}
+          {props.exploding ? 'explode after ' : 'be automatically deleted after '}
+          <Kb.Text type="BodyBold">{props.timePeriod}.</Kb.Text>{' '}
           {showChannelWarnings &&
             "This will affect all the team's channels, except the ones you've set manually."}
         </Kb.Text>
@@ -55,7 +58,8 @@ const RetentionWarning = (props: Props) => {
           labelComponent={
             <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
               <Kb.Text type="Body">
-                I understand that messages older than {props.timePeriod} will be deleted for everyone.
+                I understand that existing messages older than {props.timePeriod} will be deleted now, for
+                everyone.
               </Kb.Text>
               {showChannelWarnings && (
                 <Kb.Text type="BodySmall">Channels you've set manually will not be affected.</Kb.Text>
@@ -127,7 +131,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   headerStyle: {marginBottom: Styles.globalMargins.small},
-  iconStyle: {marginBottom: 20},
+  iconBoxStyle: {marginBottom: 20},
   label: {flexShrink: 1},
   scrollContainer: {
     ...Styles.globalStyles.flexBoxCenter,

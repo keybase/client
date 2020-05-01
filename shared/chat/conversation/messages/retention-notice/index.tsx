@@ -19,7 +19,8 @@ const RetentionNotice = (props: Props) => {
   }, [props.canChange, props.policy, props.teamPolicy])
 
   const iconType =
-    props.teamPolicy.type === 'explode' || props.policy.type === 'explode'
+    props.policy.type === 'explode' ||
+    (props.policy.type === 'inherit' && props.teamPolicy.type === 'explode')
       ? 'iconfont-bomb-solid'
       : 'iconfont-timer-solid'
 
@@ -35,7 +36,7 @@ const RetentionNotice = (props: Props) => {
       )}
       {props.canChange && (
         <Kb.Text
-          type="BodySmallPrimaryLink"
+          type="BodySmallSemiboldPrimaryLink"
           style={{color: Styles.globalColors.blueDark}}
           onClick={props.onChange}
         >
@@ -61,7 +62,7 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       iconBox: {
-        marginBottom: Styles.globalMargins.tiny,
+        marginBottom: Styles.globalMargins.xtiny,
       },
     } as const)
 )
