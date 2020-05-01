@@ -71,9 +71,29 @@ export const UIManager = {
   getViewManagerConfig: () => null,
 }
 
+const flattenStyle = s => {
+  if (!s) {
+    return undefined
+  }
+
+  if (!Array.isArray(s)) {
+    return s
+  }
+
+  return s.reduce((obj, v) => {
+    const inner = flattenStyle(v)
+    if (inner) {
+      for (const key in inner) {
+        obj[key] = inner[key]
+      }
+    }
+    return obj
+  }, {})
+}
+
 export const StyleSheet = {
   create: o => o,
-  flatten: o => o,
+  flatten: s => flattenStyle(s),
 }
 
 export const Easing = {

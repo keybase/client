@@ -78,9 +78,9 @@ const TabBar = (props: BottomTabBarProps) => {
           }
         }
         return (
-          <Kb.NativeTouchableWithoutFeedback key={route.name} onPressIn={onPress}>
+          <Kb.ClickableBox key={route.name} onPressIn={onPress} onMouseDown={onPress}>
             <TabBarIcon focused={isFocused} name={route.name} />
-          </Kb.NativeTouchableWithoutFeedback>
+          </Kb.ClickableBox>
         )
       })}
     </Kb.Box2>
