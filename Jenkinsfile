@@ -608,7 +608,7 @@ def testGoTestSuite(prefix, packagesToTest) {
         flags: '-race',
         timeout: '30s',
       ],
-      'github.com/keybase/client/go/kbfs/kbfsdokan': [
+      'github.com/keybase/client/go/kbfs/dokan': [
         disable: true,
       ],
     ],
@@ -626,7 +626,7 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/kbfs/libdokan': [
         parallel: 1,
       ],
-      'github.com/keybase/client/go/kbfs/kbfsdokan': [
+      'github.com/keybase/client/go/kbfs/dokan': [
         compileAlone: true,
       ],
     ],
