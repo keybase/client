@@ -732,14 +732,14 @@ def executeInWorkers(numWorkers, runFirstItemAlone, queue) {
         lock(lockID) {
           if (i < queue.size()) {
             item = queue.getAt(i)
+            // Run first item on its own if requested
+            alone = item.alone || (runFirstItemAlone && i == 0)
+            if (alone) {
+              item.closure()
+            }
             i++
           } else {
             done = true
-          }
-          // Run first item on its own if requested
-          alone = item.alone || (runFirstItemAlone && i == 1)
-          if (alone) {
-            item.closure()
           }
         }
         if (done) {
