@@ -2226,6 +2226,10 @@ func FindAssertionsInTeamNoResolve(mctx libkb.MetaContext, teamID keybase1.TeamI
 			loadUserArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithName(url.GetValue()).WithPublicKeyOptional()
 			user, err := libkb.LoadUser(loadUserArg)
 			if err != nil {
+				if _, ok := err.(libkb.NotFoundError); ok {
+					// User not found - that's fine.
+					continue
+				}
 				return nil, fmt.Errorf("error when loading user for assertion %q: %w", assertionStr, err)
 			}
 			if user.GetStatus() != keybase1.StatusCode_SCOk {

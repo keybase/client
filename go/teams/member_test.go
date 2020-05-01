@@ -1,6 +1,8 @@
 package teams
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"sort"
 	"testing"
@@ -2302,11 +2304,8 @@ func TestRemoveMembersHappyTree(t *testing.T) {
 }
 
 func TestFindAssertionsInTeamForInvites(t *testing.T) {
-	tc, admin, teamName, teamID := memberSetupWithID(t)
+	tc, owner, _, teamID := memberSetupWithID(t)
 	defer tc.Cleanup()
-
-	_ = admin
-	_ = teamName
 
 	phone := kbtest.GenerateTestPhoneNumber()
 
@@ -2349,6 +2348,18 @@ func TestFindAssertionsInTeamForInvites(t *testing.T) {
 		require.Equal(t, assertions[0], ret[0])
 	}
 
+	{
+		assertions := []string{
+			fmt.Sprintf("[%s]@email", email),
+			owner.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, assertions[0], ret[0])
+		require.Equal(t, owner.Username, ret[1])
+	}
+
 	email2 := kbtest.GenerateRandomEmailAddress()
 	err = InviteEmailPhoneMember(context.TODO(), tc.G, teamID, email2.String(), "email", keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
@@ -2365,6 +2376,93 @@ func TestFindAssertionsInTeamForInvites(t *testing.T) {
 		require.Len(t, ret, 2)
 		require.Equal(t, assertions[0], ret[0])
 		require.Equal(t, assertions[6], ret[1])
+	}
+}
+
+func TestFindAssertionsInTeamForUsers(t *testing.T) {
+	tc, owner, otherA, otherB, _, teamID := memberSetupMultipleWithTeamID(t)
+	defer tc.Cleanup()
+
+	_, err := AddMemberByID(context.Background(), tc.G, teamID, otherA.Username, keybase1.TeamRole_WRITER,
+		nil /* botSettings */, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+
+	{
+		assertions := []string{
+			otherA.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, otherA.Username, ret[0])
+	}
+
+	{
+		assertions := []string{
+			otherB.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 0)
+	}
+
+	{
+		assertions := []string{
+			otherB.Username,
+			otherA.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, otherA.Username, ret[0])
+	}
+
+	{
+		assertions := []string{
+			otherB.Username,
+			otherA.Username,
+			owner.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, otherA.Username, ret[0])
+		require.Equal(t, owner.Username, ret[1])
+	}
+
+	_, err = AddMemberByID(context.Background(), tc.G, teamID, otherB.Username, keybase1.TeamRole_WRITER,
+		nil /* botSettings */, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+
+	{
+		assertions := []string{
+			otherA.Username,
+			otherB.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, otherA.Username, ret[0])
+		require.Equal(t, otherB.Username, ret[1])
+	}
+
+	{
+		// Try invalid username
+		buf := make([]byte, 5)
+		_, err := rand.Read(buf)
+		require.NoError(t, err)
+		username := hex.EncodeToString(buf)
+
+		assertions := []string{
+			otherA.Username,
+			otherB.Username,
+			username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, otherA.Username, ret[0])
+		require.Equal(t, otherB.Username, ret[1])
 	}
 }
 
