@@ -118,7 +118,6 @@ const ChannelMemberRow = (props: Props) => {
       checked={memberSelected}
       onCheck={onSelect}
       key={`check-${username}`}
-      selectedColor={Styles.isDarkMode() ? Styles.globalColors.black : undefined}
       style={styles.widenClickableArea}
     />
   )
