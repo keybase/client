@@ -794,7 +794,7 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	existingUserEmail := kbtest.GenerateRandomEmailAddress(t)
+	existingUserEmail := kbtest.GenerateRandomEmailAddress()
 	blob := string(existingUserEmail) + ", h@j.k,u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
 
 	// create a user with a searchable email to test addEmailsBulk resolves existing users correctly.
@@ -2335,7 +2335,7 @@ func TestFindAssertionsInTeamForInvites(t *testing.T) {
 		require.Equal(t, phone+"@phone", ret[0])
 	}
 
-	email := kbtest.GenerateRandomEmailAddress(t)
+	email := kbtest.GenerateRandomEmailAddress()
 	err = InviteEmailPhoneMember(context.TODO(), tc.G, teamID, email.String(), "email", keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
 
@@ -2349,7 +2349,7 @@ func TestFindAssertionsInTeamForInvites(t *testing.T) {
 		require.Equal(t, assertions[0], ret[0])
 	}
 
-	email2 := kbtest.GenerateRandomEmailAddress(t)
+	email2 := kbtest.GenerateRandomEmailAddress()
 	err = InviteEmailPhoneMember(context.TODO(), tc.G, teamID, email2.String(), "email", keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
 
@@ -2357,7 +2357,7 @@ func TestFindAssertionsInTeamForInvites(t *testing.T) {
 		var assertions []string
 		assertions = append(assertions, fmt.Sprintf("[%s]@email", email2))
 		for i := 0; i < 5; i++ {
-			assertions = append(assertions, fmt.Sprintf("[%s]@email", kbtest.GenerateRandomEmailAddress(t)))
+			assertions = append(assertions, fmt.Sprintf("[%s]@email", kbtest.GenerateRandomEmailAddress()))
 		}
 		assertions = append(assertions, fmt.Sprintf("[%s]@email", email))
 		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
