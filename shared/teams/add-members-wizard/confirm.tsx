@@ -361,9 +361,9 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
           containerStyle={styles.flexShrink}
           style={styles.flexShrink}
         />
-        {props.note && (
+        {props.resolvedFrom && (
           <Kb.Text lineClamp={1} type="BodySemibold" style={styles.flexDefinitelyShrink}>
-            ({props.note})
+            ({assertionToDisplay(props.resolvedFrom)})
           </Kb.Text>
         )}
       </Kb.Box2>

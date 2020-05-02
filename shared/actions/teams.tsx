@@ -1595,27 +1595,47 @@ const addMembersWizardPushMembers = async (
   // should be unnecessary (UI doesn't let you add users that are already in
   // the team) and is much slower because it has to load the users.
   const newAssertions = action.payload.members.filter(
-    ({assertion}) =>
-      assertion.includes('@') && !wizardState.addingMembers.find(x => x.assertion === assertion)
+    member =>
+      (member.assertion.includes('@') || !!member.resolvedFrom) &&
+      !wizardState.addingMembers.find(x => x.assertion === member.assertion)
   )
 
-  const membersAlreadyInTeam =
-    (newAssertions.length > 0
-      ? await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
-          assertions: newAssertions.map(x => x.assertion),
-          teamID: wizardState.teamID,
-        })
-      : undefined) ?? []
+  // We have to be able to provide both `assertion` and `resolvedFrom` for
+  // users that we found in the team, and are coming from imptofu assertions.
+  // This is needed so the wizard can display original assertion that was
+  // skipped, not the resolved user.
+  const resolvedFromMap = newAssertions.reduce((acc, x) => {
+    if (x.resolvedFrom) {
+      acc.set(x.assertion, x)
+    }
+    return acc
+  }, new Map<string, Types.AddingMember>())
+
+  let membersAlreadyInTeam = new Set<string>()
+  if (newAssertions.length > 0) {
+    const foundAssertions = await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
+      assertions: newAssertions.map(x => x.assertion),
+      teamID: wizardState.teamID,
+    })
+    if (foundAssertions) {
+      // Need to go back to original assertion here if it was resolved from
+      // imptofu.
+      membersAlreadyInTeam = new Set(foundAssertions.map(x => resolvedFromMap.get(x)?.resolvedFrom ?? x))
+    }
+  }
 
   const members = Constants.dedupAddingMembeers(
     state.teams.addMembersWizard.addingMembers,
     action.payload.members
-      .filter(x => !membersAlreadyInTeam.includes(x.assertion))
+      .filter(x => !membersAlreadyInTeam.has(x.resolvedFrom ?? x.assertion))
       .map(Constants.coerceAssertionRole)
   )
 
   return [
-    TeamsGen.createAddMembersWizardSetMembers({members, membersAlreadyInTeam}),
+    TeamsGen.createAddMembersWizardSetMembers({
+      members,
+      membersAlreadyInTeam: Array.from(membersAlreadyInTeam),
+    }),
     RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}),
   ]
 }

@@ -36,9 +36,10 @@ const AddEmail = (props: Props) => {
         r?.length
           ? dispatch(
               TeamsGen.createAddMembersWizardPushMembers({
-                members: r.map(m => ({
-                  assertion: m.foundUser ? m.username : m.assertion,
-                  note: m.foundUser ? m.assertionValue : undefined,
+                members: r.map<Types.AddingMember>(m => ({
+                  ...(m.foundUser
+                    ? {assertion: m.username, resolvedFrom: m.assertion}
+                    : {assertion: m.assertion}),
                   role: 'writer',
                 })),
               })

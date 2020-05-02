@@ -194,7 +194,12 @@ export type AddingMemberTeamRoleType = 'owner' | 'admin' | 'reader' | 'writer'
 export type AddingMember = {
   assertion: string
   role: AddingMemberTeamRoleType
-  note?: string // note is for imp tofu assertions that got turned into usernames. It doesn't go to the server but it displays to the user in the confirm screen.
+
+  // If an imptofu assertion got resolved to a username, preserve that
+  // assertion. Will be displayed in the confirmation screen near that
+  // username, and it's also needed to display the "person was already
+  // invited".
+  resolvedFrom?: string
 }
 export type AddMembersWizardState = {
   addToChannels: Array<ChannelNameID> | undefined
