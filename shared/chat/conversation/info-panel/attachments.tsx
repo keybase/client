@@ -270,7 +270,6 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      avatar: {marginRight: Styles.globalMargins.tiny},
       audioBackground: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.blue,
@@ -283,6 +282,7 @@ const styles = Styles.styleSheetCreate(
           borderRadius: 32,
         },
       }),
+      avatar: {marginRight: Styles.globalMargins.tiny},
       container: {
         flex: 1,
         height: '100%',
@@ -526,18 +526,18 @@ export const useAttachmentSections = (
             (attachmentInfo.messages as Array<Types.MessageAttachment>).map(
               m =>
                 ({
+                  audioDuration: m.audioDuration ?? undefined,
                   ctime: m.timestamp,
                   height: m.previewHeight,
-                  audioDuration: m.audioDuration ?? undefined,
-                  typ:
-                    m.audioAmps.length > 0
-                      ? ThumbTyp.AUDIO
-                      : !!m.videoDuration
-                      ? ThumbTyp.VIDEO
-                      : ThumbTyp.IMAGE,
                   key: `media-${m.ordinal}-${m.timestamp}-${m.previewURL}`,
                   onClick: () => onMediaClick(m),
                   previewURL: m.previewURL,
+                  typ:
+                    m.audioAmps.length > 0
+                      ? ThumbTyp.AUDIO
+                      : m.videoDuration
+                      ? ThumbTyp.VIDEO
+                      : ThumbTyp.IMAGE,
                   width: m.previewWidth,
                 } as Thumb)
             )
