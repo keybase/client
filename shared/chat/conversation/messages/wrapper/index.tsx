@@ -357,6 +357,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.message.type === 'systemSBSResolved' ||
       this.props.message.type === 'systemText' ||
       this.props.message.type === 'systemUsersAddedToConversation' ||
+      this.props.message.type === 'systemNewChannel' ||
       this.props.message.type === 'journeycard') &&
     this.props.shouldShowPopup &&
     this.props.showingMenu && (
