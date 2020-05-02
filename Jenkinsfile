@@ -609,6 +609,9 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/kbfs/dokan': [
         disable: true,
       ],
+      'github.com/keybase/client/go/teams': [
+        parallel: 1,
+      ],
     ],
     test_windows_go_: [
       '*': [],
