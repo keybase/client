@@ -55,6 +55,28 @@ const emailsOnlyStore = Container.produce(Sb.createStoreWithCommon(), draftState
   }
   draftState.settings.phoneNumbers.defaultCountry = 'FR'
 })
+const emailsWithDuplicates = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  draftState.teams = {
+    ...draftState.teams,
+    addMembersWizard: {
+      ...Constants.addMembersWizardEmptyState,
+      addingMembers: [
+        {assertion: '[danny@danny.danny]@email', role: 'writer'},
+        {assertion: '[max@max.max]@email', role: 'writer'},
+        {assertion: 'zapu', resolvedFrom: '[michal@zapu.zapu]@email', role: 'writer'},
+        {assertion: '+48784123123@phone', role: 'writer'},
+      ],
+      teamID: fakeTeamID,
+      membersAlreadyInTeam: ['[mike@mike.mike]@email', '[chris@chris.chris]@email', '+12015550123@phone'],
+    },
+    teamMeta: new Map([[fakeTeamID, {...Constants.emptyTeamMeta, teamname: 'greenpeace.board'}]]),
+  }
+  draftState.config = {
+    ...draftState.config,
+    username: 'andonuts',
+  }
+  draftState.settings.phoneNumbers.defaultCountry = 'FR'
+})
 
 const load = () => {
   Sb.storiesOf('Teams/Add member wizard', module)
@@ -72,6 +94,11 @@ const load = () => {
     ))
     .add('All emails', () => (
       <Sb.MockStore store={emailsOnlyStore}>
+        <AddMembersConfirm />
+      </Sb.MockStore>
+    ))
+    .add('Members already in team', () => (
+      <Sb.MockStore store={emailsWithDuplicates}>
         <AddMembersConfirm />
       </Sb.MockStore>
     ))
