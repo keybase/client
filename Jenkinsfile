@@ -532,6 +532,10 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/kbfs/kbfsgit': [
         flags: '-race',
         timeout: '10m',
+        compileAlone: true,
+      ],
+      'github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase': [
+        compileAlone: true,
       ],
       'github.com/keybase/client/go/kbfs/kbfshash': [
         flags: '-race',
