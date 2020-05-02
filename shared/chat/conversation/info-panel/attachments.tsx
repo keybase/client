@@ -13,6 +13,7 @@ import chunk from 'lodash/chunk'
 import {OverlayParentProps} from '../../../common-adapters/overlay/parent-hoc'
 import {infoPanelWidth} from './common'
 import {Section} from '../../../common-adapters/section-list'
+import {formatAudioRecordDuration} from '../../../util/timestamp'
 
 const monthNames = [
   'January',
@@ -29,14 +30,21 @@ const monthNames = [
   'December',
 ]
 
+enum ThumbTyp {
+  IMAGE = 0,
+  VIDEO = 1,
+  AUDIO = 2,
+}
+
 type Thumb = {
   key: React.Key
   ctime: number
   height: number
-  isVideo: boolean
+  typ: ThumbTyp
   onClick: () => void
   previewURL: string
   width: number
+  audioDuration?: number
 }
 
 type Doc = {
@@ -129,14 +137,30 @@ type MediaThumbProps = {
 }
 
 const MediaThumb = (props: MediaThumbProps) => {
-  const [loading, setLoading] = React.useState(true)
   const {sizing, thumb} = props
+  const [loading, setLoading] = React.useState(thumb.typ !== ThumbTyp.AUDIO)
   return (
     <Kb.Box2 direction="vertical" style={styles.thumbContainer}>
       <Kb.ClickableBox onClick={thumb.onClick} style={{...sizing.margins}}>
-        <Kb.Image src={thumb.previewURL} style={{...sizing.dims}} onLoad={() => setLoading(false)} />
+        {thumb.typ === ThumbTyp.AUDIO ? (
+          <Kb.Box2 direction="vertical" style={{...sizing.dims}} centerChildren={true} gap="xtiny">
+            <Kb.Box2 direction="vertical" centerChildren={true} style={styles.audioBackground}>
+              <Kb.Icon
+                type="iconfont-mic"
+                style={{marginLeft: 2}}
+                color={Styles.globalColors.whiteOrWhite}
+                sizeType="Big"
+              />
+            </Kb.Box2>
+            {!!thumb.audioDuration && (
+              <Kb.Text type="BodyTiny">{formatAudioRecordDuration(thumb.audioDuration)}</Kb.Text>
+            )}
+          </Kb.Box2>
+        ) : (
+          <Kb.Image src={thumb.previewURL} style={{...sizing.dims}} onLoad={() => setLoading(false)} />
+        )}
       </Kb.ClickableBox>
-      {!!thumb.isVideo && (
+      {thumb.typ === ThumbTyp.VIDEO && (
         <Kb.Box2 direction="vertical" style={styles.durationContainer}>
           <Kb.Icon type="icon-film-64" style={styles.filmIcon} />
         </Kb.Box2>
@@ -247,6 +271,18 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       avatar: {marginRight: Styles.globalMargins.tiny},
+      audioBackground: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blue,
+          padding: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          borderRadius: '50%',
+        },
+        isMobile: {
+          borderRadius: 32,
+        },
+      }),
       container: {
         flex: 1,
         height: '100%',
@@ -339,7 +375,6 @@ const styles = Styles.styleSheetCreate(
         borderTopRightRadius: 0,
       },
       thumbContainer: {
-        margin: Styles.globalMargins.xxtiny,
         overflow: 'hidden',
         position: 'relative',
       },
@@ -493,7 +528,13 @@ export const useAttachmentSections = (
                 ({
                   ctime: m.timestamp,
                   height: m.previewHeight,
-                  isVideo: !!m.videoDuration,
+                  audioDuration: m.audioDuration ?? undefined,
+                  typ:
+                    m.audioAmps.length > 0
+                      ? ThumbTyp.AUDIO
+                      : !!m.videoDuration
+                      ? ThumbTyp.VIDEO
+                      : ThumbTyp.IMAGE,
                   key: `media-${m.ordinal}-${m.timestamp}-${m.previewURL}`,
                   onClick: () => onMediaClick(m),
                   previewURL: m.previewURL,
@@ -519,7 +560,10 @@ export const useAttachmentSections = (
                 <Kb.Box2
                   direction="horizontal"
                   fullWidth={true}
-                  style={useFlexWrap ? styles.flexWrap : undefined}
+                  style={Styles.collapseStyles([
+                    {paddingLeft: Styles.globalMargins.xxtiny, paddingRight: Styles.globalMargins.xxtiny},
+                    useFlexWrap ? styles.flexWrap : undefined,
+                  ])}
                 >
                   {item.images.map(cell => {
                     return <MediaThumb key={cell.thumb.key} sizing={cell.sizing} thumb={cell.thumb} />
