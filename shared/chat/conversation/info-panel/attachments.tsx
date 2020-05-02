@@ -560,10 +560,7 @@ export const useAttachmentSections = (
                 <Kb.Box2
                   direction="horizontal"
                   fullWidth={true}
-                  style={Styles.collapseStyles([
-                    {paddingLeft: Styles.globalMargins.xxtiny, paddingRight: Styles.globalMargins.xxtiny},
-                    useFlexWrap ? styles.flexWrap : undefined,
-                  ])}
+                  style={useFlexWrap ? styles.flexWrap : undefined}
                 >
                   {item.images.map(cell => {
                     return <MediaThumb key={cell.thumb.key} sizing={cell.sizing} thumb={cell.thumb} />
