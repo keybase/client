@@ -11,9 +11,6 @@ def withKbweb(closure) {
         sh "docker-compose down"
         sh "docker-compose up -d mysql.local"
       }
-      // Give MySQL a few seconds to start up.
-      sleep(10)
-      sh "docker-compose up -d kbweb.local"
     }
 
     closure()
@@ -709,7 +706,12 @@ def testGoTestSuite(prefix, packagesToTest) {
   }
   executeInWorkers(3, true /* runFirstItemAlone */, packageTestCompileList)
 
-  helpers.waitForURLWithTimeout(prefix, env.KEYBASE_SERVER_URI, 600)
+  if (prefix == "test_linux_go_") {
+    dir('..') {
+      sh "docker-compose up -d kbweb.local"
+    }
+  }
+  helpers.waitForURLWithTimeout(prefix, env.KEYBASE_SERVER_URI, 900)
   println "Running ${packageTestSet.size()} test(s)"
   withCredentials([
     string(credentialsId: 'citogo-flake-webhook', variable : 'CITOGO_FLAKE_WEBHOOK'),
