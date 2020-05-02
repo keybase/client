@@ -117,15 +117,16 @@ helpers.rootLinuxNode(env, {
       )
     }
 
-    def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
     def goChanges = helpers.getChangesForSubdir('go', env)
-    def hasGoChanges = goChanges.size() != 0 || hasJenkinsfileChanges
-    def hasJSChanges = helpers.hasChanges('shared', env)
-    println "Has go changes: " + hasGoChanges
-    println "Has JS changes: " + hasJSChanges
+    env.hasGoChanges = goChanges.size() != 0
+    env.hasJSChanges = helpers.hasChanges('shared', env)
+    env.hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
+    env.hasKBFSChanges = false
+    println "Has go changes: " + env.hasGoChanges
+    println "Has JS changes: " + env.hasJSChanges
     def dependencyFiles = [:]
 
-    if (hasGoChanges && env.CHANGE_TARGET) {
+    if (env.hasGoChanges && env.CHANGE_TARGET && !env.hasJenkinsfileChanges) {
       dir("go") {
         sh "make gen-deps"
         dependencyFiles = [
@@ -141,7 +142,7 @@ helpers.rootLinuxNode(env, {
           failFast: true,
           test_linux: {
             def packagesToTest = [:]
-            if (hasGoChanges) {
+            if (env.hasGoChanges || env.hasJenkinsfileChanges) {
               // Check protocol diffs
               // Clean the index first
               sh "git add -A"
@@ -153,6 +154,7 @@ helpers.rootLinuxNode(env, {
               }
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
               packagesToTest = getPackagesToTest(dependencyFiles)
+              env.hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
             } else {
               // Ensure that the change target branch has been fetched,
               // since Jenkins only does a sparse checkout by default.
@@ -163,7 +165,10 @@ helpers.rootLinuxNode(env, {
               test_xcompilation: { withEnv([
                 "PATH=${env.PATH}:${env.GOPATH}/bin",
               ]) {
-                if (hasGoChanges) {
+                if (env.BRANCH_NAME == "master" && cause != "upstream") {
+                  // We only cross compile when we're on a master build and we
+                  // weren't triggered by upstream. i.e. potentially breaking
+                  // changes.
                   def platforms = ["freebsd", "netbsd", "openbsd"]
                   for (platform in platforms) {
                       withEnv(["GOOS=${platform}"]) {
@@ -180,7 +185,7 @@ helpers.rootLinuxNode(env, {
                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                 "GPG=/usr/bin/gpg.distrib",
               ]) {
-                if (hasGoChanges) {
+                if (env.hasGoChanges || env.hasJenkinsfileChanges) {
                   testGo("test_linux_go_", packagesToTest)
                 }
               }},
@@ -197,12 +202,9 @@ helpers.rootLinuxNode(env, {
                   }
                 }
               }},
-              integrate: { withEnv([
-                "DOCKER_BUILDKIT=1",
-              ]) {
+              integrate: {
                 // Build the client docker first so we can immediately kick off KBFS
-                def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
-                if (hasGoChanges && hasKBFSChanges) {
+                if ((env.hasGoChanges && env.hasKBFSChanges) || env.hasJenkinsfileChanges) {
                   println "We have KBFS changes, so we are building kbfs-server."
                   dir('go') {
                     sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/keybase"
@@ -213,7 +215,7 @@ helpers.rootLinuxNode(env, {
                       sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
                       sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
                       sh "cp ${env.GOPATH}/bin/git-remote-keybase ./kbfsgit/git-remote-keybase/git-remote-keybase"
-                      withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64']]) {
+                      withCredentials([string(credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64')]) {
                         def kbfsCert = sh(returnStdout: true, script: "echo \"$KBFS_DOCKER_CERT_B64\" | sed 's/ //g' | base64 -d")
                         kbfsfuseImage = docker.build('897413463132.dkr.ecr.us-east-1.amazonaws.com/client', "--build-arg KEYBASE_TEST_ROOT_CERT_PEM=\"$kbfsCert\" .")
                       }
@@ -238,11 +240,11 @@ helpers.rootLinuxNode(env, {
                     }
                   }
                 }
-              }},
+              },
             )
           },
           test_windows: {
-            if (hasGoChanges) {
+            if (env.hasGoChanges || env.hasJenkinsfileChanges) {
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
@@ -322,28 +324,26 @@ def getDiffFileList() {
 def getPackagesToTest(dependencyFiles) {
   def packagesToTest = [:]
   dir('go') {
-    if (env.CHANGE_TARGET) {
+    if (env.CHANGE_TARGET && !env.hasJenkinsfileChanges) {
+      // The Jenkinsfile hasn't changed, so we try to run a minimal set of
+      // tests to capture the changes in this PR.
       fetchChangeTarget()
       def diffFileList = getDiffFileList()
-      if (!diffFileList.contains('Jenkinsfile')) {
-        // The Jenkinsfile hasn't changed, so we try to run a minimal set of
-        // tests to capture the changes in this PR.
-        def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | grep '^go\\/' | sed 's/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/' | sort | uniq\"").trim().split()
-        def diffPackagesAsString = diffPackageList.join(' ')
-        println "Go packages changed:\n${diffPackagesAsString}"
+      def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | grep '^go\\/' | sed 's/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/' | sort | uniq\"").trim().split()
+      def diffPackagesAsString = diffPackageList.join(' ')
+      println "Go packages changed:\n${diffPackagesAsString}"
 
-        // Load list of dependencies and mark all dependent packages to test.
-        def goos = sh(returnStdout: true, script: "go env GOOS").trim()
-        def dependencyMap = new JsonSlurperClassic().parseText(dependencyFiles[goos])
-        diffPackageList.each { pkg ->
-          // pkg changed; we need to load it from dependencyMap to see
-          // which tests should be run.
-          dependencyMap[pkg].each { dep, _ ->
-            packagesToTest[dep] = 1
-          }
+      // Load list of dependencies and mark all dependent packages to test.
+      def goos = sh(returnStdout: true, script: "go env GOOS").trim()
+      def dependencyMap = new JsonSlurperClassic().parseText(dependencyFiles[goos])
+      diffPackageList.each { pkg ->
+        // pkg changed; we need to load it from dependencyMap to see
+        // which tests should be run.
+        dependencyMap[pkg].each { dep, _ ->
+          packagesToTest[dep] = 1
         }
-        return packagesToTest
       }
+      return packagesToTest
     }
     println "This is a branch build or the Jenkinsfile has changed, so we are running all tests."
     diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
@@ -411,8 +411,7 @@ def testGoBuilds(prefix, packagesToTest) {
       }
     }
 
-    def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
-    if (hasKBFSChanges) {
+    if (env.hasKBFSChanges) {
       println "Running golangci-lint on KBFS"
       dir('kbfs') {
         retry(5) {
@@ -482,20 +481,19 @@ def testGoTestSuite(prefix, packagesToTest) {
   println "Building citogo"
   sh '(cd citogo && go install)'
 
-  def packageTestList = packagesToTest.keySet()
-  println "Go packages to test:\n${packageTestList.join('\n')}"
+  def packageTestSet = packagesToTest.keySet()
+  println "Go packages to test:\n${packageTestSet.join('\n')}"
 
   def tests = [:]
-  def specialTests = [:]
-  def specialTestFilter = [
-      'chat', 'engine', 'teams', 'chat_storage', 'systests', 'kbfs_libdokan',
-      'kbfs_test_race', 'stellar_stellarsvc', 'tlfupgrade', 'service',
-      'saltpackkeys', 'kbfs_libkbfs', 'kbfs_test', 'identify3', 'git',
-      'ephemeral'
-  ]
   def testSpecMap = [
     test_linux_go_: [
       '*': [],
+      'github.com/keybase/client/go/chat': [
+        parallel: 1,
+      ],
+      'github.com/keybase/client/go/chat/attachments': [
+        parallel: 1,
+      ],
       'github.com/keybase/client/go/kbfs/test': [
         name: 'kbfs_test_fuse',
         flags: '-tags fuse',
@@ -608,8 +606,8 @@ def testGoTestSuite(prefix, packagesToTest) {
         flags: '-race',
         timeout: '30s',
       ],
-      'github.com/keybase/client/go/systests': [
-        // citogo_extra: '-parallel=8', TODO: re-enable later
+      'github.com/keybase/client/go/kbfs/dokan': [
+        disable: true,
       ],
     ],
     test_windows_go_: [
@@ -619,6 +617,15 @@ def testGoTestSuite(prefix, packagesToTest) {
       ],
       'github.com/keybase/client/go/chat': [
         disable: true,
+      ],
+      'github.com/keybase/client/go/teams': [
+        disable: true,
+      ],
+      'github.com/keybase/client/go/kbfs/libdokan': [
+        parallel: 1,
+      ],
+      'github.com/keybase/client/go/kbfs/dokan': [
+        compileAlone: true,
       ],
     ],
   ]
@@ -637,6 +644,8 @@ def testGoTestSuite(prefix, packagesToTest) {
       flags: '',
       timeout: '30m',
       dirPath: dirPath,
+      parallel: 4,
+      pkg: pkg,
     ]
   }
   def getPackageTestSpec = { pkg ->
@@ -655,63 +664,91 @@ def testGoTestSuite(prefix, packagesToTest) {
     }
     return false
   }
+
+  println "Compiling ${packageTestSet.size()} test(s)"
+  def packageTestCompileList = []
+  def packageTestRunList = []
   packagesToTest.each { pkg, _ ->
     def testSpec = getPackageTestSpec(pkg)
-    if (!testSpec) {
-      return
-    }
-
-    def testBinary = "${testSpec.name}.test"
-    def test = {
-      println "Building tests for ${testSpec.dirPath}"
-      dir(testSpec.dirPath) {
-        sh "go test -vet=off -c ${testSpec.flags} -o ${testBinary}"
-        // Only run the test if a test binary should have been produced.
-        if (fileExists(testBinary)) {
-          withCredentials([
-            [$class: 'StringBinding', credentialsId: 'citogo-flake-webhook', variable : 'CITOGO_FLAKE_WEBHOOK'],
-            [$class: 'StringBinding', credentialsId: 'citogo-aws-secret-access-key', variable : 'CITOGO_AWS_SECRET_ACCESS_KEY'],
-            [$class: 'StringBinding', credentialsId: 'citogo-aws-access-key-id', variable : 'CITOGO_AWS_ACCESS_KEY_ID'],
-            [$class: 'StringBinding', credentialsId: 'citogo-master-fail-webhook', variable : 'CITOGO_MASTER_FAIL_WEBHOOK']
-          ]) {
-            println "Running tests for ${testSpec.dirPath}"
-            def t = getOverallTimeout(testSpec)
-            timeout(activity: true, time: t.time, unit: t.unit) {
-              if (testSpec.no_citogo) {
-                sh "./${testBinary} -test.timeout ${testSpec.timeout}"
-              } else {
-                sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testBinary} --timeout 150s ${testSpec.citogo_extra ? testSpec.citogo_extra : ''}"
+    if (testSpec && !testSpec.disable) {
+      testSpec.testBinary = "${testSpec.name}.test"
+      packageTestCompileList.add([
+        closure: {
+          sh "go test -vet=off -c ${testSpec.flags} -o ${testSpec.dirPath}/${testSpec.testBinary} ./${testSpec.dirPath}"
+        },
+        alone: !!testSpec.compileAlone,
+      ])
+      packageTestRunList.add([
+        closure: { spec ->
+          dir(spec.dirPath) {
+            // Only run the test if a test binary should have been produced.
+            if (fileExists(spec.testBinary)) {
+              println "Running tests for ${spec.dirPath}"
+              def t = getOverallTimeout(spec)
+              timeout(activity: true, time: t.time, unit: t.unit) {
+                if (spec.no_citogo) {
+                  sh "./${spec.testBinary} -test.timeout ${spec.timeout}"
+                } else {
+                  sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${spec.dirPath} --s3bucket ci-fail-logs --report-lambda-function report-citogo --build-url ${env.BUILD_URL} --no-compile --test-binary ./${spec.testBinary} --timeout 150s -parallel=${spec.parallel} ${spec.citogo_extra ? spec.citogo_extra : ''}"
+                }
               }
             }
           }
+        }.curry(testSpec),
+        alone: !!testSpec.runAlone,
+      ])
+    }
+  }
+  executeInWorkers(3, true /* runFirstItemAlone */, packageTestCompileList)
+
+  helpers.waitForURLWithTimeout(prefix, env.KEYBASE_SERVER_URI, 600)
+  println "Running ${packageTestSet.size()} test(s)"
+  withCredentials([
+    string(credentialsId: 'citogo-flake-webhook', variable : 'CITOGO_FLAKE_WEBHOOK'),
+    string(credentialsId: 'citogo-aws-secret-access-key', variable : 'CITOGO_AWS_SECRET_ACCESS_KEY'),
+    string(credentialsId: 'citogo-aws-access-key-id', variable : 'CITOGO_AWS_ACCESS_KEY_ID'),
+    string(credentialsId: 'citogo-master-fail-webhook', variable : 'CITOGO_MASTER_FAIL_WEBHOOK'),
+  ]) {
+    executeInWorkers(4, false /* runFirstItemAlone */, packageTestRunList)
+  }
+}
+
+def executeInWorkers(numWorkers, runFirstItemAlone, queue) {
+  def workers = [:]
+  def i = 0
+  for (n = 1; n <= numWorkers; n++) {
+    workers["worker_${n}"] = {
+      def done = false
+      for (; !done;) {
+        def item
+        def alone
+
+        // Concurrency hack
+        def lockID = "${env.BUILD_TAG}"
+        lock(lockID) {
+          if (i < queue.size()) {
+            item = queue.getAt(i)
+            // Run first item on its own if requested
+            alone = item.alone || (runFirstItemAlone && i == 0)
+            if (alone) {
+              item.closure()
+            }
+            i++
+          } else {
+            done = true
+          }
+        }
+        if (done) {
+          break
+        }
+        if (!alone) {
+          item.closure()
         }
       }
     }
-    if (testSpec.name in specialTestFilter) {
-      specialTests["${prefix}${testSpec.name}"] = test
-    } else {
-      tests["${prefix}${testSpec.name}"] = test
-    }
   }
-
-  // Schedule the tests
-  def parallelTests = []
-  def testBatch = [:]
-  tests.each { name, closure ->
-    if (testBatch.size() == 6) {
-      parallelTests << testBatch
-      testBatch = [:]
-    }
-    testBatch[name] = closure
-  }
-  if (testBatch.size() > 0) {
-    parallelTests << testBatch
-  }
-  parallelTests << specialTests
-  helpers.waitForURLWithTimeout(prefix, env.KEYBASE_SERVER_URI, 600)
-  parallelTests.each { batch ->
-    parallel(batch)
-  }
+  workers.failFast = true
+  parallel(workers)
 }
 
 def checkDiffs(dirs, addressMessage) {
