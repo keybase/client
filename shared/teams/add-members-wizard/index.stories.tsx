@@ -59,6 +59,15 @@ const emailsWithDuplicates = makeCommonStore(
   ['[mike@mike.mike]@email', '[chris@chris.chris]@email', '+12015550123@phone']
 )
 
+// All e-mails provided were already invites - confirmation screen should have
+// empty rows and "alreadyInTeam" message only.
+const onlyAlreadyInTeam = makeCommonStore([], ['[mike@mike.mike]@email', '[chris@chris.chris]@email'])
+
+// We should never see usernames in "alreadyInTeam" because of how the wizard
+// is structured - user knows early that an username can't be added. Same with
+// social assertions. Nevertheless, make sure it renders correctly.
+const alreadyInTeam2 = makeCommonStore([{assertion: 'zapu@rooter', role: 'writer'}], ['zapu', 'zapu@github'])
+
 const load = () => {
   Sb.storiesOf('Teams/Add member wizard', module)
     .addDecorator(story => <Sb.MockStore store={commonStore}>{story()}</Sb.MockStore>)
@@ -72,6 +81,8 @@ const load = () => {
     ['Mixed types', commonStore],
     ['All emails', emailsOnlyStore],
     ['Members already in team', emailsWithDuplicates],
+    ['(Only) members already in team', onlyAlreadyInTeam],
+    ['(Impossible) members already in team', alreadyInTeam2],
   ] as const) {
     sb.add(name, () => (
       <Sb.MockStore store={store}>
