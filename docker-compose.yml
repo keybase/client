@@ -41,7 +41,6 @@ services:
             - CHAT_S3_BUCKET=test
             - CHAT_S3_ACCESS_KEY=test
             - CHAT_S3_SECRET_KEY=test
-            - DEV2=1
         logging:
             driver: json-file
             options:
