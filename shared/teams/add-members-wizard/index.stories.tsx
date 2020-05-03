@@ -16,8 +16,8 @@ function makeCommonStore(addingMembers: Types.AddingMember[], membersAlreadyInTe
       addMembersWizard: {
         ...Constants.addMembersWizardEmptyState,
         addingMembers,
-        teamID: fakeTeamID,
         membersAlreadyInTeam: membersAlreadyInTeam ?? [],
+        teamID: fakeTeamID,
       },
       teamMeta: new Map([[fakeTeamID, {...Constants.emptyTeamMeta, teamname: 'greenpeace.board'}]]),
     }
