@@ -53,7 +53,7 @@ const emailsWithDuplicates = makeCommonStore(
     {assertion: '[danny@danny.danny]@email', role: 'writer'},
     {assertion: '[max@max.max]@email', role: 'writer'},
     {assertion: 'zapu', resolvedFrom: '[michal@zapu.zapu]@email', role: 'writer'},
-    // {assertion: 'test', resolvedFrom: '+12125451231@phone', role: 'writer'},
+    {assertion: 'test', resolvedFrom: '+12125451231@phone', role: 'writer'},
     {assertion: '+48784123123@phone', role: 'writer'},
   ],
   ['[mike@mike.mike]@email', '[chris@chris.chris]@email', '+12015550123@phone']
