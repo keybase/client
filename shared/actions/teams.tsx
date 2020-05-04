@@ -464,8 +464,10 @@ const editMembership = async (action: TeamsGen.EditMembershipPayload) => {
       [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, ...usernames)]
     )
   } catch (e) {
-    // TODO fix
-    // return TeamsGen.createSetEditMemberError({error: e.message, teamID, username})
+    if (usernames.length === 1) {
+      // error is shown in the member page
+      return TeamsGen.createSetEditMemberError({error: e.message, teamID, username: usernames[0]})
+    }
   }
   return false
 }
