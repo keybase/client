@@ -189,6 +189,8 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
+  const [highlightIndex, setHighlightIndex] = React.useState<number>(0)
+  const [selectedRow, setSelectedRow] = React.useState<any>(null)
   const {waiting, customEmojiGroups} = useCustomReacji(
     props.conversationIDKey,
     props.onlyTeamCustomEmoji,
@@ -233,6 +235,8 @@ export const EmojiPickerDesktop = (props: Props) => {
         filter={filter}
         onChoose={onChoose}
         onHover={setHoveredEmoji}
+        onHighlight={setHighlightIndex}
+        highlightIndex={highlightIndex}
         width={336}
         skinTone={currentSkinTone}
         customEmojiGroups={customEmojiGroups}

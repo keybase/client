@@ -18,6 +18,7 @@ import {
 } from '../../../../../util/emoji'
 import {Section as _Section} from '../../../../../common-adapters/section-list'
 import * as RPCChatGen from '../../../../../constants/types/rpc-chat-gen'
+import {KeyEventHandler} from '../../../../../util/key-event-handler.desktop'
 
 // defer loading this until we need to, very expensive
 const _getData = () => {
@@ -120,6 +121,8 @@ type Props = {
   hideFrequentEmoji: boolean
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
+  onHighlight?: (index: number) => void
+  highlightIndex?: number
   skinTone?: Types.EmojiSkinTone
   customEmojiGroups?: RPCChatGen.EmojiGroup[]
   width: number
@@ -262,15 +265,24 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     this.mounted = false
   }
 
-  private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
+  private getEmojiSingle = (emoji: EmojiData, index: number, skinTone?: Types.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"
         onClick={() => this.props.onChoose(getEmojiStr(emoji, skinToneModifier), renderable)}
-        onMouseOver={this.props.onHover && (() => this.props.onHover?.(emoji))}
-        style={styles.emoji}
+        onMouseOver={
+          this.props.onHover &&
+          (() => {
+            this.props.onHover?.(emoji)
+            this.props.onHighlight?.(index)
+          })
+        }
+        style={Styles.collapseStyles([
+          styles.emoji,
+          this.props.highlightIndex === index ? {backgroundColor: Styles.globalColors.black_05} : undefined,
+        ])}
         key={emoji.short_name}
       >
         {renderEmoji(renderable, singleEmojiWidth, false)}
@@ -278,15 +290,45 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     )
   }
 
-  private getEmojiRow = (row: Row, emojisPerLine: number) =>
+  private getEmojiRow = (row: Row, emojisPerLine: number, rowIndex: number) =>
     // This is possible when we have the cached sections, and we just got mounted
     // and haven't received width yet.
     row.emojis.length > emojisPerLine ? null : (
       <Kb.Box2 key={row.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
-        {row.emojis.map(e => this.getEmojiSingle(e, this.props.skinTone))}
+        {row.emojis.map((e, index) =>
+          this.getEmojiSingle(e, index + rowIndex * emojisPerLine, this.props.skinTone)
+        )}
         {[...Array(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
       </Kb.Box2>
     )
+
+  private keyDownHandler = (ev: KeyboardEvent, emojisPerLine: number) => {
+    console.warn(ev.key)
+    if (!this.props.highlightIndex) {
+      return
+    }
+    switch (ev.key) {
+      case 'ArrowRight':
+        this.props.onHighlight?.(this.props.highlightIndex + 1)
+        break
+      case 'ArrowLeft':
+        this.props.onHighlight?.(this.props.highlightIndex - 1)
+        break
+      case 'ArrowDown':
+        this.props.onHighlight?.(this.props.highlightIndex + emojisPerLine)
+        break
+      case 'ArrowUp':
+        // TODO: add a nice minimum at zero for this
+        let toHighlight = this.props.highlightIndex - emojisPerLine
+        if (toHighlight < 0) {
+          toHighlight = 0
+        }
+        this.props.onHighlight?.(toHighlight)
+        break
+      default:
+        break
+    }
+  }
 
   private sectionListRef = React.createRef<any>()
 
@@ -363,6 +405,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     )
     const emojisPerLine = getEmojisPerLine(this.props.width)
     const getFilterResults = getResultFilter(this.props.customEmojiGroups)
+    let content: React.ReactNode = null
     // For filtered results, we have <= `maxEmojiSearchResults` emojis
     // to render. Render them directly rather than going through chunkData
     // pipeline for fast list of results. Go through chunkData only
@@ -373,7 +416,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
       // (on iPhone 5S)
       // so I'm not adding a ScrollView here. If we increase that later check
       // if this can sometimes overflow the screen here & add a ScrollView
-      return (
+      content = (
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
@@ -387,7 +430,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
             style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
           >
             {this.getSectionHeader('Search results')}
-            {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
+            {results.map((e, index) => this.getEmojiSingle(e, index, this.props.skinTone))}
             {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
               makeEmojiPlaceholder(index)
             )}
@@ -395,38 +438,52 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           </Kb.Box2>
         </Kb.Box2>
       )
+    } else {
+      // !this.state.sections means we haven't cached any sections yet
+      // i.e. we haven't rendered before. let sections be calculated first
+      content = sections ? (
+        <>
+          {this.getBookmarkBar(bookmarks)}
+          <Kb.Box2
+            key="section-list-container"
+            direction="vertical"
+            fullWidth={true}
+            style={styles.sectionListContainer}
+          >
+            <Kb.SectionList
+              ref={this.sectionListRef}
+              getItemHeight={() => emojiWidthWithPadding}
+              getSectionHeaderHeight={sectionIndex =>
+                sections[sectionIndex].key === 'not-found' ? notFoundHeight : 32
+              }
+              keyboardShouldPersistTaps="handled"
+              initialNumToRender={14}
+              sections={sections}
+              onSectionChange={this.onSectionChange}
+              stickySectionHeadersEnabled={true}
+              renderItem={({item, index}: {item: Row; index: number}) =>
+                this.getEmojiRow(item, emojisPerLine, index)
+              }
+              renderSectionHeader={({section}) =>
+                section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)
+              }
+            />
+          </Kb.Box2>
+        </>
+      ) : null
+    }
+    if (Styles.isMobile) {
+      return content
     }
 
-    // !this.state.sections means we haven't cached any sections yet
-    // i.e. we haven't rendered before. let sections be calculated first
-    return sections ? (
-      <>
-        {this.getBookmarkBar(bookmarks)}
-        <Kb.Box2
-          key="section-list-container"
-          direction="vertical"
-          fullWidth={true}
-          style={styles.sectionListContainer}
-        >
-          <Kb.SectionList
-            ref={this.sectionListRef}
-            getItemHeight={() => emojiWidthWithPadding}
-            getSectionHeaderHeight={sectionIndex =>
-              sections[sectionIndex].key === 'not-found' ? notFoundHeight : 32
-            }
-            keyboardShouldPersistTaps="handled"
-            initialNumToRender={14}
-            sections={sections}
-            onSectionChange={this.onSectionChange}
-            stickySectionHeadersEnabled={true}
-            renderItem={({item}: {item: Row; index: number}) => this.getEmojiRow(item, emojisPerLine)}
-            renderSectionHeader={({section}) =>
-              section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)
-            }
-          />
-        </Kb.Box2>
-      </>
-    ) : null
+    return (
+      <KeyEventHandler
+        onKeyPress={ev => this.keyDownHandler(ev, emojisPerLine, highlightedRow)}
+        onKeyDown={ev => this.keyDownHandler(ev, emojisPerLine, highlightedRow)}
+      >
+        {content}
+      </KeyEventHandler>
+    )
   }
 }
 
