@@ -17,7 +17,6 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/phonenumbers"
@@ -516,10 +515,10 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 	tracer.Stage("icons")
 	for i := range suggestions {
 		suggestion := &suggestions[i]
-		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.LogoKey, externals.IconTypeSmall, 16)
-		suggestion.ProfileIconDarkmode = externals.MakeIcons(mctx, suggestion.LogoKey, externals.IconTypeSmallDarkmode, 16)
-		suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.LogoKey, externals.IconTypeFull, 32)
-		suggestion.PickerIconDarkmode = externals.MakeIcons(mctx, suggestion.LogoKey, externals.IconTypeFullDarkmode, 32)
+		suggestion.ProfileIcon = libkb.MakeProofIcons(mctx, suggestion.LogoKey, libkb.ProofIconTypeSmall, 16)
+		suggestion.ProfileIconDarkmode = libkb.MakeProofIcons(mctx, suggestion.LogoKey, libkb.ProofIconTypeSmallDarkmode, 16)
+		suggestion.PickerIcon = libkb.MakeProofIcons(mctx, suggestion.LogoKey, libkb.ProofIconTypeFull, 32)
+		suggestion.PickerIconDarkmode = libkb.MakeProofIcons(mctx, suggestion.LogoKey, libkb.ProofIconTypeFullDarkmode, 32)
 	}
 
 	// Alphabetize so that ties later on in SliceStable are deterministic.

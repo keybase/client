@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {WebOfTrustVerificationType} from '../../constants/types/more'
 import * as Constants from '../../constants/profile'
+import * as UsersConstants from '../../constants/users'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
@@ -8,6 +9,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Types from '../../constants/types/tracker2'
 import {SiteIcon} from '../../profile/generic/shared'
 import * as ProfileGen from '../../actions/profile-gen'
+import * as UsersGen from '../../actions/users-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import sortBy from 'lodash/sortBy'
@@ -33,13 +35,14 @@ export type Question1Answer = {
 type ReviewAction = 'accept' | 'propose' | 'reject'
 
 export type ReviewProps = {
+  disabled?: boolean // disable all buttons
   error?: string
   firstDraft: boolean
-  onAccept: () => void
-  onProposeEdits: () => void
-  onReject: () => void
+  onAccept?: () => void
+  onProposeEdits?: () => void
+  onReject?: () => void
   otherText: string
-  proofs: Array<Proof>
+  proofs?: Array<ProofLite>
   statement: string
   verificationType: WebOfTrustVerificationType
   voucheeUsername: string
@@ -66,12 +69,15 @@ type WotModalProps = {
   submitWaiting?: boolean
 }
 
-export type Proof = {
+export type Proof = ProofLite & {
+  wotProof: RPCTypes.WotProof
+}
+
+type ProofLite = {
   type: string
   value: string
-  siteIcon?: Tracker2Types.SiteIconSet
-  siteIconDarkmode?: Tracker2Types.SiteIconSet
-  wotProof: RPCTypes.WotProof
+  siteIcon?: Tracker2Types.SiteIconSet | null
+  siteIconDarkmode?: Tracker2Types.SiteIconSet | null
 }
 
 type Checkboxed = {
@@ -99,7 +105,7 @@ export const Question1Wrapper = (
   let proofs: Proof[] = []
   if (trackerUsername === voucheeUsername) {
     if (assertions) {
-      // Pull proofs from the profile they were just looking at.
+      // Pull proofs from the profile the user was just looking at.
       // Only take passing proofs that have a `wotProof` field filled by the service.
       proofs = sortBy(
         Array.from(assertions, ([_, assertion]) => assertion),
@@ -183,6 +189,75 @@ export const Question2Wrapper = (
       onBack={onBack}
       onSubmit={onSubmit}
       voucheeUsername={voucheeUsername}
+      waiting={waiting}
+    />
+  )
+}
+
+export const ReviewWrapper = (
+  props: Container.RouteProps<{
+    sigID: string // sigID of the vouch.
+  }>
+) => {
+  const sigID = Container.getRouteProps(props, 'sigID', '')
+  const dispatch = Container.useDispatch()
+  const voucheeUsername = Container.useSelector(state => state.config.username)
+  const details = Container.useSelector(state => Tracker2Constants.getDetails(state, voucheeUsername))
+  const wotEntry = details.webOfTrustEntries?.find(entry => entry.proofID === sigID)
+  const error = Container.useSelector(state => state.profile.wotAuthorError)
+  const [lastAction, setLastAction] = React.useState<ReviewAction | undefined>(undefined)
+  const isWaiting = Container.useAnyWaiting(UsersConstants.wotReactWaitingKey)
+  let waiting = isWaiting ? lastAction : undefined
+  let fatalError = ''
+  if (!sigID) {
+    fatalError = 'Routing missing ID.'
+  }
+  if (!wotEntry) {
+    fatalError = 'Statement not found.'
+  }
+  if (fatalError || !wotEntry) {
+    return (
+      <Review
+        disabled={true}
+        error={fatalError}
+        firstDraft={false}
+        otherText=""
+        statement=""
+        verificationType="in_person"
+        voucheeUsername={voucheeUsername}
+        voucherUsername="_"
+      />
+    )
+  }
+  const onReact = (accept: boolean) => () => {
+    setLastAction(accept ? 'accept' : 'reject')
+    // TODO PICNIC-1150 pin reactions to the sigID
+    dispatch(
+      UsersGen.createWotReact({
+        fromModal: true,
+        reaction: accept ? RPCTypes.WotReactionType.accept : RPCTypes.WotReactionType.reject,
+        voucher: wotEntry.attestingUser,
+      })
+    )
+  }
+  const onProposeEdits = () => {
+    // TODO PICNIC-1145 hook this up
+    setLastAction('propose')
+    dispatch(ProfileGen.createWotVouchSetError({error: 'proposing edits not implemented'}))
+  }
+  return (
+    <Review
+      error={error}
+      firstDraft={true} // TODO PICNIC-1171 plug this bit in
+      onAccept={onReact(true)}
+      onProposeEdits={onProposeEdits}
+      onReject={onReact(false)}
+      otherText={wotEntry.otherText ?? ''}
+      proofs={wotEntry.proofs || []}
+      statement={wotEntry.attestation}
+      verificationType={wotEntry.verificationType}
+      voucheeUsername={voucheeUsername}
+      voucherUsername={wotEntry.attestingUser}
       waiting={waiting}
     />
   )
@@ -325,13 +400,14 @@ export const Review = (props: ReviewProps) => {
   const [checkedStatement, setCheckedStatement] = React.useState(false)
   const canAccept = checkedVerificationType && checkedStatement
   const onClose = () => {
+    dispatch(ProfileGen.createWotVouchSetError({error: ''}))
     dispatch(RouteTreeGen.createClearModals())
   }
   const buttonState = (button: ReviewAction) => {
     // When waiting, spinner the relevant button and disable the others.
     if (props.waiting === button) {
       return {waiting: true}
-    } else if (props.waiting) {
+    } else if (props.waiting || props.disabled) {
       return {disabled: true}
     }
     if (button === 'accept' && !canAccept) {
@@ -436,6 +512,7 @@ export const Review = (props: ReviewProps) => {
               </Kb.Text>
             </Kb.Box2>
             {props.verificationType === 'proofs' &&
+              props.proofs &&
               props.proofs.map(proof => (
                 <Kb.Box2
                   key={`${proof.type}:${proof.value}`}
@@ -640,7 +717,7 @@ const proofList = (selected: boolean, proofs: Array<Proof & Checkboxed>) =>
     </Kb.Box2>
   ))
 
-const ProofSingle = (props: Proof) => {
+const ProofSingle = (props: ProofLite) => {
   let siteIcon: React.ReactNode = null
   const iconSet = Styles.isDarkMode() ? props.siteIconDarkmode : props.siteIcon
   if (iconSet) {

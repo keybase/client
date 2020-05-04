@@ -51,6 +51,34 @@
     },
     {
       "type": "record",
+      "name": "WotProofUI",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIcon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIconDarkmode"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Confidence",
       "fields": [
         {
@@ -77,8 +105,8 @@
       "type": "enum",
       "name": "WotReactionType",
       "symbols": [
-        "ACCEPT_0",
-        "REJECT_1"
+        "REJECT_0",
+        "ACCEPT_1"
       ]
     },
     {
@@ -118,11 +146,15 @@
           "name": "vouchedAt"
         },
         {
-          "type": [
-            null,
-            "Confidence"
-          ],
+          "type": "Confidence",
           "name": "confidence"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "WotProofUI"
+          },
+          "name": "proofs"
         }
       ]
     }
