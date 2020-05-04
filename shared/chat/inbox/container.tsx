@@ -189,7 +189,7 @@ const Connected = Container.namedConnect(
     }
     const rows: Array<Types.ChatInboxRowItem> = [...smallRows, ...divider, ...bigRows]
 
-    const unreadIndices: Array<number> = []
+    const unreadIndices: Map<number, number> = new Map()
     for (let i = rows.length - 1; i >= 0; i--) {
       const row = rows[i]
       if (!['big', 'bigHeader', 'teamBuilder'].includes(row.type)) {
@@ -202,7 +202,7 @@ const Connected = Container.namedConnect(
         row.conversationIDKey !== stateProps._selectedConversationIDKey
       ) {
         // on mobile include all convos, on desktop only not currently selected convo
-        unreadIndices.unshift(i)
+        unreadIndices.set(i, stateProps._badgeMap.get(row.conversationIDKey) || 0)
       }
     }
 
