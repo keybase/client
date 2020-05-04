@@ -342,6 +342,7 @@ const SelfChannelActions = ({
       direction="horizontal"
       gap="xtiny"
       fullHeight={true}
+      centerChildren={true}
       style={Styles.collapseStyles([selfMode && !Styles.isMobile && styles.channelRowSelfMode])}
     >
       {popup}
