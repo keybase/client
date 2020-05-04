@@ -397,7 +397,7 @@ def testGoBuilds(prefix, packagesToTest) {
     sh 'go get -u golang.org/x/lint/golint'
   }
   retry(5) {
-    timeout(activity: true, time: 90, unit: 'SECONDS') {
+    timeout(activity: true, time: 300, unit: 'SECONDS') {
       sh 'make -s lint'
     }
   }
@@ -415,10 +415,10 @@ def testGoBuilds(prefix, packagesToTest) {
       println "Running golangci-lint on KBFS"
       dir('kbfs') {
         retry(5) {
-          timeout(activity: true, time: 180, unit: 'SECONDS') {
-          // Ignore the `dokan` directory since it contains lots of c code.
-          // Ignore the `protocol` directory, autogeneration has some critques
-          sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run --deadline 10m0s'
+          timeout(activity: true, time: 720, unit: 'SECONDS') {
+            // Ignore the `dokan` directory since it contains lots of c code.
+            // Ignore the `protocol` directory, autogeneration has some critques
+            sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run --deadline 10m0s'
           }
         }
       }
