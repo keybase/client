@@ -64,7 +64,7 @@ const Header = () => {
   }
 
   const onAddAccount = () => dispatch(ProvisionGen.createStartProvision())
-  const onHelp = () => openURL('https://keybase.io/docs')
+  const onHelp = () => openURL('https://book.keybase.io')
   const onQuit = () => {
     if (!__DEV__) {
       if (isLinux) {
