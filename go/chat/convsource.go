@@ -1167,11 +1167,11 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 	defer s.Trace(ctx, &err, "Expunge")()
 	convID := conv.GetConvID()
 	defer s.maybeNuke(ctx, convID, uid, &err)
-	s.Debug(ctx, "Expunge: convID: %s uid: %s upto: %v", convID, uid, expunge.Upto)
 	if expunge.Upto == 0 {
 		// just get out of here as quickly as possible with a 0 upto
 		return nil
 	}
+	s.Debug(ctx, "Expunge: convID: %s uid: %s upto: %v", convID, uid, expunge.Upto)
 	_, err = s.lockTab.Acquire(ctx, uid, convID)
 	if err != nil {
 		return err
