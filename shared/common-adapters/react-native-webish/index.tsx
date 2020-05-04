@@ -1,17 +1,26 @@
 import * as React from 'react'
+import * as Styles from '../../styles'
 /** A tiny version of react-native-web to use react-navigation */
-export const View = React.forwardRef((p, ref) => (
-  <div ref={ref} style={p.style}>
+
+const maybeCollapseStyles = s => {
+  if (Array.isArray(s)) {
+    return Styles.collapseStyles(s)
+  }
+  return s
+}
+
+export const View = React.forwardRef((p: any, ref) => (
+  <div ref={ref} style={maybeCollapseStyles(p.style)}>
     {p.children}
   </div>
 ))
-export const ScrollView = p => <div style={p.style}>{p.children}</div>
+export const ScrollView = (p: any) => <div style={maybeCollapseStyles(p.style)}>{p.children}</div>
 export const Switch = p => null
 export const TextInput = p => null
 export const DrawerLayoutAndroid = p => null
 export const FlatList = p => null
-export const Touchable = React.forwardRef((p, ref) => (
-  <div ref={ref} style={p.style}>
+export const Touchable = React.forwardRef((p: any, ref) => (
+  <div ref={ref} style={maybeCollapseStyles(p.style)}>
     {p.children}
   </div>
 ))
