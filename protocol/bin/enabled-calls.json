@@ -317,7 +317,6 @@
   "keybase.1.teams.teamCreateSeitanInvitelinkWithDuration": {"promise": true},
   "keybase.1.teams.teamCreateSeitanTokenV2": {"promise": true},
   "keybase.1.teams.teamDelete": {"engineSaga": true, "promise": true},
-  "keybase.1.teams.teamEditMember": {"promise": true},
   "keybase.1.teams.teamEditMembers": {"promise": true},
   "keybase.1.teams.teamGet": {"promise": true},
   "keybase.1.teams.teamGetByID": {"promise": true},
