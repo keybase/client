@@ -112,6 +112,8 @@ const config = (_, {mode}) => {
       alias['react-redux'] = 'react-redux/dist/react-redux.js'
     }
 
+    alias['react-native$'] = 'react-native-web'
+
     return {
       bail: true,
       context: path.resolve(__dirname, '..'),
