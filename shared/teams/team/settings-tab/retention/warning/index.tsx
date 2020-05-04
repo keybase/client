@@ -12,7 +12,7 @@ type Props = {
 }
 
 const Wrapper = ({children}: {children: React.ReactNode}) =>
-  Styles.isMobile ? (it ad
+  Styles.isMobile ? (
     <Kb.ScrollView
       style={{...Styles.globalStyles.fillAbsolute, ...Styles.globalStyles.flexBoxColumn}}
       contentContainerStyle={styles.scrollContainer}
