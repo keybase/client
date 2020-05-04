@@ -38,14 +38,25 @@ function renderWelcomeMessage(
   cannotWrite: boolean
 ): React.ReactNode {
   return (
-    <Kb.Markdown smallStandaloneEmoji={false} lineClamp={3} selectable={false} paragraphTextClassName="text_BodySmall" style={welcomeStyle}>
+    <Kb.Markdown
+      smallStandaloneEmoji={false}
+      lineClamp={3}
+      selectable={false}
+      paragraphTextClassName="text_BodySmall"
+      style={welcomeStyle}
+    >
       {removeWhitespaceOnlyLines(computeWelcomeMessageText(message, cannotWrite))}
     </Kb.Markdown>
   )
 }
 
-const welcomeStyle = {
-	paddingTop: Styles.globalMargins.xtiny,
-}
+const welcomeStyle = Styles.styleSheetCreate(
+  () =>
+    ({
+      welcomeStyle: {
+        paddingTop: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export {computeWelcomeMessageText, computeWelcomeMessageTextRaw, renderWelcomeMessage}
