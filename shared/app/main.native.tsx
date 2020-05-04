@@ -1,24 +1,26 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
 import RouterSwitcheroo from '../router-v2/switcheroo'
 import {GatewayDest} from '@chardskarth/react-gateway'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors/container'
 import OutOfDate from './out-of-date'
 import RuntimeStats from './runtime-stats'
+import {getBarStyle} from '../common-adapters/use-fix-statusbar.native'
 
 type Props = {}
 
 const ViewForGatewayDest = (props: any) => <Kb.NativeView {...props} />
 
 const Main = (_: Props) => {
-  const isDarkMode = Styles.isDarkMode()
+  // just used to trigger statusbar
+  // @ts-ignore TS can't understand this implicit relationship
+  const _dark = Container.useSelector(state => state.config.systemDarkMode)
   return (
     <>
-      <Kb.NativeStatusBar
-        barStyle={Styles.isAndroid ? 'default' : isDarkMode ? 'light-content' : 'dark-content'}
-      />
+      <Kb.NativeStatusBar key={Styles.isDarkMode() ? 'dark' : 'light'} barStyle={getBarStyle()} />
       <RouterSwitcheroo />
       <GatewayDest
         name="popup-root"
