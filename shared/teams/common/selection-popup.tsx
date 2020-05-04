@@ -289,9 +289,7 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
     _setShowingPicker(show)
   }
 
-  const waiting = Container.useAnyWaiting(
-    ...members.map(username => Constants.editMembershipWaitingKey(teamID, username))
-  )
+  const waiting = Container.useAnyWaiting(Constants.editMembershipWaitingKey(teamID, ...members))
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
     wasWaiting && !waiting && showingPicker && _setShowingPicker(false)
@@ -301,8 +299,8 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
     Constants.getDisabledReasonsForRolePicker(state, teamID, members)
   )
   const disableButton = disabledReasons.admin !== undefined
-  const onChangeRoles = role =>
-    members.forEach(username => dispatch(TeamsGen.createEditMembership({role, teamID, username})))
+  const onChangeRoles = (role: Types.TeamRoleType) =>
+    dispatch(TeamsGen.createEditMembership({role, teamID, usernames: members}))
 
   return (
     <FloatingRolePicker

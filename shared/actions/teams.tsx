@@ -452,19 +452,20 @@ const uploadAvatar = async (action: TeamsGen.UploadTeamAvatarPayload, logger: Sa
   }
 }
 
-const editMembership = async (state: TypedState, action: TeamsGen.EditMembershipPayload) => {
-  const {teamID, username, role} = action.payload
+const editMembership = async (action: TeamsGen.EditMembershipPayload) => {
+  const {teamID, usernames, role: _role} = action.payload
+  const role = _role ? RPCTypes.TeamRole[_role] : RPCTypes.TeamRole.none
   try {
-    await RPCTypes.teamsTeamEditMemberRpcPromise(
+    await RPCTypes.teamsTeamEditMembersRpcPromise(
       {
-        name: Constants.getTeamNameFromID(state, teamID) ?? '',
-        role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
-        username,
+        teamID,
+        users: usernames.map(assertion => ({assertion, role})),
       },
-      [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, username)]
+      [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, ...usernames)]
     )
   } catch (e) {
-    return TeamsGen.createSetEditMemberError({error: e.message, teamID, username})
+    // TODO fix
+    // return TeamsGen.createSetEditMemberError({error: e.message, teamID, username})
   }
   return false
 }
@@ -1697,7 +1698,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.editTeamDescription, editDescription)
   yield* Saga.chainAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
   yield* Saga.chainAction2(TeamsGen.createChannels, createChannels)
-  yield* Saga.chainAction2(TeamsGen.editMembership, editMembership)
+  yield* Saga.chainAction(TeamsGen.editMembership, editMembership)
   yield* Saga.chainGenerator<TeamsGen.RemoveMemberPayload>(TeamsGen.removeMember, removeMember)
   yield* Saga.chainGenerator<TeamsGen.RemovePendingInvitePayload>(
     TeamsGen.removePendingInvite,
