@@ -691,7 +691,11 @@ func (s SigID) ToBytes() []byte {
 	if err != nil {
 		return nil
 	}
-	return b[0:SIG_ID_LEN]
+	n := len(b)
+	if n > SIG_ID_LEN {
+		n = SIG_ID_LEN
+	}
+	return b[0:n]
 }
 
 func (s SigID) StripSuffix() SigIDBase {
