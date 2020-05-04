@@ -38,11 +38,11 @@ export type ReviewProps = {
   disabled?: boolean // disable all buttons
   error?: string
   firstDraft: boolean
-  onAccept: () => void
-  onProposeEdits: () => void
-  onReject: () => void
+  onAccept?: () => void
+  onProposeEdits?: () => void
+  onReject?: () => void
   otherText: string
-  proofs: Array<ProofLite>
+  proofs?: Array<ProofLite>
   statement: string
   verificationType: WebOfTrustVerificationType
   voucheeUsername: string
@@ -203,7 +203,7 @@ export const ReviewWrapper = (
   const dispatch = Container.useDispatch()
   const voucheeUsername = Container.useSelector(state => state.config.username)
   const details = Container.useSelector(state => Tracker2Constants.getDetails(state, voucheeUsername))
-  const wotEntry = (details.webOfTrustEntries || []).find(entry => entry.proofID === sigID)
+  const wotEntry = details.webOfTrustEntries?.find(entry => entry.proofID === sigID)
   const error = Container.useSelector(state => state.profile.wotAuthorError)
   const [lastAction, setLastAction] = React.useState<ReviewAction | undefined>(undefined)
   const isWaiting = Container.useAnyWaiting(UsersConstants.wotReactWaitingKey)
@@ -221,11 +221,7 @@ export const ReviewWrapper = (
         disabled={true}
         error={fatalError}
         firstDraft={false}
-        onAccept={() => {}}
-        onProposeEdits={() => {}}
-        onReject={() => {}}
         otherText=""
-        proofs={[]}
         statement=""
         verificationType="in_person"
         voucheeUsername={voucheeUsername}
@@ -516,6 +512,7 @@ export const Review = (props: ReviewProps) => {
               </Kb.Text>
             </Kb.Box2>
             {props.verificationType === 'proofs' &&
+              props.proofs &&
               props.proofs.map(proof => (
                 <Kb.Box2
                   key={`${proof.type}:${proof.value}`}
