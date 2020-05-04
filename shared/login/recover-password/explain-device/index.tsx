@@ -41,7 +41,7 @@ const ExplainDevice = (props: Props) => {
             ) : (
               <Kb.Text type="Body">Settings</Kb.Text>
             )}
-            <Kb.Text type="Body">> Your account, and change your</Kb.Text>
+            <Kb.Text type="Body">{`> Your account, and change your`}</Kb.Text>
           </Kb.Box2>
           <Kb.Text type="Body">password.</Kb.Text>
         </Kb.Box2>

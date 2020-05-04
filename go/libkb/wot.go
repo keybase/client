@@ -3,7 +3,6 @@ package libkb
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/keybase/client/go/kbun"
@@ -76,9 +75,9 @@ type wotExpansionUser struct {
 }
 
 type vouchExpansion struct {
-	User       wotExpansionUser     `json:"user"`
-	Confidence *keybase1.Confidence `json:"confidence,omitempty"`
-	VouchText  string               `json:"vouch_text"`
+	User       wotExpansionUser    `json:"user"`
+	Confidence keybase1.Confidence `json:"confidence"`
+	VouchText  string              `json:"vouch_text"`
 }
 
 type reactionExpansion struct {
@@ -114,10 +113,6 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 	err = json.Unmarshal(expansionObject, &wotObj)
 	if err != nil {
 		return res, fmt.Errorf("error casting vouch expansion object to expected web-of-trust schema: %s", err.Error())
-	}
-	if wotObj.Confidence != nil && reflect.DeepEqual(*wotObj.Confidence, keybase1.Confidence{}) {
-		// nil out an empty confidence
-		wotObj.Confidence = nil
 	}
 
 	if voucheeUser == nil || voucheeUser.GetUID() != serverVouch.Vouchee {
@@ -175,6 +170,15 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 		return res, fmt.Errorf("could not determine the status of web-of-trust from %s", voucher.GetName())
 	}
 
+	var proofs []keybase1.WotProofUI
+	for _, proof := range wotObj.Confidence.Proofs {
+		proofForUI, err := NewWotProofUI(mctx, proof)
+		if err != nil {
+			return res, err
+		}
+		proofs = append(proofs, proofForUI)
+	}
+
 	// build a WotVouch
 	return keybase1.WotVouch{
 		Status:          status,
@@ -186,6 +190,7 @@ func transformUserVouch(mctx MetaContext, serverVouch serverWotVouch, voucheeUse
 		VouchProof:      serverVouch.VouchSigID,
 		VouchedAt:       keybase1.ToTime(wotVouchLink.GetCTime()),
 		Confidence:      wotObj.Confidence,
+		Proofs:          proofs,
 	}, nil
 }
 

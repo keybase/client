@@ -532,6 +532,13 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/kbfs/kbfsgit': [
         flags: '-race',
         timeout: '10m',
+        compileAlone: true,
+      ],
+      'github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase': [
+        compileAlone: true,
+      ],
+      'github.com/keybase/client/go/kbfs/fsrpc': [
+        compileAlone: true,
       ],
       'github.com/keybase/client/go/kbfs/kbfshash': [
         flags: '-race',
@@ -576,6 +583,7 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/kbfs/libkbfs': [
         flags: '-race',
         timeout: '5m',
+        parallel: 1,
       ],
       'github.com/keybase/client/go/kbfs/libpages': [
         flags: '-race',
@@ -608,6 +616,9 @@ def testGoTestSuite(prefix, packagesToTest) {
       ],
       'github.com/keybase/client/go/kbfs/dokan': [
         disable: true,
+      ],
+      'github.com/keybase/client/go/teams': [
+        parallel: 1,
       ],
     ],
     test_windows_go_: [

@@ -2806,8 +2806,8 @@ export enum UserOrTeamResult {
 }
 
 export enum WotReactionType {
-  accept = 0,
-  reject = 1,
+  reject = 0,
+  accept = 1,
 }
 
 export enum WotStatusType {
@@ -3435,8 +3435,9 @@ export type VerifySessionRes = {readonly uid: UID; readonly sid: String; readonl
 export type WalletAccountInfo = {readonly accountID: String; readonly numUnread: Int}
 export type WebProof = {readonly hostname: String; readonly protocols?: Array<String> | null}
 export type WotProof = {readonly proofType: ProofType; readonly name: String; readonly username: String; readonly protocol: String; readonly hostname: String; readonly domain: String}
+export type WotProofUI = {readonly type: String; readonly value: String; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null}
 export type WotUpdate = {readonly voucher: String; readonly vouchee: String; readonly status: WotStatusType}
-export type WotVouch = {readonly status: WotStatusType; readonly vouchProof: SigID; readonly vouchee: UserVersion; readonly voucheeUsername: String; readonly voucher: UserVersion; readonly voucherUsername: String; readonly vouchText: String; readonly vouchedAt: Time; readonly confidence?: Confidence | null}
+export type WotVouch = {readonly status: WotStatusType; readonly vouchProof: SigID; readonly vouchee: UserVersion; readonly voucheeUsername: String; readonly voucher: UserVersion; readonly voucherUsername: String; readonly vouchText: String; readonly vouchedAt: Time; readonly confidence: Confidence; readonly proofs?: Array<WotProofUI> | null}
 export type WriteArgs = {readonly opID: OpID; readonly path: Path; readonly offset: Long}
 
 export type IncomingCallMapType = {

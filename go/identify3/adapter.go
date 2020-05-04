@@ -240,18 +240,14 @@ func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProo
 		humanURLOrSigchainURL = i.makeSigchainViewURL(mctx, proof.SigID)
 	}
 
-	iconKey := proof.Key
 	row.ProofURL = humanURLOrSigchainURL
 	switch proof.ProofType {
 	case keybase1.ProofType_TWITTER:
 		row.SiteURL = fmt.Sprintf("https://twitter.com/%v", proof.Value)
-		iconKey = "twitter"
 	case keybase1.ProofType_GITHUB:
 		row.SiteURL = fmt.Sprintf("https://github.com/%v", proof.Value)
-		iconKey = "github"
 	case keybase1.ProofType_REDDIT:
 		row.SiteURL = fmt.Sprintf("https://reddit.com/user/%v", proof.Value)
-		iconKey = "reddit"
 	case keybase1.ProofType_HACKERNEWS:
 		// hackernews profile urls must have the username in its original casing.
 		username := proof.Value
@@ -259,10 +255,8 @@ func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProo
 			username = proof.DisplayMarkup
 		}
 		row.SiteURL = fmt.Sprintf("https://news.ycombinator.com/user?id=%v", username)
-		iconKey = "hackernews"
 	case keybase1.ProofType_FACEBOOK:
 		row.SiteURL = fmt.Sprintf("https://facebook.com/%v", proof.Value)
-		iconKey = "facebook"
 	case keybase1.ProofType_GENERIC_SOCIAL:
 		row.SiteURL = humanURLOrSigchainURL
 		serviceType := mctx.G().GetProofServices().GetServiceType(mctx.Ctx(), proof.Key)
@@ -273,9 +267,6 @@ func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProo
 					row.SiteURL = profileURL
 				}
 			}
-			iconKey = serviceType.GetLogoKey()
-		} else {
-			iconKey = proof.Key
 		}
 		row.ProofURL = i.makeSigchainViewURL(mctx, proof.SigID)
 	case keybase1.ProofType_GENERIC_WEB_SITE:
@@ -284,18 +275,17 @@ func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProo
 			protocol = "http"
 		}
 		row.SiteURL = fmt.Sprintf("%v://%v", protocol, proof.Value)
-		iconKey = "web"
 	case keybase1.ProofType_DNS:
 		row.SiteURL = fmt.Sprintf("http://%v", proof.Value)
 		row.ProofURL = i.makeSigchainViewURL(mctx, proof.SigID)
-		iconKey = "web"
 	default:
 		row.SiteURL = humanURLOrSigchainURL
 	}
-	row.SiteIcon = externals.MakeIcons(mctx, iconKey, externals.IconTypeSmall, 16)
-	row.SiteIconDarkmode = externals.MakeIcons(mctx, iconKey, externals.IconTypeSmallDarkmode, 16)
-	row.SiteIconFull = externals.MakeIcons(mctx, iconKey, externals.IconTypeFull, 64)
-	row.SiteIconFullDarkmode = externals.MakeIcons(mctx, iconKey, externals.IconTypeFullDarkmode, 64)
+	iconKey := libkb.ProofIconKey(mctx, proof.ProofType, proof.Key)
+	row.SiteIcon = libkb.MakeProofIcons(mctx, iconKey, libkb.ProofIconTypeSmall, 16)
+	row.SiteIconDarkmode = libkb.MakeProofIcons(mctx, iconKey, libkb.ProofIconTypeSmallDarkmode, 16)
+	row.SiteIconFull = libkb.MakeProofIcons(mctx, iconKey, libkb.ProofIconTypeFull, 64)
+	row.SiteIconFullDarkmode = libkb.MakeProofIcons(mctx, iconKey, libkb.ProofIconTypeFullDarkmode, 64)
 	switch proof.ProofType {
 	case keybase1.ProofType_NONE, keybase1.ProofType_PGP:
 		// These types are not eligible for web-of-trust selection.
@@ -370,10 +360,10 @@ func (i *UIAdapter) displayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey)
 		SiteURL:  i.makeKeybaseProfileURL(mctx),
 		// key.SigID is blank if the PGP key was there pre-sigchain
 		ProofURL:             i.makeSigchainViewURL(mctx, key.SigID),
-		SiteIcon:             externals.MakeIcons(mctx, "pgp", externals.IconTypeSmall, 16),
-		SiteIconDarkmode:     externals.MakeIcons(mctx, "pgp", externals.IconTypeSmallDarkmode, 16),
-		SiteIconFull:         externals.MakeIcons(mctx, "pgp", externals.IconTypeFull, 64),
-		SiteIconFullDarkmode: externals.MakeIcons(mctx, "pgp", externals.IconTypeFullDarkmode, 64),
+		SiteIcon:             libkb.MakeProofIcons(mctx, "pgp", libkb.ProofIconTypeSmall, 16),
+		SiteIconDarkmode:     libkb.MakeProofIcons(mctx, "pgp", libkb.ProofIconTypeSmallDarkmode, 16),
+		SiteIconFull:         libkb.MakeProofIcons(mctx, "pgp", libkb.ProofIconTypeFull, 64),
+		SiteIconFullDarkmode: libkb.MakeProofIcons(mctx, "pgp", libkb.ProofIconTypeFullDarkmode, 64),
 		Kid:                  &key.KID,
 		// PICNIC-1092 consider adding `WotProof` to support pgp in web-of-trust.
 	}
@@ -515,10 +505,10 @@ func (i *UIAdapter) plumbCryptocurrency(mctx libkb.MetaContext, crypto keybase1.
 		SigID:                crypto.SigID,
 		Ctime:                0,
 		SiteURL:              i.makeSigchainViewURL(mctx, crypto.SigID),
-		SiteIcon:             externals.MakeIcons(mctx, key, externals.IconTypeSmall, 16),
-		SiteIconDarkmode:     externals.MakeIcons(mctx, key, externals.IconTypeSmallDarkmode, 16),
-		SiteIconFull:         externals.MakeIcons(mctx, key, externals.IconTypeFull, 64),
-		SiteIconFullDarkmode: externals.MakeIcons(mctx, key, externals.IconTypeFullDarkmode, 64),
+		SiteIcon:             libkb.MakeProofIcons(mctx, key, libkb.ProofIconTypeSmall, 16),
+		SiteIconDarkmode:     libkb.MakeProofIcons(mctx, key, libkb.ProofIconTypeSmallDarkmode, 16),
+		SiteIconFull:         libkb.MakeProofIcons(mctx, key, libkb.ProofIconTypeFull, 64),
+		SiteIconFullDarkmode: libkb.MakeProofIcons(mctx, key, libkb.ProofIconTypeFullDarkmode, 64),
 		ProofURL:             i.makeSigchainViewURL(mctx, crypto.SigID),
 	})
 }
@@ -537,10 +527,10 @@ func (i *UIAdapter) plumbStellarAccount(mctx libkb.MetaContext, str keybase1.Ste
 		SigID:                str.SigID,
 		Ctime:                0,
 		SiteURL:              i.makeSigchainViewURL(mctx, str.SigID),
-		SiteIcon:             externals.MakeIcons(mctx, "stellar", externals.IconTypeSmall, 16),
-		SiteIconDarkmode:     externals.MakeIcons(mctx, "stellar", externals.IconTypeSmallDarkmode, 16),
-		SiteIconFull:         externals.MakeIcons(mctx, "stellar", externals.IconTypeFull, 64),
-		SiteIconFullDarkmode: externals.MakeIcons(mctx, "stellar", externals.IconTypeFullDarkmode, 64),
+		SiteIcon:             libkb.MakeProofIcons(mctx, "stellar", libkb.ProofIconTypeSmall, 16),
+		SiteIconDarkmode:     libkb.MakeProofIcons(mctx, "stellar", libkb.ProofIconTypeSmallDarkmode, 16),
+		SiteIconFull:         libkb.MakeProofIcons(mctx, "stellar", libkb.ProofIconTypeFull, 64),
+		SiteIconFullDarkmode: libkb.MakeProofIcons(mctx, "stellar", libkb.ProofIconTypeFullDarkmode, 64),
 		ProofURL:             i.makeSigchainViewURL(mctx, str.SigID),
 	})
 }

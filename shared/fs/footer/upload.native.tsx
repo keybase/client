@@ -132,7 +132,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
             <Kb.Box style={styles.backgroundBox}>
               <NativeAnimated.Image
                 resizeMode="repeat"
-                source={Styles.isDarkMode ? darkPatternImage : lightPatternImage}
+                source={Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
                 style={{...styles.backgroundImage, marginTop: this.state.backgroundTop}}
               />
             </Kb.Box>

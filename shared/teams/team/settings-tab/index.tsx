@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
-import {RetentionPolicy} from '../../../constants/types/retention-policy'
 import * as Kb from '../../../common-adapters'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {globalColors, globalMargins, styleSheetCreate, platformStyles} from '../../../styles'
@@ -27,7 +26,7 @@ type Props = {
   onEditWelcomeMessage: () => void
   openTeam: boolean
   openTeamRole: Types.TeamRoleType
-  savePublicity: (arg0: Types.PublicitySettings, arg1: boolean, arg2: RetentionPolicy | null) => void
+  savePublicity: (settings: Types.PublicitySettings) => void
   showOpenTeamWarning: (isOpenTeam: boolean, onConfirm: () => void, teamname: string) => void
   teamID: Types.TeamID
   yourOperations: Types.TeamOperations
@@ -53,13 +52,10 @@ type NewSettings = {
   newPublicityTeam: boolean
   newOpenTeam: boolean
   newOpenTeamRole: Types.TeamRoleType
-  newRetentionPolicy: RetentionPolicy | null
 }
 
 type State = {
   publicitySettingsChanged: boolean
-  retentionPolicyChanged: boolean
-  retentionPolicyDecreased: boolean
   isRolePickerOpen: boolean
 } & NewSettings
 
@@ -216,6 +212,7 @@ const toRolePickerPropsHelper = (state: State, setState) => ({
   onOpenRolePicker: () => setState({isRolePickerOpen: true}),
 })
 
+// TODO: break out some of these into individual components, simplify state
 export class Settings extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
@@ -231,10 +228,7 @@ export class Settings extends React.Component<Props, State> {
       newPublicityAnyMember: p.publicityAnyMember,
       newPublicityMember: p.publicityMember,
       newPublicityTeam: p.publicityTeam,
-      newRetentionPolicy: null,
       publicitySettingsChanged: false,
-      retentionPolicyChanged: false,
-      retentionPolicyDecreased: false,
       selectedOpenTeamRole: p.openTeamRole,
     }
   }
@@ -259,8 +253,7 @@ export class Settings extends React.Component<Props, State> {
         (!prevState.isRolePickerOpen && prevState.newOpenTeamRole !== this.props.openTeamRole) ||
         prevState.newPublicityAnyMember !== this.props.publicityAnyMember ||
         prevState.newPublicityMember !== this.props.publicityMember ||
-        prevState.newPublicityTeam !== this.props.publicityTeam ||
-        prevState.retentionPolicyChanged
+        prevState.newPublicityTeam !== this.props.publicityTeam
 
       if (publicitySettingsChanged !== prevState.publicitySettingsChanged) {
         if (!prevState.isRolePickerOpen) {
@@ -280,26 +273,14 @@ export class Settings extends React.Component<Props, State> {
   }
 
   onSaveSettings = () => {
-    this.props.savePublicity(
-      {
-        ignoreAccessRequests: this.state.newIgnoreAccessRequests,
-        openTeam: this.state.newOpenTeam,
-        openTeamRole: this.state.newOpenTeamRole,
-        publicityAnyMember: this.state.newPublicityAnyMember,
-        publicityMember: this.state.newPublicityMember,
-        publicityTeam: this.state.newPublicityTeam,
-      },
-      this.state.retentionPolicyDecreased,
-      this.state.newRetentionPolicy
-    )
-  }
-
-  _onSelectRetentionPolicy = (
-    newRetentionPolicy: RetentionPolicy,
-    retentionPolicyChanged: boolean,
-    retentionPolicyDecreased: boolean
-  ) => {
-    this.setState({newRetentionPolicy, retentionPolicyChanged, retentionPolicyDecreased})
+    this.props.savePublicity({
+      ignoreAccessRequests: this.state.newIgnoreAccessRequests,
+      openTeam: this.state.newOpenTeam,
+      openTeamRole: this.state.newOpenTeamRole,
+      publicityAnyMember: this.state.newPublicityAnyMember,
+      publicityMember: this.state.newPublicityMember,
+      publicityTeam: this.state.newPublicityTeam,
+    })
   }
 
   _showOpenTeamWarning = () => {
@@ -337,9 +318,7 @@ export class Settings extends React.Component<Props, State> {
           )}
           {this.props.yourOperations.chat && (
             <RetentionPicker
-              type="simple"
               containerStyle={{marginTop: globalMargins.small}}
-              onSelect={this._onSelectRetentionPolicy}
               showSaveIndicator={false}
               teamID={this.props.teamID}
               entityType={this.props.isBigTeam ? 'big team' : 'small team'}
