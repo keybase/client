@@ -117,7 +117,7 @@ class UserAdd extends Component<Props, State> {
         {...this.props}
       />
     ) : (
-      <UserButton isPublic={this.props.isPublic} onClick={() => this._showInput(true)} {...this.props} />
+      <UserButton onClick={() => this._showInput(true)} {...this.props} />
     )
   }
 }

@@ -146,7 +146,7 @@ class Dropdown extends React.Component<Props, State> {
         itemStyle={styles.item}
       >
         {items.map(i => (
-          <NativePicker.Item key={i.label} {...i} />
+          <NativePicker.Item {...i} key={i.label} />
         ))}
       </NativePicker>
     )

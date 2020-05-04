@@ -161,6 +161,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
 
   return (
     <BoxComponent
+      // @ts-ignore TODO fix
       onClick={props.onClick ? _onClickWrapper : undefined}
       style={Styles.collapseStyles([
         props.horizontal

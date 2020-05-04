@@ -29,7 +29,7 @@ class PendingBackground extends React.Component<Props, State> {
       <>
         <Kb.NativeAnimated.Image
           resizeMode="repeat"
-          source={Styles.isDarkMode ? darkPatternImage : lightPatternImage}
+          source={Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
           style={Styles.collapseStyles([
             styles.image,
             {
