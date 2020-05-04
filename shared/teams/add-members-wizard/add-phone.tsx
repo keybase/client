@@ -4,9 +4,9 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as Types from '../../constants/types/teams'
 import * as SettingsGen from '../../actions/settings-gen'
 import {ModalTitle, usePhoneNumberList} from '../common'
-import {formatPhoneNumber} from '../../util/phone-numbers'
 
 const waitingKey = 'phoneLookup'
 
@@ -39,9 +39,10 @@ const AddPhone = () => {
         r?.length
           ? dispatch(
               TeamsGen.createAddMembersWizardPushMembers({
-                members: r.map(m => ({
-                  assertion: m.foundUser ? m.username : m.assertion,
-                  note: m.foundUser ? formatPhoneNumber(m.input) : undefined,
+                members: r.map<Types.AddingMember>(m => ({
+                  ...(m.foundUser
+                    ? {assertion: m.username, resolvedFrom: m.assertion}
+                    : {assertion: m.assertion}),
                   role: 'writer',
                 })),
               })

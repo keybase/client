@@ -193,7 +193,7 @@ const AlreadyInTeam = ({assertions}: {assertions: string[]}) => {
     return 'people'
   }, [assertions])
   return (
-    <Kb.Text type="BodySmallSuccess">
+    <Kb.Text type="BodySmallSuccess" selectable={true}>
       Some {noun} were already invited to the team and are not shown here: {invitedStr}
     </Kb.Text>
   )

@@ -3,11 +3,11 @@ import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as Types from '../../constants/types/teams'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {pluralize} from '../../util/string'
 import {ModalTitle} from '../common'
 import ContactsList, {useContacts, Contact, EnableContactsPopup} from '../common/contacts-list.native'
-import {formatPhoneNumber} from '../../util/phone-numbers'
 
 const AddContacts = () => {
   const dispatch = Container.useDispatch()
@@ -43,9 +43,10 @@ const AddContacts = () => {
         if (r?.length) {
           dispatch(
             TeamsGen.createAddMembersWizardPushMembers({
-              members: r.map(m => ({
-                assertion: m.foundUser ? m.username : m.assertion,
-                note: m.foundUser ? formatPhoneNumber(m.input) : undefined,
+              members: r.map<Types.AddingMember>(m => ({
+                ...(m.foundUser
+                  ? {assertion: m.username, resolvedFrom: m.assertion}
+                  : {assertion: m.assertion}),
                 role: 'writer',
               })),
             })

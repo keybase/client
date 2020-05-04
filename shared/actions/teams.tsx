@@ -1600,35 +1600,31 @@ const addMembersWizardPushMembers = async (
       !wizardState.addingMembers.find(x => x.assertion === member.assertion)
   )
 
-  // We have to be able to provide both `assertion` and `resolvedFrom` for
-  // users that we found in the team, and are coming from imptofu assertions.
-  // This is needed so the wizard can display original assertion that was
-  // skipped, not the resolved user.
-  const resolvedFromMap = newAssertions.reduce((acc, x) => {
-    if (x.resolvedFrom) {
-      acc.set(x.assertion, x)
-    }
-    return acc
-  }, new Map<string, Types.AddingMember>())
-
+  let assertionsInTeam = new Set<string>()
   let membersAlreadyInTeam = new Set<string>()
   if (newAssertions.length > 0) {
     const foundAssertions = await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
+      // We don't have to dedup assertions here - RPC layer is fine with duplicates.
       assertions: newAssertions.map(x => x.assertion),
       teamID: wizardState.teamID,
     })
     if (foundAssertions) {
+      // Make a set of found assertions for faster filtering later.
+      assertionsInTeam = new Set(foundAssertions)
       // Need to go back to original assertion here if it was resolved from
-      // imptofu.
-      membersAlreadyInTeam = new Set(foundAssertions.map(x => resolvedFromMap.get(x)?.resolvedFrom ?? x))
+      // imptofu to display to users.
+      membersAlreadyInTeam = newAssertions.reduce((acc, cur) => {
+        if (assertionsInTeam.has(cur.assertion)) {
+          acc.add(cur.resolvedFrom ?? cur.assertion)
+        }
+        return acc
+      }, new Set<string>())
     }
   }
 
   const members = Constants.dedupAddingMembeers(
     state.teams.addMembersWizard.addingMembers,
-    action.payload.members
-      .filter(x => !membersAlreadyInTeam.has(x.resolvedFrom ?? x.assertion))
-      .map(Constants.coerceAssertionRole)
+    action.payload.members.filter(x => !assertionsInTeam.has(x.assertion)).map(Constants.coerceAssertionRole)
   )
 
   return [

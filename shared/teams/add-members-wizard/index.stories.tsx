@@ -59,6 +59,11 @@ const emailsWithDuplicates = makeCommonStore(
   ['[mike@mike.mike]@email', '[chris@chris.chris]@email', '+12015550123@phone']
 )
 
+const oneAlreadyInTeam = makeCommonStore(
+  [{assertion: '[danny@danny.danny]@email', role: 'writer'}],
+  ['[chris@chris.chris]@email']
+)
+
 // All e-mails provided were already invites - confirmation screen should have
 // empty rows and "alreadyInTeam" message only.
 const onlyAlreadyInTeam = makeCommonStore([], ['[mike@mike.mike]@email', '[chris@chris.chris]@email'])
@@ -81,6 +86,7 @@ const load = () => {
     ['Mixed types', commonStore],
     ['All emails', emailsOnlyStore],
     ['Members already in team', emailsWithDuplicates],
+    ['A member already in team', oneAlreadyInTeam],
     ['(Only) members already in team', onlyAlreadyInTeam],
     ['(Impossible) members already in team', alreadyInTeam2],
   ] as const) {
