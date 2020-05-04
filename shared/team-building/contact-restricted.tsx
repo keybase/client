@@ -96,6 +96,8 @@ export const ContactRestricted = (props: Props) => {
         ),
         hideBorder: true,
       }}
+      backgroundStyle={styles.bg}
+      mode="DefaultFullHeight"
     >
       <Kb.Box2
         alignItems="center"
@@ -115,8 +117,6 @@ export const ContactRestricted = (props: Props) => {
           <Kb.Box2
             alignItems="center"
             direction="vertical"
-            gap="small"
-            gapStart={true}
             centerChildren={true}
             style={styles.card}
             noShrink={true}
@@ -134,7 +134,7 @@ export const ContactRestricted = (props: Props) => {
                 }
               />
             ))}
-            <Kb.Text center={true} style={styles.text} type="BodyBig">
+            <Kb.Text style={styles.text} type="BodyBig">
               {descriptionContactRestricted}
             </Kb.Text>
           </Kb.Box2>
@@ -143,8 +143,6 @@ export const ContactRestricted = (props: Props) => {
           <Kb.Box2
             alignItems="center"
             direction="vertical"
-            gap="small"
-            gapStart={true}
             centerChildren={true}
             fullWidth={true}
             style={styles.card}
@@ -163,7 +161,7 @@ export const ContactRestricted = (props: Props) => {
                 }
               />
             ))}
-            <Kb.Text center={true} style={styles.text} type="BodyBig">
+            <Kb.Text style={styles.text} type="BodyBig">
               {descriptionBrokenProofs}
             </Kb.Text>
           </Kb.Box2>
@@ -179,6 +177,7 @@ export const ContactRestricted = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Styles.globalColors.blueGrey},
   button: {
     flex: 1,
   },
@@ -188,21 +187,15 @@ const styles = Styles.styleSheetCreate(() => ({
     minHeight: undefined,
   },
   card: {
-    backgroundColor: Styles.globalColors.whiteOrBlack,
     borderColor: Styles.globalColors.black_10,
+    borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
+    paddingTop: Styles.globalMargins.tiny,
   },
-  container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-    },
-    isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.medium),
-      backgroundColor: Styles.globalColors.blueGrey,
-      flex: 1,
-    },
-  }),
+  container: {
+    ...Styles.padding(0, Styles.globalMargins.medium),
+  },
   icon: {
     marginBottom: Styles.globalMargins.medium,
     marginTop: Styles.globalMargins.xlarge,
