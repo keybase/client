@@ -537,6 +537,9 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase': [
         compileAlone: true,
       ],
+      'github.com/keybase/client/go/kbfs/fsrpc': [
+        compileAlone: true,
+      ],
       'github.com/keybase/client/go/kbfs/kbfshash': [
         flags: '-race',
         timeout: '30s',
