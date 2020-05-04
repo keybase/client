@@ -94,11 +94,17 @@ const wotReact = async (action: UsersGen.WotReactPayload, logger: Saga.SagaLogge
   const {fromModal, reaction, sigID, voucher} = action.payload
   if (!fromModal) {
     // This needs an error path. Happens when coming from a button directly on the profile screen.
-    await RPCTypes.wotWotReactRpcPromise({reaction, sigID, voucher}, Constants.wotReactWaitingKey)
+    await RPCTypes.wotWotReactRpcPromise(
+      {allowEmptySigID: false, reaction, sigID, voucher},
+      Constants.wotReactWaitingKey
+    )
     return []
   }
   try {
-    await RPCTypes.wotWotReactRpcPromise({reaction, sigID, voucher}, Constants.wotReactWaitingKey)
+    await RPCTypes.wotWotReactRpcPromise(
+      {allowEmptySigID: false, reaction, sigID, voucher},
+      Constants.wotReactWaitingKey
+    )
   } catch (e) {
     logger.warn('Error from wotReact:', e)
     return ProfileGen.createWotVouchSetError({
