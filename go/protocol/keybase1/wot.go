@@ -196,7 +196,7 @@ type WotFetchVouchesArg struct {
 
 type WotInterface interface {
 	WotVouch(context.Context, WotVouchArg) error
-	WotVouchCLI(context.Context, WotVouchCLIArg) (SigID, error)
+	WotVouchCLI(context.Context, WotVouchCLIArg) error
 	WotReact(context.Context, WotReactArg) error
 	DismissWotNotifications(context.Context, DismissWotNotificationsArg) error
 	WotFetchVouches(context.Context, WotFetchVouchesArg) ([]WotVouch, error)
@@ -232,7 +232,7 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]WotVouchCLIArg)(nil), args)
 						return
 					}
-					ret, err = i.WotVouchCLI(ctx, typedArgs[0])
+					err = i.WotVouchCLI(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -294,8 +294,8 @@ func (c WotClient) WotVouch(ctx context.Context, __arg WotVouchArg) (err error) 
 	return
 }
 
-func (c WotClient) WotVouchCLI(ctx context.Context, __arg WotVouchCLIArg) (res SigID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.wot.wotVouchCLI", []interface{}{__arg}, &res, 0*time.Millisecond)
+func (c WotClient) WotVouchCLI(ctx context.Context, __arg WotVouchCLIArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotVouchCLI", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

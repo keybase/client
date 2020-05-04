@@ -20,9 +20,8 @@ type WotVouchArg struct {
 
 // WotVouch is an engine.
 type WotVouch struct {
+	arg *WotVouchArg
 	libkb.Contextified
-	arg   *WotVouchArg
-	sigID keybase1.SigID
 }
 
 // NewWotVouch creates a WotVouch engine.
@@ -170,7 +169,7 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		if err != nil {
 			return err
 		}
-		sig, e.sigID, linkID, err = libkb.MakeSig(
+		sig, _, linkID, err = libkb.MakeSig(
 			mctx,
 			signingKey,
 			libkb.LinkTypeWotVouch,
@@ -223,8 +222,4 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	voucherUsername := mctx.ActiveDevice().Username(mctx).String()
 	mctx.G().NotifyRouter.HandleWebOfTrustChanged(voucherUsername)
 	return libkb.DismissWotNotifications(mctx, voucherUsername, them.GetName())
-}
-
-func (e *WotVouch) Result() keybase1.SigID {
-	return e.sigID
 }

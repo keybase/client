@@ -58,17 +58,17 @@ func (h *WebOfTrustHandler) WotVouch(ctx context.Context, arg keybase1.WotVouchA
 	}))
 }
 
-func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVouchCLIArg) (sigID keybase1.SigID, err error) {
+func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVouchCLIArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.Trace(fmt.Sprintf("WotVouchCLI(%v)", arg.Assertion), &err)()
 
 	upak, _, err := h.G().GetUPAKLoader().Load(libkb.NewLoadUserArg(h.G()).WithName(arg.Assertion))
 	if err != nil {
-		return sigID, err
+		return err
 	}
 
-	eng1 := engine.NewResolveThenIdentify2(mctx.G(), &keybase1.Identify2Arg{
+	eng := engine.NewResolveThenIdentify2(mctx.G(), &keybase1.Identify2Arg{
 		Uid:              upak.GetUID(),
 		UserAssertion:    arg.Assertion,
 		NeedProofSet:     true,
@@ -78,31 +78,26 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 	})
 	err = engine.RunEngine2(mctx.WithUIs(libkb.UIs{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, mctx.G()),
-	}), eng1)
+	}), eng)
 	if err != nil {
-		return sigID, err
+		return err
 	}
-	idRes, err := eng1.Result(mctx)
+	idRes, err := eng.Result(mctx)
 	if err != nil {
-		return sigID, err
+		return err
 	}
 	if idRes == nil {
-		return sigID, fmt.Errorf("missing identify result")
+		return fmt.Errorf("missing identify result")
 	}
 	if idRes.TrackBreaks != nil {
 		mctx.Debug("WotVouch TrackBreaks: %+v", idRes.TrackBreaks)
-		return sigID, libkb.TrackingBrokeError{}
+		return libkb.TrackingBrokeError{}
 	}
-	eng2 := engine.NewWotVouch(h.G(), &engine.WotVouchArg{
+	return engine.RunEngine2(mctx, engine.NewWotVouch(h.G(), &engine.WotVouchArg{
 		Vouchee:    idRes.Upk.Current.ToUserVersion(),
 		Confidence: arg.Confidence,
 		VouchText:  arg.VouchText,
-	})
-	err = engine.RunEngine2(mctx, eng2)
-	if err != nil {
-		return sigID, err
-	}
-	return eng2.Result(), err
+	}))
 }
 
 func (h *WebOfTrustHandler) WotFetchVouches(ctx context.Context, arg keybase1.WotFetchVouchesArg) (res []keybase1.WotVouch, err error) {
@@ -132,7 +127,7 @@ func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactA
 		}
 	}
 	if reactingVouch == nil {
-		mctx.Debug("WotReact could not find attestation for %v '%v'", expectedVoucher, arg.SigID)
+		mctx.Debug("WotReact could not find attestation for %v %v", expectedVoucher, arg.SigID)
 		return fmt.Errorf("could not find attestation")
 	}
 

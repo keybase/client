@@ -55,7 +55,7 @@ func TestWotNotifications(t *testing.T) {
 			return len(badges.WotUpdates) == 0
 		})
 	}
-	aliceVouchesForBob := func() keybase1.SigID {
+	aliceVouchesForBob := func() {
 		cli := &client.CmdWotVouch{
 			Contextified: libkb.NewContextified(alice.tc.G),
 			Assertion:    bob.username,
@@ -66,20 +66,18 @@ func TestWotNotifications(t *testing.T) {
 		}
 		err := cli.Run()
 		require.NoError(t, err)
-		return cli.SigID
 	}
-	bobAccepts := func(sigID keybase1.SigID) {
+	bobAccepts := func() {
 		cli := &client.CmdWotAccept{
 			Contextified: libkb.NewContextified(bob.tc.G),
 			Voucher:      alice.username,
-			SigID:        sigID,
 		}
 		err := cli.Run()
 		require.NoError(t, err)
 	}
 
 	// alice vouches for bob - bob gets a notification
-	latestVouch := aliceVouchesForBob()
+	aliceVouchesForBob()
 	wotUpdate := getWotUpdate(bob)
 	require.Equal(t, wotUpdate.Status, keybase1.WotStatusType_PROPOSED)
 	require.Equal(t, wotUpdate.Voucher, alice.username)
@@ -87,7 +85,7 @@ func TestWotNotifications(t *testing.T) {
 	dismiss(bob)
 
 	// bob accepts - alice gets a notification
-	bobAccepts(latestVouch)
+	bobAccepts()
 	wotUpdate = getWotUpdate(alice)
 	require.Equal(t, wotUpdate.Status, keybase1.WotStatusType_ACCEPTED)
 	require.Equal(t, wotUpdate.Voucher, alice.username)
@@ -110,7 +108,7 @@ func TestWotNotifications(t *testing.T) {
 	// notifications also go away if the underlying vouch was touched (i.e. implicit interaction)
 	// by the person being notified.
 	// 1. alice vouches for bob
-	latestVouch = aliceVouchesForBob()
+	aliceVouchesForBob()
 	// 2. bob has a notification
 	pollForTrue(t, bob.tc.G, func(i int) bool {
 		badges := getBadgeState(t, bob)
@@ -122,7 +120,7 @@ func TestWotNotifications(t *testing.T) {
 		return len(badges.WotUpdates) == 1 && wotUpdate.Status == keybase1.WotStatusType_PROPOSED
 	})
 	// 3. bob reacts
-	bobAccepts(latestVouch)
+	bobAccepts()
 	// 4. bob's notification is dismissed automatically
 	pollForTrue(t, bob.tc.G, func(i int) bool {
 		badges := getBadgeState(t, bob)
@@ -130,9 +128,9 @@ func TestWotNotifications(t *testing.T) {
 	})
 
 	// vouch_with_revoke resets the state of the attestation to PROPOSED
-	latestVouch = aliceVouchesForBob()
-	bobAccepts(latestVouch)
-	latestVouch = aliceVouchesForBob()
+	aliceVouchesForBob()
+	bobAccepts()
+	aliceVouchesForBob()
 	wotUpdate = getWotUpdate(bob)
 	require.Equal(t, wotUpdate.Status, keybase1.WotStatusType_PROPOSED)
 	require.Equal(t, wotUpdate.Voucher, alice.username)

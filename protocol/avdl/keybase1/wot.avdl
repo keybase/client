@@ -42,7 +42,7 @@ protocol wot {
   }
 
   void wotVouch(int sessionID, string username, Identify3GUIID guiID, string vouchText, Confidence confidence);
-  SigID wotVouchCLI(int sessionID, string assertion, string vouchText, Confidence confidence);
+  void wotVouchCLI(int sessionID, string assertion, string vouchText, Confidence confidence);
 
   enum WotReactionType {
     REJECT_0,
