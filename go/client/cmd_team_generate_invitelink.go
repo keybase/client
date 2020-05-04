@@ -29,6 +29,7 @@ func newCmdTeamGenerateInvitelink(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		Name:         "generate-invitelink",
 		ArgumentHelp: "<team name>",
 		Usage:        "Generate an invite link that you can send via iMessage or similar.",
+		Unlisted:     true,
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamGenerateInvitelinkRunner(g)
 			cl.ChooseCommand(cmd, "generate-invitelink", c)
