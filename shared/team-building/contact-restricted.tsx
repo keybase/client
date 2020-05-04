@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
+import * as TeamsGen from '../actions/teams-gen'
+import flags from '../util/feature-flags'
 
 type OwnProps = Container.RouteProps<Props>
 
@@ -14,11 +16,13 @@ type Props = {
 export const ContactRestricted = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onNavUp = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onFinishTeamWizard = () => dispatch(TeamsGen.createFinishedAddMembersWizard())
+  let onBack = onNavUp
   let header = ''
   let description = ''
   let descriptionContactRestricted = ''
-  let descriptionBrokenProofs = ''
+  const descriptionBrokenProofs = 'Their proofs changed since you last followed them.'
   let contactRestrictedUsers: Array<string> = []
   let brokenFollowUsers: Array<string> = []
   let footerBtnLabel = 'Okay'
@@ -32,10 +36,12 @@ export const ContactRestricted = (props: Props) => {
     case 'walletsRequest':
       header = `You cannot request a payment from @${firstUser}.`
       description = `@${firstUser}'s contact restrictions prevent you from requesting a payment. Contact them outside Keybase to proceed.`
+      descriptionContactRestricted = 'Their contact restrictions prevent you from starting a chat with them.'
       break
     case 'newFolder':
       header = `You cannot open a private folder with @${firstUser}.`
       description = `@${firstUser}'s contact restrictions prevent you from opening a private folder with them. Contact them outside Keybase to proceed.`
+      descriptionContactRestricted = 'Their contact restrictions prevent you from starting a chat with them.'
       break
     case 'teamAddAllFailed': {
       const soloDisallowed = props.usernamesWithContactRestr?.length === 1
@@ -48,21 +54,26 @@ export const ContactRestricted = (props: Props) => {
         : 'These people could not be added to the team.'
       const prefix = soloDisallowed ? `@${firstUser}'s` : 'Their'
       description = `${prefix} contact restrictions prevent you from adding them. Contact them outside Keybase to proceed.`
+      descriptionContactRestricted = 'Their contact restrictions prevent you from adding them to a team.'
+      if (flags.teamsRedesign) {
+        onBack = onFinishTeamWizard
+      }
       break
     }
     case 'teamAddSomeFailed':
-      contactRestrictedUsers = props.usernamesWithContactRestr ? props.usernamesWithContactRestr : []
-      brokenFollowUsers = props.usernamesWithBrokenFollow ? props.usernamesWithBrokenFollow : []
+      contactRestrictedUsers = props.usernamesWithContactRestr ?? []
+      brokenFollowUsers = props.usernamesWithBrokenFollow ?? []
       header = 'These people could not be added to the team.'
       description = ''
       descriptionContactRestricted = 'Their contact restrictions prevent you from adding them to a team.'
-      descriptionBrokenProofs = 'Their proofs changed since you last followed them.'
       footerBtnLabel = 'Continue anyway'
+      if (flags.teamsRedesign) {
+        onBack = onFinishTeamWizard
+      }
       break
   }
   return (
     <Kb.Modal
-      //the navigation needs adjustment and evtensive testing
       onClose={onBack}
       header={
         Styles.isMobile
