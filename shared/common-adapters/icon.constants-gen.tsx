@@ -936,6 +936,7 @@ export type IconType =
   | 'iconfont-basketball'
   | 'iconfont-block'
   | 'iconfont-bomb'
+  | 'iconfont-bomb-solid'
   | 'iconfont-boom'
   | 'iconfont-bot'
   | 'iconfont-calculate'
@@ -1091,6 +1092,7 @@ export type IconType =
   | 'iconfont-text-code'
   | 'iconfont-thunderbolt'
   | 'iconfont-timer'
+  | 'iconfont-timer-solid'
   | 'iconfont-trash'
   | 'iconfont-typing'
   | 'iconfont-unhide'
@@ -9621,6 +9623,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: true,
   },
   'iconfont-bomb': {
+    charCode: 0xe9d1,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-bomb-solid': {
     charCode: 0xe908,
     gridSize: 16,
     isFont: true,
@@ -10397,6 +10404,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-timer': {
     charCode: 0xe963,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-timer-solid': {
+    charCode: 0xe9d0,
     gridSize: 16,
     isFont: true,
   },
