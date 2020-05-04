@@ -130,7 +130,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             entityType={entityType}
             showSaveIndicator={true}
             teamID={teamID}
-            type="auto"
           />
           {(entityType === 'channel' || entityType === 'small team') && (
             <MinWriterRole conversationIDKey={conversationIDKey} />
@@ -195,7 +194,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           entityType={entityType}
           showSaveIndicator={true}
           teamID={teamID}
-          type="auto"
         />
         {(entityType === 'channel' || entityType === 'small team') && (
           <>

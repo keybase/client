@@ -23,7 +23,7 @@ const shimNewRoute = (Original: any) => {
         ? Original.navigationOptions({navigation: props.navigation})
         : Original.navigationOptions
 
-    const original = <Original {...props} key={Styles.isDarkMode ? 'dark' : 'light'} />
+    const original = <Original {...props} key={Styles.isDarkMode() ? 'dark' : 'light'} />
     let body = original
 
     const renderDebug = Shared.getRenderDebug()

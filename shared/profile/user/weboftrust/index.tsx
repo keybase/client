@@ -4,6 +4,7 @@ import {formatTimeRelativeToNow} from '../../../util/timestamp'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as UsersGen from '../../../actions/users-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {WebOfTrustVerificationType} from '../../../constants/types/more'
 import {WotReactionType, WotStatusType} from '../../../constants/types/rpc-gen'
 import {wotReactWaitingKey, wotRevokeWaitingKey} from '../../../constants/users'
@@ -26,10 +27,14 @@ const WebOfTrust = (props: Props) => {
   const {attestation, attestingUser, proofID, vouchedAt, status} = webOfTrustAttestation
   const userIsYou = Container.useSelector(state => username === state.config.username)
   const voucherIsYou = Container.useSelector(state => attestingUser === state.config.username)
-  const canAccept = userIsYou && status === WotStatusType.proposed
-  const onAccept = () => {
-    if (!canAccept) return
-    dispatch(UsersGen.createWotReact({reaction: WotReactionType.accept, voucher: attestingUser}))
+  const canReview = userIsYou && status === WotStatusType.proposed
+  const onReview = () => {
+    if (!canReview) return
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {sigID: proofID}, selected: 'profileWotReview'}],
+      })
+    )
   }
   const canReject = userIsYou && (status === WotStatusType.proposed || status === WotStatusType.accepted)
   const onReject = () => {
@@ -84,18 +89,10 @@ const WebOfTrust = (props: Props) => {
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-      {(canAccept || canReject || canRevoke) && (
+      {(canReview || canReject || canRevoke) && (
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false} style={styles.buttonBar}>
           <Kb.ButtonBar align="flex-start">
-            {canAccept && (
-              <Kb.WaitingButton
-                label="Accept"
-                onClick={onAccept}
-                small={true}
-                type="Success"
-                waitingKey={wotReactWaitingKey}
-              />
-            )}
+            {canReview && <Kb.Button label="Review" onClick={onReview} small={true} type="Default" />}
             {canReject && (
               <Kb.WaitingButton
                 label={rejectLabel}

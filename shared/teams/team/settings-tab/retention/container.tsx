@@ -17,8 +17,6 @@ export type OwnProps = {
   entityType: RetentionEntityType
   showSaveIndicator: boolean
   teamID: TeamsTypes.TeamID
-  type: 'simple' | 'auto'
-  onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void
 }
 
 export default Container.connect(

@@ -459,7 +459,7 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 					types.ConvLoaderPriorityHighest, types.ConvLoaderUnique,
 					func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 						s.Debug(ctx, "Sync: executing expunge from a sync run: convID: %s", conv.GetConvID())
-						err := s.G().ConvSource.Expunge(ctx, rc, uid, expunge)
+						err := s.G().ConvSource.Expunge(ctx, conv, uid, expunge)
 						if err != nil {
 							s.Debug(ctx, "Sync: failed to expunge: %v", err)
 						}

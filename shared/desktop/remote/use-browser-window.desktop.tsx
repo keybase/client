@@ -3,7 +3,12 @@ import * as React from 'react'
 import * as Electron from 'electron'
 
 export type UseBrowserOptions = {
-  windowOpts: Electron.BrowserWindowConstructorOptions
+  windowOpts: {
+    hasShadow?: boolean
+    height: number
+    transparent?: boolean
+    width: number
+  }
   windowPositionBottomRight?: true
   windowComponent?: string // undefined to kill the browserwindow
   windowTitle: string

@@ -124,7 +124,8 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     } else {
       return (
         <Kb.Box2 direction="vertical" key={`${section.key}:${item.key}`} style={styles.box}>
-          {(section.section.renderItem || this.props.renderItem)({
+          {// @ts-ignore TODO fix this
+          (section.section.renderItem || this.props.renderItem)({
             index: item.indexWithinSection,
             item: item.item,
             section: section.section,
@@ -198,13 +199,16 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
       this._sectionIndexToFlatIndex.push(flatSectionIndex)
       arr.push({
         flatSectionIndex,
+        // @ts-ignore TODO fix this
         key: this.props.sectionKeyExtractor?.(section, sectionIndex) || section.key || sectionIndex,
         section,
         sectionIndex,
         type: 'header',
       })
+      // @ts-ignore TODO fix this
       if (section.data.length) {
         arr.push(
+          // @ts-ignore TODO fix this
           ...section.data.map((item: ItemTFromSectionT<T>, indexWithinSection) => ({
             flatSectionIndex,
             indexWithinSection,

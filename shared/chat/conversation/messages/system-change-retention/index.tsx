@@ -35,7 +35,11 @@ const getPolicySummary = (props: Props) => {
       break
     case RPCChatTypes.RetentionPolicyType.ephemeral:
       {
-        const ephemeralDuration = dateFns.formatDistanceStrict(0, props.policy.ephemeral?.age * 1000)
+        const ephemeralDuration =
+          // date-fns writes 30 seconds as 1 minute
+          props.policy.ephemeral?.age === 30
+            ? '30 seconds'
+            : dateFns.formatDistanceStrict(0, props.policy.ephemeral?.age * 1000)
         if (ephemeralDuration !== '') {
           return `explode after ${ephemeralDuration} by default`
         }

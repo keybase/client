@@ -36,6 +36,42 @@ func (o WotProof) DeepCopy() WotProof {
 	}
 }
 
+type WotProofUI struct {
+	Type             string       `codec:"type" json:"type"`
+	Value            string       `codec:"value" json:"value"`
+	SiteIcon         []SizedImage `codec:"siteIcon" json:"siteIcon"`
+	SiteIconDarkmode []SizedImage `codec:"siteIconDarkmode" json:"siteIconDarkmode"`
+}
+
+func (o WotProofUI) DeepCopy() WotProofUI {
+	return WotProofUI{
+		Type:  o.Type,
+		Value: o.Value,
+		SiteIcon: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIcon),
+		SiteIconDarkmode: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIconDarkmode),
+	}
+}
+
 type Confidence struct {
 	UsernameVerifiedVia UsernameVerificationType `codec:"usernameVerifiedVia" json:"username_verified_via,omitempty"`
 	Proofs              []WotProof               `codec:"proofs" json:"proofs,omitempty"`
@@ -63,20 +99,20 @@ func (o Confidence) DeepCopy() Confidence {
 type WotReactionType int
 
 const (
-	WotReactionType_ACCEPT WotReactionType = 0
-	WotReactionType_REJECT WotReactionType = 1
+	WotReactionType_REJECT WotReactionType = 0
+	WotReactionType_ACCEPT WotReactionType = 1
 )
 
 func (o WotReactionType) DeepCopy() WotReactionType { return o }
 
 var WotReactionTypeMap = map[string]WotReactionType{
-	"ACCEPT": 0,
-	"REJECT": 1,
+	"REJECT": 0,
+	"ACCEPT": 1,
 }
 
 var WotReactionTypeRevMap = map[WotReactionType]string{
-	0: "ACCEPT",
-	1: "REJECT",
+	0: "REJECT",
+	1: "ACCEPT",
 }
 
 func (e WotReactionType) String() string {
@@ -95,7 +131,8 @@ type WotVouch struct {
 	VoucherUsername string        `codec:"voucherUsername" json:"voucherUsername"`
 	VouchText       string        `codec:"vouchText" json:"vouchText"`
 	VouchedAt       Time          `codec:"vouchedAt" json:"vouchedAt"`
-	Confidence      *Confidence   `codec:"confidence,omitempty" json:"confidence,omitempty"`
+	Confidence      Confidence    `codec:"confidence" json:"confidence"`
+	Proofs          []WotProofUI  `codec:"proofs" json:"proofs"`
 }
 
 func (o WotVouch) DeepCopy() WotVouch {
@@ -108,13 +145,18 @@ func (o WotVouch) DeepCopy() WotVouch {
 		VoucherUsername: o.VoucherUsername,
 		VouchText:       o.VouchText,
 		VouchedAt:       o.VouchedAt.DeepCopy(),
-		Confidence: (func(x *Confidence) *Confidence {
+		Confidence:      o.Confidence.DeepCopy(),
+		Proofs: (func(x []WotProofUI) []WotProofUI {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Confidence),
+			ret := make([]WotProofUI, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Proofs),
 	}
 }
 
