@@ -82,7 +82,7 @@ helpers.rootLinuxNode(env, {
   println "Running on host $kbwebNodePrivateIP"
   println "Setting up build: ${env.BUILD_TAG}"
 
-  ws("${env.GOPATH}/src/github.com/keybase/client") {
+  ws("client") {
 
     stage("Setup") {
       parallel (
@@ -258,7 +258,7 @@ helpers.rootLinuxNode(env, {
                   "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
                   "TEMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
                 ]) {
-                ws("$GOPATH/src/github.com/keybase/client") {
+                ws("client") {
                   println "Checkout Windows"
                   retry(3) {
                     checkout scm
