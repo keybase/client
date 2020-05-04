@@ -674,6 +674,15 @@ func (smm *subscriptionManagerManager) get(
 	smm.lock.Lock()
 	defer smm.lock.Unlock()
 
+	// Check again under the lock in case we've already created one. This is
+	// important since if we create it twice we'd end up with having the same
+	// clientID appearing twice in purgeableClientIDsFIFO and when we purge the
+	// second one we'd have a panic.
+	sm, ok = smm.subscriptionManagers[clientID]
+	if ok {
+		return sm
+	}
+
 	if purgeable {
 		if len(smm.purgeableClientIDsFIFO) == maxPurgeableSubscriptionManagerClient {
 			toPurge := smm.purgeableClientIDsFIFO[0]
