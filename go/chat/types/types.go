@@ -363,6 +363,7 @@ type SenderPrepareResult struct {
 	ChannelMention      chat1.ChannelMention
 	TopicNameState      *chat1.TopicNameState
 	TopicNameStateConvs []chat1.ConversationID
+	HasBlankTopicName   bool
 }
 
 type ParsedStellarPayment struct {

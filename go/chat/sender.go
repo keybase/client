@@ -464,22 +464,22 @@ func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1
 }
 
 func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType) (topicNameState *chat1.TopicNameState, convIDs []chat1.ConversationID, err error) {
+	membersType chat1.ConversationMembersType) (topicNameState *chat1.TopicNameState, convIDs []chat1.ConversationID, hasBlankTopicName bool, err error) {
 	if msg.ClientHeader.MessageType != chat1.MessageType_METADATA {
-		return topicNameState, convIDs, nil
+		return topicNameState, convIDs, false, nil
 	}
 	tlfID := msg.ClientHeader.Conv.Tlfid
 	topicType := msg.ClientHeader.Conv.TopicType
 	switch topicType {
 	case chat1.TopicType_EMOJICROSS:
 		// skip this for this topic type
-		return topicNameState, convIDs, nil
+		return topicNameState, convIDs, false, nil
 	default:
 	}
 	newTopicName := msg.MessageBody.Metadata().ConversationTitle
 	convs, err := s.G().TeamChannelSource.GetChannelsFull(ctx, msg.ClientHeader.Sender, tlfID, topicType)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, false, err
 	}
 	var validConvs []chat1.ConversationLocal
 	for _, conv := range convs {
@@ -488,6 +488,7 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 		if conv.Error == nil {
 			if conv.GetTopicName() == "" {
 				s.Debug(ctx, "checkTopicNameAndGetState: unnamed channel in play: %s", conv.GetConvID())
+				hasBlankTopicName = true
 			}
 			validConvs = append(validConvs, conv)
 			convIDs = append(convIDs, conv.GetConvID())
@@ -496,17 +497,17 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 				conv.GetConvID())
 		}
 		if conv.GetTopicName() == newTopicName {
-			return nil, nil, DuplicateTopicNameError{Conv: conv}
+			return nil, nil, false, DuplicateTopicNameError{Conv: conv}
 		}
 	}
 
 	ts, err := GetTopicNameState(ctx, s.G(), s.DebugLabeler, validConvs,
 		msg.ClientHeader.Sender, tlfID, topicType, membersType)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, false, err
 	}
 	topicNameState = &ts
-	return topicNameState, convIDs, nil
+	return topicNameState, convIDs, hasBlankTopicName, nil
 }
 
 func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UID,
@@ -926,8 +927,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// server
 	var topicNameState *chat1.TopicNameState
 	var topicNameStateConvs []chat1.ConversationID
+	var hasBlankTopicName bool
 	if !opts.SkipTopicNameState {
-		if topicNameState, topicNameStateConvs, err = s.checkTopicNameAndGetState(ctx, msg, membersType); err != nil {
+		if topicNameState, topicNameStateConvs, hasBlankTopicName, err = s.checkTopicNameAndGetState(ctx, msg, membersType); err != nil {
 			s.Debug(ctx, "Prepare: error checking topic name state: %s", err)
 			return res, err
 		}
@@ -993,6 +995,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		ChannelMention:      chanMention,
 		TopicNameState:      topicNameState,
 		TopicNameStateConvs: topicNameStateConvs,
+		HasBlankTopicName:   hasBlankTopicName,
 	}, nil
 }
 
@@ -1140,6 +1143,23 @@ func (s *BlockingSender) presentUIItem(ctx context.Context, uid gregor1.UID, con
 	return res
 }
 
+func (s *BlockingSender) clearTopicNameCache(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID) {
+	s.Debug(ctx, "Send: clearing inbox cache to retry stale previous state")
+	if err := s.G().InboxSource.Clear(ctx, uid, &types.ClearOpts{
+		SendLocalAdminNotification: true,
+		Reason:                     "stale previous topic state",
+	}); err != nil {
+		s.Debug(ctx, "Send: error clearing: %+v", err)
+	}
+	s.Debug(ctx, "Send: clearing conversation cache to retry: %d convs",
+		len(convIDs))
+	for _, convID := range convIDs {
+		if err := s.G().ConvSource.Clear(ctx, convID, uid, nil); err != nil {
+			s.Debug(ctx, "Send: error clearing: %v %+v", convID, err)
+		}
+	}
+}
+
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID,
 	outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
@@ -1193,6 +1213,13 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			s.Debug(ctx, "Send: error in Prepare: %s", err)
 			return nil, nil, err
 		}
+		if !clearedCache && prepareRes.HasBlankTopicName {
+			s.Debug(ctx, "Send: encountered blank topic name state, clearing caches")
+			s.clearTopicNameCache(ctx, sender, prepareRes.TopicNameStateConvs)
+			clearedCache = true
+			continue
+		}
+
 		boxed = &prepareRes.Boxed
 
 		// Log some useful information about the message we are sending
@@ -1215,24 +1242,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		if err != nil {
 			switch e := err.(type) {
 			case libkb.ChatStalePreviousStateError:
-				// If we hit the stale previous state error, that means we should try again, since our view is
-				// out of date.
+				// If we hit the stale previous state error, that means we
+				// should try again, since our view is out of date.
 				s.Debug(ctx, "Send: failed because of stale previous state, trying the whole thing again")
 				if !clearedCache {
-					s.Debug(ctx, "Send: clearing inbox cache to retry stale previous state")
-					if err := s.G().InboxSource.Clear(ctx, sender, &types.ClearOpts{
-						SendLocalAdminNotification: true,
-						Reason:                     "stale previous topic state",
-					}); err != nil {
-						s.Debug(ctx, "Send: error clearing: %+v", err)
-					}
-					s.Debug(ctx, "Send: clearing conversation cache to retry stale previous state: %d convs",
-						len(prepareRes.TopicNameStateConvs))
-					for _, convID := range prepareRes.TopicNameStateConvs {
-						if err := s.G().ConvSource.Clear(ctx, convID, sender, nil); err != nil {
-							s.Debug(ctx, "Send: error clearing: %v %+v", convID, err)
-						}
-					}
+					s.clearTopicNameCache(ctx, sender, prepareRes.TopicNameStateConvs)
 					clearedCache = true
 				}
 				continue
