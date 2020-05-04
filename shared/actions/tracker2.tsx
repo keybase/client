@@ -7,6 +7,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
+import * as ProfileConstants from '../constants/profile'
 import {WebOfTrustVerificationType} from '../constants/types/more'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
@@ -146,9 +147,15 @@ const loadWebOfTrustEntries = async (
       wotVouches?.map(entry => ({
         attestation: entry.vouchText,
         attestingUser: entry.voucherUsername,
+        otherText: entry.confidence.other,
         proofID: entry.vouchProof,
+        proofs: entry.proofs ?? undefined,
         status: entry.status,
-        verificationType: (entry.confidence?.usernameVerifiedVia || 'none') as WebOfTrustVerificationType,
+        verificationType: (ProfileConstants.choosableWotVerificationTypes.find(
+          x => x === entry.confidence.usernameVerifiedVia
+        )
+          ? entry.confidence.usernameVerifiedVia
+          : 'none') as WebOfTrustVerificationType,
         vouchedAt: entry.vouchedAt,
       })) || []
     return Tracker2Gen.createUpdateWotEntries({

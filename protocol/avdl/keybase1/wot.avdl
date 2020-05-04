@@ -23,6 +23,15 @@ protocol wot {
     @jsonkey("domain,omitempty") string domain; // For dns.
   }
 
+  // One of the vouchee's proofs.
+  // For displaying in the gui.
+  record WotProofUI {
+    string type;
+    string value;
+    array<SizedImage> siteIcon;
+    array<SizedImage> siteIconDarkmode;
+  }
+
   record Confidence {
     @jsonkey("username_verified_via,omitempty")
     UsernameVerificationType usernameVerifiedVia;
@@ -36,8 +45,8 @@ protocol wot {
   void wotVouchCLI(int sessionID, string assertion, string vouchText, Confidence confidence);
 
   enum WotReactionType {
-    ACCEPT_0,
-    REJECT_1
+    REJECT_0,
+    ACCEPT_1
   }
   void wotReact(int sessionID, string voucher, WotReactionType reaction);
 
@@ -50,7 +59,8 @@ protocol wot {
     string voucherUsername;
     string vouchText;
     Time vouchedAt;
-    union { null, Confidence } confidence;
+    Confidence confidence;
+    array<WotProofUI> proofs;
   }
 
   // dismiss notifications for a user vouch

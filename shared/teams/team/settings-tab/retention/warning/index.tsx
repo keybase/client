@@ -11,15 +11,15 @@ type Props = {
   onBack: () => void
 }
 
-const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => void}) =>
-  Styles.isMobile ? (
+const Wrapper = ({children}: {children: React.ReactNode}) =>
+  Styles.isMobile ? (it ad
     <Kb.ScrollView
       style={{...Styles.globalStyles.fillAbsolute, ...Styles.globalStyles.flexBoxColumn}}
       contentContainerStyle={styles.scrollContainer}
       children={children}
     />
   ) : (
-    <Kb.PopupDialog onClose={onBack} children={children} />
+    <Kb.PopupDialog children={children} />
   )
 
 const RetentionWarning = (props: Props) => {
@@ -31,7 +31,7 @@ const RetentionWarning = (props: Props) => {
   }
   const convType: string = getConvType(props.entityType)
   return (
-    <Wrapper onBack={props.onBack}>
+    <Wrapper>
       <Kb.Box style={styles.container}>
         <Kb.Box style={styles.iconBoxStyle}>
           <Kb.Icon

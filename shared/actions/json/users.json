@@ -35,7 +35,8 @@
     },
     "wotReact": {
       "voucher": "string",
-      "reaction": "RPCTypes.WotReactionType"
+      "reaction": "RPCTypes.WotReactionType",
+      "fromModal?": "boolean"
     },
     "reportUser": {
       "_description": "Calls RPC to report user",
