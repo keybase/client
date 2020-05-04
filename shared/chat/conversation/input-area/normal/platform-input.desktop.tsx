@@ -314,7 +314,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
               onClick={this._inputFocus}
               selectable={true}
             >
-              *bold*, _italics_, `code`, >quote, @user, @team, #channel
+              {`*bold*, _italics_, \`code\`, >quote, @user, @team, #channel`}
             </Kb.Text>
           </Kb.Box>
         </Kb.Box>
