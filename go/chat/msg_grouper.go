@@ -158,13 +158,15 @@ func (gr *bulkAddGrouper) makeCombined(ctx context.Context, grouped []chat1.Mess
 	}
 
 	// filter the usernames for people that are actually part of the team
+	seen := make(map[string]bool)
 	for _, username := range usernames {
 		uid, err := gr.G().GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(username))
 		if err != nil {
 			continue
 		}
-		if _, ok := gr.activeMap[uid.String()]; ok {
+		if _, ok := gr.activeMap[uid.String()]; ok && !seen[username] {
 			filteredUsernames = append(filteredUsernames, username)
+			seen[username] = true
 		}
 	}
 	if len(filteredUsernames) == 0 {
@@ -296,7 +298,7 @@ func (gr *addedToTeamGrouper) makeCombined(ctx context.Context, grouped []chat1.
 		return nil
 	}
 
-	bulkAdds := []string{}
+	bulkAdds := make([]string, 0, len(usernames))
 	for username := range usernames {
 		bulkAdds = append(bulkAdds, username)
 	}
