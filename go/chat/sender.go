@@ -1172,7 +1172,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		case chat1.MessageType_JOIN,
 			chat1.MessageType_LEAVE,
 			chat1.MessageType_HEADLINE,
-			chat1.MessageType_METADATA:
+			chat1.MessageType_METADATA,
+			chat1.MessageType_SYSTEM: // don't need to join to send a system message.
 			// pass so we don't loop between Send and Join/Leave or join when
 			// updating the metadata/headline.
 		default:
