@@ -13,15 +13,17 @@ export type Props = {
   teamPolicy: RetentionPolicy
 }
 
-const iconType =
-  props.policy.type === 'explode' || (props.policy.type === 'inherit' && props.teamPolicy.type === 'explode')
-    ? 'iconfont-bomb-solid'
-    : 'iconfont-timer-solid'
-
 const RetentionNotice = (props: Props) => {
   Container.useDepChangeEffect(() => {
     props.measure && props.measure()
   }, [props.canChange, props.policy, props.teamPolicy])
+
+  const iconType =
+    props.policy.type === 'explode' ||
+    (props.policy.type === 'inherit' && props.teamPolicy.type === 'explode')
+      ? 'iconfont-bomb-solid'
+      : 'iconfont-timer-solid'
+
   return (
     <Kb.Box style={styles.container}>
       <Kb.Box style={styles.iconBox}>
