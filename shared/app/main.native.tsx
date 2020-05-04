@@ -17,7 +17,9 @@ const ViewForGatewayDest = (props: any) => <Kb.NativeView {...props} />
 const Main = (_: Props) => {
   // just used to trigger statusbar
   // @ts-ignore TS can't understand this implicit relationship
-  const _dark = Container.useSelector(state => state.config.systemDarkMode)
+  const _darkMode = Container.useSelector(state => state.config.systemDarkMode)
+  // @ts-ignore TS can't understand this implicit relationship
+  const _darkPref = Container.useSelector(state => state.config.darkModePreference)
   return (
     <>
       <Kb.NativeStatusBar key={Styles.isDarkMode() ? 'dark' : 'light'} barStyle={getBarStyle()} />
