@@ -9,34 +9,17 @@ import * as Electron from 'electron'
 import {intersect} from '../util/set'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize} from './remote-serializer.desktop'
-import {isDarwin, isWindows, isLinux} from '../constants/platform'
+import {isDarwin} from '../constants/platform'
 import {isSystemDarkMode} from '../styles/dark-mode'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 import {ProxyProps, RemoteTlfUpdates} from './remote-serializer.desktop'
 import {mapFilterByKey} from '../util/map'
 import {memoize} from '../util/memoize'
 import shallowEqual from 'shallowequal'
+import _getIcons from './icons'
 
 const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
-  const devMode = __DEV__ ? '-dev' : ''
-  let color = 'white'
-  const colorSelected = 'white'
-  const badged = isBadged ? 'badged-' : ''
-  let platform = ''
-
-  if (isDarwin) {
-    color = isSystemDarkMode() ? 'white' : 'black'
-  } else if (isWindows) {
-    color = 'black'
-    platform = 'windows-'
-  }
-
-  const size = isWindows ? 16 : 22
-  const x = isLinux ? '' : '@2x'
-  const icon = `icon-${platform}keybase-menubar-${badged}${iconType}-${color}-${size}${devMode}${x}.png`
-  // Only used on Darwin
-  const iconSelected = `icon-${platform}keybase-menubar-${iconType}-${colorSelected}-${size}${devMode}${x}.png`
-  return [icon, iconSelected]
+  return _getIcons(iconType, isBadged, isSystemDarkMode())
 }
 
 type WidgetProps = {
@@ -70,9 +53,9 @@ function useUpdateBadges(p: WidgetProps, darkCount: number) {
   const {widgetBadge, desktopAppBadgeCount} = p
 
   React.useEffect(() => {
-    const [icon, iconSelected] = getIcons(widgetBadge, desktopAppBadgeCount > 0)
+    const icon = getIcons(widgetBadge, desktopAppBadgeCount > 0)
     Electron.ipcRenderer.invoke('KBmenu', {
-      payload: {desktopAppBadgeCount, icon, iconSelected},
+      payload: {desktopAppBadgeCount, icon},
       type: 'showTray',
     })
   }, [widgetBadge, desktopAppBadgeCount, darkCount])
