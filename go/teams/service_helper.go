@@ -2204,8 +2204,16 @@ func FindAssertionsInTeamNoResolve(mctx libkb.MetaContext, teamID keybase1.TeamI
 		return nil, err
 	}
 
+	// Don't check one assertion more than once, if we got duplicates.
+	checkedAssertions := make(map[string]bool)
+
 	actx := externals.MakeAssertionContext(mctx)
 	for _, assertionStr := range assertions {
+		if _, found := checkedAssertions[assertionStr]; found {
+			continue
+		}
+		checkedAssertions[assertionStr] = true
+
 		assertion, err := libkb.AssertionParseAndOnly(actx, assertionStr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse assertion %q: %w", assertionStr, err)
@@ -2238,6 +2246,9 @@ func FindAssertionsInTeamNoResolve(mctx libkb.MetaContext, teamID keybase1.TeamI
 			uv := user.ToUserVersion()
 			_, kbInviteUV, found := team.FindActiveKeybaseInvite(user.GetUID())
 			if found && kbInviteUV.Eq(uv) {
+				// Either user still doesn't have a PUK, or if they do, they
+				// should be added automatically through team_rekeyd
+				// notification soon.
 				ret = append(ret, assertionStr)
 				continue
 			}

@@ -2443,6 +2443,19 @@ func TestFindAssertionsInTeamForUsers(t *testing.T) {
 		require.Equal(t, otherA.Username, ret[0])
 		require.Equal(t, otherB.Username, ret[1])
 	}
+
+	{
+		// Deduplicate, do not check same assertion more than once.
+		assertions := []string{
+			owner.Username,
+			owner.Username,
+			owner.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, owner.Username, ret[0])
+	}
 }
 
 func TestTeamPlayerIdempotentChangesAssertRole(t *testing.T) {
