@@ -204,7 +204,7 @@
           "type": "Confidence"
         }
       ],
-      "response": null
+      "response": "SigID"
     },
     "wotReact": {
       "request": [

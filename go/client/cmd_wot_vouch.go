@@ -17,6 +17,7 @@ type CmdWotVouch struct {
 	Assertion  string
 	Message    string
 	Confidence keybase1.Confidence
+	SigID      keybase1.SigID
 	libkb.Contextified
 }
 
@@ -94,7 +95,8 @@ func (c *CmdWotVouch) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.WotVouchCLI(context.Background(), arg)
+	c.SigID, err = cli.WotVouchCLI(context.Background(), arg)
+	return err
 }
 
 func (c *CmdWotVouch) GetUsage() libkb.Usage {
