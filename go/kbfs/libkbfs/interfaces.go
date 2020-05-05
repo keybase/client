@@ -741,6 +741,9 @@ type KeybaseService interface {
 	// and sets it if not established.
 	EstablishMountDir(ctx context.Context) (string, error)
 
+	// GetKVStoreClient returns a client for accessing the KVStore service.
+	GetKVStoreClient() keybase1.KvstoreInterface
+
 	// Shutdown frees any resources associated with this
 	// instance. No other methods may be called after this is
 	// called.

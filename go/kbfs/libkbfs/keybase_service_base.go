@@ -42,6 +42,7 @@ type KeybaseServiceBase struct {
 	kbfsClient      keybase1.KbfsInterface
 	kbfsMountClient keybase1.KbfsMountInterface
 	gitClient       keybase1.GitInterface
+	kvstoreClient   keybase1.KvstoreInterface
 	log             logger.Logger
 
 	config     Config
@@ -107,7 +108,7 @@ func (k *KeybaseServiceBase) FillClients(
 	favoriteClient keybase1.FavoriteInterface,
 	kbfsClient keybase1.KbfsInterface,
 	kbfsMountClient keybase1.KbfsMountInterface,
-	gitClient keybase1.GitInterface) {
+	gitClient keybase1.GitInterface, kvstoreClient keybase1.KvstoreClient) {
 	k.identifyClient = identifyClient
 	k.userClient = userClient
 	k.teamsClient = teamsClient
@@ -117,6 +118,7 @@ func (k *KeybaseServiceBase) FillClients(
 	k.kbfsClient = kbfsClient
 	k.kbfsMountClient = kbfsMountClient
 	k.gitClient = gitClient
+	k.kvstoreClient = kvstoreClient
 }
 
 type addVerifyingKeyFunc func(kbfscrypto.VerifyingKey)
@@ -1606,4 +1608,10 @@ func (k *KeybaseServiceBase) PutGitMetadata(
 		RepoID:   repoID,
 		Metadata: metadata,
 	})
+}
+
+// GetKVStoreClient implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) GetKVStoreClient() keybase1.KvstoreInterface {
+	return k.kvstoreClient
 }
