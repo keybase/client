@@ -28,6 +28,16 @@ avdl-compiler@1.4.9:
     lodash "4.17.15"
     minimist "^1.2.0"
 
+avdl-compiler@keybase/node-avdl-compiler#marcel/gomod-support:
+  version "1.4.10"
+  resolved "https://codeload.github.com/keybase/node-avdl-compiler/tar.gz/e5db32f7c4ce1b4b61711e1b9e9b63c4d4bf9c3c"
+  dependencies:
+    avdl2json "^2.2.5"
+    iced-error "0.0.9"
+    iced-runtime "^1.0.3"
+    lodash "4.17.15"
+    minimist "^1.2.0"
+
 avdl2json@2.2.5, avdl2json@^2.2.5:
   version "2.2.5"
   resolved "https://registry.yarnpkg.com/avdl2json/-/avdl2json-2.2.5.tgz#65b05673325217f5aa0a9fd03b138bbfc3cf60e7"

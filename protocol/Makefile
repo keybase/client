@@ -36,11 +36,11 @@ go-build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/
 	@mkdir -p ../go/protocol/chat1
 	@mkdir -p ../go/protocol/stellar1
 	@mkdir -p ../go/protocol/kbgitkbfs1
-	$(AVDLC) -b -l go -o ../go/protocol/keybase1 avdl/keybase1/*.avdl
-	$(AVDLC) -b -l go -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
-	$(AVDLC) -b -l go -o ../go/protocol/chat1 avdl/chat1/*.avdl
-	$(AVDLC) -b -l go -o ../go/protocol/stellar1 avdl/stellar1/*.avdl
-	$(AVDLC) -b -l go -o ../go/protocol/kbgitkbfs1 avdl/kbgitkbfs1/*.avdl
+	$(AVDLC) -b -l go -m -o ../go/protocol/keybase1 avdl/keybase1/*.avdl
+	$(AVDLC) -b -l go -m -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
+	$(AVDLC) -b -l go -m -o ../go/protocol/chat1 avdl/chat1/*.avdl
+	$(AVDLC) -b -l go -m -o ../go/protocol/stellar1 avdl/stellar1/*.avdl
+	$(AVDLC) -b -l go -m -o ../go/protocol/kbgitkbfs1 avdl/kbgitkbfs1/*.avdl
 	(cd ../go/protocol && go fmt ./...)
 	date > $@
 
@@ -51,19 +51,19 @@ js/rpc.js: build-stamp | config
 	cp ./js/engine-gen.json ../shared/actions/json
 
 build-go-bot-types: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/stellar1/*.avdl $(AVDLC) | config
-	$(AVDLC) -b -l go -t -o ../../go-keybase-chat-bot/kbchat/types/keybase1 avdl/keybase1/*.avdl
-	$(AVDLC) -b -l go -t -o ../../go-keybase-chat-bot/kbchat/types/gregor1 avdl/gregor1/*.avdl
-	$(AVDLC) -b -l go -t -o ../../go-keybase-chat-bot/kbchat/types/chat1 avdl/chat1/*.avdl
-	$(AVDLC) -b -l go -t -o ../../go-keybase-chat-bot/kbchat/types/stellar1 avdl/stellar1/*.avdl
+	$(AVDLC) -b -l go -m -t -o ../../go-keybase-chat-bot/kbchat/types/keybase1 avdl/keybase1/*.avdl
+	$(AVDLC) -b -l go -m -t -o ../../go-keybase-chat-bot/kbchat/types/gregor1 avdl/gregor1/*.avdl
+	$(AVDLC) -b -l go -m -t -o ../../go-keybase-chat-bot/kbchat/types/chat1 avdl/chat1/*.avdl
+	$(AVDLC) -b -l go -m -t -o ../../go-keybase-chat-bot/kbchat/types/stellar1 avdl/stellar1/*.avdl
 	(cd ../../go-keybase-chat-bot/kbchat/types && goimports -w .)
 
 clean:
 	rm -rf json/*.json json/*/*.json js/* *build-stamp
-	$(AVDLC) -c -b -l go -o ../go/protocol/keybase1 avdl/keybase1/*.avdl
-	$(AVDLC) -c -b -l go -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
-	$(AVDLC) -c -b -l go -o ../go/protocol/chat1 avdl/chat1/*.avdl
-	$(AVDLC) -c -b -l go -o ../go/protocol/stellar1 avdl/stellar1/*.avdl
-	$(AVDLC) -c -b -l go -o ../go/protocol/kbgitkbfs1 avdl/kbgitkbfs1/*.avdl
+	$(AVDLC) -c -b -l go -m -o ../go/protocol/keybase1 avdl/keybase1/*.avdl
+	$(AVDLC) -c -b -l go -m -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
+	$(AVDLC) -c -b -l go -m -o ../go/protocol/chat1 avdl/chat1/*.avdl
+	$(AVDLC) -c -b -l go -m -o ../go/protocol/stellar1 avdl/stellar1/*.avdl
+	$(AVDLC) -c -b -l go -m -o ../go/protocol/kbgitkbfs1 avdl/kbgitkbfs1/*.avdl
 
 fmt:
 	@./fmt.sh

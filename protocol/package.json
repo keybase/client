@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/keybase/protocol",
   "dependencies": {
-    "avdl-compiler": "1.4.9",
+    "avdl-compiler": "keybase/node-avdl-compiler#marcel/gomod-support",
     "avdl2json": "2.2.5",
     "bluebird": "^2.10.0",
     "camelcase": "^4.0.0",
