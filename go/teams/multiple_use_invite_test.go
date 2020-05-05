@@ -415,6 +415,8 @@ func TestSeitanHandleExpiredInvite(t *testing.T) {
 }
 
 func TestSeitanHandleRequestAfterRoleChange(t *testing.T) {
+	t.Skip("Test is flaky. To be fixed.")
+
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
