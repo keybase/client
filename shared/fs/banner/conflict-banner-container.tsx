@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
         ],
       })
     ),
-  onHelp: () => openUrl('https://keybase.io/docs/kbfs/understanding_kbfs#conflict-resolution'),
+  onHelp: () => openUrl('https://book.keybase.io/docs/files/details#conflict-resolution'),
   onStartResolving: () => dispatch(FsGen.createStartManualConflictResolution({tlfPath: ownProps.path})),
   openInSystemFileManager: (path: Types.Path) => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })

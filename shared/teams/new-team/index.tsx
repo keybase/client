@@ -5,7 +5,7 @@ import * as Container from '../../util/container'
 import openUrl from '../../util/open-url'
 import * as Styles from '../../styles'
 
-const openSubteamInfo = () => openUrl('https://keybase.io/docs/teams/design')
+const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design')
 
 type Props = {
   baseTeam?: string // if set we're creating a subteam of this teamname

@@ -54,7 +54,7 @@ export const InfoIcon = Container.namedConnect(
         })
       )
     },
-    onDocumentation: () => openURL('https://keybase.io/docs'),
+    onDocumentation: () => openURL('https://book.keybase.io/docs'),
   }),
   (s, d, o: InfoIconOwnProps) => ({
     ...o,
