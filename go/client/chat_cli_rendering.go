@@ -352,7 +352,6 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	}
 
 	table := &flexibletable.Table{}
-	visualIndex := 0
 	for i := len(v.messages) - 1; i >= 0; i-- {
 		m := v.messages[i]
 		mv, err := newMessageView(g, v.conversation.Info.Id, m)
@@ -381,12 +380,11 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 			authorAndTime = mv.AuthorAndTime
 		}
 
-		visualIndex++
 		err = table.Insert(flexibletable.Row{
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
 				Alignment: flexibletable.Right,
-				Content:   flexibletable.SingleCell{Item: strconv.Itoa(visualIndex)},
+				Content:   flexibletable.SingleCell{Item: strconv.Itoa(int(mv.MessageID))},
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Center,
@@ -419,7 +417,7 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 		}
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5,                                     // visualIndex
+		5,                                     // messageID
 		1,                                     // unread
 		flexibletable.ColumnConstraint(w / 5), // authorAndTime
 		flexibletable.ColumnConstraint(w / 5), // restrictedBotInfo
