@@ -1778,6 +1778,7 @@ func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) <-chan struct{} 
 	select {
 	case <-cache.shutdownCh:
 		cache.log.CWarningf(ctx, "Shutdown called more than once")
+		return cache.doneCh
 	default:
 	}
 	close(cache.shutdownCh)
