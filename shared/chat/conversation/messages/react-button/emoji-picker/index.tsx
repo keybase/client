@@ -122,7 +122,9 @@ type Props = {
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
   onHighlight?: (index: number) => void
+  onSelectRow?: (index: number) => void
   highlightIndex?: number
+  selectedRow?: number
   skinTone?: Types.EmojiSkinTone
   customEmojiGroups?: RPCChatGen.EmojiGroup[]
   width: number
@@ -302,31 +304,43 @@ class EmojiPicker extends React.PureComponent<Props, State> {
       </Kb.Box2>
     )
 
-  private keyDownHandler = (ev: KeyboardEvent, emojisPerLine: number) => {
-    console.warn(ev.key)
-    if (!this.props.highlightIndex) {
+  private keyDownHandler = (ev: KeyboardEvent, emojisPerLine: number, sections: Section[]) => {
+    if (this.props.highlightIndex === undefined || this.props.selectedRow === undefined) {
       return
     }
+    console.warn('okay gonna highlight a index')
+    const thisRow = this.props.selectedRow
+    let newIndex = this.props.highlightIndex
     switch (ev.key) {
       case 'ArrowRight':
-        this.props.onHighlight?.(this.props.highlightIndex + 1)
+        newIndex += 1
         break
       case 'ArrowLeft':
-        this.props.onHighlight?.(this.props.highlightIndex - 1)
+        newIndex -= 1
         break
       case 'ArrowDown':
-        this.props.onHighlight?.(this.props.highlightIndex + emojisPerLine)
+        newIndex += emojisPerLine
         break
       case 'ArrowUp':
-        // TODO: add a nice minimum at zero for this
-        let toHighlight = this.props.highlightIndex - emojisPerLine
-        if (toHighlight < 0) {
-          toHighlight = 0
-        }
-        this.props.onHighlight?.(toHighlight)
+        newIndex -= emojisPerLine
         break
       default:
         break
+    }
+
+    console.warn(newIndex)
+
+    // todo: is this incorrect
+    console.warn(sections[thisRow].data)
+    if (newIndex >= sections[thisRow].data.length * emojisPerLine) {
+      this.props.onHighlight?.(((newIndex % emojisPerLine) + emojisPerLine) % emojisPerLine)
+      this.props.onSelectRow?.(thisRow + 1)
+    } else if (newIndex < 0) {
+      console.warn('modded index', ((newIndex % emojisPerLine) + emojisPerLine) % emojisPerLine)
+      this.props.onHighlight?.(((newIndex % emojisPerLine) + emojisPerLine) % emojisPerLine)
+      this.props.onSelectRow?.(thisRow === 0 ? 0 : thisRow - 1)
+    } else {
+      this.props.onHighlight?.(newIndex)
     }
   }
 
@@ -478,8 +492,8 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
     return (
       <KeyEventHandler
-        onKeyPress={ev => this.keyDownHandler(ev, emojisPerLine, highlightedRow)}
-        onKeyDown={ev => this.keyDownHandler(ev, emojisPerLine, highlightedRow)}
+        onKeyPress={ev => this.keyDownHandler(ev, emojisPerLine, sections)}
+        onKeyDown={ev => this.keyDownHandler(ev, emojisPerLine, sections)}
       >
         {content}
       </KeyEventHandler>
