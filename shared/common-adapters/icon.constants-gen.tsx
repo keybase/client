@@ -214,6 +214,7 @@ export type IconType =
   | 'icon-dark-fancy-revoked-phone-mobile-226-96'
   | 'icon-dark-fancy-unfurl-preview-desktop-96-96'
   | 'icon-dark-fancy-unfurl-preview-mobile-128-128'
+  | 'icon-dark-fancy-user-card-desktop-80-99'
   | 'icon-dark-fancy-user-card-mobile-120-149'
   | 'icon-dark-file-16'
   | 'icon-dark-file-32'
@@ -2983,6 +2984,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-fancy-unfurl-preview-mobile-128-128.png')
     },
   },
+  'icon-dark-fancy-user-card-desktop-80-99': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
+    },
+  },
   'icon-dark-fancy-user-card-mobile-120-149': {
     extension: 'png',
     imagesDir: 'icons',
@@ -5339,8 +5348,12 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-fancy-user-card-desktop-80-99',
     get require() {
       return require('../images/icons/icon-fancy-user-card-desktop-80-99.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
     },
   },
   'icon-fancy-user-card-mobile-120-149': {
