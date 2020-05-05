@@ -340,9 +340,8 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
     [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
   } else {
-    [[[PushNotifier alloc] init] localNotification:@"extension" msg:@"We failed to send your message. Please try from the Keybase app."
-                                        badgeCount:-1 soundName:@"default" convID:@"" typ:@"chat.extension"];
-    [self completeItemAndAppendManifestAndLogErrorWithText:@"unknown type" error:nil];
+    // Example: pdf in Safari
+    [item loadItemForTypeIdentifier:@"public.data" options:nil completionHandler: fileHandler];
   }
 }
 
