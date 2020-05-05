@@ -26,6 +26,7 @@ export const ContactRestricted = (props: Props) => {
   let contactRestrictedUsers: Array<string> = []
   let brokenFollowUsers: Array<string> = []
   let footerBtnLabel = 'Okay'
+  let showBack = true
   const firstUser = props.usernamesWithContactRestr
     ? props.usernamesWithContactRestr[0]
       ? props.usernamesWithContactRestr[0]
@@ -57,6 +58,7 @@ export const ContactRestricted = (props: Props) => {
       descriptionContactRestricted = 'Their contact restrictions prevent you from adding them to a team.'
       if (flags.teamsRedesign) {
         onBack = onFinishTeamWizard
+        showBack = false
       }
       break
     }
@@ -69,6 +71,7 @@ export const ContactRestricted = (props: Props) => {
       footerBtnLabel = 'Continue anyway'
       if (flags.teamsRedesign) {
         onBack = onFinishTeamWizard
+        showBack = false
       }
       break
   }
@@ -76,7 +79,7 @@ export const ContactRestricted = (props: Props) => {
     <Kb.Modal
       onClose={onBack}
       header={
-        Styles.isMobile
+        Styles.isMobile && showBack
           ? {
               leftButton: <Kb.BackButton onClick={onBack} />,
             }
@@ -84,15 +87,14 @@ export const ContactRestricted = (props: Props) => {
       }
       footer={{
         content: (
-          <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton
-              type="Default"
-              label={footerBtnLabel}
-              onClick={onBack}
-              style={styles.button}
-              waitingKey={null}
-            />
-          </Kb.ButtonBar>
+          <Kb.WaitingButton
+            type="Default"
+            label={footerBtnLabel}
+            onClick={onBack}
+            style={styles.button}
+            waitingKey={null}
+            fullWidth={true}
+          />
         ),
         hideBorder: true,
       }}
