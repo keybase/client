@@ -5,6 +5,7 @@ import * as Styles from '../styles'
 import {useVideoSizer, CheckURL} from './video.shared'
 import RNVideo from 'react-native-video'
 import {StatusBar} from 'react-native'
+import useFixStatusbar from './use-fix-statusbar.native'
 
 const Kb = {
   Box,
@@ -24,11 +25,7 @@ const DelayMount = ({children}) => {
 
 const Video = (props: Props) => {
   const [videoSize, setContainerSize, setVideoNaturalSize] = useVideoSizer()
-  // Somehow onFullscreenPlayerDidDismiss doesn't trigger, and RNVideo doesn't
-  // automatically bring back the status bar either. As a workaround, call it
-  // on unmount so at least we get the status bar back when user leaves the
-  // screen.
-  React.useEffect(() => () => StatusBar.setHidden(false), [])
+  useFixStatusbar()
   return (
     <CheckURL url={props.url}>
       <DelayMount>

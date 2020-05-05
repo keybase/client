@@ -9760,7 +9760,7 @@ func (fbo *folderBranchOps) handleEditActivity(
 		if rmd != (ImmutableRootMetadata{}) {
 			_ = fbo.kickOffEditActivityPartialSync(ctx, lState, rmd)
 		}
-		fbo.favs.RefreshCacheWhenMTimeChanged(ctx)
+		fbo.favs.RefreshCacheWhenMTimeChanged(ctx, fbo.id())
 		fbo.editActivity.Done()
 	}()
 

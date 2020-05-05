@@ -383,9 +383,6 @@ protocol local {
 
     @mpackkey("b") @jsonkey("b")
     union { null, gregor1.UID } botUID;
-
-    @mpackkey("t") @jsonkey("t")
-    union { null, array<stellar1.TransactionID>} txIDs;
   }
 
   // HeaderPlaintext is a variant container for all the
