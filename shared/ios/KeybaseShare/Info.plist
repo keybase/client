@@ -21,78 +21,25 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSExtension</key>
-        <dict>
-            <key>NSExtensionAttributes</key>
-            <dict>
-                <key>NSExtensionActivationRule</key>
-                <string>SUBQUERY (
-                    extensionItems,
-                    $extensionItem,
-                    SUBQUERY (
-                    $extensionItem.attachments,
-                    $attachment,
-                    (
-                    ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.adobe.pdf"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.adobe.postscript-font"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.application"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.bundle"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.package"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.resolvable"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.compuserve.gif"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.microsoft.advanced-systems-format"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.microsoft.bmp"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.3gpp"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.3gpp2"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.aifc-audio"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.aiff-audio"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.archive"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.assembly-source"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.audio"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.audiovisual-content"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.avi"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.calendar-event"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.camera-raw-image"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.case-insensitive-text"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.composite-content"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.content"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.cpio-archive"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.csh-script"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.image"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.fax"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.font"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.jpeg"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.jpeg-2000"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.mig-source"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.movie"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.mpeg4"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.object-code"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.opentype-font"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.perl-script"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.php-script"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.plain-text"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.png"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.presentation"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.python-script"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.ruby-script"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.script"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.shell-script"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.source-code"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.tar-archive"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.text"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.truetype-collection-font"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.truetype-font"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.truetype-ttf-font"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.ulaw-audio"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url-name"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.xbitmap-image"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.xml"
-                    || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.file-url"
-                    )
-                    ).@count >=1
-                    ).@count >= 1
-                </string>
-            </dict>
+	<dict>
+		<key>NSExtensionAttributes</key>
+		<dict>
+			<key>NSExtensionActivationRule</key>
+			<dict>
+				<key>NSExtensionActivationSupportsFileWithMaxCount</key>
+				<integer>999</integer>
+				<key>NSExtensionActivationSupportsImageWithMaxCount</key>
+				<integer>999</integer>
+				<key>NSExtensionActivationSupportsMovieWithMaxCount</key>
+				<integer>999</integer>
+				<key>NSExtensionActivationSupportsText</key>
+				<true/>
+				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
+				<integer>1</integer>
+				<key>NSExtensionActivationSupportsWebPageWithMaxCount</key>
+				<integer>1</integer>
+			</dict>
+		</dict>
 		<key>NSExtensionMainStoryboard</key>
 		<string>MainInterface</string>
 		<key>NSExtensionPointIdentifier</key>
