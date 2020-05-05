@@ -8,13 +8,12 @@ import {mainWindowDispatch, getMainWindow} from '../remote/util.desktop'
 import {menubar} from 'menubar'
 import {resolveRoot, resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
+import getIcons from '../../menubar/icons'
+import {workingIsDarkMode} from '../../util/safe-electron.desktop'
 
 const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`)
 
-let icon = isWindows
-  ? 'icon-windows-keybase-menubar-regular-black-16@2x.png'
-  : 'icon-keybase-menubar-regular-white-22@2x.png'
-let selectedIcon = icon
+let iconPath = getIcons('regular', false, workingIsDarkMode())
 
 type Bounds = {
   x: number
@@ -37,12 +36,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       },
       width: 360,
     },
-    icon: resolveImage(
-      'menubarIcon',
-      isWindows
-        ? 'icon-windows-keybase-menubar-regular-black-16@2x.png'
-        : 'icon-keybase-menubar-regular-white-22@2x.png'
-    ),
+    icon: resolveImage('menubarIcon', iconPath),
     index: htmlFile,
     preloadWindow: true,
     // Without this flag set, menubar will hide the dock icon when the app
@@ -51,10 +45,10 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     showDockIcon: true,
   })
 
-  const updateIcon = (selected: boolean) => {
-    const i = selected ? selectedIcon : icon
+  const updateIcon = () => {
     try {
-      i && mb.tray.setImage(resolveImage('menubarIcon', i))
+      const resolved = resolveImage('menubarIcon', iconPath)
+      mb.tray.setImage(resolved)
     } catch (err) {
       console.error('menu icon err: ' + err)
     }
@@ -72,9 +66,8 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
   Electron.ipcMain.handle('KBmenu', (_: any, action: Action) => {
     switch (action.type) {
       case 'showTray': {
-        icon = action.payload.icon
-        selectedIcon = action.payload.iconSelected
-        updateIcon(false)
+        iconPath = action.payload.icon
+        updateIcon()
         const dock = Electron.app.dock
         if (dock && dock.isVisible()) {
           Electron.app.badgeCount = action.payload.desktopAppBadgeCount
@@ -103,6 +96,8 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         param: '',
       })
     )
+
+    mb.tray.setIgnoreDoubleClickEvents(true)
 
     mb.window && menubarWindowIDCallback(mb.window.id)
 
@@ -175,11 +170,8 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         })
       )
       adjustForWindows()
-      isDarwin && updateIcon(true)
     })
-    mb.on('hide', () => {
-      isDarwin && updateIcon(false)
-    })
+    mb.on('hide', () => {})
     mb.on('after-show', () => {
       logger.info('Showing menubar at', mb.window && mb.window.getBounds())
     })

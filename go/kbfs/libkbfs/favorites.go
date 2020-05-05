@@ -36,7 +36,7 @@ const (
 	// on startup). Reasonably low in case we're offline.
 	favoritesServerTimeoutWhenCacheExpired = 500 * time.Millisecond
 	favoritesBackgroundRefreshTimeout      = 15 * time.Second
-	favoritesBufferedReqInterval           = 5 * time.Second
+	defaultFavoritesBufferedReqInterval    = 5 * time.Second
 )
 
 var errNoFavoritesCache = errors.New("disk favorites cache not present")
@@ -61,6 +61,7 @@ type favReq struct {
 	// Request types
 	clear              bool
 	refresh            bool
+	refreshID          tlf.ID
 	buffered           bool
 	toAdd              []favorites.ToAdd
 	toDel              []favorites.Folder
@@ -89,9 +90,10 @@ type homeTLFInfo struct {
 
 // Favorites manages a user's favorite list.
 type Favorites struct {
-	config   Config
-	disabled bool
-	log      logger.Logger
+	config           Config
+	disabled         bool
+	log              logger.Logger
+	bufferedInterval time.Duration
 
 	// homeTLFInfo stores the IDs for the logged-in user's home TLFs
 	homeTLFInfo homeTLFInfo
@@ -102,8 +104,9 @@ type Favorites struct {
 	// Channel that is full when there is already a refresh queued
 	refreshWaiting chan struct{}
 
-	wg     kbfssync.RepeatedWaitGroup
-	loopWG kbfssync.RepeatedWaitGroup
+	wg         kbfssync.RepeatedWaitGroup
+	bufferedWg kbfssync.RepeatedWaitGroup
+	loopWG     kbfssync.RepeatedWaitGroup
 
 	// cache tracks the favorites for this user, that we know about.
 	// It may not be consistent with the server's view of the user's
@@ -120,6 +123,9 @@ type Favorites struct {
 
 	inFlightLock sync.Mutex
 	inFlightAdds map[favorites.Folder]*favReq
+
+	idLock        sync.Mutex
+	lastRefreshID tlf.ID
 
 	shutdownChan chan struct{}
 	muShutdown   sync.RWMutex
@@ -142,13 +148,14 @@ func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 	}
 
 	f := &Favorites{
-		config:          config,
-		reqChan:         reqChan,
-		bufferedReqChan: make(chan *favReq, 1),
-		refreshWaiting:  make(chan struct{}, 1),
-		inFlightAdds:    make(map[favorites.Folder]*favReq),
-		log:             log,
-		shutdownChan:    make(chan struct{}),
+		config:           config,
+		reqChan:          reqChan,
+		bufferedReqChan:  make(chan *favReq, 1),
+		refreshWaiting:   make(chan struct{}, 1),
+		inFlightAdds:     make(map[favorites.Folder]*favReq),
+		log:              log,
+		bufferedInterval: defaultFavoritesBufferedReqInterval,
+		shutdownChan:     make(chan struct{}),
 	}
 
 	return f
@@ -395,6 +402,23 @@ func favoriteToFolder(fav favorites.Folder, data favorites.Data) keybase1.Folder
 	}
 }
 
+func (f *Favorites) doIDRefresh(id tlf.ID) bool {
+	f.idLock.Lock()
+	defer f.idLock.Unlock()
+
+	if f.lastRefreshID == id {
+		return false
+	}
+	f.lastRefreshID = id
+	return true
+}
+
+func (f *Favorites) clearLastRefreshID() {
+	f.idLock.Lock()
+	defer f.idLock.Unlock()
+	f.lastRefreshID = tlf.NullID
+}
+
 func (f *Favorites) handleReq(req *favReq) (err error) {
 	defer f.wg.Done()
 
@@ -409,6 +433,11 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 
 	if req.refresh && !req.buffered {
 		<-f.refreshWaiting
+	}
+
+	if req.refresh && req.refreshID != tlf.NullID &&
+		!f.doIDRefresh(req.refreshID) {
+		return nil
 	}
 
 	kbpki := f.config.KBPKI()
@@ -497,6 +526,10 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				"Serving possibly stale favorites; new data could not be"+
 					" fetched: %v", err)
 		} else { // Successfully got new favorites from server.
+			if req.refreshID == tlf.NullID {
+				f.clearLastRefreshID()
+			}
+
 			session, sessionErr := kbpki.GetCurrentSession(req.ctx)
 			oldCache := f.favCache
 			f.newCache = make(map[favorites.Folder]favorites.Data)
@@ -630,7 +663,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 func (f *Favorites) loop() {
 	f.loopWG.Add(1)
 	defer f.loopWG.Done()
-	bufferedTicker := time.NewTicker(favoritesBufferedReqInterval)
+	bufferedTicker := time.NewTicker(f.bufferedInterval)
 	defer bufferedTicker.Stop()
 
 	for {
@@ -900,8 +933,12 @@ func (f *Favorites) RefreshCache(ctx context.Context, mode FavoritesRefreshMode)
 
 // RefreshCacheWhenMTimeChanged refreshes the cached favorites, but
 // does so with rate-limiting, so that it doesn't hit the server too
-// often.
-func (f *Favorites) RefreshCacheWhenMTimeChanged(ctx context.Context) {
+// often.  `id` is the ID of the TLF that caused this refresh to
+// happen.  As an optimization, if `id` matches the previous `id` that
+// triggered a refresh, then we just ignore the refresh since it won't
+// materially change the order of the favorites by mtime.
+func (f *Favorites) RefreshCacheWhenMTimeChanged(
+	ctx context.Context, id tlf.ID) {
 	f.muShutdown.RLock()
 	defer f.muShutdown.RUnlock()
 	if f.disabled || f.shutdown {
@@ -909,14 +946,17 @@ func (f *Favorites) RefreshCacheWhenMTimeChanged(ctx context.Context) {
 	}
 
 	req := &favReq{
-		refresh:  true,
-		buffered: true,
-		done:     make(chan struct{}),
-		ctx:      context.Background(),
+		refresh:   true,
+		refreshID: id,
+		buffered:  true,
+		done:      make(chan struct{}),
+		ctx:       context.Background(),
 	}
+	f.bufferedWg.Add(1)
 	select {
 	case f.bufferedReqChan <- req:
 		go func() {
+			defer f.bufferedWg.Done()
 			select {
 			case <-req.done:
 				if req.err != nil {
@@ -928,6 +968,7 @@ func (f *Favorites) RefreshCacheWhenMTimeChanged(ctx context.Context) {
 		}()
 	default:
 		// There's already a buffered request waiting.
+		f.bufferedWg.Done()
 	}
 }
 
