@@ -1856,6 +1856,15 @@
     "simpleFSGetIndexProgress": {
       "request": [],
       "response": "SimpleFSIndexProgress"
+    },
+    "simpleFSCancelJournalUploads": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
