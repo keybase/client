@@ -1589,56 +1589,20 @@ const addMembersWizardPushMembers = async (
 ) => {
   // Call FindAssertionsInTeamNoResolve RPC and pass the results along with the
   // members to addMembersWizardSetMembers action.
+  const {teamID} = state.teams.addMembersWizard
+  const assertions = action.payload.members
+    .filter(member => member.assertion.includes('@') || !!member.resolvedFrom)
+    .map(({assertion}) => assertion)
 
-  const wizardState = state.teams.addMembersWizard
-
-  // Find assertions that we are going to call FindAssertionsInTeam~ on to
-  // see if they are already in team. Skip all that are already in the
-  // wizard. Usernames are only checked if they come with entries that have
-  // `resolvedFrom` field set - which means they were a phone number or email
-  // assertion that resolved to a user. Do not check all usernames because
-  // finding team members is slower than finding team invites.
-  const newAssertions = action.payload.members.filter(
-    member =>
-      (member.assertion.includes('@') || !!member.resolvedFrom) &&
-      !wizardState.addingMembers.find(x => x.assertion === member.assertion)
-  )
-
-  let assertionsInTeam = new Set<string>()
-  // `membersAlreadyInTeam` is used in the message for the user about which
-  // assertions were already invited to the team.
-  let membersAlreadyInTeam = new Set<string>()
-  if (newAssertions.length > 0) {
-    const foundAssertions = await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
-      // We don't have to dedup assertions here - RPC layer is fine with duplicates.
-      assertions: newAssertions.map(x => x.assertion),
-      teamID: wizardState.teamID,
-    })
-    if (foundAssertions && foundAssertions.length > 0) {
-      // Make a set of found assertions for faster filtering later.
-      assertionsInTeam = new Set(foundAssertions)
-      // Need to go back to original assertion here if it was resolved from
-      // imptofu to display to users.
-      membersAlreadyInTeam = newAssertions.reduce((acc, cur) => {
-        if (assertionsInTeam.has(cur.assertion)) {
-          acc.add(cur.resolvedFrom ?? cur.assertion)
-        }
-        return acc
-      }, new Set<string>())
-    }
-  }
-
-  // Add members to wizard, filtering out ones that are already in team,
-  // coercing roles, as well as deduplication and keeping proper ordering.
-  const members = Constants.dedupAddingMembeers(
-    state.teams.addMembersWizard.addingMembers,
-    action.payload.members.filter(x => !assertionsInTeam.has(x.assertion)).map(Constants.coerceAssertionRole)
-  )
+  const existingAssertions = await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
+    assertions,
+    teamID,
+  })
 
   return [
-    TeamsGen.createAddMembersWizardSetMembers({
-      members,
-      membersAlreadyInTeam: Array.from(membersAlreadyInTeam),
+    TeamsGen.createAddMembersWizardAddMembers({
+      members: action.payload.members,
+      assertionsInTeam: existingAssertions ?? [],
     }),
     RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}),
   ]

@@ -366,15 +366,36 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setJustFinishedAddMembersWizard]: (draftState, action) => {
     draftState.addMembersWizard.justFinished = action.payload.justFinished
   },
-  [TeamsGen.addMembersWizardSetMembers]: (draftState, action) => {
-    draftState.addMembersWizard.addingMembers = action.payload.members
-    draftState.addMembersWizard.membersAlreadyInTeam = action.payload.membersAlreadyInTeam
+  [TeamsGen.addMembersWizardAddMembers]: (draftState, action) => {
+    const {members} = action.payload
+    const assertionsInTeam = new Set(action.payload.assertionsInTeam)
 
-    // If add member wizard role is currently set to admin or owner and we are
-    // adding an assertion, change wizard's role to "set individually".
+    // Set `membersAlreadyInTeam` first. It's only shown for last add, so
+    // just overwrite the list.
+    //
+    // Prefer to show "resolvedFrom" which will contain the original assertion
+    // that user tried to add (e.g. phone number or email) in case it resolved
+    // to a user that's already in the team.
+    draftState.addMembersWizard.membersAlreadyInTeam = members
+      .filter(m => assertionsInTeam.has(m.assertion))
+      .map(m => m.resolvedFrom ?? m.assertion)
+
+    // - Filter out all members that are already in team as team members or
+    //   team invites.
+    // - De-duplicate with current addingMembers list
+    // - Coerce assertion role (ensures it's no higher than 'writer' for
+    //   non-usernames).
+    const filteredMembers = members.filter(m => !assertionsInTeam.has(m.assertion))
+    draftState.addMembersWizard.addingMembers = Constants.dedupAddingMembeers(
+      draftState.addMembersWizard.addingMembers,
+      filteredMembers.map(Constants.coerceAssertionRole)
+    )
+
+    // Check if after adding the new batch of members we are not violating the
+    // "only Keybase users can be added as admins" contract.
     if (
       ['admin', 'owner'].includes(draftState.addMembersWizard.role) &&
-      action.payload.members.some(m => m.assertion.includes('@'))
+      filteredMembers.some(m => m.assertion.includes('@'))
     ) {
       if (isPhone) {
         draftState.addMembersWizard.role = 'writer'

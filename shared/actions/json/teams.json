@@ -379,13 +379,13 @@
       "creatingChannels": "boolean"
     },
     "addMembersWizardPushMembers": {
-      "_description": "Add list of members to the add members wizard and show the confirm screen.",
+      "_description": "Should be called when user is trying to add new assertions to the wizard",
       "members": "Array<Types.AddingMember>"
     },
-    "addMembersWizardSetMembers": {
-      "_description": "Set member list for add members wizard confirmation screen, and members that are already in team and has been skipped.",
+    "addMembersWizardAddMembers": {
+      "_description": "Takes a member list and appends it to wizard state, using assertionsInTeam as a filter. When filtering, it also maintains membersAlreadyInTeam list.",
       "members": "Array<Types.AddingMember>",
-      "membersAlreadyInTeam": "Array<string>"
+      "assertionsInTeam": "Array<string>"
     },
     "addMembersWizardRemoveMember": {
       "_description": "Remove a pending member from the add members wizard.",
