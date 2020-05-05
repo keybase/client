@@ -2584,12 +2584,12 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
         ...tabSwitchAction,
       ]
     } else {
-      // looking at the pending / waiting screen
+      // replace if looking at the pending / waiting screen
       const replace =
         visibleRouteName === Constants.threadRouteName && !Constants.isValidConversationIDKey(visibleConvo)
+      // note: we don't switch tabs on non split
       return [
         ...modalClearAction,
-        ...tabSwitchAction,
         RouteTreeGen.createNavigateAppend({
           path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
           replace,
