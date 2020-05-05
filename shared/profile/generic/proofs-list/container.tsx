@@ -15,7 +15,7 @@ export default namedConnect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     onCancel: dispatchProps.onCancel,
-    onClickLearn: () => openURL('https://keybase.io/docs/proof_integration_guide'),
+    onClickLearn: () => openURL('https://book.keybase.io/guides/proof-integration-guide'),
     providerClicked: dispatchProps.providerClicked,
     providers: stateProps._proofSuggestions.map(s => ({
       desc: s.pickerSubtext,
