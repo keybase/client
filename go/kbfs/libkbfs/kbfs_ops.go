@@ -1920,6 +1920,16 @@ func (fs *KBFSOpsStandard) ForceStuckConflictForTesting(
 	return fbo.forceStuckConflictForTesting(ctx)
 }
 
+// CancelUploads implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) CancelUploads(
+	ctx context.Context, folderBranch data.FolderBranch) error {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpAdd)
+	return ops.CancelUploads(ctx, folderBranch)
+}
+
 // GetSyncConfig implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetSyncConfig(
 	ctx context.Context, tlfID tlf.ID) (keybase1.FolderSyncConfig, error) {
