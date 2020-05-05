@@ -894,3 +894,15 @@ func (s *SimpleFSHandler) SimpleFSDismissUpload(
 	defer cancel()
 	return cli.SimpleFSDismissUpload(ctx, uploadID)
 }
+
+// SimpleFSDismissUpload implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSCancelJournalUploads(
+	ctx context.Context, path keybase1.Path) (err error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
+	// No timeouts since this can be a long operation if the folder is
+	// large or the disk is slow, and this is a synchronous operation.
+	return cli.SimpleFSCancelJournalUploads(ctx, path)
+}

@@ -3518,6 +3518,48 @@ func (k *SimpleFS) SimpleFSDismissUpload(
 	return k.uploadManager.dismiss(uploadID)
 }
 
+// SimpleFSCancelJournalUploads implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSCancelJournalUploads(
+	ctx context.Context, path keybase1.Path) (err error) {
+	ctx, err = populateIdentifyBehaviorIfNeeded(ctx, &path, nil)
+	if err != nil {
+		return err
+	}
+	ctx, err = k.startOpWrapContext(k.makeContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err := libcontext.CleanupCancellationDelayer(ctx)
+		if err != nil {
+			k.log.CDebugf(ctx, "Error cancelling delayer: %+v", err)
+		}
+	}()
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+	tlfID := tlfHandle.TlfID()
+	branch, err := k.branchNameFromPath(ctx, tlfHandle, path)
+	if err != nil {
+		return err
+	}
+	return k.config.KBFSOps().CancelUploads(
+		ctx, data.FolderBranch{
+			Tlf:    tlfID,
+			Branch: branch,
+		})
+}
+
 // Shutdown shuts down SimpleFS.
 func (k *SimpleFS) Shutdown(ctx context.Context) error {
 	if k.indexer == nil {

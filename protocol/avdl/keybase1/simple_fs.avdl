@@ -746,4 +746,8 @@ protocol SimpleFS {
   }
 
   SimpleFSIndexProgress simpleFSGetIndexProgress();
+
+  // Cancel all uploads from the journal, which may result in
+  // partially-uploaded changes, and leaked blocks on the bserver.
+  void simpleFSCancelJournalUploads(Path path);
 }
