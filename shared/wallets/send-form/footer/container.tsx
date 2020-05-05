@@ -67,4 +67,4 @@ export default Container.namedConnect(
     worthDescription: s.worthDescription,
   }),
   'Footer'
-)(Footer)
+)(Container.safeSubmit(['onClickRequest'], ['calculating'])(Footer))
