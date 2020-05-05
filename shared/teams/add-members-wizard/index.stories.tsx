@@ -68,9 +68,9 @@ const oneAlreadyInTeam = makeCommonStore(
 // empty rows and "alreadyInTeam" message only.
 const onlyAlreadyInTeam = makeCommonStore([], ['[mike@mike.mike]@email', '[chris@chris.chris]@email'])
 
-// We should never see usernames in "alreadyInTeam" because of how the wizard
-// is structured - user knows early that an username can't be added. Same with
-// social assertions. Nevertheless, make sure it renders correctly.
+// We should never see usernames in "alreadyInTeam" because of how the
+// wizard is structured - user knows early that an username can't be added.
+// Nevertheless, make sure it renders correctly.
 const alreadyInTeam2 = makeCommonStore([{assertion: 'zapu@rooter', role: 'writer'}], ['zapu', 'zapu@github'])
 
 const alreadyInTeamLimit = makeCommonStore(
