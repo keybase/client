@@ -469,6 +469,7 @@ export type IconType =
   | 'icon-facebook-logo-64'
   | 'icon-fancy-bomb-desktop-150-72'
   | 'icon-fancy-bomb-mobile-226-96'
+  | 'icon-fancy-contact-import-mobile-72-96'
   | 'icon-fancy-email-sent-144-x-48'
   | 'icon-fancy-email-sent-192-x-64'
   | 'icon-fancy-encrypted-computer-desktop-150-72'
@@ -5083,6 +5084,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
+    },
+  },
+  'icon-fancy-contact-import-mobile-72-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-fancy-contact-import-mobile-72-96.png')
     },
   },
   'icon-fancy-email-sent-144-x-48': {
