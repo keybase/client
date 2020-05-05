@@ -1,4 +1,4 @@
-module github.com/keybase/client/go
+module github.com/keybase/client
 
 go 1.13
 

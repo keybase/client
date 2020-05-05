@@ -5,8 +5,6 @@ set -e -u -o pipefail # Fail on error
 GOMOBILE_VERSION="4c31acba000778d337c0e4f32091cc923b3363d2"
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-client_go_dir="$dir/../../go"
-cd $client_go_dir
 
 arg=${1:-}
 
@@ -54,9 +52,9 @@ if [ "$check_ci" = "1" ]; then
   release wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
 fi
 
-package="./bind"
+package="github.com/keybase/client/go/bind"
 tags=${TAGS:-"prerelease production"}
-ldflags="-X libkb.PrereleaseBuild=$keybase_build -s -w"
+ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
 
 build_gomobile ()
 {
@@ -98,4 +96,3 @@ fi
 
 # Clean up changes to go.mod
 go mod tidy
-
