@@ -159,12 +159,16 @@ require (
 	stathat.com/c/ramcache v1.0.0
 )
 
+// keybase maintained forks
 replace (
 	bazil.org/fuse => github.com/keybase/fuse v0.0.0-20190320191938-5a45981690d8
-	github.com/etcd-io/bbolt => go.etcd.io/bbolt v1.3.4-0.20191122203157-7f8bb47fcaf8
 	github.com/stellar/go => github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7
 	github.com/syndtr/goleveldb => github.com/keybase/goleveldb v1.0.1-0.20191127193458-e8e1e74c283d
 	gopkg.in/src-d/go-billy.v4 => github.com/keybase/go-billy v3.1.1-0.20180828145748-b5a7b7bc2074+incompatible
 	gopkg.in/src-d/go-git.v4 => github.com/keybase/go-git v4.0.0-rc9.0.20190209005256-3a78daa8ce8e+incompatible
 	mvdan.cc/xurls/v2 => github.com/keybase/xurls/v2 v2.0.1-0.20190725180013-1e015cacd06c
 )
+
+// temporary workaround for https://github.com/blevesearch/bleve/issues/1360
+// should be removed if bleve is updated to a commit past https://github.com/blevesearch/bleve/commit/a9895fdf9c72cfaa202128a963697d9a98765369
+replace github.com/etcd-io/bbolt => go.etcd.io/bbolt v1.3.4-0.20191122203157-7f8bb47fcaf8

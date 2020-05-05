@@ -34,3 +34,11 @@ that is not desired.
 
 This command modifies the `go.mod` file, be sure to remove it before commiting
 or merging.
+
+### Using a forked dependency
+
+Forked dependencies can still be referenced by their original name using the Go
+Modules [`replace`
+directive](https://github.com/golang/go/wiki/Modules#when-should-i-use-the-replace-directive).
+Manually edit the bottom of the `go.mod` file under the `keybase maintained
+forks` section to reference a forked dependency.
