@@ -22,7 +22,7 @@ const PushPrompt = () => {
         hideBorder: true,
         rightButton: (
           <Kb.ClickableBox onClick={onNoPermissions}>
-            <Kb.Text type="Header" negative={true}>
+            <Kb.Text type="BodyBig" negative={true}>
               Skip
             </Kb.Text>
           </Kb.ClickableBox>

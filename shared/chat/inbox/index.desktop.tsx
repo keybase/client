@@ -21,6 +21,7 @@ type State = {
   dragY: number
   showFloating: boolean
   showUnread: boolean
+  unreadCount: number
 }
 
 const widths = [10, 80, 2, 66]
@@ -53,6 +54,7 @@ class Inbox extends React.Component<T.Props, State> {
     dragY: -1,
     showFloating: false,
     showUnread: false,
+    unreadCount: 0,
   }
 
   private mounted: boolean = false
@@ -218,17 +220,24 @@ class Inbox extends React.Component<T.Props, State> {
     if (!this.mounted) {
       return
     }
-    if (!this.props.unreadIndices.length || this.lastVisibleIdx < 0) {
+    if (!this.props.unreadIndices.size || this.lastVisibleIdx < 0) {
       if (this.state.showUnread) {
         this.setState({showUnread: false})
       }
       return
     }
 
-    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this.lastVisibleIdx)
+    let unreadCount = 0
+    let firstOffscreenIdx = 0
+    this.props.unreadIndices.forEach((count, idx) => {
+      if (idx > this.lastVisibleIdx) {
+        firstOffscreenIdx = idx
+        unreadCount += count
+      }
+    })
     if (firstOffscreenIdx) {
       if (!this.state.showUnread) {
-        this.setState({showUnread: true})
+        this.setState({showUnread: true, unreadCount})
       }
       this.firstOffscreenIdx = firstOffscreenIdx
     } else {
@@ -376,7 +385,7 @@ class Inbox extends React.Component<T.Props, State> {
           </div>
           {floatingDivider || (this.props.rows.length === 0 && <BuildTeam />)}
           {this.state.showUnread && !this.state.showFloating && (
-            <UnreadShortcut onClick={this.scrollToUnread} />
+            <UnreadShortcut onClick={this.scrollToUnread} unreadCount={this.state.unreadCount} />
           )}
         </InboxHoverContainer>
       </Kb.ErrorBoundary>

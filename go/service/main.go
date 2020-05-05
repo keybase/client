@@ -207,6 +207,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 }
 
 func (d *Service) Handle(c net.Conn) {
+	start := time.Now()
 	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()),
 		d.G().LocalNetworkInstrumenterStorage,
 		libkb.MakeWrapError(d.G()), rpc.DefaultMaxFrameLength)
@@ -237,7 +238,7 @@ func (d *Service) Handle(c net.Conn) {
 		d.G().Log.Warning("Run error: %s", err)
 	}
 
-	d.G().Log.Debug("Handle() complete for connection %d", connID)
+	d.G().Log.Debug("Handle() complete for connection %d [time=%v]", connID, time.Since(start))
 }
 
 func (d *Service) Run() (err error) {
