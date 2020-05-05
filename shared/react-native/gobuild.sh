@@ -4,7 +4,9 @@ set -e -u -o pipefail # Fail on error
 
 GOMOBILE_VERSION="4c31acba000778d337c0e4f32091cc923b3363d2"
 
-dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+dir="$(dirname "${BASH_SOURCE[0]}")"
+client_dir="$(realpath "$dir"/../..)"
+cd $client_dir
 
 arg=${1:-}
 
@@ -35,7 +37,7 @@ IFS=: read -a GOPATH_ARRAY <<< "$GOPATH"
 GOPATH0=${GOPATH_ARRAY[0]}
 
 # Original sources
-client_dir="$GOPATH0/src/github.com/keybase/client"
+gopath_client_dir="$GOPATH0/src/github.com/keybase/client"
 
 echo "Using GOPATH: $GOPATH"
 
@@ -48,8 +50,8 @@ PATH="$GOPATH/bin:$PATH"
 export CGO_CFLAGS_ALLOW="-fmodules|-fblocks"
 
 if [ "$check_ci" = "1" ]; then
-  "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
-  release wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
+  "$gopath_client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+  release wait-ci --repo="client" --commit="$(git -C $gopath_client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
 fi
 
 package="github.com/keybase/client/go/bind"
@@ -63,7 +65,7 @@ build_gomobile ()
 }
 
 if [ "$arg" = "ios" ]; then
-  ios_dir=${DEST_DIR:-"$dir/../ios"}
+  ios_dir=${DEST_DIR:-"$client_dir/shared/ios"}
   ios_dest="$ios_dir/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
   set +e
@@ -76,7 +78,7 @@ if [ "$arg" = "ios" ]; then
     echo $OUTPUT
   fi
 elif [ "$arg" = "android" ]; then
-  android_dir=${DEST_DIR:-"$dir/../android/keybaselib"}
+  android_dir=${DEST_DIR:-"$client_dir/shared/android/keybaselib"}
   android_dest="$android_dir/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
   set +e
