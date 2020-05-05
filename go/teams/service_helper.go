@@ -2221,6 +2221,9 @@ func FindAssertionsInTeamNoResolve(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 		urls := assertion.CollectUrls(nil)
 		if len(urls) > 1 {
+			// Skip compound assertions for now. Rationale is that team invites
+			// cannot have compound assertions, and it's unclear what to look
+			// for in a team when compound assertion is found here.
 			continue
 		}
 
@@ -2240,7 +2243,7 @@ func FindAssertionsInTeamNoResolve(mctx libkb.MetaContext, teamID keybase1.TeamI
 				return nil, fmt.Errorf("error when loading user for assertion %q: %w", assertionStr, err)
 			}
 			if user.GetStatus() != keybase1.StatusCode_SCOk {
-				// User is deleted or something. Just skip for now.
+				// User is deleted or similar. Skip for now.
 				continue
 			}
 			uv := user.ToUserVersion()
