@@ -14,17 +14,21 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
+type keybaseServiceOwner interface {
+	KeybaseService() libkbfs.KeybaseService
+}
+
 // certStoreBackedByKVStore is a wrapper around the KVStore in Keybase. No
-// caching is done here since acme/autocert has a in-memory cache already.
+// caching is done here since acme/autocert has an in-memory cache already.
 type certStoreBackedByKVStore struct {
-	kbfsConfig libkbfs.Config
+	serviceOwner keybaseServiceOwner
 }
 
 var _ autocert.Cache = (*certStoreBackedByKVStore)(nil)
 
-func newCertStoreBackedByKVStore(kbfsConfig libkbfs.Config) autocert.Cache {
+func newCertStoreBackedByKVStore(serviceOwner keybaseServiceOwner) autocert.Cache {
 	return &certStoreBackedByKVStore{
-		kbfsConfig: kbfsConfig,
+		serviceOwner: serviceOwner,
 	}
 }
 
@@ -40,7 +44,7 @@ const certKVStoreNamespace = "cert-store-v1"
 
 // Get implements the autocert.Cache interface.
 func (s *certStoreBackedByKVStore) Get(ctx context.Context, key string) ([]byte, error) {
-	res, err := s.kbfsConfig.KeybaseService().GetKVStoreClient().GetKVEntry(ctx,
+	res, err := s.serviceOwner.KeybaseService().GetKVStoreClient().GetKVEntry(ctx,
 		keybase1.GetKVEntryArg{
 			Namespace: certKVStoreNamespace,
 			EntryKey:  key,
@@ -60,7 +64,7 @@ func (s *certStoreBackedByKVStore) Get(ctx context.Context, key string) ([]byte,
 
 // Put implements the autocert.Cache interface.
 func (s *certStoreBackedByKVStore) Put(ctx context.Context, key string, data []byte) error {
-	_, err := s.kbfsConfig.KeybaseService().GetKVStoreClient().PutKVEntry(ctx,
+	_, err := s.serviceOwner.KeybaseService().GetKVStoreClient().PutKVEntry(ctx,
 		keybase1.PutKVEntryArg{
 			Namespace:  certKVStoreNamespace,
 			EntryKey:   key,
@@ -74,7 +78,7 @@ func (s *certStoreBackedByKVStore) Put(ctx context.Context, key string, data []b
 
 // Delete implements the autocert.Cache interface.
 func (s *certStoreBackedByKVStore) Delete(ctx context.Context, key string) error {
-	_, err := s.kbfsConfig.KeybaseService().GetKVStoreClient().DelKVEntry(ctx, keybase1.DelKVEntryArg{
+	_, err := s.serviceOwner.KeybaseService().GetKVStoreClient().DelKVEntry(ctx, keybase1.DelKVEntryArg{
 		Namespace: certKVStoreNamespace,
 		EntryKey:  key,
 	})
