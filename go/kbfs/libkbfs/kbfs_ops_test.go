@@ -5051,3 +5051,61 @@ func TestDirtyAfterTruncateNoop(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, status.DirtyPaths, 0)
 }
+
+func TestKBFSOpsCancelUploads(t *testing.T) {
+	var userName kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+
+	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_ops_test")
+	require.NoError(t, err)
+	defer func() {
+		err := ioutil.RemoveAll(tempdir)
+		require.NoError(t, err)
+	}()
+
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.EnableJournaling(ctx, tempdir, TLFJournalBackgroundWorkEnabled)
+	require.NoError(t, err)
+
+	name := "u1"
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, name, tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+
+	t.Log("Create an initial directory")
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
+	require.NoError(t, err)
+	aNode, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	t.Log("Pause the journal to queue uploads")
+	jManager, err := GetJournalManager(config)
+	require.NoError(t, err)
+	jManager.PauseBackgroundWork(ctx, rootNode.GetFolderBranch().Tlf)
+
+	t.Log("Add a few files")
+	bNode, _, err := kbfsOps.CreateFile(ctx, aNode, testPPS("b"), false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps.Write(ctx, bNode, []byte("bdata"), 0)
+	require.NoError(t, err)
+	cNode, _, err := kbfsOps.CreateFile(ctx, aNode, testPPS("c"), false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps.Write(ctx, cNode, []byte("cdata"), 0)
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Cancel the uploads and make sure we reverted")
+	err = kbfsOps.CancelUploads(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	children, err := kbfsOps.GetDirChildren(ctx, aNode)
+	require.NoError(t, err)
+	require.Len(t, children, 0)
+}

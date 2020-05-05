@@ -2231,7 +2231,10 @@ func (fbo *folderBranchOps) setHeadPredecessorLocked(ctx context.Context,
 		return errors.Errorf("setHeadPredecessorLocked unexpectedly called with revision %d", fbo.head.Revision())
 	}
 
-	if fbo.head.MergedStatus() != kbfsmd.Unmerged {
+	// Allow merged writes to be walked back, as long as they're
+	// larger than the latest merged revision on the server.
+	if fbo.head.MergedStatus() == kbfsmd.Merged &&
+		fbo.head.Revision() <= fbo.latestMergedRevision {
 		return errors.New("Unexpected merged head in setHeadPredecessorLocked")
 	}
 
@@ -7373,6 +7376,127 @@ func (fbo *folderBranchOps) UnstageForTesting(
 			return ctx.Err()
 		}
 	})
+}
+
+func (fbo *folderBranchOps) cancelUploadsLocked(
+	ctx context.Context, lState *kbfssync.LockState) error {
+	fbo.mdWriterLock.AssertLocked(lState)
+
+	jManager, _ := GetJournalManager(fbo.config)
+	if jManager == nil || !jManager.JournalEnabled(fbo.id()) {
+		return errors.New("Journal not enabled")
+	}
+
+	// For now, don't allow cancelling when we're in conflict mode.
+	// In the future though, maybe this should also cancel conflict
+	// resolution and clear any stuck conflicts.
+	if fbo.isUnmergedLocked(lState) {
+		return errors.New("Can't cancel uploads while there's a conflict")
+	}
+
+	// Pause the uploads right away.
+	jManager.PauseBackgroundWork(ctx, fbo.id())
+	// Wait until the pause takes effect.
+	err := jManager.Wait(ctx, fbo.id())
+	if err != nil {
+		return err
+	}
+
+	// Get all the MDs between the latest merged revision and the head
+	// of the journal.
+	latestMerged := fbo.getLatestMergedRevision(lState)
+	rmds, err := getMergedMDUpdates(
+		ctx, fbo.config, fbo.id(), latestMerged+1, nil)
+	if err != nil {
+		return err
+	}
+
+	if len(rmds) > 0 {
+		fbo.log.CDebugf(
+			ctx, "Undoing MD updates [%d:%d]", rmds[0].Revision(),
+			rmds[len(rmds)-1].Revision())
+		err = fbo.undoMDUpdatesLocked(ctx, lState, rmds)
+		if err != nil {
+			return err
+		}
+
+		// The latest merged MD becomes the new head.
+		rmd, err := GetSingleMD(ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID,
+			latestMerged, kbfsmd.Merged, nil)
+		if err != nil {
+			return err
+		}
+		err = func() error {
+			fbo.headLock.Lock(lState)
+			defer fbo.headLock.Unlock(lState)
+			err = fbo.setHeadPredecessorLocked(ctx, lState, rmd)
+			if err != nil {
+				return err
+			}
+			return nil
+		}()
+		if err != nil {
+			return err
+		}
+
+		// Clear all the un-uploaded MDs from the in-memory cache.
+		for _, rmd := range rmds {
+			fbo.config.MDCache().Delete(fbo.id(), rmd.Revision(),
+				kbfsmd.NullBranchID)
+		}
+	}
+
+	err = jManager.DeleteJournal(ctx, fbo.id())
+	if err != nil {
+		return err
+	}
+
+	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
+	if md == (ImmutableRootMetadata{}) {
+		return errors.New("No MD")
+	}
+
+	// Now turn the journal back on.
+	return jManager.Enable(
+		ctx, fbo.id(), md.GetTlfHandle(), TLFJournalBackgroundWorkEnabled)
+}
+
+// CancelUploads implements the KBFSOps interface for folderBranchOps.
+func (fbo *folderBranchOps) CancelUploads(
+	ctx context.Context, folderBranch data.FolderBranch) (err error) {
+	startTime, timer := fbo.startOp(ctx, "CancelUploads")
+	defer func() {
+		fbo.endOp(ctx, startTime, timer, "CancelUploads done: %+v", err)
+	}()
+
+	if folderBranch != fbo.folderBranch {
+		return WrongOpsError{fbo.folderBranch, folderBranch}
+	}
+
+	// Launch cancellation in a new goroutine, because we don't
+	// want to use the provided context because upper layers might
+	// ignore our notifications if we do.  But we still want to
+	// wait for the context to cancel.
+	c := make(chan error, 1)
+	freshCtx, cancel := fbo.newCtxWithFBOID()
+	defer cancel()
+	fbo.log.CDebugf(
+		ctx, "Launching new context for CancelUploads: %s",
+		freshCtx.Value(CtxFBOIDKey))
+	fbo.goTracked(func() {
+		lState := makeFBOLockState()
+		c <- fbo.doMDWriteWithRetry(ctx, lState,
+			func(lState *kbfssync.LockState) error {
+				return fbo.cancelUploadsLocked(freshCtx, lState)
+			})
+	})
+
+	select {
+	case err := <-c:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 // mdWriterLock must be taken by the caller.
