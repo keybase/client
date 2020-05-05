@@ -340,7 +340,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
         [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
         return;
       }
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: no url, public.image, or public.data" error:error];
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: no url or public.image" error:error];
       return;
     }
     
