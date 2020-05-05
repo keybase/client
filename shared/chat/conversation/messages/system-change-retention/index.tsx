@@ -64,12 +64,12 @@ const ChangeRetention = (props: Props) => {
       <Kb.Text type="BodySmall" selectable={true}>
         {changedBy}changed the {convType} retention policy{inheritDescription}. Messages will {policySummary}.
         {` `}
-        {manageText ? (
-          <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
-            {manageText}
-          </Kb.Text>
-        ) : null}
       </Kb.Text>
+      {manageText ? (
+        <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
+          {manageText}
+        </Kb.Text>
+      ) : null}
     </UserNotice>
   )
 }
