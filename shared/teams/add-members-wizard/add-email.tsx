@@ -36,7 +36,7 @@ const AddEmail = (props: Props) => {
         r?.length
           ? dispatch(
               TeamsGen.createAddMembersWizardPushMembers({
-                members: r.map<Types.AddingMember>(m => ({
+                members: r.map(m => ({
                   ...(m.foundUser
                     ? {assertion: m.username, resolvedFrom: m.assertion}
                     : {assertion: m.assertion}),

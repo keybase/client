@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as Types from '../../constants/types/teams'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {pluralize} from '../../util/string'
 import {ModalTitle} from '../common'
@@ -43,7 +42,7 @@ const AddContacts = () => {
         if (r?.length) {
           dispatch(
             TeamsGen.createAddMembersWizardPushMembers({
-              members: r.map<Types.AddingMember>(m => ({
+              members: r.map(m => ({
                 ...(m.foundUser
                   ? {assertion: m.username, resolvedFrom: m.assertion}
                   : {assertion: m.assertion}),

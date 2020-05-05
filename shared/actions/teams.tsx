@@ -1587,6 +1587,9 @@ const addMembersWizardPushMembers = async (
   state: TypedState,
   action: TeamsGen.AddMembersWizardPushMembersPayload
 ) => {
+  // Call FindAssertionsInTeamNoResolve RPC and pass the results along with the
+  // members to addMembersWizardSetMembers action.
+
   const wizardState = state.teams.addMembersWizard
 
   // Find assertions that we are going to call FindAssertionsInTeam~ on to
