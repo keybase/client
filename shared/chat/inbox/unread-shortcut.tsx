@@ -1,9 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {pluralize} from '../../util/string'
 
 type Props = {
   onClick: () => void
+  unreadCount: number
 }
 
 const UnreadShortcut = (props: Props) => (
@@ -17,7 +19,7 @@ const UnreadShortcut = (props: Props) => (
     >
       <Kb.Icon type="iconfont-arrow-down" sizeType="Small" color={Styles.globalColors.white} />
       <Kb.Text negative={true} type="BodySmallSemibold">
-        Unread messages
+        {props.unreadCount} unread {pluralize('message', props.unreadCount)}
       </Kb.Text>
     </Kb.Box2>
   </Kb.ClickableBox>
