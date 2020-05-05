@@ -43,14 +43,14 @@ function renderWelcomeMessage(
       lineClamp={3}
       selectable={false}
       paragraphTextClassName="text_BodySmall"
-      style={welcomeStyle}
+      style={styles.welcomeStyle}
     >
       {removeWhitespaceOnlyLines(computeWelcomeMessageText(message, cannotWrite))}
     </Kb.Markdown>
   )
 }
 
-const welcomeStyle = Styles.styleSheetCreate(
+const styles = Styles.styleSheetCreate(
   () =>
     ({
       welcomeStyle: {
