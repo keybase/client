@@ -1,5 +1,6 @@
 import * as TeamsGen from '../../actions/teams-gen'
 import * as React from 'react'
+import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -54,11 +55,12 @@ const JoinTeam = (props: Props) => {
       footer={{
         content: (
           <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.Button
+            <Kb.WaitingButton
               fullWidth={true}
               label={props.success ? 'Close' : 'Continue'}
               onClick={props.success ? props.onBack : onSubmit}
               type={props.success ? 'Dim' : 'Default'}
+              waitingKey={Constants.joinTeamWaitingKey}
             />
           </Kb.ButtonBar>
         ),
