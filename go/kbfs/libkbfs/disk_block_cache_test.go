@@ -725,7 +725,7 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	require.NoError(t, err)
 	cache := config.DiskBlockCache().(*diskBlockCacheWrapped)
 	defer func() {
-		<-cache.Shutdown()
+		<-cache.Shutdown(context.Background())
 	}()
 	standardCache := cache.syncCache
 	err = standardCache.WaitUntilStarted()

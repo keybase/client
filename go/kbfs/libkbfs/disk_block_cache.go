@@ -1769,7 +1769,8 @@ func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) <-chan struct{} 
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:
-		return
+		close(cache.doneCh)
+		return cache.doneCh
 	}
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
@@ -1781,7 +1782,7 @@ func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) <-chan struct{} 
 	}
 	close(cache.shutdownCh)
 	if cache.blockDb == nil {
-		return
+		return cache.doneCh
 	}
 	cache.closer()
 	cache.blockDb = nil
