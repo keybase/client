@@ -1180,7 +1180,7 @@ type DiskBlockCache interface {
 	// waits for all caches to start.
 	WaitUntilStarted(cacheType DiskBlockCacheType) error
 	// Shutdown cleanly shuts down the disk block cache.
-	Shutdown(ctx context.Context)
+	Shutdown(ctx context.Context) <-chan struct{}
 }
 
 // DiskMDCache caches encrypted MD objects to the disk.

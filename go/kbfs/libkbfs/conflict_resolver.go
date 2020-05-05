@@ -3465,7 +3465,9 @@ func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
 		if err != nil {
 			return nil, nil, err
 		}
-		cleanupFn = dbc.Shutdown
+		cleanupFn = func(ctx context.Context) {
+			<-dbc.Shutdown(ctx)
+		}
 	} else {
 		tempDir, err := ioutil.TempDir(
 			cr.config.StorageRoot(), ConflictStorageRootPrefix)
