@@ -73,6 +73,17 @@ const onlyAlreadyInTeam = makeCommonStore([], ['[mike@mike.mike]@email', '[chris
 // social assertions. Nevertheless, make sure it renders correctly.
 const alreadyInTeam2 = makeCommonStore([{assertion: 'zapu@rooter', role: 'writer'}], ['zapu', 'zapu@github'])
 
+const alreadyInTeamLimit = makeCommonStore(
+  [
+    {assertion: '[danny@danny.danny]@email', role: 'writer'},
+    {assertion: '[max@max.max]@email', role: 'writer'},
+    {assertion: 'zapu', resolvedFrom: '[michal@zapu.zapu]@email', role: 'writer'},
+    {assertion: 'test', resolvedFrom: '+12125451231@phone', role: 'writer'},
+    {assertion: '+48784123123@phone', role: 'writer'},
+  ],
+  Array.from(Array(25)).map((_, i) => `[test${i}@example.org]@email`)
+)
+
 const load = () => {
   Sb.storiesOf('Teams/Add member wizard', module)
     .addDecorator(story => <Sb.MockStore store={commonStore}>{story()}</Sb.MockStore>)
@@ -89,6 +100,7 @@ const load = () => {
     ['A member already in team', oneAlreadyInTeam],
     ['(Only) members already in team', onlyAlreadyInTeam],
     ['(Impossible) members already in team', alreadyInTeam2],
+    ['(Many) members already in team', alreadyInTeamLimit],
   ] as const) {
     sb.add(name, () => (
       <Sb.MockStore store={store}>

@@ -1589,11 +1589,12 @@ const addMembersWizardPushMembers = async (
 ) => {
   const wizardState = state.teams.addMembersWizard
 
-  // Find assertions that we are going to call FindAssertionsInTeam~ on to see
-  // if they are already in team. Skip all that are already in the wizard. We
-  // are only checking assertions, because it's fast - checking usernames
-  // should be unnecessary (UI doesn't let you add users that are already in
-  // the team) and is much slower because it has to load the users.
+  // Find assertions that we are going to call FindAssertionsInTeam~ on to
+  // see if they are already in team. Skip all that are already in the
+  // wizard. Usernames are only checked if they come with entries that have
+  // `resolvedFrom` field set - which means they were a phone number or email
+  // assertion that resolved to a user. Do not check all usernames because
+  // finding team members is slower than finding team invites.
   const newAssertions = action.payload.members.filter(
     member =>
       (member.assertion.includes('@') || !!member.resolvedFrom) &&
@@ -1601,6 +1602,8 @@ const addMembersWizardPushMembers = async (
   )
 
   let assertionsInTeam = new Set<string>()
+  // `membersAlreadyInTeam` is used in the message for the user about which
+  // assertions were already invited to the team.
   let membersAlreadyInTeam = new Set<string>()
   if (newAssertions.length > 0) {
     const foundAssertions = await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
@@ -1608,7 +1611,7 @@ const addMembersWizardPushMembers = async (
       assertions: newAssertions.map(x => x.assertion),
       teamID: wizardState.teamID,
     })
-    if (foundAssertions) {
+    if (foundAssertions && foundAssertions.length > 0) {
       // Make a set of found assertions for faster filtering later.
       assertionsInTeam = new Set(foundAssertions)
       // Need to go back to original assertion here if it was resolved from
@@ -1622,6 +1625,8 @@ const addMembersWizardPushMembers = async (
     }
   }
 
+  // Add members to wizard, filtering out ones that are already in team,
+  // coercing roles, as well as deduplication and keeping proper ordering.
   const members = Constants.dedupAddingMembeers(
     state.teams.addMembersWizard.addingMembers,
     action.payload.members.filter(x => !assertionsInTeam.has(x.assertion)).map(Constants.coerceAssertionRole)

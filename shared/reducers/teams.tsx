@@ -370,6 +370,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.addMembersWizard.addingMembers = action.payload.members
     draftState.addMembersWizard.membersAlreadyInTeam = action.payload.membersAlreadyInTeam
 
+    // If add member wizard role is currently set to admin or owner and we are
+    // adding an assertion, change wizard's role to "set individually".
     if (
       ['admin', 'owner'].includes(draftState.addMembersWizard.role) &&
       action.payload.members.some(m => m.assertion.includes('@'))

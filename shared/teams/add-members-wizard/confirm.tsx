@@ -165,8 +165,16 @@ AddMembersConfirm.navigationOptions = {
   gesturesEnabled: false,
 }
 
+// Show no more than 20 assertions in "already in team" section.
+const alreadyInTeamLimit = 20
+
 const AlreadyInTeam = ({assertions}: {assertions: string[]}) => {
   const invitedStr = React.useMemo(() => {
+    if (assertions.length > alreadyInTeamLimit) {
+      const left = assertions.length - alreadyInTeamLimit
+      const spliced = assertions.slice(0, alreadyInTeamLimit)
+      return spliced.map(x => assertionToDisplay(x)).join(', ') + `... (and ${left} more)`
+    }
     return assertions.map(x => assertionToDisplay(x)).join(', ')
   }, [assertions])
   const noun = React.useMemo(() => {
