@@ -201,6 +201,7 @@ export type IconType =
   | 'icon-dark-empty-wot-118-96'
   | 'icon-dark-fancy-bomb-desktop-150-72'
   | 'icon-dark-fancy-bomb-mobile-226-96'
+  | 'icon-dark-fancy-contact-import-mobile-72-96'
   | 'icon-dark-fancy-email-sent-144-x-48'
   | 'icon-dark-fancy-email-sent-192-x-64'
   | 'icon-dark-fancy-encrypted-computer-desktop-150-72'
@@ -214,7 +215,6 @@ export type IconType =
   | 'icon-dark-fancy-revoked-phone-mobile-226-96'
   | 'icon-dark-fancy-unfurl-preview-desktop-96-96'
   | 'icon-dark-fancy-unfurl-preview-mobile-128-128'
-  | 'icon-dark-fancy-user-card-desktop-80-99'
   | 'icon-dark-fancy-user-card-mobile-120-149'
   | 'icon-dark-file-16'
   | 'icon-dark-file-32'
@@ -469,6 +469,7 @@ export type IconType =
   | 'icon-facebook-logo-64'
   | 'icon-fancy-bomb-desktop-150-72'
   | 'icon-fancy-bomb-mobile-226-96'
+  | 'icon-fancy-contact-import-mobile-72-96'
   | 'icon-fancy-email-sent-144-x-48'
   | 'icon-fancy-email-sent-192-x-64'
   | 'icon-fancy-encrypted-computer-desktop-150-72'
@@ -2879,6 +2880,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
     },
   },
+  'icon-dark-fancy-contact-import-mobile-72-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-fancy-contact-import-mobile-72-96.png')
+    },
+  },
   'icon-dark-fancy-email-sent-144-x-48': {
     extension: 'png',
     imagesDir: 'icons',
@@ -2981,14 +2990,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-unfurl-preview-mobile-128-128.png')
-    },
-  },
-  'icon-dark-fancy-user-card-desktop-80-99': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
     },
   },
   'icon-dark-fancy-user-card-mobile-120-149': {
@@ -5083,6 +5084,18 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
     },
   },
+  'icon-fancy-contact-import-mobile-72-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-fancy-contact-import-mobile-72-96',
+    get require() {
+      return require('../images/icons/icon-fancy-contact-import-mobile-72-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-contact-import-mobile-72-96.png')
+    },
+  },
   'icon-fancy-email-sent-144-x-48': {
     extension: 'png',
     imagesDir: 'icons',
@@ -5339,12 +5352,8 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    nameDark: 'icon-dark-fancy-user-card-desktop-80-99',
     get require() {
       return require('../images/icons/icon-fancy-user-card-desktop-80-99.png')
-    },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
     },
   },
   'icon-fancy-user-card-mobile-120-149': {

@@ -166,7 +166,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.banner}>
-      <Kb.Icon type="icon-fancy-user-card-mobile-120-149" style={styles.bannerIcon} />
+      <Kb.Icon type="icon-fancy-contact-import-mobile-72-96" style={styles.bannerIcon} />
       <Kb.Box2 direction="vertical" style={styles.bannerTextContainer}>
         <Kb.Text type="BodySmallSemibold" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
