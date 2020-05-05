@@ -31,7 +31,7 @@
                           SUBQUERY (
                             $extensionItem.attachments,
                             $attachment,
-                            (ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.data")
+                            (ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.item")
                           ).@count >=1
                         ).@count >= 1
                 </string>
