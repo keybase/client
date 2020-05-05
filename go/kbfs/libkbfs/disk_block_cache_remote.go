@@ -271,6 +271,9 @@ func (dbcr *DiskBlockCacheRemote) WaitUntilStarted(
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheRemote.
-func (dbcr *DiskBlockCacheRemote) Shutdown(ctx context.Context) {
+func (dbcr *DiskBlockCacheRemote) Shutdown(ctx context.Context) <-chan struct{} {
 	dbcr.conn.Close()
+	ch := make(chan struct{})
+	close(ch)
+	return ch
 }

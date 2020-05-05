@@ -123,6 +123,7 @@ type DiskBlockCacheLocal struct {
 	startedCh  chan struct{}
 	startErrCh chan struct{}
 	shutdownCh chan struct{}
+	doneCh     chan struct{}
 
 	closer func()
 }
@@ -287,6 +288,7 @@ func newDiskBlockCacheLocalFromStorage(
 		startedCh:     startedCh,
 		startErrCh:    startErrCh,
 		shutdownCh:    make(chan struct{}),
+		doneCh:        make(chan struct{}),
 		closer:        closer,
 	}
 	// Sync the block counts asynchronously so syncing doesn't block init.
@@ -1019,6 +1021,7 @@ func (cache *DiskBlockCacheLocal) compactLoop() {
 			timerCh = nil
 			timer = nil
 		case <-cache.shutdownCh:
+			close(cache.doneCh)
 			return
 		}
 	}
@@ -1761,7 +1764,7 @@ func (cache *DiskBlockCacheLocal) GetTlfIDs(
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheLocal.
-func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) {
+func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) <-chan struct{} {
 	// Wait for the cache to either finish starting or error.
 	select {
 	case <-cache.startedCh:
@@ -1796,4 +1799,5 @@ func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) {
 	cache.evictSizeMeter.Shutdown()
 	cache.deleteCountMeter.Shutdown()
 	cache.deleteSizeMeter.Shutdown()
+	return cache.doneCh
 }

@@ -601,11 +601,23 @@ func (cache *diskBlockCacheWrapped) WaitUntilStarted(
 }
 
 // Shutdown implements the DiskBlockCache interface for diskBlockCacheWrapped.
-func (cache *diskBlockCacheWrapped) Shutdown(ctx context.Context) {
+func (cache *diskBlockCacheWrapped) Shutdown(ctx context.Context) <-chan struct{} {
 	cache.mtx.Lock()
 	defer cache.mtx.Unlock()
-	cache.workingSetCache.Shutdown(ctx)
+	wsCh := cache.workingSetCache.Shutdown(ctx)
+	var syncCh <-chan struct{}
 	if cache.syncCache != nil {
-		cache.syncCache.Shutdown(ctx)
+		syncCh = cache.syncCache.Shutdown(ctx)
+	} else {
+		ch := make(chan struct{})
+		close(ch)
+		syncCh = ch
 	}
+	retCh := make(chan struct{})
+	go func() {
+		<-wsCh
+		<-syncCh
+		close(retCh)
+	}()
+	return retCh
 }
