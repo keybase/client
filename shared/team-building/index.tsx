@@ -843,7 +843,11 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
       },
-      bannerIcon: {maxHeight: 112},
+      bannerIcon: {
+        marginLeft: Styles.globalMargins.xtiny,
+        marginRight: Styles.globalMargins.xsmall,
+        maxHeight: 112,
+      },
       bannerText: {
         flexWrap: 'wrap',
         marginTop: Styles.globalMargins.tiny,

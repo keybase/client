@@ -201,7 +201,6 @@ export type IconType =
   | 'icon-dark-empty-wot-118-96'
   | 'icon-dark-fancy-bomb-desktop-150-72'
   | 'icon-dark-fancy-bomb-mobile-226-96'
-  | 'icon-dark-fancy-contact-import-mobile-72-96'
   | 'icon-dark-fancy-email-sent-144-x-48'
   | 'icon-dark-fancy-email-sent-192-x-64'
   | 'icon-dark-fancy-encrypted-computer-desktop-150-72'
@@ -2880,14 +2879,6 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
       return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
     },
   },
-  'icon-dark-fancy-contact-import-mobile-72-96': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-contact-import-mobile-72-96.png')
-    },
-  },
   'icon-dark-fancy-email-sent-144-x-48': {
     extension: 'png',
     imagesDir: 'icons',
@@ -5088,12 +5079,8 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
-    nameDark: 'icon-dark-fancy-contact-import-mobile-72-96',
     get require() {
       return require('../images/icons/icon-fancy-contact-import-mobile-72-96.png')
-    },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-contact-import-mobile-72-96.png')
     },
   },
   'icon-fancy-email-sent-144-x-48': {
