@@ -4,11 +4,11 @@ import {registerHookMiddleware} from '../store/configure-store'
 
 type CBType = (act: TypedActions) => void
 /** A hook to listen to redux actions.  setResult is only called if you're still mounted
-  @param watcher: A function which is called when an action is fired
+  @param watcher?: A function which is called when an action is fired
  */
-function useWatchActions(watcher: CBType) {
+function useWatchActions(watcher?: CBType) {
   const isMounted = React.useRef<Boolean>(true)
-  const savedHandler = React.useRef<CBType>(watcher)
+  const savedHandler = React.useRef<CBType | undefined>(watcher)
 
   React.useEffect(() => {
     savedHandler.current = watcher
@@ -22,7 +22,7 @@ function useWatchActions(watcher: CBType) {
 
   React.useEffect(() => {
     const unregister = registerHookMiddleware(a => {
-      if (isMounted.current) {
+      if (isMounted.current && savedHandler.current) {
         savedHandler.current(a)
       }
     })
