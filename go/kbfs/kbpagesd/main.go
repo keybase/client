@@ -211,12 +211,17 @@ func main() {
 			logger, fStathatPrefix, fStathatEZKey, enabler)
 	}
 
+	certStore := libpages.NoCertStore
+	if fDiskCertCache {
+		certStore = libpages.DiskCertStore
+	}
+
 	serverConfig := &libpages.ServerConfig{
-		DomainBlacklist:  removeEmpty(strings.Split(fBlacklist, ",")),
-		UseStaging:       !fProd,
-		Logger:           logger,
-		UseDiskCertCache: fDiskCertCache,
-		StatsReporter:    statsReporter,
+		DomainBlacklist: removeEmpty(strings.Split(fBlacklist, ",")),
+		UseStaging:      !fProd,
+		Logger:          logger,
+		CertStore:       certStore,
+		StatsReporter:   statsReporter,
 	}
 
 	_ = libpages.ListenAndServe(ctx, serverConfig, kbConfig)

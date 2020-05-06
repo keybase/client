@@ -134,6 +134,21 @@ const AddToChannels = (props: Props) => {
 
   const numSelected = selected.size
 
+  const getItemLayout = React.useCallback(
+    (index: number, item?: Unpacked<typeof items>) =>
+      item && item.type === 'header'
+        ? {
+            index,
+            length: Styles.isMobile ? 48 : 40,
+            offset: 0,
+          }
+        : {
+            index,
+            length: mode === 'self' ? 72 : 56,
+            offset: 48 + (index > 0 ? index - 1 : index) * (mode === 'self' ? 72 : 56),
+          },
+    [mode]
+  )
   const renderItem = (_, item: Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
@@ -230,7 +245,7 @@ const AddToChannels = (props: Props) => {
     >
       {loadingChannels && !channelMetas?.size ? (
         <Kb.Box fullWidth={true} style={Styles.globalStyles.flexOne}>
-          <Kb.ProgressIndicator type="Huge" />
+          <Kb.ProgressIndicator type="Large" />
         </Kb.Box>
       ) : (
         <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
@@ -249,11 +264,7 @@ const AddToChannels = (props: Props) => {
             />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
-            <Kb.List2
-              items={items}
-              renderItem={renderItem}
-              itemHeight={{height: Styles.isMobile ? 48 : mode === 'self' ? 72 : 56, type: 'fixed'}}
-            />
+            <Kb.List2 items={items} renderItem={renderItem} itemHeight={{getItemLayout, type: 'variable'}} />
           </Kb.Box2>
         </Kb.Box2>
       )}
@@ -266,7 +277,7 @@ const HeaderRow = ({mode, onCreate, onSelectAll, onSelectNone}) => (
     direction="horizontal"
     alignItems="center"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.item, styles.headerItem, mode === 'self' && styles.itemSelf])}
+    style={Styles.collapseStyles([styles.item, styles.headerItem])}
   >
     <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
     {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
@@ -282,9 +293,11 @@ const HeaderRow = ({mode, onCreate, onSelectAll, onSelectNone}) => (
 const SelfChannelActions = ({
   meta,
   reloadChannels,
+  selfMode,
 }: {
   meta: ChatTypes.ConversationMeta
   reloadChannels: () => Promise<undefined>
+  selfMode: boolean
 }) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -300,7 +313,7 @@ const SelfChannelActions = ({
         path: [{props: {standalone: false, ...actionProps}, selected: 'teamEditChannel'}],
       })
     )
-  const onAdministrate = () => {
+  const onChannelSettings = () => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(nav.safeNavigateAppendPayload({path: [{props: actionProps, selected: 'teamChannel'}]}))
   }
@@ -324,11 +337,11 @@ const SelfChannelActions = ({
   }
 
   const menuItems = [
-    {onClick: onEditChannel, title: 'Edit channel'},
+    {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
     ...(isAdmin
       ? [
-          {onClick: onAdministrate, title: 'Administrate'},
-          {danger: true, onClick: onDelete, title: 'Delete'},
+          {icon: 'iconfont-nav-2-settings' as const, onClick: onChannelSettings, title: 'Channel settings'},
+          {danger: true, icon: 'iconfont-remove' as const, onClick: onDelete, title: 'Delete'},
         ]
       : []),
   ]
@@ -343,7 +356,13 @@ const SelfChannelActions = ({
   ))
   const [buttonMousedOver, setMouseover] = React.useState(false)
   return (
-    <Kb.Box2 direction="horizontal" gap="xtiny" fullHeight={true}>
+    <Kb.Box2
+      direction="horizontal"
+      gap="xtiny"
+      fullHeight={true}
+      centerChildren={true}
+      style={Styles.collapseStyles([selfMode && !Styles.isMobile && styles.channelRowSelfMode])}
+    >
       {popup}
       {meta.channelname !== 'general' && (
         <Kb.Button
@@ -376,6 +395,7 @@ const SelfChannelActions = ({
         ref={popupAnchor}
         small={true}
         mode="Secondary"
+        type="Dim"
       />
     </Kb.Box2>
   )
@@ -419,12 +439,17 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
           <Common.Activity level={activityLevel} />
         </Kb.Box2>
         {selfMode ? (
-          <SelfChannelActions meta={channelMeta} reloadChannels={reloadChannels} />
+          <SelfChannelActions selfMode={selfMode} meta={channelMeta} reloadChannels={reloadChannels} />
         ) : (
           <Kb.CheckCircle
             checked={selected || allInChannel}
             onCheck={onSelect}
             disabled={channelMeta.channelname === 'general' || allInChannel}
+            disabledColor={
+              channelMeta.channelname === 'general' || allInChannel
+                ? Styles.globalColors.black_20OrWhite_20
+                : undefined
+            }
           />
         )}
       </Kb.Box2>
@@ -444,18 +469,22 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
       type="Large"
       action={
         selfMode ? (
-          <SelfChannelActions meta={channelMeta} reloadChannels={reloadChannels} />
+          <SelfChannelActions selfMode={selfMode} meta={channelMeta} reloadChannels={reloadChannels} />
         ) : (
           <Kb.CheckCircle
             checked={selected || allInChannel}
             disabled={channelMeta.channelname === 'general' || allInChannel}
+            disabledColor={
+              channelMeta.channelname === 'general' || allInChannel
+                ? Styles.globalColors.black_20OrWhite_20
+                : undefined
+            }
             onCheck={() => {
               /* ListItem onMouseDown triggers this */
             }}
           />
         )
       }
-      height={selfMode ? 72 : undefined}
       firstItem={true}
       body={
         <Kb.Box2 direction="vertical" alignItems="stretch">
@@ -463,45 +492,51 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
             <Kb.Text type="BodySemibold" lineClamp={1}>
               #{channelMeta.channelname}
             </Kb.Text>
-            {selfMode && <Common.ParticipantMeta numParticipants={participants.length} />}
+            <Common.ParticipantMeta numParticipants={participants.length} />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
-            {!selfMode && (
-              <Kb.Text type="BodySmall">
-                {participants.length} {pluralize('member', participants.length)}
-              </Kb.Text>
-            )}
-            <Kb.Text type="BodySmall">{activityLevel !== 'none' && !selfMode && ' • '}</Kb.Text>
             <Common.Activity level={activityLevel} />
           </Kb.Box2>
-          {selfMode && (
+          {selfMode && !Styles.isMobile && (
             <Kb.Text type="BodySmall" lineClamp={1}>
               {channelMeta.description}
             </Kb.Text>
           )}
         </Kb.Box2>
       }
-      containerStyleOverride={styles.channelRowContainer}
+      containerStyleOverride={Styles.collapseStyles([
+        styles.channelRowContainer,
+        selfMode && !Styles.isMobile && styles.channelRowSelfMode,
+      ])}
     />
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
   channelRowContainer: {marginLeft: 16, marginRight: 8},
+  channelRowSelfMode: {minHeight: 72},
   channelText: {flexShrink: 1},
   disabled: {opacity: 0.4},
-  headerItem: {backgroundColor: Styles.globalColors.blueGrey},
+  headerItem: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blueGrey,
+    },
+    isElectron: {
+      height: 40,
+    },
+    isMobile: {
+      height: 48,
+    },
+  }),
   item: Styles.platformStyles({
     common: {justifyContent: 'space-between'},
     isElectron: {
-      height: 56,
       ...Styles.padding(0, Styles.globalMargins.small),
     },
     isMobile: {
       ...Styles.padding(Styles.globalMargins.small),
     },
   }),
-  itemSelf: Styles.platformStyles({isElectron: {height: 72}}),
   joinLeaveButton: {
     width: 63,
   },

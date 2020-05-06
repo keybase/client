@@ -469,6 +469,7 @@ export type IconType =
   | 'icon-facebook-logo-64'
   | 'icon-fancy-bomb-desktop-150-72'
   | 'icon-fancy-bomb-mobile-226-96'
+  | 'icon-fancy-contact-import-mobile-72-96'
   | 'icon-fancy-email-sent-144-x-48'
   | 'icon-fancy-email-sent-192-x-64'
   | 'icon-fancy-encrypted-computer-desktop-150-72'
@@ -936,6 +937,7 @@ export type IconType =
   | 'iconfont-basketball'
   | 'iconfont-block'
   | 'iconfont-bomb'
+  | 'iconfont-bomb-solid'
   | 'iconfont-boom'
   | 'iconfont-bot'
   | 'iconfont-calculate'
@@ -1091,6 +1093,7 @@ export type IconType =
   | 'iconfont-text-code'
   | 'iconfont-thunderbolt'
   | 'iconfont-timer'
+  | 'iconfont-timer-solid'
   | 'iconfont-trash'
   | 'iconfont-typing'
   | 'iconfont-unhide'
@@ -5081,6 +5084,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
+    },
+  },
+  'icon-fancy-contact-import-mobile-72-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-fancy-contact-import-mobile-72-96.png')
     },
   },
   'icon-fancy-email-sent-144-x-48': {
@@ -9621,6 +9632,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: true,
   },
   'iconfont-bomb': {
+    charCode: 0xe9d1,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-bomb-solid': {
     charCode: 0xe908,
     gridSize: 16,
     isFont: true,
@@ -10397,6 +10413,11 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
   },
   'iconfont-timer': {
     charCode: 0xe963,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-timer-solid': {
+    charCode: 0xe9d0,
     gridSize: 16,
     isFont: true,
   },

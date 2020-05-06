@@ -741,6 +741,9 @@ type KeybaseService interface {
 	// and sets it if not established.
 	EstablishMountDir(ctx context.Context) (string, error)
 
+	// GetKVStoreClient returns a client for accessing the KVStore service.
+	GetKVStoreClient() keybase1.KvstoreInterface
+
 	// Shutdown frees any resources associated with this
 	// instance. No other methods may be called after this is
 	// called.
@@ -1177,7 +1180,7 @@ type DiskBlockCache interface {
 	// waits for all caches to start.
 	WaitUntilStarted(cacheType DiskBlockCacheType) error
 	// Shutdown cleanly shuts down the disk block cache.
-	Shutdown(ctx context.Context)
+	Shutdown(ctx context.Context) <-chan struct{}
 }
 
 // DiskMDCache caches encrypted MD objects to the disk.

@@ -68,6 +68,24 @@
           "name": "content"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "IncomingShareCompressPreference",
+      "symbols": [
+        "ORIGINAL_0",
+        "COMPRESSED_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IncomingSharePreference",
+      "fields": [
+        {
+          "type": "IncomingShareCompressPreference",
+          "name": "compressPreference"
+        }
+      ]
     }
   ],
   "messages": {
@@ -77,6 +95,19 @@
         "type": "array",
         "items": "IncomingShareItem"
       }
+    },
+    "getPreference": {
+      "request": [],
+      "response": "IncomingSharePreference"
+    },
+    "setPreference": {
+      "request": [
+        {
+          "name": "preference",
+          "type": "IncomingSharePreference"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

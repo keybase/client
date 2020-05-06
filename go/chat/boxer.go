@@ -34,7 +34,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
@@ -96,7 +95,6 @@ func (b *Boxer) makeErrorMessageFromPieces(ctx context.Context, err types.Unboxi
 	msgID chat1.MessageID, msgType chat1.MessageType, ctime gregor1.Time,
 	sender gregor1.UID, senderDevice gregor1.DeviceID, botUID *gregor1.UID,
 	isEphemeral bool, explodedBy *string, etime gregor1.Time) chat1.MessageUnboxed {
-	// TODO: add txID when those errors should be shown
 	e := chat1.MessageUnboxedError{
 		ErrType:        err.ExportType(),
 		ErrMsg:         err.Error(),
@@ -415,28 +413,17 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 		return NewPermanentUnboxingError(err)
 	}
 
+	// Check that message type on the client header matches the body
 	body := unboxed.MessageBody
 	if !body.IsNil() {
 		bodyTyp, err := body.MessageType()
 		if err != nil {
 			return NewPermanentUnboxingError(err)
 		}
-
-		// Check that message type on the client header matches the body
 		if unboxed.ClientHeader.MessageType != bodyTyp {
 			err := fmt.Errorf("client header message type does not match body: %v(header) != %v(body)",
 				unboxed.ClientHeader.MessageType, bodyTyp)
 			return NewPermanentUnboxingError(err)
-		}
-
-		// Check that txIDs on the client header match the body, if relevant
-		if unboxed.ClientHeader.TxIDs != nil {
-			bodyTxIDs := utils.GetMessageBodyTxIDs(bodyTyp, body)
-			if !stellar1.TransactionIDsPtrEq(&bodyTxIDs, unboxed.ClientHeader.TxIDs) {
-				err := fmt.Errorf("client header txIDs do not match body: %v(header) != %v(body)",
-					unboxed.ClientHeader.TxIDs, bodyTxIDs)
-				return NewPermanentUnboxingError(err)
-			}
 		}
 	}
 
@@ -1058,7 +1045,6 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 			return chat1.MessageClientHeaderVerified{}, nil,
 				NewPermanentUnboxingError(fmt.Errorf("HeaderSignature non-nil in MBV2"))
 		}
-
 		return chat1.MessageClientHeaderVerified{
 			Conv:              hp.Conv,
 			TlfName:           hp.TlfName,
@@ -1073,7 +1059,6 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 			EphemeralMetadata: hp.EphemeralMetadata,
 			BotUID:            hp.BotUID,
-			TxIDs:             hp.TxIDs,
 			Rtime:             rtime,
 		}, hp.BodyHash, nil
 	// NOTE: When adding new versions here, you must also update
@@ -1205,10 +1190,6 @@ func (b *Boxer) compareHeadersMBV2orV3(ctx context.Context, hServer chat1.Messag
 		return NewPermanentUnboxingError(NewHeaderMismatchError("BotUID"))
 	}
 
-	// TxIDs (only present in V3 and greater)
-	if version > chat1.MessageBoxedVersion_V2 && !stellar1.TransactionIDsPtrEq(hServer.TxIDs, hSigned.TxIDs) {
-		return NewPermanentUnboxingError(NewHeaderMismatchError("TxIDs"))
-	}
 	return nil
 }
 
@@ -1855,7 +1836,6 @@ func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.Messag
 		KbfsCryptKeysUsed: messagePlaintext.ClientHeader.KbfsCryptKeysUsed,
 		EphemeralMetadata: messagePlaintext.ClientHeader.EphemeralMetadata,
 		BotUID:            messagePlaintext.ClientHeader.BotUID,
-		TxIDs:             messagePlaintext.ClientHeader.TxIDs,
 		// In MessageBoxed.V2 HeaderSignature is nil.
 		HeaderSignature: nil,
 	})

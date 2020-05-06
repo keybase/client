@@ -491,3 +491,53 @@ func TestFavoritesDiskCache(t *testing.T) {
 	// above.
 	favTestShutdown(t, mockCtrl, config, f)
 }
+
+func TestFavoritesRefreshCacheWhenMtimeChanged(t *testing.T) {
+	mockCtrl, config, ctx := favTestInit(t, false)
+	f := NewFavorites(config)
+	f.bufferedInterval = 1 * time.Millisecond
+	f.InitForTest()
+	defer favTestShutdown(t, mockCtrl, config, f)
+
+	fav1 := favorites.ToAdd{
+		Folder: favorites.Folder{
+			Name: "test",
+			Type: tlf.Public,
+		},
+		Data:    favorites.Data{},
+		Created: false,
+	}
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).
+		Return(keybase1.FavoritesResult{
+			FavoriteFolders: []keybase1.Folder{favToAddToKBFolder(fav1)},
+		}, nil)
+
+	t.Log("Refresh first time")
+	id := tlf.FakeID(1, fav1.Folder.Type)
+	f.RefreshCacheWhenMTimeChanged(ctx, id)
+	err := f.bufferedWg.Wait(ctx)
+	require.NoError(t, err)
+
+	t.Log("Refresh second time, no API call")
+	f.RefreshCacheWhenMTimeChanged(ctx, id)
+	err = f.bufferedWg.Wait(ctx)
+	require.NoError(t, err)
+
+	t.Log("A regular refresh should clear the state")
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).
+		Return(keybase1.FavoritesResult{
+			FavoriteFolders: []keybase1.Folder{favToAddToKBFolder(fav1)},
+		}, nil)
+	f.RefreshCache(ctx, FavoritesRefreshModeBlocking)
+	err = f.wg.Wait(ctx)
+	require.NoError(t, err)
+
+	t.Log("Refresh third time, which should cause an API call again")
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).
+		Return(keybase1.FavoritesResult{
+			FavoriteFolders: []keybase1.Folder{favToAddToKBFolder(fav1)},
+		}, nil)
+	f.RefreshCacheWhenMTimeChanged(ctx, id)
+	err = f.bufferedWg.Wait(ctx)
+	require.NoError(t, err)
+}

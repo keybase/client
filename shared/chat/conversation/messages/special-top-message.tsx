@@ -57,7 +57,7 @@ class SpecialTopMessage extends React.PureComponent<Props> {
         )}
         {this.props.pendingState === 'waiting' && (
           <Kb.Box style={styles.more}>
-            <Kb.Text type="BodySmallSemibold">Loading...</Kb.Text>
+            <Kb.Text type="BodySmall">Loading...</Kb.Text>
           </Kb.Box>
         )}
         {this.props.pendingState === 'error' && (

@@ -955,6 +955,14 @@ export type MessageTypes = {
     inParam: void
     outParam: Array<IncomingShareItem> | null
   }
+  'keybase.1.incomingShare.getPreference': {
+    inParam: void
+    outParam: IncomingSharePreference
+  }
+  'keybase.1.incomingShare.setPreference': {
+    inParam: {readonly preference: IncomingSharePreference}
+    outParam: void
+  }
   'keybase.1.install.fuseStatus': {
     inParam: {readonly bundleVersion: String}
     outParam: FuseStatus
@@ -1970,6 +1978,11 @@ export enum IdentifyReasonType {
 export enum IdentityVisibility {
   private = 0,
   public = 1,
+}
+
+export enum IncomingShareCompressPreference {
+  original = 0,
+  compressed = 1,
 }
 
 export enum IncomingShareType {
@@ -3032,6 +3045,7 @@ export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration;
 export type ImplicitTeamDisplayName = {readonly isPublic: Boolean; readonly writers: ImplicitTeamUserSet; readonly readers: ImplicitTeamUserSet; readonly conflictInfo?: ImplicitTeamConflictInfo | null}
 export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null; readonly unresolvedUsers?: Array<SocialAssertion> | null}
 export type IncomingShareItem = {readonly type: IncomingShareType; readonly originalPath?: String | null; readonly originalSize?: Int | null; readonly scaledPath?: String | null; readonly scaledSize?: Int | null; readonly thumbnailPath?: String | null; readonly content?: String | null}
+export type IncomingSharePreference = {readonly compressPreference: IncomingShareCompressPreference}
 export type IndexProgressRecord = {readonly endEstimate: Time; readonly bytesTotal: Int64; readonly bytesSoFar: Int64}
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
 export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
@@ -3859,6 +3873,8 @@ export const identify3Identify3IgnoreUserRpcPromise = (params: MessageTypes['key
 export const identify3Identify3RpcSaga = (p: {params: MessageTypes['keybase.1.identify3.identify3']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.identify3.identify3', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const identifyIdentify2RpcPromise = (params: MessageTypes['keybase.1.identify.identify2']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.identify.identify2']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.identify.identify2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const incomingShareGetIncomingShareItemsRpcPromise = (params: MessageTypes['keybase.1.incomingShare.getIncomingShareItems']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.incomingShare.getIncomingShareItems']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.incomingShare.getIncomingShareItems', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const incomingShareGetPreferenceRpcPromise = (params: MessageTypes['keybase.1.incomingShare.getPreference']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.incomingShare.getPreference']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.incomingShare.getPreference', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const incomingShareSetPreferenceRpcPromise = (params: MessageTypes['keybase.1.incomingShare.setPreference']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.incomingShare.setPreference']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.incomingShare.setPreference', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const installFuseStatusRpcPromise = (params: MessageTypes['keybase.1.install.fuseStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.fuseStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.fuseStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const installInstallFuseRpcPromise = (params: MessageTypes['keybase.1.install.installFuse']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.installFuse']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.installFuse', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const installInstallKBFSRpcPromise = (params: MessageTypes['keybase.1.install.installKBFS']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.installKBFS']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.installKBFS', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

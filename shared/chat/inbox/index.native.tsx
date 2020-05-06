@@ -45,6 +45,7 @@ const NoChats = (props: {onNewChat: () => void}) => (
 type State = {
   showFloating: boolean
   showUnread: boolean
+  unreadCount: number
 }
 
 class Inbox extends React.PureComponent<T.Props, State> {
@@ -57,7 +58,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
   private firstOffscreenIdx: number = -1
   private lastVisibleIdx: number = -1
 
-  state = {showFloating: false, showUnread: false}
+  state = {showFloating: false, showUnread: false, unreadCount: 0}
 
   componentDidUpdate(prevProps: T.Props) {
     if (!shallowEqual(prevProps.unreadIndices, this.props.unreadIndices)) {
@@ -144,14 +145,21 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   private updateShowUnread = () => {
-    if (!this.props.unreadIndices.length || this.lastVisibleIdx < 0) {
+    if (!this.props.unreadIndices.size || this.lastVisibleIdx < 0) {
       this.setState(s => (s.showUnread ? {showUnread: false} : null))
       return
     }
 
-    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this.lastVisibleIdx)
+    let unreadCount = 0
+    let firstOffscreenIdx = 0
+    this.props.unreadIndices.forEach((count, idx) => {
+      if (idx > this.lastVisibleIdx) {
+        firstOffscreenIdx = idx
+        unreadCount += count
+      }
+    })
     if (firstOffscreenIdx) {
-      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      this.setState(s => (s.showUnread ? null : {showUnread: true, unreadCount}))
       this.firstOffscreenIdx = firstOffscreenIdx
     } else {
       this.setState(s => (s.showUnread ? {showUnread: false} : null))
@@ -277,7 +285,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
               <BuildTeam />
             ))}
           {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
-            <UnreadShortcut onClick={this.scrollToUnread} />
+            <UnreadShortcut onClick={this.scrollToUnread} unreadCount={this.state.unreadCount} />
           )}
         </Kb.Box>
       </Kb.ErrorBoundary>

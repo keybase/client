@@ -24,4 +24,14 @@ protocol incomingShare {
   }
 
   array<IncomingShareItem> getIncomingShareItems();
+
+  enum IncomingShareCompressPreference {
+    ORIGINAL_0,
+    COMPRESSED_1
+  }
+  record IncomingSharePreference {
+    IncomingShareCompressPreference compressPreference;
+  }
+  IncomingSharePreference getPreference();
+  void setPreference(IncomingSharePreference preference);
 }

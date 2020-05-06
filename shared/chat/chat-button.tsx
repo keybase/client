@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as ChatConstants from '../constants/chat2'
-import * as Tabs from '../constants/tabs'
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
@@ -17,12 +15,7 @@ type Props = {
 const ChatButton = ({small, style, username}: Props) => {
   const dispatch = Container.useDispatch()
   const chat = () => {
-    if (Container.isMobile) {
-      dispatch(RouteTreeGen.createNavigateUp())
-      dispatch(RouteTreeGen.createClearModals())
-    }
     dispatch(ConfigGen.createShowMain())
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   }
   return (

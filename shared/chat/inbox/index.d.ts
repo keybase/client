@@ -17,7 +17,7 @@ export type Props = {
   setInboxNumSmallRows: (rows: number) => void
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
-  unreadIndices: Array<number>
+  unreadIndices: Map<number, number>
 }
 
 export default class Inbox extends React.Component<Props> {}

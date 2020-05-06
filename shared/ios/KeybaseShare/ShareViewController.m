@@ -272,7 +272,42 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
     }
   };
   
+  NSItemProviderCompletionHandler dataHandler = ^(NSData* data, NSError* error) {
+    NSURL* filePayloadURL = [self getPayloadURLFromExt:@"data"];
+    BOOL OK = [data writeToURL:filePayloadURL atomically:true];
+    if (!OK) {
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"dataHandler: unable to write payload file" error:nil];
+      return;
+    }
+    [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
+  };
+  
+  NSItemProviderCompletionHandler fileHandlerSimple = ^(NSURL* url, NSError* error) {
+    if (error != nil) {
+      if ([item hasItemConformingToTypeIdentifier:@"public.data"]) {
+        [item loadItemForTypeIdentifier:@"public.data" options:nil completionHandler: dataHandler];
+        return;
+      }
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: no url or public.data" error:error];
+      return;
+    }
+    NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
+       [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
+       if (error != nil) {
+         [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: copy error" error:error];
+         return;
+    }
+    [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
+  };
+  
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
+    if (error != nil) {
+      if ([item hasItemConformingToTypeIdentifier:@"public.data"]) {
+        [item loadItemForTypeIdentifier:@"public.data" options:nil completionHandler: fileHandlerSimple];
+        return;
+      }
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"textHandler: error and no public.data" error:nil];
+    }
     [self handleText:text chatOnly:false loadError:error];
   };
   
@@ -294,7 +329,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   // The NSItemProviderCompletionHandler interface is a little tricky. The caller of our handler
   // will inspect the arguments that we have given, and will attempt to give us the attachment
   // in this form. For files, we always want a file URL, and so that is what we pass in.
-  NSItemProviderCompletionHandler fileHandler = ^(NSURL* url, NSError* error) {
+  NSItemProviderCompletionHandler fileHandlerMedia = ^(NSURL* url, NSError* error) {
     BOOL hasImage = [item hasItemConformingToTypeIdentifier:@"public.image"];
     BOOL hasVideo = [item hasItemConformingToTypeIdentifier:@"public.movie"];
     
@@ -305,7 +340,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
         [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
         return;
       }
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: no url or image" error:error];
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: no url or public.image" error:error];
       return;
     }
     
@@ -315,7 +350,6 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
       [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandler: copy error" error:error];
       return;
     }
-    
     
     if (hasVideo) {
       [self handleAndCompleteMediaFile:filePayloadURL isVideo:true];
@@ -327,22 +361,22 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   };
   
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
-    [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandler];
+    [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandlerMedia];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
     // Use the fileHandler here, so if the image is from e.g. the Photos app,
     // we'd go with the copy routine instead of having to encode an NSImage.
     // This is important for staying under the mem limit.
-    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandler];
+    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandlerMedia];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
-    [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandler];
+    // Although this will be covered in the catch-all below, do it before public.text and public.url so that we get the file instead of a web URL when user shares a downloaded file from safari.
+    [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandlerSimple];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.text"]) {
     [item loadItemForTypeIdentifier:@"public.text" options:nil completionHandler:textHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
     [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
   } else {
-    [[[PushNotifier alloc] init] localNotification:@"extension" msg:@"We failed to send your message. Please try from the Keybase app."
-                                        badgeCount:-1 soundName:@"default" convID:@"" typ:@"chat.extension"];
-    [self completeItemAndAppendManifestAndLogErrorWithText:@"unknown type" error:nil];
+    // catch-all, including file-url or stuff like pdf from safari, or contact card.
+    [item loadItemForTypeIdentifier:@"public.item" options:nil completionHandler: fileHandlerSimple];
   }
 }
 

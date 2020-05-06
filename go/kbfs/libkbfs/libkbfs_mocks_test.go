@@ -2343,6 +2343,20 @@ func (mr *MockKeybaseServiceMockRecorder) GetCurrentMerkleRoot(arg0 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentMerkleRoot", reflect.TypeOf((*MockKeybaseService)(nil).GetCurrentMerkleRoot), arg0)
 }
 
+// GetKVStoreClient mocks base method.
+func (m *MockKeybaseService) GetKVStoreClient() keybase1.KvstoreInterface {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetKVStoreClient")
+	ret0, _ := ret[0].(keybase1.KvstoreInterface)
+	return ret0
+}
+
+// GetKVStoreClient indicates an expected call of GetKVStoreClient.
+func (mr *MockKeybaseServiceMockRecorder) GetKVStoreClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKVStoreClient", reflect.TypeOf((*MockKeybaseService)(nil).GetKVStoreClient))
+}
+
 // GetTeamSettings mocks base method.
 func (m *MockKeybaseService) GetTeamSettings(arg0 context.Context, arg1 keybase1.TeamID, arg2 keybase1.OfflineAvailability) (keybase1.KBFSTeamSettings, error) {
 	m.ctrl.T.Helper()
