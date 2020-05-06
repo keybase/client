@@ -44,6 +44,7 @@ require (
 	github.com/gliderlabs/ssh v0.3.0 // indirect
 	github.com/go-errors/errors v1.0.1
 	github.com/go-ole/go-ole v1.2.2-0.20181215015207-39dc8486bd09 // indirect
+	github.com/go-sql-driver/mysql v1.5.1-0.20200311113236-681ffa848bae
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe // indirect
 	github.com/gocolly/colly v1.1.1-0.20190204140905-b3032e87d3ef // indirect
 	github.com/golang/groupcache v0.0.0-20181024230925-c65c006176ff
