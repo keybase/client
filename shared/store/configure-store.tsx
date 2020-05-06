@@ -10,6 +10,7 @@ import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
 import {isMobile, isRemoteDebuggerAttached} from '../constants/platform'
 import * as LocalConsole from '../util/local-console'
+import {hookMiddleware} from './hook-middleware'
 
 let theStore: Store<any, any>
 
@@ -97,26 +98,6 @@ if (__DEV__) {
 }
 
 const freezeMiddleware = _store => next => action => next(Object.freeze(action))
-
-// allow useWatchActions
-const hookMiddleware = () => next => action => {
-  _hookCBs.forEach(cb => cb(action))
-  return next(action)
-}
-
-type HookCB = (a: any) => void
-
-const _hookCBs: Array<HookCB> = []
-/** Register a useWatchActions hook */
-export const registerHookMiddleware = (cb: HookCB) => {
-  _hookCBs.push(cb)
-  return () => {
-    const idx = _hookCBs.indexOf(cb)
-    if (idx !== -1) {
-      _hookCBs.splice(idx, 1)
-    }
-  }
-}
 
 const middlewares = [
   errorCatching,

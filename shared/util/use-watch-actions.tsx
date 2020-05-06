@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {TypedActions} from '../actions/typed-actions-gen'
-import {registerHookMiddleware} from '../store/configure-store'
+import {registerHookMiddleware} from '../store/hook-middleware'
 
 type CBType = (act: TypedActions) => void
 /** A hook to listen to redux actions.  watcher is only called if you're still mounted
