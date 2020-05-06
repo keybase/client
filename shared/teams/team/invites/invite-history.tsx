@@ -102,7 +102,6 @@ const InviteHistory = (props: Props) => {
         tabs={[{title: validTitle}, {title: invalidTitle}]}
         onSelect={title => setShowingValid(title === validTitle)}
         selectedTab={showingValid ? validTitle : invalidTitle}
-        style={styles.tabs}
       />
       {emptyOrLoading ?? (
         <Kb.BoxGrow>
@@ -130,9 +129,6 @@ const InviteHistory = (props: Props) => {
 const styles = Styles.styleSheetCreate(() => ({
   listContent: {
     paddingBottom: Styles.globalMargins.small,
-  },
-  tabs: {
-    backgroundColor: Styles.globalColors.white,
   },
   wideMargins: {
     marginLeft: Styles.globalMargins.small,

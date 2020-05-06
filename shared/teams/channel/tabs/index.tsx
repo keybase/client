@@ -29,14 +29,7 @@ const ChannelTabs = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box style={styles.container}>
-        <Kb.Tabs
-          clickableBoxStyle={styles.clickableBox}
-          tabs={tabs}
-          selectedTab={selectedTab}
-          onSelect={setSelectedTab}
-          style={styles.tabContainer}
-          tabStyle={styles.tab}
-        />
+        <Kb.Tabs tabs={tabs} selectedTab={selectedTab} onSelect={setSelectedTab} />
       </Kb.Box>
       {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
     </Kb.Box2>
@@ -44,23 +37,9 @@ const ChannelTabs = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  clickableBox: {
-    flexGrow: 1,
-  },
   container: {
     backgroundColor: Styles.globalColors.white,
     width: '100%',
-  },
-  tab: Styles.platformStyles({
-    isMobile: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-  tabContainer: {
-    backgroundColor: Styles.globalColors.white,
-    flexBasis: '100%',
-    marginTop: 0,
   },
 }))
 
