@@ -2205,14 +2205,14 @@ func FindAssertionsInTeamNoResolve(mctx libkb.MetaContext, teamID keybase1.TeamI
 	}
 
 	// Don't check one assertion more than once, if we got duplicates.
-	checkedAssertions := make(map[string]bool)
+	checkedAssertions := make(map[string]struct{})
 
 	actx := externals.MakeAssertionContext(mctx)
 	for _, assertionStr := range assertions {
 		if _, found := checkedAssertions[assertionStr]; found {
 			continue
 		}
-		checkedAssertions[assertionStr] = true
+		checkedAssertions[assertionStr] = struct{}{}
 
 		assertion, err := libkb.AssertionParseAndOnly(actx, assertionStr)
 		if err != nil {
