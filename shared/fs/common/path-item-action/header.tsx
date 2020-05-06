@@ -36,6 +36,12 @@ const styles = Styles.styleSheetCreate(
           paddingBottom: Styles.globalMargins.medium,
           paddingTop: Styles.globalMargins.large,
         },
+        isTablet: {
+          alignSelf: 'center',
+          maxWidth: 460,
+          paddingLeft: 0,
+          paddingRight: 0,
+        },
       }),
     } as const)
 )

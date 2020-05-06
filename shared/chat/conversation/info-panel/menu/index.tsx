@@ -55,7 +55,12 @@ type AdhocHeaderProps = {
 const AdhocHeader = (props: AdhocHeaderProps) => {
   const {channelHumans} = InfoPanelCommon.useHumans(props.conversationIDKey)
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      alignSelf={Styles.isTablet ? 'center' : undefined}
+      style={styles.headerContainer}
+    >
       <Avatars
         backgroundColor={Styles.globalColors.white}
         isHovered={false}
@@ -354,6 +359,11 @@ const styles = Styles.styleSheetCreate(
         isMobile: {
           ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
           height: 64,
+        },
+        isTablet: {
+          maxWidth: 460,
+          paddingLeft: 0,
+          paddingRight: 0,
         },
       }),
       maybeLongText: Styles.platformStyles({
