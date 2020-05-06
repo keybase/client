@@ -17,20 +17,10 @@ amdefine@>=0.0.4:
   resolved "https://registry.yarnpkg.com/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
   integrity sha1-SlKCrBZHKek2Gbz9OtFR+BfOkfU=
 
-avdl-compiler@1.4.9:
-  version "1.4.9"
-  resolved "https://registry.yarnpkg.com/avdl-compiler/-/avdl-compiler-1.4.9.tgz#a8915cf54a132c18817093625db3a8cfb27f70c6"
-  integrity sha512-hlgSVK+X1Bl2iV+fOZR8YSqU+X6tuoBBTPuf+TLImMEmK0cs32hGtevbrIaTcQESdxQb1/l3BFFeD6MNQ0RFGQ==
-  dependencies:
-    avdl2json "^2.2.5"
-    iced-error "0.0.9"
-    iced-runtime "^1.0.3"
-    lodash "4.17.15"
-    minimist "^1.2.0"
-
-avdl-compiler@keybase/node-avdl-compiler#marcel/gomod-support:
+avdl-compiler@1.4.10:
   version "1.4.10"
-  resolved "https://codeload.github.com/keybase/node-avdl-compiler/tar.gz/e5db32f7c4ce1b4b61711e1b9e9b63c4d4bf9c3c"
+  resolved "https://registry.yarnpkg.com/avdl-compiler/-/avdl-compiler-1.4.10.tgz#aae76fe16723aa2e1fb528997fbd6030e23a1f79"
+  integrity sha512-zXXV6kSDFYUB08cqiWehwPW4RV4M0Bpz7WkWAJ0SAYz5mhPpsvIWxt19YLwc+yzbA+iYZpMRn2bYoxbKumzT5g==
   dependencies:
     avdl2json "^2.2.5"
     iced-error "0.0.9"
