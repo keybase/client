@@ -85,7 +85,7 @@ require (
 	github.com/keybase/vcr v0.0.0-20191017153547-a32d93056205 // indirect
 	github.com/kr/text v0.2.0
 	github.com/kyokomi/emoji v2.2.2+incompatible
-	github.com/mattn/go-isatty v0.0.12
+	github.com/mattn/go-isatty v0.0.9
 	github.com/miekg/dns v0.0.0-20170310215703-c862b7e35985
 	github.com/nf/cr2 v0.0.0-20140528043846-05d46fef4f2f // indirect
 	github.com/nfnt/resize v0.0.0-20160724205520-891127d8d1b5
@@ -116,16 +116,16 @@ require (
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	github.com/willf/bitset v1.1.11-0.20190404145324-77892cd8d53f // indirect
 	github.com/xanzy/ssh-agent v0.2.0 // indirect
-	go.etcd.io/bbolt v1.3.4 // indirect
+	go.etcd.io/bbolt v1.3.3 // indirect
 	go.uber.org/atomic v1.3.3-0.20181018215023-8dc6146f7569 // indirect
 	go.uber.org/multierr v1.1.1-0.20180122172545-ddea229ff1df // indirect
 	go.uber.org/zap v1.9.2-0.20180814183419-67bc79d13d15
 	go4.org v0.0.0-20161118210015-09d86de304dc // indirect
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
 	golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
+	golang.org/x/sys v0.0.0-20190909082730-f460065e899a
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect
