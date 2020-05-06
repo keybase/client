@@ -136,6 +136,10 @@ const useNavUpIfRemovedFromTeam = (teamID: Types.TeamID, username: string) => {
 type Extra = {title: React.ReactElement}
 type Section = _Section<TeamTreeRowIn, Extra> | _Section<TeamTreeRowNotIn, Extra>
 
+const SectionList: typeof Kb.SectionList = Styles.isMobile
+  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
+  : Kb.SectionList
+
 const TeamMember = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
   const username = Container.getRouteProps(props, 'username', '')
@@ -207,83 +211,127 @@ const TeamMember = (props: OwnProps) => {
     title: makeTitle(isMe ? 'You are not in:' : `${username} is not in:`),
   }
 
+  // Animation
+  const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
+  const onScroll = React.useRef(
+    Styles.isMobile
+      ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
+      : undefined
+  )
+
   const sections = [
     ...(nodesIn.length > 0 ? [nodesInSection] : []),
     ...(nodesNotIn.length > 0 ? [nodesNotInSection] : []),
   ]
   return (
     <>
-      {errors.length > 0 && (
-        <Kb.Banner color="red">
-          {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
-          <Kb.BannerParagraph
-            key="teamTreeErrorHeader"
-            bannerColor="red"
-            content={[
-              'The following teams could not be loaded. ',
-              {
-                onClick: () => dispatch(TeamsGen.createLoadTeamTree({teamID, username})),
-                text: 'Click to reload.',
-              },
-            ]}
-          />
-          <>
-            {errors.map((error, idx) => {
-              if (RPCTypes.TeamTreeMembershipStatus.error != error.result.s) {
-                return <></>
-              }
+      <Kb.SafeAreaViewTop />
+      <Kb.Box2 direction="vertical" style={styles.container}>
+        {errors.length > 0 && (
+          <Kb.Banner color="red">
+            {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
+            <Kb.BannerParagraph
+              key="teamTreeErrorHeader"
+              bannerColor="red"
+              content={[
+                'The following teams could not be loaded. ',
+                {
+                  onClick: () => dispatch(TeamsGen.createLoadTeamTree({teamID, username})),
+                  text: 'Click to reload.',
+                },
+              ]}
+            />
+            <>
+              {errors.map((error, idx) => {
+                if (RPCTypes.TeamTreeMembershipStatus.error != error.result.s) {
+                  return <></>
+                }
 
-              const failedAt = [error.teamName]
-              if (error.result.error.willSkipSubtree) {
-                failedAt.push('its subteams')
-              }
-              if (error.result.error.willSkipAncestors) {
-                failedAt.push('its parent teams')
-              }
-              var failedAtStr = ''
-              if (failedAt.length > 1) {
-                const last = failedAt.pop()
-                failedAtStr = failedAt.join(', ') + ', and ' + last
-              } else {
-                failedAtStr = failedAt[0]
-              }
-              return (
-                <Kb.BannerParagraph
-                  key={'teamTreeErrorRow' + idx.toString()}
-                  bannerColor="red"
-                  content={'• ' + failedAtStr}
-                />
-              )
-            })}
-          </>
-        </Kb.Banner>
-      )}
-      <Kb.SectionList<Section>
-        stickySectionHeadersEnabled={false}
-        renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
-        sections={sections}
-        keyExtractor={item => `member:${username}:${item.teamname}`}
-      />
+                const failedAt = [error.teamName]
+                if (error.result.error.willSkipSubtree) {
+                  failedAt.push('its subteams')
+                }
+                if (error.result.error.willSkipAncestors) {
+                  failedAt.push('its parent teams')
+                }
+                var failedAtStr = ''
+                if (failedAt.length > 1) {
+                  const last = failedAt.pop()
+                  failedAtStr = failedAt.join(', ') + ', and ' + last
+                } else {
+                  failedAtStr = failedAt[0]
+                }
+                return (
+                  <Kb.BannerParagraph
+                    key={'teamTreeErrorRow' + idx.toString()}
+                    bannerColor="red"
+                    content={'• ' + failedAtStr}
+                  />
+                )
+              })}
+            </>
+          </Kb.Banner>
+        )}
+        {Styles.isMobile && <MobileHeader username={username} offset={offset.current} />}
+        <SectionList<Section>
+          stickySectionHeadersEnabled={false}
+          renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
+          sections={sections}
+          ListHeaderComponent={
+            Styles.isMobile ? <TeamMemberHeader teamID={teamID} username={username} /> : undefined
+          }
+          keyExtractor={item => `member:${username}:${item.teamname}`}
+          onScroll={onScroll.current}
+          style={styles.list}
+        />
+      </Kb.Box2>
     </>
   )
 }
 
+const startAnimationOffset = 40
+const AnimatedBox2 = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2) : undefined
+const MobileHeader = ({username, offset}: {username: string; offset: any}) => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const top = Kb.ReAnimated.interpolate(offset, {
+    inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
+    outputRange: [40, 40, 0, 0],
+  })
+  const opacity = Kb.ReAnimated.interpolate(offset, {
+    inputRange: [-9999, 0, 1, 9999],
+    outputRange: [0, 0, 1, 1],
+  })
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.mobileHeader}>
+      <AnimatedBox2
+        style={[styles.smallHeader, {opacity, top}]}
+        gap="tiny"
+        direction="horizontal"
+        centerChildren={true}
+        fullWidth={true}
+        fullHeight={true}
+      >
+        <Kb.Avatar size={16} username={username} />
+        <Kb.ConnectedUsernames usernames={username} colorFollowing={true} type="BodyBig" />
+      </AnimatedBox2>
+      <Kb.BackButton onClick={onBack} style={styles.backButton} />
+    </Kb.Box2>
+  )
+}
+
 TeamMember.navigationOptions = (ownProps: OwnProps) => ({
-  header: Container.isMobile
-    ? () => (
+  headerExpandable: !Container.isMobile,
+  headerTitle: Container.isMobile
+    ? undefined
+    : () => (
         <TeamMemberHeader
           teamID={Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)}
           username={Container.getRouteProps(ownProps, 'username', '')}
         />
-      )
-    : undefined,
-  headerExpandable: true,
-  headerTitle: () => (
-    <TeamMemberHeader
-      teamID={Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)}
-      username={Container.getRouteProps(ownProps, 'username', '')}
-    />
-  ),
+      ),
+  underNotch: true,
 })
 
 type NodeNotInRowProps = {
@@ -647,7 +695,6 @@ export const TeamMemberHeader = (props: Props) => {
   const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
   const yourUsername = Container.useSelector(s => s.config.username)
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
   const onViewProfile = () => dispatch(ProfileGen.createShowUserProfile({username}))
@@ -673,11 +720,6 @@ export const TeamMemberHeader = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.headerContainer}>
-      {Styles.isMobile && (
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start">
-          <Kb.BackButton onClick={onBack} />
-        </Kb.Box2>
-      )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContent}>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
           <Kb.Box2
@@ -758,6 +800,18 @@ const BlockDropdown = (props: {username: string}) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  backButton: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    top: 0,
+  },
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    flex: 1,
+    position: 'relative',
+    width: '100%',
+  },
   contentCollapsedFixedHeight: Styles.platformStyles({
     common: {
       height: 48,
@@ -820,6 +874,7 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingLeft: Styles.globalMargins.small,
     },
   }),
+  list: Styles.platformStyles({isMobile: {marginTop: 40}}),
   membershipContentExpanded: Styles.platformStyles({
     common: {
       height: 40,
@@ -850,6 +905,13 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
+  mobileHeader: {
+    backgroundColor: Styles.globalColors.white,
+    height: 40,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
   paddingBottomMobile: Styles.platformStyles({
     isPhone: {
       paddingBottom: Styles.globalMargins.small,
@@ -880,6 +942,9 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 65,
     },
   }),
+  smallHeader: {
+    ...Styles.padding(0, Styles.globalMargins.xlarge),
+  },
   teamNameLink: {
     color: Styles.globalColors.black,
   },

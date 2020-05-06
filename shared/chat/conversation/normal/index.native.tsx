@@ -14,21 +14,9 @@ import {useSafeArea} from '../../../common-adapters/safe-area-view.native'
 import {View} from 'react-native'
 
 const Offline = () => (
-  <Kb.Box
-    style={{
-      ...Styles.globalStyles.flexBoxCenter,
-      backgroundColor: Styles.globalColors.greyDark,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.tiny,
-      width: '100%',
-    }}
-  >
-    <Kb.Text center={true} type="BodySmallSemibold">
-      Couldn't load all chat messages due to network connectivity. Retrying...
-    </Kb.Text>
-  </Kb.Box>
+  <Kb.Banner color="grey" small={true} style={styles.offline}>
+    Couldn't load all chat messages due to network connectivity. Retrying...
+  </Kb.Banner>
 )
 
 const Conversation = React.memo((props: Props) => {
@@ -101,6 +89,9 @@ const styles = Styles.styleSheetCreate(
       innerContainer: {
         flex: 1,
         position: 'relative',
+      },
+      offline: {
+        padding: Styles.globalMargins.xxtiny,
       },
       outerContainer: Styles.platformStyles({
         isTablet: {
