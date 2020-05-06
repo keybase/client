@@ -74,13 +74,15 @@ const _TeamHeader = (props: SmallProps) => {
               <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
                 # <Kb.Text type="BodyBold">{channelname}</Kb.Text>
               </Kb.Text>
-              <Kb.Meta
-                backgroundColor={Styles.globalColors.blueGrey}
-                color={Styles.globalColors.black_50}
-                icon="iconfont-people-solid"
-                iconColor={Styles.globalColors.black_20}
-                title={channelHumans.length}
-              />
+              {!isGeneralChannel && (
+                <Kb.Meta
+                  backgroundColor={Styles.globalColors.blueGrey}
+                  color={Styles.globalColors.black_50}
+                  icon="iconfont-people-solid"
+                  iconColor={Styles.globalColors.black_20}
+                  title={channelHumans.length}
+                />
+              )}
             </Kb.Box2>
             <Kb.Box2
               alignSelf="flex-start"
