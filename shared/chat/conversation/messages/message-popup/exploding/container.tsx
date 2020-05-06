@@ -119,7 +119,7 @@ export default Container.connect(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
-              props: {msgID: ownProps.message.id, srcConvID: ownProps.message.conversationIDKey},
+              props: {ordinal: ownProps.message.ordinal, srcConvID: ownProps.message.conversationIDKey},
               selected: 'chatForwardMsgPick',
             },
           ],

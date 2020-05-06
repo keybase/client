@@ -22,15 +22,14 @@ const ConnectedEmojiRow = Container.namedConnect(
     return {
       _hasUnfurls: message && message.type === 'text' && message.unfurls && message.unfurls.size,
       _messageType: message ? message.type : undefined,
-      _msgID: message ? message.id : 0,
       topReacjis: state.chat2.userReacjis.topReacjis,
     }
   },
   dispatch => ({
-    _onForward: (srcConvID: Types.ConversationIDKey, msgID: Types.MessageID) =>
+    _onForward: (srcConvID: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {msgID, srcConvID}, selected: 'chatForwardMsgPick'}],
+          path: [{props: {ordinal, srcConvID}, selected: 'chatForwardMsgPick'}],
         })
       ),
     _onReact: (emoji: string, conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
@@ -45,7 +44,7 @@ const ConnectedEmojiRow = Container.namedConnect(
     onForward:
       (stateProps._messageType === 'text' && stateProps._hasUnfurls) ||
       stateProps._messageType === 'attachment'
-        ? () => dispatchProps._onForward(ownProps.conversationIDKey, stateProps._msgID)
+        ? () => dispatchProps._onForward(ownProps.conversationIDKey, ownProps.ordinal)
         : undefined,
     onReact: (emoji: string) => dispatchProps._onReact(emoji, ownProps.conversationIDKey, ownProps.ordinal),
     onReply:

@@ -81,22 +81,22 @@ export default Container.connect(
       )
       dispatch(RouteTreeGen.createClearModals())
     },
+    _onDownload: (message: Types.MessageAttachment) => {
+      dispatch(
+        Chat2Gen.createAttachmentDownload({
+          message,
+        })
+      )
+    },
     _onForward: (message: Types.Message) => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
-              props: {srcConvID: message.conversationIDKey, msgID: message.id},
+              props: {ordinal: message.ordinal, srcConvID: message.conversationIDKey},
               selected: 'chatForwardMsgPick',
             },
           ],
-        })
-      )
-    },
-    _onDownload: (message: Types.MessageAttachment) => {
-      dispatch(
-        Chat2Gen.createAttachmentDownload({
-          message,
         })
       )
     },
@@ -175,14 +175,13 @@ export default Container.connect(
       onCopyLink: () => dispatchProps._onCopyLink(stateProps._label, message),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
       onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
-      // We only show the share/save options for video if we have the file stored locally from a download
+      onForward: () => dispatchProps._onForward(message),
       onHidden: () => ownProps.onHidden(),
       onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReact: (emoji: string) => dispatchProps._onReact(message, emoji),
       onReply: () => dispatchProps._onReply(message),
-      onForward: () => dispatchProps._onForward(message),
       onSaveAttachment:
         isMobile && message.attachmentType === 'image'
           ? () => dispatchProps._onSaveAttachment(message)

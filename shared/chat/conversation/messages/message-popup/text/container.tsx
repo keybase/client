@@ -103,7 +103,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
-          {props: {msgID: message.id, srcConvID: message.conversationIDKey}, selected: 'chatForwardMsgPick'},
+          {
+            props: {ordinal: message.ordinal, srcConvID: message.conversationIDKey},
+            selected: 'chatForwardMsgPick',
+          },
         ],
       })
     )

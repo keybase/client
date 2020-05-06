@@ -5,16 +5,19 @@ import * as Container from '../../../util/container'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/chat2'
 import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
 import logger from '../../../logger'
 
-type Props = Container.RouteProps<{srcConvID: Types.ConversationIDKey; msgID: Types.MessageID}>
+type Props = Container.RouteProps<{srcConvID: Types.ConversationIDKey; ordinal: Types.Ordinal}>
 
 const TeamPicker = (props: Props) => {
-  const srcConvID = Types.keyToConversationID(Container.getRouteProps(props, 'srcConvID', ''))
-  const msgID = Container.getRouteProps(props, 'msgID', 0)
+  const srcConvID = Container.getRouteProps(props, 'srcConvID', '')
+  const ordinal = Container.getRouteProps(props, 'ordinal', 0)
+  const message = Container.useSelector(state => Constants.getMessage(state, srcConvID, ordinal))
   const [term, setTerm] = React.useState('')
   const [results, setResults] = React.useState<Array<RPCChatTypes.AddBotConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
@@ -33,7 +36,7 @@ const TeamPicker = (props: Props) => {
       error => {
         setWaiting(false)
         setError('Something went wrong, please try again.')
-        logger.info('BotTeamPicker: error loading search results: ' + error.message)
+        logger.info('TeamPicker: error loading search results: ' + error.message)
       }
     )
   }, [term, submit])
@@ -42,18 +45,36 @@ const TeamPicker = (props: Props) => {
     dispatch(RouteTreeGen.createClearModals())
   }
   const onSelect = (dstConvID: RPCChatTypes.ConversationID) => {
+    if (!message) {
+      setError('Something went wrong, please try again.')
+      return
+    }
+    if (message.type == 'attachment') {
+      dispatch(
+        Chat2Gen.createAttachmentDownload({
+          message,
+        })
+      )
+    }
     fwdMsg(
-      [{srcConvID, msgID, dstConvID, identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui}],
+      [
+        {
+          srcConvID: Types.keyToConversationID(srcConvID),
+          msgID: message.id,
+          dstConvID,
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        },
+      ],
       () => {
         setWaiting(false)
-        dispatch(RouteTreeGen.createClearModals())
       },
       error => {
         setWaiting(false)
         setError('Something went wrong, please try again.')
-        logger.info('BotTeamPicker: error loading search results: ' + error.message)
+        logger.info('TeamPicker: error loading search results: ' + error.message)
       }
     )
+    dispatch(RouteTreeGen.createClearModals())
   }
   React.useEffect(() => {
     doSearch()
