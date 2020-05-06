@@ -415,8 +415,6 @@ func TestSeitanHandleExpiredInvite(t *testing.T) {
 }
 
 func TestSeitanHandleRequestAfterRoleChange(t *testing.T) {
-	t.Skip("Test is flaky. To be fixed.")
-
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
@@ -436,8 +434,11 @@ func TestSeitanHandleRequestAfterRoleChange(t *testing.T) {
 	teamName, teamID := createTeam2(tc)
 	t.Logf("Created team %s", teamName)
 
+	clock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(clock)
+
 	// Add team invite link which expires in 10 minutes.
-	expTime := keybase1.ToUnixTime(time.Now().Add(10 * time.Minute))
+	expTime := keybase1.ToUnixTime(clock.Now().Add(10 * time.Minute))
 	invLink, err := CreateInvitelink(tc.MetaContext(), teamName.String(), keybase1.TeamRole_READER, keybase1.TeamMaxUsesInfinite,
 		&expTime)
 	require.NoError(t, err)
@@ -450,21 +451,23 @@ func TestSeitanHandleRequestAfterRoleChange(t *testing.T) {
 	msg2 := acceptInvite(t, &tc, teamID, user2, invLink)
 	msg3 := acceptInvite(t, &tc, teamID, user3, invLink)
 
-	// we now add and then remove user2 from the team.
-	adminAddsAndRemovesUser := func(user *kbtest.FakeUser, API libkb.API) {
-		kbtest.LogoutAndLoginAs(tc, admin)
-		tc.G.API = API
-		_, err := AddMember(context.TODO(), tc.G, teamName.String(), user.Username, keybase1.TeamRole_WRITER, nil)
-		require.NoError(t, err)
-		err = RemoveMember(context.TODO(), tc.G, teamName.String(), user.Username)
-		require.NoError(t, err)
-	}
+	clock.Advance(5 * time.Second)
 
-	// First admin adds and removes user2
-	adminAddsAndRemovesUser(user2, origAPI)
+	// First admin adds and removes user2. Because this happens *after* invite
+	// link for user2 is accepted, it renders the acceptance obsolete. Seitan
+	// handler should check that there was a role change after acceptance ctime
+	// and reject that acceptance.
+	tc.G.API = origAPI
+	kbtest.LogoutAndLoginAs(tc, admin)
+	_, err = AddMember(context.TODO(), tc.G, teamName.String(), user2.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.NoError(t, err)
+	err = RemoveMember(context.TODO(), tc.G, teamName.String(), user2.Username)
+	require.NoError(t, err)
 
-	// then, we try to accept all invites invites: only the one for user3 should
-	// succeed (as user2's status changed after they joined)
+	clock.Advance(5 * time.Second)
+
+	// Then, we try to accept all invites invites: only the one for user3
+	// should succeed (as user2's status changed after they joined).
 	require.NoError(t, err)
 	records := adminCallsHandleTeamSeitanAndReturnsRejectCalls(t, &tc, admin, keybase1.TeamSeitanMsg{
 		TeamID:  teamID,
@@ -473,7 +476,7 @@ func TestSeitanHandleRequestAfterRoleChange(t *testing.T) {
 	require.Len(t, records, 1, "one acceptance should be rejected")
 	assertRejectInviteArgs(t, records[0], inviteID, user2.GetUID(), user2.EldestSeqno, msg2.Seitans[0].Akey, "")
 
-	// ensure team has only user3 and admin
+	// Ensure team has only user3 and admin.
 	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name:      teamName.String(),
 		NeedAdmin: true,
