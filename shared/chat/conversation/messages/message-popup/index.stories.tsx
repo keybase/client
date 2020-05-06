@@ -40,6 +40,7 @@ const defaultProps = {
   onDeleteMessageHistory: Sb.action('onDeleteMessageHistory'),
   onDownload: Sb.action('onDownload'),
   onEdit: Sb.action('onEdit'),
+  onForward: Sb.action('onForward'),
   onHidden: Sb.action('onHidden'),
   onKick: Sb.action('onKick'),
   onQuote: Sb.action('onQuote'),

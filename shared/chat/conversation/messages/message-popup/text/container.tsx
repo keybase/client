@@ -99,6 +99,15 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       })
     )
   },
+  _onForward: (message: Types.Message) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {props: {msgID: message.id, srcConvID: message.conversationIDKey}, selected: 'chatForwardMsgPick'},
+        ],
+      })
+    )
+  },
   _onInstallBot: (message: Types.Message) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -203,6 +212,10 @@ export default Container.namedConnect(
         ? () => dispatchProps._onDeleteMessageHistory(message)
         : undefined,
       onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : undefined,
+      onForward:
+        message.type === 'text' && message.unfurls && message.unfurls.size > 0
+          ? () => dispatchProps._onForward(message)
+          : undefined,
       onHidden: () => ownProps.onHidden(),
       onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),

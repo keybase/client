@@ -19,6 +19,7 @@ type Props = {
   onDelete?: () => void
   onDeleteMessageHistory?: () => void
   onEdit?: () => void
+  onForward?: () => void
   onHidden: () => void
   onInstallBot?: () => void
   onKick: () => void
@@ -86,6 +87,7 @@ const TextPopupMenu = (props: Props) => {
       ? [{icon: 'iconfont-link', onClick: props.onCopyLink, title: 'Copy a link to this message'}]
       : []),
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
+    ...(props.onForward ? [{icon: 'iconfont-forward', onClick: props.onForward, title: 'Forward'}] : []),
     ...(props.onReplyPrivately
       ? [{icon: 'iconfont-reply', onClick: props.onReplyPrivately, title: 'Reply privately'}]
       : []),

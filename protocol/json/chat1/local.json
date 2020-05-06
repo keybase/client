@@ -4412,6 +4412,10 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "skipInChatPayments",
+          "type": "boolean"
         }
       ],
       "response": "PostLocalRes"
@@ -4455,6 +4459,10 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "skipInChatPayments",
+          "type": "boolean"
         }
       ],
       "response": "PostLocalNonblockRes",

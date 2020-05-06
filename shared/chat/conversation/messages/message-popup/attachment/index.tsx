@@ -17,6 +17,7 @@ type Props = {
   onCopyLink?: () => void
   onDelete?: () => void
   onDownload?: () => void
+  onForward: () => void
   onHidden: () => void
   onInstallBot?: () => void
   onKick: () => void
@@ -88,6 +89,7 @@ const AttachmentPopupMenu = (props: Props) => {
       ? [{icon: 'iconfont-link', onClick: props.onCopyLink, title: 'Copy a link to this message'}]
       : []),
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
+    ...(props.onForward ? [{icon: 'iconfont-forward', onClick: props.onForward, title: 'Forward'}] : []),
     ...(props.onPinMessage
       ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
       : []),

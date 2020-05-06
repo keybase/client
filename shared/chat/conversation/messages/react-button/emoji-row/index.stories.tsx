@@ -8,6 +8,7 @@ import EmojiRow from '.'
 const common = {
   className: 'emoji-row',
   emojis: Constants.defaultTopReacjis,
+  onForward: Sb.action('onForward'),
   onReact: Sb.action('onReact'),
   onReply: Sb.action('onReply'),
   onShowingEmojiPicker: Sb.action('onShowingEmojiPicker'),

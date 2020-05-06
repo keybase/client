@@ -81,6 +81,18 @@ export default Container.connect(
       )
       dispatch(RouteTreeGen.createClearModals())
     },
+    _onForward: (message: Types.Message) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {srcConvID: message.conversationIDKey, msgID: message.id},
+              selected: 'chatForwardMsgPick',
+            },
+          ],
+        })
+      )
+    },
     _onDownload: (message: Types.MessageAttachment) => {
       dispatch(
         Chat2Gen.createAttachmentDownload({
@@ -170,6 +182,7 @@ export default Container.connect(
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReact: (emoji: string) => dispatchProps._onReact(message, emoji),
       onReply: () => dispatchProps._onReply(message),
+      onForward: () => dispatchProps._onForward(message),
       onSaveAttachment:
         isMobile && message.attachmentType === 'image'
           ? () => dispatchProps._onSaveAttachment(message)

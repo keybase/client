@@ -21,6 +21,7 @@ import PunycodeLinkWarning from './punycode-link-warning'
 import BlockModal from './blocking/block-modal/container'
 import ChatInstallBot from './conversation/bot/install'
 import ChatInstallBotPick from './conversation/bot/team-picker'
+import ChatForwardMsgPick from './conversation/fwd-msg/team-picker'
 import ChatSearchBot from './conversation/bot/search'
 import ChatConfirmRemoveBot from './conversation/bot/confirm'
 import ChatPDF from './pdf'
@@ -79,6 +80,9 @@ export const newModalRoutes = {
   },
   chatEditChannel: {
     getScreen: (): typeof ChatEditChannel => require('./manage-channels/edit-channel-container').default,
+  },
+  chatForwardMsgPick: {
+    getScreen: (): typeof ChatForwardMsgPick => require('./conversation/fwd-msg/team-picker').default,
   },
   chatInfoPanel: {
     getScreen: (): typeof ChatInfoPanel => require('./conversation/info-panel/container').default,

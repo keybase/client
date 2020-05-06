@@ -6575,24 +6575,26 @@ type GetInboxNonblockLocalArg struct {
 }
 
 type PostLocalArg struct {
-	SessionID        int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
-	ReplyTo          *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	SessionID          int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID     ConversationID               `codec:"conversationID" json:"conversationID"`
+	Msg                MessagePlaintext             `codec:"msg" json:"msg"`
+	ReplyTo            *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	IdentifyBehavior   keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	SkipInChatPayments bool                         `codec:"skipInChatPayments" json:"skipInChatPayments"`
 }
 
 type GenerateOutboxIDArg struct {
 }
 
 type PostLocalNonblockArg struct {
-	SessionID        int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
-	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
-	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	ReplyTo          *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	SessionID          int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID     ConversationID               `codec:"conversationID" json:"conversationID"`
+	Msg                MessagePlaintext             `codec:"msg" json:"msg"`
+	ClientPrev         MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	OutboxID           *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	ReplyTo            *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	IdentifyBehavior   keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	SkipInChatPayments bool                         `codec:"skipInChatPayments" json:"skipInChatPayments"`
 }
 
 type ForwardMessageArg struct {

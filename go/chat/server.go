@@ -760,9 +760,11 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	}
 
 	// Run Stellar UI on any payments in the body
-	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
-		arg.Msg.MessageBody, arg.ReplyTo); err != nil {
-		return res, err
+	if !arg.SkipInChatPayments {
+		if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
+			arg.Msg.MessageBody, arg.ReplyTo); err != nil {
+			return res, err
+		}
 	}
 
 	var prepareOpts chat1.SenderPrepareOptions
@@ -1132,10 +1134,13 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		return res, nil
 	}
 
-	// Determine if the messages contains any Stellar payments, and execute them if so
-	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
-		arg.Msg.MessageBody, arg.ReplyTo); err != nil {
-		return res, err
+	if !arg.SkipInChatPayments {
+		// Determine if the messages contains any Stellar payments, and execute
+		// them if so
+		if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
+			arg.Msg.MessageBody, arg.ReplyTo); err != nil {
+			return res, err
+		}
 	}
 
 	// Create non block sender
@@ -3857,7 +3862,8 @@ func (h *Server) ForwardMessage(ctx context.Context, arg chat1.ForwardMessageArg
 			},
 			MessageBody: mvalid.MessageBody.DeepCopy(),
 		},
-		IdentifyBehavior: arg.IdentifyBehavior,
+		IdentifyBehavior:   arg.IdentifyBehavior,
+		SkipInChatPayments: true,
 	})
 }
 
@@ -3896,6 +3902,7 @@ func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMe
 			},
 			MessageBody: mvalid.MessageBody.DeepCopy(),
 		},
-		IdentifyBehavior: arg.IdentifyBehavior,
+		IdentifyBehavior:   arg.IdentifyBehavior,
+		SkipInChatPayments: true,
 	})
 }
