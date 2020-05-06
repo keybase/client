@@ -837,6 +837,10 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  PostLocalRes forwardMessage(int sessionID, ConversationID srcConvID, ConversationID dstConvID, MessageID msgID, keybase1.TLFIdentifyBehavior identifyBehavior);
+  @timeout_msec(30000) // 30 seconds
+  PostLocalNonblockRes forwardMessageNonblock(int sessionID, ConversationID srcConvID, ConversationID dstConvID, MessageID msgID, keybase1.TLFIdentifyBehavior identifyBehavior);
+
   @timeout_msec(30000) // 30 seconds
   PostLocalNonblockRes postTextNonblock(int sessionID, ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, MessageID } replyTo, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
 

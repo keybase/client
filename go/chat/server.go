@@ -3822,3 +3822,80 @@ func (h *Server) ToggleEmojiAnimations(ctx context.Context, enabled bool) (err e
 	}
 	return h.G().EmojiSource.ToggleAnimations(ctx, uid, enabled)
 }
+
+func (h *Server) ForwardMessage(ctx context.Context, arg chat1.ForwardMessageArg) (res chat1.PostLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, &err, "ForwardMessage")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	reason := chat1.GetThreadReason_FORWARDMSG
+	msg, err := h.G().ConvSource.GetMessage(ctx, arg.SrcConvID, uid, arg.MsgID, &reason, nil, true)
+	if err != nil {
+		return res, err
+	} else if !msg.IsValid() {
+		return res, fmt.Errorf("unable to foward message, source is invalid")
+	}
+	dstConv, err := utils.GetVerifiedConv(ctx, h.G(), uid, arg.DstConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return res, err
+	}
+	mvalid := msg.Valid()
+	return h.PostLocal(ctx, chat1.PostLocalArg{
+		SessionID:      arg.SessionID,
+		ConversationID: arg.DstConvID,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:              dstConv.Info.Triple,
+				TlfName:           dstConv.Info.TlfName,
+				TlfPublic:         dstConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
+				MessageType:       mvalid.ClientHeader.MessageType,
+				EphemeralMetadata: mvalid.ClientHeader.EphemeralMetadata,
+			},
+			MessageBody: mvalid.MessageBody.DeepCopy(),
+		},
+		IdentifyBehavior: arg.IdentifyBehavior,
+	})
+}
+
+func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMessageNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, &err, "ForwardMessageNonblock")()
+	defer h.suspendBgConvLoads(ctx)()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	reason := chat1.GetThreadReason_FORWARDMSG
+	msg, err := h.G().ConvSource.GetMessage(ctx, arg.SrcConvID, uid, arg.MsgID, &reason, nil, true)
+	if err != nil {
+		return res, err
+	} else if !msg.IsValid() {
+		return res, fmt.Errorf("unable to forward message, source is invalid")
+	}
+	dstConv, err := utils.GetVerifiedConv(ctx, h.G(), uid, arg.DstConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return res, err
+	}
+	mvalid := msg.Valid()
+	return h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
+		SessionID:      arg.SessionID,
+		ConversationID: arg.DstConvID,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:              dstConv.Info.Triple,
+				TlfName:           dstConv.Info.TlfName,
+				TlfPublic:         dstConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
+				MessageType:       mvalid.ClientHeader.MessageType,
+				EphemeralMetadata: mvalid.ClientHeader.EphemeralMetadata,
+			},
+			MessageBody: mvalid.MessageBody.DeepCopy(),
+		},
+		IdentifyBehavior: arg.IdentifyBehavior,
+	})
+}

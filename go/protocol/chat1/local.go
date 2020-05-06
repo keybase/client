@@ -6595,6 +6595,22 @@ type PostLocalNonblockArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type ForwardMessageArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	SrcConvID        ConversationID               `codec:"srcConvID" json:"srcConvID"`
+	DstConvID        ConversationID               `codec:"dstConvID" json:"dstConvID"`
+	MsgID            MessageID                    `codec:"msgID" json:"msgID"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type ForwardMessageNonblockArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	SrcConvID        ConversationID               `codec:"srcConvID" json:"srcConvID"`
+	DstConvID        ConversationID               `codec:"dstConvID" json:"dstConvID"`
+	MsgID            MessageID                    `codec:"msgID" json:"msgID"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type PostTextNonblockArg struct {
 	SessionID         int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
@@ -7207,6 +7223,8 @@ type LocalInterface interface {
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	GenerateOutboxID(context.Context) (OutboxID, error)
 	PostLocalNonblock(context.Context, PostLocalNonblockArg) (PostLocalNonblockRes, error)
+	ForwardMessage(context.Context, ForwardMessageArg) (PostLocalRes, error)
+	ForwardMessageNonblock(context.Context, ForwardMessageNonblockArg) (PostLocalNonblockRes, error)
 	PostTextNonblock(context.Context, PostTextNonblockArg) (PostLocalNonblockRes, error)
 	PostDeleteNonblock(context.Context, PostDeleteNonblockArg) (PostLocalNonblockRes, error)
 	PostEditNonblock(context.Context, PostEditNonblockArg) (PostLocalNonblockRes, error)
@@ -7496,6 +7514,36 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostLocalNonblock(ctx, typedArgs[0])
+					return
+				},
+			},
+			"forwardMessage": {
+				MakeArg: func() interface{} {
+					var ret [1]ForwardMessageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ForwardMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ForwardMessageArg)(nil), args)
+						return
+					}
+					ret, err = i.ForwardMessage(ctx, typedArgs[0])
+					return
+				},
+			},
+			"forwardMessageNonblock": {
+				MakeArg: func() interface{} {
+					var ret [1]ForwardMessageNonblockArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ForwardMessageNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ForwardMessageNonblockArg)(nil), args)
+						return
+					}
+					ret, err = i.ForwardMessageNonblock(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -9126,6 +9174,16 @@ func (c LocalClient) GenerateOutboxID(ctx context.Context) (res OutboxID, err er
 
 func (c LocalClient) PostLocalNonblock(ctx context.Context, __arg PostLocalNonblockArg) (res PostLocalNonblockRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postLocalNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ForwardMessage(ctx context.Context, __arg ForwardMessageArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.forwardMessage", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ForwardMessageNonblock(ctx context.Context, __arg ForwardMessageNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.forwardMessageNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
 	return
 }
 

@@ -2005,6 +2005,7 @@ const (
 	GetThreadReason_COINFLIP           GetThreadReason = 9
 	GetThreadReason_BOTCOMMANDS        GetThreadReason = 10
 	GetThreadReason_EMOJISOURCE        GetThreadReason = 11
+	GetThreadReason_FORWARDMSG         GetThreadReason = 12
 )
 
 func (o GetThreadReason) DeepCopy() GetThreadReason { return o }
@@ -2022,6 +2023,7 @@ var GetThreadReasonMap = map[string]GetThreadReason{
 	"COINFLIP":           9,
 	"BOTCOMMANDS":        10,
 	"EMOJISOURCE":        11,
+	"FORWARDMSG":         12,
 }
 
 var GetThreadReasonRevMap = map[GetThreadReason]string{
@@ -2037,6 +2039,7 @@ var GetThreadReasonRevMap = map[GetThreadReason]string{
 	9:  "COINFLIP",
 	10: "BOTCOMMANDS",
 	11: "EMOJISOURCE",
+	12: "FORWARDMSG",
 }
 
 func (e GetThreadReason) String() string {
