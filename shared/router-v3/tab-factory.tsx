@@ -1,6 +1,18 @@
 import * as Container from '../util/container'
-import TabDesktop from './tab-factory-desktop'
-import TabMobile from './tab-factory-mobile'
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
+import desktopTabFactory from './tabs/desktop-tab-factory'
 
-export const Tab = Container.isMobile ? TabMobile() : TabDesktop()
+type ParamList = {
+  blankTab: undefined
+  'tabs.blankTab': undefined
+  'tabs.chatTab': undefined
+  'tabs.fsTab': undefined
+  'tabs.peopleTab': undefined
+  'tabs.settingsTab': undefined
+  'tabs.teamsTab': undefined
+}
 
+const mobileTabFactory = createBottomTabNavigator<ParamList>()
+type TabFactory = typeof mobileTabFactory
+
+export const Tab = (Container.isMobile ? mobileTabFactory : desktopTabFactory) as TabFactory
