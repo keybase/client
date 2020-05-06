@@ -374,7 +374,8 @@ func (j *JournalManager) getHandleForJournal(
 }
 
 func (j *JournalManager) makeFBOForJournal(
-	ctx context.Context, tj *tlfJournal, tlfID tlf.ID) error {
+	ctx context.Context, tj *tlfJournal, tlfID tlf.ID,
+	branch data.BranchName) error {
 	handle, err := j.getHandleForJournal(ctx, tj, tlfID)
 	if err != nil {
 		return err
@@ -383,7 +384,7 @@ func (j *JournalManager) makeFBOForJournal(
 		return nil
 	}
 
-	_, _, err = j.config.KBFSOps().GetRootNode(ctx, handle, data.MasterBranch)
+	_, _, err = j.config.KBFSOps().GetRootNode(ctx, handle, branch)
 	return err
 }
 
@@ -392,7 +393,7 @@ func (j *JournalManager) makeFBOForJournal(
 // unflushed edit history, for example.  It returns a wait group that
 // the caller can use to determine when all the FBOs have been
 // initialized.  If the caller is not going to wait on the group, it
-// should provoide a context that won't be canceled before the wait
+// should provide a context that won't be canceled before the wait
 // group is finished.
 func (j *JournalManager) MakeFBOsForExistingJournals(
 	ctx context.Context) *sync.WaitGroup {
@@ -419,7 +420,26 @@ func (j *JournalManager) MakeFBOsForExistingJournals(
 			j.log.CDebugf(ctx,
 				"Initializing FBO for non-empty journal: %s", tlfID)
 
-			err = j.makeFBOForJournal(ctx, tj, tlfID)
+			branch := data.MasterBranch
+			if tj.overrideTlfID != tlf.NullID {
+				// Find the conflict key.
+				for k, v := range j.clearedConflictTlfs {
+					if tj.overrideTlfID != v.fakeTlfID {
+						continue
+					}
+
+					ext, err := tlf.NewHandleExtension(
+						tlf.HandleExtensionLocalConflict, k.num, "", k.date)
+					if err != nil {
+						j.log.CWarningf(ctx, "Error making extension: %+v", err)
+						continue
+					}
+
+					branch = data.MakeConflictBranchNameFromExtension(ext)
+				}
+			}
+
+			err = j.makeFBOForJournal(ctx, tj, tlfID, branch)
 			if err != nil {
 				j.log.CWarningf(ctx,
 					"Error when making FBO for existing journal for %s: "+

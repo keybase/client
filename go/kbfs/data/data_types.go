@@ -401,6 +401,13 @@ func MakeRevBranchName(rev kbfsmd.Revision) BranchName {
 	return BranchName(branchRevPrefix + strconv.FormatInt(int64(rev), 10))
 }
 
+// MakeConflictBranchNameFromExtension returns a branch name
+// specifying a conflict date, if possible.
+func MakeConflictBranchNameFromExtension(
+	ext *tlf.HandleExtension) BranchName {
+	return BranchName(branchLocalConflictPrefix + ext.String())
+}
+
 // MakeConflictBranchName returns a branch name specifying a conflict
 // date, if possible.
 func MakeConflictBranchName(h *tlfhandle.Handle) (BranchName, bool) {
@@ -408,8 +415,7 @@ func MakeConflictBranchName(h *tlfhandle.Handle) (BranchName, bool) {
 		return "", false
 	}
 
-	return BranchName(
-		branchLocalConflictPrefix + h.ConflictInfo().String()), true
+	return MakeConflictBranchNameFromExtension(h.ConflictInfo()), true
 }
 
 // IsArchived returns true if the branch specifies an archived revision.
