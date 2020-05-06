@@ -157,6 +157,26 @@
           "name": "proofs"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "WebOfTrust",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "WotVouch"
+          },
+          "name": "entries"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SigID"
+          },
+          "name": "displayOrder"
+        }
+      ]
     }
   ],
   "messages": {
@@ -255,10 +275,7 @@
           "type": "string"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "WotVouch"
-      }
+      "response": "WebOfTrust"
     }
   },
   "namespace": "keybase.1"

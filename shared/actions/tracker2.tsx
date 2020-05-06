@@ -139,12 +139,12 @@ const loadWebOfTrustEntries = async (
   const username =
     action.type === Tracker2Gen.load ? action.payload.assertion : action.payload.params.username
   try {
-    const wotVouches = await RPCTypes.wotWotFetchVouchesRpcPromise(
+    const webOfTrust = await RPCTypes.wotWotFetchVouchesRpcPromise(
       {vouchee: username, voucher: ''},
       Constants.profileLoadWaitingKey
     )
     const webOfTrustEntries =
-      wotVouches?.map(entry => ({
+      webOfTrust.entries?.map(entry => ({
         attestation: entry.vouchText,
         attestingUser: entry.voucherUsername,
         otherText: entry.confidence.other,

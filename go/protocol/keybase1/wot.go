@@ -160,6 +160,38 @@ func (o WotVouch) DeepCopy() WotVouch {
 	}
 }
 
+type WebOfTrust struct {
+	Entries      []WotVouch `codec:"entries" json:"entries"`
+	DisplayOrder []SigID    `codec:"displayOrder" json:"displayOrder"`
+}
+
+func (o WebOfTrust) DeepCopy() WebOfTrust {
+	return WebOfTrust{
+		Entries: (func(x []WotVouch) []WotVouch {
+			if x == nil {
+				return nil
+			}
+			ret := make([]WotVouch, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Entries),
+		DisplayOrder: (func(x []SigID) []SigID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SigID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.DisplayOrder),
+	}
+}
+
 type WotVouchArg struct {
 	SessionID  int            `codec:"sessionID" json:"sessionID"`
 	Username   string         `codec:"username" json:"username"`
@@ -198,7 +230,7 @@ type WotInterface interface {
 	WotVouchCLI(context.Context, WotVouchCLIArg) error
 	WotReact(context.Context, WotReactArg) error
 	DismissWotNotifications(context.Context, DismissWotNotificationsArg) error
-	WotFetchVouches(context.Context, WotFetchVouchesArg) ([]WotVouch, error)
+	WotFetchVouches(context.Context, WotFetchVouchesArg) (WebOfTrust, error)
 }
 
 func WotProtocol(i WotInterface) rpc.Protocol {
@@ -308,7 +340,7 @@ func (c WotClient) DismissWotNotifications(ctx context.Context, __arg DismissWot
 	return
 }
 
-func (c WotClient) WotFetchVouches(ctx context.Context, __arg WotFetchVouchesArg) (res []WotVouch, err error) {
+func (c WotClient) WotFetchVouches(ctx context.Context, __arg WotFetchVouchesArg) (res WebOfTrust, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.wot.wotFetchVouches", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

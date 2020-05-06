@@ -66,5 +66,9 @@ protocol wot {
   // dismiss notifications for a user vouch
   void dismissWotNotifications(int sessionID, string voucher, string vouchee);
 
-  array<WotVouch> wotFetchVouches(int sessionID, string vouchee, string voucher);
+  record WebOfTrust {
+    array<WotVouch> entries;
+    array<SigID> displayOrder;
+  }
+  WebOfTrust wotFetchVouches(int sessionID, string vouchee, string voucher);
 }
