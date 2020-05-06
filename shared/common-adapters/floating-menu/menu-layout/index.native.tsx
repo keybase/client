@@ -40,8 +40,13 @@ const MenuRow = (props: MenuRowProps) => (
     ])}
   >
     {props.view || (
-      <Box2 centerChildren={props.centered} direction="horizontal" fullWidth={true}>
-        <Box2 direction="horizontal" style={styles.flexOne}>
+      <Box2
+        centerChildren={props.centered}
+        direction="horizontal"
+        fullWidth={true}
+        style={styles.menuRowTablet}
+      >
+        <Box2 direction="horizontal" style={styles.flexOne} centerChildren={props.centered}>
           <Box2 direction="vertical" fullHeight={true}>
             <Box2 direction="horizontal" fullWidth={true}>
               {props.decoration && <Box style={styles.flexOne} />}
@@ -116,6 +121,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
         <ScrollView
           alwaysBounceVertical={false}
           style={Styles.collapseStyles([styles.scrollView, firstIsUnWrapped && styles.firstIsUnWrapped])}
+          centerContent={Styles.isTablet}
           contentContainerStyle={styles.menuGroup}
         >
           {menuItemsWithDividers.map((mi, idx) =>
@@ -221,11 +227,21 @@ const styles = Styles.styleSheetCreate(
         paddingBottom: Styles.globalMargins.tiny,
         paddingTop: Styles.globalMargins.xsmall,
       },
-      menuGroup: {
-        ...Styles.globalStyles.flexBoxColumn,
-        alignItems: 'stretch',
-        justifyContent: 'flex-end',
-      },
+      menuGroup: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'stretch',
+          justifyContent: 'flex-end',
+        },
+      }),
+      menuRowTablet: Styles.platformStyles({
+        isTablet: {
+          alignSelf: 'center',
+          justifyContent: 'center',
+          maxWidth: 460,
+          width: '100%',
+        },
+      }),
       progressIndicator: {
         bottom: 0,
         left: 0,

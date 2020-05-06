@@ -43,13 +43,20 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         width: 40,
       },
-      container: {
-        alignItems: 'center',
-        flex: 1,
-        justifyContent: 'space-between',
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-      },
+      container: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          flex: 1,
+          justifyContent: 'space-between',
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isTablet: {
+          maxWidth: 460,
+          paddingLeft: 0,
+          paddingRight: 0,
+        },
+      }),
     } as const)
 )
 
