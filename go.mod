@@ -8,7 +8,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.0.0
 	github.com/RoaringBitmap/roaring v0.4.22-0.20191112221735-4d53b29a8f7d // indirect
 	github.com/StackExchange/wmi v0.0.0-20181212234831-e0a55b97c705 // indirect
-	github.com/ajg/form v1.5.1 // indirect
 	github.com/akavel/rsrc v0.2.1-0.20151103204339-ba14da1f8271
 	github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 // indirect
 	github.com/andybalholm/cascadia v0.0.0-20150730174459-3ad29d1ad1c4 // indirect
@@ -40,13 +39,9 @@ require (
 	github.com/edsrzf/mmap-go v1.0.1-0.20190108065903-904c4ced31cd // indirect
 	github.com/emirpasic/gods v1.12.1-0.20181020102604-7c131f671417 // indirect
 	github.com/etcd-io/bbolt v1.3.4-0.20191122203157-7f8bb47fcaf8 // indirect
-	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
-	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
-	github.com/fatih/structs v1.1.0 // indirect
 	github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/gammazero/deque v0.0.0-20180920172122-f6adf94963e4 // indirect
 	github.com/gammazero/workerpool v0.0.0-20181230203049-86a96b5d5d92
-	github.com/gavv/monotime v0.0.0-20190418164738-30dba4353424 // indirect
 	github.com/gliderlabs/ssh v0.3.0 // indirect
 	github.com/go-errors/errors v1.0.1
 	github.com/go-ole/go-ole v1.2.2-0.20181215015207-39dc8486bd09 // indirect
@@ -55,14 +50,12 @@ require (
 	github.com/golang/groupcache v0.0.0-20181024230925-c65c006176ff
 	github.com/golang/mock v1.2.1-0.20181221212429-e698a2ea17fe
 	github.com/google/go-cmp v0.4.0 // indirect
-	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.0
-	github.com/jarcoal/httpmock v1.0.5 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/josephspurrier/goversioninfo v0.0.0-20160622020813-53f6213da3d7
 	github.com/kennygrant/sanitize v1.2.4 // indirect
-	github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd // indirect
+	github.com/kevinburke/ssh_config v0.0.0-20180830205328-81db2a75821e // indirect
 	github.com/keybase/backoff v1.0.1-0.20160517061000-726b63b835ec
 	github.com/keybase/cli v1.2.1-0.20191217150554-9323fd7ddfab
 	github.com/keybase/clockwork v0.1.1-0.20161209210251-976f45f4a979
@@ -84,7 +77,7 @@ require (
 	github.com/keybase/go.dbus v0.0.0-20200324223359-a94be52c0b03
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
-	github.com/keybase/keybase-test-vectors v1.0.12-0.20190907141421-2c8df03499a1
+	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
 	github.com/keybase/msgpackzip v0.0.0-20190828015335-de96f0e9b79a // indirect
 	github.com/keybase/pipeliner v0.0.0-20190828022149-31ef4ee63659
 	github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb
@@ -92,13 +85,12 @@ require (
 	github.com/keybase/vcr v0.0.0-20191017153547-a32d93056205 // indirect
 	github.com/kr/text v0.2.0
 	github.com/kyokomi/emoji v2.2.2+incompatible
-	github.com/lib/pq v1.4.0 // indirect
-	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mattn/go-isatty v0.0.12
 	github.com/miekg/dns v0.0.0-20170310215703-c862b7e35985
 	github.com/mschoch/smat v0.1.0 // indirect
 	github.com/nf/cr2 v0.0.0-20140528043846-05d46fef4f2f // indirect
 	github.com/nfnt/resize v0.0.0-20160724205520-891127d8d1b5
+	github.com/pelletier/go-buffruneio v0.3.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/xattr v0.2.2
 	github.com/qrtz/nativemessaging v0.0.0-20161221035708-f4769a80e040
@@ -112,12 +104,9 @@ require (
 	github.com/shirou/gopsutil v2.18.13-0.20181231150826-db425313bfa8+incompatible
 	github.com/shopspring/decimal v1.1.1-0.20191009025716-f1972eb1d1f5 // indirect
 	github.com/simplereach/timeutils v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.5.0 // indirect
-	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/src-d/gcfg v1.4.0 // indirect
+	github.com/src-d/gcfg v1.3.0 // indirect
 	github.com/stathat/go v1.0.0
 	github.com/stellar/go v0.0.0-20191010205648-0fc3bfe3dfa7
-	github.com/stellar/go-xdr v0.0.0-20200331223602-71a1e6d555f2 // indirect
 	github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2 // indirect
 	github.com/stretchr/testify v1.5.1
 	github.com/strib/gomounts v0.0.0-20180215003523-d9ea4eaa52ca // indirect
@@ -126,34 +115,26 @@ require (
 	github.com/temoto/robotstxt v0.0.0-20180810133444-97ee4a9ee6ea // indirect
 	github.com/tinylib/msgp v1.1.1-0.20190628005314-efe20429c9b7 // indirect
 	github.com/urfave/cli v1.20.1-0.20181029213200-b67dcf995b6a
-	github.com/valyala/fasthttp v1.12.0 // indirect
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	github.com/willf/bitset v1.1.11-0.20190404145324-77892cd8d53f // indirect
-	github.com/xanzy/ssh-agent v0.2.1 // indirect
-	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
-	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
-	github.com/yudai/gojsondiff v1.0.0 // indirect
-	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
+	github.com/xanzy/ssh-agent v0.2.0 // indirect
 	go.etcd.io/bbolt v1.3.4 // indirect
 	go.uber.org/atomic v1.3.3-0.20181018215023-8dc6146f7569 // indirect
 	go.uber.org/multierr v1.1.1-0.20180122172545-ddea229ff1df // indirect
 	go.uber.org/zap v1.9.2-0.20180814183419-67bc79d13d15
 	go4.org v0.0.0-20161118210015-09d86de304dc // indirect
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
-	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
+	golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
-	google.golang.org/appengine v1.6.6 // indirect
-	gopkg.in/gavv/httpexpect.v1 v1.1.2 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.2
 	gopkg.in/src-d/go-git-fixtures.v3 v3.5.0 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	moul.io/http2curl v1.0.0 // indirect
 	mvdan.cc/xurls/v2 v2.0.0-00010101000000-000000000000
 	rsc.io/qr v0.2.0
 	stathat.com/c/ramcache v1.0.0
