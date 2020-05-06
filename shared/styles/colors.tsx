@@ -15,12 +15,12 @@ export const colors = {
   get black_05OrBlack_60() {
     return this.black_05
   },
+  get black_05OrWhite_10() {
+    return this.black_05
+  },
   black_05_on_white: 'rgb(242,242,242)',
   black_10: 'rgba(0, 0, 0, 0.10)',
   get black_10OrBlack() {
-    return this.black_10
-  },
-  get black_10OrWhite_20() {
     return this.black_10
   },
   black_10_on_white: 'rgb(229,229,229)',
@@ -28,7 +28,7 @@ export const colors = {
   get black_20OrBlack() {
     return this.black_20
   },
-  get black_20OrWhite_35() {
+  get black_20OrWhite_20() {
     return this.black_20
   },
   black_20_on_white: 'rgb(204,204,204)',
@@ -198,6 +198,7 @@ export const colors = {
   },
   white_0: 'rgba(255, 255, 255, 0)',
   white_0_on_white: '#FFFFFF',
+  white_10: 'rgba(255, 255, 255, 0.10)',
   white_20: 'rgba(255, 255, 255, 0.20)',
   white_20_on_white: '#FFFFFF',
   white_35: 'rgba(255, 255, 255, 0.35)',
@@ -235,21 +236,21 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   get black_05OrBlack_60() {
     return colors.black_60
   },
+  get black_05OrWhite_10() {
+    return colors.white_10
+  },
   black_05_on_white: 'rgb(13, 13, 13)',
   black_10: 'rgba(255, 255, 255, 0.10)',
   get black_10OrBlack() {
     return colors.black
-  },
-  get black_10OrWhite_20() {
-    return colors.white_20
   },
   black_10_on_white: 'rgb(26, 26, 26)',
   black_20: 'rgba(255, 255, 255, 0.20)',
   get black_20OrBlack() {
     return colors.black
   },
-  get black_20OrWhite_35() {
-    return colors.white_35
+  get black_20OrWhite_20() {
+    return colors.white_20
   },
   black_20_on_white: 'rgb(51, 51, 51)',
   black_35: 'rgba(255, 255, 255, 0.35)',
@@ -418,6 +419,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   },
   white_0: 'rgba(25, 25, 25, 0)',
   white_0_on_white: '#191919',
+  white_10: 'rgba(25, 25, 25, 0.10)',
   white_20: 'rgba(25, 25, 25, 0.20)',
   white_20_on_white: '#191919',
   white_35: 'rgba(25, 25, 25, 0.35)',

@@ -15,7 +15,6 @@ type Props = {
 
   disabled?: boolean
   disabledColor?: Styles.Color
-  disabledHoverColor?: Styles.Color
 
   className?: string
   fontSize?: number
@@ -39,17 +38,17 @@ const CheckCircle = (props: Props) => {
       fontSize={props.fontSize}
       color={
         props.disabled
-          ? props.disabledColor || Styles.globalColors.black_10OrWhite_20
+          ? props.disabledColor || Styles.globalColors.black_05OrWhite_10
           : props.checked
           ? props.checkedColor || Styles.globalColors.blue
-          : props.color || Styles.globalColors.black_10OrWhite_20
+          : props.color || Styles.globalColors.black_20OrWhite_20
       }
       hoverColor={
         props.disabled
-          ? props.disabledHoverColor || Styles.globalColors.black_20OrWhite_35
+          ? props.disabledColor || Styles.globalColors.black_05OrWhite_10
           : props.checked
           ? props.checkedHoverColor || Styles.globalColors.blueDarkOrBlueLight
-          : props.disabledHoverColor || Styles.globalColors.black_20OrWhite_35
+          : props.hoverColor || Styles.globalColors.blue
       }
       className={Styles.classNames(props.disabled && `checkCircle__disabled`, props.className)}
       style={props.style}
