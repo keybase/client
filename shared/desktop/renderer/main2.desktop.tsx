@@ -21,6 +21,7 @@ import {isDarwin, isWindows} from '../../constants/platform'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
 import {TypedActions} from '../../actions/typed-actions-gen'
+import {AppRegistry} from 'react-native'
 
 // node side plumbs through initial pref so we avoid flashes
 const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)
@@ -128,23 +129,29 @@ const DarkCSSInjector = () => {
   return null
 }
 
-const render = (Component = Main) => {
+const App = () => (
+  <Root store={store}>
+    <DarkCSSInjector />
+    <RemoteProxies />
+    <FontLoader />
+    <div style={{display: 'flex', flex: 1}}>
+      <Main />
+    </div>
+  </Root>
+)
+
+const render = () => {
   const root = document.getElementById('root')
   if (!root) {
     throw new Error('No root element?')
   }
 
-  ReactDOM.render(
-    <Root store={store}>
-      <DarkCSSInjector />
-      <RemoteProxies />
-      <FontLoader />
-      <div style={{display: 'flex', flex: 1}}>
-        <Component />
-      </div>
-    </Root>,
-    root
-  )
+  AppRegistry.registerComponent('App', () => App)
+
+  AppRegistry.runApplication('App', {
+    initialProps: {},
+    rootTag: document.getElementById('root'),
+  })
 }
 
 const setupHMR = _ => {
@@ -153,14 +160,7 @@ const setupHMR = _ => {
     return
   }
 
-  const refreshMain = () => {
-    try {
-      const NewMain = require('../../app/main.desktop').default
-      render(NewMain)
-    } catch (_) {}
-  }
-
-  accept(['../../app/main.desktop'], refreshMain)
+  accept(['../../app/main.desktop'], () => {})
   accept('../../common-adapters/index.js', () => {})
 }
 
