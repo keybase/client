@@ -1861,7 +1861,7 @@
       "request": [
         {
           "name": "path",
-          "type": "Path"
+          "type": "KBFSPath"
         }
       ],
       "response": null

@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -17,7 +18,7 @@ import (
 // CmdSimpleFSCancelUploads is the 'fs cancel-uploads' command.
 type CmdSimpleFSCancelUploads struct {
 	libkb.Contextified
-	path   keybase1.Path
+	path   keybase1.KBFSPath
 	filter keybase1.ListFilter
 }
 
@@ -35,8 +36,9 @@ func NewCmdSimpleFSCancelUploads(
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "a, all",
-				Usage: "display entries starting with '.'",
+				Name: "a, all",
+				Usage: "display entries starting with '.' " +
+					"(does not affect what is canceled)",
 			},
 		},
 	}
@@ -44,7 +46,7 @@ func NewCmdSimpleFSCancelUploads(
 
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSCancelUploads) Run() error {
-	prefix := mountDir + c.path.String()
+	prefix := mountDir + c.path.Path
 
 	areUploads, err := printUploads(c.G(), c.filter, prefix)
 	if err != nil {
@@ -88,13 +90,21 @@ func (c *CmdSimpleFSCancelUploads) ParseArgv(ctx *cli.Context) error {
 			return err
 		}
 
+		ty, err := p.PathType()
+		if err != nil {
+			return err
+		}
+		if ty != keybase1.PathType_KBFS {
+			return errors.New("Must be a KBFS path")
+		}
+
 		// Make sure this is an exact TLF.
 		s := strings.Split(p.String(), "/")
 		if len(s) != 3 && (len(s) != 4 || s[3] != "") {
 			return fmt.Errorf("Invalid folder path: %s", p.String())
 		}
 
-		c.path = p
+		c.path = p.Kbfs()
 	}
 
 	return nil

@@ -3520,8 +3520,9 @@ func (k *SimpleFS) SimpleFSDismissUpload(
 
 // SimpleFSCancelJournalUploads implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSCancelJournalUploads(
-	ctx context.Context, path keybase1.Path) (err error) {
-	ctx, err = populateIdentifyBehaviorIfNeeded(ctx, &path, nil)
+	ctx context.Context, path keybase1.KBFSPath) (err error) {
+	wrappedPath := keybase1.NewPathWithKbfs(path)
+	ctx, err = populateIdentifyBehaviorIfNeeded(ctx, &wrappedPath, nil)
 	if err != nil {
 		return err
 	}
@@ -3535,7 +3536,7 @@ func (k *SimpleFS) SimpleFSCancelJournalUploads(
 			k.log.CDebugf(ctx, "Error cancelling delayer: %+v", err)
 		}
 	}()
-	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	t, tlfName, _, _, err := remoteTlfAndPath(wrappedPath)
 	if err != nil {
 		return err
 	}
@@ -3549,7 +3550,7 @@ func (k *SimpleFS) SimpleFSCancelJournalUploads(
 		return err
 	}
 	tlfID := tlfHandle.TlfID()
-	branch, err := k.branchNameFromPath(ctx, tlfHandle, path)
+	branch, err := k.branchNameFromPath(ctx, tlfHandle, wrappedPath)
 	if err != nil {
 		return err
 	}

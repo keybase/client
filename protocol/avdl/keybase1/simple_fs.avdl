@@ -749,5 +749,5 @@ protocol SimpleFS {
 
   // Cancel all uploads from the journal, which may result in
   // partially-uploaded changes, and leaked blocks on the bserver.
-  void simpleFSCancelJournalUploads(Path path);
+  void simpleFSCancelJournalUploads(KBFSPath path);
 }

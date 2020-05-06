@@ -2018,6 +2018,10 @@ func TestForceStuckConflict(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, children, 1+(maxConflictResolutionAttempts+1))
 
+	t.Log("Ensure uploads can't be canceled")
+	err = kbfsOps.CancelUploads(ctx, rootNode.GetFolderBranch())
+	require.Error(t, err)
+
 	t.Log("Clear conflict view")
 	err = kbfsOps.ClearConflictView(ctx, tlfID)
 	require.NoError(t, err)

@@ -425,7 +425,7 @@ func (s SimpleFSMock) SimpleFSGetIndexProgress(
 }
 
 func (s SimpleFSMock) SimpleFSCancelJournalUploads(
-	_ context.Context, _ keybase1.Path) (err error) {
+	_ context.Context, _ keybase1.KBFSPath) (err error) {
 	return nil
 }
 
