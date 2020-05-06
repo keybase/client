@@ -251,30 +251,6 @@ const roleAbilities = (
   ))
 }
 
-const footerButtonsHelper = (
-  onConfirm: undefined | (() => void),
-  confirmLabel: string,
-  waiting: boolean | undefined
-) => (
-  <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
-    <Kb.Button
-      fullWidth={true}
-      disabled={!onConfirm}
-      waiting={waiting}
-      label={confirmLabel}
-      onClick={onConfirm}
-    />
-  </Kb.ButtonBar>
-)
-
-const confirmLabelHelper = (presetRole: Role<any> | null, selectedRole: Role<any>): string => {
-  if (presetRole === selectedRole) {
-    return `Saved`
-  }
-
-  return selectedRole === 'setIndividually' ? 'Set Individually' : `Save`
-}
-
 const Header = () => (
   <Kb.Box2 direction="horizontal" style={styles.header}>
     <Kb.Text type="Header">Pick a role</Kb.Text>
@@ -318,15 +294,19 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
 
       <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
         {props.footerComponent}
-        {footerButtonsHelper(
-          selectedRole
-            ? selectedRole === props.presetRole
-              ? () => {}
-              : () => props.onConfirm(selectedRole)
-            : undefined,
-          confirmLabelHelper(filterRole(props.presetRole), selectedRole),
-          props.waiting
-        )}
+        <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
+          <Kb.Button
+            fullWidth={true}
+            disabled={!selectedRole}
+            waiting={props.waiting}
+            label={selectedRole === 'setIndividually' ? 'Set Individually' : `Save`}
+            onClick={
+              selectedRole === props.presetRole || !selectedRole
+                ? () => {}
+                : () => props.onConfirm(selectedRole)
+            }
+          />
+        </Kb.ButtonBar>
       </Kb.Box2>
     </Kb.Box2>
   )
