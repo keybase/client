@@ -1601,8 +1601,8 @@ const addMembersWizardPushMembers = async (
 
   return [
     TeamsGen.createAddMembersWizardAddMembers({
-      members: action.payload.members,
       assertionsInTeam: existingAssertions ?? [],
+      members: action.payload.members,
     }),
     RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}),
   ]
