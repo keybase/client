@@ -63,7 +63,7 @@
   "chat.1.local.postMetadata": {"promise": true},
   "chat.1.local.postReactionNonblock": {"promise": true},
   "chat.1.local.postTextNonblock": {"engineSaga": true, "promise": true},
-  "chat.1.local.forwardMessage": {"promise": true},
+  "chat.1.local.forwardMessageNonblock": {"promise": true},
   "chat.1.local.previewConversationByIDLocal": {"promise": true},
   "chat.1.local.profileChatSearch": {"promise": true},
   "chat.1.local.refreshParticipants": {"promise": true},

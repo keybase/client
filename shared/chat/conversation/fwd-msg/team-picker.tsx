@@ -19,7 +19,7 @@ const TeamPicker = (props: Props) => {
   const [results, setResults] = React.useState<Array<RPCChatTypes.AddBotConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const fwdMsg = Container.useRPC(RPCChatTypes.localForwardMessageRpcPromise)
+  const fwdMsg = Container.useRPC(RPCChatTypes.localForwardMessageNonblockRpcPromise)
   const submit = Container.useRPC(RPCChatTypes.localAddBotConvSearchRpcPromise)
   const dispatch = Container.useDispatch()
   const doSearch = React.useCallback(() => {

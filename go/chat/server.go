@@ -3849,6 +3849,37 @@ func (h *Server) ForwardMessage(ctx context.Context, arg chat1.ForwardMessageArg
 		return res, err
 	}
 	mvalid := msg.Valid()
+	switch mvalid.ClientHeader.MessageType {
+	case chat1.MessageType_ATTACHMENT:
+		// download from the original source
+		sink, err := ioutil.TempFile(h.G().GetCacheDir(), "emoji")
+		if err != nil {
+			return res, err
+		}
+		defer os.Remove(sink.Name())
+		if err := attachments.Download(ctx, h.G(), uid, arg.SrcConvID,
+			arg.MsgID, sink, false, nil, h.remoteClient); err != nil {
+			return res, err
+		}
+		var ephemeralLifetime *gregor1.DurationSec
+		if md := mvalid.EphemeralMetadata(); md != nil {
+			ephemeralLifetime = &md.Lifetime
+		}
+		mbod := msg.Valid().MessageBody.Attachment()
+		return h.PostFileAttachmentLocal(ctx, chat1.PostFileAttachmentLocalArg{
+			SessionID: arg.SessionID,
+			Arg: chat1.PostFileAttachmentArg{
+				ConversationID:    arg.DstConvID,
+				TlfName:           dstConv.Info.TlfName,
+				Visibility:        dstConv.Info.Visibility,
+				Filename:          sink.Name(),
+				Title:             mbod.Object.Title,
+				Metadata:          mbod.Metadata,
+				IdentifyBehavior:  arg.IdentifyBehavior,
+				EphemeralLifetime: ephemeralLifetime,
+			},
+		})
+	}
 	return h.PostLocal(ctx, chat1.PostLocalArg{
 		SessionID:      arg.SessionID,
 		ConversationID: arg.DstConvID,
@@ -3858,7 +3889,7 @@ func (h *Server) ForwardMessage(ctx context.Context, arg chat1.ForwardMessageArg
 				TlfName:           dstConv.Info.TlfName,
 				TlfPublic:         dstConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
 				MessageType:       mvalid.ClientHeader.MessageType,
-				EphemeralMetadata: mvalid.ClientHeader.EphemeralMetadata,
+				EphemeralMetadata: mvalid.EphemeralMetadata(),
 			},
 			MessageBody: mvalid.MessageBody.DeepCopy(),
 		},
@@ -3889,6 +3920,51 @@ func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMe
 		return res, err
 	}
 	mvalid := msg.Valid()
+	switch mvalid.ClientHeader.MessageType {
+	case chat1.MessageType_ATTACHMENT:
+		// download from the original source
+		sink, err := ioutil.TempFile(h.G().GetCacheDir(), "emoji")
+		if err != nil {
+			return res, err
+		}
+		if err := attachments.Download(ctx, h.G(), uid, arg.SrcConvID,
+			arg.MsgID, sink, false, nil, h.remoteClient); err != nil {
+			return res, err
+		}
+		var ephemeralLifetime *gregor1.DurationSec
+		if md := mvalid.EphemeralMetadata(); md != nil {
+			ephemeralLifetime = &md.Lifetime
+		}
+		mbod := msg.Valid().MessageBody.Attachment()
+		res, err := h.PostFileAttachmentLocalNonblock(ctx, chat1.PostFileAttachmentLocalNonblockArg{
+			SessionID: arg.SessionID,
+			Arg: chat1.PostFileAttachmentArg{
+				ConversationID:    arg.DstConvID,
+				TlfName:           dstConv.Info.TlfName,
+				Visibility:        dstConv.Info.Visibility,
+				Filename:          sink.Name(),
+				Title:             mbod.Object.Title,
+				Metadata:          mbod.Metadata,
+				IdentifyBehavior:  arg.IdentifyBehavior,
+				EphemeralLifetime: ephemeralLifetime,
+			},
+		})
+		if err != nil {
+			return res, err
+		}
+		go func() {
+			outbox := storage.NewOutbox(h.G(), uid)
+			for {
+				<-time.After(time.Minute)
+				_, err := outbox.RemoveMessage(ctx, res.OutboxID)
+				if err != nil {
+					os.Remove(sink.Name())
+					return
+				}
+			}
+		}()
+		return res, nil
+	}
 	return h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
 		SessionID:      arg.SessionID,
 		ConversationID: arg.DstConvID,
@@ -3898,7 +3974,7 @@ func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMe
 				TlfName:           dstConv.Info.TlfName,
 				TlfPublic:         dstConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
 				MessageType:       mvalid.ClientHeader.MessageType,
-				EphemeralMetadata: mvalid.ClientHeader.EphemeralMetadata,
+				EphemeralMetadata: mvalid.EphemeralMetadata(),
 			},
 			MessageBody: mvalid.MessageBody.DeepCopy(),
 		},

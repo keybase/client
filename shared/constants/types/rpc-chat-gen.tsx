@@ -359,9 +359,9 @@ export type MessageTypes = {
     inParam: {readonly teamID: Keybase1.TeamID}
     outParam: InboxUIItem
   }
-  'chat.1.local.forwardMessage': {
+  'chat.1.local.forwardMessageNonblock': {
     inParam: {readonly srcConvID: ConversationID; readonly dstConvID: ConversationID; readonly msgID: MessageID; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
-    outParam: PostLocalRes
+    outParam: PostLocalNonblockRes
   }
   'chat.1.local.getBotMemberSettings': {
     inParam: {readonly convID: ConversationID; readonly username: String}
@@ -1701,7 +1701,7 @@ export const localDownloadFileAttachmentLocalRpcSaga = (p: {params: MessageTypes
 export const localEditBotMemberRpcPromise = (params: MessageTypes['chat.1.local.editBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.editBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.editBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localFindConversationsLocalRpcPromise = (params: MessageTypes['chat.1.local.findConversationsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.findConversationsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findConversationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localFindGeneralConvFromTeamIDRpcPromise = (params: MessageTypes['chat.1.local.findGeneralConvFromTeamID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.findGeneralConvFromTeamID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findGeneralConvFromTeamID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localForwardMessageRpcPromise = (params: MessageTypes['chat.1.local.forwardMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.forwardMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.forwardMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localForwardMessageNonblockRpcPromise = (params: MessageTypes['chat.1.local.forwardMessageNonblock']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.forwardMessageNonblock']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.forwardMessageNonblock', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetBotMemberSettingsRpcPromise = (params: MessageTypes['chat.1.local.getBotMemberSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getBotMemberSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getBotMemberSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetChannelMembershipsLocalRpcPromise = (params: MessageTypes['chat.1.local.getChannelMembershipsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getChannelMembershipsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getChannelMembershipsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetDefaultTeamChannelsLocalRpcPromise = (params: MessageTypes['chat.1.local.getDefaultTeamChannelsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getDefaultTeamChannelsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getDefaultTeamChannelsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1822,7 +1822,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.postLocal'
 // 'chat.1.local.generateOutboxID'
 // 'chat.1.local.postLocalNonblock'
-// 'chat.1.local.forwardMessageNonblock'
+// 'chat.1.local.forwardMessage'
 // 'chat.1.local.postMetadataNonblock'
 // 'chat.1.local.postDeleteHistoryUpto'
 // 'chat.1.local.postDeleteHistoryThrough'
