@@ -21,7 +21,7 @@ const {env} = KB.process
 KB.debugConsoleLog('TEMP')
 const DEFER_INCOMING_DURING_DEBUG = __DEV__ && true
 if (DEFER_INCOMING_DURING_DEBUG) {
-  console.log(new Array(1000).fill('DEFER_INCOMING_DURING_DEBUG is On!!!!!!!!!!!!!!!!!!!!!').join('\n'))
+  console.log(new Array(100).fill('DEFER_INCOMING_DURING_DEBUG is On!!!!!!!!!!!!!!!!!!!!!').join('\n'))
 }
 
 type WaitingKey = string | Array<string>

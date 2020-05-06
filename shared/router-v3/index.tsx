@@ -6,7 +6,8 @@ import * as Constants from '../constants/router3'
 import * as React from 'react'
 import * as Shared from './shared'
 import * as Styles from '../styles'
-import NavTabs from './tabs'
+import TabsMobile from './tabs-mobile'
+import TabsDesktop from './tabs-desktop'
 import logger from '../logger'
 import {useSafeArea} from '../common-adapters/safe-area-view'
 import {ModalStack} from './stack-factory'
@@ -56,7 +57,10 @@ const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}
   return null
 })
 
-const tabsAndModals = [...modalScreens, <ModalStack.Screen key="Tabs" name="Tabs" component={NavTabs} />]
+const tabsAndModals = [
+  ...modalScreens,
+  <ModalStack.Screen key="Tabs" name="Tabs" component={Styles.isMobile ? TabsMobile : TabsDesktop} />,
+]
 
 const theme = {
   colors: {
