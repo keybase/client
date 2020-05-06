@@ -920,6 +920,20 @@ func (mr *MockKBFSOpsMockRecorder) AddRootNodeWrapper(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRootNodeWrapper", reflect.TypeOf((*MockKBFSOps)(nil).AddRootNodeWrapper), arg0)
 }
 
+// CancelUploads mocks base method.
+func (m *MockKBFSOps) CancelUploads(arg0 context.Context, arg1 data.FolderBranch) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CancelUploads", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CancelUploads indicates an expected call of CancelUploads.
+func (mr *MockKBFSOpsMockRecorder) CancelUploads(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelUploads", reflect.TypeOf((*MockKBFSOps)(nil).CancelUploads), arg0, arg1)
+}
+
 // CheckMigrationPerms mocks base method.
 func (m *MockKBFSOps) CheckMigrationPerms(arg0 context.Context, arg1 tlf.ID) error {
 	m.ctrl.T.Helper()

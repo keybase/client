@@ -145,7 +145,7 @@ func newTestDiskBlockCacheGetter(t *testing.T,
 }
 
 func shutdownDiskBlockCacheTest(cache DiskBlockCache) {
-	cache.Shutdown(context.Background())
+	<-cache.Shutdown(context.Background())
 }
 
 func setupRealBlockForDiskCache(t *testing.T, ptr data.BlockPointer, block data.Block,
@@ -724,6 +724,9 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	err = config.MakeDiskBlockCacheIfNotExists()
 	require.NoError(t, err)
 	cache := config.DiskBlockCache().(*diskBlockCacheWrapped)
+	defer func() {
+		<-cache.Shutdown(context.Background())
+	}()
 	standardCache := cache.syncCache
 	err = standardCache.WaitUntilStarted()
 	require.NoError(t, err)

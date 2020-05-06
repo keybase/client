@@ -4359,6 +4359,7 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.SimpleFS.simpleFSSearch'
 // 'keybase.1.SimpleFS.simpleFSResetIndex'
 // 'keybase.1.SimpleFS.simpleFSGetIndexProgress'
+// 'keybase.1.SimpleFS.simpleFSCancelJournalUploads'
 // 'keybase.1.streamUi.close'
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'

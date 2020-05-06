@@ -101,6 +101,10 @@ const useTabsState = (
 
 const makeSingleRow = (key: string, renderItem: () => React.ReactNode) => ({data: ['row'], key, renderItem})
 
+const SectionList: typeof Kb.SectionList = Styles.isMobile
+  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
+  : Kb.SectionList
+
 const emptyMapForUseSelector = new Map()
 const Channel = (props: OwnProps) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
@@ -117,6 +121,7 @@ const Channel = (props: OwnProps) => {
   const teamMembers = Container.useSelector(
     state => state.teams.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector
   )
+  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
 
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants, bots)
@@ -231,35 +236,78 @@ const Channel = (props: OwnProps) => {
   const renderSectionHeader = ({section}) =>
     section.title ? <Kb.SectionDivider label={section.title} /> : null
 
+  // Animation
+  const offset = React.useRef(Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined)
+  const onScroll = React.useRef(
+    Styles.isMobile
+      ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset.current}}}], {useNativeDriver: true})
+      : undefined
+  )
+
   return (
-    <Kb.Box style={styles.container}>
-      {Styles.isMobile && <MobileHeader />}
-      <Kb.SectionList
-        renderSectionHeader={renderSectionHeader}
-        stickySectionHeadersEnabled={Styles.isMobile}
-        sections={sections}
-        contentContainerStyle={styles.listContentContainer}
-        style={styles.list}
-      />
-      <SelectionPopup
-        selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
-        conversationIDKey={conversationIDKey}
-        teamID={teamID}
-      />
-    </Kb.Box>
+    <>
+      <Kb.SafeAreaViewTop />
+      <Kb.Box style={styles.container}>
+        {Styles.isMobile && (
+          <MobileHeader channelname={meta.channelname} teamname={teamname} offset={offset.current} />
+        )}
+        <SectionList
+          renderSectionHeader={renderSectionHeader}
+          stickySectionHeadersEnabled={Styles.isMobile}
+          sections={sections}
+          contentContainerStyle={styles.listContentContainer}
+          style={styles.list}
+          onScroll={onScroll.current}
+        />
+        <SelectionPopup
+          selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
+          conversationIDKey={conversationIDKey}
+          teamID={teamID}
+        />
+      </Kb.Box>
+    </>
   )
 }
 Channel.navigationOptions = () => ({
   headerHideBorder: true,
+  underNotch: true,
 })
 
-// TODO: scrolling name magic
-const MobileHeader = () => {
+const startAnimationOffset = 40
+const AnimatedBox2 = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2) : undefined
+const MobileHeader = ({
+  channelname,
+  teamname,
+  offset,
+}: {
+  channelname: string
+  teamname: string
+  offset: any
+}) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const top = Kb.ReAnimated.interpolate(offset, {
+    inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
+    outputRange: [40, 40, 0, 0],
+  })
+  const opacity = Kb.ReAnimated.interpolate(offset, {
+    inputRange: [-9999, 0, 1, 9999],
+    outputRange: [0, 0, 1, 1],
+  })
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.header}>
+      <AnimatedBox2
+        style={[styles.smallHeader, {opacity, top}]}
+        gap="tiny"
+        direction="horizontal"
+        centerChildren={true}
+        fullWidth={true}
+        fullHeight={true}
+      >
+        <Kb.Avatar size={16} teamname={teamname} />
+        <Kb.Text type="BodyBig">#{channelname}</Kb.Text>
+      </AnimatedBox2>
       <Kb.BackButton onClick={onBack} style={styles.backButton} />
     </Kb.Box2>
   )
@@ -306,6 +354,9 @@ const styles = Styles.styleSheetCreate(() => ({
       flexGrow: 1,
     },
   }),
+  smallHeader: {
+    ...Styles.padding(0, Styles.globalMargins.xlarge),
+  },
 }))
 
 export default Channel

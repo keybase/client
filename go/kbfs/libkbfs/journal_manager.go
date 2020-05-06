@@ -1355,10 +1355,8 @@ func (j *JournalManager) MoveAway(ctx context.Context, tlfID tlf.ID) error {
 	return j.config.KeybaseService().NotifyFavoritesChanged(ctx)
 }
 
-// FinishResolvingConflict shuts down the TLF journal for a cleared
-// conflict, and removes its storage from the local disk.
-func (j *JournalManager) FinishResolvingConflict(
-	ctx context.Context, fakeTlfID tlf.ID) (err error) {
+func (j *JournalManager) deleteJournal(
+	ctx context.Context, tlfID tlf.ID, clearConflict bool) (err error) {
 	var journalDir string
 	defer func() {
 		if err != nil {
@@ -1372,35 +1370,51 @@ func (j *JournalManager) FinishResolvingConflict(
 	j.lock.Lock()
 	defer j.lock.Unlock()
 
-	tlfJournal, ok := j.tlfJournals[fakeTlfID]
+	tlfJournal, ok := j.tlfJournals[tlfID]
 	if !ok {
 		return errJournalNotAvailable
 	}
 
-	found := false
-	for k, v := range j.clearedConflictTlfs {
-		if fakeTlfID != v.fakeTlfID {
-			continue
+	if clearConflict {
+		found := false
+		for k, v := range j.clearedConflictTlfs {
+			if tlfID != v.fakeTlfID {
+				continue
+			}
+			// Nullify the TLF ID in the cleared conflict map, so we can
+			// preserve the number of the deleted conflict TLF (so that
+			// future conflicts on this same date get a new number), but
+			// without having it show up in the favorites list.
+			v.fakeTlfID = tlf.NullID
+			j.clearedConflictTlfs[k] = v
+			found = true
+			break
 		}
-		// Nullify the TLF ID in the cleared conflict map, so we can
-		// preserve the number of the deleted conflict TLF (so that
-		// future conflicts on this same date get a new number), but
-		// without having it show up in the favorites list.
-		v.fakeTlfID = tlf.NullID
-		j.clearedConflictTlfs[k] = v
-		found = true
-		break
-	}
 
-	if !found {
-		return errors.Errorf("%s is not a cleared conflict journal", fakeTlfID)
+		if !found {
+			return errors.Errorf("%s is not a cleared conflict journal", tlfID)
+		}
 	}
 
 	// Shut down the journal and remove from the cleared conflicts map.
 	tlfJournal.shutdown(ctx)
-	delete(j.tlfJournals, fakeTlfID)
+	delete(j.tlfJournals, tlfID)
 	journalDir = tlfJournal.dir
 	return nil
+}
+
+// FinishResolvingConflict shuts down the TLF journal for a cleared
+// conflict, and removes its storage from the local disk.
+func (j *JournalManager) FinishResolvingConflict(
+	ctx context.Context, fakeTlfID tlf.ID) (err error) {
+	return j.deleteJournal(ctx, fakeTlfID, true)
+}
+
+// DeleteJournal shuts down a TLF journal, and removes its storage
+// from the local disk.
+func (j *JournalManager) DeleteJournal(
+	ctx context.Context, tlfID tlf.ID) (err error) {
+	return j.deleteJournal(ctx, tlfID, false)
 }
 
 // shutdownExistingJournalsLocked shuts down all write journals, sets

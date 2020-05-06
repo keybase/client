@@ -6,6 +6,7 @@ package client
 import (
 	"context"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/keybase/cli"
@@ -14,7 +15,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSUploads is the 'fs ps' command.
+// CmdSimpleFSUploads is the 'fs uploads' command.
 type CmdSimpleFSUploads struct {
 	libkb.Contextified
 	filter keybase1.ListFilter
@@ -39,31 +40,40 @@ func NewCmdSimpleFSUploads(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 	}
 }
 
-// Run runs the command in client/server mode.
-func (c *CmdSimpleFSUploads) Run() error {
-	cli, err := GetSimpleFSClient(c.G())
+func printUploads(
+	g *libkb.GlobalContext, filter keybase1.ListFilter, mustHavePrefix string) (
+	areUploads bool, err error) {
+	cli, err := GetSimpleFSClient(g)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	status, err := cli.SimpleFSSyncStatus(context.TODO(), c.filter)
+	status, err := cli.SimpleFSSyncStatus(context.TODO(), filter)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	ui := c.G().UI.GetTerminalUI()
+	ui := g.UI.GetTerminalUI()
 	if len(status.SyncingPaths) == 0 && status.TotalSyncingBytes == 0 {
 		ui.Printf("There are currently no uploads in progress\n")
-		return nil
+		return false, nil
 	}
 
 	sort.Strings(status.SyncingPaths)
+	printed := false
 	for _, p := range status.SyncingPaths {
+		if !strings.HasPrefix(p, mustHavePrefix) {
+			continue
+		}
+		printed = true
 		ui.Printf("%s\n", p)
 	}
-	if len(status.SyncingPaths) > 0 {
+	if printed {
 		ui.Printf("\n")
+	} else {
+		return false, nil
 	}
+
 	ui.Printf(
 		"%s left to upload\n", humanizeBytes(status.TotalSyncingBytes, false))
 	if status.EndEstimate != nil {
@@ -71,10 +81,16 @@ func (c *CmdSimpleFSUploads) Run() error {
 		ui.Printf("Estimated time remaining: %s\n",
 			timeRemaining.Round(1*time.Second))
 	}
-	return nil
+	return true, nil
 }
 
-// ParseArgv gets the optional -r switch
+// Run runs the command in client/server mode.
+func (c *CmdSimpleFSUploads) Run() error {
+	_, err := printUploads(c.G(), c.filter, "")
+	return err
+}
+
+// ParseArgv gets the optional -a switch.
 func (c *CmdSimpleFSUploads) ParseArgv(ctx *cli.Context) error {
 	if ctx.Bool("all") {
 		c.filter = keybase1.ListFilter_NO_FILTER

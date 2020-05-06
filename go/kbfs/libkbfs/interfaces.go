@@ -635,6 +635,11 @@ type KBFSOps interface {
 	// TLF into a stuck conflict view, in order to test the above
 	// `ClearConflictView` method and related state changes.
 	ForceStuckConflictForTesting(ctx context.Context, tlfID tlf.ID) error
+	// CancelUploads stops journal uploads for the given TLF, reverts
+	// the local view of the TLF to the server's view, and clears the
+	// journal from the disk.  Note that this could result in
+	// partially-uploaded changes, and may leak blocks on the bserver.
+	CancelUploads(ctx context.Context, fb data.FolderBranch) error
 	// Reset completely resets the given folder.  Should only be
 	// called after explicit user confirmation.  After the call,
 	// `handle` has the new TLF ID.  If `*newTlfID` is non-nil, that
@@ -1180,7 +1185,7 @@ type DiskBlockCache interface {
 	// waits for all caches to start.
 	WaitUntilStarted(cacheType DiskBlockCacheType) error
 	// Shutdown cleanly shuts down the disk block cache.
-	Shutdown(ctx context.Context)
+	Shutdown(ctx context.Context) <-chan struct{}
 }
 
 // DiskMDCache caches encrypted MD objects to the disk.
