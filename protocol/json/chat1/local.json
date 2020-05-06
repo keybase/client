@@ -4460,6 +4460,57 @@
       "response": "PostLocalNonblockRes",
       "timeout_msec": 30000
     },
+    "forwardMessage": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "srcConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "dstConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
+    "forwardMessageNonblock": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "srcConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "dstConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalNonblockRes",
+      "timeout_msec": 30000
+    },
     "postTextNonblock": {
       "request": [
         {

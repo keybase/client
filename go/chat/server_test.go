@@ -1304,7 +1304,8 @@ func TestChatSrvPostLocal(t *testing.T) {
 			nil, nil)
 		require.NoError(t, err)
 		t.Logf("nmsg: %v", len(tv.Messages))
-		// Teams don't use the remote mock. So PostDeleteHistoryByAge won't have gotten a good answer from GetMessageBefore.
+		// Teams don't use the remote mock. So PostDeleteHistoryByAge won't
+		// have gotten a good answer from GetMessageBefore.
 		if useRemoteMock {
 			t.Logf("check that the deletable messages are gone")
 			for _, m := range tv.Messages {
@@ -2268,7 +2269,7 @@ func newServerChatListener() *serverChatListener {
 func TestChatSrvPostLocalNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
-			ctc := makeChatTestContext(t, "PostLocalNonblock", 2)
+			ctc := makeChatTestContext(t, "PostLocalNonblock", 3)
 			defer ctc.cleanup()
 			users := ctc.users()
 
@@ -2333,7 +2334,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 
 			var err error
-			var created chat1.ConversationInfoLocal
+			var created, fwd chat1.ConversationInfoLocal
 			switch mt {
 			case chat1.ConversationMembersType_TEAM:
 				first := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
@@ -2358,18 +2359,38 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
 				consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
 				consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
+
+				topicName = "fwd"
+				ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(tc.startCtx,
+					chat1.NewConversationLocalArg{
+						TlfName:       first.TlfName,
+						TopicName:     &topicName,
+						TopicType:     chat1.TopicType_CHAT,
+						TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+						MembersType:   chat1.ConversationMembersType_TEAM,
+					})
+				require.NoError(t, err)
+				fwd = ncres.Conv.Info
+				consumeNewConversation(t, listener, fwd.Id)
+				consumeNewMsgLocal(t, listener, chat1.MessageType_JOIN)
+				consumeNewMsgRemote(t, listener, chat1.MessageType_JOIN)
+				consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
+				consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
 			default:
 				created = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 					mt, ctc.as(t, users[1]).user())
+				fwd = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+					mt, ctc.as(t, users[2]).user())
 			}
 
 			t.Logf("send a text message")
 			arg := chat1.PostTextNonblockArg{
-				ConversationID:   created.Id,
-				TlfName:          created.TlfName,
-				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
-				Body:             "hi",
-				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				ConversationID:    created.Id,
+				TlfName:           created.TlfName,
+				TlfPublic:         created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Body:              "hi",
+				IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				EphemeralLifetime: ephemeralLifetime,
 			}
 			res, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
@@ -2382,6 +2403,30 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
 				require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
 				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				assertEphemeral(ephemeralLifetime, unboxed)
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
+
+			t.Logf("fwd a text message")
+			arg1 := chat1.ForwardMessageNonblockArg{
+				SrcConvID: created.Id,
+				DstConvID: fwd.Id,
+				MsgID:     unboxed.GetMessageID(),
+			}
+			res, err = ctc.as(t, users[0]).chatLocalHandler().ForwardMessageNonblock(tc.startCtx, arg1)
+			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
+			var fwdedMsg chat1.UIMessage
+			select {
+			case info := <-listener.newMessageRemote:
+				fwdedMsg = info.Message
+				require.True(t, fwdedMsg.IsValid(), "invalid message")
+				require.NotNil(t, fwdedMsg.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, chat1.MessageType_TEXT, fwdedMsg.GetMessageType(), "invalid type")
+				require.Equal(t, res.OutboxID.String(), *fwdedMsg.Valid().OutboxID, "mismatch outbox ID")
+				assertEphemeral(ephemeralLifetime, fwdedMsg)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}

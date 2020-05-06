@@ -823,6 +823,7 @@ export enum GetThreadReason {
   coinflip = 9,
   botcommands = 10,
   emojisource = 11,
+  forwardmsg = 12,
 }
 
 export enum GlobalAppNotificationSetting {
@@ -1816,6 +1817,8 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.postLocal'
 // 'chat.1.local.generateOutboxID'
 // 'chat.1.local.postLocalNonblock'
+// 'chat.1.local.forwardMessage'
+// 'chat.1.local.forwardMessageNonblock'
 // 'chat.1.local.postMetadataNonblock'
 // 'chat.1.local.postDeleteHistoryUpto'
 // 'chat.1.local.postDeleteHistoryThrough'
