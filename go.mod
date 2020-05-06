@@ -16,7 +16,6 @@ require (
 	github.com/antchfx/xmlquery v0.0.0-20181024140136-98cdbc3221ed // indirect
 	github.com/antchfx/xpath v0.0.0-20180922041825-3de91f3991a1 // indirect
 	github.com/araddon/dateparse v0.0.0-20180729174819-cfd92a431d0e
-	github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf // indirect
 	github.com/blang/semver v3.0.1+incompatible
 	github.com/blevesearch/bleve v0.8.2-0.20191030071327-189ee421f71e
 	github.com/blevesearch/blevex v0.0.0-20190916190636-152f0fe5c040 // indirect
@@ -87,7 +86,6 @@ require (
 	github.com/kyokomi/emoji v2.2.2+incompatible
 	github.com/mattn/go-isatty v0.0.12
 	github.com/miekg/dns v0.0.0-20170310215703-c862b7e35985
-	github.com/mschoch/smat v0.1.0 // indirect
 	github.com/nf/cr2 v0.0.0-20140528043846-05d46fef4f2f // indirect
 	github.com/nfnt/resize v0.0.0-20160724205520-891127d8d1b5
 	github.com/pelletier/go-buffruneio v0.3.0 // indirect
@@ -113,7 +111,6 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
 	github.com/temoto/robotstxt v0.0.0-20180810133444-97ee4a9ee6ea // indirect
-	github.com/tinylib/msgp v1.1.1-0.20190628005314-efe20429c9b7 // indirect
 	github.com/urfave/cli v1.20.1-0.20181029213200-b67dcf995b6a
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	github.com/willf/bitset v1.1.11-0.20190404145324-77892cd8d53f // indirect
