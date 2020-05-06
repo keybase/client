@@ -11,7 +11,17 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
     return null
   }
   return (
-    <Overlay onHidden={props.onHidden}>
+    <Overlay
+      key={
+        // Android bug: after selecting a new value (e.g. in
+        // set-explode-popup), it flips to the new value, then back to the old
+        // value, then to the new value. There is also a user report claiming
+        // it flips forever. So just force remounting when the selected avlue
+        // changes as a hacky fix.
+        Styles.isAndroid ? props.selectedValue || 0 : undefined
+      }
+      onHidden={props.onHidden}
+    >
       <Box2 direction="vertical" fullWidth={true} style={styles.menu}>
         {props.header}
         <Box2 direction="horizontal" fullWidth={true} style={styles.actionButtons}>
