@@ -22,7 +22,11 @@ const makeStack = (initialRouteName: string) => () => (
 const PeopleStack = makeStack('peopleRoot')
 const ChatStack = makeStack('chatRoot')
 const FSStack = makeStack('fsRoot')
+const CryptoStack = makeStack('cryptoRoot')
 const TeamsStack = makeStack('teamsRoot')
+const WalletsStack = makeStack('walletsRoot')
+const GitStack = makeStack('gitRoot')
+const DevicesStack = makeStack('devicesRoot')
 const SettingsStack = makeStack('settingsRoot')
 
 const defaultScreenOptions: StackNavigationOptions = {
@@ -76,7 +80,40 @@ export const tabs = [
   <Tab.Screen key="tabs.peopleTab" name="tabs.peopleTab" component={PeopleStack} options={tabsOptions} />,
   <Tab.Screen key="tabs.chatTab" name="tabs.chatTab" component={ChatStack} options={tabsOptions} />,
   <Tab.Screen key="tabs.fsTab" name="tabs.fsTab" component={FSStack} options={tabsOptions} />,
+  ...(Styles.isMobile
+    ? []
+    : [
+        <Tab.Screen
+          key="tabs.cryptoTab"
+          name="tabs.cryptoTab"
+          component={CryptoStack}
+          options={tabsOptions}
+        />,
+      ]),
   <Tab.Screen key="tabs.teamsTab" name="tabs.teamsTab" component={TeamsStack} options={tabsOptions} />,
+  ...(Styles.isMobile
+    ? []
+    : [
+        <Tab.Screen
+          key="tabs.walletsTab"
+          name="tabs.walletsTab"
+          component={WalletsStack}
+          options={tabsOptions}
+        />,
+      ]),
+  ...(Styles.isMobile
+    ? []
+    : [<Tab.Screen key="tabs.gitTab" name="tabs.gitTab" component={GitStack} options={tabsOptions} />]),
+  ...(Styles.isMobile
+    ? []
+    : [
+        <Tab.Screen
+          key="tabs.devicesTab"
+          name="tabs.devicesTab"
+          component={DevicesStack}
+          options={tabsOptions}
+        />,
+      ]),
   <Tab.Screen
     key="tabs.settingsTab"
     name="tabs.settingsTab"

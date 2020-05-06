@@ -221,8 +221,7 @@ function TabNavigator({initialRouteName, children, screenOptions, tabBarStyle, c
     screenOptions,
   })
 
-  // TODO
-  const selectedTab = ''
+  const selectedTab = state.routeNames[state.index]
 
   const username = Container.useSelector(state => state.config.username)
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)

@@ -10,6 +10,10 @@ type ParamList = {
   'tabs.peopleTab': undefined
   'tabs.settingsTab': undefined
   'tabs.teamsTab': undefined
+  'tabs.cryptoTab': undefined
+  'tabs.devicesTab': undefined
+  'tabs.gitTab': undefined
+  'tabs.walletsTab': undefined
 }
 
 const mobileTabFactory = createBottomTabNavigator<ParamList>()
