@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
 
 const defaultWelcomeMessageWriter = ':wave: Welcome to the team! Say hi to everyone and introduce yourself.'
 const defaultWelcomeMessageNonwriter = ':wave: Welcome to the team!'
@@ -37,10 +38,25 @@ function renderWelcomeMessage(
   cannotWrite: boolean
 ): React.ReactNode {
   return (
-    <Kb.Markdown smallStandaloneEmoji={false} lineClamp={3} selectable={false}>
+    <Kb.Markdown
+      smallStandaloneEmoji={false}
+      lineClamp={3}
+      selectable={false}
+      paragraphTextClassName="text_BodySmall"
+      style={styles.welcomeStyle}
+    >
       {removeWhitespaceOnlyLines(computeWelcomeMessageText(message, cannotWrite))}
     </Kb.Markdown>
   )
 }
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      welcomeStyle: {
+        paddingTop: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export {computeWelcomeMessageText, computeWelcomeMessageTextRaw, renderWelcomeMessage}

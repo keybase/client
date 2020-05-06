@@ -170,6 +170,11 @@ const AddToChannel = (props: Props) => {
                     onCheck={onCheck}
                     checked={alreadyIn || toAdd.has(item.username)}
                     disabled={alreadyIn}
+                    disabledColor={
+                      alreadyIn || toAdd.has(item.username)
+                        ? Styles.globalColors.black_20OrWhite_20
+                        : undefined
+                    }
                     style={styles.checkCircle}
                   />
                 }

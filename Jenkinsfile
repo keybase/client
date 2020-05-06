@@ -124,6 +124,7 @@ helpers.rootLinuxNode(env, {
     env.hasKBFSChanges = false
     println "Has go changes: " + env.hasGoChanges
     println "Has JS changes: " + env.hasJSChanges
+    println "Has Jenkinsfile changes: " + env.hasJenkinsfileChanges
     def dependencyFiles = [:]
 
     if (env.hasGoChanges && env.CHANGE_TARGET && !env.hasJenkinsfileChanges) {
