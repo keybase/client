@@ -208,7 +208,7 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
   isBig: false,
   name: '',
   open: false,
-  openTeamJoinRole: 'writer',
+  openTeamJoinRole: 'reader',
   showcase: false,
   teamType: 'other',
 }
