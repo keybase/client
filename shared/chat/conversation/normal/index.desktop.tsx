@@ -13,11 +13,9 @@ import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import '../conversation.css'
 
 const Offline = () => (
-  <Kb.Box style={styles.offline}>
-    <Kb.Text type="BodySmallSemibold">
-      Couldn't load all chat messages due to network connectivity. Retrying...
-    </Kb.Text>
-  </Kb.Box>
+  <Kb.Banner color="grey" small={true} style={styles.offline}>
+    Couldn't load all chat messages due to network connectivity. Retrying...
+  </Kb.Banner>
 )
 
 class Conversation extends React.PureComponent<Props> {
@@ -96,10 +94,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       offline: {
-        ...Styles.globalStyles.flexBoxCenter,
-        backgroundColor: Styles.globalColors.black_10,
-        flex: 1,
-        maxHeight: Styles.globalMargins.medium,
+        padding: Styles.globalMargins.xxtiny,
       },
       threadSearchStyle: {
         position: 'absolute' as const,
