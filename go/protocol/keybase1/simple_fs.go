@@ -1983,7 +1983,7 @@ type SimpleFSGetIndexProgressArg struct {
 }
 
 type SimpleFSCancelJournalUploadsArg struct {
-	Path Path `codec:"path" json:"path"`
+	Path KBFSPath `codec:"path" json:"path"`
 }
 
 type SimpleFSInterface interface {
@@ -2123,7 +2123,7 @@ type SimpleFSInterface interface {
 	SimpleFSSearch(context.Context, SimpleFSSearchArg) (SimpleFSSearchResults, error)
 	SimpleFSResetIndex(context.Context) error
 	SimpleFSGetIndexProgress(context.Context) (SimpleFSIndexProgress, error)
-	SimpleFSCancelJournalUploads(context.Context, Path) error
+	SimpleFSCancelJournalUploads(context.Context, KBFSPath) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -3555,7 +3555,7 @@ func (c SimpleFSClient) SimpleFSGetIndexProgress(ctx context.Context) (res Simpl
 	return
 }
 
-func (c SimpleFSClient) SimpleFSCancelJournalUploads(ctx context.Context, path Path) (err error) {
+func (c SimpleFSClient) SimpleFSCancelJournalUploads(ctx context.Context, path KBFSPath) (err error) {
 	__arg := SimpleFSCancelJournalUploadsArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCancelJournalUploads", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return

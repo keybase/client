@@ -897,7 +897,7 @@ func (s *SimpleFSHandler) SimpleFSDismissUpload(
 
 // SimpleFSDismissUpload implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSCancelJournalUploads(
-	ctx context.Context, path keybase1.Path) (err error) {
+	ctx context.Context, path keybase1.KBFSPath) (err error) {
 	cli, err := s.client(ctx)
 	if err != nil {
 		return err
