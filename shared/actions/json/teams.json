@@ -462,7 +462,8 @@
     },
     "finishNewTeamWizard": {},
     "manageChatChannels": {
-      "teamID": "Types.TeamID"
+      "teamID": "Types.TeamID",
+      "replace?": "boolean"
     },
     "teamSeen": {
       "_description": "User has viewed this team. Clear related badges.",

@@ -204,7 +204,7 @@ const TeamJourneyConnected = Container.connect(
         })
       ),
     _onCreateChannel: (teamID: string) =>
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatCreateChannel'}]})),
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamCreateChannel'}]})),
     _onDismiss: (
       conversationIDKey: ChatTypes.ConversationIDKey,
       cardType: RPCChatTypes.JourneycardType,

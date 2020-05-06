@@ -47,7 +47,7 @@ const useSecondaryAction = (props: Props) => {
         dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID}))
         break
       case 'channelsFew':
-        dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
+        dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamCreateChannel'}]}))
         break
       case 'channelsEmpty':
         dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamCreateChannels'}]}))

@@ -231,7 +231,7 @@ export default Container.connect(
       onCreate: () =>
         dispatch(
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {teamID}, selected: 'chatCreateChannel'}],
+            path: [{props: {teamID}, selected: 'teamCreateChannel'}],
           })
         ),
       onEdit: (conversationIDKey: ChatTypes.ConversationIDKey) =>

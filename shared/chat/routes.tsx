@@ -7,7 +7,6 @@ import ChatAttachmentFullscreen from './conversation/attachment-fullscreen/conta
 import ChatAttachmentGetTitles from './conversation/attachment-get-titles/container'
 import SendToChat from './send-to-chat'
 import {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
-import ChatCreateChannel from './create-channel/container'
 import ChatDeleteHistoryWarning from './delete-history-warning/container'
 import ChatEditChannel from './manage-channels/edit-channel-container'
 import ChatInfoPanel from './conversation/info-panel/container'
@@ -70,9 +69,6 @@ export const newModalRoutes = {
   },
   chatConfirmRemoveBot: {
     getScreen: (): typeof ChatConfirmRemoveBot => require('./conversation/bot/confirm').default,
-  },
-  chatCreateChannel: {
-    getScreen: (): typeof ChatCreateChannel => require('./create-channel/container').default,
   },
   chatDeleteHistoryWarning: {
     getScreen: (): typeof ChatDeleteHistoryWarning => require('./delete-history-warning/container').default,
