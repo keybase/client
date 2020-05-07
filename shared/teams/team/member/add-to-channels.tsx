@@ -96,7 +96,20 @@ const AddToChannels = (props: Props) => {
 
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
   const onCreate = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [
+          {
+            props: {
+              standalone: mode === 'self',
+              teamID,
+            },
+            selected: 'teamCreateChannel',
+          },
+        ],
+        replace: mode === 'self',
+      })
+    )
 
   const submit = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
   const [waiting, setWaiting] = React.useState(false)
@@ -294,7 +307,12 @@ const SelfChannelActions = ({
   const inChannel = meta.membershipType === 'active'
 
   const actionProps = {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID}
-  const onEditChannel = () => {} // TODO: show another modal with a back button to here
+  const onEditChannel = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [{props: {standalone: false, ...actionProps}, selected: 'teamEditChannel'}],
+      })
+    )
   const onChannelSettings = () => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(nav.safeNavigateAppendPayload({path: [{props: actionProps, selected: 'teamChannel'}]}))

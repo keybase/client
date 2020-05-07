@@ -5,7 +5,7 @@ import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
-import {ModalTitle} from '../../common'
+import {ChannelInput, ModalTitle} from '../../common'
 
 type Props = {
   onSubmitChannels?: (channels: Array<string>) => void
@@ -13,8 +13,6 @@ type Props = {
   waiting?: boolean
   banners?: Array<React.ReactNode>
 }
-
-const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
 
 const CreateChannel = (props: Props) => {
   const {onSubmitChannels, waiting} = props
@@ -104,32 +102,6 @@ const CreateChannel = (props: Props) => {
   )
 }
 
-type ChannelInputProps =
-  | {isGeneral: true}
-  | {
-      isGeneral?: false
-      onChange: (value: string) => void
-      onClear: () => void
-      value: string
-    }
-
-const ChannelInput = (props: ChannelInputProps) => {
-  if (props.isGeneral) {
-    return <Kb.NewInput value="#general" disabled={true} containerStyle={styles.inputGeneral} />
-  }
-  return (
-    <Kb.NewInput
-      value={props.value}
-      onChangeText={text => props.onChange(cleanChannelname(text))}
-      decoration={<Kb.Icon type="iconfont-remove" onClick={props.onClear} />}
-      placeholder="channel"
-      prefix="#"
-      containerStyle={styles.input}
-      maxLength={20}
-    />
-  )
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   addButton: Styles.platformStyles({
     isElectron: {width: 42},
@@ -145,8 +117,6 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.padding(Styles.globalMargins.small),
     flex: 1,
   },
-  input: {...Styles.padding(Styles.globalMargins.xsmall)},
-  inputGeneral: {...Styles.padding(Styles.globalMargins.xsmall), opacity: 0.4},
   noChannelsText: {paddingTop: Styles.globalMargins.tiny, width: '100%'},
 }))
 

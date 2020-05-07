@@ -239,7 +239,7 @@ type _LoadedWelcomeMessagePayload = {
   readonly teamID: Types.TeamID
   readonly message: RPCChatTypes.WelcomeMessageDisplay
 }
-type _ManageChatChannelsPayload = {readonly teamID: Types.TeamID}
+type _ManageChatChannelsPayload = {readonly teamID: Types.TeamID; readonly replace?: boolean}
 type _OpenInviteLinkPayload = {readonly inviteID: string; readonly inviteKey: string}
 type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveMemberPayload = {readonly teamID: Types.TeamID; readonly username: string}

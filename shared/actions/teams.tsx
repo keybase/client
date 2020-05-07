@@ -877,7 +877,7 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
 
     // Dismiss the create channel dialog.
     const visibleScreen = Router2Constants.getVisibleScreen()
-    if (visibleScreen && visibleScreen.routeName === 'chatCreateChannel') {
+    if (visibleScreen && visibleScreen.routeName === 'teamCreateChannel') {
       yield Saga.put(RouteTreeGen.createClearModals())
     }
 
@@ -1621,6 +1621,7 @@ const manageChatChannels = (action: TeamsGen.ManageChatChannelsPayload) =>
         selected: flags.teamsRedesign ? 'teamAddToChannels' : 'chatManageChannels',
       },
     ],
+    replace: action.payload.replace,
   })
 
 const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogger) => {

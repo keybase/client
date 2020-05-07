@@ -43,7 +43,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     teamID,
   }
   const onEditChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'chatEditChannel'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'teamEditChannel'}]}))
   const onNavToChannel = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'teamChannel'}]}))
   const onNavToSettings = () =>

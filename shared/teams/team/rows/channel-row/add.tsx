@@ -11,7 +11,7 @@ const ButtonRow = (props: {teamID: Types.TeamID}) => {
   const onCreateChannel = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
-        path: [{props: {...props, navToChatOnSuccess: false}, selected: 'chatCreateChannel'}],
+        path: [{props: {...props, navToChatOnSuccess: false}, selected: 'teamCreateChannel'}],
       })
     )
 
