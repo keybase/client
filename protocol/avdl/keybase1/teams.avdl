@@ -1850,7 +1850,7 @@ protocol teams {
   // already in the team, 'alice@rooter' won't end up in the returned list.
   //
   // Compound assertion are ignored, as invites for compound assertions are not
-  // allowed. Technically, a user targetted by compound assertion could be in the
+  // allowed. Technically, a user targeted by compound assertion could be in the
   // team, assertion would have to be resolved to figure this out, which this
   // function does not do
   array<string> findAssertionsInTeamNoResolve(int sessionID, TeamID teamID, array<string> assertions);
