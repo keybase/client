@@ -26,6 +26,7 @@ repos:
     -   id: go-fmt
     -   id: go-vet
         files: 'go/.*\.go$'
+        exclude: 'go/buildtools/.*$'
     -   id: go-vet
         name: 'go vet tuxbot'
         files: 'packaging/linux/tuxbot/bot/docker-cleanup/.*\.go$'

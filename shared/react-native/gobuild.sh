@@ -59,7 +59,7 @@ ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s
 build_gomobile ()
 {
   echo "Build gomobile..."
-  go install golang.org/x/mobile/cmd/{gomobile,gobind}
+  (cd buildtools; go install golang.org/x/mobile/cmd/{gomobile,gobind})
 }
 
 if [ "$arg" = "ios" ]; then
@@ -93,3 +93,6 @@ else
   echo "Nothing to build, you need to specify 'ios' or 'android'"
   exit 1
 fi
+
+# tidy indirect reference to gomobile
+go mod tidy

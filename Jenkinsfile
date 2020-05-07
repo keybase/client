@@ -295,14 +295,14 @@ helpers.rootLinuxNode(env, {
 def getTestDirsNix() {
   def dirs = sh(
     returnStdout: true,
-    script: "go list ./... | grep -v 'vendor\\|bind'"
+    script: "go list ./... | grep -v 'bind'"
   ).trim()
   println "Running tests for dirs: " + dirs
   return dirs.tokenize()
 }
 
 def getTestDirsWindows() {
-  def dirs = bat(returnStdout: true, script: "@go list ./... | find /V \"vendor\" | find /V \"/go/bind\"").trim()
+  def dirs = bat(returnStdout: true, script: "@go list ./... | find /V \"/go/bind\"").trim()
   println "Running tests for dirs: " + dirs
   return dirs.tokenize()
 }
@@ -349,7 +349,7 @@ def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
       return packagesToTest
     }
     println "This is a branch build or the Jenkinsfile has changed, so we are running all tests."
-    diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
+    diffPackageList = sh(returnStdout: true, script: 'go list ./...').trim().split()
     // If we get here, just run all the tests in `diffPackageList`
     diffPackageList.each { pkg ->
       if (pkg != 'github.com/keybase/client/go/bind') {
@@ -396,8 +396,10 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
   }
 
   println "Running golint"
-  retry(5) {
-    sh 'go get -u golang.org/x/lint/golint'
+  dir("buildtools") {
+    retry(5) {
+      sh 'go install golang.org/x/lint/golint'
+    }
   }
   retry(5) {
     timeout(activity: true, time: 300, unit: 'SECONDS') {
@@ -408,9 +410,9 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
   if (prefix == "test_linux_go_") {
     // Only test golangci-lint on linux
     println "Installing golangci-lint"
-    dir("..") {
+    dir("buildtools") {
       retry(5) {
-        sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.6'
+        sh 'go install github.com/golangci/golangci-lint/cmd/golangci-lint'
       }
     }
 
@@ -445,8 +447,10 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     // Macos pukes on mockgen because ¯\_(ツ)_/¯.
     // So, only run on Linux.
     println "Running mockgen"
-    retry(5) {
-      sh 'go get -u github.com/golang/mock/mockgen'
+    dir("buildtools") {
+      retry(5) {
+        sh 'go install github.com/golang/mock/mockgen'
+      }
     }
     dir('kbfs/data') {
       retry(5) {
