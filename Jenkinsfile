@@ -327,7 +327,7 @@ def getDiffFileList() {
     return sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}'\"").trim()
 }
 
-def getPackagesToTest(dependencyFiles) {
+def getPackagesToTest = { dependencyFiles ->
   def packagesToTest = [:]
   dir('go') {
     if (env.CHANGE_TARGET && !hasJenkinsfileChanges) {
@@ -384,7 +384,7 @@ def testGo(prefix, packagesToTest) {
   }}
 }
 
-def testGoBuilds(prefix, packagesToTest) {
+def testGoBuilds = { prefix, packagesToTest ->
   if (prefix == "test_linux_go_") {
     dir("keybase") {
       sh "go build -o keybase_production -ldflags \"-s -w\" -buildmode=pie --tags=production"
