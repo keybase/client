@@ -43,42 +43,21 @@ func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
 }
 
 func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, name string) {
-	tc = SetupTest(t, "team", 1)
-
-	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	err = tc.Logout()
-	require.NoError(t, err)
-
-	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	err = tc.Logout()
-	require.NoError(t, err)
-
-	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-
-	name = createTeam(tc)
-	t.Logf("Created team %q", name)
-
-	return tc, owner, otherA, otherB, name
+	tc, owner, otherA, otherB, teamName, _ := memberSetupMultipleWithTeamID(t)
+	return tc, owner, otherA, otherB, teamName.String()
 }
 
 func memberSetupMultipleWithTeamID(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, name keybase1.TeamName, teamID keybase1.TeamID) {
 	tc = SetupTest(t, "team", 1)
 
-	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	err = tc.Logout()
-	require.NoError(t, err)
-
-	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
-	err = tc.Logout()
-	require.NoError(t, err)
-
-	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
-	require.NoError(t, err)
+	for i, ptr := range []**kbtest.FakeUser{&otherA, &otherB, &owner} {
+		if i > 0 {
+			kbtest.Logout(tc)
+		}
+		user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+		require.NoError(t, err)
+		*ptr = user
+	}
 
 	name, teamID = createTeam2(tc)
 	t.Logf("Created team %q", name)
@@ -792,19 +771,11 @@ func TestMemberAddEmail(t *testing.T) {
 	}
 }
 
-func randomEmailAddress(t *testing.T) keybase1.EmailAddress {
-	buf := make([]byte, 5)
-	_, err := rand.Read(buf)
-	require.NoError(t, err)
-	email := fmt.Sprintf("%s@example.org", hex.EncodeToString(buf))
-	return keybase1.EmailAddress(email)
-}
-
 func TestMemberAddEmailBulk(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	existingUserEmail := randomEmailAddress(t)
+	existingUserEmail := kbtest.GenerateRandomEmailAddress()
 	blob := string(existingUserEmail) + ", h@j.k,u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
 
 	// create a user with a searchable email to test addEmailsBulk resolves existing users correctly.
@@ -2309,6 +2280,220 @@ func TestRemoveMembersHappyTree(t *testing.T) {
 	require.Len(t, res.Failures, 0)
 	assertRole(tc, subteamName.String(), admin.Username, keybase1.TeamRole_NONE)
 	assertRole(tc, subsubsubteamName.String(), admin.Username, keybase1.TeamRole_NONE)
+}
+
+func TestFindAssertionsInTeamForInvites(t *testing.T) {
+	tc, owner, _, teamID := memberSetupWithID(t)
+	defer tc.Cleanup()
+
+	phone := kbtest.GenerateTestPhoneNumber()
+
+	err := InviteEmailPhoneMember(context.TODO(), tc.G, teamID, phone, "phone", keybase1.TeamRole_READER)
+	require.NoError(t, err)
+
+	{
+		assertions := []string{
+			phone + "@phone",
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, phone+"@phone", ret[0])
+	}
+
+	{
+		phone2 := kbtest.GenerateTestPhoneNumber()
+		assertions := []string{
+			phone2 + "@phone",
+			phone + "@phone",
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, phone+"@phone", ret[0])
+	}
+
+	email := kbtest.GenerateRandomEmailAddress()
+	err = InviteEmailPhoneMember(context.TODO(), tc.G, teamID, email.String(), "email", keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	{
+		assertions := []string{
+			fmt.Sprintf("[%s]@email", email),
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, assertions[0], ret[0])
+	}
+
+	{
+		assertions := []string{
+			fmt.Sprintf("[%s]@email", email),
+			owner.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, assertions[0], ret[0])
+		require.Equal(t, owner.Username, ret[1])
+	}
+
+	email2 := kbtest.GenerateRandomEmailAddress()
+	err = InviteEmailPhoneMember(context.TODO(), tc.G, teamID, email2.String(), "email", keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	{
+		var assertions []string
+		assertions = append(assertions, fmt.Sprintf("[%s]@email", email2))
+		for i := 0; i < 5; i++ {
+			assertions = append(assertions, fmt.Sprintf("[%s]@email", kbtest.GenerateRandomEmailAddress()))
+		}
+		assertions = append(assertions, fmt.Sprintf("[%s]@email", email))
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, assertions[0], ret[0])
+		require.Equal(t, assertions[6], ret[1])
+	}
+}
+
+func TestFindAssertionsInTeamForUsers(t *testing.T) {
+	tc, owner, otherA, otherB, _, teamID := memberSetupMultipleWithTeamID(t)
+	defer tc.Cleanup()
+
+	_, err := AddMemberByID(context.Background(), tc.G, teamID, otherA.Username, keybase1.TeamRole_WRITER,
+		nil /* botSettings */, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+
+	{
+		assertions := []string{
+			otherA.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, otherA.Username, ret[0])
+	}
+
+	{
+		assertions := []string{
+			otherB.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 0)
+	}
+
+	{
+		assertions := []string{
+			otherB.Username,
+			otherA.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, otherA.Username, ret[0])
+	}
+
+	{
+		assertions := []string{
+			otherB.Username,
+			otherA.Username,
+			owner.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, otherA.Username, ret[0])
+		require.Equal(t, owner.Username, ret[1])
+	}
+
+	_, err = AddMemberByID(context.Background(), tc.G, teamID, otherB.Username, keybase1.TeamRole_WRITER,
+		nil /* botSettings */, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+
+	{
+		assertions := []string{
+			otherA.Username,
+			otherB.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, otherA.Username, ret[0])
+		require.Equal(t, otherB.Username, ret[1])
+	}
+
+	{
+		// Try invalid username
+		buf := make([]byte, 5)
+		_, err := rand.Read(buf)
+		require.NoError(t, err)
+		username := hex.EncodeToString(buf)
+
+		assertions := []string{
+			otherA.Username,
+			otherB.Username,
+			username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, otherA.Username, ret[0])
+		require.Equal(t, otherB.Username, ret[1])
+	}
+
+	{
+		// Deduplicate, do not check same assertion more than once.
+		assertions := []string{
+			owner.Username,
+			owner.Username,
+			owner.Username,
+		}
+		ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, assertions)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, owner.Username, ret[0])
+	}
+}
+
+func TestFindAssertionsInTeamCompound(t *testing.T) {
+	tc, owner, _, teamID := memberSetupWithID(t)
+	defer tc.Cleanup()
+
+	kbtest.Logout(tc)
+	user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	kbtest.LogoutAndLoginAs(tc, owner)
+
+	assertionStr := fmt.Sprintf("%s@rooter+%s", user.Username, user.Username)
+
+	ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, []string{assertionStr})
+	require.NoError(t, err)
+	require.Len(t, ret, 0)
+
+	_, err = AddMemberByID(context.Background(), tc.G, teamID, user.Username, keybase1.TeamRole_WRITER,
+		nil /* botSettings */, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+
+	// Should find them even if user doesn't prove rooter - this function does
+	// not do any resolutions, just looks at usernames and current member set.
+	ret, err = FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, []string{assertionStr})
+	require.NoError(t, err)
+	require.Len(t, ret, 1)
+	require.Equal(t, assertionStr, ret[0])
+
+	badAssertion := fmt.Sprintf("%s@rooter+%s+%s", user.Username, user.Username, owner.Username)
+	_, err = FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, []string{badAssertion})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "has more than one Keybase username")
+
+	badAssertion = fmt.Sprintf("%s@rooter+%s@rooter", user.Username, owner.Username)
+	_, err = FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, []string{badAssertion})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "does not have Keybase username")
 }
 
 func TestTeamPlayerIdempotentChangesAssertRole(t *testing.T) {

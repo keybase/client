@@ -954,3 +954,11 @@ func (h *TeamsHandler) GetInviteLinkDetails(ctx context.Context, inviteID keybas
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetInviteLinkDetails(mctx, inviteID)
 }
+
+func (h *TeamsHandler) FindAssertionsInTeamNoResolve(ctx context.Context, arg keybase1.FindAssertionsInTeamNoResolveArg) (ret []string, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	traceMsg := fmt.Sprintf("FindAssertionsInTeam(%s, %d)", arg.TeamID, len(arg.Assertions))
+	defer h.G().CTrace(ctx, traceMsg, &err)()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.FindAssertionsInTeamNoResolve(mctx, arg.TeamID, arg.Assertions)
+}

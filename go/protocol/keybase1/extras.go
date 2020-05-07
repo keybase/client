@@ -2643,7 +2643,7 @@ func (a TeamInviteType) Eq(b TeamInviteType) bool {
 	switch ac {
 	case TeamInviteCategory_KEYBASE:
 		return true
-	case TeamInviteCategory_EMAIL:
+	case TeamInviteCategory_EMAIL, TeamInviteCategory_PHONE:
 		return true
 	case TeamInviteCategory_SBS:
 		return a.Sbs() == b.Sbs()

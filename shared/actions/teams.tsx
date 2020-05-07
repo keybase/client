@@ -1583,7 +1583,31 @@ const finishedNewTeamWizard = (action: TeamsGen.FinishedNewTeamWizardPayload) =>
   RouteTreeGen.createNavigateAppend({path: [{props: {teamID: action.payload.teamID}, selected: 'team'}]}),
 ]
 
-const addMembersWizardPushMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
+const addMembersWizardPushMembers = async (
+  state: TypedState,
+  action: TeamsGen.AddMembersWizardPushMembersPayload
+) => {
+  // Call FindAssertionsInTeamNoResolve RPC and pass the results along with the
+  // members to addMembersWizardSetMembers action.
+  const {teamID} = state.teams.addMembersWizard
+  const assertions = action.payload.members
+    .filter(member => member.assertion.includes('@') || !!member.resolvedFrom)
+    .map(({assertion}) => assertion)
+
+  const existingAssertions = await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
+    assertions,
+    teamID,
+  })
+
+  return [
+    TeamsGen.createAddMembersWizardAddMembers({
+      assertionsInTeam: existingAssertions ?? [],
+      members: action.payload.members,
+    }),
+    RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}),
+  ]
+}
+
 const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
 
 const manageChatChannels = (action: TeamsGen.ManageChatChannelsPayload) =>
@@ -1766,7 +1790,7 @@ const teamsSaga = function*() {
 
   // Add members wizard
   yield* Saga.chainAction(TeamsGen.startAddMembersWizard, startAddMembersWizard)
-  yield* Saga.chainAction(TeamsGen.addMembersWizardPushMembers, addMembersWizardPushMembers)
+  yield* Saga.chainAction2(TeamsGen.addMembersWizardPushMembers, addMembersWizardPushMembers)
   yield* Saga.chainAction(
     [TeamsGen.cancelAddMembersWizard, TeamsGen.finishedAddMembersWizard],
     navAwayFromAddMembersWizard

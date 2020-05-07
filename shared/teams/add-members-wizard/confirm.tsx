@@ -8,6 +8,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
+import {assertionToDisplay} from '../../common-adapters/usernames'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {useDefaultChannels} from '../team/settings-tab/default-channels'
@@ -31,7 +32,9 @@ const disabledRolesSubteam = {
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
 
-  const {teamID, addingMembers, addToChannels} = Container.useSelector(s => s.teams.addMembersWizard)
+  const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = Container.useSelector(
+    s => s.teams.addMembersWizard
+  )
   const isSubteam = Container.useSelector(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
   const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
@@ -41,7 +44,8 @@ const AddMembersConfirm = () => {
   // TODO: consider useMemoing these
   const anyNonKeybase = addingMembers.some(m => m.assertion.includes('@'))
   const someKeybaseUsers = addingMembers.some(member => !member.assertion.includes('@'))
-  const onlyEmails = !addingMembers.some(member => !member.assertion.endsWith('@email'))
+  const onlyEmails =
+    addingMembers.length > 0 && addingMembers.every(member => member.assertion.endsWith('@email'))
 
   const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
 
@@ -112,6 +116,7 @@ const AddMembersConfirm = () => {
             label={`Invite ${addingMembers.length} ${noun} & finish`}
             waiting={waiting}
             onClick={onComplete}
+            disabled={addingMembers.length === 0}
           />
         ),
       }}
@@ -150,6 +155,7 @@ const AddMembersConfirm = () => {
             )}
           </Kb.Box2>
         )}
+        {membersAlreadyInTeam.length > 0 && <AlreadyInTeam assertions={membersAlreadyInTeam} />}
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
     </Kb.Modal>
@@ -157,6 +163,48 @@ const AddMembersConfirm = () => {
 }
 AddMembersConfirm.navigationOptions = {
   gesturesEnabled: false,
+}
+
+// Show no more than 20 assertions in "already in team" section.
+const alreadyInTeamLimit = 20
+
+const AlreadyInTeam = ({assertions}: {assertions: string[]}) => {
+  const invitedStr = React.useMemo(() => {
+    if (assertions.length > alreadyInTeamLimit) {
+      const left = assertions.length - alreadyInTeamLimit
+      const spliced = assertions.slice(0, alreadyInTeamLimit)
+      return spliced.map(x => assertionToDisplay(x)).join(', ') + `... (and ${left} more)`
+    }
+    return assertions.map(x => assertionToDisplay(x)).join(', ')
+  }, [assertions])
+  const noun = React.useMemo(() => {
+    // If all assertions are emails or phone numbers, use "emails" or "phone
+    // numbers" noun. Otherwise, use "people".
+    const types = new Set<string>()
+    for (const assertion of assertions) {
+      if (assertion.includes('@email')) {
+        types.add('email')
+      } else if (assertion.includes('@phone')) {
+        types.add('phone')
+      } else {
+        types.add('other')
+      }
+    }
+    if (types.size === 1) {
+      switch (Array.from(types)[0]) {
+        case 'email':
+          return 'emails'
+        case 'phone':
+          return 'phone numbers'
+      }
+    }
+    return 'people'
+  }, [assertions])
+  return (
+    <Kb.Text type="BodySmallSuccess" selectable={true}>
+      Some {noun} were already invited to the team and are not shown here: {invitedStr}
+    </Kb.Text>
+  )
 }
 
 const AddMoreMembers = () => {
@@ -321,9 +369,9 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
           containerStyle={styles.flexShrink}
           style={styles.flexShrink}
         />
-        {props.note && (
+        {props.resolvedFrom && (
           <Kb.Text lineClamp={1} type="BodySemibold" style={styles.flexDefinitelyShrink}>
-            ({props.note})
+            ({assertionToDisplay(props.resolvedFrom)})
           </Kb.Text>
         )}
       </Kb.Box2>

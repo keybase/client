@@ -508,12 +508,12 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 // assert that it only has one part (and isn't a+b compound). If there is only
 // one factor in the assertion, then that's returned as single. Otherwise,
 // single is nil.
-func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite bool, single libkb.AssertionURL, full libkb.AssertionExpression, err error) {
-	a, err := externals.AssertionParseAndOnly(m, s)
+func preprocessAssertion(mctx libkb.MetaContext, assertionStr string) (isServerTrustInvite bool, single libkb.AssertionURL, full libkb.AssertionExpression, err error) {
+	assertion, err := externals.AssertionParseAndOnly(mctx, assertionStr)
 	if err != nil {
 		return false, nil, nil, err
 	}
-	urls := a.CollectUrls(nil)
+	urls := assertion.CollectUrls(nil)
 	if len(urls) == 1 {
 		single = urls[0]
 	}
@@ -525,7 +525,7 @@ func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite boo
 	if isServerTrustInvite && len(urls) > 1 {
 		return false, nil, nil, NewMixedServerTrustAssertionError()
 	}
-	return isServerTrustInvite, single, a, nil
+	return isServerTrustInvite, single, assertion, nil
 }
 
 // resolveServerTrustAssertion resolves server-trust assertion. The possible

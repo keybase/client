@@ -5006,6 +5006,29 @@
         }
       ],
       "response": "TeamTreeInitial"
+    },
+    "findAssertionsInTeamNoResolve": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "assertions",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "string"
+      }
     }
   },
   "namespace": "keybase.1"

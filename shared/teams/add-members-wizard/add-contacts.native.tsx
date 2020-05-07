@@ -7,7 +7,6 @@ import * as RPCGen from '../../constants/types/rpc-gen'
 import {pluralize} from '../../util/string'
 import {ModalTitle} from '../common'
 import ContactsList, {useContacts, Contact, EnableContactsPopup} from '../common/contacts-list.native'
-import {formatPhoneNumber} from '../../util/phone-numbers'
 
 const AddContacts = () => {
   const dispatch = Container.useDispatch()
@@ -44,8 +43,9 @@ const AddContacts = () => {
           dispatch(
             TeamsGen.createAddMembersWizardPushMembers({
               members: r.map(m => ({
-                assertion: m.foundUser ? m.username : m.assertion,
-                note: m.foundUser ? formatPhoneNumber(m.input) : undefined,
+                ...(m.foundUser
+                  ? {assertion: m.username, resolvedFrom: m.assertion}
+                  : {assertion: m.assertion}),
                 role: 'writer',
               })),
             })

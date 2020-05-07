@@ -8,6 +8,7 @@ import {RetentionPolicy} from '../constants/types/retention-policy'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'teams:'
+export const addMembersWizardAddMembers = 'teams:addMembersWizardAddMembers'
 export const addMembersWizardPushMembers = 'teams:addMembersWizardPushMembers'
 export const addMembersWizardRemoveMember = 'teams:addMembersWizardRemoveMember'
 export const addMembersWizardSetDefaultChannels = 'teams:addMembersWizardSetDefaultChannels'
@@ -125,6 +126,10 @@ export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Payload Types
+type _AddMembersWizardAddMembersPayload = {
+  readonly members: Array<Types.AddingMember>
+  readonly assertionsInTeam: Array<string>
+}
 type _AddMembersWizardPushMembersPayload = {readonly members: Array<Types.AddingMember>}
 type _AddMembersWizardRemoveMemberPayload = {readonly assertion: string}
 type _AddMembersWizardSetDefaultChannelsPayload = {
@@ -399,12 +404,6 @@ type _UploadTeamAvatarPayload = {
 
 // Action Creators
 /**
- * Add pending members to the add members wizard and show the confirm screen.
- */
-export const createAddMembersWizardPushMembers = (
-  payload: _AddMembersWizardPushMembersPayload
-): AddMembersWizardPushMembersPayload => ({payload, type: addMembersWizardPushMembers})
-/**
  * Called by the modal if the key is missing
  */
 export const createRequestInviteLinkDetails = (
@@ -606,11 +605,23 @@ export const createStartAddMembersWizard = (
   payload: _StartAddMembersWizardPayload
 ): StartAddMembersWizardPayload => ({payload, type: startAddMembersWizard})
 /**
+ * Should be called when user is trying to add new assertions to the wizard
+ */
+export const createAddMembersWizardPushMembers = (
+  payload: _AddMembersWizardPushMembersPayload
+): AddMembersWizardPushMembersPayload => ({payload, type: addMembersWizardPushMembers})
+/**
  * Stop listening for team details for this team
  */
 export const createUnsubscribeTeamDetails = (
   payload: _UnsubscribeTeamDetailsPayload
 ): UnsubscribeTeamDetailsPayload => ({payload, type: unsubscribeTeamDetails})
+/**
+ * Takes a member list and appends it to wizard state, using assertionsInTeam as a filter. When filtering, it also maintains membersAlreadyInTeam list.
+ */
+export const createAddMembersWizardAddMembers = (
+  payload: _AddMembersWizardAddMembersPayload
+): AddMembersWizardAddMembersPayload => ({payload, type: addMembersWizardAddMembers})
 /**
  * Toggle whether invites are collapsed in the member list for this team
  */
@@ -900,6 +911,10 @@ export const createUploadTeamAvatar = (payload: _UploadTeamAvatarPayload): Uploa
 })
 
 // Action Payloads
+export type AddMembersWizardAddMembersPayload = {
+  readonly payload: _AddMembersWizardAddMembersPayload
+  readonly type: typeof addMembersWizardAddMembers
+}
 export type AddMembersWizardPushMembersPayload = {
   readonly payload: _AddMembersWizardPushMembersPayload
   readonly type: typeof addMembersWizardPushMembers
@@ -1304,6 +1319,7 @@ export type UploadTeamAvatarPayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddMembersWizardAddMembersPayload
   | AddMembersWizardPushMembersPayload
   | AddMembersWizardRemoveMemberPayload
   | AddMembersWizardSetDefaultChannelsPayload

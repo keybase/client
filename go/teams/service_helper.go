@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/avatars"
 	email_utils "github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -2195,4 +2196,103 @@ func GetTeamIDByNameRPC(mctx libkb.MetaContext, teamName string) (res keybase1.T
 		return "", err
 	}
 	return id, nil
+}
+
+func FindAssertionsInTeamNoResolve(mctx libkb.MetaContext, teamID keybase1.TeamID, assertions []string) (ret []string, err error) {
+	team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
+	if err != nil {
+		return nil, err
+	}
+
+	// Don't check one assertion more than once, if we got duplicates.
+	checkedAssertions := make(map[string]struct{})
+
+	actx := externals.MakeAssertionContext(mctx)
+	for _, assertionStr := range assertions {
+		if _, found := checkedAssertions[assertionStr]; found {
+			continue
+		}
+		checkedAssertions[assertionStr] = struct{}{}
+
+		assertion, err := libkb.AssertionParseAndOnly(actx, assertionStr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse assertion %q: %w", assertionStr, err)
+		}
+
+		var url libkb.AssertionURL
+		urls := assertion.CollectUrls(nil)
+		if len(urls) > 1 {
+			// For compound assertions, try to find exactly one Keybase
+			// assertion among the factors. Any other compound assertions
+			// should not have been passed to this function.
+			for _, u := range urls {
+				if u.IsKeybase() {
+					if url != nil {
+						return nil, fmt.Errorf("assertion %q has more than one Keybase username", assertionStr)
+					}
+					url = u
+				}
+			}
+			if url == nil {
+				return nil, fmt.Errorf("assertion %q does not have Keybase username", assertionStr)
+			}
+		} else {
+			url = urls[0]
+		}
+
+		if url.IsKeybase() {
+			// Load the user to get the right eldest seqno. We don't want
+			// untrusted seqnos here from uidmapper, because UI might be
+			// making decisions about whom to add to the team basing on
+			// results from this function.
+			loadUserArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithName(url.GetValue()).WithPublicKeyOptional()
+			user, err := libkb.LoadUser(loadUserArg)
+			if err != nil {
+				if _, ok := err.(libkb.NotFoundError); ok {
+					// User not found - that's fine.
+					continue
+				}
+				return nil, fmt.Errorf("error when loading user for assertion %q: %w", assertionStr, err)
+			}
+			if user.GetStatus() != keybase1.StatusCode_SCOk {
+				// User is deleted or similar. Skip for now.
+				continue
+			}
+			uv := user.ToUserVersion()
+			_, kbInviteUV, found := team.FindActiveKeybaseInvite(user.GetUID())
+			if found && kbInviteUV.Eq(uv) {
+				// Either user still doesn't have a PUK, or if they do, they
+				// should be added automatically through team_rekeyd
+				// notification soon.
+				ret = append(ret, assertionStr)
+				continue
+			}
+
+			teamUVs := team.AllUserVersionsByUID(mctx.Ctx(), user.GetUID())
+			for _, teamUV := range teamUVs {
+				if teamUV.Eq(uv) {
+					ret = append(ret, assertionStr)
+					break
+				}
+				// or else user is in the team but with old UV, so it's fine to
+				// add them again.
+			}
+		} else {
+			social, err := assertion.ToSocialAssertion()
+			if err != nil {
+				return nil, fmt.Errorf(
+					"Don't know what to do with %q - not a social assertion or keybase username: %w",
+					assertionStr, err)
+			}
+			hasInvite, err := team.HasActiveInvite(mctx, social.TeamInviteName(), social.TeamInviteType())
+			if err != nil {
+				return nil, fmt.Errorf("Failed checking %q: %w", assertionStr, err)
+			}
+			if hasInvite {
+				ret = append(ret, assertionStr)
+			}
+		}
+	}
+
+	return ret, nil
 }

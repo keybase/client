@@ -199,9 +199,11 @@ export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
   addToChannels: undefined,
   addingMembers: [],
   justFinished: false,
+  membersAlreadyInTeam: [],
   role: 'writer',
   teamID: Types.noTeamID,
 }
+
 export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
   addYourself: true,
   description: '',
