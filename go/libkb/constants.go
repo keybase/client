@@ -279,6 +279,7 @@ const (
 	SCSigCannotVerify                           = int(keybase1.StatusCode_SCSigCannotVerify)
 	SCSibkeyAlreadyExists                       = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
 	SCSigCreationDisallowed                     = int(keybase1.StatusCode_SCSigCreationDisallowed)
+	SCSigNotFound                               = int(keybase1.StatusCode_SCSigNotFound)
 	SCDecryptionKeyNotFound                     = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
 	SCVerificationKeyNotFound                   = int(keybase1.StatusCode_SCVerificationKeyNotFound)
 	SCBadTrackSession                           = int(keybase1.StatusCode_SCBadTrackSession)

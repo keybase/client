@@ -640,3 +640,107 @@ var confidence = keybase1.Confidence{
 		{ProofType: keybase1.ProofType_DNS, Protocol: "dns", Username: "beta.veros"},
 	},
 }
+
+func TestFetchPostOrder(t *testing.T) {
+	var err error
+	tcAlice := SetupEngineTest(t, "wot")
+	defer tcAlice.Cleanup()
+	tcBob := SetupEngineTest(t, "wot")
+	defer tcBob.Cleanup()
+	alice := CreateAndSignupFakeUser(tcAlice, "wot")
+	uisA := libkb.UIs{
+		LogUI:    tcAlice.G.UI.GetLogUI(),
+		SecretUI: alice.NewSecretUI(),
+	}
+	mctxA := NewMetaContextForTest(tcAlice).WithUIs(uisA)
+	bob := CreateAndSignupFakeUser(tcBob, "wot")
+	uisB := libkb.UIs{
+		LogUI:    tcBob.G.UI.GetLogUI(),
+		SecretUI: bob.NewSecretUI(),
+	}
+	mctxB := NewMetaContextForTest(tcBob).WithUIs(uisB)
+	aliceName := alice.NormalizedUsername().String()
+	bobName := bob.NormalizedUsername().String()
+	t.Logf("alice: %s and bob: %s exist", aliceName, bobName)
+	sigVersion := libkb.GetDefaultSigVersion(tcAlice.G)
+	trackUser(tcBob, bob, alice.NormalizedUsername(), sigVersion)
+	trackUser(tcAlice, alice, bob.NormalizedUsername(), sigVersion)
+	err = bob.LoadUser(tcBob)
+	require.NoError(tcBob.T, err)
+	err = alice.LoadUser(tcAlice)
+	require.NoError(tcAlice.T, err)
+	t.Log("alice and bob follow each other")
+
+	bobVouchesForAlice := func(version int) {
+		vouchText := fmt.Sprintf("alice is wondibar v%d", version)
+		arg := &WotVouchArg{
+			Vouchee:    alice.User.ToUserVersion(),
+			VouchText:  vouchText,
+			Confidence: confidence,
+		}
+		eng := NewWotVouch(tcBob.G, arg)
+		err = RunEngine2(mctxB, eng)
+		require.NoError(t, err)
+	}
+	aliceAccepts := func(sigID keybase1.SigID) error {
+		arg := &WotReactArg{
+			Voucher:  bob.User.ToUserVersion(),
+			Proof:    sigID,
+			Reaction: keybase1.WotReactionType_ACCEPT,
+		}
+		eng := NewWotReact(tcAlice.G, arg)
+		return RunEngine2(mctxA, eng)
+	}
+	assertFetch := func(mctx libkb.MetaContext, version int, expectedStatus keybase1.WotStatusType) keybase1.WotVouch {
+		vouches, err := libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{Voucher: bobName, Vouchee: aliceName})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(vouches))
+		vouch := vouches[0]
+		require.Equal(t, expectedStatus, vouch.Status)
+		require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
+		require.Equal(t, alice.User.GetUID(), vouch.Vouchee.Uid)
+		expectedVouchText := fmt.Sprintf("alice is wondibar v%d", version)
+		require.Equal(t, expectedVouchText, vouch.VouchText)
+		require.NotNil(t, vouch.Confidence)
+		return vouch
+	}
+	fetchWotOrder := func(mctx libkb.MetaContext, user *FakeUser) []keybase1.SigID {
+		res, err := libkb.FetchWotOrder(mctx, user.Username)
+		require.NoError(t, err)
+		return res
+	}
+
+	wotOrder := fetchWotOrder(mctxA, alice)
+	require.Empty(t, wotOrder, "alice sees an empty wotOrder for herself")
+	wotOrder = fetchWotOrder(mctxB, alice)
+	require.Empty(t, wotOrder, "bob sees an empty wotOrder for alice")
+
+	// bob vouches for alice
+	vouchVersion := 1
+	bobVouchesForAlice(vouchVersion)
+	_ = assertFetch(mctxA, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	wotVouchOne := assertFetch(mctxB, vouchVersion, keybase1.WotStatusType_PROPOSED)
+	t.Log("bob vouches for alice and everything looks good")
+
+	// alice cannot post the proposed vouch in her ordered list
+	proposedWotOrder := []keybase1.SigID{wotVouchOne.VouchProof}
+	err = libkb.UpdateWotOrder(mctxA, proposedWotOrder)
+	require.Error(t, err)
+	serr, ok := err.(libkb.AppStatusError)
+	require.True(t, ok)
+	require.Equal(t, libkb.SCSigNotFound, serr.Code)
+	t.Log("alice cannot include a proposed vouch in her ordered list")
+
+	// alice accepts and can now post that vouch sig in her ordered list
+	err = aliceAccepts(wotVouchOne.VouchProof)
+	require.NoError(t, err)
+	err = libkb.UpdateWotOrder(mctxA, proposedWotOrder)
+	require.NoError(t, err)
+	t.Log("alice can post an accepted vouch in her wot order")
+
+	wotOrder = fetchWotOrder(mctxA, alice)
+	require.EqualValues(t, proposedWotOrder, wotOrder)
+	wotOrder = fetchWotOrder(mctxB, alice)
+	require.EqualValues(t, proposedWotOrder, wotOrder)
+	t.Log("bob and alice both see the correct order for alice")
+}
