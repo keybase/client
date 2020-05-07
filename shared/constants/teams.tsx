@@ -51,8 +51,8 @@ export const loadWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `loadWelco
 export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcomeMessage:${teamID}`
 export const loadTeamTreeActivityWaitingKey = (teamID: Types.TeamID, username: string) =>
   `loadTeamTreeActivity:${teamID};${username}`
-export const editMembershipWaitingKey = (teamID: Types.TeamID, username: string) =>
-  `editMembership:${teamID};${username}`
+export const editMembershipWaitingKey = (teamID: Types.TeamID, ...usernames: Array<string>) =>
+  `editMembership:${teamID};${usernames.join(',')}`
 export const updateChannelNameWaitingKey = (teamID: Types.TeamID) => `updateChannelName:${teamID}`
 
 export const initialMemberInfo = Object.freeze<Types.MemberInfo>({

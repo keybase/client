@@ -71,7 +71,7 @@ export default Container.connect(
         dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
     },
     _onEditRole: (teamID: Types.TeamID, username: string, role: Types.TeamRoleType) =>
-      dispatch(TeamsGen.createEditMembership({role, teamID, username})),
+      dispatch(TeamsGen.createEditMembership({role, teamID, usernames: [username]})),
     _onRemoveMember: (teamID: Types.TeamID, username: string) => {
       dispatch(
         RouteTreeGen.createNavigateAppend({

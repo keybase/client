@@ -203,8 +203,9 @@
       "teamname": "string"
     },
     "editMembership": {
+      "_description": "Edit the role of one or more members in a team",
       "teamID": "Types.TeamID",
-      "username": "string",
+      "usernames": "Array<string>",
       "role": "Types.TeamRoleType"
     },
     "removeMember": {

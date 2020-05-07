@@ -191,7 +191,7 @@ type _DeleteMultiChannelsConfirmedPayload = {
 type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
 type _EditMembershipPayload = {
   readonly teamID: Types.TeamID
-  readonly username: string
+  readonly usernames: Array<string>
   readonly role: Types.TeamRoleType
 }
 type _EditTeamDescriptionPayload = {readonly teamID: Types.TeamID; readonly description: string}
@@ -437,6 +437,13 @@ export const createRespondToInviteLink = (
 export const createUnsubscribeTeamList = (
   payload: _UnsubscribeTeamListPayload
 ): UnsubscribeTeamListPayload => ({payload, type: unsubscribeTeamList})
+/**
+ * Edit the role of one or more members in a team
+ */
+export const createEditMembership = (payload: _EditMembershipPayload): EditMembershipPayload => ({
+  payload,
+  type: editMembership,
+})
 /**
  * Fetch activity levels.
  */
@@ -696,10 +703,6 @@ export const createDeleteMultiChannelsConfirmed = (
 export const createDeleteTeam = (payload: _DeleteTeamPayload): DeleteTeamPayload => ({
   payload,
   type: deleteTeam,
-})
-export const createEditMembership = (payload: _EditMembershipPayload): EditMembershipPayload => ({
-  payload,
-  type: editMembership,
 })
 export const createEditTeamDescription = (
   payload: _EditTeamDescriptionPayload
