@@ -170,13 +170,15 @@ helpers.rootLinuxNode(env, {
                   // We only cross compile when we're on a master build and we
                   // weren't triggered by upstream. i.e. potentially breaking
                   // changes.
-                  def platforms = ["freebsd", "netbsd", "openbsd"]
-                  for (platform in platforms) {
-                      withEnv(["GOOS=${platform}"]) {
-                          println "Testing compilation on ${platform}"
-                          sh "go build -tags production -o keybase_${platform} github.com/keybase/client/go/keybase"
-                          println "End testing compilation on ${platform}"
-                      }
+                  dir("go") {
+                    def platforms = ["freebsd", "netbsd", "openbsd"]
+                    for (platform in platforms) {
+                        withEnv(["GOOS=${platform}"]) {
+                            println "Testing compilation on ${platform}"
+                              sh "go build -tags production -o keybase_${platform} github.com/keybase/client/go/keybase"
+                            println "End testing compilation on ${platform}"
+                        }
+                    }
                   }
                 }
               }},

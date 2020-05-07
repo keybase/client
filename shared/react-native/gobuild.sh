@@ -2,11 +2,9 @@
 
 set -e -u -o pipefail # Fail on error
 
-GOMOBILE_VERSION="4c31acba000778d337c0e4f32091cc923b3363d2"
-
 dir="$(dirname "${BASH_SOURCE[0]}")"
 client_dir="$(realpath "$dir"/../..)"
-cd $client_dir
+cd $client_dir/go
 
 arg=${1:-}
 
@@ -61,7 +59,7 @@ ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s
 build_gomobile ()
 {
   echo "Build gomobile..."
-  GO111MODULE=on go get golang.org/x/mobile/cmd/{gomobile,gobind}@$GOMOBILE_VERSION
+  go install golang.org/x/mobile/cmd/{gomobile,gobind}
 }
 
 if [ "$arg" = "ios" ]; then
@@ -95,6 +93,3 @@ else
   echo "Nothing to build, you need to specify 'ios' or 'android'"
   exit 1
 fi
-
-# Clean up changes to go.mod
-go mod tidy

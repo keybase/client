@@ -21,8 +21,12 @@ repos:
         language: node
         files: \.(js|ts|tsx)$
 -   repo: https://github.com/keybase/pre-commit-golang.git
-    rev: 1797c2bce4b8e8346a63091ab150fb66ea1606c8
+    rev: 3dc8c863835adfd2ab60c5eaf291c0f349118d3a
     hooks:
     -   id: go-fmt
     -   id: go-vet
+        files: 'go/.*\.go$'
+    -   id: go-vet
+        name: 'go vet tuxbot'
+        files: 'packaging/linux/tuxbot/bot/docker-cleanup/.*\.go$'
     -   id: go-lint

@@ -1,4 +1,4 @@
-module github.com/keybase/client
+module github.com/keybase/client/go
 
 go 1.13
 
@@ -122,7 +122,8 @@ require (
 	go.uber.org/zap v1.9.2-0.20180814183419-67bc79d13d15
 	go4.org v0.0.0-20161118210015-09d86de304dc // indirect
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
-	golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b
+	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
+	golang.org/x/mobile v0.0.0-20200329125638-4c31acba0007
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20190909082730-f460065e899a
