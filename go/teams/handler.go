@@ -649,11 +649,10 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			continue
 		}
 
-		// Only allow adding members as cryptomembers. Server should
-		// never send us PUKless users accepting seitan tokens. When
-		// PUKless user accepts seitan token invite status is set to
-		// WAITING_FOR_PUK and team_rekeyd hold on it till user gets a
-		// PUK and status is set to ACCEPTED.
+		// Only allow adding members as cryptomembers. Server should never send
+		// us PUKless users accepting seitan tokens. When PUKless user accepts
+		// seitan token invite status is set to WAITING_FOR_PUK and team_rekeyd
+		// hold on it till user gets a PUK and status is set to ACCEPTED.
 		err = tx.ConsumeInviteByID(ctx, invite.Id, uv)
 		if err != nil {
 			mctx.Debug("Failed to consume invite: %v", err)
