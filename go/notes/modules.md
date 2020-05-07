@@ -42,3 +42,10 @@ Modules [`replace`
 directive](https://github.com/golang/go/wiki/Modules#when-should-i-use-the-replace-directive).
 Manually edit the bottom of the `go.mod` file under the `keybase maintained
 forks` section to reference a forked dependency.
+
+### Pinning a build tool version
+
+Required build tools are specified in the `go/tools/tools.go` file. You can `go
+get` a specific version and it will be persistent in the `go.mod` file. Running
+`go install` within the `go/` directory will install the version specified in
+the `go.mod` file globally.
