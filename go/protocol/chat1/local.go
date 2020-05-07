@@ -2077,7 +2077,8 @@ type HeaderPlaintextV1 struct {
 	MerkleRoot        *MerkleRoot               `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 	EphemeralMetadata *MsgEphemeralMetadata     `codec:"em,omitempty" json:"em,omitempty"`
 	BotUID            *gregor1.UID              `codec:"b,omitempty" json:"b,omitempty"`
-	TxIDs             *[]stellar1.TransactionID `codec:"t,omitempty" json:"t,omitempty"`
+	TxID              *stellar1.TransactionID   `codec:"t,omitempty" json:"t,omitempty"`
+	TxIDs             *[]stellar1.TransactionID `codec:"ts,omitempty" json:"ts,omitempty"`
 }
 
 func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
@@ -2149,6 +2150,13 @@ func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.BotUID),
+		TxID: (func(x *stellar1.TransactionID) *stellar1.TransactionID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TxID),
 		TxIDs: (func(x *[]stellar1.TransactionID) *[]stellar1.TransactionID {
 			if x == nil {
 				return nil

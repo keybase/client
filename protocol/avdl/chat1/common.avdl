@@ -460,11 +460,19 @@
     @mpackkey("b") @jsonkey("b")
     union { null, gregor1.UID } botUID;
 
+    // DEPRECATED
     // [V1, V2]: Missing
     // [V3, V4]: Specifies which stellar transaction ID is associated with the
     // message, if any, to do server-side validation of the transaction
     // notification.
     @mpackkey("t") @jsonkey("t")
+    union { null, stellar1.TransactionID} txID;
+
+    // [V1, V2]: Missing
+    // [V3, V4]: Specifies which stellar transaction IDs are associated with
+    // the message, if any, to do server-side validation of the transaction
+    // notification.
+    @mpackkey("ts") @jsonkey("ts")
     union { null, array<stellar1.TransactionID>} txIDs;
   }
 
@@ -504,7 +512,11 @@
     @mpackkey("b") @jsonkey("b")
     union { null, gregor1.UID } botUID;
 
+    // DEPRECATED
     @mpackkey("t") @jsonkey("t")
+    union { null, stellar1.TransactionID} txID;
+
+    @mpackkey("ts") @jsonkey("ts")
     union { null, array<stellar1.TransactionID>} txIDs;
   }
 

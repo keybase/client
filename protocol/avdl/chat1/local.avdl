@@ -385,6 +385,9 @@ protocol local {
     union { null, gregor1.UID } botUID;
 
     @mpackkey("t") @jsonkey("t")
+    union { null, stellar1.TransactionID} txID;
+
+    @mpackkey("ts") @jsonkey("ts")
     union { null, array<stellar1.TransactionID>} txIDs;
   }
 

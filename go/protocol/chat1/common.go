@@ -1370,7 +1370,8 @@ type MessageClientHeader struct {
 	EphemeralMetadata *MsgEphemeralMetadata     `codec:"em,omitempty" json:"em,omitempty"`
 	PairwiseMacs      map[keybase1.KID][]byte   `codec:"pm" json:"pm"`
 	BotUID            *gregor1.UID              `codec:"b,omitempty" json:"b,omitempty"`
-	TxIDs             *[]stellar1.TransactionID `codec:"t,omitempty" json:"t,omitempty"`
+	TxID              *stellar1.TransactionID   `codec:"t,omitempty" json:"t,omitempty"`
+	TxIDs             *[]stellar1.TransactionID `codec:"ts,omitempty" json:"ts,omitempty"`
 }
 
 func (o MessageClientHeader) DeepCopy() MessageClientHeader {
@@ -1470,6 +1471,13 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.BotUID),
+		TxID: (func(x *stellar1.TransactionID) *stellar1.TransactionID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TxID),
 		TxIDs: (func(x *[]stellar1.TransactionID) *[]stellar1.TransactionID {
 			if x == nil {
 				return nil
@@ -1506,7 +1514,8 @@ type MessageClientHeaderVerified struct {
 	Rtime             gregor1.Time              `codec:"rt" json:"rt"`
 	HasPairwiseMacs   bool                      `codec:"pm" json:"pm"`
 	BotUID            *gregor1.UID              `codec:"b,omitempty" json:"b,omitempty"`
-	TxIDs             *[]stellar1.TransactionID `codec:"t,omitempty" json:"t,omitempty"`
+	TxID              *stellar1.TransactionID   `codec:"t,omitempty" json:"t,omitempty"`
+	TxIDs             *[]stellar1.TransactionID `codec:"ts,omitempty" json:"ts,omitempty"`
 }
 
 func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
@@ -1572,6 +1581,13 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.BotUID),
+		TxID: (func(x *stellar1.TransactionID) *stellar1.TransactionID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TxID),
 		TxIDs: (func(x *[]stellar1.TransactionID) *[]stellar1.TransactionID {
 			if x == nil {
 				return nil
