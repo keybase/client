@@ -373,6 +373,7 @@ const propsInboxCommon = {
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
   unreadIndices: new Map(),
+  unreadTotal: 1,
   setInboxNumSmallRows: Sb.action('setInboxNumSmallRows'),
   inboxNumSmallRows: 5,
 }
