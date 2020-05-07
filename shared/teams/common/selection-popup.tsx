@@ -284,16 +284,17 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
   const roles = members.map(username => teamDetails.members.get(username)?.type)
   const currentRole = allSameOrNull(roles)
 
-  const [showingPicker, _setShowingPicker] = React.useState(false)
-  const setShowingPicker = (show: boolean) => {
-    _setShowingPicker(show)
-  }
+  const [showingPicker, setShowingPicker] = React.useState(false)
 
   const waiting = Container.useAnyWaiting(Constants.editMembershipWaitingKey(teamID, ...members))
-  const wasWaiting = Container.usePrevious(waiting)
-  React.useEffect(() => {
-    wasWaiting && !waiting && showingPicker && _setShowingPicker(false)
-  }, [waiting, wasWaiting, showingPicker, _setShowingPicker])
+
+  // We wait for the teamLoaded action
+  const waitForTeamLoaded = React.useCallback((a: Container.TypedActions) => {
+    if (a.type === TeamsGen.teamLoaded) {
+      setShowingPicker(false)
+    }
+  }, [])
+  Container.useWatchActions(showingPicker ? waitForTeamLoaded : undefined)
 
   const disabledReasons = Container.useSelector(state =>
     Constants.getDisabledReasonsForRolePicker(state, teamID, members)
@@ -310,6 +311,7 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
       position="top center"
       open={showingPicker}
       disabledRoles={disabledReasons}
+      // TODO waiting should actually understand we submitted but haven't seen teamLoaded yet, but that requires more plumbing
       waiting={waiting}
     >
       <Kb.Button

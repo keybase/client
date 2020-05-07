@@ -10,6 +10,7 @@ import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
 import {isMobile, isRemoteDebuggerAttached} from '../constants/platform'
 import * as LocalConsole from '../util/local-console'
+import {hookMiddleware} from './hook-middleware'
 
 let theStore: Store<any, any>
 
@@ -104,6 +105,7 @@ const middlewares = [
   ...(__DEV__ ? [freezeMiddleware] : []),
   ...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
   ...(enableActionLogging ? [actionLogger] : []),
+  hookMiddleware,
 ]
 
 if (__DEV__ && typeof window !== 'undefined') {
