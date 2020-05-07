@@ -59,10 +59,10 @@ const TeamPicker = (props: Props) => {
     fwdMsg(
       [
         {
-          srcConvID: Types.keyToConversationID(srcConvID),
-          msgID: message.id,
           dstConvID,
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          msgID: message.id,
+          srcConvID: Types.keyToConversationID(srcConvID),
         },
       ],
       () => {

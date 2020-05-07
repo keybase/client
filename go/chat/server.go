@@ -3881,23 +3881,24 @@ func (h *Server) ForwardMessage(ctx context.Context, arg chat1.ForwardMessageArg
 				EphemeralLifetime: ephemeralLifetime,
 			},
 		})
-	}
-	return h.PostLocal(ctx, chat1.PostLocalArg{
-		SessionID:      arg.SessionID,
-		ConversationID: arg.DstConvID,
-		Msg: chat1.MessagePlaintext{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:              dstConv.Info.Triple,
-				TlfName:           dstConv.Info.TlfName,
-				TlfPublic:         dstConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
-				MessageType:       mvalid.ClientHeader.MessageType,
-				EphemeralMetadata: mvalid.EphemeralMetadata(),
+	default:
+		return h.PostLocal(ctx, chat1.PostLocalArg{
+			SessionID:      arg.SessionID,
+			ConversationID: arg.DstConvID,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:              dstConv.Info.Triple,
+					TlfName:           dstConv.Info.TlfName,
+					TlfPublic:         dstConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
+					MessageType:       mvalid.ClientHeader.MessageType,
+					EphemeralMetadata: mvalid.EphemeralMetadata(),
+				},
+				MessageBody: mvalid.MessageBody.DeepCopy(),
 			},
-			MessageBody: mvalid.MessageBody.DeepCopy(),
-		},
-		IdentifyBehavior:   arg.IdentifyBehavior,
-		SkipInChatPayments: true,
-	})
+			IdentifyBehavior:   arg.IdentifyBehavior,
+			SkipInChatPayments: true,
+		})
+	}
 }
 
 func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMessageNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
@@ -3956,32 +3957,33 @@ func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMe
 			return res, err
 		}
 		go func() {
+			defer os.Remove(dl.FilePath)
 			outbox := storage.NewOutbox(h.G(), uid)
 			for {
 				<-time.After(time.Minute)
 				_, err := outbox.RemoveMessage(ctx, res.OutboxID)
 				if err != nil {
-					defer os.Remove(dl.FilePath)
 					return
 				}
 			}
 		}()
 		return res, nil
-	}
-	return h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
-		SessionID:      arg.SessionID,
-		ConversationID: arg.DstConvID,
-		Msg: chat1.MessagePlaintext{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:              dstConv.Info.Triple,
-				TlfName:           dstConv.Info.TlfName,
-				TlfPublic:         dstConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
-				MessageType:       mvalid.ClientHeader.MessageType,
-				EphemeralMetadata: mvalid.EphemeralMetadata(),
+	default:
+		return h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
+			SessionID:      arg.SessionID,
+			ConversationID: arg.DstConvID,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:              dstConv.Info.Triple,
+					TlfName:           dstConv.Info.TlfName,
+					TlfPublic:         dstConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
+					MessageType:       mvalid.ClientHeader.MessageType,
+					EphemeralMetadata: mvalid.EphemeralMetadata(),
+				},
+				MessageBody: mvalid.MessageBody.DeepCopy(),
 			},
-			MessageBody: mvalid.MessageBody.DeepCopy(),
-		},
-		IdentifyBehavior:   arg.IdentifyBehavior,
-		SkipInChatPayments: true,
-	})
+			IdentifyBehavior:   arg.IdentifyBehavior,
+			SkipInChatPayments: true,
+		})
+	}
 }
