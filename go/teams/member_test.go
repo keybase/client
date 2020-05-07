@@ -2458,6 +2458,44 @@ func TestFindAssertionsInTeamForUsers(t *testing.T) {
 	}
 }
 
+func TestFindAssertionsInTeamCompound(t *testing.T) {
+	tc, owner, _, teamID := memberSetupWithID(t)
+	defer tc.Cleanup()
+
+	kbtest.Logout(tc)
+	user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	kbtest.LogoutAndLoginAs(tc, owner)
+
+	assertionStr := fmt.Sprintf("%s@rooter+%s", user.Username, user.Username)
+
+	ret, err := FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, []string{assertionStr})
+	require.NoError(t, err)
+	require.Len(t, ret, 0)
+
+	_, err = AddMemberByID(context.Background(), tc.G, teamID, user.Username, keybase1.TeamRole_WRITER,
+		nil /* botSettings */, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+
+	// Should find them even if user doesn't prove rooter - this function does
+	// not do any resolutions, just looks at usernames and current member set.
+	ret, err = FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, []string{assertionStr})
+	require.NoError(t, err)
+	require.Len(t, ret, 1)
+	require.Equal(t, assertionStr, ret[0])
+
+	badAssertion := fmt.Sprintf("%s@rooter+%s+%s", user.Username, user.Username, owner.Username)
+	_, err = FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, []string{badAssertion})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "has more than one Keybase username")
+
+	badAssertion = fmt.Sprintf("%s@rooter+%s@rooter", user.Username, owner.Username)
+	_, err = FindAssertionsInTeamNoResolve(tc.MetaContext(), teamID, []string{badAssertion})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "does not have Keybase username")
+}
+
 func TestTeamPlayerIdempotentChangesAssertRole(t *testing.T) {
 	// Test change_memberships that do not change role  and if they work
 	// correctly with AssertWasRoleOrAboveAt function.

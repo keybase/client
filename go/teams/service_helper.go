@@ -2219,15 +2219,27 @@ func FindAssertionsInTeamNoResolve(mctx libkb.MetaContext, teamID keybase1.TeamI
 			return nil, fmt.Errorf("failed to parse assertion %q: %w", assertionStr, err)
 		}
 
+		var url libkb.AssertionURL
 		urls := assertion.CollectUrls(nil)
 		if len(urls) > 1 {
-			// Skip compound assertions for now. Rationale is that team invites
-			// cannot have compound assertions, and it's unclear what to look
-			// for in a team when compound assertion is found here.
-			continue
+			// For compound assertions, try to find exactly one Keybase
+			// assertion among the factors. Any other compound assertions
+			// should not have been passed to this function.
+			for _, u := range urls {
+				if u.IsKeybase() {
+					if url != nil {
+						return nil, fmt.Errorf("assertion %q has more than one Keybase username", assertionStr)
+					}
+					url = u
+				}
+			}
+			if url == nil {
+				return nil, fmt.Errorf("assertion %q does not have Keybase username", assertionStr)
+			}
+		} else {
+			url = urls[0]
 		}
 
-		url := urls[0]
 		if url.IsKeybase() {
 			// Load the user to get the right eldest seqno. We don't want
 			// untrusted seqnos here from uidmapper, because UI might be
