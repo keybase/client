@@ -45,7 +45,7 @@ forks` section to reference a forked dependency.
 
 ### Pinning a build tool version
 
-Required build tools are specified in the `go/tools/tools.go` file. You can `go
-get` a specific version and it will be persistent in the `go.mod` file. Running
-`go install` within the `go/` directory will install the version specified in
-the `go.mod` file globally.
+Required build tools are specified in the `go/buildtools/tools.go` file. You
+can `go get` a specific version and it will be persistent in the
+`go/buildtools/go.mod` file. Running `go install` within the `go/buildtools/`
+directory will install the version specified to your `$GOPATH/bin/`.
