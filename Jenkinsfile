@@ -38,6 +38,11 @@ def logKbwebServices(container) {
   archive("kbweb-logs.tar.gz")
 }
 
+def hasGoChanges = false
+def hasJSChanges = false
+def hasJenkinsfileChanges = false
+def hasKBFSChanges = false
+
 helpers.rootLinuxNode(env, {
   helpers.slackOnError("client", env, currentBuild)
 }, {}) {
@@ -118,16 +123,16 @@ helpers.rootLinuxNode(env, {
     }
 
     def goChanges = helpers.getChangesForSubdir('go', env)
-    env.hasGoChanges = goChanges.size() != 0
-    env.hasJSChanges = helpers.hasChanges('shared', env)
-    env.hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
-    env.hasKBFSChanges = false
-    println "Has go changes: " + env.hasGoChanges
-    println "Has JS changes: " + env.hasJSChanges
-    println "Has Jenkinsfile changes: " + env.hasJenkinsfileChanges
+    hasGoChanges = goChanges.size() != 0
+    hasJSChanges = helpers.hasChanges('shared', env)
+    hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
+    hasKBFSChanges = false
+    println "Has go changes: " + hasGoChanges
+    println "Has JS changes: " + hasJSChanges
+    println "Has Jenkinsfile changes: " + hasJenkinsfileChanges
     def dependencyFiles = [:]
 
-    if (env.hasGoChanges && env.CHANGE_TARGET && !env.hasJenkinsfileChanges) {
+    if (hasGoChanges && env.CHANGE_TARGET && !hasJenkinsfileChanges) {
       dir("go") {
         sh "make gen-deps"
         dependencyFiles = [
@@ -143,7 +148,7 @@ helpers.rootLinuxNode(env, {
           failFast: true,
           test_linux: {
             def packagesToTest = [:]
-            if (env.hasGoChanges || env.hasJenkinsfileChanges) {
+            if (hasGoChanges || hasJenkinsfileChanges) {
               // Check protocol diffs
               // Clean the index first
               sh "git add -A"
@@ -155,7 +160,7 @@ helpers.rootLinuxNode(env, {
               }
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
               packagesToTest = getPackagesToTest(dependencyFiles)
-              env.hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
+              hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
             } else {
               // Ensure that the change target branch has been fetched,
               // since Jenkins only does a sparse checkout by default.
@@ -186,7 +191,7 @@ helpers.rootLinuxNode(env, {
                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                 "GPG=/usr/bin/gpg.distrib",
               ]) {
-                if (env.hasGoChanges || env.hasJenkinsfileChanges) {
+                if (hasGoChanges || hasJenkinsfileChanges) {
                   testGo("test_linux_go_", packagesToTest)
                 }
               }},
@@ -205,7 +210,7 @@ helpers.rootLinuxNode(env, {
               }},
               integrate: {
                 // Build the client docker first so we can immediately kick off KBFS
-                if ((env.hasGoChanges && env.hasKBFSChanges) || env.hasJenkinsfileChanges) {
+                if ((hasGoChanges && hasKBFSChanges) || hasJenkinsfileChanges) {
                   println "We have KBFS changes, so we are building kbfs-server."
                   dir('go') {
                     sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/keybase"
@@ -245,7 +250,7 @@ helpers.rootLinuxNode(env, {
             )
           },
           test_windows: {
-            if (env.hasGoChanges || env.hasJenkinsfileChanges) {
+            if (hasGoChanges || hasJenkinsfileChanges) {
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
@@ -325,7 +330,7 @@ def getDiffFileList() {
 def getPackagesToTest(dependencyFiles) {
   def packagesToTest = [:]
   dir('go') {
-    if (env.CHANGE_TARGET && !env.hasJenkinsfileChanges) {
+    if (env.CHANGE_TARGET && !hasJenkinsfileChanges) {
       // The Jenkinsfile hasn't changed, so we try to run a minimal set of
       // tests to capture the changes in this PR.
       fetchChangeTarget()
@@ -412,7 +417,7 @@ def testGoBuilds(prefix, packagesToTest) {
       }
     }
 
-    if (env.hasKBFSChanges) {
+    if (hasKBFSChanges) {
       println "Running golangci-lint on KBFS"
       dir('kbfs') {
         retry(5) {
