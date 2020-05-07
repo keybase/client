@@ -300,8 +300,10 @@ func (k *KeybaseServiceBase) setCachedTeamInfo(
 
 func (k *KeybaseServiceBase) getCachedNotWriter(
 	tid keybase1.TeamID, uid keybase1.UID) (notWriter bool) {
-	k.teamCacheLock.RLock()
-	defer k.teamCacheLock.RUnlock()
+	// Full write lock because of the delete-after-expiration code
+	// below.
+	k.teamCacheLock.Lock()
+	defer k.teamCacheLock.Unlock()
 	cachedTime, notWriter := k.notWriterCache[tid][uid]
 	if !notWriter {
 		return false
