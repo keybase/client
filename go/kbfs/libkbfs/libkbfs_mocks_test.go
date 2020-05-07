@@ -19,7 +19,7 @@ import (
 	kbun "github.com/keybase/client/go/kbun"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	go_billy_v4 "gopkg.in/src-d/go-billy.v4"
+	billy "gopkg.in/src-d/go-billy.v4"
 	os "os"
 	reflect "reflect"
 	time "time"
@@ -3654,10 +3654,10 @@ func (mr *MockNodeMockRecorder) GetFS(arg0 interface{}) *gomock.Call {
 }
 
 // GetFile mocks base method.
-func (m *MockNode) GetFile(arg0 context.Context) go_billy_v4.File {
+func (m *MockNode) GetFile(arg0 context.Context) billy.File {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFile", arg0)
-	ret0, _ := ret[0].(go_billy_v4.File)
+	ret0, _ := ret[0].(billy.File)
 	return ret0
 }
 

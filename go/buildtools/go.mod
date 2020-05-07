@@ -3,7 +3,7 @@ module github.com/keybase/client/go/buildtools
 go 1.13
 
 require (
-	github.com/golang/mock v1.4.3
+	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1
 	github.com/golangci/golangci-lint v1.23.6
 	github.com/kr/text v0.2.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
