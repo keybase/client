@@ -164,10 +164,11 @@ class Inbox extends React.PureComponent<T.Props, State> {
       }
     })
     if (firstOffscreenIdx) {
-      this.setState(s => (s.showUnread ? {unreadCount} : {showUnread: true, unreadCount}))
+      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      this.setState(() => ({unreadCount}))
       this.firstOffscreenIdx = firstOffscreenIdx
     } else {
-      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      this.setState(s => (s.showUnread ? {showUnread: false, unreadCount: 0} : null))
       this.firstOffscreenIdx = -1
     }
   }

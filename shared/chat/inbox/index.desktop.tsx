@@ -241,12 +241,11 @@ class Inbox extends React.Component<T.Props, State> {
       }
     })
     if (firstOffscreenIdx) {
+      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      this.setState(() => ({unreadCount}))
       this.firstOffscreenIdx = firstOffscreenIdx
-      this.setState(s => (s.showUnread ? {unreadCount} : {showUnread: true, unreadCount}))
     } else {
-      if (this.state.showUnread) {
-        this.setState({showUnread: false})
-      }
+      this.setState(s => (s.showUnread ? {showUnread: false, unreadCount: 0} : null))
       this.firstOffscreenIdx = -1
     }
   }
