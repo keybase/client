@@ -38,11 +38,6 @@ def logKbwebServices(container) {
   archive("kbweb-logs.tar.gz")
 }
 
-def hasGoChanges = false
-def hasJSChanges = false
-def hasJenkinsfileChanges = false
-def hasKBFSChanges = false
-
 helpers.rootLinuxNode(env, {
   helpers.slackOnError("client", env, currentBuild)
 }, {}) {
@@ -123,10 +118,10 @@ helpers.rootLinuxNode(env, {
     }
 
     def goChanges = helpers.getChangesForSubdir('go', env)
-    hasGoChanges = goChanges.size() != 0
-    hasJSChanges = helpers.hasChanges('shared', env)
-    hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
-    hasKBFSChanges = false
+    def hasGoChanges = goChanges.size() != 0
+    def hasJSChanges = helpers.hasChanges('shared', env)
+    def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
+    def hasKBFSChanges = false
     println "Has go changes: " + hasGoChanges
     println "Has JS changes: " + hasJSChanges
     println "Has Jenkinsfile changes: " + hasJenkinsfileChanges
@@ -159,7 +154,7 @@ helpers.rootLinuxNode(env, {
                 sh "make"
               }
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
-              packagesToTest = getPackagesToTest(dependencyFiles)
+              packagesToTest = getPackagesToTest(dependencyFiles, hasJenkinsfileChanges)
               hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
             } else {
               // Ensure that the change target branch has been fetched,
@@ -192,7 +187,7 @@ helpers.rootLinuxNode(env, {
                 "GPG=/usr/bin/gpg.distrib",
               ]) {
                 if (hasGoChanges || hasJenkinsfileChanges) {
-                  testGo("test_linux_go_", packagesToTest)
+                  testGo("test_linux_go_", packagesToTest, hasKBFSChanges)
                 }
               }},
               test_linux_js: { withEnv([
@@ -272,7 +267,7 @@ helpers.rootLinuxNode(env, {
                   println "Test Windows"
                   parallel (
                     test_windows_go: {
-                      testGo("test_windows_go_", getPackagesToTest(dependencyFiles))
+                      testGo("test_windows_go_", getPackagesToTest(dependencyFiles, hasJenkinsfileChanges), hasKBFSChanges)
                     }
                   )
                 }}
@@ -327,7 +322,7 @@ def getDiffFileList() {
     return sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}'\"").trim()
 }
 
-def getPackagesToTest = { dependencyFiles ->
+def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
   def packagesToTest = [:]
   dir('go') {
     if (env.CHANGE_TARGET && !hasJenkinsfileChanges) {
@@ -363,7 +358,7 @@ def getPackagesToTest = { dependencyFiles ->
   return packagesToTest
 }
 
-def testGo(prefix, packagesToTest) {
+def testGo(prefix, packagesToTest, hasKBFSChanges) {
   dir('go') {
   withEnv([
     "KEYBASE_LOG_SETUPTEST_FUNCS=1",
@@ -374,7 +369,7 @@ def testGo(prefix, packagesToTest) {
   ])) {
   parallel (
     test_go_builds: {
-      testGoBuilds(prefix, packagesToTest)
+      testGoBuilds(prefix, packagesToTest, hasKBFSChanges)
     },
     test_go_test_suite: {
       testGoTestSuite(prefix, packagesToTest)
@@ -384,7 +379,7 @@ def testGo(prefix, packagesToTest) {
   }}
 }
 
-def testGoBuilds = { prefix, packagesToTest ->
+def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
   if (prefix == "test_linux_go_") {
     dir("keybase") {
       sh "go build -o keybase_production -ldflags \"-s -w\" -buildmode=pie --tags=production"
