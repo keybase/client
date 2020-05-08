@@ -118,16 +118,16 @@ helpers.rootLinuxNode(env, {
     }
 
     def goChanges = helpers.getChangesForSubdir('go', env)
-    env.hasGoChanges = goChanges.size() != 0
-    env.hasJSChanges = helpers.hasChanges('shared', env)
-    env.hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
-    env.hasKBFSChanges = false
-    println "Has go changes: " + env.hasGoChanges
-    println "Has JS changes: " + env.hasJSChanges
-    println "Has Jenkinsfile changes: " + env.hasJenkinsfileChanges
+    def hasGoChanges = goChanges.size() != 0
+    def hasJSChanges = helpers.hasChanges('shared', env)
+    def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
+    def hasKBFSChanges = false
+    println "Has go changes: " + hasGoChanges
+    println "Has JS changes: " + hasJSChanges
+    println "Has Jenkinsfile changes: " + hasJenkinsfileChanges
     def dependencyFiles = [:]
 
-    if (env.hasGoChanges && env.CHANGE_TARGET && !env.hasJenkinsfileChanges) {
+    if (hasGoChanges && env.CHANGE_TARGET && !hasJenkinsfileChanges) {
       dir("go") {
         sh "make gen-deps"
         dependencyFiles = [
@@ -143,7 +143,7 @@ helpers.rootLinuxNode(env, {
           failFast: true,
           test_linux: {
             def packagesToTest = [:]
-            if (env.hasGoChanges || env.hasJenkinsfileChanges) {
+            if (hasGoChanges || hasJenkinsfileChanges) {
               // Check protocol diffs
               // Clean the index first
               sh "git add -A"
@@ -154,8 +154,8 @@ helpers.rootLinuxNode(env, {
                 sh "make"
               }
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
-              packagesToTest = getPackagesToTest(dependencyFiles)
-              env.hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
+              packagesToTest = getPackagesToTest(dependencyFiles, hasJenkinsfileChanges)
+              hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
             } else {
               // Ensure that the change target branch has been fetched,
               // since Jenkins only does a sparse checkout by default.
@@ -186,8 +186,8 @@ helpers.rootLinuxNode(env, {
                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                 "GPG=/usr/bin/gpg.distrib",
               ]) {
-                if (env.hasGoChanges || env.hasJenkinsfileChanges) {
-                  testGo("test_linux_go_", packagesToTest)
+                if (hasGoChanges || hasJenkinsfileChanges) {
+                  testGo("test_linux_go_", packagesToTest, hasKBFSChanges)
                 }
               }},
               test_linux_js: { withEnv([
@@ -205,7 +205,7 @@ helpers.rootLinuxNode(env, {
               }},
               integrate: {
                 // Build the client docker first so we can immediately kick off KBFS
-                if ((env.hasGoChanges && env.hasKBFSChanges) || env.hasJenkinsfileChanges) {
+                if ((hasGoChanges && hasKBFSChanges) || hasJenkinsfileChanges) {
                   println "We have KBFS changes, so we are building kbfs-server."
                   dir('go') {
                     sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/keybase"
@@ -245,7 +245,7 @@ helpers.rootLinuxNode(env, {
             )
           },
           test_windows: {
-            if (env.hasGoChanges || env.hasJenkinsfileChanges) {
+            if (hasGoChanges || hasJenkinsfileChanges) {
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
@@ -267,7 +267,7 @@ helpers.rootLinuxNode(env, {
                   println "Test Windows"
                   parallel (
                     test_windows_go: {
-                      testGo("test_windows_go_", getPackagesToTest(dependencyFiles))
+                      testGo("test_windows_go_", getPackagesToTest(dependencyFiles, hasJenkinsfileChanges), hasKBFSChanges)
                     }
                   )
                 }}
@@ -322,10 +322,10 @@ def getDiffFileList() {
     return sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}'\"").trim()
 }
 
-def getPackagesToTest(dependencyFiles) {
+def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
   def packagesToTest = [:]
   dir('go') {
-    if (env.CHANGE_TARGET && !env.hasJenkinsfileChanges) {
+    if (env.CHANGE_TARGET && !hasJenkinsfileChanges) {
       // The Jenkinsfile hasn't changed, so we try to run a minimal set of
       // tests to capture the changes in this PR.
       fetchChangeTarget()
@@ -358,7 +358,7 @@ def getPackagesToTest(dependencyFiles) {
   return packagesToTest
 }
 
-def testGo(prefix, packagesToTest) {
+def testGo(prefix, packagesToTest, hasKBFSChanges) {
   dir('go') {
   withEnv([
     "KEYBASE_LOG_SETUPTEST_FUNCS=1",
@@ -369,7 +369,7 @@ def testGo(prefix, packagesToTest) {
   ])) {
   parallel (
     test_go_builds: {
-      testGoBuilds(prefix, packagesToTest)
+      testGoBuilds(prefix, packagesToTest, hasKBFSChanges)
     },
     test_go_test_suite: {
       testGoTestSuite(prefix, packagesToTest)
@@ -379,7 +379,7 @@ def testGo(prefix, packagesToTest) {
   }}
 }
 
-def testGoBuilds(prefix, packagesToTest) {
+def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
   if (prefix == "test_linux_go_") {
     dir("keybase") {
       sh "go build -o keybase_production -ldflags \"-s -w\" -buildmode=pie --tags=production"
@@ -412,7 +412,7 @@ def testGoBuilds(prefix, packagesToTest) {
       }
     }
 
-    if (env.hasKBFSChanges) {
+    if (hasKBFSChanges) {
       println "Running golangci-lint on KBFS"
       dir('kbfs') {
         retry(5) {

@@ -1,4 +1,5 @@
 #!/bin/bash
+set +x
 
 test_type="$1"
 commit_hash="$2"
