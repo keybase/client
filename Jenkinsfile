@@ -324,7 +324,34 @@ def getDiffFileList() {
     return sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}'\"").trim()
 }
 
+<<<<<<< HEAD
 def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
+=======
+def getDiffGoDependencies() {
+    def BASE_COMMIT_HASH = getBaseCommitHash()
+    return sh(returnStdout: true,
+    script: """
+      # only output the new and modified dependencies using version to compare
+      diff --unchanged-line-format= --old-line-format= --new-line-format='%L' <(
+          base_dir="\$(mktemp -d)" &&
+          # get the go.mod & go.sum from the base commit OR fail if they don't exist
+          git show ${BASE_COMMIT_HASH}:go/go.mod > "\$base_dir/go.mod" &&
+          git show ${BASE_COMMIT_HASH}:go/go.sum > "\$base_dir/go.sum" &&
+          cd "\$base_dir" &&
+          # ignoring the current module github.com/keybase/client/go (where .Main=true) and list all dependencies and their versions
+          # if the dependency is forked (or replaced), print out forked version instead
+          go list -f '{{if not .Main}}{{ .Path }} {{if .Replace}}{{ .Replace.Version }}{{else}}{{ .Version }}{{end}}{{end}}' -m all | sort
+        ) <(
+          cd go &&
+          # ignoring the current module github.com/keybase/client/go (where .Main=true) and list all dependencies and their versions
+          # if the dependency is forked (or replaced), print out forked version instead
+          go list -f '{{if not .Main}}{{ .Path }} {{if .Replace}}{{ .Replace.Version }}{{else}}{{ .Version }}{{end}}{{end}}' -m all | sort
+        ) | cut -d' ' -f1 # trim the version number leaving just the module
+    """).trim().split()
+}
+
+def getPackagesToTest(dependencyFiles) {
+>>>>>>> db65967935... support go modules for gen-deps
   def packagesToTest = [:]
   dir('go') {
     if (env.CHANGE_TARGET && !hasJenkinsfileChanges) {
@@ -335,12 +362,22 @@ def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
       def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | grep '^go\\/' | sed 's/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/' | sort | uniq\"").trim().split()
       def diffPackagesAsString = diffPackageList.join(' ')
       println "Go packages changed:\n${diffPackagesAsString}"
+      def diffDependencies = getDiffGoDependencies()
+      def diffDependenciesAsString = diffDependencies.join(' ')
+      println "Go dependencies changed:\n${diffDependenciesAsString}"
 
       // Load list of dependencies and mark all dependent packages to test.
       def goos = sh(returnStdout: true, script: "go env GOOS").trim()
       def dependencyMap = new JsonSlurperClassic().parseText(dependencyFiles[goos])
       diffPackageList.each { pkg ->
         // pkg changed; we need to load it from dependencyMap to see
+        // which tests should be run.
+        dependencyMap[pkg].each { dep, _ ->
+          packagesToTest[dep] = 1
+        }
+      }
+      diffDependencies.each { pkg ->
+        // dependency changed; we need to load it from dependencyMap to see
         // which tests should be run.
         dependencyMap[pkg].each { dep, _ ->
           packagesToTest[dep] = 1
