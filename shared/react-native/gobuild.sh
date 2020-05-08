@@ -31,12 +31,6 @@ fi
 
 check_ci=${CHECK_CI:-}
 
-IFS=: read -a GOPATH_ARRAY <<< "$GOPATH"
-GOPATH0=${GOPATH_ARRAY[0]}
-
-# Original sources
-gopath_client_dir="$GOPATH0/src/github.com/keybase/client"
-
 echo "Using GOPATH: $GOPATH"
 
 # gomobile looks for gobind in $PATH, so put $GOPATH/bin in $PATH. We
@@ -48,8 +42,8 @@ PATH="$GOPATH/bin:$PATH"
 export CGO_CFLAGS_ALLOW="-fmodules|-fblocks"
 
 if [ "$check_ci" = "1" ]; then
-  "$gopath_client_dir/packaging/goinstall.sh" "github.com/keybase/release"
-  release wait-ci --repo="client" --commit="$(git -C $gopath_client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
+  (cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
+  release wait-ci --repo="client" --commit="$(git rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
 fi
 
 package="github.com/keybase/client/go/bind"
