@@ -61,7 +61,10 @@ class Inbox extends React.PureComponent<T.Props, State> {
   state = {showFloating: false, showUnread: false, unreadCount: 0}
 
   componentDidUpdate(prevProps: T.Props) {
-    if (!shallowEqual(prevProps.unreadIndices, this.props.unreadIndices)) {
+    if (
+      !shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
+      prevProps.unreadTotal !== this.props.unreadTotal
+    ) {
       this.updateShowUnread()
     }
     if (this.props.rows.length !== prevProps.rows.length) {
@@ -154,15 +157,18 @@ class Inbox extends React.PureComponent<T.Props, State> {
     let firstOffscreenIdx = 0
     this.props.unreadIndices.forEach((count, idx) => {
       if (idx > this.lastVisibleIdx) {
-        firstOffscreenIdx = idx
+        if (firstOffscreenIdx <= 0) {
+          firstOffscreenIdx = idx
+        }
         unreadCount += count
       }
     })
     if (firstOffscreenIdx) {
-      this.setState(s => (s.showUnread ? null : {showUnread: true, unreadCount}))
+      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      this.setState(() => ({unreadCount}))
       this.firstOffscreenIdx = firstOffscreenIdx
     } else {
-      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      this.setState(s => (s.showUnread ? {showUnread: false, unreadCount: 0} : null))
       this.firstOffscreenIdx = -1
     }
   }

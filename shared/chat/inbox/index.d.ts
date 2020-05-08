@@ -18,6 +18,7 @@ export type Props = {
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
   unreadIndices: Map<number, number>
+  unreadTotal: number
 }
 
 export default class Inbox extends React.Component<Props> {}

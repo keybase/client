@@ -91,7 +91,10 @@ class Inbox extends React.Component<T.Props, State> {
     if (this.props.rows.length !== prevProps.rows.length) {
       this.calculateShowFloating()
     }
-    if (!shallowEqual(this.props.unreadIndices, prevProps.unreadIndices)) {
+    if (
+      !shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
+      prevProps.unreadTotal !== this.props.unreadTotal
+    ) {
       this.calculateShowUnreadShortcut()
     }
   }
@@ -231,19 +234,18 @@ class Inbox extends React.Component<T.Props, State> {
     let firstOffscreenIdx = 0
     this.props.unreadIndices.forEach((count, idx) => {
       if (idx > this.lastVisibleIdx) {
-        firstOffscreenIdx = idx
+        if (firstOffscreenIdx <= 0) {
+          firstOffscreenIdx = idx
+        }
         unreadCount += count
       }
     })
     if (firstOffscreenIdx) {
-      if (!this.state.showUnread) {
-        this.setState({showUnread: true, unreadCount})
-      }
+      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      this.setState(() => ({unreadCount}))
       this.firstOffscreenIdx = firstOffscreenIdx
     } else {
-      if (this.state.showUnread) {
-        this.setState({showUnread: false})
-      }
+      this.setState(s => (s.showUnread ? {showUnread: false, unreadCount: 0} : null))
       this.firstOffscreenIdx = -1
     }
   }
