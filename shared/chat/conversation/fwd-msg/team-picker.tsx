@@ -19,11 +19,11 @@ const TeamPicker = (props: Props) => {
   const ordinal = Container.getRouteProps(props, 'ordinal', 0)
   const message = Container.useSelector(state => Constants.getMessage(state, srcConvID, ordinal))
   const [term, setTerm] = React.useState('')
-  const [results, setResults] = React.useState<Array<RPCChatTypes.AddBotConvSearchHit>>([])
+  const [results, setResults] = React.useState<Array<RPCChatTypes.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
   const fwdMsg = Container.useRPC(RPCChatTypes.localForwardMessageNonblockRpcPromise)
-  const submit = Container.useRPC(RPCChatTypes.localAddBotConvSearchRpcPromise)
+  const submit = Container.useRPC(RPCChatTypes.localForwardMessageConvSearchRpcPromise)
   const dispatch = Container.useDispatch()
   const doSearch = React.useCallback(() => {
     setWaiting(true)
@@ -80,12 +80,17 @@ const TeamPicker = (props: Props) => {
     doSearch()
   }, [doSearch])
 
-  const renderResult = (index: number, item: RPCChatTypes.AddBotConvSearchHit) => {
+  const renderResult = (index: number, item: RPCChatTypes.ConvSearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
           {item.isTeam ? (
-            <TeamAvatar isHovered={false} isMuted={false} isSelected={false} teamname={item.name} />
+            <TeamAvatar
+              isHovered={false}
+              isMuted={false}
+              isSelected={false}
+              teamname={item.name.split('#')[0]}
+            />
           ) : (
             <Avatars
               isHovered={false}
@@ -113,7 +118,7 @@ const TeamPicker = (props: Props) => {
         ) : (
           undefined
         ),
-        title: 'Add to team or chat',
+        title: 'Forward team or chat',
       }}
     >
       <Kb.Box2 direction="vertical" fullWidth={true}>

@@ -3362,7 +3362,7 @@ func (h *Server) SimpleSearchInboxConvNames(ctx context.Context, query string) (
 	return res, nil
 }
 
-func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1.AddBotConvSearchHit, err error) {
+func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1.ConvSearchHit, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer h.Trace(ctx, &err, "AddBotConvSearch")()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
@@ -3374,25 +3374,25 @@ func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1
 	if err != nil {
 		return res, err
 	}
-	res = make([]chat1.AddBotConvSearchHit, 0, len(allConvs))
+	res = make([]chat1.ConvSearchHit, 0, len(allConvs))
 	for _, conv := range allConvs {
 		switch conv.GetTeamType() {
 		case chat1.TeamType_NONE:
 			searchable := utils.SearchableRemoteConversationName(conv, username)
-			res = append(res, chat1.AddBotConvSearchHit{
+			res = append(res, chat1.ConvSearchHit{
 				Name:   searchable,
 				ConvID: conv.GetConvID(),
 				Parts:  strings.Split(searchable, ","),
 			})
 		case chat1.TeamType_SIMPLE:
-			res = append(res, chat1.AddBotConvSearchHit{
+			res = append(res, chat1.ConvSearchHit{
 				Name:   utils.SearchableRemoteConversationName(conv, username),
 				ConvID: conv.GetConvID(),
 				IsTeam: true,
 			})
 		case chat1.TeamType_COMPLEX:
 			if conv.Conv.Metadata.IsDefaultConv {
-				res = append(res, chat1.AddBotConvSearchHit{
+				res = append(res, chat1.ConvSearchHit{
 					Name:   utils.GetRemoteConvTLFName(conv),
 					ConvID: conv.GetConvID(),
 					IsTeam: true,
@@ -3986,4 +3986,41 @@ func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMe
 			SkipInChatPayments: true,
 		})
 	}
+}
+
+func (h *Server) ForwardMessageConvSearch(ctx context.Context, term string) (res []chat1.ConvSearchHit, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, &err, "ForwardMessageConvSearch")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	username := h.G().GetEnv().GetUsername().String()
+	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 100, types.InboxSourceSearchEmptyModeAll)
+	if err != nil {
+		return res, err
+	}
+	res = make([]chat1.ConvSearchHit, 0, len(allConvs))
+	for _, conv := range allConvs {
+		if conv.CannotWrite() {
+			continue
+		}
+		switch conv.GetTeamType() {
+		case chat1.TeamType_NONE:
+			searchable := utils.SearchableRemoteConversationName(conv, username)
+			res = append(res, chat1.ConvSearchHit{
+				Name:   searchable,
+				ConvID: conv.GetConvID(),
+				Parts:  strings.Split(searchable, ","),
+			})
+		case chat1.TeamType_SIMPLE,
+			chat1.TeamType_COMPLEX:
+			res = append(res, chat1.ConvSearchHit{
+				Name:   utils.SearchableRemoteConversationName(conv, username),
+				ConvID: conv.GetConvID(),
+				IsTeam: true,
+			})
+		}
+	}
+	return res, nil
 }

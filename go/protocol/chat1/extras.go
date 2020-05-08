@@ -1608,14 +1608,19 @@ func (c ConversationLocal) FullNamesForSearch() (res []*string) {
 }
 
 func (c ConversationLocal) CannotWrite() bool {
-	if c.ConvSettings == nil {
-		return false
-	}
-	if c.ConvSettings.MinWriterRoleInfo == nil {
+	if c.ConvSettings == nil || c.ConvSettings.MinWriterRoleInfo == nil {
 		return false
 	}
 
 	return c.ConvSettings.MinWriterRoleInfo.CannotWrite
+}
+
+func (c Conversation) CannotWrite() bool {
+	if c.ConvSettings == nil || c.ConvSettings.MinWriterRoleInfo == nil || c.ReaderInfo == nil {
+		return false
+	}
+
+	return !c.ReaderInfo.UntrustedTeamRole.IsOrAbove(c.ConvSettings.MinWriterRoleInfo.Role)
 }
 
 func (c Conversation) GetMtime() gregor1.Time {

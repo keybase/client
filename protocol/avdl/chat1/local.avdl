@@ -1336,13 +1336,14 @@ protocol local {
   void setBotMemberSettings(ConversationID convID, string username, keybase1.TeamBotSettings botSettings);
   keybase1.TeamBotSettings getBotMemberSettings(ConversationID convID, string username);
   keybase1.TeamRole getTeamRoleInConversation(ConversationID convID, string username);
-  record AddBotConvSearchHit {
+  record ConvSearchHit {
     string name;
     ConversationID convID;
     boolean isTeam;
     array<string> parts;
   }
-  array<AddBotConvSearchHit> addBotConvSearch(string term);
+  array<ConvSearchHit> addBotConvSearch(string term);
+  array<ConvSearchHit> forwardMessageConvSearch(string term);
 
   keybase1.TeamID teamIDFromTLFName(string tlfName, ConversationMembersType membersType, boolean tlfPublic);
 

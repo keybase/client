@@ -183,6 +183,10 @@ func (rc RemoteConversation) GetTeamType() chat1.TeamType {
 	return rc.Conv.GetTeamType()
 }
 
+func (rc RemoteConversation) CannotWrite() bool {
+	return rc.Conv.CannotWrite()
+}
+
 func (rc RemoteConversation) GetTopicName() string {
 	if rc.LocalMetadata != nil {
 		return rc.LocalMetadata.TopicName

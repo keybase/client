@@ -3897,7 +3897,7 @@
     },
     {
       "type": "record",
-      "name": "AddBotConvSearchHit",
+      "name": "ConvSearchHit",
       "fields": [
         {
           "type": "string",
@@ -6046,7 +6046,19 @@
       ],
       "response": {
         "type": "array",
-        "items": "AddBotConvSearchHit"
+        "items": "ConvSearchHit"
+      }
+    },
+    "forwardMessageConvSearch": {
+      "request": [
+        {
+          "name": "term",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ConvSearchHit"
       }
     },
     "teamIDFromTLFName": {

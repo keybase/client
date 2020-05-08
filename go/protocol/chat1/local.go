@@ -6134,15 +6134,15 @@ func (o PinMessageRes) DeepCopy() PinMessageRes {
 	}
 }
 
-type AddBotConvSearchHit struct {
+type ConvSearchHit struct {
 	Name   string         `codec:"name" json:"name"`
 	ConvID ConversationID `codec:"convID" json:"convID"`
 	IsTeam bool           `codec:"isTeam" json:"isTeam"`
 	Parts  []string       `codec:"parts" json:"parts"`
 }
 
-func (o AddBotConvSearchHit) DeepCopy() AddBotConvSearchHit {
-	return AddBotConvSearchHit{
+func (o ConvSearchHit) DeepCopy() ConvSearchHit {
+	return ConvSearchHit{
 		Name:   o.Name,
 		ConvID: o.ConvID.DeepCopy(),
 		IsTeam: o.IsTeam,
@@ -7119,6 +7119,10 @@ type AddBotConvSearchArg struct {
 	Term string `codec:"term" json:"term"`
 }
 
+type ForwardMessageConvSearchArg struct {
+	Term string `codec:"term" json:"term"`
+}
+
 type TeamIDFromTLFNameArg struct {
 	TlfName     string                  `codec:"tlfName" json:"tlfName"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
@@ -7313,7 +7317,8 @@ type LocalInterface interface {
 	SetBotMemberSettings(context.Context, SetBotMemberSettingsArg) error
 	GetBotMemberSettings(context.Context, GetBotMemberSettingsArg) (keybase1.TeamBotSettings, error)
 	GetTeamRoleInConversation(context.Context, GetTeamRoleInConversationArg) (keybase1.TeamRole, error)
-	AddBotConvSearch(context.Context, string) ([]AddBotConvSearchHit, error)
+	AddBotConvSearch(context.Context, string) ([]ConvSearchHit, error)
+	ForwardMessageConvSearch(context.Context, string) ([]ConvSearchHit, error)
 	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
 	DismissJourneycard(context.Context, DismissJourneycardArg) error
 	SetWelcomeMessage(context.Context, SetWelcomeMessageArg) error
@@ -8824,6 +8829,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"forwardMessageConvSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]ForwardMessageConvSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ForwardMessageConvSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ForwardMessageConvSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.ForwardMessageConvSearch(ctx, typedArgs[0].Term)
+					return
+				},
+			},
 			"teamIDFromTLFName": {
 				MakeArg: func() interface{} {
 					var ret [1]TeamIDFromTLFNameArg
@@ -9641,9 +9661,15 @@ func (c LocalClient) GetTeamRoleInConversation(ctx context.Context, __arg GetTea
 	return
 }
 
-func (c LocalClient) AddBotConvSearch(ctx context.Context, term string) (res []AddBotConvSearchHit, err error) {
+func (c LocalClient) AddBotConvSearch(ctx context.Context, term string) (res []ConvSearchHit, err error) {
 	__arg := AddBotConvSearchArg{Term: term}
 	err = c.Cli.Call(ctx, "chat.1.local.addBotConvSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ForwardMessageConvSearch(ctx context.Context, term string) (res []ConvSearchHit, err error) {
+	__arg := ForwardMessageConvSearchArg{Term: term}
+	err = c.Cli.Call(ctx, "chat.1.local.forwardMessageConvSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
