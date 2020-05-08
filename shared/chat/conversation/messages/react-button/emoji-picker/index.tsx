@@ -122,9 +122,9 @@ type Props = {
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
   onHighlight?: (index: number) => void
-  onSelectRow?: (index: number) => void
+  onSelectSection?: (key: string) => void
   highlightIndex?: number
-  selectedRow?: number
+  selectedSection?: string
   skinTone?: Types.EmojiSkinTone
   customEmojiGroups?: RPCChatGen.EmojiGroup[]
   width: number
@@ -267,12 +267,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     this.mounted = false
   }
 
-  private getEmojiSingle = (
-    emoji: EmojiData,
-    index: number,
-    section: string,
-    skinTone?: Types.EmojiSkinTone
-  ) => {
+  private getEmojiSingle = (emoji: EmojiData, index: number, skinTone?: Types.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
     return (
@@ -297,24 +292,22 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     )
   }
 
-  private getEmojiRow = (row: Row, emojisPerLine: number, rowIndex: number, section: string) =>
+  private getEmojiRow = (row: Row, emojisPerLine: number, startIndex: number) =>
     // This is possible when we have the cached sections, and we just got mounted
     // and haven't received width yet.
     row.emojis.length > emojisPerLine ? null : (
       <Kb.Box2 key={row.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
-        {row.emojis.map((e, index) =>
-          this.getEmojiSingle(e, index + rowIndex * emojisPerLine, section, this.props.skinTone)
-        )}
+        {row.emojis.map((e, index) => this.getEmojiSingle(e, index + startIndex, this.props.skinTone))}
         {[...Array(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
       </Kb.Box2>
     )
 
-  private keyDownHandler = (ev: KeyboardEvent, emojisPerLine: number, sections: Section[]) => {
-    if (this.props.highlightIndex === undefined || this.props.selectedRow === undefined) {
+  private keyDownHandler = (ev: KeyboardEvent, emojisPerLine: number) => {
+    if (this.props.highlightIndex === undefined || this.props.selectedSection === undefined) {
       return
     }
-    console.warn('okay gonna highlight a index, section is', this.props.selectedRow)
-    const thisRow = this.props.selectedRow
+    // const sectionIndex = sections.findIndex(section => section.key === this.props.selectedSection)
+    // const thisSection = sections[sectionIndex]
     let newIndex = this.props.highlightIndex
     switch (ev.key) {
       case 'ArrowRight':
@@ -333,19 +326,16 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         break
     }
 
-    console.warn(newIndex)
-
     // todo: is this incorrect
-    console.warn(sections[thisRow].data)
-    if (newIndex >= sections[thisRow].data.length * emojisPerLine) {
-      this.props.onHighlight?.(newIndex % emojisPerLine)
-      this.props.onSelectRow?.(thisRow + 1)
-    } else if (newIndex < 0) {
-      this.props.onHighlight?.(newIndex + sections[thisRow - 1].data.length * emojisPerLine)
-      this.props.onSelectRow?.(thisRow === 0 ? 0 : thisRow - 1)
-    } else {
-      this.props.onHighlight?.(newIndex)
-    }
+    // if (newIndex >= thisSection.data.length * emojisPerLine) {
+    //   this.props.onHighlight?.(newIndex % emojisPerLine)
+    //   this.props.onSelectSection?.(sections[sectionIndex + 1].key)
+    // } else if (newIndex < 0) {
+    //   this.props.onHighlight?.(newIndex + sections[sectionIndex - 1].data.length * emojisPerLine)
+    //   this.props.onSelectSection?.(sections[sectionIndex === 0 ? 0 : sectionIndex - 1].key)
+    // } else {
+    this.props.onHighlight?.(newIndex)
+    // }
   }
 
   private sectionListRef = React.createRef<any>()
@@ -449,7 +439,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
             style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
           >
             {this.getSectionHeader(searchResultsKey)}
-            {results.map((e, index) => this.getEmojiSingle(e, index, searchResultsKey, this.props.skinTone))}
+            {results.map((e, index) => this.getEmojiSingle(e, index, this.props.skinTone))}
             {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
               makeEmojiPlaceholder(index)
             )}
@@ -469,8 +459,8 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
       return (
         <KeyEventHandler
-          onKeyPress={ev => this.keyDownHandler(ev, emojisPerLine, [filterSection])}
-          onKeyDown={ev => this.keyDownHandler(ev, emojisPerLine, [filterSection])}
+          onKeyPress={ev => this.keyDownHandler(ev, emojisPerLine)}
+          onKeyDown={ev => this.keyDownHandler(ev, emojisPerLine)}
         >
           {content}
         </KeyEventHandler>
@@ -478,6 +468,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     }
     // !this.state.sections means we haven't cached any sections yet
     // i.e. we haven't rendered before. let sections be calculated first
+    let emojiIndex = 0
     content = sections ? (
       <>
         {this.getBookmarkBar(bookmarks)}
@@ -498,9 +489,11 @@ class EmojiPicker extends React.PureComponent<Props, State> {
             sections={sections}
             onSectionChange={this.onSectionChange}
             stickySectionHeadersEnabled={true}
-            renderItem={({item, index, section}: {item: Row; index: number; section: Section}) => {
-              console.warn('section', section.key)
-              return this.getEmojiRow(item, emojisPerLine, index, section.title)
+            renderItem={({item, index}: {item: Row; index: number}) => {
+              const row = this.getEmojiRow(item, emojisPerLine, emojiIndex)
+              console.warn('emoji index at', emojiIndex)
+              emojiIndex += item.emojis.length
+              return row
             }}
             renderSectionHeader={({section}) =>
               section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)
@@ -515,8 +508,8 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
     return (
       <KeyEventHandler
-        onKeyPress={ev => this.keyDownHandler(ev, emojisPerLine, sections)}
-        onKeyDown={ev => this.keyDownHandler(ev, emojisPerLine, sections)}
+        onKeyPress={ev => this.keyDownHandler(ev, emojisPerLine)}
+        onKeyDown={ev => this.keyDownHandler(ev, emojisPerLine)}
       >
         {content}
       </KeyEventHandler>
