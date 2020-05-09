@@ -324,9 +324,6 @@ def getDiffFileList() {
     return sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}'\"").trim()
 }
 
-<<<<<<< HEAD
-def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
-=======
 def getDiffGoDependencies() {
     def BASE_COMMIT_HASH = getBaseCommitHash()
     return sh(returnStdout: true,
@@ -350,8 +347,7 @@ def getDiffGoDependencies() {
     """).trim().split()
 }
 
-def getPackagesToTest(dependencyFiles) {
->>>>>>> db65967935... support go modules for gen-deps
+def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
   def packagesToTest = [:]
   dir('go') {
     if (env.CHANGE_TARGET && !hasJenkinsfileChanges) {

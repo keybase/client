@@ -5,7 +5,7 @@ jobs:
     parallelism: 1
 
     docker:
-    - image: marceloneil/circleci-client@sha256:8d39a394d45a5e65832e9644423e725d5b2f6013b7c6b4df0813578b40365a39
+    - image: keybaseprivate/circleci-client@sha256:a78269af9975a16e006d39c8bbf807bd3217fd1d2e313501ee19f16e18cdafd5
 
     steps:
     ##
