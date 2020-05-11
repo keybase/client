@@ -316,7 +316,7 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 	}
 
 	tokenForBee := addSeitanV2("bee", "123", keybase1.TeamRole_WRITER)
-	tokenForDan := addSeitanV2("dan", "555", keybase1.TeamRole_READER)
+	// tokenForDan := addSeitanV2("dan", "555", keybase1.TeamRole_READER)
 	anotherToken := addSeitanV2("someone", "666", keybase1.TeamRole_READER)
 
 	teamObj, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
@@ -326,14 +326,14 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 	require.NoError(t, err)
 
 	invites := teamObj.GetActiveAndObsoleteInvites()
-	require.Len(t, invites, 3)
+	require.Len(t, invites, 2)
 	for _, invite := range invites {
 		invtype, err := invite.Type.C()
 		require.NoError(t, err)
 		require.Equal(t, keybase1.TeamInviteCategory_SEITAN, invtype)
 	}
 
-	acceptSeitan := func(u *kbtest.FakeUser, ikey keybase1.SeitanIKeyV2, bad bool) keybase1.TeamSeitanRequest {
+	acceptSeitan := func(u *kbtest.FakeUser, ikey keybase1.SeitanIKeyV2, corrupt bool) keybase1.TeamSeitanRequest {
 		kbtest.LogoutAndLoginAs(tc, u)
 
 		uv := u.GetUserVersion()
@@ -341,7 +341,7 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 		accepted, err := generateAcceptanceSeitanV2(SeitanIKeyV2(ikey), uv, now)
 		require.NoError(t, err)
 
-		if bad {
+		if corrupt {
 			// Ruin the acceptance sig so request is no longer valid
 			accepted.sig[0] ^= 0xF0
 			accepted.sig[1] ^= 0x0F
@@ -365,9 +365,11 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 	msg := keybase1.TeamSeitanMsg{
 		TeamID: teamID,
 		Seitans: []keybase1.TeamSeitanRequest{
-			acceptSeitan(bee, tokenForBee, false /* bad */),
-			acceptSeitan(dan, tokenForDan, false /* bad */),
-			acceptSeitan(mel, anotherToken, true /* bad */),
+			acceptSeitan(bee, tokenForBee, false /* corrupt */),
+			// TODO: Accepting seitan while you are already in team is disabled because
+			// of Y2K-1898. Re-enable this after.
+			// acceptSeitan(dan, tokenForDan, false /* corrupt */),
+			acceptSeitan(mel, anotherToken, true /* corrupt */),
 		},
 	}
 

@@ -275,6 +275,8 @@ func TestTeamInviteSeitanFailures(t *testing.T) {
 
 	t.Logf("Created token %q", token)
 
+	kbtest.LogoutAndLoginAs(tc, user2)
+
 	// Generate invitation id, but make AKey with different IKey.
 	// Simulate "replay attack" or similar.
 	ikey, err := ParseIKeyFromString(string(token))
