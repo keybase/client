@@ -4252,3 +4252,21 @@ func (a AnnotatedTeam) ToLegacyTeamDetails() TeamDetails {
 		Showcase:               a.Showcase,
 	}
 }
+
+func (wot *WebOfTrust) SortEntries() {
+	// make a map from sigID -> int
+	displayMap := make(map[SigID]int)
+	for i, sigID := range wot.DisplayOrder {
+		displayMap[sigID] = i
+	}
+	sort.SliceStable(wot.Entries, func(i, j int) bool {
+		left, right := wot.Entries[i], wot.Entries[j]
+		if right.Status != WotStatusType_ACCEPTED {
+			// non-accepted entries should be at the beginning. for now, don't really care what order they're in.
+			return false
+		}
+		// not in the displayMap means 0 which will sort to the top of the list of accepted entries
+		return displayMap[left.VouchProof] < displayMap[right.VouchProof]
+	})
+	return
+}

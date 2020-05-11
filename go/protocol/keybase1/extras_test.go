@@ -218,3 +218,38 @@ func TestRedact(t *testing.T) {
 	arg.Redact()
 	require.Equal(t, strings.Split(cmd2, " "), arg.Argv)
 }
+
+func TestSortWebOfTrust(t *testing.T) {
+	idOne := SigID("111111111111111111111")
+	idTwo := SigID("222222222222222222222")
+	accOne := WotVouch{VouchProof: idOne, Status: WotStatusType_ACCEPTED}
+	accTwo := WotVouch{VouchProof: idTwo, Status: WotStatusType_ACCEPTED}
+
+	wot := WebOfTrust{
+		Entries:      []WotVouch{accOne, accTwo},
+		DisplayOrder: []SigID{idTwo, idOne},
+	}
+	wot.SortEntries()
+	require.EqualValues(t, []WotVouch{accTwo, accOne}, wot.Entries)
+	t.Log("sorts two accepted entries")
+
+	// non-accepted entries go to the top
+	idThree := SigID("333333333333333333")
+	propThree := WotVouch{VouchProof: idThree, Status: WotStatusType_PROPOSED}
+	wot2 := WebOfTrust{
+		Entries:      []WotVouch{accOne, propThree, accTwo},
+		DisplayOrder: []SigID{idTwo, idOne},
+	}
+	wot2.SortEntries()
+	require.EqualValues(t, []WotVouch{propThree, accTwo, accOne}, wot2.Entries)
+	t.Log("sorts and bubbles non-accepted entries")
+
+	// no order given
+	wot3 := WebOfTrust{
+		Entries:      []WotVouch{accOne, accTwo, propThree},
+		DisplayOrder: []SigID{},
+	}
+	wot3.SortEntries()
+	require.EqualValues(t, []WotVouch{propThree, accTwo, accOne}, wot2.Entries)
+	t.Log("bubbles up without an explicit display order")
+}

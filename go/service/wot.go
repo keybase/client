@@ -107,9 +107,19 @@ func (h *WebOfTrustHandler) WotFetchVouches(ctx context.Context, arg keybase1.Wo
 	if err != nil {
 		return res, err
 	}
-	return keybase1.WebOfTrust{
-		Entries: entries,
-	}, nil
+	var wotOrder []keybase1.SigID
+	if len(entries) > 0 && len(arg.Vouchee) > 0 {
+		wotOrder, err = libkb.FetchWotOrder(mctx, arg.Vouchee)
+		if err != nil {
+			return res, err
+		}
+	}
+	res = keybase1.WebOfTrust{
+		Entries:      entries,
+		DisplayOrder: wotOrder,
+	}
+	res.SortEntries()
+	return res, nil
 }
 
 func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactArg) error {

@@ -104,6 +104,7 @@ func (c *cmdWotList) Run() error {
 		line("no attestations to show")
 		return nil
 	}
+	res.SortEntries()
 	for _, vouch := range res.Entries {
 		line("Vouchee: %s", vouch.VoucheeUsername)
 		line("Voucher: %s", vouch.VoucherUsername)
