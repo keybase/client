@@ -106,13 +106,17 @@ const TeamHeader = (props: TeamHeaderProps) => {
         <Kb.Text type="BodySemibold" style={styles.maybeLongText} onClick={props.onViewTeam}>
           {props.teamname}
         </Kb.Text>
-        <Kb.Meta
-          backgroundColor={Styles.globalColors.blueGrey}
-          color={Styles.globalColors.black_50}
-          icon="iconfont-people-solid"
-          iconColor={Styles.globalColors.black_20}
-          title={teamHumanCount}
-        />
+        {teamHumanCount ? (
+          <Kb.Meta
+            backgroundColor={Styles.globalColors.blueGrey}
+            color={Styles.globalColors.black_50}
+            icon="iconfont-people-solid"
+            iconColor={Styles.globalColors.black_20}
+            title={teamHumanCount}
+          />
+        ) : (
+          <Kb.ProgressIndicator type="Small" />
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )
