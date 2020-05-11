@@ -269,6 +269,7 @@
     "**/@babel/runtime": "7.6.2",
     "**/@babel/traverse": "7.6.2",
     "**/@babel/types": "7.6.1",
+    "**/logkitty": "0.7.1",
     "**/lottie-react-web/**/lodash": "4.17.15",
     "**/lottie-react-web/**/minimatch": "3.0.4",
     "**/@types/react-native": "0.62",
