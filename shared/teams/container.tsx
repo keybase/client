@@ -37,6 +37,7 @@ const orderTeamsImpl = (
   teams: Map<string, Types.TeamMeta>,
   newRequests: Types.State['newTeamRequests'],
   teamIDToResetUsers: Types.State['teamIDToResetUsers'],
+  newTeams: Types.State['newTeams'],
   sortOrder: Types.TeamListSort,
   activityLevels: Types.ActivityLevels,
   filter: string
@@ -49,7 +50,9 @@ const orderTeamsImpl = (
     const sizeDiff =
       Constants.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, b.id) -
       Constants.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, a.id)
-    if (sizeDiff != 0) return sizeDiff
+    if (sizeDiff !== 0) return sizeDiff
+    const newTeamsDiff = (newTeams.has(b.id) ? 1 : 0) - (newTeams.has(a.id) ? 1 : 0)
+    if (newTeamsDiff !== 0) return newTeamsDiff
     const nameCompare = a.teamname.localeCompare(b.teamname)
     switch (sortOrder) {
       case 'role':
@@ -162,6 +165,7 @@ const Connected = Container.connect(
       stateProps._teams,
       stateProps.newTeamRequests,
       stateProps.teamIDToResetUsers,
+      stateProps.newTeams,
       stateProps.sortOrder,
       stateProps.activityLevels,
       stateProps.filter
