@@ -48,13 +48,16 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 )
 
 const Tabs = <TitleT extends string>(props: Props<TitleT>) => {
-  const mobileTabMode = props.mobileTabModeOverride ?? (props.tabs.length > 3 ? 'scroll' : 'distribute')
+  const mobileTabMode = Styles.isMobile
+    ? props.mobileTabModeOverride ?? (props.tabs.length > 3 ? 'scroll' : 'distribute')
+    : undefined
   const tabContent = (
     <Kb.Box2
       direction="horizontal"
       style={Styles.collapseStyles([
         styles.container,
-        (!Styles.isMobile || mobileTabMode === 'distribute') && Styles.globalStyles.flexOne,
+        mobileTabMode !== 'scroll' && Styles.globalStyles.flexOne,
+        mobileTabMode !== 'scroll' && styles.borderBottom,
         props.style,
       ])}
       alignItems="flex-start"
@@ -92,10 +95,10 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => {
       {props.showProgressIndicator && <Kb.ProgressIndicator style={styles.progressIndicator} />}
     </Kb.Box2>
   )
-  return Styles.isMobile && mobileTabMode === 'scroll' ? (
+  return mobileTabMode === 'scroll' ? (
     <Kb.ScrollView
       horizontal={true}
-      contentContainerStyle={styles.minWidthFull}
+      contentContainerStyle={Styles.collapseStyles([styles.minWidthFull, styles.borderBottom])}
       alwaysBounceHorizontal={false}
       showsHorizontalScrollIndicator={false}
     >
@@ -116,6 +119,7 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: 1,
     },
   }),
+  borderBottom: {borderBottomColor: Styles.globalColors.black_10, borderBottomWidth: 1},
   clickableBoxStyle: Styles.platformStyles({
     isElectron: {
       flexShrink: 1,
@@ -128,8 +132,6 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   container: {
     backgroundColor: Styles.globalColors.white,
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
     borderStyle: 'solid',
     marginTop: Styles.globalMargins.tiny,
   },
