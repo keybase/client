@@ -118,7 +118,7 @@ const TeamPicker = (props: Props) => {
         ) : (
           undefined
         ),
-        title: 'Forward team or chat',
+        title: 'Forward to team or chat',
       }}
     >
       <Kb.Box2 direction="vertical" fullWidth={true}>
