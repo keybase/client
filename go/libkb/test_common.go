@@ -217,6 +217,7 @@ func (tc TestContext) ClearAllStoredSecrets() error {
 	return nil
 }
 
+func (tc TestContext) Context() context.Context { return WithLogTag(context.Background(), "TST") }
 func (tc TestContext) MetaContext() MetaContext { return NewMetaContextForTest(tc) }
 
 var setupTestMu sync.Mutex
@@ -242,15 +243,15 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 		return
 	}
 	// Uniquify name, since multiple tests may use the same name.
-	name = fmt.Sprintf("%s_%s", name, hex.EncodeToString(buf))
+	develName := fmt.Sprintf("%s_%s", name, hex.EncodeToString(buf))
 
 	g.Init()
-	g.Log.Debug("SetupTest %s", name)
+	g.Log.Debug("SetupTest %s", develName)
 
 	// Set up our testing parameters.  We might add others later on
 	if tcPrev != nil {
 		tc.Tp = tcPrev.Tp
-	} else if tc.Tp.Home, err = ioutil.TempDir(os.TempDir(), name); err != nil {
+	} else if tc.Tp.Home, err = ioutil.TempDir(os.TempDir(), develName); err != nil {
 		return
 	}
 
@@ -262,7 +263,8 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 
 	tc.Tp.Debug = false
 	tc.Tp.Devel = true
-	tc.Tp.DevelName = name
+	tc.Tp.DevelName = develName
+	tc.Tp.DevelPrefix = name
 
 	g.Env.Test = tc.Tp
 

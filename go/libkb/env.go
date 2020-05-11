@@ -215,6 +215,7 @@ type TestParameters struct {
 	// If we're in dev mode, the name for this test, with a random
 	// suffix.
 	DevelName                string
+	DevelPrefix              string // when in test - name for the test without suffix.
 	RuntimeDir               string
 	DisableUpgradePerUserKey bool
 	EnvironmentFeatureFlags  FeatureFlags

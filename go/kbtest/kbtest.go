@@ -142,6 +142,15 @@ func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bo
 	return fu, nil
 }
 
+func TCreateFakeUser(tc libkb.TestContext) *FakeUser {
+	Logout(tc)
+	// Not randomPW because these user's can't logout without setting a PW,
+	// and we do a lot of "switching" (logout-login) between users in tests.
+	user, err := createAndSignupFakeUser(tc.Tp.DevelPrefix, tc.G, true /* skipPaper */, keybase1.DeviceType_DESKTOP, false /* randomPW */)
+	require.NoError(tc.T, err)
+	return user
+}
+
 func GetContactSettings(tc libkb.TestContext, u *FakeUser) (ret keybase1.ContactSettings) {
 	m := libkb.NewMetaContextForTest(tc)
 	ret, err := libkb.GetContactSettings(m)
