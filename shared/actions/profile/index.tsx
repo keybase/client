@@ -1,3 +1,4 @@
+import * as Container from '../../util/container'
 import * as Constants from '../../constants/profile'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -10,9 +11,8 @@ import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
-import {TypedState, isMobile} from '../../util/container'
 
-const editProfile = async (state: TypedState, action: ProfileGen.EditProfilePayload) => {
+const editProfile = async (state: Container.TypedState, action: ProfileGen.EditProfilePayload) => {
   await RPCTypes.userProfileEditRpcPromise(
     {
       bio: action.payload.bio,
@@ -41,7 +41,7 @@ const uploadAvatar = async (action: ProfileGen.UploadAvatarPayload) => {
   }
 }
 
-const finishRevoking = (state: TypedState) => [
+const finishRevoking = (state: Container.TypedState) => [
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
   Tracker2Gen.createLoad({
     assertion: state.config.username,
@@ -55,7 +55,7 @@ const finishRevoking = (state: TypedState) => [
 const showUserProfile = (action: ProfileGen.ShowUserProfilePayload) => {
   const {username} = action.payload
   return [
-    RouteTreeGen.createClearModals(),
+    ...(Container.isMobile ? [RouteTreeGen.createClearModals()] : []),
     RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profile'}]}),
   ]
 }
@@ -73,7 +73,10 @@ const onClickAvatar = (action: ProfileGen.OnClickAvatarPayload) => {
   }
 }
 
-const submitRevokeProof = async (state: TypedState, action: ProfileGen.SubmitRevokeProofPayload) => {
+const submitRevokeProof = async (
+  state: Container.TypedState,
+  action: ProfileGen.SubmitRevokeProofPayload
+) => {
   const you = TrackerConstants.getDetails(state, state.config.username)
   if (!you || !you.assertions) return null
   const proof = [...you.assertions.values()].find(a => a.sigID === action.payload.proofId)
@@ -147,7 +150,7 @@ const submitUnblockUser = async (action: ProfileGen.SubmitUnblockUserPayload) =>
   }
 }
 
-const hideStellar = async (_: TypedState, action: ProfileGen.HideStellarPayload) => {
+const hideStellar = async (_: Container.TypedState, action: ProfileGen.HideStellarPayload) => {
   try {
     await RPCTypes.apiserverPostRpcPromise(
       {
@@ -161,16 +164,20 @@ const hideStellar = async (_: TypedState, action: ProfileGen.HideStellarPayload)
   }
 }
 const editAvatar = () =>
-  isMobile
+  Container.isMobile
     ? undefined // handled in platform specific
     : RouteTreeGen.createNavigateAppend({path: [{props: {image: null}, selected: 'profileEditAvatar'}]})
 
-const backToProfile = (state: TypedState) => [
+const backToProfile = (state: Container.TypedState) => [
   RouteTreeGen.createNavigateUp(),
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
 ]
 
-const wotVouch = async (state: TypedState, action: ProfileGen.WotVouchPayload, logger: Saga.SagaLogger) => {
+const wotVouch = async (
+  state: Container.TypedState,
+  action: ProfileGen.WotVouchPayload,
+  logger: Saga.SagaLogger
+) => {
   const {guiID, otherText, proofs, statement, username, verificationType} = action.payload
   const details = state.tracker2.usernameToDetails.get(username)
   if (!details) {
