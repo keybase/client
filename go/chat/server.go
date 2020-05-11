@@ -3961,7 +3961,7 @@ func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMe
 			outbox := storage.NewOutbox(h.G(), uid)
 			for {
 				<-time.After(time.Minute)
-				_, err := outbox.RemoveMessage(ctx, res.OutboxID)
+				_, err := outbox.GetRecord(ctx, res.OutboxID)
 				if err != nil {
 					return
 				}
