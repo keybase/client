@@ -409,3 +409,52 @@ func TestTransactionResolvableEmailExists(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_READER, role)
 }
+
+func TestTransactionAddEmailPukless(t *testing.T) {
+	// Add e-mail that resolves to a PUK-less user.
+
+	fus, tcs, cleanup := setupNTestsWithPukless(t, 2, 1)
+	defer cleanup()
+
+	usersEmail := kbtest.GenerateRandomEmailAddress()
+	err := emails.AddEmail(tcs[1].MetaContext(), usersEmail, keybase1.IdentityVisibility_PUBLIC)
+	require.NoError(t, err)
+	err = kbtest.VerifyEmailAuto(tcs[1].MetaContext(), usersEmail)
+	require.NoError(t, err)
+
+	_, teamID := createTeam2(*tcs[0])
+	team, err := GetForTeamManagementByTeamID(tcs[0].Context(), tcs[0].G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+
+	assertion := fmt.Sprintf("[%s]@email", usersEmail)
+
+	tx := CreateAddMemberTx(team)
+	// Can't add without AllowPUKless.
+	_, _, _, err = tx.AddOrInviteMemberByAssertion(tcs[0].Context(), assertion, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.Error(t, err)
+	require.IsType(t, UserPUKlessError{}, err)
+
+	// Failure to add should have left the transaction unmodified.
+	require.Len(t, tx.payloads, 0)
+	require.NoError(t, tx.err)
+
+	tx.AllowPUKless = true
+	username, uv, invited, err := tx.AddOrInviteMemberByAssertion(tcs[0].Context(), assertion, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.NoError(t, err)
+	require.True(t, invited)
+	require.Equal(t, fus[1].NormalizedUsername(), username)
+	require.Equal(t, fus[1].GetUserVersion(), uv)
+
+	err = tx.Post(tcs[0].MetaContext())
+	require.NoError(t, err)
+
+	team, err = GetForTeamManagementByTeamID(tcs[0].Context(), tcs[0].G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+	_, uv, found := team.FindActiveKeybaseInvite(fus[1].GetUID())
+	require.True(t, found)
+	require.Equal(t, fus[1].GetUserVersion(), uv)
+
+	found, err = team.HasActiveInvite(tcs[0].MetaContext(), keybase1.TeamInviteName(usersEmail), "email")
+	require.NoError(t, err)
+	require.False(t, found)
+}
