@@ -488,7 +488,7 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 		if conv.Error == nil {
 			if conv.GetTopicName() == "" {
 				s.Debug(ctx, "checkTopicNameAndGetState: unnamed channel in play: %s", conv.GetConvID())
-				hasBlankTopicName = true
+				hasBlankTopicName = membersType == chat1.ConversationMembersType_TEAM
 			}
 			validConvs = append(validConvs, conv)
 			convIDs = append(convIDs, conv.GetConvID())
