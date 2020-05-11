@@ -40,7 +40,9 @@ const TeamRow = (props: Props) => {
     />
   ))
 
-  const badgeCount = Container.useSelector(s => Constants.getTeamRowBadgeCount(s, teamID))
+  const badgeCount = Container.useSelector(s =>
+    Constants.getTeamRowBadgeCount(s.teams.newTeamRequests, s.teams.teamIDToResetUsers, teamID)
+  )
   const isNew = Container.useSelector(s => s.teams.newTeams.has(teamID))
 
   const crownIconType: Kb.IconType | undefined =

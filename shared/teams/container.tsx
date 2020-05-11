@@ -35,7 +35,8 @@ const useHeaderActions = (): HeaderActionProps => {
 
 const orderTeamsImpl = (
   teams: Map<string, Types.TeamMeta>,
-  newRequests: Map<Types.TeamID, Set<string>>,
+  newRequests: Types.State['newTeamRequests'],
+  teamIDToResetUsers: Types.State['teamIDToResetUsers'],
   sortOrder: Types.TeamListSort,
   activityLevels: Types.ActivityLevels,
   filter: string
@@ -45,7 +46,9 @@ const orderTeamsImpl = (
     ? [...teams.values()].filter(meta => meta.teamname.toLowerCase().includes(filterLC))
     : [...teams.values()]
   return teamsFiltered.sort((a, b) => {
-    const sizeDiff = (newRequests.get(b.id)?.size ?? 0) - (newRequests.get(a.id)?.size ?? 0)
+    const sizeDiff =
+      Constants.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, b.id) -
+      Constants.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, a.id)
     if (sizeDiff != 0) return sizeDiff
     const nameCompare = a.teamname.localeCompare(b.teamname)
     switch (sortOrder) {
@@ -126,7 +129,6 @@ Reloadable.navigationOptions = {
 
 const Connected = Container.connect(
   (state: Container.TypedState) => ({
-    _teamresetusers: state.teams.teamIDToResetUsers || new Map(),
     _teams: state.teams.teamMeta,
     activityLevels: state.teams.activityLevels,
     deletedTeams: state.teams.deletedTeams,
@@ -136,6 +138,7 @@ const Connected = Container.connect(
     newTeams: state.teams.newTeams,
     sawChatBanner: state.teams.sawChatBanner || false,
     sortOrder: flags.teamsRedesign ? state.teams.teamListSort : 'alphabetical',
+    teamIDToResetUsers: state.teams.teamIDToResetUsers,
   }),
   (dispatch: Container.TypedDispatch) => ({
     onHideChatBanner: () =>
@@ -154,10 +157,11 @@ const Connected = Container.connect(
     newTeamRequests: stateProps.newTeamRequests,
     newTeams: stateProps.newTeams,
     sawChatBanner: stateProps.sawChatBanner,
-    teamresetusers: stateProps._teamresetusers,
+    teamresetusers: stateProps.teamIDToResetUsers, // TODO remove when teamsRedesign flag removed
     teams: orderTeams(
       stateProps._teams,
       stateProps.newTeamRequests,
+      stateProps.teamIDToResetUsers,
       stateProps.sortOrder,
       stateProps.activityLevels,
       stateProps.filter
