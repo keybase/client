@@ -270,6 +270,10 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   private getEmojiSingle = (emoji: EmojiData, index: number, skinTone?: Types.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
+    if (this.props.highlightIndex === index) {
+      // TODO: add a prevHighlightIndex to make this less shitty?
+      this.props.onHover?.(emoji)
+    }
     return (
       <Kb.ClickableBox
         className="emoji-picker-emoji-box"
@@ -492,7 +496,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
             renderItem={({item, index}: {item: Row; index: number}) => {
               const row = this.getEmojiRow(item, emojisPerLine, emojiIndex)
               console.warn('emoji index at', emojiIndex)
-              emojiIndex += item.emojis.length
+              emojiIndex += emojisPerLine
               return row
             }}
             renderSectionHeader={({section}) =>
