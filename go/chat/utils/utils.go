@@ -1222,8 +1222,7 @@ func GetMsgSnippet(ctx context.Context, g *globals.Context, uid gregor1.UID, msg
 	// assigns a ctime.
 	if msg.IsValid() && !msg.IsValidFull() {
 		if msg.Valid().IsEphemeral() && msg.Valid().IsEphemeralExpired(time.Now()) {
-			return chat1.SnippetDecoration_EXPLODED_MESSAGE,
-				fmt.Sprintf("%s ----------------------------", senderPrefix), ""
+			return chat1.SnippetDecoration_EXPLODED_MESSAGE, "Message exploded.", ""
 		}
 		return chat1.SnippetDecoration_NONE, "", ""
 	}
