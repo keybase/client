@@ -866,6 +866,16 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
   }
 }
 
+// Keep in sync with constants/notifications#badgeStateToBadgeCounts
+// Don't count new team because those are shown with a 'NEW' meta instead of badge
+export const getTeamRowBadgeCount = (
+  newTeamRequests: Types.State['newTeamRequests'],
+  teamIDToResetUsers: Types.State['teamIDToResetUsers'],
+  teamID: Types.TeamID
+) => {
+  return newTeamRequests.get(teamID)?.size ?? 0 + (teamIDToResetUsers.get(teamID)?.size ?? 0)
+}
+
 export const canShowcase = (state: TypedState, teamID: Types.TeamID) => {
   const role = getRole(state, teamID)
   return getTeamMeta(state, teamID).allowPromote || role === 'admin' || role === 'owner'
