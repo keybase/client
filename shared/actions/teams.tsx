@@ -1532,7 +1532,14 @@ const setTeamWizardNameDescription = () =>
 const setTeamWizardAvatar = (state: TypedState) => {
   switch (state.teams.newTeamWizard.teamType) {
     case 'subteam':
-      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizardSubteamMembers'}]})
+      const parentTeamID = state.teams.newTeamWizard.parentTeamID
+      const parentTeamMeta = Constants.getTeamMeta(state, parentTeamID!)
+      // If it's just you, don't show the subteam members screen empty
+      if (parentTeamMeta.memberCount > 1) {
+        return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizardSubteamMembers'}]})
+      } else {
+        return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
+      }
     case 'friends':
     case 'other':
       return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
