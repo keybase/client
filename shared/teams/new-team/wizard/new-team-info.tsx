@@ -16,12 +16,12 @@ import debounce from 'lodash/debounce'
 const getTeamTakenMessage = (status: number): string => {
   switch (status) {
     case RPCTypes.StatusCode.scteambadnamereserveddb:
-      return 'This name is reserved by the Keybase team, possibly for your organization. Contact chris@keybase.io to claim it.'
+      return 'This team name is reserved by the Keybase team, possibly for your organization. Contact chris@keybase.io to claim it.'
 
     case RPCTypes.StatusCode.scteamnameconflictswithuser:
     case RPCTypes.StatusCode.scteamexists:
     default:
-      return 'This team name is already taken'
+      return 'This team name is already taken.'
   }
 }
 
