@@ -6,6 +6,7 @@ package chat
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"strings"
 	"testing"
 	"time"
 
@@ -1873,122 +1874,93 @@ func TestMakeOnePairwiseMAC(t *testing.T) {
 
 func TestSendPayment(t *testing.T) {
 	mbVersion := chat1.MessageBoxedVersion_V2
-	txID := stellar1.TransactionID("1111")
-	tc, boxer := setupChatTest(t, "unbox")
-	defer tc.Cleanup()
+	txID1 := stellar1.TransactionID("1111")
+	txID2 := stellar1.TransactionID("2222")
 
-	world := NewChatMockWorld(t, "unbox", 4)
-	defer world.Cleanup()
-	u := world.GetUsers()[0]
-	tc = world.Tcs[u.Username]
-	uid := u.User.GetUID().ToBytes()
-	tlf := kbtest.NewTlfMock(world)
-	ctx := newTestContextWithTlfMock(tc, tlf)
+	type paymentTestCase struct {
+		txID            *stellar1.TransactionID
+		txIDs           *[]stellar1.TransactionID
+		boxChecksFunc   func(err error)
+		unboxChecksFunc func(decmsg chat1.MessageUnboxed, err error)
+	}
 
-	ni, err := tlf.LookupID(ctx, u.Username, false)
-	require.NoError(t, err)
-	msg := sendPaymentMsgWithSender(t, txID, uid, mbVersion)
-	msg.ClientHeader.Conv.Tlfid = ni.ID
-	msg.ClientHeader.TlfPublic = false
-	msg.ClientHeader.TlfName = u.Username
-	signKP := getSigningKeyPairForTest(t, tc, u)
-	boxer.boxVersionForTesting = &mbVersion
+	testSendPaymentCase := func(ptc paymentTestCase) {
+		tc, boxer := setupChatTest(t, "unbox")
+		defer tc.Cleanup()
 
-	convID := msg.ClientHeader.Conv.ToConversationID([2]byte{0, 0})
-	conv := chat1.Conversation{
-		Metadata: chat1.ConversationMetadata{
-			ConversationID: convID,
+		world := NewChatMockWorld(t, "unbox", 4)
+		defer world.Cleanup()
+		u := world.GetUsers()[0]
+		tc = world.Tcs[u.Username]
+		uid := u.User.GetUID().ToBytes()
+		tlf := kbtest.NewTlfMock(world)
+		ctx := newTestContextWithTlfMock(tc, tlf)
+
+		ni, err := tlf.LookupID(ctx, u.Username, false)
+		require.NoError(t, err)
+		msg := sendPaymentMsgWithSender(t, txID1, uid, mbVersion)
+		msg.ClientHeader.Conv.Tlfid = ni.ID
+		msg.ClientHeader.TlfPublic = false
+		msg.ClientHeader.TlfName = u.Username
+		signKP := getSigningKeyPairForTest(t, tc, u)
+		boxer.boxVersionForTesting = &mbVersion
+
+		convID := msg.ClientHeader.Conv.ToConversationID([2]byte{0, 0})
+		conv := chat1.Conversation{
+			Metadata: chat1.ConversationMetadata{
+				ConversationID: convID,
+			},
+		}
+		msg.ClientHeader.TxID = ptc.txID
+		msg.ClientHeader.TxIDs = ptc.txIDs
+		boxed, err := boxer.BoxMessage(ctx, msg, chat1.ConversationMembersType_TEAM, signKP, nil)
+		ptc.boxChecksFunc(err)
+		boxed.ServerHeader = &chat1.MessageServerHeader{
+			Ctime: gregor1.ToTime(time.Now()),
+		}
+
+		decmsg, err := boxer.UnboxMessage(ctx, boxed, conv, nil)
+		ptc.unboxChecksFunc(decmsg, err)
+	}
+
+	noTxIDsCase := paymentTestCase{txID: nil, txIDs: nil,
+		boxChecksFunc: func(err error) {
+			require.NoError(t, err)
 		},
-	}
+		unboxChecksFunc: func(decmsg chat1.MessageUnboxed, err error) {
+			require.NoError(t, err)
+			requireValidMessage(t, decmsg, "got expected txIDs")
+		}}
 
-	msg.ClientHeader.TxIDs = nil
-	boxed, err := boxer.BoxMessage(ctx, msg, chat1.ConversationMembersType_TEAM, signKP, nil)
-	require.NoError(t, err)
-	boxed.ServerHeader = &chat1.MessageServerHeader{
-		Ctime: gregor1.ToTime(time.Now()),
-	}
-	decmsg, err := boxer.UnboxMessage(ctx, boxed, conv, nil)
-	require.NoError(t, err)
-	requireValidMessage(t, decmsg, "got expected txIDs")
-}
-
-func TestSendPaymentWithTxID(t *testing.T) {
-	mbVersion := chat1.MessageBoxedVersion_V2
-	txID := stellar1.TransactionID("1111")
-	tc, boxer := setupChatTest(t, "unbox")
-	defer tc.Cleanup()
-
-	world := NewChatMockWorld(t, "unbox", 4)
-	defer world.Cleanup()
-	u := world.GetUsers()[0]
-	tc = world.Tcs[u.Username]
-	uid := u.User.GetUID().ToBytes()
-	tlf := kbtest.NewTlfMock(world)
-	ctx := newTestContextWithTlfMock(tc, tlf)
-
-	ni, err := tlf.LookupID(ctx, u.Username, false)
-	require.NoError(t, err)
-	msg := sendPaymentMsgWithSender(t, txID, uid, mbVersion)
-	msg.ClientHeader.Conv.Tlfid = ni.ID
-	msg.ClientHeader.TlfPublic = false
-	msg.ClientHeader.TlfName = u.Username
-	signKP := getSigningKeyPairForTest(t, tc, u)
-	boxer.boxVersionForTesting = &mbVersion
-
-	convID := msg.ClientHeader.Conv.ToConversationID([2]byte{0, 0})
-	conv := chat1.Conversation{
-		Metadata: chat1.ConversationMetadata{
-			ConversationID: convID,
+	goodTxIDsCase := paymentTestCase{txID: nil, txIDs: &[]stellar1.TransactionID{txID1},
+		boxChecksFunc: func(err error) {
+			require.NoError(t, err)
 		},
-	}
+		unboxChecksFunc: func(decmsg chat1.MessageUnboxed, err error) {
+			require.NoError(t, err)
+			requireValidMessage(t, decmsg, "got expected txIDs")
+		}}
 
-	boxed, err := boxer.BoxMessage(ctx, msg, chat1.ConversationMembersType_TEAM, signKP, nil)
-	require.NoError(t, err)
-	boxed.ServerHeader = &chat1.MessageServerHeader{
-		Ctime: gregor1.ToTime(time.Now()),
-	}
-	decmsg, err := boxer.UnboxMessage(ctx, boxed, conv, nil)
-	require.NoError(t, err)
-	requireValidMessage(t, decmsg, "got expected txIDs")
-}
-
-func TestSendPaymentWithWrongTxID(t *testing.T) {
-	mbVersion := chat1.MessageBoxedVersion_V2
-	txID := stellar1.TransactionID("1111")
-	tc, boxer := setupChatTest(t, "unbox")
-	defer tc.Cleanup()
-
-	world := NewChatMockWorld(t, "unbox", 4)
-	defer world.Cleanup()
-	u := world.GetUsers()[0]
-	tc = world.Tcs[u.Username]
-	uid := u.User.GetUID().ToBytes()
-	tlf := kbtest.NewTlfMock(world)
-	ctx := newTestContextWithTlfMock(tc, tlf)
-
-	ni, err := tlf.LookupID(ctx, u.Username, false)
-	require.NoError(t, err)
-	msg := sendPaymentMsgWithSender(t, txID, uid, mbVersion)
-	msg.ClientHeader.Conv.Tlfid = ni.ID
-	msg.ClientHeader.TlfPublic = false
-	msg.ClientHeader.TlfName = u.Username
-	signKP := getSigningKeyPairForTest(t, tc, u)
-	boxer.boxVersionForTesting = &mbVersion
-
-	convID := msg.ClientHeader.Conv.ToConversationID([2]byte{0, 0})
-	conv := chat1.Conversation{
-		Metadata: chat1.ConversationMetadata{
-			ConversationID: convID,
+	badTxIDsCase := paymentTestCase{txID: nil, txIDs: &[]stellar1.TransactionID{txID2},
+		boxChecksFunc: func(err error) {
+			require.NoError(t, err)
 		},
-	}
+		unboxChecksFunc: func(decmsg chat1.MessageUnboxed, err error) {
+			require.NoError(t, err)
+			requireErrorMessage(t, decmsg, "unexpected txIDs must be detected")
+		}}
 
-	msg.ClientHeader.TxIDs = &[]stellar1.TransactionID{stellar1.TransactionID("2222")}
-	boxed, err := boxer.BoxMessage(ctx, msg, chat1.ConversationMembersType_TEAM, signKP, nil)
-	require.NoError(t, err)
-	boxed.ServerHeader = &chat1.MessageServerHeader{
-		Ctime: gregor1.ToTime(time.Now()),
+	deprecatedCase := paymentTestCase{txID: &txID1, txIDs: &[]stellar1.TransactionID{txID1},
+		boxChecksFunc: func(err error) {
+			require.Error(t, err)
+			require.IsType(t, BoxingError{}, err)
+			require.True(t, strings.Contains(err.(BoxingError).Msg, "cannot set deprecated TxID field"))
+		},
+		unboxChecksFunc: func(decmsg chat1.MessageUnboxed, err error) {
+			return
+		}}
+
+	for _, tc := range []paymentTestCase{noTxIDsCase, goodTxIDsCase, badTxIDsCase, deprecatedCase} {
+		testSendPaymentCase(tc)
 	}
-	decmsg, err := boxer.UnboxMessage(ctx, boxed, conv, nil)
-	require.NoError(t, err)
-	requireErrorMessage(t, decmsg, "unexpected txIDs must be detected")
 }
