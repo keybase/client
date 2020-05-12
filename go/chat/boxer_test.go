@@ -1957,7 +1957,6 @@ func TestSendPayment(t *testing.T) {
 			require.True(t, strings.Contains(err.(BoxingError).Msg, "cannot set deprecated TxID field"))
 		},
 		unboxChecksFunc: func(decmsg chat1.MessageUnboxed, err error) {
-			return
 		}}
 
 	for _, tc := range []paymentTestCase{noTxIDsCase, goodTxIDsCase, badTxIDsCase, deprecatedCase} {
