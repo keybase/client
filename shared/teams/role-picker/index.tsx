@@ -297,7 +297,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
         <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
           <Kb.Button
             fullWidth={true}
-            disabled={!selectedRole}
+            disabled={!selectedRole || selectedRole === props.presetRole}
             waiting={props.waiting}
             label={selectedRole === 'setIndividually' ? 'Set Individually' : `Save`}
             onClick={
