@@ -35,6 +35,7 @@ import OutOfDate from '../app/out-of-date'
  * Floating is rendered to a portal on top
  */
 
+export const headerDefaultStyle = {}
 const noScreenProps = {}
 // The app with a tab bar on the left and content area on the right
 // A single content view and n-modals on top

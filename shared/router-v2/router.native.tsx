@@ -30,25 +30,27 @@ const {createStackNavigator} = Stack
 // eslint-disable-next-line
 useScreens()
 
+export const headerDefaultStyle = {
+  get backgroundColor() {
+    return Styles.globalColors.fastBlank
+  },
+  get borderBottomColor() {
+    return Styles.globalColors.black_10
+  },
+  borderBottomWidth: 1,
+  borderStyle: 'solid',
+  elevation: undefined, // since we use screen on android turn off drop shadow
+  // headerExtraHeight is only hooked up for tablet. On other platforms, react-navigation calculates header height.
+  ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
+}
+
 // Options used by default on all navigators
 // For info on what is passed to what see here: https://github.com/react-navigation/stack/blob/478c354248f2aedfc304a1c4b479c3df359d3868/src/views/Header/Header.js
 const defaultNavigationOptions: any = {
   backBehavior: 'none',
   header: null,
   headerLeft: HeaderLeftArrow,
-  headerStyle: {
-    get backgroundColor() {
-      return Styles.globalColors.fastBlank
-    },
-    get borderBottomColor() {
-      return Styles.globalColors.black_10
-    },
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-    elevation: undefined, // since we use screen on android turn off drop shadow
-    // headerExtraHeight is only hooked up for tablet. On other platforms, react-navigation calculates header height.
-    ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
-  },
+  headerStyle: headerDefaultStyle,
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
       {hp.children}
