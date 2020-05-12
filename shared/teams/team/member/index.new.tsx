@@ -654,7 +654,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     <Kb.Button
                       mode="Secondary"
                       onClick={onAddToChannels}
-                      label="Add to channels"
+                      label={isMe ? 'Join channels' : 'Add to channels'}
                       small={true}
                     />
                     {!(isMe && amLastOwner) && (
