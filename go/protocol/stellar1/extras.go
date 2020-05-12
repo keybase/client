@@ -79,25 +79,22 @@ func (s byTxID) Less(i, j int) bool {
 	return s[i] < s[j]
 }
 
-func TransactionIDsPtrEq(x, y *[]TransactionID) bool {
-	if x != nil && y != nil {
-		if len(*x) != len(*y) {
+func TransactionIDsEq(x, y []TransactionID) bool {
+	if len(x) != len(y) {
+		return false
+	}
+	xs := make([]TransactionID, len(x))
+	ys := make([]TransactionID, len(y))
+	copy(xs, x)
+	copy(ys, y)
+	sort.Sort(byTxID(xs))
+	sort.Sort(byTxID(ys))
+	for i, _ := range xs {
+		if xs[i] != ys[i] {
 			return false
 		}
-		xs := make([]TransactionID, len(*x))
-		ys := make([]TransactionID, len(*y))
-		copy(xs, *x)
-		copy(ys, *y)
-		sort.Sort(byTxID(xs))
-		sort.Sort(byTxID(ys))
-		for i, _ := range xs {
-			if xs[i] != ys[i] {
-				return false
-			}
-		}
-		return true
 	}
-	return x == nil && y == nil
+	return true
 }
 
 func KeybaseRequestIDFromString(s string) (KeybaseRequestID, error) {

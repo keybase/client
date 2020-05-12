@@ -1423,11 +1423,11 @@ func (c ConversationInfoLocal) TLFNameExpandedSummary() string {
 }
 
 // GetTxIDs supports messages that have a deprecated TxID field
-func (m MessageClientHeader) GetTxIDs() *[]stellar1.TransactionID {
+func (m MessageClientHeader) GetTxIDs() []stellar1.TransactionID {
 	if m.TxIDs != nil {
-		return m.TxIDs
+		return *m.TxIDs
 	} else if m.TxID != nil {
-		return &[]stellar1.TransactionID{*m.TxID}
+		return []stellar1.TransactionID{*m.TxID}
 	}
 	return nil
 }
@@ -1444,11 +1444,11 @@ func (m MessageSummary) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) 
 	return ExpandTLFName(m.TlfName, finalizeInfo)
 }
 
-func (m MessageClientHeaderVerified) GetTxIDs() *[]stellar1.TransactionID {
+func (m MessageClientHeaderVerified) GetTxIDs() []stellar1.TransactionID {
 	if m.TxIDs != nil {
-		return m.TxIDs
+		return *m.TxIDs
 	} else if m.TxID != nil {
-		return &[]stellar1.TransactionID{*m.TxID}
+		return []stellar1.TransactionID{*m.TxID}
 	}
 	return nil
 }
@@ -1474,11 +1474,11 @@ func (h MessageClientHeader) ToVerifiedForTesting() MessageClientHeaderVerified 
 	}
 }
 
-func (m HeaderPlaintextV1) GetTxIDs() *[]stellar1.TransactionID {
+func (m HeaderPlaintextV1) GetTxIDs() []stellar1.TransactionID {
 	if m.TxIDs != nil {
-		return m.TxIDs
+		return *m.TxIDs
 	} else if m.TxID != nil {
-		return &[]stellar1.TransactionID{*m.TxID}
+		return []stellar1.TransactionID{*m.TxID}
 	}
 	return nil
 }
