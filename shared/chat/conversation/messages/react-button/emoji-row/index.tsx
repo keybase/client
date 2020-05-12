@@ -11,6 +11,7 @@ type Props = {
   className?: string
   conversationIDKey: Types.ConversationIDKey
   emojis: Array<RPCTypes.UserReacji>
+  onForward?: () => void
   onReact: (arg0: string) => void
   onReply?: () => void
   onShowingEmojiPicker?: (arg0: boolean) => void
@@ -80,6 +81,13 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             <Kb.WithTooltip tooltip="Reply" position={this.props.tooltipPosition}>
               <Kb.Box className="hover_container" onClick={this.props.onReply} style={styles.iconContainer}>
                 <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
+              </Kb.Box>
+            </Kb.WithTooltip>
+          )}
+          {!!this.props.onForward && (
+            <Kb.WithTooltip tooltip="Forward" position={this.props.tooltipPosition}>
+              <Kb.Box className="hover_container" onClick={this.props.onForward} style={styles.iconContainer}>
+                <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
               </Kb.Box>
             </Kb.WithTooltip>
           )}

@@ -3897,7 +3897,7 @@
     },
     {
       "type": "record",
-      "name": "AddBotConvSearchHit",
+      "name": "ConvSearchHit",
       "fields": [
         {
           "type": "string",
@@ -4412,6 +4412,10 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "skipInChatPayments",
+          "type": "boolean"
         }
       ],
       "response": "PostLocalRes"
@@ -4451,6 +4455,61 @@
             null,
             "MessageID"
           ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "skipInChatPayments",
+          "type": "boolean"
+        }
+      ],
+      "response": "PostLocalNonblockRes",
+      "timeout_msec": 30000
+    },
+    "forwardMessage": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "srcConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "dstConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
+    "forwardMessageNonblock": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "srcConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "dstConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
         },
         {
           "name": "identifyBehavior",
@@ -5987,7 +6046,19 @@
       ],
       "response": {
         "type": "array",
-        "items": "AddBotConvSearchHit"
+        "items": "ConvSearchHit"
+      }
+    },
+    "forwardMessageConvSearch": {
+      "request": [
+        {
+          "name": "term",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ConvSearchHit"
       }
     },
     "teamIDFromTLFName": {

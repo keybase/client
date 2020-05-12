@@ -301,7 +301,7 @@ export type MessageTypes = {
   }
   'chat.1.local.addBotConvSearch': {
     inParam: {readonly term: String}
-    outParam: Array<AddBotConvSearchHit> | null
+    outParam: Array<ConvSearchHit> | null
   }
   'chat.1.local.addBotMember': {
     inParam: {readonly convID: ConversationID; readonly username: String; readonly botSettings?: Keybase1.TeamBotSettings | null; readonly role: Keybase1.TeamRole}
@@ -358,6 +358,14 @@ export type MessageTypes = {
   'chat.1.local.findGeneralConvFromTeamID': {
     inParam: {readonly teamID: Keybase1.TeamID}
     outParam: InboxUIItem
+  }
+  'chat.1.local.forwardMessageConvSearch': {
+    inParam: {readonly term: String}
+    outParam: Array<ConvSearchHit> | null
+  }
+  'chat.1.local.forwardMessageNonblock': {
+    inParam: {readonly srcConvID: ConversationID; readonly dstConvID: ConversationID; readonly msgID: MessageID; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
+    outParam: PostLocalNonblockRes
   }
   'chat.1.local.getBotMemberSettings': {
     inParam: {readonly convID: ConversationID; readonly username: String}
@@ -823,6 +831,7 @@ export enum GetThreadReason {
   coinflip = 9,
   botcommands = 10,
   emojisource = 11,
+  forwardmsg = 12,
 }
 
 export enum GlobalAppNotificationSetting {
@@ -1150,7 +1159,6 @@ export enum UnfurlType {
   giphy = 2,
   maps = 3,
 }
-export type AddBotConvSearchHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null}
 export type AddEmojiAliasRes = {readonly rateLimit?: RateLimit | null; readonly error?: EmojiError | null}
 export type AddEmojiRes = {readonly rateLimit?: RateLimit | null; readonly error?: EmojiError | null}
 export type AddEmojisRes = {readonly rateLimit?: RateLimit | null; readonly successFilenames?: Array<String> | null; readonly failedFilenames: {[key: string]: EmojiError}}
@@ -1197,6 +1205,7 @@ export type ClearCommandAPIParam = {readonly typ: String; readonly teamName: Str
 export type CommandConvVers = Uint64
 export type ConvIDStr = String
 export type ConvNotification = {readonly type: String; readonly conv?: ConvSummary | null; readonly error?: String | null}
+export type ConvSearchHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null}
 export type ConvSummary = {readonly id: ConvIDStr; readonly channel: ChatChannel; readonly isDefaultConv: Boolean; readonly unread: Boolean; readonly activeAt: Int64; readonly activeAtMs: Int64; readonly memberStatus: String; readonly resetUsers?: Array<String> | null; readonly finalizeInfo?: ConversationFinalizeInfo | null; readonly supersedes?: Array<String> | null; readonly supersededBy?: Array<String> | null; readonly error: String; readonly creatorInfo?: ConversationCreatorInfoLocal | null}
 export type ConvTypingUpdate = {readonly convID: ConversationID; readonly typers?: Array<TyperInfo> | null}
 export type Conversation = {readonly metadata: ConversationMetadata; readonly readerInfo?: ConversationReaderInfo | null; readonly notifications?: ConversationNotificationInfo | null; readonly maxMsgs?: Array<MessageBoxed> | null; readonly maxMsgSummaries?: Array<MessageSummary> | null; readonly creatorInfo?: ConversationCreatorInfo | null; readonly pinnedMsg?: MessageID | null; readonly expunge: Expunge; readonly convRetention?: RetentionPolicy | null; readonly teamRetention?: RetentionPolicy | null; readonly cs /* convSettings */?: ConversationSettings | null}
@@ -1696,6 +1705,8 @@ export const localDownloadFileAttachmentLocalRpcSaga = (p: {params: MessageTypes
 export const localEditBotMemberRpcPromise = (params: MessageTypes['chat.1.local.editBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.editBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.editBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localFindConversationsLocalRpcPromise = (params: MessageTypes['chat.1.local.findConversationsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.findConversationsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findConversationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localFindGeneralConvFromTeamIDRpcPromise = (params: MessageTypes['chat.1.local.findGeneralConvFromTeamID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.findGeneralConvFromTeamID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findGeneralConvFromTeamID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localForwardMessageConvSearchRpcPromise = (params: MessageTypes['chat.1.local.forwardMessageConvSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.forwardMessageConvSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.forwardMessageConvSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localForwardMessageNonblockRpcPromise = (params: MessageTypes['chat.1.local.forwardMessageNonblock']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.forwardMessageNonblock']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.forwardMessageNonblock', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetBotMemberSettingsRpcPromise = (params: MessageTypes['chat.1.local.getBotMemberSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getBotMemberSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getBotMemberSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetChannelMembershipsLocalRpcPromise = (params: MessageTypes['chat.1.local.getChannelMembershipsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getChannelMembershipsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getChannelMembershipsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetDefaultTeamChannelsLocalRpcPromise = (params: MessageTypes['chat.1.local.getDefaultTeamChannelsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getDefaultTeamChannelsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getDefaultTeamChannelsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1816,6 +1827,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.postLocal'
 // 'chat.1.local.generateOutboxID'
 // 'chat.1.local.postLocalNonblock'
+// 'chat.1.local.forwardMessage'
 // 'chat.1.local.postMetadataNonblock'
 // 'chat.1.local.postDeleteHistoryUpto'
 // 'chat.1.local.postDeleteHistoryThrough'

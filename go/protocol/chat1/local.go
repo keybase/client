@@ -6134,15 +6134,15 @@ func (o PinMessageRes) DeepCopy() PinMessageRes {
 	}
 }
 
-type AddBotConvSearchHit struct {
+type ConvSearchHit struct {
 	Name   string         `codec:"name" json:"name"`
 	ConvID ConversationID `codec:"convID" json:"convID"`
 	IsTeam bool           `codec:"isTeam" json:"isTeam"`
 	Parts  []string       `codec:"parts" json:"parts"`
 }
 
-func (o AddBotConvSearchHit) DeepCopy() AddBotConvSearchHit {
-	return AddBotConvSearchHit{
+func (o ConvSearchHit) DeepCopy() ConvSearchHit {
+	return ConvSearchHit{
 		Name:   o.Name,
 		ConvID: o.ConvID.DeepCopy(),
 		IsTeam: o.IsTeam,
@@ -6575,23 +6575,41 @@ type GetInboxNonblockLocalArg struct {
 }
 
 type PostLocalArg struct {
-	SessionID        int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
-	ReplyTo          *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	SessionID          int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID     ConversationID               `codec:"conversationID" json:"conversationID"`
+	Msg                MessagePlaintext             `codec:"msg" json:"msg"`
+	ReplyTo            *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	IdentifyBehavior   keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	SkipInChatPayments bool                         `codec:"skipInChatPayments" json:"skipInChatPayments"`
 }
 
 type GenerateOutboxIDArg struct {
 }
 
 type PostLocalNonblockArg struct {
+	SessionID          int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID     ConversationID               `codec:"conversationID" json:"conversationID"`
+	Msg                MessagePlaintext             `codec:"msg" json:"msg"`
+	ClientPrev         MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	OutboxID           *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	ReplyTo            *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	IdentifyBehavior   keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	SkipInChatPayments bool                         `codec:"skipInChatPayments" json:"skipInChatPayments"`
+}
+
+type ForwardMessageArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
-	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
-	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	ReplyTo          *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	SrcConvID        ConversationID               `codec:"srcConvID" json:"srcConvID"`
+	DstConvID        ConversationID               `codec:"dstConvID" json:"dstConvID"`
+	MsgID            MessageID                    `codec:"msgID" json:"msgID"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type ForwardMessageNonblockArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	SrcConvID        ConversationID               `codec:"srcConvID" json:"srcConvID"`
+	DstConvID        ConversationID               `codec:"dstConvID" json:"dstConvID"`
+	MsgID            MessageID                    `codec:"msgID" json:"msgID"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -7101,6 +7119,10 @@ type AddBotConvSearchArg struct {
 	Term string `codec:"term" json:"term"`
 }
 
+type ForwardMessageConvSearchArg struct {
+	Term string `codec:"term" json:"term"`
+}
+
 type TeamIDFromTLFNameArg struct {
 	TlfName     string                  `codec:"tlfName" json:"tlfName"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
@@ -7207,6 +7229,8 @@ type LocalInterface interface {
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	GenerateOutboxID(context.Context) (OutboxID, error)
 	PostLocalNonblock(context.Context, PostLocalNonblockArg) (PostLocalNonblockRes, error)
+	ForwardMessage(context.Context, ForwardMessageArg) (PostLocalRes, error)
+	ForwardMessageNonblock(context.Context, ForwardMessageNonblockArg) (PostLocalNonblockRes, error)
 	PostTextNonblock(context.Context, PostTextNonblockArg) (PostLocalNonblockRes, error)
 	PostDeleteNonblock(context.Context, PostDeleteNonblockArg) (PostLocalNonblockRes, error)
 	PostEditNonblock(context.Context, PostEditNonblockArg) (PostLocalNonblockRes, error)
@@ -7293,7 +7317,8 @@ type LocalInterface interface {
 	SetBotMemberSettings(context.Context, SetBotMemberSettingsArg) error
 	GetBotMemberSettings(context.Context, GetBotMemberSettingsArg) (keybase1.TeamBotSettings, error)
 	GetTeamRoleInConversation(context.Context, GetTeamRoleInConversationArg) (keybase1.TeamRole, error)
-	AddBotConvSearch(context.Context, string) ([]AddBotConvSearchHit, error)
+	AddBotConvSearch(context.Context, string) ([]ConvSearchHit, error)
+	ForwardMessageConvSearch(context.Context, string) ([]ConvSearchHit, error)
 	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
 	DismissJourneycard(context.Context, DismissJourneycardArg) error
 	SetWelcomeMessage(context.Context, SetWelcomeMessageArg) error
@@ -7496,6 +7521,36 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostLocalNonblock(ctx, typedArgs[0])
+					return
+				},
+			},
+			"forwardMessage": {
+				MakeArg: func() interface{} {
+					var ret [1]ForwardMessageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ForwardMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ForwardMessageArg)(nil), args)
+						return
+					}
+					ret, err = i.ForwardMessage(ctx, typedArgs[0])
+					return
+				},
+			},
+			"forwardMessageNonblock": {
+				MakeArg: func() interface{} {
+					var ret [1]ForwardMessageNonblockArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ForwardMessageNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ForwardMessageNonblockArg)(nil), args)
+						return
+					}
+					ret, err = i.ForwardMessageNonblock(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -8774,6 +8829,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"forwardMessageConvSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]ForwardMessageConvSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ForwardMessageConvSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ForwardMessageConvSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.ForwardMessageConvSearch(ctx, typedArgs[0].Term)
+					return
+				},
+			},
 			"teamIDFromTLFName": {
 				MakeArg: func() interface{} {
 					var ret [1]TeamIDFromTLFNameArg
@@ -9126,6 +9196,16 @@ func (c LocalClient) GenerateOutboxID(ctx context.Context) (res OutboxID, err er
 
 func (c LocalClient) PostLocalNonblock(ctx context.Context, __arg PostLocalNonblockArg) (res PostLocalNonblockRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postLocalNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ForwardMessage(ctx context.Context, __arg ForwardMessageArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.forwardMessage", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ForwardMessageNonblock(ctx context.Context, __arg ForwardMessageNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.forwardMessageNonblock", []interface{}{__arg}, &res, 30000*time.Millisecond)
 	return
 }
 
@@ -9581,9 +9661,15 @@ func (c LocalClient) GetTeamRoleInConversation(ctx context.Context, __arg GetTea
 	return
 }
 
-func (c LocalClient) AddBotConvSearch(ctx context.Context, term string) (res []AddBotConvSearchHit, err error) {
+func (c LocalClient) AddBotConvSearch(ctx context.Context, term string) (res []ConvSearchHit, err error) {
 	__arg := AddBotConvSearchArg{Term: term}
 	err = c.Cli.Call(ctx, "chat.1.local.addBotConvSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ForwardMessageConvSearch(ctx context.Context, term string) (res []ConvSearchHit, err error) {
+	__arg := ForwardMessageConvSearchArg{Term: term}
+	err = c.Cli.Call(ctx, "chat.1.local.forwardMessageConvSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
