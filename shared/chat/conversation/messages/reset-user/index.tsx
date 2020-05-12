@@ -32,8 +32,12 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
           2. Know them outside Keybase and have gotten a thumbs up from them.
         </Kb.Text>
       </Kb.Box>
-      <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Styles.globalMargins.tiny}}>
-        Don't let them in until one of those is true.
+      <Kb.Text
+        type="BodySemibold"
+        negative={true}
+        style={{textAlign: 'center', marginTop: Styles.globalMargins.medium}}
+      >
+        Don't let them in until one of the above is&nbsp;true.
       </Kb.Text>
       <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonContainer}>
         <Kb.Button
@@ -73,8 +77,8 @@ const styles = Styles.styleSheetCreate(
       },
       buttonContainer: {
         alignItems: 'center',
-        marginBottom: Styles.globalMargins.medium,
-        marginTop: Styles.globalMargins.medium,
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
         width: '100%',
       },
       container: {
