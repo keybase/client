@@ -16,7 +16,9 @@ import debounce from 'lodash/debounce'
 const getTeamTakenMessage = (status: number): string => {
   switch (status) {
     case RPCTypes.StatusCode.scteambadnamereserveddb:
-      return 'This team name is reserved by the Keybase team, possibly for your organization. Contact chris@keybase.io to claim it.'
+      return Styles.isMobile
+        ? 'This team name is reserved by the Keybase team. Contact chris@keybase.io to claim it.'
+        : 'This team name is reserved by the Keybase team, possibly for your organization. Contact chris@keybase.io to claim it.'
 
     case RPCTypes.StatusCode.scteamnameconflictswithuser:
     case RPCTypes.StatusCode.scteamexists:
@@ -155,9 +157,11 @@ const NewTeamInfo = () => {
           />
         )}
         {teamNameTaken ? (
-          <Kb.Text type="BodySmallError" style={styles.extraLineText}>
-            {getTeamTakenMessage(teamNameTakenStatus)}
-          </Kb.Text>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.extraLineText}>
+            <Kb.Text type="BodySmallError" style={styles.biggerOnTheInside}>
+              {getTeamTakenMessage(teamNameTakenStatus)}
+            </Kb.Text>
+          </Kb.Box2>
         ) : (
           <Kb.Text type="BodySmall">
             {teamWizardState.teamType === 'subteam'
@@ -236,6 +240,7 @@ const NewTeamInfo = () => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  biggerOnTheInside: {height: 100},
   bg: {backgroundColor: Styles.globalColors.blueGrey},
   body: Styles.platformStyles({
     common: {
@@ -248,7 +253,7 @@ const styles = Styles.styleSheetCreate(() => ({
     padding: Styles.globalMargins.small,
   },
   extraLineText: {
-    height: 34,
+    height: 36,
   },
   floatingRolePicker: Styles.platformStyles({
     isElectron: {
