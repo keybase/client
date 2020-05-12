@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/libkb"
@@ -767,6 +768,9 @@ func (d DummyAttachmentUploader) Cancel(ctx context.Context, outboxID chat1.Outb
 func (d DummyAttachmentUploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {}
 func (d DummyAttachmentUploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error) {
 	return "", nil
+}
+func (d DummyAttachmentUploader) GetUploadTempSink(ctx context.Context, filename string) (*os.File, chat1.OutboxID, error) {
+	return nil, nil, nil
 }
 func (d DummyAttachmentUploader) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) error {
 	return nil

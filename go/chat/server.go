@@ -3853,17 +3853,20 @@ func (h *Server) ForwardMessage(ctx context.Context, arg chat1.ForwardMessageArg
 	case chat1.MessageType_ATTACHMENT:
 		// download from the original source
 		mbod := msg.Valid().MessageBody.Attachment()
-		dl, err := h.DownloadFileAttachmentLocal(ctx, chat1.DownloadFileAttachmentLocalArg{
+		sink, _, err := h.G().AttachmentUploader.GetUploadTempSink(ctx, mbod.Object.Filename)
+		if err != nil {
+			return res, err
+		}
+		_, err = h.downloadAttachmentLocal(ctx, uid, downloadAttachmentArg{
 			SessionID:        arg.SessionID,
 			ConversationID:   arg.SrcConvID,
 			MessageID:        arg.MsgID,
-			DownloadToCache:  true,
 			IdentifyBehavior: arg.IdentifyBehavior,
+			Sink:             sink,
 		})
 		if err != nil {
 			return res, err
 		}
-		defer os.Remove(dl.FilePath)
 		var ephemeralLifetime *gregor1.DurationSec
 		if md := mvalid.EphemeralMetadata(); md != nil {
 			ephemeralLifetime = &md.Lifetime
@@ -3874,7 +3877,7 @@ func (h *Server) ForwardMessage(ctx context.Context, arg chat1.ForwardMessageArg
 				ConversationID:    arg.DstConvID,
 				TlfName:           dstConv.Info.TlfName,
 				Visibility:        dstConv.Info.Visibility,
-				Filename:          dl.FilePath,
+				Filename:          sink.Name(),
 				Title:             mbod.Object.Title,
 				Metadata:          mbod.Metadata,
 				IdentifyBehavior:  arg.IdentifyBehavior,
@@ -3926,12 +3929,16 @@ func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMe
 	switch mvalid.ClientHeader.MessageType {
 	case chat1.MessageType_ATTACHMENT:
 		mbod := msg.Valid().MessageBody.Attachment()
-		dl, err := h.DownloadFileAttachmentLocal(ctx, chat1.DownloadFileAttachmentLocalArg{
+		sink, _, err := h.G().AttachmentUploader.GetUploadTempSink(ctx, mbod.Object.Filename)
+		if err != nil {
+			return res, err
+		}
+		_, err = h.downloadAttachmentLocal(ctx, uid, downloadAttachmentArg{
 			SessionID:        arg.SessionID,
 			ConversationID:   arg.SrcConvID,
 			MessageID:        arg.MsgID,
-			DownloadToCache:  true,
 			IdentifyBehavior: arg.IdentifyBehavior,
+			Sink:             sink,
 		})
 		if err != nil {
 			return res, err
@@ -3940,34 +3947,19 @@ func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMe
 		if md := mvalid.EphemeralMetadata(); md != nil {
 			ephemeralLifetime = &md.Lifetime
 		}
-		res, err := h.PostFileAttachmentLocalNonblock(ctx, chat1.PostFileAttachmentLocalNonblockArg{
+		return h.PostFileAttachmentLocalNonblock(ctx, chat1.PostFileAttachmentLocalNonblockArg{
 			SessionID: arg.SessionID,
 			Arg: chat1.PostFileAttachmentArg{
 				ConversationID:    arg.DstConvID,
 				TlfName:           dstConv.Info.TlfName,
 				Visibility:        dstConv.Info.Visibility,
-				Filename:          dl.FilePath,
+				Filename:          sink.Name(),
 				Title:             mbod.Object.Title,
 				Metadata:          mbod.Metadata,
 				IdentifyBehavior:  arg.IdentifyBehavior,
 				EphemeralLifetime: ephemeralLifetime,
 			},
 		})
-		if err != nil {
-			return res, err
-		}
-		go func() {
-			defer os.Remove(dl.FilePath)
-			outbox := storage.NewOutbox(h.G(), uid)
-			for {
-				<-time.After(time.Minute)
-				_, err := outbox.GetRecord(ctx, res.OutboxID)
-				if err != nil {
-					return
-				}
-			}
-		}()
-		return res, nil
 	default:
 		return h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
 			SessionID:      arg.SessionID,
