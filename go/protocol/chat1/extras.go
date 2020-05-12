@@ -22,6 +22,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 )
 
 // we will show some representation of an exploded message in the UI for a week
@@ -1421,6 +1422,16 @@ func (c ConversationInfoLocal) TLFNameExpandedSummary() string {
 	return c.TlfName + " " + c.FinalizeInfo.BeforeSummary()
 }
 
+// GetTxIDs supports messages that have a deprecated TxID field
+func (m MessageClientHeader) GetTxIDs() *[]stellar1.TransactionID {
+	if m.TxIDs != nil {
+		return m.TxIDs
+	} else if m.TxID != nil {
+		return &[]stellar1.TransactionID{*m.TxID}
+	}
+	return nil
+}
+
 // TLFNameExpanded returns a TLF name with a reset suffix if it exists.
 // This version can be used in requests to lookup the TLF.
 func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
@@ -1431,6 +1442,15 @@ func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeI
 // This version can be used in requests to lookup the TLF.
 func (m MessageSummary) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
 	return ExpandTLFName(m.TlfName, finalizeInfo)
+}
+
+func (m MessageClientHeaderVerified) GetTxIDs() *[]stellar1.TransactionID {
+	if m.TxIDs != nil {
+		return m.TxIDs
+	} else if m.TxID != nil {
+		return &[]stellar1.TransactionID{*m.TxID}
+	}
+	return nil
 }
 
 func (h MessageClientHeaderVerified) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
@@ -1452,6 +1472,15 @@ func (h MessageClientHeader) ToVerifiedForTesting() MessageClientHeaderVerified 
 		OutboxID:     h.OutboxID,
 		OutboxInfo:   h.OutboxInfo,
 	}
+}
+
+func (m HeaderPlaintextV1) GetTxIDs() *[]stellar1.TransactionID {
+	if m.TxIDs != nil {
+		return m.TxIDs
+	} else if m.TxID != nil {
+		return &[]stellar1.TransactionID{*m.TxID}
+	}
+	return nil
 }
 
 // ExpandTLFName returns a TLF name with a reset suffix if it exists.

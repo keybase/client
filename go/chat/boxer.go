@@ -430,11 +430,12 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 		}
 
 		// Check that txIDs on the client header match the body, if relevant
-		if unboxed.ClientHeader.TxIDs != nil {
+		txIDs := unboxed.ClientHeader.GetTxIDs()
+		if txIDs != nil {
 			bodyTxIDs := utils.GetMessageBodyTxIDs(bodyTyp, body)
-			if !stellar1.TransactionIDsPtrEq(&bodyTxIDs, unboxed.ClientHeader.TxIDs) {
+			if !stellar1.TransactionIDsPtrEq(&bodyTxIDs, txIDs) {
 				err := fmt.Errorf("client header txIDs do not match body: %v(header) != %v(body)",
-					unboxed.ClientHeader.TxIDs, bodyTxIDs)
+					txIDs, bodyTxIDs)
 				return NewPermanentUnboxingError(err)
 			}
 		}
@@ -1073,6 +1074,7 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 			EphemeralMetadata: hp.EphemeralMetadata,
 			BotUID:            hp.BotUID,
+			TxID:              hp.TxID,
 			TxIDs:             hp.TxIDs,
 			Rtime:             rtime,
 		}, hp.BodyHash, nil
@@ -1206,7 +1208,7 @@ func (b *Boxer) compareHeadersMBV2orV3(ctx context.Context, hServer chat1.Messag
 	}
 
 	// TxIDs (only present in V3 and greater)
-	if version > chat1.MessageBoxedVersion_V2 && !stellar1.TransactionIDsPtrEq(hServer.TxIDs, hSigned.TxIDs) {
+	if version > chat1.MessageBoxedVersion_V2 && !stellar1.TransactionIDsPtrEq(hServer.GetTxIDs(), hSigned.GetTxIDs()) {
 		return NewPermanentUnboxingError(NewHeaderMismatchError("TxIDs"))
 	}
 	return nil
@@ -1837,6 +1839,10 @@ func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.Messag
 	bodyHash, err := b.makeBodyHash(*bodyEncrypted)
 	if err != nil {
 		return res, err
+	}
+
+	if messagePlaintext.ClientHeader.TxID != nil {
+		return res, NewBoxingError("cannot set deprecated TxID field in ClientHeader field; use TxIDs instead", true)
 	}
 
 	// create the v1 header, adding hash
