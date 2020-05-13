@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {Props, Section} from './section-list'
 import {SectionList as NativeSectionList} from 'react-native'
+import noop from 'lodash/noop'
 
 const SectionList = React.forwardRef<NativeSectionList, Props<any>>(
   <T extends Section<any, any>>(props: Props<T>, forwardedRef: React.Ref<NativeSectionList>) => {
@@ -22,6 +23,7 @@ const SectionList = React.forwardRef<NativeSectionList, Props<any>>(
     const NativeSectionListAny = NativeSectionList as any
     return (
       <NativeSectionListAny
+        onScrollToIndexFailed={noop}
         ref={forwardedRef}
         {...rest}
         getItemLayout={getItemLayout as any}

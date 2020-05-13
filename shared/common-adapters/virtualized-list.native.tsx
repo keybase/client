@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {VirtualizedList, VirtualizedListProps, ViewToken} from 'react-native'
+import noop from 'lodash/noop'
 
 type ExtraProps = {
   // exist in class but not type or docs
@@ -38,7 +39,13 @@ class NativeVirtualizedList<ItemT> extends React.Component<VirtualizedListProps<
   }
 
   render() {
-    return <VirtualizedList {...this.props} onViewableItemsChanged={this.onViewableItemsChanged} />
+    return (
+      <VirtualizedList
+        onScrollToIndexFailed={noop}
+        {...this.props}
+        onViewableItemsChanged={this.onViewableItemsChanged}
+      />
+    )
   }
 }
 

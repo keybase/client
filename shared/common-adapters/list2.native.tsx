@@ -5,6 +5,7 @@ import * as Styles from '../styles'
 import {smallHeight, largeHeight} from './list-item2'
 import Animated from 'react-native-reanimated'
 import {Props} from './list2'
+import noop from 'lodash/noop'
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
 
@@ -62,6 +63,7 @@ class List2<T> extends PureComponent<Props<T>> {
           windowSize={this.props.windowSize || 10}
           debug={false /* set to true to debug the list */}
           contentContainerStyle={this.props.style}
+          onScrollToIndexFailed={noop}
         />
       </View>
     )

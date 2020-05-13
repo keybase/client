@@ -10,6 +10,7 @@ import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
 import WhatsNewIcon from '../../whats-new/icon/container'
 import SplitNav from './split-nav'
+import noop from 'lodash/noop'
 
 type Props = {
   badgeNotifications?: boolean
@@ -72,6 +73,7 @@ function SettingsNav(props: Props) {
 
   return (
     <Kb.NativeSectionList
+      onScrollToIndexFailed={noop}
       keyboardShouldPersistTaps="handled"
       keyExtractor={(item, index) => item.text + index}
       renderItem={renderItem}
