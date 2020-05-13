@@ -5,6 +5,7 @@ import * as Container from '../util/container'
 import * as Constants from '../constants/teams'
 import * as RPCGen from '../constants/types/rpc-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as ProfileGen from '../actions/profile-gen'
 import {useTeamLinkPopup} from './common'
 import {pluralize} from '../util/string'
 import {memoize} from '../util/memoize'
@@ -200,6 +201,7 @@ const Member = ({member, firstItem}: {member: RPCGen.TeamMemberRole; firstItem: 
       firstItem={firstItem}
       type="Large"
       icon={<Kb.Avatar size={32} username={member.username} />}
+      onClick={() => dispatch(ProfileGen.createShowUserProfile({username: member.username}))}
       body={
         <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.memberBody}>
           <Kb.ConnectedUsernames type="BodyBold" usernames={member.username} colorFollowing={true} />
