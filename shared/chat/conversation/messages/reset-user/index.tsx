@@ -86,8 +86,8 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       lastSentence: {
-        textAlign: 'center',
         marginTop: Styles.globalMargins.medium,
+        textAlign: 'center',
       },
       skullIcon: Styles.platformStyles({
         common: {margin: Styles.globalMargins.medium},
