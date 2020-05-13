@@ -54,6 +54,8 @@ export class InfoPanel extends React.PureComponent<InfoPanelProps> {
           onSelect={this.props.onSelectTab}
           style={styles.tabContainer}
           tabStyle={styles.tab}
+          mobileTabModeOverride="scroll"
+          clickableTabStyle={styles.clickableTabStyle}
         />
       </Kb.Box2>
     )
@@ -169,6 +171,9 @@ const tabletContainerBorderSize = 1
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      clickableTabStyle: Styles.platformStyles({
+        isMobile: {width: undefined},
+      }),
       container: Styles.platformStyles({
         common: {alignItems: 'stretch', paddingBottom: Styles.globalMargins.tiny},
         isElectron: {
@@ -195,6 +200,9 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           overflowX: 'hidden',
           overflowY: 'hidden',
+        },
+        isMobile: {
+          marginTop: 0,
         },
       }),
     } as const)
