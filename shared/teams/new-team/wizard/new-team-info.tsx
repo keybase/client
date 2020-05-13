@@ -17,8 +17,8 @@ const getTeamTakenMessage = (status: number): string => {
   switch (status) {
     case RPCTypes.StatusCode.scteambadnamereserveddb:
       return Styles.isMobile
-        ? 'This team name is reserved by the Keybase team. Contact chris@keybase.io to claim it.'
-        : 'This team name is reserved by the Keybase team, possibly for your organization. Contact chris@keybase.io to claim it.'
+        ? 'This team name is reserved by the Keybase team. Contact reservations@keybase.io to claim it.'
+        : 'This team name is reserved by the Keybase team, possibly for your organization. Contact reservations@keybase.io to claim it.'
 
     case RPCTypes.StatusCode.scteamnameconflictswithuser:
     case RPCTypes.StatusCode.scteamexists:
