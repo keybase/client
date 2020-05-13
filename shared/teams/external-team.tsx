@@ -261,6 +261,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.xtiny,
   },
   tabs: {
+    backgroundColor: Styles.globalColors.white,
     width: '100%',
   },
 }))

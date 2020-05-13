@@ -196,6 +196,9 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.xsmall,
       },
       tabContainer: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+        },
         // TODO: this is less than ideal
         isElectron: {
           overflowX: 'hidden',
