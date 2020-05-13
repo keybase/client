@@ -310,19 +310,10 @@ func (s *DevConvEmojiSource) fromURL(ctx context.Context, url string) (string, e
 		return "", err
 	}
 	defer resp.Body.Close()
-	obid, err := storage.NewOutboxID()
+	file, _, err := s.G().AttachmentUploader.GetUploadTempSink(ctx, "tmp-emoji")
 	if err != nil {
 		return "", err
 	}
-	filename, err := s.G().AttachmentUploader.GetUploadTempFile(ctx, obid, "tmp-emoji")
-	if err != nil {
-		return "", err
-	}
-	file, err := os.Create(filename)
-	if err != nil {
-		return "", err
-	}
-
 	_, err = io.Copy(file, resp.Body)
 	return file.Name(), err
 }

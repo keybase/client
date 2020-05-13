@@ -114,6 +114,18 @@ export default Container.connect(
           ordinal: ownProps.message.ordinal,
         })
       ),
+    _onForward: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {ordinal: ownProps.message.ordinal, srcConvID: ownProps.message.conversationIDKey},
+              selected: 'chatForwardMsgPick',
+            },
+          ],
+        })
+      )
+    },
     _onInstallBot: () => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -239,6 +251,7 @@ export default Container.connect(
       }
       items.push({icon: 'iconfont-camera', onClick: dispatchProps._onAllMedia, title: 'All media'})
       items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReply, title: 'Reply'})
+      items.push({icon: 'iconfont-forward', onClick: dispatchProps._onForward, title: 'Forward'})
       items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     } else {
       if (
@@ -261,6 +274,9 @@ export default Container.connect(
       }
       items.push({icon: 'iconfont-clipboard', onClick: dispatchProps._onCopy, title: 'Copy text'})
       items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReply, title: 'Reply'})
+      if (message.type === 'text' && message.unfurls.size > 0) {
+        items.push({icon: 'iconfont-forward', onClick: dispatchProps._onForward, title: 'Forward'})
+      }
       if (stateProps._canReplyPrivately) {
         items.push({
           icon: 'iconfont-reply',

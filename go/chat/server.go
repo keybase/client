@@ -760,9 +760,11 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	}
 
 	// Run Stellar UI on any payments in the body
-	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
-		arg.Msg.MessageBody, arg.ReplyTo); err != nil {
-		return res, err
+	if !arg.SkipInChatPayments {
+		if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
+			arg.Msg.MessageBody, arg.ReplyTo); err != nil {
+			return res, err
+		}
 	}
 
 	var prepareOpts chat1.SenderPrepareOptions
@@ -1132,10 +1134,13 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		return res, nil
 	}
 
-	// Determine if the messages contains any Stellar payments, and execute them if so
-	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
-		arg.Msg.MessageBody, arg.ReplyTo); err != nil {
-		return res, err
+	if !arg.SkipInChatPayments {
+		// Determine if the messages contains any Stellar payments, and execute
+		// them if so
+		if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
+			arg.Msg.MessageBody, arg.ReplyTo); err != nil {
+			return res, err
+		}
 	}
 
 	// Create non block sender
@@ -3357,7 +3362,7 @@ func (h *Server) SimpleSearchInboxConvNames(ctx context.Context, query string) (
 	return res, nil
 }
 
-func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1.AddBotConvSearchHit, err error) {
+func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1.ConvSearchHit, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer h.Trace(ctx, &err, "AddBotConvSearch")()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
@@ -3369,25 +3374,25 @@ func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1
 	if err != nil {
 		return res, err
 	}
-	res = make([]chat1.AddBotConvSearchHit, 0, len(allConvs))
+	res = make([]chat1.ConvSearchHit, 0, len(allConvs))
 	for _, conv := range allConvs {
 		switch conv.GetTeamType() {
 		case chat1.TeamType_NONE:
 			searchable := utils.SearchableRemoteConversationName(conv, username)
-			res = append(res, chat1.AddBotConvSearchHit{
+			res = append(res, chat1.ConvSearchHit{
 				Name:   searchable,
 				ConvID: conv.GetConvID(),
 				Parts:  strings.Split(searchable, ","),
 			})
 		case chat1.TeamType_SIMPLE:
-			res = append(res, chat1.AddBotConvSearchHit{
+			res = append(res, chat1.ConvSearchHit{
 				Name:   utils.SearchableRemoteConversationName(conv, username),
 				ConvID: conv.GetConvID(),
 				IsTeam: true,
 			})
 		case chat1.TeamType_COMPLEX:
 			if conv.Conv.Metadata.IsDefaultConv {
-				res = append(res, chat1.AddBotConvSearchHit{
+				res = append(res, chat1.ConvSearchHit{
 					Name:   utils.GetRemoteConvTLFName(conv),
 					ConvID: conv.GetConvID(),
 					IsTeam: true,
@@ -3821,4 +3826,193 @@ func (h *Server) ToggleEmojiAnimations(ctx context.Context, enabled bool) (err e
 		return err
 	}
 	return h.G().EmojiSource.ToggleAnimations(ctx, uid, enabled)
+}
+
+func (h *Server) ForwardMessage(ctx context.Context, arg chat1.ForwardMessageArg) (res chat1.PostLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, &err, "ForwardMessage")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	reason := chat1.GetThreadReason_FORWARDMSG
+	msg, err := h.G().ConvSource.GetMessage(ctx, arg.SrcConvID, uid, arg.MsgID, &reason, nil, true)
+	if err != nil {
+		return res, err
+	} else if !msg.IsValid() {
+		return res, fmt.Errorf("unable to foward message, source is invalid")
+	}
+	dstConv, err := utils.GetVerifiedConv(ctx, h.G(), uid, arg.DstConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return res, err
+	}
+	mvalid := msg.Valid()
+	switch mvalid.ClientHeader.MessageType {
+	case chat1.MessageType_ATTACHMENT:
+		// download from the original source
+		mbod := msg.Valid().MessageBody.Attachment()
+		sink, _, err := h.G().AttachmentUploader.GetUploadTempSink(ctx, mbod.Object.Filename)
+		if err != nil {
+			return res, err
+		}
+		_, err = h.downloadAttachmentLocal(ctx, uid, downloadAttachmentArg{
+			SessionID:        arg.SessionID,
+			ConversationID:   arg.SrcConvID,
+			MessageID:        arg.MsgID,
+			IdentifyBehavior: arg.IdentifyBehavior,
+			Sink:             sink,
+		})
+		if err != nil {
+			return res, err
+		}
+		var ephemeralLifetime *gregor1.DurationSec
+		if md := mvalid.EphemeralMetadata(); md != nil {
+			ephemeralLifetime = &md.Lifetime
+		}
+		return h.PostFileAttachmentLocal(ctx, chat1.PostFileAttachmentLocalArg{
+			SessionID: arg.SessionID,
+			Arg: chat1.PostFileAttachmentArg{
+				ConversationID:    arg.DstConvID,
+				TlfName:           dstConv.Info.TlfName,
+				Visibility:        dstConv.Info.Visibility,
+				Filename:          sink.Name(),
+				Title:             mbod.Object.Title,
+				Metadata:          mbod.Metadata,
+				IdentifyBehavior:  arg.IdentifyBehavior,
+				EphemeralLifetime: ephemeralLifetime,
+			},
+		})
+	default:
+		return h.PostLocal(ctx, chat1.PostLocalArg{
+			SessionID:      arg.SessionID,
+			ConversationID: arg.DstConvID,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:              dstConv.Info.Triple,
+					TlfName:           dstConv.Info.TlfName,
+					TlfPublic:         dstConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
+					MessageType:       mvalid.ClientHeader.MessageType,
+					EphemeralMetadata: mvalid.EphemeralMetadata(),
+				},
+				MessageBody: mvalid.MessageBody.DeepCopy(),
+			},
+			IdentifyBehavior:   arg.IdentifyBehavior,
+			SkipInChatPayments: true,
+		})
+	}
+}
+
+func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMessageNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, &err, "ForwardMessageNonblock")()
+	defer h.suspendBgConvLoads(ctx)()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	reason := chat1.GetThreadReason_FORWARDMSG
+	msg, err := h.G().ConvSource.GetMessage(ctx, arg.SrcConvID, uid, arg.MsgID, &reason, nil, true)
+	if err != nil {
+		return res, err
+	} else if !msg.IsValid() {
+		return res, fmt.Errorf("unable to forward message, source is invalid")
+	}
+	dstConv, err := utils.GetVerifiedConv(ctx, h.G(), uid, arg.DstConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return res, err
+	}
+	mvalid := msg.Valid()
+	switch mvalid.ClientHeader.MessageType {
+	case chat1.MessageType_ATTACHMENT:
+		mbod := msg.Valid().MessageBody.Attachment()
+		sink, _, err := h.G().AttachmentUploader.GetUploadTempSink(ctx, mbod.Object.Filename)
+		if err != nil {
+			return res, err
+		}
+		_, err = h.downloadAttachmentLocal(ctx, uid, downloadAttachmentArg{
+			SessionID:        arg.SessionID,
+			ConversationID:   arg.SrcConvID,
+			MessageID:        arg.MsgID,
+			IdentifyBehavior: arg.IdentifyBehavior,
+			Sink:             sink,
+		})
+		if err != nil {
+			return res, err
+		}
+		var ephemeralLifetime *gregor1.DurationSec
+		if md := mvalid.EphemeralMetadata(); md != nil {
+			ephemeralLifetime = &md.Lifetime
+		}
+		return h.PostFileAttachmentLocalNonblock(ctx, chat1.PostFileAttachmentLocalNonblockArg{
+			SessionID: arg.SessionID,
+			Arg: chat1.PostFileAttachmentArg{
+				ConversationID:    arg.DstConvID,
+				TlfName:           dstConv.Info.TlfName,
+				Visibility:        dstConv.Info.Visibility,
+				Filename:          sink.Name(),
+				Title:             mbod.Object.Title,
+				Metadata:          mbod.Metadata,
+				IdentifyBehavior:  arg.IdentifyBehavior,
+				EphemeralLifetime: ephemeralLifetime,
+			},
+		})
+	default:
+		return h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
+			SessionID:      arg.SessionID,
+			ConversationID: arg.DstConvID,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:              dstConv.Info.Triple,
+					TlfName:           dstConv.Info.TlfName,
+					TlfPublic:         dstConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
+					MessageType:       mvalid.ClientHeader.MessageType,
+					EphemeralMetadata: mvalid.EphemeralMetadata(),
+				},
+				MessageBody: mvalid.MessageBody.DeepCopy(),
+			},
+			IdentifyBehavior:   arg.IdentifyBehavior,
+			SkipInChatPayments: true,
+		})
+	}
+}
+
+func (h *Server) ForwardMessageConvSearch(ctx context.Context, term string) (res []chat1.ConvSearchHit, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, &err, "ForwardMessageConvSearch")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	username := h.G().GetEnv().GetUsername().String()
+	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 100, types.InboxSourceSearchEmptyModeAll)
+	if err != nil {
+		return res, err
+	}
+	res = make([]chat1.ConvSearchHit, 0, len(allConvs))
+	for _, conv := range allConvs {
+		if conv.CannotWrite() {
+			continue
+		}
+		switch conv.GetTeamType() {
+		case chat1.TeamType_NONE:
+			searchable := utils.SearchableRemoteConversationName(conv, username)
+			res = append(res, chat1.ConvSearchHit{
+				Name:   searchable,
+				ConvID: conv.GetConvID(),
+				Parts:  strings.Split(searchable, ","),
+			})
+		case chat1.TeamType_SIMPLE,
+			chat1.TeamType_COMPLEX:
+			res = append(res, chat1.ConvSearchHit{
+				Name:   utils.SearchableRemoteConversationName(conv, username),
+				ConvID: conv.GetConvID(),
+				IsTeam: true,
+			})
+		}
+	}
+	return res, nil
 }

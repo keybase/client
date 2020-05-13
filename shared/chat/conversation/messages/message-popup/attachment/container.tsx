@@ -88,6 +88,18 @@ export default Container.connect(
         })
       )
     },
+    _onForward: (message: Types.Message) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {ordinal: message.ordinal, srcConvID: message.conversationIDKey},
+              selected: 'chatForwardMsgPick',
+            },
+          ],
+        })
+      )
+    },
     _onInstallBot: (message: Types.Message) => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -163,7 +175,7 @@ export default Container.connect(
       onCopyLink: () => dispatchProps._onCopyLink(stateProps._label, message),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
       onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
-      // We only show the share/save options for video if we have the file stored locally from a download
+      onForward: () => dispatchProps._onForward(message),
       onHidden: () => ownProps.onHidden(),
       onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),

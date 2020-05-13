@@ -821,7 +821,7 @@ protocol local {
   void requestInboxSmallReset();
   NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  PostLocalRes postLocal(int sessionID, ConversationID conversationID, MessagePlaintext msg, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postLocal(int sessionID, ConversationID conversationID, MessagePlaintext msg, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior, boolean skipInChatPayments);
   record PostLocalRes {
     array<RateLimit> rateLimits;
     MessageID messageID;
@@ -830,12 +830,16 @@ protocol local {
 
   OutboxID generateOutboxID();
   @timeout_msec(30000) // 30 seconds
-  PostLocalNonblockRes postLocalNonblock(int sessionID, ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postLocalNonblock(int sessionID, ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior, boolean skipInChatPayments);
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
+
+  PostLocalRes forwardMessage(int sessionID, ConversationID srcConvID, ConversationID dstConvID, MessageID msgID, keybase1.TLFIdentifyBehavior identifyBehavior);
+  @timeout_msec(30000) // 30 seconds
+  PostLocalNonblockRes forwardMessageNonblock(int sessionID, ConversationID srcConvID, ConversationID dstConvID, MessageID msgID, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   @timeout_msec(30000) // 30 seconds
   PostLocalNonblockRes postTextNonblock(int sessionID, ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, MessageID } replyTo, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
@@ -1332,13 +1336,14 @@ protocol local {
   void setBotMemberSettings(ConversationID convID, string username, keybase1.TeamBotSettings botSettings);
   keybase1.TeamBotSettings getBotMemberSettings(ConversationID convID, string username);
   keybase1.TeamRole getTeamRoleInConversation(ConversationID convID, string username);
-  record AddBotConvSearchHit {
+  record ConvSearchHit {
     string name;
     ConversationID convID;
     boolean isTeam;
     array<string> parts;
   }
-  array<AddBotConvSearchHit> addBotConvSearch(string term);
+  array<ConvSearchHit> addBotConvSearch(string term);
+  array<ConvSearchHit> forwardMessageConvSearch(string term);
 
   keybase1.TeamID teamIDFromTLFName(string tlfName, ConversationMembersType membersType, boolean tlfPublic);
 
