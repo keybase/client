@@ -63,7 +63,7 @@ func (h *SignupHandler) CheckUsernameAvailable(ctx context.Context, arg keybase1
 		return libkb.AppStatusError{
 			Code: libkb.SCBadSignupUsernameReserved,
 			Name: "BAD_SIGNUP_USERNAME_RESERVED",
-			Desc: "This username is reserved by the Keybase team, possibly for your organization. Contact chris@keybase.io to claim it.",
+			Desc: "This username is reserved by the Keybase team, possibly for your organization. Contact reservations@keybase.io to claim it.",
 		}
 	case "user_deleted":
 		return libkb.AppStatusError{
