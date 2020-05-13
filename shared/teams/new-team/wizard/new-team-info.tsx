@@ -16,12 +16,14 @@ import debounce from 'lodash/debounce'
 const getTeamTakenMessage = (status: number): string => {
   switch (status) {
     case RPCTypes.StatusCode.scteambadnamereserveddb:
-      return 'This name is reserved by the Keybase team, possibly for your organization. Contact chris@keybase.io to claim it.'
+      return Styles.isMobile
+        ? 'This team name is reserved by the Keybase team. Contact chris@keybase.io to claim it.'
+        : 'This team name is reserved by the Keybase team, possibly for your organization. Contact chris@keybase.io to claim it.'
 
     case RPCTypes.StatusCode.scteamnameconflictswithuser:
     case RPCTypes.StatusCode.scteamexists:
     default:
-      return 'This team name is already taken'
+      return 'This team name is already taken.'
   }
 }
 
@@ -154,17 +156,19 @@ const NewTeamInfo = () => {
             value={name}
           />
         )}
-        {teamNameTaken ? (
-          <Kb.Text type="BodySmallError" style={styles.extraLineText}>
-            {getTeamTakenMessage(teamNameTakenStatus)}
-          </Kb.Text>
-        ) : (
-          <Kb.Text type="BodySmall">
-            {teamWizardState.teamType === 'subteam'
-              ? `Subteam names can be changed anytime.`
-              : `Choose wisely. Team names are unique and can't be changed in the future.`}
-          </Kb.Text>
-        )}
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.extraLineText}>
+          {teamNameTaken ? (
+            <Kb.Text type="BodySmallError" style={styles.biggerOnTheInside}>
+              {getTeamTakenMessage(teamNameTakenStatus)}
+            </Kb.Text>
+          ) : (
+            <Kb.Text type="BodySmall">
+              {teamWizardState.teamType === 'subteam'
+                ? `Subteam names can be changed anytime.`
+                : `Choose wisely. Team names are unique and can't be changed in the future.`}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
         <Kb.LabeledInput
           hoverPlaceholder={
             teamWizardState.teamType === 'subteam'
@@ -237,6 +241,7 @@ const NewTeamInfo = () => {
 
 const styles = Styles.styleSheetCreate(() => ({
   bg: {backgroundColor: Styles.globalColors.blueGrey},
+  biggerOnTheInside: {height: 100},
   body: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
@@ -248,7 +253,7 @@ const styles = Styles.styleSheetCreate(() => ({
     padding: Styles.globalMargins.small,
   },
   extraLineText: {
-    height: 34,
+    height: 36,
   },
   floatingRolePicker: Styles.platformStyles({
     isElectron: {

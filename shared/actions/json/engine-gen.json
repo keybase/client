@@ -7,15 +7,6 @@
     "actions": {
         "disconnected": {},
         "connected": {},
-        "chat1ChatUiChatAttachmentDownloadStart": {
-            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['outParam']) => void}"
-        },
-        "chat1ChatUiChatAttachmentDownloadProgress": {
-            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['outParam']) => void}"
-        },
-        "chat1ChatUiChatAttachmentDownloadDone": {
-            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['outParam']) => void}"
-        },
         "chat1ChatUiChatInboxLayout": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatInboxLayout']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxLayout']['outParam']) => void}"
         },
@@ -171,6 +162,12 @@
         },
         "chat1NotifyChatChatAttachmentUploadProgress": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadProgress']['inParam'] & {sessionID: number}"
+        },
+        "chat1NotifyChatChatAttachmentDownloadProgress": {
+            "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadProgress']['inParam'] & {sessionID: number}"
+        },
+        "chat1NotifyChatChatAttachmentDownloadComplete": {
+            "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadComplete']['inParam'] & {sessionID: number}"
         },
         "chat1NotifyChatChatPaymentInfo": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatPaymentInfo']['inParam'] & {sessionID: number}"

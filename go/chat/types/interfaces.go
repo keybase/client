@@ -2,6 +2,7 @@ package types
 
 import (
 	"io"
+	"os"
 	"regexp"
 	"time"
 
@@ -436,6 +437,7 @@ type AttachmentUploader interface {
 	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
 	GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error)
+	GetUploadTempSink(ctx context.Context, filename string) (*os.File, chat1.OutboxID, error)
 	CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) error
 	OnDbNuke(mctx libkb.MetaContext) error
 }

@@ -3000,20 +3000,6 @@ func (o UIBotCommandsUpdateStatus) DeepCopy() UIBotCommandsUpdateStatus {
 	}
 }
 
-type ChatAttachmentDownloadStartArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
-type ChatAttachmentDownloadProgressArg struct {
-	SessionID     int   `codec:"sessionID" json:"sessionID"`
-	BytesComplete int64 `codec:"bytesComplete" json:"bytesComplete"`
-	BytesTotal    int64 `codec:"bytesTotal" json:"bytesTotal"`
-}
-
-type ChatAttachmentDownloadDoneArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type ChatInboxLayoutArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Layout    string `codec:"layout" json:"layout"`
@@ -3189,9 +3175,6 @@ type TriggerContactSyncArg struct {
 }
 
 type ChatUiInterface interface {
-	ChatAttachmentDownloadStart(context.Context, int) error
-	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
-	ChatAttachmentDownloadDone(context.Context, int) error
 	ChatInboxLayout(context.Context, ChatInboxLayoutArg) error
 	ChatInboxUnverified(context.Context, ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, ChatInboxConversationArg) error
@@ -3231,51 +3214,6 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "chat.1.chatUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"chatAttachmentDownloadStart": {
-				MakeArg: func() interface{} {
-					var ret [1]ChatAttachmentDownloadStartArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatAttachmentDownloadStartArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ChatAttachmentDownloadStartArg)(nil), args)
-						return
-					}
-					err = i.ChatAttachmentDownloadStart(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
-			"chatAttachmentDownloadProgress": {
-				MakeArg: func() interface{} {
-					var ret [1]ChatAttachmentDownloadProgressArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatAttachmentDownloadProgressArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ChatAttachmentDownloadProgressArg)(nil), args)
-						return
-					}
-					err = i.ChatAttachmentDownloadProgress(ctx, typedArgs[0])
-					return
-				},
-			},
-			"chatAttachmentDownloadDone": {
-				MakeArg: func() interface{} {
-					var ret [1]ChatAttachmentDownloadDoneArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatAttachmentDownloadDoneArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ChatAttachmentDownloadDoneArg)(nil), args)
-						return
-					}
-					err = i.ChatAttachmentDownloadDone(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
 			"chatInboxLayout": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatInboxLayoutArg
@@ -3777,23 +3715,6 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 
 type ChatUiClient struct {
 	Cli rpc.GenericClient
-}
-
-func (c ChatUiClient) ChatAttachmentDownloadStart(ctx context.Context, sessionID int) (err error) {
-	__arg := ChatAttachmentDownloadStartArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentDownloadStart", []interface{}{__arg}, nil, 0*time.Millisecond)
-	return
-}
-
-func (c ChatUiClient) ChatAttachmentDownloadProgress(ctx context.Context, __arg ChatAttachmentDownloadProgressArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentDownloadProgress", []interface{}{__arg}, 0*time.Millisecond)
-	return
-}
-
-func (c ChatUiClient) ChatAttachmentDownloadDone(ctx context.Context, sessionID int) (err error) {
-	__arg := ChatAttachmentDownloadDoneArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentDownloadDone", []interface{}{__arg}, nil, 0*time.Millisecond)
-	return
 }
 
 func (c ChatUiClient) ChatInboxLayout(ctx context.Context, __arg ChatInboxLayoutArg) (err error) {

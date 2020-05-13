@@ -266,7 +266,8 @@ func (c *chatEcho) AttachV1(context.Context, attachOptionsV1, chat1.ChatUiInterf
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) DownloadV1(context.Context, downloadOptionsV1, chat1.ChatUiInterface) Reply {
+func (c *chatEcho) DownloadV1(context.Context, downloadOptionsV1, chat1.ChatUiInterface,
+	chat1.NotifyChatInterface) Reply {
 	return Reply{Result: echoOK}
 }
 

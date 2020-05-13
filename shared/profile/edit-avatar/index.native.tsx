@@ -6,6 +6,7 @@ import {Props} from '.'
 import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {ModalTitle} from '../../teams/common'
 import * as Container from '../../util/container'
+import flags from '../../util/feature-flags'
 
 type WrappedProps = {
   onChooseNewAvatar: () => void
@@ -60,7 +61,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
   _z: boolean = false
 
   private avatar_size = (): number => {
-    const margin = this.props.wizard ? Styles.globalMargins.large : Styles.globalMargins.medium
+    const margin = this.props.type === 'team' ? Styles.globalMargins.large : Styles.globalMargins.medium
     const big = Styles.dimensionWidth - margin * 2
     if (isTablet) {
       return Math.min(500, big)
@@ -136,7 +137,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
   })
 
   private renderImageZoomer() {
-    if (this.props.wizard && !this.props.image) {
+    if (this.props.type === 'team' && !this.props.image) {
       return (
         <Kb.ClickableBox
           style={Styles.collapseStyles([styles.placeholder, this.getImageStyle()])}
@@ -163,7 +164,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
   }
 
   render() {
-    if (this.props.wizard) {
+    if (flags.teamsRedesign && this.props.type === 'team') {
       return (
         <Kb.Modal
           banners={
@@ -177,16 +178,24 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
           }
           header={{
             leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />,
-            rightButton: (
+            rightButton: this.props.wizard ? (
               <Kb.Text type="BodyBigLink" onClick={this.props.onSkip}>
                 Skip
               </Kb.Text>
+            ) : (
+              undefined
             ),
 
             title: (
               <ModalTitle
                 teamID={this.props.teamID}
-                title={this.props.image && isIOS ? 'Zoom and pan' : 'Upload avatar'}
+                title={
+                  this.props.image && isIOS
+                    ? 'Zoom and pan'
+                    : this.props.wizard
+                    ? 'Upload avatar'
+                    : 'Change avatar'
+                }
               />
             ),
           }}
@@ -194,7 +203,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
             content: (
               <Kb.Button
                 fullWidth={true}
-                label="Continue"
+                label={this.props.wizard ? 'Continue' : 'Save'}
                 onClick={this.onSave}
                 disabled={!this.props.image}
               />

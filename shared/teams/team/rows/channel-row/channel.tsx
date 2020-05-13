@@ -22,7 +22,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     state => !!state.teams.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey)
   )
   const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
-  const canDelete = canPerform.deleteChannel
+  const canDelete = canPerform.deleteChannel && !isGeneral
 
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
   const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))

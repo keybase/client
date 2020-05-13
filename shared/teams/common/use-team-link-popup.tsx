@@ -48,7 +48,7 @@ export const useTeamLinkPopup = (teamname: string) => {
 const styles = Styles.styleSheetCreate(() => ({
   linkPopupContainer: Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.tiny),
+      ...Styles.padding(Styles.globalMargins.small),
     },
     isElectron: {maxWidth: 300},
   }),

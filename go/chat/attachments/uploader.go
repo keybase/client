@@ -648,6 +648,22 @@ func (u *Uploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxI
 	return filepath.Join(dir, filepath.Base(filename)), nil
 }
 
+func (u *Uploader) GetUploadTempSink(ctx context.Context, filename string) (*os.File, chat1.OutboxID, error) {
+	obid, err := storage.NewOutboxID()
+	if err != nil {
+		return nil, nil, err
+	}
+	filename, err = u.GetUploadTempFile(ctx, obid, filename)
+	if err != nil {
+		return nil, nil, err
+	}
+	file, err := os.Create(filename)
+	if err != nil {
+		return nil, nil, err
+	}
+	return file, obid, nil
+}
+
 func (u *Uploader) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) error {
 	u.clearTempDirFromOutboxID(outboxID)
 	return nil

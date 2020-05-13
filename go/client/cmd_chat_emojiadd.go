@@ -37,8 +37,7 @@ func newCmdChatAddEmoji(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	}
 }
 
-func (c *CmdChatAddEmoji) ParseArgv(ctx *cli.Context) error {
-	var err error
+func (c *CmdChatAddEmoji) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 3 {
 		return fmt.Errorf("must specify an alias, filename, and conversation name")
 	}

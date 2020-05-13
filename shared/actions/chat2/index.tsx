@@ -2114,29 +2114,9 @@ const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayl
 function* downloadAttachment(downloadToCache: boolean, message: Types.Message, logger: Saga.SagaLogger) {
   try {
     const {conversationIDKey} = message
-    let lastRatioSent = -1 // force the first update to show no matter what
-    const onDownloadProgress = ({
-      bytesComplete,
-      bytesTotal,
-    }: RPCChatTypes.MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['inParam']) => {
-      const ratio = bytesComplete / bytesTotal
-      // Don't spam ourselves with updates
-      if (ratio - lastRatioSent > 0.05) {
-        lastRatioSent = ratio
-        return Saga.put(
-          Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview: false, message, ratio})
-        )
-      }
-      return false
-    }
-
     const rpcRes: RPCChatTypes.DownloadFileAttachmentLocalRes = yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga(
       {
-        incomingCallMap: {
-          'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
-          'chat.1.chatUi.chatAttachmentDownloadProgress': onDownloadProgress,
-          'chat.1.chatUi.chatAttachmentDownloadStart': () => {},
-        },
+        incomingCallMap: {},
         params: {
           conversationID: Types.keyToConversationID(conversationIDKey),
           downloadToCache,

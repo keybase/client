@@ -115,7 +115,7 @@ func (c *CmdChatDownload) Run() (err error) {
 		Preview:        c.preview,
 	}
 	h := newChatServiceHandler(c.G())
-	reply := h.DownloadV1(context.Background(), opts, NewChatCLIUI(c.G()))
+	reply := h.DownloadV1(context.Background(), opts, NewChatCLIUI(c.G()), NewChatCLINotifications(c.G()))
 	if reply.Error != nil {
 		return errors.New(reply.Error.Message)
 	}

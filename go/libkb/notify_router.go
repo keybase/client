@@ -62,6 +62,9 @@ type NotifyListener interface {
 	ChatAttachmentUploadStart(uid keybase1.UID, convID chat1.ConversationID, outboxID chat1.OutboxID)
 	ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID, outboxID chat1.OutboxID,
 		bytesComplete, bytesTotal int64)
+	ChatAttachmentDownloadProgress(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID,
+		bytesComplete, bytesTotal int64)
+	ChatAttachmentDownloadComplete(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID)
 	ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo)
 	ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo)
 	ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, domain string)
@@ -179,6 +182,12 @@ func (n *NoopNotifyListener) ChatAttachmentUploadStart(uid keybase1.UID, convID 
 }
 func (n *NoopNotifyListener) ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
+}
+func (n *NoopNotifyListener) ChatAttachmentDownloadProgress(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, bytesComplete, bytesTotal int64) {
+}
+func (n *NoopNotifyListener) ChatAttachmentDownloadComplete(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID) {
 }
 func (n *NoopNotifyListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, info chat1.UIPaymentInfo) {
@@ -1424,6 +1433,70 @@ func (n *NotifyRouter) HandleChatAttachmentUploadProgress(ctx context.Context, u
 		listener.ChatAttachmentUploadProgress(uid, convID, outboxID, bytesComplete, bytesTotal)
 	})
 	n.G().Log.CDebugf(ctx, "- Sent ChatAttachmentUploadProgress notification")
+}
+
+func (n *NotifyRouter) HandleChatAttachmentDownloadProgress(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, msgID chat1.MessageID, bytesComplete, bytesTotal int64) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatAttachmentDownloadProgress notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chatattachments {
+			wg.Add(1)
+			go func() {
+				_ = (chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatAttachmentDownloadProgress(context.Background(), chat1.ChatAttachmentDownloadProgressArg{
+					Uid:           uid,
+					ConvID:        convID,
+					MsgID:         msgID,
+					BytesComplete: bytesComplete,
+					BytesTotal:    bytesTotal,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.ChatAttachmentDownloadProgress(uid, convID, msgID, bytesComplete, bytesTotal)
+	})
+	n.G().Log.CDebugf(ctx, "- Sent ChatAttachmentDownloadProgress notification")
+}
+
+func (n *NotifyRouter) HandleChatAttachmentDownloadComplete(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, msgID chat1.MessageID) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatAttachmentDownloadComplete notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chatattachments {
+			wg.Add(1)
+			go func() {
+				_ = (chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatAttachmentDownloadComplete(context.Background(), chat1.ChatAttachmentDownloadCompleteArg{
+					Uid:    uid,
+					ConvID: convID,
+					MsgID:  msgID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.ChatAttachmentDownloadComplete(uid, convID, msgID)
+	})
+	n.G().Log.CDebugf(ctx, "- Sent ChatAttachmentDownloadComplete notification")
 }
 
 func (n *NotifyRouter) HandleChatSetConvRetention(ctx context.Context, uid keybase1.UID,

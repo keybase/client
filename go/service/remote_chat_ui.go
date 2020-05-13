@@ -20,19 +20,6 @@ func NewRemoteChatUI(sessionID int, c *rpc.Client) *RemoteChatUI {
 	}
 }
 
-func (r *RemoteChatUI) ChatAttachmentDownloadStart(ctx context.Context) error {
-	return r.cli.ChatAttachmentDownloadStart(ctx, r.sessionID)
-}
-
-func (r *RemoteChatUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat1.ChatAttachmentDownloadProgressArg) error {
-	arg.SessionID = r.sessionID
-	return r.cli.ChatAttachmentDownloadProgress(ctx, arg)
-}
-
-func (r *RemoteChatUI) ChatAttachmentDownloadDone(ctx context.Context) error {
-	return r.cli.ChatAttachmentDownloadDone(ctx, r.sessionID)
-}
-
 func (r *RemoteChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
 	return r.cli.ChatInboxConversation(ctx, arg)
 }

@@ -1038,6 +1038,20 @@ type ChatAttachmentUploadProgressArg struct {
 	BytesTotal    int64          `codec:"bytesTotal" json:"bytesTotal"`
 }
 
+type ChatAttachmentDownloadProgressArg struct {
+	Uid           keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID        ConversationID `codec:"convID" json:"convID"`
+	MsgID         MessageID      `codec:"msgID" json:"msgID"`
+	BytesComplete int64          `codec:"bytesComplete" json:"bytesComplete"`
+	BytesTotal    int64          `codec:"bytesTotal" json:"bytesTotal"`
+}
+
+type ChatAttachmentDownloadCompleteArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+}
+
 type ChatPaymentInfoArg struct {
 	Uid    keybase1.UID   `codec:"uid" json:"uid"`
 	ConvID ConversationID `codec:"convID" json:"convID"`
@@ -1094,6 +1108,8 @@ type NotifyChatInterface interface {
 	ChatKBFSToImpteamUpgrade(context.Context, ChatKBFSToImpteamUpgradeArg) error
 	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
+	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
+	ChatAttachmentDownloadComplete(context.Context, ChatAttachmentDownloadCompleteArg) error
 	ChatPaymentInfo(context.Context, ChatPaymentInfoArg) error
 	ChatRequestInfo(context.Context, ChatRequestInfoArg) error
 	ChatPromptUnfurl(context.Context, ChatPromptUnfurlArg) error
@@ -1391,6 +1407,36 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 					return
 				},
 			},
+			"ChatAttachmentDownloadProgress": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatAttachmentDownloadProgressArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatAttachmentDownloadProgressArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatAttachmentDownloadProgressArg)(nil), args)
+						return
+					}
+					err = i.ChatAttachmentDownloadProgress(ctx, typedArgs[0])
+					return
+				},
+			},
+			"ChatAttachmentDownloadComplete": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatAttachmentDownloadCompleteArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatAttachmentDownloadCompleteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatAttachmentDownloadCompleteArg)(nil), args)
+						return
+					}
+					err = i.ChatAttachmentDownloadComplete(ctx, typedArgs[0])
+					return
+				},
+			},
 			"ChatPaymentInfo": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatPaymentInfoArg
@@ -1585,6 +1631,16 @@ func (c NotifyChatClient) ChatAttachmentUploadStart(ctx context.Context, __arg C
 
 func (c NotifyChatClient) ChatAttachmentUploadProgress(ctx context.Context, __arg ChatAttachmentUploadProgressArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadProgress", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyChatClient) ChatAttachmentDownloadProgress(ctx context.Context, __arg ChatAttachmentDownloadProgressArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentDownloadProgress", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyChatClient) ChatAttachmentDownloadComplete(ctx context.Context, __arg ChatAttachmentDownloadCompleteArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentDownloadComplete", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 

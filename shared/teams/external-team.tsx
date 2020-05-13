@@ -5,10 +5,12 @@ import * as Container from '../util/container'
 import * as Constants from '../constants/teams'
 import * as RPCGen from '../constants/types/rpc-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as ProfileGen from '../actions/profile-gen'
 import {useTeamLinkPopup} from './common'
 import {pluralize} from '../util/string'
 import {memoize} from '../util/memoize'
 import capitalize from 'lodash/capitalize'
+import {headerDefaultStyle} from '../router-v2/router'
 
 type Props = Container.RouteProps<{teamname: string}>
 
@@ -70,7 +72,7 @@ ExternalTeam.navigationOptions = {
   header: undefined,
   headerBottomStyle: {height: undefined},
   headerHideBorder: true,
-  headerStyle: {borderBottomWidth: 0},
+  headerStyle: {...headerDefaultStyle, borderBottomWidth: 0},
   title: ' ', // hack: trick router shim so it doesn't add a safe area around us
 }
 
@@ -200,6 +202,7 @@ const Member = ({member, firstItem}: {member: RPCGen.TeamMemberRole; firstItem: 
       firstItem={firstItem}
       type="Large"
       icon={<Kb.Avatar size={32} username={member.username} />}
+      onClick={() => dispatch(ProfileGen.createShowUserProfile({username: member.username}))}
       body={
         <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.memberBody}>
           <Kb.ConnectedUsernames type="BodyBold" usernames={member.username} colorFollowing={true} />
@@ -259,7 +262,6 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.xtiny,
   },
   tabs: {
-    backgroundColor: Styles.globalColors.white,
     width: '100%',
   },
 }))

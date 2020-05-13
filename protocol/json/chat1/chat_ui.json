@@ -2076,42 +2076,6 @@
     }
   ],
   "messages": {
-    "chatAttachmentDownloadStart": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
-    },
-    "chatAttachmentDownloadProgress": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "bytesComplete",
-          "type": "long"
-        },
-        {
-          "name": "bytesTotal",
-          "type": "long"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
-    "chatAttachmentDownloadDone": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
-    },
     "chatInboxLayout": {
       "request": [
         {

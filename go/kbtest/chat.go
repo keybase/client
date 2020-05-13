@@ -1131,18 +1131,6 @@ func NewChatUI() *ChatUI {
 	}
 }
 
-func (c *ChatUI) ChatAttachmentDownloadStart(context.Context) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat1.ChatAttachmentDownloadProgressArg) error {
-	return nil
-}
-
-func (c *ChatUI) ChatAttachmentDownloadDone(context.Context) error {
-	return nil
-}
-
 func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
 	var inboxItems []chat1.InboxUIItem
 	if err := json.Unmarshal([]byte(arg.Convs), &inboxItems); err != nil {

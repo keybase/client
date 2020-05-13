@@ -336,13 +336,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    "attachmentLoading": {
-      "_description": "Update the loading bars",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "message": "Types.Message",
-      "ratio": "number", // 0-1
-      "isPreview": "boolean"
-    },
     "attachmentDownloaded": {
       "_description": "We saved an attachment to the local disk",
       "message": "Types.Message",

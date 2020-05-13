@@ -15,7 +15,7 @@ type Props = Container.RouteProps<{botUsername: string}>
 const BotTeamPicker = (props: Props) => {
   const botUsername = Container.getRouteProps(props, 'botUsername', '')
   const [term, setTerm] = React.useState('')
-  const [results, setResults] = React.useState<Array<RPCChatTypes.AddBotConvSearchHit>>([])
+  const [results, setResults] = React.useState<Array<RPCChatTypes.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
   const submit = Container.useRPC(RPCChatTypes.localAddBotConvSearchRpcPromise)
@@ -63,7 +63,7 @@ const BotTeamPicker = (props: Props) => {
     dispatch(BotsGen.createGetFeaturedBots({}))
   }, [dispatch])
 
-  const renderResult = (index: number, item: RPCChatTypes.AddBotConvSearchHit) => {
+  const renderResult = (index: number, item: RPCChatTypes.ConvSearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
