@@ -173,7 +173,7 @@ const Header = ({info}: ExternalTeamProps) => {
       </Kb.Box2>
     </Kb.Box2>
   )
-  const openMeta = <Kb.Meta title="OPEN" backgroundColor={Styles.globalColors.green} />
+  const openMeta = <Kb.Meta style={styles.meta} title="OPEN" backgroundColor={Styles.globalColors.green} />
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.headerContainer}>
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} alignItems="flex-start">
@@ -257,6 +257,11 @@ const styles = Styles.styleSheetCreate(() => ({
     flex: 1,
     paddingRight: Styles.globalMargins.tiny,
   },
+  meta: Styles.platformStyles({
+    isElectron: {
+      alignSelf: 'center',
+    },
+  }),
   middot: {
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.xtiny,
