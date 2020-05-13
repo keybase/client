@@ -1531,7 +1531,7 @@ const setTeamWizardNameDescription = () =>
   })
 const setTeamWizardAvatar = (state: TypedState) => {
   switch (state.teams.newTeamWizard.teamType) {
-    case 'subteam':
+    case 'subteam': {
       const parentTeamID = state.teams.newTeamWizard.parentTeamID
       const parentTeamMeta = Constants.getTeamMeta(state, parentTeamID!)
       // If it's just you, don't show the subteam members screen empty
@@ -1540,6 +1540,7 @@ const setTeamWizardAvatar = (state: TypedState) => {
       } else {
         return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
       }
+    }
     case 'friends':
     case 'other':
       return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})

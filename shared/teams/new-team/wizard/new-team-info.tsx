@@ -240,8 +240,8 @@ const NewTeamInfo = () => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  biggerOnTheInside: {height: 100},
   bg: {backgroundColor: Styles.globalColors.blueGrey},
+  biggerOnTheInside: {height: 100},
   body: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
