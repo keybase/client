@@ -115,7 +115,7 @@ export const TeamMemberRow = (props: Props) => {
                 style={styles.lockedOutMeta}
               />
             )}
-            <Kb.Text type="BodySmall" lineClamp={1}>
+            <Kb.Text type="BodySmall">
               {!!active && !!props.roleType && typeToLabel[props.roleType]}
               {resetLabel}
             </Kb.Text>
