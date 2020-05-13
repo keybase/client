@@ -28,7 +28,7 @@ type ChatServiceHandler interface {
 	ReactionV1(context.Context, reactionOptionsV1) Reply
 	DeleteV1(context.Context, deleteOptionsV1) Reply
 	AttachV1(context.Context, attachOptionsV1, chat1.ChatUiInterface, chat1.NotifyChatInterface) Reply
-	DownloadV1(context.Context, downloadOptionsV1, chat1.ChatUiInterface) Reply
+	DownloadV1(context.Context, downloadOptionsV1, chat1.ChatUiInterface, chat1.NotifyChatInterface) Reply
 	SetStatusV1(context.Context, setStatusOptionsV1) Reply
 	MarkV1(context.Context, markOptionsV1) Reply
 	SearchInboxV1(context.Context, searchInboxOptionsV1) Reply
@@ -892,9 +892,9 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1,
 
 // DownloadV1 implements ChatServiceHandler.DownloadV1.
 func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOptionsV1,
-	chatUI chat1.ChatUiInterface) Reply {
+	chatUI chat1.ChatUiInterface, notifyUI chat1.NotifyChatInterface) Reply {
 	if opts.NoStream && opts.Output != "-" {
-		return c.downloadV1NoStream(ctx, opts, chatUI)
+		return c.downloadV1NoStream(ctx, opts, chatUI, notifyUI)
 	}
 	var fsink Sink
 	if opts.Output == "-" {
@@ -914,8 +914,19 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
 		chat1.ChatUiProtocol(c.chatUI),
+		chat1.NotifyChatProtocol(notifyUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
+	cli, err := GetNotifyCtlClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	channels := keybase1.NotificationChannels{
+		Chatattachments: true,
+	}
+	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return c.errReply(err)
 	}
 
@@ -955,7 +966,7 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 
 // downloadV1NoStream uses DownloadFileAttachmentLocal instead of DownloadAttachmentLocal.
 func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downloadOptionsV1,
-	chatUI chat1.ChatUiInterface) Reply {
+	chatUI chat1.ChatUiInterface, notifyUI chat1.NotifyChatInterface) Reply {
 	c.chatUI.RegisterChatUI(chatUI)
 	defer c.chatUI.DeregisterChatUI(chatUI)
 	client, err := GetChatLocalClient(c.G())
@@ -965,8 +976,19 @@ func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downlo
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
 		chat1.ChatUiProtocol(c.chatUI),
+		chat1.NotifyChatProtocol(notifyUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
+	cli, err := GetNotifyCtlClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	channels := keybase1.NotificationChannels{
+		Chatattachments: true,
+	}
+	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return c.errReply(err)
 	}
 
