@@ -892,6 +892,20 @@ func (c *ChatRPC) ChatAttachmentUploadProgress(
 	return nil
 }
 
+// ChatAttachmentDownloadProgress implements the chat1.NotifyChatInterface
+// for ChatRPC.
+func (c *ChatRPC) ChatAttachmentDownloadProgress(
+	_ context.Context, _ chat1.ChatAttachmentDownloadProgressArg) error {
+	return nil
+}
+
+// ChatAttachmentDownloadComplete implements the chat1.NotifyChatInterface
+// for ChatRPC.
+func (c *ChatRPC) ChatAttachmentDownloadComplete(
+	_ context.Context, _ chat1.ChatAttachmentDownloadCompleteArg) error {
+	return nil
+}
+
 // ChatPaymentInfo implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatPaymentInfo(

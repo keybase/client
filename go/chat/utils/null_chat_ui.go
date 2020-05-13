@@ -11,11 +11,6 @@ type NullChatUI struct{}
 
 var _ libkb.ChatUI = (*NullChatUI)(nil)
 
-func (u NullChatUI) ChatAttachmentDownloadStart(context.Context) error { return nil }
-func (u NullChatUI) ChatAttachmentDownloadProgress(context.Context, chat1.ChatAttachmentDownloadProgressArg) error {
-	return nil
-}
-func (u NullChatUI) ChatAttachmentDownloadDone(context.Context) error { return nil }
 func (u NullChatUI) ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error {
 	return nil
 }
