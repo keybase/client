@@ -156,19 +156,19 @@ const NewTeamInfo = () => {
             value={name}
           />
         )}
-        {teamNameTaken ? (
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.extraLineText}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.extraLineText}>
+          {teamNameTaken ? (
             <Kb.Text type="BodySmallError" style={styles.biggerOnTheInside}>
               {getTeamTakenMessage(teamNameTakenStatus)}
             </Kb.Text>
-          </Kb.Box2>
-        ) : (
-          <Kb.Text type="BodySmall">
-            {teamWizardState.teamType === 'subteam'
-              ? `Subteam names can be changed anytime.`
-              : `Choose wisely. Team names are unique and can't be changed in the future.`}
-          </Kb.Text>
-        )}
+          ) : (
+            <Kb.Text type="BodySmall">
+              {teamWizardState.teamType === 'subteam'
+                ? `Subteam names can be changed anytime.`
+                : `Choose wisely. Team names are unique and can't be changed in the future.`}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
         <Kb.LabeledInput
           hoverPlaceholder={
             teamWizardState.teamType === 'subteam'
