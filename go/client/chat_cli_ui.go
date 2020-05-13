@@ -51,7 +51,33 @@ func (n *ChatCLINotifications) ChatAttachmentUploadProgress(ctx context.Context,
 	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
 	if n.lastAttachmentPercent == 0 || percent == 100 || percent-n.lastAttachmentPercent >= 10 {
 		w := n.terminal.ErrorWriter()
-		fmt.Fprintf(w, "Attachment upload progress %d%% (%d of %d bytes uploaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
+		fmt.Fprintf(w, "Attachment upload progress %d%% (%d of %d bytes uploaded)\n", percent,
+			arg.BytesComplete, arg.BytesTotal)
+		n.lastAttachmentPercent = percent
+	}
+	return nil
+}
+
+func (n *ChatCLINotifications) ChatAttachmentDownloadComplete(ctx context.Context,
+	arg chat1.ChatAttachmentDownloadCompleteArg) error {
+	if n.noOutput {
+		return nil
+	}
+	w := n.terminal.ErrorWriter()
+	fmt.Fprintf(w, "Attachment download "+ColorString(n.G(), "magenta", "finished")+"\n")
+	return nil
+}
+
+func (n *ChatCLINotifications) ChatAttachmentDownloadProgress(ctx context.Context,
+	arg chat1.ChatAttachmentDownloadProgressArg) error {
+	if n.noOutput {
+		return nil
+	}
+	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
+	if n.lastAttachmentPercent == 0 || percent == 100 || percent-n.lastAttachmentPercent >= 10 {
+		w := n.terminal.ErrorWriter()
+		fmt.Fprintf(w, "Attachment download progress %d%% (%d of %d bytes downloaded)\n", percent,
+			arg.BytesComplete, arg.BytesTotal)
 		n.lastAttachmentPercent = percent
 	}
 	return nil
@@ -76,37 +102,6 @@ func NewChatCLIUI(g *libkb.GlobalContext) *ChatCLIUI {
 		terminal:     g.UI.GetTerminalUI(),
 		sessionID:    randSessionID(),
 	}
-}
-
-func (c *ChatCLIUI) ChatAttachmentDownloadStart(context.Context, int) error {
-	if c.noOutput {
-		return nil
-	}
-	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment download "+ColorString(c.G(), "green", "starting")+"\n")
-	return nil
-}
-
-func (c *ChatCLIUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat1.ChatAttachmentDownloadProgressArg) error {
-	if c.noOutput {
-		return nil
-	}
-	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
-	if c.lastAttachmentPercent == 0 || percent == 100 || percent-c.lastAttachmentPercent >= 10 {
-		w := c.terminal.ErrorWriter()
-		fmt.Fprintf(w, "Attachment download progress %d%% (%d of %d bytes downloaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
-		c.lastAttachmentPercent = percent
-	}
-	return nil
-}
-
-func (c *ChatCLIUI) ChatAttachmentDownloadDone(context.Context, int) error {
-	if c.noOutput {
-		return nil
-	}
-	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment download "+ColorString(c.G(), "magenta", "finished")+"\n")
-	return nil
 }
 
 func (c *ChatCLIUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {

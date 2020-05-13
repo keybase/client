@@ -817,7 +817,8 @@ func (a *ChatAPI) DownloadV1(ctx context.Context, c Call, w io.Writer) error {
 
 	// opts are valid for download v1
 
-	return a.encodeReply(c, a.svcHandler.DownloadV1(ctx, opts, NewChatAPIUI()), w)
+	return a.encodeReply(c, a.svcHandler.DownloadV1(ctx, opts, NewChatAPIUI(),
+		utils.DummyChatNotifications{}), w)
 }
 
 func (a *ChatAPI) SetStatusV1(ctx context.Context, c Call, w io.Writer) error {

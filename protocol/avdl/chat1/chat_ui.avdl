@@ -386,10 +386,6 @@ protocol chatUi {
     case EMOJI: Emoji;
   }
 
-  void chatAttachmentDownloadStart(int sessionID);
-  void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
-  void chatAttachmentDownloadDone(int sessionID);
-
   void chatInboxLayout(int sessionID, string layout); // layout is JSON of UIInboxLayout
   void chatInboxUnverified(int sessionID, string inbox); // inbox is JSON of array<UnverifiedInboxUIItems>
   void chatInboxConversation(int sessionID, string convs); // convs is JSON of array<InboxUIItem>

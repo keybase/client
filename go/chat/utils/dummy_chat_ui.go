@@ -11,19 +11,6 @@ type DummyChatUI struct{}
 
 var _ chat1.ChatUiInterface = (*DummyChatUI)(nil)
 
-func (r DummyChatUI) ChatAttachmentDownloadStart(ctx context.Context, sessionID int) error {
-	return nil
-}
-
-func (r DummyChatUI) ChatAttachmentDownloadProgress(ctx context.Context,
-	arg chat1.ChatAttachmentDownloadProgressArg) error {
-	return nil
-}
-
-func (r DummyChatUI) ChatAttachmentDownloadDone(ctx context.Context, sessionID int) error {
-	return nil
-}
-
 func (r DummyChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
 	return nil
 }
@@ -215,6 +202,12 @@ func (d DummyChatNotifications) ChatAttachmentUploadStart(context.Context, chat1
 	return nil
 }
 func (d DummyChatNotifications) ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error {
+	return nil
+}
+func (d DummyChatNotifications) ChatAttachmentDownloadProgress(context.Context, chat1.ChatAttachmentDownloadProgressArg) error {
+	return nil
+}
+func (d DummyChatNotifications) ChatAttachmentDownloadComplete(context.Context, chat1.ChatAttachmentDownloadCompleteArg) error {
 	return nil
 }
 func (d DummyChatNotifications) ChatPaymentInfo(context.Context, chat1.ChatPaymentInfoArg) error {

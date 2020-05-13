@@ -65,28 +65,6 @@ func (c *DelegateChatUI) getChatUI(sessionID int) *chat1.ChatUiInterface {
 	return nil
 }
 
-func (c *DelegateChatUI) ChatAttachmentDownloadStart(ctx context.Context, sessionID int) error {
-	if chatUI := c.getChatUI(sessionID); chatUI != nil {
-		return (*chatUI).ChatAttachmentDownloadStart(ctx, sessionID)
-	}
-	return nil
-}
-
-func (c *DelegateChatUI) ChatAttachmentDownloadProgress(ctx context.Context,
-	arg chat1.ChatAttachmentDownloadProgressArg) error {
-	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
-		return (*chatUI).ChatAttachmentDownloadProgress(ctx, arg)
-	}
-	return nil
-}
-
-func (c *DelegateChatUI) ChatAttachmentDownloadDone(ctx context.Context, sessionID int) error {
-	if chatUI := c.getChatUI(sessionID); chatUI != nil {
-		return (*chatUI).ChatAttachmentDownloadDone(ctx, sessionID)
-	}
-	return nil
-}
-
 func (c *DelegateChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
 	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
 		return (*chatUI).ChatInboxConversation(ctx, arg)

@@ -236,6 +236,14 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
+  void ChatAttachmentDownloadProgress(keybase1.UID uid, ConversationID convID, MessageID msgID, long bytesComplete, long bytesTotal);
+
+  @notify("")
+  @lint("ignore")
+  void ChatAttachmentDownloadComplete(keybase1.UID uid, ConversationID convID, MessageID msgID);
+
+  @notify("")
+  @lint("ignore")
   void ChatPaymentInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIPaymentInfo info);
 
   @notify("")

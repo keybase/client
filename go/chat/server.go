@@ -1368,26 +1368,21 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	chatUI := h.getChatUI(arg.SessionID)
 	progress := func(bytesComplete, bytesTotal int64) {
-		parg := chat1.ChatAttachmentDownloadProgressArg{
-			SessionID:     arg.SessionID,
-			BytesComplete: bytesComplete,
-			BytesTotal:    bytesTotal,
-		}
-		_ = chatUI.ChatAttachmentDownloadProgress(ctx, parg)
+		h.G().NotifyRouter.HandleChatAttachmentDownloadProgress(ctx, keybase1.UID(uid.String()),
+			arg.ConversationID, arg.MessageID, bytesComplete, bytesTotal)
 	}
 
 	h.Debug(ctx, "downloadAttachmentLocal: fetching asset from attachment message: convID: %s messageID: %d",
 		arg.ConversationID, arg.MessageID)
 
-	_ = chatUI.ChatAttachmentDownloadStart(ctx)
 	err = attachments.Download(ctx, h.G(), uid, arg.ConversationID,
 		arg.MessageID, arg.Sink, arg.Preview, progress, h.remoteClient)
 	if err != nil {
 		return res, err
 	}
-	_ = chatUI.ChatAttachmentDownloadDone(ctx)
+	h.G().NotifyRouter.HandleChatAttachmentDownloadComplete(ctx, keybase1.UID(uid.String()),
+		arg.ConversationID, arg.MessageID)
 
 	return chat1.DownloadAttachmentLocalRes{
 		IdentifyFailures: identBreaks,

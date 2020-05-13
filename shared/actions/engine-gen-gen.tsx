@@ -7,10 +7,6 @@ import * as stellar1Types from '../constants/types/rpc-stellar-gen'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of engine-gen but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'engine-gen:'
-export const chat1ChatUiChatAttachmentDownloadDone = 'engine-gen:chat1ChatUiChatAttachmentDownloadDone'
-export const chat1ChatUiChatAttachmentDownloadProgress =
-  'engine-gen:chat1ChatUiChatAttachmentDownloadProgress'
-export const chat1ChatUiChatAttachmentDownloadStart = 'engine-gen:chat1ChatUiChatAttachmentDownloadStart'
 export const chat1ChatUiChatBotCommandsUpdateStatus = 'engine-gen:chat1ChatUiChatBotCommandsUpdateStatus'
 export const chat1ChatUiChatClearWatch = 'engine-gen:chat1ChatUiChatClearWatch'
 export const chat1ChatUiChatCoinFlipStatus = 'engine-gen:chat1ChatUiChatCoinFlipStatus'
@@ -44,6 +40,10 @@ export const chat1ChatUiChatThreadFull = 'engine-gen:chat1ChatUiChatThreadFull'
 export const chat1ChatUiChatThreadStatus = 'engine-gen:chat1ChatUiChatThreadStatus'
 export const chat1ChatUiChatWatchPosition = 'engine-gen:chat1ChatUiChatWatchPosition'
 export const chat1ChatUiTriggerContactSync = 'engine-gen:chat1ChatUiTriggerContactSync'
+export const chat1NotifyChatChatAttachmentDownloadComplete =
+  'engine-gen:chat1NotifyChatChatAttachmentDownloadComplete'
+export const chat1NotifyChatChatAttachmentDownloadProgress =
+  'engine-gen:chat1NotifyChatChatAttachmentDownloadProgress'
 export const chat1NotifyChatChatAttachmentUploadProgress =
   'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
 export const chat1NotifyChatChatAttachmentUploadStart = 'engine-gen:chat1NotifyChatChatAttachmentUploadStart'
@@ -249,35 +249,6 @@ export const stellar1NotifyRequestStatusNotification = 'engine-gen:stellar1Notif
 export const stellar1UiPaymentReviewed = 'engine-gen:stellar1UiPaymentReviewed'
 
 // Payload Types
-type _Chat1ChatUiChatAttachmentDownloadDonePayload = {
-  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['inParam'] & {
-    sessionID: number
-  }
-  response: {
-    error: chat1Types.IncomingErrorCallback
-    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['outParam']) => void
-  }
-}
-type _Chat1ChatUiChatAttachmentDownloadProgressPayload = {
-  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['inParam'] & {
-    sessionID: number
-  }
-  response: {
-    error: chat1Types.IncomingErrorCallback
-    result: (
-      param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['outParam']
-    ) => void
-  }
-}
-type _Chat1ChatUiChatAttachmentDownloadStartPayload = {
-  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['inParam'] & {
-    sessionID: number
-  }
-  response: {
-    error: chat1Types.IncomingErrorCallback
-    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['outParam']) => void
-  }
-}
 type _Chat1ChatUiChatBotCommandsUpdateStatusPayload = {
   readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'] & {
     sessionID: number
@@ -549,6 +520,16 @@ type _Chat1ChatUiTriggerContactSyncPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.triggerContactSync']['outParam']) => void
+  }
+}
+type _Chat1NotifyChatChatAttachmentDownloadCompletePayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadComplete']['inParam'] & {
+    sessionID: number
+  }
+}
+type _Chat1NotifyChatChatAttachmentDownloadProgressPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadProgress']['inParam'] & {
+    sessionID: number
   }
 }
 type _Chat1NotifyChatChatAttachmentUploadProgressPayload = {
@@ -2025,18 +2006,6 @@ type _Stellar1UiPaymentReviewedPayload = {
 }
 
 // Action Creators
-export const createChat1ChatUiChatAttachmentDownloadDone = (
-  payload: _Chat1ChatUiChatAttachmentDownloadDonePayload
-): Chat1ChatUiChatAttachmentDownloadDonePayload => ({payload, type: chat1ChatUiChatAttachmentDownloadDone})
-export const createChat1ChatUiChatAttachmentDownloadProgress = (
-  payload: _Chat1ChatUiChatAttachmentDownloadProgressPayload
-): Chat1ChatUiChatAttachmentDownloadProgressPayload => ({
-  payload,
-  type: chat1ChatUiChatAttachmentDownloadProgress,
-})
-export const createChat1ChatUiChatAttachmentDownloadStart = (
-  payload: _Chat1ChatUiChatAttachmentDownloadStartPayload
-): Chat1ChatUiChatAttachmentDownloadStartPayload => ({payload, type: chat1ChatUiChatAttachmentDownloadStart})
 export const createChat1ChatUiChatBotCommandsUpdateStatus = (
   payload: _Chat1ChatUiChatBotCommandsUpdateStatusPayload
 ): Chat1ChatUiChatBotCommandsUpdateStatusPayload => ({payload, type: chat1ChatUiChatBotCommandsUpdateStatus})
@@ -2136,6 +2105,18 @@ export const createChat1ChatUiChatWatchPosition = (
 export const createChat1ChatUiTriggerContactSync = (
   payload: _Chat1ChatUiTriggerContactSyncPayload
 ): Chat1ChatUiTriggerContactSyncPayload => ({payload, type: chat1ChatUiTriggerContactSync})
+export const createChat1NotifyChatChatAttachmentDownloadComplete = (
+  payload: _Chat1NotifyChatChatAttachmentDownloadCompletePayload
+): Chat1NotifyChatChatAttachmentDownloadCompletePayload => ({
+  payload,
+  type: chat1NotifyChatChatAttachmentDownloadComplete,
+})
+export const createChat1NotifyChatChatAttachmentDownloadProgress = (
+  payload: _Chat1NotifyChatChatAttachmentDownloadProgressPayload
+): Chat1NotifyChatChatAttachmentDownloadProgressPayload => ({
+  payload,
+  type: chat1NotifyChatChatAttachmentDownloadProgress,
+})
 export const createChat1NotifyChatChatAttachmentUploadProgress = (
   payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload
 ): Chat1NotifyChatChatAttachmentUploadProgressPayload => ({
@@ -2808,18 +2789,6 @@ export const createStellar1UiPaymentReviewed = (
 ): Stellar1UiPaymentReviewedPayload => ({payload, type: stellar1UiPaymentReviewed})
 
 // Action Payloads
-export type Chat1ChatUiChatAttachmentDownloadDonePayload = {
-  readonly payload: _Chat1ChatUiChatAttachmentDownloadDonePayload
-  readonly type: typeof chat1ChatUiChatAttachmentDownloadDone
-}
-export type Chat1ChatUiChatAttachmentDownloadProgressPayload = {
-  readonly payload: _Chat1ChatUiChatAttachmentDownloadProgressPayload
-  readonly type: typeof chat1ChatUiChatAttachmentDownloadProgress
-}
-export type Chat1ChatUiChatAttachmentDownloadStartPayload = {
-  readonly payload: _Chat1ChatUiChatAttachmentDownloadStartPayload
-  readonly type: typeof chat1ChatUiChatAttachmentDownloadStart
-}
 export type Chat1ChatUiChatBotCommandsUpdateStatusPayload = {
   readonly payload: _Chat1ChatUiChatBotCommandsUpdateStatusPayload
   readonly type: typeof chat1ChatUiChatBotCommandsUpdateStatus
@@ -2951,6 +2920,14 @@ export type Chat1ChatUiChatWatchPositionPayload = {
 export type Chat1ChatUiTriggerContactSyncPayload = {
   readonly payload: _Chat1ChatUiTriggerContactSyncPayload
   readonly type: typeof chat1ChatUiTriggerContactSync
+}
+export type Chat1NotifyChatChatAttachmentDownloadCompletePayload = {
+  readonly payload: _Chat1NotifyChatChatAttachmentDownloadCompletePayload
+  readonly type: typeof chat1NotifyChatChatAttachmentDownloadComplete
+}
+export type Chat1NotifyChatChatAttachmentDownloadProgressPayload = {
+  readonly payload: _Chat1NotifyChatChatAttachmentDownloadProgressPayload
+  readonly type: typeof chat1NotifyChatChatAttachmentDownloadProgress
 }
 export type Chat1NotifyChatChatAttachmentUploadProgressPayload = {
   readonly payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload
@@ -3670,9 +3647,6 @@ export type Stellar1UiPaymentReviewedPayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
-  | Chat1ChatUiChatAttachmentDownloadDonePayload
-  | Chat1ChatUiChatAttachmentDownloadProgressPayload
-  | Chat1ChatUiChatAttachmentDownloadStartPayload
   | Chat1ChatUiChatBotCommandsUpdateStatusPayload
   | Chat1ChatUiChatClearWatchPayload
   | Chat1ChatUiChatCoinFlipStatusPayload
@@ -3706,6 +3680,8 @@ export type Actions =
   | Chat1ChatUiChatThreadStatusPayload
   | Chat1ChatUiChatWatchPositionPayload
   | Chat1ChatUiTriggerContactSyncPayload
+  | Chat1NotifyChatChatAttachmentDownloadCompletePayload
+  | Chat1NotifyChatChatAttachmentDownloadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadStartPayload
   | Chat1NotifyChatChatConvUpdatePayload

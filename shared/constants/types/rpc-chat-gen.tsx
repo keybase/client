@@ -35,6 +35,14 @@ export const _doNotUse = (w: WaitingKey, i: IncomingReturn) =>
   )
 
 export type MessageTypes = {
+  'chat.1.NotifyChat.ChatAttachmentDownloadComplete': {
+    inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID; readonly msgID: MessageID}
+    outParam: void
+  }
+  'chat.1.NotifyChat.ChatAttachmentDownloadProgress': {
+    inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID; readonly msgID: MessageID; readonly bytesComplete: Long; readonly bytesTotal: Long}
+    outParam: void
+  }
   'chat.1.NotifyChat.ChatAttachmentUploadProgress': {
     inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID; readonly outboxID: OutboxID; readonly bytesComplete: Long; readonly bytesTotal: Long}
     outParam: void
@@ -133,18 +141,6 @@ export type MessageTypes = {
   }
   'chat.1.NotifyChat.NewChatActivity': {
     inParam: {readonly uid: Keybase1.UID; readonly activity: ChatActivity; readonly source: ChatActivitySource}
-    outParam: void
-  }
-  'chat.1.chatUi.chatAttachmentDownloadDone': {
-    inParam: void
-    outParam: void
-  }
-  'chat.1.chatUi.chatAttachmentDownloadProgress': {
-    inParam: {readonly bytesComplete: Long; readonly bytesTotal: Long}
-    outParam: void
-  }
-  'chat.1.chatUi.chatAttachmentDownloadStart': {
-    inParam: void
     outParam: void
   }
   'chat.1.chatUi.chatBotCommandsUpdateStatus': {
@@ -1586,9 +1582,6 @@ export type WelcomeMessage = {readonly set: Boolean; readonly raw: String}
 export type WelcomeMessageDisplay = {readonly set: Boolean; readonly display: String; readonly raw: String}
 
 export type IncomingCallMapType = {
-  'chat.1.chatUi.chatAttachmentDownloadStart'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['inParam'] & {sessionID: number}) => IncomingReturn
-  'chat.1.chatUi.chatAttachmentDownloadProgress'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['inParam'] & {sessionID: number}) => IncomingReturn
-  'chat.1.chatUi.chatAttachmentDownloadDone'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatInboxLayout'?: (params: MessageTypes['chat.1.chatUi.chatInboxLayout']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatInboxUnverified'?: (params: MessageTypes['chat.1.chatUi.chatInboxUnverified']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatInboxConversation'?: (params: MessageTypes['chat.1.chatUi.chatInboxConversation']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1641,6 +1634,8 @@ export type IncomingCallMapType = {
   'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'?: (params: MessageTypes['chat.1.NotifyChat.ChatKBFSToImpteamUpgrade']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatAttachmentUploadStart'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadStart']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatAttachmentUploadProgress'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadProgress']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.NotifyChat.ChatAttachmentDownloadProgress'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadProgress']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.NotifyChat.ChatAttachmentDownloadComplete'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadComplete']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatPaymentInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatPaymentInfo']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatRequestInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatRequestInfo']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatPromptUnfurl'?: (params: MessageTypes['chat.1.NotifyChat.ChatPromptUnfurl']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1650,9 +1645,6 @@ export type IncomingCallMapType = {
 }
 
 export type CustomResponseIncomingCallMap = {
-  'chat.1.chatUi.chatAttachmentDownloadStart'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['outParam']) => void}) => IncomingReturn
-  'chat.1.chatUi.chatAttachmentDownloadProgress'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['outParam']) => void}) => IncomingReturn
-  'chat.1.chatUi.chatAttachmentDownloadDone'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatInboxLayout'?: (params: MessageTypes['chat.1.chatUi.chatInboxLayout']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxLayout']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatInboxUnverified'?: (params: MessageTypes['chat.1.chatUi.chatInboxUnverified']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxUnverified']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatInboxConversation'?: (params: MessageTypes['chat.1.chatUi.chatInboxConversation']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxConversation']['outParam']) => void}) => IncomingReturn
@@ -1787,9 +1779,6 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.userEmojis']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.userEmojis']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.userEmojis', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'chat.1.blocking.blockConversations'
-// 'chat.1.chatUi.chatAttachmentDownloadStart'
-// 'chat.1.chatUi.chatAttachmentDownloadProgress'
-// 'chat.1.chatUi.chatAttachmentDownloadDone'
 // 'chat.1.chatUi.chatInboxLayout'
 // 'chat.1.chatUi.chatInboxUnverified'
 // 'chat.1.chatUi.chatInboxConversation'
@@ -1867,6 +1856,8 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'
 // 'chat.1.NotifyChat.ChatAttachmentUploadStart'
 // 'chat.1.NotifyChat.ChatAttachmentUploadProgress'
+// 'chat.1.NotifyChat.ChatAttachmentDownloadProgress'
+// 'chat.1.NotifyChat.ChatAttachmentDownloadComplete'
 // 'chat.1.NotifyChat.ChatPaymentInfo'
 // 'chat.1.NotifyChat.ChatRequestInfo'
 // 'chat.1.NotifyChat.ChatPromptUnfurl'

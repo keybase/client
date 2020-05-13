@@ -21,6 +21,8 @@ type EngineActions =
   | EngineGen.Chat1NotifyChatChatParticipantsInfoPayload
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
   | EngineGen.Chat1ChatUiChatInboxLayoutPayload
+  | EngineGen.Chat1NotifyChatChatAttachmentDownloadCompletePayload
+  | EngineGen.Chat1NotifyChatChatAttachmentDownloadProgressPayload
 
 type Actions =
   | Chat2Gen.Actions
@@ -437,9 +439,57 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       map.set(ordinal, m ? Constants.upgradeMessage(m, message) : message)
     }
   },
-  [Chat2Gen.attachmentLoading]: (draftState, action) => {
-    const {conversationIDKey, message, isPreview, ratio} = action.payload
+  [EngineGen.chat1NotifyChatChatAttachmentDownloadComplete]: (draftState, action) => {
+    const {convID, msgID} = action.payload.params
+    const conversationIDKey = Types.conversationIDToKey(convID)
+    const ordinal = messageIDToOrdinal(
+      draftState.messageMap,
+      draftState.pendingOutboxToOrdinal,
+      conversationIDKey,
+      msgID
+    )
+    if (!ordinal) {
+      logger.info(
+        `downloadComplete: no ordinal found: conversationIDKey: ${conversationIDKey} msgID: ${msgID}`
+      )
+      return
+    }
+    const message = draftState.messageMap.get(conversationIDKey)?.get(ordinal)
+    if (!message) {
+      logger.info(
+        `downloadComplete: no message found: conversationIDKey: ${conversationIDKey} ordinal: ${ordinal}`
+      )
+      return
+    }
+    if (message?.type === 'attachment') {
+      message.transferState = null
+      message.transferProgress = 0
+    }
+  },
+  [EngineGen.chat1NotifyChatChatAttachmentDownloadProgress]: (draftState, action) => {
+    const {convID, msgID, bytesComplete, bytesTotal} = action.payload.params
+    const conversationIDKey = Types.conversationIDToKey(convID)
+    const ordinal = messageIDToOrdinal(
+      draftState.messageMap,
+      draftState.pendingOutboxToOrdinal,
+      conversationIDKey,
+      msgID
+    )
+    if (!ordinal) {
+      logger.info(
+        `downloadProgress: no ordinal found: conversationIDKey: ${conversationIDKey} msgID: ${msgID}`
+      )
+      return
+    }
+    const message = draftState.messageMap.get(conversationIDKey)?.get(ordinal)
+    if (!message) {
+      logger.info(
+        `downloadProgress: no message found: conversationIDKey: ${conversationIDKey} ordinal: ${ordinal}`
+      )
+      return
+    }
     const {attachmentViewMap, messageMap} = draftState
+    const ratio = bytesComplete / bytesTotal
     const viewType = RPCChatTypes.GalleryItemTyp.doc
     const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
     const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
@@ -449,20 +499,16 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       const m = messages[idx]
       if (m.type === 'attachment') {
         m.transferState = 'downloading'
-        m.transferProgress = action.payload.ratio
+        m.transferProgress = ratio
       }
     }
 
     const map = messageMap.get(conversationIDKey)
     const m = map?.get(message.ordinal)
     if (m?.type === 'attachment') {
-      if (isPreview) {
-        m.previewTransferState = 'downloading'
-      } else {
-        m.transferProgress = ratio
-        m.transferState = 'downloading'
-        m.transferErrMsg = null
-      }
+      m.transferProgress = ratio
+      m.transferState = 'downloading'
+      m.transferErrMsg = null
     }
   },
   [Chat2Gen.attachmentDownloaded]: (draftState, action) => {

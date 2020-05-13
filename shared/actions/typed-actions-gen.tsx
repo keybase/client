@@ -133,7 +133,6 @@ export type TypedActionsMap = {
   'chat2:attachmentDownload': chat2.AttachmentDownloadPayload
   'chat2:attachmentMobileSave': chat2.AttachmentMobileSavePayload
   'chat2:attachmentMobileSaved': chat2.AttachmentMobileSavedPayload
-  'chat2:attachmentLoading': chat2.AttachmentLoadingPayload
   'chat2:attachmentDownloaded': chat2.AttachmentDownloadedPayload
   'chat2:attachmentsUpload': chat2.AttachmentsUploadPayload
   'chat2:attachFromDragAndDrop': chat2.AttachFromDragAndDropPayload
@@ -349,9 +348,6 @@ export type TypedActionsMap = {
   'devices:showPaperKeyPage': devices.ShowPaperKeyPagePayload
   'engine-gen:disconnected': enginegen.DisconnectedPayload
   'engine-gen:connected': enginegen.ConnectedPayload
-  'engine-gen:chat1ChatUiChatAttachmentDownloadStart': enginegen.Chat1ChatUiChatAttachmentDownloadStartPayload
-  'engine-gen:chat1ChatUiChatAttachmentDownloadProgress': enginegen.Chat1ChatUiChatAttachmentDownloadProgressPayload
-  'engine-gen:chat1ChatUiChatAttachmentDownloadDone': enginegen.Chat1ChatUiChatAttachmentDownloadDonePayload
   'engine-gen:chat1ChatUiChatInboxLayout': enginegen.Chat1ChatUiChatInboxLayoutPayload
   'engine-gen:chat1ChatUiChatInboxUnverified': enginegen.Chat1ChatUiChatInboxUnverifiedPayload
   'engine-gen:chat1ChatUiChatInboxConversation': enginegen.Chat1ChatUiChatInboxConversationPayload
@@ -404,6 +400,8 @@ export type TypedActionsMap = {
   'engine-gen:chat1NotifyChatChatKBFSToImpteamUpgrade': enginegen.Chat1NotifyChatChatKBFSToImpteamUpgradePayload
   'engine-gen:chat1NotifyChatChatAttachmentUploadStart': enginegen.Chat1NotifyChatChatAttachmentUploadStartPayload
   'engine-gen:chat1NotifyChatChatAttachmentUploadProgress': enginegen.Chat1NotifyChatChatAttachmentUploadProgressPayload
+  'engine-gen:chat1NotifyChatChatAttachmentDownloadProgress': enginegen.Chat1NotifyChatChatAttachmentDownloadProgressPayload
+  'engine-gen:chat1NotifyChatChatAttachmentDownloadComplete': enginegen.Chat1NotifyChatChatAttachmentDownloadCompletePayload
   'engine-gen:chat1NotifyChatChatPaymentInfo': enginegen.Chat1NotifyChatChatPaymentInfoPayload
   'engine-gen:chat1NotifyChatChatRequestInfo': enginegen.Chat1NotifyChatChatRequestInfoPayload
   'engine-gen:chat1NotifyChatChatPromptUnfurl': enginegen.Chat1NotifyChatChatPromptUnfurlPayload
