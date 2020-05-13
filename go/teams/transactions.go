@@ -71,7 +71,7 @@ type AddMemberTx struct {
 	EmailInviteMsg *string
 }
 
-// TransactionTaintedError is used for unrecovera ble error where we fail to add
+// TransactionTaintedError is used for unrecoverable error where we fail to add
 // a member and irreversibly break the transaction while doing so.
 type TransactionTaintedError struct {
 	inner error
@@ -388,7 +388,7 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 			if currentRole == role {
 				// No-op team.change_membership links that don't change
 				// member's role are legal, but we are trying to avoid
-				// them. Caller should catch this error and move onwards,
+				// them. Caller can catch this error and move onwards,
 				// it doesn't taint the transaction.
 				return false, libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %s with role %s",
 					normalizedUsername, team.Name(), role.HumanString())}
