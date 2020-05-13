@@ -294,7 +294,9 @@ const SelfChannelActions = ({
   const inChannel = meta.membershipType === 'active'
 
   const actionProps = {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID}
-  const onEditChannel = () => {} // TODO: show another modal with a back button to here
+  const editChannelProps = {...actionProps, channelname: meta.channelname, description: meta.description}
+  const onEditChannel = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: editChannelProps, selected: 'teamEditChannel'}]}))
   const onChannelSettings = () => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(nav.safeNavigateAppendPayload({path: [{props: actionProps, selected: 'teamChannel'}]}))
