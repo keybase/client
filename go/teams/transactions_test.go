@@ -320,9 +320,9 @@ func TestTransactionEmailExists(t *testing.T) {
 	team, err := GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
 	require.NoError(t, err)
 
-	found, err := team.HasActiveInvite(tc.MetaContext(), keybase1.TeamInviteName(randomEmail), "email")
+	invite, err := team.chain().FindActiveInviteString(tc.MetaContext(), randomEmail.String(), "email")
 	require.NoError(t, err)
-	require.True(t, found)
+	require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
 
 	tx := CreateAddMemberTx(team)
 	tx.AllowRoleChanges = true
@@ -384,6 +384,10 @@ func TestTransactionResolvableEmailExists(t *testing.T) {
 	role, err := team.MemberRole(tc.Context(), user.GetUserVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_WRITER, role)
+	// And that e-mail wasn't added as invite.
+	hasInvite, err := team.HasActiveInvite(tc.MetaContext(), keybase1.TeamInviteName(usersEmail), "email")
+	require.NoError(t, err)
+	require.False(t, hasInvite)
 
 	// Try again, should fail.
 	tx = CreateAddMemberTx(team)

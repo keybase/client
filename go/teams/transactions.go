@@ -31,7 +31,7 @@ type AddMemberTx struct {
 	// Error state: if a transaction operation failed and tainted the
 	// transaction, do not allow posting. We try to never get in a state when
 	// we modify a transaction and then realize there's an issue, but if this
-	// happens, make sure the tx can't be used further.
+	// happens, make sure `Post` can't be called on such tx later.
 	err error
 
 	// completedInvites is used to mark completed invites, so they are
@@ -45,7 +45,7 @@ type AddMemberTx struct {
 	// affects given uid.
 	lastChangeForUID map[keybase1.UID]int
 
-	// Caller can set the following to affect how AddMemberTx:
+	// Consumer can set the following to affect AddMemberTx operation:
 
 	// Allow adding users who do not have active Per User Key. Users without
 	// PUK will be added using a 'team.invite' link with type='keybase'
@@ -71,7 +71,7 @@ type AddMemberTx struct {
 	EmailInviteMsg *string
 }
 
-// TransactionTaintedError is used for unrecoverable error where we fail to add
+// TransactionTaintedError is used for unrecovera ble error where we fail to add
 // a member and irreversibly break the transaction while doing so.
 type TransactionTaintedError struct {
 	inner error
