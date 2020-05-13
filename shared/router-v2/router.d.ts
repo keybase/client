@@ -1,5 +1,6 @@
 import * as React from 'react'
 
+export declare const headerDefaultStyle: any
 export type Props = {
   isDarkMode?: boolean
   onNavigationStateChange: (prev: any, next: any, action: any) => void

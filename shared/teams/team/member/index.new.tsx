@@ -305,6 +305,7 @@ const MobileHeader = ({username, offset}: {username: string; offset: any}) => {
   })
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.mobileHeader}>
+      <Kb.SafeAreaViewTop />
       <AnimatedBox2
         style={[styles.smallHeader, {opacity, top}]}
         gap="tiny"
@@ -654,7 +655,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     <Kb.Button
                       mode="Secondary"
                       onClick={onAddToChannels}
-                      label="Add to channels"
+                      label={isMe ? 'Join channels' : 'Add to channels'}
                       small={true}
                     />
                     {!(isMe && amLastOwner) && (

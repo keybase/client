@@ -336,7 +336,12 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
 
 const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles; lastMember?: boolean}) => {
   const dispatch = Container.useDispatch()
-  const onRemove = () => dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
+  const onRemove = () => {
+    dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
+    if (props.lastMember) {
+      dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'teamAddToTeamFromWhere'}))
+    }
+  }
   const role = Container.useSelector(s => s.teams.addMembersWizard.role)
   const individualRole: Types.MaybeTeamRoleType = Container.useSelector(
     s =>
@@ -391,7 +396,7 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
             />
           </FloatingRolePicker>
         )}
-        {props.lastMember !== true && <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />}
+        <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />
       </Kb.Box2>
     </Kb.Box2>
   )

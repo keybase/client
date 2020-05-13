@@ -37,7 +37,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const {channelname, description} = channelInfo
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
-  const canDelete = yourOperations.deleteChannel
+  const canDelete = yourOperations.deleteChannel && channelname !== 'general'
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -131,14 +131,16 @@ const HeaderTitle = (props: HeaderTitleProps) => {
               style={styles.addMembersButton}
             />
           )}
-          <Kb.Button
-            mode="Secondary"
-            small={true}
-            icon="iconfont-ellipsis"
-            iconColor={Styles.globalColors.blue}
-            ref={popupAnchor}
-            onClick={toggleShowingPopup}
-          />
+          {!!menuItems.length && (
+            <Kb.Button
+              mode="Secondary"
+              small={true}
+              icon="iconfont-ellipsis"
+              iconColor={Styles.globalColors.blue}
+              ref={popupAnchor}
+              onClick={toggleShowingPopup}
+            />
+          )}
         </Kb.Box2>
       </Kb.Box2>
       {popup}

@@ -213,7 +213,10 @@ const TeamJourneyConnected = Container.connect(
     _onGoToChannel: (channelname: string, teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
     _onManageChannels: (teamID: string) => dispatch(TeamsGen.createManageChatChannels({teamID})),
-    _onPublishTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
+    _onPublishTeam: (teamID: string) => {
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']}))
+      dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
+    },
     _onShowTeam: (teamID: TeamTypes.TeamID) =>
       dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
   }),
@@ -246,7 +249,7 @@ const TeamJourneyConnected = Container.connect(
           ownProps.message.ordinal
         ),
       onGoToChannel: (channelName: string) => dispatchProps._onGoToChannel(channelName, stateProps.teamname),
-      onPublishTeam: () => dispatchProps._onPublishTeam(),
+      onPublishTeam: () => dispatchProps._onPublishTeam(stateProps._teamID),
       onScrollBack: () => console.log('onScrollBack'),
       onShowTeam: () => dispatchProps._onShowTeam(stateProps._teamID),
       teamID: stateProps._teamID,
