@@ -257,6 +257,10 @@ func (d *chatNotificationDisplay) ChatAttachmentUploadStart(context.Context, cha
 func (d *chatNotificationDisplay) ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error {
 	return nil
 }
+func (d *chatNotificationDisplay) ChatAttachmentDownloadProgress(context.Context,
+	chat1.ChatAttachmentDownloadProgressArg) error {
+	return nil
+}
 func (d *chatNotificationDisplay) ChatPaymentInfo(context.Context, chat1.ChatPaymentInfoArg) error {
 	return nil
 }

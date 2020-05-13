@@ -57,6 +57,20 @@ func (n *ChatCLINotifications) ChatAttachmentUploadProgress(ctx context.Context,
 	return nil
 }
 
+func (c *ChatCLINotifications) ChatAttachmentDownloadProgress(ctx context.Context,
+	arg chat1.ChatAttachmentDownloadProgressArg) error {
+	if c.noOutput {
+		return nil
+	}
+	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
+	if c.lastAttachmentPercent == 0 || percent == 100 || percent-c.lastAttachmentPercent >= 10 {
+		w := c.terminal.ErrorWriter()
+		fmt.Fprintf(w, "Attachment download progress %d%% (%d of %d bytes downloaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
+		c.lastAttachmentPercent = percent
+	}
+	return nil
+}
+
 type ChatCLIUI struct {
 	libkb.Contextified
 	terminal libkb.TerminalUI
@@ -76,37 +90,6 @@ func NewChatCLIUI(g *libkb.GlobalContext) *ChatCLIUI {
 		terminal:     g.UI.GetTerminalUI(),
 		sessionID:    randSessionID(),
 	}
-}
-
-func (c *ChatCLIUI) ChatAttachmentDownloadStart(context.Context, int) error {
-	if c.noOutput {
-		return nil
-	}
-	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment download "+ColorString(c.G(), "green", "starting")+"\n")
-	return nil
-}
-
-func (c *ChatCLIUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat1.ChatAttachmentDownloadProgressArg) error {
-	if c.noOutput {
-		return nil
-	}
-	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
-	if c.lastAttachmentPercent == 0 || percent == 100 || percent-c.lastAttachmentPercent >= 10 {
-		w := c.terminal.ErrorWriter()
-		fmt.Fprintf(w, "Attachment download progress %d%% (%d of %d bytes downloaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
-		c.lastAttachmentPercent = percent
-	}
-	return nil
-}
-
-func (c *ChatCLIUI) ChatAttachmentDownloadDone(context.Context, int) error {
-	if c.noOutput {
-		return nil
-	}
-	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment download "+ColorString(c.G(), "magenta", "finished")+"\n")
-	return nil
 }
 
 func (c *ChatCLIUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {

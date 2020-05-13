@@ -622,6 +622,24 @@ const onChatAttachmentUploadProgress = (
   })
 }
 
+const onChatAttachmentDownloadProgress = (
+  state: Container.TypedState,
+  action: EngineGen.Chat1NotifyChatChatAttachmentDownloadProgressPayload,
+  logger: Saga.SagaLogger
+) => {
+  const {convID, msgID, bytesComplete, bytesTotal} = action.payload.params
+  const conversationIDKey = Types.conversationIDToKey(convID)
+  const message = Constants.getMessage(state, conversationIDKey, msgID)
+  if (!message) {
+    logger.info(
+      `onChatAttachmentDownloadProgress: unknown message: convID: ${conversationIDKey} msgID: ${msgID}`
+    )
+    return false
+  }
+  const ratio = bytesComplete / bytesTotal
+  return Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview: false, message, ratio})
+}
+
 const onChatAttachmentUploadStart = (action: EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload) => {
   const {convID, outboxID} = action.payload.params
   return Chat2Gen.createAttachmentUploading({
@@ -2114,29 +2132,9 @@ const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayl
 function* downloadAttachment(downloadToCache: boolean, message: Types.Message, logger: Saga.SagaLogger) {
   try {
     const {conversationIDKey} = message
-    let lastRatioSent = -1 // force the first update to show no matter what
-    const onDownloadProgress = ({
-      bytesComplete,
-      bytesTotal,
-    }: RPCChatTypes.MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['inParam']) => {
-      const ratio = bytesComplete / bytesTotal
-      // Don't spam ourselves with updates
-      if (ratio - lastRatioSent > 0.05) {
-        lastRatioSent = ratio
-        return Saga.put(
-          Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview: false, message, ratio})
-        )
-      }
-      return false
-    }
-
     const rpcRes: RPCChatTypes.DownloadFileAttachmentLocalRes = yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga(
       {
-        incomingCallMap: {
-          'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
-          'chat.1.chatUi.chatAttachmentDownloadProgress': onDownloadProgress,
-          'chat.1.chatUi.chatAttachmentDownloadStart': () => {},
-        },
+        incomingCallMap: {},
         params: {
           conversationID: Types.keyToConversationID(conversationIDKey),
           downloadToCache,
@@ -3954,6 +3952,10 @@ function* chat2Saga() {
   yield* Saga.chainAction(
     EngineGen.chat1NotifyChatChatAttachmentUploadProgress,
     onChatAttachmentUploadProgress
+  )
+  yield* Saga.chainAction2(
+    EngineGen.chat1NotifyChatChatAttachmentDownloadProgress,
+    onChatAttachmentDownloadProgress
   )
   yield* Saga.chainAction(EngineGen.chat1NotifyChatChatAttachmentUploadStart, onChatAttachmentUploadStart)
   yield* Saga.chainAction(EngineGen.chat1NotifyChatChatIdentifyUpdate, onChatIdentifyUpdate)
