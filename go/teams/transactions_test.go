@@ -325,6 +325,7 @@ func TestTransactionEmailExists(t *testing.T) {
 	require.True(t, found)
 
 	tx := CreateAddMemberTx(team)
+	tx.AllowRoleChanges = true
 
 	assertion := fmt.Sprintf("[%s]@email", randomEmail)
 
@@ -344,10 +345,10 @@ func TestTransactionEmailExists(t *testing.T) {
 }
 
 func TestTransactionResolvableEmailExists(t *testing.T) {
+	// Similar test but with resolvable email.
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
-	// Similar test but with resolvable email.
 	user := kbtest.TCreateFakeUser(tc)
 
 	// Add and verify email address.
@@ -457,4 +458,45 @@ func TestTransactionAddEmailPukless(t *testing.T) {
 	found, err = team.HasActiveInvite(tcs[0].MetaContext(), keybase1.TeamInviteName(usersEmail), "email")
 	require.NoError(t, err)
 	require.False(t, found)
+}
+
+func TestTransactionDowngradeAdmin(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	user := kbtest.TCreateFakeUser(tc)
+	kbtest.TCreateFakeUser(tc) // owner
+
+	_, teamID := createTeam2(tc)
+
+	// Add user as admin.
+	res, err := AddMemberByID(tc.Context(), tc.G, teamID, user.Username, keybase1.TeamRole_ADMIN,
+		nil /* botSettings */, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+	require.False(t, res.Invited)
+
+	// Load team, change role of user to writer (from admin).
+	team, err := GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+
+	memberRole, err := team.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_ADMIN, memberRole)
+
+	tx := CreateAddMemberTx(team)
+	tx.AllowRoleChanges = true
+	err = tx.AddMemberByUsername(tc.Context(), user.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.NoError(t, err)
+	require.Len(t, tx.payloads, 1)
+
+	err = tx.Post(tc.MetaContext())
+	require.NoError(t, err)
+
+	// See if it worked.
+	team, err = GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+
+	memberRole, err = team.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, memberRole)
 }
