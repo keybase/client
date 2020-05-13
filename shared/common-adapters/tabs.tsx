@@ -32,6 +32,7 @@ export type Tab<TitleT extends string> = {
 type Props<TitleT extends string> = {
   tabs: Array<Tab<TitleT>>
   onSelect: (title: TitleT) => void
+  clickableTabStyle?: Styles.StylesCrossPlatform
   selectedTab?: TitleT
   style?: Styles.StylesCrossPlatform
   tabStyle?: Styles.StylesCrossPlatform
@@ -72,6 +73,7 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => {
             style={Styles.collapseStyles([
               styles.clickableBoxStyle,
               mobileTabMode === 'distribute' ? styles.mobileDistribute : styles.mobileScroll,
+              props.clickableTabStyle,
             ])}
           >
             <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
