@@ -124,7 +124,7 @@ export const newModalRoutes = {
   },
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
   teamEditChannel: {
-    getScreen: (): typeof EditChannel => require('./team/member/edit-channel').default,
+    getScreen: (): typeof TeamEditChannel => require('./team/member/edit-channel').default,
   },
   teamEditTeamDescription: {
     getScreen: (): typeof TeamEditTeamDescription => require('./edit-team-description').default,
