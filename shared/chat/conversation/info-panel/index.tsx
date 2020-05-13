@@ -201,6 +201,9 @@ const styles = Styles.styleSheetCreate(
           overflowX: 'hidden',
           overflowY: 'hidden',
         },
+        isMobile: {
+          marginTop: 0,
+        },
       }),
     } as const)
 )
