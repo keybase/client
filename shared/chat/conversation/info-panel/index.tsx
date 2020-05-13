@@ -54,7 +54,6 @@ export class InfoPanel extends React.PureComponent<InfoPanelProps> {
           onSelect={this.props.onSelectTab}
           style={styles.tabContainer}
           tabStyle={styles.tab}
-          mobileTabModeOverride="scroll"
           clickableTabStyle={styles.clickableTabStyle}
         />
       </Kb.Box2>
