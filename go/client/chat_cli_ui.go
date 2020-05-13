@@ -58,27 +58,27 @@ func (n *ChatCLINotifications) ChatAttachmentUploadProgress(ctx context.Context,
 	return nil
 }
 
-func (c *ChatCLINotifications) ChatAttachmentDownloadComplete(ctx context.Context,
+func (n *ChatCLINotifications) ChatAttachmentDownloadComplete(ctx context.Context,
 	arg chat1.ChatAttachmentDownloadCompleteArg) error {
-	if c.noOutput {
+	if n.noOutput {
 		return nil
 	}
-	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment download "+ColorString(c.G(), "magenta", "finished")+"\n")
+	w := n.terminal.ErrorWriter()
+	fmt.Fprintf(w, "Attachment download "+ColorString(n.G(), "magenta", "finished")+"\n")
 	return nil
 }
 
-func (c *ChatCLINotifications) ChatAttachmentDownloadProgress(ctx context.Context,
+func (n *ChatCLINotifications) ChatAttachmentDownloadProgress(ctx context.Context,
 	arg chat1.ChatAttachmentDownloadProgressArg) error {
-	if c.noOutput {
+	if n.noOutput {
 		return nil
 	}
 	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
-	if c.lastAttachmentPercent == 0 || percent == 100 || percent-c.lastAttachmentPercent >= 10 {
-		w := c.terminal.ErrorWriter()
+	if n.lastAttachmentPercent == 0 || percent == 100 || percent-n.lastAttachmentPercent >= 10 {
+		w := n.terminal.ErrorWriter()
 		fmt.Fprintf(w, "Attachment download progress %d%% (%d of %d bytes downloaded)\n", percent,
 			arg.BytesComplete, arg.BytesTotal)
-		c.lastAttachmentPercent = percent
+		n.lastAttachmentPercent = percent
 	}
 	return nil
 }
