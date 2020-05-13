@@ -1597,10 +1597,13 @@ const addMembersWizardPushMembers = async (
     .filter(member => member.assertion.includes('@') || !!member.resolvedFrom)
     .map(({assertion}) => assertion)
 
-  const existingAssertions = await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
-    assertions,
-    teamID,
-  })
+  const existingAssertions =
+    teamID === Types.newTeamWizardTeamID
+      ? []
+      : await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
+          assertions,
+          teamID,
+        })
 
   return [
     TeamsGen.createAddMembersWizardAddMembers({
