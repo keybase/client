@@ -58,9 +58,10 @@ type AddMemberTx struct {
 	AllowPUKless bool
 
 	// Do not return an error when trying to "add a member" who is already
-	// member of the team but has a different role. NOTE: that this does not
-	// work for PUKless users - for simplicity, their role can't be changed
-	// using AddMemberTx right now.
+	// member of the team but has a different role.
+	//
+	// This does not affect team invites (including PUK-less users). For
+	// simplicity, their role can't be changed using AddMemberTx right now.
 	AllowRoleChanges bool
 
 	// Override whether the team key is rotated.

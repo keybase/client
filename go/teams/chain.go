@@ -635,6 +635,21 @@ func (t *TeamSigChainState) FindActiveInvite(name keybase1.TeamInviteName, typ k
 	return nil, libkb.NotFoundError{}
 }
 
+func (t *TeamSigChainState) FindActiveInviteString(mctx libkb.MetaContext, name string, typ string) (ret keybase1.TeamInvite, err error) {
+	itype, err := TeamInviteTypeFromString(mctx, typ)
+	if err != nil {
+		return ret, err
+	}
+	invPtr, err := t.FindActiveInvite(keybase1.TeamInviteName(name), itype)
+	switch {
+	case err != nil:
+		return ret, err
+	case invPtr == nil:
+		return ret, libkb.NotFoundError{}
+	}
+	return *invPtr, nil
+}
+
 // FindActiveInviteMDByID returns potentially expired invites that have not been
 // explicitly cancelled, since the sigchain player is agnostic to the concept
 // of time. We treat invite expiration times as advisory for admin clients
