@@ -1330,7 +1330,7 @@ protocol teams {
     string description;
     boolean joinSubteam;
     TeamSettings openSettings;
-    boolean showcase;
+    boolean profileShowcase; // showcase team on creator's profile
     union { null, TeamAvatar } avatar;
     array<string> chatChannels;
     array<string> subteams;

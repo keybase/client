@@ -315,7 +315,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.newTeamWizard.description = action.payload.description
     draftState.newTeamWizard.open = action.payload.openTeam
     draftState.newTeamWizard.openTeamJoinRole = action.payload.openTeamJoinRole
-    draftState.newTeamWizard.showcase = action.payload.showcase
+    draftState.newTeamWizard.profileShowcase = action.payload.profileShowcase
     draftState.newTeamWizard.addYourself = action.payload.addYourself
   },
   [TeamsGen.setTeamWizardAvatar]: (draftState, action) => {
