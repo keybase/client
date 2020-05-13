@@ -104,12 +104,13 @@ func Collar(lower int, ideal int, upper int) int {
 // AggRateLimitsP takes a list of rate limit responses and dedups them to the last one received
 // of each category
 func AggRateLimitsP(rlimits []*chat1.RateLimit) (res []chat1.RateLimit) {
-	m := make(map[string]chat1.RateLimit)
+	m := make(map[string]chat1.RateLimit, len(rlimits))
 	for _, l := range rlimits {
 		if l != nil {
 			m[l.Name] = *l
 		}
 	}
+	res = make([]chat1.RateLimit, 0, len(m))
 	for _, v := range m {
 		res = append(res, v)
 	}
@@ -117,10 +118,11 @@ func AggRateLimitsP(rlimits []*chat1.RateLimit) (res []chat1.RateLimit) {
 }
 
 func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
-	m := make(map[string]chat1.RateLimit)
+	m := make(map[string]chat1.RateLimit, len(rlimits))
 	for _, l := range rlimits {
 		m[l.Name] = l
 	}
+	res = make([]chat1.RateLimit, 0, len(m))
 	for _, v := range m {
 		res = append(res, v)
 	}
@@ -145,15 +147,15 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 	if err != nil {
 		return writerNames, err
 	}
-	var activeKuids []keybase1.UID
+	activeKuids := make([]keybase1.UID, 0, len(activeList))
 	for _, a := range activeList {
 		activeKuids = append(activeKuids, keybase1.UID(a.String()))
 	}
-	allowedWriters := make(map[string]bool)
-	convNameUsers := make(map[string]bool)
+	allowedWriters := make(map[string]bool, len(verifiedMembers)+len(srcWriterNames))
 	for _, user := range verifiedMembers {
 		allowedWriters[user] = true
 	}
+	convNameUsers := make(map[string]bool, len(srcWriterNames))
 	for _, user := range srcWriterNames {
 		convNameUsers[user] = true
 		allowedWriters[user] = true
@@ -265,6 +267,7 @@ func NewChatTopicID() (id []byte, err error) {
 }
 
 func AllChatConversationStatuses() (res []chat1.ConversationStatus) {
+	res = make([]chat1.ConversationStatus, 0, len(chat1.ConversationStatusMap))
 	for _, s := range chat1.ConversationStatusMap {
 		res = append(res, s)
 	}
@@ -418,6 +421,7 @@ func (c byConversationStatus) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 
 // Which convs show in the inbox.
 func VisibleChatConversationStatuses() (res []chat1.ConversationStatus) {
+	res = make([]chat1.ConversationStatus, 0, len(chat1.ConversationStatusMap))
 	for _, s := range chat1.ConversationStatusMap {
 		if GetConversationStatusBehavior(s).ShowInInbox {
 			res = append(res, s)
@@ -875,6 +879,7 @@ func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
 }
 
 func PluckUIMessageIDs(msgs []chat1.UIMessage) (res []chat1.MessageID) {
+	res = make([]chat1.MessageID, 0, len(msgs))
 	for _, m := range msgs {
 		res = append(res, m.GetMessageID())
 	}
@@ -882,6 +887,7 @@ func PluckUIMessageIDs(msgs []chat1.UIMessage) (res []chat1.MessageID) {
 }
 
 func PluckMUMessageIDs(msgs []chat1.MessageUnboxed) (res []chat1.MessageID) {
+	res = make([]chat1.MessageID, 0, len(msgs))
 	for _, m := range msgs {
 		res = append(res, m.GetMessageID())
 	}
@@ -903,6 +909,7 @@ func IsConvEmpty(conv chat1.Conversation) bool {
 }
 
 func PluckConvIDsLocal(convs []chat1.ConversationLocal) (res []chat1.ConversationID) {
+	res = make([]chat1.ConversationID, 0, len(convs))
 	for _, conv := range convs {
 		res = append(res, conv.GetConvID())
 	}
@@ -910,6 +917,7 @@ func PluckConvIDsLocal(convs []chat1.ConversationLocal) (res []chat1.Conversatio
 }
 
 func PluckConvIDs(convs []chat1.Conversation) (res []chat1.ConversationID) {
+	res = make([]chat1.ConversationID, 0, len(convs))
 	for _, conv := range convs {
 		res = append(res, conv.GetConvID())
 	}
@@ -917,6 +925,7 @@ func PluckConvIDs(convs []chat1.Conversation) (res []chat1.ConversationID) {
 }
 
 func PluckConvIDsRC(convs []types.RemoteConversation) (res []chat1.ConversationID) {
+	res = make([]chat1.ConversationID, 0, len(convs))
 	for _, conv := range convs {
 		res = append(res, conv.GetConvID())
 	}
@@ -1512,6 +1521,7 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 
 func PresentConversationLocals(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convs []chat1.ConversationLocal, partMode PresentParticipantsMode) (res []chat1.InboxUIItem) {
+	res = make([]chat1.InboxUIItem, 0, len(convs))
 	for _, conv := range convs {
 		res = append(res, PresentConversationLocal(ctx, g, uid, conv, partMode))
 	}
@@ -1521,6 +1531,7 @@ func PresentConversationLocals(ctx context.Context, g *globals.Context, uid greg
 func PresentThreadView(ctx context.Context, g *globals.Context, uid gregor1.UID, tv chat1.ThreadView,
 	convID chat1.ConversationID) (res chat1.UIMessages) {
 	res.Pagination = PresentPagination(tv.Pagination)
+	res.Messages = make([]chat1.UIMessage, 0, len(tv.Messages))
 	for _, msg := range tv.Messages {
 		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, g, msg, uid, convID))
 	}
@@ -1541,6 +1552,7 @@ func computeOrdinal(messageID chat1.MessageID, serviceOrdinal int) (frontendOrdi
 }
 
 func PresentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMention) (res []chat1.UIChannelNameMention) {
+	res = make([]chat1.UIChannelNameMention, 0, len(crs))
 	for _, cr := range crs {
 		res = append(res, chat1.UIChannelNameMention{
 			Name:   cr.TopicName,
@@ -1722,6 +1734,7 @@ func PresentUnfurl(ctx context.Context, g *globals.Context, convID chat1.Convers
 func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, unfurls map[chat1.MessageID]chat1.UnfurlResult) (res []chat1.UIMessageUnfurlInfo) {
 	collapses := NewCollapses(g)
+	res = make([]chat1.UIMessageUnfurlInfo, 0, len(unfurls))
 	for unfurlMessageID, u := range unfurls {
 		ud := PresentUnfurl(ctx, g, convID, u.Unfurl)
 		if ud != nil {
@@ -1902,6 +1915,7 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 
 func PresentMessagesUnboxed(ctx context.Context, g *globals.Context, msgs []chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res []chat1.UIMessage) {
+	res = make([]chat1.UIMessage, 0, len(msgs))
 	for _, msg := range msgs {
 		res = append(res, PresentMessageUnboxed(ctx, g, msg, uid, convID))
 	}
@@ -2444,7 +2458,7 @@ func SuspendComponent(ctx context.Context, g *globals.Context, suspendable types
 }
 
 func SuspendComponents(ctx context.Context, g *globals.Context, suspendables []types.Suspendable) func() {
-	resumeFuncs := []func(){}
+	resumeFuncs := make([]func(), 0, len(suspendables))
 	for _, s := range suspendables {
 		resumeFuncs = append(resumeFuncs, SuspendComponent(ctx, g, s))
 	}
@@ -2863,10 +2877,12 @@ func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
 	s.FinalizeInfo = i.FinalizeInfo
 	s.CreatorInfo = i.CreatorInfo
 	s.MemberStatus = strings.ToLower(i.MemberStatus.String())
+	s.Supersedes = make([]string, 0, len(i.Supersedes))
 	for _, super := range i.Supersedes {
 		s.Supersedes = append(s.Supersedes,
 			super.ConversationID.String())
 	}
+	s.SupersededBy = make([]string, 0, len(i.SupersededBy))
 	for _, super := range i.SupersededBy {
 		s.SupersededBy = append(s.SupersededBy,
 			super.ConversationID.String())
