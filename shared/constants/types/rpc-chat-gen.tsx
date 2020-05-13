@@ -35,6 +35,10 @@ export const _doNotUse = (w: WaitingKey, i: IncomingReturn) =>
   )
 
 export type MessageTypes = {
+  'chat.1.NotifyChat.ChatAttachmentDownloadComplete': {
+    inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID; readonly msgID: MessageID}
+    outParam: void
+  }
   'chat.1.NotifyChat.ChatAttachmentDownloadProgress': {
     inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID; readonly msgID: MessageID; readonly bytesComplete: Long; readonly bytesTotal: Long}
     outParam: void
@@ -1631,6 +1635,7 @@ export type IncomingCallMapType = {
   'chat.1.NotifyChat.ChatAttachmentUploadStart'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadStart']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatAttachmentUploadProgress'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadProgress']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatAttachmentDownloadProgress'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadProgress']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.NotifyChat.ChatAttachmentDownloadComplete'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadComplete']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatPaymentInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatPaymentInfo']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatRequestInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatRequestInfo']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatPromptUnfurl'?: (params: MessageTypes['chat.1.NotifyChat.ChatPromptUnfurl']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1852,6 +1857,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.NotifyChat.ChatAttachmentUploadStart'
 // 'chat.1.NotifyChat.ChatAttachmentUploadProgress'
 // 'chat.1.NotifyChat.ChatAttachmentDownloadProgress'
+// 'chat.1.NotifyChat.ChatAttachmentDownloadComplete'
 // 'chat.1.NotifyChat.ChatPaymentInfo'
 // 'chat.1.NotifyChat.ChatRequestInfo'
 // 'chat.1.NotifyChat.ChatPromptUnfurl'

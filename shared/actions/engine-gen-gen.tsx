@@ -40,6 +40,8 @@ export const chat1ChatUiChatThreadFull = 'engine-gen:chat1ChatUiChatThreadFull'
 export const chat1ChatUiChatThreadStatus = 'engine-gen:chat1ChatUiChatThreadStatus'
 export const chat1ChatUiChatWatchPosition = 'engine-gen:chat1ChatUiChatWatchPosition'
 export const chat1ChatUiTriggerContactSync = 'engine-gen:chat1ChatUiTriggerContactSync'
+export const chat1NotifyChatChatAttachmentDownloadComplete =
+  'engine-gen:chat1NotifyChatChatAttachmentDownloadComplete'
 export const chat1NotifyChatChatAttachmentDownloadProgress =
   'engine-gen:chat1NotifyChatChatAttachmentDownloadProgress'
 export const chat1NotifyChatChatAttachmentUploadProgress =
@@ -518,6 +520,11 @@ type _Chat1ChatUiTriggerContactSyncPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.triggerContactSync']['outParam']) => void
+  }
+}
+type _Chat1NotifyChatChatAttachmentDownloadCompletePayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadComplete']['inParam'] & {
+    sessionID: number
   }
 }
 type _Chat1NotifyChatChatAttachmentDownloadProgressPayload = {
@@ -2098,6 +2105,12 @@ export const createChat1ChatUiChatWatchPosition = (
 export const createChat1ChatUiTriggerContactSync = (
   payload: _Chat1ChatUiTriggerContactSyncPayload
 ): Chat1ChatUiTriggerContactSyncPayload => ({payload, type: chat1ChatUiTriggerContactSync})
+export const createChat1NotifyChatChatAttachmentDownloadComplete = (
+  payload: _Chat1NotifyChatChatAttachmentDownloadCompletePayload
+): Chat1NotifyChatChatAttachmentDownloadCompletePayload => ({
+  payload,
+  type: chat1NotifyChatChatAttachmentDownloadComplete,
+})
 export const createChat1NotifyChatChatAttachmentDownloadProgress = (
   payload: _Chat1NotifyChatChatAttachmentDownloadProgressPayload
 ): Chat1NotifyChatChatAttachmentDownloadProgressPayload => ({
@@ -2908,6 +2921,10 @@ export type Chat1ChatUiTriggerContactSyncPayload = {
   readonly payload: _Chat1ChatUiTriggerContactSyncPayload
   readonly type: typeof chat1ChatUiTriggerContactSync
 }
+export type Chat1NotifyChatChatAttachmentDownloadCompletePayload = {
+  readonly payload: _Chat1NotifyChatChatAttachmentDownloadCompletePayload
+  readonly type: typeof chat1NotifyChatChatAttachmentDownloadComplete
+}
 export type Chat1NotifyChatChatAttachmentDownloadProgressPayload = {
   readonly payload: _Chat1NotifyChatChatAttachmentDownloadProgressPayload
   readonly type: typeof chat1NotifyChatChatAttachmentDownloadProgress
@@ -3663,6 +3680,7 @@ export type Actions =
   | Chat1ChatUiChatThreadStatusPayload
   | Chat1ChatUiChatWatchPositionPayload
   | Chat1ChatUiTriggerContactSyncPayload
+  | Chat1NotifyChatChatAttachmentDownloadCompletePayload
   | Chat1NotifyChatChatAttachmentDownloadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadStartPayload

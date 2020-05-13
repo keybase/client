@@ -622,24 +622,6 @@ const onChatAttachmentUploadProgress = (
   })
 }
 
-const onChatAttachmentDownloadProgress = (
-  state: Container.TypedState,
-  action: EngineGen.Chat1NotifyChatChatAttachmentDownloadProgressPayload,
-  logger: Saga.SagaLogger
-) => {
-  const {convID, msgID, bytesComplete, bytesTotal} = action.payload.params
-  const conversationIDKey = Types.conversationIDToKey(convID)
-  const message = Constants.getMessage(state, conversationIDKey, msgID)
-  if (!message) {
-    logger.info(
-      `onChatAttachmentDownloadProgress: unknown message: convID: ${conversationIDKey} msgID: ${msgID}`
-    )
-    return false
-  }
-  const ratio = bytesComplete / bytesTotal
-  return Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview: false, message, ratio})
-}
-
 const onChatAttachmentUploadStart = (action: EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload) => {
   const {convID, outboxID} = action.payload.params
   return Chat2Gen.createAttachmentUploading({
@@ -3952,10 +3934,6 @@ function* chat2Saga() {
   yield* Saga.chainAction(
     EngineGen.chat1NotifyChatChatAttachmentUploadProgress,
     onChatAttachmentUploadProgress
-  )
-  yield* Saga.chainAction2(
-    EngineGen.chat1NotifyChatChatAttachmentDownloadProgress,
-    onChatAttachmentDownloadProgress
   )
   yield* Saga.chainAction(EngineGen.chat1NotifyChatChatAttachmentUploadStart, onChatAttachmentUploadStart)
   yield* Saga.chainAction(EngineGen.chat1NotifyChatChatIdentifyUpdate, onChatIdentifyUpdate)

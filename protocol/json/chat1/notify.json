@@ -896,6 +896,25 @@
       "notify": "",
       "lint": "ignore"
     },
+    "ChatAttachmentDownloadComplete": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
     "ChatPaymentInfo": {
       "request": [
         {

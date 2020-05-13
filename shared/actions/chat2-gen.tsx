@@ -18,7 +18,6 @@ export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
-export const attachmentLoading = 'chat2:attachmentLoading'
 export const attachmentMobileSave = 'chat2:attachmentMobileSave'
 export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
 export const attachmentPasted = 'chat2:attachmentPasted'
@@ -216,12 +215,6 @@ type _AttachmentDownloadedPayload = {
   readonly message: Types.Message
   readonly error?: string
   readonly path?: string
-}
-type _AttachmentLoadingPayload = {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly message: Types.Message
-  readonly ratio: number
-  readonly isPreview: boolean
 }
 type _AttachmentMobileSavePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1592,13 +1585,6 @@ export const createUpdateCoinFlipStatus = (
   payload: _UpdateCoinFlipStatusPayload
 ): UpdateCoinFlipStatusPayload => ({payload, type: updateCoinFlipStatus})
 /**
- * Update the loading bars
- */
-export const createAttachmentLoading = (payload: _AttachmentLoadingPayload): AttachmentLoadingPayload => ({
-  payload,
-  type: attachmentLoading,
-})
-/**
  * Update the minWriterRole stored with the conversation metadata.
  */
 export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload): SaveMinWriterRolePayload => ({
@@ -1901,10 +1887,6 @@ export type AttachmentDownloadPayload = {
 export type AttachmentDownloadedPayload = {
   readonly payload: _AttachmentDownloadedPayload
   readonly type: typeof attachmentDownloaded
-}
-export type AttachmentLoadingPayload = {
-  readonly payload: _AttachmentLoadingPayload
-  readonly type: typeof attachmentLoading
 }
 export type AttachmentMobileSavePayload = {
   readonly payload: _AttachmentMobileSavePayload
@@ -2513,7 +2495,6 @@ export type Actions =
   | AttachFromDragAndDropPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
-  | AttachmentLoadingPayload
   | AttachmentMobileSavePayload
   | AttachmentMobileSavedPayload
   | AttachmentPastedPayload

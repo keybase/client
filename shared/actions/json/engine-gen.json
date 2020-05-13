@@ -166,6 +166,9 @@
         "chat1NotifyChatChatAttachmentDownloadProgress": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadProgress']['inParam'] & {sessionID: number}"
         },
+        "chat1NotifyChatChatAttachmentDownloadComplete": {
+            "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadComplete']['inParam'] & {sessionID: number}"
+        },
         "chat1NotifyChatChatPaymentInfo": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatPaymentInfo']['inParam'] & {sessionID: number}"
         },

@@ -1381,6 +1381,8 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 	if err != nil {
 		return res, err
 	}
+	h.G().NotifyRouter.HandleChatAttachmentDownloadComplete(ctx, keybase1.UID(uid.String()),
+		arg.ConversationID, arg.MessageID)
 
 	return chat1.DownloadAttachmentLocalRes{
 		IdentifyFailures: identBreaks,
