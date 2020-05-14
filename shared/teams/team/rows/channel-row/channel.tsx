@@ -6,7 +6,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Styles from '../../../../styles'
-import {Activity, useChannelParticipants} from '../../../common'
+import {Activity, useChannelMeta, useChannelParticipants} from '../../../common'
 import {pluralize} from '../../../../util/string'
 
 type ChannelRowProps = {
@@ -30,6 +30,9 @@ const ChannelRow = (props: ChannelRowProps) => {
   const activityLevel = Container.useSelector(
     state => state.teams.activityLevels.channels.get(channel.conversationIDKey) || 'none'
   )
+  const channelMeta = useChannelMeta(teamID, conversationIDKey)
+
+  const [_, setWaiting] = React.useState(false)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -42,8 +45,17 @@ const ChannelRow = (props: ChannelRowProps) => {
     conversationIDKey: channel.conversationIDKey,
     teamID,
   }
+  const editChannelProps = {
+    ...navPropsForAction,
+    afterEdit: () => {
+      setWaiting(true)
+      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+    },
+    channelname: channelMeta?.channelname,
+    description: channelMeta?.description,
+  }
   const onEditChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'chatEditChannel'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: editChannelProps, selected: 'teamEditChannel'}]}))
   const onNavToChannel = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'teamChannel'}]}))
   const onNavToSettings = () =>

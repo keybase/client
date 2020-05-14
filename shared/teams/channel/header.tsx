@@ -39,12 +39,23 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel && channelname !== 'general'
 
+  const [_, setWaiting] = React.useState(false)
+  const editChannelProps = {
+    conversationIDKey,
+    teamID,
+    afterEdit: () => {
+      setWaiting(true)
+      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+    },
+    channelname: channelname,
+    description: description,
+  }
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onEditChannel = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
-        path: [{props: {conversationIDKey, teamID}, selected: 'chatEditChannel'}],
+        path: [{props: editChannelProps, selected: 'teamEditChannel'}],
       })
     )
   const onAddMembers = () =>
