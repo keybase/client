@@ -58,7 +58,7 @@ const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
-      backgroundColor: Styles.globalColors.blueLighter3,
+      backgroundColor: Styles.globalColors.blueGrey,
       height,
     },
     isMobile: {

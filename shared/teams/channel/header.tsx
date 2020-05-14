@@ -39,12 +39,21 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel && channelname !== 'general'
 
+  const editChannelProps = {
+    afterEdit: () => {
+      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+    },
+    channelname: channelname,
+    conversationIDKey,
+    description: description,
+    teamID,
+  }
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onEditChannel = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
-        path: [{props: {conversationIDKey, teamID}, selected: 'chatEditChannel'}],
+        path: [{props: editChannelProps, selected: 'teamEditChannel'}],
       })
     )
   const onAddMembers = () =>
@@ -67,10 +76,10 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const callbacks = useHeaderCallbacks(teamID, conversationIDKey)
 
   const topDescriptors = (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny" style={styles.flexShrink}>
+    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" style={styles.flexShrink}>
       <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" style={styles.flexShrink}>
         <Kb.Avatar editable={false} teamname={teamname} size={16} style={styles.alignSelfFlexStart} />
-        <Kb.Text type="BodySmallSemibold" onClick={onNavToTeam}>
+        <Kb.Text className="hover-underline" type="BodySmallSemibold" onClick={onNavToTeam}>
           {teamname}
         </Kb.Text>
       </Kb.Box2>
@@ -102,7 +111,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const bottomDescriptorsAndButtons = (
     <>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny" gapStart={!Styles.isMobile}>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Styles.isMobile}>
         {!!description && (
           <Kb.Text type="Body" lineClamp={3}>
             {description}
@@ -148,18 +157,16 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   )
 
   const tip = (
-    <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="tiny">
-      <Kb.Icon color={Styles.globalColors.black_20} fontSize={12} type="iconfont-info" />
-      <Kb.Text type="BodySmall" lineClamp={3}>
-        Tip: Use @mentions to invite team members to channels from the chat.
-      </Kb.Text>
+    <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="tiny" style={styles.tipBox}>
+      <Kb.Icon color={Styles.globalColors.black_20} type="iconfont-info" sizeType="Small" />
+      <Kb.Text type="BodySmall">Tip: Use @mentions to invite team members to channels from the chat.</Kb.Text>
     </Kb.Box2>
   )
 
   if (Styles.isMobile) {
     return (
       <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backButton}>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.outerBoxMobile}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.outerBoxMobile}>
           {topDescriptors}
           {bottomDescriptorsAndButtons}
           {tip}
@@ -186,7 +193,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         {topDescriptors}
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {bottomDescriptorsAndButtons}
-          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.tipBoxDesktop}>
+          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.tipBox}>
             {tip}
           </Kb.Box2>
         </Kb.Box2>
@@ -246,9 +253,16 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: Styles.desktopStyles.windowDraggingClickable,
       }),
-      tipBoxDesktop: {
-        marginLeft: Styles.globalMargins.xlarge + Styles.globalMargins.large,
-        width: 200,
-      },
+      tipBox: Styles.platformStyles({
+        isElectron: {
+          marginLeft: Styles.globalMargins.xlarge + Styles.globalMargins.large,
+          marginRight: Styles.globalMargins.large,
+          maxWidth: 460,
+          paddingTop: Styles.globalMargins.xxtiny,
+        },
+        isMobile: {
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
     } as const)
 )
