@@ -117,13 +117,11 @@ const TeamRequestRowNew = (props: Props) => {
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={username} />
             <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-              {reset && (
-                <Kb.Meta
-                  title={reset ? 'locked out' : 'please decide'}
-                  style={styleCharm}
-                  backgroundColor={reset ? Styles.globalColors.red : Styles.globalColors.orange}
-                />
-              )}
+              <Kb.Meta
+                title={reset ? 'locked out' : 'please decide'}
+                style={styleCharm}
+                backgroundColor={reset ? Styles.globalColors.red : Styles.globalColors.orange}
+              />
               {Styles.isMobile ? (
                 isLargeScreen && (
                   <Kb.Text type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
