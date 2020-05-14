@@ -66,7 +66,7 @@ func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateAr
 func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCreateFancyArg) (teamID keybase1.TeamID,
 	err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	mctx := h.MetaContext(ctx)
 	teamInfo := arg.TeamInfo
 	defer h.G().CTrace(ctx, fmt.Sprintf("TeamCreateFancy(%s)", teamInfo.Name), &err)()
 
@@ -77,15 +77,26 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 		JoinSubteam: teamInfo.JoinSubteam,
 	}
 	teamCreateRes, err := h.TeamCreateWithSettings(ctx, arg2)
-	teamID = teamCreateRes.TeamID
 	if err != nil {
 		return teamID, err
 	}
+	teamID = teamCreateRes.TeamID
 
 	var errs []error
-	err = teams.SetTeamShowcase(ctx, h.G().ExternalG(), teamID, &teamInfo.Showcase, &teamInfo.Description, nil)
-	if err != nil {
-		errs = append(errs, err)
+	if teamInfo.Description != "" {
+		err = teams.SetTeamShowcase(ctx, h.G().ExternalG(), teamID, nil, /* showcase */
+			&teamInfo.Description, nil /* anyMemberShowcase */)
+		if err != nil {
+			errs = append(errs, err)
+			mctx.Error("SetTeamShowcase failed with: %s", err)
+		}
+	}
+	if teamInfo.ProfileShowcase {
+		err = teams.SetTeamMemberShowcase(ctx, h.G().ExternalG(), teamID, true /* isShowcased */)
+		if err != nil {
+			errs = append(errs, err)
+			mctx.Error("SetTeamMemberShowcase failed with: %s", err)
+		}
 	}
 	if teamInfo.Avatar != nil {
 		avatar := teamInfo.Avatar
@@ -135,11 +146,7 @@ func (h *TeamsHandler) TeamCreateFancy(ctx context.Context, arg keybase1.TeamCre
 	if errs == nil {
 		return teamID, nil
 	}
-	combinedErrString := ""
-	for _, err := range errs {
-		combinedErrString += ", " + err.Error()
-	}
-	return teamID, errors.New(combinedErrString)
+	return teamID, libkb.CombineErrors(errs...)
 }
 
 func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.TeamCreateWithSettingsArg) (res keybase1.TeamCreateResult, err error) {

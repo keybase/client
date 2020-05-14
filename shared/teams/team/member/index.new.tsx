@@ -166,9 +166,7 @@ const TeamMember = (props: OwnProps) => {
 
   const {nodesIn, nodesNotIn, errors} = useMemberships(teamID, username)
 
-  const [expandedSet, setExpandedSet] = React.useState(
-    new Set<string>([teamID])
-  )
+  const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
 
   const makeTitle = label => {
     return (
@@ -524,10 +522,13 @@ const NodeInRow = (props: NodeInRowProps) => {
     Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 
-  const channelsJoined =
-    Array.from(channelMetas)
-      .map(([_, {channelname}]) => channelname)
-      .join(', #') || 'general'
+  const isSmallTeam = channelMetas?.values()?.next()?.value?.teamType === 'small'
+
+  const channelsJoined = isSmallTeam
+    ? []
+    : Array.from(channelMetas)
+        .map(([_, {channelname}]) => channelname)
+        .join(', #')
 
   const rolePicker = props.node.canAdminister ? (
     <RoleButton
@@ -551,6 +552,7 @@ const NodeInRow = (props: NodeInRowProps) => {
         position="top right"
         open={open}
         disabledRoles={disabledRoles}
+        floatingContainerStyle={styles.floatingContainerStyle}
       />
       <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
@@ -626,7 +628,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     />
                   </Kb.Box2>
                 )}
-                {expanded && (
+                {expanded && !isSmallTeam && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" fullWidth={true}>
                     <Kb.Icon
                       type="iconfont-hash"
@@ -644,7 +646,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     </Kb.Text>
                   </Kb.Box2>
                 )}
-                {expanded && (props.node.canAdminister || isMe) && (
+                {expanded && (props.node.canAdminister || isMe) && !isSmallTeam && (
                   <Kb.Box2
                     direction="horizontal"
                     gap="tiny"
@@ -836,6 +838,12 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 64,
       padding: 0,
       width: 10 + Styles.globalMargins.small * 2, // 16px side paddings
+    },
+  }),
+  floatingContainerStyle: Styles.platformStyles({
+    isElectron: {
+      position: 'relative',
+      right: Styles.globalMargins.tiny,
     },
   }),
   headerContainer: Styles.platformStyles({

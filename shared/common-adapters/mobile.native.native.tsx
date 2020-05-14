@@ -238,9 +238,6 @@ module.exports = {
   get NativeLinking() {
     return NativeWrappers.NativeLinking
   },
-  get NativeListView() {
-    return NativeWrappers.NativeListView
-  },
   get NativeModal() {
     return NativeWrappers.NativeModal
   },

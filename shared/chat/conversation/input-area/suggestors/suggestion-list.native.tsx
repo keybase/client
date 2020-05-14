@@ -5,6 +5,7 @@ import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {Props} from './suggestion-list'
 import {BotCommandUpdateStatus} from '../normal/shared'
+import noop from 'lodash/noop'
 
 const SuggestionList = (props: Props) => (
   <Kb.Box2
@@ -20,6 +21,7 @@ const SuggestionList = (props: Props) => (
       keyExtractor={props.keyExtractor || (item => item)}
       keyboardShouldPersistTaps="always"
       windowSize={10}
+      onScrollToIndexFailed={noop}
     />
     {props.suggestBotCommandsUpdateStatus &&
       props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank && (

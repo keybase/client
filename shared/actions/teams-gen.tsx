@@ -332,7 +332,7 @@ type _SetTeamWizardNameDescriptionPayload = {
   readonly description: string
   readonly openTeam: boolean
   readonly openTeamJoinRole: Types.TeamRoleType
-  readonly showcase: boolean
+  readonly profileShowcase: boolean
   readonly addYourself: boolean
 }
 type _SetTeamWizardSubteamMembersPayload = {readonly members: Array<string>}

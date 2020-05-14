@@ -41,7 +41,7 @@ const NewTeamInfo = () => {
   )
   const minLength = parentName ? 2 : 3
 
-  const [name, _setName] = React.useState(teamWizardState.name)
+  const [name, _setName] = React.useState(teamWizardState.name.substr(parentName ? parentName.length + 1 : 0))
   const teamname = parentName ? `${parentName}.${name}` : name
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
   const [teamNameTakenStatus, setTeamNameTakenStatus] = React.useState<number>(0)
@@ -82,7 +82,7 @@ const NewTeamInfo = () => {
   const [addYourself, setAddYourself] = React.useState(teamWizardState.addYourself)
   const [showcase, setShowcase] = React.useState(
     teamWizardState.name
-      ? teamWizardState.showcase
+      ? teamWizardState.profileShowcase
       : teamWizardState.teamType !== 'other' && teamWizardState.teamType !== 'subteam'
   )
   const [realRole, setRealRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
@@ -99,7 +99,7 @@ const NewTeamInfo = () => {
         description,
         openTeam,
         openTeamJoinRole: realRole,
-        showcase,
+        profileShowcase: showcase,
         teamname,
       })
     )

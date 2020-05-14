@@ -3643,7 +3643,7 @@ type TeamCreateFancyInfo struct {
 	Description        string         `codec:"description" json:"description"`
 	JoinSubteam        bool           `codec:"joinSubteam" json:"joinSubteam"`
 	OpenSettings       TeamSettings   `codec:"openSettings" json:"openSettings"`
-	Showcase           bool           `codec:"showcase" json:"showcase"`
+	ProfileShowcase    bool           `codec:"profileShowcase" json:"profileShowcase"`
 	Avatar             *TeamAvatar    `codec:"avatar,omitempty" json:"avatar,omitempty"`
 	ChatChannels       []string       `codec:"chatChannels" json:"chatChannels"`
 	Subteams           []string       `codec:"subteams" json:"subteams"`
@@ -3653,11 +3653,11 @@ type TeamCreateFancyInfo struct {
 
 func (o TeamCreateFancyInfo) DeepCopy() TeamCreateFancyInfo {
 	return TeamCreateFancyInfo{
-		Name:         o.Name,
-		Description:  o.Description,
-		JoinSubteam:  o.JoinSubteam,
-		OpenSettings: o.OpenSettings.DeepCopy(),
-		Showcase:     o.Showcase,
+		Name:            o.Name,
+		Description:     o.Description,
+		JoinSubteam:     o.JoinSubteam,
+		OpenSettings:    o.OpenSettings.DeepCopy(),
+		ProfileShowcase: o.ProfileShowcase,
 		Avatar: (func(x *TeamAvatar) *TeamAvatar {
 			if x == nil {
 				return nil

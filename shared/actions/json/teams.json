@@ -444,7 +444,7 @@
       "description": "string",
       "openTeam": "boolean",
       "openTeamJoinRole": "Types.TeamRoleType",
-      "showcase": "boolean",
+      "profileShowcase": "boolean",
       "addYourself": "boolean"
     },
     "setTeamWizardAvatar": {
