@@ -250,8 +250,8 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           marginLeft: Styles.globalMargins.xlarge + Styles.globalMargins.large,
           marginRight: Styles.globalMargins.large,
-          paddingTop: Styles.globalMargins.xxtiny,
           maxWidth: 460,
+          paddingTop: Styles.globalMargins.xxtiny,
         },
         isMobile: {
           paddingTop: Styles.globalMargins.tiny,
