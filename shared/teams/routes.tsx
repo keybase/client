@@ -9,7 +9,7 @@ import TeamDeleteTeam from './delete-team/container'
 import DeleteChannel from './confirm-modals/delete-channel'
 import TeamAddEmoji from './emojis/add-emoji'
 import TeamAddEmojiAlias from './emojis/add-alias'
-import TeamEditChannel from './channel'
+import TeamChannel from './channel'
 import TeamEditTeamDescription from './edit-team-description'
 import TeamEditTeamInfo from './team/team-info'
 import TeamEditWelcomeMessage from './edit-team-welcome-message'
@@ -24,6 +24,7 @@ import TeamReallyRemoveChannelMember from './confirm-modals/confirm-remove-from-
 import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
 import TeamAddToChannels from './team/member/add-to-channels'
+import TeamEditChannel from './team/member/edit-channel'
 import TeamCreateChannels from './channel/create-channels'
 import TeamWizardTeamInfo from './new-team/wizard/new-team-info'
 import TeamWizardTeamPurpose from './new-team/wizard/team-purpose'
@@ -44,7 +45,7 @@ import flags from '../util/feature-flags'
 export const newRoutes = {
   team: {getScreen: (): typeof Team => require('./team').default},
   teamChannel: {
-    getScreen: (): typeof TeamEditChannel => require('./channel').default,
+    getScreen: (): typeof TeamChannel => require('./channel').default,
   },
   teamExternalTeam: {getScreen: (): typeof ExternalTeam => require('./external-team').default},
   teamMember: flags.teamsRedesign
@@ -122,6 +123,9 @@ export const newModalRoutes = {
     getScreen: (): typeof DeleteChannel => require('./confirm-modals/delete-channel').default,
   },
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
+  teamEditChannel: {
+    getScreen: (): typeof TeamEditChannel => require('./team/member/edit-channel').default,
+  },
   teamEditTeamDescription: {
     getScreen: (): typeof TeamEditTeamDescription => require('./edit-team-description').default,
   },
