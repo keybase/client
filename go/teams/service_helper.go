@@ -75,14 +75,17 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	}
 	var joinRequests []keybase1.TeamJoinRequest
 	var tarsDisabled bool
-	if myRole.IsOrAbove(keybase1.TeamRole_ADMIN) {
+	if myRole == keybase1.TeamRole_NONE || myRole.IsOrAbove(keybase1.TeamRole_ADMIN) {
+		// If we are an implicit admin, our role is NONE. Note that we would not be
+		// this far if we are not a member of that team - we would have failed with a
+		// membership error during team loading at the beginning of this function.
 		joinRequests, err = ListRequests(ctx, g, &teamNameStr)
 		if err != nil {
-			return res, err
+			mctx.Debug("GetAnnotatedTeam: failed to load access requests: %s", err)
 		}
 		tarsDisabled, err = GetTarsDisabled(ctx, g, teamID)
 		if err != nil {
-			return res, err
+			mctx.Debug("GetAnnotatedTeam: failed to load disabled TARs setting: %s", err)
 		}
 	}
 
