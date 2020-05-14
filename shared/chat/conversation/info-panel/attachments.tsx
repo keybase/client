@@ -227,7 +227,7 @@ const getColor = (selected: boolean) =>
   selected ? {color: Styles.globalColors.white} : {color: Styles.globalColors.blueDark}
 
 const AttachmentTypeSelector = (props: SelectorProps) => (
-  <Kb.Box2 direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
+  <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
     <Kb.ClickableBox
       onClick={() => props.onSelectView(RPCChatTypes.GalleryItemTyp.media)}
       style={Styles.collapseStyles([
@@ -339,6 +339,7 @@ const styles = Styles.styleSheetCreate(
         width: 24,
       },
       selectorContainer: {
+        maxWidth: 460,
         padding: Styles.globalMargins.small,
       },
       selectorDocContainer: {
