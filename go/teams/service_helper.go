@@ -81,11 +81,19 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		// membership error during team loading at the beginning of this function.
 		joinRequests, err = ListRequests(ctx, g, &teamNameStr)
 		if err != nil {
-			return res, err
+			if code, _ := libkb.GetAppStatusCode(err); code == keybase1.StatusCode_SCTeamBadMembership {
+				mctx.Debug("GetAnnotatedTeam: failed to load access requests: %s", err)
+			} else {
+				return res, fmt.Errorf("error while loading access requests: %w", err)
+			}
 		}
 		tarsDisabled, err = GetTarsDisabled(ctx, g, teamID)
 		if err != nil {
-			return res, err
+			if code, _ := libkb.GetAppStatusCode(err); code == keybase1.StatusCode_SCTeamBadMembership {
+				mctx.Debug("GetAnnotatedTeam: failed to load disabled TARs setting: %s", err)
+			} else {
+				return res, fmt.Errorf("error while loading disabled TARs setting: %w", err)
+			}
 		}
 	}
 
