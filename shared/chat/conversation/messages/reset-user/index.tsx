@@ -12,12 +12,9 @@ type Props = {
 }
 
 const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chatWithoutThem}: Props) => (
-  <Kb.Box style={styles.container}>
-    <Kb.Icon
-      type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}
-      style={{height: 64, margin: Styles.globalMargins.medium}}
-    />
-    <Kb.Box style={styles.textContainer}>
+  <Kb.Box2 direction="vertical" style={styles.container}>
+    <Kb.Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
+    <Kb.Box2 direction="vertical" style={styles.textContainer}>
       <Kb.Text center={true} type="BodySemibold" negative={true}>
         <Kb.Text type="BodySemiboldLink" negative={true} onClick={viewProfile}>
           {username}
@@ -35,32 +32,26 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
           2. Know them outside Keybase and have gotten a thumbs up from them.
         </Kb.Text>
       </Kb.Box>
-      <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Styles.globalMargins.tiny}}>
-        Don't let them in until one of those is true.
+      <Kb.Text type="BodySemibold" negative={true} style={styles.lastSentence}>
+        Don't let them in until one of the above is&nbsp;true.
       </Kb.Text>
-      <Kb.Box
-        style={{
-          marginBottom: Styles.globalMargins.medium,
-          marginTop: Styles.globalMargins.medium,
-          ...Styles.globalStyles.flexBoxRow,
-        }}
-      >
+      <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonContainer}>
         <Kb.Button
-          type="Dim"
           backgroundColor="red"
-          onClick={viewProfile}
+          fullWidth={true}
           label="View profile"
-          style={{marginRight: 8}}
+          mode="Secondary"
+          type="Dim"
+          onClick={viewProfile}
         />
         <Kb.Button
-          type="Dim"
           backgroundColor="red"
-          onClick={letThemIn}
+          fullWidth={true}
           label="Let them in"
-          labelStyle={{color: Styles.globalColors.redDark}}
-          style={{backgroundColor: Styles.globalColors.white}}
+          onClick={letThemIn}
+          type="Dim"
         />
-      </Kb.Box>
+      </Kb.ButtonBar>
       {allowChatWithoutThem && (
         <Kb.Text type="BodySemibold" negative={true}>
           Or until you’re sure,{' '}
@@ -69,8 +60,8 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
           </Kb.Text>
         </Kb.Text>
       )}
-    </Kb.Box>
-  </Kb.Box>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate(
@@ -78,20 +69,41 @@ const styles = Styles.styleSheetCreate(
     ({
       bullet: {
         ...Styles.globalStyles.flexBoxColumn,
-        maxWidth: 250,
+        maxWidth: 320,
+      },
+      buttonContainer: {
+        alignItems: 'center',
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+        width: '100%',
       },
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         backgroundColor: Styles.globalColors.red,
+        marginBottom: -Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
         padding: Styles.globalMargins.small,
+        width: '100%',
       },
-      textContainer: {
-        ...Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        paddingLeft: 64,
-        paddingRight: 64,
+      lastSentence: {
+        marginTop: Styles.globalMargins.medium,
+        textAlign: 'center',
       },
+      skullIcon: Styles.platformStyles({
+        common: {margin: Styles.globalMargins.medium},
+        isElectron: {height: 48, width: 48},
+        isMobile: {height: 64, width: 64},
+      }),
+      textContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          width: '100%',
+        },
+        isElectron: {
+          paddingLeft: Styles.globalMargins.large,
+          paddingRight: Styles.globalMargins.large,
+        },
+      }),
     } as const)
 )
 
