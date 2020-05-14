@@ -166,9 +166,7 @@ const TeamMember = (props: OwnProps) => {
 
   const {nodesIn, nodesNotIn, errors} = useMemberships(teamID, username)
 
-  const [expandedSet, setExpandedSet] = React.useState(
-    new Set<string>([teamID])
-  )
+  const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
 
   const makeTitle = label => {
     return (
