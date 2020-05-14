@@ -311,7 +311,7 @@ const SelfChannelActions = ({
     dispatch(nav.safeNavigateAppendPayload({path: [{props: editChannelProps, selected: 'teamEditChannel'}]}))
   const onChannelSettings = () => {
     dispatch(RouteTreeGen.createClearModals())
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: actionProps, selected: 'teamChannel'}]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: actionProps, selected: 'teamChannel'}]}))
   }
   const onDelete = () =>
     // TODO: consider not using the confirm modal
