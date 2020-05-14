@@ -6,7 +6,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Styles from '../../../../styles'
-import {Activity, useChannelMeta, useChannelParticipants} from '../../../common'
+import {Activity, useChannelParticipants} from '../../../common'
 import {pluralize} from '../../../../util/string'
 
 type ChannelRowProps = {
@@ -30,7 +30,6 @@ const ChannelRow = (props: ChannelRowProps) => {
   const activityLevel = Container.useSelector(
     state => state.teams.activityLevels.channels.get(channel.conversationIDKey) || 'none'
   )
-  const channelMeta = useChannelMeta(teamID, conversationIDKey)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -48,8 +47,8 @@ const ChannelRow = (props: ChannelRowProps) => {
     afterEdit: () => {
       dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
     },
-    channelname: channelMeta?.channelname,
-    description: channelMeta?.description,
+    channelname: channel.channelname,
+    description: channel.description,
   }
   const onEditChannel = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: editChannelProps, selected: 'teamEditChannel'}]}))

@@ -159,9 +159,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const tip = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="tiny" style={styles.tipBox}>
       <Kb.Icon color={Styles.globalColors.black_20} type="iconfont-info" sizeType="Small" />
-      <Kb.Text type="BodySmall" lineClamp={3}>
-        Tip: Use @mentions to invite team members to channels from the chat.
-      </Kb.Text>
+      <Kb.Text type="BodySmall">Tip: Use @mentions to invite team members to channels from the chat.</Kb.Text>
     </Kb.Box2>
   )
 
