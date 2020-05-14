@@ -28,18 +28,18 @@ func NewSender(g *globals.Context) *Sender {
 	}
 }
 
-func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (parts []string, membersType chat1.ConversationMembersType, err error) {
+func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (partsWithoutBots, allParts []string, membersType chat1.ConversationMembersType, err error) {
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
-		return parts, membersType, err
+		return nil, nil, membersType, err
 	}
-	allParts, err := utils.GetConvParticipantUsernames(ctx, s.G(), uid, convID)
+	allParts, err = utils.GetConvParticipantUsernames(ctx, s.G(), uid, convID)
 	if err != nil {
-		return parts, membersType, err
+		return nil, nil, membersType, err
 	}
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
-		return allParts, conv.GetMembersType(), nil
+		return allParts, allParts, conv.GetMembersType(), nil
 	default:
 		nameParts := strings.Split(utils.GetRemoteConvTLFName(conv), ",")
 		nameMap := make(map[string]bool, len(nameParts))
@@ -48,11 +48,11 @@ func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID c
 		}
 		for _, part := range allParts {
 			if nameMap[part] {
-				parts = append(parts, part)
+				partsWithoutBots = append(partsWithoutBots, part)
 			}
 		}
 	}
-	return parts, conv.GetMembersType(), nil
+	return partsWithoutBots, allParts, conv.GetMembersType(), nil
 }
 
 func (s *Sender) getConvFullnames(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res map[string]string, err error) {
@@ -124,7 +124,7 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 		return nil
 	}
 
-	parts, membersType, err := s.getConvParseInfo(ctx, uid, convID)
+	partsWithoutBots, allParts, membersType, err := s.getConvParseInfo(ctx, uid, convID)
 	if err != nil {
 		s.Debug(ctx, "ParsePayments: failed to getConvParseInfo %v", err)
 		return nil
@@ -143,11 +143,11 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 			continue
 		}
 		if p.Username == nil {
-			if username, err = s.getRecipientUsername(ctx, uid, parts, membersType, replyToUID); err != nil {
+			if username, err = s.getRecipientUsername(ctx, uid, partsWithoutBots, membersType, replyToUID); err != nil {
 				s.Debug(ctx, "ParsePayments: failed to get username, skipping: %s", err)
 				continue
 			}
-		} else if s.validConvUsername(ctx, *p.Username, parts) {
+		} else if s.validConvUsername(ctx, *p.Username, allParts) {
 			username = *p.Username
 		} else {
 			s.Debug(ctx, "ParsePayments: skipping mention for not being in conv")
