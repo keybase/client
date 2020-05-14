@@ -41,7 +41,7 @@ const NewTeamInfo = () => {
   )
   const minLength = parentName ? 2 : 3
 
-  const [name, _setName] = React.useState(teamWizardState.name)
+  const [name, _setName] = React.useState(teamWizardState.name.substr(parentName ? parentName.length + 1 : 0))
   const teamname = parentName ? `${parentName}.${name}` : name
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
   const [teamNameTakenStatus, setTeamNameTakenStatus] = React.useState<number>(0)
