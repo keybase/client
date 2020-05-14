@@ -70,7 +70,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" style={styles.flexShrink}>
       <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" style={styles.flexShrink}>
         <Kb.Avatar editable={false} teamname={teamname} size={16} style={styles.alignSelfFlexStart} />
-        <Kb.Text type="BodySmallSemibold" onClick={onNavToTeam}>
+        <Kb.Text className="hover-underline" type="BodySmallSemibold" onClick={onNavToTeam}>
           {teamname}
         </Kb.Text>
       </Kb.Box2>
