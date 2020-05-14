@@ -32,8 +32,6 @@ const ChannelRow = (props: ChannelRowProps) => {
   )
   const channelMeta = useChannelMeta(teamID, conversationIDKey)
 
-  const [_, setWaiting] = React.useState(false)
-
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onSelect = (newSelected: boolean) => {
@@ -48,7 +46,6 @@ const ChannelRow = (props: ChannelRowProps) => {
   const editChannelProps = {
     ...navPropsForAction,
     afterEdit: () => {
-      setWaiting(true)
       dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
     },
     channelname: channelMeta?.channelname,
