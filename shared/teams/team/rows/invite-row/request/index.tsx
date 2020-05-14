@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/teams'
 import * as Kb from '../../../../../common-adapters'
-import * as Container from '../../../../../util/container'
 import {FloatingRolePicker} from '../../../../role-picker'
 import * as Styles from '../../../../../styles'
 import flags from '../../../../../util/feature-flags'
@@ -74,12 +73,10 @@ const TeamRequestRowOld = (props: Props) => {
 }
 
 const TeamRequestRowNew = (props: Props) => {
-  const {ctime, fullName, username, onAccept, onOpenProfile, reset, teamID} = props
+  const {ctime, fullName, username, onAccept, onOpenProfile, reset} = props
 
   const approveWord = reset ? 'Readmit' : 'Approve'
   const denyWord = reset ? 'Remove' : 'Deny'
-
-  const isNew = Container.useSelector(s => s.teams.newTeamRequests.get(teamID)?.has(username) ?? false)
 
   const {showingPopup, setShowingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
@@ -120,13 +117,11 @@ const TeamRequestRowNew = (props: Props) => {
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={username} />
             <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-              {(isNew || reset) && (
-                <Kb.Meta
-                  title={reset ? 'locked out' : 'please decide'}
-                  style={styleCharm}
-                  backgroundColor={reset ? Styles.globalColors.red : Styles.globalColors.orange}
-                />
-              )}
+              <Kb.Meta
+                title={reset ? 'locked out' : 'please decide'}
+                style={styleCharm}
+                backgroundColor={reset ? Styles.globalColors.red : Styles.globalColors.orange}
+              />
               {Styles.isMobile ? (
                 isLargeScreen && (
                   <Kb.Text type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
