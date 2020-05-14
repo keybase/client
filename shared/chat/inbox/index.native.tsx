@@ -14,6 +14,7 @@ import debounce from 'lodash/debounce'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
+import noop from 'lodash/noop'
 
 type RowItem = Types.ChatInboxRowItem
 
@@ -283,6 +284,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
               windowSize={5}
               keyboardShouldPersistTaps="handled"
               getItemLayout={this.getItemLayout}
+              onScrollToIndexFailed={noop}
             />
           )}
           {noChats}

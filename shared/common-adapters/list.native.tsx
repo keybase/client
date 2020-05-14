@@ -3,6 +3,7 @@ import {FlatList, View} from 'react-native'
 import * as Styles from '../styles'
 import {Props} from './list'
 import Animated from 'react-native-reanimated'
+import noop from 'lodash/noop'
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
 
@@ -44,6 +45,7 @@ class List<Item> extends PureComponent<Props<Item>> {
        */}
         <View style={Styles.globalStyles.fillAbsolute}>
           <List
+            onScrollToIndexFailed={noop}
             bounces={this.props.bounces}
             contentContainerStyle={this.props.contentContainerStyle}
             renderItem={this._itemRender}
