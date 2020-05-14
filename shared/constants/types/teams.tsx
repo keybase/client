@@ -178,7 +178,7 @@ export type NewTeamWizardState = {
   description: string
   open: boolean
   openTeamJoinRole: TeamRoleType
-  showcase: boolean
+  profileShowcase: boolean // showcase team on creator's profile
   addYourself: boolean // for subteams
   avatarFilename?: string
   avatarCrop?: AvatarCrop

@@ -82,7 +82,7 @@ const NewTeamInfo = () => {
   const [addYourself, setAddYourself] = React.useState(teamWizardState.addYourself)
   const [showcase, setShowcase] = React.useState(
     teamWizardState.name
-      ? teamWizardState.showcase
+      ? teamWizardState.profileShowcase
       : teamWizardState.teamType !== 'other' && teamWizardState.teamType !== 'subteam'
   )
   const [realRole, setRealRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
@@ -99,7 +99,7 @@ const NewTeamInfo = () => {
         description,
         openTeam,
         openTeamJoinRole: realRole,
-        showcase,
+        profileShowcase: showcase,
         teamname,
       })
     )

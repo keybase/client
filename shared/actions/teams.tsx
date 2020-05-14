@@ -1565,7 +1565,7 @@ const startAddMembersWizard = (action: TeamsGen.StartAddMembersWizardPayload) =>
       })
     : appendNewTeamBuilder(action.payload.teamID)
 const finishNewTeamWizard = async (state: TypedState) => {
-  const {name, description, open, openTeamJoinRole, showcase, addYourself} = state.teams.newTeamWizard
+  const {name, description, open, openTeamJoinRole, profileShowcase, addYourself} = state.teams.newTeamWizard
   const {avatarFilename, avatarCrop, channels, subteams} = state.teams.newTeamWizard
   const teamInfo: RPCTypes.TeamCreateFancyInfo = {
     avatar: avatarFilename ? {avatarFilename, crop: avatarCrop?.crop} : null,
@@ -1574,7 +1574,7 @@ const finishNewTeamWizard = async (state: TypedState) => {
     joinSubteam: addYourself,
     name,
     openSettings: {joinAs: RPCTypes.TeamRole[openTeamJoinRole], open},
-    showcase,
+    profileShowcase,
     subteams,
     users: state.teams.addMembersWizard.addingMembers.map(member => ({
       assertion: member.assertion,

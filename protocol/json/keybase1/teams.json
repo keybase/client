@@ -3076,7 +3076,7 @@
         },
         {
           "type": "boolean",
-          "name": "showcase"
+          "name": "profileShowcase"
         },
         {
           "type": [

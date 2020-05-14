@@ -211,7 +211,7 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
   name: '',
   open: false,
   openTeamJoinRole: 'reader',
-  showcase: false,
+  profileShowcase: false,
   teamType: 'other',
 }
 
@@ -733,7 +733,7 @@ export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
         isMember: true,
         isOpen: state.teams.newTeamWizard.open,
         memberCount: 0,
-        showcasing: state.teams.newTeamWizard.showcase,
+        showcasing: state.teams.newTeamWizard.profileShowcase,
         teamname: state.teams.newTeamWizard.name == '' ? 'New team' : state.teams.newTeamWizard.name,
       })
     : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
