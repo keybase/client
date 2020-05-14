@@ -291,10 +291,22 @@ const SelfChannelActions = ({
 
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, meta.teamID))
   const isAdmin = yourOperations.deleteChannel
+  const canEdit = yourOperations.editChannelDescription
   const inChannel = meta.membershipType === 'active'
 
+  const [waiting, setWaiting] = React.useState(false)
+  const stopWaiting = () => setWaiting(false)
+
   const actionProps = {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID}
-  const editChannelProps = {...actionProps, channelname: meta.channelname, description: meta.description}
+  const editChannelProps = {
+    ...actionProps,
+    afterEdit: () => {
+      setWaiting(true)
+      reloadChannels().then(stopWaiting, stopWaiting)
+    },
+    channelname: meta.channelname,
+    description: meta.description,
+  }
   const onEditChannel = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: editChannelProps, selected: 'teamEditChannel'}]}))
   const onChannelSettings = () => {
@@ -308,9 +320,7 @@ const SelfChannelActions = ({
   const joinRPC = Container.useRPC(RPCChatGen.localJoinConversationByIDLocalRpcPromise)
   const leaveRPC = Container.useRPC(RPCChatGen.localLeaveConversationLocalRpcPromise)
 
-  const [waiting, setWaiting] = React.useState(false)
   const convID = ChatTypes.keyToConversationID(meta.conversationIDKey)
-  const stopWaiting = () => setWaiting(false)
   const onLeave = () => {
     setWaiting(true)
     leaveRPC([{convID}], () => reloadChannels().then(stopWaiting, stopWaiting), stopWaiting)
@@ -372,15 +382,17 @@ const SelfChannelActions = ({
           waiting={waiting}
         />
       )}
-      <Kb.Button
-        icon="iconfont-ellipsis"
-        iconColor={Styles.globalColors.black_50}
-        onClick={toggleShowingPopup}
-        ref={popupAnchor}
-        small={true}
-        mode="Secondary"
-        type="Dim"
-      />
+      {canEdit && (
+        <Kb.Button
+          icon="iconfont-ellipsis"
+          iconColor={Styles.globalColors.black_50}
+          onClick={toggleShowingPopup}
+          ref={popupAnchor}
+          small={true}
+          mode="Secondary"
+          type="Dim"
+        />
+      )}
     </Kb.Box2>
   )
 }

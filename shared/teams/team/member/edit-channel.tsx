@@ -10,6 +10,7 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 type Props = Container.RouteProps<{
+  afterEdit?: () => void
   channelname: string
   description: string
   teamID: Types.TeamID
@@ -24,6 +25,7 @@ const EditChannel = (props: Props) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', '')
   const oldName = Container.getRouteProps(props, 'channelname', '')
   const oldDescription = Container.getRouteProps(props, 'description', '')
+  const onFinish = Container.getRouteProps(props, 'afterEdit', undefined)
 
   const [name, _setName] = React.useState(oldName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
@@ -47,8 +49,9 @@ const EditChannel = (props: Props) => {
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
       dispatch(nav.safeNavigateUpPayload())
+      onFinish?.()
     }
-  }, [dispatch, nav, waiting, wasWaiting])
+  }, [dispatch, nav, waiting, wasWaiting, onFinish])
 
   return (
     <Kb.Modal
@@ -83,6 +86,9 @@ const EditChannel = (props: Props) => {
           disabled={oldName === 'general'}
           containerStyle={styles.channelNameinput}
         />
+        {oldName === 'general' && (
+          <Kb.Text type="BodySmall">You can't edit the #general channel's name.</Kb.Text>
+        )}
         <Kb.LabeledInput
           hoverPlaceholder="What is this channel about?"
           placeholder="Description"
