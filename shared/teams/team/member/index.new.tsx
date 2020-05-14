@@ -224,7 +224,7 @@ const TeamMember = (props: OwnProps) => {
   return (
     <>
       <Kb.SafeAreaViewTop />
-      <Kb.Box2 direction="vertical" style={styles.container}>
+      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
         {errors.length > 0 && (
           <Kb.Banner color="red">
             {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
