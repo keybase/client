@@ -95,8 +95,22 @@ build_one_architecture() {
   fakeroot dpkg-deb --build "$dest/build" "$dest/$name-$version-$debian_arch.deb"
 }
 
-export debian_arch=amd64
-build_one_architecture
+if [ -n "${KEYBASE_BUILD_ARM_ONLY:-}" ] ; then
+    export debian_arch=arm64
+    build_one_architecture
+    exit
+fi
 
-export debian_arch=i386
-build_one_architecture
+if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
+    export debian_arch=amd64
+    build_one_architecture
+else
+    echo SKIPPING amd64 build
+fi
+
+if [ -z "${KEYBASE_SKIP_32_BIT:-}" ] ; then
+    export debian_arch=i386
+    build_one_architecture
+else
+    echo SKIPPING x86 build
+fi
