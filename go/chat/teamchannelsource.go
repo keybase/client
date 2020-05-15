@@ -208,14 +208,14 @@ func (c *TeamChannelSource) GetLastActiveForTeams(ctx context.Context, uid grego
 			SkipBgLoads:      true,
 		})
 	byTLFID := make(map[chat1.TLFIDStr][]types.RemoteConversation)
-	channels := make(map[chat1.ConvIDStr]gregor1.Time)
+	channels := make(map[chat1.ConvIDStr]gregor1.Time, len(inbox.ConvsUnverified))
 	for _, conv := range inbox.ConvsUnverified {
 		rc := conv
 		tlfID := rc.Conv.Metadata.IdTriple.Tlfid.TLFIDStr()
 		byTLFID[tlfID] = append(byTLFID[tlfID], rc)
 		channels[rc.ConvIDStr] = utils.GetConvMtime(rc)
 	}
-	teams := make(map[chat1.TLFIDStr]gregor1.Time)
+	teams := make(map[chat1.TLFIDStr]gregor1.Time, len(byTLFID))
 	for tlfID, rcs := range byTLFID {
 		sort.Sort(utils.RemoteConvByMtime(rcs))
 		teams[tlfID] = channels[rcs[0].ConvIDStr]
