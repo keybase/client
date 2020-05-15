@@ -172,8 +172,6 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 		}
 	}
 
-	l.svcLog = redactPotentialPaperKeys(l.svcLog)
-
 	if err := addGzippedFile(mpart, "status_gz", "status.gz", l.StatusJSON); err != nil {
 		return "", err
 	}
