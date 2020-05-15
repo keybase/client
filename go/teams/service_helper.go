@@ -57,41 +57,46 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	}
 	members = membersFilterDeletedUsers(mctx.Ctx(), mctx.G(), members)
 	members = membersHideInactiveDuplicates(mctx.Ctx(), mctx.G(), members)
-	if settings.Open {
-		g.Log.CDebugf(ctx, "GetAnnotatedTeam: %q is an open team, filtering reset writers and readers", t.Name().String())
-		members = keybase1.FilterInactiveReadersWriters(members)
-	}
 
-	tracer.Stage("transitive subteams")
-	transitiveSubteamsUnverified, err := ListSubteamsUnverified(mctx, t.Name())
-	if err != nil {
-		return res, err
-	}
-
-	teamNameStr := t.Name().String()
-	myRole, err := t.myRole(ctx)
-	if err != nil {
-		return res, err
-	}
+	var transitiveSubteamsUnverified keybase1.SubteamListResult
 	var joinRequests []keybase1.TeamJoinRequest
 	var tarsDisabled bool
-	if myRole == keybase1.TeamRole_NONE || myRole.IsOrAbove(keybase1.TeamRole_ADMIN) {
-		// If we are an implicit admin, our role is NONE. Note that we would not be
-		// this far if we are not a member of that team - we would have failed with a
-		// membership error during team loading at the beginning of this function.
-		joinRequests, err = ListRequests(ctx, g, &teamNameStr)
-		if err != nil {
-			mctx.Debug("GetAnnotatedTeam: failed to load access requests: %s", err)
+	var showcase keybase1.TeamShowcase
+	if !t.IsImplicit() {
+		if settings.Open {
+			g.Log.CDebugf(ctx, "GetAnnotatedTeam: %q is an open team, filtering reset writers and readers", t.Name().String())
+			members = keybase1.FilterInactiveReadersWriters(members)
 		}
-		tarsDisabled, err = GetTarsDisabled(ctx, g, teamID)
-		if err != nil {
-			mctx.Debug("GetAnnotatedTeam: failed to load disabled TARs setting: %s", err)
-		}
-	}
 
-	showcase, err := GetTeamShowcase(ctx, g, teamID)
-	if err != nil {
-		return res, err
+		tracer.Stage("transitive subteams")
+		transitiveSubteamsUnverified, err = ListSubteamsUnverified(mctx, t.Name())
+		if err != nil {
+			return res, err
+		}
+
+		teamNameStr := t.Name().String()
+		myRole, err := t.myRole(ctx)
+		if err != nil {
+			return res, err
+		}
+		if myRole == keybase1.TeamRole_NONE || myRole.IsOrAbove(keybase1.TeamRole_ADMIN) {
+			// If we are an implicit admin, our role is NONE. Note that we would not be
+			// this far if we are not a member of that team - we would have failed with a
+			// membership error during team loading at the beginning of this function.
+			joinRequests, err = ListRequests(ctx, g, &teamNameStr)
+			if err != nil {
+				mctx.Debug("GetAnnotatedTeam: failed to load access requests: %s", err)
+			}
+			tarsDisabled, err = GetTarsDisabled(ctx, g, teamID)
+			if err != nil {
+				mctx.Debug("GetAnnotatedTeam: failed to load disabled TARs setting: %s", err)
+			}
+		}
+
+		showcase, err = GetTeamShowcase(ctx, g, teamID)
+		if err != nil {
+			return res, err
+		}
 	}
 
 	return keybase1.AnnotatedTeam{
