@@ -90,14 +90,18 @@ func redactPotentialPaperKeys(s string) string {
 	var checkWords []string
 	var checkWordLocations []int // keep track of each checkWord's index in allWords
 	for idx, word := range allWords {
-		if !(len(word) == 1 && noncharacterRxx.MatchString(word)) && libkb.ValidSecWord(word) {
+		if !(len(word) == 1 && noncharacterRxx.MatchString(word)) {
 			checkWords = append(checkWords, word)
 			checkWordLocations = append(checkWordLocations, idx)
 		}
 	}
 	didRedact := false
 	start := -1
-	for idx := range checkWords {
+	for idx, word := range checkWords {
+		if !libkb.ValidSecWord(word) {
+			start = -1
+			continue
+		}
 		switch {
 		case start == -1:
 			start = idx
