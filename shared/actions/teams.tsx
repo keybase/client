@@ -880,7 +880,8 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
     if (visibleScreen && visibleScreen.routeName === 'chatCreateChannel') {
       yield Saga.put(RouteTreeGen.createClearModals())
     }
-
+    // Reload on team page
+    yield Saga.put(TeamsGen.createLoadTeamChannelList({teamID}))
     // Select the new channel, and switch to the chat tab.
     if (action.payload.navToChatOnSuccess) {
       yield Saga.put(
@@ -891,8 +892,6 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
           teamname,
         })
       )
-    } else {
-      yield Saga.put(TeamsGen.createLoadTeamChannelList({teamID}))
     }
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
@@ -921,7 +920,10 @@ const createChannels = async (state: TypedState, action: TeamsGen.CreateChannels
   } catch (error) {
     return TeamsGen.createSetChannelCreationError({error: error.desc})
   }
-  return TeamsGen.createSetCreatingChannels({creatingChannels: false})
+  return [
+    TeamsGen.createSetCreatingChannels({creatingChannels: false}),
+    TeamsGen.createLoadTeamChannelList({teamID}),
+  ]
 }
 
 const setMemberPublicity = async (action: TeamsGen.SetMemberPublicityPayload) => {
@@ -1254,7 +1256,7 @@ const deleteMultiChannelsConfirmed = async (action: TeamsGen.DeleteMultiChannels
     )
   }
 
-  return false
+  return TeamsGen.createLoadTeamChannelList({teamID})
 }
 
 const getMembers = async (action: TeamsGen.GetMembersPayload, logger: Saga.SagaLogger) => {
