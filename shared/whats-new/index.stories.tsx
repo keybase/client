@@ -194,6 +194,7 @@ const load = () => {
           onBack={Sb.action('onBack')}
           onNavigate={Sb.action('onNavigate')}
           onNavigateExternal={Sb.action('onNavigateExternal')}
+          onSwitchTab={Sb.action('onSwitchTab')}
         />
       </WhatsNewWrapper>
     ))
@@ -211,6 +212,7 @@ const load = () => {
           onBack={Sb.action('onBack')}
           onNavigate={Sb.action('onNavigate')}
           onNavigateExternal={Sb.action('onNavigateExternal')}
+          onSwitchTab={Sb.action('onSwitchTab')}
         />
       </WhatsNewWrapper>
     ))
@@ -230,6 +232,7 @@ const load = () => {
           onBack={Sb.action('onBack')}
           onNavigate={Sb.action('onNavigate')}
           onNavigateExternal={Sb.action('onNavigateExternal')}
+          onSwitchTab={Sb.action('onSwitchTab')}
         />
       </WhatsNewWrapper>
     ))
@@ -249,6 +252,7 @@ const load = () => {
           onBack={Sb.action('onBack')}
           onNavigate={Sb.action('onNavigate')}
           onNavigateExternal={Sb.action('onNavigateExternal')}
+          onSwitchTab={Sb.action('onSwitchTab')}
         />
       </WhatsNewWrapper>
     ))
@@ -268,6 +272,7 @@ const load = () => {
           onBack={Sb.action('onBack')}
           onNavigate={Sb.action('onNavigate')}
           onNavigateExternal={Sb.action('onNavigateExternal')}
+          onSwitchTab={Sb.action('onSwitchTab')}
         />
       </WhatsNewWrapper>
     ))
@@ -289,6 +294,7 @@ const load = () => {
           onBack={Sb.action('onBack')}
           onNavigate={Sb.action('onNavigate')}
           onNavigateExternal={Sb.action('onNavigateExternal')}
+          onSwitchTab={Sb.action('onSwitchTab')}
         />
       </WhatsNewWrapper>
     ))
@@ -310,6 +316,7 @@ const load = () => {
           onBack={Sb.action('onBack')}
           onNavigate={Sb.action('onNavigate')}
           onNavigateExternal={Sb.action('onNavigateExternal')}
+          onSwitchTab={Sb.action('onSwitchTab')}
         />
       </WhatsNewWrapper>
     ))
@@ -331,6 +338,7 @@ const load = () => {
           onBack={Sb.action('onBack')}
           onNavigate={Sb.action('onNavigate')}
           onNavigateExternal={Sb.action('onNavigateExternal')}
+          onSwitchTab={Sb.action('onSwitchTab')}
         />
       </WhatsNewWrapper>
     ))
@@ -352,6 +360,7 @@ const load = () => {
           onBack={Sb.action('onBack')}
           onNavigate={Sb.action('onNavigate')}
           onNavigateExternal={Sb.action('onNavigateExternal')}
+          onSwitchTab={Sb.action('onSwitchTab')}
         />
       </WhatsNewWrapper>
     ))
