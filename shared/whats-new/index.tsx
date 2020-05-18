@@ -2,6 +2,7 @@ import React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/whats-new'
+import * as Tabs from '../constants/tabs'
 import {VersionProps} from './versions'
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
     replace?: boolean
   }) => void
   onNavigateExternal: (url: string) => void
+  onSwitchTab: (tab: Tabs.AppTab) => void
   seenVersions: {[key: string]: boolean}
   currentVersion: Types.CurrentVersion
   lastVersion: Types.LastVersion
@@ -75,6 +77,7 @@ class WhatsNew extends React.PureComponent<Props> {
       seenVersions,
       onNavigate,
       onNavigateExternal,
+      onSwitchTab,
     } = this.props
     return (
       <Wrapper>
@@ -83,6 +86,7 @@ class WhatsNew extends React.PureComponent<Props> {
             seen={seenVersions[currentVersion]}
             onNavigate={onNavigate}
             onNavigateExternal={onNavigateExternal}
+            onSwitchTab={onSwitchTab}
           />
         )}
         {lastVersion && lastVersion !== noVersion && Last && (
@@ -90,6 +94,7 @@ class WhatsNew extends React.PureComponent<Props> {
             seen={seenVersions[lastVersion]}
             onNavigate={onNavigate}
             onNavigateExternal={onNavigateExternal}
+            onSwitchTab={onSwitchTab}
           />
         )}
         {lastLastVersion && lastLastVersion !== noVersion && LastLast && (
@@ -97,6 +102,7 @@ class WhatsNew extends React.PureComponent<Props> {
             seen={seenVersions[lastLastVersion]}
             onNavigate={onNavigate}
             onNavigateExternal={onNavigateExternal}
+            onSwitchTab={onSwitchTab}
           />
         )}
       </Wrapper>

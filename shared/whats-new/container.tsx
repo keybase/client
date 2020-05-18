@@ -1,6 +1,7 @@
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Container from '../util/container'
 import * as GregorGen from '../actions/gregor-gen'
+import * as Tabs from '../constants/tabs'
 import openURL from '../util/open-url'
 import {
   currentVersion,
@@ -45,6 +46,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 
   _onNavigateExternal: (url: string) => openURL(url),
 
+  _onSwitchTab: (tab: Tabs.AppTab) => dispatch(RouteTreeGen.createSwitchTab({tab})),
+
   _onUpdateLastSeenVersion: (lastSeenVersion: string) => {
     const action = GregorGen.createUpdateCategory({
       body: lastSeenVersion,
@@ -87,6 +90,7 @@ const mergeProps = (
       onBack()
     },
     onNavigateExternal: dispatchProps._onNavigateExternal,
+    onSwitchTab: dispatchProps._onSwitchTab,
     seenVersions,
   }
 }
