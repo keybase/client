@@ -23,7 +23,7 @@ const ProfileSearch = (props: Props) => {
       placeholderColor={color}
       placeholderText={`Search${Styles.isMobile ? '' : ' people'}`}
       size="full-width"
-      style={Styles.collapseStyles([styles.filter, props.style])}
+      style={Styles.collapseStyles([Styles.isMobile ? styles.filterMobile : styles.filter, props.style])}
     />
   )
 }
@@ -32,6 +32,10 @@ const styles = Styles.styleSheetCreate(() => ({
   filter: {
     marginLeft: Styles.globalMargins.xsmall,
     marginRight: Styles.globalMargins.xsmall,
+  },
+  filterMobile: {
+    paddingLeft: 0,
+    paddingRight: 0,
   },
 }))
 
