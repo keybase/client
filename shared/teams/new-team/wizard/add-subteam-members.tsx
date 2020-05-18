@@ -83,9 +83,11 @@ const AddSubteamMembers = () => {
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         rightButton: Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onContinue}>
-            {doneLabel}
-          </Kb.Text>
+          <Kb.Box2 direction="horizontal" style={styles.noWrap}>
+            <Kb.Text type="BodyBigLink" onClick={onContinue}>
+              {doneLabel}
+            </Kb.Text>
+          </Kb.Box2>
         ) : (
           undefined
         ),
@@ -143,6 +145,10 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: Styles.globalMargins.small,
   },
   hideOverflow: {overflow: 'hidden'},
+  noWrap: {
+    justifyContent: 'flex-end',
+    width: 48, // wide enough for "Done" or "Skip" to fit. workaround modal2 header measurement onmount
+  },
   search: {
     borderRadius: 4,
   },
