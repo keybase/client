@@ -521,7 +521,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 
-  const isSmallTeam = !Container.useSelector(s => Constants.isBigTeam(s, props.node.teamID)) // channelMetas?.values()?.next()?.value?.teamType === 'small'
+  const isSmallTeam = !Container.useSelector(s => Constants.isBigTeam(s, props.node.teamID))
 
   const channelsJoined = isSmallTeam
     ? []
