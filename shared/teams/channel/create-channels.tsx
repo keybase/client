@@ -17,6 +17,13 @@ const CreateChannels = (props: Props) => {
   const waiting = Container.useSelector(s => s.teams.creatingChannels)
   const error = Container.useSelector(s => s.teams.errorInChannelCreation)
   const prevWaiting = Container.usePrevious(waiting)
+
+  React.useEffect(() => {
+    if (prevWaiting === true && !waiting) {
+      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+    }
+  }, [dispatch, prevWaiting, teamID, waiting])
+
   const success = prevWaiting && !waiting && !error
 
   const banners = React.useMemo(
