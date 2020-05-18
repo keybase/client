@@ -67,6 +67,7 @@ const TeamPicker = (props: Props) => {
       }
     )
     dispatch(RouteTreeGen.createClearModals())
+    dispatch(Chat2Gen.createPreviewConversation({conversationIDKey: dstConvID, reason: 'forward'}))
   }
   React.useEffect(() => {
     doSearch()

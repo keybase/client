@@ -1,7 +1,7 @@
 {
   "prelude": [
-      "import * as Tabs from '../constants/tabs'", 
-      "import * as Types from '../constants/types/route-tree'", 
+      "import * as Tabs from '../constants/tabs'",
+      "import * as Types from '../constants/types/route-tree'",
   ],
   "actions": {
     "navigateAppend": {
