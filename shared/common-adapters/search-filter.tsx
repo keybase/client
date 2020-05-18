@@ -345,8 +345,6 @@ const styles = Styles.styleSheetCreate(() => ({
   containerMobile: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.tiny,
     },
     isTablet: {

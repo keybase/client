@@ -23,7 +23,7 @@ const ProfileSearch = (props: Props) => {
       placeholderColor={color}
       placeholderText={`Search${Styles.isMobile ? '' : ' people'}`}
       size="full-width"
-      style={Styles.collapseStyles([styles.filter, props.style])}
+      style={Styles.collapseStyles([Styles.isMobile ? {} : styles.filter, props.style])}
     />
   )
 }
