@@ -32,8 +32,8 @@ const Video = (props: Props) => {
   }, [ref, playFromSecondsOrPause])
 
   Kb.useInterval(() => {
-    ref.current && props.onProgress(ref.current.currentTime)
-  }, props.progressUpdateInterval)
+    ref.current && props.onProgress?.(ref.current.currentTime)
+  }, props.progressUpdateInterval || 250)
 
   // This is used to control opacity. It means we're paused after at least
   // playing once. This is different from just the playing state since we

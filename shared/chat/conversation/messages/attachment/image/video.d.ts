@@ -7,9 +7,9 @@ export type Props = {
   muted: boolean
   onLoadStart?: () => void
   onLoadedMetadata?: () => void
-  onProgress: (timeInSeconds: number) => void
+  onProgress?: (timeInSeconds: number) => void
   posterSrc?: string
-  progressUpdateInterval: number
+  progressUpdateInterval?: number
   playFromSecondsOrPause?: number // set to undefined to pause
   style?: Styles.StylesCrossPlatform
   videoSrc: string
