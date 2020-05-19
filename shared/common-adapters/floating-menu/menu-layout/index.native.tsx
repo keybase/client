@@ -73,7 +73,7 @@ const MenuRow = (props: MenuRowProps) => (
           {props.isSelected && (
             <Icon type="iconfont-check" color={Styles.globalColors.blue} fontSize={16} sizeType="Default" />
           )}
-          {(props.icon || props.isBadged) &&
+          {props.icon &&
             !props.isSelected &&
             (props.inProgress ? (
               <ProgressIndicator />
