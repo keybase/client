@@ -60,6 +60,15 @@ class MenuLayout extends Component<MenuLayoutProps> {
             )}
             {item.decoration}
             {item.isBadged && <Badge badgeStyle={Styles.collapseStyles([styles.badge, styles.iconBadge])} />}
+            {item.isSelected && (
+              <Icon
+                type="iconfont-check"
+                color={Styles.globalColors.blue}
+                fontSize={16}
+                sizeType="Default"
+                style={{paddingLeft: Styles.globalMargins.tiny}}
+              />
+            )}
           </Box>
         )}
         {!item.view && item.subTitle && (
