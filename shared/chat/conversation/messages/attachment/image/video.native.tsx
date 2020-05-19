@@ -2,10 +2,11 @@ import * as React from 'react'
 import {Props} from './video'
 import RNVideo from 'react-native-video'
 
-const videoSrcToSource = (videoSrc: string) => {
+const posterAndVideoSrcToSource = (posterSrc: string | undefined, videoSrc: string) => {
   const uri = videoSrc || 'https://'
+  const posterParam = posterSrc ? `&poster=${encodeURIComponent(posterSrc)}` : ''
   return {
-    uri: `${uri}&contentforce=true&poster=${encodeURIComponent(videoSrc)}`,
+    uri: `${uri}&contentforce=true${posterParam}`,
   }
 }
 
@@ -37,7 +38,7 @@ const Video = (props: Props) => {
       onLoadStart={props.onLoadStart}
       onLoad={props.onLoadedMetadata}
       onProgress={({currentTime}) => props.onProgress?.(currentTime)}
-      source={videoSrcToSource(props.videoSrc)}
+      source={posterAndVideoSrcToSource(props.posterSrc, props.videoSrc)}
       paused={paused}
       progressUpdateInterval={props.progressUpdateInterval}
       style={props.style}

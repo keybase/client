@@ -29,12 +29,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
         messageID: message.id,
       })
     ),
-  _onDoubleClick: (message: Types.MessageAttachment) =>
-    dispatch(
-      Chat2Gen.createAttachmentPreviewSelect({
-        message,
-      })
-    ),
   _onRetry: (message: Types.MessageAttachment) =>
     dispatch(
       Chat2Gen.createAttachmentDownload({
@@ -85,7 +79,6 @@ export default Container.connect(
       message,
       onClick: () => dispatchProps._onClick(message),
       onCollapse: () => dispatchProps._onCollapse(message),
-      onDoubleClick: () => dispatchProps._onDoubleClick(message),
       onRetry: () => dispatchProps._onRetry(message),
       onShowInFinder:
         !Container.isMobile && message.downloadPath
