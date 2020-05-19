@@ -39,7 +39,13 @@ const WebOfTrust = (props: Props) => {
   const canReject = userIsYou && (status === WotStatusType.proposed || status === WotStatusType.accepted)
   const onReject = () => {
     if (!canReject) return
-    dispatch(UsersGen.createWotReact({reaction: WotReactionType.reject, voucher: attestingUser}))
+    dispatch(
+      UsersGen.createWotReact({
+        reaction: WotReactionType.reject,
+        sigID: proofID,
+        voucher: attestingUser,
+      })
+    )
   }
   const rejectLabel = status === WotStatusType.proposed ? 'Reject' : 'Delete'
   const canRevoke = voucherIsYou

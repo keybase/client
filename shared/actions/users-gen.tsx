@@ -34,8 +34,9 @@ type _UpdateBlockStatePayload = {
 type _UpdateBrokenStatePayload = {readonly newlyBroken: Array<string>; readonly newlyFixed: Array<string>}
 type _UpdateFullnamesPayload = {readonly usernameToFullname: {[username: string]: string}}
 type _WotReactPayload = {
-  readonly voucher: string
   readonly reaction: RPCTypes.WotReactionType
+  readonly voucher: string
+  readonly sigID: string
   readonly fromModal?: boolean
 }
 
