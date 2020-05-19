@@ -73,6 +73,7 @@ export type State = {
   notifySound: boolean
   openAtLogin: boolean
   osNetworkOnline: boolean
+  osNetworkIsCellular: boolean
   outOfDate?: OutOfDate
   pushLoaded: boolean
   registered: boolean

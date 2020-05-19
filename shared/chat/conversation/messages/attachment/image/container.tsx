@@ -7,6 +7,8 @@ import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
 import {imgMaxWidth} from './image-render'
 
+const videoShouldAutoPlayOnCellular = (message: Types.MessageAttachment) => message.fileSize < 5 * 1024 * 1024 // 5MB
+
 type OwnProps = {
   message: Types.MessageAttachment
   toggleMessageMenu: () => void
@@ -78,6 +80,7 @@ export default Container.connect(
       hasProgress,
       height,
       inlineVideoPlayable: message.inlineVideoPlayable,
+      inlineVideoShouldAutoPlayOnCellular: videoShouldAutoPlayOnCellular(message),
       isCollapsed: message.isCollapsed,
       message,
       onClick: () => dispatchProps._onClick(message),

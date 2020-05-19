@@ -145,6 +145,7 @@ export const initialState: Types.State = {
   notifySound: false,
   openAtLogin: true,
   osNetworkOnline: false,
+  osNetworkIsCellular: false,
   outOfDate: undefined,
   pushLoaded: false,
   registered: false,
