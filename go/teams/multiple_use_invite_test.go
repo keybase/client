@@ -668,8 +668,13 @@ func TestAcceptMultipleInviteLinkForOneTeam(t *testing.T) {
 		seitanRet, err := generateAcceptanceSeitanInviteLink(ilinks[i].Ikey, uv, unixNow)
 		require.NoError(t, err)
 
-		err = postSeitanInviteLink(tc.MetaContext(), seitanRet)
-		require.NoError(t, err)
+		// We can only actually post one of them, because server will block
+		// rest of the posts because of Y2K-2033. But this tests assumes all
+		// were accepted and server sent all of the requests in seitan message.
+		if i == 1 {
+			err = postSeitanInviteLink(tc.MetaContext(), seitanRet)
+			require.NoError(t, err)
+		}
 
 		inviteID, err := seitanRet.inviteID.TeamInviteID()
 		require.NoError(t, err)
@@ -740,11 +745,6 @@ func TestAcceptMultipleInviteLinkForTeamUpgrade(t *testing.T) {
 	// (1), WRITER (2), WRITER (3). It should upgrade them to WRITER using
 	// invite (2), and reject requests for invites (1) and (3).
 
-	// Skipping because it's not possible to use an invite link to upgrade
-	// yourself right now - server prevents accepting an invite link if you are
-	// already in the team.
-	t.Skip()
-
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
@@ -772,10 +772,6 @@ func TestAcceptMultipleInviteLinkForTeamUpgrade(t *testing.T) {
 		ilinks[i] = token
 	}
 
-	_, err := AddMemberByID(tc.Context(), tc.G, teamID, user.Username, keybase1.TeamRole_READER,
-		nil /* botSettings */, nil /* emailMsg */)
-	require.NoError(t, err)
-
 	kbtest.LogoutAndLoginAs(tc, user)
 
 	uv := user.GetUserVersion()
@@ -787,8 +783,13 @@ func TestAcceptMultipleInviteLinkForTeamUpgrade(t *testing.T) {
 		seitanRet, err := generateAcceptanceSeitanInviteLink(ilinks[i].Ikey, uv, unixNow)
 		require.NoError(t, err)
 
-		err = postSeitanInviteLink(tc.MetaContext(), seitanRet)
-		require.NoError(t, err)
+		// We can only actually post one of them, because server will block
+		// rest of the posts because of Y2K-2033. But this tests assumes all
+		// were accepted and server sent all of the requests in seitan message.
+		if i == 1 {
+			err = postSeitanInviteLink(tc.MetaContext(), seitanRet)
+			require.NoError(t, err)
+		}
 
 		inviteID, err := seitanRet.inviteID.TeamInviteID()
 		require.NoError(t, err)
@@ -806,6 +807,13 @@ func TestAcceptMultipleInviteLinkForTeamUpgrade(t *testing.T) {
 	}
 
 	kbtest.LogoutAndLoginAs(tc, admin)
+
+	// Meanwhile, user is added as READER (e.g. manually) before we got to
+	// process the seitan message.
+	_, err := AddMemberByID(tc.Context(), tc.G, teamID, user.Username, keybase1.TeamRole_READER,
+		nil /* botSettings */, nil /* emailMsg */)
+	require.NoError(t, err)
+
 	msg := keybase1.TeamSeitanMsg{
 		TeamID:  teamID,
 		Seitans: seitans[:],
@@ -847,7 +855,7 @@ func TestAcceptMultipleInviteLinksExceeded(t *testing.T) {
 	// User 1 accepts invite[1] (WRITER, but it's already exceeded)
 
 	// Depending on the order of how the requests are handled, either user 1 or
-	// user 2 can be added as writer. But we ant to ensure of them being added
+	// user 2 can be added as writer. But we want to ensure of them being added
 	// in the order of requests, so even with the logic of finding the
 	// highest-role invite, User 1 should be added with READER role.
 

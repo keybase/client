@@ -717,8 +717,14 @@ func TestAcceptingMultipleSeitanV2ForOneTeam(t *testing.T) {
 		seitanRet, err := generateAcceptanceSeitanV2(token, user.GetUserVersion(), timeNow)
 		require.NoError(t, err)
 
-		err = postSeitanV2(tc.MetaContext(), seitanRet)
-		require.NoError(t, err)
+		// We can only actually post one of them, because server will block
+		// rest of the posts because of Y2K-2033. But we will pretend that
+		// somehow all 3 were accepted and server sent 3 requests to admin's
+		// client.
+		if i == 1 {
+			err = postSeitanV2(tc.MetaContext(), seitanRet)
+			require.NoError(t, err)
+		}
 
 		inviteID, err := seitanRet.inviteID.TeamInviteID()
 		require.NoError(t, err)
@@ -808,11 +814,6 @@ func TestAcceptingMultipleSeitanV2ForTeamUpgrade(t *testing.T) {
 		ikeys[i] = token
 	}
 
-	// Admin adds user as READER.
-	_, err := AddMemberByID(tc.Context(), tc.G, teamID, user.Username, keybase1.TeamRole_READER,
-		nil /* botSettings */, nil /* emailMsg */)
-	require.NoError(t, err)
-
 	// User accepts all 3 invites and generates TeamSeitanRequests for admin to
 	// handle in HandleTeamSeitan.
 	kbtest.LogoutAndLoginAs(tc, user)
@@ -826,8 +827,13 @@ func TestAcceptingMultipleSeitanV2ForTeamUpgrade(t *testing.T) {
 		seitanRet, err := generateAcceptanceSeitanV2(token, user.GetUserVersion(), timeNow)
 		require.NoError(t, err)
 
-		err = postSeitanV2(tc.MetaContext(), seitanRet)
-		require.NoError(t, err)
+		// Only one of these invites can be accepted (Y2K-2033), but we can
+		// simulate that the server let us accept all of them and sent the
+		// admin all requests.
+		if i == 1 {
+			err := postSeitanV2(tc.MetaContext(), seitanRet)
+			require.NoError(t, err)
+		}
 
 		inviteID, err := seitanRet.inviteID.TeamInviteID()
 		require.NoError(t, err)
@@ -846,6 +852,13 @@ func TestAcceptingMultipleSeitanV2ForTeamUpgrade(t *testing.T) {
 	}
 
 	kbtest.LogoutAndLoginAs(tc, admin)
+
+	// Meanwhile, user is added as READER (e.g. manually) before we got to
+	// process the seitan message.
+	_, err := AddMemberByID(tc.Context(), tc.G, teamID, user.Username, keybase1.TeamRole_READER,
+		nil /* botSettings */, nil /* emailMsg */)
+	require.NoError(t, err)
+
 	msg := keybase1.TeamSeitanMsg{
 		TeamID:  teamID,
 		Seitans: seitans[:],
