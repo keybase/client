@@ -2377,6 +2377,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	username := h.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	query, opts := search.UpgradeSearchOptsFromQuery(arg.Query, arg.Opts, username)
 	doSearch := !arg.NamesOnly && len(query) > 0
+	multiTokenQuery := len(strings.Split(query, " ")) > 1
 	forceDelegate := false
 	if arg.Opts.ConvID != nil {
 		fullyIndexed, err := h.G().Indexer.FullyIndexed(ctx, *arg.Opts.ConvID)
@@ -2453,7 +2454,13 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		if opts.MaxNameConvs == 0 {
 			return nil
 		}
-		convHits, err := h.G().InboxSource.Search(ctx, uid, query, opts.MaxNameConvs,
+		limit := opts.MaxNameConvs
+		if multiTokenQuery && limit > 2 {
+			// we are likely searching for a message or description, limit the
+			// results here.
+			limit = 2
+		}
+		convHits, err := h.G().InboxSource.Search(ctx, uid, query, limit,
 			types.InboxSourceSearchEmptyModeUnread)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
@@ -2478,8 +2485,14 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		if opts.MaxTeams == 0 {
 			return nil
 		}
+		limit := opts.MaxTeams
+		if multiTokenQuery && limit > 2 {
+			// we are likely searching for a message or description, limit the
+			// results here.
+			limit = 2
+		}
 		hits, err := opensearch.Local(mctx, query,
-			opts.MaxTeams)
+			limit)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get team hits: %s", err)
 			return nil
@@ -2497,10 +2510,16 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	})
 
 	eg.Go(func() error {
+		limit := opts.MaxBots
+		if multiTokenQuery && limit > 2 {
+			// we are likely searching for a message or description, limit the
+			// results here.
+			limit = 2
+		}
 		hits, err := teambot.NewFeaturedBotLoader(g).SearchLocal(
 			mctx, keybase1.SearchLocalArg{
 				Query:     query,
-				Limit:     opts.MaxBots,
+				Limit:     limit,
 				SkipCache: opts.SkipBotCache,
 			})
 		if err != nil {
