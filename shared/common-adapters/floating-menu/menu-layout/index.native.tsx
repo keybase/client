@@ -70,7 +70,11 @@ const MenuRow = (props: MenuRowProps) => (
           fullHeight={true}
           style={Styles.collapseStyles([!props.centered && styles.iconContainer])}
         >
-          {props.icon &&
+          {props.isSelected && (
+            <Icon type="iconfont-check" color={Styles.globalColors.blue} fontSize={16} sizeType="Default" />
+          )}
+          {(props.icon || props.isBadged) &&
+            !props.isSelected &&
             (props.inProgress ? (
               <ProgressIndicator />
             ) : (
@@ -82,15 +86,6 @@ const MenuRow = (props: MenuRowProps) => (
                   type={props.icon}
                 />
                 {props.isBadged && <Badge badgeStyle={styles.iconBadge} />}
-                {props.isSelected && (
-                  <Icon
-                    type="iconfont-check"
-                    color={Styles.globalColors.blue}
-                    fontSize={16}
-                    sizeType="Default"
-                    style={{paddingLeft: Styles.globalMargins.tiny}}
-                  />
-                )}
               </>
             ))}
         </Box2>
