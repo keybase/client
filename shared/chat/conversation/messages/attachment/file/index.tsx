@@ -5,7 +5,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as CryptoTypes from '../../../../../constants/types/crypto'
 import * as Constants from '../../../../../constants/chat2'
 import * as Styles from '../../../../../styles'
-import {GetEditStyle, ShowToastAfterSaving} from '../shared'
+import {getEditStyle, ShowToastAfterSaving} from '../shared'
 import {useMemo} from '../../../../../util/memoize'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned, Operations} from '../../../../../constants/crypto'
 
@@ -40,7 +40,7 @@ const FileAttachment = React.memo((props: Props) => {
   return (
     <>
       <ShowToastAfterSaving transferState={props.transferState} />
-      <Kb.Box style={Styles.collapseStyles([styles.containerStyle, GetEditStyle(isEditing, isHighlighted)])}>
+      <Kb.Box style={Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing, isHighlighted)])}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
           <Kb.Icon type={iconType} style={styles.iconStyle} onClick={props.onDownload} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
@@ -51,7 +51,7 @@ const FileAttachment = React.memo((props: Props) => {
                 onClick={props.onDownload}
                 style={Styles.collapseStyles([
                   isSaltpackFile && styles.saltpackFileName,
-                  GetEditStyle(isEditing, isHighlighted),
+                  getEditStyle(isEditing, isHighlighted),
                 ])}
               >
                 {props.fileName}
@@ -60,9 +60,9 @@ const FileAttachment = React.memo((props: Props) => {
               <Kb.Markdown
                 meta={wrappedMeta}
                 selectable={true}
-                style={GetEditStyle(isEditing, isHighlighted)}
+                style={getEditStyle(isEditing, isHighlighted)}
                 styleOverride={
-                  Styles.isMobile ? {paragraph: GetEditStyle(isEditing, isHighlighted)} : undefined
+                  Styles.isMobile ? {paragraph: getEditStyle(isEditing, isHighlighted)} : undefined
                 }
                 allowFontScaling={true}
               >
@@ -75,7 +75,7 @@ const FileAttachment = React.memo((props: Props) => {
                 onClick={props.onDownload}
                 style={Styles.collapseStyles([
                   isSaltpackFile && styles.saltpackFileName,
-                  GetEditStyle(isEditing, isHighlighted),
+                  getEditStyle(isEditing, isHighlighted),
                 ])}
               >
                 {props.fileName}

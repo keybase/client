@@ -6,7 +6,7 @@ import {isMobile} from '../../../../../util/container'
 import {memoize} from '../../../../../util/memoize'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
-import {GetEditStyle, ShowToastAfterSaving} from '../shared'
+import {getEditStyle, ShowToastAfterSaving} from '../shared'
 
 type Props = {
   arrowColor: string
@@ -86,7 +86,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
-          style={GetEditStyle(this.props.isEditing, this.props.isHighlighted)}
+          style={getEditStyle(this.props.isEditing, this.props.isHighlighted)}
         >
           {(!mobileImageFilename || !Styles.isMobile) && (
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.fileNameContainer}>
@@ -214,10 +214,10 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         <Kb.Markdown
                           meta={this.memoizedMeta(this.props.message)}
                           selectable={true}
-                          style={GetEditStyle(this.props.isEditing, this.props.isHighlighted)}
+                          style={getEditStyle(this.props.isEditing, this.props.isHighlighted)}
                           styleOverride={
                             Styles.isMobile
-                              ? {paragraph: GetEditStyle(this.props.isEditing, this.props.isHighlighted)}
+                              ? {paragraph: getEditStyle(this.props.isEditing, this.props.isHighlighted)}
                               : undefined
                           }
                           allowFontScaling={true}

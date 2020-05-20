@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
 import * as Styles from '../../../../styles'
+import {sharedStyles} from '../shared-styles'
 import {isMobile} from '../../../../constants/platform'
 
 type Props = {
@@ -29,45 +30,9 @@ export const ShowToastAfterSaving = isMobile
     }
   : () => null
 
-export const GetEditStyle = (isEditing: boolean, isHighlighted?: boolean) => {
+export const getEditStyle = (isEditing: boolean, isHighlighted?: boolean) => {
   if (isHighlighted) {
-    return Styles.collapseStyles([styles.sent, styles.highlighted])
+    return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
   }
-  return isEditing ? styles.sentEditing : styles.sent
+  return isEditing ? sharedStyles.sentEditing : sharedStyles.sent
 }
-
-const editing = {
-  backgroundColor: Styles.globalColors.yellowLight,
-  borderRadius: 2,
-  color: Styles.globalColors.blackOrBlack,
-  paddingLeft: Styles.globalMargins.tiny,
-  paddingRight: Styles.globalMargins.tiny,
-}
-const sent = Styles.platformStyles({
-  isElectron: {
-    // Make text selectable. On mobile we implement that differently.
-    cursor: 'text',
-    userSelect: 'text',
-    whiteSpace: 'pre-wrap',
-    width: '100%',
-    wordBreak: 'break-word',
-  } as const,
-  isMobile: {
-    ...Styles.globalStyles.flexBoxColumn,
-  },
-})
-const sentEditing = {
-  ...sent,
-  ...editing,
-}
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      editing,
-      highlighted: {
-        color: Styles.globalColors.blackOrBlack,
-      },
-      sent,
-      sentEditing,
-    } as const)
-)
