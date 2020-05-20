@@ -17,6 +17,7 @@ type Props = {
   onCopyLink?: () => void
   onDelete?: () => void
   onDownload?: () => void
+  onEdit: () => void
   onForward: () => void
   onHidden: () => void
   onInstallBot?: () => void
@@ -34,6 +35,7 @@ type Props = {
   visible: boolean
   yourMessage: boolean
   isDeleteable: boolean
+  isEditable: boolean
   isKickable: boolean
 }
 
@@ -89,6 +91,15 @@ const AttachmentPopupMenu = (props: Props) => {
       ? [{icon: 'iconfont-link', onClick: props.onCopyLink, title: 'Copy a link to this message'}]
       : []),
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
+    ...(props.onEdit && props.isEditable
+      ? [
+          {
+            icon: 'iconfont-edit',
+            onClick: props.onEdit,
+            title: 'Edit',
+          },
+        ]
+      : []),
     ...(props.onForward ? [{icon: 'iconfont-forward', onClick: props.onForward, title: 'Forward'}] : []),
     ...(props.onPinMessage
       ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]

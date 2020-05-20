@@ -266,11 +266,17 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
   }
 
   const message = getMessage(state, id, ordinal)
-  if (!message || message.type !== 'text') {
+  if (!message) {
     return null
   }
-
-  return {exploded: message.exploded, ordinal, text: message.text.stringValue()}
+  switch (message.type) {
+    case 'text':
+      return {exploded: message.exploded, ordinal, text: message.text.stringValue()}
+    case 'attachment':
+      return {exploded: message.exploded, ordinal, text: message.title}
+    default:
+      return null
+  }
 }
 
 export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => {
