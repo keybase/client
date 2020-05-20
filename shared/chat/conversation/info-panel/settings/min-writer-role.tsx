@@ -49,6 +49,7 @@ const MinWriterRole = (props: Props) => {
   }, [lastMinWriterRole, minWriterRole, selected])
 
   const items = TeamConstants.teamRoleTypes.map(role => ({
+    isSelected: role === minWriterRole,
     onClick: () => selectRole(role),
     title: upperFirst(role),
   }))
