@@ -91,6 +91,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                     {this.props.inlineVideoPlayable ? (
                       <VideoRender
                         autoPlayOnCellular={this.props.inlineVideoShouldAutoPlayOnCellular}
+                        durationText={this.props.videoDuration}
                         posterSrc={this.props.path}
                         videoSrc={this.props.fullPath}
                         height={this.props.height}

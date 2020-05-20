@@ -8,6 +8,7 @@ import Video, {Poster} from './video'
 
 type VideoRenderProps = {
   autoPlayOnCellular: boolean
+  durationText?: string
   height: number
   width: number
   posterSrc: string
@@ -72,7 +73,7 @@ const VideoRenderDesktop = (props: VideoRenderInnerProps) => {
 
 const VideoRenderMobile = (props: VideoRenderInnerProps) => {
   const isCellular = Container.useSelector(state => state.config.osNetworkIsCellular)
-  const shouldAutoPlay = !isCellular || props.autoPlayOnCellular
+  const shouldAutoPlay = false // !isCellular || props.autoPlayOnCellular
 
   const [status, setStatus] = React.useState<'none' | 'playing' | 'playing-fullscreen'>(
     shouldAutoPlay ? 'playing' : 'none'
@@ -86,7 +87,12 @@ const VideoRenderMobile = (props: VideoRenderInnerProps) => {
   return (
     <Kb.ClickableBox onClick={onClick}>
       {status === 'none' ? (
-        <Poster posterSrc={props.posterSrc} height={props.height} width={props.width} />
+        <Poster
+          durationText={props.durationText}
+          posterSrc={props.posterSrc}
+          height={props.height}
+          width={props.width}
+        />
       ) : (
         <Video
           posterSrc={props.posterSrc}

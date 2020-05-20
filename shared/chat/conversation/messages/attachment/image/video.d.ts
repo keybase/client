@@ -18,6 +18,7 @@ export type Props = {
 export default class extends React.Component<Props> {}
 
 type PosterProps = {
+  durationText?: string
   height: number
   posterSrc: string
   width: number

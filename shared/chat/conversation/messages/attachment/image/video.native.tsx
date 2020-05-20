@@ -62,6 +62,13 @@ export const Poster = (props: PosterProps) => {
         style={Styles.collapseStyles([styles.image, dimensions])}
       />
       <Kb.Icon type="icon-play-64" style={styles.icon} />
+      {props.durationText && (
+        <Kb.Box style={styles.durationContainer}>
+          <Kb.Text type="BodyTinyBold" style={styles.durationText}>
+            {props.durationText}
+          </Kb.Text>
+        </Kb.Box>
+      )}
     </Kb.Box2>
   )
 }
@@ -70,6 +77,20 @@ export default Video
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {position: 'relative'},
+  durationContainer: {
+    alignSelf: 'flex-start',
+    backgroundColor: Styles.globalColors.black_50,
+    borderRadius: 2,
+    bottom: Styles.globalMargins.tiny,
+    padding: 1,
+    position: 'absolute',
+    right: Styles.globalMargins.tiny,
+  },
+  durationText: {
+    color: Styles.globalColors.white,
+    paddingLeft: 3,
+    paddingRight: 3,
+  },
   icon: {},
   image: {position: 'absolute'},
 }))
