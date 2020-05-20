@@ -70,14 +70,14 @@ describe('chat2 reducer', () => {
       expect(newState.editingMap.get(conversationIDKey)).toEqual(Types.numberToOrdinal(2))
     })
 
-    it('edit ignore attachments', () => {
+    it('edit an attachment', () => {
       const action = Chat2Gen.createMessageSetEditing({
         conversationIDKey,
         ordinal: Types.numberToOrdinal(3),
       })
 
       const newState = reducer(initialState, action)
-      expect(newState.editingMap.get(conversationIDKey)).toEqual(undefined)
+      expect(newState.editingMap.get(conversationIDKey)).toEqual(Types.numberToOrdinal(3))
     })
 
     it('edit specific ordinal and clear works', () => {
