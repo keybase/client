@@ -482,6 +482,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           <AttachmentMessage
             key="attachment"
             message={message}
+            isHighlighted={this.showCenteredHighlight()}
             toggleMessageMenu={this.props.toggleShowingMenu}
           />
         )
