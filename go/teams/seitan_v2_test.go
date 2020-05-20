@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -666,15 +667,89 @@ func TestSeitanMultipleRequestForOneInvite(t *testing.T) {
 
 	// First request should have been fulfilled, so users[0] should have been
 	// added. Second request should have been ignored.
-	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		Name:        teamName.String(),
-		NeedAdmin:   true,
-		ForceRepoll: true,
-	})
+	team, err := loadTeamForAdmin(tc, teamName.String())
 	require.NoError(t, err)
 
 	require.True(t, team.IsMember(context.TODO(), users[0].GetUserVersion()))
 	require.False(t, team.IsMember(context.TODO(), users[1].GetUserVersion()))
+}
+
+func TestSeitanMultipleRequestForOneInviteFromSameUser(t *testing.T) {
+	// Test one user accepting one seitan invite multiple times.
+
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+	admin := kbtest.TCreateFakeUser(tc)
+	teamName, teamID := createTeam2(tc)
+
+	token, err := CreateSeitanTokenV2(context.Background(), tc.G,
+		teamName.String(), keybase1.TeamRole_WRITER, keybase1.SeitanKeyLabel{})
+	require.NoError(t, err)
+
+	user := kbtest.TCreateFakeUser(tc)
+
+	clock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(clock)
+
+	// Accept the same invite 3 times.
+	var seitanRequests [3]keybase1.TeamSeitanRequest
+	for i := range seitanRequests {
+		timeNow := keybase1.ToTime(tc.G.Clock().Now())
+		seitanRet, err := generateAcceptanceSeitanV2(SeitanIKeyV2(token), user.GetUserVersion(), timeNow)
+		require.NoError(t, err)
+
+		inviteID, err := seitanRet.inviteID.TeamInviteID()
+		require.NoError(t, err)
+
+		seitanRequests[i] = keybase1.TeamSeitanRequest{
+			InviteID:    inviteID,
+			Uid:         user.GetUID(),
+			EldestSeqno: user.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(seitanRet.encoded),
+			Role:        keybase1.TeamRole_WRITER,
+			UnixCTime:   int64(timeNow),
+		}
+
+		err = postSeitanV2(tc.MetaContext(), seitanRet)
+		if i == 0 {
+			require.NoError(t, err)
+		} else {
+			// Second post should fail, but we will still give this acceptance
+			// to admin's client to attempt processing it.
+			require.Error(t, err)
+		}
+
+		clock.Advance(1 * time.Second)
+	}
+
+	kbtest.LogoutAndLoginAs(tc, admin)
+
+	// When handling this, user should be only added once with invite
+	// completions, and no cancellations should be issued.
+	//
+	// Initially the handler was posting a transaction completing the invite
+	// and then cancelling it twice...
+	msg := keybase1.TeamSeitanMsg{
+		TeamID:  teamID,
+		Seitans: seitanRequests[:],
+	}
+	err = HandleTeamSeitan(context.Background(), tc.G, msg)
+	require.NoError(t, err)
+
+	team, err := loadTeamForAdmin(tc, teamName.String())
+	require.NoError(t, err)
+
+	role, err := team.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, role)
+
+	md, found := team.chain().inner.InviteMetadatas[seitanRequests[0].InviteID]
+	require.True(t, found)
+	sc, err := md.Status.Code()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamInviteMetadataStatusCode_COMPLETED, sc)
 }
 
 func TestAcceptingMultipleSeitanV2ForOneTeam(t *testing.T) {

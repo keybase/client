@@ -558,12 +558,6 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 	})
 }
 
-type chatSeitanRecip struct {
-	inviter keybase1.UID
-	invitee keybase1.UID
-	role    keybase1.TeamRole
-}
-
 func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSeitanMsg) (err error) {
 	mctx := libkb.NewMetaContext(libkb.WithLogTag(ctx, "SEIT"), g)
 	defer mctx.Trace("HandleTeamSeitan", &err)()
@@ -590,24 +584,20 @@ type teamInviteAcceptanceRejections struct {
 }
 
 func handleTeamSeitanInternal(mctx libkb.MetaContext, msg keybase1.TeamSeitanMsg) ([]teamInviteAcceptanceRejections, error) {
-	team, err := Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
-		ID:          msg.TeamID,
-		Public:      msg.TeamID.IsPublic(),
-		ForceRepoll: true,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	if len(msg.Seitans) == 0 {
 		mctx.Debug("got an empty list, returning")
 		return nil, nil
 	}
 
-	// Only allow crypto-members added through 'team.change_membership' to be
-	// added for Seitan invites (AllowPUKless=false).
-	tx := CreateAddMemberTx(team)
-	tx.AllowRoleChanges = true // allow role upgrades using this tx
+	team, err := Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
+		ID:          msg.TeamID,
+		Public:      msg.TeamID.IsPublic(),
+		ForceRepoll: true,
+		NeedAdmin:   true,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	// Find invites in team for every request first. We need this to be able to
 	// sort by roles before we start processing the requests.
@@ -639,6 +629,11 @@ func handleTeamSeitanInternal(mctx libkb.MetaContext, msg keybase1.TeamSeitanMsg
 		})
 	}
 
+	if len(seitans) == 0 {
+		mctx.Debug("All seitan requests were invalid, bailing out")
+		return nil, fmt.Errorf("all seitan requests (%d of them) were invalid", len(msg.Seitans))
+	}
+
 	// Sort by roles, highest first.
 	sort.SliceStable(seitans, func(i, j int) bool {
 		roleI := seitans[i].invite.Role
@@ -646,28 +641,50 @@ func handleTeamSeitanInternal(mctx libkb.MetaContext, msg keybase1.TeamSeitanMsg
 		return !roleJ.IsOrAbove(roleI)
 	})
 
+	// Only allow crypto-members added through 'team.change_membership' to be
+	// added for Seitan invites (AllowPUKless=false).
+	tx := CreateAddMemberTx(team)
+	tx.AllowRoleChanges = true // allow role upgrades using this tx
+
+	// We send "welcome message" chats after we successfully post the
+	// transaction. Create list of messages to send while building it using the
+	// following struct.
+	type chatSeitanRecip struct {
+		inviter keybase1.UID
+		invitee keybase1.UID
+		role    keybase1.TeamRole
+	}
 	var chats []chatSeitanRecip
 
-	// Seitans to reject (indices in seitans), either rejects acceptance (if
+	// Seitans to reject (indices to `seitans`), either rejects acceptance (if
 	// new-style) or cancels invite.
-	var invitesToReject []int
+	var requestsToReject []int
 
-	// Map of users already added. Because we are sorting by roles, if we add
+	// Set of users already added. Because we are sorting by roles, if we add
 	// someone, we can reject any further requests by them, because they will
 	// be same or lower role.
 	usersAdded := make(map[keybase1.UID]bool)
+
+	// Set of invite IDs that are either completed or canceled.
+	oldStyleInviteIDsHandled := make(map[keybase1.TeamInviteID]bool)
 
 	for i, seitan := range seitans {
 		invite := seitan.invite
 		request := seitan.request
 
 		mctx.Debug("Processing Seitan acceptance for invite: %s UID: %s", invite.Id, request.Uid)
+		if !seitan.newStyle && oldStyleInviteIDsHandled[invite.Id] {
+			mctx.Debug(
+				"Old style invite id: %s has been handled already, skipping request",
+				invite.Id)
+			continue
+		}
 
-		err := verifySeitanSingle(mctx.Ctx(), mctx.G(), team, invite, request)
+		err := verifySeitanSingle(mctx, team, invite, request)
 		if err != nil {
 			if _, ok := err.(InviteLinkAcceptanceError); ok {
 				mctx.Debug("Provided AKey failed to verify with error: %v; ignoring and scheduling for rejection", err)
-				invitesToReject = append(invitesToReject, i)
+				requestsToReject = append(requestsToReject, i)
 			} else {
 				mctx.Debug("Provided AKey failed to verify with error: %v; ignoring", err)
 			}
@@ -678,31 +695,32 @@ func handleTeamSeitanInternal(mctx libkb.MetaContext, msg keybase1.TeamSeitanMsg
 			mctx.Debug(
 				"This user is already being added in this transaction, skipping request for invite: %s",
 				invite.Id)
-			invitesToReject = append(invitesToReject, i)
+			requestsToReject = append(requestsToReject, i)
 			continue
 		}
 
 		uv := NewUserVersion(request.Uid, request.EldestSeqno)
-		currentRole, err := team.MemberRole(mctx.Ctx(), uv)
-		if err != nil {
-			mctx.Debug("Failure in team.MemberRole: %v", err)
-			return nil, err
-		}
 
 		err = tx.CanConsumeInvite(mctx.Ctx(), invite.Id)
 		if err != nil {
 			if _, ok := err.(InviteLinkAcceptanceError); ok {
 				mctx.Debug("Can't use invite: %s; ignoring and scheduling for rejection", err)
-				invitesToReject = append(invitesToReject, i)
+				requestsToReject = append(requestsToReject, i)
 			} else {
 				mctx.Debug("Can't use invite: %s", err)
 			}
 			continue
 		}
 
+		currentRole, err := team.MemberRole(mctx.Ctx(), uv)
+		if err != nil {
+			mctx.Debug("Failure in team.MemberRole: %v", err)
+			return nil, err
+		}
+
 		if currentRole.IsOrAbove(invite.Role) {
 			mctx.Debug("User already has same or higher role; scheduling for rejection.")
-			invitesToReject = append(invitesToReject, i)
+			requestsToReject = append(requestsToReject, i)
 			continue
 		}
 
@@ -730,15 +748,27 @@ func handleTeamSeitanInternal(mctx libkb.MetaContext, msg keybase1.TeamSeitanMsg
 		})
 
 		usersAdded[request.Uid] = true
+		if !seitan.newStyle {
+			// Old style invites need special care so we don't try to either
+			// complete/cancel more than once, or do a combination of those.
+			oldStyleInviteIDsHandled[invite.Id] = true
+		}
 	}
 
 	// Handle all old-style invite "rejections" which are done by canceling
-	// invites.
-	for _, index := range invitesToReject {
+	// invites. These cancels go as part of the transaction.
+	for _, index := range requestsToReject {
 		seitan := seitans[index]
-		if !seitan.newStyle {
-			tx.CancelInvite(seitan.invite.Id, seitan.request.Uid)
+		if seitan.newStyle {
+			continue
 		}
+		if oldStyleInviteIDsHandled[seitan.invite.Id] {
+			// Already handled
+			continue
+		}
+		tx.CancelInvite(seitan.invite.Id, seitan.request.Uid)
+		// Make sure we don't cancel it twice.
+		oldStyleInviteIDsHandled[seitan.invite.Id] = true
 	}
 
 	spew.Dump(tx.DebugPayloads())
@@ -761,14 +791,14 @@ func handleTeamSeitanInternal(mctx libkb.MetaContext, msg keybase1.TeamSeitanMsg
 		}
 	}
 
-	var requestsToReject []teamInviteAcceptanceRejections
+	var newStyleRejections []teamInviteAcceptanceRejections
 
 	// Make list of requests for invite link rejections.
-	for _, index := range invitesToReject {
+	for _, index := range requestsToReject {
 		seitan := seitans[index]
 		if seitans[index].newStyle {
 
-			requestsToReject = append(requestsToReject, teamInviteAcceptanceRejections{
+			newStyleRejections = append(newStyleRejections, teamInviteAcceptanceRejections{
 				UID:         seitan.request.Uid,
 				EldestSeqno: seitan.request.EldestSeqno,
 				Akey:        seitan.request.Akey,
@@ -779,7 +809,7 @@ func handleTeamSeitanInternal(mctx libkb.MetaContext, msg keybase1.TeamSeitanMsg
 
 	if len(requestsToReject) > 0 {
 		mctx.Debug("trying to reject %d requests", len(requestsToReject))
-		if err = rejectInviteLinkAcceptances(mctx, requestsToReject); err != nil {
+		if err = rejectInviteLinkAcceptances(mctx, newStyleRejections); err != nil {
 			// the transaction posted correctly, and rejecting an invite is not a critical step, so just log and swallow the error
 			mctx.Debug("error rejecting invite acceptances: %v", err)
 		}
@@ -787,7 +817,7 @@ func handleTeamSeitanInternal(mctx libkb.MetaContext, msg keybase1.TeamSeitanMsg
 		mctx.Debug("no requests to reject")
 	}
 
-	return requestsToReject, nil
+	return newStyleRejections, nil
 }
 
 func rejectInviteLinkAcceptances(mctx libkb.MetaContext, rejections []teamInviteAcceptanceRejections) error {
@@ -821,13 +851,13 @@ func rejectInviteLinkAcceptances(mctx libkb.MetaContext, rejections []teamInvite
 	return nil
 }
 
-func verifySeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+func verifySeitanSingle(mctx libkb.MetaContext, team *Team, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
 	pkey, err := SeitanDecodePKey(string(invite.Name))
 	if err != nil {
 		return err
 	}
 
-	keyAndLabel, err := pkey.DecryptKeyAndLabel(ctx, team)
+	keyAndLabel, err := pkey.DecryptKeyAndLabel(mctx.Ctx(), team)
 	if err != nil {
 		return err
 	}
@@ -857,7 +887,7 @@ func verifySeitanSingle(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		if category != keybase1.TeamInviteCategory_INVITELINK {
 			return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v; wanted invitelink", category)
 		}
-		return verifySeitanSingleInvitelink(ctx, g, team, keyAndLabel.Invitelink().I, invite, seitan)
+		return verifySeitanSingleInvitelink(mctx, team, keyAndLabel.Invitelink().I, invite, seitan)
 	default:
 		return fmt.Errorf("unknown KeyAndLabel version: %v", labelversion)
 	}
@@ -930,7 +960,7 @@ func verifySeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 	return nil
 }
 
-func verifySeitanSingleInvitelink(ctx context.Context, g *libkb.GlobalContext, team *Team, ikey keybase1.SeitanIKeyInvitelink, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
+func verifySeitanSingleInvitelink(mctx libkb.MetaContext, team *Team, ikey keybase1.SeitanIKeyInvitelink, invite keybase1.TeamInvite, seitan keybase1.TeamSeitanRequest) (err error) {
 	// We repeat the steps that user does when they request access using the
 	// invite ID and see if we get the same answer for the same parameters (UV
 	// and unixCTime).
@@ -966,7 +996,7 @@ func verifySeitanSingleInvitelink(ctx context.Context, g *libkb.GlobalContext, t
 		return NewInviteLinkAcceptanceError("invite link was accepted before the user last changed their role")
 	}
 
-	if g.Clock().Now().Unix() < seitan.UnixCTime {
+	if mctx.G().Clock().Now().Unix() < seitan.UnixCTime {
 		// In this case we do not return an InviteLinkAcceptanceError to avoid
 		// triggering a rejection in case this client's clock is off. If the
 		// server is honest, clients shouldn't get asked to process these invite
