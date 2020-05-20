@@ -6,7 +6,7 @@ export type Props = {
   mobileOnDismissFullscreen: () => void
   muted: boolean
   onLoadStart?: () => void
-  onLoadedMetadata?: () => void
+  onReady?: () => void
   onProgress?: (timeInSeconds: number) => void
   posterSrc?: string
   progressUpdateInterval?: number
@@ -16,3 +16,10 @@ export type Props = {
 }
 
 export default class extends React.Component<Props> {}
+
+type PosterProps = {
+  height: number
+  posterSrc: string
+  width: number
+}
+export class Poster extends React.Component<PosterProps> {}

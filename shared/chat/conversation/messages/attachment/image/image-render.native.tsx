@@ -22,7 +22,6 @@ const styles = Styles.styleSheetCreate(
     ({
       container: {position: 'relative'},
       poster: {...Styles.globalStyles.fillAbsolute, borderRadius: Styles.borderRadius},
-      video: {borderRadius: Styles.borderRadius},
     } as const)
 )
 

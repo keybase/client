@@ -55,7 +55,7 @@ const Video = (props: Props) => {
           onMouseLeave={() => ref.current?.removeAttribute('controls')}
           poster={props.posterSrc}
           muted={props.muted}
-          onLoadedData={props.onLoadedMetadata}
+          onLoadedMetadata={props.onReady}
           onLoadStart={props.onLoadStart}
           controlsList="nodownload nofullscreen noremoteplayback"
           style={Styles.collapseStyles([props.style, {opacity}])}
@@ -68,3 +68,5 @@ const Video = (props: Props) => {
 }
 
 export default Video
+
+export const Poster = () => false

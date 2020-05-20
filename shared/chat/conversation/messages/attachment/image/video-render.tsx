@@ -4,9 +4,9 @@ import * as Kb from '../../../../../common-adapters'
 import * as Container from '../../../../../util/container'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import noop from 'lodash/noop'
-import Video from './video'
+import Video, {Poster} from './video'
 
-type VideoRendererProps = {
+type VideoRenderProps = {
   autoPlayOnCellular: boolean
   height: number
   width: number
@@ -15,7 +15,12 @@ type VideoRendererProps = {
   style: Styles.StylesCrossPlatform
 }
 
-const VideoRenderDesktop = (props: VideoRendererProps) => {
+type VideoRenderInnerProps = VideoRenderProps & {
+  onLoadStart: () => void
+  onReady: () => void
+}
+
+const VideoRenderDesktop = (props: VideoRenderInnerProps) => {
   const [playFromSecondsOrPause, setPlayFromSecondsOrPause] = React.useState<number | undefined>(0)
   const progressBaseRef = React.useRef(0)
   const onUnexpand = (currentSeconds?: number) => {
@@ -50,6 +55,8 @@ const VideoRenderDesktop = (props: VideoRendererProps) => {
         mobileOnDismissFullscreen={noop}
         muted={true}
         onProgress={(timeInSeconds: number) => (progressBaseRef.current = timeInSeconds)}
+        onLoadStart={props.onLoadStart}
+        onReady={props.onReady}
         playFromSecondsOrPause={playFromSecondsOrPause}
         style={Styles.collapseStyles([
           props.style,
@@ -63,41 +70,77 @@ const VideoRenderDesktop = (props: VideoRendererProps) => {
   )
 }
 
-const VideoRenderMobile = (props: VideoRendererProps) => {
+const VideoRenderMobile = (props: VideoRenderInnerProps) => {
   const isCellular = Container.useSelector(state => state.config.osNetworkIsCellular)
   const shouldAutoPlay = !isCellular || props.autoPlayOnCellular
-  const [mobileFullscreen, setMobileFullscreen] = React.useState(false)
-  const [muted, setMuted] = React.useState(true)
-  const onUnexpand = () => {
-    setMuted(true)
-    setMobileFullscreen(false)
-  }
-  const expand = () => {
-    setMuted(false)
-    setMobileFullscreen(true)
-  }
+
+  const [status, setStatus] = React.useState<'none' | 'playing' | 'playing-fullscreen'>(
+    shouldAutoPlay ? 'playing' : 'none'
+  )
+  const onClick =
+    status === 'none'
+      ? () => setStatus('playing')
+      : status === 'playing'
+      ? () => setStatus('playing-fullscreen')
+      : noop
   return (
-    <Kb.ClickableBox onClick={expand}>
-      <Video
-        posterSrc={props.posterSrc}
-        videoSrc={props.videoSrc}
-        mobileFullscreen={mobileFullscreen}
-        mobileOnDismissFullscreen={onUnexpand}
-        muted={muted}
-        playFromSecondsOrPause={shouldAutoPlay ? 0 : undefined}
-        style={Styles.collapseStyles([
-          props.style,
-          {
-            height: props.height,
-            width: props.width,
-          },
-        ])}
-      />
+    <Kb.ClickableBox onClick={onClick}>
+      {status === 'none' ? (
+        <Poster posterSrc={props.posterSrc} height={props.height} width={props.width} />
+      ) : (
+        <Video
+          posterSrc={props.posterSrc}
+          videoSrc={props.videoSrc}
+          mobileFullscreen={status === 'playing-fullscreen'}
+          mobileOnDismissFullscreen={() => setStatus('playing')}
+          muted={status === 'playing'}
+          playFromSecondsOrPause={0}
+          onLoadStart={props.onLoadStart}
+          onReady={props.onReady}
+          style={Styles.collapseStyles([
+            props.style,
+            {
+              height: props.height,
+              width: props.width,
+            },
+          ])}
+        />
+      )}
     </Kb.ClickableBox>
   )
 }
 
-export const VideoRender = Styles.isMobile ? VideoRenderMobile : VideoRenderDesktop
+const VideoRenderInner = Styles.isMobile ? VideoRenderMobile : VideoRenderDesktop
+
+export const VideoRender = (props: VideoRenderProps) => {
+  const [loading, setLoading] = React.useState(false)
+  return (
+    <Kb.Box style={Styles.globalStyles.positionRelative}>
+      <Kb.Animated to={{opacity: loading ? 0 : 1}} from={{opacity: 1}}>
+        {({opacity}) => (
+          <Kb.Box style={{opacity}}>
+            <VideoRenderInner
+              {...props}
+              onLoadStart={() => setLoading(true)}
+              onReady={() => setLoading(false)}
+            />
+          </Kb.Box>
+        )}
+      </Kb.Animated>
+      {loading && (
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          centerChildren={true}
+          style={Styles.globalStyles.fillAbsolute}
+        >
+          <Kb.ProgressIndicator />
+        </Kb.Box2>
+      )}
+    </Kb.Box>
+  )
+}
 
 type VideoExpandedModalProps = Container.RouteProps<{
   onHidden: (currentSeconds: number) => void
