@@ -72,8 +72,8 @@ export type State = {
   menubarWindowID: number
   notifySound: boolean
   openAtLogin: boolean
-  osNetworkOnline: boolean
   osNetworkIsCellular: boolean
+  osNetworkOnline: boolean
   outOfDate?: OutOfDate
   pushLoaded: boolean
   registered: boolean
