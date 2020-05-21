@@ -73,7 +73,7 @@ const VideoRenderDesktop = (props: VideoRenderInnerProps) => {
 
 const VideoRenderMobile = (props: VideoRenderInnerProps) => {
   const isCellular = Container.useSelector(state => state.config.osNetworkIsCellular)
-  const shouldAutoPlay = false // !isCellular || props.autoPlayOnCellular
+  const shouldAutoPlay = !isCellular || props.autoPlayOnCellular
 
   const [status, setStatus] = React.useState<'none' | 'playing' | 'playing-fullscreen'>(
     shouldAutoPlay ? 'playing' : 'none'
