@@ -41,8 +41,9 @@ func (c *CmdWotAccept) ParseArgv(ctx *cli.Context) error {
 
 func (c *CmdWotAccept) Run() error {
 	arg := keybase1.WotReactArg{
-		Voucher:  c.Voucher,
-		Reaction: keybase1.WotReactionType_ACCEPT,
+		Voucher:         c.Voucher,
+		Reaction:        keybase1.WotReactionType_ACCEPT,
+		AllowEmptySigID: true, // Don't require the user to copy paste a sig ID
 	}
 
 	cli, err := GetWebOfTrustClient(c.G())
@@ -94,8 +95,9 @@ func (c *CmdWotReject) ParseArgv(ctx *cli.Context) error {
 
 func (c *CmdWotReject) Run() error {
 	arg := keybase1.WotReactArg{
-		Voucher:  c.Voucher,
-		Reaction: keybase1.WotReactionType_REJECT,
+		Voucher:         c.Voucher,
+		Reaction:        keybase1.WotReactionType_REJECT,
+		AllowEmptySigID: true, // Don't require the user to copy paste a sig ID
 	}
 
 	cli, err := GetWebOfTrustClient(c.G())

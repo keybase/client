@@ -593,6 +593,7 @@ type _PreviewConversationPayload = {
     | 'appLink'
     | 'search'
     | 'journeyCardPopular'
+    | 'forward'
 }
 type _RefreshBotPublicCommandsPayload = {readonly username: string}
 type _RefreshBotRoleInConvPayload = {

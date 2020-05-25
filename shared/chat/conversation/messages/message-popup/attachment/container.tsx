@@ -88,6 +88,14 @@ export default Container.connect(
         })
       )
     },
+    _onEdit: (message: Types.Message) => {
+      dispatch(
+        Chat2Gen.createMessageSetEditing({
+          conversationIDKey: message.conversationIDKey,
+          ordinal: message.ordinal,
+        })
+      )
+    },
     _onForward: (message: Types.Message) => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -161,6 +169,7 @@ export default Container.connect(
     const message = ownProps.message
     const yourMessage = message.author === stateProps._you
     const isDeleteable = yourMessage || stateProps._canAdminDelete
+    const isEditable = !!(ownProps.message.isEditable && yourMessage)
     const authorInTeam = stateProps._teamMembers?.has(message.author) ?? true
     return {
       attachTo: ownProps.attachTo,
@@ -169,12 +178,14 @@ export default Container.connect(
       deviceRevokedAt: message.deviceRevokedAt || undefined,
       deviceType: message.deviceType,
       isDeleteable,
+      isEditable,
       isKickable: isDeleteable && !!stateProps._teamID && !yourMessage && authorInTeam,
       onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onCopyLink: () => dispatchProps._onCopyLink(stateProps._label, message),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
       onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
+      onEdit: () => dispatchProps._onEdit(message),
       onForward: () => dispatchProps._onForward(message),
       onHidden: () => ownProps.onHidden(),
       onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,

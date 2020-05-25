@@ -10,6 +10,7 @@ import {imgMaxWidth} from './image-render'
 type OwnProps = {
   message: Types.MessageAttachment
   toggleMessageMenu: () => void
+  isHighlighted?: boolean
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
@@ -46,9 +47,13 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 })
 
 export default Container.connect(
-  () => ({}),
+  (state: Container.TypedState, ownProps: OwnProps) => {
+    const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
+    const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
+    return {isEditing}
+  },
   mapDispatchToProps,
-  (_, dispatchProps, ownProps: OwnProps) => {
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {message} = ownProps
     const {height, width} = Constants.clampImageSize(
       message.previewWidth,
@@ -79,6 +84,8 @@ export default Container.connect(
       height,
       inlineVideoPlayable: message.inlineVideoPlayable,
       isCollapsed: message.isCollapsed,
+      isEditing: stateProps.isEditing,
+      isHighlighted: ownProps.isHighlighted,
       message,
       onClick: () => dispatchProps._onClick(message),
       onCollapse: () => dispatchProps._onCollapse(message),

@@ -176,9 +176,11 @@ type WotVouchCLIArg struct {
 }
 
 type WotReactArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Voucher   string          `codec:"voucher" json:"voucher"`
-	Reaction  WotReactionType `codec:"reaction" json:"reaction"`
+	SessionID       int             `codec:"sessionID" json:"sessionID"`
+	Voucher         string          `codec:"voucher" json:"voucher"`
+	SigID           SigID           `codec:"sigID" json:"sigID"`
+	Reaction        WotReactionType `codec:"reaction" json:"reaction"`
+	AllowEmptySigID bool            `codec:"allowEmptySigID" json:"allowEmptySigID"`
 }
 
 type DismissWotNotificationsArg struct {

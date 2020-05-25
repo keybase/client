@@ -217,8 +217,16 @@
           "type": "string"
         },
         {
+          "name": "sigID",
+          "type": "SigID"
+        },
+        {
           "name": "reaction",
           "type": "WotReactionType"
+        },
+        {
+          "name": "allowEmptySigID",
+          "type": "boolean"
         }
       ],
       "response": null

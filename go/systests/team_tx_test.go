@@ -399,5 +399,6 @@ func TestTeamTxBadAdds(t *testing.T) {
 	// Trying to add deleted bob.
 	err = tx.AddMemberByUV(context.Background(), bobUV, keybase1.TeamRole_WRITER, nil)
 	require.Error(t, err)
+	require.IsType(t, libkb.UserDeletedError{}, err)
 	require.True(t, tx.IsEmpty())
 }

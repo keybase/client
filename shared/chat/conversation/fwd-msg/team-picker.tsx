@@ -5,6 +5,7 @@ import * as Container from '../../../util/container'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import {Avatars, TeamAvatar} from '../../avatars'
@@ -67,6 +68,12 @@ const TeamPicker = (props: Props) => {
       }
     )
     dispatch(RouteTreeGen.createClearModals())
+    dispatch(
+      Chat2Gen.createPreviewConversation({
+        conversationIDKey: Types.conversationIDToKey(dstConvID),
+        reason: 'forward',
+      })
+    )
   }
   React.useEffect(() => {
     doSearch()

@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
+import * as Styles from '../../../../styles'
+import {sharedStyles} from '../shared-styles'
 import {isMobile} from '../../../../constants/platform'
 
 type Props = {
@@ -27,3 +29,10 @@ export const ShowToastAfterSaving = isMobile
       ) : null
     }
   : () => null
+
+export const getEditStyle = (isEditing: boolean, isHighlighted?: boolean) => {
+  if (isHighlighted) {
+    return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
+  }
+  return isEditing ? sharedStyles.sentEditing : sharedStyles.sent
+}

@@ -31,7 +31,7 @@ type AddMemberTx struct {
 	// Error state: if a transaction operation failed and tainted the
 	// transaction, do not allow posting. We try to never get in a state when
 	// we modify a transaction and then realize there's an issue, but if this
-	// happens, make sure the tx can't be used further.
+	// happens, make sure `Post` can't be called on such tx later.
 	err error
 
 	// completedInvites is used to mark completed invites, so they are
@@ -45,7 +45,7 @@ type AddMemberTx struct {
 	// affects given uid.
 	lastChangeForUID map[keybase1.UID]int
 
-	// Caller can set the following to affect how AddMemberTx:
+	// Consumer can set the following to affect AddMemberTx operation:
 
 	// Allow adding users who do not have active Per User Key. Users without
 	// PUK will be added using a 'team.invite' link with type='keybase'
@@ -56,6 +56,13 @@ type AddMemberTx struct {
 	// is allowed for adding Keybase users as members. Calls to AddMember*
 	// functions that with a user that does not have a PUK result in an error.
 	AllowPUKless bool
+
+	// Do not return an error when trying to "add a member" who is already
+	// member of the team but has a different role.
+	//
+	// This does not affect team invites (including PUK-less users). For
+	// simplicity, their role can't be changed using AddMemberTx right now.
+	AllowRoleChanges bool
 
 	// Override whether the team key is rotated.
 	SkipKeyRotation *bool
@@ -345,7 +352,7 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 		user.Username, uv, role, team.Name()), &err)()
 
 	if user.Status == keybase1.StatusCode_SCDeleted {
-		return false, fmt.Errorf("User %q (%s) is deleted", user.Username, uv.Uid)
+		return false, libkb.UserDeletedError{Msg: fmt.Sprintf("User %q (%s) is deleted", user.Username, uv.Uid)}
 	}
 
 	if role == keybase1.TeamRole_OWNER && team.IsSubteam() {
@@ -367,19 +374,32 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 
 	normalizedUsername := libkb.NewNormalizedUsername(user.Username)
 
-	if team.IsMember(ctx, uv) {
+	currentRole, err := team.MemberRole(ctx, uv)
+	if err != nil {
+		return false, err
+	}
+
+	if currentRole != keybase1.TeamRole_NONE {
 		if !hasPUK {
-			return false, fmt.Errorf("user %s is already a member of %q, yet they don't have a PUK",
-				normalizedUsername, team.Name())
+			return false, fmt.Errorf("user %s (uv %s) is already a member of %s, yet they don't have a PUK",
+				normalizedUsername, uv, team.Name())
 		}
-		return false, libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %q",
-			normalizedUsername, team.Name())}
+		if tx.AllowRoleChanges {
+			if currentRole == role {
+				// No-op team.change_membership links that don't change
+				// member's role are legal, but we are trying to avoid
+				// them. Caller can catch this error and move onwards,
+				// it doesn't taint the transaction.
+				return false, libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %s with role %s",
+					normalizedUsername, team.Name(), role.HumanString())}
+			}
+		} else {
+			return false, libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %s",
+				normalizedUsername, team.Name())}
+		}
 	}
 
 	if existingUV, err := team.UserVersionByUID(ctx, uv.Uid); err == nil {
-		// TODO: Might be able to collapse the two assertions together - the
-		// one above with team.IsMember and this one which checking Uid/Eldest.
-
 		// There is an edge case where user is in the middle of resetting
 		// (after reset, before provisioning) and has EldestSeqno=0.
 		if hasPUK && existingUV.EldestSeqno > uv.EldestSeqno {
@@ -405,18 +425,26 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 
 	tx.sweepKeybaseInvites(uv.Uid)
 
-	// An admin is only allowed to remove an owner UV when, in the same link, replacing them with
-	// a 'newer' UV with a greater eldest seqno.
-	// So, if we're an admin re-adding an owner who does not yet have a PUK
-	// then don't try to remove the owner's pre-reset UV.
-	exceptAdminsRemovingOwners := !hasPUK
-	tx.sweepCryptoMembers(ctx, uv.Uid, exceptAdminsRemovingOwners)
+	if !hasPUK {
+		// An admin is only allowed to remove an owner UV when, in the same
+		// link, replacing them with a 'newer' UV with a greater eldest seqno.
+		// So, if we're an admin re-adding an owner who does not yet have a PUK
+		// then don't try to remove the owner's pre-reset UV. Note that the old
+		// owner UV will still be removed in the transaction during SBS
+		// resolution when they get a PUK later.
+		tx.sweepCryptoMembers(ctx, uv.Uid, true /* exceptAdminsRemovingOwners */)
+	} else {
+		// This might be a role change, only sweep UVs with EldestSeqno older
+		// than one currently being added, so it doesn't sweep the same UV we
+		// are currently adding.
+		tx.sweepCryptoMembersOlderThan(uv)
+	}
 
 	if !hasPUK {
 		if err = tx.createKeybaseInvite(uv, role); err != nil {
 			return false, err
 		}
-		return true, nil
+		return true /* invite */, nil
 	}
 	if err := tx.addMember(uv, role, botSettings); err != nil {
 		return false, err

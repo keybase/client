@@ -1414,13 +1414,15 @@ function* messageEdit(
     return
   }
 
-  if (message.type === 'text') {
+  if (message.type === 'text' || message.type === 'attachment') {
     // Skip if the content is the same
-    if (message.text.stringValue() === text.stringValue()) {
+    if (message.type === 'text' && message.text.stringValue() === text.stringValue()) {
+      yield Saga.put(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+      return
+    } else if (message.type === 'attachment' && message.title === text.stringValue()) {
       yield Saga.put(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
       return
     }
-
     const meta = Constants.getMeta(state, conversationIDKey)
     const tlfName = meta.tlfname
     const clientPrev = Constants.getClientPrev(state, conversationIDKey)

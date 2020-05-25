@@ -34,8 +34,9 @@
       "blocks": "Array<{username: string, chatBlocked: boolean, followBlocked: boolean}>"
     },
     "wotReact": {
-      "voucher": "string",
       "reaction": "RPCTypes.WotReactionType",
+      "voucher": "string",
+      "sigID": "string",
       "fromModal?": "boolean"
     },
     "reportUser": {

@@ -394,12 +394,12 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
             direction="vertical"
             alignItems="flex-start"
             style={Styles.collapseStyles([
-              Styles.globalStyles.flexGrow,
+              Styles.globalStyles.flexOne,
               styles.membershipTeamText,
               styles.contentCollapsedFixedHeight,
             ])}
           >
-            <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
+            <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink} lineClamp={1}>
               {props.node.teamname}
             </Kb.Text>
             <Kb.Text type="BodySmall">
@@ -413,7 +413,6 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
         {props.node.canAdminister && (
           <Kb.Box2 direction="horizontal" alignSelf="center">
             <FloatingRolePicker
-              presetRole="writer"
               onConfirm={role => {
                 onAdd(role)
                 setOpen(false)
@@ -522,7 +521,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 
-  const isSmallTeam = channelMetas?.values()?.next()?.value?.teamType === 'small'
+  const isSmallTeam = !Container.useSelector(s => Constants.isBigTeam(s, props.node.teamID))
 
   const channelsJoined = isSmallTeam
     ? []
@@ -540,6 +539,9 @@ const NodeInRow = (props: NodeInRowProps) => {
   ) : (
     <></>
   )
+
+  const myRole = Container.useSelector(s => Constants.getRole(s, props.node.teamID))
+  const cantKickOut = props.node.canAdminister && props.node.role === 'owner' && myRole !== 'admin'
 
   return (
     <>
@@ -646,7 +648,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     </Kb.Text>
                   </Kb.Box2>
                 )}
-                {expanded && (props.node.canAdminister || isMe) && !isSmallTeam && (
+                {expanded && (props.node.canAdminister || isMe) && (
                   <Kb.Box2
                     direction="horizontal"
                     gap="tiny"
@@ -654,13 +656,15 @@ const NodeInRow = (props: NodeInRowProps) => {
                     gapEnd={Styles.isMobile}
                     style={styles.paddingBottomMobile}
                   >
-                    <Kb.Button
-                      mode="Secondary"
-                      onClick={onAddToChannels}
-                      label={isMe ? 'Join channels' : 'Add to channels'}
-                      small={true}
-                    />
-                    {!(isMe && amLastOwner) && (
+                    {!isSmallTeam && (
+                      <Kb.Button
+                        mode="Secondary"
+                        onClick={onAddToChannels}
+                        label={isMe ? 'Join channels' : 'Add to channels'}
+                        small={true}
+                      />
+                    )}
+                    {!(isMe && amLastOwner) && !cantKickOut && (
                       <Kb.WaitingButton
                         mode="Secondary"
                         icon={isMe ? 'iconfont-team-leave' : 'iconfont-block'}

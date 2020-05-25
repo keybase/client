@@ -639,6 +639,8 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner, removeAfterReset 
 	}
 	divDebug(ctx, "team created (%s) (%v)", team.name, team.ID)
 
+	bobUVBeforeReset := bob.userVersion()
+
 	ann.sendChat(team, "0")
 	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	bob.reset()
@@ -681,10 +683,18 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner, removeAfterReset 
 		expectedRole = keybase1.TeamRole_ADMIN
 	}
 
+	teams.NewTeamLoaderAndInstall(ann.getPrimaryGlobalContext())
+
 	pollFn := func(_ int) bool {
 		G := ann.getPrimaryGlobalContext()
-		teams.NewTeamLoaderAndInstall(G)
-		role, err := teams.MemberRole(context.Background(), G, team.name, bob.username)
+		teamObj, err := teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
+			ID:          team.ID,
+			NeedAdmin:   true,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+
+		role, err := teamObj.MemberRole(context.TODO(), bob.userVersion())
 		require.NoError(t, err)
 		if role == keybase1.TeamRole_NONE {
 			return false
@@ -693,6 +703,15 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner, removeAfterReset 
 			return true
 		}
 		require.FailNowf(t, "unexpected role", "got %v on the hunt for %v", role, expectedRole)
+
+		// Old UV should be gone. Note that the server would not have allowed
+		// adding new UV without removing the old one first, so if the old UV
+		// is not being removed correctly during SBS handling, this test would
+		// probably never get to the following assertions (unless that server
+		// logic has changed.)
+		role, err = teamObj.MemberRole(context.TODO(), bobUVBeforeReset)
+		require.NoError(t, err)
+		require.Equal(t, keybase1.TeamRole_NONE, role)
 		return false
 	}
 

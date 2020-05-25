@@ -1,2 +1,8 @@
-• Keybase now supports custom emoji
-• Search for bots and open teams from your inbox
+• Administering groups is easier than ever with the redesigned Teams tab
+• Prettier icons
+• Better handling of audio attachments in info panel
+• Forward images and attachments in chat
+• Improved file sharing with email addresses
+• Updated some emojis
+• Fix some hotkeys that could stop working
+

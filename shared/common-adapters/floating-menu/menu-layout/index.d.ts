@@ -11,6 +11,7 @@ export type MenuItem = {
   iconIsVisible?: boolean
   iconStyle?: IconStyle
   isBadged?: boolean
+  isSelected?: boolean
   inProgress?: boolean
   newTag?: boolean | null
   onClick?: ((evt?: React.SyntheticEvent) => void) | null

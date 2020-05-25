@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platform from '../constants/platform'
+import * as Tabs from '../constants/tabs'
 import {encryptTab} from '../constants/crypto'
 import {cryptoTab, displayTab} from '../constants/settings'
 import {keybaseFM} from '../constants/whats-new'
@@ -15,6 +16,7 @@ export type VersionProps = {
     replace?: boolean
   }) => void
   onNavigateExternal: (url: string) => void
+  onSwitchTab: (tab: Tabs.AppTab) => void
 }
 
 export const Version = ({children}: {children: React.ReactNode}) => {
@@ -34,9 +36,27 @@ export const VersionTitle = ({title}: {title: string}) => (
   </Kb.Box2>
 )
 
-export const Current = ({seen}: VersionProps) => {
+export const Current = ({onSwitchTab, seen}: VersionProps) => {
   return (
     <Version>
+      <NewFeatureRow
+        noSeparator={true}
+        seen={seen}
+        primaryButtonText="Go to Teams"
+        onPrimaryButtonClick={() => {
+          onSwitchTab(Tabs.teamsTab)
+        }}
+      >
+        Administering groups is easier than ever with the redesigned Teams tab.
+      </NewFeatureRow>
+    </Version>
+  )
+}
+
+export const Last = ({seen}: VersionProps) => {
+  return (
+    <Version>
+      <VersionTitle title="Last release" />
       <NewFeatureRow image="release-5.4.0-emoji" noSeparator={true} seen={seen} unwrapped={true}>
         <Kb.Box2 alignSelf="flex-start" direction="vertical">
           <Kb.Text type="BodySmall" allowFontScaling={true}>
@@ -58,10 +78,10 @@ export const Current = ({seen}: VersionProps) => {
   )
 }
 
-export const Last = ({seen}: VersionProps) => {
+export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
   return (
     <Version>
-      <VersionTitle title="Last release" />
+      <VersionTitle title="Previous releases" />
       <NewFeatureRow image="release-5.3.0-ipad" noSeparator={true} seen={seen}>
         Keybase for iPad is here!{' '}
         <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":sparkles:" /> Download
@@ -71,14 +91,6 @@ export const Last = ({seen}: VersionProps) => {
         You can now search for open teams using chat search
         {Platform.isElectron ? (Platform.isDarwin ? ` (⌘K)` : ` (ctrl-K)`) : null} in Chat.
       </NewFeatureRow>
-    </Version>
-  )
-}
-
-export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
-  return (
-    <Version>
-      <VersionTitle title="Previous releases" />
       <NewFeatureRow
         image="release-5.2.0-crypto"
         noSeparator={true}

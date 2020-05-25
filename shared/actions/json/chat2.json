@@ -61,7 +61,8 @@
         "'teamMention'",
         "'appLink'",
         "'search'",
-        "'journeyCardPopular'"
+        "'journeyCardPopular'",
+        "'forward'"
       ]
     },
     "createConversation": {

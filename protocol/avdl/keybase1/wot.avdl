@@ -48,7 +48,8 @@ protocol wot {
     REJECT_0,
     ACCEPT_1
   }
-  void wotReact(int sessionID, string voucher, WotReactionType reaction);
+  // allowEmptySigID: Treat an empty sigID as a wildcard instead of an error.
+  void wotReact(int sessionID, string voucher, SigID sigID, WotReactionType reaction, boolean allowEmptySigID);
 
   record WotVouch {
     WotStatusType status;

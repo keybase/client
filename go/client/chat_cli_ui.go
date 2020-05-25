@@ -89,9 +89,9 @@ type ChatCLIUI struct {
 	noOutput bool
 	// if we delegate the inbox search to the thread searcher, we don't want to
 	// duplicate output.
-	noThreadSearch                          bool
-	lastAttachmentPercent, lastIndexPercent int
-	sessionID                               int
+	noThreadSearch   bool
+	lastIndexPercent int
+	sessionID        int
 }
 
 var _ chat1.ChatUiInterface = (*ChatCLIUI)(nil)

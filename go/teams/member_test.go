@@ -778,7 +778,8 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	existingUserEmail := kbtest.GenerateRandomEmailAddress()
 	blob := string(existingUserEmail) + ", h@j.k,u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
 
-	// create a user with a searchable email to test addEmailsBulk resolves existing users correctly.
+	// Create a user with a searchable email to test addEmailsBulk resolves
+	// existing users correctly.
 	tc2 := SetupTest(t, "team", 1)
 	u2, err := kbtest.CreateAndSignupFakeUser("team", tc2.G)
 	require.NoError(t, err)
