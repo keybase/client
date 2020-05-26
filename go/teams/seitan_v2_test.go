@@ -716,8 +716,8 @@ func TestSeitanMultipleRequestForOneInviteFromSameUser(t *testing.T) {
 		if i == 0 {
 			require.NoError(t, err)
 		} else {
-			// Second post should fail, but we will still give this acceptance
-			// to admin's client to attempt processing it.
+			// Subsequent posts should fail, but we will still give this
+			// acceptance to admin's client to attempt processing it.
 			require.Error(t, err)
 		}
 
@@ -731,6 +731,84 @@ func TestSeitanMultipleRequestForOneInviteFromSameUser(t *testing.T) {
 	//
 	// Initially the handler was posting a transaction completing the invite
 	// and then cancelling it twice...
+	msg := keybase1.TeamSeitanMsg{
+		TeamID:  teamID,
+		Seitans: seitanRequests[:],
+	}
+	err = HandleTeamSeitan(context.Background(), tc.G, msg)
+	require.NoError(t, err)
+
+	team, err := loadTeamForAdmin(tc, teamName.String())
+	require.NoError(t, err)
+
+	role, err := team.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, role)
+
+	md, found := team.chain().inner.InviteMetadatas[seitanRequests[0].InviteID]
+	require.True(t, found)
+	sc, err := md.Status.Code()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamInviteMetadataStatusCode_COMPLETED, sc)
+}
+
+func TestSeitanValidRequestAfterInvalid(t *testing.T) {
+	// Server sends two acceptances from one user for one invite, but first
+	// acceptance is invalid and only the second one is valid. User should be
+	// added and invite should be completed because of the second successful
+	// request.
+
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+	admin := kbtest.TCreateFakeUser(tc)
+	teamName, teamID := createTeam2(tc)
+
+	token, err := CreateSeitanTokenV2(context.Background(), tc.G,
+		teamName.String(), keybase1.TeamRole_WRITER, keybase1.SeitanKeyLabel{})
+	require.NoError(t, err)
+
+	user := kbtest.TCreateFakeUser(tc)
+
+	clock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(clock)
+
+	var seitanRequests [2]keybase1.TeamSeitanRequest
+	for i := range seitanRequests {
+		timeNow := keybase1.ToTime(tc.G.Clock().Now())
+		seitanRet, err := generateAcceptanceSeitanV2(SeitanIKeyV2(token), user.GetUserVersion(), timeNow)
+		require.NoError(t, err)
+
+		inviteID, err := seitanRet.inviteID.TeamInviteID()
+		require.NoError(t, err)
+
+		if i == 0 {
+			// Corrupt first request.
+			seitanRet.sig[0] ^= 0xF0
+			seitanRet.sig[1] ^= 0x0F
+			seitanRet.encoded = base64.StdEncoding.EncodeToString(seitanRet.sig[:])
+		}
+
+		seitanRequests[i] = keybase1.TeamSeitanRequest{
+			InviteID:    inviteID,
+			Uid:         user.GetUID(),
+			EldestSeqno: user.EldestSeqno,
+			Akey:        keybase1.SeitanAKey(seitanRet.encoded),
+			Role:        keybase1.TeamRole_WRITER,
+			UnixCTime:   int64(timeNow),
+		}
+
+		if i == 0 {
+			err = postSeitanV2(tc.MetaContext(), seitanRet)
+			require.NoError(t, err)
+		}
+
+		clock.Advance(1 * time.Second)
+	}
+
+	kbtest.LogoutAndLoginAs(tc, admin)
+
 	msg := keybase1.TeamSeitanMsg{
 		TeamID:  teamID,
 		Seitans: seitanRequests[:],

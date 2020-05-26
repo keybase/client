@@ -737,8 +737,7 @@ func handleTeamSeitanInternal(mctx libkb.MetaContext, msg keybase1.TeamSeitanMsg
 		// hold on it till user gets a PUK and status is set to ACCEPTED.
 		err = tx.ConsumeInviteByID(mctx.Ctx(), invite.Id, uv)
 		if err != nil {
-			mctx.Debug("Failed to consume invite: %v", err)
-			continue
+			return nil, fmt.Errorf("Failed to consume invite: %w", err)
 		}
 
 		chats = append(chats, chatSeitanRecip{
