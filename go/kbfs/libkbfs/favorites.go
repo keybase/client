@@ -286,12 +286,18 @@ func (f *Favorites) writeCacheToDisk(ctx context.Context) error {
 // InitForTest starts the Favorites cache's internal processing loop without
 // loading cached favorites from disk.
 func (f *Favorites) InitForTest() {
+	if f.disabled {
+		return
+	}
 	go f.loop()
 }
 
 // Initialize loads the favorites cache from disk and starts listening for
 // requests asynchronously.
 func (f *Favorites) Initialize(ctx context.Context) {
+	if f.disabled {
+		return
+	}
 	// load cache from disk
 	err := f.readCacheFromDisk(ctx)
 	if err != nil {
