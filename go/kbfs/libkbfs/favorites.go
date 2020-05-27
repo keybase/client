@@ -661,15 +661,14 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 }
 
 func (f *Favorites) loop() {
+	if f.bufferedInterval <= 0 {
+		// disableFavoritesEnvVar is set.
+		return
+	}
 	f.loopWG.Add(1)
 	defer f.loopWG.Done()
-	var bufferedTickerCh <-chan time.Time = make(chan time.Time)
-	if f.bufferedInterval > 0 {
-		bufferedTicker := time.NewTicker(f.bufferedInterval)
-		defer bufferedTicker.Stop()
-		bufferedTickerCh = bufferedTicker.C
-		// otherwise it means disableFavoritesEnvVar is set.
-	}
+	bufferedTicker := time.NewTicker(f.bufferedInterval)
+	defer bufferedTicker.Stop()
 
 	for {
 		select {
@@ -682,7 +681,7 @@ func (f *Favorites) loop() {
 				f.log.CDebugf(
 					context.TODO(), "Error handling request: %+v", err)
 			}
-		case <-bufferedTickerCh:
+		case <-bufferedTicker.C:
 			select {
 			case req, ok := <-f.bufferedReqChan:
 				if !ok {
