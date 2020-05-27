@@ -661,6 +661,10 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 }
 
 func (f *Favorites) loop() {
+	if f.bufferedInterval <= 0 {
+		// disableFavoritesEnvVar is set.
+		return
+	}
 	f.loopWG.Add(1)
 	defer f.loopWG.Done()
 	bufferedTicker := time.NewTicker(f.bufferedInterval)
