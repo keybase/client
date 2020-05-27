@@ -141,9 +141,10 @@ func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 			context.TODO(), "Disable favorites due to env var %s=%s",
 			disableFavoritesEnvVar, disableVal)
 		return &Favorites{
-			config:   config,
-			disabled: true,
-			log:      log,
+			config:           config,
+			bufferedInterval: defaultFavoritesBufferedReqInterval,
+			disabled:         true,
+			log:              log,
 		}
 	}
 
