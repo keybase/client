@@ -1335,6 +1335,7 @@ export type LocationWatchID = Uint64
 export type MakePreviewRes = {readonly mimeType: String; readonly previewMimeType?: String | null; readonly location?: PreviewLocation | null; readonly metadata?: AssetMetadata | null; readonly baseMetadata?: AssetMetadata | null}
 export type MarkAsReadLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type MarkAsReadRes = {readonly rateLimit?: RateLimit | null}
+export type MarkTLFAsReadLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type MaybeMention = {readonly name: String; readonly channel: String}
 export type MemberInfo = {readonly member: String; readonly status: ConversationMemberStatus}
 export type MembersUpdateInfo = {readonly convID: ConversationID; readonly members?: Array<MemberInfo> | null}
@@ -1826,6 +1827,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.GetMessagesLocal'
 // 'chat.1.local.postFileAttachmentLocal'
 // 'chat.1.local.DownloadAttachmentLocal'
+// 'chat.1.local.markTLFAsReadLocal'
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
