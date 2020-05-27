@@ -2402,6 +2402,21 @@ const markThreadAsRead = async (
   })
 }
 
+const markTeamAsRead = async (
+  state: Container.TypedState,
+  action: Chat2Gen.MarkTeamAsReadPayload,
+  logger: Saga.SagaLogger
+) => {
+  if (!state.config.loggedIn) {
+    logger.info('bail on not logged in')
+    return
+  }
+  const tlfID = Buffer.from(TeamsTypes.teamIDToString(action.payload.teamID), 'hex')
+  await RPCChatTypes.localMarkTLFAsReadLocalRpcPromise({
+    tlfID,
+  })
+}
+
 const messagesAdd = (
   state: Container.TypedState,
   _action: Chat2Gen.MessagesAddPayload,
@@ -3871,6 +3886,7 @@ function* chat2Saga() {
     ],
     markThreadAsRead
   )
+  yield* Saga.chainAction2([Chat2Gen.markTeamAsRead], markTeamAsRead)
   yield* Saga.chainAction2(Chat2Gen.messagesAdd, messagesAdd)
   yield* Saga.chainAction2(
     [

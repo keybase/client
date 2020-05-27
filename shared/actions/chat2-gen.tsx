@@ -76,6 +76,7 @@ export const loadedUserEmoji = 'chat2:loadedUserEmoji'
 export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
+export const markTeamAsRead = 'chat2:markTeamAsRead'
 export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
 export const messageAttachmentNativeShare = 'chat2:messageAttachmentNativeShare'
 export const messageAttachmentUploaded = 'chat2:messageAttachmentUploaded'
@@ -377,6 +378,7 @@ type _MarkConversationsStalePayload = {
   readonly updateType: RPCChatTypes.StaleUpdateType
 }
 type _MarkInitiallyLoadedThreadAsReadPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _MarkTeamAsReadPayload = {readonly teamID: TeamsTypes.TeamID}
 type _MessageAttachmentNativeSavePayload = {readonly message: Types.Message}
 type _MessageAttachmentNativeSharePayload = {readonly message: Types.Message}
 type _MessageAttachmentUploadedPayload = {
@@ -1123,6 +1125,13 @@ export const createLoadOlderMessagesDueToScroll = (
 export const createMessagesWereDeleted = (
   payload: _MessagesWereDeletedPayload
 ): MessagesWereDeletedPayload => ({payload, type: messagesWereDeleted})
+/**
+ * Mark all conversations in a team as read
+ */
+export const createMarkTeamAsRead = (payload: _MarkTeamAsReadPayload): MarkTeamAsReadPayload => ({
+  payload,
+  type: markTeamAsRead,
+})
 /**
  * Navigation helper. Nav is slightly different on mobile / desktop.
  */
@@ -2103,6 +2112,10 @@ export type MarkInitiallyLoadedThreadAsReadPayload = {
   readonly payload: _MarkInitiallyLoadedThreadAsReadPayload
   readonly type: typeof markInitiallyLoadedThreadAsRead
 }
+export type MarkTeamAsReadPayload = {
+  readonly payload: _MarkTeamAsReadPayload
+  readonly type: typeof markTeamAsRead
+}
 export type MessageAttachmentNativeSavePayload = {
   readonly payload: _MessageAttachmentNativeSavePayload
   readonly type: typeof messageAttachmentNativeSave
@@ -2554,6 +2567,7 @@ export type Actions =
   | LockAudioRecordingPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
+  | MarkTeamAsReadPayload
   | MessageAttachmentNativeSavePayload
   | MessageAttachmentNativeSharePayload
   | MessageAttachmentUploadedPayload

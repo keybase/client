@@ -142,6 +142,7 @@ export type TypedActionsMap = {
   'chat2:messageAttachmentUploaded': chat2.MessageAttachmentUploadedPayload
   'chat2:sendTyping': chat2.SendTypingPayload
   'chat2:markInitiallyLoadedThreadAsRead': chat2.MarkInitiallyLoadedThreadAsReadPayload
+  'chat2:markTeamAsRead': chat2.MarkTeamAsReadPayload
   'chat2:markConversationsStale': chat2.MarkConversationsStalePayload
   'chat2:navigateToInbox': chat2.NavigateToInboxPayload
   'chat2:navigateToThread': chat2.NavigateToThreadPayload
