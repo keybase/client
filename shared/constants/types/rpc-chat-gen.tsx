@@ -491,6 +491,10 @@ export type MessageTypes = {
     inParam: {readonly conversationID: ConversationID; readonly msgID?: MessageID | null}
     outParam: MarkAsReadLocalRes
   }
+  'chat.1.local.markTLFAsReadLocal': {
+    inParam: {readonly tlfID: TLFID}
+    outParam: MarkTLFAsReadLocalRes
+  }
   'chat.1.local.newConversationLocal': {
     inParam: {readonly tlfName: String; readonly topicType: TopicType; readonly tlfVisibility: Keybase1.TLFVisibility; readonly topicName?: String | null; readonly membersType: ConversationMembersType; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: NewConversationLocalRes
@@ -1335,6 +1339,7 @@ export type LocationWatchID = Uint64
 export type MakePreviewRes = {readonly mimeType: String; readonly previewMimeType?: String | null; readonly location?: PreviewLocation | null; readonly metadata?: AssetMetadata | null; readonly baseMetadata?: AssetMetadata | null}
 export type MarkAsReadLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type MarkAsReadRes = {readonly rateLimit?: RateLimit | null}
+export type MarkTLFAsReadLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type MaybeMention = {readonly name: String; readonly channel: String}
 export type MemberInfo = {readonly member: String; readonly status: ConversationMemberStatus}
 export type MembersUpdateInfo = {readonly convID: ConversationID; readonly members?: Array<MemberInfo> | null}
@@ -1731,6 +1736,7 @@ export const localMakeAudioPreviewRpcPromise = (params: MessageTypes['chat.1.loc
 export const localMakePreviewRpcPromise = (params: MessageTypes['chat.1.local.makePreview']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.makePreview']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.makePreview', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localMakeUploadTempFileRpcPromise = (params: MessageTypes['chat.1.local.makeUploadTempFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.makeUploadTempFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.makeUploadTempFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localMarkAsReadLocalRpcPromise = (params: MessageTypes['chat.1.local.markAsReadLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.markAsReadLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.markAsReadLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localMarkTLFAsReadLocalRpcPromise = (params: MessageTypes['chat.1.local.markTLFAsReadLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.markTLFAsReadLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.markTLFAsReadLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localNewConversationLocalRpcPromise = (params: MessageTypes['chat.1.local.newConversationLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.newConversationLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.newConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localPinMessageRpcPromise = (params: MessageTypes['chat.1.local.pinMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.pinMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.pinMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localPostDeleteHistoryByAgeRpcPromise = (params: MessageTypes['chat.1.local.postDeleteHistoryByAge']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.postDeleteHistoryByAge']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.postDeleteHistoryByAge', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

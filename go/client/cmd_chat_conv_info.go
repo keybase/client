@@ -41,34 +41,34 @@ func newCmdChatConvInfo(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	}
 }
 
-func (c CmdChatConvInfo) resolveToConversation(g *libkb.GlobalContext, resolvingRequest chatConversationResolvingRequest,
-	hasTTY bool) (res chat1.ConversationInfoLocal, err error) {
+func resolveToConversation(g *libkb.GlobalContext, resolvingRequest chatConversationResolvingRequest,
+	hasTTY bool) (resolver *chatConversationResolver, res *chat1.ConversationLocal, err error) {
 	ui := NewChatCLIUI(g)
 	protocols := []rpc.Protocol{
 		chat1.ChatUiProtocol(ui),
 	}
 	if err := RegisterProtocolsWithContext(protocols, g); err != nil {
-		return res, err
+		return nil, nil, err
 	}
 	// if no tlfname specified, request one
 	if resolvingRequest.TlfName == "" {
 		resolvingRequest.TlfName, err = g.UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatTLFName,
 			"Specify a team name, a single receiving user, or a comma-separated list of users (e.g. alice,bob,charlie) to continue: ")
 		if err != nil {
-			return res, err
+			return nil, nil, err
 		}
 		if resolvingRequest.TlfName == "" {
-			return res, fmt.Errorf("no user or team name specified")
+			return nil, nil, fmt.Errorf("no user or team name specified")
 		}
 	}
 
 	if err = annotateResolvingRequest(g, &resolvingRequest); err != nil {
-		return res, err
+		return nil, nil, err
 	}
 
-	resolver, err := newChatConversationResolver(g)
+	resolver, err = newChatConversationResolver(g)
 	if err != nil {
-		return res, err
+		return nil, nil, err
 	}
 	conversation, _, err := resolver.Resolve(context.TODO(), resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
@@ -79,18 +79,19 @@ func (c CmdChatConvInfo) resolveToConversation(g *libkb.GlobalContext, resolving
 	switch err.(type) {
 	case nil:
 	case libkb.ResolutionError:
-		return res, fmt.Errorf("could not resolve `%s` into Keybase user(s) or a team", resolvingRequest.TlfName)
+		return nil, nil, fmt.Errorf("could not resolve `%s` into Keybase user(s) or a team", resolvingRequest.TlfName)
 	default:
-		return res, err
+		return nil, nil, err
 	}
-	return conversation.Info, nil
+	return resolver, conversation, nil
 }
 
 func (c *CmdChatConvInfo) Run() error {
-	info, err := c.resolveToConversation(c.G(), c.resolvingRequest, c.hasTTY)
+	_, conv, err := resolveToConversation(c.G(), c.resolvingRequest, c.hasTTY)
 	if err != nil {
 		return err
 	}
+	info := conv.Info
 
 	dui := c.G().UI.GetDumbOutputUI()
 	var topicType string

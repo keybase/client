@@ -3162,6 +3162,23 @@
     },
     {
       "type": "record",
+      "name": "MarkTLFAsReadLocalRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "FindConversationsLocalRes",
       "fields": [
         {
@@ -5252,6 +5269,19 @@
         }
       ],
       "response": "MarkAsReadLocalRes"
+    },
+    "markTLFAsReadLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        }
+      ],
+      "response": "MarkTLFAsReadLocalRes"
     },
     "findConversationsLocal": {
       "request": [

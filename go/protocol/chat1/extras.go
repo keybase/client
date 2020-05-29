@@ -1838,6 +1838,10 @@ func (r *MarkAsReadLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *MarkTLFAsReadLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *GetInboxAndUnboxLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -2124,6 +2128,14 @@ func (r *MarkAsReadLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *MarkAsReadLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *MarkTLFAsReadLocalRes) GetRateLimit() (res []RateLimit) {
+	return r.RateLimits
+}
+
+func (r *MarkTLFAsReadLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 

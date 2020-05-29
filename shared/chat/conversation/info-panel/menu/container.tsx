@@ -143,6 +143,10 @@ export default Container.namedConnect(
       dispatch(TeamsGen.createManageChatChannels({teamID}))
       dispatch(TeamsGen.createAddTeamWithChosenChannels({teamID}))
     },
+    _onMarkAsRead: (teamID: TeamTypes.TeamID) => {
+      dispatch(RouteTreeGen.createClearModals())
+      dispatch(ChatGen.createMarkTeamAsRead({teamID}))
+    },
     _onViewTeam: (teamID: TeamTypes.TeamID) => {
       dispatch(RouteTreeGen.createClearModals())
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
@@ -186,6 +190,7 @@ export default Container.namedConnect(
       onLeaveChannel: d._onLeaveChannel,
       onLeaveTeam: () => d._onLeaveTeam(s._teamID),
       onManageChannels: () => d._onManageChannels(s._teamID),
+      onMarkAsRead: () => d._onMarkAsRead(s._teamID),
       onMuteConv: d.onMuteConv,
       onUnhideConv: d.onUnhideConv,
       onViewTeam: () => d._onViewTeam(s._teamID),
