@@ -215,7 +215,11 @@ const ChannelMemberRow = (props: Props) => {
   ))
 
   const actions = (
-    <Kb.Box2 direction="horizontal" gap="tiny" style={styles.mobileMarginsHack}>
+    <Kb.Box2
+      direction="horizontal"
+      gap="tiny"
+      style={yourOperations.manageMembers ? styles.mobileMarginsHack : undefined}
+    >
       {popup}
       <Kb.Button
         icon="iconfont-chat"
