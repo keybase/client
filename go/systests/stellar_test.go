@@ -22,8 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const disable = false
-const disableMsg = "friendbot issues"
+const disable = true
+const disableMsg = "new protocol version on testnet incompatible with stellard"
 
 func TestStellarNoteRoundtripAndResets(t *testing.T) {
 	if disable {
@@ -383,6 +383,9 @@ func acceptDisclaimer(u *userPlusDevice) {
 }
 
 func TestAccountMerge(t *testing.T) {
+	if disable {
+		t.Skip(disableMsg)
+	}
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	useStellarTestNet(t)
