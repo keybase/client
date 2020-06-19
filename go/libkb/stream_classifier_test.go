@@ -9,6 +9,8 @@ import (
 	"io"
 	"io/ioutil"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func newStreamFromBase64String(t *testing.T, s string) io.Reader {
@@ -126,4 +128,10 @@ func TestClassifyTestVectors(t *testing.T) {
 		}
 		assertStreamEqBase64(t, r2, v.msg)
 	}
+}
+
+func TestClassifyBadVectors(t *testing.T) {
+	_, _, err := ClassifyStream(bytes.NewBufferString("\n\n\n\n\n\n\n\n"))
+	require.Error(t, err)
+	require.IsType(t, UnknownStreamError{}, err)
 }
