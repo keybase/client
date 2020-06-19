@@ -128,11 +128,13 @@ const badAkalin = "Link %d of akalin's sigchain, which was accidentally added by
 const badJamGregory = "Link %d of jamgregory's sigchain, which had a bad PGP keypin"
 const badDens = "Link 8 of dens's sigchain, which signs in a revoked PGP key"
 const badAjar = "Link 98 of ajar's sigchain allowed a PGP update with a broken PGP key"
+const badJaccarmac = "Link 46 of jaccarmac's sigchain, which signs in a revoked PGP key (key later removed in link 46)"
 
 const akalin = keybase1.UID("ebbe1d99410ab70123262cf8dfc87900")
 const jamGregory = keybase1.UID("e8767e19a3ed9c7350847b7b040de319")
 const dens = keybase1.UID("ca9e948f6f7a4a19e02058ad626f6c19")
 const ajar = keybase1.UID("d1d94b3131e493dfee738802843f7719")
+const jaccarmac = keybase1.UID("bfd01fc0a2d5ee0462aaa3c598210b00")
 
 type SpecialChainLink struct {
 	UID    keybase1.UID
@@ -153,6 +155,12 @@ var badChainLinks = map[keybase1.LinkID]SpecialChainLink{
 	// Link 98 of ajar's sigchain is a PGP update with a broken PGP key,
 	// that doesn't have a valid cross-sig on a signing key. It was a server
 	// bug to allow it be uploaded.
+	// Link 46 of jaccarmac's sigchain is a PGP delegation with a revoked PGP
+	// key. The self signature is invalid (revoked key signs over itself, and
+	// that signature cannot be verified, because the key is revoked). That
+	// wasn't properly rejected on the server because of the same bug as in
+	// "Link 8 of den's sigchain".
+	// See: https://github.com/keybase/client/issues/24176
 	"694ed7166cee72449964e97bcd4be58243877718425c4dc655d2d80832bd5cdf": {UID: akalin, Seqno: keybase1.Seqno(22), Reason: fmt.Sprintf(badAkalin, 22)},
 	"27bc88059a768a82b1a21dcc1c46f7fc61c2d2b80c445eb2d18fed3a5bb42e49": {UID: akalin, Seqno: keybase1.Seqno(23), Reason: fmt.Sprintf(badAkalin, 23)},
 	"12b594e44d9289349283f8b14a6f83ad144a17a3025a758e17d4eca70fbdc923": {UID: akalin, Seqno: keybase1.Seqno(24), Reason: fmt.Sprintf(badAkalin, 24)},
@@ -162,6 +170,7 @@ var badChainLinks = map[keybase1.LinkID]SpecialChainLink{
 	"51e46dad8b71a1a7204368f9cb4931257a32eed92cf3b97a08190c12912739dd": {UID: jamGregory, Seqno: keybase1.Seqno(19), Reason: fmt.Sprintf(badJamGregory, 19)},
 	"6d527d776cb28ea980c6e0474286fe745377e116fd5d07b44928d165ae4b7c97": {UID: dens, Seqno: keybase1.Seqno(8), Reason: badDens},
 	"9b3b3a3d973449ca3238bf59b7407186dc80242b917c158cba5e374595257dd0": {UID: ajar, Seqno: keybase1.Seqno(98), Reason: badAjar},
+	"496b0328664a7c8115449f3fb17d137990c52712797730ede9c4b8ceb942e6ea": {UID: jaccarmac, Seqno: keybase1.Seqno(46), Reason: badJaccarmac},
 }
 
 // Some chainlinks are broken and need a small whitespace addition to match their payload
