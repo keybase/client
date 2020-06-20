@@ -55,7 +55,8 @@ func (i rankedSearchItem) Score(query string) (score float64) {
 		return score
 	}
 	return score + normalizeMemberCount(i.item.MemberCount)*memberCountWeight +
-		normalizeLastActive(i.item.LastActive)*lastActiveWeight
+		NormalizeLastActive(minScoringActivityHours,
+			maxScoringActivityHours, i.item.LastActive)*lastActiveWeight
 }
 
 func normalizeMemberCount(memberCount int) float64 {
@@ -67,14 +68,14 @@ func normalizeMemberCount(memberCount int) float64 {
 	return float64(memberCount) / float64(maxScoringMemberCount-minScoringMemberCount)
 }
 
-func normalizeLastActive(lastActive keybase1.Time) float64 {
+func NormalizeLastActive(minHrs, maxHrs float64, lastActive keybase1.Time) float64 {
 	hours := time.Since(lastActive.Time()).Hours()
-	if hours > maxScoringActivityHours {
+	if hours > maxHrs {
 		return 0
-	} else if hours < minScoringActivityHours {
+	} else if hours < minHrs {
 		return 1
 	}
-	return 1 - hours/(maxScoringActivityHours-minScoringActivityHours)
+	return 1 - hours/(maxHrs-minHrs)
 }
 
 func FilterScore(score float64) bool {
