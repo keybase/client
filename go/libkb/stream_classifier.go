@@ -66,6 +66,11 @@ func isBase64KeybaseV0Sig(s string) bool {
 	if err != nil {
 		return false
 	}
+	// If there is a way to feed base64-like data thats longer than that
+	// b64dataBytes but yields an empty buffer, bail out and not crash later.
+	if len(buf) == 0 {
+		return false
+	}
 	// Packet should be an encoded dictionary of 3 values
 	if buf[0] != 0x83 {
 		return false
