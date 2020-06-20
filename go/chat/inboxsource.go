@@ -1086,8 +1086,8 @@ type convSearchHit struct {
 // weight contacts in the past week
 const (
 	lastActiveWeight   = 50.0
-	lastActiveMinHours = 24     // time in the last day give's max score
-	lastActiveMaxHours = 7 * 24 // time greater than a week gives min score
+	lastActiveMinHours = 24     // time in the last day yields max score
+	lastActiveMaxHours = 7 * 24 // time greater than a week yields min score
 )
 
 func (h convSearchHit) score(emptyMode types.InboxSourceSearchEmptyMode) (score float64) {
