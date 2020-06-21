@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams/opensearch"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -1082,7 +1083,14 @@ type convSearchHit struct {
 	hits      []nameContainsQueryRes
 }
 
-func (h convSearchHit) score() (score int) {
+// weight contacts in the past week
+const (
+	lastActiveWeight   = 50.0
+	lastActiveMinHours = 24     // time in the last day yields max score
+	lastActiveMaxHours = 7 * 24 // time greater than a week yields min score
+)
+
+func (h convSearchHit) score(emptyMode types.InboxSourceSearchEmptyMode) (score float64) {
 	exactNames := 0
 	for _, hit := range h.hits {
 		switch hit {
@@ -1104,27 +1112,20 @@ func (h convSearchHit) score() (score int) {
 	if len(h.queryToks) == len(h.convToks) && exactNames >= len(h.convToks) {
 		score += 1000000
 	}
-	return score
-}
 
-func (h convSearchHit) less(o convSearchHit, emptyMode types.InboxSourceSearchEmptyMode) bool {
-	hScore := h.score()
-	oScore := o.score()
-	if hScore < oScore {
-		return true
-	} else if hScore > oScore {
-		return false
-	}
-	var htime, otime gregor1.Time
+	var htime gregor1.Time
 	switch emptyMode {
 	case types.InboxSourceSearchEmptyModeAllBySendCtime:
 		htime = utils.GetConvLastSendTime(h.conv)
-		otime = utils.GetConvLastSendTime(o.conv)
 	default:
 		htime = utils.GetConvMtime(h.conv)
-		otime = utils.GetConvMtime(o.conv)
 	}
-	return htime.Before(otime)
+	lastActiveScore := opensearch.NormalizeLastActive(lastActiveMinHours, lastActiveMaxHours, keybase1.Time(htime))
+	return score + lastActiveScore*lastActiveWeight
+}
+
+func (h convSearchHit) less(o convSearchHit, emptyMode types.InboxSourceSearchEmptyMode) bool {
+	return h.score(emptyMode) <= o.score(emptyMode)
 }
 
 func (h convSearchHit) valid() bool {
