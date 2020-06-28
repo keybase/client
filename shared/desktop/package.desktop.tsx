@@ -130,6 +130,11 @@ function main() {
     )
   }
 
+  if (process.env['KEYBASE_USE_LOCAL_ELECTRON'] == 1) {
+    console.log('Using local electron over download mirror')
+    packagerOpts.download = undefined
+  }
+
   // use the same version as the currently-installed electron
   console.log('Finding electron version')
   try {
