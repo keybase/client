@@ -57,13 +57,27 @@
     "installerRan": {
       "_description": "desktop only: the installer ran and we can start up"
     },
-    "dumpLogs": {"reason": ["'quitting through menu'"]},
+    "dumpLogs": {
+      "reason": [
+        "'quitting through menu'"
+      ]
+    },
     "openAppSettings": {
       "_description": "mobile only: open the settings page"
     },
-    "changedFocus": {"appFocused": "boolean"},
-    "changedActive": {"userActive": "boolean"},
-    "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
+    "changedFocus": {
+      "appFocused": "boolean"
+    },
+    "changedActive": {
+      "userActive": "boolean"
+    },
+    "mobileAppState": {
+      "nextAppState": [
+        "'active'",
+        "'background'",
+        "'inactive'"
+      ]
+    },
     "showMain": {},
     "bootstrapStatusLoaded": {
       "deviceID": "string",
@@ -80,11 +94,21 @@
       "followers": "Array<string>",
       "followees": "Array<string>"
     },
-    "daemonError": {"daemonError?": "Error"},
-    "setAccounts": {"configuredAccounts": "Array<RPCTypes.ConfiguredAccount>"},
-    "setDefaultUsername": {"username": "string"},
-    "globalError": {"globalError?": "Error | RPCError"},
-    "pushLoaded": {"pushLoaded": "boolean"},
+    "daemonError": {
+      "daemonError?": "Error"
+    },
+    "setAccounts": {
+      "configuredAccounts": "Array<RPCTypes.ConfiguredAccount>"
+    },
+    "setDefaultUsername": {
+      "username": "string"
+    },
+    "globalError": {
+      "globalError?": "Error | RPCError"
+    },
+    "pushLoaded": {
+      "pushLoaded": "boolean"
+    },
     "setStartupDetails": {
       "startupWasFromPush": "boolean",
       "startupConversation?": "ChatTypes.ConversationIDKey",
@@ -99,11 +123,24 @@
       "_description": "Stores the startup file path when launching Keybase from a cold start beofre log in",
       "startupFile": "HiddenString"
     },
-    "setOpenAtLogin": {"openAtLogin": "boolean"},
-    "setNotifySound": {"notifySound": "boolean"},
-    "setDeletedSelf": {"deletedUsername": "string"},
-    "persistRoute": {"path?": "Array<any>"},
-    "setNavigator": {"navigator": "any"},
+    "setOpenAtLogin": {
+      "openAtLogin": "boolean"
+    },
+    "setNotifySound": {
+      "notifySound": "boolean"
+    },
+    "setNotify": {
+      "notify": "boolean"
+    },
+    "setDeletedSelf": {
+      "deletedUsername": "string"
+    },
+    "persistRoute": {
+      "path?": "Array<any>"
+    },
+    "setNavigator": {
+      "navigator": "any"
+    },
     "loggedOut": {},
     "loggedIn": {
       "_description": [
@@ -116,10 +153,18 @@
     "setUserSwitching": {
       "userSwitching": "boolean"
     },
-    "updateMenubarWindowID": {"id": "number"},
-    "copyToClipboard": {"text": "string"},
+    "updateMenubarWindowID": {
+      "id": "number"
+    },
+    "copyToClipboard": {
+      "text": "string"
+    },
     "checkForUpdate": {},
-    "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
+    "updateInfo": {
+      "isOutOfDate": "boolean",
+      "critical": "boolean",
+      "message?": "string"
+    },
     "updateNow": {},
     "openAppStore": {
       "_description": "Open a link to the app store"
@@ -135,9 +180,16 @@
       "isInit?": "boolean"
     },
     "setDarkModePreference": {
-      "preference": ["'system'", "'alwaysDark'", "'alwaysLight'", "undefined"]
+      "preference": [
+        "'system'",
+        "'alwaysDark'",
+        "'alwaysLight'",
+        "undefined"
+      ]
     },
-    "setSystemDarkMode": {"dark": "boolean"},
+    "setSystemDarkMode": {
+      "dark": "boolean"
+    },
     "updateHTTPSrvInfo": {
       "address": "string",
       "token": "string"

@@ -9,6 +9,7 @@ const actions = {
   onContactSettingsSave: () => Sb.action('onContactSettingsSave'),
   onRefresh: Sb.action('onRefresh'),
   onToggle: Sb.action('onToggle'),
+  onToggleNotifications: Sb.action('onToggleNotifications'),
   onToggleSound: Sb.action('onToggleSound'),
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => {
     Sb.action('onUnfurlSave')(mode, whitelist)
@@ -73,6 +74,7 @@ const props = {
       },
     ],
   ]),
+  notify: false,
   sound: false,
   teamMeta,
   unfurlMode: RPCChatTypes.UnfurlMode.whitelisted,
@@ -103,6 +105,7 @@ const loadErrorProps = {
   contactSettingsSelectedTeams: {},
   contactSettingsTeamsEnabled: false,
   groups: new Map(),
+  notify: false,
   sound: false,
   teamMeta: [],
   unfurlError: 'Unable to load link preview settings, please try again.',

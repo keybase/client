@@ -281,6 +281,7 @@ export type TypedActionsMap = {
   'config:setStartupFile': config.SetStartupFilePayload
   'config:setOpenAtLogin': config.SetOpenAtLoginPayload
   'config:setNotifySound': config.SetNotifySoundPayload
+  'config:setNotify': config.SetNotifyPayload
   'config:setDeletedSelf': config.SetDeletedSelfPayload
   'config:persistRoute': config.PersistRoutePayload
   'config:setNavigator': config.SetNavigatorPayload

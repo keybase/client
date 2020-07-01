@@ -1309,7 +1309,8 @@ function* desktopNotify(
 
   if (
     Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) ||
-    meta.isMuted // ignore muted convos
+    meta.isMuted || // ignore muted convos
+    !state.config.notify // don't send notifications if the client doesn't want us to.
   ) {
     logger.info('not sending notification')
     return

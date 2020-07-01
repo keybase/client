@@ -367,6 +367,33 @@ const setNotifySound = async (state: Container.TypedState) => {
   })
 }
 
+const notifyKey = 'notify'
+function* initializeNotify() {
+  try {
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
+      {
+        path: notifyKey,
+      }
+    )
+    const notify: boolean | undefined = val.b || undefined
+    const state: Container.TypedState = yield Saga.selectState()
+    if (notify !== undefined && notify !== state.config.notify) {
+      yield Saga.put(ConfigGen.createSetNotify({notify}))
+    }
+  } catch (_) {}
+}
+
+const setNotify = async (state: Container.TypedState) => {
+  const {notify} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: notifyKey,
+    value: {
+      b: notify,
+      isNull: false,
+    },
+  })
+}
+
 const openAtLoginKey = 'openAtLogin'
 function* initializeOpenAtLogin() {
   try {
@@ -445,6 +472,7 @@ function* checkNav(
 export function* platformConfigSaga() {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
   yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
+  yield* Saga.chainAction2(ConfigGen.setNotify, setNotify)
   yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
   yield* Saga.chainAction(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
@@ -470,6 +498,7 @@ export function* platformConfigSaga() {
 
   yield Saga.spawn(initializeUseNativeFrame)
   yield Saga.spawn(initializeNotifySound)
+  yield Saga.spawn(initializeNotify)
   yield Saga.spawn(initializeOpenAtLogin)
   yield Saga.spawn(initializeInputMonitor)
   yield Saga.spawn(handleWindowFocusEvents)
