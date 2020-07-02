@@ -233,10 +233,12 @@ const Tab = React.memo((props: TabProps) => {
             if (row) {
               dispatch(ConfigGen.createSetUserSwitching({userSwitching: true}))
               dispatch(LoginGen.createLogin({password: new HiddenString(''), username: row.username}))
+            } else {
+              onTabClick(tab)
             }
           }
         : undefined,
-    [accountRows, dispatch, index, current]
+    [accountRows, dispatch, index, current, onTabClick, tab]
   )
 
   // no long press on desktop so a quick version
