@@ -1,5 +1,6 @@
 import './tab-bar.css'
 import * as ConfigGen from '../actions/config-gen'
+import * as LoginGen from '../actions/login-gen'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
 import * as Kb from '../common-adapters'
@@ -19,6 +20,7 @@ import flags from '../util/feature-flags'
 import AccountSwitcher from './account-switcher/container'
 import RuntimeStats from '../app/runtime-stats'
 import InviteFriends from '../people/invite-friends/tab-bar-button'
+import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {isLinux} from '../constants/platform'
 import {quit} from '../desktop/app/ctl.desktop'
@@ -219,8 +221,68 @@ const Tab = React.memo((props: TabProps) => {
   const {tab, index, isSelected, onTabClick, badge} = props
   const {label} = data[tab]
 
+  const dispatch = Container.useDispatch()
+
+  const accountRows = Container.useSelector(state => state.config.configuredAccounts)
+  const current = Container.useSelector(state => state.config.username)
+  const onQuickSwitch = React.useMemo(
+    () =>
+      index === 0
+        ? () => {
+            const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
+            if (row) {
+              dispatch(ConfigGen.createSetUserSwitching({userSwitching: true}))
+              dispatch(LoginGen.createLogin({password: new HiddenString(''), username: row.username}))
+            } else {
+              onTabClick(tab)
+            }
+          }
+        : undefined,
+    [accountRows, dispatch, index, current, onTabClick, tab]
+  )
+
+  // no long press on desktop so a quick version
+  const [mouseTime, setMouseTime] = React.useState(0)
+  const onMouseUp = React.useMemo(
+    () =>
+      index === 0
+        ? () => {
+            if (mouseTime && Date.now() - mouseTime > 1000) {
+              onQuickSwitch?.()
+            }
+            setMouseTime(0)
+          }
+        : undefined,
+    [index, onQuickSwitch, mouseTime]
+  )
+  const onMouseDown = React.useMemo(
+    () =>
+      index === 0
+        ? () => {
+            setMouseTime(Date.now())
+          }
+        : undefined,
+    [index]
+  )
+  const onMouseLeave = React.useMemo(
+    () =>
+      index === 0
+        ? () => {
+            setMouseTime(0)
+          }
+        : undefined,
+    [index]
+  )
+
   return (
-    <Kb.ClickableBox feedback={false} key={tab} onClick={() => onTabClick(tab)}>
+    <Kb.ClickableBox
+      feedback={false}
+      key={tab}
+      onClick={() => onTabClick(tab)}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseLeave}
+    >
       <Kb.WithTooltip
         tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
         toastClassName="tab-tooltip"
