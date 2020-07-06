@@ -316,7 +316,12 @@ public class MainActivity extends ReactActivity {
           } else if (uri != null) {
             String filePath = readFileFromUri(getReactContext(), uri);
             if (filePath != null) {
-              engine.setInitialShareFileUrl(filePath);
+                // ensure not inside ourselves
+              String appPath = getApplicationInfo().dataDir;
+
+              if (filePath.indexOf("io.keybase.ossifrage") == -1) {
+                  engine.setInitialShareFileUrl(filePath);
+              }
             }
           } else if (textPayload.length() > 0){
             engine.setInitialShareText(textPayload);
@@ -331,9 +336,13 @@ public class MainActivity extends ReactActivity {
           if (uri != null) {
             String filePath = readFileFromUri(getReactContext(), uri);
             if (filePath != null) {
-              WritableMap args = Arguments.createMap();
-              args.putString("localPath", filePath);
-              emitter.emit("onShareData", args);
+              String appPath = getApplicationInfo().dataDir;
+                // ensure not inside ourselves
+              if (filePath.indexOf("io.keybase.ossifrage") == -1) {
+                  WritableMap args = Arguments.createMap();
+                  args.putString("localPath", filePath);
+                  emitter.emit("onShareData", args);
+              }
             }
           } else if (textPayload.length() > 0) {
             WritableMap args = Arguments.createMap();
