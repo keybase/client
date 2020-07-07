@@ -243,6 +243,11 @@ public class MainActivity extends ReactActivity {
         }
       }
 
+      int cut = filename.lastIndexOf('/');
+      if (cut != -1) {
+        filename = filename.substring(cut + 1);
+      }
+
       // Now load the file itself.
       File file = new File(reactContext.getCacheDir(), filename);
       try {
