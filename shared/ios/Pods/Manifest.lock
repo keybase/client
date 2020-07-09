@@ -231,7 +231,7 @@ PODS:
     - React-cxxreact (= 0.61.5)
     - React-jsi (= 0.61.5)
   - React-jsinspector (0.61.5)
-  - react-native-cameraroll (1.2.1):
+  - react-native-cameraroll (4.0.0):
     - React
   - react-native-contacts (5.1.0):
     - React
@@ -579,7 +579,7 @@ SPEC CHECKSUMS:
   React-jsi: cb2cd74d7ccf4cffb071a46833613edc79cdf8f7
   React-jsiexecutor: d5525f9ed5f782fdbacb64b9b01a43a9323d2386
   React-jsinspector: fa0ecc501688c3c4c34f28834a76302233e29dc0
-  react-native-cameraroll: 3e5e34d36d93548ae7770ee8ab7b2ae9e778f571
+  react-native-cameraroll: ae0a7c0cc8462508855707ff623b1e789b692865
   react-native-contacts: be6cde1ffc9c0196fbb57d987b9d40f12b85989c
   react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
@@ -622,4 +622,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 843dc6df133334007d13b5c34a0fd83194e7fa0e
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.1
