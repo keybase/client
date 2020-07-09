@@ -23,9 +23,6 @@ const {argv, env, pid} = KB.process
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
 }
-export function saveAttachmentDialog() {
-  throw new Error('Save Attachment - unsupported on this platform')
-}
 export async function saveAttachmentToCameraRoll() {
   throw new Error('Save Attachment to camera roll - unsupported on this platform')
 }

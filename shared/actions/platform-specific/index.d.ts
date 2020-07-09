@@ -12,7 +12,6 @@ export declare function showShareActionSheet(options: {
   method: string
 }>
 
-export declare function saveAttachmentDialog(filePath: string): Promise<NextURI>
 export declare function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void>
 export declare function requestLocationPermission(mode: RPCChatTypes.UIWatchPositionPerm): Promise<void>
 export declare function requestAudioPermission(): Promise<void>

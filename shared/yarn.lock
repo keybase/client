@@ -1310,10 +1310,10 @@
     react-lifecycles-compat "^3.0.4"
     warning "^3.0.0"
 
-"@react-native-community/cameraroll@1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cameraroll/-/cameraroll-1.2.1.tgz#68ae3a1de07dd5db8ce9d898057f30c1585c7f1d"
-  integrity sha512-dMvzCano5/ltQYbF4AOEHe0vaW3Owt05S4y+gJ6PlBp2/YfQAVv7XNgvsvF2CKz4oPKuZAOchENDV/J+nbMbWg==
+"@react-native-community/cameraroll@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/cameraroll/-/cameraroll-4.0.0.tgz#97a4be5d01bc05c387c26599ffa559e1b425e415"
+  integrity sha512-ZqzWbNHklgq/sPUmlDgi/SvfbkIVKNYXhcDGRcabXRsX9aIyNEX2dk2fkCSJoKWqBF8uSUnVznonpTP3TlwdyQ==
 
 "@react-native-community/cli-debugger-ui@^3.0.0":
   version "3.0.0"
