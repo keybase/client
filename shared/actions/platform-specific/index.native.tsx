@@ -125,7 +125,7 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
 
 export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   const fileURL = 'file://' + filePath
-  const saveType = (mimeType.startsWith('video') ? 'video' : 'photo') as const
+  const saveType: 'video' | 'photo' = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
   try {
     await requestPermissionsToWrite()
