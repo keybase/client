@@ -7,7 +7,7 @@ import menuHelper from './menu-helper.desktop'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
-import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
+import {guiConfigFilename, isDarwin, isWindows, isLinux, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 import logger from '../../logger'
 import debounce from 'lodash/debounce'
@@ -285,6 +285,7 @@ export default () => {
     x: windowState.x,
     y: windowState.y,
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
+    ...(isLinux ? {icon: 'desktop/Icon.png'} : {}),
   })
   win.loadURL(htmlFile)
   if (!disableSpellCheck) {
