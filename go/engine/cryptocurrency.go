@@ -50,6 +50,9 @@ func (e *CryptocurrencyEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func normalizeAddress(address string) string {
+	if len(address) <= 3 {
+		return address
+	}
 	switch strings.ToLower(address)[0:3] {
 	case "bc1", "zs1":
 		// bech32 addresses require that cases not be mixed
