@@ -6,6 +6,10 @@ package libkbfs
 
 import (
 	context "context"
+	os "os"
+	reflect "reflect"
+	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 	data "github.com/keybase/client/go/kbfs/data"
 	favorites "github.com/keybase/client/go/kbfs/favorites"
@@ -20,9 +24,6 @@ import (
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	go_billy_v4 "gopkg.in/src-d/go-billy.v4"
-	os "os"
-	reflect "reflect"
-	time "time"
 )
 
 // MockBlockOps is a mock of BlockOps interface.
