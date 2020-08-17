@@ -6,11 +6,12 @@ package libkbfs
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	kbfscrypto "github.com/keybase/client/go/kbfs/kbfscrypto"
 	kbfsmd "github.com/keybase/client/go/kbfs/kbfsmd"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	reflect "reflect"
 )
 
 // MockKeyOps is a mock of KeyOps interface.

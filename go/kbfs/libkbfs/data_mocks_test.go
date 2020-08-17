@@ -6,11 +6,12 @@ package libkbfs
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	data "github.com/keybase/client/go/kbfs/data"
 	kbfsblock "github.com/keybase/client/go/kbfs/kbfsblock"
 	tlf "github.com/keybase/client/go/kbfs/tlf"
-	reflect "reflect"
 )
 
 // MockBlockCache is a mock of BlockCache interface.
