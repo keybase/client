@@ -12,7 +12,7 @@ buildscript {
         buildToolsVersion = "29.0.2"
         minSdkVersion = 16
         compileSdkVersion = 29
-        targetSdkVersion = 28
+        targetSdkVersion = 29
         supportLibVersion = "28.0.0" // needed by some deps
      }
 
