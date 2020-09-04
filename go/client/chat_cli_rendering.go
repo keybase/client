@@ -756,7 +756,7 @@ func newMessageViewNoMessages() (mv messageView) {
 // newMessageView extracts from a message the parts for display
 // It may fetch the superseding message. So that for example a TEXT message will show its EDIT text.
 func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (mv messageView, err error) {
-	defer func() { mv.Body = emoji.Sprintf(mv.Body) }()
+	defer func() { mv.Body = emoji.Sprint(mv.Body) }()
 	state, err := m.State()
 	if err != nil {
 		return mv, fmt.Errorf("unexpected empty message")
