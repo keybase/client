@@ -562,6 +562,14 @@ func ListenAndServe(ctx context.Context,
 		return err
 	}
 
+	if manager.Client == nil || len(manager.Client.DirectoryURL) == 0 {
+		config.Logger.Info("ListenAndServe",
+			zap.String("acme directory url", autocert.DefaultACMEDirectory))
+	} else {
+		config.Logger.Info("ListenAndServe",
+			zap.String("acme directory url", manager.Client.DirectoryURL))
+	}
+
 	httpsServer := http.Server{
 		Handler:           server,
 		ReadHeaderTimeout: httpReadHeaderTimeout,
