@@ -1092,6 +1092,7 @@ const (
 
 func (h convSearchHit) score(emptyMode types.InboxSourceSearchEmptyMode) (score float64) {
 	exactNames := 0
+	prefixNames := 0
 	for _, hit := range h.hits {
 		switch hit {
 		case nameContainsQueryExact:
@@ -1101,6 +1102,7 @@ func (h convSearchHit) score(emptyMode types.InboxSourceSearchEmptyMode) (score 
 			score += 50
 		case nameContainsQueryPrefix:
 			score += 10
+			prefixNames++
 		case nameContainsQuerySimilar:
 			score += 3
 		case nameContainsQueryUnread:
@@ -1109,8 +1111,12 @@ func (h convSearchHit) score(emptyMode types.InboxSourceSearchEmptyMode) (score 
 			score += 200
 		}
 	}
-	if len(h.queryToks) == len(h.convToks) && exactNames >= len(h.convToks) {
-		score += 1000000
+	if len(h.queryToks) == len(h.convToks) {
+		if exactNames >= len(h.convToks) {
+			score += 1000000
+		} else if prefixNames >= len(h.convToks) {
+			score += 10
+		}
 	}
 
 	var htime gregor1.Time
@@ -1125,7 +1131,7 @@ func (h convSearchHit) score(emptyMode types.InboxSourceSearchEmptyMode) (score 
 }
 
 func (h convSearchHit) less(o convSearchHit, emptyMode types.InboxSourceSearchEmptyMode) bool {
-	return h.score(emptyMode) <= o.score(emptyMode)
+	return h.score(emptyMode) < o.score(emptyMode)
 }
 
 func (h convSearchHit) valid() bool {
