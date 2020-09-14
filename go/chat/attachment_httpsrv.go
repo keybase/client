@@ -373,7 +373,11 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(ctx context.Context, w http.ResponseW
 	giphyReq.Host = giphy.MediaHost
 	resp, err := client.Do(giphyReq)
 	if err != nil {
-		r.makeError(ctx, w, resp.StatusCode, "failed to get read giphy link: %s", err)
+		status := http.StatusInternalServerError
+		if resp != nil {
+			status = resp.StatusCode
+		}
+		r.makeError(ctx, w, status, "failed to get read giphy link: %s", err)
 		return
 	}
 	defer resp.Body.Close()
