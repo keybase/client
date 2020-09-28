@@ -62,7 +62,10 @@ func (t *kvStoreAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) e
 	status, err := config.GetCurrentStatus(context.Background(), 0)
 	if err != nil {
 		return err
+	} else if !status.LoggedIn || status.User == nil {
+		return errors.New("not logged in")
 	}
+
 	username := status.User.Username
 	t.selfTeam = fmt.Sprintf("%s,%s", username, username)
 
