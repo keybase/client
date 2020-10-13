@@ -90,11 +90,8 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
   new Promise((resolve, reject) => {
     if (isFolder) {
       if (isWindows) {
-        if (Electron.remote.shell.openItem(openPath)) {
-          resolve()
-        } else {
-          reject(new Error('unable to open item'))
-        }
+        Electron.remote.shell.openPath(openPath)
+        resolve()
       } else {
         openInDefaultDirectory(openPath).then(resolve, reject)
       }

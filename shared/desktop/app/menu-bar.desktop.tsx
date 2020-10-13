@@ -30,6 +30,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       resizable: false,
       transparent: true,
       webPreferences: {
+        enableRemoteModule: true,
         nodeIntegration: true,
         nodeIntegrationInWorker: false,
         preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
