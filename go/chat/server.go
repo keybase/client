@@ -4010,7 +4010,7 @@ func (h *Server) ForwardMessageConvSearch(ctx context.Context, term string) (res
 		return res, err
 	}
 	username := h.G().GetEnv().GetUsername().String()
-	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 100, types.InboxSourceSearchEmptyModeAll)
+	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 100, types.InboxSourceSearchEmptyModeAllBySendCtime)
 	if err != nil {
 		return res, err
 	}
