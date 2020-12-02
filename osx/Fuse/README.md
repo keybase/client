@@ -17,19 +17,20 @@ an older kernel and run it on newer kernels. So we'll try to build for the
 oldest possible (compatible) kernel, to have a fewer kernel extensions built as
 possible.
 
-For OSXFuse, it's possible to use a kernel extension that's built
-against the macOS 10.11 SDK on macOS 10.12, 10.13, 10.14 and 10.15. So
-we'll build for 10.11 kernel, then we'd make symlinks for 10.12,
-10.13, 10.14 and 10.15 whose target is 10.11. All these are handled by
-the build script, but we'll need the appropriate SDKs to build
+For OSXFuse, it's possible to use a kernel extension that's built against the
+macOS 10.14 SDK on macOS 10.12, 10.13, 10.14 and 10.15. However, to build
+against 10.11 we need to be on an older macOS. So are targeting 10.14+ now.
+We'll build for 10.14, then we'll make symlinks for 10.15. All these are
+handled by the build script, but we'll need the appropriate SDKs to build
 against.
 
-Xcode 7.3.1 is the latest version that includes the macOS 10.11 SDK, so we'll
-need it installed on the macOS where you build the KBFuse bundle.
+Xcode 10.3 is the latest version that includes the macOS 10.14 SDK, so we'll
+need it installed on the macOS where you build the KBFuse bundle. Additionally,
+macOS 11 needs to be built with Xcode 12.3, so we need that as well.
 
 Older versions of Xcode can be downloaded from the [Apple official developer
 site](https://developer.apple.com/download/more/). It has to live under
-`/Applications`, but under a different name, e.g. `/Applications/Xcode-7.3.1`.
+`/Applications`, but under a different name, e.g. `/Applications/Xcode-10.3`.
 Don't worry about making the naming scheme exact, as the OSXFuse builder is
 able to spotlight different versions automatically.
 [Here](https://medium.com/@hacknicity/working-with-multiple-versions-of-xcode-e331c01aa6bc)'s
@@ -39,11 +40,13 @@ same machine.
 #### Signing certificate
 
 You'll also need the Keybase signing certificate. Ask around if you don't have
-access to it.
+access to it. Also see
+[this](https://github.com/keybase/client/tree/master/osx/Scripts#build-the-installer)
+for some pointers.
 
 ### Building KBFuse
 
-    VERSION=3.6.3 ./build.sh
+    VERSION=4.0.4 ./build.sh
 
 This should generate a kbfuse.bundle (and fsbundle.tgz, that includes debug symbols)
 which you can submit for PR.
