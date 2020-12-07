@@ -23,33 +23,37 @@
 		<string>MacOSX</string>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>2052.18</string>
+	<string>2052.20</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
-	<string>10G8</string>
+	<string>12B45b</string>
+	<key>DTPlatformName</key>
+	<string>macosx</string>
 	<key>DTPlatformVersion</key>
-	<string>GM</string>
+	<string>11.0</string>
 	<key>DTSDKBuild</key>
-	<string>18G74</string>
+	<string>20A2408</string>
 	<key>DTSDKName</key>
-	<string>macosx10.14</string>
+	<string>macosx11.0</string>
 	<key>DTXcode</key>
-	<string>1030</string>
+	<string>1220</string>
 	<key>DTXcodeBuild</key>
-	<string>10G8</string>
+	<string>12B45b</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>11.0</string>
 	<key>OSBundleLibraries</key>
 	<dict>
 		<key>com.apple.kpi.bsd</key>
-		<string>18.0.0</string>
+		<string>20.0.0</string>
 		<key>com.apple.kpi.iokit</key>
-		<string>18.0.0</string>
+		<string>20.0.0</string>
 		<key>com.apple.kpi.libkern</key>
-		<string>18.0.0</string>
+		<string>20.0.0</string>
 		<key>com.apple.kpi.mach</key>
-		<string>18.0.0</string>
+		<string>20.0.0</string>
 		<key>com.apple.kpi.unsupported</key>
-		<string>18.0.0</string>
+		<string>20.0.0</string>
 	</dict>
 </dict>
 </plist>

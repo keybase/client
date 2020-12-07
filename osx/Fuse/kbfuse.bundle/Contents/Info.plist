@@ -29,17 +29,19 @@
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
-	<string>10G8</string>
+	<string>12B45b</string>
+	<key>DTPlatformName</key>
+	<string>macosx</string>
 	<key>DTPlatformVersion</key>
-	<string>GM</string>
+	<string>11.0</string>
 	<key>DTSDKBuild</key>
-	<string>18G74</string>
+	<string>20A2408</string>
 	<key>DTSDKName</key>
-	<string>macosx10.14</string>
+	<string>macosx11.0</string>
 	<key>DTXcode</key>
-	<string>1030</string>
+	<string>1220</string>
 	<key>DTXcodeBuild</key>
-	<string>10G8</string>
+	<string>12B45b</string>
 	<key>FSPersonalities</key>
 	<dict>
 		<key>Beagle</key>
@@ -134,5 +136,7 @@
 			<integer>1</integer>
 		</dict>
 	</dict>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.14</string>
 </dict>
 </plist>
