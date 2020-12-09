@@ -10,10 +10,16 @@ import {resolveRoot, resolveImage, resolveRootAsURL} from './resolve-root.deskto
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import getIcons from '../../menubar/icons'
 import {workingIsDarkMode} from '../../util/safe-electron.desktop'
+import os from 'os'
 
 const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`)
 
+// support dynamic dark mode system bar in big sur
+const useImageTemplate = os.platform() === 'darwin' && parseInt(os.release().split('.')[0], 10) >= 20
+
 let iconPath = getIcons('regular', false, workingIsDarkMode())
+// only use imageTemplate if its not badged, else we lose the orange
+let iconPathIsBadged = false
 
 type Bounds = {
   x: number
@@ -23,6 +29,10 @@ type Bounds = {
 }
 
 export default (menubarWindowIDCallback: (id: number) => void) => {
+  const icon = Electron.nativeImage.createFromPath(resolveImage('menubarIcon', iconPath))
+  if (useImageTemplate && !iconPathIsBadged) {
+    icon.setTemplateImage(true)
+  }
   const mb = menubar({
     browserWindow: {
       hasShadow: true,
@@ -36,7 +46,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       },
       width: 360,
     },
-    icon: resolveImage('menubarIcon', iconPath),
+    icon,
     index: htmlFile,
     preloadWindow: true,
     // Without this flag set, menubar will hide the dock icon when the app
@@ -48,7 +58,11 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
   const updateIcon = () => {
     try {
       const resolved = resolveImage('menubarIcon', iconPath)
-      mb.tray.setImage(resolved)
+      const i = Electron.nativeImage.createFromPath(resolved)
+      if (useImageTemplate && !iconPathIsBadged) {
+        i.setTemplateImage(true)
+      }
+      mb.tray.setImage(i)
     } catch (err) {
       console.error('menu icon err: ' + err)
     }
@@ -67,6 +81,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     switch (action.type) {
       case 'showTray': {
         iconPath = action.payload.icon
+        iconPathIsBadged = action.payload.desktopAppBadgeCount > 0
         updateIcon()
         const dock = Electron.app.dock
         if (dock && dock.isVisible()) {
