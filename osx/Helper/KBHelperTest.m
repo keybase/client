@@ -15,7 +15,7 @@
 @implementation KBHelperTest
 
 - (void)testKextUnload:(void (^)(NSError *error, id value))completion {
-  NSString *kextID = @"io.kbfuse.filesystems.kbfuse";
+  NSString *kextID = @"com.github.kbfuse.filesystems.kbfuse";
   KBHelper *helper = [[KBHelper alloc] init];
   [helper handleRequestWithMethod:@"kextUnload" params:@[@{@"kextID": kextID}] messageId:@(1) remote:NULL completion:completion];
 }

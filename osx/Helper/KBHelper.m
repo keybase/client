@@ -58,7 +58,7 @@
 }
 
 - (NSString *)checkKextID:(NSString *)kextID {
-  NSString * const kbfuseKextID = @"io.kbfuse.filesystems.kbfuse";
+  NSString * const kbfuseKextID = @"com.github.kbfuse.filesystems.kbfuse";
   NSString * const fuse3KextID = @"com.github.osxfuse.filesystems.osxfuse";
   if ([kextID isEqualToString:kbfuseKextID]) return kbfuseKextID;
   if ([kextID isEqualToString:fuse3KextID]) return fuse3KextID;
