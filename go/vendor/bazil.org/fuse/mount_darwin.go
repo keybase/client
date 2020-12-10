@@ -27,6 +27,14 @@ func loadOSXFUSE(bin string) error {
 	return err
 }
 
+func loadMacFuseIfNeeded(devPrefix string, bin string) error {
+	if _, err := os.Stat(devPrefix + "0"); os.IsNotExist(err) {
+		return loadOSXFUSE(bin)
+	} else {
+		return err
+	}
+}
+
 func openOSXFUSEDev(devPrefix string) (*os.File, error) {
 	var f *os.File
 	var err error
@@ -90,12 +98,37 @@ func isBoringMountOSXFUSEError(err error) bool {
 	return false
 }
 
-func callMount(bin string, daemonVar string, dir string, conf *mountConfig, f *os.File, ready chan<- struct{}, errp *error) error {
+func receiveDeviceFD(ourSocketFD int) (*os.File, error) {
+	oob := make([]byte, syscall.CmsgLen(8)) // data is FD. Assume 8 bytes to be safe
+	_, oobn, _, _, err := syscall.Recvmsg(ourSocketFD, nil, oob, 0)
+	if err != nil {
+		return nil, err
+	}
+	msgs, err := syscall.ParseSocketControlMessage(oob[:oobn])
+	if err != nil {
+		return nil, fmt.Errorf("ParseSocketControlMessage error: %v", err)
+	}
+	if len(msgs) == 0 {
+		return nil, errors.New("zero SocketControlMessage parsed")
+	}
+	fds, err := syscall.ParseUnixRights(&msgs[0])
+	if err != nil {
+		return nil, fmt.Errorf("ParseUnixRights error: %v", err)
+	}
+	if len(fds) != 1 {
+		return nil, fmt.Errorf(
+			"unexpected amount of FDs received. Expected 1; got %d", len(fds))
+	}
+	return os.NewFile(uintptr(fds[0]), ""), nil
+}
+
+func callMount(bin string, daemonVar string, dir string, conf *mountConfig,
+	ready chan<- struct{}, errp *error) (*os.File, error) {
 	for k, v := range conf.options {
 		if strings.Contains(k, ",") || strings.Contains(v, ",") {
 			// Silly limitation but the mount helper does not
 			// understand any escaping. See TestMountOptionCommaError.
-			return fmt.Errorf("mount options cannot contain commas on darwin: %q=%q", k, v)
+			return nil, fmt.Errorf("mount options cannot contain commas on darwin: %q=%q", k, v)
 		}
 	}
 	cmd := exec.Command(
@@ -107,16 +140,15 @@ func callMount(bin string, daemonVar string, dir string, conf *mountConfig, f *o
 		// OSXFUSE seems to ignore InitResponse.MaxWrite, and uses
 		// this instead.
 		"-o", "iosize="+strconv.FormatUint(maxWrite, 10),
-		// refers to fd passed in cmd.ExtraFiles
-		"3",
 		dir,
 	)
-	cmd.ExtraFiles = []*os.File{f}
 	cmd.Env = os.Environ()
 	// OSXFUSE <3.3.0
 	cmd.Env = append(cmd.Env, "MOUNT_FUSEFS_CALL_BY_LIB=")
 	// OSXFUSE >=3.3.0
 	cmd.Env = append(cmd.Env, "MOUNT_OSXFUSE_CALL_BY_LIB=")
+	// OSXFUSE >=4.0.0
+	cmd.Env = append(cmd.Env, "_FUSE_CALL_BY_LIB=")
 
 	daemon := os.Args[0]
 	if daemonVar != "" {
@@ -125,16 +157,33 @@ func callMount(bin string, daemonVar string, dir string, conf *mountConfig, f *o
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("setting up mount_osxfusefs stderr: %v", err)
+		return nil, fmt.Errorf("setting up mount_osxfusefs stderr: %v", err)
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return fmt.Errorf("setting up mount_osxfusefs stderr: %v", err)
+		return nil, fmt.Errorf("setting up mount_osxfusefs stderr: %v", err)
 	}
 
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("mount_osxfusefs: %v", err)
+	// Make a pair of socket FDs and pass it in to the mounter command.
+	fds, err := syscall.Socketpair(syscall.AF_UNIX, syscall.SOCK_STREAM, 0)
+	if err != nil {
+		return nil, err
 	}
+	defer syscall.Close(fds[0])
+	defer syscall.Close(fds[1])
+	theirFD := fds[0]
+	ourFD := fds[1]
+	cmd.Env = append(cmd.Env, "_FUSE_COMMFD="+strconv.Itoa(theirFD))
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("mount_osxfusefs: %v", err)
+	}
+
+	if err = syscall.Close(theirFD); err != nil {
+		return nil, fmt.Errorf(
+			"mount_osxfusefs: closing our copy of their FD error: %v", err)
+	}
+
 	helperErrCh := make(chan error, 1)
 	go func() {
 		var wg sync.WaitGroup
@@ -168,7 +217,14 @@ func callMount(bin string, daemonVar string, dir string, conf *mountConfig, f *o
 		*errp = nil
 		close(ready)
 	}()
-	return nil
+
+	deviceF, err := receiveDeviceFD(ourFD)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"mount_osxfusefs: receiving device FD error: %v", err)
+	}
+
+	return deviceF, nil
 }
 
 func mount(dir string, conf *mountConfig, ready chan<- struct{}, errp *error) (*os.File, error) {
@@ -185,21 +241,12 @@ func mount(dir string, conf *mountConfig, ready chan<- struct{}, errp *error) (*
 			continue
 		}
 
-		f, err := openOSXFUSEDev(loc.DevicePrefix)
-		if err == errNotLoaded {
-			err = loadOSXFUSE(loc.Load)
-			if err != nil {
-				return nil, err
-			}
-			// try again
-			f, err = openOSXFUSEDev(loc.DevicePrefix)
-		}
-		if err != nil {
+		if err := loadMacFuseIfNeeded(loc.DevicePrefix, loc.Load); err != nil {
 			return nil, err
 		}
-		err = callMount(loc.Mount, loc.DaemonVar, dir, conf, f, ready, errp)
+		f, err := callMount(
+			loc.Mount, loc.DaemonVar, dir, conf, ready, errp)
 		if err != nil {
-			f.Close()
 			return nil, err
 		}
 		return f, nil
