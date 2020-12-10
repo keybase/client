@@ -193,7 +193,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)_installKext:(KBCompletion)completion {
-    NSDictionary *params = @{@"source": self.source, @"destination": self.destination, @"kextID": self.kextID, @"possibleOldKextIDs": self.possibleOldKextIDs, @"kextPath": self.kextPath};
+  NSDictionary *params = @{@"source": self.source, @"destination": self.destination, @"kextID": self.kextID, @"kextPath": self.kextPath};
   DDLogDebug(@"Helper: kextInstall(%@)", params);
   [self.helperTool.helper sendRequest:@"kextInstall" params:@[params] completion:^(NSError *error, id value) {
     completion(error);
@@ -201,7 +201,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  NSDictionary *params = @{@"destination": self.destination, @"possibleOldKextIDs": self.possibleOldKextIDs};
+  NSDictionary *params = @{@"destination": self.destination, @"kextID": self.kextID};
 
   if (![self.helperTool exists]) {
     DDLogDebug(@"FUSE wasn't installed (no helper), so no-op");
@@ -270,10 +270,6 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 - (NSString *)kextID {
   return @"io.kbfuse.filesystems.kbfuse";
-}
-
-- (NSArray *)possibleOldKextIDs {
-  return @[@"io.kbfuse.filesystems.kbfuse", @"com.github.kbfuse.filesystems.kbfuse"];
 }
 
 - (NSString *)kextPath {

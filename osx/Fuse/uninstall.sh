@@ -16,7 +16,6 @@ if [[ $mounts = *[!\ ]* ]]; then
 fi
 
 echo "Unloading kext..."
-sudo kextunload -b "com.github.kbfuse.filesystems.kbfuse" || true
 sudo kextunload -b "io.kbfuse.filesystems.kbfuse" || true
 
 if [ -d "$dest" ]; then
