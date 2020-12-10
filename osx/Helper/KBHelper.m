@@ -59,8 +59,10 @@
 
 - (NSString *)checkKextID:(NSString *)kextID {
   NSString * const kbfuseKextID = @"io.kbfuse.filesystems.kbfuse";
+  NSString * const kbfuseKextIDOld = @"com.github.kbfuse.filesystems.kbfuse";
   NSString * const fuse3KextID = @"com.github.osxfuse.filesystems.osxfuse";
   if ([kextID isEqualToString:kbfuseKextID]) return kbfuseKextID;
+  if ([kextID isEqualToString:kbfuseKextIDOld]) return kbfuseKextIDOld;
   if ([kextID isEqualToString:fuse3KextID]) return fuse3KextID;
   return nil;
 }
@@ -95,7 +97,7 @@
       completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid kextID"), nil);
     }
   } else if ([method isEqualToString:@"kextInstall"]) {
-    [KBKext installWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] completion:completion];
+      [KBKext installWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] possibleOldKextIDs:args[@"possibleOldKextIDs"] completion:completion];
   } else if ([method isEqualToString:@"kextUninstall"]) {
     [KBKext uninstallWithDestination:args[@"destination"] kextID:args[@"kextID"] completion:completion];
   } else if ([method isEqualToString:@"kextCopy"]) {

@@ -25,14 +25,16 @@
   return [kexts[label][@"OSBundleStarted"] boolValue];
 }
 
-+ (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
++ (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath possibleOldKextIDs:(NSArray *)possibleOldKextIDs completion:(KBOnCompletion)completion {
   NSError *error = nil;
 
   // Uninstall if installed
-  if (![self uninstallWithDestination:destination kextID:kextID error:&error]) {
-    if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to uninstall");
-    completion(error, @(0));
-    return;
+  for (NSString* possibleOldKextID in possibleOldKextIDs) {
+    if (![self uninstallWithDestination:destination kextID:possibleOldKextID error:&error]) {
+      if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to uninstall");
+      completion(error, @(0));
+      return;
+    }
   }
 
   // Copy kext into place
@@ -168,13 +170,13 @@
   return YES;
 }
 
-+ (void)updateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
++ (void)updateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath possibleOldKextIDs:(NSArray *)possibleOldKextIDs completion:(KBOnCompletion)completion {
   [self uninstallWithDestination:destination kextID:kextID completion:^(NSError *error, id value) {
     if (error) {
       completion(error, @(0));
       return;
     }
-    [self installWithSource:source destination:destination kextID:kextID kextPath:kextPath completion:completion];
+    [self installWithSource:source destination:destination kextID:kextID kextPath:kextPath possibleOldKextIDs:possibleOldKextIDs completion:completion];
   }];
 }
 

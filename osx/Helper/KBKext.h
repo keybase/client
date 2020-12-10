@@ -16,7 +16,7 @@
 /*!
  Install.
  */
-+ (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion;
++ (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath possibleOldKextIDs:(NSArray *)possibleOldKextIDs completion:(KBOnCompletion)completion;
 
 /*!
  Uninstall.
