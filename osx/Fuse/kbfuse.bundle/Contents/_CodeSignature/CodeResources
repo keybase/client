@@ -14,11 +14,11 @@
 		</data>
 		<key>Resources/load_kbfuse</key>
 		<data>
-		eYqITT/hJO5mcqM4Uzs15IPO50c=
+		FcmHySiKAzwWkdIRC4UUPRDti84=
 		</data>
 		<key>Resources/mount_kbfuse</key>
 		<data>
-		gED6mimgVaLoPuG9+jOcoLuzfhg=
+		mgAxsR7mn4RSzRJdPLg51FcuyTs=
 		</data>
 		<key>version.plist</key>
 		<data>
@@ -31,22 +31,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			EOWdBHRlz0uE2vFF20iNDiC/slI=
+			6jLH2gMmS8qJWjUeDjl99A7F5NQ=
 			</data>
 			<key>hash2</key>
 			<data>
-			TBpt/0EHyADXTyKAkLHv4iIsTlyucvuU36CFOFY/VJs=
+			44W4NqbO8iLFE5/uT9hI2AbFS56xCYn2BNYzYV6OnBk=
 			</data>
 		</dict>
 		<key>Extensions/10.14/kbfuse.kext/Contents/MacOS/kbfuse</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			FlQckVgyzp/w0lV5QvLzu1IP0Y0=
+			3hSe5ruYkjPFXUxf5ROV88Gui7I=
 			</data>
 			<key>hash2</key>
 			<data>
-			dlBx5r7MYVhnoq+p7tPqMFd75TamzXHSO+Kb2LfVzWw=
+			UCwEPraIvgEmbBvuQCWnpUR1QRQlNlcuCYLMQIuD3l4=
 			</data>
 		</dict>
 		<key>Extensions/10.14/kbfuse.kext/Contents/_CodeSignature/CodeResources</key>
@@ -74,22 +74,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			uAzfch064AbvXNqu4RRh9DrK+SI=
+			3sm0zz/EN8/oGFxN2kK40HjAtok=
 			</data>
 			<key>hash2</key>
 			<data>
-			MdXoISE6WBEnxc0QGss5rmYQ+8E7aNr6+Ct+Q5Ny96Q=
+			3TgRYL/wcOPsDUnCyYP5S4Kuvb88gbnGCEf/FoRP2tQ=
 			</data>
 		</dict>
 		<key>Extensions/11/kbfuse.kext/Contents/MacOS/kbfuse</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			y3N8wPQqiGHx8ZwEHyAht5c2zi0=
+			ECpDRi8oXHjcFvCx5cUEzwyxmZI=
 			</data>
 			<key>hash2</key>
 			<data>
-			ekfkv/N/mwYGfcWBeJidDaHrBvGdaHhfbdJPYzvbDTk=
+			s7PHcOzPQsD0AjlzOPpVTuHTdue0omT/UKCzzisRH/o=
 			</data>
 		</dict>
 		<key>Extensions/11/kbfuse.kext/Contents/_CodeSignature/CodeResources</key>
@@ -129,22 +129,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			eYqITT/hJO5mcqM4Uzs15IPO50c=
+			FcmHySiKAzwWkdIRC4UUPRDti84=
 			</data>
 			<key>hash2</key>
 			<data>
-			u+k17sEoyLRzLm1VIjMYVMj/4KAVM0Kp6NDXB4W/nww=
+			XgbU7JOPf9ZGokb74kJX1HBICqudw3L0CO3D5CrHwpY=
 			</data>
 		</dict>
 		<key>Resources/mount_kbfuse</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			gED6mimgVaLoPuG9+jOcoLuzfhg=
+			mgAxsR7mn4RSzRJdPLg51FcuyTs=
 			</data>
 			<key>hash2</key>
 			<data>
-			db7vU9jGFMbgRlN5H48ysssVih3CASQqQew9zmvg8Hs=
+			qDa+eNE6NJCEhwoP9nVOlCBaHQrfuvExUKJN34N6iM8=
 			</data>
 		</dict>
 		<key>version.plist</key>
