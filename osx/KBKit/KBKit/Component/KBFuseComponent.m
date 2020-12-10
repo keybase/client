@@ -269,7 +269,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (NSString *)kextID {
-  return @"com.github.kbfuse.filesystems.kbfuse";
+  return @"io.kbfuse.filesystems.kbfuse";
 }
 
 - (NSString *)kextPath {

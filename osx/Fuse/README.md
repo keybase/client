@@ -71,7 +71,7 @@ Don't try to kextunload unless you have everything unmounted.
     // Check for any mounts (if there are you need to umount)
     mount -t kbfuse
 
-    sudo kextunload -b com.github.kbfuse.filesystems.kbfuse
+    sudo kextunload -b io.kbfuse.filesystems.kbfuse
     sudo rm -rf /Library/Filesystems/kbfuse.fs
 
 ### Verifying
@@ -82,7 +82,7 @@ After install if you are having problems loading the kext:
 
 View kext status:
 
-    sudo kextstat -b com.github.kbfuse.filesystems.kbfuse
+    sudo kextstat -b io.kbfuse.filesystems.kbfuse
 
 ### Notes on 10.10:
 

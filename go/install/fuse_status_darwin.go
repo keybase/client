@@ -33,7 +33,7 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 
 	if _, err := os.Stat(installPath); err == nil {
 		st.Path = installPath
-		kextID := "com.github.kbfuse.filesystems.kbfuse"
+		kextID := "io.kbfuse.filesystems.kbfuse"
 		var loadErr error
 		kextInfo, loadErr = kext.LoadInfo(kextID)
 		if loadErr != nil {
