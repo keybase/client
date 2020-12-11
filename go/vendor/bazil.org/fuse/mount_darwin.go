@@ -28,6 +28,8 @@ func loadOSXFUSE(bin string) error {
 }
 
 func loadMacFuseIfNeeded(devPrefix string, bin string) error {
+	// We only need to check if any fuse device exists. They start with index 0
+	// so checking 0 is enough.
 	if _, err := os.Stat(devPrefix + "0"); os.IsNotExist(err) {
 		return loadOSXFUSE(bin)
 	} else {
@@ -99,7 +101,14 @@ func isBoringMountOSXFUSEError(err error) bool {
 }
 
 func receiveDeviceFD(ourSocketFD int) (*os.File, error) {
-	oob := make([]byte, syscall.CmsgLen(8)) // data is FD. Assume 8 bytes to be safe
+	// Out-of-band data. This is where the cmsg is stored in, and cmsg is
+	// where the FD gets passed back to us. Here's a FreeBSD doc that's
+	// related: https://www.freebsd.org/cgi/man.cgi?query=recvmsg&sektion=2
+	// It's not darwin but should be similar enough.
+	//
+	// The data in the Cmsg is the FD. We are assuming 8 bytes instead of 4
+	// just to be safe.
+	oob := make([]byte, syscall.CmsgLen(8))
 	_, oobn, _, _, err := syscall.Recvmsg(ourSocketFD, nil, oob, 0)
 	if err != nil {
 		return nil, err
@@ -119,7 +128,11 @@ func receiveDeviceFD(ourSocketFD int) (*os.File, error) {
 		return nil, fmt.Errorf(
 			"unexpected amount of FDs received. Expected 1; got %d", len(fds))
 	}
-	return os.NewFile(uintptr(fds[0]), ""), nil
+	f := os.NewFile(uintptr(fds[0]), "")
+	if f == nil {
+		return nil, errors.New("empty *os.File returned by os.NewFile. bad fd?")
+	}
+	return f, nil
 }
 
 func callMount(bin string, daemonVar string, dir string, conf *mountConfig,
@@ -169,11 +182,17 @@ func callMount(bin string, daemonVar string, dir string, conf *mountConfig,
 	if err != nil {
 		return nil, err
 	}
-	defer syscall.Close(fds[0])
-	defer syscall.Close(fds[1])
 	theirFD := fds[0]
 	ourFD := fds[1]
 	cmd.Env = append(cmd.Env, "_FUSE_COMMFD="+strconv.Itoa(theirFD))
+
+	theirFDClosed := false
+	defer syscall.Close(ourFD)
+	defer func() {
+		if !theirFDClosed {
+			syscall.Close(theirFD)
+		}
+	}()
 
 	if err := cmd.Start(); err != nil {
 		return nil, fmt.Errorf("mount_osxfusefs: %v", err)
@@ -183,6 +202,7 @@ func callMount(bin string, daemonVar string, dir string, conf *mountConfig,
 		return nil, fmt.Errorf(
 			"mount_osxfusefs: closing our copy of their FD error: %v", err)
 	}
+	theirFDClosed = true
 
 	helperErrCh := make(chan error, 1)
 	go func() {
