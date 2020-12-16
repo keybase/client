@@ -274,61 +274,58 @@ services:
       , from: "post" } },
   ]]
   twitter: [[
-    # Twitter verification is a HTML fetch and two checks.
-    # One that the correct user posted the tweet according to data-screen-name.
+    # Twitter verification is a json fetch and two checks.
+    # One that the correct user posted the tweet according to author_url.
     # And another that the proof hash is in the tweet text.
 
     # validate url and extract username
     { regex_capture: {
-      , pattern: "^https://twitter\\.com/([^/]+)/(.*)$"
+      , pattern: "^https://twitter\\.com/([^/]+)/status/(\\d+)(.*)$"
       , from: "hint_url"
-      , into: ["username_from_url", "remainder"]
+      , into: ["username_from_url", "tweet_id", "remainder"]
       , error: ["BAD_API_URL", "Bad hint from server; URL should start with 'https://twitter.com/%{username_service}/'"] } },
     { assert_compare: {
       , cmp: "cicmp"
       , a: "username_from_url"
       , b: "username_service"
       , error: ["BAD_API_URL", "Bad hint from server; URL should contain username matching %{username_service}; got %{username_from_url}"] } },
-    # Create the mobile site url
+    # Create the 'oembed' url to fetch from
     { fill: {
-      , with: "https://mobile.twitter.com/%{username_from_url}/%{remainder}"
+      , with: "https://api.twitter.com/1/statuses/oembed.json?id=%{tweet_id}"
       , into: "our_url" } },
     # url validation passed
     { fetch: {
       , from: "our_url"
-      , kind: "html" } },
+      , kind: "json" } },
 
     # Check the author.
-    { selector_css: {
-      , selectors: [".main-tweet-container .main-tweet", 0, ".user-info-username", 0 ]
-      , into: "tweet_poster_1" # has a @ and extra newlines
-      , error: ["FAILED_PARSE", "Couldn't find a div .user-info-username"] } },
-    { whitespace_normalize: {
-      , from: "tweet_poster_1"
-      , into: "tweet_poster_2" } },
-    # Strip the '@' off the username
+    # Use author_url. Don't use author_name because that is sometimes a full name like 'Max Krohn'
+    { selector_json: {
+      , selectors: ["author_url"]
+      , into: "author_url"
+      , error: ["CONTENT_MISSING", "Could not find 'author_url' in json"] } },
     { regex_capture: {
-      , pattern: "^@?(.*)$"
-      , from: "tweet_poster_2"
-      , into: ["tweet_poster_3"]
-      , error: ["FAILED_PARSE", "Could not process username '%{tweet_poster_2}'"] } },
+      , pattern: "^https://twitter\\.com/(.+)$"
+      , from: "author_url"
+      , into: ["author_username"]
+      , error: ["CONTENT_MISSING", "Could not capture username from author_url"] } },
     # Check the username in the tweet. Case insensitive.
     { assert_compare: {
       , cmp: "cicmp"
-      , a: "tweet_poster_3"
+      , a: "author_username"
       , b: "username_service"
-      , error: ["BAD_USERNAME", "Bad post authored: wanted '%{username_service}' but got '%{tweet_poster_2}'"] } },
+      , error: ["BAD_USERNAME", "Bad post authored: wanted '%{username_service}' but got '%{author_username}'"] } },
 
-    { selector_css: {
-      , selectors: [".main-tweet-container .main-tweet", 0, ".tweet-content .tweet-text", 0 ]
+    { selector_json: {
+      , selectors: ["html"]
       , into: "tweet_contents"
-      , error: ["CONTENT_MISSING", "Missing <div class='tweet-text'> container for tweet"] } },
+      , error: ["CONTENT_MISSING", "Missing 'tweet_html' in json"] } },
     { whitespace_normalize: {
       , from: "tweet_contents"
       , into: "tweet_contents_nw" } },
-    # Strip mentions off the front. Get username and sig.
+    # Get username and sig from tweet.
     { regex_capture: {
-      , pattern: "^ *(?:@[a-zA-Z0-9_-]+\\s*)* *Verifying myself: I am ([A-Za-z0-9_]+) on (?:https?://)?Keybase\\.io[\\s\\p{Zs}]*\\. (\\S+) */.*$"
+      , pattern: "^.*Verifying myself: I am ([A-Za-z0-9_]+) on (?:https?://)?Keybase\\.io[\\s\\p{Zs}]*\\. (\\S+) */.*$"
       , from: "tweet_contents_nw"
       , into: ["username_from_tweet_contents", "sig_from_tweet_contents"]
       , error: ["DELETED", "Could not find 'Verifying myself: I am %{username_keybase} on Keybase.io. %{sig_id_short}'"] } },
