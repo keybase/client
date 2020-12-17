@@ -324,8 +324,11 @@ services:
       , from: "tweet_contents"
       , into: "tweet_contents_nw" } },
     # Get username and sig from tweet.
+    # We would like to assert that "keybase" or "keybase.io" appears in the contents, but cannot.
+    # Because for some tweets twitter returns t.co-ified links with no "keybase.io" label:
+    #   "Verifying myself: I am xinyuzhao on <a href=\"https://t.co/5kAXqNmZtI\">https://t.co/5kAXqNmZtI</a>. n2odH86L6_FXLRk4ed6_HvYkhR7BGH-qGBQ_ /"
     { regex_capture: {
-      , pattern: "^.*Verifying myself: I am ([A-Za-z0-9_]+) on (?:https?://)?Keybase\\.io[\\s\\p{Zs}]*\\. (\\S+) */.*$"
+      , pattern: "^.*Verifying myself: I am ([A-Za-z0-9_]+) on (?:(?:https?://)?Keybase\\.io|<a href=\"https://t\\.co/[A-Za-z0-9_-]+\">https://t\\.co/[A-Za-z0-9_-]+</a>)[\\s\\p{Zs}]*\\. (\\S+) */.*$"
       , from: "tweet_contents_nw"
       , into: ["username_from_tweet_contents", "sig_from_tweet_contents"]
       , error: ["DELETED", "Could not find 'Verifying myself: I am %{username_keybase} on Keybase.io. %{sig_id_short}'"] } },
