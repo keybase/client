@@ -136,7 +136,7 @@ func receiveDeviceFD(ourSocketFD int) (*os.File, error) {
 }
 
 func callMount(bin string, daemonVar string, dir string, conf *mountConfig,
-	ready chan<- struct{}, errp *error) (*os.File, error) {
+	ready chan<- struct{}, errp *error) (f *os.File, err error) {
 	for k, v := range conf.options {
 		if strings.Contains(k, ",") || strings.Contains(v, ",") {
 			// Silly limitation but the mount helper does not
@@ -197,6 +197,28 @@ func callMount(bin string, daemonVar string, dir string, conf *mountConfig,
 	if err := cmd.Start(); err != nil {
 		return nil, fmt.Errorf("mount_osxfusefs: %v", err)
 	}
+
+	// After calling the mount helper, we need to assume the volume has been
+	// mounted. So we need to call umount in case error happens when trying to
+	// receive the fd.
+	//
+	// This is important because otherwise since some file system operations
+	// are delayed until the FUSE volume has been initialized (FUSE_INIT), some
+	// system processes will be put on hold until the mount is complete or the
+	// volume is unmounted due to daemon_timeout. When it happens, Safari
+	// refuses to laod any page and reboot gets stuck as well.
+	//
+	// We don't have to call unmount if cmd.Start() returns an error because it
+	// only returns an error if starting the process fails.
+	defer func() {
+		if err != nil {
+			log.Printf(
+				"calling syscall.Unmount because callMount failed: %v", err)
+			if err := syscall.Unmount(dir, 0); err != nil {
+				log.Printf("syscall.Unmount failed: %v", err)
+			}
+		}
+	}()
 
 	if err = syscall.Close(theirFD); err != nil {
 		return nil, fmt.Errorf(

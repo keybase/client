@@ -15,32 +15,32 @@
 			"revision": ""
 		},
 		{
-			"checksumSHA1": "gBLWNDYryJluSM+7aBqg6leL+yY=",
+			"checksumSHA1": "wDT1/ePo3+9T5GWbwv/0Z6mN+wk=",
 			"origin": "github.com/keybase/fuse",
 			"path": "bazil.org/fuse",
-			"revision": "6d474b8242392e6558264e3d607e6cd0a9fa9397",
-			"revisionTime": "2020-12-11T00:56:30Z"
+			"revision": "d36009698767b761983aeddcce251df597dac424",
+			"revisionTime": "2021-01-04T23:24:44Z"
 		},
 		{
 			"checksumSHA1": "0VZprIyGgeTGEUPP3OYMTJCRtJY=",
 			"origin": "github.com/keybase/fuse/fs",
 			"path": "bazil.org/fuse/fs",
-			"revision": "6d474b8242392e6558264e3d607e6cd0a9fa9397",
-			"revisionTime": "2020-12-11T00:56:30Z"
+			"revision": "d36009698767b761983aeddcce251df597dac424",
+			"revisionTime": "2021-01-04T23:24:44Z"
 		},
 		{
 			"checksumSHA1": "wy8DrEJ4Al2iZk5hKQEbIqaghGM=",
 			"origin": "github.com/keybase/fuse/fs/fstestutil",
 			"path": "bazil.org/fuse/fs/fstestutil",
-			"revision": "6d474b8242392e6558264e3d607e6cd0a9fa9397",
-			"revisionTime": "2020-12-11T00:56:30Z"
+			"revision": "d36009698767b761983aeddcce251df597dac424",
+			"revisionTime": "2021-01-04T23:24:44Z"
 		},
 		{
 			"checksumSHA1": "NPgkh9UWMsaTtsAAs3kPrclHT9Y=",
 			"origin": "github.com/keybase/fuse/fuseutil",
 			"path": "bazil.org/fuse/fuseutil",
-			"revision": "6d474b8242392e6558264e3d607e6cd0a9fa9397",
-			"revisionTime": "2020-12-11T00:56:30Z"
+			"revision": "d36009698767b761983aeddcce251df597dac424",
+			"revisionTime": "2021-01-04T23:24:44Z"
 		},
 		{
 			"checksumSHA1": "hYtV4dXAd8dkPaVJZZ8tqJzKlBo=",
