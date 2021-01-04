@@ -20,7 +20,7 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-const firstSafeDokanVersion = 121
+const firstSafeDokanVersion = 140
 
 const shortPath = `DOKAN1.DLL`
 const syswow64 = `C:\WINDOWS\SYSWOW64\`
