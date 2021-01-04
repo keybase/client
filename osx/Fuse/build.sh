@@ -8,9 +8,9 @@ cd "$dir"
 rm -rf osxfuse macfuse
 
 version=${VERSION:?"Need to set VERSION for Fuse"}
-if [ "$version" = "4.0.4" ]; then
-  tar -xjf /Volumes/Keybase/team/keybase.builds.macos/macfuse/macfuse-4.0.4-src.tbz
-  mv macfuse-4.0.4-src macfuse
+if [ "$version" = "4.0.5" ]; then
+  tar -xjf /Volumes/Keybase/team/keybase.builds.macos/macfuse/macfuse-4.0.5-src.tbz
+  mv macfuse-4.0.5-src macfuse
 else
   branch="osxfuse-$version"
   # Checkout
