@@ -1120,12 +1120,30 @@ func (h convSearchHit) score(emptyMode types.InboxSourceSearchEmptyMode) (score 
 	default:
 		htime = utils.GetConvMtime(h.conv)
 	}
+
 	lastActiveScore := opensearch.NormalizeLastActive(lastActiveMinHours, lastActiveMaxHours, keybase1.Time(htime))
-	return score + lastActiveScore*lastActiveWeight
+	score += lastActiveScore * lastActiveWeight
+	return score
 }
 
 func (h convSearchHit) less(o convSearchHit, emptyMode types.InboxSourceSearchEmptyMode) bool {
-	return h.score(emptyMode) <= o.score(emptyMode)
+	hScore := h.score(emptyMode)
+	oScore := o.score(emptyMode)
+	if hScore < oScore {
+		return true
+	} else if hScore > oScore {
+		return false
+	}
+	var htime, otime gregor1.Time
+	switch emptyMode {
+	case types.InboxSourceSearchEmptyModeAllBySendCtime:
+		htime = utils.GetConvLastSendTime(h.conv)
+		otime = utils.GetConvLastSendTime(o.conv)
+	default:
+		htime = utils.GetConvMtime(h.conv)
+		otime = utils.GetConvMtime(o.conv)
+	}
+	return htime.Before(otime)
 }
 
 func (h convSearchHit) valid() bool {
@@ -1243,6 +1261,7 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 		}
 		hits = append(hits, hit)
 	}
+
 	sort.Slice(hits, func(i, j int) bool {
 		return hits[j].less(hits[i], emptyMode)
 	})
