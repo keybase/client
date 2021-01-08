@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "6.0"
   s.ios.source_files = "MPMessagePack/**/*.{c,h,m}", "RPC/**/*.{c,h,m}"
 
-  s.osx.deployment_target = "10.8"
+  s.osx.deployment_target = "10.10"
   s.osx.source_files = "MPMessagePack/**/*.{c,h,m}", "RPC/**/*.{c,h,m}", "XPC/**/*.{c,h,m}"
 
 end
