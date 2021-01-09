@@ -217,7 +217,7 @@
     // root. So have a fallback where we delegate to kmutil.
     if (@available(macOS 11, *)) {
       KBLog(@"Got kOSKextReturnNotPrivileged from KextManagerUnloadKextWithIdentifier. Since we are on macOS 11, will fallback to kmutil.");
-      NSTask* task = [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/sbin/kmutil"] arguments:@[@"unload", @"-b", kextID] error:error terminationHandler:Nil];
+      NSTask* task = [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/kmutil"] arguments:@[@"unload", @"-b", kextID] error:error terminationHandler:Nil];
       if (error != nil) {
         *error = KBMakeError(KBHelperErrorKext,
                              @"KextManager failed to run kmutil: %@", *error);
