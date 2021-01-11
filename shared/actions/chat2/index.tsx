@@ -2183,7 +2183,9 @@ const attachmentPasted = async (action: Chat2Gen.AttachmentPastedPayload) => {
 
   const pathAndOutboxIDs = [{outboxID, path}]
   return RouteTreeGen.createNavigateAppend({
-    path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+    path: [
+      {props: {conversationIDKey, noDragDrop: true, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'},
+    ],
   })
 }
 
