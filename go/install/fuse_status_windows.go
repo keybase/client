@@ -19,7 +19,7 @@ func isDokanCurrent(log Log, path string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	// we're looking for 1.2.2.1000
+	// we're looking for 1.4.0.1000
 	result := v.Major > 1 || (v.Major == 1 && (v.Minor > 4 || (v.Minor == 4 && (v.Patch > 0 || (v.Patch == 0 && v.Build >= 1000)))))
 
 	if !result {
