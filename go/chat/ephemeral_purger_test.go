@@ -302,12 +302,6 @@ func TestBackgroundPurge(t *testing.T) {
 	})
 	// asset deletion job
 	assertListener(conv1.ConvID, 2)
-	// make sure the single asset got deleted
-	select {
-	case <-fetcher.delCh:
-	case <-time.After(2 * time.Second):
-		require.Fail(t, "no asset deleted")
-	}
 
 	for _, item := range purger.pq.queue {
 		t.Logf("queue item: %+v", item)
