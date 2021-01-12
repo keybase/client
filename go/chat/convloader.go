@@ -261,7 +261,9 @@ func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource)
 }
 
 func (b *BackgroundConvLoader) Queue(ctx context.Context, job types.ConvLoaderJob) error {
-	if b.isConvLoaderContext(ctx) {
+	// allow high priority to be queued even in the bkg loader context. Often times, this is something like
+	// an ephemeral purge which we don't want to block.
+	if job.Priority != types.ConvLoaderPriorityHighest && b.isConvLoaderContext(ctx) {
 		b.Debug(ctx, "Queue: refusing to queue in background loader context: convID: %s", job)
 		return nil
 	}
