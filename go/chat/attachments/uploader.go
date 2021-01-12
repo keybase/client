@@ -218,11 +218,13 @@ func (u *Uploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 	u.taskStorage.completeTask(ctx, outboxID)
 	NewPendingPreviews(u.G()).Remove(ctx, outboxID)
 	// just always attempt to remove the upload temp dir for this outbox ID, even if it might not be there
-	u.clearTempDirFromOutboxID(outboxID)
+	u.clearTempDirFromOutboxID(ctx, outboxID)
 }
 
-func (u *Uploader) clearTempDirFromOutboxID(outboxID chat1.OutboxID) {
-	os.RemoveAll(u.getUploadTempDir(outboxID))
+func (u *Uploader) clearTempDirFromOutboxID(ctx context.Context, outboxID chat1.OutboxID) {
+	dir := u.getUploadTempDir(outboxID)
+	u.Debug(ctx, "clearTempDirFromOutboxID: clearing: %s", dir)
+	os.RemoveAll(dir)
 }
 
 func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res types.AttachmentUploaderResultCb, err error) {
@@ -665,7 +667,7 @@ func (u *Uploader) GetUploadTempSink(ctx context.Context, filename string) (*os.
 }
 
 func (u *Uploader) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) error {
-	u.clearTempDirFromOutboxID(outboxID)
+	u.clearTempDirFromOutboxID(ctx, outboxID)
 	return nil
 }
 

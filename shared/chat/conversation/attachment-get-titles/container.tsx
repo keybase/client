@@ -13,6 +13,8 @@ type OwnProps = Container.RouteProps<{
   // If tlfName is set, we'll use Chat2Gen.createAttachmentsUpload. Otherwise
   // Chat2Gen.createAttachFromDragAndDrop is used.
   tlfName?: string
+  // don't use the drag drop functionality, just upload the outbox IDs
+  noDragDrop?: Boolean
 }>
 
 const noOutboxIds: Array<Types.PathAndOutboxID> = []
@@ -26,6 +28,7 @@ export default Container.connect(
       Constants.noConversationIDKey
     )
     const tlfName = Container.getRouteProps(ownProps, 'tlfName', undefined)
+    const noDragDrop = Container.getRouteProps(ownProps, 'noDragDrop', false)
     const pathAndOutboxIDs = Container.getRouteProps(ownProps, 'pathAndOutboxIDs', noOutboxIds)
     const selectConversationWithReason = Container.getRouteProps(
       ownProps,
@@ -35,7 +38,7 @@ export default Container.connect(
     return {
       onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
       onSubmit: (titles: Array<string>) => {
-        tlfName
+        tlfName || noDragDrop
           ? dispatch(
               Chat2Gen.createAttachmentsUpload({
                 conversationIDKey,
