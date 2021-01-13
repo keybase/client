@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-const userAgent = "Mozilla/5.0 (compatible; Keybase; +https://keybase.io)"
+const userAgent = "Mozilla/5.0 (compatible; Keybase; Googlebot; +https://keybase.io)"
 
 type Scraper struct {
 	globals.Contextified
