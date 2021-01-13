@@ -701,7 +701,7 @@ func NewCachingAttachmentFetcher(g *globals.Context, store attachments.Store, si
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "CachingAttachmentFetcher", false),
 		store:        store,
-		diskLRU:      disklru.NewDiskLRU("attachments", 1, size),
+		diskLRU:      disklru.NewDiskLRU("attachments", 2, size),
 	}
 }
 
