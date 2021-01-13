@@ -29,6 +29,8 @@ let appStartedUp = false
 let startupURL: string | null = null
 let saltpackFilePath: string | null = null
 
+Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
+
 const installCrashReporter = () => {
   if (env.KEYBASE_CRASH_REPORT) {
     console.log(`Adding crash reporting (local). Crash files located in ${Electron.app.getPath('temp')}`)

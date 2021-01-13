@@ -21,6 +21,7 @@ const setupDefaultSession = () => {
   if (!ds) {
     throw new Error('No default Session? Should be impossible')
   }
+
   // We are not using partitions on webviews, so this essentially disables
   // download for webviews. If we decide to start using partitions for
   // webviews, we should make sure to attach this to those partitions too.
