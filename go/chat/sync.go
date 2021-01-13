@@ -476,7 +476,7 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 				s.Debug(ctx, "Sync: queueing background loader job: convID: %s", conv.GetConvID())
 				// Everything else just queue up here
 				job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: num},
-					types.ConvLoaderPriorityHigh, types.ConvLoaderGeneric,
+					types.ConvLoaderPriorityMedium, types.ConvLoaderGeneric,
 					newConvLoaderPagebackHook(s.G(), 0, pageBack))
 				if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 					s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)

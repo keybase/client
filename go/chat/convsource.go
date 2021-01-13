@@ -57,17 +57,18 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 	if len(assets) == 0 {
 		return
 	}
+	s.Debug(ctx, "DeleteAssets: deleting %d assets", len(assets))
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, &chat1.Pagination{Num: 0},
-		types.ConvLoaderPriorityHigh, types.ConvLoaderUnique,
+		types.ConvLoaderPriorityHighest, types.ConvLoaderUnique,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			fetcher := s.G().AttachmentURLSrv.GetAttachmentFetcher()
 			if err := fetcher.DeleteAssets(ctx, convID, assets, s.ri, s); err != nil {
-				s.Debug(ctx, "Error purging ephemeral attachments %v", err)
+				s.Debug(ctx, "DeleteAssets: Error purging ephemeral attachments %v", err)
 			}
 		}))
 	if err != nil {
-		s.Debug(ctx, "Error queuing conv job: %+v", err)
+		s.Debug(ctx, "DeleteAssets: Error queuing conv job: %+v", err)
 	}
 }
 
