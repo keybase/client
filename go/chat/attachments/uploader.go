@@ -234,7 +234,13 @@ func (u *Uploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 
 func (u *Uploader) clearOldUploaderTempDirs(ctx context.Context, delay time.Duration) {
 	u.Debug(ctx, "clearOldUploaderTempDirs: cleaning in %v", delay)
-	time.Sleep(delay)
+	select {
+	case <-ctx.Done():
+		u.Debug(ctx, "clearOldUploaderTempDirs: context canceled, bailing")
+		return
+	case <-time.After(delay):
+	}
+
 	defer u.Trace(ctx, nil, "clearOldUploaderTempDirs")()
 	for i := 0; i < u.versionUploaderTemps; i++ {
 		dir := u.getUploadTempBaseDir(i)
