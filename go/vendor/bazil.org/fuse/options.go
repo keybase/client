@@ -278,6 +278,12 @@ type OSXFUSEPaths struct {
 
 // Default paths for OSXFUSE. See OSXFUSELocations.
 var (
+	OSXFUSELocationV4 = OSXFUSEPaths{
+		DevicePrefix: "/dev/macfuse",
+		Load:         "/Library/Filesystems/macfuse.fs/Contents/Resources/load_macfuse",
+		Mount:        "/Library/Filesystems/macfuse.fs/Contents/Resources/mount_macfuse",
+		DaemonVar:    "_FUSE_DAEMON_PATH",
+	}
 	OSXFUSELocationV3 = OSXFUSEPaths{
 		DevicePrefix: "/dev/osxfuse",
 		Load:         "/Library/Filesystems/osxfuse.fs/Contents/Resources/load_osxfuse",

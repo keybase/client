@@ -2,24 +2,15 @@
 
 ### Pre-requisites
 
+* cocoapods (`sudo gem install cocoapods -v 1.8.4`)
 * appdmg (`npm install -g appdmg`)
 * xcpretty (`gem install xcpretty`)
-* Xcode 8.3.3 from https://developer.apple.com/download/more
-  * Install it in `/Applications`, and rename it "XCode8" if you already have a
-    Different Xcode version installed.
-  * On macOS 10.14, using latest Xcode works.
 * Xcode command line tools
 
 ### Build the Installer
 
 You probably want to bump the version of the installer in both the "Bundle version" (CFBundleVersion)
 and the "Bundle version string, short" (CFBundleShortVersionString) in [Installer/Info.plist](/osx/Installer/Info.plist). If you updated KBFuse, bump those versions too.
-
-Prepare your Xcode environment:
-
-```
-sudo xcode-select -s /Applications/Xcode8.app/Contents/Developer
-```
 
 Install the developer certificate chain by cloning the
 `keybase://team/keybase.keymasters/apple-dev` repo, and installing the

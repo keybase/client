@@ -17,7 +17,7 @@ var kbfusePath = fuse.OSXFUSEPaths{
 	DevicePrefix: "/dev/kbfuse",
 	Load:         "/Library/Filesystems/kbfuse.fs/Contents/Resources/load_kbfuse",
 	Mount:        "/Library/Filesystems/kbfuse.fs/Contents/Resources/mount_kbfuse",
-	DaemonVar:    "MOUNT_KBFUSE_DAEMON_PATH",
+	DaemonVar:    "_FUSE_DAEMON_PATH",
 }
 
 func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) ([]fuse.MountOption, error) {
