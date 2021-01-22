@@ -1,4 +1,3 @@
-• Support for KBFS on macOS Big Sur and M1 devices
 • Fix unfurling some URLs
 • Various bug fixes, security enhancements
 
