@@ -86,7 +86,6 @@
 
   BOOL multiUser = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.31"]];
   BOOL activeDirectory = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.35"]];
-  BOOL bigSurFuse = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.47"]];
 
   if (multiUser) {
     alertText = @"New Keybase feature: multiple users in macOS";
@@ -95,9 +94,6 @@
   } else if (activeDirectory) {
     alertText = @"Keybase helper update";
     infoText = @"This Keybase release fixes a regression in macOS installs that use Active Directory for user management.\n\nYou may need to enter your password for this update.";
-  } else if (bigSurFuse) {
-    alertText = @"Keybase helper update";
-    infoText = @"This Keybase release contains a new version of macFuse which adds KBFS support for Big Sur and M1 devices.\n\nYou may need to enter your password for this update. A system reboot may also be needed.";
   } else {
     alertText = @"Keybase helper update";
     infoText = @"This Keybase release contains bugfixes and security updates to the Keybase installer helper tool.\n\nYou may need to enter your password for this update.";
