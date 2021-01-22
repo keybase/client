@@ -34,9 +34,9 @@ Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
 const installCrashReporter = () => {
   if (env.KEYBASE_CRASH_REPORT) {
     console.log(`Adding crash reporting (local). Crash files located in ${Electron.app.getPath('temp')}`)
+    Electron.app.setPath('crashDumps', cacheRoot)
     Electron.crashReporter.start({
       companyName: 'Keybase',
-      crashesDirectory: cacheRoot,
       productName: 'Keybase',
       submitURL: '',
       uploadToServer: false,
@@ -365,6 +365,7 @@ const plumbEvents = () => {
           show: false, // Start hidden and show when we actually get props
           titleBarStyle: 'customButtonsOnHover' as const,
           webPreferences: {
+            enableRemoteModule: true,
             nodeIntegration: true,
             nodeIntegrationInWorker: false,
             preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
