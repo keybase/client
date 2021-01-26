@@ -10,6 +10,6 @@ import "github.com/pkg/errors"
 
 var notImplementedErr = errors.New("unimplemented")
 
-func pidPath(pid int) (path string, err error) {
+func pidPath(_ int) (path string, err error) {
 	return "", notImplementedErr
 }
