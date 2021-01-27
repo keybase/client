@@ -381,13 +381,14 @@ func (f *FS) Root() (fs.Node, error) {
 	return f.root, nil
 }
 
-// quotaUsageStaleTolerance is the lifespan of stale usage data that libfuse
-// accepts in the Statfs handler. In other words, this causes libkbfs to issue
-// a fresh RPC call if cached usage data is older than 10s.
-const quotaUsageStaleTolerance = 10 * time.Second
-
 // Statfs implements the fs.FSStatfser interface for FS.
 func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.StatfsResponse) error {
+	ctx, maybeUnmounting, cancel := wrapCtxWithShorterTimeoutForUnmount(f.log, ctx, int(req.Pid))
+	defer cancel()
+	if maybeUnmounting {
+		f.log.CInfof(ctx, "Statfs: maybeUnmounting=true")
+	}
+
 	*resp = fuse.StatfsResponse{
 		Bsize:   fuseBlockSize,
 		Namelen: ^uint32(0),

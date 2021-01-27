@@ -192,6 +192,12 @@ func (f *File) sync(ctx context.Context) error {
 
 // Fsync implements the fs.NodeFsyncer interface for File.
 func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
+	ctx, maybeUnmounting, cancel := wrapCtxWithShorterTimeoutForUnmount(f.folder.fs.log, ctx, int(req.Pid))
+	defer cancel()
+	if maybeUnmounting {
+		f.folder.fs.log.CInfof(ctx, "Fsync: maybeUnmounting=true")
+	}
+
 	ctx = f.folder.fs.config.MaybeStartTrace(
 		ctx, "File.Fsync", f.node.GetBasename().String())
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
@@ -199,11 +205,14 @@ func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
 	f.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "File Fsync")
 	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
-	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
-	err = libcontext.EnableDelayedCancellationWithGracePeriod(
-		ctx, f.folder.fs.config.DelayedCancellationGracePeriod())
-	if err != nil {
-		return err
+	if !maybeUnmounting {
+		// This fits in situation 1 as described in
+		// libkbfs/delayed_cancellation.go
+		err = libcontext.EnableDelayedCancellationWithGracePeriod(
+			ctx, f.folder.fs.config.DelayedCancellationGracePeriod())
+		if err != nil {
+			return err
+		}
 	}
 
 	return f.sync(ctx)
