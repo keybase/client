@@ -5,7 +5,9 @@
 
 package mounter
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // IsMounted returns true if directory is mounted (by kbfuse)
 func IsMounted(dir string, log Log) (bool, error) {

@@ -7,10 +7,13 @@
 package libfuse
 
 import (
+	"context"
 	"errors"
+	"time"
 
 	"bazil.org/fuse"
 	"github.com/keybase/client/go/install/libnativeinstaller"
+	"github.com/keybase/client/go/logger"
 )
 
 var kbfusePath = fuse.OSXFUSEPaths{
@@ -83,4 +86,40 @@ func (m *mounter) reinstallMountDirIfPossible() {
 	m.log.Debug("UninstallMountDir: err=%v", err)
 	err = libnativeinstaller.InstallMountDir(m.runMode, m.log)
 	m.log.Debug("InstallMountDir: err=%v", err)
+}
+
+// quotaUsageStaleTolerance is the lifespan of stale usage data that libfuse
+// accepts in the Statfs handler. In other words, this causes libkbfs to issue
+// a fresh RPC call if cached usage data is older than 10s.
+const quotaUsageStaleTolerance = 10 * time.Second
+
+const unmountCallTolerance = time.Second
+
+var unmountingExecPaths = map[string]bool{
+	"/usr/sbin/diskutil": true,
+	"/usr/libexec/lsd":   true,
+	"/sbin/umount":       true,
+}
+
+var noop = func() {}
+
+// wrapCtxWithShorterTimeoutForUnmount wraps ctx witha a timeout of
+// unmountCallTolerance if pid is /usr/sbin/diskutil, /usr/libexec/lsd, or
+// /sbin/umount. This is useful for calls that usually happen during unmounting
+// such as Statfs and Fsync. If we block on those calls, `diskutil umount force
+// <mnt>` is blocked as well. So make them timeout after 2s to make unmounting
+// work.
+func wrapCtxWithShorterTimeoutForUnmount(
+	log logger.Logger, ctx context.Context, pid int) (
+	newCtx context.Context, maybeUnmounting bool, cancel context.CancelFunc) {
+	p, err := pidPath(pid)
+	if err != nil {
+		return ctx, false, noop
+	}
+	if unmountingExecPaths[p] {
+		log.CDebugf(ctx, "wrapping context with timeout for %s", p)
+		newCtx, cancel = context.WithTimeout(ctx, unmountCallTolerance)
+		return newCtx, true, cancel
+	}
+	return ctx, false, noop
 }

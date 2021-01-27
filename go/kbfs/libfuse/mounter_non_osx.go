@@ -6,7 +6,12 @@
 
 package libfuse
 
-import "bazil.org/fuse"
+import (
+	"context"
+
+	"bazil.org/fuse"
+	"github.com/keybase/client/go/logger"
+)
 
 func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) ([]fuse.MountOption, error) {
 	options := []fuse.MountOption{}
@@ -26,4 +31,12 @@ func translatePlatformSpecificError(err error, platformParams PlatformParams) er
 
 func (m *mounter) reinstallMountDirIfPossible() {
 	// no-op
+}
+
+var noop = func() {}
+
+func wrapCtxWithShorterTimeoutForUnmount(
+	_ logger.Logger, ctx context.Context, _ int) (
+	newCtx context.Context, maybeUnmounting bool, cancel context.CancelFunc) {
+	return ctx, false, noop
 }
