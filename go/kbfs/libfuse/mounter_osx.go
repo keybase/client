@@ -6,10 +6,17 @@
 
 package libfuse
 
+// #include <libproc.h>
+// #include <stdlib.h>
+// #include <errno.h>
+import "C"
+
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
+	"unsafe"
 
 	"bazil.org/fuse"
 	"github.com/keybase/client/go/install/libnativeinstaller"
@@ -97,6 +104,29 @@ var unmountingExecPaths = map[string]bool{
 }
 
 var noop = func() {}
+
+// pidPath returns the exec path for process pid. Adapted from
+// https://ops.tips/blog/macos-pid-absolute-path-and-procfs-exploration/
+func pidPath(pid int) (path string, err error) {
+	const bufSize = C.PROC_PIDPATHINFO_MAXSIZE
+	buf := C.CString(string(make([]byte, bufSize)))
+	defer C.free(unsafe.Pointer(buf))
+
+	ret, err := C.proc_pidpath(C.int(pid), unsafe.Pointer(buf), bufSize)
+	if err != nil {
+		return "", err
+	}
+	if ret < 0 {
+		return "", errors.New(
+			"error calling proc_pidpath. exit code: " + strconv.Itoa(int(ret)))
+	}
+	if ret == 0 {
+		return "", errors.New("proc_pidpath returned empty buffer")
+	}
+
+	path = C.GoString(buf)
+	return
+}
 
 // wrapCtxWithShorterTimeoutForUnmount wraps ctx witha a timeout of
 // unmountCallTolerance if pid is /usr/sbin/diskutil, /usr/libexec/lsd, or
