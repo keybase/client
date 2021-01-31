@@ -192,7 +192,7 @@ func (f *File) sync(ctx context.Context) error {
 
 // Fsync implements the fs.NodeFsyncer interface for File.
 func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
-	ctx, maybeUnmounting, cancel := wrapCtxWithShorterTimeoutForUnmount(f.folder.fs.log, ctx, int(req.Pid))
+	ctx, maybeUnmounting, cancel := wrapCtxWithShorterTimeoutForUnmount(ctx, f.folder.fs.log, int(req.Pid))
 	defer cancel()
 	if maybeUnmounting {
 		f.folder.fs.log.CInfof(ctx, "Fsync: maybeUnmounting=true")

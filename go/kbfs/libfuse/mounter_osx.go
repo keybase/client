@@ -88,11 +88,6 @@ func (m *mounter) reinstallMountDirIfPossible() {
 	m.log.Debug("InstallMountDir: err=%v", err)
 }
 
-// quotaUsageStaleTolerance is the lifespan of stale usage data that libfuse
-// accepts in the Statfs handler. In other words, this causes libkbfs to issue
-// a fresh RPC call if cached usage data is older than 10s.
-const quotaUsageStaleTolerance = 10 * time.Second
-
 const unmountCallTolerance = time.Second
 
 var unmountingExecPaths = map[string]bool{
@@ -109,8 +104,8 @@ var noop = func() {}
 // such as Statfs and Fsync. If we block on those calls, `diskutil umount force
 // <mnt>` is blocked as well. So make them timeout after 2s to make unmounting
 // work.
-func wrapCtxWithShorterTimeoutForUnmount(
-	log logger.Logger, ctx context.Context, pid int) (
+func wrapCtxWithShorterTimeoutForUnmount(ctx context.Context,
+	log logger.Logger, pid int) (
 	newCtx context.Context, maybeUnmounting bool, cancel context.CancelFunc) {
 	p, err := pidPath(pid)
 	if err != nil {
