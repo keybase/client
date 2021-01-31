@@ -8,8 +8,8 @@ package libfuse
 
 import "github.com/pkg/errors"
 
-var notImplementedErr = errors.New("unimplemented")
+var errNotImplemented = errors.New("unimplemented")
 
 func pidPath(_ int) (path string, err error) {
-	return "", notImplementedErr
+	return "", errNotImplemented
 }
