@@ -6,10 +6,17 @@
 
 package libfuse
 
+// #include <libproc.h>
+// #include <stdlib.h>
+// #include <errno.h>
+import "C"
+
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
+	"unsafe"
 
 	"bazil.org/fuse"
 	"github.com/keybase/client/go/install/libnativeinstaller"
@@ -88,11 +95,6 @@ func (m *mounter) reinstallMountDirIfPossible() {
 	m.log.Debug("InstallMountDir: err=%v", err)
 }
 
-// quotaUsageStaleTolerance is the lifespan of stale usage data that libfuse
-// accepts in the Statfs handler. In other words, this causes libkbfs to issue
-// a fresh RPC call if cached usage data is older than 10s.
-const quotaUsageStaleTolerance = 10 * time.Second
-
 const unmountCallTolerance = time.Second
 
 var unmountingExecPaths = map[string]bool{
@@ -103,14 +105,37 @@ var unmountingExecPaths = map[string]bool{
 
 var noop = func() {}
 
+// pidPath returns the exec path for process pid. Adapted from
+// https://ops.tips/blog/macos-pid-absolute-path-and-procfs-exploration/
+func pidPath(pid int) (path string, err error) {
+	const bufSize = C.PROC_PIDPATHINFO_MAXSIZE
+	buf := C.CString(string(make([]byte, bufSize)))
+	defer C.free(unsafe.Pointer(buf))
+
+	ret, err := C.proc_pidpath(C.int(pid), unsafe.Pointer(buf), bufSize)
+	if err != nil {
+		return "", err
+	}
+	if ret < 0 {
+		return "", errors.New(
+			"error calling proc_pidpath. exit code: " + strconv.Itoa(int(ret)))
+	}
+	if ret == 0 {
+		return "", errors.New("proc_pidpath returned empty buffer")
+	}
+
+	path = C.GoString(buf)
+	return
+}
+
 // wrapCtxWithShorterTimeoutForUnmount wraps ctx witha a timeout of
 // unmountCallTolerance if pid is /usr/sbin/diskutil, /usr/libexec/lsd, or
 // /sbin/umount. This is useful for calls that usually happen during unmounting
 // such as Statfs and Fsync. If we block on those calls, `diskutil umount force
 // <mnt>` is blocked as well. So make them timeout after 2s to make unmounting
 // work.
-func wrapCtxWithShorterTimeoutForUnmount(
-	log logger.Logger, ctx context.Context, pid int) (
+func wrapCtxWithShorterTimeoutForUnmount(ctx context.Context,
+	log logger.Logger, pid int) (
 	newCtx context.Context, maybeUnmounting bool, cancel context.CancelFunc) {
 	p, err := pidPath(pid)
 	if err != nil {

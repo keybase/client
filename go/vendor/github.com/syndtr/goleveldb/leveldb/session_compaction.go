@@ -7,6 +7,7 @@
 package leveldb
 
 import (
+	"sort"
 	"sync/atomic"
 
 	"github.com/syndtr/goleveldb/leveldb/iterator"
@@ -62,10 +63,12 @@ func (s *session) pickCompaction() *compaction {
 		sourceLevel = v.cLevel
 		cptr := s.getCompPtr(sourceLevel)
 		tables := v.levels[sourceLevel]
-		for _, t := range tables {
-			if cptr == nil || s.icmp.Compare(t.imax, cptr) > 0 {
-				t0 = append(t0, t)
-				break
+		if cptr != nil && sourceLevel > 0 {
+			n := len(tables)
+			if i := sort.Search(n, func(i int) bool {
+				return s.icmp.Compare(tables[i].imax, cptr) > 0
+			}); i < n {
+				t0 = append(t0, tables[i])
 			}
 		}
 		if len(t0) == 0 {

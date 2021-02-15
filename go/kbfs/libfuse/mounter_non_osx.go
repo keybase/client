@@ -36,7 +36,7 @@ func (m *mounter) reinstallMountDirIfPossible() {
 var noop = func() {}
 
 func wrapCtxWithShorterTimeoutForUnmount(
-	_ logger.Logger, ctx context.Context, _ int) (
+	ctx context.Context, _ logger.Logger, _ int) (
 	newCtx context.Context, maybeUnmounting bool, cancel context.CancelFunc) {
 	return ctx, false, noop
 }
