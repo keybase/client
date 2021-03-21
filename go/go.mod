@@ -128,3 +128,7 @@ require (
 	rsc.io/qr v0.2.0
 	stathat.com/c/ramcache v1.0.0
 )
+
+replace github.com/etcd-io/bbolt v1.3.4-0.20191122203157-7f8bb47fcaf8 => go.etcd.io/bbolt v1.3.4-0.20191122203157-7f8bb47fcaf8
+
+replace bitbucket.org/ww/goautoneg => github.com/adjust/goautoneg d788f35a0315
