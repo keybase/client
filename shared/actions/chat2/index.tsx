@@ -2189,6 +2189,13 @@ const attachmentPasted = async (action: Chat2Gen.AttachmentPastedPayload) => {
   })
 }
 
+const attachmentUploadCanceled = async (action: Chat2Gen.AttachmentUploadCanceledPayload) => {
+  const {outboxIDs} = action.payload
+  for (const outboxID of outboxIDs) {
+    await RPCChatTypes.localCancelUploadTempFileRpcPromise({outboxID})
+  }
+}
+
 const sendAudioRecording = async (
   state: Container.TypedState,
   action: Chat2Gen.SendAudioRecordingPayload,
@@ -3871,6 +3878,7 @@ function* chat2Saga() {
   yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
   yield* Saga.chainAction2(Chat2Gen.attachFromDragAndDrop, attachFromDragAndDrop)
   yield* Saga.chainAction(Chat2Gen.attachmentPasted, attachmentPasted)
+  yield* Saga.chainAction(Chat2Gen.attachmentUploadCanceled, attachmentUploadCanceled)
 
   yield* Saga.chainAction(Chat2Gen.sendTyping, sendTyping)
   yield* Saga.chainAction2(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
