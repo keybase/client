@@ -22,6 +22,7 @@ export const attachmentMobileSave = 'chat2:attachmentMobileSave'
 export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
 export const attachmentPasted = 'chat2:attachmentPasted'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
+export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
@@ -227,6 +228,7 @@ type _AttachmentMobileSavedPayload = {
 }
 type _AttachmentPastedPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly data: Buffer}
 type _AttachmentPreviewSelectPayload = {readonly message: Types.MessageAttachment}
+type _AttachmentUploadCanceledPayload = {readonly outboxIDs: Array<RPCChatTypes.OutboxID>}
 type _AttachmentUploadedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
@@ -1494,6 +1496,12 @@ export const createToggleMessageReaction = (
   payload: _ToggleMessageReactionPayload
 ): ToggleMessageReactionPayload => ({payload, type: toggleMessageReaction})
 /**
+ * The attachment upload modal was canceled
+ */
+export const createAttachmentUploadCanceled = (
+  payload: _AttachmentUploadCanceledPayload
+): AttachmentUploadCanceledPayload => ({payload, type: attachmentUploadCanceled})
+/**
  * The service sent us an update for the reaction map of a message.
  */
 export const createUpdateReactions = (payload: _UpdateReactionsPayload): UpdateReactionsPayload => ({
@@ -1913,6 +1921,10 @@ export type AttachmentPastedPayload = {
 export type AttachmentPreviewSelectPayload = {
   readonly payload: _AttachmentPreviewSelectPayload
   readonly type: typeof attachmentPreviewSelect
+}
+export type AttachmentUploadCanceledPayload = {
+  readonly payload: _AttachmentUploadCanceledPayload
+  readonly type: typeof attachmentUploadCanceled
 }
 export type AttachmentUploadedPayload = {
   readonly payload: _AttachmentUploadedPayload
@@ -2513,6 +2525,7 @@ export type Actions =
   | AttachmentMobileSavedPayload
   | AttachmentPastedPayload
   | AttachmentPreviewSelectPayload
+  | AttachmentUploadCanceledPayload
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload
   | AttachmentsUploadPayload

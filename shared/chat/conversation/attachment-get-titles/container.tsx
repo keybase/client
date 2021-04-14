@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as FsTypes from '../../../constants/types/fs'
 import GetTitles, {Info} from '.'
@@ -36,7 +37,19 @@ export default Container.connect(
       undefined
     )
     return {
-      onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+      onCancel: () => {
+        dispatch(
+          Chat2Gen.createAttachmentUploadCanceled({
+            outboxIDs: pathAndOutboxIDs.reduce((l: Array<RPCChatTypes.OutboxID>, {outboxID}) => {
+              if (outboxID) {
+                l.push(outboxID)
+              }
+              return l
+            }, []),
+          })
+        )
+        dispatch(RouteTreeGen.createNavigateUp())
+      },
       onSubmit: (titles: Array<string>) => {
         tlfName || noDragDrop
           ? dispatch(

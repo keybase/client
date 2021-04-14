@@ -1216,7 +1216,7 @@ func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTem
 }
 
 func (h *Server) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) (err error) {
-	defer h.Trace(ctx, &err, "CancelUploadTempFile")()
+	defer h.Trace(ctx, &err, "CancelUploadTempFile: %s", outboxID)()
 	return h.G().AttachmentUploader.CancelUploadTempFile(ctx, outboxID)
 }
 

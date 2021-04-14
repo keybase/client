@@ -371,6 +371,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "data": "Buffer"
     },
+    "attachmentUploadCanceled": {
+      "_description": "The attachment upload modal was canceled",
+      "outboxIDs": "Array<RPCChatTypes.OutboxID>"
+    },
     "messageAttachmentUploaded": {
       "_description": [
         "We got an uploaded attachment.",
