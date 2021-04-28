@@ -12,6 +12,7 @@
 # This is the minimum version number required.
 # Update this, if you use features of a newer version
 fastlane_version "2.94.0"
+ENV["SPACESHIP_SKIP_2FA_UPGRADE"] = "1"
 
 default_platform :ios
 
