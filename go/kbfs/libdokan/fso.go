@@ -16,7 +16,7 @@ import (
 // FSO is a common type for file system objects, i.e. Dirs or Files.
 type FSO struct {
 	refcount refcount // nolint -- it's used when embedded in dir/file
-	name     string
+	name     string   // KBFS name, not encoded for windows
 	folder   *Folder
 	node     libkbfs.Node
 	parent   libkbfs.Node
