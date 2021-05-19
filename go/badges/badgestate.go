@@ -41,6 +41,7 @@ type BadgeState struct {
 	log            logger.Logger
 	env            *libkb.Env
 	state          keybase1.BadgeState
+	quietLogMode   bool
 
 	inboxVers     chat1.InboxVers
 	chatUnreadMap map[chat1.ConvIDStr]keybase1.BadgeConversationInfo
@@ -56,7 +57,9 @@ func NewBadgeState(log logger.Logger, env *libkb.Env) *BadgeState {
 // NewBadgeState creates a new empty BadgeState in contexts
 // where notifications do not need to be handled.
 func NewBadgeStateForServer(log logger.Logger) *BadgeState {
-	return newBadgeState(log, nil)
+	bs := newBadgeState(log, nil)
+	bs.quietLogMode = true
+	return bs
 }
 
 func newBadgeState(log logger.Logger, env *libkb.Env) *BadgeState {
@@ -67,6 +70,7 @@ func newBadgeState(log logger.Logger, env *libkb.Env) *BadgeState {
 		chatUnreadMap:   make(map[chat1.ConvIDStr]keybase1.BadgeConversationInfo),
 		walletUnreadMap: make(map[stellar1.AccountID]int),
 		localChatState:  dummyLocalChatState{},
+		quietLogMode:    false,
 	}
 }
 
@@ -465,7 +469,9 @@ func (b *BadgeState) Clear() {
 }
 
 func (b *BadgeState) updateWithChat(ctx context.Context, update chat1.UnreadUpdate, isMobile bool) {
-	b.log.CDebugf(ctx, "updateWithChat: %s", update)
+	if !b.quietLogMode {
+		b.log.CDebugf(ctx, "updateWithChat: %s", update)
+	}
 	deviceType := keybase1.DeviceType_DESKTOP
 	if isMobile {
 		deviceType = keybase1.DeviceType_MOBILE
