@@ -13,9 +13,19 @@ import (
 func TestNameEncoding(t *testing.T) {
 	var fixture = [][2]string{
 		{`foo`, `foo`},
-		{`foo\bar`, `foo%5cbar`},
-		{`foo%bar`, `foo%25bar`},
-		{`foo%\bar`, `foo%25%5cbar`},
+		{`foo\bar`, `foo‰5cbar`},
+		{`foo‰bar`, `foo‰2030bar`},
+		{`foo‰\bar`, `foo‰2030‰5cbar`},
+		{`foo%bar`, `foo%bar`},
+		{"<", "‰3c"},
+		{">", "‰3e"},
+		{":", "‰3a"},
+		{"\"", "‰22"},
+		{"/", "‰2f"},
+		{"\\", "‰5c"},
+		{"|", "‰7c"},
+		{"?", "‰3f"},
+		{"*", "‰2a"},
 	}
 
 	for _, entry := range fixture {
@@ -25,7 +35,8 @@ func TestNameEncoding(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, entry[0], kbfsName)
 
-		_, err = decodeWindowsNameForKbfs(`a\b`)
-		require.Error(t, err)
 	}
+
+	_, err := decodeWindowsNameForKbfs(`a\b`)
+	require.Error(t, err)
 }

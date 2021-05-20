@@ -4,16 +4,50 @@
 
 package libdokan
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
-var kbfsNameToWindowsReplaceSequence = [][2]string{
-	{"%", "%25"},
-	{"\\", "%5c"},
-}
-var windowsNameToKbfsReplaceSequence = [][2]string{
-	{"%5c", "\\"},
-	{"%5C", "\\"},
-	{"%25", "%"},
+const escapeSacrificeForWindows = '‰'
+
+const disallowedRunesOnWindows = "<>:\"/\\|?*"
+
+var kbfsNameToWindowsReplaceSequence [][2]string
+var windowsNameToKbfsReplaceSequence [][2]string
+
+func init() {
+	makeEscapePair := func(r rune) [2]string {
+		return [2]string{string(r), fmt.Sprintf("‰%x", r)}
+	}
+	makeUnescapePairs := func(r rune) [][2]string {
+		lower := fmt.Sprintf("‰%x", r)
+		upper := fmt.Sprintf("‰%X", r)
+		if lower == upper {
+			return [][2]string{
+				{lower, string(r)},
+			}
+		}
+		return [][2]string{
+			{lower, string(r)},
+			{upper, string(r)},
+		}
+	}
+
+	kbfsNameToWindowsReplaceSequence = nil
+	windowsNameToKbfsReplaceSequence = nil
+
+	kbfsNameToWindowsReplaceSequence = append(kbfsNameToWindowsReplaceSequence,
+		makeEscapePair(escapeSacrificeForWindows),
+	)
+	for _, r := range disallowedRunesOnWindows {
+		kbfsNameToWindowsReplaceSequence = append(
+			kbfsNameToWindowsReplaceSequence, makeEscapePair(r))
+		windowsNameToKbfsReplaceSequence = append(
+			windowsNameToKbfsReplaceSequence, makeUnescapePairs(r)...)
+	}
+	windowsNameToKbfsReplaceSequence = append(windowsNameToKbfsReplaceSequence,
+		makeUnescapePairs(escapeSacrificeForWindows)...)
 }
 
 func encodeKbfsNameForWindows(kbfsName string) (windowsName string) {
@@ -31,8 +65,13 @@ func (InvalidWindowsNameError) Error() string {
 }
 
 func decodeWindowsNameForKbfs(windowsName string) (kbfsName string, err error) {
-	if strings.ContainsRune(windowsName, '\\') {
+	if strings.ContainsAny(windowsName, disallowedRunesOnWindows) {
 		return "", InvalidWindowsNameError{}
+	}
+
+	// fast path for names that don't have escape characters
+	if !strings.ContainsRune(windowsName, escapeSacrificeForWindows) {
+		return windowsName, nil
 	}
 
 	kbfsName = windowsName
