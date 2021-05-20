@@ -51,6 +51,11 @@ func init() {
 }
 
 func encodeKbfsNameForWindows(kbfsName string) (windowsName string) {
+	// fast path for names that don't have characters that need escaping
+	if !strings.ContainsAny(kbfsName, disallowedRunesOnWindows) &&
+		!strings.ContainsRune(kbfsName, escapeSacrificeForWindows) {
+		return kbfsName
+	}
 	windowsName = kbfsName
 	for _, replacement := range kbfsNameToWindowsReplaceSequence {
 		windowsName = strings.ReplaceAll(windowsName, replacement[0], replacement[1])
@@ -69,7 +74,7 @@ func decodeWindowsNameForKbfs(windowsName string) (kbfsName string, err error) {
 		return "", InvalidWindowsNameError{}
 	}
 
-	// fast path for names that don't have escape characters
+	// fast path for names that don't have escaped characters
 	if !strings.ContainsRune(windowsName, escapeSacrificeForWindows) {
 		return windowsName, nil
 	}
