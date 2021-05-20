@@ -358,6 +358,7 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		if *syncRes, err = cli.SyncChat(ctx, chat1.SyncChatArg{
 			Vers:             vers,
 			SummarizeMaxMsgs: true,
+			ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 		}); err != nil {
 			s.Debug(ctx, "Sync: failed to sync inbox: %s", err.Error())
 			return err
