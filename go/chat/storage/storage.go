@@ -119,7 +119,9 @@ func decode(data []byte, res interface{}) error {
 type SimpleResultCollector struct {
 	res                  []chat1.MessageUnboxed
 	target, cur, curScan int
-	countAll             bool
+
+	// countAll controls whether or not deleted messages should count toward target
+	countAll bool
 }
 
 var _ ResultCollector = (*SimpleResultCollector)(nil)

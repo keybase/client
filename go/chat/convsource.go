@@ -964,6 +964,8 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		// background loader so we can get these messages cached with the full checks on UnboxMessage.
 		if reason == chat1.GetThreadReason_LOCALIZE && globals.CtxUnboxMode(ctx) == types.UnboxModeQuick {
 			s.Debug(ctx, "GetMessages: convID: %s remoteMsgs: %d: cache miss on localizer mode with UnboxQuickMode, queuing job", convID, len(remoteMsgs))
+			// implement the load entirely in the post load hook since we only want to load those
+			// messages in remoteMsgs. We can do that by specifying a 0 length pagination object.
 			if err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, &chat1.Pagination{Num: 0},
 				types.ConvLoaderPriorityLowest, types.ConvLoaderUnique,
 				func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
