@@ -596,7 +596,8 @@
     COINFLIP_9,
     BOTCOMMANDS_10,
     EMOJISOURCE_11,
-    FORWARDMSG_12
+    FORWARDMSG_12,
+    LOCALIZE_13
   }
 
   enum ReIndexingMode {
