@@ -119,13 +119,16 @@ func decode(data []byte, res interface{}) error {
 type SimpleResultCollector struct {
 	res                  []chat1.MessageUnboxed
 	target, cur, curScan int
+
+	// countAll controls whether or not deleted messages should count toward target
+	countAll bool
 }
 
 var _ ResultCollector = (*SimpleResultCollector)(nil)
 
 func (s *SimpleResultCollector) Push(msg chat1.MessageUnboxed) {
 	s.res = append(s.res, msg)
-	if !msg.IsValidDeleted() {
+	if s.countAll || !msg.IsValidDeleted() {
 		s.cur++
 	}
 	s.curScan++
@@ -168,9 +171,10 @@ func (s *SimpleResultCollector) SetTarget(num int) {
 	s.target = num
 }
 
-func NewSimpleResultCollector(num int) *SimpleResultCollector {
+func NewSimpleResultCollector(num int, countAll bool) *SimpleResultCollector {
 	return &SimpleResultCollector{
-		target: num,
+		target:   num,
+		countAll: countAll,
 	}
 }
 
@@ -968,7 +972,7 @@ func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.Get
 		s.Debug(ctx, "ResultCollectorFromQuery: types: %v", query.MessageTypes)
 		return NewTypedResultCollector(num, query.MessageTypes)
 	}
-	return NewSimpleResultCollector(num)
+	return NewSimpleResultCollector(num, false)
 }
 
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
@@ -1224,7 +1228,7 @@ func (s *Storage) IsTLFIdentifyBroken(ctx context.Context, tlfID chat1.TLFID) bo
 }
 
 func (s *Storage) getMessage(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) (*chat1.MessageUnboxed, Error) {
-	rc := NewSimpleResultCollector(1)
+	rc := NewSimpleResultCollector(1, true)
 	if err := s.engine.ReadMessages(ctx, rc, convID, uid, msgID, 0); err != nil {
 		// If we don't have the message, just keep going
 		if _, ok := err.(MissError); ok {

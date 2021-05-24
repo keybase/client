@@ -832,6 +832,7 @@ export enum GetThreadReason {
   botcommands = 10,
   emojisource = 11,
   forwardmsg = 12,
+  localize = 13,
 }
 
 export enum GlobalAppNotificationSetting {
