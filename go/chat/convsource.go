@@ -963,7 +963,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		// will never actually cache it. Detect this case here and put a load of the messages onto the
 		// background loader so we can get these messages cached with the full checks on UnboxMessage.
 		if reason == chat1.GetThreadReason_LOCALIZE && globals.CtxUnboxMode(ctx) == types.UnboxModeQuick {
-			s.Debug(ctx, "GetMessages: cache miss on localizer mode with UnboxQuickMode, queuing job")
+			s.Debug(ctx, "GetMessages: convID: %s remoteMsgs: %d: cache miss on localizer mode with UnboxQuickMode, queuing job", convID, len(remoteMsgs))
 			if err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, &chat1.Pagination{Num: 0},
 				types.ConvLoaderPriorityLowest, types.ConvLoaderUnique,
 				func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
@@ -972,6 +972,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 						customRi, resolveSupersedes); err != nil {
 						s.Debug(ctx, "GetMessages: error loading UnboxQuickMode cache misses: ", err)
 					}
+
 				})); err != nil {
 				s.Debug(ctx, "GetMessages: error queuing conv loader job: %+v", err)
 			}
