@@ -475,12 +475,12 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 
 	// queue search index update in the background
-	go func() {
+	go func(ctx context.Context) {
 		err := s.G().Indexer.Add(ctx, convID, msgs)
 		if err != nil {
 			s.Debug(ctx, "Error adding to indexer: %+v", err)
 		}
-	}()
+	}(globals.BackgroundChatCtx(ctx, s.G()))
 
 	return res, nil
 }
@@ -659,12 +659,12 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 	// queue search index update in the background
-	go func() {
+	go func(ctx context.Context) {
 		err := s.G().Indexer.Remove(ctx, convID, allPurged)
 		if err != nil {
 			s.Debug(ctx, "Error removing from indexer: %+v", err)
 		}
-	}()
+	}(globals.BackgroundChatCtx(ctx, s.G()))
 	var flattenedUnfurlTargets []UnfurlMergeResult
 	for _, r := range updatedUnfurlTargets {
 		flattenedUnfurlTargets = append(flattenedUnfurlTargets, r)
@@ -887,12 +887,12 @@ func (s *Storage) applyExpunge(ctx context.Context, conv types.UnboxConversation
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 	// queue search index update in the background
-	go func() {
+	go func(ctx context.Context) {
 		err := s.G().Indexer.Remove(ctx, convID, allPurged)
 		if err != nil {
 			s.Debug(ctx, "Error removing from indexer: %+v", err)
 		}
-	}()
+	}(globals.BackgroundChatCtx(ctx, s.G()))
 
 	de("deleting %v messages", len(writeback))
 	if err = s.engine.WriteMessages(ctx, convID, uid, writeback); err != nil {
