@@ -36,8 +36,7 @@ const commands = {
 
 function hotServer(info: any, exec: Function) {
   exec('yarn run _helper build-dev', {...info.env, BEFORE_HOT: 'true', HOT: 'true'})
-  const dash = process.env['NO_DASHBOARD'] ? '' : 'webpack-dashboard --'
-  exec(`${dash} webpack-dev-server --mode development --config=./desktop/webpack.config.babel.js`, {
+  exec(`webpack-dev-server --mode development --config=./desktop/webpack.config.babel.js`, {
     ...info.env,
     HOT: 'true',
   })
