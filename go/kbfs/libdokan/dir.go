@@ -333,7 +333,11 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 				return nil, 0, err
 			}
 			name := path[0][len(libfs.FileInfoPrefix):]
-			return NewFileInfoFile(d.folder.fs, d.node, name), 0, nil
+			kbfsName, err := decodeWindowsNameForKbfs(name)
+			if err != nil {
+				return nil, 0, err
+			}
+			return NewFileInfoFile(d.folder.fs, d.node, kbfsName), 0, nil
 		}
 
 		kbfsName, err := decodeWindowsNameForKbfs(path[0])
