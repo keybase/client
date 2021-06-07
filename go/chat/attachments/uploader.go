@@ -247,6 +247,11 @@ func (u *Uploader) clearOldUploaderTempDirs(ctx context.Context, delay time.Dura
 		u.Debug(ctx, "clearOldUploaderTempDirs: cleaning: %s", dir)
 		os.RemoveAll(dir)
 	}
+	if !u.G().IsMobileAppType() {
+		dir := u.getUploadTempBaseDir(u.versionUploaderTemps)
+		u.Debug(ctx, "clearOldUploaderTempDirs: clearing current dir: %s", dir)
+		os.RemoveAll(dir)
+	}
 }
 
 func (u *Uploader) clearTempDirFromOutboxID(ctx context.Context, outboxID chat1.OutboxID) {
