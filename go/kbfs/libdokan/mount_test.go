@@ -407,8 +407,9 @@ func TestReaddirMyFolderWithFiles(t *testing.T) {
 	defer cancelFn()
 
 	files := map[string]fileInfoCheck{
-		"one": nil,
-		"two": nil,
+		"one":       nil,
+		"two":       nil,
+		"foo‰5cbar": nil,
 	}
 	for filename, check := range files {
 		if check != nil {
@@ -423,6 +424,50 @@ func TestReaddirMyFolderWithFiles(t *testing.T) {
 		syncFilename(t, p)
 	}
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName, "jdoe"), files)
+}
+
+func TestReaddirMyFolderWithSpecialCharactersInFileName(t *testing.T) {
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
+	defer testCleanupDelayer(ctx, t)
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	windowsFilename := "foo‰5cbar"
+	kbfsFilename := `foo\bar`
+
+	// Create through dokan and check through doakn.
+	{
+		files := map[string]fileInfoCheck{
+			"foo‰5cbar": nil,
+		}
+		for filename, check := range files {
+			if check != nil {
+				// only set up the files
+				continue
+			}
+			p := filepath.Join(mnt.Dir, PrivateName, "jdoe", filename)
+			if err := ioutil.WriteFile(
+				p, []byte("data for "+filename), 0644); err != nil {
+				t.Fatal(err)
+			}
+			syncFilename(t, p)
+		}
+		checkDir(t, filepath.Join(mnt.Dir, PrivateName, "jdoe"), files)
+	}
+
+	// Check through KBFSOps
+	{
+		jdoe := libkbfs.GetRootNodeOrBust(ctx,
+			t, config1, "user1,user2", tlf.Private)
+		ops := config1.KBFSOps()
+		_, _, err := ops.Lookup(ctx, jdoe, jdoe.ChildName(kbfsName))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 }
 
 func testOneCreateThenRead(t *testing.T, p string) {
