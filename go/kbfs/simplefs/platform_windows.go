@@ -34,7 +34,7 @@ func limitFilenameLengthForWindowsDownloads(filename string) string {
 	// Find the last index of UTF-8 rune that doesn't cause us to go over
 	// filenameLengthLimit/basenameLengthLimit, and use that as the boundary.
 	end := 0
-	for i, _ := range base {
+	for i := range base {
 		if i > basenameLengthLimit {
 			break
 		}
