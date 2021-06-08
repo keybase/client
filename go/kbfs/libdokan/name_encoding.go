@@ -63,8 +63,11 @@ func encodeKbfsNameForWindows(kbfsName string) (windowsName string) {
 	return windowsName
 }
 
+// InvalidWindowsNameError is the error returned when an invalid path name is
+// passed in.
 type InvalidWindowsNameError struct{}
 
+// Error implements the error interface.
 func (InvalidWindowsNameError) Error() string {
 	return "invalid windows path name"
 }
