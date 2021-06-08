@@ -438,10 +438,10 @@ func TestReaddirMyFolderWithSpecialCharactersInFileName(t *testing.T) {
 	windowsFilename := "foo‰5cbar"
 	kbfsFilename := `foo\bar`
 
-	// Create through dokan and check through doakn.
+	// Create through dokan and check through dokan.
 	{
 		files := map[string]fileInfoCheck{
-			"foo‰5cbar": nil,
+			windowsFilename: nil,
 		}
 		for filename, check := range files {
 			if check != nil {
@@ -463,7 +463,7 @@ func TestReaddirMyFolderWithSpecialCharactersInFileName(t *testing.T) {
 		jdoe := libkbfs.GetRootNodeOrBust(ctx,
 			t, config1, "user1,user2", tlf.Private)
 		ops := config1.KBFSOps()
-		_, _, err := ops.Lookup(ctx, jdoe, jdoe.ChildName(kbfsName))
+		_, _, err := ops.Lookup(ctx, jdoe, jdoe.ChildName(kbfsFilename))
 		if err != nil {
 			t.Fatal(err)
 		}
