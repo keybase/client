@@ -113,11 +113,19 @@ const openLocalPathInSystemFileManager = async (action: FsGen.OpenLocalPathInSys
   }
 }
 
+const escapeBackslash = isWindows
+  ? (pathElem: string): string =>
+      pathElem
+        .replace(/‰/g, '‰2030')
+        .replace(/([<>:"/\\|?*])/g, (_, c) => '‰' + new Buffer(c).toString('hex'))
+  : (pathElem: string): string => pathElem
+
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
   path.resolve(
     mountLocation,
     Types.getPathElements(kbfsPath)
       .slice(1)
+      .map(escapeBackslash)
       .join(sep)
   )
 
