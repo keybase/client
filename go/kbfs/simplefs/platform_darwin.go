@@ -26,3 +26,7 @@ func Quarantine(ctx context.Context, path string) error {
 	C.quarantineFile(C.CString(path))
 	return nil
 }
+
+func limitFilenameLengthForWindowsDownloads(filename string) string {
+	return filename
+}
