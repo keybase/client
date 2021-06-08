@@ -461,7 +461,7 @@ func TestReaddirMyFolderWithSpecialCharactersInFileName(t *testing.T) {
 	// Check through KBFSOps
 	{
 		jdoe := libkbfs.GetRootNodeOrBust(ctx,
-			t, config, "user1,user2", tlf.Private)
+			t, config, "jdoe", tlf.Private)
 		ops := config.KBFSOps()
 		_, _, err := ops.Lookup(ctx, jdoe, jdoe.ChildName(kbfsFilename))
 		if err != nil {
