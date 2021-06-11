@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libdokan
+package libkb
 
 import (
 	"testing"
@@ -29,14 +29,14 @@ func TestNameEncoding(t *testing.T) {
 	}
 
 	for _, entry := range fixture {
-		require.Equal(t, entry[1], encodeKbfsNameForWindows(entry[0]))
+		require.Equal(t, entry[1], EncodeKbfsNameForWindows(entry[0]))
 
-		kbfsName, err := decodeWindowsNameForKbfs(entry[1])
+		kbfsName, err := DecodeWindowsNameForKbfs(entry[1])
 		require.NoError(t, err)
 		require.Equal(t, entry[0], kbfsName)
 
 	}
 
-	_, err := decodeWindowsNameForKbfs(`a\b`)
+	_, err := DecodeWindowsNameForKbfs(`a\b`)
 	require.Error(t, err)
 }

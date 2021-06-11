@@ -333,14 +333,14 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 				return nil, 0, err
 			}
 			name := path[0][len(libfs.FileInfoPrefix):]
-			kbfsName, err := decodeWindowsNameForKbfs(name)
+			kbfsName, err := libkb.DecodeWindowsNameForKbfs(name)
 			if err != nil {
 				return nil, 0, err
 			}
 			return NewFileInfoFile(d.folder.fs, d.node, kbfsName), 0, nil
 		}
 
-		kbfsName, err := decodeWindowsNameForKbfs(path[0])
+		kbfsName, err := libkb.DecodeWindowsNameForKbfs(path[0])
 		if err != nil {
 			return nil, 0, err
 		}
@@ -477,7 +477,7 @@ func getExclFromOpenContext(oc *openContext) libkbfs.Excl {
 }
 
 func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, cst dokan.CreateStatus, err error) {
-	if name, err = decodeWindowsNameForKbfs(name); err != nil {
+	if name, err = libkb.DecodeWindowsNameForKbfs(name); err != nil {
 		return nil, 0, err
 	}
 	namePPS := d.node.ChildName(name)
@@ -499,7 +499,7 @@ func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan
 
 func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (
 	f *Dir, cst dokan.CreateStatus, err error) {
-	if name, err = decodeWindowsNameForKbfs(name); err != nil {
+	if name, err = libkb.DecodeWindowsNameForKbfs(name); err != nil {
 		return nil, 0, err
 	}
 	namePPS := d.node.ChildName(name)
@@ -530,7 +530,7 @@ func (d *Dir) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string,
 	empty := true
 	var ns dokan.NamedStat
 	for pps, de := range children {
-		windowsName := encodeKbfsNameForWindows(pps.Plaintext())
+		windowsName := libkb.EncodeKbfsNameForWindows(pps.Plaintext())
 		empty = false
 		ns.Name = windowsName
 		// TODO perhaps resolve symlinks here?
