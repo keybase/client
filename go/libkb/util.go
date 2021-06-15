@@ -1067,9 +1067,7 @@ func getKBFSAfterMountPath(afterKeybase string, isWindows bool) string {
 	for i, elem := range elems {
 		elems[i] = EncodeKbfsNameForWindows(elem)
 	}
-	afterMount = strings.Join(elems, "/")
-
-	return strings.Replace(afterMount, "/", `\`, -1)
+	return strings.Join(elems, "\\")
 }
 
 func getKBFSDeeplinkPath(afterKeybase string) string {
