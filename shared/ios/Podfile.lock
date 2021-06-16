@@ -248,8 +248,8 @@ PODS:
     - react-native-video/Video (= 5.0.2)
   - react-native-video/Video (5.0.2):
     - React
-  - react-native-webview (8.0.5):
-    - React
+  - react-native-webview (11.6.2):
+    - React-Core
   - React-RCTActionSheet (0.61.5):
     - React-Core/RCTActionSheetHeaders (= 0.61.5)
   - React-RCTAnimation (0.61.5):
@@ -586,7 +586,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: 73303369946c2487c600418961bfdc87748b832f
   react-native-safe-area-context: e200d4433aba6b7e60b52da5f37af11f7a0b0392
   react-native-video: d01ed7ff1e38fa7dcc6c15c94cf505e661b7bfd0
-  react-native-webview: d12c8352c853e401fb6fff69a3461d0bca9f0c0b
+  react-native-webview: 193d233c29eacce1f42ca2637dab7ba79c25a6de
   React-RCTActionSheet: 600b4d10e3aea0913b5a92256d2719c0cdd26d76
   React-RCTAnimation: 791a87558389c80908ed06cc5dfc5e7920dfa360
   React-RCTBlob: d89293cc0236d9cb0933d85e430b0bbe81ad1d72
@@ -622,4 +622,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 843dc6df133334007d13b5c34a0fd83194e7fa0e
 
-COCOAPODS: 1.9.1
+COCOAPODS: 1.8.4
