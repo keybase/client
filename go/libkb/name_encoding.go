@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libdokan
+package libkb
 
 import (
 	"fmt"
@@ -50,7 +50,9 @@ func init() {
 		makeUnescapePairs(escapeSacrificeForWindows)...)
 }
 
-func encodeKbfsNameForWindows(kbfsName string) (windowsName string) {
+// EncodeKbfsNameForWindows encodes a KBFS  path element for Windows by
+// escaping disallowed characters.
+func EncodeKbfsNameForWindows(kbfsName string) (windowsName string) {
 	// fast path for names that don't have characters that need escaping
 	if !strings.ContainsAny(kbfsName, disallowedRunesOnWindows) &&
 		!strings.ContainsRune(kbfsName, escapeSacrificeForWindows) {
@@ -72,7 +74,9 @@ func (InvalidWindowsNameError) Error() string {
 	return "invalid windows path name"
 }
 
-func decodeWindowsNameForKbfs(windowsName string) (kbfsName string, err error) {
+// DecodeWindowsNameForKbfs decodes a path element encoded by
+// EncodeKbfsNameForWindows.
+func DecodeWindowsNameForKbfs(windowsName string) (kbfsName string, err error) {
 	if strings.ContainsAny(windowsName, disallowedRunesOnWindows) {
 		return "", InvalidWindowsNameError{}
 	}

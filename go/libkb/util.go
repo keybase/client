@@ -1052,15 +1052,22 @@ func IsKBFSAfterKeybasePath(afterKeybase string) bool {
 	return len(afterKeybase) == 0 || kbfsPathInnerRegExp.MatchString(afterKeybase)
 }
 
-func getKBFSAfterMountPath(afterKeybase string, backslash bool) string {
+func getKBFSAfterMountPath(afterKeybase string, isWindows bool) string {
 	afterMount := afterKeybase
 	if len(afterMount) == 0 {
 		afterMount = "/"
 	}
-	if backslash {
-		return strings.Replace(afterMount, "/", `\`, -1)
+
+	if !isWindows {
+		return afterMount
 	}
-	return afterMount
+
+	// Encode path names for Windows
+	elems := strings.Split(afterMount, "/")
+	for i, elem := range elems {
+		elems[i] = EncodeKbfsNameForWindows(elem)
+	}
+	return strings.Join(elems, "\\")
 }
 
 func getKBFSDeeplinkPath(afterKeybase string) string {
