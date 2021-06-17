@@ -11,17 +11,24 @@
 #if SD_UIKIT || SD_MAC
 
 #import "SDAnimatedImage.h"
+#import "SDAnimatedImagePlayer.h"
 
 /**
  A drop-in replacement for UIImageView/NSImageView, you can use this for animated image rendering.
- Call `setImage:` with `UIImage(NSImage)` which conform to `SDAnimatedImage` protocol will start animated image rendering. Call with normal UIImage(NSImage) will back to normal UIImageView(NSImageView) rendering
+ Call `setImage:` with `UIImage(NSImage)` which conforms to `SDAnimatedImage` protocol will start animated image rendering. Call with normal UIImage(NSImage) will back to normal UIImageView(NSImageView) rendering
  For UIKit: use `-startAnimating`, `-stopAnimating` to control animating. `isAnimating` to check animation state.
  For AppKit: use `-setAnimates:` to control animating, `animates` to check animation state. This view is layer-backed.
  */
 @interface SDAnimatedImageView : UIImageView
+/**
+ The internal animation player.
+ This property is only used for advanced usage, like inspecting/debugging animation status, control progressive loading, complicated animation frame index control, etc.
+ @warning Pay attention if you directly update the player's property like `totalFrameCount`, `totalLoopCount`, the same property on `SDAnimatedImageView` may not get synced.
+ */
+@property (nonatomic, strong, readonly, nullable) SDAnimatedImagePlayer *player;
 
 /**
- Current display frame image.
+ Current display frame image. This value is KVO Compliance.
  */
 @property (nonatomic, strong, readonly, nullable) UIImage *currentFrame;
 /**
@@ -43,6 +50,19 @@
  This class override UIImageView's `animationRepeatCount` property on iOS, use this property as well.
  */
 @property (nonatomic, assign) NSInteger animationRepeatCount;
+/**
+ The animation playback rate. Default is 1.0.
+ `1.0` means the normal speed.
+ `0.0` means stopping the animation.
+ `0.0-1.0` means the slow speed.
+ `> 1.0` means the fast speed.
+ `< 0.0` is not supported currently and stop animation. (may support reverse playback in the future)
+ */
+@property (nonatomic, assign) double playbackRate;
+
+/// Asynchronous setup animation playback mode. Default mode is SDAnimatedImagePlaybackModeNormal.
+@property (nonatomic, assign) SDAnimatedImagePlaybackMode playbackMode;
+
 /**
  Provide a max buffer size by bytes. This is used to adjust frame buffer count and can be useful when the decoding cost is expensive (such as Animated WebP software decoding). Default is 0.
  `0` means automatically adjust by calculating current memory usage.
@@ -72,13 +92,19 @@
  */
 @property (nonatomic, assign) BOOL resetFrameIndexWhenStopped;
 
-#if SD_UIKIT
+/**
+ If the image which conforms to `SDAnimatedImage` protocol has more than one frame, set this value to `YES` will automatically
+ play/stop the animation when the view become visible/invisible.
+ Default is YES.
+ */
+@property (nonatomic, assign) BOOL autoPlayAnimatedImage;
+
 /**
  You can specify a runloop mode to let it rendering.
- Default is NSRunLoopCommonModes on multi-core iOS device, NSDefaultRunLoopMode on single-core iOS device
+ Default is NSRunLoopCommonModes on multi-core device, NSDefaultRunLoopMode on single-core device
+ @note This is useful for some cases, for example, always specify NSDefaultRunLoopMode, if you want to pause the animation when user scroll (for Mac user, drag the mouse or touchpad)
  */
 @property (nonatomic, copy, nonnull) NSRunLoopMode runLoopMode;
-#endif
 @end
 
 #endif
