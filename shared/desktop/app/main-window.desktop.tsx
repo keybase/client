@@ -275,6 +275,7 @@ export default () => {
     minWidth: 740,
     show: false,
     webPreferences: {
+      contextIsolation: false,
       backgroundThrottling: false,
       devTools: showDevTools,
       nodeIntegration: true,
