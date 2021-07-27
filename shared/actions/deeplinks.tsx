@@ -104,7 +104,7 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         } else {
           const highlightMessageID = parseInt(parts[2], 10)
           if (highlightMessageID < 0) {
-            logger.warn('invalid chat message id: ${highlightMessageID}')
+            logger.warn(`invalid chat message id: ${highlightMessageID}`)
             return []
           }
           return [
