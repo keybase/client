@@ -87,20 +87,30 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
             ]
           }
           const [teamname, channelname] = teamChat
+          const highlightMessageID = parseInt(parts[2], 10)
+          if (highlightMessageID < 0) {
+            logger.warn(`invalid chat message id: ${highlightMessageID}`)
+            return []
+          }
           return [
             RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
             ChatGen.createPreviewConversation({
               channelname,
-              highlightMessageID: parseInt(parts[2], 10),
+              highlightMessageID,
               reason: 'appLink',
               teamname,
             }),
           ]
         } else {
+          const highlightMessageID = parseInt(parts[2], 10)
+          if (highlightMessageID < 0) {
+            logger.warn('invalid chat message id: ${highlightMessageID}')
+            return []
+          }
           return [
             RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
             ChatGen.createPreviewConversation({
-              highlightMessageID: parseInt(parts[2], 10),
+              highlightMessageID,
               participants: parts[1].split(','),
               reason: 'appLink',
             }),
