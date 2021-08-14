@@ -14,7 +14,7 @@
 ## Quick reference
 
 - **Where to get help**:
-  [the keybasefriends team on Keybase](https://keybase.io/team/keybasefriends), [the community-run mkbot team on keybase](https://keybase.io/team/mkbot)
+  [the keybasefriends team on Keybase](https://keybase.io/team/keybasefriends), [the community-run mkbot team on keybase](https://keybase.io/team/mkbot) 
 
 - **Where to file issues**:
   [https://github.com/keybase/client](https://github.com/keybase/client)
