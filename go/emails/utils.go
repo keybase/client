@@ -5,7 +5,7 @@ import (
 	"net/mail"
 	"strings"
 
-	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/externals" 
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -45,7 +45,7 @@ func ParseSeparatedEmails(mctx libkb.MetaContext, emails string, malformed *[]st
 		if parseErr != nil {
 			mctx.Debug("ParseSeparatedEmails: skipping malformed email %q: %s", email, parseErr)
 			if malformed != nil {
-				*malformed = append(*malformed, email)
+				*malformed = append(*malformed, email) 
 			}
 			continue
 		}
