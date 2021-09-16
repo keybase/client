@@ -1,1 +1,1 @@
-* Big fixes and improvements
+* Bug fixes and improvements
