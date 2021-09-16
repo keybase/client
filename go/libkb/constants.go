@@ -193,7 +193,7 @@ var CodeSigningProdKIDs = []string{
 	"012045891a45f03cec001196ad05207f3f80045b2b9f0ca38288a85f8120ac74db960a", // max (tiber - 2019-01)
 	"012065ae849d1949a8b0021b165b0edaf722e2a7a9036e07817e056e2d721bddcc0e0a", // max (cry glass)
 	"01202a70fa31596ae2afabbbea827c7d1efb205c4b02b2b98b8f8c75915be433ccb50a", // mike (demise sort)
-	"012003d86864fb20e310590042ad3d5492c3f5d06728620175b03c717c211bfaccc20a", // chris (clay harbor)
+	"0120f2f55c76151b3eaf91d20dfb673d8591d8b49fd5cb210a10f6e0dd8724bf34f30a", // mike (lisa-5k-redux)
 }
 var CodeSigningTestKIDs = []string{}
 var CodeSigningStagingKIDs = []string{}
