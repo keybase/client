@@ -10,6 +10,8 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import ErrorBoundary from '../../common-adapters/error-boundary'
 import {initDesktopStyles} from '../../styles/index.desktop'
 import {enableMapSet} from 'immer'
+import * as remote from '@electron/remote'
+
 enableMapSet()
 
 disableDragDrop()
@@ -33,7 +35,7 @@ class RemoteComponentLoader extends React.Component<Props> {
 
   constructor(props: Props) {
     super(props)
-    this._window = Electron.remote.getCurrentWindow()
+    this._window = remote.getCurrentWindow()
     const remoteStore = new RemoteStore({
       deserialize: props.deserialize,
       gotPropsCallback: this._onGotProps,

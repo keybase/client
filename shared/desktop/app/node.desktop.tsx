@@ -29,6 +29,8 @@ let appStartedUp = false
 let startupURL: string | null = null
 let saltpackFilePath: string | null = null
 
+require('@electron/remote/main').initialize()
+
 Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
 
 const installCrashReporter = () => {
@@ -365,6 +367,7 @@ const plumbEvents = () => {
           show: false, // Start hidden and show when we actually get props
           titleBarStyle: 'customButtonsOnHover' as const,
           webPreferences: {
+            contextIsolation: false,
             nodeIntegration: true,
             nodeIntegrationInWorker: false,
             preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
@@ -373,6 +376,8 @@ const plumbEvents = () => {
         }
 
         const remoteWindow = new Electron.BrowserWindow(opts)
+
+        require('@electron/remote/main').enable(remoteWindow.webContents)
 
         if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {
           const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize

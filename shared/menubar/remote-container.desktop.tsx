@@ -17,9 +17,10 @@ import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders
 import {isWindows, isDarwin, isLinux} from '../constants/platform'
 import {quit} from '../desktop/app/ctl.desktop'
 import {urlHelper} from '../util/url-helper'
+import * as remote from '@electron/remote'
 
 const hideWindow = () => {
-  Electron.remote.getCurrentWindow().hide()
+  remote.getCurrentWindow().hide()
 }
 
 const RemoteContainer = () => {
@@ -70,7 +71,7 @@ const RemoteContainer = () => {
       refreshUserFileEdits={throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5)}
       showBug={() => {
         const version = __VERSION__
-        Electron.remote.shell.openExternal(
+        remote.shell.openExternal(
           `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
             version
           )}`

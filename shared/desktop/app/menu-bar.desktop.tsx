@@ -40,6 +40,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       resizable: false,
       transparent: true,
       webPreferences: {
+        contextIsolation: false,
         nodeIntegration: true,
         nodeIntegrationInWorker: false,
         preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
@@ -47,12 +48,18 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       width: 360,
     },
     icon,
-    index: htmlFile,
+    index: false,
     preloadWindow: true,
     // Without this flag set, menubar will hide the dock icon when the app
     // ready event fires. We manage the dock icon ourselves, so this flag
     // prevents menubar from changing the state.
     showDockIcon: true,
+  })
+
+  Electron.app.on('ready', () => {
+    mb.createWindow()
+    require('@electron/remote/main').enable(mb.window.webContents)
+    mb.window.loadURL(htmlFile)
   })
 
   const updateIcon = () => {

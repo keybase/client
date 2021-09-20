@@ -7,6 +7,7 @@ import {mainWindowDispatch} from './util.desktop'
 import {createStore, applyMiddleware, Store} from 'redux'
 import {TypedActions} from '../../actions/typed-actions-gen'
 import * as ConfigGen from '../../actions/config-gen'
+import * as remote from '@electron/remote'
 
 const updateStore = 'remoteStore:update'
 // Special action that's not sent
@@ -41,7 +42,7 @@ class RemoteStore {
   }
 
   _registerForRemoteUpdate = () => {
-    this._window = Electron.remote.getCurrentWindow()
+    this._window = remote.getCurrentWindow()
     // @ts-ignore custom event
     this._window.on('KBprops', this._onPropsUpdated)
   }

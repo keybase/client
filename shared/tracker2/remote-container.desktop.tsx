@@ -9,6 +9,7 @@ import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as Types from '../constants/types/tracker2'
 import Tracker from './index.desktop'
 import {DeserializeProps} from './remote-serializer.desktop'
+import * as remote from '@electron/remote'
 
 const noDetails: Types.Details = {
   blocked: false,
@@ -47,7 +48,7 @@ const RemoteContainer = () => {
       onClose={() => {
         dispatch(Tracker2Gen.createCloseTracker({guiID}))
         // close immediately
-        const w = Electron.remote.getCurrentWindow()
+        const w = remote.getCurrentWindow()
         w && w.close()
       }}
       onFollow={() => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID}))}

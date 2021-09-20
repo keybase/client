@@ -14,6 +14,7 @@ import Upload from '../fs/footer/upload'
 import UploadCountdownHOC from '../fs/footer/upload-countdown-hoc'
 import {Loading} from '../fs/simple-screens'
 import SpaceWarning from './space-warning'
+import * as remote from '@electron/remote'
 
 export type Props = {
   daemonHandshakeState: ConfigTypes.DaemonHandshakeState
@@ -59,11 +60,11 @@ class MenubarRender extends React.Component<Props, State> {
 
   componentDidMount() {
     this.props.refreshUserFileEdits()
-    Electron.remote.getCurrentWindow().on('show', this.props.refreshUserFileEdits)
+    remote.getCurrentWindow().on('show', this.props.refreshUserFileEdits)
   }
 
   componentWillUnmount() {
-    Electron.remote.getCurrentWindow().removeListener('show', this.props.refreshUserFileEdits)
+    remote.getCurrentWindow().removeListener('show', this.props.refreshUserFileEdits)
   }
 
   render() {

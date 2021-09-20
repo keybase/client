@@ -25,6 +25,7 @@ import openURL from '../util/open-url'
 import {isLinux} from '../constants/platform'
 import {quit} from '../desktop/app/ctl.desktop'
 import {tabRoots} from './routes'
+import * as remote from '@electron/remote'
 
 export type Props = {
   navigation: any
@@ -76,7 +77,7 @@ const Header = () => {
       }
     }
     // In case dump log doesn't exit for us
-    Electron.remote.getCurrentWindow().hide()
+    remote.getCurrentWindow().hide()
     setTimeout(() => {
       quit()
     }, 2000)

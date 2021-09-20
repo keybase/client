@@ -17,6 +17,7 @@ import {mapFilterByKey} from '../util/map'
 import {memoize} from '../util/memoize'
 import shallowEqual from 'shallowequal'
 import _getIcons from './icons'
+import * as remote from '@electron/remote'
 
 const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
   return _getIcons(iconType, isBadged, isSystemDarkMode())
@@ -31,15 +32,15 @@ function useDarkSubscription() {
   const [count, setCount] = React.useState(-1)
   React.useEffect(() => {
     if (isDarwin) {
-      const subscriptionId = Electron.remote.systemPreferences.subscribeNotification(
+      const subscriptionId = remote.systemPreferences.subscribeNotification(
         'AppleInterfaceThemeChangedNotification',
         () => {
           setCount(c => c + 1)
         }
       )
       return () => {
-        if (subscriptionId && Electron.remote.systemPreferences.unsubscribeNotification) {
-          Electron.remote.systemPreferences.unsubscribeNotification(subscriptionId || -1)
+        if (subscriptionId && remote.systemPreferences.unsubscribeNotification) {
+          remote.systemPreferences.unsubscribeNotification(subscriptionId || -1)
         }
       }
     } else {
