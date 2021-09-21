@@ -240,10 +240,7 @@
     "webpack-dev-server": "3.8.1",
     "webpack-merge": "4.2.2"
   },
-  "optionalDependencies": {
-    "regedit": "2.2.7",
-    "webfonts-generator": "0.4.0"
-  },
+  "optionalDependencies": { },
   "resolutions": {
     "**/@babel/cli": "7.6.2",
     "**/@babel/code-frame": "7.5.5",
