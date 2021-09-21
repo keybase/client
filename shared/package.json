@@ -277,6 +277,7 @@
     "**/os-locale": "3.1.0",
     "babel-core": "7.0.0-bridge.0",
     "**/purepack": "git://github.com/keybase/nullModule",
+    "**/react-syntax-highlighter": "git://github.com/keybase/nullModule",
     "react-native-screens": "git://github.com/keybase/react-native-screens#keybase-changes-off-alpha-23"
   }
 }
