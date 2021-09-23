@@ -3,6 +3,6 @@
 package attachments
 
 /*
-#cgo LDFLAGS: -framework MobileCoreServices
+#cgo LDFLAGS: -framework CoreServices
 */
 import "C"
