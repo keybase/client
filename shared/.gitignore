@@ -34,7 +34,8 @@ project.xcworkspace
 xcuserdata
 shared
 ios/fastlane/README.md
-keybase.framework
+ios/keybase.framework
+ios/keybase.xcframework
 ios/AppStore_keybase.ios.KeybaseShare.mobileprovision
 ios/AppStore_keybase.ios.mobileprovision
 ios/dist
