@@ -12,6 +12,10 @@ if [[ "$arg" != "ios" && "$arg" != "android" ]]; then
   exit 1
 fi
 
+# workaround to issues w/ new go https://github.com/golang/go/issues/44129
+go env -w GOFLAGS=-mod=mod
+GO111MODULE=off
+
 # For CI, this is run like
 #
 #  env KEYBASE_BUILD=ci DEST_DIR=/tmp ... /path/to/gobuild.sh android|ios
@@ -62,7 +66,8 @@ gomobileinit ()
   echo "Build gomobile..."
   mkdir -p "$GOPATH/src/golang.org/x"
   rsync -pr --ignore-times "$client_dir/go/vendor/golang.org/x" "$GOPATH/src/golang.org"
-  go install golang.org/x/mobile/cmd/{gomobile,gobind}
+  go install golang.org/x/mobile/cmd/gomobile@latest
+  go install golang.org/x/mobile/cmd/gobind@latest
   echo "Doing gomobile init"
   if [ "$arg" = "android" ]; then
     gomobile init -ndk $ANDROID_HOME/ndk-bundle
@@ -73,7 +78,7 @@ gomobileinit ()
 
 if [ "$arg" = "ios" ]; then
   ios_dir=${DEST_DIR:-"$dir/../ios"}
-  ios_dest="$ios_dir/keybase.framework"
+  ios_dest="$ios_dir/keybase.xcframework"
   echo "Building for iOS ($ios_dest)..."
   set +e
   OUTPUT="$(gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
