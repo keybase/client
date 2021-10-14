@@ -1,4 +1,26 @@
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
+
+
+*__pycache__*
+*.pypi
+x86_64-linux*
+i686-linux*
+x86_64-darwin*
+aarch64-darwin*
+aarch64-linux*
+armv6l-linux*
+armv7l-linux*
+.othermachines*
+*.pike8.0
+*.CoffeScript
+.idea*
+.router*
+.ipynb_checkpoints*
+*.pdf
+*.npz
+_data/*
+build/*
+*_local_*
+*.c# Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
 *.so
