@@ -2,10 +2,6 @@
 
 set -e -u -o pipefail # Fail on error
 
-# ensure this is blank. a previous MR sets this for mod which older go doesn't understand
-go env -w GOFLAGS=
-go env -w GOMOD=
-
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 

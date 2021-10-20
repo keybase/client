@@ -2,10 +2,6 @@
 
 set -eE -u -o pipefail # Fail on error, call ERR trap
 
-rm "~/Library/Application Support/go/env"
-go env -w GOFLAGS=
-go env -w GOMOD=
-
 automated_build=${AUTOMATED_BUILD:-}
 gopath=${GOPATH:-}
 kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
