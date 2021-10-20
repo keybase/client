@@ -108,9 +108,7 @@ function updateIconFont(web) {
   try {
     webfontsGenerator = require('webfonts-generator')
   } catch (e) {
-    console.error(
-      '\n\n\n\n>> Web fonts generation is optional, run a full yarn (and not yarn modules) to install it << \n\n\n'
-    )
+    console.error('\n\n\n\n>> Web fonts generation is optional, install manually to install it << \n\n\n')
     throw e
   }
   const svgFilePaths = getSvgPaths(true /* print skipped */)
