@@ -20,6 +20,7 @@ class SplitAwareKeyboardAvoidingView extends React.Component<KeyboardAvoidingVie
   }
 
   _frame = null
+  _keyboardEvent = null
   _subscriptions = []
   viewRef = null
   _initialFrameHeight = 0
@@ -46,12 +47,17 @@ class SplitAwareKeyboardAvoidingView extends React.Component<KeyboardAvoidingVie
   }
 
   _onKeyboardChange = event => {
-    if (event == null) {
+    this._keyboardEvent = event
+    this._updateBottomIfNecesarry()
+  }
+
+  _updateBottomIfNecesarry = () => {
+    if (this._keyboardEvent == null) {
       this.setState({bottom: 0})
       return
     }
 
-    const {duration, easing, endCoordinates} = event
+    const {duration, easing, endCoordinates} = this._keyboardEvent
 
     // KB: added split?
     if (this._frame && endCoordinates.width !== this._frame.width) {
@@ -83,10 +89,15 @@ class SplitAwareKeyboardAvoidingView extends React.Component<KeyboardAvoidingVie
   }
 
   _onLayout = event => {
+    const wasFrameNull = this._frame == null
     this._frame = event.nativeEvent.layout
     if (!this._initialFrameHeight) {
       // save the initial frame height, before the keyboard is visible
       this._initialFrameHeight = this._frame.height
+    }
+
+    if (wasFrameNull) {
+      this._updateBottomIfNecesarry()
     }
   }
 
