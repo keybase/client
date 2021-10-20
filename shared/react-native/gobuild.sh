@@ -13,7 +13,6 @@ if [[ "$arg" != "ios" && "$arg" != "android" ]]; then
 fi
 
 # workaround to issues w/ new go https://github.com/golang/go/issues/44129
-go env -w GOFLAGS=-mod=mod
 export GO111MODULE=off
 
 # For CI, this is run like
