@@ -4,8 +4,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {isIPhoneX} from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
-// @ts-ignore strict
-import lagRadar from 'lag-radar'
+// import lagRadar from 'lag-radar'
 
 type Props = {
   stats: RPCTypes.RuntimeStats
@@ -64,13 +63,13 @@ const makeRadar = (show: boolean) => {
     return
   }
 
-  destroyRadar = lagRadar({
-    frames: 5,
-    inset: 1,
-    parent: radarNode,
-    size: radarSize,
-    speed: 0.0017 * 0.7,
-  })
+  // destroyRadar = lagRadar({
+  // frames: 5,
+  // inset: 1,
+  // parent: radarNode,
+  // size: radarSize,
+  // speed: 0.0017 * 0.7,
+  // })
 }
 
 // simple bucketing of incoming log lines, we have a queue of incoming items, we bucket them
