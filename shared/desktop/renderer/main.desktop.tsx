@@ -10,15 +10,15 @@ import {enableMapSet} from 'immer'
 
 enableMapSet()
 
-if (__DEV__ && flags.whyDidYouRender) {
-  const whyDidYouRender = require('@welldone-software/why-did-you-render/dist/no-classes-transpile/umd/whyDidYouRender.min.js')
-  const ReactRedux = require('react-redux')
-  whyDidYouRender(React, {
-    exclude: [/Box/, /Connect\(.*\)/],
-    trackAllPureComponents: true,
-    trackExtraHooks: [[ReactRedux, 'useSelector']],
-  })
-}
+// if (__DEV__ && flags.whyDidYouRender) {
+// const whyDidYouRender = require('@welldone-software/why-did-you-render/dist/no-classes-transpile/umd/whyDidYouRender.min.js')
+// const ReactRedux = require('react-redux')
+// whyDidYouRender(React, {
+// exclude: [/Box/, /Connect\(.*\)/],
+// trackAllPureComponents: true,
+// trackExtraHooks: [[ReactRedux, 'useSelector']],
+// })
+// }
 
 _setSystemIsDarkMode(SafeElectron.workingIsDarkMode())
 _setSystemSupported(isDarwin)

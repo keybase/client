@@ -1,6 +1,6 @@
 import logger from '../logger'
 import * as React from 'react'
-import unidecode from 'unidecode'
+// import unidecode from 'unidecode'
 import debounce from 'lodash/debounce'
 import trim from 'lodash/trim'
 import TeamBuilding, {
@@ -421,7 +421,7 @@ export const sortAndSplitRecommendations = memoize(
       if (rec.prettyName || rec.displayLabel) {
         // Use the first letter of the name we will display, but first normalize out
         // any diacritics.
-        const decodedLetter = unidecode(rec.prettyName || rec.displayLabel)
+        const decodedLetter = /*unidecode*/ rec.prettyName || rec.displayLabel
         if (decodedLetter && decodedLetter[0]) {
           const letter = decodedLetter[0].toLowerCase()
           if (isAlpha(letter)) {
