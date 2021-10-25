@@ -9,8 +9,8 @@ enableMapSet()
 
 // Load storybook or the app
 if (__STORYBOOK__) {
-  const load = require('./storybook/index.native').default
-  load()
+  // const load = require('./storybook/index.native').default
+  // load()
 } else {
   const NativeAppearance = NativeModules.Appearance
 
