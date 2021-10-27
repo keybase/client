@@ -136,10 +136,9 @@ const config = (_, {mode}) => {
               minimizer: [
                 // options from create react app: https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/config/webpack.config.prod.js
                 new TerserPlugin({
-                  cache: true,
                   parallel: true,
-                  sourceMap: true,
                   terserOptions: {
+                    parse: {ecma: 8},
                     compress: {
                       comparisons: false,
                       ecma: 5,
