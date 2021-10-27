@@ -16,11 +16,6 @@ const config = (_, {mode}) => {
   console.error('Flags: ', {isDev, isHot})
 
   const makeRules = nodeThread => {
-    const fileLoaderRule = {
-      loader: 'file-loader',
-      options: {name: '[name].[ext]'},
-    }
-
     const babelRule = {
       loader: 'babel-loader',
       options: {
@@ -39,7 +34,7 @@ const config = (_, {mode}) => {
         // Don't include large mock images in a prod build
         include: path.resolve(__dirname, '../images/mock'),
         test: /\.jpg$/,
-        use: [isDev ? fileLoaderRule : 'null-loader'],
+        ...(isDev ? {type: 'asset/resource'} : {use: ['null-loader']}),
       },
       {
         include: path.resolve(__dirname, '../images/icons'),
@@ -53,22 +48,22 @@ const config = (_, {mode}) => {
       },
       {
         test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/],
-        use: [fileLoaderRule],
+        type: 'asset/resource',
       },
       {
         include: path.resolve(__dirname, '../images/illustrations'),
         test: [/.*\.(gif|png)$/],
-        use: [fileLoaderRule],
+        type: 'asset/resource',
       },
       {
         include: path.resolve(__dirname, '../images/install'),
         test: [/.*\.(gif|png)$/],
-        use: [fileLoaderRule],
+        type: 'asset/resource',
       },
       {
         include: path.resolve(__dirname, '../images/releases'),
         test: [/.*\.(png)$/],
-        use: [fileLoaderRule],
+        type: 'asset/resource',
       },
       {
         test: /\.css$/,
@@ -116,7 +111,7 @@ const config = (_, {mode}) => {
       bail: true,
       context: path.resolve(__dirname, '..'),
       devServer,
-      devtool: isDev ? 'eval' : 'source-map',
+      devtool: isDev ? 'source-map' : 'source-map',
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {
@@ -127,8 +122,8 @@ const config = (_, {mode}) => {
       },
       plugins: [
         new webpack.DefinePlugin(defines), // Inject some defines
-        new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
-        new webpack.IgnorePlugin(/^lodash$/), // Disallow entire lodash
+        new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}), // Skip a bunch of crap moment pulls in
+        new webpack.IgnorePlugin({resourceRegExp: /^lodash$/}), // Disallow entire lodash
       ],
       resolve: {
         alias,
@@ -181,7 +176,7 @@ const config = (_, {mode}) => {
     name: 'node',
     plugins: [
       // blacklist common things from the main thread to ensure the view layer doesn't bleed into the node layer
-      new webpack.IgnorePlugin(/^react$/),
+      new webpack.IgnorePlugin({resourceRegExp: /^react$/}),
     ],
     stats: {
       ...(isDev ? {} : {usedExports: false}), // ignore exports warnings as its mostly used in the render thread
@@ -233,7 +228,7 @@ const config = (_, {mode}) => {
     },
     module: {rules: makeRules(false)},
     name: 'Keybase',
-    optimization: {splitChunks: {chunks: 'all'}},
+    // optimization: {splitChunks: {chunks: 'all'}},
     plugins: makeViewPlugins(entries),
     target: 'electron-renderer',
   })

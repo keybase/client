@@ -1,6 +1,7 @@
 import os from 'os'
 
-const webpackCmd = 'webpack --config ./desktop/webpack.config.babel.js'
+const webpackCmd =
+  'node --trace-deprecation node_modules/webpack/bin/webpack.js --config ./desktop/webpack.config.babel.js'
 const spaceArg = os.platform() === 'win32' ? ' --max_old_space_size=4096' : ''
 // set to true if you want to analyze the webpack output
 const outputStats = false
