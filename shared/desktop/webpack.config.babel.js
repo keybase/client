@@ -228,7 +228,7 @@ const config = (_, {mode}) => {
     },
     module: {rules: makeRules(false)},
     name: 'Keybase',
-    // optimization: {splitChunks: {chunks: 'all'}},
+    optimization: {splitChunks: {chunks: 'all'}},
     plugins: makeViewPlugins(entries),
     target: 'electron-renderer',
   })
