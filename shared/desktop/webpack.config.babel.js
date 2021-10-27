@@ -129,16 +129,6 @@ const config = (_, {mode}) => {
         alias,
         extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json'],
       },
-      stats: {
-        ...(isDev
-          ? {}
-          : {
-              exclude: undefined,
-              maxModules: Infinity,
-              providedExports: true,
-              usedExports: true,
-            }),
-      },
       ...(isDev
         ? {}
         : {
@@ -215,7 +205,7 @@ const config = (_, {mode}) => {
     script-src ${
       htmlWebpackPlugin.options.isDev
         ? "file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval'"
-        : "'self' 'sha256-kp1KQ5r953LCGHnfoVBB27bpdE7Gxt2t7H6ML2tcYoo='"
+        : "'self' 'sha256-gBKeEkQtnPGkGBsS6cpgPBgpI3Z1LehhkqagsAKMxUE='"
     };
     connect-src http://127.0.0.1:* ${
       htmlWebpackPlugin.options.isDev ? 'ws://localhost:4000 http://localhost:4000' : ''

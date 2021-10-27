@@ -175,16 +175,13 @@ function startPack() {
 
       platforms.forEach(plat => {
         archs.forEach(arch => {
-          pack(plat, arch)
-            .then(postPack(plat, arch))
-            .catch(postPackError)
+          pack(plat, arch).then(postPack(plat, arch)).catch(postPackError)
         })
       })
     } else {
-      pack(platform, arch)
-        .then(postPack(platform, arch))
-        .catch(postPackError)
+      pack(platform, arch).then(postPack(platform, arch)).catch(postPackError)
     }
+  })
 }
 
 function pack(plat, arch: string): Promise<any> {
