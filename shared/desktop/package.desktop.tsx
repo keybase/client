@@ -158,7 +158,7 @@ function startPack() {
       process.exit(1)
     }
 
-    if (stats.hasErrors()) {
+    if (stats?.hasErrors()) {
       console.error(stats.toJson('errors-only').errors)
       process.exit(1)
     }

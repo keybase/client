@@ -52,7 +52,7 @@ const apiSearch = async (
       return arr
     }, [])
   } catch (err) {
-    logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
+    logger.error(`Error in searching for ${query} on ${service}. ${(err as Error).message}`)
     return []
   }
 }
@@ -168,21 +168,20 @@ const namespaceToRoute = new Map([
   ['wallets', 'walletTeamBuilder'],
 ])
 
-const maybeCancelTeamBuilding = (namespace: TeamBuildingTypes.AllowedNamespace) => (
-  action: RouteTreeGen.OnNavChangedPayload
-) => {
-  const {prev, next} = action.payload
+const maybeCancelTeamBuilding =
+  (namespace: TeamBuildingTypes.AllowedNamespace) => (action: RouteTreeGen.OnNavChangedPayload) => {
+    const {prev, next} = action.payload
 
-  const wasTeamBuilding = namespaceToRoute.get(namespace) === prev[prev.length - 1]?.routeName
-  if (wasTeamBuilding) {
-    // team building or modal on top of that still
-    const isTeamBuilding = next[prev.length - 1] === prev[prev.length - 1]
-    if (!isTeamBuilding) {
-      return TeamBuildingGen.createCancelTeamBuilding({namespace})
+    const wasTeamBuilding = namespaceToRoute.get(namespace) === prev[prev.length - 1]?.routeName
+    if (wasTeamBuilding) {
+      // team building or modal on top of that still
+      const isTeamBuilding = next[prev.length - 1] === prev[prev.length - 1]
+      if (!isTeamBuilding) {
+        return TeamBuildingGen.createCancelTeamBuilding({namespace})
+      }
     }
+    return false
   }
-  return false
-}
 
 export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
   yield* Saga.chainAction2(TeamBuildingGen.resetStore, makeCustomResetStore)

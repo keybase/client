@@ -262,6 +262,7 @@ export const closeWindows = () => {
 }
 
 export default () => {
+  console.log('aaa making main window')
   setupDefaultSession()
   loadWindowState()
 
@@ -276,6 +277,7 @@ export default () => {
     show: false,
     webPreferences: {
       backgroundThrottling: false,
+      contextIsolation: false,
       devTools: showDevTools,
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
@@ -287,6 +289,7 @@ export default () => {
     y: windowState.y,
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
+  require('@electron/remote/main').enable(win.webContents)
   win.loadURL(htmlFile)
   if (!disableSpellCheck) {
     win.webContents.session.setSpellCheckerDictionaryDownloadURL(

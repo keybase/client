@@ -1,4 +1,5 @@
 import * as ConfigGen from '../config-gen'
+import * as remote from '@electron/remote'
 import * as ConfigConstants from '../../constants/config'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -87,7 +88,7 @@ function* initializeInputMonitor(): Iterable<any> {
 
 export const dumpLogs = async (action?: ConfigGen.DumpLogsPayload) => {
   const fromRender = await logger.dump()
-  const globalLogger: typeof logger = Electron.remote.getGlobal('globalLogger')
+  const globalLogger: typeof logger = remote.getGlobal('globalLogger')
   const fromMain = await globalLogger.dump()
   await writeLogLinesToFile([...fromRender, ...fromMain])
   // quit as soon as possible
@@ -109,7 +110,7 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
     const args = ['pipeowner', socketPath]
     yield Saga.callUntyped(
       () =>
-        new Promise((resolve, reject) => {
+        new Promise<void>((resolve, reject) => {
           execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
             if (error) {
               logger.info(`pipeowner check result: ${stdout.toString()}`)
@@ -139,7 +140,7 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
         failedFatal: true,
-        failedReason: e.message || 'windows pipe owner fail',
+        failedReason: (e as Error).message || 'windows pipe owner fail',
         increment: false,
         name: waitKey,
         version: action.payload.version,
@@ -168,7 +169,7 @@ function* setupReachabilityWatcher() {
 
 const onExit = () => {
   console.log('App exit requested')
-  Electron.remote.app.exit(0)
+  remote.app.exit(0)
 }
 
 const onFSActivity = (state: Container.TypedState, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
@@ -185,7 +186,7 @@ const onShutdown = (action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
   if (isWindows && code !== RPCTypes.ExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
     // Quit just the app, not the service
-    Electron.remote.app.quit()
+    remote.app.quit()
   }
 }
 
@@ -277,13 +278,13 @@ const updateNow = async () => {
 
 // don't leak these handlers on hot load
 module?.hot?.dispose(() => {
-  const pm = Electron.remote.powerMonitor
+  const pm = remote.powerMonitor
   pm.removeAllListeners()
 })
 
 function* startPowerMonitor() {
   const channel = Saga.eventChannel(emitter => {
-    const pm = Electron.remote.powerMonitor
+    const pm = remote.powerMonitor
     pm.on('suspend', () => emitter('suspend'))
     pm.on('resume', () => emitter('resume'))
     pm.on('shutdown', () => emitter('shutdown'))
@@ -315,11 +316,10 @@ const saveUseNativeFrame = async (state: Container.TypedState) => {
 
 function* initializeUseNativeFrame() {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
-      {
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
+      yield RPCTypes.configGuiGetValueRpcPromise({
         path: nativeFrameKey,
-      }
-    )
+      })
     const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
     yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
   } catch (_) {}
@@ -340,11 +340,10 @@ const saveWindowState = async (state: Container.TypedState) => {
 const notifySoundKey = 'notifySound'
 function* initializeNotifySound() {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
-      {
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
+      yield RPCTypes.configGuiGetValueRpcPromise({
         path: notifySoundKey,
-      }
-    )
+      })
     const notifySound: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
     if (notifySound !== undefined && notifySound !== state.config.notifySound) {
@@ -367,11 +366,10 @@ const setNotifySound = async (state: Container.TypedState) => {
 const openAtLoginKey = 'openAtLogin'
 function* initializeOpenAtLogin() {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
-      {
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
+      yield RPCTypes.configGuiGetValueRpcPromise({
         path: openAtLoginKey,
-      }
-    )
+      })
 
     const openAtLogin: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
@@ -397,9 +395,9 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
       (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
     if (enabled !== openAtLogin) await setOnLoginStartup(openAtLogin)
   } else {
-    if (Electron.remote.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
+    if (remote.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
       logger.info(`Login item settings changed! now ${openAtLogin}`)
-      Electron.remote.app.setLoginItemSettings({openAtLogin})
+      remote.app.setLoginItemSettings({openAtLogin})
     }
   }
 }

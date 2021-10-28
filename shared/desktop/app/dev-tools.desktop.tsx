@@ -3,15 +3,15 @@ import {showDevTools} from '../../local-debug.desktop'
 import flags from '../../util/feature-flags'
 
 function setupDevToolsExtensions() {
-  if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
-    process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
-      try {
-        Electron.BrowserWindow.addDevToolsExtension(p)
-      } catch (e) {
-        console.error('Dev tool loading crash', p, e)
-      }
-    })
-  }
+  // if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
+  // process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
+  // try {
+  // Electron.BrowserWindow.addDevToolsExtension(p)
+  // } catch (e) {
+  // console.error('Dev tool loading crash', p, e)
+  // }
+  // })
+  // }
 }
 
 function setupOpenDevtools() {
@@ -33,7 +33,7 @@ function cleanupOpenDevtools() {
   }
 }
 
-export default function() {
+export default function () {
   if (Electron.app.isReady()) {
     setupOpenDevtools()
     setupDevToolsExtensions()

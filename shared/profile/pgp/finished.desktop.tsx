@@ -36,7 +36,7 @@ export class Finished extends React.Component<Props, State> {
             `keybase pgp help` from your terminal. If you have GPG installed, it has also been written to
             GPG’s keychain.
           </Kb.Text>
-          <textarea style={styles.pgpKeyString} readOnly={true} value={this.props.pgpKeyString} />
+          <textarea style={styles.pgpKeyString as any} readOnly={true} value={this.props.pgpKeyString} />
           {this.props.promptShouldStoreKeyOnServer && (
             <Kb.Box2 direction="vertical">
               <Kb.Checkbox

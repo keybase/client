@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/*
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Tabs from '../../constants/tabs'
@@ -249,3 +250,5 @@ it('primes send/request form', () => {
       ])
     })
 })
+*/
+export {}

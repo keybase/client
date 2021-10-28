@@ -75,7 +75,8 @@ function* login(_: Container.TypedState, action: LoginGen.LoginPayload) {
     })
     logger.info('login call succeeded')
     yield Saga.put(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
-  } catch (e) {
+  } catch (e_) {
+    const e = e_ as RPCError
     if (e.code === RPCTypes.StatusCode.scalreadyloggedin) {
       yield Saga.put(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
     } else if (e.desc !== cancelDesc) {

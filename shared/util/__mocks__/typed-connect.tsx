@@ -1,3 +1,4 @@
+/*
 import * as RR from 'react-redux'
 
 if (!__STORYBOOK__) {
@@ -56,3 +57,5 @@ export const namedConnect = (_: any, __: any, ___: any, displayName: string) => 
 }
 
 export default connect
+ */
+export {}
