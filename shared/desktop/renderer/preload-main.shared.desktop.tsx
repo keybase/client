@@ -6,7 +6,7 @@ import fse from 'fs-extra'
 
 const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
-const {argv, platform, env, type, versions} = process
+const {argv, platform, env, type} = process
 const isDarwin = platform === 'darwin'
 const isWindows = platform === 'win32'
 const isLinux = platform === 'linux'
