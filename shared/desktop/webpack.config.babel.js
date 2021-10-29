@@ -224,17 +224,22 @@ const config = (_, {mode}) => {
     devServer: {
       compress: false,
       hot: isHot,
-      // lazy: false,
-      // overlay: true,
       port: 4000,
       devMiddleware: {
-        publicPath: 'http://localhost:4000/dist/',
+        publicPath: 'http://localhost:4000/dist',
+      },
+      client: {
+        overlay: true,
+        webSocketURL: {
+          hostname: 'localhost',
+          pathname: '/ws',
+          port: 4000,
+        },
       },
       static: {
         directory: path.resolve(__dirname, 'dist'),
+        publicPath: '/dist',
       },
-      // quiet: false,
-      // stats: {colors: true},
     },
     entry: entries.reduce((map, name) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
@@ -254,7 +259,11 @@ const config = (_, {mode}) => {
     },
     module: {rules: makeRules(false)},
     name: 'Keybase',
-    optimization: {splitChunks: {chunks: 'all'}},
+    ...(isHot
+      ? {}
+      : {
+          optimization: {splitChunks: {chunks: 'all'}},
+        }),
     plugins: makeViewPlugins(entries),
     target: 'electron-renderer',
   })
