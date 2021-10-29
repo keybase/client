@@ -3,7 +3,7 @@
 import * as Electron from 'electron'
 
 const {process, isRenderer} = KB
-const remote = require(isRenderer ? '@electron/remote' : '@electron/remote/main').default
+const remote = isRenderer  ? require( '@electron/remote' ) : null
 
 // Main thread only, proxy through remote
 export const getApp = () => {

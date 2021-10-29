@@ -24,9 +24,7 @@ import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 const {join} = KB.path
 const {env} = KB.process
 
-console.log('aaa before init')
 require('@electron/remote/main').initialize()
-console.log('aaa after init')
 
 let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false

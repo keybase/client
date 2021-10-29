@@ -4,7 +4,7 @@ import * as Electron from 'electron'
 // @ts-ignore strict
 import fse from 'fs-extra'
 
-const isRenderer = !process?.versions?.node
+const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
 const {argv, platform, env, type, versions} = process
 const isDarwin = platform === 'darwin'
@@ -12,9 +12,6 @@ const isWindows = platform === 'win32'
 const isLinux = platform === 'linux'
 
 const remote = require(isRenderer ? '@electron/remote' : '@electron/remote/main')
-
-const err = new Error()
-console.log('aaaa app preload shared', remote, isRenderer, Electron, err.stack)
 
 // @ts-ignore strict
 const pid = isRenderer ? remote.process.pid : process.pid

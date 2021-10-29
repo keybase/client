@@ -262,7 +262,6 @@ export const closeWindows = () => {
 }
 
 export default () => {
-  console.log('aaa making main window')
   setupDefaultSession()
   loadWindowState()
 
