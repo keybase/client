@@ -30,6 +30,7 @@ if [ "$mode" = "production" ] ; then
   repo_url="http://dist.keybase.io/linux/deb/repo"
 elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://prerelease.keybase.io/deb"
+  # debian bullseye removed libappindicator1 in favor of libayatana-appindicator1, so allow both.
   # "psmisc" provides "killall", which is used in run_keybase and
   # post_install.sh.
   # lsof used in post_install.sh
