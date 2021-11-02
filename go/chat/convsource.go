@@ -268,8 +268,10 @@ func (s *baseConversationSource) PullFull(ctx context.Context, convID chat1.Conv
 			return res, err
 		}
 		res.Messages = append(res.Messages, thread.Messages...)
-		pagination.Next = thread.Pagination.Next
-		pagination.Last = thread.Pagination.Last
+		if thread.Pagination != nil {
+			pagination.Next = thread.Pagination.Next
+			pagination.Last = thread.Pagination.Last
+		}
 	}
 	return res, nil
 }
