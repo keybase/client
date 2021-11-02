@@ -7,20 +7,41 @@
 //
 #import "AppDelegate.h"
 #import <AVFoundation/AVFoundation.h>
-#import <React/RCTPushNotificationManager.h>
-#import <React/RCTBundleURLProvider.h>
-#import "AppearanceRootView.h"
+#import <UserNotifications/UserNotifications.h>
+#import <RNCPushNotificationIOS.h>
 #import "Engine.h"
 #import "LogSend.h"
 #import <React/RCTLinkingManager.h>
+#import <React/RCTRootView.h>
+#import <React/RCTBundleURLProvider.h>
 #import <keybase/keybase.h>
 #import "Pusher.h"
 #import "Fs.h"
-#import "Storybook.h"
+// #import "Storybook.h"
+#import <React/RCTConvert.h>
 
-#import <UMCore/UMModuleRegistry.h>
-#import <UMReactNativeAdapter/UMNativeModulesProxy.h>
-#import <UMReactNativeAdapter/UMModuleRegistryAdapter.h>
+#ifdef FB_SONARKIT_ENABLED
+#import <FlipperKit/FlipperClient.h>
+#import <FlipperKitLayoutPlugin/FlipperKitLayoutPlugin.h>
+#import <FlipperKitUserDefaultsPlugin/FKUserDefaultsPlugin.h>
+#import <FlipperKitNetworkPlugin/FlipperKitNetworkPlugin.h>
+#import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
+#import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
+
+static void InitializeFlipper(UIApplication *application) {
+  FlipperClient *client = [FlipperClient sharedClient];
+  SKDescriptorMapper *layoutDescriptorMapper = [[SKDescriptorMapper alloc] initWithDefaults];
+  [client addPlugin:[[FlipperKitLayoutPlugin alloc] initWithRootNode:application withDescriptorMapper:layoutDescriptorMapper]];
+  [client addPlugin:[[FKUserDefaultsPlugin alloc] initWithSuiteName:nil]];
+  [client addPlugin:[FlipperKitReactPlugin new]];
+  [client addPlugin:[[FlipperKitNetworkPlugin alloc] initWithNetworkAdapter:[SKIOSNetworkAdapter new]]];
+  [client start];
+}
+#endif
+
+// #import <UMCore/UMModuleRegistry.h>
+// #import <UMReactNativeAdapter/UMNativeModulesProxy.h>
+// #import <UMReactNativeAdapter/UMModuleRegistryAdapter.h>
 #import <RNHWKeyboardEvent.h>
 
 @interface AppDelegate ()
@@ -63,6 +84,10 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+#ifdef FB_SONARKIT_ENABLED
+  InitializeFlipper(application);
+#endif
+  
   // allow audio to be mixed
   [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
   [self setupLogger];
@@ -70,10 +95,13 @@
   [self notifyAppState:application];
 
   // unimodules
-  self.moduleRegistryAdapter = [[UMModuleRegistryAdapter alloc] initWithModuleRegistryProvider: [[UMModuleRegistryProvider alloc] init]];
+  // self.moduleRegistryAdapter = [[UMModuleRegistryAdapter alloc] initWithModuleRegistryProvider: [[UMModuleRegistryProvider alloc] init]];
+  
+  UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+   center.delegate = self;
 
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
-  AppearanceRootView *rootView = [[AppearanceRootView alloc] initWithBridge:bridge
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
                                                    moduleName:@"Keybase"
                                             initialProperties:nil];
   rootView.backgroundColor = [UIColor colorWithWhite:0.f alpha:0.f];
@@ -85,7 +113,7 @@
   [self.window makeKeyAndVisible];
 
   // To simplify the cover animation raciness
-  
+
   // With iPads, we had a bug with this resignImageView where if
   // you backgrounded the app in portrait and then rotated to
   // landscape while the app was in the background, the resignImageView
@@ -102,7 +130,7 @@
   CGRect square;
   square = CGRectMake(screenRect.origin.x, screenRect.origin.y, dim, dim);
   self.resignImageView = [[UIImageView alloc] initWithFrame:square];
-  
+
   self.resignImageView.contentMode = UIViewContentModeCenter;
   self.resignImageView.alpha = 0;
   self.resignImageView.backgroundColor = rootView.backgroundColor;
@@ -121,10 +149,11 @@
 #if DEBUG
   // uncomment to get a prod bundle. If you set this it remembers so set it back and re-run to reset it!
 //  [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
-  
+
   // This is a mildly hacky solution to mock out some code when we're in storybook mode.
   // The code that handles this is in `shared/metro.config.js`.
-  NSString *bundlerURL = IS_STORYBOOK ? @"storybook-index" : @"normal-index";
+  // NSString *bundlerURL = IS_STORYBOOK ? @"storybook-index" : @"normal-index";
+  NSString *bundlerURL = @"normal-index";
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:bundlerURL fallbackResource:nil];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
@@ -144,18 +173,18 @@
 // Required to register for notifications
 - (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings
 {
-  [RCTPushNotificationManager didRegisterUserNotificationSettings:notificationSettings];
+  [RNCPushNotificationIOS didRegisterUserNotificationSettings:notificationSettings];
 }
 // Required for the register event.
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
 {
-  [RCTPushNotificationManager didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+  [RNCPushNotificationIOS didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
 }
 
 // Required for the notification event.
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification
 {
-  [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+  [RNCPushNotificationIOS didReceiveRemoteNotification:notification];
 }
 
 // Require for handling silent notifications
@@ -186,23 +215,31 @@
       NSLog(@"Remote notification handle finished...");
     });
   } else if (type != nil && [type isEqualToString:@"chat.newmessage"]) {
-    [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+    [RNCPushNotificationIOS didReceiveRemoteNotification:notification];
     completionHandler(UIBackgroundFetchResultNewData);
   } else {
-    [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+    [RNCPushNotificationIOS didReceiveRemoteNotification:notification];
     completionHandler(UIBackgroundFetchResultNewData);
   }
 }
 // Required for the registrationError event.
 - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
 {
-  [RCTPushNotificationManager didFailToRegisterForRemoteNotificationsWithError:error];
+  [RNCPushNotificationIOS didFailToRegisterForRemoteNotificationsWithError:error];
 }
 // Required for the localNotification event.
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
 {
-  [RCTPushNotificationManager didReceiveLocalNotification:notification];
+  [RNCPushNotificationIOS didReceiveLocalNotification:notification];
 }
+
+// Required for localNotification event
+-(void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler
+{
+  completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionAlert | UNNotificationPresentationOptionBadge);
+  //[RNCPushNotificationIOS didReceiveNotificationResponse:response];
+}
+
 - (void)applicationWillTerminate:(UIApplication *)application {
   self.window.rootViewController.view.hidden = YES;
   KeybaseAppWillExit([[PushNotifier alloc] init]);
@@ -310,10 +347,11 @@
 
 - (NSArray<id<RCTBridgeModule>> *)extraModulesForBridge:(RCTBridge *)bridge
 {
-  NSArray<id<RCTBridgeModule>> *extraModules = [_moduleRegistryAdapter extraModulesForBridge:bridge];
+  // NSArray<id<RCTBridgeModule>> *extraModules = [_moduleRegistryAdapter extraModulesForBridge:bridge];
   // You can inject any extra modules that you would like here, more information at:
   // https://facebook.github.io/react-native/docs/native-modules-ios.html#dependency-injection
-  return extraModules;
+  // return extraModules;
+  return @[];
 }
 
 RNHWKeyboardEvent *hwKeyEvent = nil;

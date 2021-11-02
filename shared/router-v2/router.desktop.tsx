@@ -5,7 +5,7 @@ import * as React from 'react'
 import TabBar from './tab-bar.desktop'
 import {
   NavigationViewProps,
-  createNavigator,
+  // createNavigator,
   StackRouter,
   SwitchRouter,
   NavigationActions,

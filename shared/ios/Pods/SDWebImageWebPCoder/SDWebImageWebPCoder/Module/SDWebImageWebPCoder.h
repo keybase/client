@@ -12,4 +12,5 @@ FOUNDATION_EXPORT double SDWebImageWebPCoderVersionNumber;
 FOUNDATION_EXPORT const unsigned char SDWebImageWebPCoderVersionString[];
 
 #import <SDWebImageWebPCoder/SDImageWebPCoder.h>
+#import <SDWebImageWebPCoder/SDWebImageWebPCoderDefine.h>
 #import <SDWebImageWebPCoder/UIImage+WebP.h>

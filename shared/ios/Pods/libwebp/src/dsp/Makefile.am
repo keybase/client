@@ -46,6 +46,7 @@ ENC_SOURCES += ssim.c
 libwebpdspdecode_sse41_la_SOURCES =
 libwebpdspdecode_sse41_la_SOURCES += alpha_processing_sse41.c
 libwebpdspdecode_sse41_la_SOURCES += dec_sse41.c
+libwebpdspdecode_sse41_la_SOURCES += lossless_sse41.c
 libwebpdspdecode_sse41_la_SOURCES += upsampling_sse41.c
 libwebpdspdecode_sse41_la_SOURCES += yuv_sse41.c
 libwebpdspdecode_sse41_la_CPPFLAGS = $(libwebpdsp_la_CPPFLAGS)

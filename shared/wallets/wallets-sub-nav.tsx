@@ -3,8 +3,8 @@ import {LeftAction} from '../common-adapters/header-hoc'
 import * as React from 'react'
 import {
   NavigationViewProps,
-  createNavigator,
-  createSwitchNavigator,
+  // createNavigator,
+  // createSwitchNavigator,
   StackRouter,
   SceneView,
 } from '@react-navigation/core'
@@ -43,18 +43,18 @@ class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
   }
 }
 
-const WalletsSubNavigator = createNavigator(
-  WalletsSubNav,
-  StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
-  {}
-)
-const OnboardingOrWalletsNavigator = createSwitchNavigator(
-  {
-    onboarding: RoutedOnboarding,
-    walletsubnav: WalletsSubNavigator,
-  },
-  {initialRouteName: 'walletsubnav'}
-)
+// const WalletsSubNavigator = createNavigator(
+// WalletsSubNav,
+// StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
+// {}
+// )
+// const OnboardingOrWalletsNavigator = createSwitchNavigator(
+// {
+// onboarding: RoutedOnboarding,
+// walletsubnav: WalletsSubNavigator,
+// },
+// {initialRouteName: 'walletsubnav'}
+// )
 
 type OnboardingOrWalletsProps = NavigationViewProps<any> & {acceptedDisclaimer: boolean}
 

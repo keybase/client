@@ -1,7 +1,7 @@
 import * as Constants from '../constants/settings'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
+import {NavigationViewProps, /*createNavigator,*/ StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
 import * as Container from '../util/container'
 import AboutTab from './about'
@@ -140,16 +140,16 @@ class SettingsSubNav extends React.PureComponent<NavigationViewProps<any>> {
     )
   }
 }
-const SettingsSubNavigator = createNavigator(
-  SettingsSubNav,
-  StackRouter(Shim.shim(subRoutes), {initialRouteName: Constants.accountTab}),
-  {}
-)
+// const SettingsSubNavigator = createNavigator(
+// SettingsSubNav,
+// StackRouter(Shim.shim(subRoutes), {initialRouteName: Constants.accountTab}),
+// {}
+// )
 
-SettingsSubNavigator.navigationOptions = {
-  header: undefined,
-  title: 'More',
-}
+// SettingsSubNavigator.navigationOptions = {
+// header: undefined,
+// title: 'More',
+// }
 
 const phoneNewRoutes = {
   ...subRoutes,
@@ -157,7 +157,8 @@ const phoneNewRoutes = {
 }
 const tabletNewRoutes = {
   ...subRoutes,
-  settingsRoot: {screen: SettingsSubNavigator},
+  // TODO
+  // settingsRoot: {screen: SettingsSubNavigator},
 }
 
 export const newRoutes = Container.isPhone ? phoneNewRoutes : tabletNewRoutes

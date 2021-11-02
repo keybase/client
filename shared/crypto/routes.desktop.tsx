@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/crypto'
 import * as Shim from '../router-v2/shim'
-import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
+import {NavigationViewProps, /*createNavigator, */ StackRouter, SceneView} from '@react-navigation/core'
 import TeamBuilder from '../team-building/container'
 import Encrypt from './operations/encrypt'
 import Decrypt from './operations/decrypt'
@@ -46,16 +46,16 @@ const SubNavWrapper = React.memo((props: NavigationViewProps<any>) => {
 })
 
 const initialRouteName = Constants.encryptTab
-const CryptoSubNavigator = createNavigator(
-  SubNavWrapper,
-  StackRouter(Shim.shim(cryptoSubRoutes), {initialRouteName}),
-  {}
-)
+// const CryptoSubNavigator = createNavigator(
+// SubNavWrapper,
+// StackRouter(Shim.shim(cryptoSubRoutes), {initialRouteName}),
+// {}
+// )
 
-CryptoSubNavigator.navigationOptions = {
-  header: undefined,
-  title: 'Crypto tools',
-}
+// CryptoSubNavigator.navigationOptions = {
+// header: undefined,
+// title: 'Crypto tools',
+// }
 
 /* Routes */
 export const newRoutes = {

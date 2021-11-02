@@ -64,7 +64,7 @@ const requestPermissionsToWrite = async () => {
 
 export const requestAudioPermission = async () => {
   let chargeForward = true
-  const {Permissions} = require('react-native-unimodules')
+  const Permissions = require('expo-permissions')
   let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
   if (status === Permissions.PermissionStatus.UNDETERMINED) {
     if (isIOS) {
@@ -88,7 +88,7 @@ export const requestAudioPermission = async () => {
 
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
   if (isIOS) {
-    const {Permissions} = require('react-native-unimodules')
+    const Permissions = require('expo-permissions')
     const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
     switch (mode) {
       case RPCChatTypes.UIWatchPositionPerm.base:
@@ -454,7 +454,7 @@ const openAppStore = () =>
   ).catch(() => {})
 
 const expoPermissionStatusMap = () => {
-  const {Permissions} = require('react-native-unimodules')
+  const Permissions = require('expo-permissions')
   return {
     [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
     [Permissions.PermissionStatus.DENIED]: 'never_ask_again' as const,
@@ -464,7 +464,7 @@ const expoPermissionStatusMap = () => {
 
 const loadContactPermissionFromNative = async () => {
   if (isIOS) {
-    const {Permissions} = require('react-native-unimodules')
+    const Permissions = require('expo-permissions')
     return expoPermissionStatusMap()[(await Permissions.getAsync(Permissions.CONTACTS)).status]
   }
   return (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
@@ -504,7 +504,7 @@ const askForContactPermissionsAndroid = async () => {
 }
 
 const askForContactPermissionsIOS = async () => {
-  const {Permissions} = require('react-native-unimodules')
+  const Permissions = require('expo-permissions')
   const {status} = await Permissions.askAsync(Permissions.CONTACTS)
   return expoPermissionStatusMap()[status]
 }
@@ -613,38 +613,38 @@ const showContactsJoinedModal = (action: SettingsGen.ShowContactsJoinedModalPayl
     ? [RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})]
     : []
 
-function* setupDarkMode() {
-  const NativeAppearance = NativeModules.Appearance
-  if (NativeAppearance) {
-    // eslint-disable-next-line no-inner-declarations
-    function* handleGotChangeEvent(action: any) {
-      yield Saga.delay(500)
-      yield Saga.put(action)
-    }
+// function* setupDarkMode() {
+// const NativeAppearance = NativeModules.Appearance
+// if (NativeAppearance) {
+// // eslint-disable-next-line no-inner-declarations
+// function* handleGotChangeEvent(action: any) {
+// yield Saga.delay(500)
+// yield Saga.put(action)
+// }
 
-    const channel = Saga.eventChannel(emitter => {
-      const nativeEventEmitter = new NativeEventEmitter(NativeAppearance)
-      nativeEventEmitter.addListener('appearanceChanged', ({colorScheme}) => {
-        emitter(colorScheme)
-      })
-      return () => {}
-    }, Saga.buffers.sliding(1))
+// const channel = Saga.eventChannel(emitter => {
+// const nativeEventEmitter = new NativeEventEmitter(NativeAppearance)
+// nativeEventEmitter.addListener('appearanceChanged', ({colorScheme}) => {
+// emitter(colorScheme)
+// })
+// return () => {}
+// }, Saga.buffers.sliding(1))
 
-    let task: any
-    while (true) {
-      const mode = yield Saga.take(channel)
-      // iOS takes snapshots of the app in light/dark mode and this causes us to get a light/dark call no matter what. so
-      // throttle a bit and ignore this
-      if (task) {
-        yield Saga.cancel(task)
-      }
-      task = yield Saga._fork(
-        handleGotChangeEvent,
-        ConfigGen.createSetSystemDarkMode({dark: mode === 'dark'})
-      )
-    }
-  }
-}
+// let task: any
+// while (true) {
+// const mode = yield Saga.take(channel)
+// // iOS takes snapshots of the app in light/dark mode and this causes us to get a light/dark call no matter what. so
+// // throttle a bit and ignore this
+// if (task) {
+// yield Saga.cancel(task)
+// }
+// task = yield Saga._fork(
+// handleGotChangeEvent,
+// ConfigGen.createSetSystemDarkMode({dark: mode === 'dark'})
+// )
+// }
+// }
+// }
 
 let locationEmitter: ((input: unknown) => void) | null = null
 
@@ -981,5 +981,5 @@ export function* platformConfigSaga() {
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)
   yield Saga.spawn(setupNetInfoWatcher)
-  yield Saga.spawn(setupDarkMode)
+  // yield Saga.spawn(setupDarkMode)
 }
