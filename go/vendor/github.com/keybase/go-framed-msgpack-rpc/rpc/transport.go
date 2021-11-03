@@ -39,22 +39,27 @@ type Transporter interface {
 
 	// Close closes the transport and releases resources.
 	Close()
+
+	// CloseBlocking closes the transport and blocks until all the goroutines
+	// have halted.
+	CloseBlocking()
 }
 
 var _ Transporter = (*transport)(nil)
 
 type transport struct {
-	c          net.Conn
-	enc        *framedMsgpackEncoder
-	dispatcher dispatcher
-	receiver   receiver
-	packetizer *packetizer
-	protocols  *protocolHandler
-	calls      *callContainer
-	log        LogInterface
-	closeOnce  sync.Once
-	startOnce  sync.Once
-	stopCh     chan struct{}
+	c           net.Conn
+	enc         *framedMsgpackEncoder
+	dispatcher  dispatcher
+	receiver    receiver
+	packetizer  *packetizer
+	protocols   *protocolHandler
+	calls       *callContainer
+	log         LogInterface
+	closeOnce   sync.Once
+	startOnce   sync.Once
+	stopCh      chan struct{}
+	loopStopped chan struct{}
 
 	// Filled in right before stopCh is closed.
 	stopErr error
@@ -81,11 +86,12 @@ func NewTransport(c net.Conn, l LogFactory, instrumenterStorage NetworkInstrumen
 	}
 
 	ret := &transport{
-		c:         c,
-		log:       log,
-		stopCh:    make(chan struct{}),
-		protocols: newProtocolHandler(wef),
-		calls:     newCallContainer(),
+		c:           c,
+		log:         log,
+		stopCh:      make(chan struct{}),
+		loopStopped: make(chan struct{}),
+		protocols:   newProtocolHandler(wef),
+		calls:       newCallContainer(),
 	}
 	enc := newFramedMsgpackEncoder(maxFrameLength, c)
 	ret.enc = enc
@@ -93,6 +99,11 @@ func NewTransport(c net.Conn, l LogFactory, instrumenterStorage NetworkInstrumen
 	ret.receiver = newReceiveHandler(enc, ret.protocols, log)
 	ret.packetizer = newPacketizer(maxFrameLength, c, ret.protocols, ret.calls, log, instrumenterStorage)
 	return ret
+}
+
+func (t *transport) CloseBlocking() {
+	t.Close()
+	<-t.loopStopped
 }
 
 func (t *transport) Close() {
@@ -142,6 +153,8 @@ func (t *transport) err() error {
 }
 
 func (t *transport) receiveFramesLoop() {
+	defer close(t.loopStopped)
+
 	// Packetize: do work
 	var err error
 	for shouldContinue(err) {
