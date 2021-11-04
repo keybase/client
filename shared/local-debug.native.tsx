@@ -59,18 +59,18 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = true
+  config.enableActionLogging = false
   config.enableStoreLogging = false
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
-  config.isDevApplePushToken = true
-  config.printOutstandingRPCs = true
-  config.printOutstandingTimerListeners = true
+  config.isDevApplePushToken = false
+  config.printOutstandingRPCs = false
+  config.printOutstandingTimerListeners = false
   config.printRPCWaitingSession = false
-  config.printRPC = true
+  config.printRPC = false
   // TODO is this even used?
-  config.printRPCStats = true
+  config.printRPCStats = false
   config.userTimings = false
 
   // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5

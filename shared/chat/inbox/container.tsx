@@ -97,11 +97,6 @@ let InboxWrapper = (props: Props) => {
   return <Inbox {...props} />
 }
 
-// temporary until nav 5
-if (Container.isMobile) {
-  InboxWrapper = withNavigationFocus(InboxWrapper)
-}
-
 // @ts-ignore
 InboxWrapper.navigationOptions = {
   header: undefined,

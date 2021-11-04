@@ -474,7 +474,11 @@ const makeStack = tab => {
 }
 
 const makeNavScreens = (rs, Screen) => {
-  return Object.keys(rs).map(name => <Screen key={name} name={name} component={rs[name].getScreen} />)
+  return Object.keys(rs).map(name => {
+    // !rs[name].getScreen && console.log('aaa', rs[name], name)
+    // return <Screen key={name} name={name} component={Temp} />
+    return <Screen key={name} name={name} getComponent={rs[name].getScreen} />
+  })
 }
 
 const RNApp = () => {

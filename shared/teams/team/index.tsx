@@ -6,6 +6,7 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
+import {useFocusEffect} from '@react-navigation/core'
 import CustomTitle from './custom-title/container'
 import {memoize} from '../../util/memoize'
 import flags from '../../util/feature-flags'
@@ -96,8 +97,12 @@ const Team = (props: Props) => {
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const dispatch = Container.useDispatch()
-  const onBlur = React.useCallback(() => dispatch(TeamsGen.createTeamSeen({teamID})), [dispatch, teamID])
-  Container.useFocusBlur(undefined, onBlur)
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => dispatch(TeamsGen.createTeamSeen({teamID}))
+    }, [dispatch, teamID])
+  )
 
   useTeamsSubscribe()
   useTeamDetailsSubscribe(teamID)
@@ -214,9 +219,7 @@ Team.navigationOptions = flags.teamsRedesign
       headerHideBorder: true,
       headerRight: Container.isMobile ? (
         <CustomTitle teamID={Container.getRouteProps(props, 'teamID', '')} />
-      ) : (
-        undefined
-      ),
+      ) : undefined,
       headerRightActions: Container.isMobile
         ? undefined
         : () => <HeaderRightActions teamID={Container.getRouteProps(props, 'teamID', '')} />,

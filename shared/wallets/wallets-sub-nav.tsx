@@ -59,7 +59,7 @@ class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
 type OnboardingOrWalletsProps = NavigationViewProps<any> & {acceptedDisclaimer: boolean}
 
 class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
-  static router = OnboardingOrWalletsNavigator.router
+  // static router = OnboardingOrWalletsNavigator.router
   static navigationOptions = ({navigation}) => {
     return {
       header: undefined,

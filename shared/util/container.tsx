@@ -108,5 +108,4 @@ export {default as makeReducer} from './make-reducer'
 export type ActionHandler<S, A> = _ActionHandler<S, A>
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
-export {default as useFocusBlur} from './use-focus-blur'
 export {default as useWatchActions} from './use-watch-actions'

@@ -9,6 +9,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {pluralize} from '../../util/string'
 import {FloatingRolePicker} from '../role-picker'
+import {useFocusEffect} from '@react-navigation/native'
 
 type UnselectableTab = string
 type TeamSelectableTab = 'teamMembers' | 'teamChannels'
@@ -82,9 +83,11 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   // This is a bit of a hack to work around the floating box displaying above modals on mobile.
   // Probably it's not worth thinking about the root problem until we're on nav 5.
   const [focused, setFocused] = React.useState(true)
-  Container.useFocusBlur(
-    () => setFocused(true),
-    () => setFocused(false)
+  useFocusEffect(
+    React.useCallback(() => {
+      setFocused(true)
+      return () => setFocused(false)
+    }, [setFocused])
   )
 
   // For boosting the list to scroll not behind the popup on mobile
