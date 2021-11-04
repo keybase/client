@@ -10,8 +10,7 @@ import {isPhone} from '../../constants/platform'
 import {Props} from '.'
 import * as Kb from '../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
-// @ts-ignore
-import {withNavigationFocus} from '@react-navigation/core'
+import {useIsFocused} from '@react-navigation/native'
 
 type OwnProps = {
   navKey: string
@@ -71,10 +70,7 @@ const makeSmallRows = (
 let InboxWrapper = (props: Props) => {
   const dispatch = Container.useDispatch()
   const inboxHasLoaded = Container.useSelector(state => state.chat2.inboxHasLoaded)
-
-  // temporary until nav 5
-  // @ts-ignore
-  const {isFocused} = props
+  const isFocused = useIsFocused()
 
   if (Container.isMobile) {
     // eslint-disable-next-line

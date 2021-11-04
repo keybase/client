@@ -1,7 +1,7 @@
 /*
  * File to stash local debug changes to. Never check this in with changes
  */
-import {NativeModules, YellowBox} from 'react-native'
+import {NativeModules, LogBox} from 'react-native'
 import noop from 'lodash/noop'
 
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
@@ -9,6 +9,7 @@ const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 // Toggle this to disable yellowboxes
 // console.disableYellowBox = false
 //
+LogBox.ignoreAllLogs()
 // Ignore some yellowboxes on 3rd party libs we can't control
 // YellowBox.ignoreWarnings([
 // "Module RNFetchBlob requires main queue setup since it overrides `constantsToExport` but doesn't implement `requiresMainQueueSetup`. In a future release React Native will default to initializing all native modules on a background thread unless explicitly opted-out of.",

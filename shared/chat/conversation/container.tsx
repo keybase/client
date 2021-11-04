@@ -8,8 +8,6 @@ import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import HeaderArea from './header-area/container'
-// @ts-ignore
-import {withNavigationFocus} from '@react-navigation/core'
 
 type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 
@@ -60,10 +58,6 @@ let Conversation = (p: SwitchProps) => {
     default:
       return <NoConversation />
   }
-}
-
-if (Container.isMobile) {
-  Conversation = withNavigationFocus(Conversation)
 }
 
 // @ts-ignore

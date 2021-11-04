@@ -64,72 +64,58 @@ enableFreeze()
 
 // const tabs = Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs
 
-// type TabData = {
-// icon: IconType
-// label: string
-// }
-// const data: {[key: string]: TabData} = {
-// [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
-// [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
-// [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
-// [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
-// [Tabs.settingsTab]: {icon: 'iconfont-nav-2-hamburger', label: 'More'},
-// [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
-// }
+type TabData = {
+  icon: IconType
+  label: string
+}
+const tabToData: {[key: string]: TabData} = {
+  [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
+  [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
+  [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
+  [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
+  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-hamburger', label: 'More'},
+  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
+}
 
-// const FilesTabBadge = () => {
-// const uploadIcon = FsConstants.getUploadIconForFilesTab(Container.useSelector(state => state.fs.badge))
-// return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
-// }
+const FilesTabBadge = () => {
+  const uploadIcon = FsConstants.getUploadIconForFilesTab(Container.useSelector(state => state.fs.badge))
+  return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
+}
 
-// const TabBarIcon = ({badgeNumber, focused, routeName}) => (
-// <Kb.NativeView style={tabStyles.container}>
-// <Kb.Icon
-// type={data[routeName].icon}
-// fontSize={32}
-// style={tabStyles.tab}
-// color={focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
-// />
-// {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
-// {routeName === Tabs.fsTab && <FilesTabBadge />}
-// </Kb.NativeView>
-// )
+const TabBarIcon = props => {
+  const {isFocused, routeName} = props
+  const onSettings = routeName === Tabs.settingsTab
+  const navBadges = Container.useSelector(state => state.notifications.navBadges)
+  const pushHasPermissions = Container.useSelector(state => state.push.hasPermissions)
+  const badgeNumber = (onSettings ? settingsTabChildren : [routeName]).reduce(
+    (res, tab) => res + (navBadges.get(tab) || 0),
+    // notifications gets badged on native if there's no push, special case
+    onSettings && !pushHasPermissions ? 1 : 0
+  )
+  return (
+    <Kb.NativeView style={tabStyles.container}>
+      <Kb.Icon
+        type={tabToData[routeName].icon}
+        fontSize={32}
+        style={tabStyles.tab}
+        color={isFocused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
+      />
+      {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
+      {routeName === Tabs.fsTab && <FilesTabBadge />}
+    </Kb.NativeView>
+  )
+}
 
-// const settingsTabChildrenPhone: Array<Tabs.Tab> = [
-// Tabs.gitTab,
-// Tabs.devicesTab,
-// Tabs.walletsTab,
-// Tabs.settingsTab,
-// ]
-// const settingsTabChildrenTablet: Array<Tabs.Tab> = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
-// const settingsTabChildren = Container.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
+const settingsTabChildrenPhone: Array<Tabs.Tab> = [
+  Tabs.gitTab,
+  Tabs.devicesTab,
+  Tabs.walletsTab,
+  Tabs.settingsTab,
+]
+const settingsTabChildrenTablet: Array<Tabs.Tab> = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
+const settingsTabChildren = Container.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
 
-// type OwnProps = {focused: boolean; routeName: Tabs.Tab}
-// const ConnectedTabBarIcon = connect(
-// (state, {routeName}: OwnProps) => {
-// const onSettings = routeName === Tabs.settingsTab
-// const badgeNumber = (onSettings ? settingsTabChildren : [routeName]).reduce(
-// (res, tab) => res + (state.notifications.navBadges.get(tab) || 0),
-// // notifications gets badged on native if there's no push, special case
-// onSettings && !state.push.hasPermissions ? 1 : 0
-// )
-// return {badgeNumber}
-// },
-// () => ({}),
-// (s, _, o: OwnProps) => ({
-// badgeNumber: s.badgeNumber,
-// focused: o.focused,
-// routeName: o.routeName,
-// })
-// )(TabBarIcon)
-
-// // The default container has some `hitSlop` set which messes up the clickable
-// // area
-// const TabBarIconContainer = props => (
-// <Kb.NativeTouchableWithoutFeedback style={props.style} onPress={props.onPress}>
-// <Kb.Box children={props.children} style={props.style} />
-// </Kb.NativeTouchableWithoutFeedback>
-// )
+// TODO
 // const TabBarPeopleIconContainer = props => {
 // const {onPress} = props
 // const dispatch = Container.useDispatch()
@@ -294,43 +280,44 @@ enableFreeze()
 // })
 // )(UnconnectedTabNavigator)
 
-// const tabStyles = Styles.styleSheetCreate(
-// () =>
-// ({
-// badge: Styles.platformStyles({
-// common: {
-// position: 'absolute',
-// right: 8,
-// top: 3,
-// },
-// }),
-// container: Styles.platformStyles({
-// common: {
-// justifyContent: 'center',
-// },
-// isTablet: {
-// // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
-// minWidth: Styles.globalMargins.xlarge,
-// },
-// }),
-// label: {marginLeft: Styles.globalMargins.medium},
-// labelDarkMode: {color: Styles.globalColors.black_50},
-// labelDarkModeFocused: {color: Styles.globalColors.black},
-// labelLightMode: {color: Styles.globalColors.blueLighter},
-// labelLightModeFocused: {color: Styles.globalColors.white},
-// tab: Styles.platformStyles({
-// common: {
-// paddingBottom: 6,
-// paddingLeft: 16,
-// paddingRight: 16,
-// paddingTop: 6,
-// },
-// isTablet: {
-// width: '100%',
-// },
-// }),
-// } as const)
-// )
+const tabStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+          right: 8,
+          top: 3,
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          justifyContent: 'center',
+          flex: 1,
+        },
+        isTablet: {
+          // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
+          minWidth: Styles.globalMargins.xlarge,
+        },
+      }),
+      label: {marginLeft: Styles.globalMargins.medium},
+      labelDarkMode: {color: Styles.globalColors.black_50},
+      labelDarkModeFocused: {color: Styles.globalColors.black},
+      labelLightMode: {color: Styles.globalColors.blueLighter},
+      labelLightModeFocused: {color: Styles.globalColors.white},
+      tab: Styles.platformStyles({
+        common: {
+          paddingBottom: 6,
+          paddingLeft: 16,
+          paddingRight: 16,
+          paddingTop: 6,
+        },
+        isTablet: {
+          width: '100%',
+        },
+      }),
+    } as const)
+)
 
 // const LoggedInStackNavigator = createStackNavigator()
 // {
@@ -470,38 +457,43 @@ const Tab = createBottomTabNavigator()
 
 const tabs = Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs
 
+const Temp = () => <Kb.Text type="BodyBig">TEMP</Kb.Text>
+
 // so we have a stack per tab?
 const tabToStack = new Map()
+const makeStack = tab => {
+  let Comp = tabToStack.get(tab)
+  if (!Comp) {
+    const S = createStackNavigator()
+    Comp = () => {
+      return <S.Navigator initialRouteName={tabRoots[tab]}>{makeNavScreens(routes, S.Screen)}</S.Navigator>
+    }
+    tabToStack.set(tab, Comp)
+  }
+  return Comp
+}
 
-const Temp = () => <Kb.Text type="BodyBig">TEMP</Kb.Text>
+const makeNavScreens = (rs, Screen) => {
+  return Object.keys(rs).map(name => <Screen key={name} name={name} component={rs[name].getScreen} />)
+}
 
 const RNApp = () => {
   return (
     <NavigationContainer>
-      <Tab.Navigator>
-        {tabs.map(tab => {
-          return (
-            <Tab.Screen
-              key={tab}
-              name={tab}
-              getComponent={() => {
-                let Comp = tabToStack.get(tab)
-                if (!Comp) {
-                  const S = createStackNavigator()
-                  Comp = () => {
-                    return (
-                      <S.Navigator>
-                        <S.Screen name="a" component={Temp} />
-                      </S.Navigator>
-                    )
-                  }
-                  tabToStack.set(tab, Comp)
-                }
-                return Comp
-              }}
-            />
-          )
+      <Tab.Navigator
+        backBehavior="none"
+        screenOptions={({route}) => ({
+          headerShown: false,
+          tabBarShowLabel: Styles.isTablet,
+          tabBarStyle: {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest},
+          tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
         })}
+      >
+        {tabs.map(tab => (
+          <Tab.Screen key={tab} name={tab} getComponent={() => makeStack(tab)} />
+        ))}
       </Tab.Navigator>
     </NavigationContainer>
   )

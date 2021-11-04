@@ -56,7 +56,7 @@ const InboxAndConversation = (props: Props) => {
 
 InboxAndConversation.navigationOptions = {
   header: undefined,
-  headerTitle: withNavigation(Header),
+  headerTitle: Header,
   headerTitleContainerStyle: {left: 0, right: 0},
 }
 
