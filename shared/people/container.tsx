@@ -42,8 +42,9 @@ export class LoadOnMount extends React.PureComponent<Props> {
     header: undefined,
     headerTitle: () => <ConnectedHeader />,
     headerTitleContainerStyle: {
-      left: 40,
-      right: 0,
+      paddingLeft: 40,
+      marginHorizontal: 0,
+      maxWidth: '100%',
     },
     underNotch: true,
   }

@@ -457,8 +457,6 @@ const Tab = createBottomTabNavigator()
 
 const tabs = Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs
 
-const Temp = () => <Kb.Text type="BodyBig">TEMP</Kb.Text>
-
 // so we have a stack per tab?
 const tabToStack = new Map()
 const makeStack = tab => {
@@ -466,18 +464,30 @@ const makeStack = tab => {
   if (!Comp) {
     const S = createStackNavigator()
     Comp = () => {
-      return <S.Navigator initialRouteName={tabRoots[tab]}>{makeNavScreens(routes, S.Screen)}</S.Navigator>
+      return (
+        <S.Navigator initialRouteName={tabRoots[tab]}>
+          {makeNavScreens(Shim.shim(routes), S.Screen)}
+        </S.Navigator>
+      )
     }
     tabToStack.set(tab, Comp)
   }
   return Comp
 }
 
+// TODO modal
 const makeNavScreens = (rs, Screen) => {
   return Object.keys(rs).map(name => {
-    // !rs[name].getScreen && console.log('aaa', rs[name], name)
-    // return <Screen key={name} name={name} component={Temp} />
-    return <Screen key={name} name={name} getComponent={rs[name].getScreen} />
+    return (
+      <Screen
+        key={name}
+        name={name}
+        getComponent={rs[name].getScreen}
+        options={() => {
+          return rs[name].getScreen().navigationOptions
+        }}
+      />
+    )
   })
 }
 
