@@ -484,7 +484,8 @@ const makeNavScreens = (rs, Screen) => {
         name={name}
         getComponent={rs[name].getScreen}
         options={() => {
-          return rs[name].getScreen().navigationOptions
+          const no = rs[name].getScreen().navigationOptions
+          return typeof no === 'function' ? no() : no
         }}
       />
     )
