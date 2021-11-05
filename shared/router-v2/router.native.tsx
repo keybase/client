@@ -31,33 +31,32 @@ const Stack = createStackNavigator()
 
 enableFreeze()
 
-// export const headerDefaultStyle = {
-// get backgroundColor() {
-// return Styles.globalColors.fastBlank
-// },
-// get borderBottomColor() {
-// return Styles.globalColors.black_10
-// },
-// borderBottomWidth: 1,
-// borderStyle: 'solid',
-// elevation: undefined, // since we use screen on android turn off drop shadow
-// // headerExtraHeight is only hooked up for tablet. On other platforms, react-navigation calculates header height.
-// ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
-// }
+export const headerDefaultStyle = {
+  get backgroundColor() {
+    return Styles.globalColors.fastBlank
+  },
+  get borderBottomColor() {
+    return Styles.globalColors.black_10
+  },
+  borderBottomWidth: 1,
+  borderStyle: 'solid',
+  elevation: undefined, // since we use screen on android turn off drop shadow
+  // headerExtraHeight is only hooked up for tablet. On other platforms, react-navigation calculates header height.
+  ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
+}
 
 // // Options used by default on all navigators
 // // For info on what is passed to what see here: https://github.com/react-navigation/stack/blob/478c354248f2aedfc304a1c4b479c3df359d3868/src/views/Header/Header.js
-// const defaultNavigationOptions: any = {
-// backBehavior: 'none',
-// header: null,
-// headerLeft: HeaderLeftArrow,
-// headerStyle: headerDefaultStyle,
-// headerTitle: hp => (
-// <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
-// {hp.children}
-// </Kb.Text>
-// ),
-// }
+const defaultNavigationOptions: any = {
+  header: undefined,
+  headerLeft: HeaderLeftArrow,
+  headerStyle: headerDefaultStyle,
+  headerTitle: hp => (
+    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
+      {hp.children}
+    </Kb.Text>
+  ),
+}
 
 // // workaround for https://github.com/react-navigation/react-navigation/issues/4872 else android will eat clicks
 // const headerMode = Styles.isAndroid ? 'screen' : 'float'
@@ -437,20 +436,20 @@ const tabStyles = Styles.styleSheetCreate(
 // }
 // }
 
-// const styles = Styles.styleSheetCreate(() => ({
-// fsBadgeIconUpload: {
-// bottom: Styles.globalMargins.tiny,
-// height: Styles.globalMargins.small,
-// position: 'absolute',
-// right: Styles.globalMargins.small,
-// width: Styles.globalMargins.small,
-// },
-// headerTitle: {color: Styles.globalColors.black},
-// keyboard: {
-// flexGrow: 1,
-// position: 'relative',
-// },
-// }))
+const styles = Styles.styleSheetCreate(() => ({
+  fsBadgeIconUpload: {
+    bottom: Styles.globalMargins.tiny,
+    height: Styles.globalMargins.small,
+    position: 'absolute',
+    right: Styles.globalMargins.small,
+    width: Styles.globalMargins.small,
+  },
+  headerTitle: {color: Styles.globalColors.black},
+  keyboard: {
+    flexGrow: 1,
+    position: 'relative',
+  },
+}))
 
 // export default RNApp
 const Tab = createBottomTabNavigator()
@@ -465,7 +464,12 @@ const makeStack = tab => {
     const S = createStackNavigator()
     Comp = () => {
       return (
-        <S.Navigator initialRouteName={tabRoots[tab]}>
+        <S.Navigator
+          initialRouteName={tabRoots[tab]}
+          screenOptions={{
+            ...defaultNavigationOptions,
+          }}
+        >
           {makeNavScreens(Shim.shim(routes), S.Screen)}
         </S.Navigator>
       )
@@ -498,6 +502,7 @@ const RNApp = () => {
       <Tab.Navigator
         backBehavior="none"
         screenOptions={({route}) => ({
+          ...defaultNavigationOptions,
           headerShown: false,
           tabBarShowLabel: Styles.isTablet,
           tabBarStyle: {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest},

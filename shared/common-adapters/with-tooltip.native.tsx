@@ -5,7 +5,7 @@ import {useTimeout} from './use-timers'
 import useMounted from './use-mounted'
 import ClickableBox from './clickable-box'
 import Text from './text'
-import Animated from './animated'
+import {useSpring, animated} from './animated'
 import * as Styles from '../styles'
 import {Props} from './with-tooltip'
 
@@ -16,7 +16,6 @@ import {Props} from './with-tooltip'
 // "top center" for now.
 
 const Kb = {
-  Animated,
   ClickableBox,
   FloatingBox,
   NativeDimensions,
@@ -35,11 +34,14 @@ const measureCb =
   (_x: number, _y: number, width: number, height: number, pageX: number, pageY: number) =>
     resolve({height, left: pageX, top: pageY, width})
 
+const AnimatedFloatingBox = animated(Kb.FloatingBox)
+
 const WithTooltip = (props: Props) => {
   const {position} = props
   const [left, setLeft] = React.useState(0)
   const [top, setTop] = React.useState(0)
   const [visible, setVisible] = React.useState(false)
+  const animatedStyle = useSpring({to: {opacity: visible ? 1 : 0}})
   const clickableRef = React.useRef<NativeView>(null)
   const tooltipRef = React.useRef<NativeView>(null)
   const setVisibleFalseLater = useTimeout(() => {
@@ -88,36 +90,31 @@ const WithTooltip = (props: Props) => {
       <Kb.NativeView style={props.containerStyle as any} ref={clickableRef} collapsable={false}>
         <Kb.ClickableBox onClick={_onClick}>{props.children}</Kb.ClickableBox>
       </Kb.NativeView>
-      <Kb.Animated to={{opacity: visible ? 1 : 0}}>
-        {animatedStyle => (
-          <Kb.FloatingBox>
-            <Kb.NativeView
-              pointerEvents="none"
-              style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top}])}
+      <AnimatedFloatingBox style={animatedStyle}>
+        <Kb.NativeView
+          pointerEvents="none"
+          style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top}])}
+        >
+          <Kb.NativeView
+            style={Styles.collapseStyles([
+              styles.container,
+              {left},
+              props.backgroundColor && {backgroundColor: props.backgroundColor},
+            ])}
+            ref={tooltipRef}
+            collapsable={false}
+          >
+            <Kb.Text
+              center={!props.multiline}
+              type="BodySmall"
+              style={Styles.collapseStyles([styles.text, props.textStyle])}
+              lineClamp={props.multiline ? undefined : 1}
             >
-              <Kb.NativeView
-                style={Styles.collapseStyles([
-                  animatedStyle,
-                  styles.container,
-                  {left},
-                  props.backgroundColor && {backgroundColor: props.backgroundColor},
-                ])}
-                ref={tooltipRef}
-                collapsable={false}
-              >
-                <Kb.Text
-                  center={!props.multiline}
-                  type="BodySmall"
-                  style={Styles.collapseStyles([styles.text, props.textStyle])}
-                  lineClamp={props.multiline ? undefined : 1}
-                >
-                  {props.tooltip}
-                </Kb.Text>
-              </Kb.NativeView>
-            </Kb.NativeView>
-          </Kb.FloatingBox>
-        )}
-      </Kb.Animated>
+              {props.tooltip}
+            </Kb.Text>
+          </Kb.NativeView>
+        </Kb.NativeView>
+      </AnimatedFloatingBox>
     </>
   )
 }

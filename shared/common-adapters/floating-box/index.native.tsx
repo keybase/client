@@ -6,7 +6,7 @@ import {Props} from '.'
 import {globalStyles} from '../../styles'
 
 export default class FloatingBox extends React.Component<Props> {
-  componentWillMount() {
+  componentDidMount() {
     if (this.props.hideKeyboard) {
       NativeKeyboard.dismiss()
     }
