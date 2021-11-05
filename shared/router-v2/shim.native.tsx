@@ -7,12 +7,12 @@ import {PerfWrapper} from '../util/use-perf'
 
 export const shim = (routes: any) => Shared.shim(routes, shimNewRoute)
 
-let isV8 = false
-try {
-  // @ts-ignore
-  console.log(`V8 version is ${global._v8runtime().version}`)
-  isV8 = true
-} catch (_) {}
+// let isV8 = false
+// try {
+// // @ts-ignore
+// console.log(`V8 version is ${global._v8runtime().version}`)
+// isV8 = true
+// } catch (_) {}
 
 const shimNewRoute = (Original: any) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
@@ -20,20 +20,20 @@ const shimNewRoute = (Original: any) => {
   const ShimmedNew = React.memo((props: any) => {
     const navigationOptions =
       typeof Original.navigationOptions === 'function'
-        ? Original.navigationOptions({navigation: props.navigation})
+        ? Original.navigationOptions({navigation: props.navigation, route: props.route})
         : Original.navigationOptions
 
     const original = <Original {...props} key={Styles.isDarkMode() ? 'dark' : 'light'} />
     let body = original
 
-    const renderDebug = Shared.getRenderDebug()
-    if (renderDebug) {
-      body = (
-        <PerfWrapper style={styles.perf} prefix={isV8 ? 'V8: ' : 'JSC: '}>
-          {original}
-        </PerfWrapper>
-      )
-    }
+    // const renderDebug = Shared.getRenderDebug()
+    // if (renderDebug) {
+    // body = (
+    // <PerfWrapper style={styles.perf} prefix={isV8 ? 'V8: ' : 'JSC: '}>
+    // {original}
+    // </PerfWrapper>
+    // )
+    // }
 
     // we try and determine the  offset based on seeing if the header exists
     // this isn't perfect and likely we should move where this avoiding view is relative to the stack maybe

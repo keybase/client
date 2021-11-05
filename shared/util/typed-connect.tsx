@@ -23,7 +23,7 @@ const compareAndComplain = (msp: any, try1: any, try2: any, loc: any) => {
   }
 }
 
-const connect: typeof RR.connect =
+const connect_ =
   __DEV__ && flags.connectThrashCheck
     ? (msp: any, mdp, mp, opt) => {
         let checkingMSP: any
@@ -59,18 +59,20 @@ const connect: typeof RR.connect =
       }
     : RR.connect
 
+const connect: RR.Connect<TypedState> = connect_ as any
+
 /** TODO deprecate, not compatible with hooks */
-export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
-  mapStateToProps: RR.MapStateToProps<TStateProps, TOwnProps>,
+export const namedConnect = <TOwnProps, TDispatchProps, TMergedProps>(
+  mapStateToProps: RR.MapStateToProps<TypedState, TOwnProps>,
   mapDispatchToProps: RR.MapDispatchToProps<TDispatchProps, TOwnProps>,
-  mergeProps: RR.MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
+  mergeProps: RR.MergeProps<TypedState, TDispatchProps, TOwnProps, TMergedProps>,
   displayName: string,
-  options?: RR.Options<TypedState, TStateProps, TOwnProps, TMergedProps>
+  options?: RR.Options<TypedState, TypedState, TOwnProps, TMergedProps>
 ) => {
   const Connected = connect(mapStateToProps, mapDispatchToProps, mergeProps, options)
   // @ts-ignore
   Connected.displayName = displayName
-  return Connected as RR.ConnectedComponentType<TMergedProps, TOwnProps>
+  return Connected as any // RR.ConnectedComponentType<TMergedProps, TOwnProps>
 }
 
 export default connect

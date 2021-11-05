@@ -6,7 +6,8 @@ import {TypedState as _TypedState} from '../constants/reducer'
 import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
-import {useSelector} from 'react-redux'
+import {useSelector as RRuseSelector, useDispatch as RRuseDispatch, TypedUseSelectorHook} from 'react-redux'
+import {Dispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
 
 // to keep fallback objects static for react
@@ -28,7 +29,7 @@ export function getRouteProps<O extends _RouteProps<any>, R extends GetRouteType
   key: K,
   notSetVal: R[K] // this could go away if we type the routes better and ensure its always passed as a prop
 ): R[K] {
-  const val = ownProps.navigation.getParam(key)
+  const val = ownProps.route.params?.[key]
   return val === undefined ? notSetVal : val
 }
 
@@ -37,14 +38,14 @@ export function getRoutePropsOr<O extends _RouteProps<any>, R extends GetRouteTy
   key: K,
   notSetVal: D
 ): R[K] | D {
-  const val = ownProps.navigation.getParam(key)
+  const val = ownProps.route.params?.[key]
   return val === undefined ? notSetVal : val
 }
 
 export type RemoteWindowSerializeProps<P> = {[K in keyof P]-?: (val: P[K], old?: P[K]) => any}
 
 export type TypedDispatch = (action: _TypedActions) => void
-export type Dispatch = TypedDispatch
+// export type Dispatch = TypedDispatch
 
 export const useAnyWaiting = (...waitingKeys: string[]) =>
   useSelector(state => anyWaiting(state, ...waitingKeys))
@@ -98,7 +99,6 @@ export {useSafeNavigation} from './safe-navigation'
 export type RouteProps<P = {}> = _RouteProps<P>
 export type TypedActions = _TypedActions
 export type TypedState = _TypedState
-export {useSelector, useDispatch} from 'react-redux'
 export const compose = flowRight
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
 export {produce, castDraft, castImmutable} from 'immer'
@@ -109,3 +109,6 @@ export type ActionHandler<S, A> = _ActionHandler<S, A>
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
 export {default as useWatchActions} from './use-watch-actions'
+export type RootState = _TypedState
+export const useDispatch = () => RRuseDispatch<Dispatch<_TypedActions>>()
+export const useSelector: TypedUseSelectorHook<RootState> = RRuseSelector

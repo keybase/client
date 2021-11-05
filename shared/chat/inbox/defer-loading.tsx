@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import Inbox from './container'
-import {useIsFocused} from '@react-navigation/native'
+import {useIsFocused, useNavigationState} from '@react-navigation/native'
 
 type Props = Container.RouteProps<{}>
 
@@ -9,9 +9,10 @@ type Props = Container.RouteProps<{}>
 let _everFocused = false
 
 const Deferred = (props: Props) => {
-    const isFocused = useIsFocused()
+  const isFocused = useIsFocused()
+  const navKey = useNavigationState(state => state.key)
   _everFocused = _everFocused || isFocused
-  return _everFocused ? <Inbox navKey={props.navigation.state.key} /> : null
+  return _everFocused ? <Inbox navKey={navKey} /> : null
 }
 
 // @ts-ignore TS doesn't understand hoisting

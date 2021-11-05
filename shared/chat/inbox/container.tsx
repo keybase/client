@@ -100,7 +100,7 @@ let InboxWrapper = (props: Props) => {
 // @ts-ignore
 InboxWrapper.navigationOptions = {
   header: undefined,
-  headerRight: <HeaderNewChatButton />,
+  headerRight: () => <HeaderNewChatButton />,
   headerTitle: () => (
     <Kb.Text type="BodyBig" lineClamp={1}>
       {' '}

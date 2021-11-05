@@ -125,7 +125,7 @@ export default () => {
   const navigation = useNavigation()
   return (
     <Connected
-      conversationIDKey={navigation.getParam('conversationIDKey', Constants.noConversationIDKey)}
+      conversationIDKey={navigation.params.conversationIDKey ?? Constants.noConversationIDKey}
       progress={null}
     />
   )
