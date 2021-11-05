@@ -7,9 +7,9 @@ export type RouteProps<T extends {[key: string]: any}> = {
       routeName: string
     }
   }
-    route: {
-      params: T
-    }
+  route: {
+    params: T
+  }
 }
 
 export type GetRouteType<R extends RouteProps<any>> = R extends RouteProps<infer T> ? T : never
