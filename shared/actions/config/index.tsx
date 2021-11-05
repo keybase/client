@@ -101,7 +101,8 @@ function* loadDaemonBootstrapStatus(
   }
 
   function* makeCall() {
-    const s: Saga.RPCPromiseType<typeof RPCTypes.configGetBootstrapStatusRpcPromise> = yield RPCTypes.configGetBootstrapStatusRpcPromise()
+    const s: Saga.RPCPromiseType<typeof RPCTypes.configGetBootstrapStatusRpcPromise> =
+      yield RPCTypes.configGetBootstrapStatusRpcPromise()
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       deviceID: s.deviceID,
       deviceName: s.deviceName,
@@ -251,7 +252,8 @@ function* loadDaemonAccounts(
       )
     }
 
-    const configuredAccounts: Array<RPCTypes.ConfiguredAccount> = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
+    const configuredAccounts: Array<RPCTypes.ConfiguredAccount> =
+      yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
     const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
     yield Saga.put(loadedAction)
 
@@ -631,8 +633,7 @@ const newNavigation = (
     | RouteTreeGen.SwitchTabPayload
     | RouteTreeGen.ResetStackPayload
 ) => {
-  const n = Router2._getNavigator()
-  n && n.dispatchOldAction(action)
+  Router2.dispatchOldAction(action)
 }
 
 function* criticalOutOfDateCheck() {
@@ -640,9 +641,8 @@ function* criticalOutOfDateCheck() {
   // check every hour
   while (true) {
     try {
-      const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> = yield RPCTypes.configGetUpdateInfo2RpcPromise(
-        {}
-      )
+      const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> =
+        yield RPCTypes.configGetUpdateInfo2RpcPromise({})
       let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
       let message: string | null = null
       switch (s.status) {

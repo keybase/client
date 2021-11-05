@@ -1,21 +1,33 @@
-import {NavState, Navigator} from './types/route-tree'
+import {NavState} from './types/route-tree'
 import {getActiveKey as _getActiveKey} from '../router-v2/util'
+import {createNavigationContainerRef} from '@react-navigation/native'
+import {StackActions, CommonActions} from '@react-navigation/core'
+import shallowEqual from 'shallowequal'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Constants from '../constants/router2'
+import {tabRoots} from '../router-v2/routes'
+import logger from '../logger'
 
-let _navigator: Navigator | undefined
-// Private API only used by config sagas
-export const _setNavigator = (navigator: Navigator) => {
-  _navigator = navigator
-  if (__DEV__) {
-    if (require('./platform').isMobile) {
-      global.DEBUGNavigator = _navigator
-    } else {
-      // @ts-ignore
-      window.DEBUGNavigator = _navigator
-    }
-  }
-}
+// let _navigator: Navigator | undefined
+// // Private API only used by config sagas
+// export const _setNavigator = (navigator: Navigator) => {
+// _navigator = navigator
+// if (__DEV__) {
+// if (require('./platform').isMobile) {
+// global.DEBUGNavigator = _navigator
+// } else {
+// // @ts-ignore
+// window.DEBUGNavigator = _navigator
+// }
+// }
+// }
+// export const _getNavigator = () => {
+// return _navigator
+// }
+
+export const navigationRef_ = createNavigationContainerRef()
 export const _getNavigator = () => {
-  return _navigator
+  return navigationRef_.isReady() ? navigationRef_ : undefined
 }
 
 export const findVisibleRoute = (arr: Array<NavState>, s: NavState): Array<NavState> => {
@@ -96,17 +108,17 @@ export const _getFullRouteForNavigator = (navState: NavState) => {
 
 // Public API
 export const getVisiblePath = () => {
-  if (!_navigator) return []
-  return findVisibleRoute([], _navigator.getNavState())
+  if (!navigationRef_.isReady()) return []
+  return findVisibleRoute([], navigationRef_.getRootState())
 }
 
 export const getMainStack = () => {
-  if (!_navigator) return []
-  return findMainRoute(_navigator.getNavState())
+  if (!navigationRef_.isReady()) return []
+  return findMainRoute(navigationRef_.getRootState())
 }
 export const getModalStack = () => {
-  if (!_navigator) return []
-  return findModalRoute(_navigator.getNavState())
+  if (!navigationRef_.isReady()) return []
+  return findModalRoute(navigationRef_.getRootState())
 }
 
 export const getVisibleScreen = () => {
@@ -115,11 +127,133 @@ export const getVisibleScreen = () => {
 }
 
 export const getFullRoute = () => {
-  if (!_navigator) return []
-  return findFullRoute(_navigator.getNavState())
+  if (!navigationRef_.isReady()) return []
+  return findFullRoute(navigationRef_.getRootState())
 }
 
 export const getActiveKey = (): string => {
-  if (!_navigator) return ''
-  return _getActiveKey(_navigator.getNavState())
+  if (!navigationRef_.isReady()) return ''
+  return _getActiveKey(navigationRef_.getRootState())
+}
+
+// Helper to convert old route tree actions to new actions. Likely goes away as we make
+// actual routing actions (or make RouteTreeGen append/up the only action)
+const oldActionToNewActions = (action: any, navigationState: any, allowAppendDupe?: boolean) => {
+  switch (action.type) {
+    case RouteTreeGen.setParams: {
+      return [{...CommonActions.setParams(action.payload.params), source: action.payload.key}]
+    }
+    case RouteTreeGen.navigateAppend: {
+      if (!navigationState) {
+        return
+      }
+      const p = action.payload.path.last
+        ? action.payload.path.last()
+        : action.payload.path[action.payload.path.length - 1]
+      if (!p) {
+        return
+      }
+      let routeName: string | null = null
+      let params: any | undefined
+
+      if (typeof p === 'string') {
+        routeName = p
+      } else {
+        routeName = p.selected
+        params = p.props
+      }
+
+      if (!routeName) {
+        return
+      }
+
+      const path = Constants._getVisiblePathForNavigator(navigationState)
+      const visible = path[path.length - 1]
+      if (visible) {
+        if (!allowAppendDupe && routeName === visible.routeName && shallowEqual(visible.params, params)) {
+          console.log('Skipping append dupe')
+          return
+        }
+      }
+
+      if (action.payload.fromKey) {
+        const {fromKey} = action.payload
+        const activeKey = getActiveKey(navigationState)
+        if (fromKey !== activeKey) {
+          logger.warn('Skipping append on wrong screen')
+          return
+        }
+      }
+
+      if (action.payload.replace) {
+        return [StackActions.replace(routeName, params)]
+      }
+
+      return [StackActions.push(routeName, params)]
+    }
+    case RouteTreeGen.switchTab: {
+      return [CommonActions.navigate({key: action.payload.tab, name: action.payload.tab})]
+    }
+    case RouteTreeGen.switchLoggedIn: {
+      return [CommonActions.navigate({name: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]
+    }
+    case RouteTreeGen.clearModals: {
+      return [] // TEMP
+      // return [StackActions.popToTop({key: 'loggedIn'})]
+    }
+    case RouteTreeGen.navigateUp:
+      return [{...CommonActions.goBack(), source: action.payload.fromKey}]
+    case RouteTreeGen.navUpToScreen: {
+      const fullPath = Constants._getFullRouteForNavigator(navigationState)
+      const popActions: Array<unknown> = []
+      const isInStack = fullPath.reverse().some(r => {
+        if (r.routeName === action.payload.routeName) {
+          return true
+        }
+        popActions.push(StackActions.pop())
+        return false
+      })
+      return isInStack ? popActions : []
+    }
+    case RouteTreeGen.resetStack: {
+      // TODO check for append dupes within these
+      const actions = action.payload.actions.reduce(
+        (arr, a) => [...arr, ...(oldActionToNewActions(a, navigationState, true) || [])],
+        // 'loggedOut' is the root
+        action.payload.tab === 'loggedOut' ? [] : [StackActions.push(tabRoots[action.payload.tab])]
+      )
+      return undefined // TEMP
+      // return [
+      // StackActions.reset({
+      // actions,
+      // index: action.payload.index,
+      // key: action.payload.tab,
+      // }),
+      // ]
+    }
+    default:
+      return undefined
+  }
+}
+
+export const dispatchOldAction = (
+  action:
+    | RouteTreeGen.SetParamsPayload
+    | RouteTreeGen.NavigateAppendPayload
+    | RouteTreeGen.NavigateUpPayload
+    | RouteTreeGen.SwitchLoggedInPayload
+    | RouteTreeGen.ClearModalsPayload
+    | RouteTreeGen.NavUpToScreenPayload
+    | RouteTreeGen.SwitchTabPayload
+    | RouteTreeGen.ResetStackPayload
+) => {
+  if (!navigationRef_.isReady()) {
+    return
+  }
+  const actions = oldActionToNewActions(action, navigationRef_.getRootState()) || []
+  try {
+    actions.forEach(a => navigationRef_.dispatch(a))
+  } catch (e) {
+    logger.error('Nav error', e)
+  }
 }

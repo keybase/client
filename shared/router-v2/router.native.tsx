@@ -493,7 +493,7 @@ const makeNavScreens = (rs, Screen) => {
 
 const RNApp = () => {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={Constants.navigationRef_}>
       <Tab.Navigator
         backBehavior="none"
         screenOptions={({route}) => ({

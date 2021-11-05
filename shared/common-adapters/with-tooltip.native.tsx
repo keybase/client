@@ -30,14 +30,10 @@ type Dims = {
   top: number
   width: number
 }
-const measureCb = (resolve: (dims: Dims) => void) => (
-  _x: number,
-  _y: number,
-  width: number,
-  height: number,
-  pageX: number,
-  pageY: number
-) => resolve({height, left: pageX, top: pageY, width})
+const measureCb =
+  (resolve: (dims: Dims) => void) =>
+  (_x: number, _y: number, width: number, height: number, pageX: number, pageY: number) =>
+    resolve({height, left: pageX, top: pageY, width})
 
 const WithTooltip = (props: Props) => {
   const {position} = props
@@ -92,7 +88,7 @@ const WithTooltip = (props: Props) => {
       <Kb.NativeView style={props.containerStyle as any} ref={clickableRef} collapsable={false}>
         <Kb.ClickableBox onClick={_onClick}>{props.children}</Kb.ClickableBox>
       </Kb.NativeView>
-      <Kb.Animated from={{}} to={{opacity: visible ? 1 : 0}}>
+      <Kb.Animated to={{opacity: visible ? 1 : 0}}>
         {animatedStyle => (
           <Kb.FloatingBox>
             <Kb.NativeView
