@@ -17,15 +17,11 @@ require (
 	github.com/antchfx/xpath v0.0.0-20180922041825-3de91f3991a1 // indirect
 	github.com/araddon/dateparse v0.0.0-20180729174819-cfd92a431d0e
 	github.com/blang/semver v3.0.1+incompatible
-	github.com/blevesearch/bleve v0.8.2-0.20191030071327-189ee421f71e
-	github.com/blevesearch/blevex v0.0.0-20190916190636-152f0fe5c040 // indirect
-	github.com/blevesearch/go-porterstemmer v1.0.2 // indirect
-	github.com/blevesearch/segment v0.8.0 // indirect
+	github.com/blevesearch/bleve v1.0.5
 	github.com/btcsuite/btcutil v0.0.0-20180706230648-ab6388e0c60a
 	github.com/buger/jsonparser v0.0.0-20180131123142-4be68c93a244
 	github.com/coreos/go-systemd v0.0.0-20170731111925-d21964639418
 	github.com/coreos/pkg v0.0.0-20170901145554-459346e834d8 // indirect
-	github.com/couchbase/vellum v1.0.0 // indirect
 	github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d // indirect
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
 	github.com/cznic/strutil v0.0.0-20181122101858-275e90344537 // indirect
@@ -37,7 +33,6 @@ require (
 	github.com/eapache/queue v1.1.1-0.20180227141424-093482f3f8ce // indirect
 	github.com/edsrzf/mmap-go v1.0.1-0.20190108065903-904c4ced31cd // indirect
 	github.com/emirpasic/gods v1.12.1-0.20181020102604-7c131f671417 // indirect
-	github.com/etcd-io/bbolt v1.3.4-0.20191122203157-7f8bb47fcaf8 // indirect
 	github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/gammazero/deque v0.0.0-20180920172122-f6adf94963e4 // indirect
 	github.com/gammazero/workerpool v0.0.0-20181230203049-86a96b5d5d92
@@ -49,7 +44,6 @@ require (
 	github.com/gocolly/colly v1.1.1-0.20190204140905-b3032e87d3ef // indirect
 	github.com/golang/groupcache v0.0.0-20181024230925-c65c006176ff
 	github.com/golang/mock v1.2.1-0.20181221212429-e698a2ea17fe
-	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.0
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
@@ -93,7 +87,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/xattr v0.2.2
 	github.com/qrtz/nativemessaging v0.0.0-20161221035708-f4769a80e040
-	github.com/rcrowley/go-metrics v0.0.0-20161128210544-1f30fe9094a5
+	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/reiver/go-oi v1.0.0 // indirect
 	github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
@@ -106,7 +100,6 @@ require (
 	github.com/src-d/gcfg v1.3.0 // indirect
 	github.com/stathat/go v1.0.0
 	github.com/stellar/go v0.0.0-20191010205648-0fc3bfe3dfa7
-	github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2 // indirect
 	github.com/stretchr/testify v1.5.1
 	github.com/strib/gomounts v0.0.0-20180215003523-d9ea4eaa52ca // indirect
 	github.com/syndtr/goleveldb v1.0.0
@@ -116,17 +109,16 @@ require (
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	github.com/willf/bitset v1.1.11-0.20190404145324-77892cd8d53f // indirect
 	github.com/xanzy/ssh-agent v0.2.0 // indirect
-	go.etcd.io/bbolt v1.3.3 // indirect
 	go.uber.org/atomic v1.3.3-0.20181018215023-8dc6146f7569 // indirect
 	go.uber.org/multierr v1.1.1-0.20180122172545-ddea229ff1df // indirect
 	go.uber.org/zap v1.9.2-0.20180814183419-67bc79d13d15
 	go4.org v0.0.0-20161118210015-09d86de304dc // indirect
-	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
+	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
-	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
+	golang.org/x/net v0.0.0-20200813134508-3edf25e44fcc
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20190909082730-f460065e899a
-	golang.org/x/text v0.3.2
+	golang.org/x/sys v0.0.0-20200814200057-3d37ad5750ed
+	golang.org/x/text v0.3.3
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.2
@@ -140,14 +132,10 @@ require (
 
 // keybase maintained forks
 replace (
-	bazil.org/fuse => github.com/keybase/fuse v0.0.0-20190320191938-5a45981690d8
+	bazil.org/fuse => github.com/keybase/fuse v0.0.0-20210104232444-d36009698767
 	github.com/stellar/go => github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7
-	github.com/syndtr/goleveldb => github.com/keybase/goleveldb v1.0.1-0.20191127193458-e8e1e74c283d
+	github.com/syndtr/goleveldb => github.com/keybase/goleveldb v1.0.1-0.20211106225230-2a53fac0721c
 	gopkg.in/src-d/go-billy.v4 => github.com/keybase/go-billy v3.1.1-0.20180828145748-b5a7b7bc2074+incompatible
 	gopkg.in/src-d/go-git.v4 => github.com/keybase/go-git v4.0.0-rc9.0.20190209005256-3a78daa8ce8e+incompatible
 	mvdan.cc/xurls/v2 => github.com/keybase/xurls/v2 v2.0.1-0.20190725180013-1e015cacd06c
 )
-
-// temporary workaround for https://github.com/blevesearch/bleve/issues/1360
-// should be removed if bleve is updated to a commit past https://github.com/blevesearch/bleve/commit/a9895fdf9c72cfaa202128a963697d9a98765369
-replace github.com/etcd-io/bbolt => go.etcd.io/bbolt v1.3.4-0.20191122203157-7f8bb47fcaf8
