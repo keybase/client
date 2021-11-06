@@ -796,8 +796,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				summaries = append(summaries, tlfSummary)
 			}
 		}
+		reason := chat1.GetThreadReason_LOCALIZE
 		msgs, err := s.G().ConvSource.GetMessages(ctx, conversationRemote.GetConvID(),
-			uid, utils.PluckMessageIDs(summaries), nil, nil, false)
+			uid, utils.PluckMessageIDs(summaries), &reason, nil, false)
 		if !s.isErrPermanent(err) {
 			errTyp = chat1.ConversationErrorType_TRANSIENT
 		}

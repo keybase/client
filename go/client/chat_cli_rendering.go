@@ -71,7 +71,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 		}
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5,                                 // visualIndex
+		15,                                // visualIndex
 		8,                                 // vis
 		flexibletable.ExpandableWrappable, // participants
 		flexibletable.ExpandableWrappable, // reset
@@ -317,7 +317,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	}
 
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5,                                     // visualIndex
+		15,                                    // visualIndex
 		1,                                     // unread
 		flexibletable.ColumnConstraint(w / 5), // convName
 		flexibletable.ColumnConstraint(w / 5), // authorAndTime
@@ -417,7 +417,7 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 		}
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5,                                     // messageID
+		15,                                    // messageID
 		1,                                     // unread
 		flexibletable.ColumnConstraint(w / 5), // authorAndTime
 		flexibletable.ColumnConstraint(w / 5), // restrictedBotInfo
@@ -756,7 +756,7 @@ func newMessageViewNoMessages() (mv messageView) {
 // newMessageView extracts from a message the parts for display
 // It may fetch the superseding message. So that for example a TEXT message will show its EDIT text.
 func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (mv messageView, err error) {
-	defer func() { mv.Body = emoji.Sprintf(mv.Body) }()
+	defer func() { mv.Body = emoji.Sprint(mv.Body) }()
 	state, err := m.State()
 	if err != nil {
 		return mv, fmt.Errorf("unexpected empty message")

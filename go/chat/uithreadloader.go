@@ -238,6 +238,13 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 				newMsg.GetMessageID())
 			return true
 		}
+		// If the message was exploded by someone, include it
+		if newMsg.Valid().ExplodedBy() != nil &&
+			(oldMsg.Valid().ExplodedBy() == nil || *newMsg.Valid().ExplodedBy() != *oldMsg.Valid().ExplodedBy()) {
+			t.Debug(ctx, "mergeLocalRemoteThread: including explodedBy change: msgID: %d",
+				newMsg.GetMessageID())
+			return true
+		}
 		// Any reactions or unfurl messages go
 		if newMsg.HasUnfurls() || oldMsg.HasUnfurls() || newMsg.HasReactions() || oldMsg.HasReactions() {
 			t.Debug(ctx, "mergeLocalRemoteThread: including reacted/unfurled msg: msgID: %d",

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BuildMachineOSBuild</key>
+	<string>19H15</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>kbfuse</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.github.kbfuse.filesystems.kbfuse</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>macFUSE</string>
+	<key>CFBundlePackageType</key>
+	<string>KEXT</string>
+	<key>CFBundleSignature</key>
+	<string>FUSE</string>
+	<key>CFBundleSupportedPlatforms</key>
+	<array>
+		<string>MacOSX</string>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>2053.20</string>
+	<key>DTCompiler</key>
+	<string>com.apple.compilers.llvm.clang.1_0</string>
+	<key>DTPlatformBuild</key>
+	<string>12B45b</string>
+	<key>DTPlatformName</key>
+	<string>macosx</string>
+	<key>DTPlatformVersion</key>
+	<string>11.0</string>
+	<key>DTSDKBuild</key>
+	<string>20A2408</string>
+	<key>DTSDKName</key>
+	<string>macosx11.0</string>
+	<key>DTXcode</key>
+	<string>1220</string>
+	<key>DTXcodeBuild</key>
+	<string>12B45b</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>11.0</string>
+	<key>OSBundleLibraries</key>
+	<dict>
+		<key>com.apple.kpi.bsd</key>
+		<string>20.0.0</string>
+		<key>com.apple.kpi.iokit</key>
+		<string>20.0.0</string>
+		<key>com.apple.kpi.libkern</key>
+		<string>20.0.0</string>
+		<key>com.apple.kpi.mach</key>
+		<string>20.0.0</string>
+		<key>com.apple.kpi.unsupported</key>
+		<string>20.0.0</string>
+	</dict>
+</dict>
+</plist>

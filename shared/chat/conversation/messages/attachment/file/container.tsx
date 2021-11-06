@@ -1,4 +1,5 @@
 import * as Types from '../../../../../constants/types/chat2'
+import * as Constants from '../../../../../constants/chat2'
 import * as CryptoTypes from '../../../../../constants/types/crypto'
 import * as Tabs from '../../../../../constants/tabs'
 import * as FsGen from '../../../../../actions/fs-gen'
@@ -11,11 +12,16 @@ import {isPathSaltpack} from '../../../../../constants/crypto'
 import File from '.'
 
 type OwnProps = {
+  isHighlighted?: boolean
   message: Types.MessageAttachment
 }
 
 export default Container.connect(
-  () => ({}),
+  (state: Container.TypedState, ownProps: OwnProps) => {
+    const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
+    const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
+    return {isEditing}
+  },
   dispatch => ({
     _onDownload: (message: Types.MessageAttachment) => {
       switch (message.transferState) {
@@ -47,7 +53,7 @@ export default Container.connect(
         dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
     },
   }),
-  (_, dispatchProps, ownProps: OwnProps) => {
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
     const message = ownProps.message
     const {downloadPath, transferState} = message
     const arrowColor = Container.isMobile
@@ -64,6 +70,8 @@ export default Container.connect(
       errorMsg: message.transferErrMsg || '',
       fileName: message.fileName,
       hasProgress,
+      isEditing: stateProps.isEditing,
+      isHighlighted: ownProps.isHighlighted,
       isSaltpackFile: isPathSaltpack(message.fileName),
       message,
       onDownload: () => {

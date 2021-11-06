@@ -81,6 +81,10 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
     this.setState({selected}, this._handleSelection)
   }
 
+  _isSelected = (policy: RetentionPolicy) => {
+    return policyEquals(this.props.policy, policy)
+  }
+
   _setSaving = (saving: boolean) => {
     this.setState({saving})
   }
@@ -94,7 +98,14 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
       switch (policy.type) {
         case 'retain':
         case 'expire':
-          return [...arr, {onClick: () => this._onSelect(policy), title: policy.title}] as Kb.MenuItems
+          return [
+            ...arr,
+            {
+              isSelected: this._isSelected(policy),
+              onClick: () => this._onSelect(policy),
+              title: policy.title,
+            },
+          ] as Kb.MenuItems
         case 'inherit':
           if (this.props.teamPolicy) {
             let title = ''
@@ -109,6 +120,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
             }
             return [
               {
+                isSelected: this._isSelected(policy),
                 onClick: () => this._onSelect(policy),
                 title,
               },
@@ -123,6 +135,8 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
             ...arr,
             {
               icon: 'iconfont-timer',
+              iconIsVisible: true,
+              isSelected: this._isSelected(policy),
               onClick: () => this._onSelect(policy),
               title: policy.title,
             },

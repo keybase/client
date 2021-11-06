@@ -1,4 +1,7 @@
 import * as Constants from '../constants/router2'
+import * as ConfigGen from '../actions/config-gen'
+import HiddenString from '../util/hidden-string'
+import * as LoginGen from '../actions/login-gen'
 import * as Kbfs from '../fs/common'
 import * as Kb from '../common-adapters/mobile.native'
 import * as React from 'react'
@@ -129,6 +132,30 @@ const TabBarIconContainer = props => (
     <Kb.Box children={props.children} style={props.style} />
   </Kb.NativeTouchableWithoutFeedback>
 )
+const TabBarPeopleIconContainer = props => {
+  const {onPress} = props
+  const dispatch = Container.useDispatch()
+  const accountRows = Container.useSelector(state => state.config.configuredAccounts)
+  const current = Container.useSelector(state => state.config.username)
+  const onQuickSwitch = React.useCallback(() => {
+    const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
+    if (row) {
+      dispatch(ConfigGen.createSetUserSwitching({userSwitching: true}))
+      dispatch(LoginGen.createLogin({password: new HiddenString(''), username: row.username}))
+    } else {
+      onPress()
+    }
+  }, [accountRows, dispatch, current, onPress])
+  return (
+    <Kb.NativeTouchableWithoutFeedback
+      style={props.style}
+      onPress={props.onPress}
+      onLongPress={onQuickSwitch}
+    >
+      <Kb.Box children={props.children} style={props.style} />
+    </Kb.NativeTouchableWithoutFeedback>
+  )
+}
 
 // globalColors automatically respects dark mode pref
 const getBg = () => Styles.globalColors.white
@@ -200,7 +227,12 @@ const VanillaTabNavigator = createBottomTabNavigator(
       const tabBarVisible = routeName !== 'chatConversation'
 
       return {
-        tabBarButtonComponent: navigation.state.routeName === 'blank' ? BlankScreen : TabBarIconContainer,
+        tabBarButtonComponent:
+          navigation.state.routeName === 'blank'
+            ? BlankScreen
+            : navigation.state.routeName === Tabs.peopleTab
+            ? TabBarPeopleIconContainer
+            : TabBarIconContainer,
         tabBarIcon: ({focused}) => (
           <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName as Tabs.Tab} />
         ),

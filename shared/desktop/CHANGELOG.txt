@@ -1,2 +1,1 @@
-• Keybase now supports custom emoji
-• Search for bots and open teams from your inbox
+• Bug fixes and improvements

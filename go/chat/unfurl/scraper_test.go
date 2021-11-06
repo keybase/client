@@ -227,6 +227,14 @@ func TestScraper(t *testing.T) {
 		ImageUrl:    strPtr("https://i.ytimg.com/vi/mmJ_LT8bUj0/hqdefault.jpg"),
 		FaviconUrl:  strPtr("https://s.ytimg.com/yts/img/favicon-vfl8qSV2F.ico"),
 	}), true, nil, nil)
+	testCase("youtube1.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
+		Title:       "Pumped to Be Here: Brazil's Game Fans",
+		Url:         "https://www.youtube.com/watch?v=mmJ_LT8bUj0",
+		SiteName:    "YouTube",
+		Description: strPtr("Brazil's games, consoles, and markets may seem strange, but there's plenty that's familiar, too. SUPPORT US ON PATREON! https://patreon.com/clothmap Patrons ..."),
+		ImageUrl:    strPtr("https://i.ytimg.com/vi/6IIQFBb4exU/maxresdefault.jpg"),
+		FaviconUrl:  strPtr("https://s.ytimg.com/yts/img/favicon-vfl8qSV2F.ico"),
+	}), true, nil, nil)
 	testCase("twitter0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "Ars Technica on Twitter",
 		Url:         "https://twitter.com/arstechnica/status/1057679097869094917",

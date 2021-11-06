@@ -333,11 +333,19 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 				return nil, 0, err
 			}
 			name := path[0][len(libfs.FileInfoPrefix):]
-			return NewFileInfoFile(d.folder.fs, d.node, name), 0, nil
+			kbfsName, err := libkb.DecodeWindowsNameForKbfs(name)
+			if err != nil {
+				return nil, 0, err
+			}
+			return NewFileInfoFile(d.folder.fs, d.node, kbfsName), 0, nil
 		}
 
+		kbfsName, err := libkb.DecodeWindowsNameForKbfs(path[0])
+		if err != nil {
+			return nil, 0, err
+		}
 		newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(
-			ctx, d.node, d.node.ChildName(path[0]))
+			ctx, d.node, d.node.ChildName(kbfsName))
 
 		// If we are in the final component, check if it is a creation.
 		if leaf {
@@ -469,6 +477,9 @@ func getExclFromOpenContext(oc *openContext) libkbfs.Excl {
 }
 
 func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, cst dokan.CreateStatus, err error) {
+	if name, err = libkb.DecodeWindowsNameForKbfs(name); err != nil {
+		return nil, 0, err
+	}
 	namePPS := d.node.ChildName(name)
 	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Create %s", namePPS)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
@@ -488,6 +499,9 @@ func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan
 
 func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (
 	f *Dir, cst dokan.CreateStatus, err error) {
+	if name, err = libkb.DecodeWindowsNameForKbfs(name); err != nil {
+		return nil, 0, err
+	}
 	namePPS := d.node.ChildName(name)
 	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Mkdir %s", namePPS)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
@@ -515,12 +529,13 @@ func (d *Dir) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string,
 
 	empty := true
 	var ns dokan.NamedStat
-	for name, de := range children {
+	for pps, de := range children {
+		windowsName := libkb.EncodeKbfsNameForWindows(pps.Plaintext())
 		empty = false
-		ns.Name = name.Plaintext()
+		ns.Name = windowsName
 		// TODO perhaps resolve symlinks here?
 		fillStat(&ns.Stat, &de)
-		if strings.HasPrefix(name.Plaintext(), HiddenFilePrefix) {
+		if strings.HasPrefix(windowsName, HiddenFilePrefix) {
 			addFileAttribute(&ns.Stat, dokan.FileAttributeHidden)
 		}
 		err = callback(&ns)

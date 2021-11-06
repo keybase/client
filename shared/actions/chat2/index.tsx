@@ -1414,13 +1414,15 @@ function* messageEdit(
     return
   }
 
-  if (message.type === 'text') {
+  if (message.type === 'text' || message.type === 'attachment') {
     // Skip if the content is the same
-    if (message.text.stringValue() === text.stringValue()) {
+    if (message.type === 'text' && message.text.stringValue() === text.stringValue()) {
+      yield Saga.put(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+      return
+    } else if (message.type === 'attachment' && message.title === text.stringValue()) {
       yield Saga.put(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
       return
     }
-
     const meta = Constants.getMeta(state, conversationIDKey)
     const tlfName = meta.tlfname
     const clientPrev = Constants.getClientPrev(state, conversationIDKey)
@@ -2181,8 +2183,17 @@ const attachmentPasted = async (action: Chat2Gen.AttachmentPastedPayload) => {
 
   const pathAndOutboxIDs = [{outboxID, path}]
   return RouteTreeGen.createNavigateAppend({
-    path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+    path: [
+      {props: {conversationIDKey, noDragDrop: true, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'},
+    ],
   })
+}
+
+const attachmentUploadCanceled = async (action: Chat2Gen.AttachmentUploadCanceledPayload) => {
+  const {outboxIDs} = action.payload
+  for (const outboxID of outboxIDs) {
+    await RPCChatTypes.localCancelUploadTempFileRpcPromise({outboxID})
+  }
 }
 
 const sendAudioRecording = async (
@@ -2397,6 +2408,21 @@ const markThreadAsRead = async (
   await RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     msgID: readMsgID,
+  })
+}
+
+const markTeamAsRead = async (
+  state: Container.TypedState,
+  action: Chat2Gen.MarkTeamAsReadPayload,
+  logger: Saga.SagaLogger
+) => {
+  if (!state.config.loggedIn) {
+    logger.info('bail on not logged in')
+    return
+  }
+  const tlfID = Buffer.from(TeamsTypes.teamIDToString(action.payload.teamID), 'hex')
+  await RPCChatTypes.localMarkTLFAsReadLocalRpcPromise({
+    tlfID,
   })
 }
 
@@ -3852,6 +3878,7 @@ function* chat2Saga() {
   yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
   yield* Saga.chainAction2(Chat2Gen.attachFromDragAndDrop, attachFromDragAndDrop)
   yield* Saga.chainAction(Chat2Gen.attachmentPasted, attachmentPasted)
+  yield* Saga.chainAction(Chat2Gen.attachmentUploadCanceled, attachmentUploadCanceled)
 
   yield* Saga.chainAction(Chat2Gen.sendTyping, sendTyping)
   yield* Saga.chainAction2(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
@@ -3869,6 +3896,7 @@ function* chat2Saga() {
     ],
     markThreadAsRead
   )
+  yield* Saga.chainAction2([Chat2Gen.markTeamAsRead], markTeamAsRead)
   yield* Saga.chainAction2(Chat2Gen.messagesAdd, messagesAdd)
   yield* Saga.chainAction2(
     [

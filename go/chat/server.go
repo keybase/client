@@ -254,6 +254,33 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	}, nil
 }
 
+func (h *Server) MarkTLFAsReadLocal(ctx context.Context, arg chat1.MarkTLFAsReadLocalArg) (res chat1.MarkTLFAsReadLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, nil)
+	defer h.Trace(ctx, &err, "MarkTLFAsRead")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	convs, err := h.G().TeamChannelSource.GetChannelsFull(ctx, uid, arg.TlfID, chat1.TopicType_CHAT)
+	if err != nil {
+		return res, err
+	}
+	epick := libkb.FirstErrorPicker{}
+	for _, conv := range convs {
+		_, err = h.MarkAsReadLocal(ctx, chat1.MarkAsReadLocalArg{
+			ConversationID: conv.GetConvID(),
+			MsgID:          &conv.ReaderInfo.MaxMsgid,
+		})
+		epick.Push(err)
+	}
+	return chat1.MarkTLFAsReadLocalRes{
+		Offline: h.G().InboxSource.IsOffline(ctx),
+	}, epick.Error()
+}
+
 // GetInboxAndUnboxLocal implements keybase.chatLocal.getInboxAndUnboxLocal protocol.
 func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAndUnboxLocalArg) (res chat1.GetInboxAndUnboxLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1189,7 +1216,7 @@ func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTem
 }
 
 func (h *Server) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) (err error) {
-	defer h.Trace(ctx, &err, "CancelUploadTempFile")()
+	defer h.Trace(ctx, &err, "CancelUploadTempFile: %s", outboxID)()
 	return h.G().AttachmentUploader.CancelUploadTempFile(ctx, outboxID)
 }
 
@@ -3873,7 +3900,7 @@ func (h *Server) ForwardMessage(ctx context.Context, arg chat1.ForwardMessageArg
 				TlfName:           dstConv.Info.TlfName,
 				Visibility:        dstConv.Info.Visibility,
 				Filename:          sink.Name(),
-				Title:             mbod.Object.Title,
+				Title:             "",
 				Metadata:          mbod.Metadata,
 				IdentifyBehavior:  arg.IdentifyBehavior,
 				EphemeralLifetime: ephemeralLifetime,
@@ -3949,7 +3976,7 @@ func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMe
 				TlfName:           dstConv.Info.TlfName,
 				Visibility:        dstConv.Info.Visibility,
 				Filename:          sink.Name(),
-				Title:             mbod.Object.Title,
+				Title:             "",
 				Metadata:          mbod.Metadata,
 				IdentifyBehavior:  arg.IdentifyBehavior,
 				EphemeralLifetime: ephemeralLifetime,
@@ -3983,7 +4010,7 @@ func (h *Server) ForwardMessageConvSearch(ctx context.Context, term string) (res
 		return res, err
 	}
 	username := h.G().GetEnv().GetUsername().String()
-	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 100, types.InboxSourceSearchEmptyModeAll)
+	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 100, types.InboxSourceSearchEmptyModeAllBySendCtime)
 	if err != nil {
 		return res, err
 	}

@@ -156,11 +156,11 @@ func (s *Scraper) addGenericScraperToCollector(ctx context.Context, c *colly.Col
 			s.setAttr(ctx, "icon", hostname, domain, generic, e)
 		}
 	})
-	c.OnHTML("head meta[content][name]", func(e *colly.HTMLElement) {
+	c.OnHTML("meta[content][name]", func(e *colly.HTMLElement) {
 		attr := strings.ToLower(e.Attr("name"))
 		s.setAttr(ctx, attr, hostname, domain, generic, e)
 	})
-	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
+	c.OnHTML("meta[content][property]", func(e *colly.HTMLElement) {
 		attr := strings.ToLower(e.Attr("property"))
 		s.setAttr(ctx, attr, hostname, domain, generic, e)
 	})

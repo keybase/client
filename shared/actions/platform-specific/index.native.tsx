@@ -123,21 +123,14 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
   }
 }
 
-export const saveAttachmentDialog = async (filePath: string) => {
-  const goodPath = filePath
-  logger.debug('saveAttachment: ', goodPath)
-  await requestPermissionsToWrite()
-  return CameraRoll.saveToCameraRoll(goodPath)
-}
-
 export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   const fileURL = 'file://' + filePath
-  const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
+  const saveType: 'video' | 'photo' = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
   try {
     await requestPermissionsToWrite()
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
-    await CameraRoll.saveToCameraRoll(fileURL, saveType)
+    await CameraRoll.save(fileURL, {type: saveType})
     logger.info(logPrefix + 'Success')
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification

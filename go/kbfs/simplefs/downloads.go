@@ -173,6 +173,7 @@ func (m *downloadManager) moveToDownloadFolder(
 	if err = os.MkdirAll(parentDir, 0700); err != nil {
 		return "", err
 	}
+	filename = limitFilenameLengthForWindowsDownloads(filename)
 	destPath, err := libkb.FindFilePathWithNumberSuffix(parentDir, filename, false)
 	if err != nil {
 		return "", err

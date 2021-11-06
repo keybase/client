@@ -44,6 +44,7 @@ export type Props = {
   onMuteConv: (muted: boolean) => void
   onUnhideConv: () => void
   onManageChannels: () => void
+  onMarkAsRead: () => void
   onViewTeam: () => void
 }
 
@@ -131,6 +132,7 @@ class InfoPanelMenu extends React.Component<Props> {
       ? [
           {
             icon: 'iconfont-new',
+            iconIsVisible: false,
             onClick: props.onAddPeople,
             title: hasChannelSection ? 'Add/Invite people to team' : 'Add/invite people',
           },
@@ -138,6 +140,7 @@ class InfoPanelMenu extends React.Component<Props> {
       : [
           {
             icon: 'iconfont-mention',
+            iconIsVisible: false,
             onClick: props.onAddPeople,
             style: {borderTopWidth: 0},
             subTitle: 'Keybase, Twitter, etc.',
@@ -145,6 +148,7 @@ class InfoPanelMenu extends React.Component<Props> {
           },
           {
             icon: 'iconfont-contact-book',
+            iconIsVisible: false,
             onClick: props.onInvite,
             title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
           },
@@ -169,12 +173,14 @@ class InfoPanelMenu extends React.Component<Props> {
     const channelItem: Kb.MenuItem = props.isSmallTeam
       ? {
           icon: 'iconfont-hash',
+          iconIsVisible: false,
           onClick: props.onManageChannels,
           subTitle: props.manageChannelsSubtitle,
           title: props.manageChannelsTitle,
         }
       : {
           icon: 'iconfont-hash',
+          iconIsVisible: false,
           isBadged: props.badgeSubscribe,
           onClick: props.onManageChannels,
           title: props.manageChannelsTitle,
@@ -214,6 +220,7 @@ class InfoPanelMenu extends React.Component<Props> {
       items.push({
         danger: true,
         icon: 'iconfont-user-block',
+        iconIsVisible: false,
         onClick: props.onBlockConv,
         title: 'Block',
       })
@@ -228,23 +235,45 @@ class InfoPanelMenu extends React.Component<Props> {
         items.push(hideItem as Kb.MenuItem)
       }
       if (!props.isSmallTeam && !props.isInChannel && !isGeneralChannel && !props.hasHeader) {
-        items.push({icon: 'iconfont-hash', onClick: props.onJoinChannel, title: 'Join channel'})
+        items.push({
+          icon: 'iconfont-hash',
+          iconIsVisible: false,
+          onClick: props.onJoinChannel,
+          title: 'Join channel',
+        })
       }
       if (!props.isSmallTeam && props.isInChannel && !isGeneralChannel && !props.hasHeader) {
-        items.push({icon: 'iconfont-leave', onClick: props.onLeaveChannel, title: 'Leave channel'})
+        items.push({
+          icon: 'iconfont-leave',
+          iconIsVisible: false,
+          onClick: props.onLeaveChannel,
+          title: 'Leave channel',
+        })
       }
       if (hasChannelSection) {
         items.push(teamHeader)
       }
+      items.push({
+        icon: 'iconfont-envelope',
+        iconIsVisible: false,
+        onClick: props.onMarkAsRead,
+        title: 'Mark all as read',
+      })
       items.push(channelItem, {
         icon: 'iconfont-info',
+        iconIsVisible: false,
         onClick: props.onViewTeam,
         title: 'Team info',
       })
       if (props.canAddPeople) {
         addPeopleItems.forEach(item => items.push(item))
       }
-      items.push({icon: 'iconfont-team-leave', onClick: props.onLeaveTeam, title: 'Leave team'})
+      items.push({
+        icon: 'iconfont-team-leave',
+        iconIsVisible: false,
+        onClick: props.onLeaveTeam,
+        title: 'Leave team',
+      })
     }
 
     const header = props.hasHeader ? (
@@ -290,6 +319,7 @@ class InfoPanelMenu extends React.Component<Props> {
       if (convProps.ignored) {
         return {
           icon: 'iconfont-unhide',
+          iconIsVisible: false,
           onClick: this.props.onUnhideConv,
           style: {borderTopWidth: 0},
           title: 'Unhide conversation',
@@ -297,6 +327,7 @@ class InfoPanelMenu extends React.Component<Props> {
       } else {
         return {
           icon: 'iconfont-hide',
+          iconIsVisible: false,
           onClick: this.props.onHideConv,
           style: {borderTopWidth: 0},
           title: 'Hide until next message',
@@ -315,7 +346,7 @@ class InfoPanelMenu extends React.Component<Props> {
     const title = convProps.muted ? 'Unmute' : 'Mute'
     return {
       icon: 'iconfont-shh',
-      iconIsVisible: true,
+      iconIsVisible: false,
       onClick: () => this.props.onMuteConv(!convProps.muted),
       title,
     }

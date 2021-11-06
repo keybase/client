@@ -1,0 +1,10 @@
+--- a/RCTTurboModuleManager.mm
++++ b/RCTTurboModuleManager.mm
+@@ -297,7 +297,7 @@
+           @"%@ has no setter or ivar for its bridge, which is not "
+            "permitted. You must either @synthesize the bridge property, "
+            "or provide your own setter method.",
+-          RCTBridgeModuleNameForClass(module));
++          RCTBridgeModuleNameForClass(Class(module)));
+     }
+   }

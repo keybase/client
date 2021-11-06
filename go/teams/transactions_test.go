@@ -5,7 +5,11 @@ package teams
 
 import (
 	"context"
+	"fmt"
 	"testing"
+
+	"github.com/keybase/client/go/emails"
+	"github.com/keybase/client/go/kbtest"
 
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
@@ -230,4 +234,273 @@ func TestPostAllowPUKless(t *testing.T) {
 	require.Error(t, err)
 	// Make sure it's the error about AllowPUKless.
 	require.Contains(t, err.Error(), "AllowPUKless")
+}
+
+func TestTransactionRoleChanges(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	tc.Tp.SkipSendingSystemChatMessages = true
+
+	user := kbtest.TCreateFakeUser(tc)
+	kbtest.TCreateFakeUser(tc) // owner
+
+	_, teamID := createTeam2(tc)
+
+	res, err := AddMemberByID(tc.Context(), tc.G, teamID, user.Username, keybase1.TeamRole_READER,
+		nil /* botSettings */, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+	require.False(t, res.Invited)
+
+	team, err := GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+
+	tx := CreateAddMemberTx(team)
+	// Try to upgrade role without `AllowRoleChanges` first.
+	err = tx.AddMemberByUsername(tc.Context(), user.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.Error(t, err)
+	require.IsType(t, libkb.ExistsError{}, err)
+
+	require.Len(t, tx.payloads, 0) // should not have changed transaction
+	require.NoError(t, tx.err)     // should not be a permanent error
+
+	// Set `AllowRoleChanges`.
+	tx.AllowRoleChanges = true
+
+	// Trying to add with same role as current is still an error.
+	err = tx.AddMemberByUsername(tc.Context(), user.Username, keybase1.TeamRole_READER, nil /* botSettings */)
+	require.Error(t, err)
+	require.IsType(t, libkb.ExistsError{}, err)
+
+	// We can set a different role though (READER -> WRITER)
+	err = tx.AddMemberByUsername(tc.Context(), user.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.NoError(t, err)
+
+	err = tx.Post(tc.MetaContext())
+	require.NoError(t, err)
+
+	// See if role change worked
+	team, err = GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+	role, err := team.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, role)
+
+	// Should be able to go the other way as well (WRITER -> READER).
+	tx = CreateAddMemberTx(team)
+	tx.AllowRoleChanges = true
+	err = tx.AddMemberByUsername(tc.Context(), user.Username, keybase1.TeamRole_READER, nil /* botSettings */)
+	require.NoError(t, err)
+
+	err = tx.Post(tc.MetaContext())
+	require.NoError(t, err)
+
+	// See if it worked.
+	team, err = GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+	role, err = team.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_READER, role)
+
+	userLog := team.chain().inner.UserLog[user.GetUserVersion()]
+	require.Len(t, userLog, 3)
+}
+
+func TestTransactionEmailExists(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	kbtest.TCreateFakeUser(tc)
+	_, teamID := createTeam2(tc)
+
+	randomEmail := kbtest.GenerateRandomEmailAddress()
+	err := InviteEmailPhoneMember(tc.Context(), tc.G, teamID, randomEmail.String(), "email", keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	team, err := GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+
+	invite, err := team.chain().FindActiveInviteString(tc.MetaContext(), randomEmail.String(), "email")
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, invite.Role)
+
+	tx := CreateAddMemberTx(team)
+	tx.AllowRoleChanges = true
+
+	assertion := fmt.Sprintf("[%s]@email", randomEmail)
+
+	// Check if we can catch this error and continue forward
+	_, _, _, err = tx.AddOrInviteMemberByAssertion(tc.Context(), assertion, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.Error(t, err)
+	require.IsType(t, libkb.ExistsError{}, err)
+
+	// Changing roles of an invite using AddMemberTx is not possible right now.
+	_, _, _, err = tx.AddOrInviteMemberByAssertion(tc.Context(), assertion, keybase1.TeamRole_READER, nil /* botSettings */)
+	require.Error(t, err)
+	require.IsType(t, libkb.ExistsError{}, err)
+
+	// Two errors above should not have tainted the transaction.
+	require.Len(t, tx.payloads, 0)
+	require.NoError(t, tx.err)
+}
+
+func TestTransactionResolvableEmailExists(t *testing.T) {
+	// Similar test but with resolvable email.
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	user := kbtest.TCreateFakeUser(tc)
+
+	// Add and verify email address.
+	usersEmail := kbtest.GenerateRandomEmailAddress()
+	err := emails.AddEmail(tc.MetaContext(), usersEmail, keybase1.IdentityVisibility_PUBLIC)
+	require.NoError(t, err)
+	err = kbtest.VerifyEmailAuto(tc.MetaContext(), usersEmail)
+	require.NoError(t, err)
+
+	kbtest.TCreateFakeUser(tc) // owner
+
+	_, teamID := createTeam2(tc)
+	team, err := GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+
+	assertion := fmt.Sprintf("[%s]@email", usersEmail)
+
+	// Invite email for the first time, should resolve and add user.
+	tx := CreateAddMemberTx(team)
+
+	username, uv, invited, err := tx.AddOrInviteMemberByAssertion(tc.Context(), assertion, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.NoError(t, err)
+	require.Equal(t, user.NormalizedUsername(), username)
+	require.Equal(t, user.GetUserVersion(), uv)
+	require.False(t, invited)
+
+	err = tx.Post(tc.MetaContext())
+	require.NoError(t, err)
+
+	// Ensure they were added as member (team.MemberRole).
+	team, err = GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+	role, err := team.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, role)
+	// And that e-mail wasn't added as invite.
+	hasInvite, err := team.HasActiveInvite(tc.MetaContext(), keybase1.TeamInviteName(usersEmail), "email")
+	require.NoError(t, err)
+	require.False(t, hasInvite)
+
+	// Try again, should fail.
+	tx = CreateAddMemberTx(team)
+	_, _, _, err = tx.AddOrInviteMemberByAssertion(tc.Context(), assertion, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.Error(t, err)
+	require.IsType(t, libkb.ExistsError{}, err)
+
+	require.Len(t, tx.payloads, 0)
+	require.NoError(t, tx.err)
+
+	// Role changes are possible with `AllowRoleChanges` because they are
+	// crypto-member.
+	tx = CreateAddMemberTx(team)
+	tx.AllowRoleChanges = true
+	_, _, _, err = tx.AddOrInviteMemberByAssertion(tc.Context(), assertion, keybase1.TeamRole_READER, nil /* botSettings */)
+	require.NoError(t, err)
+
+	err = tx.Post(tc.MetaContext())
+	require.NoError(t, err)
+
+	team, err = GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+	role, err = team.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_READER, role)
+}
+
+func TestTransactionAddEmailPukless(t *testing.T) {
+	// Add e-mail that resolves to a PUK-less user.
+
+	fus, tcs, cleanup := setupNTestsWithPukless(t, 2, 1)
+	defer cleanup()
+
+	usersEmail := kbtest.GenerateRandomEmailAddress()
+	err := emails.AddEmail(tcs[1].MetaContext(), usersEmail, keybase1.IdentityVisibility_PUBLIC)
+	require.NoError(t, err)
+	err = kbtest.VerifyEmailAuto(tcs[1].MetaContext(), usersEmail)
+	require.NoError(t, err)
+
+	_, teamID := createTeam2(*tcs[0])
+	team, err := GetForTeamManagementByTeamID(tcs[0].Context(), tcs[0].G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+
+	assertion := fmt.Sprintf("[%s]@email", usersEmail)
+
+	tx := CreateAddMemberTx(team)
+	// Can't add without AllowPUKless.
+	_, _, _, err = tx.AddOrInviteMemberByAssertion(tcs[0].Context(), assertion, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.Error(t, err)
+	require.IsType(t, UserPUKlessError{}, err)
+
+	// Failure to add should have left the transaction unmodified.
+	require.Len(t, tx.payloads, 0)
+	require.NoError(t, tx.err)
+
+	tx.AllowPUKless = true
+	username, uv, invited, err := tx.AddOrInviteMemberByAssertion(tcs[0].Context(), assertion, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.NoError(t, err)
+	require.True(t, invited)
+	require.Equal(t, fus[1].NormalizedUsername(), username)
+	require.Equal(t, fus[1].GetUserVersion(), uv)
+
+	err = tx.Post(tcs[0].MetaContext())
+	require.NoError(t, err)
+
+	team, err = GetForTeamManagementByTeamID(tcs[0].Context(), tcs[0].G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+	_, uv, found := team.FindActiveKeybaseInvite(fus[1].GetUID())
+	require.True(t, found)
+	require.Equal(t, fus[1].GetUserVersion(), uv)
+
+	found, err = team.HasActiveInvite(tcs[0].MetaContext(), keybase1.TeamInviteName(usersEmail), "email")
+	require.NoError(t, err)
+	require.False(t, found)
+}
+
+func TestTransactionDowngradeAdmin(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	user := kbtest.TCreateFakeUser(tc)
+	kbtest.TCreateFakeUser(tc) // owner
+
+	_, teamID := createTeam2(tc)
+
+	// Add user as admin.
+	res, err := AddMemberByID(tc.Context(), tc.G, teamID, user.Username, keybase1.TeamRole_ADMIN,
+		nil /* botSettings */, nil /* emailInviteMsg */)
+	require.NoError(t, err)
+	require.False(t, res.Invited)
+
+	// Load team, change role of user to writer (from admin).
+	team, err := GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+
+	memberRole, err := team.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_ADMIN, memberRole)
+
+	tx := CreateAddMemberTx(team)
+	tx.AllowRoleChanges = true
+	err = tx.AddMemberByUsername(tc.Context(), user.Username, keybase1.TeamRole_WRITER, nil /* botSettings */)
+	require.NoError(t, err)
+	require.Len(t, tx.payloads, 1)
+
+	err = tx.Post(tc.MetaContext())
+	require.NoError(t, err)
+
+	// See if it worked.
+	team, err = GetForTeamManagementByTeamID(tc.Context(), tc.G, teamID, true /* needAdmin */)
+	require.NoError(t, err)
+
+	memberRole, err = team.MemberRole(tc.Context(), user.GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, memberRole)
 }

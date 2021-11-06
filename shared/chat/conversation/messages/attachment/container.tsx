@@ -7,17 +7,24 @@ import AudioAttachment from './audio'
 type Props = {
   message: Types.MessageAttachment
   toggleMessageMenu: () => void
+  isHighlighted?: boolean
 }
 
 const Attachment = React.memo((props: Props) => {
-  const {message, toggleMessageMenu} = props
+  const {isHighlighted, message, toggleMessageMenu} = props
   switch (message.attachmentType) {
     case 'image':
-      return <ImageAttachment message={message} toggleMessageMenu={toggleMessageMenu} />
+      return (
+        <ImageAttachment
+          message={message}
+          toggleMessageMenu={toggleMessageMenu}
+          isHighlighted={isHighlighted}
+        />
+      )
     case 'audio':
       return <AudioAttachment message={message} />
     default:
-      return <FileAttachment message={message} />
+      return <FileAttachment message={message} isHighlighted={isHighlighted} />
   }
 })
 

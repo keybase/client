@@ -388,6 +388,12 @@ const quotaUsageStaleTolerance = 10 * time.Second
 
 // Statfs implements the fs.FSStatfser interface for FS.
 func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.StatfsResponse) error {
+	ctx, maybeUnmounting, cancel := wrapCtxWithShorterTimeoutForUnmount(ctx, f.log, int(req.Pid))
+	defer cancel()
+	if maybeUnmounting {
+		f.log.CInfof(ctx, "Statfs: maybeUnmounting=true")
+	}
+
 	*resp = fuse.StatfsResponse{
 		Bsize:   fuseBlockSize,
 		Namelen: ^uint32(0),

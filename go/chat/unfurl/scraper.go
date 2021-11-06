@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-const userAgent = "Mozilla/5.0 (compatible; Keybase; +https://keybase.io)"
+const userAgent = "Mozilla/5.0 (compatible; KeybaseBot; +https://keybase.io)"
 
 type Scraper struct {
 	globals.Contextified
@@ -54,7 +54,7 @@ func (s *Scraper) makeCollector() *colly.Collector {
 }
 
 func (s *Scraper) Scrape(ctx context.Context, uri string, forceTyp *chat1.UnfurlType) (res chat1.UnfurlRaw, err error) {
-	defer s.Trace(ctx, &err, "Scrape")()
+	defer s.Trace(ctx, nil, "Scrape")()
 	// Check if we have a cached valued
 	if item, valid := s.cache.get(uri); valid {
 		s.Debug(ctx, "Scape: using cached value")

@@ -1,5 +1,5 @@
 app_identifier "keybase.ios" # The bundle identifier of your app
-apple_id "android+ios@keyba.se" # Your Apple email address
+apple_id "apple-dev@keyba.se" # Your Apple email address
 
 team_id "99229SGT5K"  # Developer Portal Team ID
 

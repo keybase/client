@@ -231,7 +231,7 @@ PODS:
     - React-cxxreact (= 0.61.5)
     - React-jsi (= 0.61.5)
   - React-jsinspector (0.61.5)
-  - react-native-cameraroll (1.2.1):
+  - react-native-cameraroll (4.0.0):
     - React
   - react-native-contacts (5.1.0):
     - React
@@ -248,8 +248,8 @@ PODS:
     - react-native-video/Video (= 5.0.2)
   - react-native-video/Video (5.0.2):
     - React
-  - react-native-webview (8.0.5):
-    - React
+  - react-native-webview (11.6.2):
+    - React-Core
   - React-RCTActionSheet (0.61.5):
     - React-Core/RCTActionSheetHeaders (= 0.61.5)
   - React-RCTAnimation (0.61.5):
@@ -301,9 +301,9 @@ PODS:
     - React
   - RNScreens (1.0.0-alpha.23):
     - React
-  - SDWebImage (5.2.5):
-    - SDWebImage/Core (= 5.2.5)
-  - SDWebImage/Core (5.2.5)
+  - SDWebImage (5.11.1):
+    - SDWebImage/Core (= 5.11.1)
+  - SDWebImage/Core (5.11.1)
   - SDWebImageWebPCoder (0.2.5):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.0)
@@ -579,14 +579,14 @@ SPEC CHECKSUMS:
   React-jsi: cb2cd74d7ccf4cffb071a46833613edc79cdf8f7
   React-jsiexecutor: d5525f9ed5f782fdbacb64b9b01a43a9323d2386
   React-jsinspector: fa0ecc501688c3c4c34f28834a76302233e29dc0
-  react-native-cameraroll: 3e5e34d36d93548ae7770ee8ab7b2ae9e778f571
+  react-native-cameraroll: ae0a7c0cc8462508855707ff623b1e789b692865
   react-native-contacts: be6cde1ffc9c0196fbb57d987b9d40f12b85989c
   react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-netinfo: 73303369946c2487c600418961bfdc87748b832f
   react-native-safe-area-context: e200d4433aba6b7e60b52da5f37af11f7a0b0392
   react-native-video: d01ed7ff1e38fa7dcc6c15c94cf505e661b7bfd0
-  react-native-webview: d12c8352c853e401fb6fff69a3461d0bca9f0c0b
+  react-native-webview: 193d233c29eacce1f42ca2637dab7ba79c25a6de
   React-RCTActionSheet: 600b4d10e3aea0913b5a92256d2719c0cdd26d76
   React-RCTAnimation: 791a87558389c80908ed06cc5dfc5e7920dfa360
   React-RCTBlob: d89293cc0236d9cb0933d85e430b0bbe81ad1d72
@@ -604,7 +604,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 946a7691e41df61e2c4b1884deab41a4cdc3afff
   RNReanimated: 1b52415c4302f198cb581282a0166690bad62c43
   RNScreens: f28b48b8345f2f5f39ed6195518291515032a788
-  SDWebImage: 4eabf2fa6695c95c47724214417a9c036c965e4a
+  SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 947093edd1349d820c40afbd9f42acb6cdecd987
   UMBarCodeScannerInterface: d5a6fdc98ed6241225b0a8432a7f4e2b397668bc
   UMCameraInterface: 68870a3197fee85bd5afca5609ba4a5b7257d19d
@@ -620,6 +620,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 1e70fe58b872355f0ecb44fb81bb1a16484047f0
   Yoga: f2a7cd4280bfe2cca5a7aed98ba0eb3d1310f18b
 
-PODFILE CHECKSUM: 843dc6df133334007d13b5c34a0fd83194e7fa0e
+PODFILE CHECKSUM: 39eec47a4d432fcad2409a0945534f674577aedf
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.11.2

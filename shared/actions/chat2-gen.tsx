@@ -22,6 +22,7 @@ export const attachmentMobileSave = 'chat2:attachmentMobileSave'
 export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
 export const attachmentPasted = 'chat2:attachmentPasted'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
+export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
@@ -76,6 +77,7 @@ export const loadedUserEmoji = 'chat2:loadedUserEmoji'
 export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
+export const markTeamAsRead = 'chat2:markTeamAsRead'
 export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
 export const messageAttachmentNativeShare = 'chat2:messageAttachmentNativeShare'
 export const messageAttachmentUploaded = 'chat2:messageAttachmentUploaded'
@@ -226,6 +228,7 @@ type _AttachmentMobileSavedPayload = {
 }
 type _AttachmentPastedPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly data: Buffer}
 type _AttachmentPreviewSelectPayload = {readonly message: Types.MessageAttachment}
+type _AttachmentUploadCanceledPayload = {readonly outboxIDs: Array<RPCChatTypes.OutboxID>}
 type _AttachmentUploadedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
@@ -377,6 +380,7 @@ type _MarkConversationsStalePayload = {
   readonly updateType: RPCChatTypes.StaleUpdateType
 }
 type _MarkInitiallyLoadedThreadAsReadPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _MarkTeamAsReadPayload = {readonly teamID: TeamsTypes.TeamID}
 type _MessageAttachmentNativeSavePayload = {readonly message: Types.Message}
 type _MessageAttachmentNativeSharePayload = {readonly message: Types.Message}
 type _MessageAttachmentUploadedPayload = {
@@ -1124,6 +1128,13 @@ export const createMessagesWereDeleted = (
   payload: _MessagesWereDeletedPayload
 ): MessagesWereDeletedPayload => ({payload, type: messagesWereDeleted})
 /**
+ * Mark all conversations in a team as read
+ */
+export const createMarkTeamAsRead = (payload: _MarkTeamAsReadPayload): MarkTeamAsReadPayload => ({
+  payload,
+  type: markTeamAsRead,
+})
+/**
  * Navigation helper. Nav is slightly different on mobile / desktop.
  */
 export const createNavigateToInbox = (payload: _NavigateToInboxPayload): NavigateToInboxPayload => ({
@@ -1484,6 +1495,12 @@ export const createSendTyping = (payload: _SendTypingPayload): SendTypingPayload
 export const createToggleMessageReaction = (
   payload: _ToggleMessageReactionPayload
 ): ToggleMessageReactionPayload => ({payload, type: toggleMessageReaction})
+/**
+ * The attachment upload modal was canceled
+ */
+export const createAttachmentUploadCanceled = (
+  payload: _AttachmentUploadCanceledPayload
+): AttachmentUploadCanceledPayload => ({payload, type: attachmentUploadCanceled})
 /**
  * The service sent us an update for the reaction map of a message.
  */
@@ -1905,6 +1922,10 @@ export type AttachmentPreviewSelectPayload = {
   readonly payload: _AttachmentPreviewSelectPayload
   readonly type: typeof attachmentPreviewSelect
 }
+export type AttachmentUploadCanceledPayload = {
+  readonly payload: _AttachmentUploadCanceledPayload
+  readonly type: typeof attachmentUploadCanceled
+}
 export type AttachmentUploadedPayload = {
   readonly payload: _AttachmentUploadedPayload
   readonly type: typeof attachmentUploaded
@@ -2102,6 +2123,10 @@ export type MarkConversationsStalePayload = {
 export type MarkInitiallyLoadedThreadAsReadPayload = {
   readonly payload: _MarkInitiallyLoadedThreadAsReadPayload
   readonly type: typeof markInitiallyLoadedThreadAsRead
+}
+export type MarkTeamAsReadPayload = {
+  readonly payload: _MarkTeamAsReadPayload
+  readonly type: typeof markTeamAsRead
 }
 export type MessageAttachmentNativeSavePayload = {
   readonly payload: _MessageAttachmentNativeSavePayload
@@ -2500,6 +2525,7 @@ export type Actions =
   | AttachmentMobileSavedPayload
   | AttachmentPastedPayload
   | AttachmentPreviewSelectPayload
+  | AttachmentUploadCanceledPayload
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload
   | AttachmentsUploadPayload
@@ -2554,6 +2580,7 @@ export type Actions =
   | LockAudioRecordingPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
+  | MarkTeamAsReadPayload
   | MessageAttachmentNativeSavePayload
   | MessageAttachmentNativeSharePayload
   | MessageAttachmentUploadedPayload

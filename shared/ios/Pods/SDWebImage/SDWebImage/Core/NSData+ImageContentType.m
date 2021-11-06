@@ -13,10 +13,9 @@
 #else
 #import <MobileCoreServices/MobileCoreServices.h>
 #endif
-#import "SDImageHEICCoderInternal.h"
+#import "SDImageIOAnimatedCoderInternal.h"
 
-// Currently Image/IO does not support WebP
-#define kSDUTTypeWebP ((__bridge CFStringRef)@"public.webp")
+#define kSVGTagEnd @"</svg>"
 
 @implementation NSData (ImageContentType)
 
@@ -65,6 +64,21 @@
             }
             break;
         }
+        case 0x25: {
+            if (data.length >= 4) {
+                //%PDF
+                NSString *testString = [[NSString alloc] initWithData:[data subdataWithRange:NSMakeRange(1, 3)] encoding:NSASCIIStringEncoding];
+                if ([testString isEqualToString:@"PDF"]) {
+                    return SDImageFormatPDF;
+                }
+            }
+        }
+        case 0x3C: {
+            // Check end with SVG tag
+            if ([data rangeOfData:[kSVGTagEnd dataUsingEncoding:NSUTF8StringEncoding] options:NSDataSearchBackwards range: NSMakeRange(data.length - MIN(100, data.length), MIN(100, data.length))].location != NSNotFound) {
+                return SDImageFormatSVG;
+            }
+        }
     }
     return SDImageFormatUndefined;
 }
@@ -93,9 +107,15 @@
         case SDImageFormatHEIF:
             UTType = kSDUTTypeHEIF;
             break;
+        case SDImageFormatPDF:
+            UTType = kUTTypePDF;
+            break;
+        case SDImageFormatSVG:
+            UTType = kUTTypeScalableVectorGraphics;
+            break;
         default:
-            // default is kUTTypePNG
-            UTType = kUTTypePNG;
+            // default is kUTTypeImage abstract type
+            UTType = kUTTypeImage;
             break;
     }
     return UTType;
@@ -120,6 +140,10 @@
         imageFormat = SDImageFormatHEIC;
     } else if (CFStringCompare(uttype, kSDUTTypeHEIF, 0) == kCFCompareEqualTo) {
         imageFormat = SDImageFormatHEIF;
+    } else if (CFStringCompare(uttype, kUTTypePDF, 0) == kCFCompareEqualTo) {
+        imageFormat = SDImageFormatPDF;
+    } else if (CFStringCompare(uttype, kUTTypeScalableVectorGraphics, 0) == kCFCompareEqualTo) {
+        imageFormat = SDImageFormatSVG;
     } else {
         imageFormat = SDImageFormatUndefined;
     }

@@ -4,6 +4,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {useMemo} from '../../../../util/memoize'
+import {sharedStyles} from '../shared-styles'
 
 export type ReplyProps = {
   deleted: boolean
@@ -150,44 +151,12 @@ const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, typ
 // Encoding all 4 states as static objects so we don't re-render
 const getStyle = (type: Props['type'], isEditing: boolean, isHighlighted?: boolean) => {
   if (isHighlighted) {
-    return Styles.collapseStyles([styles.sent, styles.highlighted])
+    return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
   } else if (type === 'sent') {
-    return isEditing ? styles.sentEditing : styles.sent
+    return isEditing ? sharedStyles.sentEditing : sharedStyles.sent
   } else {
-    return isEditing ? styles.pendingFailEditing : styles.pendingFail
+    return isEditing ? sharedStyles.pendingFailEditing : sharedStyles.pendingFail
   }
-}
-
-const editing = {
-  backgroundColor: Styles.globalColors.yellowLight,
-  borderRadius: 2,
-  color: Styles.globalColors.blackOrBlack,
-  paddingLeft: Styles.globalMargins.tiny,
-  paddingRight: Styles.globalMargins.tiny,
-}
-const sent = Styles.platformStyles({
-  isElectron: {
-    // Make text selectable. On mobile we implement that differently.
-    cursor: 'text',
-    userSelect: 'text',
-    whiteSpace: 'pre-wrap',
-    width: '100%',
-    wordBreak: 'break-word',
-  } as const,
-  isMobile: {
-    ...Styles.globalStyles.flexBoxColumn,
-  },
-})
-const sentEditing = {
-  ...sent,
-  ...editing,
-}
-const pendingFail = {
-  ...sent,
-}
-const pendingFailEditing = {
-  ...pendingFail,
-  ...editing,
 }
 const styles = Styles.styleSheetCreate(
   () =>
@@ -199,12 +168,6 @@ const styles = Styles.styleSheetCreate(
       claimLabel: {
         color: Styles.globalColors.white,
       },
-      editing,
-      highlighted: {
-        color: Styles.globalColors.blackOrBlack,
-      },
-      pendingFail,
-      pendingFailEditing,
       quoteContainer: {
         alignSelf: 'stretch',
         backgroundColor: Styles.globalColors.grey,
@@ -245,8 +208,6 @@ const styles = Styles.styleSheetCreate(
       replyUsernameHighlighted: {
         color: Styles.globalColors.blackOrBlack,
       },
-      sent,
-      sentEditing,
       textHighlighted: {
         color: Styles.globalColors.black_50OrBlack_50,
       },

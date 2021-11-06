@@ -1,4 +1,3 @@
-
 **Attention, please.**
 
 This code is a work in progress, and we publish it for full transparency. You can review the source code, but:
@@ -18,7 +17,7 @@ Run within the `shared/` directory.
 ```sh
 yarn modules
 ```
-Which is just an alias to run `yarn install --pure-lockfile --ignore-optional`. 
+Which is just an alias to run `yarn install --pure-lockfile --ignore-optional`.
 
 ### Desktop
 

@@ -28,13 +28,22 @@ platform :ios do
     version = get_version_number(xcodeproj: ENV['XCODEPROJ_NAME'], target: 'Keybase')
     increment_build_number(build_number: number_of_commits)
 
+    api_key = app_store_connect_api_key(
+      key_id: "C783PA5XUX",
+      issuer_id: "69a6de85-d809-47e3-e053-5b8c7c11a4d1",
+      key_filepath: "/Users/test/AuthKey_C783PA5XUX.p8",
+      duration: 1200, # optional (maximum 1200)
+      in_house: false # optional but may be required if using match/sigh
+    )
+
     sigh(app_identifier: "keybase.ios")
     sigh(app_identifier: "keybase.ios.KeybaseShare")
     gym(scheme: "Keybase") # Build your app - more options available
     pilot(
+        api_key: api_key,
         changelog: changelog_from_git_commits(
-        pretty: '%h %s',
-        between: ["HEAD^^^^^", "HEAD"]
+          pretty: '%h %s',
+          between: ["HEAD^^^^^", "HEAD"]
         )
     )
 

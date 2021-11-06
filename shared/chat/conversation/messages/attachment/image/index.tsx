@@ -6,7 +6,7 @@ import {isMobile} from '../../../../../util/container'
 import {memoize} from '../../../../../util/memoize'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
-import {ShowToastAfterSaving} from '../shared'
+import {getEditStyle, ShowToastAfterSaving} from '../shared'
 
 type Props = {
   arrowColor: string
@@ -14,6 +14,8 @@ type Props = {
   hasProgress: boolean
   height: number
   isCollapsed: boolean
+  isHighlighted?: boolean
+  isEditing: boolean
   onClick: () => void
   onCollapse: () => void
   onShowInFinder?: (e: React.BaseSyntheticEvent) => void
@@ -81,7 +83,11 @@ class ImageAttachment extends React.PureComponent<Props, State> {
     return (
       <>
         <ShowToastAfterSaving transferState={this.props.transferState} />
-        <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={getEditStyle(this.props.isEditing, this.props.isHighlighted)}
+        >
           {(!mobileImageFilename || !Styles.isMobile) && (
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.fileNameContainer}>
               <Kb.Text type="BodyTiny" lineClamp={1}>
@@ -208,6 +214,12 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         <Kb.Markdown
                           meta={this.memoizedMeta(this.props.message)}
                           selectable={true}
+                          style={getEditStyle(this.props.isEditing, this.props.isHighlighted)}
+                          styleOverride={
+                            Styles.isMobile
+                              ? {paragraph: getEditStyle(this.props.isEditing, this.props.isHighlighted)}
+                              : undefined
+                          }
                           allowFontScaling={true}
                         >
                           {this.props.title}
@@ -235,8 +247,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               <Kb.Box style={styles.progressContainer}>
                 {!this.props.onShowInFinder && !this.props.downloadError && (
                   <Kb.Text type="BodySmall" style={styles.progressLabel}>
-                    {progressLabel ||
-                      '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
+                    {progressLabel}
                   </Kb.Text>
                 )}
                 {this.props.hasProgress && <Kb.ProgressBar ratio={this.props.progress} />}

@@ -95,6 +95,7 @@ export const TeamDropdownMenu = () => ({
     onLeaveChannel: action('onLeaveChannel'),
     onLeaveTeam: action('onLeaveTeam'),
     onManageChannels: action('onManageChannels'),
+    onMarkAsRead: action('onMarkAsRead'),
     onMuteConv: action('onMuteConv'),
     onUnhideConv: action('onUnhideConv'),
     onViewTeam: action('onViewTeam'),

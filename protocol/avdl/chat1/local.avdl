@@ -27,7 +27,6 @@ protocol local {
     TextPaymentResult result;
   }
 
-
   record KnownUserMention {
     string text;
     gregor1.UID uid;
@@ -1050,6 +1049,12 @@ protocol local {
      array<RateLimit> rateLimits;
   }
   MarkAsReadLocalRes markAsReadLocal(int sessionID, ConversationID conversationID, union { null, MessageID } msgID);
+
+  record MarkTLFAsReadLocalRes {
+     boolean offline;
+     array<RateLimit> rateLimits;
+  }
+  MarkTLFAsReadLocalRes markTLFAsReadLocal(int sessionID, TLFID tlfID);
 
   record FindConversationsLocalRes {
     array<ConversationLocal> conversations; // for the cli / json api

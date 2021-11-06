@@ -57,17 +57,18 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 	if len(assets) == 0 {
 		return
 	}
+	s.Debug(ctx, "DeleteAssets: deleting %d assets", len(assets))
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, &chat1.Pagination{Num: 0},
-		types.ConvLoaderPriorityHigh, types.ConvLoaderUnique,
+		types.ConvLoaderPriorityHighest, types.ConvLoaderUnique,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			fetcher := s.G().AttachmentURLSrv.GetAttachmentFetcher()
 			if err := fetcher.DeleteAssets(ctx, convID, assets, s.ri, s); err != nil {
-				s.Debug(ctx, "Error purging ephemeral attachments %v", err)
+				s.Debug(ctx, "DeleteAssets: Error purging ephemeral attachments %v", err)
 			}
 		}))
 	if err != nil {
-		s.Debug(ctx, "Error queuing conv job: %+v", err)
+		s.Debug(ctx, "DeleteAssets: Error queuing conv job: %+v", err)
 	}
 }
 
@@ -267,8 +268,10 @@ func (s *baseConversationSource) PullFull(ctx context.Context, convID chat1.Conv
 			return res, err
 		}
 		res.Messages = append(res.Messages, thread.Messages...)
-		pagination.Next = thread.Pagination.Next
-		pagination.Last = thread.Pagination.Last
+		if thread.Pagination != nil {
+			pagination.Next = thread.Pagination.Next
+			pagination.Last = thread.Pagination.Last
+		}
 	}
 	return res, nil
 }
@@ -955,6 +958,28 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		// Write out messages
 		if err := s.mergeMaybeNotify(ctx, conv, uid, rmsgsUnboxed, reason); err != nil {
 			return nil, err
+		}
+
+		// The localizer uses UnboxQuickMode for unboxing and storing messages. Because of this, if there
+		// is a message in the deep past used for something like a channel name, headline, or pin, then we
+		// will never actually cache it. Detect this case here and put a load of the messages onto the
+		// background loader so we can get these messages cached with the full checks on UnboxMessage.
+		if reason == chat1.GetThreadReason_LOCALIZE && globals.CtxUnboxMode(ctx) == types.UnboxModeQuick {
+			s.Debug(ctx, "GetMessages: convID: %s remoteMsgs: %d: cache miss on localizer mode with UnboxQuickMode, queuing job", convID, len(remoteMsgs))
+			// implement the load entirely in the post load hook since we only want to load those
+			// messages in remoteMsgs. We can do that by specifying a 0 length pagination object.
+			if err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, &chat1.Pagination{Num: 0},
+				types.ConvLoaderPriorityLowest, types.ConvLoaderUnique,
+				func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+					reason := chat1.GetThreadReason_BACKGROUNDCONVLOAD
+					if _, err := s.G().ConvSource.GetMessages(ctx, convID, uid, remoteMsgs, &reason,
+						customRi, resolveSupersedes); err != nil {
+						s.Debug(ctx, "GetMessages: error loading UnboxQuickMode cache misses: ", err)
+					}
+
+				})); err != nil {
+				s.Debug(ctx, "GetMessages: error queuing conv loader job: %+v", err)
+			}
 		}
 	}
 

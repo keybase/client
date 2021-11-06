@@ -70,7 +70,11 @@ const MenuRow = (props: MenuRowProps) => (
           fullHeight={true}
           style={Styles.collapseStyles([!props.centered && styles.iconContainer])}
         >
+          {props.isSelected && (
+            <Icon type="iconfont-check" color={Styles.globalColors.blue} fontSize={16} sizeType="Default" />
+          )}
           {props.icon &&
+            !props.isSelected &&
             (props.inProgress ? (
               <ProgressIndicator />
             ) : (

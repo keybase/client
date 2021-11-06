@@ -371,6 +371,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "data": "Buffer"
     },
+    "attachmentUploadCanceled": {
+      "_description": "The attachment upload modal was canceled",
+      "outboxIDs": "Array<RPCChatTypes.OutboxID>"
+    },
     "messageAttachmentUploaded": {
       "_description": [
         "We got an uploaded attachment.",
@@ -391,6 +395,10 @@
         "When we first view it we should go through our marking as read logic"
       ],
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "markTeamAsRead": {
+      "_description": "Mark all conversations in a team as read",
+      "teamID": "TeamsTypes.TeamID"
     },
     "markConversationsStale": {
       "_description": "Server told us a conversation is out of date",

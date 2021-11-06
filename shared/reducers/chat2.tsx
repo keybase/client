@@ -709,7 +709,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     // editing a specific message
     if (ordinal) {
       const message = messageMap?.get(ordinal)
-      if (message?.type === 'text') {
+      if (message?.type === 'text' || message?.type === 'attachment') {
         editingMap.set(conversationIDKey, ordinal)
       }
       return
@@ -720,7 +720,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const found = ordinals.reverse().find(o => {
       const message = messageMap?.get(o)
       return !!(
-        message?.type === 'text' &&
+        (message?.type === 'text' || message?.type === 'attachment') &&
         message.author === editLastUser &&
         !message.exploded &&
         message.isEditable
@@ -1339,7 +1339,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {messageMap} = draftState
 
     const m = messageMap.get(conversationIDKey)?.get(ordinal)
-    if (m?.type === 'text') {
+    if (m?.type === 'text' || m?.type === 'attachment') {
       m.submitState = 'editing'
     }
   },
@@ -1356,8 +1356,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     )
     if (ordinal) {
       const m = messageMap.get(conversationIDKey)?.get(ordinal)
-      if (m?.type === 'text') {
-        m.text = text
+      if (m?.type === 'text' || m?.type === 'attachment') {
+        if (m.type === 'text') {
+          m.text = text
+        } else if (m.type === 'attachment') {
+          m.title = text.stringValue()
+        }
         m.hasBeenEdited = true
         m.submitState = undefined
         m.mentionsAt = mentionsAt
@@ -1373,6 +1377,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const m = messageMap.get(conversationIDKey)?.get(ordinal)
     if (m?.type === 'text') {
       m.text = text
+    } else if (m?.type === 'attachment') {
+      m.title = text.stringValue()
     }
   },
   [Chat2Gen.metaReceivedError]: (draftState, action) => {

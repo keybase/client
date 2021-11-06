@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -13,6 +14,40 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
+
+type mockHTTPSrv struct {
+	types.DummyAttachmentHTTPSrv
+	fetcher types.AttachmentFetcher
+}
+
+func newMockHTTPSrv(fetcher types.AttachmentFetcher) *mockHTTPSrv {
+	return &mockHTTPSrv{
+		fetcher: fetcher,
+	}
+}
+
+func (d mockHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
+	return d.fetcher
+}
+
+type mockAssetDeleter struct {
+	types.DummyAttachmentFetcher
+	delCh chan struct{}
+}
+
+func newMockAssetDeleter() *mockAssetDeleter {
+	return &mockAssetDeleter{
+		delCh: make(chan struct{}, 100),
+	}
+}
+
+func (d mockAssetDeleter) DeleteAssets(ctx context.Context, convID chat1.ConversationID, assets []chat1.Asset,
+	ri func() chat1.RemoteInterface, signer s3.Signer) error {
+	if len(assets) > 0 {
+		d.delCh <- struct{}{}
+	}
+	return nil
+}
 
 func TestBackgroundPurge(t *testing.T) {
 	ctx, tc, world, ri, baseSender, listener, conv1 := setupLoaderTest(t)
@@ -24,6 +59,9 @@ func TestBackgroundPurge(t *testing.T) {
 	trip1 := newConvTriple(ctx, t, tc, u.Username)
 	clock := world.Fc
 	g.EphemeralTracker = NewEphemeralTracker(g)
+	fetcher := newMockAssetDeleter()
+	httpSrv := newMockHTTPSrv(fetcher)
+	g.AttachmentURLSrv = httpSrv
 	chatStorage := storage.New(g, tc.ChatG.ConvSource)
 	chatStorage.SetClock(clock)
 
@@ -65,25 +103,26 @@ func TestBackgroundPurge(t *testing.T) {
 		}
 	}
 
-	sendEphemeral := func(convID chat1.ConversationID, trip chat1.ConversationIDTriple, lifetime gregor1.DurationSec) chat1.MessageUnboxed {
-		_, _, err := baseSender.Send(ctx, convID, chat1.MessagePlaintext{
+	sendEphemeral := func(convID chat1.ConversationID, trip chat1.ConversationIDTriple,
+		lifetime gregor1.DurationSec, body chat1.MessageBody) chat1.MessageUnboxed {
+		typ, err := body.MessageType()
+		require.NoError(t, err)
+		_, _, err = baseSender.Send(ctx, convID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:              trip,
 				Sender:            uid,
 				TlfName:           u.Username,
 				TlfPublic:         false,
-				MessageType:       chat1.MessageType_TEXT,
+				MessageType:       typ,
 				EphemeralMetadata: &chat1.MsgEphemeralMetadata{Lifetime: lifetime},
 			},
-			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: "hi",
-			}),
+			MessageBody: body,
 		}, 0, nil, nil, nil)
 		require.NoError(t, err)
 		thread, err := tc.ChatG.ConvSource.Pull(ctx, convID, uid,
 			chat1.GetThreadReason_GENERAL, nil,
 			&chat1.GetThreadQuery{
-				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT},
 			}, nil)
 		require.NoError(t, err)
 		require.True(t, len(thread.Messages) > 0)
@@ -154,6 +193,9 @@ func TestBackgroundPurge(t *testing.T) {
 	lifetime := gregor1.DurationSec(1)
 	lifetimeDuration := time.Second
 	msgs := []chat1.MessageUnboxed{}
+	body := chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "hi",
+	})
 	for i := 1; i <= 5; i++ {
 		convID := conv1.ConvID
 		trip := trip1
@@ -161,7 +203,21 @@ func TestBackgroundPurge(t *testing.T) {
 			convID = conv2.ConvID
 			trip = trip2
 		}
-		msg := sendEphemeral(convID, trip, lifetime*gregor1.DurationSec(i))
+		if i == 1 {
+			body = chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+				Object: chat1.Asset{
+					Path: "miketown",
+				},
+			})
+		} else {
+			chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			})
+		}
+		msg := sendEphemeral(convID, trip, lifetime*gregor1.DurationSec(i), body)
+		if i == 1 {
+			t.Logf("DEBUG: attachment msgid: %d", msg.GetMessageID())
+		}
 		msgs = append(msgs, msg)
 	}
 
@@ -183,6 +239,13 @@ func TestBackgroundPurge(t *testing.T) {
 		NextPurgeTime:   msgs[1].Valid().Etime(),
 		IsActive:        true,
 	})
+	assertListener(conv1.ConvID, 2)
+	// make sure the single asset got deleted
+	select {
+	case <-fetcher.delCh:
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "no asset deleted")
+	}
 
 	// Ensure things run smoothly even with extraneous start/stop calls to
 	// purger
@@ -208,6 +271,8 @@ func TestBackgroundPurge(t *testing.T) {
 		NextPurgeTime:   msgs[3].Valid().Etime(),
 		IsActive:        true,
 	})
+	// asset deletion job
+	assertListener(conv2.ConvID, 2)
 
 	// Stop the Purger, and ensure the next message gets purged when we Pull
 	// the conversation and the GUI get's a notification
@@ -217,7 +282,7 @@ func TestBackgroundPurge(t *testing.T) {
 	thread, err := tc.ChatG.ConvSource.Pull(ctx, conv1.ConvID, uid,
 		chat1.GetThreadReason_GENERAL, nil,
 		&chat1.GetThreadQuery{
-			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT},
 		}, nil)
 	require.NoError(t, err)
 	require.Len(t, thread.Messages, 3)
@@ -235,6 +300,9 @@ func TestBackgroundPurge(t *testing.T) {
 		NextPurgeTime:   msgs[3].Valid().Etime(),
 		IsActive:        true,
 	})
+	// asset deletion job
+	assertListener(conv1.ConvID, 2)
+
 	for _, item := range purger.pq.queue {
 		t.Logf("queue item: %+v", item)
 	}
@@ -269,6 +337,9 @@ func TestBackgroundPurge(t *testing.T) {
 		NextPurgeTime:   0,
 		IsActive:        false,
 	})
+	// asset deletion job
+	assertListener(conv1.ConvID, 0)
+	assertListener(conv2.ConvID, 0)
 
 	world.Fc.Advance(lifetimeDuration * 5)
 	select {

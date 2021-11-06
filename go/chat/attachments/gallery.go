@@ -226,7 +226,7 @@ func (g *Gallery) NextMessages(ctx context.Context, uid gregor1.UID,
 			}
 		}
 		g.Debug(ctx, "NextMessages: still need more (%d < %d): len: %d", len(res), num, len(tv.Messages))
-		if tv.Pagination.Last {
+		if tv.Pagination == nil || tv.Pagination.Last {
 			g.Debug(ctx, "NextMessages: stopping on last page")
 			break
 		}

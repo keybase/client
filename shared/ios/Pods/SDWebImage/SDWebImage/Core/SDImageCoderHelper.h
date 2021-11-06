@@ -74,6 +74,16 @@
 + (CGImageRef _Nullable)CGImageCreateDecoded:(_Nonnull CGImageRef)cgImage orientation:(CGImagePropertyOrientation)orientation CF_RETURNS_RETAINED;
 
 /**
+ Create a scaled CGImage by the provided CGImage and size. This follows The Create Rule and you are response to call release after usage.
+ It will detect whether the image size matching the scale size, if not, stretch the image to the target size.
+ 
+ @param cgImage The CGImage
+ @param size The scale size in pixel.
+ @return A new created scaled image
+ */
++ (CGImageRef _Nullable)CGImageCreateScaled:(_Nonnull CGImageRef)cgImage size:(CGSize)size CF_RETURNS_RETAINED;
+
+/**
  Return the decoded image by the provided image. This one unlike `CGImageCreateDecoded:`, will not decode the image which contains alpha channel or animated image
  @param image The image to be decoded
  @return The decoded image
@@ -81,13 +91,20 @@
 + (UIImage * _Nullable)decodedImageWithImage:(UIImage * _Nullable)image;
 
 /**
- Return the decoded and probably scaled down image by the provided image. If the image is large than the limit size, will try to scale down. Or just works as `decodedImageWithImage:`
+ Return the decoded and probably scaled down image by the provided image. If the image pixels bytes size large than the limit bytes, will try to scale down. Or just works as `decodedImageWithImage:`, never scale up.
+ @warning You should not pass too small bytes, the suggestion value should be larger than 1MB. Even we use Tile Decoding to avoid OOM, however, small bytes will consume much more CPU time because we need to iterate more times to draw each tile.
 
  @param image The image to be decoded and scaled down
  @param bytes The limit bytes size. Provide 0 to use the build-in limit.
  @return The decoded and probably scaled down image
  */
 + (UIImage * _Nullable)decodedAndScaledDownImageWithImage:(UIImage * _Nullable)image limitBytes:(NSUInteger)bytes;
+
+/**
+ Control the default limit bytes to scale down largest images.
+ This value must be larger than 4 Bytes (at least 1x1 pixel). Defaults to 60MB on iOS/tvOS, 90MB on macOS, 30MB on watchOS.
+ */
+@property (class, readwrite) NSUInteger defaultScaleDownLimitBytes;
 
 #if SD_UIKIT || SD_WATCH
 /**

@@ -10,6 +10,8 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -522,6 +524,18 @@ var additionalMimeTypes = map[string]string{
 	".wasm": "application/wasm",
 }
 
+type logForwarder struct {
+	msg     string
+	logFunc func(msg string, fields ...zap.Field)
+}
+
+var _ io.Writer = (*logForwarder)(nil)
+
+func (f *logForwarder) Write(p []byte) (n int, err error) {
+	f.logFunc(f.msg, zap.String("content", string(p)))
+	return len(p), nil
+}
+
 // ListenAndServe listens on 443 and 80 ports of all addresses, and serve
 // Keybase Pages based on config and kbfsConfig. HTTPs setup is handled with
 // ACME.
@@ -548,10 +562,22 @@ func ListenAndServe(ctx context.Context,
 		return err
 	}
 
+	if manager.Client == nil || len(manager.Client.DirectoryURL) == 0 {
+		config.Logger.Info("ListenAndServe",
+			zap.String("acme directory url", autocert.DefaultACMEDirectory))
+	} else {
+		config.Logger.Info("ListenAndServe",
+			zap.String("acme directory url", manager.Client.DirectoryURL))
+	}
+
 	httpsServer := http.Server{
 		Handler:           server,
 		ReadHeaderTimeout: httpReadHeaderTimeout,
 		IdleTimeout:       httpIdleTimeout,
+		ErrorLog: log.New(&logForwarder{
+			msg:     "http error log",
+			logFunc: config.Logger.Error,
+		}, "", 0),
 	}
 
 	httpServer := http.Server{

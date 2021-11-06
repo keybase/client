@@ -1,1 +1,1 @@
-../../../../../node_modules/react-native-webview/ios/RNCWebView.h
+../../../../../node_modules/react-native-webview/apple/RNCWebView.h

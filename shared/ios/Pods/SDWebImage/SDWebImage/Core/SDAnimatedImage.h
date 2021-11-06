@@ -57,6 +57,12 @@
  */
 @property (nonatomic, assign, readonly, getter=isAllFramesLoaded) BOOL allFramesLoaded;
 
+/**
+ Return the animated image coder if the image is created with `initWithAnimatedCoder:scale:` method.
+ @note We use this with animated coder which conforms to `SDProgressiveImageCoder` for progressive animation decoding.
+ */
+@property (nonatomic, strong, readonly, nullable) id<SDAnimatedImageCoder> animatedCoder;
+
 @end
 
 /**
@@ -66,6 +72,7 @@
 
 // This class override these methods from UIImage(NSImage), and it supports NSSecureCoding.
 // You should use these methods to create a new animated image. Use other methods just call super instead.
+// Pay attention, when the animated image frame count <= 1, all the `SDAnimatedImageProvider` protocol methods will return nil or 0 value, you'd better check the frame count before usage and keep fallback.
 + (nullable instancetype)imageNamed:(nonnull NSString *)name; // Cache in memory, no Asset Catalog support
 #if __has_include(<UIKit/UITraitCollection.h>)
 + (nullable instancetype)imageNamed:(nonnull NSString *)name inBundle:(nullable NSBundle *)bundle compatibleWithTraitCollection:(nullable UITraitCollection *)traitCollection; // Cache in memory, no Asset Catalog support
@@ -94,11 +101,11 @@
  The scale factor of the image.
  
  @note For UIKit, this just call super instead.
- @note For AppKit, `NSImage` can contains multiple image representations with different scales. However, this class does not do that from the design. We processs the scale like UIKit. This wil actually be calculated from image size and pixel size.
+ @note For AppKit, `NSImage` can contains multiple image representations with different scales. However, this class does not do that from the design. We process the scale like UIKit. This will actually be calculated from image size and pixel size.
  */
 @property (nonatomic, readonly) CGFloat scale;
 
-// By default, animated image frames are returned by decoding just in time without keeping into memory. But you can choose to preload them into memory as well, See the decsription in `SDAnimatedImage` protocol.
+// By default, animated image frames are returned by decoding just in time without keeping into memory. But you can choose to preload them into memory as well, See the description in `SDAnimatedImage` protocol.
 // After preloaded, there is no huge difference on performance between this and UIImage's `animatedImageWithImages:duration:`. But UIImage's animation have some issues such like blanking and pausing during segue when using in `UIImageView`. It's recommend to use only if need.
 - (void)preloadAllFrames;
 - (void)unloadAllFrames;

@@ -10,6 +10,7 @@
 #import "fs.h"
 
 #import <IOKit/kext/KextManager.h>
+#include <libkern/OSKextLib.h>
 #include <sys/stat.h>
 #import "KBLogger.h"
 
@@ -209,8 +210,36 @@
   KBLog(@"Unloading kextID: %@", kextID);
   OSReturn status = KextManagerUnloadKextWithIdentifier((__bridge CFStringRef)kextID);
   KBLog(@"Unload kext status: %@", @(status));
+  
+  if (status == kOSKextReturnNotPrivileged) {
+    // macOS 11 has a bug in KextManagerUnloadKextWithIdentifier that returns
+    // kOSKextReturnNotPrivileged (-603947004) even if it's already running as
+    // root. So have a fallback where we delegate to kmutil.
+    if (@available(macOS 11, *)) {
+      KBLog(@"Got kOSKextReturnNotPrivileged from KextManagerUnloadKextWithIdentifier. Since we are on macOS 11, will fallback to kmutil.");
+      NSTask* task = [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/kmutil"] arguments:@[@"unload", @"-b", kextID] error:error terminationHandler:Nil];
+      if (error != nil) {
+        *error = KBMakeError(KBHelperErrorKext,
+                             @"KextManager failed to run kmutil: %@", *error);
+        return NO;
+      }
+      
+      [task waitUntilExit];
+      int status = [task terminationStatus];
+      
+      if (status != 0) {
+        *error = KBMakeError(KBHelperErrorKext,
+                             @"KextManager spawned kmutil exited with non-zero status: %d", status);
+        return NO;
+      }
+      return YES;
+    }
+  }
+  
   if (status != kOSReturnSuccess) {
-    if (error) *error = KBMakeError(KBHelperErrorKext, @"KextManager failed to unload with status: %@: %@", @(status), [KBKext descriptionForStatus:status]);
+    if (error) {
+      *error = KBMakeError(KBHelperErrorKext, @"KextManager failed to unload with status: %@: %@", @(status), [KBKext descriptionForStatus:status]);
+    }
     return NO;
   }
   return YES;

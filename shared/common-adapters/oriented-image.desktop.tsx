@@ -226,7 +226,7 @@ class OrientedImage extends React.Component<Props, State> {
   // Mark this image path as no transform and set the ImageRef src to the original source
   _handleOrientationFailure = () => {
     _cacheNoTransforms[this.props.src] = NO_TRANSFORM
-    logger.info(`OrientedImage failed to read EXIF data for image src: ${this.props.src}`)
+    logger.info('OrientedImage failed to read EXIF data')
     this.setState({srcTransformed: this.props.src})
   }
 

@@ -366,7 +366,7 @@ func (u *Unfurler) scrapeAndPackage(ctx context.Context, uid gregor1.UID, convID
 	url string) (unfurl chat1.Unfurl, err error) {
 	unfurlRaw, err := u.scraper.Scrape(ctx, url, nil)
 	if err != nil {
-		u.Debug(ctx, "unfurl: failed to scrape: %s(%T)", err, err)
+		u.Debug(ctx, "unfurl: failed to scrape: <error msg suppressed> (%T)", err)
 		return unfurl, err
 	}
 	packaged, err := u.packager.Package(ctx, uid, convID, unfurlRaw)

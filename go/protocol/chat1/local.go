@@ -5152,6 +5152,28 @@ func (o MarkAsReadLocalRes) DeepCopy() MarkAsReadLocalRes {
 	}
 }
 
+type MarkTLFAsReadLocalRes struct {
+	Offline    bool        `codec:"offline" json:"offline"`
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o MarkTLFAsReadLocalRes) DeepCopy() MarkTLFAsReadLocalRes {
+	return MarkTLFAsReadLocalRes{
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type FindConversationsLocalRes struct {
 	Conversations    []ConversationLocal           `codec:"conversations" json:"conversations"`
 	UiConversations  []InboxUIItem                 `codec:"uiConversations" json:"uiConversations"`
@@ -6836,6 +6858,11 @@ type MarkAsReadLocalArg struct {
 	MsgID          *MessageID     `codec:"msgID,omitempty" json:"msgID,omitempty"`
 }
 
+type MarkTLFAsReadLocalArg struct {
+	SessionID int   `codec:"sessionID" json:"sessionID"`
+	TlfID     TLFID `codec:"tlfID" json:"tlfID"`
+}
+
 type FindConversationsLocalArg struct {
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	MembersType      ConversationMembersType      `codec:"membersType" json:"membersType"`
@@ -7262,6 +7289,7 @@ type LocalInterface interface {
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, RetryPostArg) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
+	MarkTLFAsReadLocal(context.Context, MarkTLFAsReadLocalArg) (MarkTLFAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 	FindGeneralConvFromTeamID(context.Context, keybase1.TeamID) (InboxUIItem, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
@@ -8016,6 +8044,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.MarkAsReadLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"markTLFAsReadLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]MarkTLFAsReadLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]MarkTLFAsReadLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]MarkTLFAsReadLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.MarkTLFAsReadLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -9365,6 +9408,11 @@ func (c LocalClient) RetryPost(ctx context.Context, __arg RetryPostArg) (err err
 
 func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalArg) (res MarkAsReadLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.markAsReadLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) MarkTLFAsReadLocal(ctx context.Context, __arg MarkTLFAsReadLocalArg) (res MarkTLFAsReadLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.markTLFAsReadLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
