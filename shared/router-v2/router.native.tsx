@@ -453,7 +453,6 @@ const styles = Styles.styleSheetCreate(() => ({
 
 // export default RNApp
 const Tab = createBottomTabNavigator()
-
 const tabs = Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs
 
 // so we have a stack per tab?
@@ -471,7 +470,6 @@ const makeStack = tab => {
           }}
         >
           {makeNavScreens(Shim.shim(routes), S.Screen, false)}
-          {makeNavScreens(Shim.shim(modalRoutes), S.Screen, true)}
         </S.Navigator>
       )
     }
@@ -492,7 +490,11 @@ const makeNavScreens = (rs, Screen, isModal) => {
           const opt = typeof no === 'function' ? no({route, navigation}) : no
           return {
             ...opt,
-            ...(isModal ? {presentation: 'modal'} : {}),
+            ...(isModal
+              ? {
+                  animationEnabled: true,
+                }
+              : {}),
           }
         }}
       />
@@ -500,25 +502,34 @@ const makeNavScreens = (rs, Screen, isModal) => {
   })
 }
 
+const AppTabs = () => (
+  <Tab.Navigator
+    backBehavior="none"
+    screenOptions={({route}) => ({
+      ...defaultNavigationOptions,
+      headerShown: false,
+      tabBarShowLabel: Styles.isTablet,
+      tabBarStyle: {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest},
+      tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+      tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+      tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
+    })}
+  >
+    {tabs.map(tab => (
+      <Tab.Screen key={tab} name={tab} getComponent={() => makeStack(tab)} />
+    ))}
+  </Tab.Navigator>
+)
+
+const TabsAndModal = createStackNavigator()
+
 const RNApp = () => {
   return (
     <NavigationContainer ref={Constants.navigationRef_}>
-      <Tab.Navigator
-        backBehavior="none"
-        screenOptions={({route}) => ({
-          ...defaultNavigationOptions,
-          headerShown: false,
-          tabBarShowLabel: Styles.isTablet,
-          tabBarStyle: {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest},
-          tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-          tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
-        })}
-      >
-        {tabs.map(tab => (
-          <Tab.Screen key={tab} name={tab} getComponent={() => makeStack(tab)} />
-        ))}
-      </Tab.Navigator>
+      <TabsAndModal.Navigator headerMode="none" screenOptions={{animationEnabled: false}} mode="modal">
+        <TabsAndModal.Screen name="Tabs" component={AppTabs} />
+        {makeNavScreens(Shim.shim(modalRoutes), TabsAndModal.Screen, true)}
+      </TabsAndModal.Navigator>
     </NavigationContainer>
   )
 }

@@ -45,7 +45,7 @@ const findModalRoute = (s: NavState) => {
   if (!s) return []
   const loggedInOut = s.routes && s.routes[s.index]
   // only logged in has modals
-  if (!loggedInOut || loggedInOut.routeName !== 'loggedIn') {
+  if (!loggedInOut || loggedInOut.name !== 'loggedIn') {
     return []
   }
 
@@ -54,7 +54,7 @@ const findModalRoute = (s: NavState) => {
 const findMainRoute = (s: NavState) => {
   if (!s) return []
   const loggedInOut = s.routes && s.routes[s.index]
-  if (!loggedInOut || !(loggedInOut.routeName === 'loggedIn' || loggedInOut.routeName === 'loggedOut')) {
+  if (!loggedInOut || !(loggedInOut.name === 'loggedIn' || loggedInOut.name === 'loggedOut')) {
     return []
   }
 
@@ -70,7 +70,7 @@ export const _getStackPathHelper = (arr: Array<NavState>, s: NavState): Array<Na
   const route = s.routes[s.index]
   if (!route) return arr
   if (route.routes) return _getStackPathHelper([...arr, s.routes[s.index]], route)
-  if (s.routeName === 'loggedIn' && s.index !== 0) {
+  if (s.name === 'loggedIn' && s.index !== 0) {
     // Modal stack is selected, make sure we get app routes too
     // modals are at indices >= 1
     return [...arr, ..._getStackPathHelper([], s.routes[0]), ...s.routes.slice(1)]
@@ -85,7 +85,7 @@ const findFullRoute = (s: NavState) => {
     return []
   }
   const loggedInOut = s.routes && s.routes[s.index]
-  if (loggedInOut && loggedInOut.routeName === 'loggedIn') {
+  if (loggedInOut && loggedInOut.name === 'loggedIn') {
     return _getStackPathHelper([], s)
   }
   return (loggedInOut && loggedInOut.routes) || []
@@ -170,7 +170,7 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       const path = Constants._getVisiblePathForNavigator(navigationState)
       const visible = path[path.length - 1]
       if (visible) {
-        if (!allowAppendDupe && routeName === visible.routeName && shallowEqual(visible.params, params)) {
+        if (!allowAppendDupe && routeName === visible.name && shallowEqual(visible.params, params)) {
           console.log('Skipping append dupe')
           return
         }
@@ -198,8 +198,7 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       return [CommonActions.navigate({name: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]
     }
     case RouteTreeGen.clearModals: {
-      return [] // TEMP
-      // return [StackActions.popToTop({key: 'loggedIn'})]
+      return [StackActions.popToTop({key: 'loggedIn'})]
     }
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
@@ -207,7 +206,7 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       const fullPath = Constants._getFullRouteForNavigator(navigationState)
       const popActions: Array<unknown> = []
       const isInStack = fullPath.reverse().some(r => {
-        if (r.routeName === action.payload.routeName) {
+        if (r.name === action.payload.routeName) {
           return true
         }
         popActions.push(StackActions.pop())
