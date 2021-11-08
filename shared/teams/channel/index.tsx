@@ -290,11 +290,11 @@ const MobileHeader = ({
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const top = Kb.ReAnimated.interpolate(offset, {
+  const top = Kb.ReAnimated.interpolateNode(offset, {
     inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
     outputRange: [40, 40, 0, 0],
   })
-  const opacity = Kb.ReAnimated.interpolate(offset, {
+  const opacity = Kb.ReAnimated.interpolateNode(offset, {
     inputRange: [-9999, 0, 1, 9999],
     outputRange: [0, 0, 1, 1],
   })

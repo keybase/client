@@ -470,7 +470,8 @@ const makeStack = tab => {
             ...defaultNavigationOptions,
           }}
         >
-          {makeNavScreens(Shim.shim(routes), S.Screen)}
+          {makeNavScreens(Shim.shim(routes), S.Screen, false)}
+          {makeNavScreens(Shim.shim(modalRoutes), S.Screen, true)}
         </S.Navigator>
       )
     }
@@ -479,17 +480,20 @@ const makeStack = tab => {
   return Comp
 }
 
-// TODO modal
-const makeNavScreens = (rs, Screen) => {
+const makeNavScreens = (rs, Screen, isModal) => {
   return Object.keys(rs).map(name => {
     return (
       <Screen
         key={name}
         name={name}
         getComponent={rs[name].getScreen}
-        options={() => {
+        options={({route, navigation}) => {
           const no = rs[name].getScreen().navigationOptions
-          return typeof no === 'function' ? no() : no
+          const opt = typeof no === 'function' ? no({route, navigation}) : no
+          return {
+            ...opt,
+            ...(isModal ? {presentation: 'modal'} : {}),
+          }
         }}
       />
     )

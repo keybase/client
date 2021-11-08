@@ -266,8 +266,8 @@ const FilteredServiceTabBar = (
 const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
 
 class TeamBuilding extends React.PureComponent<Props> {
-  static navigationOptions = ({navigation}) => {
-    const namespace = navigation.state.params.namespace
+  static navigationOptions = ({navigation, route}) => {
+    const namespace = route.params.namespace
     const common = {
       modal2: true,
       modal2AvoidTabs: false,
@@ -615,9 +615,7 @@ class TeamBuilding extends React.PureComponent<Props> {
       <Kb.Text type="BodyBigLink" onClick={this.props.onClose}>
         Cancel
       </Kb.Text>
-    ) : (
-      undefined
-    )
+    ) : undefined
     switch (this.props.namespace) {
       case 'people': {
         return Styles.isMobile
@@ -635,9 +633,7 @@ class TeamBuilding extends React.PureComponent<Props> {
               rolePickerProps={this.props.rolePickerProps}
               count={this.props.teamSoFar.length}
             />
-          ) : (
-            undefined
-          )
+          ) : undefined
         if (flags.teamsRedesign) {
           return {
             hideBorder: true,
@@ -650,9 +646,7 @@ class TeamBuilding extends React.PureComponent<Props> {
               >
                 Done
               </Kb.Text>
-            ) : (
-              undefined
-            ),
+            ) : undefined,
             title: <TeamsModalTitle teamID={this.props.teamID ?? noTeamID} title="Search people" />,
           }
         }
@@ -678,9 +672,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             type="Success"
             style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
           />
-        ) : (
-          undefined
-        )
+        ) : undefined
         return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
       }
       case 'crypto': {
@@ -692,9 +684,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             type="Success"
             style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
           />
-        ) : (
-          undefined
-        )
+        ) : undefined
         return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
       }
       default: {
