@@ -4,7 +4,7 @@ import Main from './main.native'
 import * as React from 'react'
 import configureStore from '../store/configure-store'
 import {AppRegistry, AppState, Linking} from 'react-native'
-import {GatewayProvider} from '@chardskarth/react-gateway'
+import {PortalProvider} from '@gorhom/portal'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
@@ -60,11 +60,11 @@ class Keybase extends React.Component<Props> {
   render() {
     return (
       <Provider store={store}>
-        <GatewayProvider>
+        <PortalProvider>
           <SafeAreaProvider>
             <Main />
           </SafeAreaProvider>
-        </GatewayProvider>
+        </PortalProvider>
       </Provider>
     )
   }

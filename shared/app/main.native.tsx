@@ -3,7 +3,7 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 // import * as Container from '../util/container'
 import RouterSwitcheroo from '../router-v2/switcheroo'
-import {GatewayDest} from '@chardskarth/react-gateway'
+import {PortalHost} from '@gorhom/portal'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors/container'
 import OutOfDate from './out-of-date'
@@ -26,9 +26,8 @@ const Main = (_: Props) => {
     <>
       <Kb.NativeStatusBar key={isDarkMode ? 'dark' : 'light'} barStyle={getBarStyle()} />
       <RouterSwitcheroo />
-      <GatewayDest
+      <PortalHost
         name="popup-root"
-        component={ViewForGatewayDest}
         // @ts-ignore
         pointerEvents="box-none"
         style={Styles.globalStyles.fillAbsolute}
@@ -38,9 +37,8 @@ const Main = (_: Props) => {
         pointerEvents="box-none"
         behavior={Styles.isIOS ? 'padding' : undefined}
       >
-        <GatewayDest
+        <PortalHost
           name="keyboard-avoiding-root"
-          component={ViewForGatewayDest}
           // @ts-ignore
           pointerEvents="box-none"
           style={styles.gatewayDest}
