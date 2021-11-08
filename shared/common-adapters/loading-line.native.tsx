@@ -1,5 +1,5 @@
 import * as React from 'react'
-import ReAnimated, {Easing as ReAnimatedEasing} from 'react-native-reanimated'
+import ReAnimated, {EasingNode} from 'react-native-reanimated'
 import * as Styles from '../styles'
 import {Props} from './loading-line'
 
@@ -18,7 +18,7 @@ function runLoop() {
 
   const config = {
     duration: new R.Value(600 * 2),
-    easing: ReAnimatedEasing.inOut(ReAnimatedEasing.ease),
+    easing: EasingNode.inOut(EasingNode.ease),
     toValue: new R.Value(1),
   }
 
@@ -37,7 +37,7 @@ function runLoop() {
       R.startClock(clock),
     ]),
     // Iterpolate alpha from 0 => 1 => 0 so it loops
-    R.interpolate(state.position, {
+    R.interpolateNode(state.position, {
       extrapolate: R.Extrapolate.CLAMP,
       inputRange: [-1, 0, 1],
       outputRange: [0, 1, 0],

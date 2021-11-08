@@ -1,4 +1,4 @@
-import {NavigationRoute} from 'react-navigation'
+import {NavigationRoute} from '@react-navigation/native'
 import {Actions} from '../../actions/route-tree-gen'
 type PathItem = string | {selected: string; payload: Object}
 export type Path = Array<PathItem>

@@ -9,7 +9,7 @@ import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getVisiblePath} from '../../../constants/router2'
 import {getFullname} from '../../../constants/users'
 import * as Tabs from '../../../constants/tabs'
-import {useNavigation} from 'react-navigation'
+import {useRoute} from '@react-navigation/native'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -122,10 +122,10 @@ const Connected = Container.connect(
 )(HeaderBranch)
 
 export default () => {
-  const navigation = useNavigation()
+  const route = useRoute()
   return (
     <Connected
-      conversationIDKey={navigation.params.conversationIDKey ?? Constants.noConversationIDKey}
+      conversationIDKey={route.params?.conversationIDKey ?? Constants.noConversationIDKey}
       progress={null}
     />
   )
