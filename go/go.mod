@@ -99,7 +99,7 @@ require (
 	github.com/simplereach/timeutils v1.2.0 // indirect
 	github.com/src-d/gcfg v1.3.0 // indirect
 	github.com/stathat/go v1.0.0
-	github.com/stellar/go v0.0.0-20191010205648-0fc3bfe3dfa7
+	github.com/stellar/go v0.0.0-20200825193544-f686b01b140b
 	github.com/stretchr/testify v1.5.1
 	github.com/strib/gomounts v0.0.0-20180215003523-d9ea4eaa52ca // indirect
 	github.com/syndtr/goleveldb v1.0.0
