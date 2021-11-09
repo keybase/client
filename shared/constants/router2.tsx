@@ -207,7 +207,10 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       return [CommonActions.navigate({name: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]
     }
     case RouteTreeGen.clearModals: {
-      return [StackActions.popToTop({key: 'loggedIn'})]
+      if (isLoggedIn(navigationState) && navigationState.routes.length > 1) {
+        return [StackActions.popToTop({target: navigationState.key})]
+      }
+      return []
     }
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
