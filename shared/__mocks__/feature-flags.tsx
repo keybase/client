@@ -6,15 +6,7 @@ if (!__STORYBOOK__) {
 
 const ff: FeatureFlags = {
   admin: false,
-  connectThrashCheck: true,
-  foldersInProfileTab: true,
   inviteFriends: true,
-  moveOrCopy: true,
-  newTeamBuildingForChatAllowMakeTeam: false,
-  tabletSupport: true,
-  teamInvites: false,
-  webOfTrust: false,
-  whyDidYouRender: false,
 }
 
 console.warn('feature flag mock in effect')

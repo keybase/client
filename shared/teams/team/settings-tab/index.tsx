@@ -332,11 +332,6 @@ export class Settings extends React.Component<Props, State> {
                 <DefaultChannels teamID={this.props.teamID} />
               </Kb.Box2>
             )}
-            {flags.teamInvites && (
-              <Kb.Box2 direction="vertical" fullWidth={true}>
-                <InviteLinks teamID={this.props.teamID} />
-              </Kb.Box2>
-            )}
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>

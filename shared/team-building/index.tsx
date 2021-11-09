@@ -762,15 +762,6 @@ class TeamBuilding extends React.PureComponent<Props> {
               teamBox
             ))}
           {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
-          {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
-            <Kb.Text type="BodySmall">
-              Add up to 14 more people. Need more?
-              <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
-                {' '}
-                Make it a team.
-              </Kb.Text>
-            </Kb.Text>
-          )}
           {(props.namespace !== 'people' || Styles.isMobile) && (
             <FilteredServiceTabBar
               filterServices={props.filterServices}
