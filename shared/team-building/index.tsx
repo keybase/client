@@ -634,34 +634,20 @@ class TeamBuilding extends React.PureComponent<Props> {
               count={this.props.teamSoFar.length}
             />
           ) : undefined
-        if (flags.teamsRedesign) {
-          return {
-            hideBorder: true,
-            leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />,
-            rightButton: Styles.isMobile ? (
-              <Kb.Text
-                type="BodyBigLink"
-                onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
-                style={!this.props.teamSoFar.length && styles.hide}
-              >
-                Done
-              </Kb.Text>
-            ) : undefined,
-            title: <TeamsModalTitle teamID={this.props.teamID ?? noTeamID} title="Search people" />,
-          }
+        return {
+          hideBorder: true,
+          leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />,
+          rightButton: Styles.isMobile ? (
+            <Kb.Text
+              type="BodyBigLink"
+              onClick={this.props.teamSoFar.length ? this.props.onFinishTeamBuilding : undefined}
+              style={!this.props.teamSoFar.length && styles.hide}
+            >
+              Done
+            </Kb.Text>
+          ) : undefined,
+          title: <TeamsModalTitle teamID={this.props.teamID ?? noTeamID} title="Search people" />,
         }
-        return Styles.isMobile
-          ? {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
-          : {
-              hideBorder: true,
-              title: (
-                <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
-                  <Kb.Avatar teamname={this.props.teamname} size={32} style={styles.teamAvatar} />
-                  <Kb.Text type="Header">{this.props.title}</Kb.Text>
-                  <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
-                </Kb.Box2>
-              ),
-            }
       }
       case 'chat2': {
         const rightButton = Styles.isMobile ? (

@@ -148,24 +148,18 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
       },
-      editTeam: flags.teamsRedesign
-        ? ({
-            backgroundColor: Styles.globalColors.blue,
-            borderColor: Styles.globalColors.white,
-            borderRadius: 100,
-            borderStyle: 'solid',
-            borderWidth: 2,
-            bottom: -6,
-            color: Styles.globalColors.whiteOrWhite,
-            padding: 4,
-            position: 'absolute',
-            right: -6,
-          } as const)
-        : ({
-            bottom: -2,
-            position: 'absolute',
-            right: -28,
-          } as const),
+      editTeam: {
+        backgroundColor: Styles.globalColors.blue,
+        borderColor: Styles.globalColors.white,
+        borderRadius: 100,
+        borderStyle: 'solid',
+        borderWidth: 2,
+        bottom: -6,
+        color: Styles.globalColors.whiteOrWhite,
+        padding: 4,
+        position: 'absolute',
+        right: -6,
+      } as const,
     } as const)
 )
 

@@ -28,13 +28,10 @@ type InfoPanelProps = {
 
 export class InfoPanel extends React.PureComponent<InfoPanelProps> {
   private getTabs = (): Array<TabType<Panel>> => {
-    var showSettings = !this.props.isPreview
-    if (flags.teamsRedesign) {
-      showSettings =
-        !this.props.isPreview ||
-        TeamConstants.isAdmin(this.props.yourRole) ||
-        TeamConstants.isOwner(this.props.yourRole)
-    }
+    var showSettings =
+      !this.props.isPreview ||
+      TeamConstants.isAdmin(this.props.yourRole) ||
+      TeamConstants.isOwner(this.props.yourRole)
 
     return [
       {title: 'members' as const},

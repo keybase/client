@@ -201,18 +201,11 @@ class Teams extends React.PureComponent<Props, State> {
 
   private teamsAndExtras = memoize(
     (deletedTeams: Props['deletedTeams'], teams: Props['teams']): Array<Row> => [
-      ...(flags.teamsRedesign
-        ? [
-            {key: '_buttons', type: '_buttons' as const},
-            {key: '_sortHeader', type: '_sortHeader' as const},
-          ]
-        : []),
-      ...(this.state.sawChatBanner || flags.teamsRedesign
-        ? []
-        : [{key: '_banner', type: '_banner' as const}]),
+      {key: '_buttons', type: '_buttons' as const},
+      {key: '_sortHeader', type: '_sortHeader' as const},
       ...deletedTeams.map(dt => ({key: 'deletedTeam' + dt.teamName, team: dt, type: 'deletedTeam' as const})),
       ...teams.map(team => ({key: team.id, team, type: 'team' as const})),
-      ...(teams.length === 0 || flags.teamsRedesign ? [{key: '_footer', type: '_footer' as const}] : []),
+      {key: '_footer', type: '_footer' as const},
     ]
   )
 
@@ -255,24 +248,7 @@ class Teams extends React.PureComponent<Props, State> {
         const team = item.team
         const reset = this.props.teamresetusers.get(team.id)
         const resetUserCount = (reset && reset.size) || 0
-        if (flags.teamsRedesign) {
-          return <TeamRowNew firstItem={index === 2} showChat={!Styles.isMobile} teamID={team.id} />
-        }
-        return (
-          <TeamRow
-            firstItem={index === (this.state.sawChatBanner ? 0 : 1)}
-            key={team.teamname}
-            name={team.teamname}
-            isNew={this.props.newTeams.has(team.id)}
-            isOpen={team.isOpen}
-            newRequests={this.props.newTeamRequests.get(team.id)?.size ?? 0}
-            membercount={team.memberCount}
-            onOpenFolder={() => this.onOpenFolder(team.teamname)}
-            onManageChat={team.isMember ? () => this.onManageChat(team.id) : undefined}
-            onViewTeam={() => this.onViewTeam(team.id)}
-            resetUserCount={resetUserCount}
-          />
-        )
+        return <TeamRowNew firstItem={index === 2} showChat={!Styles.isMobile} teamID={team.id} />
       }
     }
   }
@@ -285,16 +261,8 @@ class Teams extends React.PureComponent<Props, State> {
   }
 
   render() {
-    const renderHeader = Styles.isMobile && !flags.teamsRedesign
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        {renderHeader && (
-          <Header
-            loaded={this.props.loaded}
-            onCreateTeam={this.props.onCreateTeam}
-            onJoinTeam={this.props.onJoinTeam}
-          />
-        )}
         <Kb.List
           items={this.teamsAndExtras(this.props.deletedTeams, this.props.teams)}
           renderItem={this.renderItem}
@@ -328,9 +296,7 @@ const styles = Styles.styleSheetCreate(
           width: 140,
         },
       }),
-      container: {
-        backgroundColor: flags.teamsRedesign ? Styles.globalColors.blueGrey : Styles.globalColors.white,
-      },
+      container: {backgroundColor: Styles.globalColors.blueGrey},
       emptyNote: Styles.padding(60, 42, Styles.globalMargins.medium, Styles.globalMargins.medium),
       kerning: {letterSpacing: 0.2},
       maxWidth: {maxWidth: '100%'},

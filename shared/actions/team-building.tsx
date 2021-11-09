@@ -11,7 +11,7 @@ import {validateEmailAddress} from '../util/email-address'
 import flags from '../util/feature-flags'
 
 const closeTeamBuilding = (_: TypedState, {payload: {namespace}}: NSAction) => {
-  if (namespace === 'teams' && flags.teamsRedesign) {
+  if (namespace === 'teams') {
     // add members wizard handles navigation
     return false
   }

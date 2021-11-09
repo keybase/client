@@ -46,9 +46,7 @@ export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) =>
     path: [
       {
         props: {
-          filterServices: flags.teamsRedesign
-            ? ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
-            : undefined,
+          filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
           goButtonLabel: 'Add',
           namespace: 'teams',
           teamID,

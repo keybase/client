@@ -128,31 +128,14 @@ class InfoPanelMenu extends React.Component<Props> {
     const props = this.props
     const isGeneralChannel = !!(props.channelname && props.channelname === 'general')
     const hasChannelSection = !props.isSmallTeam && !props.hasHeader
-    const addPeopleItems: Kb.MenuItems = flags.teamsRedesign
-      ? [
-          {
-            icon: 'iconfont-new',
-            iconIsVisible: false,
-            onClick: props.onAddPeople,
-            title: hasChannelSection ? 'Add/Invite people to team' : 'Add/invite people',
-          },
-        ]
-      : [
-          {
-            icon: 'iconfont-mention',
-            iconIsVisible: false,
-            onClick: props.onAddPeople,
-            style: {borderTopWidth: 0},
-            subTitle: 'Keybase, Twitter, etc.',
-            title: 'Add someone by username',
-          },
-          {
-            icon: 'iconfont-contact-book',
-            iconIsVisible: false,
-            onClick: props.onInvite,
-            title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
-          },
-        ]
+    const addPeopleItems: Kb.MenuItems = [
+      {
+        icon: 'iconfont-new',
+        iconIsVisible: false,
+        onClick: props.onAddPeople,
+        title: hasChannelSection ? 'Add/Invite people to team' : 'Add/invite people',
+      },
+    ]
     const channelHeader: Kb.MenuItem = {
       title: 'channelHeader',
       unWrapped: true,

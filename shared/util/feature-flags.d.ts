@@ -7,7 +7,6 @@ export type FeatureFlags = {
   moveOrCopy: boolean
   newTeamBuildingForChatAllowMakeTeam: boolean
   teamInvites: boolean
-  teamsRedesign: boolean
   webOfTrust: boolean
   whyDidYouRender: boolean
 }

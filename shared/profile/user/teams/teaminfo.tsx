@@ -93,15 +93,12 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
                 mode="Secondary"
               />
             )}
-            {/* With teamsRedesign we have external team page, always show view team button */}
-            {(this.props.inTeam || flags.teamsRedesign) && (
-              <Kb.WaitingButton
-                waitingKey={Constants.waitingKey}
-                label="View team"
-                onClick={this._onViewTeam}
-                mode="Secondary"
-              />
-            )}
+            <Kb.WaitingButton
+              waitingKey={Constants.waitingKey}
+              label="View team"
+              onClick={this._onViewTeam}
+              mode="Secondary"
+            />
             {!this.props.inTeam && (
               <Kb.WaitingButton
                 waitingKey={Constants.waitingKey}

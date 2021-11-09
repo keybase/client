@@ -24,18 +24,9 @@ const TeamTabs = (props: TeamTabsProps) => {
   const tabs: Array<TabType<Types.TabKey>> = [
     {badgeNumber: props.resetUserCount, title: 'members' as const},
     ...(!props.isBig ? [{title: 'emoji' as const}] : []),
-    ...(flags.teamsRedesign && (props.isBig || props.admin) ? [{title: 'channels' as const}] : []),
+    ...(props.isBig || props.admin ? [{title: 'channels' as const}] : []),
     ...(props.isBig ? [{title: 'emoji' as const}] : []),
     {icon: Styles.isPhone ? 'iconfont-gear' : undefined, title: 'settings' as const},
-    ...(props.admin && !flags.teamsRedesign
-      ? [
-          {
-            badgeNumber: Math.min(props.newRequests, props.numRequests),
-            text: `Invites (${props.numInvites + props.numRequests})`,
-            title: 'invites' as const,
-          },
-        ]
-      : []),
     // TODO: should we not show bots if there are no bots and you have no permissions?
     {title: 'bots' as const},
     ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
@@ -48,7 +39,7 @@ const TeamTabs = (props: TeamTabsProps) => {
       selectedTab={props.selectedTab}
       onSelect={props.setSelectedTab}
       style={styles.tabContainer}
-      showProgressIndicator={!Styles.isMobile && props.loading && !flags.teamsRedesign}
+      showProgressIndicator={false}
       tabStyle={styles.tab}
     />
   )
@@ -66,9 +57,6 @@ const TeamTabs = (props: TeamTabsProps) => {
         ) : (
           tabContent
         )}
-        {!Styles.isMobile && props.loading && flags.teamsRedesign && (
-          <Kb.ProgressIndicator style={styles.inlineProgressIndicator} />
-        )}
       </Kb.Box>
       {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
     </Kb.Box2>
@@ -77,7 +65,7 @@ const TeamTabs = (props: TeamTabsProps) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   clickableBox: Styles.platformStyles({
-    isElectron: flags.teamsRedesign ? {flex: 1} : {},
+    isElectron: {flex: 1},
     isMobile: {
       flexGrow: 1,
     },

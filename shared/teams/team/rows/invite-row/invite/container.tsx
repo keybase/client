@@ -50,10 +50,6 @@ export default Container.connect(
       subLabel = subLabel === user.phone ? formatPhoneNumber('+' + subLabel) : subLabel
     } catch {}
 
-    if (!flags.teamsRedesign && subLabel) {
-      label = `${label} (${subLabel})`
-    }
-
     return {
       firstItem: ownProps.firstItem,
       isKeybaseUser: !!user.username,
