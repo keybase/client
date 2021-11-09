@@ -38,7 +38,6 @@ type State = {
 
 class CodePage2 extends React.Component<Props, State> {
   static navigationOptions = {
-    header: null,
     headerBottomStyle: {height: undefined},
     headerLeft: null,
     headerTransparent: true,
@@ -295,9 +294,7 @@ const SwitchTab = (
   if (props.selected === 'QR') {
     label = 'Type secret instead'
     if (currentDeviceType === 'mobile' && props.otherDevice.type === 'mobile') {
-      tab = (props.currentDeviceAlreadyProvisioned
-      ? Styles.isMobile
-      : !Styles.isMobile)
+      tab = (props.currentDeviceAlreadyProvisioned ? Styles.isMobile : !Styles.isMobile)
         ? 'viewText'
         : 'enterText'
     } else if (currentDeviceType === 'mobile') {
@@ -380,10 +377,12 @@ const ViewText = (props: Props) => (
 )
 
 const Instructions = (p: Props) => {
-  const maybeIcon = ({
-    desktop: `icon-computer-background-${p.iconNumber}-96`,
-    mobile: `icon-phone-background-${p.iconNumber}-96`,
-  } as const)[p.currentDeviceAlreadyProvisioned ? p.currentDevice.type : p.otherDevice.type]
+  const maybeIcon = (
+    {
+      desktop: `icon-computer-background-${p.iconNumber}-96`,
+      mobile: `icon-phone-background-${p.iconNumber}-96`,
+    } as const
+  )[p.currentDeviceAlreadyProvisioned ? p.currentDevice.type : p.otherDevice.type]
   const icon = Kb.isValidIconType(maybeIcon) ? maybeIcon : 'icon-computer-96'
 
   return (

@@ -140,7 +140,6 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 SetPublicName.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }

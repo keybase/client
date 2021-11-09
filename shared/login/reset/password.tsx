@@ -104,12 +104,10 @@ const EnterPassword = () => {
 }
 
 KnowPassword.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }
 EnterPassword.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }

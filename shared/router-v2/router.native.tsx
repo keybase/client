@@ -347,16 +347,16 @@ const tabStyles = Styles.styleSheetCreate(
 // }
 // )
 
-// const SimpleLoading = () => (
-// <Kb.Box2
-// direction="vertical"
-// fullHeight={true}
-// fullWidth={true}
-// style={{backgroundColor: Styles.globalColors.white}}
-// >
-// <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
-// </Kb.Box2>
-// )
+const SimpleLoading = () => (
+  <Kb.Box2
+    direction="vertical"
+    fullHeight={true}
+    fullWidth={true}
+    style={{backgroundColor: Styles.globalColors.white}}
+  >
+    <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
+  </Kb.Box2>
+)
 
 // const Stack = createStackNavigator();
 
@@ -521,15 +521,34 @@ const AppTabs = () => (
   </Tab.Navigator>
 )
 
-const TabsAndModal = createStackNavigator()
+const LoggedOutStack = createStackNavigator()
+const LoggedOut = () => (
+  <LoggedOutStack.Navigator>
+    {makeNavScreens(Shim.shim(loggedOutRoutes), LoggedOutStack.Screen, false)}
+  </LoggedOutStack.Navigator>
+)
 
+const RootStack = createStackNavigator()
 const RNApp = () => {
+  const loggedInLoaded = Container.useSelector(state => state.config.loggedInLoaded)
+  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+
   return (
     <NavigationContainer ref={Constants.navigationRef_}>
-      <TabsAndModal.Navigator headerMode="none" screenOptions={{animationEnabled: false}} mode="modal">
-        <TabsAndModal.Screen name="Tabs" component={AppTabs} />
-        {makeNavScreens(Shim.shim(modalRoutes), TabsAndModal.Screen, true)}
-      </TabsAndModal.Navigator>
+      <RootStack.Navigator
+        screenOptions={{animationEnabled: false, headerShown: false, presentation: 'modal'}}
+      >
+        {loggedInLoaded ? (
+          loggedIn ? (
+            <RootStack.Screen name="loggedIn" component={AppTabs} />
+          ) : (
+            <RootStack.Screen name="loggedOut" component={LoggedOut} />
+          )
+        ) : (
+          <RootStack.Screen name="loading" component={SimpleLoading} />
+        )}
+        {makeNavScreens(Shim.shim(modalRoutes), RootStack.Screen, true)}
+      </RootStack.Navigator>
     </NavigationContainer>
   )
 }

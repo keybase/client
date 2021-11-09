@@ -21,7 +21,6 @@ const Password = () => {
 }
 Password.navigationOptions = {
   gesturesEnabled: false,
-  header: null,
 }
 
 export default Password

@@ -5,7 +5,7 @@ import * as Types from '../../constants/types/fs'
 import * as FsGen from '../../actions/fs-gen'
 import {fileUIName} from '../../constants/platform'
 import * as Container from '../../util/container'
-import * as Kbfs from '../common'
+import SystemFileManagerIntegrationPopup from './sfmi-popup'
 
 type Props = {
   path: Types.Path
@@ -39,7 +39,7 @@ const OpenInSFM = (props: Props) => {
   return driverStatus.type === Types.DriverStatusType.Enabled ? (
     <OpenInSystemFileManager {...props} />
   ) : (
-    <Kbfs.SystemFileManagerIntegrationPopup mode="Icon" />
+    <SystemFileManagerIntegrationPopup mode="Icon" />
   )
 }
 export default OpenInSFM

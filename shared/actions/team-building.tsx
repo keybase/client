@@ -17,12 +17,9 @@ const closeTeamBuilding = (_: TypedState, {payload: {namespace}}: NSAction) => {
   }
   const modals = RouterConstants.getModalStack()
   const routeNames = [...namespaceToRoute.values()]
-  const routeName = modals[modals.length - 1]?.routeName
+  const routeName = modals[modals.length - 1]?.name
 
-  if (routeNames.indexOf(routeName) !== -1) {
-    return RouteTreeGen.createNavigateUp()
-  }
-  return false
+  return routeNames.indexOf(routeName) === -1 ? false : RouteTreeGen.createNavigateUp()
 }
 
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}

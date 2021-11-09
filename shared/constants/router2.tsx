@@ -4,7 +4,6 @@ import {createNavigationContainerRef} from '@react-navigation/native'
 import {StackActions, CommonActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Constants from '../constants/router2'
 import {tabRoots} from '../router-v2/routes'
 import logger from '../logger'
 
@@ -40,25 +39,35 @@ export const findVisibleRoute = (arr: Array<NavState>, s: NavState): Array<NavSt
   return [...arr, route]
 }
 
+const isLoggedIn = (s: NavState) => {
+  if (!s) {
+    return false
+  }
+  return s?.routes?.[0]?.name === 'loggedIn'
+}
+
 // Private API only used by config sagas
 const findModalRoute = (s: NavState) => {
-  if (!s) return []
-  const loggedInOut = s.routes && s.routes[s.index]
-  // only logged in has modals
-  if (!loggedInOut || loggedInOut.name !== 'loggedIn') {
+  if (!s) {
+    return []
+  }
+  if (!isLoggedIn(s)) {
     return []
   }
 
-  return loggedInOut.routes ? loggedInOut.routes.slice(1) : []
+  return s.routes.slice(1) ?? []
 }
 const findMainRoute = (s: NavState) => {
-  if (!s) return []
-  const loggedInOut = s.routes && s.routes[s.index]
-  if (!loggedInOut || !(loggedInOut.name === 'loggedIn' || loggedInOut.name === 'loggedOut')) {
+  if (!s) {
     return []
   }
 
-  return _getStackPathHelper([], loggedInOut)
+  const rootName = s?.routes?.[0]?.name
+  if (!(rootName === 'loggedIn' || rootName === 'loggedOut')) {
+    return []
+  }
+
+  return _getStackPathHelper([], s?.routes ?? [])
 }
 
 // this returns the full path as seen from a stack. So if you pop you'll go up
@@ -167,7 +176,7 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
         return
       }
 
-      const path = Constants._getVisiblePathForNavigator(navigationState)
+      const path = _getVisiblePathForNavigator(navigationState)
       const visible = path[path.length - 1]
       if (visible) {
         if (!allowAppendDupe && routeName === visible.name && shallowEqual(visible.params, params)) {

@@ -104,7 +104,6 @@ const ForgotUsername = () => {
 }
 
 ForgotUsername.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }
