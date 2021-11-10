@@ -303,8 +303,7 @@ const deriveOnSearchForMore = memoizeShallow(
     () => {
       const {search, searchResults, searchString, selectedService} = p
       if (searchResults && searchResults.length >= 10) {
-        // search(searchString, selectedService, searchResults.length + 20)
-        // TEMP turned off
+        search(searchString, selectedService, searchResults.length + 20)
       }
     }
 )
