@@ -3,6 +3,8 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
 import * as Container from '../util/container'
+import {SafeAreaProvider} from 'react-native-safe-area-context'
+import {useHeaderHeight, getDefaultHeaderHeight, SafeAreaProviderCompat} from '@react-navigation/elements'
 
 export const shim = (routes: any, isModal: boolean) => Shared.shim(routes, shimNewRoute, isModal)
 
@@ -46,11 +48,13 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
       }
     }
 
-    if (isModal && Styles.isMobile) {
-      headerHeight = 54
-    }
+    // if (isModal && Styles.isMobile) {
+    // headerHeight = 54
+    // }
+    // = useHeaderHeight()
+    // const insets = Kb.useSafeAreaInsets()
+    headerHeight = getDefaultHeaderHeight(SafeAreaProviderCompat.initialMetrics.frame, isModal, 0) //insets.top)
 
-    const insets = Kb.useSafeAreaInsets()
     const content = (
       <Kb.KeyboardAvoidingView
         style={styles.keyboard}
@@ -64,19 +68,11 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
     const isSafe = !(navigationOptions?.underNotch || usesNav2Header)
     if (isSafe) {
       return (
-        <Kb.NativeView
-          style={Styles.collapseStyles([
-            styles.keyboard,
-            {
-              ...navigationOptions?.safeAreaStyle,
-              paddingBottom: insets.bottom,
-              paddingTop: isModal ? undefined : insets.top,
-              backgroundColor: 'red',
-            },
-          ])}
-        >
-          {content}
-        </Kb.NativeView>
+        <SafeAreaProvider>
+          <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, {backgroundColor: 'red'}])}>
+            {content}
+          </Kb.SafeAreaView>
+        </SafeAreaProvider>
       )
     } else {
       return content
