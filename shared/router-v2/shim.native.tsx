@@ -26,7 +26,7 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
     if (navigationOptions) {
       // explicitly passed a getter?
       if (navigationOptions.useHeaderHeight) {
-        headerHeight = navigationOptions.useHeaderHeight()
+        // headerHeight = navigationOptions.useHeaderHeight()
         usesNav2Header = true
       } else if (
         !navigationOptions.header &&
@@ -39,33 +39,48 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
       } else {
         usesNav2Header = true
         if (Styles.isIPhoneX) {
-          headerHeight = 88 + Styles.headerExtraHeight
+          // headerHeight = 88 + Styles.headerExtraHeight
         } else {
-          headerHeight = 64 + Styles.headerExtraHeight
+          // headerHeight = 64 + Styles.headerExtraHeight
         }
       }
     }
 
-    let extraStyle = null
-    const insets = Kb.useSafeAreaInsets()
-    const isSafe = !(navigationOptions?.underNotch || usesNav2Header)
-    if (isSafe) {
-      extraStyle = {
-        ...navigationOptions?.safeAreaStyle,
-        paddingBottom: insets.bottom,
-        paddingTop: isModal ? undefined : insets.top,
-      }
+    if (isModal && Styles.isMobile) {
+      headerHeight = 54
     }
 
-    return (
+    const insets = Kb.useSafeAreaInsets()
+    const content = (
       <Kb.KeyboardAvoidingView
-        style={Styles.collapseStyles([styles.keyboard, extraStyle])}
+        style={styles.keyboard}
         behavior={Styles.isIOS ? 'padding' : undefined}
         keyboardVerticalOffset={headerHeight}
       >
         {body}
       </Kb.KeyboardAvoidingView>
     )
+
+    const isSafe = !(navigationOptions?.underNotch || usesNav2Header)
+    if (isSafe) {
+      return (
+        <Kb.NativeView
+          style={Styles.collapseStyles([
+            styles.keyboard,
+            {
+              ...navigationOptions?.safeAreaStyle,
+              paddingBottom: insets.bottom,
+              paddingTop: isModal ? undefined : insets.top,
+              backgroundColor: 'red',
+            },
+          ])}
+        >
+          {content}
+        </Kb.NativeView>
+      )
+    } else {
+      return content
+    }
   })
   Container.hoistNonReactStatic(ShimmedNew, Original)
   return ShimmedNew
@@ -75,7 +90,9 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       keyboard: {
-        backgroundColor: Styles.globalColors.fastBlank,
+        // backgroundColor: Styles.globalColors.fastBlank,
+        // //TEMP
+        backgroundColor: 'green',
         flexGrow: 1,
         maxHeight: '100%',
         position: 'relative',
