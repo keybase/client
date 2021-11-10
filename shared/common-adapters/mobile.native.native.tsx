@@ -457,4 +457,7 @@ module.exports = {
   get useTimeout() {
     return Index.useTimeout
   },
+  get useSafeAreaInsets() {
+    return Index.useSafeAreaInsets
+  },
 }

@@ -469,7 +469,7 @@ const makeStack = tab => {
             ...defaultNavigationOptions,
           }}
         >
-          {makeNavScreens(Shim.shim(routes), S.Screen, false)}
+          {makeNavScreens(Shim.shim(routes, false), S.Screen, false)}
         </S.Navigator>
       )
     }
@@ -524,7 +524,7 @@ const AppTabs = () => (
 const LoggedOutStack = createStackNavigator()
 const LoggedOut = () => (
   <LoggedOutStack.Navigator>
-    {makeNavScreens(Shim.shim(loggedOutRoutes), LoggedOutStack.Screen, false)}
+    {makeNavScreens(Shim.shim(loggedOutRoutes, false), LoggedOutStack.Screen, false)}
   </LoggedOutStack.Navigator>
 )
 
@@ -547,7 +547,7 @@ const RNApp = () => {
         ) : (
           <RootStack.Screen name="loading" component={SimpleLoading} />
         )}
-        {makeNavScreens(Shim.shim(modalRoutes), RootStack.Screen, true)}
+        {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true)}
       </RootStack.Navigator>
     </NavigationContainer>
   )

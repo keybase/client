@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import {useSafeArea} from '../../../common-adapters/safe-area-view'
+import {useSafeAreaInsets} from '../../../common-adapters/safe-area-view'
 import * as Types from '../../../constants/types/wallets'
 import * as Styles from '../../../styles'
 import {SendButton, SmallAccountID} from '../../common'
@@ -22,7 +22,7 @@ type Props = {
 
 const Header = (props: Props) => {
   const acceptedDisclaimer = Container.useSelector(state => state.wallets.acceptedDisclaimer)
-  const insets = useSafeArea()
+  const insets = useSafeAreaInsets()
   // TODO can handle this better in nav5
   if (!acceptedDisclaimer) {
     return (

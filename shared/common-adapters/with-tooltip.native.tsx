@@ -1,8 +1,9 @@
 import * as React from 'react'
 import {NativeDimensions, NativeView} from './native-wrappers.native'
-import FloatingBox from './floating-box'
+import {Portal} from '@gorhom/portal'
 import {useTimeout} from './use-timers'
 import useMounted from './use-mounted'
+import Box from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import {useSpring, animated} from './animated'
@@ -16,8 +17,8 @@ import {Props} from './with-tooltip'
 // "top center" for now.
 
 const Kb = {
+  Box,
   ClickableBox,
-  FloatingBox,
   NativeDimensions,
   NativeView,
   Text,
@@ -34,14 +35,22 @@ const measureCb =
   (_x: number, _y: number, width: number, height: number, pageX: number, pageY: number) =>
     resolve({height, left: pageX, top: pageY, width})
 
-const AnimatedFloatingBox = animated(Kb.FloatingBox)
+const FloatingBox = props => (
+  <Portal hostName="popup-root">
+    <Box pointerEvents="box-none" style={[Styles.globalStyles.fillAbsolute, props.style]}>
+      {props.children}
+    </Box>
+  </Portal>
+)
+
+const AnimatedFloatingBox = animated(FloatingBox)
 
 const WithTooltip = (props: Props) => {
   const {position} = props
   const [left, setLeft] = React.useState(0)
   const [top, setTop] = React.useState(0)
   const [visible, setVisible] = React.useState(false)
-  const animatedStyle = useSpring({to: {opacity: visible ? 1 : 0}})
+  const animatedStyle = useSpring({opacity: visible ? 1 : 0})
   const clickableRef = React.useRef<NativeView>(null)
   const tooltipRef = React.useRef<NativeView>(null)
   const setVisibleFalseLater = useTimeout(() => {

@@ -14,7 +14,7 @@ export type Props = {
   firstItem: boolean
 }
 
-export const TeamInviteRow  = (props: Props) => {
+export const TeamInviteRow = (props: Props) => {
   const {onCancelInvite, role, label, firstItem, subLabel, isKeybaseUser} = props
   const text2 = subLabel ? (role ? `${subLabel} · ${typeToLabel[role]}` : subLabel) : typeToLabel[role]
   return (

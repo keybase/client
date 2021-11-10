@@ -267,7 +267,7 @@ const TabNavigator = createNavigator(
     tabs.reduce((map, tab) => {
       map[tab] = createNavigator(
         AppView,
-        StackRouter(Shim.shim(routes), {
+        StackRouter(Shim.shim(routes, false), {
           // @ts-ignore types are wrong, this exists
           initialRouteKey: tabRoots[tab],
           initialRouteName: tabRoots[tab],
@@ -287,7 +287,7 @@ const LoggedInStackNavigator = createNavigator(
   StackRouter(
     {
       Main: {screen: TabNavigator},
-      ...Shim.shim(modalRoutes),
+      ...Shim.shim(modalRoutes, true),
     },
     {
       // @ts-ignore
@@ -302,7 +302,7 @@ const LoggedInStackNavigator = createNavigator(
 const LoggedOutStackNavigator = createNavigator(
   AppView,
   StackRouter(
-    {...Shim.shim(loggedOutRoutes)},
+    {...Shim.shim(loggedOutRoutes, false)},
     {
       // @ts-ignore TODO add custom nav options somewhere
       defaultNavigationOptions: () => ({headerHideBorder: true}),

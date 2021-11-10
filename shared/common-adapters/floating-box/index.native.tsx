@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Box from '../box'
 import {NativeKeyboard} from '../native-wrappers.native'
-// import {Gateway} from '@chardskarth/react-gateway'
 import {Portal} from '@gorhom/portal'
 import {Props} from '.'
 import {globalStyles} from '../../styles'

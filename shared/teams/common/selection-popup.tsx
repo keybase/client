@@ -95,7 +95,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   if (!onSelectableTab || (Styles.isMobile && !selectedCount) || !focused) {
     return null
   }
-  const {bottom} = Kb.useSafeArea()
+  const {bottom} = Kb.useSafeAreaInsets()
   const popup = (
     <Kb.Box2
       fullWidth={Styles.isMobile}

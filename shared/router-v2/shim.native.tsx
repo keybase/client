@@ -3,18 +3,10 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
 import * as Container from '../util/container'
-import {PerfWrapper} from '../util/use-perf'
 
-export const shim = (routes: any) => Shared.shim(routes, shimNewRoute)
+export const shim = (routes: any, isModal: boolean) => Shared.shim(routes, shimNewRoute, isModal)
 
-// let isV8 = false
-// try {
-// // @ts-ignore
-// console.log(`V8 version is ${global._v8runtime().version}`)
-// isV8 = true
-// } catch (_) {}
-
-const shimNewRoute = (Original: any) => {
+const shimNewRoute = (Original: any, isModal: boolean) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
   // Also light/dark aware
   const ShimmedNew = React.memo((props: any) => {
@@ -25,15 +17,6 @@ const shimNewRoute = (Original: any) => {
 
     const original = <Original {...props} key={Styles.isDarkMode() ? 'dark' : 'light'} />
     let body = original
-
-    // const renderDebug = Shared.getRenderDebug()
-    // if (renderDebug) {
-    // body = (
-    // <PerfWrapper style={styles.perf} prefix={isV8 ? 'V8: ' : 'JSC: '}>
-    // {original}
-    // </PerfWrapper>
-    // )
-    // }
 
     // we try and determine the  offset based on seeing if the header exists
     // this isn't perfect and likely we should move where this avoiding view is relative to the stack maybe
@@ -63,28 +46,26 @@ const shimNewRoute = (Original: any) => {
       }
     }
 
-    const keyboardBody = (
+    let extraStyle = null
+    const insets = Kb.useSafeAreaInsets()
+    const isSafe = !(navigationOptions?.underNotch || usesNav2Header)
+    if (isSafe) {
+      extraStyle = {
+        ...navigationOptions?.safeAreaStyle,
+        paddingBottom: insets.bottom,
+        paddingTop: isModal ? undefined : insets.top,
+      }
+    }
+
+    return (
       <Kb.KeyboardAvoidingView
-        style={styles.keyboard}
+        style={Styles.collapseStyles([styles.keyboard, extraStyle])}
         behavior={Styles.isIOS ? 'padding' : undefined}
         keyboardVerticalOffset={headerHeight}
       >
         {body}
       </Kb.KeyboardAvoidingView>
     )
-
-    // don't make safe areas
-    if (navigationOptions?.underNotch || usesNav2Header) {
-      return keyboardBody
-    }
-
-    const safeKeyboardBody = (
-      <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
-        {keyboardBody}
-      </Kb.SafeAreaView>
-    )
-
-    return safeKeyboardBody
   })
   Container.hoistNonReactStatic(ShimmedNew, Original)
   return ShimmedNew
