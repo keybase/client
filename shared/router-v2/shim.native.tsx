@@ -69,9 +69,7 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
     if (isSafe) {
       return (
         <SafeAreaProvider>
-          <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, {backgroundColor: 'red'}])}>
-            {content}
-          </Kb.SafeAreaView>
+          <Kb.SafeAreaView style={styles.keyboard}>{content}</Kb.SafeAreaView>
         </SafeAreaProvider>
       )
     } else {
@@ -86,9 +84,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       keyboard: {
-        // backgroundColor: Styles.globalColors.fastBlank,
-        // //TEMP
-        backgroundColor: 'green',
+        backgroundColor: Styles.globalColors.fastBlank,
         flexGrow: 1,
         maxHeight: '100%',
         position: 'relative',
