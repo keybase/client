@@ -38,7 +38,7 @@ echo "Using GOPATH: $GOPATH"
 # already in $PATH (like the old GOPATH), so put $GOPATH/bin first.
 PATH="$GOPATH/bin:$PATH"
 
-# need to whitelist some flags we use
+# need to allowlist some flags we use
 export CGO_CFLAGS_ALLOW="-fmodules|-fblocks"
 
 if [ "$check_ci" = "1" ]; then
@@ -53,7 +53,7 @@ ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s
 build_gomobile ()
 {
   echo "Build gomobile..."
-  (cd buildtools; go install golang.org/x/mobile/cmd/{gomobile,gobind})
+  (cd buildtools && go install golang.org/x/mobile/cmd/{gomobile,gobind}@latest && gomobile init)
 }
 
 if [ "$arg" = "ios" ]; then
