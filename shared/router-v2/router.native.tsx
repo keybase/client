@@ -33,7 +33,8 @@ enableFreeze()
 
 export const headerDefaultStyle = {
   get backgroundColor() {
-    return 'green' // Styles.globalColors.fastBlank
+    // return 'green'
+    return Styles.globalColors.fastBlank
   },
   get borderBottomColor() {
     return Styles.globalColors.black_10
@@ -54,20 +55,19 @@ const defaultNavigationOptions: any = {
   headerStyle: headerDefaultStyle,
   headerTitleContainerStyle: {
     alignItems: 'stretch',
-    // marginHorizontal: 0,
-    backgroundColor: 'red',
+    // backgroundColor: 'red',
     flexGrow: 1,
   },
   headerBackTitle: 'temp',
   headerBackVisible: true,
   headerRightContainerStyle: {
-    backgroundColor: 'orange',
+    // backgroundColor: 'orange',
     minWidth: actionWidth,
     maxWidth: actionWidth,
     paddingRight: 8,
   },
   headerLeftContainerStyle: {
-    backgroundColor: 'yellow',
+    // backgroundColor: 'yellow',
     maxWidth: actionWidth,
     minWidth: actionWidth,
   },

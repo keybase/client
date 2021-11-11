@@ -62,7 +62,7 @@ export class LoadOnMount extends React.PureComponent<Props> {
   static navigationOptions = {
     // header: undefined,
     // headerTitle: ({children}) => <Test>{children}</Test>,
-    underNotch: true,
+    // underNotch: true,
     headerTitle: () => <ProfileSearch />,
     headerRight: () => <HeaderAvatar />,
     headerLeft: () => <HeaderLeftBlank />,

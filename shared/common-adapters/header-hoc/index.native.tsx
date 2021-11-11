@@ -315,7 +315,7 @@ const styles = Styles.styleSheetCreate(() => ({
       alignItems: 'flex-start',
       flexShrink: 1,
       justifyContent: 'flex-start',
-      backgroundColor: 'orange', // TEMP
+      // backgroundColor: 'orange', // TEMP
     },
     isIOS: {
       paddingLeft: Styles.globalMargins.tiny,
