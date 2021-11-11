@@ -64,6 +64,7 @@ const defaultNavigationOptions: any = {
     backgroundColor: 'orange',
     minWidth: actionWidth,
     maxWidth: actionWidth,
+    paddingRight: 8,
   },
   headerLeftContainerStyle: {
     backgroundColor: 'yellow',
