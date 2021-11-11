@@ -71,7 +71,7 @@ const defaultNavigationOptions: any = {
     width: actionWidth,
   },
   headerTitle: hp => (
-    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
+    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
       {hp.children}
     </Kb.Text>
   ),
