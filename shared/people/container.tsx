@@ -8,22 +8,34 @@ import * as Types from '../constants/types/people'
 import * as WaitingConstants from '../constants/waiting'
 import {createShowUserProfile} from '../actions/profile-gen'
 import People, {Header} from '.'
+import ProfileSearch from '../profile/search/bar'
+import {HeaderLeftBlank} from '../common-adapters/header-hoc'
 
-type OwnProps = {}
+// type OwnProps = {}
 
-const ConnectedHeader = Container.connect(
-  state => ({
-    myUsername: state.config.username,
-  }),
-  dispatch => ({
-    onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
-    onOpenAccountSwitcher: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    myUsername: stateProps.myUsername,
-    ...dispatchProps,
-  })
-)(Header)
+// const ConnectedHeader = Container.connect(
+// state => ({
+// myUsername: state.config.username,
+// }),
+// dispatch => ({
+// onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
+// onOpenAccountSwitcher: () => ),
+// }),
+// (stateProps, dispatchProps, _: OwnProps) => ({
+// myUsername: stateProps.myUsername,
+// ...dispatchProps,
+// })
+// )(Header)
+
+const HeaderAvatar = () => {
+  const myUsername = Container.useSelector(state => state.config.username)
+  const dispatch = Container.useDispatch()
+  const onClick = React.useCallback(
+    () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),
+    [dispatch]
+  )
+  return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
+}
 
 type Props = {
   oldItems: Array<Types.PeopleScreenItem>
@@ -37,16 +49,33 @@ type Props = {
   waiting: boolean
 }
 
+// const Test = ({children}) => {
+// return (
+// <Kb.Box2 direction="horizontal" fullWidth={true} style={{backgroundColor: 'red', flexGrow: 100}}>
+// <Kb.Text type="Body">{children}</Kb.Text>
+// </Kb.Box2>
+// )
+// }
+//
+
 export class LoadOnMount extends React.PureComponent<Props> {
   static navigationOptions = {
-    header: undefined,
-    headerTitle: () => <ConnectedHeader />,
-    headerTitleContainerStyle: {
-      paddingLeft: 40,
-      marginHorizontal: 0,
-      maxWidth: '100%',
-    },
+    // header: undefined,
+    // headerTitle: ({children}) => <Test>{children}</Test>,
     underNotch: true,
+    headerTitle: () => <ProfileSearch />,
+    headerRight: () => <HeaderAvatar />,
+    headerLeft: () => <HeaderLeftBlank />,
+    // headerLeftLabelVisible: true,
+    // headerLeftContainerStyle: {
+    // backgroundColor: 'yellow',
+    // // minWidth: 48,
+    // },
+    // headerTitleContainerStyle: {
+    // paddingLeft: 40,
+    // marginHorizontal: 0,
+    // maxWidth: '100%',
+    // },
   }
   _onReload = () => this.props.getData(false)
   _getData = (markViewed?: boolean) => this.props.getData(markViewed)

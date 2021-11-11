@@ -33,7 +33,7 @@ enableFreeze()
 
 export const headerDefaultStyle = {
   get backgroundColor() {
-    return Styles.globalColors.fastBlank
+    return 'green' // Styles.globalColors.fastBlank
   },
   get borderBottomColor() {
     return Styles.globalColors.black_10
@@ -41,16 +41,35 @@ export const headerDefaultStyle = {
   borderBottomWidth: 1,
   borderStyle: 'solid',
   elevation: undefined, // since we use screen on android turn off drop shadow
+  alignItems: 'center',
   // headerExtraHeight is only hooked up for tablet. On other platforms, react-navigation calculates header height.
   ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
 }
 
-// // Options used by default on all navigators
-// // For info on what is passed to what see here: https://github.com/react-navigation/stack/blob/478c354248f2aedfc304a1c4b479c3df359d3868/src/views/Header/Header.js
+const actionWidth = 64
+
+// Options used by default on all navigators
 const defaultNavigationOptions: any = {
-  header: undefined,
   headerLeft: HeaderLeftArrow,
   headerStyle: headerDefaultStyle,
+  headerTitleContainerStyle: {
+    alignItems: 'stretch',
+    // marginHorizontal: 0,
+    backgroundColor: 'red',
+    flexGrow: 1,
+  },
+  headerBackTitle: 'temp',
+  headerBackVisible: true,
+  headerRightContainerStyle: {
+    backgroundColor: 'orange',
+    minWidth: actionWidth,
+    maxWidth: actionWidth,
+  },
+  headerLeftContainerStyle: {
+    backgroundColor: 'yellow',
+    maxWidth: actionWidth,
+    minWidth: actionWidth,
+  },
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
       {hp.children}
@@ -444,7 +463,10 @@ const styles = Styles.styleSheetCreate(() => ({
     right: Styles.globalMargins.small,
     width: Styles.globalMargins.small,
   },
-  headerTitle: {color: Styles.globalColors.black},
+  headerTitle: {
+    backgroundColor: 'pink',
+    color: Styles.globalColors.black,
+  },
   keyboard: {
     flexGrow: 1,
     position: 'relative',
@@ -457,7 +479,7 @@ const tabs = Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs
 
 // so we have a stack per tab?
 const tabToStack = new Map()
-const makeStack = tab => {
+const makeTabStack = tab => {
   let Comp = tabToStack.get(tab)
   if (!Comp) {
     const S = createStackNavigator()
@@ -516,7 +538,7 @@ const AppTabs = () => (
     })}
   >
     {tabs.map(tab => (
-      <Tab.Screen key={tab} name={tab} getComponent={() => makeStack(tab)} />
+      <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
     ))}
   </Tab.Navigator>
 )

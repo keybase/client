@@ -122,8 +122,9 @@ export const LeftAction = ({
   onLeftAction,
   theme,
   customIconColor,
+  style,
 }: LeftActionProps): React.ReactElement => (
-  <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
+  <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow, style])}>
     {onLeftAction && leftAction === 'cancel' ? (
       <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
         {leftActionText || customCancelText || 'Cancel'}
@@ -279,7 +280,7 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxColumn,
     height: '100%',
     position: 'relative',
-    width: '100%',
+    // width: '100%',
   },
   grow: {
     flexGrow: 1,
@@ -292,7 +293,7 @@ const styles = Styles.styleSheetCreate(() => ({
       borderBottomWidth: 1,
       borderStyle: 'solid',
       justifyContent: 'flex-start',
-      width: '100%',
+      // width: '100%',
     },
     isAndroid: {
       backgroundColor: Styles.globalColors.white,
@@ -314,6 +315,7 @@ const styles = Styles.styleSheetCreate(() => ({
       alignItems: 'flex-start',
       flexShrink: 1,
       justifyContent: 'flex-start',
+      backgroundColor: 'orange', // TEMP
     },
     isIOS: {
       paddingLeft: Styles.globalMargins.tiny,
@@ -367,6 +369,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
+export const HeaderLeftBlank = hp => (
+  <LeftAction badgeNumber={0} leftAction="back" customIconColor={hp.tintColor} style={{opacity: 0}} />
+)
 export const HeaderLeftArrow = hp =>
   hp.canGoBack ? (
     <LeftAction
