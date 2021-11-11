@@ -42,7 +42,7 @@ const HeaderBranch = (props: Props & {progress: any}) => {
   return <Kb.NativeAnimated.View style={{opacity, width: '100%'}}>{header}</Kb.NativeAnimated.View>
 }
 
-const Connected = Container.connect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const {conversationIDKey} = ownProps
     const meta = Constants.getMeta(state, conversationIDKey)
@@ -120,13 +120,3 @@ const Connected = Container.connect(
     }
   }
 )(HeaderBranch)
-
-export default () => {
-  const route = useRoute()
-  return (
-    <Connected
-      conversationIDKey={route.params?.conversationIDKey ?? Constants.noConversationIDKey}
-      progress={null}
-    />
-  )
-}

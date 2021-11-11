@@ -61,11 +61,11 @@ let Conversation = (p: SwitchProps) => {
 }
 
 // @ts-ignore
-Conversation.navigationOptions = {
-  header: undefined,
-  headerLeft: null,
-  headerTitle: () => <HeaderArea />,
-}
+Conversation.navigationOptions = ({route}) => (
+  {
+    headerTitle: () => <HeaderArea conversationIDKey={route.params?.conversationIDKey} />,
+  }
+)
 
 const ConversationMemoed = React.memo(Conversation)
 Container.hoistNonReactStatic(ConversationMemoed, Conversation)
