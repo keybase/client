@@ -45,6 +45,7 @@ export type LeftActionProps = {
   theme?: 'light' | 'dark' // defaults to 'light',
   onLeftAction: (() => void) | null
   customIconColor?: string
+  style?: StylesCrossPlatform
 }
 
 type HeaderHocProps = Props

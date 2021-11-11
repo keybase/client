@@ -97,14 +97,24 @@ let InboxWrapper = (props: Props) => {
   return <Inbox {...props} />
 }
 
+const buttonWidth = 132
 // @ts-ignore
 InboxWrapper.navigationOptions = {
-  header: undefined,
+  headerRightContainerStyle: {
+    backgroundColor: 'orange',
+    paddingRight: 8,
+    flexGrow: 0,
+    minWidth: buttonWidth,
+  },
+  headerLeftContainerStyle: {
+    minWidth: buttonWidth,
+    flexGrow: 0,
+  },
+  headerLeft: () => <Kb.HeaderLeftBlank />,
   headerRight: () => <HeaderNewChatButton />,
   headerTitle: () => (
-    <Kb.Text type="BodyBig" lineClamp={1}>
-      {' '}
-      Chats{' '}
+    <Kb.Text type="BodyBig" center={true}>
+      Chats
     </Kb.Text>
   ),
 }

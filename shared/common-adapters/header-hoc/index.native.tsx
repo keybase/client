@@ -261,7 +261,7 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       opacity: 1,
       paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.tiny,
+      paddingLeft: 0, //Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
@@ -315,10 +315,10 @@ const styles = Styles.styleSheetCreate(() => ({
       alignItems: 'flex-start',
       flexShrink: 1,
       justifyContent: 'flex-start',
-      // backgroundColor: 'orange', // TEMP
+      backgroundColor: 'orange', // TEMP
     },
     isIOS: {
-      paddingLeft: Styles.globalMargins.tiny,
+      // paddingLeft: Styles.globalMargins.tiny,
     },
   }),
   rightActions: Styles.platformStyles({
@@ -369,8 +369,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export const HeaderLeftBlank = hp => (
-  <LeftAction badgeNumber={0} leftAction="back" customIconColor={hp.tintColor} style={{opacity: 0}} />
+const noop = () => {}
+export const HeaderLeftBlank = () => (
+  <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
 )
 export const HeaderLeftArrow = hp =>
   hp.canGoBack ? (

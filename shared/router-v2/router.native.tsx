@@ -55,21 +55,20 @@ const defaultNavigationOptions: any = {
   headerStyle: headerDefaultStyle,
   headerTitleContainerStyle: {
     alignItems: 'stretch',
-    // backgroundColor: 'red',
+    backgroundColor: 'red',
     flexGrow: 1,
   },
   headerBackTitle: 'temp',
   headerBackVisible: true,
   headerRightContainerStyle: {
-    // backgroundColor: 'orange',
-    minWidth: actionWidth,
-    maxWidth: actionWidth,
+    backgroundColor: 'orange',
+    width: actionWidth,
     paddingRight: 8,
   },
   headerLeftContainerStyle: {
-    // backgroundColor: 'yellow',
-    maxWidth: actionWidth,
-    minWidth: actionWidth,
+    backgroundColor: 'yellow',
+    paddingLeft: 8,
+    width: actionWidth,
   },
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>

@@ -9,7 +9,6 @@ import * as WaitingConstants from '../constants/waiting'
 import {createShowUserProfile} from '../actions/profile-gen'
 import People, {Header} from '.'
 import ProfileSearch from '../profile/search/bar'
-import {HeaderLeftBlank} from '../common-adapters/header-hoc'
 
 // type OwnProps = {}
 
@@ -65,7 +64,7 @@ export class LoadOnMount extends React.PureComponent<Props> {
     // underNotch: true,
     headerTitle: () => <ProfileSearch />,
     headerRight: () => <HeaderAvatar />,
-    headerLeft: () => <HeaderLeftBlank />,
+    headerLeft: () => <Kb.HeaderLeftBlank />,
     // headerLeftLabelVisible: true,
     // headerLeftContainerStyle: {
     // backgroundColor: 'yellow',
