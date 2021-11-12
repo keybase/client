@@ -53,7 +53,9 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
     // }
     const uhh = useHeaderHeight()
     // const insets = Kb.useSafeAreaInsets()
-    headerHeight = isModal ? getDefaultHeaderHeight(SafeAreaProviderCompat.initialMetrics.frame, isModal, 0) : uhh
+    headerHeight = isModal
+      ? getDefaultHeaderHeight(SafeAreaProviderCompat.initialMetrics.frame, isModal, 0)
+      : uhh
     // console.log('aaa keyboard', uhh, insets, headerHeight)
 
     const content = (
@@ -70,7 +72,9 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
     if (isSafe) {
       return (
         <SafeAreaProvider>
-          <Kb.SafeAreaView style={styles.keyboard}>{content}</Kb.SafeAreaView>
+          <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
+            {content}
+          </Kb.SafeAreaView>
         </SafeAreaProvider>
       )
     } else {
