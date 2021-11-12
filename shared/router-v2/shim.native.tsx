@@ -51,9 +51,10 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
     // if (isModal && Styles.isMobile) {
     // headerHeight = 54
     // }
-    // = useHeaderHeight()
+    const uhh = useHeaderHeight()
     // const insets = Kb.useSafeAreaInsets()
-    headerHeight = getDefaultHeaderHeight(SafeAreaProviderCompat.initialMetrics.frame, isModal, 0) //insets.top)
+    headerHeight = isModal ? getDefaultHeaderHeight(SafeAreaProviderCompat.initialMetrics.frame, isModal, 0) : uhh
+    // console.log('aaa keyboard', uhh, insets, headerHeight)
 
     const content = (
       <Kb.KeyboardAvoidingView

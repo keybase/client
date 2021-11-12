@@ -1826,7 +1826,7 @@ function* messageSend(
   const onHideConfirm = ({canceled}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDone']['inParam']) =>
     Saga.callUntyped(function* () {
       const visibleScreen = Router2Constants.getVisibleScreen()
-      if (visibleScreen && visibleScreen.routeName === confirmRouteName) {
+      if (visibleScreen && visibleScreen.name === confirmRouteName) {
         yield Saga.put(RouteTreeGen.createClearModals())
       }
       if (canceled) {
@@ -2553,7 +2553,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   const {conversationIDKey, reason} = action.payload
   const visible = Router2Constants.getVisibleScreen()
   const visibleConvo = visible?.params?.conversationIDKey
-  const visibleRouteName = visible?.routeName
+  const visibleRouteName = visible?.name
 
   if (visibleRouteName !== Constants.threadRouteName && reason === 'findNewestConversation') {
     // service is telling us to change our selection but we're not looking, ignore
@@ -3684,7 +3684,7 @@ const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
   const {conversationIDKey, show, tab} = action.payload
   if (Container.isPhone) {
     const visibleScreen = Router2Constants.getVisibleScreen()
-    if ((visibleScreen?.routeName === 'chatInfoPanel') !== show) {
+    if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
       return show
         ? RouteTreeGen.createNavigateAppend({
             path: [{props: {conversationIDKey, tab}, selected: 'chatInfoPanel'}],

@@ -29,9 +29,7 @@ function timeoutFallback(cb: (info: TimeoutInfo) => void): ReturnType<typeof set
 }
 
 const useFallback =
-  typeof window === 'undefined' ||
-  !window.requestIdleCallback ||
-  isMobile /* this is broken now in RN */
+  typeof window === 'undefined' || !window.requestIdleCallback || isMobile /* this is broken now in RN */
 
 const requestIdleCallback = forceImmediateLogging
   ? immediateCallback

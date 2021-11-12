@@ -11,7 +11,6 @@ import PinnedMessage from '../pinned-message/container'
 import {PortalHost} from '@gorhom/portal'
 import InvitationToBlock from '../../blocking/invitation-to-block'
 import {useSafeAreaInsets} from '../../../common-adapters/safe-area-view.native'
-import {View} from 'react-native'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -27,13 +26,11 @@ const Conversation = React.memo((props: Props) => {
 
   const [keyboardShowing, setKeyboardShowing] = React.useState(false)
   React.useEffect(() => {
-    const willShow = () => setKeyboardShowing(true)
-    const willHide = () => setKeyboardShowing(false)
-    Kb.NativeKeyboard.addListener('keyboardWillShow', willShow)
-    Kb.NativeKeyboard.addListener('keyboardWillHide', willHide)
+    const willShowSub = Kb.NativeKeyboard.addListener('keyboardWillShow', () => setKeyboardShowing(true))
+    const willHideSub = Kb.NativeKeyboard.addListener('keyboardWillHide', () => setKeyboardShowing(false))
     return () => {
-      Kb.NativeKeyboard.removeListener('keyboardWillShow', willShow)
-      Kb.NativeKeyboard.removeListener('keyboardWillHide', willHide)
+      willShowSub.remove()
+      willHideSub.remove()
     }
   }, [])
 

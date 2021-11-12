@@ -32,7 +32,7 @@ const SubNavWrapper = React.memo((props: NavigationViewProps<any>) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={false}>
-      <CryptoNav routeSelected={descriptor.state.routeName}>
+      <CryptoNav routeSelected={descriptor.state.name}>
         <Kb.BoxGrow>
           <SceneView
             navigation={childNav}

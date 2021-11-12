@@ -50,7 +50,8 @@ const WithTooltip = (props: Props) => {
   const [left, setLeft] = React.useState(0)
   const [top, setTop] = React.useState(0)
   const [visible, setVisible] = React.useState(false)
-  const animatedStyle = useSpring({opacity: visible ? 1 : 0})
+  const animatedStyle = {opacity: visible ? 1 : 0}
+  // const animatedStyle = useSpring({opacity: visible ? 1 : 0})
   const clickableRef = React.useRef<NativeView>(null)
   const tooltipRef = React.useRef<NativeView>(null)
   const setVisibleFalseLater = useTimeout(() => {

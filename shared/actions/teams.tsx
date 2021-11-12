@@ -888,7 +888,7 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
 
     // Dismiss the create channel dialog.
     const visibleScreen = Router2Constants.getVisibleScreen()
-    if (visibleScreen && visibleScreen.routeName === 'chatCreateChannel') {
+    if (visibleScreen && visibleScreen.name === 'chatCreateChannel') {
       yield Saga.put(RouteTreeGen.createClearModals())
     }
     // Reload on team page

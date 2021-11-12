@@ -1,35 +1,35 @@
 import * as Constants from '../constants/router2'
-import * as ConfigGen from '../actions/config-gen'
-import HiddenString from '../util/hidden-string'
-import * as LoginGen from '../actions/login-gen'
+// import * as ConfigGen from '../actions/config-gen'
+// import HiddenString from '../util/hidden-string'
+// import * as LoginGen from '../actions/login-gen'
 import * as Kbfs from '../fs/common'
 import * as Kb from '../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Shim from './shim.native'
-import {getRenderDebug} from './shim.shared'
+// import {getRenderDebug} from './shim.shared'
 import {createStackNavigator} from '@react-navigation/stack'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as FsConstants from '../constants/fs'
 import * as Container from '../util/container'
-import shallowEqual from 'shallowequal'
-import logger from '../logger'
+// import shallowEqual from 'shallowequal'
+// import logger from '../logger'
 import {IconType} from '../common-adapters/icon.constants-gen'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
-import {Props} from './router'
-import {connect} from '../util/container'
-import {NavigationContainer} from '@react-navigation/native'
+// import {Props} from './router'
+// import {connect} from '../util/container'
+import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
-import {createSwitchNavigator, StackActions} from '@react-navigation/core'
+// import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
 // import {getPersistenceFunctions} from './persist.native'
 import Loading from '../login/loading'
 
-const Stack = createStackNavigator()
+// const Stack = createStackNavigator()
 
-enableFreeze()
+// enableFreeze()
 
 export const headerDefaultStyle = {
   get backgroundColor() {
@@ -42,7 +42,7 @@ export const headerDefaultStyle = {
   borderBottomWidth: 1,
   borderStyle: 'solid',
   elevation: undefined, // since we use screen on android turn off drop shadow
-  alignItems: 'center',
+  // alignItems: 'center',
   // headerExtraHeight is only hooked up for tablet. On other platforms, react-navigation calculates header height.
   ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
 }
@@ -477,13 +477,30 @@ const styles = Styles.styleSheetCreate(() => ({
 const Tab = createBottomTabNavigator()
 const tabs = Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs
 
+const {routesMinusChatConvo, noTabRoutes} = Object.keys(routes).reduce(
+  (m, k) => {
+    if (k === 'chatConversation') {
+      m.noTabRoutes[k] = routes[k]
+    } else {
+      m.routesMinusChatConvo[k] = routes[k]
+    }
+    return m
+  },
+  {routesMinusChatConvo: {}, noTabRoutes: {}}
+)
+
 // so we have a stack per tab?
 const tabToStack = new Map()
 const makeTabStack = tab => {
   let Comp = tabToStack.get(tab)
   if (!Comp) {
     const S = createStackNavigator()
-    Comp = () => {
+    Comp = ({navigation, route}) => {
+      React.useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route)
+        const hideTabs = routeName === 'chatConversation'
+        navigation.setOptions({tabBarStyle: hideTabs ? {display: 'none'} : tabBarStyle})
+      }, [navigation, route])
       return (
         <S.Navigator
           initialRouteName={tabRoots[tab]}
@@ -491,7 +508,7 @@ const makeTabStack = tab => {
             ...defaultNavigationOptions,
           }}
         >
-          {makeNavScreens(Shim.shim(routes, false), S.Screen, false)}
+          {makeNavScreens(Shim.shim(/*routesMinusChatConvo*/ routes, false), S.Screen, false, false)}
         </S.Navigator>
       )
     }
@@ -500,7 +517,7 @@ const makeTabStack = tab => {
   return Comp
 }
 
-const makeNavScreens = (rs, Screen, isModal) => {
+const makeNavScreens = (rs, Screen, isModal, isNoTab) => {
   return Object.keys(rs).map(name => {
     return (
       <Screen
@@ -512,11 +529,8 @@ const makeNavScreens = (rs, Screen, isModal) => {
           const opt = typeof no === 'function' ? no({route, navigation}) : no
           return {
             ...opt,
-            ...(isModal
-              ? {
-                  animationEnabled: true,
-                }
-              : {}),
+            ...(isModal ? {animationEnabled: true} : {}),
+            ...(isNoTab ? {animationEnabled: true, headerShown: true, presentation: 'card'} : {}),
           }
         }}
       />
@@ -524,18 +538,23 @@ const makeNavScreens = (rs, Screen, isModal) => {
   })
 }
 
+const tabBarStyle = {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest}
+
 const AppTabs = () => (
   <Tab.Navigator
     backBehavior="none"
-    screenOptions={({route}) => ({
-      ...defaultNavigationOptions,
-      headerShown: false,
-      tabBarShowLabel: Styles.isTablet,
-      tabBarStyle: {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest},
-      tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-      tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-      tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
-    })}
+    screenOptions={({route}) => {
+      // console.log('aaa routename', route.name)
+      return {
+        ...defaultNavigationOptions,
+        headerShown: false,
+        tabBarShowLabel: Styles.isTablet,
+        tabBarStyle,
+        tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+        tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+        tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
+      }
+    }}
   >
     {tabs.map(tab => (
       <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
@@ -546,7 +565,7 @@ const AppTabs = () => (
 const LoggedOutStack = createStackNavigator()
 const LoggedOut = () => (
   <LoggedOutStack.Navigator>
-    {makeNavScreens(Shim.shim(loggedOutRoutes, false), LoggedOutStack.Screen, false)}
+    {makeNavScreens(Shim.shim(loggedOutRoutes, false), LoggedOutStack.Screen, false, false)}
   </LoggedOutStack.Navigator>
 )
 
@@ -569,10 +588,10 @@ const RNApp = () => {
         ) : (
           <RootStack.Screen name="loading" component={SimpleLoading} />
         )}
-        {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true)}
+        {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true, false)}
       </RootStack.Navigator>
     </NavigationContainer>
   )
 }
-
+// {makeNavScreens(Shim.shim(noTabRoutes, false), RootStack.Screen, false, true)}
 export default RNApp

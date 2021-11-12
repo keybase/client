@@ -541,7 +541,7 @@ export const getTeamWelcomeMessageByID = (
 export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()
   return path.reduce<Array<string>>((names, curr) => {
-    if (curr.routeName === 'team') {
+    if (curr.name === 'team') {
       curr.params && curr.params.teamID && names.push(curr.params.teamID)
     }
     return names

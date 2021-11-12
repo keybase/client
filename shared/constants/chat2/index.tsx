@@ -243,7 +243,7 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   (state.chat2.unreadMap.get(id) || 0) > 0
 export const getSelectedConversation = (): Types.ConversationIDKey => {
   const maybeVisibleScreen = Router2.getVisibleScreen()
-  if (maybeVisibleScreen?.routeName === threadRouteName) {
+  if (maybeVisibleScreen?.name === threadRouteName) {
     return maybeVisibleScreen.params?.conversationIDKey ?? noConversationIDKey
   }
   return noConversationIDKey
@@ -311,7 +311,7 @@ export const isUserActivelyLookingAtThisThread = (
     chatThreadSelected =
       (maybeVisibleScreen === null || maybeVisibleScreen === undefined
         ? undefined
-        : maybeVisibleScreen.routeName) === threadRouteName
+        : maybeVisibleScreen.name) === threadRouteName
   }
 
   return (
@@ -452,22 +452,22 @@ export const makeInboxQuery = (
   return {
     computeActiveList: true,
     convIDs: convIDKeys.map(Types.keyToConversationID),
-    memberStatus: (Object.keys(RPCChatTypes.ConversationMemberStatus)
+    memberStatus: Object.keys(RPCChatTypes.ConversationMemberStatus)
       .filter(
         k =>
           typeof RPCChatTypes.ConversationMemberStatus[k as any] === 'number' &&
           (!!allStatuses || !['neverJoined', 'left', 'removed'].includes(k as any))
       )
-      .map(k => RPCChatTypes.ConversationMemberStatus[k as any]) as unknown) as Array<
-      RPCChatTypes.ConversationMemberStatus
-    >,
+      .map(
+        k => RPCChatTypes.ConversationMemberStatus[k as any]
+      ) as unknown as Array<RPCChatTypes.ConversationMemberStatus>,
     readOnly: false,
-    status: (Object.keys(RPCChatTypes.ConversationStatus)
+    status: Object.keys(RPCChatTypes.ConversationStatus)
       .filter(k => typeof RPCChatTypes.ConversationStatus[k as any] === 'number')
       .filter(k => !['ignored', 'blocked', 'reported'].includes(k as any))
-      .map(k => RPCChatTypes.ConversationStatus[k as any]) as unknown) as Array<
-      RPCChatTypes.ConversationStatus
-    >,
+      .map(
+        k => RPCChatTypes.ConversationStatus[k as any]
+      ) as unknown as Array<RPCChatTypes.ConversationStatus>,
     tlfVisibility: RPCTypes.TLFVisibility.private,
     topicType: RPCChatTypes.TopicType.chat,
     unreadOnly: false,

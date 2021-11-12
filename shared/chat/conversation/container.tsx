@@ -7,7 +7,7 @@ import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
-import HeaderArea from './header-area/container'
+import {HeaderArea, HeaderAreaRight} from './header-area/container'
 
 type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 
@@ -61,11 +61,10 @@ let Conversation = (p: SwitchProps) => {
 }
 
 // @ts-ignore
-Conversation.navigationOptions = ({route}) => (
-  {
-    headerTitle: () => <HeaderArea conversationIDKey={route.params?.conversationIDKey} />,
-  }
-)
+Conversation.navigationOptions = ({route}) => ({
+  headerRight: () => <HeaderAreaRight conversationIDKey={route.params?.conversationIDKey} />,
+  headerTitle: () => <HeaderArea conversationIDKey={route.params?.conversationIDKey} />,
+})
 
 const ConversationMemoed = React.memo(Conversation)
 Container.hoistNonReactStatic(ConversationMemoed, Conversation)
