@@ -58,7 +58,7 @@ build_gomobile ()
 
 if [ "$arg" = "ios" ]; then
   ios_dir=${DEST_DIR:-"$client_dir/shared/ios"}
-  ios_dest="$ios_dir/keybase.framework"
+  ios_dest="$ios_dir/keybase.xcframework"
   echo "Building for iOS ($ios_dest)..."
   set +e
   OUTPUT="$(gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
