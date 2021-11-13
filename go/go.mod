@@ -9,7 +9,7 @@ require (
 	github.com/akavel/rsrc v0.2.1-0.20151103204339-ba14da1f8271
 	github.com/araddon/dateparse v0.0.0-20180729174819-cfd92a431d0e
 	github.com/blang/semver v3.0.1+incompatible
-	github.com/blevesearch/bleve v1.0.5
+	github.com/blevesearch/bleve v0.8.2-0.20191030071327-189ee421f71e
 	github.com/btcsuite/btcutil v0.0.0-20180706230648-ab6388e0c60a
 	github.com/buger/jsonparser v0.0.0-20180131123142-4be68c93a244
 	github.com/coreos/go-systemd v0.0.0-20170731111925-d21964639418
@@ -58,7 +58,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/xattr v0.2.2
 	github.com/qrtz/nativemessaging v0.0.0-20161221035708-f4769a80e040
-	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
+	github.com/rcrowley/go-metrics v0.0.0-20161128210544-1f30fe9094a5
 	github.com/sergi/go-diff v1.0.1-0.20180205163309-da645544ed44
 	github.com/shirou/gopsutil v2.18.13-0.20181231150826-db425313bfa8+incompatible
 	github.com/stathat/go v1.0.0
@@ -93,17 +93,16 @@ require (
 	github.com/antchfx/xmlquery v0.0.0-20181024140136-98cdbc3221ed // indirect
 	github.com/antchfx/xpath v0.0.0-20180922041825-3de91f3991a1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20180319081651-7d2e70ef918f // indirect
+	github.com/blevesearch/blevex v0.0.0-20190916190636-152f0fe5c040 // indirect
 	github.com/blevesearch/go-porterstemmer v1.0.3 // indirect
-	github.com/blevesearch/segment v0.9.0 // indirect
-	github.com/blevesearch/snowballstem v0.9.0 // indirect
-	github.com/blevesearch/zap/v11 v11.0.4 // indirect
-	github.com/blevesearch/zap/v12 v12.0.4 // indirect
+	github.com/blevesearch/segment v0.8.0 // indirect
 	github.com/coreos/pkg v0.0.0-20170901145554-459346e834d8 // indirect
 	github.com/couchbase/vellum v1.0.0 // indirect
 	github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d // indirect
 	github.com/eapache/queue v1.1.1-0.20180227141424-093482f3f8ce // indirect
 	github.com/edsrzf/mmap-go v1.0.1-0.20190108065903-904c4ced31cd // indirect
 	github.com/emirpasic/gods v1.12.1-0.20181020102604-7c131f671417 // indirect
+	github.com/etcd-io/bbolt v1.3.3 // indirect
 	github.com/gammazero/deque v0.0.0-20180920172122-f6adf94963e4 // indirect
 	github.com/gliderlabs/ssh v0.3.0 // indirect
 	github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2 // indirect
@@ -166,3 +165,7 @@ replace (
 	gopkg.in/src-d/go-git.v4 => github.com/keybase/go-git v4.0.0-rc9.0.20190209005256-3a78daa8ce8e+incompatible
 	mvdan.cc/xurls/v2 => github.com/keybase/xurls/v2 v2.0.1-0.20190725180013-1e015cacd06c
 )
+
+// temporary workaround for https://github.com/blevesearch/bleve/issues/1360
+// should be removed if bleve is updated to a commit past https://github.com/blevesearch/bleve/commit/a9895fdf9c72cfaa202128a963697d9a98765369
+replace github.com/etcd-io/bbolt => go.etcd.io/bbolt v1.3.4-0.20191122203157-7f8bb47fcaf8
