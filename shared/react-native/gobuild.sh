@@ -53,7 +53,7 @@ ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s
 build_gomobile ()
 {
   echo "Build gomobile..."
-  (cd buildtools && go install golang.org/x/mobile/cmd/{gomobile,gobind}@latest && gomobile init)
+  (go install golang.org/x/mobile/cmd/{gomobile,gobind}@latest && gomobile init)
 }
 
 if [ "$arg" = "ios" ]; then
