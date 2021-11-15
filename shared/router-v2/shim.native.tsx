@@ -60,7 +60,8 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
     //
     let wrap = body
 
-    const isSafe = true // !(navigationOptions?.underNotch || usesNav2Header)
+    const isSafe = navigationOptions.needsSafe || isModal
+    // !(navigationOptions?.underNotch || usesNav2Header)
     // const isSafe = false
     if (isSafe) {
       wrap = (

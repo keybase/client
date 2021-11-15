@@ -60,7 +60,7 @@ const ShhIcon = (props: {onClick: () => void}) => (
 )
 
 const ChannelHeader = (props: Props) => (
-  <>
+  <Box2 direction="vertical">
     <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
       <Avatar teamname={props.teamName || undefined} size={props.smallTeam ? 16 : (12 as any)} />
       <Text
@@ -90,7 +90,7 @@ const ChannelHeader = (props: Props) => (
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
       </Box2>
     )}
-  </>
+  </Box2>
 )
 
 const UsernameHeader = (props: Props) => (

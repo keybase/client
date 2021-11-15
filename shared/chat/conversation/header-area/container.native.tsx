@@ -9,44 +9,35 @@ import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getVisiblePath} from '../../../constants/router2'
 import {getFullname} from '../../../constants/users'
 import * as Tabs from '../../../constants/tabs'
-// import {useRoute} from '@react-navigation/native'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   progress: any
 }
 
-const isPhoneOrEmail = (participants): boolean =>
-  participants.some(participant => participant.endsWith('@phone') || participant.endsWith('@email'))
-
 const HeaderBranch = (props: Props & {progress: any}) => {
   const {progress, ...rest} = props
 
-  // let header: React.ReactNode = null
   if (props.teamName) {
     return <ChannelHeader {...rest} />
-  } else if (isPhoneOrEmail(props.participants)) {
+  }
+
+  const isPhoneOrEmail = props.participants.some(
+    participant => participant.endsWith('@phone') || participant.endsWith('@email')
+  )
+
+  if (isPhoneOrEmail) {
     return <PhoneOrEmailHeader {...rest} />
   } else {
     return <UsernameHeader {...rest} />
   }
-  // const opacity = 1
-  // Temp until nav5
-  //const p = Kb.NativeAnimated.add(progress.current, progress.next || 0)
-
-  //const opacity = p.interpolate({
-  //inputRange: [0, 1, 2],
-  //outputRange: [0, 1, 0],
-  //})
-
-  // return <Kb.NativeAnimated.View style={{opacity, width: '100%'}}>{header}</Kb.NativeAnimated.View>
 }
 
 export const HeaderAreaRight = (props: OwnProps) => {
   const {conversationIDKey} = props
-  const teamname = Container.useSelector(state => Constants.getMeta(state, conversationIDKey)?.teamname)
-  const pName = Container.useSelector(state => Constants.getParticipantInfo(state, conversationIDKey)?.name)
-  const participants = teamname ? null : pName
+  const pendingWaiting =
+    conversationIDKey === Constants.pendingWaitingConversationIDKey ||
+    conversationIDKey === Constants.pendingErrorConversationIDKey
 
   const dispatch = Container.useDispatch()
 
@@ -58,24 +49,15 @@ export const HeaderAreaRight = (props: OwnProps) => {
     () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
     [dispatch, conversationIDKey]
   )
-
-  if (teamname) {
-    // TODO
-    return null
-  } else if (isPhoneOrEmail(participants)) {
-    // TODO
-    return null
-  } else {
-    return (
-      <Kb.Box2 direction="horizontal" gap="small">
-        <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} />
-        <Kb.Icon type="iconfont-info" onClick={onShowInfoPanel} />
-      </Kb.Box2>
-    )
-  }
+  return pendingWaiting ? null : (
+    <Kb.Box2 direction="horizontal" gap="small">
+      <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} />
+      <Kb.Icon type="iconfont-info" onClick={onShowInfoPanel} />
+    </Kb.Box2>
+  )
 }
 
-// TODO less props connected
+// TODO remove this and connect the sub views
 export const HeaderArea = Container.connect(
   (state, ownProps: OwnProps) => {
     const {conversationIDKey} = ownProps

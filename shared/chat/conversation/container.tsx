@@ -64,6 +64,7 @@ let Conversation = (p: SwitchProps) => {
 Conversation.navigationOptions = ({route}) => ({
   headerRight: () => <HeaderAreaRight conversationIDKey={route.params?.conversationIDKey} />,
   headerTitle: () => <HeaderArea conversationIDKey={route.params?.conversationIDKey} />,
+  needsSafe: true,
 })
 
 const ConversationMemoed = React.memo(Conversation)
