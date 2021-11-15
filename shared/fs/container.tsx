@@ -65,11 +65,10 @@ ChooseComponent.navigationOptions = (ownProps: OwnProps) => {
   const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
   return Container.isMobile
     ? {
-        header: <MobileHeader path={path} onBack={ownProps.navigation.pop} />,
+        header: () => <MobileHeader path={path} onBack={ownProps.navigation.pop} />,
         useHeaderHeight: () => useMobileHeaderHeight(path),
       }
     : {
-        header: undefined,
         headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
         subHeader: MainBanner,

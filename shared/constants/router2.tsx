@@ -195,8 +195,7 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
 
       if (action.payload.fromKey) {
         const {fromKey} = action.payload
-        const activeKey = _getActiveKey(navigationState)
-        if (fromKey !== activeKey) {
+        if (fromKey !== visible.key) {
           logger.warn('Skipping append on wrong screen')
           return
         }
