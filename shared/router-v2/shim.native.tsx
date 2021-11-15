@@ -24,29 +24,29 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
     // this isn't perfect and likely we should move where this avoiding view is relative to the stack maybe
     // but it works for now
     let headerHeight: number | undefined = undefined
-    let usesNav2Header = false
-    if (navigationOptions) {
-      // explicitly passed a getter?
-      if (navigationOptions.useHeaderHeight) {
-        // headerHeight = navigationOptions.useHeaderHeight()
-        usesNav2Header = true
-      } else if (
-        !navigationOptions.header &&
-        !navigationOptions.headerRight &&
-        !navigationOptions.headerLeft &&
-        !navigationOptions.title &&
-        !navigationOptions.headerTitle
-      ) {
-        // nothing
-      } else {
-        usesNav2Header = true
-        if (Styles.isIPhoneX) {
-          // headerHeight = 88 + Styles.headerExtraHeight
-        } else {
-          // headerHeight = 64 + Styles.headerExtraHeight
-        }
-      }
-    }
+    // let usesNav2Header = false
+    // if (navigationOptions) {
+    // // explicitly passed a getter?
+    // if (navigationOptions.useHeaderHeight) {
+    // // headerHeight = navigationOptions.useHeaderHeight()
+    // usesNav2Header = true
+    // } else if (
+    // !navigationOptions.header &&
+    // !navigationOptions.headerRight &&
+    // !navigationOptions.headerLeft &&
+    // !navigationOptions.title &&
+    // !navigationOptions.headerTitle
+    // ) {
+    // // nothing
+    // } else {
+    // usesNav2Header = true
+    // if (Styles.isIPhoneX) {
+    // // headerHeight = 88 + Styles.headerExtraHeight
+    // } else {
+    // // headerHeight = 64 + Styles.headerExtraHeight
+    // }
+    // }
+    // }
 
     // if (isModal && Styles.isMobile) {
     // headerHeight = 54
@@ -57,29 +57,32 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
       ? getDefaultHeaderHeight(SafeAreaProviderCompat.initialMetrics.frame, isModal, 0)
       : uhh
     // console.log('aaa keyboard', uhh, insets, headerHeight)
+    //
+    let wrap = body
 
-    const content = (
+    const isSafe = true // !(navigationOptions?.underNotch || usesNav2Header)
+    // const isSafe = false
+    if (isSafe) {
+      wrap = (
+        <SafeAreaProvider>
+          <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
+            {wrap}
+          </Kb.SafeAreaView>
+        </SafeAreaProvider>
+      )
+    }
+
+    wrap = (
       <Kb.KeyboardAvoidingView
         style={styles.keyboard}
         behavior={Styles.isIOS ? 'padding' : undefined}
         keyboardVerticalOffset={headerHeight}
       >
-        {body}
+        {wrap}
       </Kb.KeyboardAvoidingView>
     )
 
-    const isSafe = !(navigationOptions?.underNotch || usesNav2Header)
-    if (isSafe) {
-      return (
-        <SafeAreaProvider>
-          <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
-            {content}
-          </Kb.SafeAreaView>
-        </SafeAreaProvider>
-      )
-    } else {
-      return content
-    }
+    return wrap
   })
   Container.hoistNonReactStatic(ShimmedNew, Original)
   return ShimmedNew

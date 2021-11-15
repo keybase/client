@@ -34,7 +34,7 @@ const Conversation = React.memo((props: Props) => {
     }
   }, [])
 
-  const insets = useSafeAreaInsets()
+  // const insets = useSafeAreaInsets()
   const innerComponent = (
     <Kb.BoxGrow onLayout={onLayout}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
@@ -66,7 +66,7 @@ const Conversation = React.memo((props: Props) => {
     <Kb.Box
       style={Styles.collapseStyles([
         styles.innerContainer,
-        !keyboardShowing && {paddingBottom: insets.bottom},
+        // !keyboardShowing && {paddingBottom: insets.bottom},
       ])}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
