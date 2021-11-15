@@ -30,12 +30,20 @@ export const _getNavigator = () => {
 }
 
 export const findVisibleRoute = (arr: Array<NavState>, s: NavState): Array<NavState> => {
-  if (!s) return arr
+  if (!s) {
+    return arr
+  }
   // @ts-ignore TODO this next line seems incorrect
-  if (!s.routes) return s
+  if (!s.routes) {
+    return s
+  }
   const route = s.routes[s.index]
-  if (!route) return arr
-  if (route.routes) return findVisibleRoute([...arr, route], route)
+  if (!route) {
+    return arr
+  }
+  if (route.state?.routes) {
+    return findVisibleRoute([...arr, route], route.state)
+  }
   return [...arr, route]
 }
 
@@ -187,7 +195,7 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
 
       if (action.payload.fromKey) {
         const {fromKey} = action.payload
-        const activeKey = getActiveKey(navigationState)
+        const activeKey = _getActiveKey(navigationState)
         if (fromKey !== activeKey) {
           logger.warn('Skipping append on wrong screen')
           return
@@ -201,21 +209,21 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       return [StackActions.push(routeName, params)]
     }
     case RouteTreeGen.switchTab: {
-      return [CommonActions.navigate({key: action.payload.tab, name: action.payload.tab})]
+      return [CommonActions.navigate({name: action.payload.tab})]
     }
     case RouteTreeGen.switchLoggedIn: {
       return [CommonActions.navigate({name: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]
     }
     case RouteTreeGen.clearModals: {
       if (isLoggedIn(navigationState) && navigationState.routes.length > 1) {
-        return [StackActions.popToTop({target: navigationState.key})]
+        return [{...StackActions.popToTop(), target: navigationState.key}]
       }
       return []
     }
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
     case RouteTreeGen.navUpToScreen: {
-      const fullPath = Constants._getFullRouteForNavigator(navigationState)
+      const fullPath = _getFullRouteForNavigator(navigationState)
       const popActions: Array<unknown> = []
       const isInStack = fullPath.reverse().some(r => {
         if (r.name === action.payload.routeName) {
