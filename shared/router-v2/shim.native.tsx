@@ -66,9 +66,9 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
     // const isSafe = false
     if (isSafe) {
       wrap = (
-          <SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
-            {wrap}
-          </SafeAreaView>
+        <SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
+          {wrap}
+        </SafeAreaView>
       )
     }
 

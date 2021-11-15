@@ -4,6 +4,7 @@ import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader, Props} from './index.native'
+import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
 import * as Container from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getVisiblePath} from '../../../constants/router2'
@@ -73,7 +74,6 @@ export const HeaderArea = Container.connect(
         : undefined
 
     return {
-      _badgeMap: state.chat2.badgeMap,
       channelName: meta.channelname,
       contactNames,
       muted: meta.isMuted,
@@ -94,8 +94,6 @@ export const HeaderArea = Container.connect(
     unMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {conversationIDKey} = ownProps
-    const {_badgeMap} = stateProps
     const {
       channelName,
       contactNames,
@@ -108,17 +106,7 @@ export const HeaderArea = Container.connect(
     } = stateProps
     const {onOpenFolder, onShowProfile, onShowInfoPanel} = dispatchProps
     const {onToggleThreadSearch, unMuteConversation} = dispatchProps
-    const visiblePath = getVisiblePath()
-    const onTopOfInbox = visiblePath?.length === 4 && visiblePath[2]?.name === Tabs.chatTab
     return {
-      badgeNumber: onTopOfInbox
-        ? [..._badgeMap.entries()].reduce(
-            (res, [currentConvID, currentValue]) =>
-              // only show sum of badges that aren't for the current conversation
-              currentConvID !== conversationIDKey ? res + currentValue : res,
-            0
-          )
-        : 0,
       channelName,
       contactNames,
       muted,
@@ -136,5 +124,29 @@ export const HeaderArea = Container.connect(
     }
   }
 )(HeaderBranch)
+
+const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}) => {
+  const visiblePath = getVisiblePath()
+  const onTopOfInbox = visiblePath?.length === 3 && visiblePath[1]?.name === Tabs.chatTab
+  const badgeNumber = Container.useSelector(state =>
+    onTopOfInbox
+      ? [...state.chat2.badgeMap.entries()].reduce(
+          (res, [currentConvID, currentValue]) =>
+            // only show sum of badges that aren't for the current conversation
+            currentConvID !== conversationIDKey ? res + currentValue : res,
+          0
+        )
+      : 0
+  )
+  return <HeaderLeftArrow badgeNumber={badgeNumber} {...rest} />
+}
+
+export const headerNavigationOptions = route => ({
+  headerLeft: props => (
+    <BadgeHeaderLeftArray {...props} conversationIDKey={route.params?.conversationIDKey} />
+  ),
+  headerRight: () => <HeaderAreaRight conversationIDKey={route.params?.conversationIDKey} />,
+  headerTitle: () => <HeaderArea conversationIDKey={route.params?.conversationIDKey} />,
+})
 
 export default HeaderArea

@@ -376,7 +376,7 @@ export const HeaderLeftBlank = () => (
 export const HeaderLeftArrow = hp =>
   hp.canGoBack ? (
     <LeftAction
-      badgeNumber={0}
+      badgeNumber={hp.badgeNumber ?? 0}
       leftAction="back"
       onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
       customIconColor={hp.tintColor}
