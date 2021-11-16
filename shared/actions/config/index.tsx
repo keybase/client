@@ -617,10 +617,11 @@ const updateServerConfig = async (state: Container.TypedState, action: ConfigGen
     logger.warn("Can't call UpdateLastLoggedInAndServerConfig", e)
   })
 
-const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
-  const navigator = action.payload.navigator
-  Router2._setNavigator(navigator)
-}
+// const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
+// not needed anymore, action is sitll needed
+// const navigator = action.payload.navigator
+// Router2._setNavigator(navigator)
+// }
 
 const newNavigation = (
   action:
@@ -815,7 +816,7 @@ function* configSaga() {
   // Switch between login or app routes
   yield* Saga.chainAction2([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
   // MUST go above routeToInitialScreen2 so we set the nav correctly
-  yield* Saga.chainAction(ConfigGen.setNavigator, setNavigator)
+  // yield* Saga.chainAction(ConfigGen.setNavigator, setNavigator)
   // Go to the correct starting screen
   yield* Saga.chainAction2([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator], routeToInitialScreen2)
   yield* Saga.chainAction2(ConfigGen.persistRoute, stashLastRoute)

@@ -570,12 +570,21 @@ const LoggedOut = () => (
 )
 
 const RootStack = createStackNavigator()
-const RNApp = () => {
+const RNApp = props => {
   const loggedInLoaded = Container.useSelector(state => state.config.loggedInLoaded)
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
 
+  const {updateNavigator} = props
+  const onRef = React.useCallback(
+    r => {
+      updateNavigator(r)
+      Constants.navigationRef_.current = r
+    },
+    [updateNavigator]
+  )
+
   return (
-    <NavigationContainer ref={Constants.navigationRef_}>
+    <NavigationContainer ref={onRef}>
       <RootStack.Navigator
         screenOptions={{
           animationEnabled: false,

@@ -83,7 +83,6 @@ const ConnectedHeader = () => {
 
 class AccountSettings extends React.Component<SettingsProps> {
   static navigationOptions = {
-    header: undefined,
     headerTitle: () => <ConnectedHeader />,
   }
 
