@@ -12,7 +12,7 @@ like:
 $ keybase login
 ▶ INFO Forking background server with pid=2409
 How would you like to sign this install of Keybase?
-
+ 
 (1) Use an existing device
 (2) Use a paper key
 (3) Use my Keybase passphrase
