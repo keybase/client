@@ -1,4 +1,4 @@
-import TeamMember from './team/member/container'
+// import TeamMember from './team/member/container'
 import TeamMemberNew from './team/member/index.new'
 import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'

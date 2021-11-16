@@ -16,7 +16,7 @@ import * as Container from '../util/container'
 // import shallowEqual from 'shallowequal'
 // import logger from '../logger'
 import {IconType} from '../common-adapters/icon.constants-gen'
-import {HeaderLeftArrow} from '../common-adapters/header-hoc'
+import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
 // import {Props} from './router'
 // import {connect} from '../util/container'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
@@ -577,7 +577,11 @@ const RNApp = () => {
   return (
     <NavigationContainer ref={Constants.navigationRef_}>
       <RootStack.Navigator
-        screenOptions={{animationEnabled: false, headerShown: false, presentation: 'modal'}}
+        screenOptions={{
+          animationEnabled: false,
+          presentation: 'modal',
+          headerShown: false, // eventually do this after we pull apart modal2 etc
+        }}
       >
         {loggedInLoaded ? (
           loggedIn ? (

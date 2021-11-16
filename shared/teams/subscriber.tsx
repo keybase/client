@@ -39,17 +39,12 @@ export const TeamsSubscriberMountOnly = () => {
 
 const useTeamDetailsSubscribeMobile = (teamID: Types.TeamID) => {
   const dispatch = Container.useDispatch()
-  const callback: NavigationEventCallback = e => {
-    if (e.type === 'didFocus') {
+  useFocusEffect(
+    React.useCallback(() => {
       dispatch(TeamsGen.createLoadTeam({_subscribe: true, teamID}))
-    } else if (e.type === 'willBlur') {
-      dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
-    }
-  }
-  useNavigationEvents(callback)
-
-  // Workaround navigation blur events flakiness, make sure we unsubscribe on unmount
-  React.useEffect(() => () => dispatch(TeamsGen.createUnsubscribeTeamList()), [dispatch])
+      return () => dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
+    }, [dispatch, teamID])
+  )
 }
 const useTeamDetailsSubscribeDesktop = (teamID: Types.TeamID) => {
   const dispatch = Container.useDispatch()

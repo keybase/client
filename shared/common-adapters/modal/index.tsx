@@ -61,7 +61,7 @@ const ModalInner = (props: Props) => (
     {!!props.header && <Header {...props.header} />}
     {!!props.banners && props.banners}
     {props.noScrollView ? (
-      props.children
+      <Kb.BoxGrow>{props.children}</Kb.BoxGrow>
     ) : (
       <Kb.ScrollView
         ref={props.scrollViewRef}
@@ -84,9 +84,11 @@ const ModalInner = (props: Props) => (
 /** TODO being deprecated. if you change this change modal2 and talk to #frontend **/
 const Modal = (props: Props) =>
   Styles.isMobile || props.fullscreen ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
-      <ModalInner {...props} />
-    </Kb.Box2>
+    <Kb.BoxGrow>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
+        <ModalInner {...props} />
+      </Kb.Box2>
+    </Kb.BoxGrow>
   ) : (
     <PopupDialog
       onClose={props.onClose}

@@ -158,6 +158,10 @@ export const TeamMember = (props: Props) => {
     </Kb.Box>
   )
 }
+TeamMember.navigationOptions = {
+  headerHideBorder: true,
+  headerTitle: '',
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   floatingRolePicker: Styles.platformStyles({

@@ -8,13 +8,12 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import {validateEmailAddress} from '../util/email-address'
-import flags from '../util/feature-flags'
 
 const closeTeamBuilding = (_: TypedState, {payload: {namespace}}: NSAction) => {
-  if (namespace === 'teams') {
-    // add members wizard handles navigation
-    return false
-  }
+  // if (namespace === 'teams') {
+  // // add members wizard handles navigation
+  // return false
+  // }
   const modals = RouterConstants.getModalStack()
   const routeNames = [...namespaceToRoute.values()]
   const routeName = modals[modals.length - 1]?.name
