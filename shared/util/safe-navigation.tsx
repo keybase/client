@@ -20,7 +20,7 @@ export const useSafeNavigation = () => {
     () => ({
       safeNavigateAppendPayload: ({path, replace}: SafeNavigateAppendArg) =>
         isFocused && RouteTreeGen.createNavigateAppend({path, replace}),
-      safeNavigateUpPayload: () => isFocused ? RouteTreeGen.createNavigateUp({}) : null,
+      safeNavigateUpPayload: () => (isFocused ? RouteTreeGen.createNavigateUp({}) : null),
     }),
     [isFocused]
   )

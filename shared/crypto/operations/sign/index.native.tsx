@@ -35,7 +35,7 @@ export const SignOutput = () => (
 )
 
 const navigationOptions = {
-  header: undefined,
+  headerShown: true,
   title: 'Sign',
 }
 SignInput.navigationOptions = navigationOptions

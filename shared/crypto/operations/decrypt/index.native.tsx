@@ -34,7 +34,7 @@ export const DecryptOutput = () => (
 )
 
 const navigationOptions = {
-  header: undefined,
+  headerShown: true,
   title: 'Decrypt',
 }
 

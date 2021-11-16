@@ -580,6 +580,8 @@ const RNApp = () => {
         screenOptions={{
           animationEnabled: false,
           presentation: 'modal',
+          headerLeft: HeaderLeftCancel,
+          title: '',
           headerShown: false, // eventually do this after we pull apart modal2 etc
         }}
       >
