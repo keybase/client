@@ -35,6 +35,9 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	_ "github.com/keybase/release"
+	_ "golang.org/x/mobile/cmd/gobind"
+	_ "golang.org/x/mobile/cmd/gomobile"
 	context "golang.org/x/net/context"
 )
 
