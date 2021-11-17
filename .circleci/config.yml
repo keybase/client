@@ -23,6 +23,7 @@ jobs:
           command: yarn global add --ignore-engines react-native-cli npm
       - run:
           working_directory: shared
+          no_output_timeout: 30m
           command: yarn run rn-gobuild-android
       - run:
           working_directory: shared
