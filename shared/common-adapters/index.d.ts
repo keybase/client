@@ -6,7 +6,6 @@ export {IconType} from './icon.constants-gen'
 export {WebViewProps, WebViewInjections} from './web-view'
 export {AnimationType} from './animation'
 
-export {NavigationEvents} from '@react-navigation/core'
 export {LayoutAnimation} from 'react-native' // exported from index.native
 
 export {default as Animated, Transition, animated} from './animated'

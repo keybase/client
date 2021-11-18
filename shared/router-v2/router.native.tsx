@@ -575,16 +575,18 @@ const RNApp = props => {
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
 
   const {updateNavigator} = props
-  const onRef = React.useCallback(
-    r => {
-      updateNavigator(r)
-      Constants.navigationRef_.current = r
-    },
-    [updateNavigator]
-  )
+  const setNavOnce = React.useRef(false)
+  React.useEffect(() => {
+    if (!setNavOnce.current) {
+      if (Constants.navigationRef_.isReady()) {
+        setNavOnce.current = true
+        updateNavigator()
+      }
+    }
+  })
 
   return (
-    <NavigationContainer ref={onRef}>
+    <NavigationContainer ref={Constants.navigationRef_}>
       <RootStack.Navigator
         screenOptions={{
           animationEnabled: false,

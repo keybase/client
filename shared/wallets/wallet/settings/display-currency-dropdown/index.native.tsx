@@ -4,9 +4,6 @@ import * as Types from '../../../../constants/types/wallets'
 import * as Styles from '../../../../styles'
 import {Props} from '.'
 
-const makePickerItems = (currencies: Array<Types.Currency>) =>
-  currencies.map(c => ({label: c.description, value: c.code}))
-
 const Prompt = () => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.promptContainer}>
     <Kb.Text center={true} type="BodySmallSemibold">
@@ -19,28 +16,23 @@ const Prompt = () => (
 )
 
 const DisplayCurrencyDropdown = (props: Props) => {
+  const {currencies} = props
   const selectedFromProps = props.selected.code
   const [selected, setSelected] = React.useState(selectedFromProps)
   const [showingMenu, setShowingMenu] = React.useState(false)
   const [showingToast, setShowingToast] = React.useState(false)
-  const onceRef = React.useRef(false)
   const setShowingToastFalseLater = Kb.useTimeout(() => setShowingToast(false), 1000)
-
-  React.useEffect(() => {
-    const justSaved = selectedFromProps === selected && onceRef.current
-    if (justSaved) {
-      setShowingToast(true)
-      setShowingToastFalseLater()
-    }
-    onceRef.current = true
-  }, [selected, selectedFromProps, onceRef, setShowingToast, setShowingToastFalseLater])
 
   React.useEffect(() => {
     setSelected(selectedFromProps)
   }, [selectedFromProps])
 
   const onDone = () => {
-    props.onCurrencyChange(selected)
+    if (selected !== selectedFromProps) {
+      props.onCurrencyChange(selected)
+      setShowingToast(true)
+      setShowingToastFalseLater()
+    }
     setShowingMenu(false)
   }
   const onClose = () => {
@@ -48,6 +40,12 @@ const DisplayCurrencyDropdown = (props: Props) => {
     setSelected(props.selected.code)
   }
   const toggleShowingMenu = () => setShowingMenu(s => !s)
+
+  const items = React.useMemo(
+    () => currencies.map(c => ({label: c.description, value: c.code})),
+    [currencies]
+  )
+
   return (
     <>
       <Kb.DropdownButton
@@ -65,7 +63,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
         toggleOpen={toggleShowingMenu}
       />
       <Kb.FloatingPicker
-        items={makePickerItems(props.currencies)}
+        items={items}
         selectedValue={selected}
         onSelect={setSelected}
         prompt={<Prompt />}

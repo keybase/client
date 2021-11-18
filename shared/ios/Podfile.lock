@@ -31,7 +31,7 @@ PODS:
     - ExpoModulesCore
   - EXPermissions (13.0.3):
     - ExpoModulesCore
-  - Expo (43.0.1):
+  - Expo (43.0.3):
     - ExpoModulesCore
   - ExpoModulesCore (0.4.7):
     - React-Core
@@ -266,7 +266,7 @@ PODS:
     - React
   - react-native-hw-keyboard-event (0.0.4):
     - React
-  - react-native-netinfo (6.0.4):
+  - react-native-netinfo (7.1.2):
     - React-Core
   - react-native-safe-area-context (3.3.2):
     - React-Core
@@ -346,7 +346,11 @@ PODS:
     - React-Core
   - RNAudio (4.3.0):
     - React
+  - RNCClipboard (1.9.0):
+    - React-Core
   - RNCMaskedView (0.2.6):
+    - React-Core
+  - RNCPicker (2.2.1):
     - React-Core
   - RNCPushNotificationIOS (1.10.1):
     - React-Core
@@ -461,7 +465,9 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - RNAudio (from `../node_modules/react-native-audio`)
+  - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
+  - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNCPushNotificationIOS (from `../node_modules/@react-native-community/push-notification-ios`)"
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
@@ -592,8 +598,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/rn-fetch-blob"
   RNAudio:
     :path: "../node_modules/react-native-audio"
+  RNCClipboard:
+    :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCMaskedView:
     :path: "../node_modules/@react-native-masked-view/masked-view"
+  RNCPicker:
+    :path: "../node_modules/@react-native-picker/picker"
   RNCPushNotificationIOS:
     :path: "../node_modules/@react-native-community/push-notification-ios"
   RNFastImage:
@@ -623,7 +633,7 @@ SPEC CHECKSUMS:
   EXKeepAwake: 8aa32396a5972d26e75e538603aad0f032396503
   EXMailComposer: 2a4ef087e055e3a9a1d138c300c5ae48a3978d0d
   EXPermissions: 7696f4c16e89981f84c04d96327f7e1e592373c0
-  Expo: cb542da0f7c8565a58231488066262f079eb1831
+  Expo: 5316c3ecdc34eb0cad340d01dc8beec97c7e879e
   ExpoModulesCore: c353a3bed60c3b83dbe63f134aaa7bf4733ffa16
   EXSMS: 08db0b52fb83f2e8d40a03561d07e183b0f0df1d
   FBLazyVector: de148e8310b8b878db304ceea2fec13f2c02e3a0
@@ -649,7 +659,7 @@ SPEC CHECKSUMS:
   react-native-contacts: bc424db19c3384e44e6a9d9da9a78ee51b0aa7a1
   react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
-  react-native-netinfo: 1c7676413ab265759c7b3da205efab163f5366ef
+  react-native-netinfo: 07e8299fff4d2bea17d00b519d4f9c67c7dbbe9b
   react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
   react-native-video: a4c2635d0802f983594b7057e1bce8f442f0ad28
   react-native-webview: cc4ac8f021a832dce2979e1f48c5595341dd2fb5
@@ -667,7 +677,9 @@ SPEC CHECKSUMS:
   ReactCommon: 9bac022ab71596f2b0fde1268272543184c63971
   rn-fetch-blob: 2509def10b0fd8ff10e22da284264be34b2231f6
   RNAudio: cae2991f2dccb75163f260b60da8051717b959fa
+  RNCClipboard: 99fc8ad669a376b756fbc8098ae2fd05c0ed0668
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
+  RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
   RNCPushNotificationIOS: 87b8d16d3ede4532745e05b03c42cff33a36cc45
   RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211

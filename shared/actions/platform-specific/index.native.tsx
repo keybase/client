@@ -25,9 +25,9 @@ import {
   NativeEventEmitter,
   ActionSheetIOS,
   PermissionsAndroid,
-  Clipboard,
   Vibration,
 } from 'react-native'
+import Clipboard from '@react-native-clipboard/clipboard'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
 // @ts-ignore strict
