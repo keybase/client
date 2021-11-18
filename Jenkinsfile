@@ -153,6 +153,8 @@ helpers.rootLinuxNode(env, {
                 sh "make clean"
                 sh "make"
               }
+              sh "go version"
+              sh "go mod tidy"
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
               packagesToTest = getPackagesToTest(dependencyFiles, hasJenkinsfileChanges)
               hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
