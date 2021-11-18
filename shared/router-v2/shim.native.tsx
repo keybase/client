@@ -72,6 +72,9 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
       )
     }
 
+    // TODO remove and make all root views have a good background
+    wrap = <Kb.NativeView style={styles.keyboard}>{wrap}</Kb.NativeView>
+
     // wrap = (
     // <Kb.KeyboardAvoidingView
     // style={styles.keyboard}

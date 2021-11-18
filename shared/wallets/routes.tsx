@@ -16,7 +16,7 @@ import WhatIsStellarModal from './what-is-stellar-modal'
 import Settings from './wallet/settings/container'
 import TransactionDetails from './transaction-details/container'
 import TeamBuilder from '../team-building/container'
-import Partners from './partners/container'
+// import Partners from './partners/container'
 
 export const sharedRoutes = {
   // TODO connect broken
@@ -46,7 +46,7 @@ export const newModalRoutes = {
   },
   keybaseLinkError: {getScreen: (): typeof KeybaseLinkError => require('../deeplinks/error').default},
   linkExisting: {getScreen: (): typeof LinkExisting => require('./link-existing/container').default},
-  partners: {getScreen: (): typeof Partners => require('./partners/container').default},
+  // partners: {getScreen: (): typeof Partners => require('./partners/container').default},
   reallyRemoveAccount: {
     getScreen: (): typeof ReallyRemoveAccountPopup =>
       require('./wallet/settings/popups').ReallyRemoveAccountPopup,

@@ -101,7 +101,7 @@ const buttonWidth = 132
 // @ts-ignore
 InboxWrapper.navigationOptions = {
   headerRightContainerStyle: {
-    backgroundColor: 'orange',
+    // backgroundColor: 'orange',
     paddingRight: 8,
     flexGrow: 0,
     minWidth: buttonWidth,

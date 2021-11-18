@@ -63,14 +63,16 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
 
 const EmailVerificationBanner = () => {
   const dispatch = Container.useDispatch()
+  const signupEmail = Container.useSelector(s => s.signup.justSignedUpEmail)
   React.useEffect(
     () =>
       // Only have a cleanup function
-      () => dispatch(SignupGen.createClearJustSignedUpEmail()),
-    [dispatch]
+      () => {
+        signupEmail && dispatch(SignupGen.createClearJustSignedUpEmail())
+      },
+    [dispatch, signupEmail]
   )
 
-  const signupEmail = Container.useSelector(s => s.signup.justSignedUpEmail)
   if (!signupEmail) {
     return null
   }
@@ -85,14 +87,17 @@ const EmailVerificationBanner = () => {
 
 const ResentEmailVerificationBanner = () => {
   const dispatch = Container.useDispatch()
+  const resentEmail = Container.useSelector(s => s.people.resentEmail)
+
   React.useEffect(
     () =>
       // Only have a cleanup function
-      () => dispatch(PeopleGen.createSetResentEmail({email: ''})),
-    [dispatch]
+      () => {
+        resentEmail && dispatch(PeopleGen.createSetResentEmail({email: ''}))
+      },
+    [dispatch, resentEmail]
   )
 
-  const resentEmail = Container.useSelector(s => s.people.resentEmail)
   if (!resentEmail) {
     return null
   }

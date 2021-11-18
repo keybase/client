@@ -56,18 +56,18 @@ const defaultNavigationOptions: any = {
   headerStyle: headerDefaultStyle,
   headerTitleContainerStyle: {
     alignItems: 'stretch',
-    backgroundColor: 'red',
+    // backgroundColor: 'red',
     flexGrow: 1,
   },
   headerBackTitle: 'temp',
   headerBackVisible: true,
   headerRightContainerStyle: {
-    backgroundColor: 'orange',
+    // backgroundColor: 'orange',
     width: actionWidth,
     paddingRight: 8,
   },
   headerLeftContainerStyle: {
-    backgroundColor: 'yellow',
+    // backgroundColor: 'yellow',
     paddingLeft: 8,
     width: actionWidth,
   },
@@ -465,7 +465,7 @@ const styles = Styles.styleSheetCreate(() => ({
     width: Styles.globalMargins.small,
   },
   headerTitle: {
-    backgroundColor: 'pink',
+    // backgroundColor: 'pink',
     color: Styles.globalColors.black,
   },
   keyboard: {
