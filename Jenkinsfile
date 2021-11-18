@@ -118,7 +118,7 @@ helpers.rootLinuxNode(env, {
     }
 
     sh "./update_gvm.sh"
-    sh "source ${env.HOME}/.gvm/scripts/gvm && gvm update && gvm install go1.17.3 -B && gvm use go1.17.3 --default"
+    sh "gvm use go1.17.3 --default"
 
     def goChanges = helpers.getChangesForSubdir('go', env)
     def hasGoChanges = goChanges.size() != 0
