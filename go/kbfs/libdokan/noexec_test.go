@@ -2,15 +2,16 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
+//go:build windows
 // +build windows
 
 package libdokan
 
 import (
 	"errors"
+	exec "golang.org/x/sys/execabs"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"

@@ -1,8 +1,8 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// +build darwin
-// +build !go1.10
+//go:build darwin && !go1.10
+// +build darwin,!go1.10
 
 package pinentry
 
