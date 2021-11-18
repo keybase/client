@@ -117,11 +117,7 @@ helpers.rootLinuxNode(env, {
       )
     }
 
-
-    sh """
-      bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
-      bash -c "gvm update && gvm install go1.17.3 -B && gvm use go1.17.3 --default"
-    """
+    sh "gvm update && gvm install go1.17.3 -B && gvm use go1.17.3 --default || gvm --help"
 
     def goChanges = helpers.getChangesForSubdir('go', env)
     def hasGoChanges = goChanges.size() != 0
