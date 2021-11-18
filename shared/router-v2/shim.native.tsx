@@ -72,15 +72,15 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
       )
     }
 
-    wrap = (
-      <Kb.KeyboardAvoidingView
-        style={styles.keyboard}
-        behavior={Styles.isIOS ? 'padding' : undefined}
-        keyboardVerticalOffset={headerHeight}
-      >
-        {wrap}
-      </Kb.KeyboardAvoidingView>
-    )
+    // wrap = (
+    // <Kb.KeyboardAvoidingView
+    // style={styles.keyboard}
+    // behavior={Styles.isIOS ? 'padding' : undefined}
+    // keyboardVerticalOffset={headerHeight}
+    // >
+    // {wrap}
+    // </Kb.KeyboardAvoidingView>
+    // )
 
     return wrap
   })

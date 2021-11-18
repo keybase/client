@@ -20,6 +20,7 @@ import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
 // import {Props} from './router'
 // import {connect} from '../util/container'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
+import {useHeaderHeight, getDefaultHeaderHeight, SafeAreaProviderCompat} from '@react-navigation/elements'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 // import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
@@ -547,6 +548,7 @@ const AppTabs = () => (
       // console.log('aaa routename', route.name)
       return {
         ...defaultNavigationOptions,
+        tabBarHideOnKeyboard: true,
         headerShown: false,
         tabBarShowLabel: Styles.isTablet,
         tabBarStyle,
@@ -585,29 +587,36 @@ const RNApp = props => {
     }
   })
 
+  const headerHeight = 0 // useHeaderHeight()
   return (
-    <NavigationContainer ref={Constants.navigationRef_}>
-      <RootStack.Navigator
-        screenOptions={{
-          animationEnabled: false,
-          presentation: 'modal',
-          headerLeft: HeaderLeftCancel,
-          title: '',
-          headerShown: false, // eventually do this after we pull apart modal2 etc
-        }}
-      >
-        {loggedInLoaded ? (
-          loggedIn ? (
-            <RootStack.Screen name="loggedIn" component={AppTabs} />
+    <Kb.KeyboardAvoidingView
+      style={styles.keyboard}
+      behavior={Styles.isIOS ? 'padding' : undefined}
+      keyboardVerticalOffset={headerHeight}
+    >
+      <NavigationContainer ref={Constants.navigationRef_}>
+        <RootStack.Navigator
+          screenOptions={{
+            animationEnabled: false,
+            presentation: 'modal',
+            headerLeft: HeaderLeftCancel,
+            title: '',
+            headerShown: false, // eventually do this after we pull apart modal2 etc
+          }}
+        >
+          {loggedInLoaded ? (
+            loggedIn ? (
+              <RootStack.Screen name="loggedIn" component={AppTabs} />
+            ) : (
+              <RootStack.Screen name="loggedOut" component={LoggedOut} />
+            )
           ) : (
-            <RootStack.Screen name="loggedOut" component={LoggedOut} />
-          )
-        ) : (
-          <RootStack.Screen name="loading" component={SimpleLoading} />
-        )}
-        {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true, false)}
-      </RootStack.Navigator>
-    </NavigationContainer>
+            <RootStack.Screen name="loading" component={SimpleLoading} />
+          )}
+          {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true, false)}
+        </RootStack.Navigator>
+      </NavigationContainer>
+    </Kb.KeyboardAvoidingView>
   )
 }
 // {makeNavScreens(Shim.shim(noTabRoutes, false), RootStack.Screen, false, true)}
