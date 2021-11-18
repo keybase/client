@@ -9,9 +9,9 @@ package libdokan
 
 import (
 	"errors"
-	exec "golang.org/x/sys/execabs"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"

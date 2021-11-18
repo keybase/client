@@ -9,8 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-
-	exec "golang.org/x/sys/execabs"
+	"os/exec"
 
 	"strings"
 	"sync"

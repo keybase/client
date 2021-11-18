@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"runtime"
 
-	exec "golang.org/x/sys/execabs"
+	"os/exec"
 )
 
 func PlatformSpecificUpgradeInstructionsString() (string, error) {

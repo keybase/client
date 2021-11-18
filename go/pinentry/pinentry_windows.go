@@ -8,8 +8,8 @@ package pinentry
 
 import (
 	"fmt"
-	exec "golang.org/x/sys/execabs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 

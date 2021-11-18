@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
-	exec "golang.org/x/sys/execabs"
+	"os/exec"
 
 	"github.com/keybase/client/go/logger"
 )

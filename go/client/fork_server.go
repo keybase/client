@@ -6,9 +6,8 @@ package client
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"time"
-
-	exec "golang.org/x/sys/execabs"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"

@@ -3,9 +3,8 @@ package main
 import (
 	"errors"
 	"os"
+	"os/exec"
 	"path/filepath"
-
-	exec "golang.org/x/sys/execabs"
 
 	"github.com/keybase/client/go/utils"
 )

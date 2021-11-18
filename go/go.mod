@@ -305,3 +305,5 @@ replace (
 // temporary workaround for https://github.com/blevesearch/bleve/issues/1360
 // should be removed if bleve is updated to a commit past https://github.com/blevesearch/bleve/commit/a9895fdf9c72cfaa202128a963697d9a98765369
 replace github.com/etcd-io/bbolt => go.etcd.io/bbolt v1.3.4-0.20191122203157-7f8bb47fcaf8
+
+replace os/exec => golang.org/x/sys/execabs v0.0.0-20211117180635-dee7805ff2e1
