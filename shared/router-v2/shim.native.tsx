@@ -7,9 +7,10 @@ import * as Container from '../util/container'
 import {useHeaderHeight, getDefaultHeaderHeight, SafeAreaProviderCompat} from '@react-navigation/elements'
 import {SafeAreaView} from 'react-native'
 
-export const shim = (routes: any, isModal: boolean) => Shared.shim(routes, shimNewRoute, isModal)
+export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
+  Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
 
-const shimNewRoute = (Original: any, isModal: boolean) => {
+const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
   // Also light/dark aware
   const ShimmedNew = React.memo((props: any) => {
@@ -61,7 +62,7 @@ const shimNewRoute = (Original: any, isModal: boolean) => {
     //
     let wrap = body
 
-    const isSafe = navigationOptions?.needsSafe || isModal
+    const isSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
     // !(navigationOptions?.underNotch || usesNav2Header)
     // const isSafe = false
     if (isSafe) {

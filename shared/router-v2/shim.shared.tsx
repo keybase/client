@@ -4,7 +4,7 @@ export const toggleRenderDebug = () => {
 }
 export const getRenderDebug = () => _renderDebug
 
-export const shim = (routes: any, platformWrapper: any, isModal: boolean) => {
+export const shim = (routes: any, platformWrapper: any, isModal: boolean, isLoggedOut: boolean) => {
   return Object.keys(routes).reduce((map, route) => {
     let _cached = null
 
@@ -18,7 +18,7 @@ export const shim = (routes: any, platformWrapper: any, isModal: boolean) => {
                 return _cached
               }
 
-              _cached = platformWrapper(routes[route].getScreen(), isModal)
+              _cached = platformWrapper(routes[route].getScreen(), isModal, isLoggedOut)
               return _cached
             },
           }

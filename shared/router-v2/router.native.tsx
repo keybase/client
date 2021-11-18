@@ -478,17 +478,17 @@ const styles = Styles.styleSheetCreate(() => ({
 const Tab = createBottomTabNavigator()
 const tabs = Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs
 
-const {routesMinusChatConvo, noTabRoutes} = Object.keys(routes).reduce(
-  (m, k) => {
-    if (k === 'chatConversation') {
-      m.noTabRoutes[k] = routes[k]
-    } else {
-      m.routesMinusChatConvo[k] = routes[k]
-    }
-    return m
-  },
-  {routesMinusChatConvo: {}, noTabRoutes: {}}
-)
+// const {routesMinusChatConvo, noTabRoutes} = Object.keys(routes).reduce(
+// (m, k) => {
+// if (k === 'chatConversation') {
+// m.noTabRoutes[k] = routes[k]
+// } else {
+// m.routesMinusChatConvo[k] = routes[k]
+// }
+// return m
+// },
+// {routesMinusChatConvo: {}, noTabRoutes: {}}
+// )
 
 // so we have a stack per tab?
 const tabToStack = new Map()
@@ -509,7 +509,7 @@ const makeTabStack = tab => {
             ...defaultNavigationOptions,
           }}
         >
-          {makeNavScreens(Shim.shim(/*routesMinusChatConvo*/ routes, false), S.Screen, false, false)}
+          {makeNavScreens(Shim.shim(routes, false), S.Screen, false)}
         </S.Navigator>
       )
     }
@@ -518,7 +518,7 @@ const makeTabStack = tab => {
   return Comp
 }
 
-const makeNavScreens = (rs, Screen, isModal, isNoTab) => {
+const makeNavScreens = (rs, Screen, isModal) => {
   return Object.keys(rs).map(name => {
     return (
       <Screen
@@ -531,7 +531,6 @@ const makeNavScreens = (rs, Screen, isModal, isNoTab) => {
           return {
             ...opt,
             ...(isModal ? {animationEnabled: true} : {}),
-            ...(isNoTab ? {animationEnabled: true, headerShown: true, presentation: 'card'} : {}),
           }
         }}
       />
@@ -566,8 +565,14 @@ const AppTabs = () => (
 
 const LoggedOutStack = createStackNavigator()
 const LoggedOut = () => (
-  <LoggedOutStack.Navigator>
-    {makeNavScreens(Shim.shim(loggedOutRoutes, false), LoggedOutStack.Screen, false, false)}
+  <LoggedOutStack.Navigator
+    initialRouteName="login"
+    screenOptions={{
+      tabBarHideOnKeyboard: true,
+      headerShown: false,
+    }}
+  >
+    {makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)}
   </LoggedOutStack.Navigator>
 )
 
@@ -613,11 +618,10 @@ const RNApp = props => {
           ) : (
             <RootStack.Screen name="loading" component={SimpleLoading} />
           )}
-          {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true, false)}
+          {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true)}
         </RootStack.Navigator>
       </NavigationContainer>
     </Kb.KeyboardAvoidingView>
   )
 }
-// {makeNavScreens(Shim.shim(noTabRoutes, false), RootStack.Screen, false, true)}
 export default RNApp

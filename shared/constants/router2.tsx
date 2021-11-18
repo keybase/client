@@ -211,7 +211,8 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       return [CommonActions.navigate({name: action.payload.tab})]
     }
     case RouteTreeGen.switchLoggedIn: {
-      return [CommonActions.navigate({name: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]
+      // return [CommonActions.navigate({name: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]
+      return []
     }
     case RouteTreeGen.clearModals: {
       if (isLoggedIn(navigationState) && navigationState.routes.length > 1) {
