@@ -8,7 +8,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.0.0
 	github.com/akavel/rsrc v0.2.1-0.20151103204339-ba14da1f8271
 	github.com/araddon/dateparse v0.0.0-20180729174819-cfd92a431d0e
-	github.com/blang/semver v3.0.1+incompatible
+	github.com/blang/semver v3.5.1+incompatible
 	github.com/blevesearch/bleve v0.8.2-0.20191030071327-189ee421f71e
 	github.com/btcsuite/btcutil v0.0.0-20180706230648-ab6388e0c60a
 	github.com/buger/jsonparser v0.0.0-20180131123142-4be68c93a244
@@ -31,17 +31,17 @@ require (
 	github.com/keybase/clockwork v0.1.1-0.20161209210251-976f45f4a979
 	github.com/keybase/colly v1.1.1-0.20190207010505-9a56fbe6c0e6
 	github.com/keybase/go-codec v0.0.0-20180928230036-164397562123
-	github.com/keybase/go-crypto v0.0.0-20200123003947-c1f55fb1d439
-	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20200311211234-26e5d1ace9c8
+	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
+	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20211118173254-f892386581e8
 	github.com/keybase/go-jsonw v0.0.0-20200131153605-3e5b58caddd9
-	github.com/keybase/go-kext v0.0.0-20190828021436-284cc5cce039
-	github.com/keybase/go-keychain v0.0.0-20200325143049-65d7292bc904
-	github.com/keybase/go-logging v0.0.0-20200422155153-09554349da10
-	github.com/keybase/go-merkle-tree v0.0.0-20190828154848-e5a1d5d70a43
+	github.com/keybase/go-kext v0.0.0-20211109195311-8379e38ac142
+	github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6
+	github.com/keybase/go-logging v0.0.0-20211118164508-35a15a9fa71a
+	github.com/keybase/go-merkle-tree v0.0.0-20211118173306-f89b06604d00
 	github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/keybase/go-triplesec v0.0.0-20190828014055-64e2936e9594
-	github.com/keybase/go-triplesec-insecure v0.0.0-20190828015343-01d229502763
+	github.com/keybase/go-triplesec v0.0.0-20211109205539-1f96eeacbd86
+	github.com/keybase/go-triplesec-insecure v0.0.0-20211118164850-99654891ba7c
 	github.com/keybase/go-updater v0.0.0-20200416153205-e86066838ee4
 	github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58
 	github.com/keybase/go.dbus v0.0.0-20200324223359-a94be52c0b03
@@ -49,8 +49,8 @@ require (
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
 	github.com/keybase/pipeliner v0.0.0-20190828022149-31ef4ee63659
-	github.com/keybase/release v0.0.0-20200218014000-02d3535dfd5a
-	github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb
+	github.com/keybase/release v0.0.0-20211118165948-8b6904c7b56b
+	github.com/keybase/saltpack v0.0.0-20211118165207-4039c5df46c0
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
 	github.com/kyokomi/emoji v2.2.2+incompatible
@@ -61,7 +61,7 @@ require (
 	github.com/pkg/xattr v0.2.2
 	github.com/qrtz/nativemessaging v0.0.0-20161221035708-f4769a80e040
 	github.com/rcrowley/go-metrics v0.0.0-20161128210544-1f30fe9094a5
-	github.com/sergi/go-diff v1.1.0
+	github.com/sergi/go-diff v1.2.0
 	github.com/shirou/gopsutil v2.18.13-0.20181231150826-db425313bfa8+incompatible
 	github.com/stathat/go v1.0.0
 	github.com/stellar/go v0.0.0-20191010205648-0fc3bfe3dfa7
@@ -70,11 +70,11 @@ require (
 	github.com/urfave/cli v1.22.1
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	go.uber.org/zap v1.17.0
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
 	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/mobile v0.0.0-20211109191125-d61a72f26a1a
-	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
+	golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1
 	golang.org/x/text v0.3.7
@@ -98,7 +98,7 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
-	github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4 // indirect
+	github.com/alecthomas/units v0.0.0-20210927113745-59d0afb8317a // indirect
 	github.com/alexkohler/prealloc v1.0.0 // indirect
 	github.com/andybalholm/cascadia v0.0.0-20150730174459-3ad29d1ad1c4 // indirect
 	github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239 // indirect
@@ -108,7 +108,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20180319081651-7d2e70ef918f // indirect
 	github.com/ashanbrown/forbidigo v1.2.0 // indirect
 	github.com/ashanbrown/makezero v0.0.0-20210520155254-b6261585ddde // indirect
-	github.com/aws/aws-sdk-go v1.36.30 // indirect
+	github.com/aws/aws-sdk-go v1.42.8 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.0 // indirect
 	github.com/blevesearch/blevex v0.0.0-20190916190636-152f0fe5c040 // indirect
@@ -183,7 +183,7 @@ require (
 	github.com/julz/importas v0.0.0-20210419104244-841f0c0fe66d // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20180830205328-81db2a75821e // indirect
-	github.com/keybase/msgpackzip v0.0.0-20190828015335-de96f0e9b79a // indirect
+	github.com/keybase/msgpackzip v0.0.0-20211109205514-10e4bc329851 // indirect
 	github.com/keybase/vcr v0.0.0-20191017153547-a32d93056205 // indirect
 	github.com/kisielk/errcheck v1.6.0 // indirect
 	github.com/kisielk/gotool v1.0.0 // indirect
@@ -225,8 +225,6 @@ require (
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/quasilyte/go-ruleguard v0.3.13 // indirect
 	github.com/quasilyte/regex/syntax v0.0.0-20200407221936-30656e2c4a95 // indirect
-	github.com/reiver/go-oi v1.0.0 // indirect
-	github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20150520140647-709fab3d192d // indirect
 	github.com/ryancurrah/gomodguard v1.2.3 // indirect
