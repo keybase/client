@@ -599,10 +599,10 @@ github.com/keybase/go-git v4.0.0-rc9.0.20190209005256-3a78daa8ce8e+incompatible 
 github.com/keybase/go-git v4.0.0-rc9.0.20190209005256-3a78daa8ce8e+incompatible/go.mod h1:UXHGv5gdZq3WKJwTqUz51rTso8HiW4pPAq6h8bCBGUY=
 github.com/keybase/go-jsonw v0.0.0-20200131153605-3e5b58caddd9 h1:pIRdSfdpjVi7ppzY/vz6TB38LUOzSimroSgIvMdTm+M=
 github.com/keybase/go-jsonw v0.0.0-20200131153605-3e5b58caddd9/go.mod h1:lofKQwj13L0/7ji5VYaY0257JDlQE2BRRf+rI2Vk1rU=
-github.com/keybase/go-kext v0.0.0-20211109195311-8379e38ac142 h1:XALmCvdU0L3nTJLlEXvSpb6tUI0dugYXtmy9tWodByA=
-github.com/keybase/go-kext v0.0.0-20211109195311-8379e38ac142/go.mod h1:8bMRSM1oH9058VNRqr10pjQKAeFN/UCs83OHsOHJYJk=
-github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6 h1:Mj0fhP9dzHKPijsmli/XbXMDKe1/KWy5xKci8e3nmBg=
-github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6/go.mod h1:N83iQ9rnnzi2KZuTu+0xBcD1JNWn1jSN140ggAF7HeE=
+github.com/keybase/go-kext v0.0.0-20211119181951-8d5d2e919472 h1:ktFxtm1E86J6eRVNV4yc6rEqLUqNpCl1XIzAj/BA4So=
+github.com/keybase/go-kext v0.0.0-20211119181951-8d5d2e919472/go.mod h1:bUS/0vnskIuEA7bUQJfn71yB1Rnkq/PFRR18JUzFfyQ=
+github.com/keybase/go-keychain v0.0.0-20211119181946-e6e08d544a62 h1:MnAbu4TqfmS4XrC7PUnymYCdBfOb+rZdyyFK+4ldAKs=
+github.com/keybase/go-keychain v0.0.0-20211119181946-e6e08d544a62/go.mod h1:enrU/ug069Om7vWxuFE6nikLI2BZNwevMiGSo43Kt5w=
 github.com/keybase/go-logging v0.0.0-20211118164508-35a15a9fa71a h1:hhJ2v5vhrdujcygf31Efr3IgC/VNU9PAArJJrr5uuYE=
 github.com/keybase/go-logging v0.0.0-20211118164508-35a15a9fa71a/go.mod h1:enFJstuZoiMNKrKXxhv7NVsh4hE4O5ngu7V6MKsp+Ek=
 github.com/keybase/go-merkle-tree v0.0.0-20211118173306-f89b06604d00 h1:iM1A1hK0wWdWPLGJAzSTqPBO5BKMkF+Gtwn5+rHRVMw=
