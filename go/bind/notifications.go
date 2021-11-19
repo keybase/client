@@ -50,7 +50,7 @@ type ChatNotification struct {
 
 func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body string) (err error) {
 	ctx := context.Background()
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandlePostTextReply()"), &err)()
+	defer kbCtx.CTrace(ctx, "HandlePostTextReply", &err)()
 	defer func() { err = flattenError(err) }()
 	outboxID, err := storage.NewOutboxID()
 	if err != nil {

@@ -140,18 +140,16 @@ func attemptLoadImpteamAndConflict(ctx context.Context, g *libkb.GlobalContext, 
 	for i, conflict := range imp.Conflicts {
 		g.Log.CDebugf(ctx, "| checking conflict: %+v (iter %d)", conflict, i)
 		conflictInfo, err := conflict.parse()
-
 		if err != nil {
 			// warn, don't fail
 			g.Log.CDebugf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
 			continue
 		}
-		conflicts = append(conflicts, *conflictInfo)
-
 		if conflictInfo == nil {
 			g.Log.CDebugf(ctx, "| got unexpected nil conflictInfo (iter %d)", i)
 			continue
 		}
+		conflicts = append(conflicts, *conflictInfo)
 
 		g.Log.CDebugf(ctx, "| parsed conflict into conflictInfo: %+v", *conflictInfo)
 

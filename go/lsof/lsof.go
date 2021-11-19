@@ -149,7 +149,8 @@ func parseAppendProcessLines(processes []Process, linesChunk []string) ([]Proces
 	if err != nil {
 		return processes, linesChunk, err
 	}
-	processesAfter := append(processes, process)
+	processesAfter := processes
+	processesAfter = append(processesAfter, process)
 	linesChunkAfter := []string{}
 	return processesAfter, linesChunkAfter, nil
 }

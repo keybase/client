@@ -253,7 +253,8 @@ func (g *GpgCLI) Version() (string, error) {
 		return g.version, nil
 	}
 
-	args := append(g.options, "--version")
+	args := g.options
+	args = append(args, "--version")
 	out, err := exec.Command(g.path, args...).Output()
 	if err != nil {
 		return "", err

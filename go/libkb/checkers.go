@@ -78,10 +78,10 @@ var CheckDeviceName = Checker{
 			!badDeviceRE.MatchString(s)
 	},
 	Transform: func(s string) string {
-		s = strings.Replace(s, "—", "-", -1) // em dash
-		s = strings.Replace(s, "–", "-", -1) // en dash
-		s = strings.Replace(s, "‘", "'", -1) // curly quote #1
-		s = strings.Replace(s, "’", "'", -1) // curly quote #2
+		s = strings.ReplaceAll(s, "—", "-") // em dash
+		s = strings.ReplaceAll(s, "–", "-") // en dash
+		s = strings.ReplaceAll(s, "‘", "'") // curly quote #1
+		s = strings.ReplaceAll(s, "’", "'") // curly quote #2
 		return s
 	},
 	Normalize: normalizeDeviceName,

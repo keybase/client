@@ -548,7 +548,8 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 		name = strings.Join(memberStr, ",")
 	case chat1.ConversationMembersType_TEAM:
 		tc := ctc.world.Tcs[creator.Username]
-		users := append(others, creator)
+		users := others
+		users = append(users, creator)
 		key := teamKey(users)
 		if tn, ok := ctc.teamCache[key]; !ok {
 			name = createTeamWithWriters(tc.TestContext, others)
@@ -4448,7 +4449,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: fmt.Sprintf("JOINME"),
+			Body: "JOINME",
 		}))
 		require.NoError(t, err)
 		consumeAllMsgJoins := func(listener *serverChatListener) {
@@ -4746,7 +4747,7 @@ func TestChatSrvTLFConversationsLocal(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: fmt.Sprintf("JOINME"),
+			Body: "JOINME",
 		}))
 		require.NoError(t, err)
 
@@ -4868,7 +4869,7 @@ func TestChatSrvChatMembershipsLocal(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: fmt.Sprintf("JOINME"),
+			Body: "JOINME",
 		}))
 		require.NoError(t, err)
 
@@ -6029,7 +6030,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		require.NoError(t, err)
 		consumeNewConversation(t, listener0, ncres.Conv.GetConvID())
 		assertNoNewConversation(t, listener1)
-		consumeIdentify(ctx, listener0) //encrypt for first message
+		consumeIdentify(ctx, listener0) // encrypt for first message
 
 		uid := users[0].User.GetUID().ToBytes()
 		conv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id,
@@ -7398,7 +7399,7 @@ func TestGlobalAppNotificationSettings(t *testing.T) {
 		defer ctc.cleanup()
 
 		user := ctc.users()[0]
-		//tc := ctc.world.Tcs[user.Username]
+		// tc := ctc.world.Tcs[user.Username]
 		ctx := ctc.as(t, user).startCtx
 		expectedSettings := map[chat1.GlobalAppNotificationSetting]bool{
 			chat1.GlobalAppNotificationSetting_NEWMESSAGES:      true,

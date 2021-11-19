@@ -734,7 +734,7 @@ func (m *MessageUnboxed) DebugString() string {
 		return fmt.Sprintf("[%v]", s)
 	case MessageUnboxedState_OUTBOX:
 		obr := m.Outbox()
-		ostateStr := "CORRUPT"
+		var ostateStr string
 		ostate, err := obr.State.State()
 		if err != nil {
 			ostateStr = "CORRUPT"
@@ -2028,7 +2028,7 @@ func humanizeDuration(duration time.Duration) string {
 		return ""
 	}
 	if int(value) > 1 {
-		unit = unit + "s"
+		unit += "s"
 	}
 	return fmt.Sprintf("%.0f %s", value, unit)
 }
@@ -2747,7 +2747,7 @@ func (r *UserEmojiRes) SetRateLimits(rl []RateLimit) {
 }
 
 func (i EphemeralPurgeInfo) IsNil() bool {
-	return i.IsActive == false && i.NextPurgeTime == 0 && i.MinUnexplodedID <= 1
+	return !i.IsActive && i.NextPurgeTime == 0 && i.MinUnexplodedID <= 1
 }
 
 func (i EphemeralPurgeInfo) String() string {
@@ -3014,7 +3014,8 @@ func withDeterminer(s string) string {
 	if size == 0 || r == utf8.RuneError {
 		return "a " + s
 	}
-	if strings.Contains("aeiou", string(r)) {
+	vowels := "aeiou"
+	if strings.Contains(vowels, string(r)) {
 		return "an " + s
 	}
 	return "a " + s

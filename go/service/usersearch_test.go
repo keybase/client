@@ -836,7 +836,8 @@ func TestImptofuBadInput(t *testing.T) {
 	require.Equal(t, ret.phoneNumbers[1].input, "01234")
 	require.Equal(t, ret.phoneNumbers[2].input, "+1")
 
-	all := append(ret.emails, ret.phoneNumbers...)
+	all := ret.emails
+	all := append(all, ret.phoneNumbers...)
 	for _, v := range all {
 		require.Equal(t, v.validInput, false)
 		require.Nil(t, v.assertion)

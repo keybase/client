@@ -136,7 +136,11 @@ func loadPlist(plistPath string, log Log) ([]byte, error) {
 	}
 	log.Debug("Loading plist: %s", plistPath)
 	plistFile, err := os.Open(plistPath)
-	defer plistFile.Close()
+	defer func() {
+		if err := plistFile.Close(); err != nil {
+			log.Debug("unable to close file: %s", err)
+		}
+	}()
 	if err != nil {
 		return nil, err
 	}

@@ -1556,7 +1556,7 @@ func (c ChainLink) ToMerkleTriple() *MerkleTriple {
 	}
 }
 
-//=========================================================================
+// =========================================================================
 // IsInCurrentFamily checks to see if the given chainlink
 // was signed by a key in the current family.
 func (c *ChainLink) IsInCurrentFamily(u *User) bool {
@@ -1567,7 +1567,7 @@ func (c *ChainLink) IsInCurrentFamily(u *User) bool {
 	return eldest.Equal(c.ToEldestKID())
 }
 
-//=========================================================================
+// =========================================================================
 
 func (c *ChainLink) Typed() TypedChainLink {
 	return c.typed

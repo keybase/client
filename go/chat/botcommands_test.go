@@ -112,7 +112,7 @@ func TestBotCommandManager(t *testing.T) {
 	require.Equal(t, 1, len(cmds))
 	require.Equal(t, "status", cmds[0].Name)
 
-	//make sure the cmds are cached
+	// make sure the cmds are cached
 	for i := 0; i < 5; i++ {
 		errCh, err = tc.Context().BotCommandManager.UpdateCommands(ctx, impConv.Id, nil)
 		require.NoError(t, err)

@@ -137,7 +137,7 @@ func (e ServerErrorOverQuota) Error() string {
 		e.Msg, e.Usage, e.Limit, e.Throttled)
 }
 
-//ServerErrorBlockNonExistent is an exportable error from bserver
+// ServerErrorBlockNonExistent is an exportable error from bserver
 type ServerErrorBlockNonExistent struct {
 	Msg string
 }

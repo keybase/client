@@ -176,8 +176,8 @@ func UpgradeSearchOptsFromQuery(query string, opts chat1.SearchOpts, username st
 			continue
 		}
 		hasQueryOpts = true
-		query = strings.TrimSpace(strings.Replace(query, match[0], "", 1))
-		sender := strings.TrimSpace(strings.Replace(match[2], "@", "", -1))
+		query = strings.TrimSpace(strings.ReplaceAll(query, match[0], ""))
+		sender := strings.TrimSpace(strings.ReplaceAll(match[2], "@", ""))
 		if sender == "me" {
 			sender = username
 		}

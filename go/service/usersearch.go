@@ -456,7 +456,8 @@ func (h *UserSearchHandler) imptofuSearch(mctx libkb.MetaContext, arg keybase1.U
 		return nil, err
 	}
 
-	slice := append(searchRet.emails, searchRet.phoneNumbers...)
+	slice := searchRet.emails
+	slice = append(slice, searchRet.phoneNumbers...)
 	if len(slice) != 1 {
 		return nil, fmt.Errorf("Expected 1 result from `searchEmailsOrPhoneNumbers` but got %d", len(slice))
 	}
@@ -706,7 +707,8 @@ func (h *UserSearchHandler) BulkEmailOrPhoneSearch(ctx context.Context,
 
 	// Caller shouldn't care about the ordering here, we are mixing everything
 	// together and returning as one list.
-	all := append(searchRet.emails, searchRet.phoneNumbers...)
+	all := searchRet.emails
+	all = append(all, searchRet.phoneNumbers...)
 	ret = make([]keybase1.EmailOrPhoneNumberSearchResult, 0, len(all))
 	for _, result := range all {
 		if !result.validInput {

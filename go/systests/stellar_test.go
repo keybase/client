@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
+	// nolint
 	"github.com/stellar/go/clients/horizon"
 	"github.com/stretchr/testify/require"
 )

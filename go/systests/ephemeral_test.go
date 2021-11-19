@@ -533,7 +533,7 @@ func TestEphemeralResetMember(t *testing.T) {
 	err = bobMctx.G().GetEKLib().KeygenIfNeeded(bobMctx)
 	require.NoError(t, err)
 
-	bobTeamEK, bobErr := getTeamEK(bobMctx, teamID, expectedGeneration)
+	_, bobErr := getTeamEK(bobMctx, teamID, expectedGeneration)
 	require.Error(t, bobErr)
 	require.IsType(t, libkb.AppStatusError{}, bobErr)
 	appStatusErr := bobErr.(libkb.AppStatusError)
@@ -563,7 +563,7 @@ func TestEphemeralResetMember(t *testing.T) {
 	require.NoError(t, annErr)
 	require.Equal(t, annTeamEK.Metadata, expectedMetadata2)
 
-	bobTeamEK, bobErr = getTeamEK(bobMctx, teamID, expectedGeneration2)
+	bobTeamEK, bobErr := getTeamEK(bobMctx, teamID, expectedGeneration2)
 	require.NoError(t, bobErr)
 	require.Equal(t, bobTeamEK.Metadata, expectedMetadata2)
 

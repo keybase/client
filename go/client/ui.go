@@ -641,7 +641,7 @@ func (ui *UI) GetPgpUI() libkb.PgpUI {
 	return PgpUI{Contextified: libkb.NewContextified(ui.G()), w: ui.ErrorWriter()}
 }
 
-//============================================================
+// ============================================================
 
 type ProveUI struct {
 	libkb.Contextified
@@ -721,7 +721,7 @@ func (p ProveUI) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRe
 	return nil
 }
 
-//============================================================
+// ============================================================
 
 type LoginUI struct {
 	parent   libkb.TerminalUI
@@ -1262,10 +1262,10 @@ func (ui *UI) PrintfStderr(format string, a ...interface{}) (n int, err error) {
 	return fmt.Fprintf(os.Stderr, format, a...)
 }
 
-//=====================================================
+// =====================================================
 
 func NewLoginUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 	return keybase1.LoginUiProtocol(g.UI.GetLoginUI())
 }
 
-//=====================================================
+// =====================================================

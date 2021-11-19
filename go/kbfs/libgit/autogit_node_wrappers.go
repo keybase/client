@@ -217,7 +217,7 @@ func (rdn *repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 		newBranchPart := strings.TrimPrefix(name, AutogitBranchPrefix)
 		branch := plumbing.ReferenceName(path.Join(
 			string(rdn.branch),
-			strings.Replace(newBranchPart, branchSlash, "/", -1)))
+			strings.ReplaceAll(newBranchPart, branchSlash, "/")))
 
 		return &repoDirNode{
 			Node:      child,

@@ -27,7 +27,7 @@ func TestSetPhoneNumber(t *testing.T) {
 	// Create a representation likely to come from phone contact book: "+1-415-555-2671".
 	phoneFormatted := keybase1.RawPhoneNumber(fmt.Sprintf("+%s-%s-%s-%s", randomNumber[0:1], randomNumber[1:4], randomNumber[4:7], randomNumber[7:11]))
 	// Sanity check.
-	require.EqualValues(t, phoneNumber, strings.Replace(string(phoneFormatted), "-", "", -1))
+	require.EqualValues(t, phoneNumber, strings.ReplaceAll(string(phoneFormatted), "-", ""))
 
 	t.Logf("Generated phone number: %q formatted as %q", phoneNumber, phoneFormatted)
 

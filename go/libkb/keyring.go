@@ -43,7 +43,7 @@ func (g *GlobalContext) SKBFilenameForUser(un NormalizedUsername) string {
 		return tmp
 	}
 
-	return strings.Replace(tmp, token, un.String(), -1)
+	return strings.ReplaceAll(tmp, token, un.String())
 }
 
 func LoadSKBKeyring(m MetaContext, un NormalizedUsername) (*SKBKeyringFile, error) {
@@ -126,7 +126,7 @@ func (k *KeyringFile) Load() error {
 			return err
 		}
 	}
-	k.G().Log.Debug(fmt.Sprintf("- Successfully loaded PGP Keyring"))
+	k.G().Log.Debug("- Successfully loaded PGP Keyring")
 	return nil
 }
 
@@ -417,7 +417,6 @@ func (k *Keyrings) GetSecretKeyWithPrompt(m MetaContext, arg SecretKeyPromptArg)
 func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(m MetaContext, arg SecretKeyPromptArg) (key GenericKey, skb *SKB, err error) {
 	defer m.Trace(fmt.Sprintf("GetSecretKeyAndSKBWithPrompt(%s)", arg.Reason), &err)()
 	if skb, err = k.GetSecretKeyLocked(m, arg.Ska); err != nil {
-		skb = nil
 		return nil, nil, err
 	}
 	var secretStore SecretStore

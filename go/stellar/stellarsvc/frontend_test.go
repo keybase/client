@@ -1431,7 +1431,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
-		Message: fmt.Sprintf("Because it's their first transaction, you must send at least 1 XLM."),
+		Message: "Because it's their first transaction, you must send at least 1 XLM.",
 	}})
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1578,7 +1578,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "$0.00 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
-		Message: fmt.Sprintf("Because it's their first transaction, you must send at least 1 XLM."),
+		Message: "Because it's their first transaction, you must send at least 1 XLM.",
 	}})
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1600,7 +1600,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "$4.77 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "error",
-		Message: fmt.Sprintf("Because t_alice hasn’t set up their wallet yet, you can only send to them from your default account."),
+		Message: "Because t_alice hasn’t set up their wallet yet, you can only send to them from your default account.",
 	}})
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1636,7 +1636,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}, {
 		Level:   "info",
-		Message: fmt.Sprintf("Your Keybase username will not be linked to this transaction."),
+		Message: "Your Keybase username will not be linked to this transaction.",
 	}})
 
 	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
@@ -1677,7 +1677,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
-		Message: fmt.Sprintf("Your Keybase username will not be linked to this transaction."),
+		Message: "Your Keybase username will not be linked to this transaction.",
 	}})
 
 	// Send an amount so close to available to send that the fee would push it it over the edge.
@@ -1809,10 +1809,10 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
-		Message: fmt.Sprintf("Because it's their first transaction, you must send at least 1 XLM."),
+		Message: "Because it's their first transaction, you must send at least 1 XLM.",
 	}, {
 		Level:   "info",
-		Message: fmt.Sprintf("Your Keybase username will not be linked to this transaction."),
+		Message: "Your Keybase username will not be linked to this transaction.",
 	}})
 
 	t.Logf("sending to account ID that is someone's primary")

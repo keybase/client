@@ -158,9 +158,9 @@ func (c *chatServiceHandler) JoinV1(ctx context.Context, opts joinOptionsV1) Rep
 	if err != nil {
 		return c.errReply(err)
 	}
-	allLimits := append(rl, res.RateLimits...)
+	rl = append(rl, res.RateLimits...)
 	cres := chat1.EmptyRes{
-		RateLimits: c.aggRateLimits(allLimits),
+		RateLimits: c.aggRateLimits(rl),
 	}
 	return Reply{Result: cres}
 }
@@ -178,9 +178,9 @@ func (c *chatServiceHandler) LeaveV1(ctx context.Context, opts leaveOptionsV1) R
 	if err != nil {
 		return c.errReply(err)
 	}
-	allLimits := append(rl, res.RateLimits...)
+	rl = append(rl, res.RateLimits...)
 	cres := chat1.EmptyRes{
-		RateLimits: c.aggRateLimits(allLimits),
+		RateLimits: c.aggRateLimits(rl),
 	}
 	return Reply{Result: cres}
 }
@@ -220,9 +220,9 @@ func (c *chatServiceHandler) RemoveFromChannelV1(ctx context.Context, opts remov
 	if err != nil {
 		return c.errReply(err)
 	}
-	allLimits := append(rl, res.RateLimits...)
+	rl = append(rl, res.RateLimits...)
 	cres := chat1.EmptyRes{
-		RateLimits: c.aggRateLimits(allLimits),
+		RateLimits: c.aggRateLimits(rl),
 	}
 	return Reply{Result: cres}
 }
@@ -438,9 +438,9 @@ func (c *chatServiceHandler) PinV1(ctx context.Context, opts pinOptionsV1) Reply
 	if err != nil {
 		return c.errReply(err)
 	}
-	allLimits := append(rl, lres.RateLimits...)
+	rl = append(rl, lres.RateLimits...)
 	res := chat1.EmptyRes{
-		RateLimits: c.aggRateLimits(allLimits),
+		RateLimits: c.aggRateLimits(rl),
 	}
 	return Reply{Result: res}
 }
@@ -458,9 +458,9 @@ func (c *chatServiceHandler) UnpinV1(ctx context.Context, opts unpinOptionsV1) R
 	if err != nil {
 		return c.errReply(err)
 	}
-	allLimits := append(rl, lres.RateLimits...)
+	rl = append(rl, lres.RateLimits...)
 	res := chat1.EmptyRes{
-		RateLimits: c.aggRateLimits(allLimits),
+		RateLimits: c.aggRateLimits(rl),
 	}
 	return Reply{Result: res}
 }
@@ -1076,9 +1076,9 @@ func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Rep
 		return c.errReply(err)
 	}
 
-	allLimits := append(rlimits, res.RateLimits...)
+	rlimits = append(rlimits, res.RateLimits...)
 	cres := chat1.EmptyRes{
-		RateLimits: c.aggRateLimits(allLimits),
+		RateLimits: c.aggRateLimits(rlimits),
 	}
 	return Reply{Result: cres}
 }
@@ -1204,10 +1204,10 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 		return c.errReply(err)
 	}
 
-	allLimits := append(rlimits, res.RateLimits...)
+	rlimits = append(rlimits, res.RateLimits...)
 	searchRes := chat1.RegexpRes{
 		Hits:             res.Hits,
-		RateLimits:       c.aggRateLimits(allLimits),
+		RateLimits:       c.aggRateLimits(rlimits),
 		IdentifyFailures: res.IdentifyFailures,
 	}
 	return Reply{Result: searchRes}

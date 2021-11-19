@@ -282,7 +282,7 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 					return nil, err
 				}
 			} else {
-				//generic error we bail out
+				// generic error we bail out
 				return nil, err
 			}
 		}
