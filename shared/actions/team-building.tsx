@@ -153,9 +153,6 @@ export function filterForNs<S, A, L, R>(
   }
 }
 
-const makeCustomResetStore = () =>
-  TeamBuildingTypes.allowedNamespace.map(namespace => TeamBuildingGen.createTbResetStore({namespace}))
-
 const namespaceToRoute = new Map([
   ['chat2', 'chatNewChat'],
   ['crypto', 'cryptoTeamBuilder'],
@@ -180,7 +177,6 @@ const maybeCancelTeamBuilding =
   }
 
 export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
-  yield* Saga.chainAction2(TeamBuildingGen.resetStore, makeCustomResetStore)
   yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
   yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
   yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeCancelTeamBuilding(namespace))

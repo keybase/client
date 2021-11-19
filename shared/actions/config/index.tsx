@@ -303,7 +303,9 @@ const switchRouteDef = (
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
       return [
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-        RouteTreeGen.createSwitchTab({tab: (lastTab as any) || Tabs.peopleTab}),
+        RouteTreeGen.createResetStack({path: 'loggedIn'}),
+        // maybe TODO bring this back
+        // RouteTreeGen.createSwitchTab({tab: (lastTab as any) || Tabs.peopleTab}),
         ...(action.payload.causedBySignup
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
           : [PushGen.createShowPermissionsPrompt({justSignedUp: false, show: true})]),

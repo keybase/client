@@ -4,7 +4,7 @@ import {createNavigationContainerRef} from '@react-navigation/native'
 import {StackActions, CommonActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import {tabRoots} from '../router-v2/routes'
+// import {tabRoots} from '../router-v2/routes'
 import logger from '../logger'
 
 // let _navigator: Navigator | undefined
@@ -235,13 +235,20 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       return isInStack ? popActions : []
     }
     case RouteTreeGen.resetStack: {
+      return [
+        CommonActions.reset({
+          ...navigationState,
+          index: 0,
+          routes: [{name: action.payload.path}],
+        }),
+      ]
       // TODO check for append dupes within these
-      const actions = action.payload.actions.reduce(
-        (arr, a) => [...arr, ...(oldActionToNewActions(a, navigationState, true) || [])],
-        // 'loggedOut' is the root
-        action.payload.tab === 'loggedOut' ? [] : [StackActions.push(tabRoots[action.payload.tab])]
-      )
-      return undefined // TEMP
+      // const actions = action.payload.actions.reduce(
+      // (arr, a) => [...arr, ...(oldActionToNewActions(a, navigationState, true) || [])],
+      // // 'loggedOut' is the root
+      // action.payload.tab === 'loggedOut' ? [] : [StackActions.push(tabRoots[action.payload.tab])]
+      // )
+      // return undefined // TEMP
       // return [
       // StackActions.reset({
       // actions,

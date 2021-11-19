@@ -588,9 +588,16 @@ const RNApp = props => {
       if (Constants.navigationRef_.isReady()) {
         setNavOnce.current = true
         updateNavigator()
+
+        if (__DEV__) {
+          window.DEBUGNavigator = Constants.navigationRef_.current
+          console.log('aaaa debug nav', Constants.navigationRef_.current)
+        }
       }
     }
   })
+
+  console.log('aaaa render nav isLoggedIn', loggedIn, 'loggedInLoaded', loggedInLoaded)
 
   const headerHeight = 0 // useHeaderHeight()
   return (
@@ -611,14 +618,16 @@ const RNApp = props => {
         >
           {loggedInLoaded ? (
             loggedIn ? (
-              <RootStack.Screen name="loggedIn" component={AppTabs} />
+              <>
+                <RootStack.Screen name="loggedIn" component={AppTabs} />
+                {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true)}
+              </>
             ) : (
               <RootStack.Screen name="loggedOut" component={LoggedOut} />
             )
           ) : (
             <RootStack.Screen name="loading" component={SimpleLoading} />
           )}
-          {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true)}
         </RootStack.Navigator>
       </NavigationContainer>
     </Kb.KeyboardAvoidingView>

@@ -48,6 +48,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     defaultUsername: draftState.defaultUsername,
     logoutHandshakeVersion: draftState.logoutHandshakeVersion,
     logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,
+    loggedInLoaded: draftState.loggedInLoaded,
     menubarWindowID: draftState.menubarWindowID,
     pushLoaded: draftState.pushLoaded,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
