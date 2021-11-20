@@ -60,7 +60,7 @@ func NewNodeNotFoundError() NodeNotFoundError {
 type KeyNotFoundError struct{}
 
 func (e KeyNotFoundError) Error() string {
-	return fmt.Sprintf("Key not found.")
+	return "Key not found."
 }
 
 // NewKeyNotFoundError returns a new error

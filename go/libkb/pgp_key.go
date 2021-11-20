@@ -919,7 +919,7 @@ func (k *PGPKeyBundle) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBo
 	return NaclSecretBoxKey{}, KeyCannotEncryptError{}
 }
 
-//===================================================
+// ===================================================
 
 // Fulfill the TrackIdComponent interface
 
@@ -943,7 +943,7 @@ func (p PGPFingerprint) GetProofType() keybase1.ProofType {
 	return keybase1.ProofType_PGP
 }
 
-//===================================================
+// ===================================================
 
 func EncryptPGPKey(bundle *openpgp.Entity, passphrase string) error {
 	passBytes := []byte(passphrase)

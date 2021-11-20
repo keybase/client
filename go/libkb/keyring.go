@@ -34,7 +34,7 @@ func NewKeyrings(g *GlobalContext) *Keyrings {
 	return ret
 }
 
-//===================================================================
+// ===================================================================
 
 func (g *GlobalContext) SKBFilenameForUser(un NormalizedUsername) string {
 	tmp := g.Env.GetSecretKeyringTemplate()

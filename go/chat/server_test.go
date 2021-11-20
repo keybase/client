@@ -6773,7 +6773,7 @@ func TestChatSrvStellarUI(t *testing.T) {
 	users := ctc.users()
 
 	delay := 2 * time.Second
-	//uid := users[0].User.GetUID().ToBytes()
+	// uid := users[0].User.GetUID().ToBytes()
 	listener := newServerChatListener()
 	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
 	tc := ctc.world.Tcs[users[0].Username]
