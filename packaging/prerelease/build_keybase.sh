@@ -4,7 +4,7 @@ set -e -u -o -x pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
-client_dir="$dir/../.."
+client_dir="$dir/../../go"
 
 build_dir=${BUILD_DIR:-/tmp/keybase}
 
@@ -18,7 +18,7 @@ tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
 
 echo "Building $build_dir/keybase ($keybase_build) with $(go version)"
-(cd client_dir/go && go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase" "github.com/keybase/client/go/keybase")
+(cd $client_dir && go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase" "github.com/keybase/client/go/keybase")
 
 if [ "$PLATFORM" = "darwin" ]; then
   echo "Signing binary..."
