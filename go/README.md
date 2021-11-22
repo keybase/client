@@ -1,7 +1,7 @@
 ## Keybase [![Build Status](https://travis-ci.org/keybase/client.svg?branch=master)](https://travis-ci.org/keybase/client) [![Build status](https://ci.appveyor.com/api/projects/status/90mxorxtj6vixnum/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/client-x5qrt/branch/master)
 
 This repository contains the Keybase core crypto libraries, command-line
-utility, and local Keybase service.  All code is written in the [Go
+utility, and local Keybase service. All code is written in the [Go
 Language](https://golang.org), making heavy use of Go's
 [OpenPGP](https://godoc.org/golang.org/x/crypto/openpgp) and
 [NaCl](https://godoc.org/golang.org/x/crypto/nacl)
@@ -26,7 +26,7 @@ instructions](https://keybase.io/download).
 ### Building
 
 Here's how to build the command line client on Linux or OSX. You need to
-have both Git and **Go 1.9 or higher** installed. (Run `go version` to
+have both Git and **Go 1.15 or higher** installed. (Run `go version` to
 see what version you have.)
 
 ```bash

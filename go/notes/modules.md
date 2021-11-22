@@ -7,7 +7,7 @@
 > provided by any module in go.mod, the go command automatically looks up the
 > module containing that package and adds it to go.mod, using the latest
 > version.
-Source: https://github.com/golang/go/wiki/Modules
+> Source: https://github.com/golang/go/wiki/Modules
 
 or add a specific version/commit of a dependency
 
@@ -40,12 +40,11 @@ or merging.
 Forked dependencies can still be referenced by their original name using the Go
 Modules [`replace`
 directive](https://github.com/golang/go/wiki/Modules#when-should-i-use-the-replace-directive).
-Manually edit the bottom of the `go.mod` file under the `keybase maintained
-forks` section to reference a forked dependency.
+Manually edit the bottom of the `go.mod` file under the `keybase maintained forks` section to reference a forked dependency.
 
 ### Pinning a build tool version
 
 Required build tools are specified in the `go/buildtools/tools.go` file. You
-can `go get` a specific version and it will be persistent in the
-`go/buildtools/go.mod` file. Running `go install` within the `go/buildtools/`
-directory will install the version specified to your `$GOPATH/bin/`.
+can `go get` a specific version and it will be persistent in the `go/go.mod`
+file. Running `go install` within the `go/` directory will install
+the version specified to your `$GOPATH/bin/`.

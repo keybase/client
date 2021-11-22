@@ -16,7 +16,7 @@ run_mode="prod"
 platform="darwin"
 s3host=${S3HOST:-}
 istest=${TEST:-}
-skip_notarize=${SKIP_NOTARIZE:-}
+skip_notarize=1 # ${SKIP_NOTARIZE:-}
 
 if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   # Use this syntax since bucket_name might have dots (.)
