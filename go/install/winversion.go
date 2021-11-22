@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 // Adapted mainly from github.com/gonutz/w32
 
+//go:build windows
 // +build windows
 
 package install

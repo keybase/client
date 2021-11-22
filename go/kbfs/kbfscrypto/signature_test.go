@@ -63,7 +63,8 @@ func TestVerifyFailures(t *testing.T) {
 
 	// Corrupt message.
 
-	corruptMsg := append(msg, []byte("corruption")...)
+	corruptMsg := msg
+	corruptMsg = append(corruptMsg, []byte("corruption")...)
 	err = Verify(corruptMsg, sigInfo)
 	assert.Equal(t, kbcrypto.VerificationError{}, errors.Cause(err))
 }

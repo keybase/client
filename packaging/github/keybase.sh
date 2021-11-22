@@ -26,7 +26,7 @@ tag="v$version"
 tgz="keybase-$version.tgz"
 
 echo "Loading release tool"
-"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+(cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
 release_bin="$GOPATH/bin/release"
 
 build() {

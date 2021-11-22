@@ -142,7 +142,7 @@ func (o ObjFactory) MakeDismissalByIDs(uid gregor.UID, msgid gregor.MsgID, devid
 	if err != nil {
 		return nil, err
 	}
-	ourIds := make([]MsgID, len(ids), len(ids))
+	ourIds := make([]MsgID, len(ids))
 	for i, id := range ids {
 		ourIds[i] = MsgID(id.Bytes())
 	}

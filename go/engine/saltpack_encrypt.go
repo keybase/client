@@ -172,7 +172,7 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 		}
 		signingKeypair, ok := signingKey.(libkb.NaclSigningKeyPair)
 		if !ok || signingKeypair.Private == nil {
-			//Perhaps a KeyCannotEncrypt error, although less accurate, would be more intuitive for the user.
+			// Perhaps a KeyCannotEncrypt error, although less accurate, would be more intuitive for the user.
 			return libkb.KeyCannotSignError{}
 		}
 		senderSigning = signingKeypair

@@ -1,3 +1,4 @@
+//go:build linux && !android
 // +build linux,!android
 
 package systemd
@@ -71,8 +72,7 @@ func IsSocketActivated() bool {
 // open in the environment, return that socket. Otherwise return (nil, nil).
 // Currently only implemented for systemd on Linux.
 func GetListenerFromEnvironment() (net.Listener, error) {
-	// NOTE: If we ever set unsetEnv=true, we need to change IsSocketActivated above.
-	listeners, err := sdActivation.Listeners(false /* unsetEnv */)
+	listeners, err := sdActivation.Listeners()
 	if err != nil {
 		// Errors here (e.g. out of file descriptors, maybe?) aren't even
 		// returned by go-systemd right now, but they could be in the future.

@@ -1831,7 +1831,8 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 
 	n := 20
 	dest := make([]byte, n)
-	fullContents := append(block1.Contents, block2.Contents...)
+	fullContents := block1.Contents
+	fullContents = append(fullContents, block2.Contents...)
 	fullContents = append(fullContents, block3.Contents...)
 	fullContents = append(fullContents, block4.Contents...)
 	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil { // nolint
@@ -1894,7 +1895,8 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 
 	n := 10
 	dest := make([]byte, n)
-	contents := append(block1.Contents[3:], block2.Contents...)
+	contents := block1.Contents[3:]
+	contents = append(contents, block2.Contents...)
 	contents = append(contents, block3.Contents[:3]...)
 	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 3); err != nil { // nolint
 		t.Errorf("Got error on read: %+v", err)
@@ -2017,6 +2019,7 @@ func checkSyncOp(t *testing.T, codec kbfscodec.Codec,
 	so *syncOp, filePtr data.BlockPointer, writes []WriteRange) {
 	if so == nil {
 		t.Error("No sync info for written file!")
+		return
 	}
 	if so.File.Unref != filePtr {
 		t.Errorf("Unexpected unref file in sync op: %v vs %v",

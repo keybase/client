@@ -69,7 +69,8 @@ func TestKBFSUpgradeTeam(t *testing.T) {
 	require.NoError(t, team.AssociateWithTLFKeyset(ctx, tlfID, chatCryptKeys, keybase1.TeamApplication_CHAT))
 	checkCryptKeys(tlfID, chatCryptKeys, keybase1.TeamApplication_CHAT)
 
-	kbfsCryptKeys := append(chatCryptKeys, makeCryptKey(t, 4))
+	kbfsCryptKeys := chatCryptKeys
+	kbfsCryptKeys = append(kbfsCryptKeys, makeCryptKey(t, 4))
 	require.NoError(t, team.AssociateWithTLFKeyset(ctx, tlfID, kbfsCryptKeys, keybase1.TeamApplication_KBFS))
 	checkCryptKeys(tlfID, kbfsCryptKeys, keybase1.TeamApplication_KBFS)
 }

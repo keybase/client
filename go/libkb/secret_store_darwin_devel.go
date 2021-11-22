@@ -1,3 +1,4 @@
+//go:build !production && darwin
 // +build !production,darwin
 
 package libkb

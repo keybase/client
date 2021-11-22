@@ -81,7 +81,7 @@ func (r *errorAPIMock) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w lib
 	return r.realAPI.GetDecode(mctx, arg, w)
 }
 
-func (r errorAPIMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+func (r *errorAPIMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
 	if arg.Endpoint == "user/has_random_pw" {
 		r.callCount++
 		if r.shouldTimeout {

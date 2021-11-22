@@ -7,8 +7,8 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/xurls"
 	"golang.org/x/net/context"
+	"mvdan.cc/xurls/v2"
 )
 
 type NextMessageOptions struct {

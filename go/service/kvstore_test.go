@@ -544,11 +544,11 @@ func TestKVEncryptionAndVerification(t *testing.T) {
 		EntryKey:   entryKey,
 		EntryValue: secretData,
 	}
+	_, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	_, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
 	putRes, err := handler.PutKVEntry(ctx, putArg)
-	require.NoError(t, err)
-	putRes, err = handler.PutKVEntry(ctx, putArg)
-	require.NoError(t, err)
-	putRes, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 	require.Equal(t, 3, putRes.Revision)
 	getArg := keybase1.GetKVEntryArg{

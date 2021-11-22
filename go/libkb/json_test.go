@@ -62,14 +62,14 @@ func TestJsonSetAndGetString(t *testing.T) {
 	reader, writer, rawFile := buildNewJSONFile(m)
 	defer func() { _ = rawFile.Nuke() }()
 
-	//verify that the path is empty first
+	// verify that the path is empty first
 	path := "america.montana.bozeman"
 	value := "The American Computer Museum"
 	firstRead, isRet := reader.GetStringAtPath(path)
 	require.False(tc.T, isRet)
 	require.Equal(tc.T, firstRead, "")
 
-	//set, get, inspect
+	// set, get, inspect
 	err := writer.SetStringAtPath(path, value)
 	require.NoError(tc.T, err)
 	secondRead, isRet := reader.GetStringAtPath(path)
@@ -84,14 +84,14 @@ func TestJsonSetAndGetInt(t *testing.T) {
 	reader, writer, rawFile := buildNewJSONFile(m)
 	defer func() { _ = rawFile.Nuke() }()
 
-	//verify that the path is empty first
+	// verify that the path is empty first
 	path := "candy.skittles.count"
 	value := 12
 	firstRead, isRet := reader.GetIntAtPath(path)
 	require.False(tc.T, isRet)
 	require.Equal(tc.T, firstRead, 0)
 
-	//set, get, inspect
+	// set, get, inspect
 	err := writer.SetIntAtPath(path, value)
 	require.NoError(tc.T, err)
 	secondRead, isRet := reader.GetIntAtPath(path)
@@ -106,14 +106,14 @@ func TestJsonSetAndGetBool(t *testing.T) {
 	reader, writer, rawFile := buildNewJSONFile(m)
 	defer func() { _ = rawFile.Nuke() }()
 
-	//verify that the path is empty first
+	// verify that the path is empty first
 	path := "colors.orange.appetizing"
 	value := true
 	firstRead, isRet := reader.GetBoolAtPath(path)
 	require.False(tc.T, isRet)
 	require.Equal(tc.T, firstRead, false)
 
-	//set, get, inspect
+	// set, get, inspect
 	err := writer.SetBoolAtPath(path, value)
 	require.NoError(tc.T, err)
 	secondRead, isRet := reader.GetBoolAtPath(path)
@@ -128,14 +128,14 @@ func TestJsonSetAndGetNull(t *testing.T) {
 	reader, writer, rawFile := buildNewJSONFile(m)
 	defer func() { _ = rawFile.Nuke() }()
 
-	//verify that the path is empty first
-	//and that GetNull knows the path wasn't set
+	// verify that the path is empty first
+	// and that GetNull knows the path wasn't set
 	path := "worldcup.victories.croatia"
 	value := 2018
 	isRet := reader.GetNullAtPath(path)
 	require.False(tc.T, isRet)
 
-	//set, get, inspect
+	// set, get, inspect
 	_ = writer.SetIntAtPath(path, value)
 	secondRead, _ := reader.GetIntAtPath(path)
 	require.Equal(tc.T, secondRead, value)

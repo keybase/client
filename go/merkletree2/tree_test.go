@@ -1113,7 +1113,7 @@ func TestExtensionProofsFailureBranches(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "verifyExtensionProofFinal: hash mismatch")
 
-	//failure when the proof is not necessary
+	// failure when the proof is not necessary
 	startSeqno = Seqno(20)
 	endSeqno = startSeqno
 

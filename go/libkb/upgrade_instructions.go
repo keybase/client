@@ -5,8 +5,9 @@ package libkb
 
 import (
 	"fmt"
-	"os/exec"
 	"runtime"
+
+	"os/exec"
 )
 
 func PlatformSpecificUpgradeInstructionsString() (string, error) {

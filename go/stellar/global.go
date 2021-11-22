@@ -20,6 +20,8 @@ import (
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/federation"
+
+	// nolint
 	"github.com/stellar/go/clients/horizon"
 )
 

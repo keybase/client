@@ -469,7 +469,11 @@ func installFuse(runMode libkb.RunMode, log Log) error {
 			"Fuse should be able to update next time the OS reboots.")
 		return err
 	}
-	defer libnativeinstaller.InstallRedirector(runMode, log)
+	defer func() {
+		if err := libnativeinstaller.InstallRedirector(runMode, log); err != nil {
+			log.Info("Installing redirector failed. %s", err)
+		}
+	}()
 	log.Info(
 		"Uninstalling redirector succeeded. Trying to install KBFuse again.")
 	if err = libnativeinstaller.InstallFuse(runMode, log); err != nil {
@@ -743,7 +747,9 @@ func InstallService(context Context, binPath string, force bool, timeout time.Du
 	if err != nil {
 		return err
 	}
-	UninstallKeybaseServices(context, log)
+	if err = UninstallKeybaseServices(context, log); err != nil {
+		log.Debug("unable to uninstall service: %s", err)
+	}
 	log.Debug("Installing service (%s, timeout=%s)", label, timeout)
 	if _, err := installKeybaseService(context, service, plist, timeout, log); err != nil {
 		log.Errorf("Error installing Keybase service: %s", err)
@@ -788,7 +794,9 @@ func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvai
 		return err
 	}
 
-	UninstallKBFSServices(context, log)
+	if err = UninstallKBFSServices(context, log); err != nil {
+		log.Debug("unable to uninstall kbfs %s", err)
+	}
 	log.Debug("Installing KBFS (%s, timeout=%s)", label, timeout)
 	if _, err := installKBFSService(context, kbfsService, plist, timeout, log); err != nil {
 		log.Errorf("error installing KBFS: %s", err)
@@ -1164,9 +1172,9 @@ func componentResult(name string, err error) keybase1.ComponentResult {
 			ws := exitError.Sys().(syscall.WaitStatus)
 			exitCode = ws.ExitStatus()
 		}
-		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error()), ExitCode: exitCode}
+		return keybase1.ComponentResult{Name: name, Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error()), ExitCode: exitCode}
 	}
-	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
+	return keybase1.ComponentResult{Name: name, Status: keybase1.StatusOK("")}
 }
 
 // KBFSBinPath returns the path to the KBFS executable.
@@ -1208,7 +1216,7 @@ func OSVersion() (semver.Version, error) {
 	swver := strings.TrimSpace(string(out))
 	// The version might not be semver compliant for beta macOS (e.g. "10.12")
 	if strings.Count(swver, ".") == 1 {
-		swver = swver + ".0"
+		swver += ".0"
 	}
 	return semver.Make(swver)
 }
@@ -1235,7 +1243,9 @@ func InstallUpdater(context Context, keybaseBinPath string, force bool, timeout 
 		return err
 	}
 
-	UninstallUpdaterService(context, log)
+	if err = UninstallUpdaterService(context, log); err != nil {
+		log.Debug("unable uninstall updater service: %s", err)
+	}
 	log.Debug("Installing updater service (%s, timeout=%s)", label, timeout)
 	if _, err := installUpdaterService(context, service, plist, timeout, log); err != nil {
 		log.Errorf("Error installing updater service: %s", err)
@@ -1369,7 +1379,9 @@ func fallbackStartProcess(context Context, service launchd.Service, plist launch
 	if err != nil {
 		log.Warning("failed to create fallback pid file %s: %s", fallbackPIDFilename(service), err)
 	} else {
-		f.Write([]byte(fmt.Sprintf("%d", cmd.Process.Pid)))
+		if _, err := f.Write([]byte(fmt.Sprintf("%d", cmd.Process.Pid))); err != nil {
+			log.Warning("failed to write to fallback pid file %s: %s", fallbackPIDFilename(service), err)
+		}
 		f.Close()
 	}
 
@@ -1469,7 +1481,9 @@ func StartUpdateIfNeeded(ctx context.Context, log logger.Logger) error {
 		pid = cmd.Process.Pid
 	}
 	log.Debug("Started background updater process (%s). pid=%d", updaterPath, pid)
-	cmd.Wait()
+	if err = cmd.Wait(); err != nil {
+		log.Debug("updater cmd failed: %s", err)
+	}
 	// Ignore the exit status here as user may have hit "Ignore". If we are
 	// here without getting killed, it's likely user has hit "Ignore". Just
 	// just return `nil` and GUI would check for update info again where it'd

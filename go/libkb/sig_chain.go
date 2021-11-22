@@ -1076,7 +1076,7 @@ func (sc *SigChain) GetLinkFromSigIDQuery(query string) *ChainLink {
 	return nil
 }
 
-//========================================================================
+// ========================================================================
 
 type ChainType struct {
 	DbType          ObjType
@@ -1092,7 +1092,7 @@ var PublicChain = &ChainType{
 	GetMerkleTriple: func(u *MerkleUserLeaf) *MerkleTriple { return u.public },
 }
 
-//========================================================================
+// ========================================================================
 
 type BaseSigChainLoader interface {
 	Load() (ret *BaseSigChain, err error)
@@ -1120,7 +1120,7 @@ type SigChainLoader struct {
 	unstubs map[keybase1.Seqno]LinkID
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) LoadLastLinkIDFromStorage() (mt *MerkleTriple, err error) {
 	var tmp MerkleTriple
@@ -1263,7 +1263,7 @@ func (l *SigChainLoader) maybeDiscardStubbedLinks() {
 	l.links = l.links[0:firstStubbedLink]
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) MakeSigChain() error {
 	sc := &SigChain{
@@ -1280,14 +1280,14 @@ func (l *SigChainLoader) MakeSigChain() error {
 	return nil
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) GetKeyFamily() (err error) {
 	l.ckf.kf = l.user.GetKeyFamily()
 	return
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) GetMerkleTriple() (ret *MerkleTriple) {
 	if l.leaf != nil {
@@ -1296,7 +1296,7 @@ func (l *SigChainLoader) GetMerkleTriple() (ret *MerkleTriple) {
 	return
 }
 
-//========================================================================
+// ========================================================================
 
 func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) {
 	cli := sc.GetCurrentTailTriple()
@@ -1364,13 +1364,13 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 	return
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 	return l.chain.CheckFreshness(l.GetMerkleTriple())
 }
 
-//========================================================================
+// ========================================================================
 
 func (sc *SigChain) HasStubs() bool {
 	for _, link := range sc.chainLinks {
@@ -1381,13 +1381,13 @@ func (sc *SigChain) HasStubs() bool {
 	return len(sc.chainLinks) != 0
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) HasStubs() bool {
 	return l.chain.HasStubs()
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 	if !l.self {
@@ -1396,7 +1396,7 @@ func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 	return l.user.GetUID()
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) LoadFromServer() (err error) {
 	srv := l.GetMerkleTriple()
@@ -1409,7 +1409,7 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 	return nil
 }
 
-//========================================================================
+// ========================================================================
 
 func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 	l.M().Debug("VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)

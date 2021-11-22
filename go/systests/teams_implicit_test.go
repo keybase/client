@@ -334,7 +334,7 @@ func TestImplicitSBSPukless(t *testing.T) {
 	t.Logf(":: Trying to load %q", impteamName)
 	_, err = ann.lookupImplicitTeam(false /* create */, impteamName, false)
 	require.Error(t, err)
-	//require.Equal(t, teamID, teamID2)
+	// require.Equal(t, teamID, teamID2)
 	t.Logf("Loading %s failed with: %v", impteamName, err)
 
 	// The following load call will not work as well. So this team is

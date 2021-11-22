@@ -407,7 +407,7 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 	testUsername, err := RandString("test_ss_", 5)
 	// RandString returns base32 encoded random bytes, make it look like a
 	// Keybase username. This is not required, though.
-	testUsername = strings.ToLower(strings.Replace(testUsername, "=", "", -1))
+	testUsername = strings.ToLower(strings.ReplaceAll(testUsername, "=", ""))
 	if err != nil {
 		return err
 	}

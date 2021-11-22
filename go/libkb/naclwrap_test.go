@@ -134,7 +134,8 @@ func TestVerifyBytesReject(t *testing.T) {
 
 	// Corrupt message.
 
-	corruptMsg := append(msg, []byte("corruption")...)
+	corruptMsg := msg
+	corruptMsg = append(corruptMsg, []byte("corruption")...)
 	if keyPair.Public.Verify(corruptMsg, sig) {
 		t.Error("Signature for corrupt message unexpectedly passes")
 	}

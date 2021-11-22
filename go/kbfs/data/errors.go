@@ -57,7 +57,7 @@ type NotDirectFileBlockError struct {
 }
 
 func (e NotDirectFileBlockError) Error() string {
-	return fmt.Sprintf("Unexpected block type; expected a direct file block")
+	return "Unexpected block type; expected a direct file block"
 }
 
 // CachePutCacheFullError indicates that a cache put failed because
