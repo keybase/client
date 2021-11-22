@@ -4,7 +4,7 @@ set -e -u -o -x pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
-client_dir="$(realpath "$dir"/../..)"
+client_dir="$dir/../.."
 
 build_dir=${BUILD_DIR:-/tmp/keybase}
 
