@@ -2,7 +2,7 @@
 
 set -e -u -o pipefail # Fail on error
 
-dir="$(dirname "${BASH_SOURCE[0]}")"
+dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 client_dir="$dir/../.."
 cd $client_dir/go
 
