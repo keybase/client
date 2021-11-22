@@ -3,7 +3,7 @@
 set -e -u -o pipefail # Fail on error
 
 dir="$(dirname "${BASH_SOURCE[0]}")"
-client_dir="$(realpath "$dir"/../..)"
+client_dir="$dir/../.."
 cd $client_dir/go
 
 arg=${1:-}
