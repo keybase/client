@@ -6,6 +6,8 @@ import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 // import {tabRoots} from '../router-v2/routes'
 import logger from '../logger'
+import * as Tabs from '../constants/tabs'
+import * as Container from '../util/container'
 
 // let _navigator: Navigator | undefined
 // // Private API only used by config sagas
@@ -47,7 +49,7 @@ export const findVisibleRoute = (arr: Array<NavState>, s: NavState): Array<NavSt
   return [...arr, route]
 }
 
-const isLoggedIn = (s: NavState) => {
+const _isLoggedIn = (s: NavState) => {
   if (!s) {
     return false
   }
@@ -59,69 +61,52 @@ const findModalRoute = (s: NavState) => {
   if (!s) {
     return []
   }
-  if (!isLoggedIn(s)) {
+  if (!_isLoggedIn(s)) {
     return []
   }
 
   return s.routes.slice(1) ?? []
 }
-const findMainRoute = (s: NavState) => {
-  if (!s) {
-    return []
-  }
-
-  const rootName = s?.routes?.[0]?.name
-  if (!(rootName === 'loggedIn' || rootName === 'loggedOut')) {
-    return []
-  }
-
-  return _getStackPathHelper([], s?.routes ?? [])
-}
 
 // this returns the full path as seen from a stack. So if you pop you'll go up
 // this path stack
 // TODO this depends on our specific nav setup, check for it somehow
-export const _getStackPathHelper = (arr: Array<NavState>, s: NavState): Array<NavState> => {
-  if (!s) return arr
-  if (!s.routes) return arr
-  const route = s.routes[s.index]
-  if (!route) return arr
-  if (route.routes) return _getStackPathHelper([...arr, s.routes[s.index]], route)
-  if (s.name === 'loggedIn' && s.index !== 0) {
-    // Modal stack is selected, make sure we get app routes too
-    // modals are at indices >= 1
-    return [...arr, ..._getStackPathHelper([], s.routes[0]), ...s.routes.slice(1)]
-  }
-  // leaf router - this is a stack router within a tab
-  // start slice at 0 to also get the pages stacked below the current one
-  return [...arr, ...s.routes.slice(0, s.index + 1)]
-}
+// export const _getStackPathHelper = (arr: Array<NavState>, s: NavState): Array<NavState> => {
+// if (!s) return arr
+// if (!s.routes) return arr
+// const route = s.routes[s.index]
+// if (!route) return arr
+// if (route.routes) return _getStackPathHelper([...arr, s.routes[s.index]], route)
+// if (s.name === 'loggedIn' && s.index !== 0) {
+// // Modal stack is selected, make sure we get app routes too
+// // modals are at indices >= 1
+// return [...arr, ..._getStackPathHelper([], s.routes[0]), ...s.routes.slice(1)]
+// }
+// // leaf router - this is a stack router within a tab
+// // start slice at 0 to also get the pages stacked below the current one
+// return [...arr, ...s.routes.slice(0, s.index + 1)]
+// }
 
-const findFullRoute = (s: NavState) => {
-  if (!s) {
-    return []
-  }
-  const loggedInOut = s.routes && s.routes[s.index]
-  if (loggedInOut && loggedInOut.name === 'loggedIn') {
-    return _getStackPathHelper([], s)
-  }
-  return (loggedInOut && loggedInOut.routes) || []
-}
+// const findFullRoute = (s: NavState) => {
+// if (!s) {
+// return []
+// }
+// const loggedInOut = s.routes && s.routes[s.index]
+// if (loggedInOut?.name === 'loggedIn') {
+// return _getStackPathHelper([], s)
+// }
+// return (loggedInOut && loggedInOut.routes) || []
+// }
 // Private API used by navigator itself
 export const _getVisiblePathForNavigator = (navState: NavState) => {
   if (!navState) return []
   return findVisibleRoute([], navState)
 }
 
-export const _getModalStackForNavigator = (navState: NavState) => {
-  if (!navState) return []
-  return findModalRoute(navState)
-}
-
-export const _getFullRouteForNavigator = (navState: NavState) => {
-  if (!navState) return []
-  return findFullRoute(navState)
-}
+// export const _getFullRouteForNavigator = (navState: NavState) => {
+// if (!navState) return []
+// return findFullRoute(navState)
+// }
 
 // Public API
 export const getVisiblePath = () => {
@@ -129,10 +114,6 @@ export const getVisiblePath = () => {
   return findVisibleRoute([], navigationRef_.getRootState())
 }
 
-export const getMainStack = () => {
-  if (!navigationRef_.isReady()) return []
-  return findMainRoute(navigationRef_.getRootState())
-}
 export const getModalStack = () => {
   if (!navigationRef_.isReady()) return []
   return findModalRoute(navigationRef_.getRootState())
@@ -141,11 +122,6 @@ export const getModalStack = () => {
 export const getVisibleScreen = () => {
   const visible = getVisiblePath()
   return visible[visible.length - 1]
-}
-
-export const getFullRoute = () => {
-  if (!navigationRef_.isReady()) return []
-  return findFullRoute(navigationRef_.getRootState())
 }
 
 export const getActiveKey = (): string => {
@@ -215,7 +191,7 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       return []
     }
     case RouteTreeGen.clearModals: {
-      if (isLoggedIn(navigationState) && navigationState.routes.length > 1) {
+      if (_isLoggedIn(navigationState) && navigationState.routes.length > 1) {
         return [{...StackActions.popToTop(), target: navigationState.key}]
       }
       return []
@@ -223,16 +199,18 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
     case RouteTreeGen.navUpToScreen: {
-      const fullPath = _getFullRouteForNavigator(navigationState)
-      const popActions: Array<unknown> = []
-      const isInStack = fullPath.reverse().some(r => {
-        if (r.name === action.payload.routeName) {
-          return true
-        }
-        popActions.push(StackActions.pop())
-        return false
-      })
-      return isInStack ? popActions : []
+      // TODO
+      return []
+      // const fullPath = _getFullRouteForNavigator(navigationState)
+      // const popActions: Array<unknown> = []
+      // const isInStack = fullPath.reverse().some(r => {
+      // if (r.name === action.payload.routeName) {
+      // return true
+      // }
+      // popActions.push(StackActions.pop())
+      // return false
+      // })
+      // return isInStack ? popActions : []
     }
     case RouteTreeGen.resetStack: {
       return [
@@ -282,4 +260,49 @@ export const dispatchOldAction = (
   } catch (e) {
     logger.error('Nav error', e)
   }
+}
+
+export const getCurrentTab = () => {
+  if (navigationRef_.isReady()) {
+    const s = navigationRef_.getRootState()
+    const loggedInRoute = s.routes[0]
+    if (loggedInRoute?.name === 'loggedIn') {
+      return loggedInRoute.state?.routes?.[loggedInRoute.state?.index ?? 0]?.name
+    }
+  }
+  return undefined
+}
+
+export const isLoggedIn = () => {
+  return _isLoggedIn(navigationRef_.getRootState())
+}
+
+export const getModalPath = () => {
+  const rs = _getNavigator()?.getRootState()
+  if (!rs) return []
+  return rs.routes.slice(1)
+}
+
+export const getAppPath = () => {
+  const rs = _getNavigator()?.getRootState()
+  if (!rs) return []
+  const root = rs.routes[0]
+  return findVisibleRoute([rs.routes[0]], root?.state)
+}
+
+export const navToThread = conversationIDKey => {
+  const rs = _getNavigator()?.getRootState() ?? {}
+  const nextState = Container.produce(rs, draft => {
+    // app stack
+    draft.index = 0
+    // select chat tab
+    const chatTabIdx = draft.routes[0]?.state.routes.findIndex(r => r.name === Tabs.chatTab)
+    draft.routes[0].state.index = chatTabIdx
+    const chatStack = draft.routes[0].state.routes[chatTabIdx]
+    // set inbox + convo
+    chatStack.state = chatStack.state ?? {}
+    chatStack.state.index = 1
+    chatStack.state.routes = [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey}}]
+  })
+  _getNavigator()?.dispatch(CommonActions.reset(nextState))
 }

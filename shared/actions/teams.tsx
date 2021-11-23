@@ -1112,9 +1112,7 @@ const refreshTeamRoleMap = async (
 const teamDeletedOrExit = (
   action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
 ) => {
-  const {teamID} = action.payload.params
-  const selectedTeams = Constants.getSelectedTeams()
-  if (selectedTeams.includes(teamID)) {
+  if (Router2Constants.getCurrentTab() == Tabs.teamsTab) {
     return RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
   }
   return false

@@ -2,7 +2,8 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 // import * as Container from '../util/container'
-import RouterSwitcheroo from '../router-v2/switcheroo'
+// import RouterSwitcheroo from '../router-v2/switcheroo'
+import Router from '../router-v2/router'
 import {PortalHost} from '@gorhom/portal'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors/container'
@@ -25,7 +26,7 @@ const Main = (_: Props) => {
   return (
     <>
       <Kb.NativeStatusBar key={isDarkMode ? 'dark' : 'light'} barStyle={getBarStyle()} />
-      <RouterSwitcheroo />
+      <Router />
       <PortalHost
         name="popup-root"
         // @ts-ignore

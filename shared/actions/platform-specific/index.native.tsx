@@ -232,39 +232,59 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
 let _lastPersist = ''
 function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
-  const mainOrModal = path && path[1] && path[1].routeName
+  // const mainOrModal = path && path[1] && path[1].routeName
 
   let param = {}
-  let routeName = ''
-  if (mainOrModal === 'Main') {
-    const tab = path && path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
-    if (!tab) return
-    // top level tab?
-    if (tab.routeName === 'tabs.chatTab') {
-      const convo = path && path[path.length - 1]
-      // a specific convo?
-      if (convo.routeName === 'chatConversation') {
-        routeName = convo.routeName
-        param = {selectedConversationIDKey: convo.params?.conversationIDKey}
-      } else {
-        // just the inbox
-        routeName = tab.routeName
+  let routeName = Tabs.peopleTab
+
+  if (path) {
+    const cur = RouterConstants.getCurrentTab()
+    if (cur) {
+      routeName = cur
+    }
+
+    const ap = RouterConstants.getAppPath()
+    ap.some(r => {
+      if (r.name == 'chatConversation') {
+        param = {selectedConversationIDKey: r.params?.conversationIDKey}
+        return true
       }
-    } else if (Tabs.isValidInitialTabString(tab.routeName)) {
-      routeName = tab.routeName
-    } else {
-      return // don't write, keep the last
-    }
-  } else {
-    // info panel
-    if (mainOrModal === 'chatInfoPanel') {
-      routeName = 'chatConversation'
-      param = {selectedConversationIDKey: path && path[1].params.conversationIDKey}
-    } else {
-      // no path or unknown, default to people
-      routeName = 'tabs.peopleTab'
-    }
+      return false
+    })
   }
+  // RouterConstants._getNavigator()?.current?.getRootState()
+  // )
+  // console.log('aaaaa fr', fr)
+  // TODO conver
+  // if (mainOrModal === 'Main') {
+  // const tab = path && path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
+  // if (!tab) return
+  // // top level tab?
+  // if (tab.routeName === 'tabs.chatTab') {
+  // const convo = path && path[path.length - 1]
+  // // a specific convo?
+  // if (convo.routeName === 'chatConversation') {
+  // routeName = convo.routeName
+  // param = {selectedConversationIDKey: convo.params?.conversationIDKey}
+  // } else {
+  // // just the inbox
+  // routeName = tab.routeName
+  // }
+  // } else if (Tabs.isValidInitialTabString(tab.routeName)) {
+  // routeName = tab.routeName
+  // } else {
+  // return // don't write, keep the last
+  // }
+  // } else {
+  // // info panel
+  // if (mainOrModal === 'chatInfoPanel') {
+  // routeName = 'chatConversation'
+  // param = {selectedConversationIDKey: path && path[1].params.conversationIDKey}
+  // } else {
+  // // no path or unknown, default to people
+  // routeName = 'tabs.peopleTab'
+  // }
+  // }
 
   const s = JSON.stringify({param, routeName})
   // don't keep rewriting

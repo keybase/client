@@ -27,6 +27,9 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
 // import {getPersistenceFunctions} from './persist.native'
 import Loading from '../login/loading'
+import * as ConfigGen from '../actions/config-gen'
+import * as ConfigConstants from '../constants/config'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 
 // const Stack = createStackNavigator()
 
@@ -580,33 +583,44 @@ const RootStack = createStackNavigator()
 const RNApp = props => {
   const loggedInLoaded = Container.useSelector(state => state.config.loggedInLoaded)
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
-
-  const {updateNavigator} = props
+  const dispatch = Container.useDispatch()
+  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
   const setNavOnce = React.useRef(false)
+  const oldNavPath = React.useRef<any>([])
   React.useEffect(() => {
     if (!setNavOnce.current) {
       if (Constants.navigationRef_.isReady()) {
         setNavOnce.current = true
-        updateNavigator()
+        dispatch(ConfigGen.createSetNavigator({navigator}))
 
         if (__DEV__) {
           window.DEBUGNavigator = Constants.navigationRef_.current
+          window.DEBUGRouter2 = Constants
           console.log('aaaa debug nav', Constants.navigationRef_.current)
         }
       }
     }
   })
-
   console.log('aaaa render nav isLoggedIn', loggedIn, 'loggedInLoaded', loggedInLoaded)
 
-  const headerHeight = 0 // useHeaderHeight()
   return (
-    <Kb.KeyboardAvoidingView
-      style={styles.keyboard}
-      behavior={Styles.isIOS ? 'padding' : undefined}
-      keyboardVerticalOffset={headerHeight}
-    >
-      <NavigationContainer ref={Constants.navigationRef_}>
+    <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
+      <NavigationContainer
+        ref={Constants.navigationRef_}
+        key={isDarkMode ? 'dark' : 'light'}
+        onStateChange={() => {
+          const old = oldNavPath.current
+          const vp = Constants.getVisiblePath()
+          dispatch(
+            RouteTreeGen.createOnNavChanged({
+              navAction: undefined,
+              next: vp,
+              prev: old,
+            })
+          )
+          oldNavPath.current = vp
+        }}
+      >
         <RootStack.Navigator
           screenOptions={{
             animationEnabled: false,

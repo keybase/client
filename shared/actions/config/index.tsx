@@ -442,7 +442,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   if (routeToInitialScreenOnce) {
     if (state.config.loggedIn) {
       // already logged in?
-      if (Router2.getVisiblePath()?.[0]?.name === 'loggedIn') {
+      if (Router2.isLoggedIn()) {
         return false
       }
 
