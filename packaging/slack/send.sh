@@ -8,7 +8,7 @@ set -e -u -o pipefail # Fail on error
 sender="$GOPATH/src/github.com/keybase/slackbot/send/main.go"
 echo "$@"
 if [ -f $sender ]; then
-  (cd $(dirname sender) && go run $sender -i=1 "$@")
+  (cd $(dirname $sender) && go run $sender -i=1 "$@")
 fi
 
 # send to keybase chat if we have it in the environment
