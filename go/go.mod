@@ -49,7 +49,7 @@ require (
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
 	github.com/keybase/pipeliner v0.0.0-20190828022149-31ef4ee63659
-	github.com/keybase/release v0.0.0-20211118165948-8b6904c7b56b
+	github.com/keybase/release v0.0.0-20211123144821-6ae16b200278
 	github.com/keybase/saltpack v0.0.0-20211118165207-4039c5df46c0
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
