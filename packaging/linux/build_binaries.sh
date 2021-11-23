@@ -104,7 +104,7 @@ build_one_architecture() {
 
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
-  (cd $client_dir go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -buildmode="$buildmode" -o \
+  (cd $client_dir && go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -buildmode="$buildmode" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/client/go/kbfs/kbfsfuse)
 
   # Build the git-remote-keybase binary, also from the kbfs repo.
