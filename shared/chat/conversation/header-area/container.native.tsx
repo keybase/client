@@ -73,6 +73,8 @@ export const HeaderArea = Container.connect(
             .map(username => getFullname(state, username))[0]
         : undefined
 
+    console.log('aaa header area container', meta)
+
     return {
       channelName: meta.channelname,
       contactNames,

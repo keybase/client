@@ -3700,16 +3700,16 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
   const p = prev[prev.length - 1]
   const n = next[next.length - 1]
 
-  const wasModal = prev[1]?.routeName !== 'Main'
-  const isModal = next[1]?.routeName !== 'Main'
+  const wasModal = prev.length && prev[0]?.name !== 'loggedIn'
+  const isModal = next[0]?.name !== 'loggedIn'
 
   // ignore if changes involve a modal
   if (wasModal || isModal) {
     return
   }
 
-  const wasChat = p?.routeName === Constants.threadRouteName
-  const isChat = n?.routeName === Constants.threadRouteName
+  const wasChat = p?.name === Constants.threadRouteName
+  const isChat = n?.name === Constants.threadRouteName
 
   // nothing to do with chat
   if (!wasChat && !isChat) {
