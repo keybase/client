@@ -1,4 +1,4 @@
-FROM golang:1.13.10-alpine3.11 AS builder
+FROM golang:1.17.3-alpine3.11 AS builder
 
 RUN apk add --update --no-cache gnupg bash build-base
 
