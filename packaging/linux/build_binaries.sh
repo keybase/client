@@ -5,6 +5,7 @@ set -euox pipefail
 here="$(dirname "${BASH_SOURCE[0]}")"
 this_repo="$(git -C "$here" rev-parse --show-toplevel ||
   echo -n "$GOPATH/src/github.com/keybase/client")"
+client_dir="$here/../../go"
 
 mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
@@ -77,9 +78,6 @@ build_one_architecture() {
   layout_dir="$build_root/binaries/$debian_arch"
   mkdir -p "$layout_dir/usr/bin"
 
-  # Always build with vendoring on.
-  export GO15VENDOREXPERIMENT=1
-
   # Assemble a custom GOPATH. Symlinks work for us here, because both the
   # client repo and the kbfs repo are fully vendored.
   export GOPATH="$build_root/gopaths/$debian_arch"
@@ -88,8 +86,8 @@ build_one_architecture() {
 
   # Build the client binary. Note that `go build` reads $GOARCH.
   echo "Building client for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
-    "$layout_dir/usr/bin/$binary_name" github.com/keybase/client/go/keybase
+  (cd $client_dir && go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
+    "$layout_dir/usr/bin/$binary_name" github.com/keybase/client/go/keybase)
 
   # Short-circuit if we're not building electron.
   if ! should_build_kbfs ; then
@@ -106,13 +104,13 @@ build_one_architecture() {
 
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -buildmode="$buildmode" -o \
-    "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/client/go/kbfs/kbfsfuse
+  (cd $client_dir go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -buildmode="$buildmode" -o \
+    "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/client/go/kbfs/kbfsfuse)
 
   # Build the git-remote-keybase binary, also from the kbfs repo.
   echo "Building git-remote-keybase for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -buildmode="$buildmode" -o \
-    "$layout_dir/usr/bin/git-remote-keybase" github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase
+  (cd $client_dir && go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -buildmode="$buildmode" -o \
+    "$layout_dir/usr/bin/git-remote-keybase" github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase)
 
   # Short-circuit if we're doing a Docker multi-stage build
   if ! should_build_electron ; then
@@ -122,15 +120,15 @@ build_one_architecture() {
 
   # Build the root redirector binary.
   echo "Building keybase-redirector for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
-    "$layout_dir/usr/bin/keybase-redirector" github.com/keybase/client/go/kbfs/redirector
+  (cd $client_dir && go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
+    "$layout_dir/usr/bin/keybase-redirector" github.com/keybase/client/go/kbfs/redirector)
 
   # Build the kbnm binary
   echo "Building kbnm for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
-    "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm
+  (cd $client_dir && go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
+    "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm)
 
-  # Write whitelists into the overlay. Note that we have to explicitly set USER
+  # Write allowlists into the overlay. Note that we have to explicitly set USER
   # here, because docker doesn't do it by default, and so otherwise the
   # CGO-disabled i386 cross platform build will fail because it's unable to
   # find the current user.
