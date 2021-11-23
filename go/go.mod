@@ -9,6 +9,8 @@ require (
 	github.com/akavel/rsrc v0.2.1-0.20151103204339-ba14da1f8271
 	github.com/araddon/dateparse v0.0.0-20180729174819-cfd92a431d0e
 	github.com/blang/semver v3.5.1+incompatible
+	// NOTE: if bleve is updated, consider removing the `replace` directive
+	// for bbolt at the bottom of this go.mod
 	github.com/blevesearch/bleve v0.8.2-0.20191030071327-189ee421f71e
 	github.com/btcsuite/btcutil v0.0.0-20180706230648-ab6388e0c60a
 	github.com/buger/jsonparser v0.0.0-20180131123142-4be68c93a244
@@ -64,6 +66,8 @@ require (
 	github.com/sergi/go-diff v1.2.0
 	github.com/shirou/gopsutil v2.18.13-0.20181231150826-db425313bfa8+incompatible
 	github.com/stathat/go v1.0.0
+	// NOTE: if stellar/go is updated, consider removing the `replace` directive
+	// for goautoneg at the bottom of this go.mod
 	github.com/stellar/go v0.0.0-20191010205648-0fc3bfe3dfa7
 	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/goleveldb v1.0.0
@@ -294,7 +298,6 @@ require (
 // keybase maintained forks
 replace (
 	bazil.org/fuse => github.com/keybase/fuse v0.0.0-20210104232444-d36009698767
-	bitbucket.org/ww/goautoneg => github.com/adjust/goautoneg v0.0.0-20150426214442-d788f35a0315
 	github.com/stellar/go => github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7
 	github.com/syndtr/goleveldb => github.com/keybase/goleveldb v1.0.1-0.20211106225230-2a53fac0721c
 	gopkg.in/src-d/go-billy.v4 => github.com/keybase/go-billy v3.1.1-0.20180828145748-b5a7b7bc2074+incompatible
@@ -305,5 +308,9 @@ replace (
 // temporary workaround for https://github.com/blevesearch/bleve/issues/1360
 // should be removed if bleve is updated to a commit past https://github.com/blevesearch/bleve/commit/a9895fdf9c72cfaa202128a963697d9a98765369
 replace github.com/etcd-io/bbolt => go.etcd.io/bbolt v1.3.4-0.20191122203157-7f8bb47fcaf8
+
+// temporary workaround for https://github.com/stellar/go/issues/2039
+// should be removed if stellar/go is updated to a commit past https://github.com/stellar/go/commit/f686b01b140bb57abcb8643240c3b6a134dad3ff
+replace bitbucket.org/ww/goautoneg => github.com/adjust/goautoneg v0.0.0-20150426214442-d788f35a0315
 
 replace os/exec => golang.org/x/sys/execabs v0.0.0-20211117180635-dee7805ff2e1
