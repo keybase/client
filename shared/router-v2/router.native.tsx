@@ -541,30 +541,35 @@ const makeNavScreens = (rs, Screen, isModal) => {
   })
 }
 
-const tabBarStyle = {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest}
+const tabBarStyle = {
+  get backgroundColor() {
+    return Styles.globalColors.blueDarkOrGreyDarkest
+  },
+}
 
-const AppTabs = () => (
-  <Tab.Navigator
-    backBehavior="none"
-    screenOptions={({route}) => {
-      // console.log('aaa routename', route.name)
-      return {
-        ...defaultNavigationOptions,
-        tabBarHideOnKeyboard: true,
-        headerShown: false,
-        tabBarShowLabel: Styles.isTablet,
-        tabBarStyle,
-        tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-        tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-        tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
-      }
-    }}
-  >
-    {tabs.map(tab => (
-      <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
-    ))}
-  </Tab.Navigator>
-)
+const AppTabs = () => {
+  return (
+    <Tab.Navigator
+      backBehavior="none"
+      screenOptions={({route}) => {
+        return {
+          ...defaultNavigationOptions,
+          tabBarHideOnKeyboard: true,
+          headerShown: false,
+          tabBarShowLabel: Styles.isTablet,
+          tabBarStyle,
+          tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
+        }
+      }}
+    >
+      {tabs.map(tab => (
+        <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
+      ))}
+    </Tab.Navigator>
+  )
+}
 
 const LoggedOutStack = createStackNavigator()
 const LoggedOut = () => (
