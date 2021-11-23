@@ -634,8 +634,8 @@ github.com/keybase/msgpackzip v0.0.0-20211109205514-10e4bc329851 h1:W5xs9wKnbzBF
 github.com/keybase/msgpackzip v0.0.0-20211109205514-10e4bc329851/go.mod h1:/2b2CTSWA/tFpJaq69Cox1bX1LqRBM7Tlvy8ccU58YA=
 github.com/keybase/pipeliner v0.0.0-20190828022149-31ef4ee63659 h1:ajhrjk5XDJ09wtvQQqkzy0qWPpeiEoMrjq7GbwN/j8I=
 github.com/keybase/pipeliner v0.0.0-20190828022149-31ef4ee63659/go.mod h1:z2vzMU9RBCKG6Kiv1IeQwRFK0iqBFor9BqN8hWUEIFI=
-github.com/keybase/release v0.0.0-20211118165948-8b6904c7b56b h1:CKAGGFUfwoWltt3A93di9d/tXufqY4swBYOnf93+PtA=
-github.com/keybase/release v0.0.0-20211118165948-8b6904c7b56b/go.mod h1:7Zb6zWsCdjx6EdktX9NPRD4CeIv9fB1DtbbupBOi/PI=
+github.com/keybase/release v0.0.0-20211123144821-6ae16b200278 h1:DPI/l/nId6srLpjI5FWLlBLCcWQXq8QsFxV3LEfIga8=
+github.com/keybase/release v0.0.0-20211123144821-6ae16b200278/go.mod h1:7Zb6zWsCdjx6EdktX9NPRD4CeIv9fB1DtbbupBOi/PI=
 github.com/keybase/saltpack v0.0.0-20211118165207-4039c5df46c0 h1:3CdxPX6u5GQjTEbsvq53N25Cb/GXH3iFlEqeOVvqqbM=
 github.com/keybase/saltpack v0.0.0-20211118165207-4039c5df46c0/go.mod h1:8hM5WwVH+oXJVaxqscISOuOjPHV20Htnl56CBLAPzMY=
 github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7 h1:wOqDICze0HpgV4PfV6m4fWvHV5XZteSgFHrT6KVDOkg=
