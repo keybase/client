@@ -26,7 +26,7 @@ instructions](https://keybase.io/download).
 ### Building
 
 Here's how to build the command line client on Linux or OSX. You need to
-have both Git and **Go 1.15 or higher** installed. (Run `go version` to
+have both Git and **Go 1.17 or higher** installed. (Run `go version` to
 see what version you have.)
 
 ```bash
@@ -37,8 +37,12 @@ mkdir ~/gopath
 export GOPATH="$HOME/gopath"     # Consider putting this in your ~/.bashrc.
 export PATH="$PATH:$GOPATH/bin"  # Ditto.
 
-# Now for the actual clone and build.
-go get github.com/keybase/client/go/keybase
+# Now for the actual clone and build. Currently the Keybase client depends
+# on go.mod replace directives, so a `go get` of the repository cannot be
+# used. You should use `git` to clone the repository instead.
+# See https://github.com/golang/go/issues/30354 for more details.
+git clone https://github.com/keybase/client.git
+cd client/go
 go install -tags production github.com/keybase/client/go/keybase
 
 # If you did the PATH bit above, this should just work.
