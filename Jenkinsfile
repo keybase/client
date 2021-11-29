@@ -623,11 +623,12 @@ def testGoTestSuite(prefix, packagesToTest) {
         timeout: '5m',
       ],
       // TODO re-enable
-      // 'github.com/keybase/client/go/kbfs/libkbfs': [
-      //   flags: '-race',
-      //   timeout: '5m',
-      //   parallel: 1,
-      // ],
+      'github.com/keybase/client/go/kbfs/libkbfs': [
+        flags: '-race',
+        timeout: '5m',
+        parallel: 1,
+        disable: true,
+      ],
       'github.com/keybase/client/go/kbfs/libpages': [
         flags: '-race',
         timeout: '30s',
