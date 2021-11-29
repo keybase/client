@@ -843,7 +843,7 @@ func (e *Env) GetDisplayRawUntrustedOutput() bool {
 
 func (e *Env) GetAutoFork() bool {
 	// On !Darwin, we auto-fork by default
-	def := (RuntimeGroup() != keybase1.RuntimeGroup_DARWINLIKE)
+	def := (runtime.GOOS != "darwin")
 	return e.GetNegBool(def,
 		[]NegBoolFunc{
 			{
