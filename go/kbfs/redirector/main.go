@@ -179,7 +179,7 @@ func (r *root) findKBFSMount(ctx context.Context) (
 		return "", err
 	}
 	fuseType := "fuse"
-	if runtime.GOOS == "darwin" {
+	if runtime.GOOS == "darwin" || runtime.GOOS == "ios" {
 		fuseType = "kbfuse"
 	}
 	var fuseMountPoints []string
@@ -366,7 +366,7 @@ func main() {
 	options = append(options, fuse.FSName("keybase-redirector"))
 	options = append(options, fuse.ReadOnly())
 	switch runtime.GOOS {
-	case "darwin":
+	case "darwin", "ios":
 		options = append(options, fuse.OSXFUSELocations(kbfusePath))
 		options = append(options, fuse.VolumeName("keybase"))
 		options = append(options, fuse.NoBrowse())

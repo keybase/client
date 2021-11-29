@@ -106,7 +106,7 @@ func (m *mounter) Unmount() (err error) {
 	dir := m.options.MountPoint
 	// Try normal unmount
 	switch runtime.GOOS {
-	case "darwin":
+	case "darwin": // no ios
 		_, err = exec.Command("/sbin/umount", dir).Output()
 	case "linux":
 		fusermountOutput, fusermountErr := exec.Command("fusermount", "-u", dir).CombinedOutput()
@@ -131,7 +131,7 @@ func (m *mounter) Unmount() (err error) {
 	if err != nil && m.options.ForceMount {
 		// Unmount failed, so let's try and force it.
 		switch runtime.GOOS {
-		case "darwin":
+		case "darwin": // no ios
 			_, err = exec.Command(
 				"/usr/sbin/diskutil", "unmountDisk", "force", dir).Output()
 		case "linux":

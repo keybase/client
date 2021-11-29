@@ -399,10 +399,10 @@ func (e *Env) GetMountDir() (string, error) {
 }
 
 func NewEnv(cmd CommandLine, config ConfigReader, getLog LogGetter) *Env {
-	return newEnv(cmd, config, runtime.GOOS, getLog)
+	return newEnv(cmd, config, getLog)
 }
 
-func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGetter) *Env {
+func newEnv(cmd CommandLine, config ConfigReader, getLog LogGetter) *Env {
 	if cmd == nil {
 		cmd = NullConfiguration{}
 	}
@@ -415,7 +415,6 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 		e.getHomeFromTestOrCmd,
 		func() string { return e.GetConfig().GetHome() },
 		e.getMobileSharedHomeFromCmdOrConfig,
-		osname,
 		e.GetRunMode,
 		getLog,
 		os.Getenv)
@@ -738,7 +737,7 @@ func (e *Env) GetGUIConfigFilename() string {
 		func() string { return e.cmd.GetGUIConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_GUI_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetGUIConfigFilename() },
-		func() string { return filepath.Join(e.GetConfigDir(), GUIConfigFile) },
+		func() string return filepath.Join(e.GetConfigDir(), GUIConfigFile)},
 	)
 }
 
@@ -844,7 +843,7 @@ func (e *Env) GetDisplayRawUntrustedOutput() bool {
 
 func (e *Env) GetAutoFork() bool {
 	// On !Darwin, we auto-fork by default
-	def := (runtime.GOOS != "darwin")
+	def := (RuntimeGroup() != keybase1.RuntimeGroup_DARWINLIKE)
 	return e.GetNegBool(def,
 		[]NegBoolFunc{
 			{

@@ -10,7 +10,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 
 	"github.com/keybase/client/go/kbconst"
@@ -200,12 +199,14 @@ func (c *KBFSContext) CheckService() error {
 	}
 	conn, err := s.DialSocket()
 	if err != nil {
-		if runtime.GOOS == "darwin" || runtime.GOOS == "windows" {
+		switch libkb.RuntimeGroup() {
+		case keybase1.RuntimeGroup_DARWINLIKE, keybase1.RuntimeGroup_WINDOWSLIKE:
 			return errors.New(
 				"keybase isn't running; open the Keybase app")
+		default:
+			return errors.New(
+				"keybase isn't running; try `run_keybase`")
 		}
-		return errors.New(
-			"keybase isn't running; try `run_keybase`")
 	}
 	err = conn.Close()
 	if err != nil {

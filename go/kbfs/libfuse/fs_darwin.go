@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 
 	"bazil.org/fuse"
@@ -19,6 +18,8 @@ import (
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/utils"
 	"golang.org/x/net/context"
 )
@@ -101,7 +102,7 @@ func newExternalBundleResourceFile(path string) (*SpecialReadFile, error) {
 }
 
 func bundleResourcePath(path string) (string, error) {
-	if runtime.GOOS != "darwin" {
+	if libkb.RuntimeGroup() != keybase1.RuntimeGroup_DARWINLIKE {
 		return "", fmt.Errorf("Bundle resource path only available on macOS/darwin")
 	}
 	execPath, err := utils.BinPath()

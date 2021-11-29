@@ -153,7 +153,6 @@ helpers.rootLinuxNode(env, {
                 sh "make clean"
                 sh "make"
               }
-              sh "go version"
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
               packagesToTest = getPackagesToTest(dependencyFiles, hasJenkinsfileChanges)
               hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
@@ -622,12 +621,10 @@ def testGoTestSuite(prefix, packagesToTest) {
         flags: '-race',
         timeout: '5m',
       ],
-      // TODO re-enable
       'github.com/keybase/client/go/kbfs/libkbfs': [
         flags: '-race',
         timeout: '5m',
         parallel: 1,
-        disable: true,
       ],
       'github.com/keybase/client/go/kbfs/libpages': [
         flags: '-race',

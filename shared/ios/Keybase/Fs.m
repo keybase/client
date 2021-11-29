@@ -26,9 +26,10 @@
   NSFileManager* fm = [NSFileManager defaultManager];
   NSError* error = nil;
   NSLog(@"creating background readable directory: path: %@ setAllFiles: %d", path, setAllFiles);
-  // Setting NSFileProtectionCompleteUntilFirstUserAuthentication makes the directory accessible as long as the user has
-  // unlocked the phone once. The files are still stored on the disk encrypted (note for the chat database, it
-  // means we are encrypting it twice), and are inaccessible otherwise.
+  // Setting NSFileProtectionCompleteUntilFirstUserAuthentication makes the
+  // directory accessible as long as the user has unlocked the phone once. The
+  // files are still stored on the disk encrypted (note for the chat database,
+  // it means we are encrypting it twice), and are inaccessible otherwise.
   NSDictionary* noProt = [NSDictionary dictionaryWithObject:NSFileProtectionCompleteUntilFirstUserAuthentication forKey:NSFileProtectionKey];
   [fm createDirectoryAtPath:path withIntermediateDirectories:YES
                  attributes:noProt
@@ -144,6 +145,7 @@
   NSString* kbfsSettingsPath = [@"~/Library/Application Support/Keybase/kbfs_settings" stringByExpandingTildeInPath];
   NSString* kbfsSyncedTlfsPath = [@"~/Library/Application Support/Keybase/synced_tlf_config" stringByExpandingTildeInPath];
   NSString* oldLogPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
+  NSString* config = [@"~/.config/keybase" stringByExpandingTildeInPath];
   // Put logs in a subdir that is entirely background readable
   NSString* logPath = [oldLogPath stringByAppendingString:@"/logs"];
   NSString* serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
@@ -173,6 +175,7 @@
   [self createBackgroundReadableDirectory:kbfsSettingsPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:kbfsSyncedTlfsPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:logPath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:config setAllFiles:YES];
 
   return @{@"home": home,
            @"sharedHome": sharedHome,
@@ -181,4 +184,3 @@
 }
 
 @end
-

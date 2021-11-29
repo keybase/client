@@ -47,7 +47,7 @@ func getOSInfo() (string, error) {
 	case "linux":
 		osinfo, err := ioutil.ReadFile("/etc/os-release")
 		return string(osinfo), err
-	case "darwin":
+	case "darwin": // no ios
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		osinfo, err := exec.CommandContext(ctx, "/usr/bin/sw_vers").CombinedOutput()

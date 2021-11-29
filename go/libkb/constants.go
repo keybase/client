@@ -98,18 +98,7 @@ var UserAgent = runtime.GOOS + ":" + "Keybase CLI (" + runtime.Version() + "):" 
 
 // Returns a simplified UserAgent that's used as the kb_ua GET param.
 func ProofUserAgent() string {
-	var os string
-	if runtime.GOOS == "darwin" {
-		// Either ios or mac
-		if isIOS {
-			os = "ios"
-		} else {
-			os = "mac"
-		}
-	} else {
-		os = runtime.GOOS
-	}
-
+	os := runtime.GOOS
 	return fmt.Sprintf("%s:%s", os, Version)
 }
 
