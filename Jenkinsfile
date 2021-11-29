@@ -117,9 +117,6 @@ helpers.rootLinuxNode(env, {
       )
     }
 
-    sh "./update_gvm.sh"
-    sh "gvm use go1.17.3 --default"
-
     def goChanges = helpers.getChangesForSubdir('go', env)
     def hasGoChanges = goChanges.size() != 0
     def hasJSChanges = helpers.hasChanges('shared', env)
@@ -156,7 +153,6 @@ helpers.rootLinuxNode(env, {
                 sh "make clean"
                 sh "make"
               }
-              sh "go version"
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
               packagesToTest = getPackagesToTest(dependencyFiles, hasJenkinsfileChanges)
               hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
@@ -453,24 +449,25 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
       }
     }
 
-    if (hasKBFSChanges) {
-      println "Running golangci-lint on KBFS"
-      dir('kbfs') {
-        retry(5) {
-          timeout(activity: true, time: 720, unit: 'SECONDS') {
-            // Ignore the `dokan` directory since it contains lots of c code.
-            // Ignore the `protocol` directory, autogeneration has some critques
-            sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run --deadline 10m0s'
-          }
-        }
-      }
-    }
+    // TODO re-enable for kbfs.
+    // if (hasKBFSChanges) {
+    //   println "Running golangci-lint on KBFS"
+    //   dir('kbfs') {
+    //     retry(5) {
+    //       timeout(activity: true, time: 720, unit: 'SECONDS') {
+    //         // Ignore the `dokan` directory since it contains lots of c code.
+    //         sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan  | xargs realpath --relative-to=. | xargs golangci-lint run --deadline 10m0s'
+    //       }
+    //     }
+    //   }
+    // }
 
     if (env.CHANGE_TARGET) {
       println("Running golangci-lint on new code")
       fetchChangeTarget()
       def BASE_COMMIT_HASH = getBaseCommitHash()
       timeout(activity: true, time: 720, unit: 'SECONDS') {
+        // Ignore the `protocol` directory, autogeneration has some critques
         sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 10m0s"
       }
     } else {

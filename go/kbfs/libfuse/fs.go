@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"os"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -30,6 +29,7 @@ import (
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
@@ -308,7 +308,7 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 				ctx = context.WithValue(ctx, CtxIDKey, id)
 			}
 
-			if runtime.GOOS == "darwin" {
+			if libkb.RuntimeGroup() == keybase1.RuntimeGroup_DARWINLIKE {
 				// Timeout operations before they hit the osxfuse time limit,
 				// so we don't hose the entire mount (Fixed in OSXFUSE 3.2.0).
 				// The timeout is 60 seconds, but it looks like sometimes it

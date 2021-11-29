@@ -5,8 +5,10 @@
 package libfs
 
 import (
-	"runtime"
 	"time"
+
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // TimeEqual compares two filesystem-related timestamps.
@@ -15,7 +17,7 @@ import (
 // filesystem APIs, it truncates the timestamps to make them
 // comparable.
 func TimeEqual(a, b time.Time) bool {
-	if runtime.GOOS == "darwin" {
+	if libkb.RuntimeGroup() == keybase1.RuntimeGroup_DARWINLIKE {
 		a = a.Truncate(1 * time.Second)
 		b = b.Truncate(1 * time.Second)
 	}

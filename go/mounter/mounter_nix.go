@@ -43,7 +43,7 @@ func Unmount(dir string, force bool, log Log) error {
 // ForceUnmount tries to forcibly unmount a directory
 func ForceUnmount(dir string, log Log) error {
 	switch runtime.GOOS {
-	case "darwin":
+	case "darwin", "ios":
 		log.Info("Force unmounting with diskutil")
 		out, err := exec.Command("/usr/sbin/diskutil", "unmountDisk", "force", dir).CombinedOutput()
 		log.Debug("Output: %s", string(out))
