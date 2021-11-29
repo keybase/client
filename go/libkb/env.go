@@ -737,7 +737,7 @@ func (e *Env) GetGUIConfigFilename() string {
 		func() string { return e.cmd.GetGUIConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_GUI_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetGUIConfigFilename() },
-		func() string return filepath.Join(e.GetConfigDir(), GUIConfigFile)},
+		func() string { return filepath.Join(e.GetConfigDir(), GUIConfigFile) },
 	)
 }
 

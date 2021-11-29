@@ -145,7 +145,6 @@
   NSString* kbfsSettingsPath = [@"~/Library/Application Support/Keybase/kbfs_settings" stringByExpandingTildeInPath];
   NSString* kbfsSyncedTlfsPath = [@"~/Library/Application Support/Keybase/synced_tlf_config" stringByExpandingTildeInPath];
   NSString* oldLogPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
-  NSString* config = [@"~/.config/keybase" stringByExpandingTildeInPath];
   // Put logs in a subdir that is entirely background readable
   NSString* logPath = [oldLogPath stringByAppendingString:@"/logs"];
   NSString* serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
@@ -175,7 +174,6 @@
   [self createBackgroundReadableDirectory:kbfsSettingsPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:kbfsSyncedTlfsPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:logPath setAllFiles:YES];
-  [self createBackgroundReadableDirectory:config setAllFiles:YES];
 
   return @{@"home": home,
            @"sharedHome": sharedHome,
