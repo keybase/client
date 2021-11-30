@@ -252,7 +252,7 @@ helpers.rootLinuxNode(env, {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
                 withEnv([
-                  'GOROOT=C:\\go',
+                  'GOROOT=C:\\Program Files\\go',
                   "GOPATH=\"${GOPATH}\"",
                   "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${env.PATH}",
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
