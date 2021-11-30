@@ -120,7 +120,7 @@ helpers.rootLinuxNode(env, {
     def goChanges = helpers.getChangesForSubdir('go', env)
     def hasGoChanges = goChanges.size() != 0
     def hasJSChanges = helpers.hasChanges('shared', env)
-    def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
+    def hasJenkinsfileChanges = true //helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
     def hasKBFSChanges = false
     println "Has go changes: " + hasGoChanges
     println "Has JS changes: " + hasJSChanges
