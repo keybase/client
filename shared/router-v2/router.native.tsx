@@ -572,8 +572,9 @@ const ShowMonsterSelector = (state: Container.TypedState) =>
 const AppTabs = () => {
   let startupTab = Container.useSelector(state => state.config.startupTab)
   const showMonster = Container.useSelector(ShowMonsterSelector)
+  const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
 
-  if (showMonster) {
+  if (showMonster || startupFollowUser) {
     startupTab = Tabs.peopleTab
   }
 
@@ -625,14 +626,9 @@ const LoggedOut = () => (
   </LoggedOutStack.Navigator>
 )
 
-const RootStack = createStackNavigator()
-const RNApp = props => {
-  const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
-  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+const ConnectNavToRedux = () => {
   const dispatch = Container.useDispatch()
-  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
   const setNavOnce = React.useRef(false)
-  const oldNavPath = React.useRef<any>([])
   React.useEffect(() => {
     if (!setNavOnce.current) {
       if (Constants.navigationRef_.isReady()) {
@@ -647,8 +643,16 @@ const RNApp = props => {
       }
     }
   })
+  return null
+}
 
+// routing we do on first load
+const InitialRouteSubNav = props => {
+  const {initialRouting, onRouted} = props
+  console.log('bbb rendering InitialRouteSubNav ')
   const showMonster = Container.useSelector(ShowMonsterSelector)
+  const dispatch = Container.useDispatch()
+  const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
   const startupConversation = Container.useSelector(state => {
     const conversationIDKey = state.config.startupConversation
     if (
@@ -659,36 +663,71 @@ const RNApp = props => {
     }
     return false
   })
-  const initialRouting = React.useRef(false)
 
   // Load any subscreens we need, couldn't find a great way to do this
   React.useEffect(() => {
-    if (loggedInLoaded && loggedIn && !initialRouting.current) {
-      initialRouting.current = true
-      if (showMonster) {
-        Constants.navigationRef_.dispatch(CommonActions.navigate({name: 'settingsPushPrompt'}))
-      } else if (startupConversation) {
-        // will already be on the chat tab
-        Constants.navigationRef_.dispatch(
-          CommonActions.navigate({
-            name: 'chatConversation',
-            params: {conversationIDKey: startupConversation, animationEnabled: false},
-          })
-        )
-      }
+    onRouted()
+    if (showMonster) {
+      Constants.navigationRef_.dispatch(CommonActions.navigate({name: 'settingsPushPrompt'}))
+    } else if (startupConversation) {
+      // will already be on the chat tab
+      Constants.navigationRef_.dispatch(
+        CommonActions.navigate({
+          name: 'chatConversation',
+          params: {conversationIDKey: startupConversation, animationEnabled: false},
+        })
+      )
+    } else if (startupFollowUser) {
+      // will already be on people tab
+      Constants.navigationRef_.dispatch(
+        CommonActions.navigate({
+          name: 'profile',
+          params: {username: startupFollowUser, animationEnabled: false},
+        })
+      )
     }
-  }, [loggedInLoaded, loggedIn, initialRouting, showMonster, startupConversation])
+  })
 
-  console.log('bbb render nav: ', {loggedIn, loggedInLoaded, showMonster})
+  return null
+}
+
+const RootStack = createStackNavigator()
+
+enum RNAppState {
+  UNINIT, // haven't rendered the nav yet
+  NEEDS_INIT, // rendered but need to bootstrap
+  INITED, // regular app now
+}
+
+const RNApp = props => {
+  const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
+  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  const dispatch = Container.useDispatch()
+  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
+  const oldNavPath = React.useRef<any>([])
+  const [rnappState, setRNAppState] = React.useState(RNAppState.UNINIT)
+
+  console.log('bbb render nav: ', {loggedIn, loggedInLoaded, rnappState})
 
   return (
     <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
+      <ConnectNavToRedux />
+      {
+        // loaded and only once and onStateChange called
+        loggedInLoaded && loggedIn && rnappState === RNAppState.NEEDS_INIT && (
+          <InitialRouteSubNav onRouted={() => setRNAppState(RNAppState.INITED)} />
+        )
+      }
       <NavigationContainer
         ref={Constants.navigationRef_}
         key={isDarkMode ? 'dark' : 'light'}
         onStateChange={() => {
           const old = oldNavPath.current
+          if (!old.length && rnappState === RNAppState.UNINIT) {
+            setRNAppState(RNAppState.NEEDS_INIT)
+          }
           const vp = Constants.getVisiblePath()
+          console.log('bbb onstatechnaged', vp)
           dispatch(
             RouteTreeGen.createOnNavChanged({
               navAction: undefined,

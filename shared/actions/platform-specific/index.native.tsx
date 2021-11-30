@@ -413,10 +413,6 @@ function* loadStartupDetails() {
     startupTab = undefined
   }
 
-  // TEMP
-  startupConversation = '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5' // TEMP
-  startupTab = Tabs.chatTab
-
   yield Saga.put(
     ConfigGen.createSetStartupDetails({
       startupConversation,

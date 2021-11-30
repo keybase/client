@@ -57,7 +57,7 @@ PODS:
     - libwebp/demux
   - libwebp/webp (1.2.1)
   - lottie-ios (3.2.3)
-  - lottie-react-native (4.1.3):
+  - lottie-react-native (5.0.1):
     - lottie-ios (~> 3.2.3)
     - React-Core
   - RCT-Folly (2021.06.28.00-v2):
@@ -642,7 +642,7 @@ SPEC CHECKSUMS:
   glog: 5337263514dd6f09803962437687240c5dc39aa4
   libwebp: 98a37e597e40bfdb4c911fc98f2c53d0b12d05fc
   lottie-ios: c058aeafa76daa4cf64d773554bccc8385d0150e
-  lottie-react-native: b561920bba7ec727ec94a473b683cffba00faece
+  lottie-react-native: a029a86e1689c86a07169c520ae770e84348cd20
   RCT-Folly: a21c126816d8025b547704b777a2ba552f3d9fa9
   RCTRequired: 59d2b744d8c2bf2d9bc7032a9f654809adcf7d50
   RCTTypeSafety: d0aaf7ccae5c70a4aaa3a5c3e9e0db97efae760e
