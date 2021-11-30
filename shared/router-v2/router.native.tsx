@@ -22,6 +22,7 @@ import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
 // import {connect} from '../util/container'
 import {NavigationContainer, getFocusedRouteNameFromRoute, CommonActions} from '@react-navigation/native'
 import {useHeaderHeight, getDefaultHeaderHeight, SafeAreaProviderCompat} from '@react-navigation/elements'
+import {TransitionPresets} from '@react-navigation/stack'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 // import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
@@ -532,9 +533,23 @@ const makeNavScreens = (rs, Screen, isModal) => {
         options={({route, navigation}) => {
           const no = rs[name].getScreen().navigationOptions
           const opt = typeof no === 'function' ? no({route, navigation}) : no
+          const skipAnim =
+            route.params?.animationEnabled === undefined
+              ? {}
+              : {
+                  // immediate pop in, default back animation
+                  transitionSpec: {
+                    open: {
+                      animation: 'timing',
+                      config: {duration: 0},
+                    },
+                    close: TransitionPresets.DefaultTransition,
+                  },
+                }
           return {
             ...opt,
             ...(isModal ? {animationEnabled: true} : {}),
+            ...skipAnim,
           }
         }}
       />
@@ -634,11 +649,16 @@ const RNApp = props => {
   })
 
   const showMonster = Container.useSelector(ShowMonsterSelector)
-  const startupConversation = Container.useSelector(
-    state =>
-      ChatConstants.isValidConversationIDKey(state.config.startupConversation) &&
-      state.config.startupConversation
-  )
+  const startupConversation = Container.useSelector(state => {
+    const conversationIDKey = state.config.startupConversation
+    if (
+      ChatConstants.isValidConversationIDKey(conversationIDKey) &&
+      state.config.startupTab === Tabs.chatTab
+    ) {
+      return conversationIDKey
+    }
+    return false
+  })
   const initialRouting = React.useRef(false)
 
   // Load any subscreens we need, couldn't find a great way to do this
@@ -650,7 +670,10 @@ const RNApp = props => {
       } else if (startupConversation) {
         // will already be on the chat tab
         Constants.navigationRef_.dispatch(
-          CommonActions.navigate({name: 'chatConversation', params: {conversationIDKey: startupConversation}})
+          CommonActions.navigate({
+            name: 'chatConversation',
+            params: {conversationIDKey: startupConversation, animationEnabled: false},
+          })
         )
       }
     }
