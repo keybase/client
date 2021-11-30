@@ -18,8 +18,8 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => 
       typeof Original.navigationOptions === 'function'
         ? Original.navigationOptions({navigation: props.navigation, route: props.route})
         : Original.navigationOptions
-
-    const original = <Original {...props} key={Styles.isDarkMode() ? 'dark' : 'light'} />
+    // key={Styles.isDarkMode() ? 'dark' : 'light'}
+    const original = <Original {...props} />
     let body = original
 
     // we try and determine the  offset based on seeing if the header exists

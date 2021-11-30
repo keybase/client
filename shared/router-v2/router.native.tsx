@@ -32,6 +32,7 @@ import Loading from '../login/loading'
 import * as ConfigGen from '../actions/config-gen'
 import * as ConfigConstants from '../constants/config'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as DeeplinksGen from '../actions/deeplinks-gen'
 
 // const Stack = createStackNavigator()
 
@@ -627,9 +628,11 @@ const LoggedOut = () => (
 )
 
 const ConnectNavToRedux = () => {
+  console.log('bbb ConnectNavToRedux rendering ')
   const dispatch = Container.useDispatch()
   const setNavOnce = React.useRef(false)
   React.useEffect(() => {
+    console.log('bbb ConnectNavToRedux useeffect ', setNavOnce.current)
     if (!setNavOnce.current) {
       if (Constants.navigationRef_.isReady()) {
         setNavOnce.current = true
@@ -642,11 +645,12 @@ const ConnectNavToRedux = () => {
         }
       }
     }
-  })
+  }, [setNavOnce])
   return null
 }
 
 // routing we do on first load
+// could possibly move this back into saga land but maybe best to keep this here since its so special
 const InitialRouteSubNav = props => {
   const {initialRouting, onRouted} = props
   console.log('bbb rendering InitialRouteSubNav ')
@@ -654,15 +658,14 @@ const InitialRouteSubNav = props => {
   const dispatch = Container.useDispatch()
   const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
   const startupConversation = Container.useSelector(state => {
-    const conversationIDKey = state.config.startupConversation
-    if (
-      ChatConstants.isValidConversationIDKey(conversationIDKey) &&
+    const {startupConversation} = state.config
+    return ChatConstants.isValidConversationIDKey(startupConversation) &&
       state.config.startupTab === Tabs.chatTab
-    ) {
-      return conversationIDKey
-    }
-    return false
+      ? startupConversation
+      : undefined
   })
+
+  const startupLink = Container.useSelector(state => state.config.startupLink)
 
   // Load any subscreens we need, couldn't find a great way to do this
   React.useEffect(() => {
@@ -671,12 +674,18 @@ const InitialRouteSubNav = props => {
       Constants.navigationRef_.dispatch(CommonActions.navigate({name: 'settingsPushPrompt'}))
     } else if (startupConversation) {
       // will already be on the chat tab
-      Constants.navigationRef_.dispatch(
-        CommonActions.navigate({
-          name: 'chatConversation',
-          params: {conversationIDKey: startupConversation, animationEnabled: false},
-        })
-      )
+      Constants.navigationRef_.dispatch(state => {
+        console.log('bbb startup convo', state)
+        return CommonActions.reset(
+          Container.produce(state, draft => {
+            draft.index = 1
+            draft.routes.push({
+              name: 'chatConversation',
+              params: {conversationIDKey: startupConversation, animationEnabled: false},
+            })
+          })
+        )
+      })
     } else if (startupFollowUser) {
       // will already be on people tab
       Constants.navigationRef_.dispatch(
@@ -685,6 +694,22 @@ const InitialRouteSubNav = props => {
           params: {username: startupFollowUser, animationEnabled: false},
         })
       )
+    } else if (startupLink) {
+      dispatch(DeeplinksGen.createLink({link: startupLink}))
+      // try {
+      // if (
+      // ['keybase://private/', 'keybase://public/', 'keybase://team/'].some(prefix =>
+      // startupLink.startsWith(prefix)
+      // )
+      // ) {
+      // const path = `/keybase/${decodeURIComponent(startupLink.substr('keybase://'.length))}`
+      // Constants.navigationRef_.dispatch(
+      // CommonActions.navigate({
+      // name: 'fsRoot',
+      // params: {animationEnabled: false, path},
+      // })
+      // )
+      // } else {
     }
   })
 
@@ -699,32 +724,67 @@ enum RNAppState {
   INITED, // regular app now
 }
 
+const theme = {
+  dark: false,
+  colors: {
+    get primary() {
+      return Styles.globalColors.fastBlank
+    },
+    get background() {
+      return Styles.globalColors.fastBlank
+    },
+    get card() {
+      return Styles.globalColors.white
+    },
+    get text() {
+      return Styles.globalColors.black
+    },
+    get border() {
+      return Styles.globalColors.black_10
+    },
+    get notification() {
+      return Styles.globalColors.black
+    },
+  },
+}
+
 const RNApp = props => {
   const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
   const dispatch = Container.useDispatch()
   const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
+  // increment key to redraw
+  const [darkModeKey, setDarkModeKey] = React.useState(1)
+  // to maintain state when we force redraw due to dark mode change
+  const preDarkSwitchState = React.useRef()
+  // keep track of diffs for createOnNavChanged
   const oldNavPath = React.useRef<any>([])
+  // keep track if we went to an init route yet or not
   const [rnappState, setRNAppState] = React.useState(RNAppState.UNINIT)
+
+  React.useEffect(() => {
+    preDarkSwitchState.current = Constants.navigationRef_.getRootState()
+    setDarkModeKey(old => old + 1)
+  }, [isDarkMode])
 
   console.log('bbb render nav: ', {loggedIn, loggedInLoaded, rnappState})
 
+  // key={isDarkMode ? 'dark' : 'light'}
   return (
     <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
-      <ConnectNavToRedux />
-      {
-        // loaded and only once and onStateChange called
-        loggedInLoaded && loggedIn && rnappState === RNAppState.NEEDS_INIT && (
-          <InitialRouteSubNav onRouted={() => setRNAppState(RNAppState.INITED)} />
-        )
-      }
       <NavigationContainer
         ref={Constants.navigationRef_}
-        key={isDarkMode ? 'dark' : 'light'}
+        key={String(darkModeKey)}
+        theme={theme}
+        initialState={preDarkSwitchState.current}
         onStateChange={() => {
           const old = oldNavPath.current
           if (!old.length && rnappState === RNAppState.UNINIT) {
-            setRNAppState(RNAppState.NEEDS_INIT)
+            if (loggedInLoaded && loggedIn) {
+              setRNAppState(RNAppState.NEEDS_INIT)
+            } else {
+              setRNAppState(RNAppState.INITED)
+            }
           }
           const vp = Constants.getVisiblePath()
           console.log('bbb onstatechnaged', vp)
@@ -762,6 +822,13 @@ const RNApp = props => {
           )}
         </RootStack.Navigator>
       </NavigationContainer>
+      <ConnectNavToRedux />
+      {
+        // loaded and only once and onStateChange called
+        loggedInLoaded && loggedIn && rnappState === RNAppState.NEEDS_INIT && (
+          <InitialRouteSubNav onRouted={() => setRNAppState(RNAppState.INITED)} />
+        )
+      }
     </Kb.KeyboardAvoidingView>
   )
 }
