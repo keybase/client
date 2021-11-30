@@ -2551,6 +2551,10 @@ const navigateToInbox = (
 
 const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   const {conversationIDKey, reason} = action.payload
+  // don't nav if its caused by a nav
+  if (reason === 'navChanged') {
+    return
+  }
   const visible = Router2Constants.getVisibleScreen()
   const visibleConvo = visible?.params?.conversationIDKey
   const visibleRouteName = visible?.name
@@ -3745,8 +3749,13 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
     ]
   }
 
+  // going into a chat
   if (isChat && Constants.isValidConversationIDKey(isID)) {
-    return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
+    return [
+      ...deselectAction,
+      Chat2Gen.createSelectedConversation({conversationIDKey: isID}),
+      Chat2Gen.createNavigateToThread({conversationIDKey: isID, reason: 'navChanged'}),
+    ]
   }
 
   return false

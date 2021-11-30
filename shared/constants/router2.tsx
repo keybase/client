@@ -184,9 +184,10 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       return [StackActions.push(routeName, params)]
     }
     case RouteTreeGen.switchTab: {
-      return [CommonActions.navigate({name: action.payload.tab})]
+      return [{...CommonActions.navigate({name: action.payload.tab}), target: navigationState.routes[0].key}]
     }
     case RouteTreeGen.switchLoggedIn: {
+      // no longer used
       // return [CommonActions.navigate({name: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]
       return []
     }
@@ -256,7 +257,10 @@ export const dispatchOldAction = (
   }
   const actions = oldActionToNewActions(action, navigationRef_.getRootState()) || []
   try {
-    actions.forEach(a => navigationRef_.dispatch(a))
+    actions.forEach(a => {
+      console.log('aaaa nav dispatchOldAction', a)
+      navigationRef_.dispatch(a)
+    })
   } catch (e) {
     logger.error('Nav error', e)
   }
@@ -304,5 +308,6 @@ export const navToThread = conversationIDKey => {
     chatStack.state.index = 1
     chatStack.state.routes = [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey}}]
   })
-  _getNavigator()?.dispatch(CommonActions.reset(nextState))
+
+  rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState), target: rs.key})
 }

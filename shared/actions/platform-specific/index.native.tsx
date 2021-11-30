@@ -408,9 +408,14 @@ function* loadStartupDetails() {
     }
   }
 
+  // never allow this case
+  if (startupTab === 'blank') {
+    startupTab = undefined
+  }
+
   // TEMP
-  startupConversation = '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5' // TEMP
-  startupTab = Tabs.chatTab
+  // startupConversation = '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5' // TEMP
+  // startupTab = Tabs.chatTab
 
   yield Saga.put(
     ConfigGen.createSetStartupDetails({
@@ -920,7 +925,10 @@ const onSetAudioRecordingPostInfo = async (
 const onPersistRoute = async () => {
   await Container.timeoutPromise(1000)
   const path = RouterConstants.getVisiblePath()
+  // if (path[path.length - 1]?.name !== 'blank') {
   return ConfigGen.createPersistRoute({path})
+  // }
+  // return []
 }
 
 function* checkNav(

@@ -1,4 +1,5 @@
 import * as Constants from '../constants/router2'
+import * as ChatConstants from '../constants/chat2'
 // import * as ConfigGen from '../actions/config-gen'
 // import HiddenString from '../util/hidden-string'
 // import * as LoginGen from '../actions/login-gen'
@@ -19,7 +20,7 @@ import {IconType} from '../common-adapters/icon.constants-gen'
 import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
 // import {Props} from './router'
 // import {connect} from '../util/container'
-import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
+import {NavigationContainer, getFocusedRouteNameFromRoute, CommonActions} from '@react-navigation/native'
 import {useHeaderHeight, getDefaultHeaderHeight, SafeAreaProviderCompat} from '@react-navigation/elements'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 // import {createSwitchNavigator, StackActions} from '@react-navigation/core'
@@ -114,7 +115,7 @@ const TabBarIcon = props => {
     // notifications gets badged on native if there's no push, special case
     onSettings && !pushHasPermissions ? 1 : 0
   )
-  return (
+  return tabToData[routeName] ? (
     <Kb.NativeView style={tabStyles.container}>
       <Kb.Icon
         type={tabToData[routeName].icon}
@@ -125,7 +126,7 @@ const TabBarIcon = props => {
       {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
       {routeName === Tabs.fsTab && <FilesTabBadge />}
     </Kb.NativeView>
-  )
+  ) : null
 }
 
 const settingsTabChildrenPhone: Array<Tabs.Tab> = [
@@ -479,7 +480,7 @@ const styles = Styles.styleSheetCreate(() => ({
 
 // export default RNApp
 const Tab = createBottomTabNavigator()
-const tabs = Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs
+const tabs = [/*'blank', */ ...(Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs)]
 
 // const {routesMinusChatConvo, noTabRoutes} = Object.keys(routes).reduce(
 // (m, k) => {
@@ -547,9 +548,31 @@ const tabBarStyle = {
   },
 }
 
+// const isBlank = name => name === 'blank'
+// const BlankComponent = () => null
+
+const ShowMonsterSelector = (state: Container.TypedState) =>
+  state.config.loggedIn && !state.push.justSignedUp && state.push.showPushPrompt && !state.push.hasPermissions
+
 const AppTabs = () => {
+  let startupTab = Container.useSelector(state => state.config.startupTab)
+  const showMonster = Container.useSelector(ShowMonsterSelector)
+
+  if (showMonster) {
+    startupTab = Tabs.peopleTab
+  }
+
+  console.log('aaa appTab rendering', {startupTab})
+
+  // const initedOnce = React.useRef(false)
+  // React.useEffect(() => {
+  // if (initedOnce.current || !loggedInLoaded) {
+  // return
+  // }
+  // }, [initedOnce.current, loggedInLoaded])
   return (
     <Tab.Navigator
+      initialRouteName={startupTab}
       backBehavior="none"
       screenOptions={({route}) => {
         return {
@@ -561,11 +584,14 @@ const AppTabs = () => {
           tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
           tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
           tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
+          // tabBarButton: isBlank(route.name) ? () => null : undefined,
         }
       }}
     >
       {tabs.map(tab => (
-        <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
+        // isBlank(tab) ? (
+        // <Tab.Screen key={tab} name={tab} component={BlankComponent} />
+        /*) :*/ <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
       ))}
     </Tab.Navigator>
   )
@@ -586,7 +612,7 @@ const LoggedOut = () => (
 
 const RootStack = createStackNavigator()
 const RNApp = props => {
-  const loggedInLoaded = Container.useSelector(state => state.config.loggedInLoaded)
+  const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
   const dispatch = Container.useDispatch()
   const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
@@ -606,7 +632,31 @@ const RNApp = props => {
       }
     }
   })
-  console.log('aaaa render nav isLoggedIn', loggedIn, 'loggedInLoaded', loggedInLoaded)
+
+  const showMonster = Container.useSelector(ShowMonsterSelector)
+  const startupConversation = Container.useSelector(
+    state =>
+      ChatConstants.isValidConversationIDKey(state.config.startupConversation) &&
+      state.config.startupConversation
+  )
+  const initialRouting = React.useRef(false)
+
+  // Load any subscreens we need, couldn't find a great way to do this
+  React.useEffect(() => {
+    if (loggedInLoaded && loggedIn && !initialRouting.current) {
+      initialRouting.current = true
+      if (showMonster) {
+        Constants.navigationRef_.dispatch(CommonActions.navigate({name: 'settingsPushPrompt'}))
+      } else if (startupConversation) {
+        // will already be on the chat tab
+        Constants.navigationRef_.dispatch(
+          CommonActions.navigate({name: 'chatConversation', params: {conversationIDKey: startupConversation}})
+        )
+      }
+    }
+  }, [loggedInLoaded, loggedIn, initialRouting, showMonster, startupConversation])
+
+  console.log('bbb render nav: ', {loggedIn, loggedInLoaded, showMonster})
 
   return (
     <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
@@ -627,6 +677,7 @@ const RNApp = props => {
         }}
       >
         <RootStack.Navigator
+          key="root"
           screenOptions={{
             animationEnabled: false,
             presentation: 'modal',

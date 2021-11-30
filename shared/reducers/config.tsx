@@ -48,7 +48,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     defaultUsername: draftState.defaultUsername,
     logoutHandshakeVersion: draftState.logoutHandshakeVersion,
     logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,
-    loggedInLoaded: draftState.loggedInLoaded,
+    // loggedInLoaded: draftState.loggedInLoaded,
     menubarWindowID: draftState.menubarWindowID,
     pushLoaded: draftState.pushLoaded,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
@@ -159,7 +159,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.deviceID = action.payload.deviceID
     draftState.deviceName = action.payload.deviceName
     draftState.loggedIn = action.payload.loggedIn
-    draftState.loggedInLoaded = true
     draftState.registered = action.payload.registered
     draftState.uid = action.payload.uid
     draftState.username = action.payload.username
@@ -175,11 +174,11 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.loggedIn]: draftState => {
     draftState.loggedIn = true
-    draftState.loggedInLoaded = true
+    // draftState.loggedInLoaded = true
   },
   [ConfigGen.loggedOut]: draftState => {
     draftState.loggedIn = false
-    draftState.loggedInLoaded = true
+    // draftState.loggedInLoaded = true
   },
   [EngineGen.keybase1NotifyTrackingTrackingChanged]: (draftState, action) => {
     const {isTracking, username} = action.payload.params
