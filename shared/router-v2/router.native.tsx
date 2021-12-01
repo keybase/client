@@ -373,16 +373,22 @@ const tabStyles = Styles.styleSheetCreate(
 // }
 // )
 
-const SimpleLoading = () => (
-  <Kb.Box2
-    direction="vertical"
-    fullHeight={true}
-    fullWidth={true}
-    style={{backgroundColor: Styles.globalColors.white}}
-  >
-    <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
-  </Kb.Box2>
-)
+const SimpleLoading = React.memo(() => {
+  console.log('bbb simle loading render')
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      style={{
+        backgroundColor: Styles.globalColors.white,
+        // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
+      }}
+    >
+      <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
+    </Kb.Box2>
+  )
+})
 
 // const Stack = createStackNavigator();
 
@@ -571,15 +577,15 @@ const ShowMonsterSelector = (state: Container.TypedState) =>
   state.config.loggedIn && !state.push.justSignedUp && state.push.showPushPrompt && !state.push.hasPermissions
 
 const AppTabs = () => {
-  let startupTab = Container.useSelector(state => state.config.startupTab)
-  const showMonster = Container.useSelector(ShowMonsterSelector)
-  const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
+  // let startupTab = Container.useSelector(state => state.config.startupTab)
+  // const showMonster = Container.useSelector(ShowMonsterSelector)
+  // const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
 
-  if (showMonster || startupFollowUser) {
-    startupTab = Tabs.peopleTab
-  }
+  // if (showMonster || startupFollowUser) {
+  // startupTab = Tabs.peopleTab
+  // }
 
-  console.log('aaa appTab rendering', {startupTab})
+  console.log('aaa appTab rendering') //, {startupTab})
 
   // const initedOnce = React.useRef(false)
   // React.useEffect(() => {
@@ -587,9 +593,9 @@ const AppTabs = () => {
   // return
   // }
   // }, [initedOnce.current, loggedInLoaded])
+  // initialRouteName={startupTab}
   return (
     <Tab.Navigator
-      initialRouteName={startupTab}
       backBehavior="none"
       screenOptions={({route}) => {
         return {
@@ -651,70 +657,71 @@ const ConnectNavToRedux = () => {
 
 // routing we do on first load
 // could possibly move this back into saga land but maybe best to keep this here since its so special
-const InitialRouteSubNav = props => {
-  const {initialRouting, onRouted} = props
-  console.log('bbb rendering InitialRouteSubNav ')
-  const showMonster = Container.useSelector(ShowMonsterSelector)
-  const dispatch = Container.useDispatch()
-  const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
-  const startupConversation = Container.useSelector(state => {
-    const {startupConversation} = state.config
-    return ChatConstants.isValidConversationIDKey(startupConversation) &&
-      state.config.startupTab === Tabs.chatTab
-      ? startupConversation
-      : undefined
-  })
+// const InitialRouteSubNav = props => {
+// const {initialRouting, onRouted} = props
+// console.log('bbb rendering InitialRouteSubNav ')
+// const showMonster = Container.useSelector(ShowMonsterSelector)
+// const dispatch = Container.useDispatch()
+// const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
+// const startupConversation = Container.useSelector(state => {
+// const {startupConversation} = state.config
+// return ChatConstants.isValidConversationIDKey(startupConversation) &&
+// state.config.startupTab === Tabs.chatTab
+// ? startupConversation
+// : undefined
+// })
 
-  const startupLink = Container.useSelector(state => state.config.startupLink)
+// const startupLink = Container.useSelector(state => state.config.startupLink)
 
-  // Load any subscreens we need, couldn't find a great way to do this
-  React.useEffect(() => {
-    onRouted()
-    if (showMonster) {
-      Constants.navigationRef_.dispatch(CommonActions.navigate({name: 'settingsPushPrompt'}))
-    } else if (startupConversation) {
-      // will already be on the chat tab
-      Constants.navigationRef_.dispatch(state => {
-        console.log('bbb startup convo', state)
-        return CommonActions.reset(
-          Container.produce(state, draft => {
-            draft.index = 1
-            draft.routes.push({
-              name: 'chatConversation',
-              params: {conversationIDKey: startupConversation, animationEnabled: false},
-            })
-          })
-        )
-      })
-    } else if (startupFollowUser) {
-      // will already be on people tab
-      Constants.navigationRef_.dispatch(
-        CommonActions.navigate({
-          name: 'profile',
-          params: {username: startupFollowUser, animationEnabled: false},
-        })
-      )
-    } else if (startupLink) {
-      dispatch(DeeplinksGen.createLink({link: startupLink}))
-      // try {
-      // if (
-      // ['keybase://private/', 'keybase://public/', 'keybase://team/'].some(prefix =>
-      // startupLink.startsWith(prefix)
-      // )
-      // ) {
-      // const path = `/keybase/${decodeURIComponent(startupLink.substr('keybase://'.length))}`
-      // Constants.navigationRef_.dispatch(
-      // CommonActions.navigate({
-      // name: 'fsRoot',
-      // params: {animationEnabled: false, path},
-      // })
-      // )
-      // } else {
-    }
-  })
+// // Load any subscreens we need, couldn't find a great way to do this
+// React.useEffect(() => {
+// onRouted()
+// if (showMonster) {
+// Constants.navigationRef_.dispatch(CommonActions.navigate({name: 'settingsPushPrompt'}))
+// } else if (startupConversation) {
+// return // TEMP
+// // will already be on the chat tab
+// // Constants.navigationRef_.dispatch(state => {
+// // console.log('bbb startup convo', state)
+// // return CommonActions.reset(
+// // Container.produce(state, draft => {
+// // draft.index = 1
+// // draft.routes.push({
+// // name: 'chatConversation',
+// // params: {conversationIDKey: startupConversation, animationEnabled: false},
+// // })
+// // })
+// // )
+// // })
+// } else if (startupFollowUser) {
+// // will already be on people tab
+// Constants.navigationRef_.dispatch(
+// CommonActions.navigate({
+// name: 'profile',
+// params: {username: startupFollowUser, animationEnabled: false},
+// })
+// )
+// } else if (startupLink) {
+// dispatch(DeeplinksGen.createLink({link: startupLink}))
+// // try {
+// // if (
+// // ['keybase://private/', 'keybase://public/', 'keybase://team/'].some(prefix =>
+// // startupLink.startsWith(prefix)
+// // )
+// // ) {
+// // const path = `/keybase/${decodeURIComponent(startupLink.substr('keybase://'.length))}`
+// // Constants.navigationRef_.dispatch(
+// // CommonActions.navigate({
+// // name: 'fsRoot',
+// // params: {animationEnabled: false, path},
+// // })
+// // )
+// // } else {
+// }
+// })
 
-  return null
-}
+// return null
+// }
 
 const RootStack = createStackNavigator()
 
@@ -728,13 +735,13 @@ const theme = {
   dark: false,
   colors: {
     get primary() {
-      return Styles.globalColors.fastBlank
+      return 'blue' // Styles.globalColors.fastBlank
     },
     get background() {
-      return Styles.globalColors.fastBlank
+      return 'green' // Styles.globalColors.fastBlank
     },
     get card() {
-      return Styles.globalColors.white
+      return 'red' // Styles.globalColors.white
     },
     get text() {
       return Styles.globalColors.black
@@ -748,58 +755,239 @@ const theme = {
   },
 }
 
+const makeLinking = options => {
+  let {startupTab, showMonster, startupFollowUser, startupConversation} = options
+  // let startupTab = Container.useSelector(state => state.config.startupTab)
+  // const showMonster = Container.useSelector(ShowMonsterSelector)
+  // const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
+
+  if (showMonster || startupFollowUser) {
+    startupTab = Tabs.peopleTab
+  }
+
+  return {
+    prefixes: ['keybase://', 'https://keybase.io'],
+
+    // Custom function to get the URL which was used to open the app
+    async getInitialURL() {
+      // First, you may want to do the default deep link handling
+      // Check if app was opened from a deep link
+      const url = await Kb.NativeLinking.getInitialURL()
+
+      console.log('bbbb linking get initial', {url})
+
+      if (url != null) {
+        return url
+      }
+
+      console.log('bbbb linking get initial startuptab', options)
+      if (startupConversation) {
+        // return `keybase://loggedIn/${startupTab}/chatRoot/chatConversation?conversationIDKey=${startupConversation}`
+        // debugger
+        return `keybase://chat?conversationIDKey=${startupConversation}`
+        // TODO support actual existing chat links
+        //keybase://chat/${conv}/${messageID}`
+      }
+      return `keybase://${startupTab ?? ''}`
+    },
+
+    // Custom function to subscribe to incoming links
+    subscribe(listener) {
+      // Listen to incoming links from deep linking
+      const unsub = Kb.NativeLinking.addEventListener('url', ({url}: {url: string}) => listener(url))
+      return () => {
+        unsub.remove()
+      }
+    },
+
+    config: {
+      screens: {
+        loggedIn: {
+          screens: {
+            ...tabs.reduce((m, name) => {
+              m[name] = name
+              return m
+            }, {}),
+            [Tabs.chatTab]: {
+              initialRouteName: 'chatRoot',
+              screens: {
+                chatConversation: 'chat',
+                chatRoot: '*',
+              },
+            },
+          },
+        },
+      },
+    },
+  }
+}
+
 const RNApp = props => {
+  // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
+  // if we use useEffect and useState we'll have to deal with extra renders which look really bad
   const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
   const dispatch = Container.useDispatch()
+  const startupTab = Container.useSelector(state => state.config.startupTab)
+  const startupConversation = Container.useSelector(state => {
+    const {startupConversation} = state.config
+    return ChatConstants.isValidConversationIDKey(startupConversation) &&
+      state.config.startupTab === Tabs.chatTab
+      ? startupConversation
+      : undefined
+  })
+  const showMonster = Container.useSelector(ShowMonsterSelector)
+  const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
   const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
-  // increment key to redraw
-  const [darkModeKey, setDarkModeKey] = React.useState(1)
-  // to maintain state when we force redraw due to dark mode change
-  const preDarkSwitchState = React.useRef()
-  // keep track of diffs for createOnNavChanged
+  const navContainerKey = React.useRef(1)
   const oldNavPath = React.useRef<any>([])
   // keep track if we went to an init route yet or not
-  const [rnappState, setRNAppState] = React.useState(RNAppState.UNINIT)
+  const rnappState = React.useRef(loggedInLoaded ? RNAppState.NEEDS_INIT : RNAppState.UNINIT)
 
-  React.useEffect(() => {
-    preDarkSwitchState.current = Constants.navigationRef_.getRootState()
-    setDarkModeKey(old => old + 1)
-  }, [isDarkMode])
+  if (rnappState.current === RNAppState.UNINIT && loggedInLoaded) {
+    rnappState.current = RNAppState.NEEDS_INIT
+  }
 
-  console.log('bbb render nav: ', {loggedIn, loggedInLoaded, rnappState})
+  const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
+  if (darkChanged) {
+    navContainerKey.current++
+  }
+  // we only send certain params to the container depending on the state so we can remount w/ the right data
+  // instead of using useEffect and flashing all the time
+  // we use linking and force a key change if we're in NEEDS_INIT
+  // while inited we cna use initialStateRef when dark mode changes, we never want both at the same time
+  const goodLinking =
+    rnappState.current === RNAppState.NEEDS_INIT
+      ? makeLinking({
+          startupConversation,
+          startupTab,
+          showMonster,
+          startupFollowUser,
+        })
+      : undefined
+  const goodKey = rnappState.current === RNAppState.NEEDS_INIT ? -1 : navContainerKey.current
+
+  const goodInitialState = darkChanged
+    ? Constants.navigationRef_?.isReady()
+      ? Constants.navigationRef_?.getRootState()
+      : undefined
+    : undefined
+
+  console.log('bbb RNApp render', {
+    rnappState: rnappState.current,
+    goodLinking,
+    goodKey,
+    goodInitialState,
+    darkChanged,
+    loggedIn,
+    loggedInLoaded,
+  })
+
+  // if we handled NEEDS_INIT we're done
+  if (rnappState.current === RNAppState.NEEDS_INIT) {
+    rnappState.current = RNAppState.INITED
+  }
+
+  // when dark changes we force a render
+  // Container.useDepChangeEffect(() => {
+  // initialStateRef.current = Constants.navigationRef_.getRootState()
+  // console.log('bbb rnapp use effect dark', {isDarkMode, initialStateRef: initialStateRef.current})
+  // setNavContainerKey(old => old + 1)
+  // }, [isDarkMode])
+
+  // force a remount if we actually loaded up our state so we can handling linking
+  // Container.useDepChangeEffect(() => {
+  // console.log('bbb rnapp use effect loggedInLoaded', {loggedInLoaded})
+  // if (loggedInLoaded) {
+  // setNavContainerKey(old => old + 1)
+  // }
+  // }, [loggedInLoaded])
+  // Container.useDepChangeEffect(() => {
+  // if (rnappState === RNAppState.NEEDS_INIT) {
+  // console.log('bbb rnapp use effect init')
+  // initialStateRef.current = {
+  // index: 0,
+  // routes: [
+  // {
+  // name: 'loggedIn',
+  // state: {
+  // // chat tab
+  // index: 1,
+  // routes: [
+  // {name: Tabs.peopleTab},
+  // {
+  // name: Tabs.chatTab,
+  // state: {
+  // index: 1,
+  // routes: [
+  // {
+  // name: 'chatRoot',
+  // },
+  // {
+  // name: 'chatConversation',
+  // params: {
+  // conversationIDKey:
+  // '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5',
+  // },
+  // },
+  // ],
+  // },
+  // },
+  // ],
+  // },
+  // },
+  // ],
+  // }
+  // setNavContainerKey(old => old + 1)
+  // }
+  // }, [rnappState])
+
+  // console.log('bbb render nav: ', [>, rnappState<])
 
   // key={isDarkMode ? 'dark' : 'light'}
+  //
+  const onStateChange = () => {
+    const old = oldNavPath.current
+    // if (!old.length && rnappState === RNAppState.UNINIT) {
+    // if (loggedInLoaded && loggedIn) {
+    // setRNAppState(RNAppState.NEEDS_INIT)
+    // } else {
+    // setRNAppState(RNAppState.INITED)
+    // }
+    // }
+    const vp = Constants.getVisiblePath()
+    console.log('bbb onstatechnaged', vp)
+    dispatch(
+      RouteTreeGen.createOnNavChanged({
+        navAction: undefined,
+        next: vp,
+        prev: old,
+      })
+    )
+    oldNavPath.current = vp
+  }
+
+  // send onNavChanged on initial render after handling linking
+  React.useEffect(() => {
+    if (goodLinking) {
+      console.log('bbb use effect good linking onstatechange')
+      setTimeout(() => onStateChange(), 1)
+    }
+  }, [goodLinking])
   return (
     <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
       <NavigationContainer
+        fallback={<Kb.NativeView style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
+        linking={goodLinking}
         ref={Constants.navigationRef_}
-        key={String(darkModeKey)}
+        key={String(goodKey)}
         theme={theme}
-        initialState={preDarkSwitchState.current}
-        onStateChange={() => {
-          const old = oldNavPath.current
-          if (!old.length && rnappState === RNAppState.UNINIT) {
-            if (loggedInLoaded && loggedIn) {
-              setRNAppState(RNAppState.NEEDS_INIT)
-            } else {
-              setRNAppState(RNAppState.INITED)
-            }
-          }
-          const vp = Constants.getVisiblePath()
-          console.log('bbb onstatechnaged', vp)
-          dispatch(
-            RouteTreeGen.createOnNavChanged({
-              navAction: undefined,
-              next: vp,
-              prev: old,
-            })
-          )
-          oldNavPath.current = vp
-        }}
+        initialState={goodInitialState}
+        onStateChange={onStateChange}
       >
         <RootStack.Navigator
           key="root"
+          initialRouteName="loading"
           screenOptions={{
             animationEnabled: false,
             presentation: 'modal',
@@ -808,26 +996,22 @@ const RNApp = props => {
             headerShown: false, // eventually do this after we pull apart modal2 etc
           }}
         >
-          {loggedInLoaded ? (
-            loggedIn ? (
-              <>
-                <RootStack.Screen name="loggedIn" component={AppTabs} />
-                {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true)}
-              </>
-            ) : (
-              <RootStack.Screen name="loggedOut" component={LoggedOut} />
-            )
-          ) : (
-            <RootStack.Screen name="loading" component={SimpleLoading} />
+          <RootStack.Screen key="loading" name="loading" component={SimpleLoading} />
+          {loggedInLoaded && loggedIn && (
+            <>
+              <RootStack.Screen name="loggedIn" component={AppTabs} />
+              {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true)}
+            </>
           )}
+          {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
         </RootStack.Navigator>
       </NavigationContainer>
       <ConnectNavToRedux />
       {
         // loaded and only once and onStateChange called
-        loggedInLoaded && loggedIn && rnappState === RNAppState.NEEDS_INIT && (
+        /*loggedInLoaded && loggedIn && rnappState === RNAppState.NEEDS_INIT && (
           <InitialRouteSubNav onRouted={() => setRNAppState(RNAppState.INITED)} />
-        )
+          )*/
       }
     </Kb.KeyboardAvoidingView>
   )
