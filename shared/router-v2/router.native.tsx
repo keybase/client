@@ -20,7 +20,12 @@ import {IconType} from '../common-adapters/icon.constants-gen'
 import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
 // import {Props} from './router'
 // import {connect} from '../util/container'
-import {NavigationContainer, getFocusedRouteNameFromRoute, CommonActions} from '@react-navigation/native'
+import {
+  NavigationContainer,
+  getFocusedRouteNameFromRoute,
+  CommonActions,
+  getStateFromPath,
+} from '@react-navigation/native'
 import {useHeaderHeight, getDefaultHeaderHeight, SafeAreaProviderCompat} from '@react-navigation/elements'
 import {TransitionPresets} from '@react-navigation/stack'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
@@ -757,6 +762,13 @@ const theme = {
 
 const makeLinking = options => {
   let {startupTab, showMonster, startupFollowUser, startupConversation} = options
+  // TEMP
+  // startupConversation = '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5' // TEMP
+  // startupConversation = ''
+  // startupTab = Tabs.chatTab
+  // showMonster = true
+  // TEMP
+  //
   // let startupTab = Container.useSelector(state => state.config.startupTab)
   // const showMonster = Container.useSelector(ShowMonsterSelector)
   // const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
@@ -780,8 +792,17 @@ const makeLinking = options => {
         return url
       }
 
-      console.log('bbbb linking get initial startuptab', options)
-      if (startupConversation) {
+      console.log('bbbb linking get initial startuptab', {
+        startupTab,
+        showMonster,
+        startupFollowUser,
+        startupConversation,
+      })
+
+      if (showMonster) {
+        return 'keybase://settingsPushPrompt'
+        // Constants.navigationRef_.dispatch(CommonActions.navigate({name: 'settingsPushPrompt'}))
+      } else if (startupConversation) {
         // return `keybase://loggedIn/${startupTab}/chatRoot/chatConversation?conversationIDKey=${startupConversation}`
         // debugger
         return `keybase://chat?conversationIDKey=${startupConversation}`
@@ -801,7 +822,9 @@ const makeLinking = options => {
     },
 
     config: {
+      initialRouteName: 'loggedIn',
       screens: {
+        initialRouteName: 'loggedIn',
         loggedIn: {
           screens: {
             ...tabs.reduce((m, name) => {
@@ -812,13 +835,26 @@ const makeLinking = options => {
               initialRouteName: 'chatRoot',
               screens: {
                 chatConversation: 'chat',
-                chatRoot: '*',
+                chatRoot: Tabs.chatTab,
               },
             },
           },
         },
+        settingsPushPrompt: 'settingsPushPrompt',
       },
     },
+    // getStateFromPath: (path, options) => {
+    // let def = getStateFromPath(path, options)
+    // if (path === 'settingsPushPrompt') {
+    // def = Container.produce(def, draft => {
+    // draft.index = 1
+    // draft.unshift({name: 'loggedIn'})
+    // })
+    // }
+    // return def
+    // // Return a state object here
+    // // You can also reuse the default logic by importing `getStateFromPath` from `@react-navigation/native`
+    // },
   }
 }
 
@@ -888,73 +924,8 @@ const RNApp = props => {
     rnappState.current = RNAppState.INITED
   }
 
-  // when dark changes we force a render
-  // Container.useDepChangeEffect(() => {
-  // initialStateRef.current = Constants.navigationRef_.getRootState()
-  // console.log('bbb rnapp use effect dark', {isDarkMode, initialStateRef: initialStateRef.current})
-  // setNavContainerKey(old => old + 1)
-  // }, [isDarkMode])
-
-  // force a remount if we actually loaded up our state so we can handling linking
-  // Container.useDepChangeEffect(() => {
-  // console.log('bbb rnapp use effect loggedInLoaded', {loggedInLoaded})
-  // if (loggedInLoaded) {
-  // setNavContainerKey(old => old + 1)
-  // }
-  // }, [loggedInLoaded])
-  // Container.useDepChangeEffect(() => {
-  // if (rnappState === RNAppState.NEEDS_INIT) {
-  // console.log('bbb rnapp use effect init')
-  // initialStateRef.current = {
-  // index: 0,
-  // routes: [
-  // {
-  // name: 'loggedIn',
-  // state: {
-  // // chat tab
-  // index: 1,
-  // routes: [
-  // {name: Tabs.peopleTab},
-  // {
-  // name: Tabs.chatTab,
-  // state: {
-  // index: 1,
-  // routes: [
-  // {
-  // name: 'chatRoot',
-  // },
-  // {
-  // name: 'chatConversation',
-  // params: {
-  // conversationIDKey:
-  // '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5',
-  // },
-  // },
-  // ],
-  // },
-  // },
-  // ],
-  // },
-  // },
-  // ],
-  // }
-  // setNavContainerKey(old => old + 1)
-  // }
-  // }, [rnappState])
-
-  // console.log('bbb render nav: ', [>, rnappState<])
-
-  // key={isDarkMode ? 'dark' : 'light'}
-  //
   const onStateChange = () => {
     const old = oldNavPath.current
-    // if (!old.length && rnappState === RNAppState.UNINIT) {
-    // if (loggedInLoaded && loggedIn) {
-    // setRNAppState(RNAppState.NEEDS_INIT)
-    // } else {
-    // setRNAppState(RNAppState.INITED)
-    // }
-    // }
     const vp = Constants.getVisiblePath()
     console.log('bbb onstatechnaged', vp)
     dispatch(
@@ -987,7 +958,7 @@ const RNApp = props => {
       >
         <RootStack.Navigator
           key="root"
-          initialRouteName="loading"
+          initialRouteName={loggedIn ? 'loggedIn' : 'loggedOut' /* in case linking fails */}
           screenOptions={{
             animationEnabled: false,
             presentation: 'modal',
