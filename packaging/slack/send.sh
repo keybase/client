@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e -u -o pipefail # Fail on error
+set -e -u -o -x pipefail # Fail on error
 
 # Outputs to slack if you have slackbot installed and SLACK_TOKEN and
 # SLACK_CHANNEL set. This is primarily for build boxes.
