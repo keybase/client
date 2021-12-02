@@ -184,7 +184,9 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       return [StackActions.push(routeName, params)]
     }
     case RouteTreeGen.switchTab: {
-      return [{...CommonActions.navigate({name: action.payload.tab}), target: navigationState.routes[0].key}]
+      return [
+        {...CommonActions.navigate({name: action.payload.tab}), target: navigationState.routes[0].state.key},
+      ]
     }
     case RouteTreeGen.switchLoggedIn: {
       // no longer used

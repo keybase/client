@@ -104,7 +104,11 @@ static void InitializeFlipper(UIApplication *application) {
   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
                                                    moduleName:@"Keybase"
                                             initialProperties:nil];
-  rootView.backgroundColor = [UIColor colorWithWhite:0.f alpha:0.f];
+  if (@available(iOS 13.0, *)) {
+        rootView.backgroundColor = [UIColor systemBackgroundColor];
+    } else {
+        rootView.backgroundColor = [UIColor whiteColor];
+    }
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
@@ -170,21 +174,10 @@ static void InitializeFlipper(UIApplication *application) {
   });
 }
 
-// Required to register for notifications
-- (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings
-{
-  [RNCPushNotificationIOS didRegisterUserNotificationSettings:notificationSettings];
-}
 // Required for the register event.
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
 {
-  [RNCPushNotificationIOS didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
-}
-
-// Required for the notification event.
-- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification
-{
-  [RNCPushNotificationIOS didReceiveRemoteNotification:notification];
+ [RNCPushNotificationIOS didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
 }
 
 // Require for handling silent notifications
@@ -222,22 +215,18 @@ static void InitializeFlipper(UIApplication *application) {
     completionHandler(UIBackgroundFetchResultNewData);
   }
 }
+
 // Required for the registrationError event.
 - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
 {
-  [RNCPushNotificationIOS didFailToRegisterForRemoteNotificationsWithError:error];
+ [RNCPushNotificationIOS didFailToRegisterForRemoteNotificationsWithError:error];
 }
-// Required for the localNotification event.
-- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
-{
-  [RNCPushNotificationIOS didReceiveLocalNotification:notification];
-}
-
 // Required for localNotification event
--(void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+didReceiveNotificationResponse:(UNNotificationResponse *)response
+         withCompletionHandler:(void (^)(void))completionHandler
 {
-  completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionAlert | UNNotificationPresentationOptionBadge);
-  //[RNCPushNotificationIOS didReceiveNotificationResponse:response];
+  [RNCPushNotificationIOS didReceiveNotificationResponse:response];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
@@ -326,18 +315,19 @@ static void InitializeFlipper(UIApplication *application) {
   }
 }
 
-- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url
-  sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
+- (BOOL)application:(UIApplication *)application
+   openURL:(NSURL *)url
+   options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
-  return [RCTLinkingManager application:application openURL:url
-                      sourceApplication:sourceApplication annotation:annotation];
+  return [RCTLinkingManager application:application openURL:url options:options];
 }
 
-- (BOOL) application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
+- (BOOL)application:(UIApplication *)application continueUserActivity:(nonnull NSUserActivity *)userActivity
+ restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
 {
-    return [RCTLinkingManager application:application
-                     continueUserActivity:userActivity
-                       restorationHandler:restorationHandler];
+ return [RCTLinkingManager application:application
+                  continueUserActivity:userActivity
+                    restorationHandler:restorationHandler];
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application
@@ -369,12 +359,12 @@ RNHWKeyboardEvent *hwKeyEvent = nil;
 
 - (void)sendEnter:(UIKeyCommand *)sender {
   // Detects user pressing the enter key
-  NSString *selected = sender.input;
+  //NSString *selected = sender.input;
   [hwKeyEvent sendHWKeyEvent:@"enter"];
 }
 - (void)sendShiftEnter:(UIKeyCommand *)sender {
 // Detects user pressing the shift-enter combination
-  NSString *selected = sender.input;
+  //NSString *selected = sender.input;
   [hwKeyEvent sendHWKeyEvent:@"shift-enter"];
 }
 

@@ -21,7 +21,8 @@ import Loading from '../login/loading'
 import * as ConfigGen from '../actions/config-gen'
 import * as ConfigConstants from '../constants/config'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as DeeplinksGen from '../actions/deeplinks-gen'
+// import * as DeeplinksGen from '../actions/deeplinks-gen'
+import {isValidLink} from '../constants/deeplinks'
 
 enableFreeze()
 
@@ -360,14 +361,6 @@ const useConnectNavToRedux = () => {
   }, [setNavOnce])
 }
 
-// } else if (startupFollowUser) {
-// // will already be on people tab
-// Constants.navigationRef_.dispatch(
-// CommonActions.navigate({
-// name: 'profile',
-// params: {username: startupFollowUser, animationEnabled: false},
-// })
-// )
 // } else if (startupLink) {
 // dispatch(DeeplinksGen.createLink({link: startupLink}))
 // // try {
@@ -485,7 +478,7 @@ const makeLinking = options => {
 
       console.log('bbbb linking get initial', {url})
 
-      if (url != null) {
+      if (url != null && isValidLink(url)) {
         return url
       }
 
