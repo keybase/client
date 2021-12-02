@@ -230,6 +230,18 @@ const styles = Styles.styleSheetCreate(() => ({
 const Tab = createBottomTabNavigator()
 const tabs = [...(Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs)]
 
+const fastTransitionSpec = {
+  animation: 'spring',
+  config: {
+    stiffness: 1000,
+    damping: 500,
+    mass: 0.3,
+    overshootClamping: true,
+    restDisplacementThreshold: 10,
+    restSpeedThreshold: 10,
+  },
+}
+
 // so we have a stack per tab?
 const tabToStack = new Map()
 const makeTabStack = tab => {
@@ -247,6 +259,10 @@ const makeTabStack = tab => {
           initialRouteName={tabRoots[tab]}
           screenOptions={{
             ...defaultNavigationOptions,
+            transitionSpec: {
+              open: fastTransitionSpec,
+              close: fastTransitionSpec,
+            },
           }}
         >
           {makeNavScreens(Shim.shim(routes, false), S.Screen, false)}
