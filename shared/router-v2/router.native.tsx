@@ -521,7 +521,9 @@ const makeLinking = options => {
       })
 
       // allow deep links sagas access to the first link
-      setTimeout(() => dispatch(DeeplinksGen.createLink({link: url})), 1)
+      if (DeeplinksConstants.isValidLink(url)) {
+        setTimeout(() => dispatch(DeeplinksGen.createLink({link: url})), 1)
+      }
       return url
     },
     config,
