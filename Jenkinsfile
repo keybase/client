@@ -7,13 +7,20 @@ helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-help
 def withKbweb(closure) {
   try {
     withEnv(["COMPOSE_HTTP_TIMEOUT=120"]) {
-      retry(5) {
-        sh "docker-compose down"
-        sh "docker-compose up -d mysql.local"
+      withCredentials([
+        string(credentialsId: 's3-secrets-access-key-id', variable: 'S3_SECRETS_ACCESS_KEY_ID'),
+        string(credentialsId: 's3-secrets-secret-access-key', variable: 'S3_SECRETS_SECRET_ACCESS_KEY'),
+      ]) {
+        // Coyne: I logged this next line to confirm it was coming through
+        // println "Using S3 Secrets AccessKeyID with length = ${env.S3_SECRETS_ACCESS_KEY_ID.length()}"
+        retry(5) {
+          sh "docker-compose down"
+          sh "docker-compose up -d mysql.local"
+        }
+        // Give MySQL a few seconds to start up.
+        sleep(10)
+        sh "docker-compose up -d kbweb.local"
       }
-      // Give MySQL a few seconds to start up.
-      sleep(10)
-      sh "docker-compose up -d kbweb.local"
     }
 
     closure()
