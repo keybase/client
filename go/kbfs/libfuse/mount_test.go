@@ -1969,6 +1969,7 @@ func TestSetattrFileMtime(t *testing.T) {
 }
 
 func TestSetattrFileMtimeAfterWrite(t *testing.T) {
+	t.Skip()
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	defer testCleanupDelayer(ctx, t)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")

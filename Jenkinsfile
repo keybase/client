@@ -147,7 +147,7 @@ helpers.rootLinuxNode(env, {
     stage("Test") {
       withKbweb() {
         parallel (
-          failFast: true,
+          failFast: false, // true,
           test_linux: {
             def packagesToTest = [:]
             if (hasGoChanges || hasJenkinsfileChanges) {
@@ -169,7 +169,7 @@ helpers.rootLinuxNode(env, {
               fetchChangeTarget()
             }
             parallel (
-              failFast: true,
+              failFast: false, //true,
               test_xcompilation: { withEnv([
                 "PATH=${env.PATH}:${env.GOPATH}/bin",
               ]) {
@@ -416,7 +416,7 @@ def testGo(prefix, packagesToTest, hasKBFSChanges) {
     test_go_test_suite: {
       testGoTestSuite(prefix, packagesToTest)
     },
-    failFast: true
+    failFast: false// true
   )
   }}
 }
@@ -806,7 +806,7 @@ def executeInWorkers(numWorkers, runFirstItemAlone, queue) {
       }
     }
   }
-  workers.failFast = true
+  workers.failFast = false //true
   parallel(workers)
 }
 
