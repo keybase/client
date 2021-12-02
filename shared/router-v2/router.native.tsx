@@ -426,10 +426,10 @@ const theme = {
 const makeLinking = options => {
   let {startupTab, showMonster, startupFollowUser, startupConversation} = options
   // TEMP
-  startupFollowUser = 'chrisnojima'
+  // startupFollowUser = 'chrisnojima'
   // startupConversation = '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5' // TEMP
   // startupConversation = ''
-  // startupTab = Tabs.chatTab
+  // startupTab = Tabs.fsTab
   // showMonster = true
   // TEMP
   //
@@ -440,6 +440,35 @@ const makeLinking = options => {
   // if (showMonster || startupFollowUser) {
   // startupTab = Tabs.peopleTab
   // }
+
+  const config = Container.produce(
+    {
+      initialRouteName: 'loggedIn',
+      screens: {
+        initialRouteName: 'loggedIn',
+        loggedIn: {
+          screens: {
+            ...tabs.reduce((m, name) => {
+              // m[name] = name
+              m[name] = {
+                initialRouteName: tabRoots[name],
+                screens: {
+                  [tabRoots[name]]: name,
+                },
+              }
+              return m
+            }, {}),
+          },
+        },
+        settingsPushPrompt: 'settingsPushPrompt',
+      },
+    },
+    draft => {
+      const {screens} = draft.screens.loggedIn
+      screens[Tabs.chatTab].screens.chatConversation = 'chat'
+      screens[Tabs.peopleTab].screens.profile = 'profile/show/:username'
+    }
+  )
 
   return {
     prefixes: ['keybase://', 'https://keybase.io'],
@@ -480,46 +509,15 @@ const makeLinking = options => {
 
       return url
     },
-
     // Custom function to subscribe to incoming links
-    subscribe(listener) {
-      // Listen to incoming links from deep linking
-      const unsub = Kb.NativeLinking.addEventListener('url', ({url}: {url: string}) => listener(url))
-      return () => {
-        unsub.remove()
-      }
-    },
-
-    config: {
-      initialRouteName: 'loggedIn',
-      screens: {
-        initialRouteName: 'loggedIn',
-        loggedIn: {
-          screens: {
-            ...tabs.reduce((m, name) => {
-              m[name] = name
-              return m
-            }, {}),
-            // TODO move this into the reduce?
-            [Tabs.chatTab]: {
-              initialRouteName: tabRoots[Tabs.chatTab],
-              screens: {
-                chatConversation: 'chat',
-                [tabRoots[Tabs.chatTab]]: Tabs.chatTab,
-              },
-            },
-            [Tabs.peopleTab]: {
-              initialRouteName: tabRoots[Tabs.peopleTab],
-              screens: {
-                profile: 'profile/show/:username',
-                [tabRoots[Tabs.peopleTab]]: Tabs.peopleTab,
-              },
-            },
-          },
-        },
-        settingsPushPrompt: 'settingsPushPrompt',
-      },
-    },
+    // subscribe(listener) {
+    // // Listen to incoming links from deep linking
+    // const unsub = Kb.NativeLinking.addEventListener('url', ({url}: {url: string}) => listener(url))
+    // return () => {
+    // unsub.remove()
+    // }
+    // },
+    config,
   }
 }
 
