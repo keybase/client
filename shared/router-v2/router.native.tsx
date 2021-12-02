@@ -425,21 +425,26 @@ const theme = {
 
 const makeLinking = options => {
   let {startupTab, showMonster, startupFollowUser, startupConversation} = options
-  // TEMP
-  // startupFollowUser = 'chrisnojima'
-  // startupConversation = '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5' // TEMP
-  // startupConversation = ''
-  // startupTab = Tabs.fsTab
-  // showMonster = true
-  // TEMP
-  //
-  // let startupTab = Container.useSelector(state => state.config.startupTab)
-  // const showMonster = Container.useSelector(ShowMonsterSelector)
-  // const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
 
-  // if (showMonster || startupFollowUser) {
-  // startupTab = Tabs.peopleTab
-  // }
+  if (__DEV__) {
+    console.log('aaa DEBUG force routes')
+    startupConversation = ''
+    const temp = 'monster'
+    switch (temp) {
+      case 'follow':
+        startupFollowUser = 'chrisnojima'
+        break
+      case 'convo':
+        startupConversation = '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5' // TEMP
+        break
+      case 'tab':
+        startupTab = Tabs.fsTab
+        break
+      case 'monster':
+        showMonster = true
+        break
+    }
+  }
 
   const config = Container.produce(
     {
@@ -521,12 +526,8 @@ const makeLinking = options => {
   }
 }
 
-const RNApp = props => {
-  // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
-  // if we use useEffect and useState we'll have to deal with extra renders which look really bad
-  const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
-  const loggedIn = Container.useSelector(state => state.config.loggedIn)
-  const dispatch = Container.useDispatch()
+// gets state from redux used to make the linking object
+const useReduxToLinking = (appState: RNAppState) => {
   const startupTab = Container.useSelector(state => state.config.startupTab)
   const startupConversation = Container.useSelector(state => {
     const {startupConversation} = state.config
@@ -537,7 +538,58 @@ const RNApp = props => {
   })
   const showMonster = Container.useSelector(ShowMonsterSelector)
   const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
+
+  return appState === RNAppState.NEEDS_INIT
+    ? makeLinking({
+        startupConversation,
+        startupTab,
+        showMonster,
+        startupFollowUser,
+      })
+    : undefined
+}
+
+const useIsDarkChanged = () => {
   const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
+  const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
+  return darkChanged
+}
+
+const useNavKey = (appState: RNAppState, key: React.MutableRefObject<number>) => {
+  const darkChanged = useIsDarkChanged()
+  if (darkChanged) {
+    key.current++
+  }
+
+  return appState === RNAppState.NEEDS_INIT ? -1 : key.current
+}
+
+const useInitialState = () => {
+  const darkChanged = useIsDarkChanged()
+  return darkChanged
+    ? Constants.navigationRef_?.isReady()
+      ? Constants.navigationRef_?.getRootState()
+      : undefined
+    : undefined
+}
+
+const useInitialStateChangeAfterLinking = (goodLinking, onStateChange) => {
+  // send onNavChanged on initial render after handling linking
+  React.useEffect(() => {
+    if (goodLinking) {
+      console.log('bbb use effect good linking onstatechange')
+      setTimeout(() => onStateChange(), 1)
+    }
+  }, [goodLinking])
+}
+
+const RNApp = props => {
+  // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
+  // if we use useEffect and useState we'll have to deal with extra renders which look really bad
+  const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
+  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  const dispatch = Container.useDispatch()
+
   const navContainerKey = React.useRef(1)
   const oldNavPath = React.useRef<any>([])
   // keep track if we went to an init route yet or not
@@ -547,37 +599,19 @@ const RNApp = props => {
     rnappState.current = RNAppState.NEEDS_INIT
   }
 
-  const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
-  if (darkChanged) {
-    navContainerKey.current++
-  }
+  const goodLinking = useReduxToLinking(rnappState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
   // we use linking and force a key change if we're in NEEDS_INIT
   // while inited we cna use initialStateRef when dark mode changes, we never want both at the same time
-  const goodLinking =
-    rnappState.current === RNAppState.NEEDS_INIT
-      ? makeLinking({
-          startupConversation,
-          startupTab,
-          showMonster,
-          startupFollowUser,
-        })
-      : undefined
-  const goodKey = rnappState.current === RNAppState.NEEDS_INIT ? -1 : navContainerKey.current
-
-  const goodInitialState = darkChanged
-    ? Constants.navigationRef_?.isReady()
-      ? Constants.navigationRef_?.getRootState()
-      : undefined
-    : undefined
+  const goodKey = useNavKey(rnappState.current, navContainerKey)
+  const goodInitialState = useInitialState()
 
   console.log('bbb RNApp render', {
     rnappState: rnappState.current,
     goodLinking,
     goodKey,
     goodInitialState,
-    darkChanged,
     loggedIn,
     loggedInLoaded,
   })
@@ -601,13 +635,8 @@ const RNApp = props => {
     oldNavPath.current = vp
   }
 
-  // send onNavChanged on initial render after handling linking
-  React.useEffect(() => {
-    if (goodLinking) {
-      console.log('bbb use effect good linking onstatechange')
-      setTimeout(() => onStateChange(), 1)
-    }
-  }, [goodLinking])
+  useInitialStateChangeAfterLinking(goodLinking, onStateChange)
+
   return (
     <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
       <NavigationContainer
