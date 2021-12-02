@@ -339,7 +339,7 @@ const LoggedOut = () => (
   </LoggedOutStack.Navigator>
 )
 
-const ConnectNavToRedux = () => {
+const useConnectNavToRedux = () => {
   console.log('bbb ConnectNavToRedux rendering ')
   const dispatch = Container.useDispatch()
   const setNavOnce = React.useRef(false)
@@ -358,7 +358,6 @@ const ConnectNavToRedux = () => {
       }
     }
   }, [setNavOnce])
-  return null
 }
 
 // } else if (startupFollowUser) {
@@ -391,8 +390,6 @@ const ConnectNavToRedux = () => {
 // return null
 // }
 
-const RootStack = createStackNavigator()
-
 enum RNAppState {
   UNINIT, // haven't rendered the nav yet
   NEEDS_INIT, // rendered but need to bootstrap
@@ -403,13 +400,13 @@ const theme = {
   dark: false,
   colors: {
     get primary() {
-      return 'blue' // Styles.globalColors.fastBlank
+      return Styles.globalColors.fastBlank
     },
     get background() {
-      return 'green' // Styles.globalColors.fastBlank
+      return Styles.globalColors.fastBlank
     },
     get card() {
-      return 'red' // Styles.globalColors.white
+      return Styles.globalColors.white
     },
     get text() {
       return Styles.globalColors.black
@@ -428,19 +425,21 @@ const makeLinking = options => {
 
   if (__DEV__) {
     console.log('aaa DEBUG force routes')
-    startupConversation = ''
-    const temp = 'monster'
+    const temp = ''
     switch (temp) {
       case 'follow':
+        startupConversation = ''
         startupFollowUser = 'chrisnojima'
         break
       case 'convo':
         startupConversation = '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5' // TEMP
         break
       case 'tab':
+        startupConversation = ''
         startupTab = Tabs.fsTab
         break
       case 'monster':
+        startupConversation = ''
         showMonster = true
         break
     }
@@ -492,10 +491,7 @@ const makeLinking = options => {
 
       if (showMonster) {
         url = 'keybase://settingsPushPrompt'
-        // Constants.navigationRef_.dispatch(CommonActions.navigate({name: 'settingsPushPrompt'}))
       } else if (startupConversation) {
-        // return `keybase://loggedIn/${startupTab}/chatRoot/chatConversation?conversationIDKey=${startupConversation}`
-        // debugger
         url = `keybase://chat?conversationIDKey=${startupConversation}`
         // TODO support actual existing chat links
         //keybase://chat/${conv}/${messageID}`
@@ -511,17 +507,8 @@ const makeLinking = options => {
         startupFollowUser,
         startupConversation,
       })
-
       return url
     },
-    // Custom function to subscribe to incoming links
-    // subscribe(listener) {
-    // // Listen to incoming links from deep linking
-    // const unsub = Kb.NativeLinking.addEventListener('url', ({url}: {url: string}) => listener(url))
-    // return () => {
-    // unsub.remove()
-    // }
-    // },
     config,
   }
 }
@@ -583,6 +570,7 @@ const useInitialStateChangeAfterLinking = (goodLinking, onStateChange) => {
   }, [goodLinking])
 }
 
+const RootStack = createStackNavigator()
 const RNApp = props => {
   // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
   // if we use useEffect and useState we'll have to deal with extra renders which look really bad
@@ -598,7 +586,7 @@ const RNApp = props => {
   if (rnappState.current === RNAppState.UNINIT && loggedInLoaded) {
     rnappState.current = RNAppState.NEEDS_INIT
   }
-
+  useConnectNavToRedux()
   const goodLinking = useReduxToLinking(rnappState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
@@ -669,13 +657,6 @@ const RNApp = props => {
           {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
         </RootStack.Navigator>
       </NavigationContainer>
-      <ConnectNavToRedux />
-      {
-        // loaded and only once and onStateChange called
-        /*loggedInLoaded && loggedIn && rnappState === RNAppState.NEEDS_INIT && (
-          <InitialRouteSubNav onRouted={() => setRNAppState(RNAppState.INITED)} />
-          )*/
-      }
     </Kb.KeyboardAvoidingView>
   )
 }

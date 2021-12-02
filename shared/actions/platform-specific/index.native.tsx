@@ -408,30 +408,9 @@ function* loadStartupDetails() {
     }
   }
 
-  // TEMP
-  //
-  // startupConversation = '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5' // TEMP
-  // startupConversation = ''
-  // startupLink = 'keybase://incoming-share'
-  // TEMP
-
   // never allow this case
   if (startupTab === 'blank') {
     startupTab = undefined
-  }
-
-  if (ChatConstants.isValidConversationIDKey(startupConversation)) {
-    startupTab = Tabs.chatTab
-  } else if (startupFollowUser) {
-    startupTab = Tabs.peopleTab
-  } else if (startupLink) {
-    if (
-      ['keybase://private/', 'keybase://public/', 'keybase://team/'].some(prefix =>
-        startupLink.startsWith(prefix)
-      )
-    ) {
-      startupTab = Tabs.fsTab
-    }
   }
 
   yield Saga.put(
