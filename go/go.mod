@@ -24,8 +24,8 @@ require (
 	github.com/go-errors/errors v1.0.1
 	github.com/go-sql-driver/mysql v1.5.1-0.20200311113236-681ffa848bae
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
-	github.com/golang/mock v1.6.0
-	github.com/golangci/golangci-lint v1.43.0
+	github.com/golang/mock v1.5.0
+	github.com/golangci/golangci-lint v1.42.1
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/josephspurrier/goversioninfo v0.0.0-20160622020813-53f6213da3d7
 	github.com/keybase/backoff v1.0.1-0.20160517061000-726b63b835ec
@@ -93,7 +93,6 @@ require (
 require (
 	4d63.com/gochecknoglobals v0.1.0 // indirect
 	github.com/Antonboom/errname v0.1.5 // indirect
-	github.com/Antonboom/nilnil v0.1.0 // indirect
 	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/Djarvur/go-err113 v0.0.0-20210108212216-aea10b59be24 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
@@ -118,10 +117,7 @@ require (
 	github.com/blevesearch/blevex v0.0.0-20190916190636-152f0fe5c040 // indirect
 	github.com/blevesearch/go-porterstemmer v1.0.3 // indirect
 	github.com/blevesearch/segment v0.8.0 // indirect
-	github.com/blizzy78/varnamelen v0.3.0 // indirect
 	github.com/bombsimon/wsl/v3 v3.3.0 // indirect
-	github.com/breml/bidichk v0.1.1 // indirect
-	github.com/butuzov/ireturn v0.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/charithe/durationcheck v0.0.9 // indirect
 	github.com/chavacava/garif v0.0.0-20210405164556-e8a0a408d6af // indirect
@@ -174,6 +170,7 @@ require (
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
 	github.com/gostaticanalysis/forcetypeassert v0.0.0-20200621232751-01d4955beaa5 // indirect
 	github.com/gostaticanalysis/nilerr v0.1.1 // indirect
+	github.com/gostaticanalysis/testutil v0.4.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -242,7 +239,6 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/simplereach/timeutils v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/sivchari/tenv v1.4.7 // indirect
 	github.com/sonatard/noctx v0.0.1 // indirect
 	github.com/sourcegraph/go-diff v0.6.1 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
@@ -250,7 +246,7 @@ require (
 	github.com/spf13/cobra v1.2.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.9.0 // indirect
+	github.com/spf13/viper v1.8.1 // indirect
 	github.com/src-d/gcfg v1.3.0 // indirect
 	github.com/ssgreg/nlreturn/v2 v2.2.1 // indirect
 	github.com/stellar/go-xdr v0.0.0-20180917104419-0bc96f33a18e // indirect
@@ -258,14 +254,13 @@ require (
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/strib/gomounts v0.0.0-20180215003523-d9ea4eaa52ca // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
-	github.com/sylvia7788/contextcheck v1.0.4 // indirect
 	github.com/tdakkota/asciicheck v0.0.0-20200416200610-e657995f937b // indirect
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
 	github.com/temoto/robotstxt v0.0.0-20180810133444-97ee4a9ee6ea // indirect
 	github.com/tetafro/godot v1.4.11 // indirect
 	github.com/timakin/bodyclose v0.0.0-20200424151742-cb6215831a94 // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
-	github.com/tomarrell/wrapcheck/v2 v2.4.0 // indirect
+	github.com/tomarrell/wrapcheck/v2 v2.3.0 // indirect
 	github.com/tommy-muehle/go-mnd/v2 v2.4.0 // indirect
 	github.com/ultraware/funlen v0.0.3 // indirect
 	github.com/ultraware/whitespace v0.0.4 // indirect
