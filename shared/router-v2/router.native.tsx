@@ -12,7 +12,7 @@ import * as FsConstants from '../constants/fs'
 import * as Container from '../util/container'
 import {IconType} from '../common-adapters/icon.constants-gen'
 import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
-import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
+import {NavigationContainer, getFocusedRouteNameFromRoute, getStateFromPath} from '@react-navigation/native'
 import {TransitionPresets} from '@react-navigation/stack'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
@@ -21,8 +21,8 @@ import Loading from '../login/loading'
 import * as ConfigGen from '../actions/config-gen'
 import * as ConfigConstants from '../constants/config'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-// import * as DeeplinksGen from '../actions/deeplinks-gen'
-import {isValidLink} from '../constants/deeplinks'
+import * as DeeplinksGen from '../actions/deeplinks-gen'
+import * as DeeplinksConstants from '../constants/deeplinks'
 
 enableFreeze()
 
@@ -430,7 +430,7 @@ const theme = {
 }
 
 const makeLinking = options => {
-  let {startupTab, showMonster, startupFollowUser, startupConversation} = options
+  let {dispatch, startupTab, showMonster, startupFollowUser, startupConversation} = options
 
   if (__DEV__) {
     console.log('aaa DEBUG force routes')
@@ -478,7 +478,7 @@ const makeLinking = options => {
     },
     draft => {
       const {screens} = draft.screens.loggedIn
-      screens[Tabs.chatTab].screens.chatConversation = 'chat'
+      screens[Tabs.chatTab].screens.chatConversation = 'chat/:convoName/:highlightMessageID?'
       screens[Tabs.peopleTab].screens.profile = 'profile/show/:username'
     }
   )
@@ -490,24 +490,27 @@ const makeLinking = options => {
     async getInitialURL() {
       // First, you may want to do the default deep link handling
       // Check if app was opened from a deep link
+      // NOTE: This can FAIL debugging in chrome
       let url = await Kb.NativeLinking.getInitialURL()
 
       console.log('bbbb linking get initial', {url})
 
-      if (url != null && isValidLink(url)) {
-        return url
+      if (url != null && !DeeplinksConstants.isValidLink(url)) {
+        url = null
       }
 
-      if (showMonster) {
-        url = 'keybase://settingsPushPrompt'
-      } else if (startupConversation) {
-        url = `keybase://chat?conversationIDKey=${startupConversation}`
-        // TODO support actual existing chat links
-        //keybase://chat/${conv}/${messageID}`
-      } else if (startupFollowUser) {
-        url = `keybase://profile/show/${startupFollowUser}`
-      } else {
-        url = `keybase://${startupTab ?? ''}`
+      if (!url) {
+        if (showMonster) {
+          url = 'keybase://settingsPushPrompt'
+        } else if (startupConversation) {
+          url = `keybase://convid/${startupConversation}`
+          // TODO support actual existing chat links
+          //keybase://chat/${conv}/${messageID}`
+        } else if (startupFollowUser) {
+          url = `keybase://profile/show/${startupFollowUser}`
+        } else {
+          url = `keybase://${startupTab ?? ''}`
+        }
       }
       console.log('bbbb linking get initial startuptab', {
         url,
@@ -516,9 +519,44 @@ const makeLinking = options => {
         startupFollowUser,
         startupConversation,
       })
+
+      // allow deep links sagas access to the first link
+      setTimeout(() => dispatch(DeeplinksGen.createLink({link: url})), 1)
       return url
     },
     config,
+    getStateFromPath: (path, options) => {
+      // use the chat path to make the object but swap out the name with the convo id
+      if (path.startsWith('convid/')) {
+        console.log('bbb getsatefrompath', path)
+        const [, id] = path.split('/')
+        return Container.produce(getStateFromPath('chat/REPLACE', options), draft => {
+          draft.routes[0].state.routes[0].state.routes[1].params.conversationIDKey = id
+        })
+      } else {
+        return getStateFromPath(path, options)
+      }
+    },
+    subscribe(listener) {
+      // Listen to incoming links from deep linking
+      const linkingSub = Kb.NativeLinking.addEventListener('url', ({url}: {url: string}) => {
+        console.log('bbb got subscribe link', url)
+
+        // const originalURL = url
+        // if (url.startsWith('keybase://chat/')) {
+        // // we go into the chat loading state since the links have names and not conviIDs resolved
+        // url = DeeplinksConstants.convertChatURLToPending(url)
+        // }
+
+        listener(url)
+        // most of the 'plain url=>routing' happens with the above config but sometimes
+        // we need to handle more async actions in the sagas
+        dispatch(DeeplinksGen.createLink({link: url}))
+      })
+      return () => {
+        linkingSub?.remove()
+      }
+    },
   }
 }
 
@@ -534,9 +572,11 @@ const useReduxToLinking = (appState: RNAppState) => {
   })
   const showMonster = Container.useSelector(ShowMonsterSelector)
   const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
+  const dispatch = Container.useDispatch()
 
   return appState === RNAppState.NEEDS_INIT
     ? makeLinking({
+        dispatch,
         startupConversation,
         startupTab,
         showMonster,

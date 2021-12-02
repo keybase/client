@@ -44,18 +44,18 @@ class Keybase extends React.Component<Props> {
   }
 
   componentDidMount() {
-    this._linkingSub = Linking.addEventListener('url', this._handleOpenURL)
-    Linking.getInitialURL().then(url => url && this._handleOpenURL({url}))
+    // this._linkingSub = Linking.addEventListener('url', this._handleOpenURL)
+    // Linking.getInitialURL().then(url => url && this._handleOpenURL({url}))
   }
 
   componentWillUnmount() {
     this._appStateChangeSub?.remove()
-    this._linkingSub?.remove()
+    // this._linkingSub?.remove()
   }
 
-  _handleOpenURL(event: {url: string}) {
-    store && store.dispatch(DeeplinksGen.createLink({link: event.url}))
-  }
+  // _handleOpenURL(event: {url: string}) {
+  // store && store.dispatch(DeeplinksGen.createLink({link: event.url}))
+  // }
 
   render() {
     return (

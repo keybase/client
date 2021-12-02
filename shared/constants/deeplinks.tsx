@@ -1,3 +1,4 @@
+import {pendingWaitingConversationIDKey} from './types/chat2/common'
 const prefix = 'keybase://'
 
 export const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
@@ -5,25 +6,25 @@ export const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
   `${prefix}chat/${conv}/${messageID}`
 
+export const convertChatURLToPending = (url: string) => `${prefix}chat/${pendingWaitingConversationIDKey}`
+
+const argArrayGood = (arr: Array<unknown>, len: number) => {
+  return arr.length === len && arr.every(p => !!p.length)
+}
 export const isValidLink = (link: string) => {
   if (!link.startsWith(prefix)) {
     return false
   }
   const path = link.substring(prefix.length)
-  const parts = path.split('/')
+  const [root, ...parts] = path.split('/')
 
-  switch (parts[0]) {
+  switch (root) {
     case 'profile':
-      switch (parts[1]) {
+      switch (parts[0]) {
         case 'new-proof':
-          return (
-            (parts.length === 3 && parts[2].length) ||
-            (parts.length === 4 && parts[3].length && parts[2].length)
-          )
+          return argArrayGood(parts, 2) || argArrayGood(parts, 3)
         case 'show':
-          if (parts.length === 3 && parts[2]?.length) {
-            return true
-          }
+          return argArrayGood(parts, 2)
       }
       return false
     case 'private':
@@ -32,16 +33,16 @@ export const isValidLink = (link: string) => {
       return true
     case 'team':
       return true
+    case 'convid':
+      return argArrayGood(parts, 1)
     case 'chat':
-      return (
-        (parts.length === 2 && parts[1].length) || (parts.length === 3 && parts[2].length && parts[1].length)
-      )
+      return argArrayGood(parts, 1) || argArrayGood(parts, 2)
     case 'team-page':
-      return parts.length === 3 && parts[2].length && parts[1].length
+      return argArrayGood(parts, 3)
     case 'incoming-share':
-      return parts.length === 1
+      return argArrayGood(parts, 1)
     case 'team-invite-link':
-      return parts.length === 1
+      return argArrayGood(parts, 1)
   }
 
   return false
