@@ -2594,16 +2594,22 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 	if !(strings.Contains(body, ".") || strings.Contains(body, "://")) {
 		return body
 	}
-	shouldSkipLink := func(body string) bool {
-		if strings.Contains(strings.Split(body, "/")[0], "@") {
+	shouldSkipLink := func(linkPrefix, link string) bool {
+		// Check for RTLO character preceeding our match. If one is
+		// detected, and there isn't a LTRO following it, skip this URL
+		// from linkification.
+		if rtloIdx := strings.LastIndex(linkPrefix, "\u202e"); rtloIdx >= 0 && rtloIdx > strings.LastIndex(linkPrefix, "\u202d") {
+			return true
+		}
+		if strings.Contains(strings.Split(link, "/")[0], "@") {
 			return true
 		}
 		for _, scheme := range xurls.SchemesNoAuthority {
-			if strings.HasPrefix(body, scheme) {
+			if strings.HasPrefix(link, scheme) {
 				return true
 			}
 		}
-		if strings.HasPrefix(body, "ftp://") || strings.HasPrefix(body, "gopher://") {
+		if strings.HasPrefix(link, "ftp://") || strings.HasPrefix(link, "gopher://") {
 			return true
 		}
 		return false
@@ -2621,12 +2627,13 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 			continue
 		}
 
+		bodyPrefix := origBody[:match[lowhit]]
 		bodyMatch := origBody[match[lowhit]:match[highhit]]
-		url := bodyMatch
-		var punycode string
-		if shouldSkipLink(bodyMatch) {
+		if shouldSkipLink(bodyPrefix, bodyMatch) {
 			continue
 		}
+		var punycode string
+		url := bodyMatch
 		if encoded, err := idna.ToASCII(url); err == nil && encoded != url {
 			punycode = encoded
 		}
