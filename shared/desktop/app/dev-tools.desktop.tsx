@@ -3,15 +3,18 @@ import {showDevTools} from '../../local-debug.desktop'
 import flags from '../../util/feature-flags'
 
 function setupDevToolsExtensions() {
-  // if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
-  // process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
-  // try {
-  // Electron.BrowserWindow.addDevToolsExtension(p)
-  // } catch (e) {
-  // console.error('Dev tool loading crash', p, e)
-  // }
-  // })
-  // }
+  if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
+    process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
+      Electron.app
+        .whenReady()
+        .then(async () => {
+          await Electron.session.defaultSession.loadExtension(p, {allowFileAccess: true})
+        })
+        .catch(e => {
+          console.log('loading dev extensions failed', e)
+        })
+    })
+  }
 }
 
 function setupOpenDevtools() {
