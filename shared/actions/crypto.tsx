@@ -10,6 +10,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Platform from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {TypedState} from '../util/container'
+import {RPCError} from '../util/errors'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 
 type OperationActionArgs = {
@@ -336,7 +337,7 @@ const saltpackEncrypt = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Encrypt, type)
+        const message = Constants.getStatusCodeMessage(err as RPCError, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
@@ -370,7 +371,7 @@ const saltpackEncrypt = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Encrypt, type)
+        const message = Constants.getStatusCodeMessage(err as RPCError, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
@@ -417,7 +418,7 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Decrypt, type)
+        const message = Constants.getStatusCodeMessage(err as RPCError, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Decrypt,
@@ -448,7 +449,7 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Decrypt, type)
+        const message = Constants.getStatusCodeMessage(err as RPCError, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Decrypt,
@@ -491,7 +492,7 @@ const saltpackSign = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Sign, type)
+        const message = Constants.getStatusCodeMessage(err as RPCError, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Sign,
@@ -514,7 +515,7 @@ const saltpackSign = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Sign, type)
+        const message = Constants.getStatusCodeMessage(err as RPCError, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Sign,
@@ -559,7 +560,7 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Verify, type)
+        const message = Constants.getStatusCodeMessage(err as RPCError, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Verify,
@@ -589,7 +590,7 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
         ]
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err, Constants.Operations.Verify, type)
+        const message = Constants.getStatusCodeMessage(err as RPCError, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Verify,

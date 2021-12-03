@@ -31,7 +31,7 @@ const prettierCheck = () => {
       stdio: [],
     })
   } catch (e) {
-    const lines = e.stdout.split('\n')
+    const lines = (e as any).stdout.split('\n')
     const [, ...toPrint] = lines
     toPrint.pop()
     toPrint.pop()

@@ -32,7 +32,7 @@ const createPersonalRepo = async (action: GitGen.CreatePersonalRepoPayload) => {
     )
     return GitGen.createRepoCreated()
   } catch (error) {
-    return GitGen.createSetError({error})
+    return GitGen.createSetError({error: error as Error})
   }
 }
 
@@ -48,7 +48,7 @@ const createTeamRepo = async (action: GitGen.CreateTeamRepoPayload) => {
     )
     return GitGen.createRepoCreated()
   } catch (error) {
-    return GitGen.createSetError({error})
+    return GitGen.createSetError({error: error as Error})
   }
 }
 
@@ -60,7 +60,7 @@ const deletePersonalRepo = async (action: GitGen.DeletePersonalRepoPayload) => {
     )
     return GitGen.createRepoDeleted()
   } catch (error) {
-    return GitGen.createSetError({error})
+      return GitGen.createSetError({error: error as Error})
   }
 }
 
@@ -76,7 +76,7 @@ const deleteTeamRepo = async (action: GitGen.DeleteTeamRepoPayload) => {
     )
     return GitGen.createRepoDeleted()
   } catch (error) {
-    return GitGen.createSetError({error})
+      return GitGen.createSetError({error: error as Error})
   }
 }
 

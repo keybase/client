@@ -136,7 +136,8 @@ const createNewAccount = async (action: WalletsGen.CreateNewAccountPayload, logg
       setBuildingTo: action.payload.setBuildingTo,
       showOnCreation: action.payload.showOnCreation,
     })
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     logger.warn(`Error: ${err.desc}`)
     return WalletsGen.createCreatedNewAccount({accountID: Types.noAccountID, error: err.desc, name})
   }
@@ -197,7 +198,7 @@ const sendPayment = async (state: TypedState) => {
       lastSentXLM: !notXLM,
     })
   } catch (err) {
-    return WalletsGen.createSentPaymentError({error: err.desc})
+    return WalletsGen.createSentPaymentError({error: (err as RPCError).desc})
   }
 }
 
@@ -232,20 +233,21 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
   }
 
   try {
-    const kbRqID: Saga.RPCPromiseType<typeof RPCStellarTypes.localMakeRequestLocalRpcPromise> = yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
-      {
-        amount: state.wallets.building.amount,
-        // FIXME -- support other assets.
-        asset: state.wallets.building.currency === 'XLM' ? emptyAsset : null,
-        currency:
-          state.wallets.building.currency && state.wallets.building.currency !== 'XLM'
-            ? state.wallets.building.currency
-            : null,
-        note: state.wallets.building.secretNote.stringValue(),
-        recipient: state.wallets.building.to,
-      },
-      Constants.requestPaymentWaitingKey
-    )
+    const kbRqID: Saga.RPCPromiseType<typeof RPCStellarTypes.localMakeRequestLocalRpcPromise> =
+      yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
+        {
+          amount: state.wallets.building.amount,
+          // FIXME -- support other assets.
+          asset: state.wallets.building.currency === 'XLM' ? emptyAsset : null,
+          currency:
+            state.wallets.building.currency && state.wallets.building.currency !== 'XLM'
+              ? state.wallets.building.currency
+              : null,
+          note: state.wallets.building.secretNote.stringValue(),
+          recipient: state.wallets.building.to,
+        },
+        Constants.requestPaymentWaitingKey
+      )
     const navAction = maybeNavigateAwayFromSendForm()
     yield Saga.sequentially([
       ...(navAction ? navAction.map(n => Saga.put(n)) : []),
@@ -271,7 +273,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
         ),
       ])
     } else {
-      _logger.error(`requestPayment error: ${err.message}`)
+      _logger.error(`requestPayment error: ${(err as Error).message}`)
       throw err
     }
   }
@@ -299,7 +301,7 @@ const reviewPayment = async (state: TypedState) => {
       // failing review and then we build or stop a payment
       return undefined
     } else {
-      return WalletsGen.createSentPaymentError({error: error.desc})
+      return WalletsGen.createSentPaymentError({error: (error as RPCError).desc})
     }
   }
 }
@@ -320,7 +322,8 @@ const validateSEP7Link = async (action: WalletsGen.ValidateSEP7LinkPayload) => {
       RouteTreeGen.createClearModals(),
       RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),
     ]
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     return [
       WalletsGen.createValidateSEP7LinkError({
         error: error.desc,
@@ -340,7 +343,7 @@ const acceptSEP7Tx = async (action: WalletsGen.AcceptSEP7TxPayload) => {
       Constants.sep7WaitingKey
     )
   } catch (error) {
-    return WalletsGen.createSetSEP7SendError({error: error.desc})
+    return WalletsGen.createSetSEP7SendError({error: (error as RPCError).desc})
   }
 
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
@@ -357,7 +360,7 @@ const acceptSEP7Path = async (state: TypedState, action: WalletsGen.AcceptSEP7Pa
       Constants.sep7WaitingKey
     )
   } catch (error) {
-    return WalletsGen.createSetSEP7SendError({error: error.desc})
+    return WalletsGen.createSetSEP7SendError({error: (error as RPCError).desc})
   }
 
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
@@ -374,7 +377,7 @@ const acceptSEP7Pay = async (action: WalletsGen.AcceptSEP7PayPayload) => {
       Constants.sep7WaitingKey
     )
   } catch (error) {
-    return WalletsGen.createSetSEP7SendError({error: error.desc})
+    return WalletsGen.createSetSEP7SendError({error: (error as RPCError).desc})
   }
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
 }
@@ -444,7 +447,7 @@ const loadAccounts = async (
       }),
     })
   } catch (err) {
-    const msg = `Error: ${err.desc}`
+    const msg = `Error: ${(err as RPCError).desc}`
     if (action.type === WalletsGen.loadAccounts && action.payload.reason === 'initial-load') {
       // No need to throw black bars -- handled by Reloadable.
       logger.warn(msg)
@@ -538,7 +541,7 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
       assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
     })
   } catch (err) {
-    return handleSelectAccountError(action, 'selecting account', err)
+    return handleSelectAccountError(action, 'selecting account', err as RPCError)
   }
 }
 
@@ -589,7 +592,9 @@ const loadPayments = async (state: TypedState, action: LoadPaymentsActions, logg
       ])
       return createPaymentsReceived(accountID, payments ?? undefined, pending ?? [], true, '')
     } catch (err) {
-      const error = `There was an error loading your payment history, please try again: ${err.desc}`
+      const error = `There was an error loading your payment history, please try again: ${
+        (err as RPCError).desc
+      }`
       return createPaymentsReceived(accountID, undefined, [], true, error)
     }
   }
@@ -636,7 +641,7 @@ const loadSendAssetChoices = async (action: WalletsGen.LoadSendAssetChoicesPaylo
     // The result is dropped here. See PICNIC-84 for fixing it.
     return res && WalletsGen.createSendAssetChoicesReceived({sendAssetChoices: res})
   } catch (err) {
-    _logger.warn(`Error: ${err.desc}`)
+    _logger.warn(`Error: ${(err as RPCError).desc}`)
     return false
   }
 }
@@ -732,7 +737,7 @@ const loadPaymentDetail = async (action: WalletsGen.LoadPaymentDetailPayload, lo
     })
   } catch (err) {
     // No need to throw black bars -- handled by Reloadable.
-    logger.warn(err.desc)
+    logger.warn((err as RPCError).desc)
     return false
   }
 }
@@ -745,7 +750,7 @@ const markAsRead = async (action: WalletsGen.MarkAsReadPayload, logger: Saga.Sag
     })
   } catch (err) {
     // No need to throw black bars.
-    logger.warn(err.desc)
+    logger.warn((err as RPCError).desc)
   }
 }
 
@@ -768,7 +773,8 @@ const linkExistingAccount = async (
       setBuildingTo: action.payload.setBuildingTo,
       showOnCreation: action.payload.showOnCreation,
     })
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     logger.warn(`Error: ${err.desc}`)
     return WalletsGen.createLinkedExistingAccount({
       accountID: Types.noAccountID,
@@ -790,7 +796,8 @@ const validateAccountName = async (
       Constants.validateAccountNameWaitingKey
     )
     return WalletsGen.createValidatedAccountName({name})
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     logger.warn(`Error: ${err.desc}`)
     return WalletsGen.createValidatedAccountName({error: err.desc, name})
   }
@@ -804,7 +811,8 @@ const validateSecretKey = async (action: WalletsGen.ValidateSecretKeyPayload, lo
       Constants.validateSecretKeyWaitingKey
     )
     return WalletsGen.createValidatedSecretKey({secretKey})
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     logger.warn(`Error: ${err.desc}`)
     return WalletsGen.createValidatedSecretKey({error: err.desc, secretKey})
   }
@@ -934,7 +942,8 @@ const cancelPayment = async (
       })
     }
     return false
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     logger.error(`failed to cancel payment with ID ${pid}. Error: ${err.message}`)
     throw err
   }
@@ -943,7 +952,8 @@ const cancelPayment = async (
 const cancelRequest = async (action: WalletsGen.CancelRequestPayload, logger: Saga.SagaLogger) => {
   try {
     return RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: action.payload.requestID})
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     logger.error(`Error: ${err.message}`)
     return false
   }
@@ -1073,7 +1083,8 @@ const checkDisclaimer = async (_: WalletsGen.CheckDisclaimerPayload, logger: Sag
       actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
     }
     return actions
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     logger.error(`Error checking wallet disclaimer: ${err.message}`)
     return false
   }
@@ -1099,7 +1110,8 @@ const loadMobileOnlyMode = async (
       accountID: accountID,
       enabled: isMobileOnly,
     })
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     handleSelectAccountError(action, 'loading mobile only mode', err)
     return false
   }
@@ -1129,7 +1141,8 @@ const writeLastSentXLM = async (
         path: 'stellar.lastSentXLM',
         value: {b: state.wallets.lastSentXLM, isNull: false},
       })
-    } catch (err) {
+    } catch (err_) {
+      const err = err_ as RPCError
       logger.error(`Error: ${err.message}`)
       return false
     }
@@ -1143,7 +1156,8 @@ const readLastSentXLM = async (__: ConfigGen.DaemonHandshakeDonePayload, logger:
     const value = !result.isNull && !!result.b
     logger.info(`Successfully read config: ${String(value)}`)
     return WalletsGen.createSetLastSentXLM({lastSentXLM: value, writeFile: false})
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     if (!err.message.includes('no such key')) {
       logger.error(`Error reading config: ${err.message}`)
     }
@@ -1300,7 +1314,8 @@ const addTrustline = async (state: TypedState, action: WalletsGen.AddTrustlinePa
       Constants.addTrustlineWaitingKey(accountID, assetID)
     )
     return [WalletsGen.createChangedTrustline(), refresh]
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     _logger.warn(`Error: ${err.desc}`)
     return [WalletsGen.createChangedTrustline({error: err.desc}), refresh]
   }
@@ -1322,7 +1337,8 @@ const deleteTrustline = async (state: TypedState, action: WalletsGen.DeleteTrust
       Constants.deleteTrustlineWaitingKey(accountID, assetID)
     )
     return [WalletsGen.createChangedTrustline(), refresh]
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     _logger.warn(`Error: ${err.desc}`)
     return [WalletsGen.createChangedTrustline({error: err.desc}), refresh]
   }
@@ -1436,7 +1452,8 @@ const calculateBuildingAdvanced = async (
       }),
       forSEP7: action.payload.forSEP7,
     })
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     let errorMessage = 'Error finding a path to convert these 2 assets.'
     if (err && err.desc) {
       errorMessage = err.desc
@@ -1516,7 +1533,7 @@ const assetDeposit = async (action: WalletsGen.AssetDepositPayload) => {
     )
     return handleSEP6Result(res)
   } catch (err) {
-    return handleSEP6Error(err)
+    return handleSEP6Error(err as RPCError)
   }
 }
 
@@ -1536,7 +1553,7 @@ const assetWithdraw = async (action: WalletsGen.AssetWithdrawPayload) => {
     )
     return handleSEP6Result(res)
   } catch (err) {
-    return handleSEP6Error(err)
+    return handleSEP6Error(err as RPCError)
   }
 }
 
@@ -1553,7 +1570,8 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
   )
 
   try {
-    const res: Saga.RPCPromiseType<typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise> = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
+    const res: Saga.RPCPromiseType<typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise> =
+      yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
     yield Saga.put(WalletsGen.createStaticConfigLoaded({staticConfig: res}))
   } finally {
     yield Saga.put(

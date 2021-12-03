@@ -35,7 +35,7 @@ const getFeaturedBots = async (_: Container.TypedState, action: BotsGen.GetFeatu
       BotsGen.createSetLoadedAllBots({loaded: loadedAllBots}),
     ]
   } catch (e) {
-    const err: RPCError = e
+    const err = e as RPCError
     if (Container.isNetworkErr(err.code)) {
       logger.info('Network error getting featured bots')
     } else {
@@ -59,7 +59,7 @@ const searchFeaturedBots = async (_: Container.TypedState, action: BotsGen.Searc
     }
     return BotsGen.createUpdateFeaturedBots({bots})
   } catch (e) {
-    const err: RPCError = e
+    const err = e as RPCError
     if (Container.isNetworkErr(err.code)) {
       logger.info('Network error searching featured bots')
     } else {
@@ -95,7 +95,7 @@ const searchFeaturedAndUsers = async (action: BotsGen.SearchFeaturedAndUsersPayl
       ),
     ])
   } catch (err) {
-    logger.info(`searchFeaturedAndUsers: failed to run search: ${err.message}`)
+    logger.info(`searchFeaturedAndUsers: failed to run search: ${(err as Error).message}`)
     return
   }
   return BotsGen.createSetSearchFeaturedAndUsersResults({

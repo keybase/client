@@ -76,18 +76,6 @@ const config = (_, {mode}) => {
 
   const makeCommonConfig = () => {
     // If we use the hot server it pulls in this config
-    const devServer = {
-      compress: false,
-      contentBase: path.resolve(__dirname, 'dist'),
-      hot: isHot,
-      lazy: false,
-      overlay: true,
-      port: 4000,
-      publicPath: 'http://localhost:4000/dist/',
-      quiet: false,
-      stats: {colors: true},
-    }
-
     const defines = {
       __DEV__: isDev,
       __HOT__: isHot,
@@ -110,8 +98,7 @@ const config = (_, {mode}) => {
     return {
       bail: true,
       context: path.resolve(__dirname, '..'),
-      devServer,
-      devtool: isDev ? 'eval' : 'source-map',
+      devtool: isDev ? 'source-map' : 'source-map', // TEMP
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {
@@ -234,6 +221,26 @@ const config = (_, {mode}) => {
   // multiple entries so we can chunk shared parts
   const entries = ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
   const viewConfig = merge(commonConfig, {
+    devServer: {
+      compress: false,
+      hot: isHot,
+      port: 4000,
+      devMiddleware: {
+        publicPath: 'http://localhost:4000/dist',
+      },
+      client: {
+        overlay: true,
+        webSocketURL: {
+          hostname: 'localhost',
+          pathname: '/ws',
+          port: 4000,
+        },
+      },
+      static: {
+        directory: path.resolve(__dirname, 'dist'),
+        publicPath: '/dist',
+      },
+    },
     entry: entries.reduce((map, name) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
       return map
@@ -252,7 +259,11 @@ const config = (_, {mode}) => {
     },
     module: {rules: makeRules(false)},
     name: 'Keybase',
-    optimization: {splitChunks: {chunks: 'all'}},
+    ...(isHot
+      ? {}
+      : {
+          optimization: {splitChunks: {chunks: 'all'}},
+        }),
     plugins: makeViewPlugins(entries),
     target: 'electron-renderer',
   })

@@ -163,7 +163,7 @@ const markViewed = async () => {
   try {
     await RPCTypes.homeHomeMarkViewedRpcPromise()
   } catch (e) {
-    const err: RPCError = e
+    const err = e as RPCError
     if (Container.isNetworkErr(err.code)) {
       logger.warn('Network error calling homeMarkViewed')
     } else {

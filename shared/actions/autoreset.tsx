@@ -7,6 +7,7 @@ import * as RPCGen from '../constants/types/rpc-gen'
 import * as RecoverPasswordGen from './recover-password-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
+import {RPCError} from '../util/errors'
 import logger from '../logger'
 
 const receivedBadgeState = async (
@@ -26,7 +27,8 @@ const cancelReset = async () => {
   logger.info('Cancelled autoreset from logged-in user')
   try {
     await RPCGen.accountCancelResetRpcPromise(undefined, Constants.cancelResetWaitingKey)
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     logger.error('Error in CancelAutoreset', error)
     switch (error.code ?? 0) {
       case RPCGen.StatusCode.scnosession:
@@ -59,7 +61,7 @@ function promptReset(
     result: (reset: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['outParam']) => void
   }
 ) {
-  return Saga.callUntyped(function*() {
+  return Saga.callUntyped(function* () {
     if (params.prompt.t === RPCGen.ResetPromptType.complete) {
       logger.info('Showing final reset screen')
       yield Saga.put(AutoresetGen.createShowFinalResetScreen({hasWallet: params.prompt.complete.hasWallet}))
@@ -114,7 +116,7 @@ function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAc
     yield Saga.put(AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password}))
   } catch (error) {
     logger.warn('Error resetting account:', error)
-    yield Saga.put(AutoresetGen.createResetError({error: error}))
+    yield Saga.put(AutoresetGen.createResetError({error: error as RPCError}))
   }
 }
 const showFinalResetScreen = (__: AutoresetGen.ShowFinalResetScreenPayload) =>

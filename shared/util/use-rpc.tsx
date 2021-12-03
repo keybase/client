@@ -33,7 +33,7 @@ function useRPC<
         }
       } catch (e) {
         if (isMounted.current) {
-          setError(e)
+          setError(e as RPCError)
         }
       }
     },

@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/*
 import {createStore, applyMiddleware} from 'redux'
 import createSagaMiddleware from 'redux-saga'
 import rootReducer from '../reducers'
@@ -30,3 +31,5 @@ export const makeStartReduxSaga = (rootSaga: any, initialStore: any, init: (disp
 }
 
 export const getInitialStore = () => rootReducer(undefined, {type: 'MOCK'})
+ */
+export {}
