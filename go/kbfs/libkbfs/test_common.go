@@ -825,7 +825,11 @@ func CheckConfigAndShutdown(
 	case data.ShutdownHappenedError:
 	case nil:
 	default:
-		t.Errorf("err=%+v", err)
+		switch err {
+		case context.Canceled:
+		default:
+			t.Errorf("err=%+v", err)
+		}
 	}
 }
 
