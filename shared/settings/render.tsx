@@ -47,14 +47,7 @@ const SettingsRender = (props: Props) => {
     </Box>
   )
 }
-SettingsRender.navigationOptions = Container.isPhone
-  ? {
-      header: undefined,
-      title: 'More',
-    }
-  : {
-      header: null,
-    }
+SettingsRender.navigationOptions = Container.isPhone ? {title: 'More'} : {}
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {

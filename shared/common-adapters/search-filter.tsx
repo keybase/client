@@ -291,11 +291,17 @@ class SearchFilter extends React.PureComponent<Props, State> {
         underlayColor={Styles.globalColors.transparent}
         hoverColor={Styles.globalColors.transparent}
       >
-        {this.keyHandler()}
-        {this.leftIcon()}
-        {this.input()}
-        {this.waiting()}
-        {this.rightCancelIcon()}
+        <Kb.Box2
+          direction="horizontal"
+          style={{alignItems: 'center', width: '100%'}}
+          pointerEvents={Styles.isMobile && this.props.onClick ? 'none' : undefined}
+        >
+          {this.keyHandler()}
+          {this.leftIcon()}
+          {this.input()}
+          {this.waiting()}
+          {this.rightCancelIcon()}
+        </Kb.Box2>
       </Kb.ClickableBox>
     )
     return Styles.isMobile ? (
@@ -348,6 +354,7 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.tiny,
+      maxWidth: '100%',
     },
     isTablet: {
       paddingLeft: 0,

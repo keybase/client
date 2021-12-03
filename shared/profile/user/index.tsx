@@ -15,7 +15,6 @@ import Teams from './teams/container'
 import Folders from '../folders/container'
 import WebOfTrust from './weboftrust'
 import shallowEqual from 'shallowequal'
-import flags from '../../util/feature-flags'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
 import {SiteIcon} from '../generic/shared'
@@ -205,7 +204,6 @@ class Tabs extends React.Component<TabsProps> {
   render() {
     return (
       <Kb.Box2 direction="horizontal" style={styles.followTabContainer} fullWidth={true}>
-        {flags.webOfTrust && this._tab('webOfTrust')}
         {this._tab('followers')}
         {this._tab('following')}
       </Kb.Box2>
@@ -329,12 +327,6 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   }
 }
 
-const Header = () => (
-  <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <ProfileSearch whiteText={true} style={styles.profileSearch} />
-  </Kb.Box2>
-)
-
 type State = {
   selectedTab: string
   width: number
@@ -344,24 +336,8 @@ type Tab = 'followers' | 'following' | 'webOfTrust'
 
 class User extends React.Component<Props, State> {
   static navigationOptions = () => ({
-    header: undefined,
-    headerBackIconColor: Styles.globalColors.white,
-    headerHideBorder: false,
-    headerStyle: {
-      backgroundColor: Styles.globalColors.transparent,
-      borderBottomColor: Styles.globalColors.transparent,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-    },
-    headerTintColor: Styles.globalColors.white,
-    headerTitle: Header,
-    headerTitleContainerStyle: {
-      left: 60,
-      right: 20,
-    },
+    headerTitle: () => <ProfileSearch />,
     headerTransparent: true,
-    underNotch: true,
-    whatsNewIconColor: Styles.globalColors.white,
   })
 
   constructor(props: Props) {

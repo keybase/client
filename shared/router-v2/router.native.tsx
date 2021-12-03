@@ -1,37 +1,30 @@
 import * as Constants from '../constants/router2'
-import * as ConfigGen from '../actions/config-gen'
-import HiddenString from '../util/hidden-string'
-import * as LoginGen from '../actions/login-gen'
+import * as ChatConstants from '../constants/chat2'
 import * as Kbfs from '../fs/common'
 import * as Kb from '../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Shim from './shim.native'
-import {getRenderDebug} from './shim.shared'
-import * as Stack from 'react-navigation-stack'
+import {createStackNavigator} from '@react-navigation/stack'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as FsConstants from '../constants/fs'
 import * as Container from '../util/container'
-import shallowEqual from 'shallowequal'
-import logger from '../logger'
 import {IconType} from '../common-adapters/icon.constants-gen'
-import {HeaderLeftArrow} from '../common-adapters/header-hoc'
-import {Props} from './router'
-import {connect} from '../util/container'
-import {createAppContainer} from '@react-navigation/native'
-import {createBottomTabNavigator} from 'react-navigation-tabs'
-import {createSwitchNavigator, StackActions} from '@react-navigation/core'
+import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
+import {NavigationContainer, getFocusedRouteNameFromRoute, getStateFromPath} from '@react-navigation/native'
+import {TransitionPresets} from '@react-navigation/stack'
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
-import {useScreens} from 'react-native-screens'
-import {getPersistenceFunctions} from './persist.native'
+import {enableFreeze} from 'react-native-screens'
 import Loading from '../login/loading'
+import * as ConfigGen from '../actions/config-gen'
+import * as ConfigConstants from '../constants/config'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as DeeplinksGen from '../actions/deeplinks-gen'
+import * as DeeplinksConstants from '../constants/deeplinks'
 
-const {createStackNavigator} = Stack
-
-// turn on screens. lint thinks this is a hook, but its not
-// eslint-disable-next-line
-useScreens()
+enableFreeze()
 
 export const headerDefaultStyle = {
   get backgroundColor() {
@@ -47,30 +40,46 @@ export const headerDefaultStyle = {
   ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
 }
 
+const actionWidth = 64
+
 // Options used by default on all navigators
-// For info on what is passed to what see here: https://github.com/react-navigation/stack/blob/478c354248f2aedfc304a1c4b479c3df359d3868/src/views/Header/Header.js
 const defaultNavigationOptions: any = {
-  backBehavior: 'none',
-  header: null,
   headerLeft: HeaderLeftArrow,
   headerStyle: headerDefaultStyle,
+  headerTitleContainerStyle: {
+    alignItems: 'stretch',
+    // backgroundColor: 'red',
+    flexGrow: 1,
+  },
+  headerBackTitle: 'temp',
+  headerBackVisible: true,
+  headerRightContainerStyle: {
+    // backgroundColor: 'orange',
+    width: actionWidth,
+    paddingRight: 8,
+  },
+  headerLeftContainerStyle: {
+    // backgroundColor: 'yellow',
+    paddingLeft: 8,
+    width: actionWidth,
+  },
   headerTitle: hp => (
-    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
+    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
       {hp.children}
     </Kb.Text>
   ),
 }
 
-// workaround for https://github.com/react-navigation/react-navigation/issues/4872 else android will eat clicks
-const headerMode = Styles.isAndroid ? 'screen' : 'float'
+// // workaround for https://github.com/react-navigation/react-navigation/issues/4872 else android will eat clicks
+// const headerMode = Styles.isAndroid ? 'screen' : 'float'
 
-const tabs = Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs
+// const tabs = Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs
 
 type TabData = {
   icon: IconType
   label: string
 }
-const data: {[key: string]: TabData} = {
+const tabToData: {[key: string]: TabData} = {
   [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
   [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
   [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
@@ -84,18 +93,29 @@ const FilesTabBadge = () => {
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
 }
 
-const TabBarIcon = ({badgeNumber, focused, routeName}) => (
-  <Kb.NativeView style={tabStyles.container}>
-    <Kb.Icon
-      type={data[routeName].icon}
-      fontSize={32}
-      style={tabStyles.tab}
-      color={focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
-    />
-    {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
-    {routeName === Tabs.fsTab && <FilesTabBadge />}
-  </Kb.NativeView>
-)
+const TabBarIcon = props => {
+  const {isFocused, routeName} = props
+  const onSettings = routeName === Tabs.settingsTab
+  const navBadges = Container.useSelector(state => state.notifications.navBadges)
+  const pushHasPermissions = Container.useSelector(state => state.push.hasPermissions)
+  const badgeNumber = (onSettings ? settingsTabChildren : [routeName]).reduce(
+    (res, tab) => res + (navBadges.get(tab) || 0),
+    // notifications gets badged on native if there's no push, special case
+    onSettings && !pushHasPermissions ? 1 : 0
+  )
+  return tabToData[routeName] ? (
+    <Kb.NativeView style={tabStyles.container}>
+      <Kb.Icon
+        type={tabToData[routeName].icon}
+        fontSize={32}
+        style={tabStyles.tab}
+        color={isFocused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
+      />
+      {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
+      {routeName === Tabs.fsTab && <FilesTabBadge />}
+    </Kb.NativeView>
+  ) : null
+}
 
 const settingsTabChildrenPhone: Array<Tabs.Tab> = [
   Tabs.gitTab,
@@ -106,195 +126,31 @@ const settingsTabChildrenPhone: Array<Tabs.Tab> = [
 const settingsTabChildrenTablet: Array<Tabs.Tab> = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
 const settingsTabChildren = Container.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
 
-type OwnProps = {focused: boolean; routeName: Tabs.Tab}
-const ConnectedTabBarIcon = connect(
-  (state, {routeName}: OwnProps) => {
-    const onSettings = routeName === Tabs.settingsTab
-    const badgeNumber = (onSettings ? settingsTabChildren : [routeName]).reduce(
-      (res, tab) => res + (state.notifications.navBadges.get(tab) || 0),
-      // notifications gets badged on native if there's no push, special case
-      onSettings && !state.push.hasPermissions ? 1 : 0
-    )
-    return {badgeNumber}
-  },
-  () => ({}),
-  (s, _, o: OwnProps) => ({
-    badgeNumber: s.badgeNumber,
-    focused: o.focused,
-    routeName: o.routeName,
-  })
-)(TabBarIcon)
-
-// The default container has some `hitSlop` set which messes up the clickable
-// area
-const TabBarIconContainer = props => (
-  <Kb.NativeTouchableWithoutFeedback style={props.style} onPress={props.onPress}>
-    <Kb.Box children={props.children} style={props.style} />
-  </Kb.NativeTouchableWithoutFeedback>
-)
-const TabBarPeopleIconContainer = props => {
-  const {onPress} = props
-  const dispatch = Container.useDispatch()
-  const accountRows = Container.useSelector(state => state.config.configuredAccounts)
-  const current = Container.useSelector(state => state.config.username)
-  const onQuickSwitch = React.useCallback(() => {
-    const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
-    if (row) {
-      dispatch(ConfigGen.createSetUserSwitching({userSwitching: true}))
-      dispatch(LoginGen.createLogin({password: new HiddenString(''), username: row.username}))
-    } else {
-      onPress()
-    }
-  }, [accountRows, dispatch, current, onPress])
-  return (
-    <Kb.NativeTouchableWithoutFeedback
-      style={props.style}
-      onPress={props.onPress}
-      onLongPress={onQuickSwitch}
-    >
-      <Kb.Box children={props.children} style={props.style} />
-    </Kb.NativeTouchableWithoutFeedback>
-  )
-}
-
-// globalColors automatically respects dark mode pref
-const getBg = () => Styles.globalColors.white
-
-const BlankScreen = () => null
-
-const VanillaTabNavigator = createBottomTabNavigator(
-  tabs.reduce(
-    (map, tab) => {
-      const Stack = createStackNavigator(Shim.shim(routes), {
-        bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
-        cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
-        defaultNavigationOptions,
-        headerMode,
-        initialRouteKey: tabRoots[tab],
-        initialRouteName: tabRoots[tab],
-        initialRouteParams: undefined,
-        transitionConfig: () => ({
-          containerStyle: {
-            get backgroundColor() {
-              return Styles.globalColors.white
-            },
-          },
-          transitionSpec: {
-            // the 'accurate' ios one is very slow to stop so going back leads to a missed taps
-            duration: 250,
-            easing: Kb.NativeEasing.bezier(0.2833, 0.99, 0.31833, 0.99),
-            timing: Kb.NativeAnimated.timing,
-          },
-        }),
-      })
-      class CustomStackNavigator extends React.Component<any> {
-        static router = {
-          ...Stack.router,
-          getStateForAction: (action, lastState) => {
-            // disallow dupe pushes or replaces. We have logic for this in oldActionToNewActions but it can be
-            // racy, this should work no matter what as this is effectively the reducer for the state
-            const nextState = Stack.router.getStateForAction(action, lastState)
-
-            const visiblePath = Constants._getStackPathHelper([], nextState)
-            const last = visiblePath?.[visiblePath.length - 1]
-            const nextLast = visiblePath?.[visiblePath.length - 2]
-
-            // last two are dupes?
-            if (last?.routeName === nextLast?.routeName && shallowEqual(last?.params, nextLast?.params)) {
-              // just pop it
-              return Stack.router.getStateForAction(StackActions.pop({}), nextState)
-            }
-
-            return nextState
-          },
-        }
-
-        render() {
-          const {navigation} = this.props
-          return <Stack navigation={navigation} />
-        }
-      }
-      map[tab] = CustomStackNavigator
-      return map
-    },
-    // Start with a blank screen w/o a tab icon so we dont' render the people tab on start always
-    {blank: {screen: BlankScreen}}
-  ),
-  {
-    backBehavior: 'none',
-    defaultNavigationOptions: ({navigation}) => {
-      const routeName = navigation.state.index && navigation.state.routes[navigation.state.index].routeName
-      const tabBarVisible = routeName !== 'chatConversation'
-
-      return {
-        tabBarButtonComponent:
-          navigation.state.routeName === 'blank'
-            ? BlankScreen
-            : navigation.state.routeName === Tabs.peopleTab
-            ? TabBarPeopleIconContainer
-            : TabBarIconContainer,
-        tabBarIcon: ({focused}) => (
-          <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName as Tabs.Tab} />
-        ),
-        tabBarLabel: ({focused}) =>
-          navigation.state.routeName === 'blank' ? (
-            <></>
-          ) : (
-            <Kb.Text
-              style={Styles.collapseStyles([
-                tabStyles.label,
-                Styles.isDarkMode()
-                  ? focused
-                    ? tabStyles.labelDarkModeFocused
-                    : tabStyles.labelDarkMode
-                  : focused
-                  ? tabStyles.labelLightModeFocused
-                  : tabStyles.labelLightMode,
-              ])}
-              type="BodyBig"
-            >
-              {data[navigation.state.routeName].label}
-            </Kb.Text>
-          ),
-        tabBarVisible,
-      }
-    },
-    order: ['blank', ...tabs],
-    tabBarOptions: {
-      get activeBackgroundColor() {
-        return Styles.globalColors.blueDarkOrGreyDarkest
-      },
-      get inactiveBackgroundColor() {
-        return Styles.globalColors.blueDarkOrGreyDarkest
-      },
-      // else keyboard avoiding is racy on ios and won't work correctly
-      keyboardHidesTabBar: Styles.isAndroid,
-      labelPosition: Styles.isTablet ? 'beside-icon' : undefined,
-      showLabel: Styles.isTablet,
-      get style() {
-        return {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest}
-      },
-    },
-  }
-)
-
-class UnconnectedTabNavigator extends React.PureComponent<any> {
-  static router = VanillaTabNavigator.router
-  render() {
-    const {navigation, isDarkMode, renderDebug} = this.props
-    const key = `${isDarkMode ? 'dark' : 'light'}: ${renderDebug ? 'd' : ''}`
-    return <VanillaTabNavigator navigation={navigation} key={key} />
-  }
-}
-
-const TabNavigator = Container.connect(
-  () => ({isDarkMode: Styles.isDarkMode(), renderDebug: getRenderDebug()}),
-  undefined,
-  (s, _, o: any) => ({
-    ...s,
-    ...o,
-  })
-)(UnconnectedTabNavigator)
+// TODO
+// const TabBarPeopleIconContainer = props => {
+// const {onPress} = props
+// const dispatch = Container.useDispatch()
+// const accountRows = Container.useSelector(state => state.config.configuredAccounts)
+// const current = Container.useSelector(state => state.config.username)
+// const onQuickSwitch = React.useCallback(() => {
+// const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
+// if (row) {
+// dispatch(ConfigGen.createSetUserSwitching({userSwitching: true}))
+// dispatch(LoginGen.createLogin({password: new HiddenString(''), username: row.username}))
+// } else {
+// onPress()
+// }
+// }, [accountRows, dispatch, current, onPress])
+// return (
+// <Kb.NativeTouchableWithoutFeedback
+// style={props.style}
+// onPress={props.onPress}
+// onLongPress={onQuickSwitch}
+// >
+// <Kb.Box children={props.children} style={props.style} />
+// </Kb.NativeTouchableWithoutFeedback>
+// )
+// }
 
 const tabStyles = Styles.styleSheetCreate(
   () =>
@@ -309,6 +165,7 @@ const tabStyles = Styles.styleSheetCreate(
       container: Styles.platformStyles({
         common: {
           justifyContent: 'center',
+          flex: 1,
         },
         isTablet: {
           // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
@@ -334,123 +191,22 @@ const tabStyles = Styles.styleSheetCreate(
     } as const)
 )
 
-const LoggedInStackNavigator = createStackNavigator(
-  {
-    Main: TabNavigator,
-    ...Shim.shim(modalRoutes),
-  },
-  {
-    bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
-    cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
-    headerMode: 'none',
-    initialRouteKey: 'Main',
-    initialRouteName: 'Main',
-    mode: 'modal',
-  }
-)
-
-const LoggedOutStackNavigator = createStackNavigator(
-  {...Shim.shim(loggedOutRoutes)},
-  {
-    defaultNavigationOptions: {
-      ...defaultNavigationOptions,
-      // show the header
-      header: undefined,
-    },
-    headerMode,
-    initialRouteName: 'login',
-    initialRouteParams: undefined,
-  }
-)
-
-const SimpleLoading = () => (
-  <Kb.Box2
-    direction="vertical"
-    fullHeight={true}
-    fullWidth={true}
-    style={{backgroundColor: Styles.globalColors.white}}
-  >
-    <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
-  </Kb.Box2>
-)
-
-const RootStackNavigator = createSwitchNavigator(
-  {
-    loading: {screen: SimpleLoading},
-    loggedIn: LoggedInStackNavigator,
-    loggedOut: LoggedOutStackNavigator,
-  },
-  {initialRouteName: 'loading'}
-)
-
-const AppContainer = createAppContainer(RootStackNavigator)
-
-class RNApp extends React.PureComponent<Props> {
-  private nav: any = null
-
-  dispatchOldAction = (old: any) => {
-    const nav = this.nav
-    if (!nav) {
-      throw new Error('Missing nav?')
-    }
-
-    const actions = Shared.oldActionToNewActions(old, this.getNavState()) || []
-    try {
-      actions.forEach(a => nav.dispatch(a))
-    } catch (e) {
-      logger.error('Nav error', e)
-    }
-  }
-
-  dispatch = (a: any) => {
-    const nav = this.nav
-    if (!nav) {
-      throw new Error('Missing nav?')
-    }
-    nav.dispatch(a)
-  }
-
-  getNavState = () => {
-    const n = this.nav
-    // try the local internal state first, this should be synchronously correct
-    if (n._navState) {
-      return n._navState
-    }
-    // else fallback to the react state version
-    return (n && n.state && n.state.nav) || null
-  }
-
-  private setNav = (n: any) => {
-    this.nav = n
-    this.props.updateNavigator(n && this)
-  }
-
-  private onNavigationStateChange = (prevNav: any, nav: any, action: any) => {
-    // RN emits this extra action type which we ignore from a redux perspective
-    if (action.type !== 'Navigation/COMPLETE_TRANSITION') {
-      this.props.onNavigationStateChange(prevNav, nav, action)
-    }
-  }
-
-  // hmr messes up startup, so only set this after its rendered once
-  private hmrProps = () => {
-    if (this.nav) {
-      return getPersistenceFunctions()
-    } else {
-      return {}
-    }
-  }
-
-  render() {
-    return (
-      <AppContainer
-        ref={this.setNav}
-        onNavigationStateChange={this.onNavigationStateChange}
-        {...this.hmrProps()}
-      />
-    )
-  }
-}
+const SimpleLoading = React.memo(() => {
+  console.log('bbb simle loading render')
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      style={{
+        backgroundColor: Styles.globalColors.white,
+        // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
+      }}
+    >
+      <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
+    </Kb.Box2>
+  )
+})
 
 const styles = Styles.styleSheetCreate(() => ({
   fsBadgeIconUpload: {
@@ -460,11 +216,499 @@ const styles = Styles.styleSheetCreate(() => ({
     right: Styles.globalMargins.small,
     width: Styles.globalMargins.small,
   },
-  headerTitle: {color: Styles.globalColors.black},
+  headerTitle: {
+    // backgroundColor: 'pink',
+    color: Styles.globalColors.black,
+  },
   keyboard: {
     flexGrow: 1,
     position: 'relative',
   },
 }))
 
+// export default RNApp
+const Tab = createBottomTabNavigator()
+const tabs = [...(Styles.isTablet ? Shared.tabletTabs : Shared.phoneTabs)]
+
+const fastTransitionSpec = {
+  animation: 'spring',
+  config: {
+    stiffness: 1000,
+    damping: 500,
+    mass: 0.3,
+    overshootClamping: true,
+    restDisplacementThreshold: 10,
+    restSpeedThreshold: 10,
+  },
+}
+
+// so we have a stack per tab?
+const tabToStack = new Map()
+const makeTabStack = tab => {
+  let Comp = tabToStack.get(tab)
+  if (!Comp) {
+    const S = createStackNavigator()
+    Comp = ({navigation, route}) => {
+      React.useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route)
+        const hideTabs = routeName === 'chatConversation'
+        navigation.setOptions({tabBarStyle: hideTabs ? {display: 'none'} : tabBarStyle})
+      }, [navigation, route])
+      return (
+        <S.Navigator
+          initialRouteName={tabRoots[tab]}
+          screenOptions={{
+            ...defaultNavigationOptions,
+            transitionSpec: {
+              open: fastTransitionSpec,
+              close: fastTransitionSpec,
+            },
+          }}
+        >
+          {makeNavScreens(Shim.shim(routes, false), S.Screen, false)}
+        </S.Navigator>
+      )
+    }
+    tabToStack.set(tab, Comp)
+  }
+  return Comp
+}
+
+const makeNavScreens = (rs, Screen, isModal) => {
+  return Object.keys(rs).map(name => {
+    return (
+      <Screen
+        key={name}
+        name={name}
+        getComponent={rs[name].getScreen}
+        options={({route, navigation}) => {
+          const no = rs[name].getScreen().navigationOptions
+          const opt = typeof no === 'function' ? no({route, navigation}) : no
+          const skipAnim =
+            route.params?.animationEnabled === undefined
+              ? {}
+              : {
+                  // immediate pop in, default back animation
+                  transitionSpec: {
+                    open: {
+                      animation: 'timing',
+                      config: {duration: 0},
+                    },
+                    close: TransitionPresets.DefaultTransition,
+                  },
+                }
+          return {
+            ...opt,
+            ...(isModal ? {animationEnabled: true} : {}),
+            ...skipAnim,
+          }
+        }}
+      />
+    )
+  })
+}
+
+const tabBarStyle = {
+  get backgroundColor() {
+    return Styles.globalColors.blueDarkOrGreyDarkest
+  },
+}
+
+const ShowMonsterSelector = (state: Container.TypedState) =>
+  state.config.loggedIn && !state.push.justSignedUp && state.push.showPushPrompt && !state.push.hasPermissions
+
+const AppTabs = () => {
+  console.log('aaa appTab rendering')
+
+  return (
+    <Tab.Navigator
+      backBehavior="none"
+      screenOptions={({route}) => {
+        return {
+          ...defaultNavigationOptions,
+          tabBarHideOnKeyboard: true,
+          headerShown: false,
+          tabBarShowLabel: Styles.isTablet,
+          tabBarStyle,
+          tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
+        }
+      }}
+    >
+      {tabs.map(tab => (
+        <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
+      ))}
+    </Tab.Navigator>
+  )
+}
+
+const LoggedOutStack = createStackNavigator()
+const LoggedOut = () => (
+  <LoggedOutStack.Navigator
+    initialRouteName="login"
+    screenOptions={{
+      tabBarHideOnKeyboard: true,
+      headerShown: false,
+    }}
+  >
+    {makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)}
+  </LoggedOutStack.Navigator>
+)
+
+const useConnectNavToRedux = () => {
+  console.log('bbb ConnectNavToRedux rendering ')
+  const dispatch = Container.useDispatch()
+  const setNavOnce = React.useRef(false)
+  React.useEffect(() => {
+    console.log('bbb ConnectNavToRedux useeffect ', setNavOnce.current)
+    if (!setNavOnce.current) {
+      if (Constants.navigationRef_.isReady()) {
+        setNavOnce.current = true
+        dispatch(ConfigGen.createSetNavigator({navigator}))
+
+        if (__DEV__) {
+          window.DEBUGNavigator = Constants.navigationRef_.current
+          window.DEBUGRouter2 = Constants
+          console.log('aaaa debug nav', Constants.navigationRef_.current)
+        }
+      }
+    }
+  }, [setNavOnce])
+}
+
+// } else if (startupLink) {
+// dispatch(DeeplinksGen.createLink({link: startupLink}))
+// // try {
+// // if (
+// // ['keybase://private/', 'keybase://public/', 'keybase://team/'].some(prefix =>
+// // startupLink.startsWith(prefix)
+// // )
+// // ) {
+// // const path = `/keybase/${decodeURIComponent(startupLink.substr('keybase://'.length))}`
+// // Constants.navigationRef_.dispatch(
+// // CommonActions.navigate({
+// // name: 'fsRoot',
+// // params: {animationEnabled: false, path},
+// // })
+// // )
+// // } else {
+// }
+// })
+
+// return null
+// }
+
+enum RNAppState {
+  UNINIT, // haven't rendered the nav yet
+  NEEDS_INIT, // rendered but need to bootstrap
+  INITED, // regular app now
+}
+
+const theme = {
+  dark: false,
+  colors: {
+    get primary() {
+      return Styles.globalColors.fastBlank
+    },
+    get background() {
+      return Styles.globalColors.fastBlank
+    },
+    get card() {
+      return Styles.globalColors.white
+    },
+    get text() {
+      return Styles.globalColors.black
+    },
+    get border() {
+      return Styles.globalColors.black_10
+    },
+    get notification() {
+      return Styles.globalColors.black
+    },
+  },
+}
+
+const makeLinking = options => {
+  let {dispatch, startupTab, showMonster, startupFollowUser, startupConversation} = options
+
+  if (__DEV__) {
+    console.log('aaa DEBUG force routes')
+    const temp = ''
+    switch (temp) {
+      case 'follow':
+        startupConversation = ''
+        startupFollowUser = 'chrisnojima'
+        break
+      case 'convo':
+        startupConversation = '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5' // TEMP
+        break
+      case 'tab':
+        startupConversation = ''
+        startupTab = Tabs.fsTab
+        break
+      case 'monster':
+        startupConversation = ''
+        showMonster = true
+        break
+    }
+  }
+
+  const config = Container.produce(
+    {
+      initialRouteName: 'loggedIn',
+      screens: {
+        initialRouteName: 'loggedIn',
+        loggedIn: {
+          screens: {
+            ...tabs.reduce((m, name) => {
+              // m[name] = name
+              m[name] = {
+                initialRouteName: tabRoots[name],
+                screens: {
+                  [tabRoots[name]]: name,
+                },
+              }
+              return m
+            }, {}),
+          },
+        },
+        settingsPushPrompt: 'settingsPushPrompt',
+      },
+    },
+    draft => {
+      const {screens} = draft.screens.loggedIn
+      screens[Tabs.chatTab].screens.chatConversation = 'chat/:convoName/:highlightMessageID?'
+      screens[Tabs.peopleTab].screens.profile = 'profile/show/:username'
+    }
+  )
+
+  return {
+    prefixes: ['keybase://', 'https://keybase.io'],
+
+    // Custom function to get the URL which was used to open the app
+    async getInitialURL() {
+      // First, you may want to do the default deep link handling
+      // Check if app was opened from a deep link
+      // NOTE: This can FAIL debugging in chrome
+      let url = await Kb.NativeLinking.getInitialURL()
+
+      console.log('bbbb linking get initial', {url})
+
+      if (url != null && !DeeplinksConstants.isValidLink(url)) {
+        url = null
+      }
+
+      if (!url) {
+        if (showMonster) {
+          url = 'keybase://settingsPushPrompt'
+        } else if (startupConversation) {
+          url = `keybase://convid/${startupConversation}`
+          // TODO support actual existing chat links
+          //keybase://chat/${conv}/${messageID}`
+        } else if (startupFollowUser) {
+          url = `keybase://profile/show/${startupFollowUser}`
+        } else {
+          url = `keybase://${startupTab ?? ''}`
+        }
+      }
+      console.log('bbbb linking get initial startuptab', {
+        url,
+        startupTab,
+        showMonster,
+        startupFollowUser,
+        startupConversation,
+      })
+
+      // allow deep links sagas access to the first link
+      if (DeeplinksConstants.isValidLink(url)) {
+        setTimeout(() => dispatch(DeeplinksGen.createLink({link: url})), 1)
+      }
+      return url
+    },
+    config,
+    getStateFromPath: (path, options) => {
+      // use the chat path to make the object but swap out the name with the convo id
+      if (path.startsWith('convid/')) {
+        console.log('bbb getsatefrompath', path)
+        const [, id] = path.split('/')
+        return Container.produce(getStateFromPath('chat/REPLACE', options), draft => {
+          draft.routes[0].state.routes[0].state.routes[1].params.conversationIDKey = id
+        })
+      } else {
+        return getStateFromPath(path, options)
+      }
+    },
+    subscribe(listener) {
+      // Listen to incoming links from deep linking
+      const linkingSub = Kb.NativeLinking.addEventListener('url', ({url}: {url: string}) => {
+        console.log('bbb got subscribe link', url)
+
+        // const originalURL = url
+        // if (url.startsWith('keybase://chat/')) {
+        // // we go into the chat loading state since the links have names and not conviIDs resolved
+        // url = DeeplinksConstants.convertChatURLToPending(url)
+        // }
+
+        listener(url)
+        // most of the 'plain url=>routing' happens with the above config but sometimes
+        // we need to handle more async actions in the sagas
+        dispatch(DeeplinksGen.createLink({link: url}))
+      })
+      return () => {
+        linkingSub?.remove()
+      }
+    },
+  }
+}
+
+// gets state from redux used to make the linking object
+const useReduxToLinking = (appState: RNAppState) => {
+  const startupTab = Container.useSelector(state => state.config.startupTab)
+  const startupConversation = Container.useSelector(state => {
+    const {startupConversation} = state.config
+    return ChatConstants.isValidConversationIDKey(startupConversation) &&
+      state.config.startupTab === Tabs.chatTab
+      ? startupConversation
+      : undefined
+  })
+  const showMonster = Container.useSelector(ShowMonsterSelector)
+  const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
+  const dispatch = Container.useDispatch()
+
+  return appState === RNAppState.NEEDS_INIT
+    ? makeLinking({
+        dispatch,
+        startupConversation,
+        startupTab,
+        showMonster,
+        startupFollowUser,
+      })
+    : undefined
+}
+
+const useIsDarkChanged = () => {
+  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
+  const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
+  return darkChanged
+}
+
+const useNavKey = (appState: RNAppState, key: React.MutableRefObject<number>) => {
+  const darkChanged = useIsDarkChanged()
+  if (darkChanged) {
+    key.current++
+  }
+
+  return appState === RNAppState.NEEDS_INIT ? -1 : key.current
+}
+
+const useInitialState = () => {
+  const darkChanged = useIsDarkChanged()
+  return darkChanged
+    ? Constants.navigationRef_?.isReady()
+      ? Constants.navigationRef_?.getRootState()
+      : undefined
+    : undefined
+}
+
+const useInitialStateChangeAfterLinking = (goodLinking, onStateChange) => {
+  // send onNavChanged on initial render after handling linking
+  React.useEffect(() => {
+    if (goodLinking) {
+      console.log('bbb use effect good linking onstatechange')
+      setTimeout(() => onStateChange(), 1)
+    }
+  }, [goodLinking])
+}
+
+const RootStack = createStackNavigator()
+const RNApp = props => {
+  // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
+  // if we use useEffect and useState we'll have to deal with extra renders which look really bad
+  const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
+  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  const dispatch = Container.useDispatch()
+
+  const navContainerKey = React.useRef(1)
+  const oldNavPath = React.useRef<any>([])
+  // keep track if we went to an init route yet or not
+  const rnappState = React.useRef(loggedInLoaded ? RNAppState.NEEDS_INIT : RNAppState.UNINIT)
+
+  if (rnappState.current === RNAppState.UNINIT && loggedInLoaded) {
+    rnappState.current = RNAppState.NEEDS_INIT
+  }
+  useConnectNavToRedux()
+  const goodLinking = useReduxToLinking(rnappState.current)
+  // we only send certain params to the container depending on the state so we can remount w/ the right data
+  // instead of using useEffect and flashing all the time
+  // we use linking and force a key change if we're in NEEDS_INIT
+  // while inited we cna use initialStateRef when dark mode changes, we never want both at the same time
+  const goodKey = useNavKey(rnappState.current, navContainerKey)
+  const goodInitialState = useInitialState()
+
+  console.log('bbb RNApp render', {
+    rnappState: rnappState.current,
+    goodLinking,
+    goodKey,
+    goodInitialState,
+    loggedIn,
+    loggedInLoaded,
+  })
+
+  // if we handled NEEDS_INIT we're done
+  if (rnappState.current === RNAppState.NEEDS_INIT) {
+    rnappState.current = RNAppState.INITED
+  }
+
+  const onStateChange = () => {
+    const old = oldNavPath.current
+    const vp = Constants.getVisiblePath()
+    console.log('bbb onstatechnaged', vp)
+    dispatch(
+      RouteTreeGen.createOnNavChanged({
+        navAction: undefined,
+        next: vp,
+        prev: old,
+      })
+    )
+    oldNavPath.current = vp
+  }
+
+  useInitialStateChangeAfterLinking(goodLinking, onStateChange)
+
+  return (
+    <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
+      <NavigationContainer
+        fallback={<Kb.NativeView style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
+        linking={goodLinking}
+        ref={Constants.navigationRef_}
+        key={String(goodKey)}
+        theme={theme}
+        initialState={goodInitialState}
+        onStateChange={onStateChange}
+      >
+        <RootStack.Navigator
+          key="root"
+          initialRouteName={loggedIn ? 'loggedIn' : 'loggedOut' /* in case linking fails */}
+          screenOptions={{
+            animationEnabled: false,
+            presentation: 'modal',
+            headerLeft: HeaderLeftCancel,
+            title: '',
+            headerShown: false, // eventually do this after we pull apart modal2 etc
+          }}
+        >
+          <RootStack.Screen key="loading" name="loading" component={SimpleLoading} />
+          {loggedInLoaded && loggedIn && (
+            <>
+              <RootStack.Screen name="loggedIn" component={AppTabs} />
+              {makeNavScreens(Shim.shim(modalRoutes, true), RootStack.Screen, true)}
+            </>
+          )}
+          {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
+        </RootStack.Navigator>
+      </NavigationContainer>
+    </Kb.KeyboardAvoidingView>
+  )
+}
 export default RNApp

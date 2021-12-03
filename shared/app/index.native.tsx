@@ -4,7 +4,7 @@ import Main from './main.native'
 import * as React from 'react'
 import configureStore from '../store/configure-store'
 import {AppRegistry, AppState, Linking} from 'react-native'
-import {GatewayProvider} from '@chardskarth/react-gateway'
+import {PortalProvider} from '@gorhom/portal'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
@@ -19,6 +19,7 @@ let store: ReturnType<typeof configureStore>['store']
 type Props = {}
 
 class Keybase extends React.Component<Props> {
+  _appStateChangeSub: any
   constructor(props: Props) {
     super(props)
 
@@ -37,35 +38,33 @@ class Keybase extends React.Component<Props> {
       temp.store.dispatch(ConfigGen.createInstallerRan())
     }
 
-    AppState.addEventListener('change', this._handleAppStateChange)
+    this._appStateChangeSub = AppState.addEventListener('change', nextAppState => {
+      store && store.dispatch(ConfigGen.createMobileAppState({nextAppState}))
+    })
   }
 
   componentDidMount() {
-    Linking.addEventListener('url', this._handleOpenURL)
-    Linking.getInitialURL().then(url => url && this._handleOpenURL({url}))
+    // this._linkingSub = Linking.addEventListener('url', this._handleOpenURL)
+    // Linking.getInitialURL().then(url => url && this._handleOpenURL({url}))
   }
 
   componentWillUnmount() {
-    AppState.removeEventListener('change', this._handleAppStateChange)
-    Linking.removeEventListener('url', this._handleOpenURL)
+    this._appStateChangeSub?.remove()
+    // this._linkingSub?.remove()
   }
 
-  _handleOpenURL(event: {url: string}) {
-    store && store.dispatch(DeeplinksGen.createLink({link: event.url}))
-  }
-
-  _handleAppStateChange = (nextAppState: 'active' | 'background' | 'inactive') => {
-    store && store.dispatch(ConfigGen.createMobileAppState({nextAppState}))
-  }
+  // _handleOpenURL(event: {url: string}) {
+  // store && store.dispatch(DeeplinksGen.createLink({link: event.url}))
+  // }
 
   render() {
     return (
       <Provider store={store}>
-        <GatewayProvider>
+        <PortalProvider>
           <SafeAreaProvider>
             <Main />
           </SafeAreaProvider>
-        </GatewayProvider>
+        </PortalProvider>
       </Provider>
     )
   }

@@ -353,7 +353,7 @@ module.exports = {
     return require('react-native-reanimated').default
   },
   get ReAnimatedEasing() {
-    return require('react-native-reanimated').Easing
+    return require('react-native-reanimated').EasingNode
   },
   get RectButton() {
     return require('react-native-gesture-handler').RectButton
@@ -456,5 +456,8 @@ module.exports = {
   },
   get useTimeout() {
     return Index.useTimeout
+  },
+  get useSafeAreaInsets() {
+    return Index.useSafeAreaInsets
   },
 }

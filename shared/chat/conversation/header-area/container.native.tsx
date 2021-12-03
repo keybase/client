@@ -4,45 +4,62 @@ import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader, Props} from './index.native'
+import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
 import * as Container from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getVisiblePath} from '../../../constants/router2'
 import {getFullname} from '../../../constants/users'
 import * as Tabs from '../../../constants/tabs'
-import {withNavigation} from 'react-navigation'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   progress: any
 }
 
-const isPhoneOrEmail = (props: Props): boolean =>
-  props.participants.some(participant => participant.endsWith('@phone') || participant.endsWith('@email'))
-
 const HeaderBranch = (props: Props & {progress: any}) => {
   const {progress, ...rest} = props
 
-  let header: React.ReactNode = null
   if (props.teamName) {
-    header = <ChannelHeader {...rest} />
-  } else if (isPhoneOrEmail(props)) {
-    header = <PhoneOrEmailHeader {...rest} />
-  } else {
-    header = <UsernameHeader {...rest} />
+    return <ChannelHeader {...rest} />
   }
-  const opacity = 1
-  // Temp until nav5
-  //const p = Kb.NativeAnimated.add(progress.current, progress.next || 0)
 
-  //const opacity = p.interpolate({
-  //inputRange: [0, 1, 2],
-  //outputRange: [0, 1, 0],
-  //})
+  const isPhoneOrEmail = props.participants.some(
+    participant => participant.endsWith('@phone') || participant.endsWith('@email')
+  )
 
-  return <Kb.NativeAnimated.View style={{opacity, width: '100%'}}>{header}</Kb.NativeAnimated.View>
+  if (isPhoneOrEmail) {
+    return <PhoneOrEmailHeader {...rest} />
+  } else {
+    return <UsernameHeader {...rest} />
+  }
 }
 
-const Connected = Container.connect(
+export const HeaderAreaRight = (props: OwnProps) => {
+  const {conversationIDKey} = props
+  const pendingWaiting =
+    conversationIDKey === Constants.pendingWaitingConversationIDKey ||
+    conversationIDKey === Constants.pendingErrorConversationIDKey
+
+  const dispatch = Container.useDispatch()
+
+  const onShowInfoPanel = React.useCallback(
+    () => dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true})),
+    [dispatch, conversationIDKey]
+  )
+  const onToggleThreadSearch = React.useCallback(
+    () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
+    [dispatch, conversationIDKey]
+  )
+  return pendingWaiting ? null : (
+    <Kb.Box2 direction="horizontal" gap="small">
+      <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} />
+      <Kb.Icon type="iconfont-info" onClick={onShowInfoPanel} />
+    </Kb.Box2>
+  )
+}
+
+// TODO remove this and connect the sub views
+export const HeaderArea = Container.connect(
   (state, ownProps: OwnProps) => {
     const {conversationIDKey} = ownProps
     const meta = Constants.getMeta(state, conversationIDKey)
@@ -56,8 +73,9 @@ const Connected = Container.connect(
             .map(username => getFullname(state, username))[0]
         : undefined
 
+    console.log('aaa header area container', meta)
+
     return {
-      _badgeMap: state.chat2.badgeMap,
       channelName: meta.channelname,
       contactNames,
       muted: meta.isMuted,
@@ -72,14 +90,12 @@ const Connected = Container.connect(
   },
   (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
     onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
-    onShowInfoPanel: () => dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true})),
     onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
+    onShowInfoPanel: () => dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true})),
     onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
     unMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {conversationIDKey} = ownProps
-    const {_badgeMap} = stateProps
     const {
       channelName,
       contactNames,
@@ -92,17 +108,7 @@ const Connected = Container.connect(
     } = stateProps
     const {onOpenFolder, onShowProfile, onShowInfoPanel} = dispatchProps
     const {onToggleThreadSearch, unMuteConversation} = dispatchProps
-    const visiblePath = getVisiblePath()
-    const onTopOfInbox = visiblePath?.length === 4 && visiblePath[2]?.routeName === Tabs.chatTab
     return {
-      badgeNumber: onTopOfInbox
-        ? [..._badgeMap.entries()].reduce(
-            (res, [currentConvID, currentValue]) =>
-              // only show sum of badges that aren't for the current conversation
-              currentConvID !== conversationIDKey ? res + currentValue : res,
-            0
-          )
-        : 0,
       channelName,
       contactNames,
       muted,
@@ -121,14 +127,28 @@ const Connected = Container.connect(
   }
 )(HeaderBranch)
 
-const GrabConvoID = ({navigation}) => {
-  return (
-    <Connected
-      conversationIDKey={navigation.getParam('conversationIDKey', Constants.noConversationIDKey)}
-      progress={null}
-    />
+const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}) => {
+  const visiblePath = getVisiblePath()
+  const onTopOfInbox = visiblePath?.length === 3 && visiblePath[1]?.name === Tabs.chatTab
+  const badgeNumber = Container.useSelector(state =>
+    onTopOfInbox
+      ? [...state.chat2.badgeMap.entries()].reduce(
+          (res, [currentConvID, currentValue]) =>
+            // only show sum of badges that aren't for the current conversation
+            currentConvID !== conversationIDKey ? res + currentValue : res,
+          0
+        )
+      : 0
   )
+  return <HeaderLeftArrow badgeNumber={badgeNumber} {...rest} />
 }
-const ConnectedWrapper = withNavigation(GrabConvoID)
 
-export default () => <ConnectedWrapper />
+export const headerNavigationOptions = route => ({
+  headerLeft: props => (
+    <BadgeHeaderLeftArray {...props} conversationIDKey={route.params?.conversationIDKey} />
+  ),
+  headerRight: () => <HeaderAreaRight conversationIDKey={route.params?.conversationIDKey} />,
+  headerTitle: () => <HeaderArea conversationIDKey={route.params?.conversationIDKey} />,
+})
+
+export default HeaderArea

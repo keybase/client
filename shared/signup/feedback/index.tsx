@@ -43,7 +43,6 @@ const SendFeedback = (props: Props) => {
   )
 }
 SendFeedback.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null,
   headerRightActions: null,

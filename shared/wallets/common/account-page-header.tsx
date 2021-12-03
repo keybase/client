@@ -30,7 +30,7 @@ const AccountPageHeader = (props: Props) => (
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.fillAbsolute,
+    // ...Styles.globalStyles.fillAbsolute,
     flex: 1,
   },
 }))

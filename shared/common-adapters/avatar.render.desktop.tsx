@@ -81,8 +81,9 @@ const Avatar = (props: Props) => {
           style={Styles.collapseStyles([
             props.isTeam ? styles.borderTeam : styles.border,
             props.borderColor && {
-              boxShadow: `0px 0px 0px ${props.isTeam ? 1 : 2}px ${props.borderColor ||
-                Styles.globalColors.black_10} ${props.isTeam ? 'inset' : ''}`,
+              boxShadow: `0px 0px 0px ${props.isTeam ? 1 : 2}px ${
+                props.borderColor || Styles.globalColors.black_10
+              } ${props.isTeam ? 'inset' : ''}`,
             },
           ])}
           className={Styles.classNames(
@@ -92,12 +93,7 @@ const Avatar = (props: Props) => {
         />
       )}
       {props.followIconType && <Icon type={props.followIconType} style={props.followIconStyle} />}
-      {props.editable && (
-        <Icon
-          type="iconfont-edit"
-          style={props.isTeam ? (flags.teamsRedesign ? styles.editTeam : styles.editTeamOld) : styles.edit}
-        />
-      )}
+      {props.editable && <Icon type="iconfont-edit" style={props.isTeam ? styles.editTeam : styles.edit} />}
       {props.children}
     </div>
   )

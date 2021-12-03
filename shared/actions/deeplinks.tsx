@@ -74,6 +74,16 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         logger.warn("Coudn't decode KBFS URI")
         return []
       }
+    case 'convid':
+      if (parts.length === 2) {
+        return [
+          ChatGen.createNavigateToThread({
+            conversationIDKey: parts[1],
+            reason: 'navChanged',
+          }),
+        ]
+      }
+      break
     case 'chat':
       if (parts.length === 2 || parts.length === 3) {
         if (parts[1].includes('#')) {
@@ -93,7 +103,7 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
             return []
           }
           return [
-            RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+            // RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
             ChatGen.createPreviewConversation({
               channelname,
               highlightMessageID,
@@ -108,7 +118,7 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
             return []
           }
           return [
-            RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
+            // RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
             ChatGen.createPreviewConversation({
               highlightMessageID,
               participants: parts[1].split(','),

@@ -303,7 +303,7 @@ class EditAvatar extends React.Component<Props, State> {
       y1: Math.round((y + AVATAR_SIZE) * ratio),
     }
 
-    if (flags.teamsRedesign && this.props.wizard) {
+    if (this.props.wizard) {
       return this.props.onSave(
         this.state.imageSource,
         crop,
@@ -317,170 +317,60 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   render() {
-    if (flags.teamsRedesign) {
-      return (
-        <Kb.Modal
-          mode="DefaultFullHeight"
-          onClose={this.props.onClose}
-          header={{
-            leftButton:
-              this.props.wizard || this.props.showBack ? (
-                <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />
-              ) : null,
-            rightButton: this.props.wizard ? (
-              <Kb.Button
-                label="Skip"
-                mode="Secondary"
-                onClick={this.props.onSkip}
-                style={styles.skipButton}
-                type="Default"
-              />
-            ) : null,
-            title:
-              this.props.type === 'team' ? (
-                <ModalTitle teamID={this.props.teamID} title="Upload an avatar" />
-              ) : (
-                'Upload an avatar'
-              ),
-          }}
-          allowOverflow={true}
-          footer={{
-            content: (
-              <Kb.WaitingButton
-                fullWidth={true}
-                label={this.props.wizard ? 'Continue' : 'Save'}
-                onClick={this.onSave}
-                disabled={!this.state.hasPreview}
-                waitingKey={null}
-              />
-            ),
-          }}
-          banners={[
-            ...(this.props.error
-              ? [
-                  <Kb.Banner color="red" key="propsError">
-                    {this.props.error}
-                  </Kb.Banner>,
-                ]
-              : []),
-            ...(this.state.error
-              ? [
-                  <Kb.Banner color="red" key="stateError">
-                    The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
-                  </Kb.Banner>,
-                ]
-              : []),
-          ]}
-        >
-          <Kb.Box
-            className={Styles.classNames({dropping: this.state.dropping})}
-            onDragLeave={this.onDragLeave}
-            onDragOver={this.onDragOver}
-            onDrop={this.onDrop}
-            style={Styles.collapseStyles([
-              styles.container,
-              this.props.createdTeam && styles.paddingTopForCreatedTeam,
-            ])}
-            onMouseUp={this.onMouseUp}
-            onMouseDown={this.onMouseDown}
-            onMouseMove={this.onMouseMove}
-          >
-            {this.props.type === 'team' && this.props.createdTeam && !this.props.wizard && (
-              <Kb.Box style={styles.createdBanner}>
-                <Kb.Text type="BodySmallSemibold" negative={true}>
-                  Hoorah! Your team {this.props.teamname} was created.
-                </Kb.Text>
-              </Kb.Box>
-            )}
-            <Kb.Text center={true} type="Body" style={styles.instructions}>
-              Drag and drop a {this.props.type} avatar or{' '}
-              <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this.filePickerOpen}>
-                browse your computer
-              </Kb.Text>{' '}
-              for one.
-            </Kb.Text>
-            <HoverBox
-              className={Styles.classNames({filled: this.state.hasPreview})}
-              onClick={this.state.hasPreview ? null : this.filePickerOpen}
-              style={{
-                borderRadius: this.props.type === 'team' ? 32 : AVATAR_CONTAINER_SIZE,
-              }}
-            >
-              <input
-                accept="image/gif,image/jpeg,image/png"
-                multiple={false}
-                onChange={this.pickFile}
-                ref={this.filePickerSetRef}
-                style={styles.hidden}
-                type="file"
-              />
-              {this.state.loading && (
-                <Kb.Box2 direction="vertical" fullHeight={true} style={styles.spinnerContainer}>
-                  <Kb.ProgressIndicator type="Large" style={styles.spinner} />
-                </Kb.Box2>
-              )}
-              <Kb.OrientedImage
-                forwardedRef={this.image}
-                src={this.state.imageSource}
-                style={Styles.platformStyles({
-                  isElectron: {
-                    height: this.state.scaledImageHeight,
-                    left: this.state.offsetLeft,
-                    opacity: this.state.loading ? 0 : 1,
-                    position: 'absolute',
-                    top: this.state.offsetTop,
-                    transition: 'opacity 0.25s ease-in',
-                    width: this.state.scaledImageWidth,
-                  },
-                } as const)}
-                onDragStart={e => e.preventDefault()}
-                onLoad={this.onImageLoad}
-                onError={this.onImageError}
-              />
-              {!this.state.loading && !this.state.hasPreview && (
-                <Kb.Icon
-                  className="icon"
-                  color={Styles.globalColors.greyDark}
-                  fontSize={48}
-                  style={styles.icon}
-                  type="iconfont-camera"
-                />
-              )}
-            </HoverBox>
-            {this.state.hasPreview && (
-              <input
-                disabled={!this.state.hasPreview || this.props.submitting}
-                min={1}
-                max={10}
-                onChange={this.onRangeChange}
-                onMouseMove={e => e.stopPropagation()}
-                step="any"
-                type="range"
-                value={this.state.scale}
-              />
-            )}
-          </Kb.Box>
-        </Kb.Modal>
-      )
-    }
-
     return (
-      <Kb.MaybePopup
+      <Kb.Modal
+        mode="DefaultFullHeight"
         onClose={this.props.onClose}
-        styleClipContainer={styles.overflowHidden}
-        styleCover={Styles.collapseStyles([
-          styles.cover,
-          {
-            cursor: this.state.dragging ? '-webkit-grabbing' : 'default',
-          },
-        ])}
-        onMouseMove={this.onMouseMove}
+        header={{
+          leftButton:
+            this.props.wizard || this.props.showBack ? (
+              <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />
+            ) : null,
+          rightButton: this.props.wizard ? (
+            <Kb.Button
+              label="Skip"
+              mode="Secondary"
+              onClick={this.props.onSkip}
+              style={styles.skipButton}
+              type="Default"
+            />
+          ) : null,
+          title:
+            this.props.type === 'team' ? (
+              <ModalTitle teamID={this.props.teamID} title="Upload an avatar" />
+            ) : (
+              'Upload an avatar'
+            ),
+        }}
+        allowOverflow={true}
+        footer={{
+          content: (
+            <Kb.WaitingButton
+              fullWidth={true}
+              label={this.props.wizard ? 'Continue' : 'Save'}
+              onClick={this.onSave}
+              disabled={!this.state.hasPreview}
+              waitingKey={null}
+            />
+          ),
+        }}
+        banners={[
+          ...(this.props.error
+            ? [
+                <Kb.Banner color="red" key="propsError">
+                  {this.props.error}
+                </Kb.Banner>,
+              ]
+            : []),
+          ...(this.state.error
+            ? [
+                <Kb.Banner color="red" key="stateError">
+                  The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
+                </Kb.Banner>,
+              ]
+            : []),
+        ]}
       >
-        {!!this.props.error && (
-          <Kb.Banner color="red">
-            <Kb.BannerParagraph bannerColor="red" content={this.props.error} />
-          </Kb.Banner>
-        )}
         <Kb.Box
           className={Styles.classNames({dropping: this.state.dropping})}
           onDragLeave={this.onDragLeave}
@@ -488,15 +378,13 @@ class EditAvatar extends React.Component<Props, State> {
           onDrop={this.onDrop}
           style={Styles.collapseStyles([
             styles.container,
-            {
-              paddingTop: this.props.createdTeam ? 0 : Styles.globalMargins.xlarge,
-            },
+            this.props.createdTeam && styles.paddingTopForCreatedTeam,
           ])}
           onMouseUp={this.onMouseUp}
           onMouseDown={this.onMouseDown}
           onMouseMove={this.onMouseMove}
         >
-          {this.props.createdTeam && (
+          {this.props.type === 'team' && this.props.createdTeam && !this.props.wizard && (
             <Kb.Box style={styles.createdBanner}>
               <Kb.Text type="BodySmallSemibold" negative={true}>
                 Hoorah! Your team {this.props.teamname} was created.
@@ -506,9 +394,9 @@ class EditAvatar extends React.Component<Props, State> {
           <Kb.Text center={true} type="Body" style={styles.instructions}>
             Drag and drop a {this.props.type} avatar or{' '}
             <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this.filePickerOpen}>
-              browse your computer for one
-            </Kb.Text>
-            .
+              browse your computer
+            </Kb.Text>{' '}
+            for one.
           </Kb.Text>
           <HoverBox
             className={Styles.classNames({filled: this.state.hasPreview})}
@@ -546,6 +434,7 @@ class EditAvatar extends React.Component<Props, State> {
               } as const)}
               onDragStart={e => e.preventDefault()}
               onLoad={this.onImageLoad}
+              onError={this.onImageError}
             />
             {!this.state.loading && !this.state.hasPreview && (
               <Kb.Icon
@@ -569,23 +458,8 @@ class EditAvatar extends React.Component<Props, State> {
               value={this.state.scale}
             />
           )}
-          <Kb.ButtonBar>
-            <Kb.WaitingButton
-              label={this.props.createdTeam ? 'Later, thanks' : 'Cancel'}
-              onClick={this.props.onClose}
-              type="Dim"
-              waitingKey={this.props.waitingKey}
-              onlyDisable={true}
-            />
-            <Kb.WaitingButton
-              disabled={!this.state.hasPreview}
-              label="Save"
-              onClick={this.onSave}
-              waitingKey={this.props.waitingKey}
-            />
-          </Kb.ButtonBar>
         </Kb.Box>
-      </Kb.MaybePopup>
+      </Kb.Modal>
     )
   }
 }
@@ -648,7 +522,6 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.padding(Styles.globalMargins.xlarge, 0),
     alignItems: 'center',
-    minWidth: flags.teamsRedesign ? undefined : 460,
   },
   cover: {zIndex: EDIT_AVATAR_ZINDEX},
   createdBanner: {

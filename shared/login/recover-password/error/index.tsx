@@ -46,7 +46,6 @@ export const ErrorModal = (props: Props) => (
 
 Error.navigationOptions = {
   gesturesEnabled: false,
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
   headerRightActions: () => (

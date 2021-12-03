@@ -10,8 +10,7 @@ import {isPhone} from '../../constants/platform'
 import {Props} from '.'
 import * as Kb from '../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
-// @ts-ignore
-import {withNavigationFocus} from '@react-navigation/core'
+import {useIsFocused} from '@react-navigation/native'
 
 type OwnProps = {
   navKey: string
@@ -71,10 +70,7 @@ const makeSmallRows = (
 let InboxWrapper = (props: Props) => {
   const dispatch = Container.useDispatch()
   const inboxHasLoaded = Container.useSelector(state => state.chat2.inboxHasLoaded)
-
-  // temporary until nav 5
-  // @ts-ignore
-  const {isFocused} = props
+  const isFocused = useIsFocused()
 
   if (Container.isMobile) {
     // eslint-disable-next-line
@@ -101,19 +97,24 @@ let InboxWrapper = (props: Props) => {
   return <Inbox {...props} />
 }
 
-// temporary until nav 5
-if (Container.isMobile) {
-  InboxWrapper = withNavigationFocus(InboxWrapper)
-}
-
+const buttonWidth = 132
 // @ts-ignore
 InboxWrapper.navigationOptions = {
-  header: undefined,
-  headerRight: <HeaderNewChatButton />,
+  headerRightContainerStyle: {
+    // backgroundColor: 'orange',
+    paddingRight: 8,
+    flexGrow: 0,
+    minWidth: buttonWidth,
+  },
+  headerLeftContainerStyle: {
+    minWidth: buttonWidth,
+    flexGrow: 0,
+  },
+  headerLeft: () => <Kb.HeaderLeftBlank />,
+  headerRight: () => <HeaderNewChatButton />,
   headerTitle: () => (
-    <Kb.Text type="BodyBig" lineClamp={1}>
-      {' '}
-      Chats{' '}
+    <Kb.Text type="BodyBig" center={true}>
+      Chats
     </Kb.Text>
   ),
 }

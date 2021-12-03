@@ -98,7 +98,6 @@ const PromptReset = (props: Props) => {
 }
 
 const navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
   headerRightActions: () => (

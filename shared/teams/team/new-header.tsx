@@ -241,33 +241,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         alignSelf="flex-end"
       >
         <AddPeopleButton teamID={props.teamID} />
-        {flags.teamInvites && (
-          <Kb.Text type={mostRecentInviteLink ? 'BodyTiny' : 'BodySmall'}>
-            {mostRecentInviteLink ? 'or share a link:' : 'or'}
-          </Kb.Text>
-        )}
-        {flags.teamInvites &&
-          (mostRecentInviteLink ? (
-            <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
-              <InviteItem
-                inviteLink={mostRecentInviteLink}
-                teamID={props.teamID}
-                style={styles.inviteLinkContainer}
-                showDetails={false}
-                showExpireAction={false}
-              />
-              <Kb.Text type="BodyTiny" onClick={callbacks.onManageInvites} className="hover-underline">
-                Manage invite links {additionalValidIndicator}
-              </Kb.Text>
-            </Kb.Box2>
-          ) : (
-            <Kb.Button
-              label="Generate invite link"
-              onClick={callbacks.onGenerateLink}
-              mode="Secondary"
-              fullWidth={true}
-            />
-          ))}
       </Kb.Box2>
     )
 

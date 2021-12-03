@@ -122,8 +122,9 @@ export const LeftAction = ({
   onLeftAction,
   theme,
   customIconColor,
+  style,
 }: LeftActionProps): React.ReactElement => (
-  <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
+  <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow, style])}>
     {onLeftAction && leftAction === 'cancel' ? (
       <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
         {leftActionText || customCancelText || 'Cancel'}
@@ -260,13 +261,16 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       opacity: 1,
       paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.tiny,
+      paddingLeft: 0, //Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
     isAndroid: {
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
+    },
+    isIOS: {
+      paddingLeft: Styles.globalMargins.tiny,
     },
   }),
   actionPressable: {
@@ -279,7 +283,7 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxColumn,
     height: '100%',
     position: 'relative',
-    width: '100%',
+    // width: '100%',
   },
   grow: {
     flexGrow: 1,
@@ -292,7 +296,7 @@ const styles = Styles.styleSheetCreate(() => ({
       borderBottomWidth: 1,
       borderStyle: 'solid',
       justifyContent: 'flex-start',
-      width: '100%',
+      // width: '100%',
     },
     isAndroid: {
       backgroundColor: Styles.globalColors.white,
@@ -314,9 +318,10 @@ const styles = Styles.styleSheetCreate(() => ({
       alignItems: 'flex-start',
       flexShrink: 1,
       justifyContent: 'flex-start',
+      // backgroundColor: 'orange', // TEMP
     },
     isIOS: {
-      paddingLeft: Styles.globalMargins.tiny,
+      // paddingLeft: Styles.globalMargins.tiny,
     },
   }),
   rightActions: Styles.platformStyles({
@@ -367,24 +372,28 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
+const noop = () => {}
+export const HeaderLeftBlank = () => (
+  <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
+)
 export const HeaderLeftArrow = hp =>
-  hp.scene.index === 0 ? null : (
+  hp.canGoBack ? (
     <LeftAction
-      badgeNumber={0}
+      badgeNumber={hp.badgeNumber ?? 0}
       leftAction="back"
       onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
       customIconColor={hp.tintColor}
     />
-  )
+  ) : null
 
 export const HeaderLeftCancel = hp =>
-  hp.scene.index === 0 ? null : (
+  hp.canGoBack ? (
     <LeftAction
       badgeNumber={0}
       leftAction="cancel"
       onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
       customIconColor={hp.tintColor}
     />
-  )
+  ) : null
 
 export default HeaderHoc

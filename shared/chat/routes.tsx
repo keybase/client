@@ -42,15 +42,10 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
-  chatAddToChannel: flags.teamsRedesign
-    ? {
-        getScreen: (): typeof ChatAddToChannelNew =>
-          require('./conversation/info-panel/add-to-channel/index.new').default,
-      }
-    : {
-        getScreen: (): typeof ChatAddToChannel =>
-          require('./conversation/info-panel/add-to-channel/container').default,
-      },
+  chatAddToChannel: {
+    getScreen: (): typeof ChatAddToChannelNew =>
+      require('./conversation/info-panel/add-to-channel/index.new').default,
+  },
   chatAttachmentFullscreen: {
     getScreen: (): typeof ChatAttachmentFullscreen =>
       require('./conversation/attachment-fullscreen/container').default,

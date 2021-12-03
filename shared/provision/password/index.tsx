@@ -91,7 +91,6 @@ const Password = (props: Props) => {
 }
 
 Password.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }

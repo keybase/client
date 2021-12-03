@@ -24,30 +24,30 @@ export type Props = {
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
 
-const Wrapper = (
-  props: {
-    children: React.ReactNode
-  } & Props
-) => {
-  const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  return (
-    <HeaderHocHeader
-      badgeNumber={props.badgeNumber}
-      onLeftAction={onBack}
-      rightActions={
-        props.pendingWaiting
-          ? undefined
-          : [
-              {icon: 'iconfont-search', label: 'search', onPress: props.onToggleThreadSearch},
-              {icon: 'iconfont-info', label: 'Info', onPress: props.onShowInfoPanel},
-            ]
-      }
-      titleComponent={props.children}
-    />
-  )
-}
+// const Wrapper = (
+// props: {
+// children: React.ReactNode
+// } & Props
+// ) => {
+// const dispatch = Container.useDispatch()
+// const nav = Container.useSafeNavigation()
+// // const onBack = () => dispatch(nav.safeNavigateUpPayload())
+// return (
+// <HeaderHocHeader
+// // badgeNumber={props.badgeNumber}
+// // onLeftAction={onBack}
+// rightActions={
+// props.pendingWaiting
+// ? undefined
+// : [
+// {icon: 'iconfont-search', label: 'search', onPress: props.onToggleThreadSearch},
+// {icon: 'iconfont-info', label: 'Info', onPress: props.onShowInfoPanel},
+// ]
+// }
+// titleComponent={props.children}
+// />
+// )
+// }
 
 const ShhIcon = (props: {onClick: () => void}) => (
   <Icon
@@ -60,7 +60,7 @@ const ShhIcon = (props: {onClick: () => void}) => (
 )
 
 const ChannelHeader = (props: Props) => (
-  <Wrapper {...props}>
+  <Box2 direction="vertical">
     <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
       <Avatar teamname={props.teamName || undefined} size={props.smallTeam ? 16 : (12 as any)} />
       <Text
@@ -90,37 +90,35 @@ const ChannelHeader = (props: Props) => (
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
       </Box2>
     )}
-  </Wrapper>
+  </Box2>
 )
 
 const UsernameHeader = (props: Props) => (
-  <Wrapper {...props}>
-    <Box2
-      direction={props.theirFullname ? 'vertical' : 'horizontal'}
-      fullWidth={true}
-      style={styles.usernameHeaderContainer}
-    >
-      {!!props.theirFullname && (
-        <Text lineClamp={1} type="BodyBig">
-          {props.theirFullname}
-        </Text>
-      )}
-      <Box2 direction="horizontal" fullWidth={true} style={styles.nameMutedContainer}>
-        <ConnectedUsernames
-          colorFollowing={true}
-          inline={false}
-          lineClamp={props.participants.length > 2 ? 2 : 1}
-          commaColor={Styles.globalColors.black_50}
-          type={props.participants.length > 2 || !!props.theirFullname ? 'BodyTinyBold' : 'BodyBig'}
-          usernames={props.participants}
-          containerStyle={styles.center}
-          onUsernameClicked={props.onShowProfile}
-          skipSelf={props.participants.length > 1}
-        />
-        {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-      </Box2>
+  <Box2
+    direction={props.theirFullname ? 'vertical' : 'horizontal'}
+    fullWidth={true}
+    style={styles.usernameHeaderContainer}
+  >
+    {!!props.theirFullname && (
+      <Text lineClamp={1} type="BodyBig">
+        {props.theirFullname}
+      </Text>
+    )}
+    <Box2 direction="horizontal" fullWidth={true} style={styles.nameMutedContainer}>
+      <ConnectedUsernames
+        colorFollowing={true}
+        inline={false}
+        lineClamp={props.participants.length > 2 ? 2 : 1}
+        commaColor={Styles.globalColors.black_50}
+        type={props.participants.length > 2 || !!props.theirFullname ? 'BodyTinyBold' : 'BodyBig'}
+        usernames={props.participants}
+        containerStyle={styles.center}
+        onUsernameClicked={props.onShowProfile}
+        skipSelf={props.participants.length > 1}
+      />
+      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box2>
-  </Wrapper>
+  </Box2>
 )
 
 const PhoneOrEmailHeader = (props: Props) => {
@@ -128,17 +126,15 @@ const PhoneOrEmailHeader = (props: Props) => {
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
   const name = props.contactNames.get(phoneOrEmail)
   return (
-    <Wrapper {...props}>
-      <Box2 direction="vertical" style={styles.usernameHeaderContainer}>
-        <Box2 direction="horizontal" style={styles.lessMargins}>
-          <Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
-            {formattedPhoneOrEmail}
-          </Text>
-          {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-        </Box2>
-        {!!name && <Text type="BodyTiny">{name}</Text>}
+    <Box2 direction="vertical" style={styles.usernameHeaderContainer}>
+      <Box2 direction="horizontal" style={styles.lessMargins}>
+        <Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
+          {formattedPhoneOrEmail}
+        </Text>
+        {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
       </Box2>
-    </Wrapper>
+      {!!name && <Text type="BodyTiny">{name}</Text>}
+    </Box2>
   )
 }
 

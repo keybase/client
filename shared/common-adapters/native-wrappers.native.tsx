@@ -14,7 +14,6 @@ import {
   Linking as NativeLinking,
   Modal as NativeModal,
   PanResponder as NativePanResponder,
-  Picker as NativePicker,
   RefreshControl as NativeRefreshControl,
   SafeAreaView as NativeSafeAreaView,
   SectionList as NativeSectionList,
@@ -33,6 +32,7 @@ import {NativeImage, FastImage as NativeFastImage} from './native-image.native'
 import NativeVirtualizedList from './virtualized-list.native'
 import {WebView as NativeWebView} from 'react-native-webview'
 import NativeTextInput from './kb-text-input.native'
+import {Picker as NativePicker} from '@react-native-picker/picker'
 
 // We set some useful default here
 export {

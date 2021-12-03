@@ -164,7 +164,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
   }
 
   render() {
-    if (flags.teamsRedesign && this.props.type === 'team') {
+    if (this.props.type === 'team') {
       return (
         <Kb.Modal
           banners={

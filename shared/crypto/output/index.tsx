@@ -329,6 +329,8 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   )
 }
 
+const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
+
 export const OperationOutput = (props: OutputProps) => {
   const {operation} = props
   const textType = Constants.outputTextType.get(operation)
@@ -405,7 +407,7 @@ export const OperationOutput = (props: OutputProps) => {
   }
 
   // Text output
-  const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
+
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <MobileScroll>

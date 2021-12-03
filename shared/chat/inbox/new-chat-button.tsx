@@ -103,6 +103,7 @@ const styles = Styles.styleSheetCreate(
           marginLeft: Styles.globalMargins.small,
           marginRight: Styles.globalMargins.small,
           position: 'relative',
+          height: 36,
           width: 100,
         },
         isAndroid: {

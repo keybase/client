@@ -26,7 +26,7 @@ const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
 
 // On tablet add an additional "serivce" item that is only a bottom border that extends to the end of the ScrollView
 const TabletBottomBorderExtension = React.memo((props: {offset: number; servicesCount: number}) => {
-  const translateY = Kb.ReAnimated.interpolate(props.offset, {
+  const translateY = Kb.ReAnimated.interpolateNode(props.offset, {
     inputRange: [-100, 0, 100, 9999],
     outputRange: [0, 0, -8, -8],
   })
@@ -54,15 +54,15 @@ const TabletBottomBorderExtension = React.memo((props: {offset: number; services
 const ServiceIcon = React.memo((props: IconProps) => {
   const color = props.isActive ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
 
-  const opacity = Kb.ReAnimated.interpolate(props.offset, {
+  const opacity = Kb.ReAnimated.interpolateNode(props.offset, {
     inputRange: [-9999, 0, 40, 9999],
     outputRange: [1, 1, 0, 0],
   })
-  const width = Kb.ReAnimated.interpolate(props.offset, {
+  const width = Kb.ReAnimated.interpolateNode(props.offset, {
     inputRange: [-9999, -100, 0, 100, 9999],
     outputRange: [bigWidth + 5, bigWidth + 5, bigWidth, smallWidth, smallWidth],
   })
-  const translateY = Kb.ReAnimated.interpolate(props.offset, {
+  const translateY = Kb.ReAnimated.interpolateNode(props.offset, {
     inputRange: [-100, 0, 100, 9999],
     outputRange: [0, 0, -8, -8],
   })
@@ -169,11 +169,11 @@ export class ServiceTabBar extends React.PureComponent<Props> {
   render() {
     const props = this.props
 
-    const height = Kb.ReAnimated.interpolate(props.offset, {
+    const height = Kb.ReAnimated.interpolateNode(props.offset, {
       inputRange: [-9999, 0, 100, 9999],
       outputRange: [72, 72, 48, 48],
     })
-    const translateY = Kb.ReAnimated.interpolate(props.offset, {
+    const translateY = Kb.ReAnimated.interpolateNode(props.offset, {
       inputRange: [-9999, 0, 100, 9999],
       outputRange: [0, 0, 8, 8],
     })

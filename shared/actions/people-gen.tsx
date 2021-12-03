@@ -40,10 +40,13 @@ export const createDismissAnnouncement = (
 export const createDismissWotNotifications = (
   payload: _DismissWotNotificationsPayload
 ): DismissWotNotificationsPayload => ({payload, type: dismissWotNotifications})
-export const createGetPeopleData = (payload: _GetPeopleDataPayload): GetPeopleDataPayload => ({
-  payload,
-  type: getPeopleData,
-})
+export const createGetPeopleData = (payload: _GetPeopleDataPayload): GetPeopleDataPayload => {
+  console.log('aaa createGetPeopleData ')
+  return {
+    payload,
+    type: getPeopleData,
+  }
+}
 export const createMarkViewed = (payload: _MarkViewedPayload): MarkViewedPayload => ({
   payload,
   type: markViewed,

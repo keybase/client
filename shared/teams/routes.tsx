@@ -1,4 +1,4 @@
-import TeamMember from './team/member/container'
+// import TeamMember from './team/member/container'
 import TeamMemberNew from './team/member/index.new'
 import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
@@ -48,9 +48,7 @@ export const newRoutes = {
     getScreen: (): typeof TeamChannel => require('./channel').default,
   },
   teamExternalTeam: {getScreen: (): typeof ExternalTeam => require('./external-team').default},
-  teamMember: flags.teamsRedesign
-    ? {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default}
-    : {getScreen: (): typeof TeamMember => require('./team/member/container').default},
+  teamMember: {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default},
   teamsRoot: {getScreen: (): typeof TeamsRoot => require('./container').default},
 }
 

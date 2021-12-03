@@ -8,21 +8,17 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import {validateEmailAddress} from '../util/email-address'
-import flags from '../util/feature-flags'
 
 const closeTeamBuilding = (_: TypedState, {payload: {namespace}}: NSAction) => {
-  if (namespace === 'teams' && flags.teamsRedesign) {
-    // add members wizard handles navigation
-    return false
-  }
+  // if (namespace === 'teams') {
+  // // add members wizard handles navigation
+  // return false
+  // }
   const modals = RouterConstants.getModalStack()
   const routeNames = [...namespaceToRoute.values()]
-  const routeName = modals[modals.length - 1]?.routeName
+  const routeName = modals[modals.length - 1]?.name
 
-  if (routeNames.indexOf(routeName) !== -1) {
-    return RouteTreeGen.createNavigateUp()
-  }
-  return false
+  return routeNames.indexOf(routeName) === -1 ? false : RouteTreeGen.createNavigateUp()
 }
 
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -157,9 +153,6 @@ export function filterForNs<S, A, L, R>(
   }
 }
 
-const makeCustomResetStore = () =>
-  TeamBuildingTypes.allowedNamespace.map(namespace => TeamBuildingGen.createTbResetStore({namespace}))
-
 const namespaceToRoute = new Map([
   ['chat2', 'chatNewChat'],
   ['crypto', 'cryptoTeamBuilder'],
@@ -184,7 +177,6 @@ const maybeCancelTeamBuilding =
   }
 
 export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
-  yield* Saga.chainAction2(TeamBuildingGen.resetStore, makeCustomResetStore)
   yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
   yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
   yield* Saga.chainAction(RouteTreeGen.onNavChanged, maybeCancelTeamBuilding(namespace))

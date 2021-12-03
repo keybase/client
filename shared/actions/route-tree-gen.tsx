@@ -53,7 +53,10 @@ export const createSwitchLoggedIn = (payload: _SwitchLoggedInPayload): SwitchLog
 /**
  * ONLY used by the new nav. Switch to a different tab.
  */
-export const createSwitchTab = (payload: _SwitchTabPayload): SwitchTabPayload => ({payload, type: switchTab})
+export const createSwitchTab = (payload: _SwitchTabPayload): SwitchTabPayload => {
+  console.log('aaa switch tab', payload)
+  return {payload, type: switchTab}
+}
 /**
  * ONLY used by the new nav. use this to clear any modal routes
  */
@@ -72,10 +75,13 @@ export const createResetStack = (payload: _ResetStackPayload): ResetStackPayload
  * deprecated soon
  */
 export const createSetParams = (payload: _SetParamsPayload): SetParamsPayload => ({payload, type: setParams})
-export const createNavigateAppend = (payload: _NavigateAppendPayload): NavigateAppendPayload => ({
-  payload,
-  type: navigateAppend,
-})
+export const createNavigateAppend = (payload: _NavigateAppendPayload): NavigateAppendPayload => {
+  console.log('aaa nav append, ', payload)
+  return {
+    payload,
+    type: navigateAppend,
+  }
+}
 export const createNavigateUp = (payload: _NavigateUpPayload = Object.freeze({})): NavigateUpPayload => ({
   payload,
   type: navigateUp,

@@ -98,7 +98,7 @@ export const urlToTeamDeepLink = (url: URL) => {
 
   // `url.query` has a wrong type in @types/url-parse. It's a `string` in the
   // code, but @types claim it's a {[k: string]: string | undefined}.
-  const queryString = (url.query as any) as string
+  const queryString = url.query as any as string
 
   // URLSearchParams is not available in react-native. See if any of recognized
   // query parameters is passed using regular expressions.
@@ -139,6 +139,7 @@ export const initialState: Types.State = {
   incomingShareUseOriginal: undefined,
   justDeletedSelf: '',
   loggedIn: false,
+  // loggedInLoaded: false,
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
   menubarWindowID: 0,

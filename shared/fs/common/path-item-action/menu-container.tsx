@@ -177,7 +177,7 @@ const mergeProps = (
         : c(dispatchProps._ignoreTlf)
       : null,
     me: stateProps._username,
-    moveOrCopy: flags.moveOrCopy && layout.moveOrCopy ? c(dispatchProps._moveOrCopy) : null,
+    moveOrCopy: null,
     newFolder: layout.newFolder ? c(dispatchProps._newFolder) : null,
     openChatNonTeam: layout.openChatNonTeam ? c(dispatchProps._openChat) : null,
     openChatTeam: layout.openChatTeam ? c(dispatchProps._openChat) : null,

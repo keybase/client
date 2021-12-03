@@ -18,7 +18,7 @@ const TeamsFooter = (props: {empty: boolean}) => {
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
       {isLoadingTeams ? (
         <Kb.ProgressIndicator type="Large" />
-      ) : flags.teamsRedesign ? (
+      ) : (
         <>
           {props.empty && (
             <Kb.Box2 direction="vertical" alignItems="center" gap="tiny" style={styles.empty}>
@@ -38,43 +38,19 @@ const TeamsFooter = (props: {empty: boolean}) => {
             </Kb.Text>
           )}
         </>
-      ) : props.empty ? (
-        <>
-          <Kb.Text type="BodySmall">You are not a part of any teams.</Kb.Text>
-          <Kb.Text type="BodySmall">
-            <Kb.Text type="BodySmallPrimaryLink" onClick={onCreateTeam}>
-              Create a team
-            </Kb.Text>{' '}
-            or{' '}
-            <Kb.Text type="BodySmallPrimaryLink" onClick={onJoinTeam}>
-              join a team you know.
-            </Kb.Text>
-          </Kb.Text>
-        </>
-      ) : null}
+      )}
     </Kb.Box2>
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: flags.teamsRedesign
-    ? Styles.platformStyles({
-        isElectron: Styles.padding(Styles.globalMargins.large),
-        isMobile: {
-          ...Styles.padding(
-            Styles.globalMargins.medium,
-            Styles.globalMargins.small,
-            Styles.globalMargins.small
-          ),
-          flex: 1,
-        },
-      })
-    : {
-        paddingBottom: Styles.globalMargins.large,
-        paddingLeft: Styles.globalMargins.medium,
-        paddingRight: Styles.globalMargins.medium,
-        paddingTop: Styles.globalMargins.large,
-      },
+  container: Styles.platformStyles({
+    isElectron: Styles.padding(Styles.globalMargins.large),
+    isMobile: {
+      ...Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.small, Styles.globalMargins.small),
+      flex: 1,
+    },
+  }),
   empty: Styles.platformStyles({
     isElectron: {paddingTop: 80},
     isMobile: {flex: 1, paddingBottom: Styles.globalMargins.small},

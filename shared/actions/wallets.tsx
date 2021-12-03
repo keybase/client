@@ -964,7 +964,7 @@ const maybeNavigateAwayFromSendForm = () => {
   const actions: Array<TypedActions> = []
   // pop off any routes that are part of the popup
   path.reverse().some(p => {
-    if (Constants.sendRequestFormRoutes.includes(p.routeName)) {
+    if (Constants.sendRequestFormRoutes.includes(p.name)) {
       actions.push(RouteTreeGen.createNavigateUp())
       return false
     }

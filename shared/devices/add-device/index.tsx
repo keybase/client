@@ -107,8 +107,7 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
     >
       <Kb.Icon type={getIconType(type, iconNumber)} />
       <Kb.Text type="BodySemibold">
-        {type === 'paper key' ? 'Create' : 'Add'} a{' '}
-        {flags.tabletSupport && type === 'phone' ? 'phone or tablet' : type}
+        {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
       </Kb.Text>
     </Kb.Box2>
   </Kb.ClickableBox>

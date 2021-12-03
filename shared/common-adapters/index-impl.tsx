@@ -115,6 +115,9 @@ module.exports = {
   get FloatingPicker() {
     return require('./floating-picker').default
   },
+  get HeaderLeftBlank() {
+    return require('./header-hoc').HeaderLeftBlank
+  },
   get HeaderHocHeader() {
     return require('./header-hoc').HeaderHocHeader
   },
@@ -346,8 +349,8 @@ module.exports = {
   get usePopup() {
     return require('./use-popup').usePopup
   },
-  get useSafeArea() {
-    return require('./safe-area-view').useSafeArea
+  get useSafeAreaInsets() {
+    return require('./safe-area-view').useSafeAreaInsets
   },
   get useTimeout() {
     return require('./use-timers').useTimeout

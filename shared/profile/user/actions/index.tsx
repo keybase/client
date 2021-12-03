@@ -50,6 +50,7 @@ const Actions = (p: Props) => {
   const dispatch = Container.useDispatch()
   // load featured bots on first render
   React.useEffect(() => {
+    // TODO likely don't do this all the time, just once
     dispatch(BotsGen.createGetFeaturedBots({}))
   }, [dispatch])
   if (p.blocked) {

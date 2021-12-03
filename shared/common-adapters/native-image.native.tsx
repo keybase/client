@@ -4,7 +4,6 @@ import {Image, ImageProps, ImageURISource} from 'react-native'
 import RNFI from 'react-native-fast-image'
 import isArray from 'lodash/isArray'
 import LoadingStateView from './loading-state-view'
-import Animated from './animated'
 
 export class NativeImage extends React.Component<ImageProps> {
   static getSize = Image.getSize
@@ -61,24 +60,24 @@ class FastImageImpl extends React.Component<
     if (!source || !source.uri) {
       return null
     }
+
+    // TODO maybe use reanimated2
+    const opacity = this.props.showLoadingStateUntilLoaded && this.state.loading ? 0 : 1
+
     return (
       <>
-        <Animated to={{opacity: this.props.showLoadingStateUntilLoaded && this.state.loading ? 0 : 1}}>
-          {({opacity}) => (
-            <RNFI
-              {...this.props}
-              style={Styles.collapseStyles([
-                this.props.style,
-                this.props.showLoadingStateUntilLoaded && this.state.loading && styles.absolute,
-                {opacity},
-              ])}
-              onLoadStart={this._onLoadStart}
-              onLoadEnd={this._onLoadEnd}
-              onProgress={this._onProgress}
-              source={source}
-            />
-          )}
-        </Animated>
+        <RNFI
+          {...this.props}
+          style={Styles.collapseStyles([
+            this.props.style,
+            this.props.showLoadingStateUntilLoaded && this.state.loading && styles.absolute,
+            {opacity},
+          ])}
+          onLoadStart={this._onLoadStart}
+          onLoadEnd={this._onLoadEnd}
+          onProgress={this._onProgress}
+          source={source}
+        />
         {this.props.showLoadingStateUntilLoaded ? (
           <LoadingStateView loading={this.state.loading} progress={this.state.progress} white={true} />
         ) : null}
