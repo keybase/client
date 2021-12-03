@@ -47,7 +47,7 @@ func IsUserSystemdRunning() bool {
 		// If this is a false positive, user should specify KEYBASE_SYSTEMD=0.
 		return true
 	case "":
-		os.Stderr.WriteString(fmt.Sprintf("Failed to reach user-level systemd daemon.\n"))
+		os.Stderr.WriteString("Failed to reach user-level systemd daemon.\n")
 		return false
 	default:
 		os.Stderr.WriteString(fmt.Sprintf("Systemd reported an unexpected status: %s\n", outputStr))
