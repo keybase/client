@@ -33,7 +33,7 @@ PODS:
     - ExpoModulesCore
   - Expo (43.0.3):
     - ExpoModulesCore
-  - ExpoModulesCore (0.4.7):
+  - ExpoModulesCore (0.4.8):
     - React-Core
   - EXSMS (10.0.3):
     - ExpoModulesCore
@@ -634,7 +634,7 @@ SPEC CHECKSUMS:
   EXMailComposer: 2a4ef087e055e3a9a1d138c300c5ae48a3978d0d
   EXPermissions: 7696f4c16e89981f84c04d96327f7e1e592373c0
   Expo: 5316c3ecdc34eb0cad340d01dc8beec97c7e879e
-  ExpoModulesCore: c353a3bed60c3b83dbe63f134aaa7bf4733ffa16
+  ExpoModulesCore: a9a9bf32b2da35cd9b7299c80790c03a91ac7d15
   EXSMS: 08db0b52fb83f2e8d40a03561d07e183b0f0df1d
   FBLazyVector: de148e8310b8b878db304ceea2fec13f2c02e3a0
   FBReactNativeSpec: 6192956c9e346013d5f1809ba049af720b11c6a4
