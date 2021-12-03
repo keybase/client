@@ -16,11 +16,6 @@ const config = (_, {mode}) => {
   console.error('Flags: ', {isDev, isHot})
 
   const makeRules = nodeThread => {
-    const fileLoaderRule = {
-      loader: 'file-loader',
-      options: {name: '[name].[ext]'},
-    }
-
     const babelRule = {
       loader: 'babel-loader',
       options: {
@@ -39,7 +34,7 @@ const config = (_, {mode}) => {
         // Don't include large mock images in a prod build
         include: path.resolve(__dirname, '../images/mock'),
         test: /\.jpg$/,
-        use: [isDev ? fileLoaderRule : 'null-loader'],
+        ...(isDev ? {type: 'asset/resource'} : {use: ['null-loader']}),
       },
       {
         include: path.resolve(__dirname, '../images/icons'),
@@ -53,22 +48,22 @@ const config = (_, {mode}) => {
       },
       {
         test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/],
-        use: [fileLoaderRule],
+        type: 'asset/resource',
       },
       {
         include: path.resolve(__dirname, '../images/illustrations'),
         test: [/.*\.(gif|png)$/],
-        use: [fileLoaderRule],
+        type: 'asset/resource',
       },
       {
         include: path.resolve(__dirname, '../images/install'),
         test: [/.*\.(gif|png)$/],
-        use: [fileLoaderRule],
+        type: 'asset/resource',
       },
       {
         include: path.resolve(__dirname, '../images/releases'),
         test: [/.*\.(png)$/],
-        use: [fileLoaderRule],
+        type: 'asset/resource',
       },
       {
         test: /\.css$/,
@@ -81,18 +76,6 @@ const config = (_, {mode}) => {
 
   const makeCommonConfig = () => {
     // If we use the hot server it pulls in this config
-    const devServer = {
-      compress: false,
-      contentBase: path.resolve(__dirname, 'dist'),
-      hot: isHot,
-      lazy: false,
-      overlay: true,
-      port: 4000,
-      publicPath: 'http://localhost:4000/dist/',
-      quiet: false,
-      stats: {colors: true},
-    }
-
     const defines = {
       __DEV__: isDev,
       __HOT__: isHot,
@@ -115,8 +98,7 @@ const config = (_, {mode}) => {
     return {
       bail: true,
       context: path.resolve(__dirname, '..'),
-      devServer,
-      devtool: isDev ? 'eval' : 'source-map',
+      devtool: isDev ? 'source-map' : 'source-map', // TEMP
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {
@@ -127,22 +109,12 @@ const config = (_, {mode}) => {
       },
       plugins: [
         new webpack.DefinePlugin(defines), // Inject some defines
-        new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
-        new webpack.IgnorePlugin(/^lodash$/), // Disallow entire lodash
+        new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}), // Skip a bunch of crap moment pulls in
+        new webpack.IgnorePlugin({resourceRegExp: /^lodash$/}), // Disallow entire lodash
       ],
       resolve: {
         alias,
         extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json'],
-      },
-      stats: {
-        ...(isDev
-          ? {}
-          : {
-              exclude: undefined,
-              maxModules: Infinity,
-              providedExports: true,
-              usedExports: true,
-            }),
       },
       ...(isDev
         ? {}
@@ -151,10 +123,9 @@ const config = (_, {mode}) => {
               minimizer: [
                 // options from create react app: https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/config/webpack.config.prod.js
                 new TerserPlugin({
-                  cache: true,
                   parallel: true,
-                  sourceMap: true,
                   terserOptions: {
+                    parse: {ecma: 8},
                     compress: {
                       comparisons: false,
                       ecma: 5,
@@ -181,7 +152,7 @@ const config = (_, {mode}) => {
     name: 'node',
     plugins: [
       // blacklist common things from the main thread to ensure the view layer doesn't bleed into the node layer
-      new webpack.IgnorePlugin(/^react$/),
+      new webpack.IgnorePlugin({resourceRegExp: /^react$/}),
     ],
     stats: {
       ...(isDev ? {} : {usedExports: false}), // ignore exports warnings as its mostly used in the render thread
@@ -190,7 +161,6 @@ const config = (_, {mode}) => {
   })
 
   const hmrPlugin = isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : []
-  const template = path.join(__dirname, './renderer/index.html.template')
   const makeHtmlName = name => `${name}${isDev ? '.dev' : ''}.html`
   const makeViewPlugins = names =>
     [
@@ -199,12 +169,48 @@ const config = (_, {mode}) => {
       ...names.map(
         name =>
           new HtmlWebpackPlugin({
-            // chunks: [name],
+            chunks: [name],
             filename: makeHtmlName(name),
             inject: false,
             isDev,
             name,
-            template,
+            templateContent: ({htmlWebpackPlugin}) => `
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>${htmlWebpackPlugin.options.isDev ? 'Keybase DEV' : 'Keybase'}</title>
+        <meta charset="utf-8" http-equiv="Content-Security-Policy" content="
+    default-src 'none';
+    object-src 'self';
+    font-src 'self' ${htmlWebpackPlugin.options.isDev ? 'http://localhost:4000' : ''};
+    media-src http://127.0.0.1:*;
+    img-src 'self' data: http://127.0.0.1:* https://keybase.io/ https://pbs.twimg.com/ https://avatars.githubusercontent.com/ https://s3.amazonaws.com/keybase_processed_uploads/ ${
+      htmlWebpackPlugin.options.isDev ? 'http://localhost:4000' : ''
+    };
+    style-src 'unsafe-inline';
+    script-src ${
+      htmlWebpackPlugin.options.isDev
+        ? "file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval'"
+        : "'self' 'sha256-gBKeEkQtnPGkGBsS6cpgPBgpI3Z1LehhkqagsAKMxUE='"
+    };
+    connect-src http://127.0.0.1:* ${
+      htmlWebpackPlugin.options.isDev ? 'ws://localhost:4000 http://localhost:4000' : ''
+    };
+        ">
+    </head>
+    <body>
+        <div id="root">
+            <div title="loading..." style="flex: 1;background-color: #f5f5f5"></div>
+        </div>
+        <div id="modal-root"></div>
+        ${
+          htmlWebpackPlugin.options.isDev
+            ? ''
+            : "<script>window.eval = global.eval = function () { throw new Error('Sorry, this app does not support window.eval().')}</script>"
+        }
+        ${htmlWebpackPlugin.files.js.map(js => `<script src="${js}"></script>`).join('\n')} </body>
+</html>
+              `,
           })
       ),
     ].filter(Boolean)
@@ -215,6 +221,26 @@ const config = (_, {mode}) => {
   // multiple entries so we can chunk shared parts
   const entries = ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
   const viewConfig = merge(commonConfig, {
+    devServer: {
+      compress: false,
+      hot: isHot,
+      port: 4000,
+      devMiddleware: {
+        publicPath: 'http://localhost:4000/dist',
+      },
+      client: {
+        overlay: true,
+        webSocketURL: {
+          hostname: 'localhost',
+          pathname: '/ws',
+          port: 4000,
+        },
+      },
+      static: {
+        directory: path.resolve(__dirname, 'dist'),
+        publicPath: '/dist',
+      },
+    },
     entry: entries.reduce((map, name) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
       return map
@@ -233,7 +259,11 @@ const config = (_, {mode}) => {
     },
     module: {rules: makeRules(false)},
     name: 'Keybase',
-    optimization: {splitChunks: {chunks: 'all'}},
+    ...(isHot
+      ? {}
+      : {
+          optimization: {splitChunks: {chunks: 'all'}},
+        }),
     plugins: makeViewPlugins(entries),
     target: 'electron-renderer',
   })

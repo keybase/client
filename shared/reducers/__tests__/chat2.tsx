@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/*
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Constants from '../../constants/chat2'
 import * as ConstantsMessage from '../../constants/chat2/message'
@@ -124,3 +125,5 @@ describe('chat2 reducer', () => {
     })
   })
 })
+*/
+export {}

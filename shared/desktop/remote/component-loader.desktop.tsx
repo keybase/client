@@ -1,5 +1,6 @@
 // This loads up a remote component. It makes a pass-through store which accepts its props from the main window through ipc
 // Also protects it with an error boundary
+import * as remote from '@electron/remote'
 import * as React from 'react'
 import * as Electron from 'electron'
 import * as Styles from '../../styles'
@@ -33,7 +34,7 @@ class RemoteComponentLoader extends React.Component<Props> {
 
   constructor(props: Props) {
     super(props)
-    this._window = Electron.remote.getCurrentWindow()
+    this._window = remote.getCurrentWindow()
     const remoteStore = new RemoteStore({
       deserialize: props.deserialize,
       gotPropsCallback: this._onGotProps,
@@ -85,7 +86,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default function(options: {
+export default function (options: {
   child: React.ReactNode
   deserialize: (arg0: any, arg1: any) => any
   name: RemoteComponents

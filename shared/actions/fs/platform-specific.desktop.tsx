@@ -4,8 +4,8 @@ import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as Electron from 'electron'
 import * as Tabs from '../../constants/tabs'
+import * as remote from '@electron/remote'
 import fs from 'fs'
 import {TypedState, TypedActions} from '../../util/container'
 import {fileUIName, isWindows, isLinux} from '../../constants/platform'
@@ -51,7 +51,7 @@ const openInDefaultDirectory = (openPath: string): Promise<void> => {
       const url = pathToURL(resolvedPath)
       logger.info('Open URL (directory):', url)
 
-      Electron.remote.shell
+      remote.shell
         .openExternal(url, {activate: true})
         .then(() => {
           logger.info('Opened directory:', openPath)
@@ -90,16 +90,17 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
   new Promise((resolve, reject) => {
     if (isFolder) {
       if (isWindows) {
-        if (Electron.remote.shell.openItem(openPath)) {
-          resolve()
-        } else {
-          reject(new Error('unable to open item'))
-        }
+        remote.shell
+          .openPath(openPath)
+          .then(() => resolve())
+          .catch(() => {
+            reject(new Error('unable to open item'))
+          })
       } else {
         openInDefaultDirectory(openPath).then(resolve, reject)
       }
     } else {
-      Electron.remote.shell.showItemInFolder(openPath)
+      remote.shell.showItemInFolder(openPath)
       resolve()
     }
   })
@@ -121,13 +122,7 @@ const escapeBackslash = isWindows
   : (pathElem: string): string => pathElem
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
-  path.resolve(
-    mountLocation,
-    Types.getPathElements(kbfsPath)
-      .slice(1)
-      .map(escapeBackslash)
-      .join(sep)
-  )
+  path.resolve(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(sep))
 
 const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathInSystemFileManagerPayload) =>
   state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled && state.fs.sfmi.directMountDir
@@ -160,37 +155,36 @@ const fuseStatusToUninstallExecPath = isWindows
     }
   : (_: RPCTypes.FuseStatus | null) => null
 
-const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
-  status: RPCTypes.FuseStatus | null
-) => {
-  if (!status) {
-    return FsGen.createSetDriverStatus({
-      driverStatus: Constants.defaultDriverStatus,
-    })
+const fuseStatusToActions =
+  (previousStatusType: Types.DriverStatusType) => (status: RPCTypes.FuseStatus | null) => {
+    if (!status) {
+      return FsGen.createSetDriverStatus({
+        driverStatus: Constants.defaultDriverStatus,
+      })
+    }
+    return status.kextStarted
+      ? [
+          FsGen.createSetDriverStatus({
+            driverStatus: {
+              ...Constants.emptyDriverStatusEnabled,
+              dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
+              dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
+            },
+          }),
+          ...(previousStatusType === Types.DriverStatusType.Disabled
+            ? [
+                FsGen.createOpenPathInSystemFileManager({
+                  path: Types.stringToPath('/keybase'),
+                }),
+              ]
+            : []), // open Finder/Explorer/etc for newly enabled
+        ]
+      : [
+          FsGen.createSetDriverStatus({
+            driverStatus: Constants.emptyDriverStatusDisabled,
+          }),
+        ]
   }
-  return status.kextStarted
-    ? [
-        FsGen.createSetDriverStatus({
-          driverStatus: {
-            ...Constants.emptyDriverStatusEnabled,
-            dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
-            dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
-          },
-        }),
-        ...(previousStatusType === Types.DriverStatusType.Disabled
-          ? [
-              FsGen.createOpenPathInSystemFileManager({
-                path: Types.stringToPath('/keybase'),
-              }),
-            ]
-          : []), // open Finder/Explorer/etc for newly enabled
-      ]
-    : [
-        FsGen.createSetDriverStatus({
-          driverStatus: Constants.emptyDriverStatusDisabled,
-        }),
-      ]
-}
 
 const windowsCheckMountFromOtherDokanInstall = (status: RPCTypes.FuseStatus) =>
   RPCTypes.kbfsMountGetCurrentMountDirRpcPromise().then(mountPoint =>
@@ -251,7 +245,7 @@ const driverEnableFuse = async (action: FsGen.DriverEnablePayload) => {
 
 const uninstallKBFSConfirm = async () => {
   const action = await new Promise<TypedActions | false>(resolve =>
-    Electron.remote.dialog
+    remote.dialog
       .showMessageBox({
         buttons: ['Remove & Restart', 'Cancel'],
         detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
@@ -267,8 +261,8 @@ const uninstallKBFSConfirm = async () => {
 const uninstallKBFS = () =>
   RPCTypes.installUninstallKBFSRpcPromise().then(() => {
     // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-    Electron.remote.app.relaunch()
-    Electron.remote.app.exit(0)
+    remote.app.relaunch()
+    remote.app.exit(0)
   })
 
 // @ts-ignore
@@ -278,7 +272,7 @@ const uninstallDokanConfirm = async (state: TypedState) => {
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
     const action = await new Promise<TypedActions>(resolve =>
-      Electron.remote.dialog
+      remote.dialog
         .showMessageBox({
           buttons: ['Got it'],
           detail:
@@ -302,13 +296,13 @@ const uninstallDokan = (state: TypedState) => {
       exec(execPath, {windowsHide: true}, resolve)
     } catch (e) {
       logger.error('uninstallDokan caught', e)
-      resolve()
+      resolve(undefined)
     }
   }).then(() => FsGen.createRefreshDriverStatus())
 }
 
 const openSecurityPreferences = () => {
-  Electron.remote.shell
+  remote.shell
     .openExternal('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
     .then(() => {
       logger.info('Opened Security Preferences')
@@ -320,7 +314,7 @@ const openSecurityPreferences = () => {
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
 const installCachedDokan = () =>
-  new Promise((resolve, reject) => {
+  new Promise<void>((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
     execFile(dokanPath, [], err => {
@@ -350,8 +344,8 @@ const installCachedDokan = () =>
     .catch(e => errorToActionOrThrow(e))
 
 const openAndUploadToPromise = (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
-  Electron.remote.dialog
-    .showOpenDialog(Electron.remote.getCurrentWindow(), {
+  remote.dialog
+    .showOpenDialog(remote.getCurrentWindow(), {
       properties: [
         'multiSelections' as const,
         ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),

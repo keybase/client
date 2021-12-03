@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/*
 import URL from 'url-parse'
 import {urlToUsername, urlToTeamDeepLink} from '../../../constants/config'
 
@@ -108,3 +109,5 @@ describe('urlToTeamLink', () => {
     check(`https://keybase.io/team/${longTeam}?applink=add_or_invite`, undefined, undefined)
   })
 })
+*/
+export {}

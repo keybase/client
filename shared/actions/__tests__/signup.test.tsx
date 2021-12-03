@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/*
 import * as Types from '../../constants/types/signup'
 import * as Constants from '../../constants/signup'
 import * as SignupGen from '../signup-gen'
@@ -347,3 +348,5 @@ describe('actually sign up', () => {
     expect(_testing.showErrorOrCleanupAfterSignup(nextState)).toEqual(SignupGen.createRestartSignup())
   })
 })
+*/
+export {}

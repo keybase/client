@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/*
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/provision'
 import * as Tabs from '../../constants/tabs'
@@ -226,3 +227,5 @@ describe('reply with device type', () => {
     ).toThrow()
   })
 })
+*/
+export {}

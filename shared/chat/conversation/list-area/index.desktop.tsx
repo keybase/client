@@ -56,7 +56,7 @@ class Thread extends React.PureComponent<Props, State> {
   private isScrolling = false
 
   private lastResizeHeight = 0
-  private resizeObserver =
+  private resizeObserver: any =
     // @ts-ignore doesn't know about ResizeObserver
     typeof ResizeObserver !== 'undefined' &&
     // @ts-ignore doesn't know about ResizeObserver

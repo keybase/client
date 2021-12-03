@@ -1,4 +1,5 @@
 import './tab-bar.css'
+import * as remote from '@electron/remote'
 import * as ConfigGen from '../actions/config-gen'
 import * as LoginGen from '../actions/login-gen'
 import * as Container from '../util/container'
@@ -76,7 +77,7 @@ const Header = () => {
       }
     }
     // In case dump log doesn't exit for us
-    Electron.remote.getCurrentWindow().hide()
+    remote.getCurrentWindow().hide()
     setTimeout(() => {
       quit()
     }, 2000)

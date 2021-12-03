@@ -6,6 +6,7 @@ import * as DeeplinksGen from './deeplinks-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Container from '../util/container'
+import {RPCError} from '../util/errors'
 import * as Constants from '../constants/tracker2'
 import * as ProfileConstants from '../constants/profile'
 import {WebOfTrustVerificationType} from '../constants/types/more'
@@ -110,7 +111,8 @@ function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
       },
       waitingKey: Constants.profileLoadWaitingKey,
     })
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     if (err.code === RPCTypes.StatusCode.scresolutionfailed) {
       yield Saga.put(Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, result: 'notAUserYet'}))
     } else if (err.code === RPCTypes.StatusCode.scnotfound) {
@@ -163,7 +165,7 @@ const loadWebOfTrustEntries = async (
       voucheeUsername: username,
     })
   } catch (err) {
-    logger.error(`Error loading web-of-trust info: ${err.message}`)
+    logger.error(`Error loading web-of-trust info: ${(err as Error).message}`)
     return false
   }
 }
@@ -192,7 +194,7 @@ const loadFollowers = async (action: Tracker2Gen.LoadPayload) => {
       username: action.payload.assertion,
     })
   } catch (err) {
-    logger.error(`Error loading follower info: ${err.message}`)
+    logger.error(`Error loading follower info: ${(err as Error).message}`)
     return false
   }
 }
@@ -221,7 +223,7 @@ const loadFollowing = async (action: Tracker2Gen.LoadPayload) => {
       username: action.payload.assertion,
     })
   } catch (err) {
-    logger.error(`Error loading following info: ${err.message}`)
+    logger.error(`Error loading following info: ${(err as Error).message}`)
     return false
   }
 }
@@ -236,7 +238,7 @@ const getProofSuggestions = async () => {
       suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
     })
   } catch (e) {
-    logger.error(`Error loading proof suggestions: ${e.message}`)
+    logger.error(`Error loading proof suggestions: ${(e as Error).message}`)
     return false
   }
 }
@@ -312,7 +314,7 @@ const loadNonUserProfile = async (action: Tracker2Gen.LoadNonUserProfilePayload)
     }
     return false
   } catch (e) {
-    logger.warn(`Error loading non user profile: ${e.message}`)
+    logger.warn(`Error loading non user profile: ${(e as Error).message}`)
     return false
   }
 }

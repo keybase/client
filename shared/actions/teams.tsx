@@ -39,7 +39,7 @@ async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
     const addMembers = thenAddMembers ? [TeamsGen.createAddToTeam({...thenAddMembers, teamID})] : []
     return [TeamsGen.createTeamCreated({fromChat: !!fromChat, teamID, teamname}), ...addMembers]
   } catch (error) {
-    return TeamsGen.createSetTeamCreationError({error: error.desc})
+    return TeamsGen.createSetTeamCreationError({error: (error as RPCError).desc})
   }
 }
 const showTeamAfterCreation = (action: TeamsGen.TeamCreatedPayload) => {
@@ -69,24 +69,26 @@ const openInviteLink = (_: TeamsGen.OpenInviteLinkPayload) => {
     path: ['teamInviteLinkJoin'],
   })
 }
-const promptInviteLinkJoin = (deeplink: boolean) => (
-  params: RPCTypes.MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'],
-  response: {result: (boolean) => void}
-) => {
-  return Saga.callUntyped(function*() {
-    yield Saga.put(TeamsGen.createUpdateInviteLinkDetails({details: params.details}))
-    if (!deeplink) {
-      yield Saga.put(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: params, selected: 'teamInviteLinkJoin'}],
-          replace: true,
-        })
-      )
-    }
-    const action: TeamsGen.RespondToInviteLinkPayload = yield Saga.take(TeamsGen.respondToInviteLink)
-    response.result(action.payload.accept)
-  })
-}
+const promptInviteLinkJoin =
+  (deeplink: boolean) =>
+  (
+    params: RPCTypes.MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'],
+    response: {result: (boolean) => void}
+  ) => {
+    return Saga.callUntyped(function* () {
+      yield Saga.put(TeamsGen.createUpdateInviteLinkDetails({details: params.details}))
+      if (!deeplink) {
+        yield Saga.put(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: params, selected: 'teamInviteLinkJoin'}],
+            replace: true,
+          })
+        )
+      }
+      const action: TeamsGen.RespondToInviteLinkPayload = yield Saga.take(TeamsGen.respondToInviteLink)
+      response.result(action.payload.accept)
+    })
+  }
 function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
   const {teamname, deeplink} = action.payload
 
@@ -123,7 +125,8 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
         teamname: result && result.wasTeamName ? teamname : '',
       })
     )
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     const desc =
       error.code === RPCTypes.StatusCode.scteaminvitebadtoken
         ? 'Sorry, that team name or token is not valid.'
@@ -141,7 +144,8 @@ const requestInviteLinkDetails = async (state: TypedState, _: TeamsGen.RequestIn
     return TeamsGen.createUpdateInviteLinkDetails({
       details,
     })
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     const desc =
       error.code === RPCTypes.StatusCode.scteaminvitebadtoken
         ? 'Sorry, that invite token is not valid.'
@@ -187,7 +191,7 @@ function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload, logger: 
     })
   } catch (e) {
     // handled through waiting store
-    logger.warn('error:', e.message)
+    logger.warn('error:', (e as Error).message)
   }
 }
 const leaveTeam = async (action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLogger) => {
@@ -202,7 +206,7 @@ const leaveTeam = async (action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLog
     return TeamsGen.createLeftTeam({context, teamname})
   } catch (e) {
     // handled through waiting store
-    logger.warn('error:', e.message)
+    logger.warn('error:', (e as Error).message)
     return
   }
 }
@@ -219,7 +223,7 @@ const loadWelcomeMessage = async (action: TeamsGen.LoadWelcomeMessagePayload, lo
     return TeamsGen.createLoadedWelcomeMessage({message, teamID})
   } catch (error) {
     logger.error(error)
-    return TeamsGen.createSettingsError({error: error.desc})
+    return TeamsGen.createSettingsError({error: (error as RPCError).desc})
   }
 }
 
@@ -233,7 +237,7 @@ const setWelcomeMessage = async (action: TeamsGen.SetWelcomeMessagePayload, logg
     return TeamsGen.createLoadWelcomeMessage({teamID})
   } catch (error) {
     logger.error(error)
-    return TeamsGen.createSetWelcomeMessageError({error: error.desc})
+    return TeamsGen.createSetWelcomeMessageError({error: (error as RPCError).desc})
   }
 }
 
@@ -254,7 +258,7 @@ const getTeamRetentionPolicy = async (
         throw new Error(`RPC returned retention policy of type 'inherit' for team policy`)
       }
     } catch (err) {
-      logger.error(err.message)
+      logger.error((err as Error).message)
       throw err
     }
   } catch (_) {}
@@ -270,7 +274,8 @@ const saveTeamRetentionPolicy = (
   let servicePolicy: RPCChatTypes.RetentionPolicy
   try {
     servicePolicy = Constants.retentionPolicyToServiceRetentionPolicy(policy)
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     logger.error(error.message)
     return TeamsGen.createSettingsError({error: error.desc})
   }
@@ -294,7 +299,7 @@ const updateTeamRetentionPolicy = (
   try {
     return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy: teamRetentionPolicy, teamID})
   } catch (err) {
-    logger.error(err.message)
+    logger.error((err as Error).message)
     throw err
   }
 }
@@ -305,14 +310,15 @@ function* inviteByEmail(_: TypedState, action: TeamsGen.InviteToTeamByEmailPaylo
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
   }
   try {
-    const res: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamAddEmailsBulkRpcPromise> = yield RPCTypes.teamsTeamAddEmailsBulkRpcPromise(
-      {
-        emails: invitees,
-        name: teamname,
-        role: (role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none) as any,
-      },
-      [Constants.teamWaitingKey(teamID), Constants.addToTeamByEmailWaitingKey(teamname)]
-    )
+    const res: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamAddEmailsBulkRpcPromise> =
+      yield RPCTypes.teamsTeamAddEmailsBulkRpcPromise(
+        {
+          emails: invitees,
+          name: teamname,
+          role: (role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none) as any,
+        },
+        [Constants.teamWaitingKey(teamID), Constants.addToTeamByEmailWaitingKey(teamname)]
+      )
     if (res.malformed && res.malformed.length > 0) {
       const malformed = res.malformed
       logger.warn(`teamInviteByEmail: Unable to parse ${malformed.length} email addresses`)
@@ -340,7 +346,7 @@ function* inviteByEmail(_: TypedState, action: TeamsGen.InviteToTeamByEmailPaylo
     }
   } catch (err) {
     // other error. display messages and leave all emails in input box
-    yield Saga.put(TeamsGen.createSetEmailInviteError({malformed: [], message: err.desc}))
+    yield Saga.put(TeamsGen.createSetEmailInviteError({malformed: [], message: (err as RPCError).desc}))
   } finally {
     if (loadingKey) {
       yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname}))
@@ -384,7 +390,8 @@ const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
       ]
     }
     return TeamsGen.createAddedToTeam({fromTeamBuilder})
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     // If all of the users couldn't be added due to contact settings, the RPC fails.
     if (err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       const users = err.fields?.filter((elem: any) => elem.key === 'usernames').map((elem: any) => elem.value)
@@ -423,7 +430,7 @@ const reAddToTeam = async (action: TeamsGen.ReAddToTeamPayload) => {
     )
     return false
   } catch (e) {
-    return addReAddErrorHandler(username, e)
+    return addReAddErrorHandler(username, e as RPCError)
   }
 }
 
@@ -432,7 +439,7 @@ const editDescription = async (action: TeamsGen.EditTeamDescriptionPayload) => {
   try {
     await RPCTypes.teamsSetTeamShowcaseRpcPromise({description, teamID}, Constants.teamWaitingKey(teamID))
   } catch (e) {
-    return TeamsGen.createSetEditDescriptionError({error: e.message})
+    return TeamsGen.createSetEditDescriptionError({error: (e as Error).message})
   }
   return []
 }
@@ -447,7 +454,7 @@ const uploadAvatar = async (action: TeamsGen.UploadTeamAvatarPayload, logger: Sa
     return RouteTreeGen.createNavigateUp()
   } catch (e) {
     // error displayed in component
-    logger.warn(`Error uploading team avatar: ${e.message}`)
+    logger.warn(`Error uploading team avatar: ${(e as Error).message}`)
     return false
   }
 }
@@ -466,7 +473,7 @@ const editMembership = async (action: TeamsGen.EditMembershipPayload) => {
   } catch (e) {
     if (usernames.length === 1) {
       // error is shown in the member page
-      return TeamsGen.createSetEditMemberError({error: e.message, teamID, username: usernames[0]})
+      return TeamsGen.createSetEditMemberError({error: (e as Error).message, teamID, username: usernames[0]})
     }
   }
   return false
@@ -541,14 +548,15 @@ function* inviteToTeamByPhone(
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
   }
   try {
-    const seitan: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise> = yield RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
-      {
-        label: {sms: {f: fullName || '', n: phoneNumber} as RPCTypes.SeitanKeyLabelSms, t: 1},
-        role: (!!role && RPCTypes.TeamRole[role]) || RPCTypes.TeamRole.none,
-        teamname: teamname,
-      },
-      [Constants.teamWaitingKey(teamID)]
-    )
+    const seitan: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise> =
+      yield RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
+        {
+          label: {sms: {f: fullName || '', n: phoneNumber} as RPCTypes.SeitanKeyLabelSms, t: 1},
+          role: (!!role && RPCTypes.TeamRole[role]) || RPCTypes.TeamRole.none,
+          teamname: teamname,
+        },
+        [Constants.teamWaitingKey(teamID)]
+      )
     /* Open SMS */
     const bodyText = generateSMSBody(teamname, seitan)
     yield openSMS([phoneNumber], bodyText)
@@ -620,7 +628,7 @@ const loadTeam = async (state: TypedState, action: TeamsGen.LoadTeamPayload, log
     const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
     return TeamsGen.createTeamLoaded({team, teamID})
   } catch (e) {
-    logger.error(e.message)
+    logger.error((e as Error).message)
     return
   }
 }
@@ -709,10 +717,11 @@ function* getTeams(
     }
   }
   try {
-    const results: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamListUnverifiedRpcPromise> = yield RPCTypes.teamsTeamListUnverifiedRpcPromise(
-      {includeImplicitTeams: false, userAssertion: username},
-      Constants.teamsLoadedWaitingKey
-    )
+    const results: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamListUnverifiedRpcPromise> =
+      yield RPCTypes.teamsTeamListUnverifiedRpcPromise(
+        {includeImplicitTeams: false, userAssertion: username},
+        Constants.teamsLoadedWaitingKey
+      )
 
     const teams: Array<RPCTypes.AnnotatedMemberInfo> = results.teams || []
     const teamnames: Array<string> = []
@@ -730,7 +739,8 @@ function* getTeams(
         teamnames: teamNameSet,
       })
     )
-  } catch (err) {
+  } catch (err_) {
+    const err = err_ as RPCError
     if (err.code === RPCTypes.StatusCode.scapinetworkerror) {
       // Ignore API errors due to offline
     } else {
@@ -777,7 +787,7 @@ const checkRequestedAccess = async () => {
   return TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: new Set<Types.Teamname>(teams)})
 }
 
-const _joinConversation = function*(
+const _joinConversation = function* (
   teamID: Types.TeamID,
   waitingKey: string,
   conversationIDKey: ChatTypes.ConversationIDKey
@@ -792,11 +802,11 @@ const _joinConversation = function*(
       })
     )
   } catch (error) {
-    yield Saga.put(ConfigGen.createGlobalError({globalError: convertToError(error)}))
+    yield Saga.put(ConfigGen.createGlobalError({globalError: convertToError(error as Object)}))
   }
 }
 
-const _leaveConversation = function*(
+const _leaveConversation = function* (
   teamID: Types.TeamID,
   waitingKey: string,
   conversationIDKey: ChatTypes.ConversationIDKey
@@ -806,7 +816,7 @@ const _leaveConversation = function*(
     yield RPCChatTypes.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
     yield Saga.put(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
   } catch (error) {
-    yield Saga.put(ConfigGen.createGlobalError({globalError: convertToError(error)}))
+    yield Saga.put(ConfigGen.createGlobalError({globalError: convertToError(error as Object)}))
   }
 }
 
@@ -841,17 +851,18 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
   }
 
   try {
-    const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> = yield RPCChatTypes.localNewConversationLocalRpcPromise(
-      {
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.ConversationMembersType.team,
-        tlfName: teamname,
-        tlfVisibility: RPCTypes.TLFVisibility.private,
-        topicName: channelname,
-        topicType: RPCChatTypes.TopicType.chat,
-      },
-      Constants.createChannelWaitingKey(teamID)
-    )
+    const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> =
+      yield RPCChatTypes.localNewConversationLocalRpcPromise(
+        {
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          membersType: RPCChatTypes.ConversationMembersType.team,
+          tlfName: teamname,
+          tlfVisibility: RPCTypes.TLFVisibility.private,
+          topicName: channelname,
+          topicType: RPCChatTypes.TopicType.chat,
+        },
+        Constants.createChannelWaitingKey(teamID)
+      )
 
     // No error if we get here.
     const newConversationIDKey = result ? ChatTypes.conversationIDToKey(result.conv.info.id) : null
@@ -894,7 +905,7 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
       )
     }
   } catch (error) {
-    yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
+    yield Saga.put(TeamsGen.createSetChannelCreationError({error: (error as RPCError).desc}))
   }
 }
 
@@ -918,7 +929,7 @@ const createChannels = async (state: TypedState, action: TeamsGen.CreateChannels
       })
     }
   } catch (error) {
-    return TeamsGen.createSetChannelCreationError({error: error.desc})
+    return TeamsGen.createSetChannelCreationError({error: (error as RPCError).desc})
   }
   return [
     TeamsGen.createSetCreatingChannels({creatingChannels: false}),
@@ -938,7 +949,7 @@ const setMemberPublicity = async (action: TeamsGen.SetMemberPublicityPayload) =>
     )
     return
   } catch (error) {
-    return TeamsGen.createSettingsError({error: error.desc})
+    return TeamsGen.createSettingsError({error: (error as RPCError).desc})
   }
 }
 
@@ -1173,9 +1184,9 @@ function* addTeamWithChosenChannels(
     teams = JSON.parse(body.toString())
   } else {
     logger.info(
-      `${logPrefix} No item in gregor state found, making new item. Total # of items: ${(pushState.items &&
-        pushState.items.length) ||
-        0}`
+      `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
+        (pushState.items && pushState.items.length) || 0
+      }`
     )
   }
   if (existingTeams.size > teams.length) {
@@ -1223,7 +1234,7 @@ const updateChannelname = async (state: TypedState, action: TeamsGen.UpdateChann
     await RPCChatTypes.localPostMetadataRpcPromise(param, Constants.updateChannelNameWaitingKey(teamID))
     return false
   } catch (error) {
-    return TeamsGen.createSetChannelCreationError({error: error.desc})
+    return TeamsGen.createSetChannelCreationError({error: (error as RPCError).desc})
   }
 }
 
@@ -1268,7 +1279,7 @@ const getMembers = async (action: TeamsGen.GetMembersPayload, logger: Saga.SagaL
     const members = Constants.rpcDetailsToMemberInfos(res ?? [])
     return TeamsGen.createSetMembers({members, teamID})
   } catch (error) {
-    logger.error(`Error updating members for ${teamID}: ${error.desc}`)
+    logger.error(`Error updating members for ${teamID}: ${(error as RPCError).desc}`)
     return false
   }
 }
@@ -1501,7 +1512,9 @@ const loadTeamTreeActivity = async (
       username,
     })
   } catch (e) {
-    logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${e.message}`)
+    logger.info(
+      `loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${(e as Error).message}`
+    )
     return null
   }
 }
@@ -1587,7 +1600,7 @@ const finishNewTeamWizard = async (state: TypedState) => {
     const teamID = await RPCTypes.teamsTeamCreateFancyRpcPromise({teamInfo}, Constants.teamCreationWaitingKey)
     return TeamsGen.createFinishedNewTeamWizard({teamID})
   } catch (e) {
-    return TeamsGen.createSetTeamWizardError({error: e.message})
+    return TeamsGen.createSetTeamWizardError({error: (e as Error).message})
   }
 }
 
@@ -1641,7 +1654,7 @@ const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogge
   try {
     await RPCTypes.gregorDismissCategoryRpcPromise({category: Constants.newRequestsGregorKey(teamID)})
   } catch (e) {
-    logger.error(e.message)
+    logger.error((e as Error).message)
   }
 }
 
@@ -1700,7 +1713,7 @@ const loadTeamChannelList = async (
   return false
 }
 
-const teamsSaga = function*() {
+const teamsSaga = function* () {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam)
   yield* Saga.chainAction(TeamsGen.getTeamProfileAddList, getTeamProfileAddList)

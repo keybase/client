@@ -442,7 +442,7 @@ const editAvatar = async () => {
           path: [{props: {image: result}, selected: 'profileEditAvatar'}],
         })
   } catch (error) {
-    return ConfigGen.createFilePickerError({error: new Error(error)})
+    return ConfigGen.createFilePickerError({error: new Error(error as string)})
   }
 }
 
@@ -565,7 +565,8 @@ const manageContactsCache = async (
     contacts = await Contacts.getContactsAsync({
       fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
     })
-  } catch (e) {
+  } catch (e_) {
+    const e = e_ as Error
     logger.error(`error loading contacts: ${e.message}`)
     return SettingsGen.createSetContactImportedCount({error: e.message})
   }
@@ -578,7 +579,7 @@ const manageContactsCache = async (
       defaultCountryCode = 'us'
     }
   } catch (e) {
-    logger.warn(`Error loading default country code: ${e.message}`)
+    logger.warn(`Error loading default country code: ${(e as Error).message}`)
   }
 
   const mapped = SettingsConstants.nativeContactsToContacts(contacts, defaultCountryCode)
@@ -599,7 +600,8 @@ const manageContactsCache = async (
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
       actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
     }
-  } catch (e) {
+  } catch (e_) {
+    const e = e_ as Error
     logger.error('Error saving contacts list: ', e.message)
     actions.push(SettingsGen.createSetContactImportedCount({error: e.message}))
   }
@@ -682,7 +684,7 @@ const onChatWatchPosition = async (
     logger.info('failed to get location perms: ' + err)
     return setPermissionDeniedCommandStatus(
       Types.conversationIDToKey(action.payload.params.convID),
-      `Failed to access location. ${err.message}`
+      `Failed to access location. ${(err as Error).message}`
     )
   }
   const watchID = Geolocation.watchPosition(
@@ -818,7 +820,7 @@ const onAttemptAudioRecording = async (
     logger.info('failed to get audio perms: ' + err)
     return setPermissionDeniedCommandStatus(
       action.payload.conversationIDKey,
-      `Failed to access audio. ${err.message}`
+      `Failed to access audio. ${(err as Error).message}`
     )
   }
   if (!chargeForward) {
