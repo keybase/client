@@ -36,7 +36,7 @@ const uploadAvatar = async (action: ProfileGen.UploadAvatarPayload) => {
     return RouteTreeGen.createNavigateUp()
   } catch (e) {
     // error displayed in component
-    logger.warn(`Error uploading user avatar: ${e.message}`)
+    logger.warn(`Error uploading user avatar: ${(e as Error).message}`)
     return false
   }
 }
@@ -119,7 +119,7 @@ const submitBlockUser = async (action: ProfileGen.SubmitBlockUserPayload) => {
       }),
     ]
   } catch (e) {
-    const error: RPCError = e
+    const error = e as RPCError
     logger.warn(`Error blocking user ${action.payload.username}`, error)
     return ProfileGen.createFinishBlockUser({
       error: error.desc || `There was an error blocking ${action.payload.username}.`,
@@ -140,7 +140,7 @@ const submitUnblockUser = async (action: ProfileGen.SubmitUnblockUserPayload) =>
       reason: '',
     })
   } catch (e) {
-    const error: RPCError = e
+    const error = e as RPCError
     logger.warn(`Error unblocking user ${action.payload.username}`, error)
     return Tracker2Gen.createUpdateResult({
       guiID: action.payload.guiID,
@@ -204,7 +204,7 @@ const wotVouch = async (
   } catch (e) {
     logger.warn('Error from wotVouch:', e)
     return ProfileGen.createWotVouchSetError({
-      error: e.desc || `There was an error submitting the claim.`,
+      error: (e as RPCError).desc || `There was an error submitting the claim.`,
     })
   }
   return [ProfileGen.createWotVouchSetError({error: ''}), RouteTreeGen.createClearModals()]

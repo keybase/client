@@ -1,3 +1,4 @@
+/*
 import Avatar, {AvatarSize} from './avatar'
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
@@ -46,3 +47,5 @@ const avatarStyle = {
 }
 
 export default load
+ */
+export {}

@@ -6,6 +6,7 @@ import Icon from './icon'
 import Text from './text'
 import {Props} from './drag-and-drop'
 import logger from '../logger'
+import {RPCError} from '../util/errors'
 
 type State = {
   showDropOverlay: boolean
@@ -36,7 +37,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
             }
             // delegate to handler for any errors
           } catch (e) {
-            logger.warn(`Error stating dropped attachment: ${e.code}`)
+            logger.warn(`Error stating dropped attachment: ${(e as RPCError).code}`)
           }
         }
       }

@@ -1,11 +1,11 @@
-import * as Electron from 'electron'
+import * as remote from '@electron/remote'
 
 const openURL = (url: string | null) => {
   if (!url) {
     console.warn('openURL received empty url')
     return
   }
-  Electron.remote.shell.openExternal(url)
+  remote.shell.openExternal(url)
 }
 
 export default openURL

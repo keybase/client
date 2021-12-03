@@ -51,7 +51,7 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
       }
       region = defaultCountryCode
     } catch (e) {
-      logger.warn(`Error loading default country code: ${e.message}`)
+      logger.warn(`Error loading default country code: ${(e as any).message}`)
     }
   }
 

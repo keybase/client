@@ -29,7 +29,7 @@ export function fontSizeToSizeStyle(fontSize: number): {fontSize: number; lineHe
     '17': 21,
     '20': 24,
     '28': 32,
-  }[String(fontSize)]
+  }[String(fontSize)] as number
 
   return {
     fontSize,
