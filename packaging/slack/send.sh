@@ -6,10 +6,9 @@ set -e -u -o pipefail # Fail on error
 # SLACK_CHANNEL set. This is primarily for build boxes.
 
 sender="$GOPATH/src/github.com/keybase/slackbot/send/main.go"
-
 echo "$@"
 if [ -f $sender ]; then
-  go run $sender -i=1 "$@"
+  (cd $(dirname $sender) && go run $sender -i=1 "$@")
 fi
 
 # send to keybase chat if we have it in the environment

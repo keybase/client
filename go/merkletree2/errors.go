@@ -20,7 +20,7 @@ func NewInvalidConfigError(reason string) InvalidConfigError {
 type InvalidKeyError struct{}
 
 func (e InvalidKeyError) Error() string {
-	return fmt.Sprintf("Invalid Key (has the wrong length).")
+	return "Invalid Key (has the wrong length)."
 }
 
 // NewInvalidKeyError returns a new error
@@ -47,7 +47,7 @@ func NewProofVerificationFailedError(reason error) ProofVerificationFailedError 
 type NodeNotFoundError struct{}
 
 func (e NodeNotFoundError) Error() string {
-	return fmt.Sprintf("Node not found.")
+	return "Node not found."
 }
 
 // NewNodeNotFoundError returns a new error
@@ -60,7 +60,7 @@ func NewNodeNotFoundError() NodeNotFoundError {
 type KeyNotFoundError struct{}
 
 func (e KeyNotFoundError) Error() string {
-	return fmt.Sprintf("Key not found.")
+	return "Key not found."
 }
 
 // NewKeyNotFoundError returns a new error
@@ -73,7 +73,7 @@ func NewKeyNotFoundError() KeyNotFoundError {
 type NoLatestRootFoundError struct{}
 
 func (e NoLatestRootFoundError) Error() string {
-	return fmt.Sprintf("No latest root was found.")
+	return "No latest root was found."
 }
 
 // NewNoLatestRootFoundError returns a new error

@@ -82,7 +82,7 @@ helpers.rootLinuxNode(env, {
   println "Running on host $kbwebNodePrivateIP"
   println "Setting up build: ${env.BUILD_TAG}"
 
-  ws("${env.GOPATH}/src/github.com/keybase/client") {
+  ws("client") {
 
     stage("Setup") {
       parallel (
@@ -170,13 +170,15 @@ helpers.rootLinuxNode(env, {
                   // We only cross compile when we're on a master build and we
                   // weren't triggered by upstream. i.e. potentially breaking
                   // changes.
-                  def platforms = ["freebsd", "netbsd", "openbsd"]
-                  for (platform in platforms) {
-                      withEnv(["GOOS=${platform}"]) {
-                          println "Testing compilation on ${platform}"
-                          sh "go build -tags production -o keybase_${platform} github.com/keybase/client/go/keybase"
-                          println "End testing compilation on ${platform}"
-                      }
+                  dir("go") {
+                    def platforms = ["freebsd", "netbsd", "openbsd"]
+                    for (platform in platforms) {
+                        withEnv(["GOOS=${platform}"]) {
+                            println "Testing compilation on ${platform}"
+                              sh "go build -tags production -o keybase_${platform} github.com/keybase/client/go/keybase"
+                            println "End testing compilation on ${platform}"
+                        }
+                    }
                   }
                 }
               }},
@@ -258,7 +260,7 @@ helpers.rootLinuxNode(env, {
                   "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
                   "TEMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
                 ]) {
-                ws("$GOPATH/src/github.com/keybase/client") {
+                ws("client") {
                   println "Checkout Windows"
                   retry(3) {
                     checkout scm
@@ -293,14 +295,14 @@ helpers.rootLinuxNode(env, {
 def getTestDirsNix() {
   def dirs = sh(
     returnStdout: true,
-    script: "go list ./... | grep -v 'vendor\\|bind'"
+    script: "go list ./... | grep -v 'bind'"
   ).trim()
   println "Running tests for dirs: " + dirs
   return dirs.tokenize()
 }
 
 def getTestDirsWindows() {
-  def dirs = bat(returnStdout: true, script: "@go list ./... | find /V \"vendor\" | find /V \"/go/bind\"").trim()
+  def dirs = bat(returnStdout: true, script: "@go list ./... | find /V \"/go/bind\"").trim()
   println "Running tests for dirs: " + dirs
   return dirs.tokenize()
 }
@@ -322,6 +324,29 @@ def getDiffFileList() {
     return sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}'\"").trim()
 }
 
+def getDiffGoDependencies() {
+    def BASE_COMMIT_HASH = getBaseCommitHash()
+    return sh(returnStdout: true,
+    script: """
+      # only output the new and modified dependencies using version to compare
+      diff --unchanged-line-format= --old-line-format= --new-line-format='%L' <(
+          base_dir="\$(mktemp -d)" &&
+          # get the go.mod & go.sum from the base commit OR fail if they don't exist
+          git show ${BASE_COMMIT_HASH}:go/go.mod > "\$base_dir/go.mod" &&
+          git show ${BASE_COMMIT_HASH}:go/go.sum > "\$base_dir/go.sum" &&
+          cd "\$base_dir" &&
+          # ignoring the current module github.com/keybase/client/go (where .Main=true) and list all dependencies and their versions
+          # if the dependency is forked (or replaced), print out forked version instead
+          go list -f '{{if not .Main}}{{ .Path }} {{if .Replace}}{{ .Replace.Version }}{{else}}{{ .Version }}{{end}}{{end}}' -m all | sort
+        ) <(
+          cd go &&
+          # ignoring the current module github.com/keybase/client/go (where .Main=true) and list all dependencies and their versions
+          # if the dependency is forked (or replaced), print out forked version instead
+          go list -f '{{if not .Main}}{{ .Path }} {{if .Replace}}{{ .Replace.Version }}{{else}}{{ .Version }}{{end}}{{end}}' -m all | sort
+        ) | cut -d' ' -f1 # trim the version number leaving just the module
+    """).trim().split()
+}
+
 def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
   def packagesToTest = [:]
   dir('go') {
@@ -333,6 +358,9 @@ def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
       def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | grep '^go\\/' | sed 's/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/' | sort | uniq\"").trim().split()
       def diffPackagesAsString = diffPackageList.join(' ')
       println "Go packages changed:\n${diffPackagesAsString}"
+      def diffDependencies = getDiffGoDependencies()
+      def diffDependenciesAsString = diffDependencies.join(' ')
+      println "Go dependencies changed:\n${diffDependenciesAsString}"
 
       // Load list of dependencies and mark all dependent packages to test.
       def goos = sh(returnStdout: true, script: "go env GOOS").trim()
@@ -344,10 +372,17 @@ def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
           packagesToTest[dep] = 1
         }
       }
+      diffDependencies.each { pkg ->
+        // dependency changed; we need to load it from dependencyMap to see
+        // which tests should be run.
+        dependencyMap[pkg].each { dep, _ ->
+          packagesToTest[dep] = 1
+        }
+      }
       return packagesToTest
     }
     println "This is a branch build or the Jenkinsfile has changed, so we are running all tests."
-    diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
+    diffPackageList = sh(returnStdout: true, script: 'go list ./...').trim().split()
     // If we get here, just run all the tests in `diffPackageList`
     diffPackageList.each { pkg ->
       if (pkg != 'github.com/keybase/client/go/bind') {
@@ -394,8 +429,10 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
   }
 
   println "Running golint"
-  retry(5) {
-    sh 'go get -u golang.org/x/lint/golint'
+  dir("buildtools") {
+    retry(5) {
+      sh 'go install golang.org/x/lint/golint'
+    }
   }
   retry(5) {
     timeout(activity: true, time: 300, unit: 'SECONDS') {
@@ -406,30 +443,31 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
   if (prefix == "test_linux_go_") {
     // Only test golangci-lint on linux
     println "Installing golangci-lint"
-    dir("..") {
+    dir("buildtools") {
       retry(5) {
-        sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.6'
+        sh 'go install github.com/golangci/golangci-lint/cmd/golangci-lint'
       }
     }
 
-    if (hasKBFSChanges) {
-      println "Running golangci-lint on KBFS"
-      dir('kbfs') {
-        retry(5) {
-          timeout(activity: true, time: 720, unit: 'SECONDS') {
-            // Ignore the `dokan` directory since it contains lots of c code.
-            // Ignore the `protocol` directory, autogeneration has some critques
-            sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run --deadline 10m0s'
-          }
-        }
-      }
-    }
+    // TODO re-enable for kbfs.
+    // if (hasKBFSChanges) {
+    //   println "Running golangci-lint on KBFS"
+    //   dir('kbfs') {
+    //     retry(5) {
+    //       timeout(activity: true, time: 720, unit: 'SECONDS') {
+    //         // Ignore the `dokan` directory since it contains lots of c code.
+    //         sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan  | xargs realpath --relative-to=. | xargs golangci-lint run --deadline 10m0s'
+    //       }
+    //     }
+    //   }
+    // }
 
     if (env.CHANGE_TARGET) {
       println("Running golangci-lint on new code")
       fetchChangeTarget()
       def BASE_COMMIT_HASH = getBaseCommitHash()
       timeout(activity: true, time: 720, unit: 'SECONDS') {
+        // Ignore the `protocol` directory, autogeneration has some critques
         sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 10m0s"
       }
     } else {
@@ -443,8 +481,10 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     // Macos pukes on mockgen because ¯\_(ツ)_/¯.
     // So, only run on Linux.
     println "Running mockgen"
-    retry(5) {
-      sh 'go get -u github.com/golang/mock/mockgen'
+    dir("buildtools") {
+      retry(5) {
+        sh 'go install github.com/golang/mock/mockgen'
+      }
     }
     dir('kbfs/data') {
       retry(5) {

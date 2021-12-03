@@ -26,7 +26,7 @@ func TestTeamChannelSource(t *testing.T) {
 		users := ctc.users()
 
 		ctx1 := ctc.as(t, users[0]).startCtx
-		//ctx2 := ctc.as(t, users[1]).startCtx
+		// ctx2 := ctc.as(t, users[1]).startCtx
 		listener1 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener1)
 		listener2 := newServerChatListener()

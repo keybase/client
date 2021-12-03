@@ -1,6 +1,7 @@
 // Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 //
+//go:build !production
 // +build !production
 
 package service
@@ -22,6 +23,8 @@ import (
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
+
+	// nolint
 	"github.com/stellar/go/clients/horizon"
 	"golang.org/x/net/context"
 )

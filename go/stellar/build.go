@@ -906,14 +906,14 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 		xlmAmount, err := stellarnet.ConvertOutsideToXLM(convertAmountOutside, xrate.Rate)
 		if err != nil {
 			log("error converting: %v", err)
-			res.amountErrMsg = fmt.Sprintf("Could not convert to XLM")
+			res.amountErrMsg = "Could not convert to XLM"
 			return res
 		}
 		res.amountOfAsset = xlmAmount
 		xlmAmountFormatted, err := FormatAmountDescriptionXLM(mctx, xlmAmount)
 		if err != nil {
 			log("error formatting converted XLM amount: %v", err)
-			res.amountErrMsg = fmt.Sprintf("Could not convert to XLM")
+			res.amountErrMsg = "Could not convert to XLM"
 			return res
 		}
 		res.worthDescription = xlmAmountFormatted

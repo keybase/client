@@ -24,7 +24,7 @@ func TestWKBID(t *testing.T) {
 	require.Error(t, err)
 
 	wkb.Keys = UserDeviceKeyInfoMapV3{
-		keybase1.UID(0): nil,
+		keybase1.UID("0"): nil,
 	}
 
 	_, err = MakeTLFWriterKeyBundleID(codec, wkb)

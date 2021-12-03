@@ -336,7 +336,7 @@ func lookupSenderEntry(mctx libkb.MetaContext, accountID stellar1.AccountID) (st
 		}
 	}
 
-	return stellar1.BundleEntry{}, stellar1.AccountBundle{}, libkb.NotFoundError{Msg: fmt.Sprintf("Sender account not found")}
+	return stellar1.BundleEntry{}, stellar1.AccountBundle{}, libkb.NotFoundError{Msg: "Sender account not found"}
 }
 
 func LookupSenderPrimary(mctx libkb.MetaContext) (stellar1.BundleEntry, stellar1.AccountBundle, error) {

@@ -399,10 +399,10 @@ func (e *Env) GetMountDir() (string, error) {
 }
 
 func NewEnv(cmd CommandLine, config ConfigReader, getLog LogGetter) *Env {
-	return newEnv(cmd, config, runtime.GOOS, getLog)
+	return newEnv(cmd, config, getLog)
 }
 
-func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGetter) *Env {
+func newEnv(cmd CommandLine, config ConfigReader, getLog LogGetter) *Env {
 	if cmd == nil {
 		cmd = NullConfiguration{}
 	}
@@ -415,7 +415,6 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 		e.getHomeFromTestOrCmd,
 		func() string { return e.GetConfig().GetHome() },
 		e.getMobileSharedHomeFromCmdOrConfig,
-		osname,
 		e.GetRunMode,
 		getLog,
 		os.Getenv)

@@ -1,6 +1,7 @@
 // Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build windows
 // +build windows
 
 package libkb
@@ -111,15 +112,9 @@ func IsPipeowner(log logger.Logger, name string) (owner PipeOwnerInfo, err error
 	}
 	owner.IsOwner = windows.EqualSid(pipeSid, userSid)
 	owner.PipeAccount.Account, owner.PipeAccount.Domain, owner.PipeAccount.Type, owner.PipeAccount.Err = pipeSid.LookupAccount("")
-	owner.PipeAccount.SID, err = pipeSid.String()
-	if err != nil {
-		log.Errorf("error getting owner SID: %s", err.Error())
-	}
+	owner.PipeAccount.SID = pipeSid.String()
 	owner.UserAccount.Account, owner.UserAccount.Domain, owner.UserAccount.Type, owner.UserAccount.Err = userSid.LookupAccount("")
-	owner.UserAccount.SID, err = userSid.String()
-	if err != nil {
-		log.Errorf("error getting user SID: %s", err.Error())
-	}
+	owner.UserAccount.SID = userSid.String()
 
 	if !owner.IsOwner {
 		// If the pipe is served by an admin, let local security policies control access

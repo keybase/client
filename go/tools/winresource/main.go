@@ -5,6 +5,7 @@
 // for printing out or generating compiled resources for the windows
 // executable.
 
+//go:build windows
 // +build windows
 
 package main

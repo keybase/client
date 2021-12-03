@@ -1,6 +1,7 @@
 // Copyright 2019 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build (!windows && !darwin) || netbsd || openbsd || freebsd
 // +build !windows,!darwin netbsd openbsd freebsd
 
 package install

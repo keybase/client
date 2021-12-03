@@ -21,12 +21,12 @@ if [ "$token" = "" ]; then
 fi
 
 build_dir="/tmp/build_keybase"
-client_dir="$GOPATH/src/github.com/keybase/client"
+client_dir="$dir../../client"
 tag="v$version"
 tgz="keybase-$version.tgz"
 
 echo "Loading release tool"
-"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+(cd "$client_dir/go" && go install "github.com/keybase/release")
 release_bin="$GOPATH/bin/release"
 
 build() {
@@ -49,7 +49,7 @@ build() {
   mv "client-$version" "$go_dir/src/github.com/keybase/client"
 
   echo "Building keybase"
-  GO15VENDOREXPERIMENT=1 GOPATH="$go_dir" go build -a -tags "production" -o keybase github.com/keybase/client/go/keybase
+  (cd $client_dir/go GOPATH="$go_dir" && go build -a -tags "production" -o keybase github.com/keybase/client/go/keybase)
 
   echo "Packaging"
   rm -rf "$tgz"

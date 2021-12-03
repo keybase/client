@@ -40,7 +40,7 @@ func UpdateDeviceCloneState(m MetaContext) (before, after int, err error) {
 
 	prior, stage := d.Prior, d.Stage
 	if prior == "" {
-		//first run
+		// first run
 		prior = DefaultCloneTokenValue
 	}
 	if stage == "" {

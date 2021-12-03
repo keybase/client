@@ -9,7 +9,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-//=============================================================================
+// =============================================================================
 
 type CheckError struct {
 	m string
@@ -19,7 +19,7 @@ func (e CheckError) Error() string {
 	return fmt.Sprintf("Check engine error: %s", e.m)
 }
 
-//=============================================================================
+// =============================================================================
 
 type GPGExportingError struct {
 	err      error
@@ -34,7 +34,7 @@ func (e GPGExportingError) Error() string {
 	return e.err.Error()
 }
 
-//=============================================================================
+// =============================================================================
 
 type PGPImportStubbedError struct {
 	KeyIDString string
@@ -45,7 +45,7 @@ func (e PGPImportStubbedError) Error() string {
 		e.KeyIDString)
 }
 
-//=============================================================================
+// =============================================================================
 
 type PGPNotActiveForLocalImport struct {
 	kid keybase1.KID

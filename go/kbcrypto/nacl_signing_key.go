@@ -32,7 +32,8 @@ func (k NaclSigningKeyPublic) GetBinaryKID() keybase1.BinaryKID {
 		byte(KIDNaclEddsa),
 	}
 	suffix := byte(IDSuffixKID)
-	out := append(prefix, k[:]...)
+	out := prefix
+	out = append(out, k[:]...)
 	out = append(out, suffix)
 	return keybase1.BinaryKID(out)
 }

@@ -115,9 +115,7 @@ func makeSimpleFSPathWithArchiveParams(
 	path string, rev int64, timeString, relTimeString string) (
 	keybase1.Path, error) {
 	path = filepath.ToSlash(path)
-	if strings.HasSuffix(path, "/") {
-		path = path[:len(path)-1]
-	}
+	path = strings.TrimSuffix(path, "/")
 
 	// Test for the special mount dir prefix before the absolute test.
 	// Otherwise the current dir will be prepended, below.

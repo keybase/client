@@ -37,7 +37,7 @@ type userSBSProvider interface {
 // Phone numbers
 type userSBSPhoneNumber struct {
 	u           *userPlusDevice
-	phoneNumber string //without `+`
+	phoneNumber string // without `+`
 }
 
 func (p *userSBSPhoneNumber) SetUser(user *userPlusDevice) {

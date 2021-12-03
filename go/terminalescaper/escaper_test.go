@@ -42,7 +42,7 @@ var tests = map[string]string{
 	// backspace, carriage return and other similar special characters (except for \n, \t) are stripped out
 	"aaa\b\bb":       "aaab",
 	"aaa\b\b\033[1K": "aaa^[[1K",
-	"bbb\raaa":       "bbbaaa", //carriage return
+	"bbb\raaa":       "bbbaaa", // carriage return
 
 	// Colors are acceptable, including multiple in the same string,
 	"foo\x1b[30mbar": "foo\x1b[30mbar",

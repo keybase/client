@@ -983,9 +983,9 @@ func Once(f func()) func() {
 
 func RuntimeGroup() keybase1.RuntimeGroup {
 	switch runtime.GOOS {
-	case "linux", "dragonfly", "freebsd", "netbsd", "openbsd":
+	case "linux", "dragonfly", "freebsd", "netbsd", "openbsd", "android":
 		return keybase1.RuntimeGroup_LINUXLIKE
-	case "darwin":
+	case "darwin", "ios":
 		return keybase1.RuntimeGroup_DARWINLIKE
 	case "windows":
 		return keybase1.RuntimeGroup_WINDOWSLIKE
