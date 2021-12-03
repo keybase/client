@@ -402,9 +402,9 @@ func (w Win32) MobileSharedHome(emptyOk bool) string {
 }
 
 func NewHomeFinder(appName string, getHomeFromCmd ConfigGetter, getHomeFromConfig ConfigGetter, getMobileSharedHome ConfigGetter,
-	getRunMode RunModeGetter, getLog LogGetter, getenv EnvGetter) HomeFinder {
+	osname string, getRunMode RunModeGetter, getLog LogGetter, getenv EnvGetter) HomeFinder {
 	base := Base{appName, getHomeFromCmd, getHomeFromConfig, getMobileSharedHome, getRunMode, getLog, getenv}
-	switch RuntimeGroup() {
+	switch runtimeGroup(osname) {
 	case keybase1.RuntimeGroup_WINDOWSLIKE:
 		return Win32{base}
 	case keybase1.RuntimeGroup_DARWINLIKE:
