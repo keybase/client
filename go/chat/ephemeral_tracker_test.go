@@ -125,8 +125,8 @@ func TestEphemeralPurgeTracker(t *testing.T) {
 			require.IsType(t, storage.MissError{}, err, "wrong error type")
 		} else {
 			require.NoError(t, err)
+			require.Equal(t, *expectedPurgeInfo, purgeInfo)
 		}
-		require.Equal(t, *expectedPurgeInfo, purgeInfo)
 	}
 
 	ephemeralPurgeAndVerify := func(expectedPurgeInfo *chat1.EphemeralPurgeInfo, msgIDs []chat1.MessageID) {

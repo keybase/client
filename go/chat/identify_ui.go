@@ -34,11 +34,13 @@ func (c chatNullIdentifyUI) ReportLastTrack(libkb.MetaContext, *keybase1.TrackSu
 func (c chatNullIdentifyUI) LaunchNetworkChecks(libkb.MetaContext, *keybase1.Identity, *keybase1.User) error {
 	return nil
 }
-func (c chatNullIdentifyUI) DisplayTrackStatement(libkb.MetaContext, string) error         { return nil }
-func (c chatNullIdentifyUI) DisplayUserCard(libkb.MetaContext, keybase1.UserCard) error    { return nil }
-func (c chatNullIdentifyUI) ReportTrackToken(libkb.MetaContext, keybase1.TrackToken) error { return nil }
-func (c chatNullIdentifyUI) Cancel(libkb.MetaContext) error                                { return nil }
-func (c chatNullIdentifyUI) Finish(libkb.MetaContext) error                                { return nil }
+func (c chatNullIdentifyUI) DisplayTrackStatement(libkb.MetaContext, string) error      { return nil }
+func (c chatNullIdentifyUI) DisplayUserCard(libkb.MetaContext, keybase1.UserCard) error { return nil }
+func (c chatNullIdentifyUI) ReportTrackToken(libkb.MetaContext, keybase1.TrackToken) error {
+	return nil
+}
+func (c chatNullIdentifyUI) Cancel(libkb.MetaContext) error { return nil }
+func (c chatNullIdentifyUI) Finish(libkb.MetaContext) error { return nil }
 func (c chatNullIdentifyUI) DisplayTLFCreateWithInvite(libkb.MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil
 }

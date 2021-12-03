@@ -51,7 +51,7 @@ type TypedChainLink interface {
 	ToSigChainLocation() keybase1.SigChainLocation
 }
 
-//=========================================================================
+// =========================================================================
 // GenericChainLink
 //
 
@@ -125,9 +125,9 @@ func CanonicalProofName(t TypedChainLink) string {
 }
 
 //
-//=========================================================================
+// =========================================================================
 
-//=========================================================================
+// =========================================================================
 // Web of Trust
 
 type WotVouchChainLink struct {
@@ -244,7 +244,7 @@ func EmbedExpansionObj(statement *jsonw.Wrapper) (expansion *jsonw.Wrapper, sum 
 	return outer, sum, nil
 }
 
-//=========================================================================
+// =========================================================================
 // Remote, Web and Social
 //
 type RemoteProofChainLink interface {
@@ -434,7 +434,7 @@ func NewSocialProofChainLink(b GenericChainLink, s, u, proofText string) *Social
 	}
 }
 
-//=========================================================================
+// =========================================================================
 
 // Can be used to either parse a proof `service` JSON block, or a
 // `remote_key_proof` JSON block in a tracking statement.
@@ -534,9 +534,9 @@ func remoteProofInsertIntoTable(l RemoteProofChainLink, tab *IdentityTable) {
 }
 
 //
-//=========================================================================
+// =========================================================================
 
-//=========================================================================
+// =========================================================================
 // TrackChainLink
 //
 type TrackChainLink struct {
@@ -742,9 +742,9 @@ func (l *TrackChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {
 }
 
 //
-//=========================================================================
+// =========================================================================
 
-//=========================================================================
+// =========================================================================
 // EldestChainLink
 //
 
@@ -785,9 +785,9 @@ func (s *EldestChainLink) insertIntoTable(tab *IdentityTable) {
 }
 
 //
-//=========================================================================
+// =========================================================================
 
-//=========================================================================
+// =========================================================================
 // SibkeyChainLink
 //
 
@@ -859,7 +859,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(ckf ComputedKeyFamily) (err error) {
 }
 
 //
-//=========================================================================
+// =========================================================================
 // SubkeyChainLink
 
 type SubkeyChainLink struct {
@@ -891,9 +891,9 @@ func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
 }
 
 //
-//=========================================================================
+// =========================================================================
 
-//=========================================================================
+// =========================================================================
 // PerUserKeyChainLink
 
 type PerUserKeyChainLink struct {
@@ -962,7 +962,7 @@ func (s *PerUserKeyChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err error) 
 }
 
 //
-//=========================================================================
+// =========================================================================
 // PGPUpdateChainLink
 //
 
@@ -1008,7 +1008,7 @@ func (l *PGPUpdateChainLink) GetPGPFullHash() string             { return l.extr
 func (l *PGPUpdateChainLink) insertIntoTable(tab *IdentityTable) { tab.insertLink(l) }
 
 //
-//=========================================================================
+// =========================================================================
 //
 
 type DeviceChainLink struct {
@@ -1031,7 +1031,7 @@ func (s *DeviceChainLink) insertIntoTable(tab *IdentityTable) {
 }
 
 //
-//=========================================================================
+// =========================================================================
 // WalletStellarChainLink
 
 type WalletStellarChainLink struct {
@@ -1134,7 +1134,7 @@ func (s *WalletStellarChainLink) Display(m MetaContext, ui IdentifyUI) error {
 }
 
 //
-//=========================================================================
+// =========================================================================
 // UntrackChainLink
 
 type UntrackChainLink struct {
@@ -1189,9 +1189,9 @@ func (u *UntrackChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext)
 }
 
 //
-//=========================================================================
+// =========================================================================
 
-//=========================================================================
+// =========================================================================
 // CryptocurrencyChainLink
 
 type CryptocurrencyChainLink struct {
@@ -1248,9 +1248,9 @@ func (c CryptocurrencyChainLink) Display(m MetaContext, ui IdentifyUI) error {
 }
 
 //
-//=========================================================================
+// =========================================================================
 
-//=========================================================================
+// =========================================================================
 // RevokeChainLink
 
 type RevokeChainLink struct {
@@ -1289,9 +1289,9 @@ func (r *RevokeChainLink) insertIntoTable(tab *IdentityTable) {
 func (r *RevokeChainLink) GetDevice() *Device { return r.device }
 
 //
-//=========================================================================
+// =========================================================================
 
-//=========================================================================
+// =========================================================================
 // SelfSigChainLink
 
 type SelfSigChainLink struct {
@@ -1355,9 +1355,9 @@ func ParseSelfSigChainLink(base GenericChainLink) (ret *SelfSigChainLink, err er
 }
 
 //
-//=========================================================================
+// =========================================================================
 
-//=========================================================================
+// =========================================================================
 
 type IdentityTable struct {
 	Contextified
@@ -1694,7 +1694,7 @@ func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteC
 	return nil
 }
 
-//=========================================================================
+// =========================================================================
 
 func (idt *IdentityTable) identifyActiveProof(m MetaContext, lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
 	idt.proofRemoteCheck(m, is.HasPreviousTrack(), forceRemoteCheck, lcr, itm)

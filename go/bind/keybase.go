@@ -208,7 +208,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	if isIPad {
 		suffix = " (iPad)"
 	}
-	fmt.Printf("Go: Mobile OS version is: %q%v\n", mobileOsVersion, suffix)
+	fmt.Printf("Go (GOOS:%s): Mobile OS version is: %q%v\n", runtime.GOOS, mobileOsVersion, suffix)
 	kbCtx.MobileOsVersion = mobileOsVersion
 
 	// 10k uid -> FullName cache entries allowed
@@ -238,22 +238,22 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		ChatInboxSourceLocalizeThreads: 2,
 		LinkCacheSize:                  1000,
 	}
-	err = kbCtx.Configure(config, usage)
-	if err != nil {
+	if err = kbCtx.Configure(config, usage); err != nil {
+		fmt.Printf("failed to configure: %s\n", err)
 		return err
 	}
 
 	kbSvc = service.NewService(kbCtx, false)
-	err = kbSvc.StartLoopbackServer(libkb.LoginAttemptOffline)
-	if err != nil {
+	if err = kbSvc.StartLoopbackServer(libkb.LoginAttemptOffline); err != nil {
+		fmt.Printf("failed to start loopback: %s\n", err)
 		return err
 	}
 	kbCtx.SetService()
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
-	err = kbSvc.SetupCriticalSubServices()
-	if err != nil {
+	if err = kbSvc.SetupCriticalSubServices(); err != nil {
+		fmt.Printf("failed subservices setup: %s\n", err)
 		return err
 	}
 	kbSvc.SetupChatModules(nil)
@@ -279,6 +279,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 
 	// open the connection
 	if err = Reset(); err != nil {
+		fmt.Printf("failed conn setup %s\n", err)
 		return err
 	}
 
@@ -291,9 +292,11 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		// before KBFS-on-mobile is ready.
 		kbfsParams.Debug = true                         // false
 		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
-		_, _ = libkbfs.Init(
+		if _, err = libkbfs.Init(
 			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, nil,
-			kbCtx.Log)
+			kbCtx.Log); err != nil {
+			fmt.Printf("unable to init KBFS: %s", err)
+		}
 	}()
 
 	return nil
@@ -396,7 +399,9 @@ func ReadB64() (res string, err error) {
 
 	if err != nil {
 		// Attempt to fix the connection
-		_ = Reset()
+		if ierr := Reset(); ierr != nil {
+			fmt.Println("failed to Reset: %v", ierr)
+		}
 		return "", fmt.Errorf("Read error: %s", err)
 	}
 

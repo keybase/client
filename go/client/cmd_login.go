@@ -178,7 +178,7 @@ func (c *CmdLogin) getOption(ctx *cli.Context, s string) string {
 	if len(v) > 0 {
 		return v
 	}
-	envVarName := fmt.Sprintf("KEYBASE_%s", strings.ToUpper(strings.Replace(s, "-", "_", -1)))
+	envVarName := fmt.Sprintf("KEYBASE_%s", strings.ToUpper(strings.ReplaceAll(s, "-", "_")))
 	v = os.Getenv(envVarName)
 	if len(v) > 0 {
 		return v

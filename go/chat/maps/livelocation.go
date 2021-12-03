@@ -108,7 +108,10 @@ func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
 			continue
 		}
 		l.trackers[t.Key()] = t
-		l.eg.Go(func() error { return l.tracker(t) })
+		myT := t
+		l.eg.Go(func() error {
+			return l.tracker(myT)
+		})
 	}
 }
 

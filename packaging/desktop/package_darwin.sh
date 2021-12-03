@@ -16,7 +16,7 @@ run_mode="prod"
 platform="darwin"
 s3host=${S3HOST:-}
 istest=${TEST:-}
-skip_notarize=${SKIP_NOTARIZE:-}
+skip_notarize=1 # ${SKIP_NOTARIZE:-}
 
 if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   # Use this syntax since bucket_name might have dots (.)
@@ -47,7 +47,7 @@ icon_path="$client_dir/media/icons/Keybase.icns"
 saltpack_icon="$client_dir/media/icons/saltpack.icns"
 
 echo "Loading release tool"
-"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+(cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
 release_bin="$GOPATH/bin/release"
 
 if [ "$keybase_version" = "" ]; then

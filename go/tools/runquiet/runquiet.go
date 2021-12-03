@@ -5,6 +5,7 @@
 // without showing a console.
 // Must be built with -ldflags "-H windowsgui"
 
+//go:build windows
 // +build windows
 
 package main

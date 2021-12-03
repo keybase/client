@@ -402,8 +402,8 @@ func (r *recomputer) processNotification(
 		if notification.FileType == EntryTypeDir {
 			for f, event := range r.fileEvents {
 				if strings.HasPrefix(f, eventFilename) {
-					oldF := strings.Replace(
-						f, eventFilename, notification.Params.OldFilename, -1)
+					oldF := strings.ReplaceAll(
+						f, eventFilename, notification.Params.OldFilename)
 					r.fileEvents[oldF] = event
 					delete(r.fileEvents, f)
 				}

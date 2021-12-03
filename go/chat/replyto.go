@@ -153,7 +153,8 @@ func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, convID chat1.Co
 		f.Debug(ctx, "Fill: failed to get remote messages: %s", err)
 		return res, err
 	}
-	origMsgs := append(localMsgs, remoteMsgs...)
+	origMsgs := localMsgs
+	origMsgs = append(origMsgs, remoteMsgs...)
 	transform := newBasicSupersedesTransform(f.G(), basicSupersedesTransformOpts{
 		UseDeletePlaceholders: true,
 	})

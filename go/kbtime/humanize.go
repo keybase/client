@@ -21,12 +21,12 @@ import (
 // RelTime(timeInPast, timeInFuture, "earlier", "later") -> "3 weeks earlier"
 func RelTime(a, b time.Time, albl, blbl string) string {
 	lbl := albl
-	diff := b.Unix() - a.Unix()
+	diff := b.Sub(a)
 	yearDiff := b.Year() - a.Year()
 	after := a.After(b)
 	if after {
 		lbl = blbl
-		diff = a.Unix() - b.Unix()
+		diff = a.Sub(b)
 		yearDiff = a.Year() - b.Year()
 	}
 	if diff > 18*humanize.Month {

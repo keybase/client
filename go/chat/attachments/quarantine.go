@@ -1,3 +1,4 @@
+//go:build (!darwin && !windows) || ios
 // +build !darwin,!windows ios
 
 package attachments

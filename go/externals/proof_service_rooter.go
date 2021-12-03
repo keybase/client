@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build !production
 // +build !production
 
 package externals
@@ -14,7 +15,7 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-//=============================================================================
+// =============================================================================
 // Rooter
 //
 
@@ -37,7 +38,7 @@ func (rc *RooterChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ 
 }
 
 //
-//=============================================================================
+// =============================================================================
 
 type RooterServiceType struct{ libkb.BaseServiceType }
 

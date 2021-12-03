@@ -255,7 +255,7 @@ func (hsc *HighSigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1
 		return false, err
 	}
 
-	//historical
+	// historical
 	historicalLinks := hsc.chainLinks.omittingNRightmostLinks(linksConsumed)
 	if len(historicalLinks) > 0 {
 		m.VLogf(VLog1, "After consuming %d links, there are %d historical links left",

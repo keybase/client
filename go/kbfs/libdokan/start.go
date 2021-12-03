@@ -128,7 +128,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// There is misleading documentation that causes people to set their mount point to
 	// 'K' instead of 'K:'. Fix this here, rather than correct all the users with problems.
 	if len(options.MountPoint) == 1 {
-		options.MountPoint = options.MountPoint + ":"
+		options.MountPoint += ":"
 		log.CInfof(ctx, "Invalid single letter mount point, patching to %q", options.MountPoint)
 	}
 

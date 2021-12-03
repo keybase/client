@@ -76,15 +76,15 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	ctx := context.TODO()
 
 	// Create some users. The owner is last so that it has the active session.
-	u2, err := kbtest.CreateAndSignupFakeUser("we", tc.G) //admin
+	u2, err := kbtest.CreateAndSignupFakeUser("we", tc.G) // admin
 	require.NoError(t, err)
-	u3, err := kbtest.CreateAndSignupFakeUser("ji", tc.G) //non-admin
+	u3, err := kbtest.CreateAndSignupFakeUser("ji", tc.G) // non-admin
 	require.NoError(t, err)
 	u4, err := kbtest.CreateAndSignupFakeUser("botua", tc.G) // bot
 	require.NoError(t, err)
 	u5, err := kbtest.CreateAndSignupFakeUser("rua", tc.G) // restricted_bot
 	require.NoError(t, err)
-	u1, err := kbtest.CreateAndSignupFakeUser("je", tc.G) //owner
+	u1, err := kbtest.CreateAndSignupFakeUser("je", tc.G) // owner
 	require.NoError(t, err)
 	t.Logf("create the team...")
 	// Create a team. This creates the first high link.

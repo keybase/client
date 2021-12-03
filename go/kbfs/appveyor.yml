@@ -6,7 +6,7 @@ environment:
     GOARCH: amd64
     CC: c:\msys64\mingw64\bin\gcc
     CPATH: C:\msys64\include;C:\msys64\include\ddk
-    GOVERSION: 1.10.3
+    GOVERSION: 1.17.3
 
 install:
   - systeminfo | findstr /C:"OS"
@@ -15,7 +15,7 @@ install:
   - 7z x go%GOVERSION%.windows-amd64.zip -o"C:\" -y > nul
   - set Path=c:\go\bin;%Path%
   # Stock Dokan 1.2
-  - appveyor DownloadFile https://github.com/dokan-dev/dokany/releases/download/v1.2.1.2000/dokan.zip 
+  - appveyor DownloadFile https://github.com/dokan-dev/dokany/releases/download/v1.2.1.2000/dokan.zip
   - 7z x dokan.zip -o"C:\dokan" -y -aoa > nul
   - copy C:\dokan\x64\Win8.1Release\sys\dokan1.sys C:\windows\system32\drivers\
   - pushd C:\dokan\x64\Release
@@ -63,8 +63,8 @@ build_script:
   - cd ..\kbpagesconfig
   - go install
   - cd ..
-# Eventually there will be more tests, but let's just start with these for now
-#  - go list ./... | find /V "vendor" > testlist.txt
+  # Eventually there will be more tests, but let's just start with these for now
+  #  - go list ./... | find /V "vendor" > testlist.txt
 
   # Keep the list below in sync with the result of
   #
@@ -90,8 +90,8 @@ build_script:
   - echo github.com/keybase/client/go/kbfs/simplefs >> testlist.txt
   # test dir is tested below.
   - echo github.com/keybase/client/go/kbfs/tlf >> testlist.txt
-# TODO: Run the below tests with env KEYBASE_TEST_BSERVER_ADDR=tempdir.
-  - for /f %%i in (testlist.txt) do (appveyor AddTest %%i -Outcome Running -Framework gotest -Filename %%i & go test -timeout 5m %%i && appveyor UpdateTest %%i -Outcome Passed -Framework gotest -Filename %%i -Duration 0) || (appveyor UpdateTest %%i -Outcome Failed -Framework gotest -Filename %%i -Duration 0 & exit /b 1) 
+  # TODO: Run the below tests with env KEYBASE_TEST_BSERVER_ADDR=tempdir.
+  - for /f %%i in (testlist.txt) do (appveyor AddTest %%i -Outcome Running -Framework gotest -Filename %%i & go test -timeout 5m %%i && appveyor UpdateTest %%i -Outcome Passed -Framework gotest -Filename %%i -Duration 0) || (appveyor UpdateTest %%i -Outcome Failed -Framework gotest -Filename %%i -Duration 0 & exit /b 1)
   - cd test && go test -tags dokan -timeout 300s
 
 # to disable automatic builds
@@ -102,5 +102,5 @@ test_script:
 
 # only run on pull requests and pushes to master
 branches:
-    only:
-        - master
+  only:
+    - master

@@ -1,28 +1,30 @@
 repos:
--   repo: local
+  - repo: local
     hooks:
-    -   id: rn-story-mode
+      - id: rn-story-mode
         name: rn-story-mode
         entry: shared/ios/Keybase/git-hook
         language: script
         files: shared/ios/Keybase/Storybook.m
-    -   id: eslint
+      - id: eslint
         name: eslint
         entry: shared/node_modules/.bin/eslint
         language: node
         files: \.(js|ts|tsx)$
-        args: [
-            '--quiet',
-            '--resolve-plugins-relative-to shared'
-        ]
-    -   id: prettier
+        args: ['--quiet', '--resolve-plugins-relative-to shared']
+      - id: prettier
         name: prettier
         entry: shared/node_modules/.bin/prettier --write
         language: node
         files: \.(js|ts|tsx)$
--   repo: https://github.com/keybase/pre-commit-golang.git
-    rev: 314766a2c26b7f32641addbdb0e7e451320ff1f0
+  - repo: https://github.com/keybase/pre-commit-golang.git
+    rev: 616cc0b14a680b0eb5132b26a1c6fa87682bd048
     hooks:
-    -   id: go-fmt
-    -   id: go-vet
-    -   id: go-lint
+      - id: go-fmt
+      - id: go-vet
+        files: 'go/.*\.go$'
+        exclude: 'go/buildtools/.*$'
+      - id: go-vet
+        name: 'go vet tuxbot'
+        files: 'packaging/linux/tuxbot/bot/docker-cleanup/.*\.go$'
+      - id: go-lint

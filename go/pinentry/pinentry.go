@@ -173,13 +173,13 @@ func (pi *pinentryInstance) Init() (err error) {
 }
 
 func descEncode(s string) string {
-	s = strings.Replace(s, "%", "%%", -1)
-	s = strings.Replace(s, "\n", "%0A", -1)
+	s = strings.ReplaceAll(s, "%", "%%")
+	s = strings.ReplaceAll(s, "\n", "%0A")
 	return s
 }
 
 func resDecode(s string) string {
-	s = strings.Replace(s, "%25", "%", -1)
+	s = strings.ReplaceAll(s, "%25", "%")
 	return s
 }
 

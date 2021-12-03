@@ -1,4 +1,4 @@
-FROM golang:1.13.10-buster AS builder
+FROM golang:1.17.3-buster AS builder
 
 ARG SOURCE_COMMIT=unknown
 

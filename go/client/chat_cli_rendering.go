@@ -149,8 +149,8 @@ func formatUnverifiedConvName(unverifiedTLFName string, visibility keybase1.TLFV
 	// Strip the user's name out if it's got a comma next to it. (Two cases to
 	// handle: leading and trailing.) This both takes care of dangling commas,
 	// and preserves the user's name if it's by itself.
-	strippedTLFName := strings.Replace(unverifiedTLFName, ","+myUsername, "", -1)
-	strippedTLFName = strings.Replace(strippedTLFName, myUsername+",", "", -1)
+	strippedTLFName := strings.ReplaceAll(unverifiedTLFName, ","+myUsername, "")
+	strippedTLFName = strings.ReplaceAll(strippedTLFName, myUsername+",", "")
 	if visibility == keybase1.TLFVisibility_PUBLIC {
 		return publicConvNamePrefix + strippedTLFName
 	}

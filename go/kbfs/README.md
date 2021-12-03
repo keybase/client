@@ -14,86 +14,86 @@ service](https://github.com/keybase/client/tree/master/go).
 ### Architecture
 
 This client allows you to mount KBFS as a proper filesystem at some
-mountpoint on your local device (by default, `/keybase/`).  It
+mountpoint on your local device (by default, `/keybase/`). It
 communicates locally with the Keybase service, and remotely with three
 types of KBFS servers (block servers, metadata servers, and key
 servers).
 
 The code is organized as follows:
 
-* [cache](cache/): Generic cache data structures.
-* [data](data/): Data structures and logic for KBFS file and directory data.
-* [dokan](dokan/): Helper code for running Dokan filesystems on Windows.
-* [env](env/): Code to implement libkbfs.Context in terms of libkb.
-* [favorites](favorites/): Data structures for the favorited lists of
+- [cache](cache/): Generic cache data structures.
+- [data](data/): Data structures and logic for KBFS file and directory data.
+- [dokan](dokan/): Helper code for running Dokan filesystems on Windows.
+- [env](env/): Code to implement libkbfs.Context in terms of libkb.
+- [favorites](favorites/): Data structures for the favorited lists of
   top-level folders (TLFs) that appear under private/, public/, and
   team/.
-* [fsrpc](fsrpc/): RPC interfaces that connected clients can call in KBFS,
+- [fsrpc](fsrpc/): RPC interfaces that connected clients can call in KBFS,
   to do certain operations, such as listing files.
-* [idutil](idutil/): Basic data structures, interfaces, and helper
+- [idutil](idutil/): Basic data structures, interfaces, and helper
   code for dealing with identity data for users and teams.
-* [ioutil](ioutil/): Helper functions for I/O.
-* [kbfsblock](kbfsblock/): Types and functions to work with KBFS blocks.
-* [kbfscodec](kbfscodec/): Interfaces and types used for serialization in KBFS.
-* [kbfscrypto](kbfscrypto/): KBFS-specific cryptographic types and functions.
-* [kbfsdokan](kbfsdokan/): The main executable for running KBFS on
+- [ioutil](ioutil/): Helper functions for I/O.
+- [kbfsblock](kbfsblock/): Types and functions to work with KBFS blocks.
+- [kbfscodec](kbfscodec/): Interfaces and types used for serialization in KBFS.
+- [kbfscrypto](kbfscrypto/): KBFS-specific cryptographic types and functions.
+- [kbfsdokan](kbfsdokan/): The main executable for running KBFS on
   Windows.
-* [kbfsfuse](kbfsfuse/): The main executable for running KBFS on Linux
+- [kbfsfuse](kbfsfuse/): The main executable for running KBFS on Linux
   and OS X.
-* [kbfsgit](kbfsgit/): The main executable for the Keybase git remote helper.
-* [kbfshash](kbfshash/): An implementation of the KBFS hash spec.
-* [kbfsmd](kbfsmd/): Types and functions to work with KBFS TLF metadata.
-* [kbfssync](kbfssync/): KBFS-specific synchronization primitives.
-* [kbfstool](kbfstool/): A thin command line utility for interacting with KBFS
+- [kbfsgit](kbfsgit/): The main executable for the Keybase git remote helper.
+- [kbfshash](kbfshash/): An implementation of the KBFS hash spec.
+- [kbfsmd](kbfsmd/): Types and functions to work with KBFS TLF metadata.
+- [kbfssync](kbfssync/): KBFS-specific synchronization primitives.
+- [kbfstool](kbfstool/): A thin command line utility for interacting with KBFS
   without using a filesystem mountpoint.
-* [kbpagesconfig](kbpagesconfig/): Configuration code for Keybase Pages.
-* [kbpagesd](kbpagesd/): The main executable for Keybase Pages.
-* [libcontext](ldbutils/): KBFS-specific levelDB utility code.
-* [libcontext](libcontext/): KBFS-specific context helper code.
-* [libdokan](libdokan/): Library code gluing together KBFS and the
+- [kbpagesconfig](kbpagesconfig/): Configuration code for Keybase Pages.
+- [kbpagesd](kbpagesd/): The main executable for Keybase Pages.
+- [libcontext](ldbutils/): KBFS-specific levelDB utility code.
+- [libcontext](libcontext/): KBFS-specific context helper code.
+- [libdokan](libdokan/): Library code gluing together KBFS and the
   Dokan protocol.
-* [libfs](libfs/): Common library code useful to any filesystem
+- [libfs](libfs/): Common library code useful to any filesystem
   presentation layer for KBFS.
-* [libfuse](libfuse/): Library code gluing together KBFS and the FUSE
+- [libfuse](libfuse/): Library code gluing together KBFS and the FUSE
   protocol.
-* [libgit](libgit/): Library for git-related logic.
-* [libhttpserver](libhttpserver/): Library for serving KBFS files with
+- [libgit](libgit/): Library for git-related logic.
+- [libhttpserver](libhttpserver/): Library for serving KBFS files with
   a local HTTP server.
-* [libkey](libkey/): Library for managing KBFS server keys and key metadata.
-* [libkbfs](libkbfs/): The core logic for KBFS.
-* [libmime](libmime/): Library for determining the MIME types of KBFS
+- [libkey](libkey/): Library for managing KBFS server keys and key metadata.
+- [libkbfs](libkbfs/): The core logic for KBFS.
+- [libmime](libmime/): Library for determining the MIME types of KBFS
   files.
-* [libpages](libpages/): Library for the logic behind Keybase Pages.
-* [metricsutil](metricsutil/): Helper code for collecting metrics.
-* [redirector](redirector/): The executable that redirects user FUSe
-  requests to the correct user KBFS mount.  The redirector is usually
+- [libpages](libpages/): Library for the logic behind Keybase Pages.
+- [metricsutil](metricsutil/): Helper code for collecting metrics.
+- [redirector](redirector/): The executable that redirects user FUSe
+  requests to the correct user KBFS mount. The redirector is usually
   mounted at `/keybase` on Linux and macOS.
-* [simplefs](simplefs/): A simple RPC-based interface to KBFS.
-* [stderrutils](stderrutils/): A simple library for dealing with
+- [simplefs](simplefs/): A simple RPC-based interface to KBFS.
+- [stderrutils](stderrutils/): A simple library for dealing with
   stderr on different platforms.
-* [sysutils](sysutils/): Library for dealing with platform-specific
+- [sysutils](sysutils/): Library for dealing with platform-specific
   systems stuff.
-* [test](test/): A test harness with a domain-specific test language
+- [test](test/): A test harness with a domain-specific test language
   and tests in that language.
-* [tlf](tlf/): Code and structures for top-level folders (TLFs).
-* [tlfhandle](tlfhandle/): The data structure for "Handles" to
+- [tlf](tlf/): Code and structures for top-level folders (TLFs).
+- [tlfhandle](tlfhandle/): The data structure for "Handles" to
   top-level folders (TLFs), which represent an identifier for each
   TLF, containing all the user or team IDs associated with the it.
 
 ### Status
 
 KBFS currently works on both Linux (at least Debian, Ubuntu and Arch),
-OS X, and Windows.  It is approaching release ready, though currently
-it is still in alpha.  There may still be bugs, so please keep backups
-of any important data you store in KBFS.  Currently our pre-built
+OS X, and Windows. It is approaching release ready, though currently
+it is still in alpha. There may still be bugs, so please keep backups
+of any important data you store in KBFS. Currently our pre-built
 packages are available by invitation only.
 
 KBFS depends in part on the following awesome technologies to present
 a mountpoint on your device:
 
-* [FUSE](https://github.com/libfuse/) (on Linux)
-* [FUSE for OS X](https://osxfuse.github.io/) (on OS X)
-* [Dokany](https://github.com/dokan-dev/dokany) (on Windows)
+- [FUSE](https://github.com/libfuse/) (on Linux)
+- [FUSE for OS X](https://osxfuse.github.io/) (on OS X)
+- [Dokany](https://github.com/dokan-dev/dokany) (on Windows)
 
 See [our vendor directory](vendor/) for a complete list of open source
 packages KBFS uses.
@@ -106,12 +106,12 @@ Currently, our server implementations are not open source.
 
 Prerequisites:
 
-* [Go 1.7](https://golang.org/dl/) or higher.
-* A running Keybase client service (see [instructions](https://github.com/keybase/client/tree/master/go)).
-* On OS X, you may have to [install FUSE yourself](https://osxfuse.github.io/).
-  * You may need to pass the `--use-system-fuse` flag to `kbfsfuse` if
+- [Go 1.15](https://golang.org/dl/) or higher.
+- A running Keybase client service (see [instructions](https://github.com/keybase/client/tree/master/go)).
+- On OS X, you may have to [install FUSE yourself](https://osxfuse.github.io/).
+  - You may need to pass the `--use-system-fuse` flag to `kbfsfuse` if
     you install FUSE yourself.
-* Then, mount KBFS at `/keybase/` as follows:
+- Then, mount KBFS at `/keybase/` as follows:
 
 ```bash
     cd kbfsfuse
@@ -122,7 +122,7 @@ Prerequisites:
 
 Note that our pre-built packages for OS X include a branded version of
 FUSE for OS X, to ensure that it doesn't conflict with other local
-FUSE installations.  It is still open source -- see
+FUSE installations. It is still open source -- see
 [here](https://github.com/keybase/client/blob/master/osx/Fuse/build.sh)
 to see how we build it.
 
@@ -133,7 +133,7 @@ See our [kbfsdokan](kbfsdokan/) documentation.
 #### On FreeBSD:
 
 There are instructions for getting KBFS running on FreeBSD
-[here](https://wiki.freebsd.org/Ports/security/kbfs).  This is a
+[here](https://wiki.freebsd.org/Ports/security/kbfs). This is a
 user-supported effort, which is not officially supported by the
 Keybase team at the moment.
 
@@ -159,7 +159,7 @@ with: "strib", "max", "chris", and "fred".)
 
 ### Code style
 
-We require all code to pass `gofmt` and `govet`.  You can install our
+We require all code to pass `gofmt` and `govet`. You can install our
 precommit hooks to make sure your code passes `gofmt` and `govet`:
 
 ```bash
@@ -168,7 +168,7 @@ ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPATH/src/git
 ```
 
 Though it doesn't happen automatically, we also expect your code to be
-as "lint-free" as possible.  Running golint is easy from the top-level
+as "lint-free" as possible. Running golint is easy from the top-level
 kbfs directory:
 
 ```bash
@@ -179,7 +179,7 @@ make lint
 ### Vendoring
 
 KBFS vendors all of its dependencies into the local `vendor`
-directory.  To add or update dependencies, use the `govendor` tool, as
+directory. To add or update dependencies, use the `govendor` tool, as
 follows:
 
 ```bash
@@ -211,10 +211,8 @@ we should probably change it.)
 
 ### Licensing
 
-Most code is released under the New BSD (3 Clause) License.  If
+Most code is released under the New BSD (3 Clause) License. If
 subdirectories include a different license, that license applies
-instead.  (Specifically, [dokan/dokan_header](dokan/dokan_header) and
+instead. (Specifically, [dokan/dokan_header](dokan/dokan_header) and
 most subdirectories in [vendor](vendor/) are released under their own
 licenses.)
-
-

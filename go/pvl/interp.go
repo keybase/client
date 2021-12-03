@@ -475,7 +475,8 @@ func runDNSTXTQuery(m metaContext, domain string) (res []string, err error) {
 			fetchedSrvs[i] = formatDNSServer(fetchedSrvs[i])
 		}
 	}
-	servers := append(fetchedSrvs, publicServers...)
+	servers := fetchedSrvs
+	servers = append(servers, publicServers...)
 
 	var r *dns.Msg
 	c := dns.Client{}
@@ -698,7 +699,7 @@ func stepAssertCompare(m metaContext, ins assertCompareT, state scriptState) (sc
 		same = libkb.Cicmp(a, b)
 	case "stripdots-then-cicmp":
 		norm := func(s string) string {
-			return strings.ToLower(strings.Replace(s, ".", "", -1))
+			return strings.ToLower(strings.ReplaceAll(s, ".", ""))
 		}
 		same = libkb.Cicmp(norm(a), norm(b))
 	default:
@@ -773,7 +774,7 @@ func stepReplaceAll(m metaContext, ins replaceAllT, state scriptState) (scriptSt
 		return state, err
 	}
 
-	replaced := strings.Replace(from, ins.Old, ins.New, -1)
+	replaced := strings.ReplaceAll(from, ins.Old, ins.New)
 	if err = state.Regs.Set(ins.Into, replaced); err != nil {
 		return state, err
 	}

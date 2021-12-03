@@ -20,7 +20,7 @@ type InMemoryStorageEngine struct {
 	ReverseRootMap   map[string]Seqno
 
 	// used to make prefix queries efficient. Not otherwise necessary
-	//PositionToKeys map[string](map[string]bool)
+	// PositionToKeys map[string](map[string]bool)
 	cfg Config
 }
 

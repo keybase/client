@@ -551,9 +551,7 @@ func sortListings(listings Listings, options ListOptions) {
 				break
 			}
 
-			tmp := listings[frontIndex]
-			listings[frontIndex] = listings[rearIndex]
-			listings[rearIndex] = tmp
+			listings[frontIndex], listings[rearIndex] = listings[rearIndex], listings[frontIndex]
 		}
 	}
 }
@@ -820,7 +818,7 @@ func (c *CmdSimpleFSList) ls(outputBuffer *bytes.Buffer, listResult keybase1.Sim
 		// separate the files from the directories
 		//
 		//	for _, f := range args_files {
-		//info, err := os.Stat(f)
+		// info, err := os.Stat(f)
 
 		var fListing Listing
 		var err error

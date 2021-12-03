@@ -26,7 +26,7 @@ tag="v$version"
 tgz="kbfs-$version.tgz"
 
 echo "Loading release tool"
-"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+(cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
 release_bin="$GOPATH/bin/release"
 
 build() {
@@ -49,7 +49,7 @@ build() {
   mv "kbfs-$version" "$go_dir/src/github.com/keybase"
 
   echo "Building kbfs"
-  GO15VENDOREXPERIMENT=1 GOPATH="$go_dir" go build -a -tags "production" -o kbfs github.com/keybase/client/go/kbfs/kbfsfuse
+  GOPATH="$go_dir" go build -a -tags "production" -o kbfs github.com/keybase/client/go/kbfs/kbfsfuse
 
   echo "Packaging"
   rm -rf "$tgz"

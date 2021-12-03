@@ -5,6 +5,7 @@
 package idutil
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -208,5 +209,5 @@ func MakeLocalTLFCryptKeyOrBust(
 	// Put the key gen first to make it more likely to fit into the
 	// 32-character "random" seed.
 	return kbfscrypto.MakeFakeTLFCryptKeyOrBust(
-		name + " " + string(keyGen) + " crypt key ")
+		name + " " + fmt.Sprint(keyGen) + " crypt key ")
 }

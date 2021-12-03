@@ -68,13 +68,14 @@ func checkDougProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.Us
 func checkKeyedProfile(tb libkb.TestingTB, idUI *FakeIdentifyUI, them *keybase1.UserPlusKeysV2, name string, expectedProofs map[string]string) {
 	if them == nil {
 		tb.Fatal("nil 'them' user")
-	}
-	exported := &keybase1.User{
-		Uid:      them.GetUID(),
-		Username: them.GetName(),
-	}
-	if !reflect.DeepEqual(idUI.User, exported) {
-		tb.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
+	} else {
+		exported := &keybase1.User{
+			Uid:      them.GetUID(),
+			Username: them.GetName(),
+		}
+		if !reflect.DeepEqual(idUI.User, exported) {
+			tb.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
+		}
 	}
 
 	if !reflect.DeepEqual(expectedProofs, idUI.Proofs) {

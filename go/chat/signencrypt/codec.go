@@ -189,7 +189,8 @@ func getPlaintextPacketLen(cipherChunkLen int64) int64 {
 func sealPacket(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix kbcrypto.SignaturePrefix, nonce SecretboxNonce) []byte {
 	signatureInput := makeSignatureInput(plaintext, encKey, signaturePrefix, nonce)
 	signature := ed25519.Sign(signKey[:], signatureInput)
-	signedChunk := append(signature, plaintext...)
+	signedChunk := signature
+	signedChunk = append(signedChunk, plaintext...)
 	packet := secretbox.Seal(nil, signedChunk, nonce, encKey)
 	return packet
 }

@@ -93,7 +93,7 @@ type RenameAcrossDirsError struct {
 
 // Error implements the error interface for RenameAcrossDirsError
 func (e RenameAcrossDirsError) Error() string {
-	return fmt.Sprintf("Cannot rename across directories")
+	return "Cannot rename across directories"
 }
 
 // WriteUnsupportedError indicates an error when trying to write a file
@@ -636,7 +636,7 @@ func NewRekeyPermissionError(
 type RekeyIncompleteError struct{}
 
 func (e RekeyIncompleteError) Error() string {
-	return fmt.Sprintf("Rekey did not complete due to insufficient user permissions")
+	return "Rekey did not complete due to insufficient user permissions"
 }
 
 // TimeoutError is just a replacement for context.DeadlineExceeded

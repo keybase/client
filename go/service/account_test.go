@@ -94,7 +94,7 @@ func TestContactSettingsAPI(t *testing.T) {
 	require.NotNil(t, teamID)
 
 	// get
-	res, err := handler.UserGetContactSettings(ctx)
+	_, err = handler.UserGetContactSettings(ctx)
 	require.NoError(t, err)
 
 	// set
@@ -112,7 +112,7 @@ func TestContactSettingsAPI(t *testing.T) {
 	require.NoError(t, err)
 
 	// get
-	res, err = handler.UserGetContactSettings(ctx)
+	res, err := handler.UserGetContactSettings(ctx)
 	require.NoError(t, err)
 	res.Version = nil
 	require.Equal(t, expectedSettings, res)

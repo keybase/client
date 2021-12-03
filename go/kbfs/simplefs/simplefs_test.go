@@ -826,7 +826,6 @@ func (maker fsBlockerMaker) makeNewBlocker(
 }
 
 func TestCopyProgress(t *testing.T) {
-	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -1343,7 +1342,6 @@ func TestRefreshSubscription(t *testing.T) {
 }
 
 func TestGetRevisions(t *testing.T) {
-	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

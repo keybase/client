@@ -5,8 +5,9 @@ package libkb
 
 import (
 	"fmt"
-	"os/exec"
 	"runtime"
+
+	"os/exec"
 )
 
 func PlatformSpecificUpgradeInstructionsString() (string, error) {
@@ -22,7 +23,7 @@ func PlatformSpecificUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 	switch runtime.GOOS {
 	case "linux":
 		linuxUpgradeInstructions(g)
-	case "darwin":
+	case "darwin", "ios":
 		darwinUpgradeInstructions(g, upgradeURI)
 	case "windows":
 		windowsUpgradeInstructions(g, upgradeURI)
