@@ -37,7 +37,7 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
 
     return UsersGen.createUpdateBio({userCard, username}) // set bio in user infomap
   } catch (e) {
-    const err: RPCError = e
+    const err = e as RPCError
     if (Container.isNetworkErr(err.code)) {
       logger.info('Network error getting userCard')
     } else {
@@ -108,7 +108,7 @@ const wotReact = async (action: UsersGen.WotReactPayload, logger: Saga.SagaLogge
   } catch (e) {
     logger.warn('Error from wotReact:', e)
     return ProfileGen.createWotVouchSetError({
-      error: e.desc || `There was an error reviewing the claim.`,
+      error: (e as RPCError).desc || `There was an error reviewing the claim.`,
     })
   }
   return [ProfileGen.createWotVouchSetError({error: ''}), RouteTreeGen.createClearModals()]

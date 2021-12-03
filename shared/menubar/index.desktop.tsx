@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Electron from 'electron'
+import * as remote from '@electron/remote'
 import * as Kb from '../common-adapters'
 import * as ConfigTypes from '../constants/types/config'
 import * as FsTypes from '../constants/types/fs'
@@ -59,11 +59,11 @@ class MenubarRender extends React.Component<Props, State> {
 
   componentDidMount() {
     this.props.refreshUserFileEdits()
-    Electron.remote.getCurrentWindow().on('show', this.props.refreshUserFileEdits)
+    remote.getCurrentWindow().on('show', this.props.refreshUserFileEdits)
   }
 
   componentWillUnmount() {
-    Electron.remote.getCurrentWindow().removeListener('show', this.props.refreshUserFileEdits)
+    remote.getCurrentWindow().removeListener('show', this.props.refreshUserFileEdits)
   }
 
   render() {

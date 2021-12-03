@@ -1155,7 +1155,7 @@ function* loadMoreMessages(
   const loadingKey = Constants.waitingKeyThreadLoad(conversationIDKey)
   let calledClear = false
   const onGotThread = (thread: string) =>
-    Saga.callUntyped(function*() {
+    Saga.callUntyped(function* () {
       if (!thread) {
         return
       }
@@ -1230,13 +1230,13 @@ function* loadMoreMessages(
       Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
     )
   } catch (e) {
-    logger.warn(e.message)
+    logger.warn((e as Error).message)
     // no longer in team
-    if (e.code === RPCTypes.StatusCode.scchatnotinteam) {
+    if ((e as RPCError).code === RPCTypes.StatusCode.scchatnotinteam) {
       yield* maybeKickedFromTeam()
       return
     }
-    if (e.code !== RPCTypes.StatusCode.scteamreaderror) {
+    if ((e as RPCError).code !== RPCTypes.StatusCode.scteamreaderror) {
       // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
       throw e
     }
@@ -1291,7 +1291,7 @@ function* getUnreadline(
       })
     )
   } catch (e) {
-    if (e.code === RPCTypes.StatusCode.scchatnotinteam) {
+    if ((e as RPCError).code === RPCTypes.StatusCode.scchatnotinteam) {
       yield* maybeKickedFromTeam()
     }
     // ignore this error in general
@@ -1334,7 +1334,7 @@ function* desktopNotify(
           )
         }
         const onClose = () => {
-          resolve()
+          resolve(undefined)
         }
         logger.info('invoking NotifyPopup for chat notification')
         NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, onClick, onClose)
@@ -1474,7 +1474,7 @@ function* loadAttachmentView(
   const {conversationIDKey, viewType, fromMsgID} = action.payload
 
   const onHit = (hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']) =>
-    Saga.callUntyped(function*() {
+    Saga.callUntyped(function* () {
       const state = yield* Saga.selectState()
       const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
 
@@ -1504,7 +1504,7 @@ function* loadAttachmentView(
       Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, last: res.last, status: 'success', viewType})
     )
   } catch (e) {
-    logger.error('failed to load attachment view: ' + e.message)
+    logger.error('failed to load attachment view: ' + (e as Error).message)
     yield Saga.put(Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, status: 'error', viewType}))
   }
 }
@@ -1592,7 +1592,7 @@ function* threadSearch(
       },
     })
   } catch (e) {
-    logger.error('search failed: ' + e.message)
+    logger.error('search failed: ' + (e as Error).message)
     yield Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'}))
   }
 }
@@ -1787,7 +1787,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
     })
   } catch (e) {
     if (!(e instanceof RPCError && e.code === RPCTypes.StatusCode.sccanceled)) {
-      logger.error('search failed: ' + e.message)
+      logger.error('search failed: ' + (e as Error).message)
       yield Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'error'}))
     }
   }
@@ -1824,7 +1824,7 @@ function* messageSend(
     ),
   ]
   const onHideConfirm = ({canceled}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDone']['inParam']) =>
-    Saga.callUntyped(function*() {
+    Saga.callUntyped(function* () {
       const visibleScreen = Router2Constants.getVisibleScreen()
       if (visibleScreen && visibleScreen.routeName === confirmRouteName) {
         yield Saga.put(RouteTreeGen.createClearModals())
@@ -1957,7 +1957,7 @@ const findGeneralConvIDFromTeamID = async (
       teamID: action.payload.teamID,
     })
   } catch (err) {
-    logger.info(`findGeneralConvIDFromTeamID: failed to get general conv: ${err.message}`)
+    logger.info(`findGeneralConvIDFromTeamID: failed to get general conv: ${(err as Error).message}`)
     return
   }
   const meta = Constants.inboxUIItemToConversationMeta(state, conv)
@@ -2049,7 +2049,7 @@ const previewConversationTeam = async (
     )
     return actions
   } catch (err) {
-    if (err.code === RPCTypes.StatusCode.scteamnotfound && reason === 'appLink') {
+    if ((err as RPCError).code === RPCTypes.StatusCode.scteamnotfound && reason === 'appLink') {
       return [
         DeeplinksGen.createSetKeybaseLinkError({
           error:
@@ -2116,8 +2116,8 @@ const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayl
 function* downloadAttachment(downloadToCache: boolean, message: Types.Message, logger: Saga.SagaLogger) {
   try {
     const {conversationIDKey} = message
-    const rpcRes: RPCChatTypes.DownloadFileAttachmentLocalRes = yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga(
-      {
+    const rpcRes: RPCChatTypes.DownloadFileAttachmentLocalRes =
+      yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga({
         incomingCallMap: {},
         params: {
           conversationID: Types.keyToConversationID(conversationIDKey),
@@ -2126,14 +2126,16 @@ function* downloadAttachment(downloadToCache: boolean, message: Types.Message, l
           messageID: message.id,
           preview: false,
         },
-      }
-    )
+      })
     yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filePath}))
     return rpcRes.filePath
   } catch (e) {
-    logger.info(`downloadAttachment error: ${e.message}`, logger)
+    logger.info(`downloadAttachment error: ${(e as Error).message}`, logger)
     yield Saga.put(
-      Chat2Gen.createAttachmentDownloaded({error: e.message || 'Error downloading attachment', message})
+      Chat2Gen.createAttachmentDownloaded({
+        error: (e as Error).message || 'Error downloading attachment',
+        message,
+      })
     )
     return false
   }
@@ -2875,7 +2877,7 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload, 
     }
   } catch (err) {
     // should never happen
-    logger.error(`Unable to parse retention policy: ${err.message}`)
+    logger.error(`Unable to parse retention policy: ${(err as Error).message}`)
     throw err
   }
   return false
@@ -2904,16 +2906,17 @@ function* createConversation(
     return
   }
   try {
-    const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> = yield RPCChatTypes.localNewConversationLocalRpcPromise(
-      {
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-        tlfName: [...new Set([username, ...action.payload.participants])].join(','),
-        tlfVisibility: RPCTypes.TLFVisibility.private,
-        topicType: RPCChatTypes.TopicType.chat,
-      },
-      Constants.waitingKeyCreating
-    )
+    const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> =
+      yield RPCChatTypes.localNewConversationLocalRpcPromise(
+        {
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          membersType: RPCChatTypes.ConversationMembersType.impteamnative,
+          tlfName: [...new Set([username, ...action.payload.participants])].join(','),
+          tlfVisibility: RPCTypes.TLFVisibility.private,
+          topicType: RPCChatTypes.TopicType.chat,
+        },
+        Constants.waitingKeyCreating
+      )
     const {conv, uiConv} = result
     const conversationIDKey = Types.conversationIDToKey(conv.info.id)
     if (!conversationIDKey) {
@@ -3059,7 +3062,7 @@ function* setConvExplodingMode(
         logger.info(`Successfully unset exploding mode for conversation ${conversationIDKey}`)
       }
     } catch (_e) {
-      const e: RPCError = _e
+      const e = _e as RPCError
       if (seconds !== 0) {
         logger.error(
           `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${e.message}`
@@ -3087,7 +3090,8 @@ function* loadStaticConfig(
   }
   const {version} = action.payload
   yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'chat.loadStatic', version}))
-  const res: Saga.RPCPromiseType<typeof RPCChatTypes.localGetStaticConfigRpcPromise> = yield RPCChatTypes.localGetStaticConfigRpcPromise()
+  const res: Saga.RPCPromiseType<typeof RPCChatTypes.localGetStaticConfigRpcPromise> =
+    yield RPCChatTypes.localGetStaticConfigRpcPromise()
   if (!res.deletableByDeleteHistory) {
     logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
     return
@@ -3164,7 +3168,7 @@ const toggleMessageReaction = async (
       tlfPublic: false,
     })
   } catch (e) {
-    logger.info(`toggleMessageReaction: failed to post` + e.message)
+    logger.info(`toggleMessageReaction: failed to post` + (e as Error).message)
   }
 }
 
@@ -3307,7 +3311,7 @@ const pinMessage = async (action: Chat2Gen.PinMessagePayload, logger: Saga.SagaL
       msgID: action.payload.messageID,
     })
   } catch (err) {
-    logger.error(`pinMessage: ${err.message}`)
+    logger.error(`pinMessage: ${(err as Error).message}`)
   }
 }
 
@@ -3318,7 +3322,7 @@ const unpinMessage = async (action: Chat2Gen.UnpinMessagePayload, logger: Saga.S
       Constants.waitingKeyUnpin(action.payload.conversationIDKey)
     )
   } catch (err) {
-    logger.error(`unpinMessage: ${err.message}`)
+    logger.error(`unpinMessage: ${(err as Error).message}`)
   }
 }
 
@@ -3451,7 +3455,7 @@ const addUsersToChannel = async (action: Chat2Gen.AddUsersToChannelPayload, logg
     )
     return [RouteTreeGen.createClearModals()]
   } catch (err) {
-    logger.error(`addUsersToChannel: ${err.message}`) // surfaced in UI via waiting key
+    logger.error(`addUsersToChannel: ${(err as Error).message}`) // surfaced in UI via waiting key
     return false
   }
 }
@@ -3465,7 +3469,7 @@ const addUserToChannel = async (action: Chat2Gen.AddUserToChannelPayload, logger
     )
     return Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'addedToChannel'})
   } catch (err) {
-    logger.error(`addUserToChannel: ${err.message}`) // surfaced in UI via waiting key
+    logger.error(`addUserToChannel: ${(err as Error).message}`) // surfaced in UI via waiting key
     return false
   }
 }
@@ -3474,7 +3478,7 @@ const dismissBlockButtons = async (action: Chat2Gen.DismissBlockButtonsPayload, 
   try {
     await RPCTypes.userDismissBlockButtonsRpcPromise({tlfID: action.payload.teamID})
   } catch (err) {
-    logger.error(`Couldn't dismiss block buttons: ${err.message}`)
+    logger.error(`Couldn't dismiss block buttons: ${(err as Error).message}`)
   }
 }
 
@@ -3548,7 +3552,7 @@ const refreshBotRoleInConv = async (
       username,
     })
   } catch (err) {
-    logger.info(`refreshBotRoleInConv: failed to refresh bot team role: ${err.message}`)
+    logger.info(`refreshBotRoleInConv: failed to refresh bot team role: ${(err as Error).message}`)
     return
   }
   const trole = TeamsConstants.teamRoleByEnum[role]
@@ -3570,7 +3574,7 @@ const refreshBotPublicCommands = async (
       username,
     })
   } catch (e) {
-    logger.info('refreshBotPublicCommands: failed to get public commands: ' + e.message)
+    logger.info('refreshBotPublicCommands: failed to get public commands: ' + (e as Error).message)
     return Chat2Gen.createSetBotPublicCommands({
       commands: {commands: [], loadError: true},
       username,
@@ -3612,7 +3616,7 @@ const addBotMember = async (
       Constants.waitingKeyBotAdd
     )
   } catch (err) {
-    logger.info('addBotMember: failed to add bot member: ' + err.message)
+    logger.info('addBotMember: failed to add bot member: ' + (err as Error).message)
     return false
   }
   return closeBotModal(state, conversationIDKey)
@@ -3634,7 +3638,7 @@ const editBotSettings = async (
       Constants.waitingKeyBotAdd
     )
   } catch (err) {
-    logger.info('addBotMember: failed to edit bot settings: ' + err.message)
+    logger.info('addBotMember: failed to edit bot settings: ' + (err as Error).message)
     return false
   }
   return closeBotModal(state, conversationIDKey)
@@ -3655,7 +3659,7 @@ const removeBotMember = async (
       Constants.waitingKeyBotRemove
     )
   } catch (err) {
-    logger.info('removeBotMember: failed to remove bot member: ' + err.message)
+    logger.info('removeBotMember: failed to remove bot member: ' + (err as Error).message)
     return false
   }
   return closeBotModal(state, conversationIDKey)
@@ -3670,7 +3674,7 @@ const refreshBotSettings = async (action: Chat2Gen.RefreshBotSettingsPayload, lo
       username,
     })
   } catch (err) {
-    logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${err.message}`)
+    logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${(err as Error).message}`)
     return
   }
   return Chat2Gen.createSetBotSettings({conversationIDKey, settings, username})

@@ -1,4 +1,5 @@
 // A mirror of the remote menubar windows.
+import * as remote from '@electron/remote'
 import * as ChatConstants from '../constants/chat2'
 import * as NotificationTypes from '../constants/types/notifications'
 import * as FSTypes from '../constants/types/fs'
@@ -31,15 +32,15 @@ function useDarkSubscription() {
   const [count, setCount] = React.useState(-1)
   React.useEffect(() => {
     if (isDarwin) {
-      const subscriptionId = Electron.remote.systemPreferences.subscribeNotification(
+      const subscriptionId = remote.systemPreferences.subscribeNotification(
         'AppleInterfaceThemeChangedNotification',
         () => {
           setCount(c => c + 1)
         }
       )
       return () => {
-        if (subscriptionId && Electron.remote.systemPreferences.unsubscribeNotification) {
-          Electron.remote.systemPreferences.unsubscribeNotification(subscriptionId || -1)
+        if (subscriptionId && remote.systemPreferences.unsubscribeNotification) {
+          remote.systemPreferences.unsubscribeNotification(subscriptionId || -1)
         }
       }
     } else {
@@ -113,10 +114,10 @@ const RemoteProxy = () => {
   const users = Container.useSelector(s => s.users)
   const {infoMap: _infoMap} = users
 
-  const remoteTlfUpdates = React.useMemo(() => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)), [
-    tlfUpdates,
-    uploads,
-  ])
+  const remoteTlfUpdates = React.useMemo(
+    () => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)),
+    [tlfUpdates, uploads]
+  )
 
   const conversationsToSend = React.useMemo(
     () =>

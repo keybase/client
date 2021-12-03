@@ -61,7 +61,7 @@ const checkInviteCode = async (state: Container.TypedState) => {
     )
     return SignupGen.createCheckedInviteCode({inviteCode: state.signup.inviteCode})
   } catch (e) {
-    const err: RPCError = e
+    const err = e as RPCError
     return SignupGen.createCheckedInviteCode({error: err.desc, inviteCode: state.signup.inviteCode})
   }
 }
@@ -96,7 +96,7 @@ const requestInvite = async (state: Container.TypedState) => {
       name: state.signup.name,
     })
   } catch (e) {
-    const err: RPCError = e
+    const err = e as RPCError
     return SignupGen.createRequestedInvite({
       email: state.signup.email,
       emailError: `Sorry can't get an invite: ${err.desc}`,
@@ -124,7 +124,7 @@ const checkUsername = async (
     logger.info(`${state.signup.username} success`)
     return SignupGen.createCheckedUsername({error: '', username: state.signup.username})
   } catch (e) {
-    const err: RPCError = e
+    const err = e as RPCError
     logger.warn(`${state.signup.username} error: ${err.message}`)
     const error = err.code === RPCTypes.StatusCode.scinputerror ? Constants.usernameHint : err.desc
     return SignupGen.createCheckedUsername({
@@ -148,7 +148,7 @@ const checkDevicename = async (state: Container.TypedState) => {
     )
     return SignupGen.createCheckedDevicename({devicename: state.signup.devicename})
   } catch (e) {
-    const err: RPCError = e
+    const err = e as RPCError
     return SignupGen.createCheckedDevicename({
       devicename: state.signup.devicename,
       error: `Device name is invalid: ${err.desc}.`,
@@ -208,7 +208,7 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
     })
     yield Saga.put(SignupGen.createSignedup())
   } catch (error) {
-    yield Saga.put(SignupGen.createSignedup({error}))
+    yield Saga.put(SignupGen.createSignedup({error: error as RPCError}))
     yield Saga.put(
       PushGen.createShowPermissionsPrompt({
         justSignedUp: false,
@@ -233,7 +233,7 @@ const maybeClearJustSignedUpEmail = (
   return false
 }
 
-const signupSaga = function*() {
+const signupSaga = function* () {
   // validation actions
   yield* Saga.chainAction2(SignupGen.requestInvite, requestInvite)
   yield* Saga.chainAction2(SignupGen.checkUsername, checkUsername)
