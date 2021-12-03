@@ -94,7 +94,7 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
       })
     )
   } catch (err) {
-    const e: RPCError = err
+    const e = err as RPCError
     if (e.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       const users = e.fields?.filter((elem: any) => elem.key === 'usernames')
       const usernames = users?.map((elem: any) => elem.value)
@@ -325,9 +325,8 @@ function* folderList(_: Container.TypedState, action: FsGen.FolderListLoadPayloa
 
     yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.folderListWaitingKey)
 
-    const result: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise> = yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise(
-      {opID}
-    )
+    const result: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise> =
+      yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise({opID})
     const entries = result.entries || []
     const childMap = entries.reduce((m, d) => {
       const [parent, child] = d.name.split('/')
@@ -486,11 +485,10 @@ function* pollJournalFlushStatusUntilDone() {
         syncingPaths,
         totalSyncingBytes,
         endEstimate,
-      }: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise> = yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise(
-        {
+      }: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise> =
+        yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
           filter: RPCTypes.ListFilter.filterSystemHidden,
-        }
-      )
+        })
       yield Saga.sequentially([
         Saga.put(
           FsGen.createJournalUpdate({
@@ -572,10 +570,10 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
       } catch (e) {
         if (
           [RPCTypes.StatusCode.scsimplefsnameexists, RPCTypes.StatusCode.scsimplefsdirnotempty].includes(
-            e.code
+            (e as RPCError).code
           )
         ) {
-          return FsGen.createEditError({editID, error: e.desc || 'name exists'})
+          return FsGen.createEditError({editID, error: (e as RPCError).desc || 'name exists'})
         }
         throw e
       }
@@ -770,7 +768,7 @@ const checkKbfsServerReachabilityIfNeeded = async (action: ConfigGen.OsNetworkSt
     try {
       await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
     } catch (err) {
-      logger.warn(`failed to check KBFS reachability: ${err.message}`)
+      logger.warn(`failed to check KBFS reachability: ${(err as Error).message}`)
     }
   }
   return null
@@ -854,7 +852,7 @@ const subscribePath = async (action: FsGen.SubscribePathPayload) => {
     })
     return null
   } catch (err) {
-    if (err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+    if ((err as RPCError).code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       // We'll handle this error in loadAdditionalTLF instead.
       return
     }

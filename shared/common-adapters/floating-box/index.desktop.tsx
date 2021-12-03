@@ -33,7 +33,7 @@ class FloatingBox extends React.Component<Props, State> {
         try {
           node = findDOMNode(attachTo)
         } catch (e) {
-          logger.error(`FloatingBox: unable to find rect to attach to. Error: ${e.message}`)
+          logger.error(`FloatingBox: unable to find rect to attach to. Error: ${(e as Error).message}`)
           return null
         }
         if (node instanceof HTMLElement) {

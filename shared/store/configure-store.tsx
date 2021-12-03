@@ -5,11 +5,11 @@ import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
 // import {createLogger} from 'redux-logger'
 import {createStore, applyMiddleware, Store} from 'redux'
-import {enableStoreLogging, enableActionLogging, filterActionLogs} from '../local-debug'
+import {enableStoreLogging, enableActionLogging/*, filterActionLogs*/} from '../local-debug'
 import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
-import {isMobile, isRemoteDebuggerAttached} from '../constants/platform'
-import * as LocalConsole from '../util/local-console'
+import {isMobile /*, isRemoteDebuggerAttached*/} from '../constants/platform'
+// import * as LocalConsole from '../util/local-console'
 import {hookMiddleware} from './hook-middleware'
 
 let theStore: Store<any, any>
@@ -78,10 +78,10 @@ const errorCatching = () => next => action => {
     return next(action)
   } catch (error) {
     // Don't let the same error keep getting caught
-    if (lastError.message === error.message) {
+    if (lastError.message === (error as Error).message) {
       return
     }
-    lastError = error
+    lastError = error as Error
     logger.warn(`Caught a middleware exception`)
     logger.debug(`Caught a middleware exception`, error)
 

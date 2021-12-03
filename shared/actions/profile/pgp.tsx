@@ -2,6 +2,7 @@ import * as Container from '../../util/container'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
+import {RPCError} from '../../util/errors'
 import * as RouteTreeGen from '../route-tree-gen'
 import {peopleTab} from '../../constants/tabs'
 
@@ -22,7 +23,7 @@ function* generatePgp(state: Container.TypedState) {
     })
   )
   // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
-  const cancelTask = yield Saga._fork(function*() {
+  const cancelTask = yield Saga._fork(function* () {
     yield Saga.take(ProfileGen.cancelPgpGen)
     canceled = true
   })
@@ -39,7 +40,7 @@ function* generatePgp(state: Container.TypedState) {
           }
         },
         'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
-          return Saga.callUntyped(function*() {
+          return Saga.callUntyped(function* () {
             yield Saga.put(
               RouteTreeGen.createNavigateAppend({
                 path: [
@@ -67,7 +68,7 @@ function* generatePgp(state: Container.TypedState) {
     })
   } catch (e) {
     // did we cancel?
-    if (e.code !== RPCTypes.StatusCode.scinputcanceled) {
+    if ((e as RPCError).code !== RPCTypes.StatusCode.scinputcanceled) {
       throw e
     }
   }

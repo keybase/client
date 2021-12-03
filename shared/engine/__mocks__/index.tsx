@@ -1,5 +1,5 @@
 /* eslint-env jest */
-
+/*
 import Session from '../session'
 
 console.error('loaded mock index')
@@ -34,3 +34,5 @@ const makeEngine = mock
 
 export default mock
 export {getEngine, makeEngine}
+ */
+export {}

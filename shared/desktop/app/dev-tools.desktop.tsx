@@ -5,11 +5,14 @@ import flags from '../../util/feature-flags'
 function setupDevToolsExtensions() {
   if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
     process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
-      try {
-        Electron.BrowserWindow.addDevToolsExtension(p)
-      } catch (e) {
-        console.error('Dev tool loading crash', p, e)
-      }
+      Electron.app
+        .whenReady()
+        .then(async () => {
+          await Electron.session.defaultSession.loadExtension(p, {allowFileAccess: true})
+        })
+        .catch(e => {
+          console.log('loading dev extensions failed', e)
+        })
     })
   }
 }
@@ -33,7 +36,7 @@ function cleanupOpenDevtools() {
   }
 }
 
-export default function() {
+export default function () {
   if (Electron.app.isReady()) {
     setupOpenDevtools()
     setupDevToolsExtensions()

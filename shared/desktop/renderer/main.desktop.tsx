@@ -4,8 +4,6 @@ import 'react-hot-loader'
 import {_setSystemIsDarkMode, _setSystemSupported} from '../../styles/dark-mode'
 import {isDarwin} from '../../constants/platform'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import flags from '../../util/feature-flags.desktop'
-import React from 'react'
 import {enableMapSet} from 'immer'
 
 enableMapSet()

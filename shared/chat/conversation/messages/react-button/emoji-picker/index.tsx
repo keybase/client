@@ -188,6 +188,7 @@ const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
       ...removeObsolete(
         // @ts-ignore type wrong?
         emojiIndex
+          // @ts-ignore type wrong?
           .search(filter, {maxResults: maxEmojiSearchResults})
           .map((res: {id: string}) => emojiNameMap[res.id])
       ),

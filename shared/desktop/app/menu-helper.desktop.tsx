@@ -161,7 +161,7 @@ function setupContextMenu(window: Electron.BrowserWindow) {
                 s =>
                   new Electron.MenuItem({
                     click(_, w) {
-                      w.webContents.replaceMisspelling(s)
+                      w?.webContents?.replaceMisspelling(s)
                     },
                     label: s,
                   })
@@ -169,7 +169,7 @@ function setupContextMenu(window: Electron.BrowserWindow) {
               ...(dictionarySuggestions.length ? [new Electron.MenuItem({type: 'separator'})] : []),
               new Electron.MenuItem({
                 click(_, w) {
-                  w.webContents.session.addWordToSpellCheckerDictionary(props.misspelledWord)
+                  w?.webContents.session.addWordToSpellCheckerDictionary(props.misspelledWord)
                 },
                 label: 'Add to dictionary',
               }),
