@@ -35,6 +35,7 @@ var charlie = NewNormalizedUsername("charlie")
 
 func TestSSSSBasic(t *testing.T) {
 	t.Skip("Skipping secret service test while Linux CI AMI is being upgraded to include keyring")
+
 	tc := SetupTest(t, "secret_store_secretservice", 0)
 	defer tc.Cleanup()
 	mctx := NewMetaContextForTest(tc)
