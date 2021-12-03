@@ -127,7 +127,7 @@ helpers.rootLinuxNode(env, {
     def goChanges = helpers.getChangesForSubdir('go', env)
     def hasGoChanges = goChanges.size() != 0
     def hasJSChanges = helpers.hasChanges('shared', env)
-    def hasJenkinsfileChanges = true //helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
+    def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
     def hasKBFSChanges = false
     println "Has go changes: " + hasGoChanges
     println "Has JS changes: " + hasJSChanges
@@ -147,7 +147,7 @@ helpers.rootLinuxNode(env, {
     stage("Test") {
       withKbweb() {
         parallel (
-          failFast: false, // true,
+          failFast: true,
           test_linux: {
             def packagesToTest = [:]
             if (hasGoChanges || hasJenkinsfileChanges) {
@@ -169,7 +169,7 @@ helpers.rootLinuxNode(env, {
               fetchChangeTarget()
             }
             parallel (
-              failFast: false, //true,
+              failFast: true,
               test_xcompilation: { withEnv([
                 "PATH=${env.PATH}:${env.GOPATH}/bin",
               ]) {
@@ -416,7 +416,7 @@ def testGo(prefix, packagesToTest, hasKBFSChanges) {
     test_go_test_suite: {
       testGoTestSuite(prefix, packagesToTest)
     },
-    failFast: false// true
+    failFast: true
   )
   }}
 }
@@ -552,10 +552,12 @@ def testGoTestSuite(prefix, packagesToTest) {
         timeout: '30s',
       ],
       'github.com/keybase/client/go/kbfs/libfuse': [
-        flags: '',
-        timeout: '5m',
-        citogo_extra : '--pause 1s',
-        no_citogo : '1'
+        // TODO re-enable
+        // flags: '',
+        // timeout: '5m',
+        // citogo_extra : '--pause 1s',
+        // no_citogo : '1'
+        disable: true,
       ],
       'github.com/keybase/client/go/kbfs/idutil': [
         flags: '-race',
@@ -806,7 +808,7 @@ def executeInWorkers(numWorkers, runFirstItemAlone, queue) {
       }
     }
   }
-  workers.failFast = false //true
+  workers.failFast = true
   parallel(workers)
 }
 
