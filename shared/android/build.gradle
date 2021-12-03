@@ -12,7 +12,7 @@ buildscript {
         buildToolsVersion = "29.0.2"
         minSdkVersion = 16
         compileSdkVersion = 29
-        targetSdkVersion = 29
+        targetSdkVersion = 30
         supportLibVersion = "28.0.0" // needed by some deps
      }
 
@@ -43,7 +43,7 @@ subprojects {project ->
     if (project.name.contains('react-native-fast-image')) {
             buildscript {
                 repositories {
-                maven { url = 'https://dl.bintray.com/android/android-tools/'  }
+                mavenCentral()
             }
         }
     }
