@@ -357,38 +357,40 @@ def getDiffGoDependencies() {
 def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
   def packagesToTest = [:]
   dir('go') {
-    if (env.CHANGE_TARGET && !hasJenkinsfileChanges) {
-      // The Jenkinsfile hasn't changed, so we try to run a minimal set of
-      // tests to capture the changes in this PR.
-      fetchChangeTarget()
-      def diffFileList = getDiffFileList()
-      def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | grep '^go\\/' | sed 's/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/' | sort | uniq\"").trim().split()
-      def diffPackagesAsString = diffPackageList.join(' ')
-      println "Go packages changed:\n${diffPackagesAsString}"
-      def diffDependencies = getDiffGoDependencies()
-      def diffDependenciesAsString = diffDependencies.join(' ')
-      println "Go dependencies changed:\n${diffDependenciesAsString}"
+    // The below has produce a garden variety of errors. Maybe we can re-enable
+    // it. At some point.
+    // if (env.CHANGE_TARGET && !hasJenkinsfileChanges) {
+    //  // The Jenkinsfile hasn't changed, so we try to run a minimal set of
+    //  // tests to capture the changes in this PR.
+    //  fetchChangeTarget()
+    //  def diffFileList = getDiffFileList()
+    //  def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | grep '^go\\/' | sed 's/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/' | sort | uniq\"").trim().split()
+    //  def diffPackagesAsString = diffPackageList.join(' ')
+    //  println "Go packages changed:\n${diffPackagesAsString}"
+    //  def diffDependencies = getDiffGoDependencies()
+    //  def diffDependenciesAsString = diffDependencies.join(' ')
+    //  println "Go dependencies changed:\n${diffDependenciesAsString}"
 
-      // Load list of dependencies and mark all dependent packages to test.
-      def goos = sh(returnStdout: true, script: "go env GOOS").trim()
-      def dependencyMap = new JsonSlurperClassic().parseText(dependencyFiles[goos])
-      diffPackageList.each { pkg ->
-        // pkg changed; we need to load it from dependencyMap to see
-        // which tests should be run.
-        dependencyMap[pkg].each { dep, _ ->
-          packagesToTest[dep] = 1
-        }
-      }
-      diffDependencies.each { pkg ->
-        // dependency changed; we need to load it from dependencyMap to see
-        // which tests should be run.
-        dependencyMap[pkg].each { dep, _ ->
-          packagesToTest[dep] = 1
-        }
-      }
-      return packagesToTest
-    }
-    println "This is a branch build or the Jenkinsfile has changed, so we are running all tests."
+    //  // Load list of dependencies and mark all dependent packages to test.
+    //  def goos = sh(returnStdout: true, script: "go env GOOS").trim()
+    //  def dependencyMap = new JsonSlurperClassic().parseText(dependencyFiles[goos])
+    //  diffPackageList.each { pkg ->
+    //    // pkg changed; we need to load it from dependencyMap to see
+    //    // which tests should be run.
+    //    dependencyMap[pkg].each { dep, _ ->
+    //      packagesToTest[dep] = 1
+    //    }
+    //  }
+    //  diffDependencies.each { pkg ->
+    //    // dependency changed; we need to load it from dependencyMap to see
+    //    // which tests should be run.
+    //    dependencyMap[pkg].each { dep, _ ->
+    //      packagesToTest[dep] = 1
+    //    }
+    //  }
+    //  return packagesToTest
+    //}
+    //println "This is a branch build or the Jenkinsfile has changed, so we are running all tests."
     diffPackageList = sh(returnStdout: true, script: 'go list ./...').trim().split()
     // If we get here, just run all the tests in `diffPackageList`
     diffPackageList.each { pkg ->
