@@ -1,5 +1,5 @@
 package io.keybase.ossifrage;
-
+import expo.modules.ReactActivityDelegateWrapper;
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -178,12 +178,15 @@ public class MainActivity extends ReactActivity {
 
   @Override
   protected ReactActivityDelegate createReactActivityDelegate() {
-    return new ReactActivityDelegate(this, getMainComponentName()) {
-      @Override
-      protected ReactRootView createRootView() {
-        return new RNGestureHandlerEnabledRootView(MainActivity.this);
+    return new ReactActivityDelegateWrapper(
+      this,
+      new ReactActivityDelegate(this, getMainComponentName()) {
+        @Override
+        protected ReactRootView createRootView() {
+          return new RNGestureHandlerEnabledRootView(MainActivity.this);
+        }
       }
-    };
+    );
   }
 
   @Override
