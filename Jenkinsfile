@@ -288,13 +288,13 @@ helpers.rootLinuxNode(env, {
     }
 
     stage("Push") {
-      if (env.BRANCH_NAME == "master" && cause != "upstream") {
+      //if (env.BRANCH_NAME == "master" && cause != "upstream") {
         docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
           kbfsfuseImage.push('master')
         }
-      } else {
-        println "Not pushing docker"
-      }
+      //} else {
+      //  println "Not pushing docker"
+      //}
     }
   }
 }
