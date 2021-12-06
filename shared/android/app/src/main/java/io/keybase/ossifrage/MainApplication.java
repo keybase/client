@@ -10,21 +10,23 @@ import androidx.multidex.MultiDex;
 import com.evernote.android.job.JobManager;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
-import com.rnim.rn.audio.ReactNativeAudioPackage;
+import com.facebook.react.ReactInstanceManager;
+//import com.rnim.rn.audio.ReactNativeAudioPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.soloader.SoLoader;
 
-import org.unimodules.adapters.react.ModuleRegistryAdapter;
-import org.unimodules.adapters.react.ReactAdapterPackage;
-import org.unimodules.adapters.react.ReactModuleRegistryProvider;
-import org.unimodules.core.interfaces.Package;
+//import org.unimodules.adapters.react.ModuleRegistryAdapter;
+//import org.unimodules.adapters.react.ReactAdapterPackage;
+//import org.unimodules.adapters.react.ReactModuleRegistryProvider;
+//import org.unimodules.core.interfaces.Package;
 
 // import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
+//import java.util.Arrays;
 import java.util.List;
 
 // import expo.modules.barcodescanner.BarCodeScannerPackage;
@@ -131,7 +133,7 @@ public class MainApplication extends Application implements ReactApplication {
 
         @Override
         protected List<ReactPackage> getPackages() {
-            Context context = getApplicationContext();
+            //Context context = getApplicationContext();
             // limit fresco memory
 //            ImagePipelineConfig frescoConfig = ImagePipelineConfig
 //                    .newBuilder(context)
@@ -140,7 +142,7 @@ public class MainApplication extends Application implements ReactApplication {
 //
 //            MainPackageConfig appConfig = new MainPackageConfig.Builder().setFrescoConfig(frescoConfig).build();
 
-            @SuppressWarnings("UnnecessaryLocalVariable")
+            //@SuppressWarnings("UnnecessaryLocalVariable")
             List<ReactPackage> packages = new PackageList(this).getPackages();
             // new MainReactPackage(appConfig),// removed from rn-diff but maybe we need it for fresco config?
             packages.add(new KBReactPackage() {
