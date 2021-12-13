@@ -9,12 +9,13 @@ def enableV8 = KB_USEV8 == 'true'
 
 buildscript {
     ext {
+        firebaseMessagingVersion = "21.1.0"
         buildToolsVersion = "30.0.2"
         minSdkVersion = 21
         compileSdkVersion = 30
         targetSdkVersion = 30
         ndkVersion = "21.4.7075529"
-        // supportLibVersion = "28.0.0" // needed by some deps
+        supportLibVersion = "28.0.0" // needed by old push notif
      }
 
     repositories {
@@ -55,10 +56,10 @@ allprojects {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url("$rootDir/../node_modules/react-native/android")
         }
-        maven {
-            // Android JSC is installed from npm
-            url("$rootDir/../node_modules/jsc-android/dist")
-        }
+        // maven {
+        //     // Android JSC is installed from npm
+        //     url("$rootDir/../node_modules/jsc-android/dist")
+        // }
 
         google()
         maven { url 'https://www.jitpack.io' }

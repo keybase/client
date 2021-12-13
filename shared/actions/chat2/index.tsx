@@ -3347,6 +3347,7 @@ const gregorPushState = (
   action: GregorGen.PushStatePayload,
   logger: Saga.SagaLogger
 ) => {
+debugger
   const actions: Array<Container.TypedActions> = []
   const items = action.payload.state
 
@@ -3356,21 +3357,26 @@ const gregorPushState = (
     actions.push(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
   } else {
     logger.info('Got push state with some exploding modes')
-    const modes = explodingItems.reduce<Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>>(
-      (current, i) => {
-        const {category, body} = i.item
-        const secondsString = body.toString()
-        const seconds = parseInt(secondsString, 10)
-        if (isNaN(seconds)) {
-          logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
-          return current
-        }
-        const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
-        const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
-        current.push({conversationIDKey, seconds})
-        return current
-      },
-      []
+        const modes = explodingItems.reduce<Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>>(
+            (current, i) => {
+                try {
+
+                    const {category, body} = i.item
+                    const secondsString = body.toString()
+                    const seconds = parseInt(secondsString, 10)
+                    if (isNaN(seconds)) {
+                        logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
+                        return current
+                    }
+                    const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
+                    const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
+                    current.push({conversationIDKey, seconds})
+                } catch {
+                    console.log('aaa gregor push state fail parse')
+                }
+                return current
+            },
+            []
     )
     actions.push(Chat2Gen.createUpdateConvExplodingModes({modes}))
   }
@@ -3386,9 +3392,16 @@ const gregorPushState = (
       .forEach(i => {
         const teamID = i.item.category.substr(Constants.blockButtonsGregorPrefix.length)
         if (!state.chat2.blockButtonsMap.get(teamID)) {
+            try {
+
+                    console.log('aaa ABOUT  to parse gregor', i.item.body.toString())
           const body: {adder: string} = JSON.parse(i.item.body.toString())
           const adder = body.adder
           actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
+                    } catch {
+                    console.log('aaa failed to parse gregor', i.item.body.toString())
+
+                    }
         } else {
           shouldKeepExistingBlockButtons.set(teamID, true)
         }

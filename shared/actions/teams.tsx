@@ -1310,6 +1310,7 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
 }
 
 const gregorPushState = (action: GregorGen.PushStatePayload) => {
+    debugger
   const actions: Array<TypedActions> = []
   const items = action.payload.state
   let sawChatBanner = false

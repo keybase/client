@@ -142,7 +142,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     throw e
   } finally {
     try {
-      require('rn-fetch-blob').default.fs.unlink(filePath)
+      require('react-native-blob-util').default.fs.unlink(filePath)
     } catch (_) {
       logger.warn('failed to unlink')
     }
@@ -782,8 +782,8 @@ const configureFileAttachmentDownloadForAndroid = () =>
   RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: require('rn-fetch-blob').default.fs.dirs.CacheDir,
-    downloadDirOverride: require('rn-fetch-blob').default.fs.dirs.DownloadDir,
+    cacheDirOverride: require('react-native-blob-util').default.fs.dirs.CacheDir,
+    downloadDirOverride: require('react-native-blob-util').default.fs.dirs.DownloadDir,
   })
 
 const stopAudioRecording = async (

@@ -12,6 +12,8 @@ PODS:
     - ExpoModulesCore
   - EXContacts (10.0.3):
     - ExpoModulesCore
+  - EXErrorRecovery (3.0.3):
+    - ExpoModulesCore
   - EXFileSystem (13.0.3):
     - ExpoModulesCore
   - EXFont (10.0.3):
@@ -29,9 +31,9 @@ PODS:
     - ExpoModulesCore
   - EXPermissions (13.0.3):
     - ExpoModulesCore
-  - Expo (43.0.3):
+  - Expo (43.0.4):
     - ExpoModulesCore
-  - ExpoModulesCore (0.4.8):
+  - ExpoModulesCore (0.4.9):
     - React-Core
   - EXSMS (10.0.3):
     - ExpoModulesCore
@@ -387,7 +389,7 @@ PODS:
     - React-RCTVibration
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.9.0):
+  - RNScreens (3.10.1):
     - React-Core
     - React-RCTImage
   - SDWebImage (5.11.1):
@@ -410,6 +412,7 @@ DEPENDENCIES:
   - EXBarCodeScanner (from `../node_modules/expo-barcode-scanner/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXContacts (from `../node_modules/expo-contacts/ios`)
+  - EXErrorRecovery (from `../node_modules/expo-error-recovery/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXHaptics (from `../node_modules/expo-haptics/ios`)
@@ -493,6 +496,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-constants/ios"
   EXContacts:
     :path: "../node_modules/expo-contacts/ios"
+  EXErrorRecovery:
+    :path: "../node_modules/expo-error-recovery/ios"
   EXFileSystem:
     :path: "../node_modules/expo-file-system/ios"
   EXFont:
@@ -619,6 +624,7 @@ SPEC CHECKSUMS:
   EXBarCodeScanner: cc450529b9c5e02dd9e2498cc0dddf153f120dfe
   EXConstants: 6d585d93723b18d7a8c283591a335609e3bc153e
   EXContacts: 7705555a02ff2ed4ddbe18f607e51de88ac2ff11
+  EXErrorRecovery: ac2622400a32be84604591f70d0efff416e4b9a2
   EXFileSystem: 99aac7962c11c680681819dd9cbca24e20e5b1e7
   EXFont: 2e1c6fe726d008a039db80df95f48b4921b7fe59
   EXHaptics: f52df335f17192e440d9639c971ebcbb3fb91dec
@@ -627,8 +633,8 @@ SPEC CHECKSUMS:
   EXKeepAwake: 8aa32396a5972d26e75e538603aad0f032396503
   EXMailComposer: 2a4ef087e055e3a9a1d138c300c5ae48a3978d0d
   EXPermissions: 7696f4c16e89981f84c04d96327f7e1e592373c0
-  Expo: 5316c3ecdc34eb0cad340d01dc8beec97c7e879e
-  ExpoModulesCore: a9a9bf32b2da35cd9b7299c80790c03a91ac7d15
+  Expo: 363a3f3c60d5a1d4f8badb29a869005487f2d9e4
+  ExpoModulesCore: e41ed0b72daeac74731816ad7997d639f0115a9d
   EXSMS: 08db0b52fb83f2e8d40a03561d07e183b0f0df1d
   FBLazyVector: de148e8310b8b878db304ceea2fec13f2c02e3a0
   FBReactNativeSpec: 6192956c9e346013d5f1809ba049af720b11c6a4
@@ -678,7 +684,7 @@ SPEC CHECKSUMS:
   RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNReanimated: 65583befd5706cc9c86ae9a081786181ced37b93
-  RNScreens: 4d79118be80f79fa1f4aa131909a1d6e86280af3
+  RNScreens: 522705f2e5c9d27efb17f24aceb2bf8335bc7b8e
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: f93010f3f6c031e2f8fb3081ca4ee6966c539815
   Yoga: 32a18c0e845e185f4a2a66ec76e1fd1f958f22fa

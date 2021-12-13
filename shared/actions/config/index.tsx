@@ -716,6 +716,7 @@ const logoutAndTryToLogInAs = async (
 }
 
 const gregorPushState = (action: GregorGen.PushStatePayload) => {
+    debugger
   const actions: Array<Container.TypedActions> = []
   const items = action.payload.state
   const lastSeenItem = items.find(i => i.item && i.item.category === 'whatsNewLastSeenVersion')

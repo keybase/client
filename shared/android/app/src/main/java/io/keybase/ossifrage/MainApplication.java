@@ -17,6 +17,8 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.soloader.SoLoader;
+import com.facebook.react.bridge.JSIModulePackage;
+import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 
 //import org.unimodules.adapters.react.ModuleRegistryAdapter;
 //import org.unimodules.adapters.react.ReactAdapterPackage;
@@ -104,6 +106,7 @@ public class MainApplication extends Application implements ReactApplication {
       Context context, ReactInstanceManager reactInstanceManager) {
     if (BuildConfig.DEBUG) {
       try {
+        NativeLogger.info("MainApplication init flipper");
         /*
          We use reflection here to pick up the class that initializes Flipper,
         since Flipper library is not available in release mode
@@ -112,6 +115,7 @@ public class MainApplication extends Application implements ReactApplication {
         aClass
             .getMethod("initializeFlipper", Context.class, ReactInstanceManager.class)
             .invoke(null, context, reactInstanceManager);
+          NativeLogger.info("MainApplication init flipper loaded!");
       } catch (ClassNotFoundException e) {
         e.printStackTrace();
       } catch (NoSuchMethodException e) {
@@ -125,16 +129,17 @@ public class MainApplication extends Application implements ReactApplication {
   }
 
     private final ReactNativeHost mReactNativeHost = new ReactNativeHostWrapper(this, new ReactNativeHost(this) {
+//            new ReactNativeHost(this) {
 
-        @Override
-        public boolean getUseDeveloperSupport() {
-            return BuildConfig.DEBUG;
-        }
+                @Override
+                public boolean getUseDeveloperSupport() {
+                    return BuildConfig.DEBUG;
+                }
 
-        @Override
-        protected List<ReactPackage> getPackages() {
-            //Context context = getApplicationContext();
-            // limit fresco memory
+                @Override
+                protected List<ReactPackage> getPackages() {
+                    //Context context = getApplicationContext();
+                    // limit fresco memory
 //            ImagePipelineConfig frescoConfig = ImagePipelineConfig
 //                    .newBuilder(context)
 //                    .setBitmapMemoryCacheParamsSupplier(new CustomBitmapMemoryCacheParamsSupplier(context))
@@ -142,38 +147,45 @@ public class MainApplication extends Application implements ReactApplication {
 //
 //            MainPackageConfig appConfig = new MainPackageConfig.Builder().setFrescoConfig(frescoConfig).build();
 
-            //@SuppressWarnings("UnnecessaryLocalVariable")
-            List<ReactPackage> packages = new PackageList(this).getPackages();
-            // new MainReactPackage(appConfig),// removed from rn-diff but maybe we need it for fresco config?
-            packages.add(new KBReactPackage() {
-                @Override
-                public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
-                    if (BuildConfig.BUILD_TYPE == "storyBook") {
-                        List<NativeModule> modules = new ArrayList<>();
-                        modules.add(new StorybookConstants(reactApplicationContext));
-                        return modules;
-                    } else {
-                        return super.createNativeModules(reactApplicationContext);
-                    }
+                    //@SuppressWarnings("UnnecessaryLocalVariable")
+                    List<ReactPackage> packages = new PackageList(this).getPackages();
+                    // new MainReactPackage(appConfig),// removed from rn-diff but maybe we need it for fresco config?
+                    packages.add(new KBReactPackage() {
+                        @Override
+                        public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
+                            if (BuildConfig.BUILD_TYPE == "storyBook") {
+                                List<NativeModule> modules = new ArrayList<>();
+                                modules.add(new StorybookConstants(reactApplicationContext));
+                                return modules;
+                            } else {
+                                return super.createNativeModules(reactApplicationContext);
+                            }
+                        }
+                    });
+
+                    // packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
+
+                    return packages;
                 }
-            });
 
-            // packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
+                @Override
+                protected String getJSMainModuleName() {
+                    // This is a mildly hacky solution to mock out some code when we're in storybook mode.
+                    // The code that handles this is in `shared/metro.config.js`.
+//            if (BuildConfig.BUILD_TYPE == "storyBook") {
+//                return "storybook-index";
+//            } else {
+                    //return "normal-index";
+//            }
+                    return "index";
+                }
 
-            return packages;
-        }
         @Override
-        protected String getJSMainModuleName() {
-            // This is a mildly hacky solution to mock out some code when we're in storybook mode.
-            // The code that handles this is in `shared/metro.config.js`.
-            if (BuildConfig.BUILD_TYPE == "storyBook") {
-                return "storybook-index";
-            } else {
-                return "normal-index";
-            }
+        protected JSIModulePackage getJSIModulePackage() {
+            return new ReanimatedJSIModulePackage();
         }
-    });
-
+                });
+//            };
     @Override
     public ReactNativeHost getReactNativeHost() {
         return mReactNativeHost;

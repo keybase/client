@@ -193,9 +193,6 @@ module.exports = {
   get NameWithIcon() {
     return require('./name-with-icon').default
   },
-  get NavigationEvents() {
-    return require('@react-navigation/core').NavigationEvents
-  },
   get NewInput() {
     return require('./new-input').default
   },

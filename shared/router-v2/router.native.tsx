@@ -689,7 +689,8 @@ const RNApp = props => {
       >
         <RootStack.Navigator
           key="root"
-          initialRouteName={loggedIn ? 'loggedIn' : 'loggedOut' /* in case linking fails */}
+          initialRouteName={loggedIn ? 'loggedIn' : 'loggedOut' // in case linking fails 
+          }
           screenOptions={{
             animationEnabled: false,
             presentation: 'modal',
@@ -711,4 +712,5 @@ const RNApp = props => {
     </Kb.KeyboardAvoidingView>
   )
 }
+
 export default RNApp

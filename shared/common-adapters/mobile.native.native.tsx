@@ -295,9 +295,6 @@ module.exports = {
   get NativeWebView() {
     return NativeWrappers.NativeWebView
   },
-  get NavigationEvents() {
-    return Index.NavigationEvents
-  },
   get NewInput() {
     return Index.NewInput
   },

@@ -1,5 +1,5 @@
 import {Dimensions, Platform, NativeModules} from 'react-native'
-import RNFB from 'rn-fetch-blob'
+import RNFB from 'react-native-blob-util'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import Constants from 'expo-constants'
 

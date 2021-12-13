@@ -8,10 +8,10 @@ enableES5()
 enableMapSet()
 
 // Load storybook or the app
-if (__STORYBOOK__) {
+// if (__STORYBOOK__) {
   // const load = require('./storybook/index.native').default
   // load()
-} else {
+// } else {
   const NativeAppearance = NativeModules.Appearance
 
   if (NativeAppearance) {
@@ -36,4 +36,4 @@ if (__STORYBOOK__) {
 
   const {load} = require('./app/index.native')
   load()
-}
+// }

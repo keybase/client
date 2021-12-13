@@ -15,9 +15,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-//import com.google.firebase.iid.FirebaseInstanceId;
-//import com.google.firebase.iid.InstanceIdResult;
-import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
+//import com.google.firebase.messaging.FirebaseMessaging;
 
 public class Utils extends ReactContextBaseJavaModule {
     private static final String NAME = "Utils";
@@ -29,31 +29,31 @@ public class Utils extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void getRegistrationToken(Promise promise) {
-      boolean firebaseInitialized = FirebaseApp.getApps(getReactApplicationContext()).size() == 1;
-      if (!firebaseInitialized) {
-        FirebaseApp.initializeApp(getReactApplicationContext(),
-          new FirebaseOptions.Builder()
-            .setApplicationId(BuildConfig.LIBRARY_PACKAGE_NAME)
-            .setGcmSenderId("9603251415").build()
-        );
-      }
-        FirebaseMessaging.getInstance().getToken()
-        .addOnCompleteListener(new OnCompleteListener<String>() {
-            @Override
-            public void onComplete(@NonNull Task<String> task) {
-                if (!task.isSuccessful()) {
-                    NativeLogger.warn("getInstanceId failed", task.getException());
-                    promise.reject(task.getException());
-                    return;
-                }
+        boolean firebaseInitialized = FirebaseApp.getApps(getReactApplicationContext()).size() == 1;
+        if (!firebaseInitialized) {
+            FirebaseApp.initializeApp(getReactApplicationContext(),
+                    new FirebaseOptions.Builder()
+                            .setApplicationId(BuildConfig.LIBRARY_PACKAGE_NAME)
+                            .setGcmSenderId("9603251415").build()
+            );
+        }
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+                            NativeLogger.warn("getInstanceId failed", task.getException());
+                            promise.reject(task.getException());
+                            return;
+                        }
 
 
-                // Get new Instance ID token
-                String token = task.getResult();
-                NativeLogger.info("Got token: " + token);
-                promise.resolve(token);
-            }
-        });
+                        // Get new Instance ID token
+                        String token = task.getResult().getToken();
+                        NativeLogger.info("Got token: " + token);
+                        promise.resolve(token);
+                    }
+                });
     }
 
 

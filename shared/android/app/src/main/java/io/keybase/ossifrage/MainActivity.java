@@ -58,7 +58,7 @@ import java.util.UUID;
 //import javax.annotation.Nonnull;
 //import javax.annotation.Nullable;
 
-import io.keybase.ossifrage.modules.AppearanceModule;
+//import io.keybase.ossifrage.modules.AppearanceModule;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
@@ -179,8 +179,7 @@ public class MainActivity extends ReactActivity {
   @Override
   protected ReactActivityDelegate createReactActivityDelegate() {
     return new ReactActivityDelegateWrapper(
-      this,
-      new ReactActivityDelegate(this, getMainComponentName()) {
+      this, new ReactActivityDelegate(this, getMainComponentName()) {
         @Override
         protected ReactRootView createRootView() {
           return new RNGestureHandlerEnabledRootView(MainActivity.this);
@@ -441,13 +440,13 @@ public class MainActivity extends ReactActivity {
     super.onConfigurationChanged(newConfig);
     ReactInstanceManager instanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
 
-    if (instanceManager != null) {
-      //instanceManager.onConfigurationChanged(newConfig);
-      ReactContext currentContext = instanceManager.getCurrentReactContext();
-      if (currentContext != null) {
-        currentContext.getNativeModule(AppearanceModule.class).onConfigurationChanged();
-      }
-    }
+//    if (instanceManager != null) {
+//      //instanceManager.onConfigurationChanged(newConfig);
+//      ReactContext currentContext = instanceManager.getCurrentReactContext();
+//      if (currentContext != null) {
+//        currentContext.getNativeModule(AppearanceModule.class).onConfigurationChanged();
+//      }
+//    }
 
     try {
       setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
