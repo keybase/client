@@ -189,7 +189,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     mb.on('after-show', () => {
       logger.info('Showing menubar at', mb.window && mb.window.getBounds())
     })
-    mb.tray.on('click', (_: Electron.Event, bounds: Bounds) => {
+    mb.tray.on('click', (_: Electron.KeyboardEvent, bounds: Bounds) => {
       logger.info('Clicked tray icon:', bounds)
     })
   })
