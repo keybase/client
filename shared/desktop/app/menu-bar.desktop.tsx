@@ -40,6 +40,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       resizable: false,
       transparent: true,
       webPreferences: {
+        enableRemoteModule: true,
         nodeIntegration: true,
         nodeIntegrationInWorker: false,
         preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
@@ -121,11 +122,9 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     }
 
     // Hack: open widget when left/right/double clicked
-    mb.tray.on('right-click', (e: Electron.Event, bounds: Bounds) => {
-      e.preventDefault()
+    mb.tray.on('right-click', (e: Electron.KeyboardEvent, bounds: Bounds) => {
       setTimeout(() => mb.tray.emit('click', {...e}, {...bounds}), 0)
     })
-    mb.tray.on('double-click', (e: Electron.Event) => e.preventDefault())
 
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
@@ -190,7 +189,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     mb.on('after-show', () => {
       logger.info('Showing menubar at', mb.window && mb.window.getBounds())
     })
-    mb.tray.on('click', (_: Electron.Event, bounds: Bounds) => {
+    mb.tray.on('click', (_: Electron.KeyboardEvent, bounds: Bounds) => {
       logger.info('Clicked tray icon:', bounds)
     })
   })
