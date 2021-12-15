@@ -225,14 +225,13 @@ android {
             exclude "**/libjsc.so"
         // }
     }
-}
 
-// KB:
-// TODO when triplet is fixed
-// play {
-    // track = 'internal'
-    // serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
-// }
+    // KB:
+//    play {
+//        track = 'internal'
+//        serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
+//    }
+}
 
 // def firebaseMessagingVersion  = project.ext.react.get("firebaseMessagingVersion", false)
 dependencies {

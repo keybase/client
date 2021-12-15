@@ -6,6 +6,7 @@ import * as EngineGen from '../engine-gen-gen'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
+import * as GregorConstants from '../../constants/gregor'
 import * as FsConstants from '../../constants/fs'
 import * as Flow from '../../util/flow'
 import * as NotificationsGen from '../notifications-gen'
@@ -3347,7 +3348,6 @@ const gregorPushState = (
   action: GregorGen.PushStatePayload,
   logger: Saga.SagaLogger
 ) => {
-debugger
   const actions: Array<Container.TypedActions> = []
   const items = action.payload.state
 
@@ -3362,7 +3362,7 @@ debugger
                 try {
 
                     const {category, body} = i.item
-                    const secondsString = body.toString()
+                    const secondsString = Buffer.from(body).toString()
                     const seconds = parseInt(secondsString, 10)
                     if (isNaN(seconds)) {
                         logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
@@ -3393,15 +3393,10 @@ debugger
         const teamID = i.item.category.substr(Constants.blockButtonsGregorPrefix.length)
         if (!state.chat2.blockButtonsMap.get(teamID)) {
             try {
-
-                    console.log('aaa ABOUT  to parse gregor', i.item.body.toString())
-          const body: {adder: string} = JSON.parse(i.item.body.toString())
-          const adder = body.adder
-          actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
-                    } catch {
-                    console.log('aaa failed to parse gregor', i.item.body.toString())
-
-                    }
+                const body: {adder: string} = GregorConstants.bodyToJSON(i.item.body)
+                const adder = body.adder
+                actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
+            } catch { }
         } else {
           shouldKeepExistingBlockButtons.set(teamID, true)
         }

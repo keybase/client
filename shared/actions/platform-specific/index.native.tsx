@@ -22,7 +22,7 @@ import {
   Alert,
   Linking,
   NativeModules,
-  NativeEventEmitter,
+  // NativeEventEmitter,
   ActionSheetIOS,
   PermissionsAndroid,
   Vibration,
@@ -30,8 +30,7 @@ import {
 import Clipboard from '@react-native-clipboard/clipboard'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
-// @ts-ignore strict
-import * as PushNotifications from 'react-native-push-notification'
+import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare} from './push.native'
 import * as Container from '../../util/container'
@@ -135,8 +134,9 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
     // just in case to get their attention.
-    PushNotifications.localNotification({
-      message: `Failed to save ${saveType} to camera roll`,
+    isIOS && PushNotificationIOS.addNotificationRequest({
+      id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
+      body: `Failed to save ${saveType} to camera roll`,
     })
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
@@ -618,8 +618,9 @@ const manageContactsCache = async (
       SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode})
     )
     if (newlyResolved && newlyResolved.length) {
-      PushNotifications.localNotification({
-        message: PushConstants.makeContactsResolvedMessage(newlyResolved),
+      isIOS && PushNotificationIOS.addNotificationRequest({
+      id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
+        body: PushConstants.makeContactsResolvedMessage(newlyResolved),
       })
     }
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {

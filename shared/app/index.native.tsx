@@ -2,7 +2,7 @@ import * as ConfigGen from '../actions/config-gen'
 import Main from './main.native'
 import * as React from 'react'
 import configureStore from '../store/configure-store'
-import {AppRegistry, AppState} from 'react-native'
+import {AppRegistry, AppState, View, Text} from 'react-native'
 import {PortalProvider} from '@gorhom/portal'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
@@ -36,14 +36,14 @@ const Keybase = () => {
 
             // On mobile there is no installer
             temp.store.dispatch(ConfigGen.createInstallerRan())
-        } 
+        }
     }
 
     React.useEffect(() => {
             const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
               store && store.dispatch(ConfigGen.createMobileAppState({nextAppState}))
             })
-            return () => appStateChangeSub?.remove() 
+            return () => appStateChangeSub?.remove()
     }, [])
 
 
@@ -57,6 +57,23 @@ const Keybase = () => {
       </Provider>
     )
 }
+
+// const Keybase = () => {
+//     const val =  Uint8Array.from([0, 1,2,3,])
+//     const [force, setForce]  = React.useState(0)
+//
+//     React.useEffect(() => {
+//         const id = setTimeout(() => {
+//             setForce(n => n+ 1)
+//         }, 2000)
+//         return () => clearTimeout(id)
+//     }, [force])
+//
+//     return <View style={{backgroundColor: 'white', width: '100%', height: '100%'}}>
+//         <Text style={{color: 'black', fontSize: 40}}>{force} this is the val: {val}</Text>
+//     </View>
+//
+// }
 
 function load() {
   AppRegistry.registerComponent('Keybase', () => Keybase)

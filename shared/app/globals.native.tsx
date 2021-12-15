@@ -5,7 +5,13 @@
 //
 // Needed for purepack
 // @ts-ignore
-window.Buffer = require('buffer').Buffer
+globalThis.buffer = global.Buffer = window.Buffer = require('buffer/').Buffer
+const TEMP = require('buffer/').Buffer
+const TEMP2 = require('../node_modules/buffer/index.js').Buffer
+const TEMP3 = require('buffer').Buffer
+const bstr = Buffer.from('hello world')
+const outstr = bstr.toString()
+console.log('aaanojima', TEMP === TEMP2 && TEMP2 === TEMP3 && TEMP3 === Buffer, bstr, outstr)
 const {NativeModules} = require('react-native')
 
 // __STORYBOOK__

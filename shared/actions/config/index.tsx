@@ -716,13 +716,12 @@ const logoutAndTryToLogInAs = async (
 }
 
 const gregorPushState = (action: GregorGen.PushStatePayload) => {
-    debugger
   const actions: Array<Container.TypedActions> = []
   const items = action.payload.state
   const lastSeenItem = items.find(i => i.item && i.item.category === 'whatsNewLastSeenVersion')
   if (lastSeenItem) {
     const {body} = lastSeenItem.item
-    const pushStateLastSeenVersion = body.toString()
+    const pushStateLastSeenVersion = Buffer.from(body).toString()
     const lastSeenVersion = pushStateLastSeenVersion || noVersion
     // Default to 0.0.0 (noVersion) if user has never marked a version as seen
     actions.push(

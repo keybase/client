@@ -7,7 +7,7 @@
 
 const {getDefaultConfig} = require('metro-config')
 const {resolve} = require('metro-resolver')
-const {replacements} = require('./mocks')
+// const {replacements} = require('./mocks')
 
 // let storybook = 'none'
 module.exports = (async () => {

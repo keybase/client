@@ -34,7 +34,9 @@ public class Utils extends ReactContextBaseJavaModule {
             FirebaseApp.initializeApp(getReactApplicationContext(),
                     new FirebaseOptions.Builder()
                             .setApplicationId(BuildConfig.LIBRARY_PACKAGE_NAME)
-                            .setGcmSenderId("9603251415").build()
+                            .setProjectId("keybase-c30fb")
+                            .setGcmSenderId("9603251415")
+                            .build()
             );
         }
         FirebaseInstanceId.getInstance().getInstanceId()

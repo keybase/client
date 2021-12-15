@@ -9,7 +9,6 @@ def enableV8 = KB_USEV8 == 'true'
 
 buildscript {
     ext {
-        firebaseMessagingVersion = "21.1.0"
         buildToolsVersion = "30.0.2"
         minSdkVersion = 21
         compileSdkVersion = 30
