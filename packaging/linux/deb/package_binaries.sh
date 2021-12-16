@@ -35,7 +35,7 @@ elif [ "$mode" = "prerelease" ] ; then
   # post_install.sh.
   # lsof used in post_install.sh
   # systemd-container provides machinectl, which is used in post_install.sh
-  # 'libasound2, libnss3, libxss2, libxtst6' is required by the GUI (issue #9872 and #17365)
+  # 'libasound2, libnss3, libxss1, libxtst6' is required by the GUI (issue #9872 and #17365)
     dependencies="Depends: libappindicator1 | libayatana-appindicator1, fuse, libgconf-2-4, psmisc, lsof, procps, libasound2, libnss3, libxss1, libxtst6, libgtk-3-0"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the
