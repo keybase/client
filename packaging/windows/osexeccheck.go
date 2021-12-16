@@ -21,6 +21,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 const FailureOutput = "check failed"
@@ -31,7 +32,7 @@ func createBatFile() (string, error) {
 		return "", fmt.Errorf("failed to get working directory: %w", err)
 	}
 	execPath := filepath.Join(wd, "go.bat")
-	if err := os.WriteFile(execPath, []byte(FailureOutput), 0777); err != nil {
+	if err := os.WriteFile(execPath, []byte("@echo "+FailureOutput), 0777); err != nil {
 		return "", fmt.Errorf("failed to write bat file: %w", err)
 	}
 	return execPath, nil
@@ -39,12 +40,13 @@ func createBatFile() (string, error) {
 
 func execGoCommand() error {
 	cmd := exec.Command("go", "version")
-	out, err := cmd.CombinedOutput()
+	outbytes, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("failed to run go command: %w", err)
 	}
+	out := strings.TrimSpace(string(outbytes[:]))
 	log.Printf("output: %s", out)
-	if string(out[:]) == FailureOutput {
+	if out == FailureOutput {
 		return fmt.Errorf("Ran go.bat instead of go! In order to fix see the top comment in this source file")
 	}
 	return nil
