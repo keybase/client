@@ -11,7 +11,22 @@
 //
 // In order to fix an error from this checker, you must patch the os/exec package on the machine where this
 // check runs to remove the current directory search path. See https://go.dev/blog/path-security for more
-// discussion.
+// discussion. Below is a patch showing the required change:
+//
+// diff --git a/src/os/exec/lp_windows.go b/src/os/exec/lp_windows.go
+// index e7a2cdf142..f4f0bec172 100644
+// --- a/src/os/exec/lp_windows.go
+// +++ b/src/os/exec/lp_windows.go
+// @@ -81,9 +81,6 @@ func LookPath(file string) (string, error) {
+//                         return "", &Error{file, err}
+//                 }
+//         }
+// -       if f, err := findExecutable(filepath.Join(".", file), exts); err == nil {
+// -               return f, nil
+// -       }
+//         path := os.Getenv("path")
+//         for _, dir := range filepath.SplitList(path) {
+//                 if f, err := findExecutable(filepath.Join(dir, file), exts); err == nil {
 
 package main
 
