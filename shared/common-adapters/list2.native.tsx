@@ -53,6 +53,7 @@ class List2<T> extends PureComponent<Props<T>> {
       <View style={styles.outerView}>
         {/* need windowSize so iphone 6 doesn't have OOM issues */}
         <List
+              overScrollMode="never"
           bounces={this.props.bounces}
           renderItem={this._itemRender}
           data={this.props.items}

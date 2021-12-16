@@ -275,6 +275,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
             </Kb.Box2>
           ) : (
             <Kb.NativeFlatList
+              overScrollMode="never"
               ListHeaderComponent={HeadComponent}
               data={this.props.rows}
               keyExtractor={this.keyExtractor}

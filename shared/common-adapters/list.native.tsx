@@ -45,6 +45,7 @@ class List<Item> extends PureComponent<Props<Item>> {
        */}
         <View style={Styles.globalStyles.fillAbsolute}>
           <List
+              overScrollMode="never"
             onScrollToIndexFailed={noop}
             bounces={this.props.bounces}
             contentContainerStyle={this.props.contentContainerStyle}
