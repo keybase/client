@@ -2,6 +2,14 @@
 
 echo GOPATH %GOPATH%
 
+:: check os/exec path fix is in place
+pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
+go run osexeccheck.go 
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+popd
+
 :: CGO causes dll loading security vulnerabilities
 set CGO_ENABLED=0
 go env
