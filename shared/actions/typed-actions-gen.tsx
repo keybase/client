@@ -800,6 +800,7 @@ export type TypedActionsMap = {
   'route-tree:resetStack': routetree.ResetStackPayload
   'route-tree:onNavChanged': routetree.OnNavChangedPayload
   'route-tree:setParams': routetree.SetParamsPayload
+  'route-tree:tabLongPress': routetree.TabLongPressPayload
   'settings:addPhoneNumber': settings.AddPhoneNumberPayload
   'settings:addedPhoneNumber': settings.AddedPhoneNumberPayload
   'settings:resendVerificationForPhoneNumber': settings.ResendVerificationForPhoneNumberPayload

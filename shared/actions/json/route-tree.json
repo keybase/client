@@ -40,6 +40,10 @@
         "_description": "deprecated soon",
         "params": "Object",
         "key": "string"
+    },
+    "tabLongPress": {
+        "_description": "a tab was pressed",
+        "tab": "string"
     }
   }
 }

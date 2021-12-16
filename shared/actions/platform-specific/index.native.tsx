@@ -14,6 +14,7 @@ import * as EngineGen from '../engine-gen-gen'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as LoginGen from '../login-gen'
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
 import {getEngine} from '../../engine/require'
@@ -906,6 +907,21 @@ const onSendAudioRecording = (action: Chat2Gen.SendAudioRecordingPayload) => {
   }
 }
 
+const onTabLongPress = (
+  state: Container.TypedState,
+  action: RouteTreeGen.TabLongPressPayload,
+) => {
+    if (action.payload.tab !== Tabs.peopleTab) return
+    const accountRows = state.config.configuredAccounts
+    const current = state.config.username
+        const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
+        if (row) {
+            return [ConfigGen.createSetUserSwitching({userSwitching: true}),
+            LoginGen.createLogin({password: new Container.HiddenString(''), username: row.username})]
+        }
+        return undefined
+}
+
 const onSetAudioRecordingPostInfo = async (
   state: Container.TypedState,
   action: Chat2Gen.SetAudioRecordingPostInfoPayload,
@@ -968,6 +984,8 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
 
   yield* Saga.chainAction(ConfigGen.showShareActionSheet, onShareAction)
+
+  yield* Saga.chainAction2(RouteTreeGen.tabLongPress, onTabLongPress)
 
   // Contacts
   yield* Saga.chainAction2(

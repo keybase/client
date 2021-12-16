@@ -215,6 +215,7 @@
   },
   "optionalDependencies": { },
   "resolutions": {
-    "**/purepack": "git://github.com/keybase/nullModule"
+    "**/purepack": "git://github.com/keybase/nullModule",
+    "react-devtools-core": "4.21.0"
   }
 }

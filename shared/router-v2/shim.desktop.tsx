@@ -4,9 +4,9 @@ import * as Container from '../util/container'
 import * as Styles from '../styles'
 import {PerfWrapper} from '../util/use-perf'
 
-export const shim = (routes: any, isModal: boolean) => Shared.shim(routes, shimNewRoute, isModal)
+export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) => Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
 
-const shimNewRoute = (Original: any, isModal: boolean) => {
+const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => {
   const ShimmedNew = React.memo((props: any) => {
     const original = <Original {...props} />
     let body = original

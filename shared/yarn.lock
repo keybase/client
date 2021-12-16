@@ -7713,10 +7713,10 @@ rcedit@^3.0.1:
   dependencies:
     cross-spawn-windows-exe "^1.1.0"
 
-react-devtools-core@^4.13.0:
-  version "4.22.1"
-  resolved "https://registry.yarnpkg.com/react-devtools-core/-/react-devtools-core-4.22.1.tgz#b276d42f860bedc373c9b3c0f5f96734318dd453"
-  integrity sha512-pvpNDHE7p0FtcCmIWGazoY8LLVfBI9sw0Kf10kdHhPI9Tzt3OG/qEt16GrAbE0keuna5WzX3r1qPKVjqOqsuUg==
+react-devtools-core@4.21.0, react-devtools-core@^4.13.0:
+  version "4.21.0"
+  resolved "https://registry.yarnpkg.com/react-devtools-core/-/react-devtools-core-4.21.0.tgz#a54c9a0fd7261491e616d6c87d1869e011d8521d"
+  integrity sha512-clGWwJHV5MHwTwYyKc+7FZHwzdbzrD2/AoZSkicUcr6YLc3Za9a9FaLhccWDHfjQ+ron9yzNhDT6Tv+FiPkD3g==
   dependencies:
     shell-quote "^1.6.1"
     ws "^7"

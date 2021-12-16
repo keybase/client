@@ -15,6 +15,7 @@ export const resetStack = 'route-tree:resetStack'
 export const setParams = 'route-tree:setParams'
 export const switchLoggedIn = 'route-tree:switchLoggedIn'
 export const switchTab = 'route-tree:switchTab'
+export const tabLongPress = 'route-tree:tabLongPress'
 
 // Payload Types
 type _ClearModalsPayload = void
@@ -34,6 +35,7 @@ type _ResetStackPayload = {
 type _SetParamsPayload = {readonly params: Object; readonly key: string}
 type _SwitchLoggedInPayload = {readonly loggedIn: boolean}
 type _SwitchTabPayload = {readonly tab: Tabs.AppTab}
+type _TabLongPressPayload = {readonly tab: string}
 
 // Action Creators
 /**
@@ -53,10 +55,7 @@ export const createSwitchLoggedIn = (payload: _SwitchLoggedInPayload): SwitchLog
 /**
  * ONLY used by the new nav. Switch to a different tab.
  */
-export const createSwitchTab = (payload: _SwitchTabPayload): SwitchTabPayload => {
-  console.log('aaa switch tab', payload)
-  return {payload, type: switchTab}
-}
+export const createSwitchTab = (payload: _SwitchTabPayload): SwitchTabPayload => ({payload, type: switchTab})
 /**
  * ONLY used by the new nav. use this to clear any modal routes
  */
@@ -72,16 +71,20 @@ export const createResetStack = (payload: _ResetStackPayload): ResetStackPayload
   type: resetStack,
 })
 /**
+ * a tab was pressed
+ */
+export const createTabLongPress = (payload: _TabLongPressPayload): TabLongPressPayload => ({
+  payload,
+  type: tabLongPress,
+})
+/**
  * deprecated soon
  */
 export const createSetParams = (payload: _SetParamsPayload): SetParamsPayload => ({payload, type: setParams})
-export const createNavigateAppend = (payload: _NavigateAppendPayload): NavigateAppendPayload => {
-  console.log('aaa nav append, ', payload)
-  return {
-    payload,
-    type: navigateAppend,
-  }
-}
+export const createNavigateAppend = (payload: _NavigateAppendPayload): NavigateAppendPayload => ({
+  payload,
+  type: navigateAppend,
+})
 export const createNavigateUp = (payload: _NavigateUpPayload = Object.freeze({})): NavigateUpPayload => ({
   payload,
   type: navigateUp,
@@ -110,6 +113,7 @@ export type SwitchLoggedInPayload = {
   readonly type: typeof switchLoggedIn
 }
 export type SwitchTabPayload = {readonly payload: _SwitchTabPayload; readonly type: typeof switchTab}
+export type TabLongPressPayload = {readonly payload: _TabLongPressPayload; readonly type: typeof tabLongPress}
 
 // All Actions
 // prettier-ignore
@@ -123,4 +127,5 @@ export type Actions =
   | SetParamsPayload
   | SwitchLoggedInPayload
   | SwitchTabPayload
+  | TabLongPressPayload
   | {type: 'common:resetStore', payload: {}}
