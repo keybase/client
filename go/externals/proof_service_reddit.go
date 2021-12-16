@@ -13,7 +13,7 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-//=============================================================================
+// =============================================================================
 // Reddit
 //
 
@@ -41,7 +41,7 @@ func (rc *RedditChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ 
 }
 
 //
-//=============================================================================
+// =============================================================================
 
 func urlReencode(s string) string {
 	// Reddit interprets plusses in the query string differently depending

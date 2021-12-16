@@ -136,7 +136,7 @@ func mdDumpFillReplacements(ctx context.Context, codec kbfscodec.Codec,
 
 func mdDumpReplaceAll(s string, replacements replacementMap) string {
 	for old, new := range replacements {
-		s = strings.Replace(s, old, new, -1)
+		s = strings.ReplaceAll(s, old, new)
 	}
 	return s
 }

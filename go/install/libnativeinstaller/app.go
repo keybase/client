@@ -70,7 +70,7 @@ func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) e
 	if err != nil {
 		return err
 	}
-	includeArgs := []string{"--debug", fmt.Sprintf("--run-mode=%s", runMode), fmt.Sprintf("--app-path=%s", appPath), fmt.Sprintf("--timeout=10")}
+	includeArgs := []string{"--debug", fmt.Sprintf("--run-mode=%s", runMode), fmt.Sprintf("--app-path=%s", appPath), "--timeout=10"}
 	args = append(includeArgs, args...)
 	cmd := exec.Command(nativeInstallerAppBundleExecPath(appPath), args...)
 	output, err := cmd.CombinedOutput()

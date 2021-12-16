@@ -47,7 +47,7 @@ func TestTokenize(t *testing.T) {
 			"_hello9_",
 			`"hello10"`,
 			"'hello11'",
-			//stem
+			// stem
 			"wanted",
 			"italy's",
 			"looking",

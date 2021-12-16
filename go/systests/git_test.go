@@ -26,7 +26,7 @@ func TestGitTeamer(t *testing.T) {
 	aliceTeamer := git.NewTeamer(alice.tc.G)
 
 	t.Logf("team that doesn't exist")
-	res, err := aliceTeamer.LookupOrCreate(context.Background(), keybase1.FolderHandle{
+	_, err := aliceTeamer.LookupOrCreate(context.Background(), keybase1.FolderHandle{
 		Name:       "notateamxxx",
 		FolderType: keybase1.FolderType_TEAM,
 	})
@@ -35,7 +35,7 @@ func TestGitTeamer(t *testing.T) {
 
 	t.Logf("team that exists")
 	teamID, teamName := tt.users[0].createTeam2()
-	res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.FolderHandle{
+	res, err := aliceTeamer.LookupOrCreate(context.Background(), keybase1.FolderHandle{
 		Name:       teamName.String(),
 		FolderType: keybase1.FolderType_TEAM,
 	})

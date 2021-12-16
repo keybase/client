@@ -26,9 +26,10 @@
   NSFileManager* fm = [NSFileManager defaultManager];
   NSError* error = nil;
   NSLog(@"creating background readable directory: path: %@ setAllFiles: %d", path, setAllFiles);
-  // Setting NSFileProtectionCompleteUntilFirstUserAuthentication makes the directory accessible as long as the user has
-  // unlocked the phone once. The files are still stored on the disk encrypted (note for the chat database, it
-  // means we are encrypting it twice), and are inaccessible otherwise.
+  // Setting NSFileProtectionCompleteUntilFirstUserAuthentication makes the
+  // directory accessible as long as the user has unlocked the phone once. The
+  // files are still stored on the disk encrypted (note for the chat database,
+  // it means we are encrypting it twice), and are inaccessible otherwise.
   NSDictionary* noProt = [NSDictionary dictionaryWithObject:NSFileProtectionCompleteUntilFirstUserAuthentication forKey:NSFileProtectionKey];
   [fm createDirectoryAtPath:path withIntermediateDirectories:YES
                  attributes:noProt
@@ -181,4 +182,3 @@
 }
 
 @end
-

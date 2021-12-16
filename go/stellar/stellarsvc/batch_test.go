@@ -184,8 +184,7 @@ func TestBatchMultiDirect(t *testing.T) {
 		}
 		if msg == nil {
 			t.Errorf("payment %d no chat message found: %+v", i, p)
-		}
-		if msg.PaymentID != stellar1.PaymentID(p.TxID) {
+		} else if msg.PaymentID != stellar1.PaymentID(p.TxID) {
 			t.Errorf("payment %d chat msg tx id: %q, expected %q", i, msg.PaymentID, p.TxID)
 		}
 	}

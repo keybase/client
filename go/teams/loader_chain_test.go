@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -86,14 +87,14 @@ type TestCaseLoad struct {
 }
 
 func getTeamchainJSONDir(t *testing.T) string {
-	cwd, err := os.Getwd()
+	cmd := exec.Command("go", "list", "-json", "-m", "github.com/keybase/keybase-test-vectors")
+	output, err := cmd.Output()
 	require.NoError(t, err)
-	jsonDir := filepath.Join(cwd, "../vendor/github.com/keybase/keybase-test-vectors/teamchains")
-	if os.Getenv("KEYBASE_TEAM_TEST_NOVENDOR") == "1" {
-		t.Log("Ignoring vendored keybase-test-vectors/teamchains test cases due to env variable (using the local copy at ../../../keybase-test-vectors/teamchains instead)")
-		jsonDir = filepath.Join(cwd, "../../../keybase-test-vectors/teamchains")
-	}
-	return jsonDir
+	list := struct {
+		Dir string `json:"Dir"`
+	}{}
+	require.NoError(t, json.Unmarshal(output, &list))
+	return filepath.Join(list.Dir, "teamchains")
 }
 
 func TestUnits(t *testing.T) {

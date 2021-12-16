@@ -1318,7 +1318,7 @@ func (d *Service) configurePath() {
 
 	var newDirs string
 	switch runtime.GOOS {
-	case "darwin":
+	case "darwin", "ios":
 		newDirs = "/usr/local/bin:/usr/local/MacGPG2/bin"
 	default:
 	}

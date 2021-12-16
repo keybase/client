@@ -346,7 +346,8 @@ func (s *LKSec) Encrypt(m MetaContext, src []byte) (res []byte, err error) {
 	copy(fnonce[:], nonce)
 	box := secretbox.Seal(nil, src, &fnonce, s.secret.f)
 
-	ret := append(nonce, box...)
+	ret := nonce
+	ret = append(ret, box...)
 	return ret, nil
 }
 

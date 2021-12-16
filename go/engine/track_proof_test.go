@@ -52,8 +52,9 @@ func checkTrackCommon(tc libkb.TestContext, blocks []sb, outcome *keybase1.Ident
 
 	if s == nil {
 		tc.T.Fatal("me.TrackChainLinkFor(...) returned nil, nil")
+	} else {
+		tc.T.Logf("payload json:\n%s", s.UnmarshalPayloadJSON().MarshalPretty())
 	}
-	tc.T.Logf("payload json:\n%s", s.UnmarshalPayloadJSON().MarshalPretty())
 
 	sbs := s.ToServiceBlocks()
 	if len(sbs) != len(blocks) {

@@ -51,7 +51,7 @@ if [ ! "$nopull" = "1" ]; then
 fi
 
 echo "Loading release tool"
-"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+(cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
 release_bin="$GOPATH/bin/release"
 
 client_branch=`cd "$client_dir" && git rev-parse --abbrev-ref HEAD`

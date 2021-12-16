@@ -9,7 +9,7 @@ import (
 )
 
 func testSplitExtension(t *testing.T, s, base, ext string) {
-	//t.Logf("splitExtension(%q)", s)
+	// t.Logf("splitExtension(%q)", s)
 	a, b := SplitFileExtension(s)
 	if a != base || b != ext {
 		t.Errorf("splitExtension(%q) => %q,%q, expected %q,%q", s, a, b, base, ext)

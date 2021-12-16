@@ -790,6 +790,14 @@ func TestDecorateLinks(t *testing.T) {
 			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsidXJsIjoiaHR0cHM6Ly9kZXZlbG9wZXIubW96aWxsYS5vcmcvZW4tVVMvZG9jcy9XZWIvQ1NTL0Bmb250LWZhY2UvdW5pY29kZS1yYW5nZSIsInB1bnljb2RlIjoiIn19$<kb$",
 		},
 		{
+			body:   "\u202ehttps://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range",
+			result: "\u202ehttps://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range",
+		},
+		{
+			body:   "\u202e\u202dhttps://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range",
+			result: "\u202e\u202d$>kb$eyJ0eXAiOjQsImxpbmsiOnsidXJsIjoiaHR0cHM6Ly9kZXZlbG9wZXIubW96aWxsYS5vcmcvZW4tVVMvZG9jcy9XZWIvQ1NTL0Bmb250LWZhY2UvdW5pY29kZS1yYW5nZSIsInB1bnljb2RlIjoiIn19$<kb$",
+		},
+		{
 			body:   "`www.google.com`",
 			result: "`www.google.com`",
 		},

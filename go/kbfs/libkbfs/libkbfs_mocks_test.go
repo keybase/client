@@ -6,7 +6,7 @@ package libkbfs
 
 import (
 	context "context"
-	os "os"
+	fs "io/fs"
 	reflect "reflect"
 	time "time"
 
@@ -23,7 +23,7 @@ import (
 	kbun "github.com/keybase/client/go/kbun"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	go_billy_v4 "gopkg.in/src-d/go-billy.v4"
+	billy "gopkg.in/src-d/go-billy.v4"
 )
 
 // MockBlockOps is a mock of BlockOps interface.
@@ -3655,10 +3655,10 @@ func (mr *MockNodeMockRecorder) GetFS(arg0 interface{}) *gomock.Call {
 }
 
 // GetFile mocks base method.
-func (m *MockNode) GetFile(arg0 context.Context) go_billy_v4.File {
+func (m *MockNode) GetFile(arg0 context.Context) billy.File {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFile", arg0)
-	ret0, _ := ret[0].(go_billy_v4.File)
+	ret0, _ := ret[0].(billy.File)
 	return ret0
 }
 
@@ -3755,13 +3755,13 @@ func (mr *MockNodeMockRecorder) RemoveDir(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ShouldCreateMissedLookup mocks base method.
-func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.PathPartString) (bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString, data.BlockPointer) {
+func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.PathPartString) (bool, context.Context, data.EntryType, fs.FileInfo, data.PathPartString, data.BlockPointer) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(context.Context)
 	ret2, _ := ret[2].(data.EntryType)
-	ret3, _ := ret[3].(os.FileInfo)
+	ret3, _ := ret[3].(fs.FileInfo)
 	ret4, _ := ret[4].(data.PathPartString)
 	ret5, _ := ret[5].(data.BlockPointer)
 	return ret0, ret1, ret2, ret3, ret4, ret5

@@ -26,7 +26,7 @@
 cd "$(git rev-parse --show-toplevel)"
 
 check_go_fmt() {
-	gofiles=$(git ls-files | grep '.go$' | grep -v go/vendor/ | grep -v vendor/)
+	gofiles=$(git ls-files | grep '.go$')
 	[ -z "$gofiles" ] && return 0
 
 	unformatted=$(gofmt -l $gofiles)
@@ -43,7 +43,7 @@ check_go_fmt() {
 }
 
 check_go_vet() {
-    	warnings=$(go vet $(go list ./... 2>/dev/null | grep -v vendor) 2>&1)
+	warnings=$(go vet $(go list ./... 2>/dev/null) 2>&1)
 	[ -z "$warnings" ] && return 0
 
 	# go vet found issues

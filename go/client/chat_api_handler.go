@@ -574,7 +574,7 @@ type setUnfurlSettingsOptionsV1 struct {
 	intMode   chat1.UnfurlMode
 }
 
-func (o setUnfurlSettingsOptionsV1) Check() error {
+func (o *setUnfurlSettingsOptionsV1) Check() error {
 	if val, ok := chat1.UnfurlModeMap[strings.ToUpper(o.Mode)]; ok {
 		o.intMode = val
 	} else {

@@ -215,12 +215,12 @@ func (r *errorAPIMock) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w lib
 	return errors.New("timeout or something")
 }
 
-func (r errorAPIMock) GetResp(mctx libkb.MetaContext, arg libkb.APIArg) (*http.Response, func(), error) {
+func (r *errorAPIMock) GetResp(mctx libkb.MetaContext, arg libkb.APIArg) (*http.Response, func(), error) {
 	r.callCount++
 	return nil, func() {}, errors.New("timeout or something")
 }
 
-func (r errorAPIMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+func (r *errorAPIMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
 	r.callCount++
 	return nil, errors.New("timeout or something")
 }

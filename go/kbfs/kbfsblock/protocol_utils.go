@@ -190,7 +190,7 @@ func BatchDowngradeReferences(ctx context.Context, log logger.Logger,
 		// update the list of references to downgrade
 		notDone = getNotDone(contexts, doneRefs)
 
-		//if context is cancelled, return immediately
+		// if context is cancelled, return immediately
 		select {
 		case <-ctx.Done():
 			finalError = ctx.Err()

@@ -179,18 +179,14 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 		if err != nil {
 			return err
 		}
-		mutableMdCopy, ok := mdCopy.(MutableRootMetadata)
-		if !ok {
-			return MutableRootMetadataNoImplError{}
-		}
 		// Mask out finalized additions.  These are the only
 		// things allowed to change in the finalized metadata
 		// block.
-		mutableMdCopy.ClearFinalBit()
-		mutableMdCopy.ClearWriterMetadataCopiedBit()
-		mutableMdCopy.SetRevision(md.RevisionNumber() - 1)
-		mutableMdCopy.SetFinalizedInfo(nil)
-		md = mutableMdCopy
+		mdCopy.ClearFinalBit()
+		mdCopy.ClearWriterMetadataCopiedBit()
+		mdCopy.SetRevision(md.RevisionNumber() - 1)
+		mdCopy.SetFinalizedInfo(nil)
+		md = mdCopy
 	}
 	// Re-marshal the whole RootMetadata. This is not avoidable
 	// without support from ugorji/codec.

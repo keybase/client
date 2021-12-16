@@ -40,7 +40,7 @@ func ParseAssertionList(mctx libkb.MetaContext, s string) ([]libkb.AssertionExpr
 // check for the syntactical correctness of an assertion. All other callers
 // should use the non-static versions.
 // This uses only the 'static' services which exclude any parameterized proofs.
-//=============================================================================
+// =============================================================================
 
 type staticAssertionContext struct {
 	ctx      context.Context
@@ -81,4 +81,4 @@ func AssertionParseAndOnlyStatic(ctx context.Context, s string) (libkb.Assertion
 	return libkb.AssertionParseAndOnly(MakeStaticAssertionContext(ctx), s)
 }
 
-//=============================================================================
+// =============================================================================

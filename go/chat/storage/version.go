@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -27,7 +25,7 @@ func NewServerVersions(g *globals.Context) *ServerVersions {
 func (s *ServerVersions) makeKey() libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatBlocks,
-		Key: fmt.Sprintf("versions"),
+		Key: "versions",
 	}
 }
 

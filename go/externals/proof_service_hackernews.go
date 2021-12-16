@@ -12,7 +12,7 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-//=============================================================================
+// =============================================================================
 // HackerNews
 //
 
@@ -34,7 +34,7 @@ func (h *HackerNewsChecker) CheckStatus(mctx libkb.MetaContext, hint libkb.SigHi
 	return nil, CheckProofPvl(mctx, keybase1.ProofType_HACKERNEWS, h.proof, hint, pvlU)
 }
 
-//=============================================================================
+// =============================================================================
 
 func APIBase(un string) string {
 	return "https://hacker-news.firebaseio.com/v0/user/" + un
@@ -53,7 +53,7 @@ func CheckKarma(mctx libkb.MetaContext, un string) (int, error) {
 	return res.Body.GetInt()
 }
 
-//=============================================================================
+// =============================================================================
 
 type HackerNewsServiceType struct{ libkb.BaseServiceType }
 

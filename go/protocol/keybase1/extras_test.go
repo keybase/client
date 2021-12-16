@@ -49,7 +49,7 @@ func TestTimeConversions(t *testing.T) {
 	constTimeWithOffset := constTime.Add(5 * time.Nanosecond)
 
 	times := []time.Time{
-		time.Time{},
+		{},
 		time.Now(),
 		time.Now().AddDate(1000, 0, 0),  // in a thousand years
 		time.Now().AddDate(10000, 0, 0), // in 10 thousand years

@@ -20,6 +20,8 @@ import (
 	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/keybase/go-crypto/openpgp/packet"
 	jsonw "github.com/keybase/go-jsonw"
+
+	// nolint
 	_ "golang.org/x/crypto/ripemd160" // imported so that keybase/go-crypto/openpgp supports ripemd160
 )
 
@@ -626,7 +628,8 @@ func (k *PGPKeyBundle) GetBinaryKID() keybase1.BinaryKID {
 	}
 	sum := sha256.Sum256(buf.Bytes()[hdrBytes:])
 
-	out := append(prefix, sum[:]...)
+	out := prefix
+	out = append(out, sum[:]...)
 	out = append(out, byte(kbcrypto.IDSuffixKID))
 
 	return keybase1.BinaryKID(out)
@@ -916,7 +919,7 @@ func (k *PGPKeyBundle) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBo
 	return NaclSecretBoxKey{}, KeyCannotEncryptError{}
 }
 
-//===================================================
+// ===================================================
 
 // Fulfill the TrackIdComponent interface
 
@@ -940,7 +943,7 @@ func (p PGPFingerprint) GetProofType() keybase1.ProofType {
 	return keybase1.ProofType_PGP
 }
 
-//===================================================
+// ===================================================
 
 func EncryptPGPKey(bundle *openpgp.Entity, passphrase string) error {
 	passBytes := []byte(passphrase)

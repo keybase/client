@@ -49,7 +49,7 @@ mkdir -p "$build_dir"
 
 echo "Loading release tool"
 release_gopath="$HOME/release_gopath"
-GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+(cd "$client_dir/go/buildtools"; GOPATH="$release_gopath" go install "github.com/keybase/release")
 release_bin="$release_gopath/bin/release"
 
 # Build all the packages!

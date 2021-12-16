@@ -65,16 +65,14 @@ func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 				matchStartIndex: indices[2],
 				wholeMatch:      strings.TrimRightFunc(body[indices[2]:indices[3]], unquotedTrailingTrimFuncUnix),
 				afterKeybase: strings.TrimRight(
-					strings.Replace(
-						strings.Replace(
+					strings.ReplaceAll(
+						strings.ReplaceAll(
 							strings.TrimRightFunc(body[indices[4]:indices[5]], unquotedTrailingTrimFuncUnix),
 							`\\`,
 							`\`,
-							-1,
 						),
 						`\ `,
 						` `,
-						-1,
 					),
 					"/",
 				),
@@ -93,11 +91,10 @@ func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 				matchStartIndex: indices[2],
 				wholeMatch:      strings.TrimRightFunc(body[indices[2]:indices[3]], unquotedTrailingTrimFuncWindows),
 				afterKeybase: strings.TrimRight(
-					strings.Replace(
+					strings.ReplaceAll(
 						strings.TrimRightFunc(body[indices[8]:indices[9]], unquotedTrailingTrimFuncWindows),
 						`\`,
 						`/`,
-						-1,
 					),
 					"/",
 				),
@@ -107,11 +104,10 @@ func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 				matchStartIndex: indices[2],
 				wholeMatch:      body[indices[2]:indices[3]],
 				afterKeybase: strings.TrimRight(
-					strings.Replace(
+					strings.ReplaceAll(
 						body[indices[10]:indices[11]],
 						`\`,
 						`/`,
-						-1,
 					),
 					"/",
 				),

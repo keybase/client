@@ -358,7 +358,6 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	arg = arg.EnsureCtxAndLogTag()
 
 	// Shorthands
-	m := arg.MetaContext()
 	m, tbs := arg.m.WithTimeBuckets()
 	g := m.G()
 	ctx := m.Ctx()

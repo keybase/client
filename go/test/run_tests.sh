@@ -25,7 +25,7 @@ done
 # Log the Go version.
 echo "Running tests on commit $(git rev-parse --short HEAD) with $(go version)."
 
-DIRS=$(go list ./... | grep -v /vendor/ | sed -e 's/^github.com\/keybase\/client\/go\///')
+DIRS=$(go list ./... | sed -e 's/^github.com\/keybase\/client\/go\///')
 
 export KEYBASE_LOG_SETUPTEST_FUNCS=1
 

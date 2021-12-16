@@ -801,7 +801,7 @@ func (ro *renameOp) StringWithRefs(indent string) string {
 		res += indent + fmt.Sprintf("NewDir: %v -> %v\n",
 			ro.NewDir.Unref, ro.NewDir.Ref)
 	} else {
-		res += indent + fmt.Sprintf("NewDir: same as above\n")
+		res += indent + "NewDir: same as above\n"
 	}
 	res += indent + fmt.Sprintf("Renamed: %v\n", ro.Renamed)
 	res += ro.stringWithRefs(indent)

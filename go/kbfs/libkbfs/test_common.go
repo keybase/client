@@ -375,7 +375,7 @@ func keySaltForUserDevice(name kbname.NormalizedUsername,
 	if index > 0 {
 		// We can't include the device index when it's 0, because we
 		// have to match what's done in MakeLocalUsers.
-		return kbname.NormalizedUsername(string(name) + " " + string(index))
+		return kbname.NormalizedUsername(string(name) + " " + fmt.Sprint(index))
 	}
 	return name
 }

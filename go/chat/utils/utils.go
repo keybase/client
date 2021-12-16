@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/xurls"
+	"mvdan.cc/xurls/v2"
 
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/unfurl/display"
@@ -1305,8 +1305,8 @@ func GetDesktopNotificationSnippet(ctx context.Context, g *globals.Context,
 }
 
 func StripUsernameFromConvName(name string, username string) (res string) {
-	res = strings.Replace(name, fmt.Sprintf(",%s", username), "", -1)
-	res = strings.Replace(res, fmt.Sprintf("%s,", username), "", -1)
+	res = strings.ReplaceAll(name, fmt.Sprintf(",%s", username), "")
+	res = strings.ReplaceAll(res, fmt.Sprintf("%s,", username), "")
 	return res
 }
 
@@ -1400,8 +1400,8 @@ func SearchableRemoteConversationName(conv types.RemoteConversation, username st
 	if name == username || strings.Contains(name, "#") {
 		return name
 	}
-	name = strings.Replace(name, fmt.Sprintf(",%s", username), "", -1)
-	name = strings.Replace(name, fmt.Sprintf("%s,", username), "", -1)
+	name = strings.ReplaceAll(name, fmt.Sprintf(",%s", username), "")
+	name = strings.ReplaceAll(name, fmt.Sprintf("%s,", username), "")
 	return name
 }
 
@@ -2560,7 +2560,6 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 	if err != nil {
 		return res, 0
 	}
-	//b64out := string(out)
 	b64out := base64.StdEncoding.EncodeToString(out)
 	strDecoration := fmt.Sprintf("%s%s%s", decorateBegin, b64out, decorateEnd)
 	added = len(strDecoration) - length
@@ -2595,16 +2594,22 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 	if !(strings.Contains(body, ".") || strings.Contains(body, "://")) {
 		return body
 	}
-	shouldSkipLink := func(body string) bool {
-		if strings.Contains(strings.Split(body, "/")[0], "@") {
+	shouldSkipLink := func(linkPrefix, link string) bool {
+		// Check for RTLO character preceeding our match. If one is
+		// detected, and there isn't a LTRO following it, skip this URL
+		// from linkification.
+		if rtloIdx := strings.LastIndex(linkPrefix, "\u202e"); rtloIdx >= 0 && rtloIdx > strings.LastIndex(linkPrefix, "\u202d") {
+			return true
+		}
+		if strings.Contains(strings.Split(link, "/")[0], "@") {
 			return true
 		}
 		for _, scheme := range xurls.SchemesNoAuthority {
-			if strings.HasPrefix(body, scheme) {
+			if strings.HasPrefix(link, scheme) {
 				return true
 			}
 		}
-		if strings.HasPrefix(body, "ftp://") || strings.HasPrefix(body, "gopher://") {
+		if strings.HasPrefix(link, "ftp://") || strings.HasPrefix(link, "gopher://") {
 			return true
 		}
 		return false
@@ -2622,12 +2627,13 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 			continue
 		}
 
+		bodyPrefix := origBody[:match[lowhit]]
 		bodyMatch := origBody[match[lowhit]:match[highhit]]
-		url := bodyMatch
-		var punycode string
-		if shouldSkipLink(bodyMatch) {
+		if shouldSkipLink(bodyPrefix, bodyMatch) {
 			continue
 		}
+		var punycode string
+		url := bodyMatch
 		if encoded, err := idna.ToASCII(url); err == nil && encoded != url {
 			punycode = encoded
 		}
@@ -2725,7 +2731,7 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 }
 
 func EscapeShrugs(ctx context.Context, body string) string {
-	return strings.Replace(body, `¯\_(ツ)_/¯`, `¯\\\_(ツ)_/¯`, -1)
+	return strings.ReplaceAll(body, `¯\_(ツ)_/¯`, `¯\\\_(ツ)_/¯`)
 }
 
 var startQuote = ">"

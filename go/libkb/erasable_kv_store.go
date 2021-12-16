@@ -55,7 +55,7 @@ const storageSubDir = "eraseablekvstore"
 func getStorageDir(mctx MetaContext, subDir string) string {
 	base := mctx.G().Env.GetDataDir()
 	// check for iOS
-	if runtime.GOOS == "darwin" && mctx.G().IsMobileAppType() {
+	if runtime.GOOS == "ios" {
 		base = mctx.G().Env.GetConfigDir()
 	}
 	return filepath.Join(base, storageSubDir, subDir)
