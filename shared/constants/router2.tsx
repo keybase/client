@@ -1,7 +1,6 @@
 import {NavState} from './types/route-tree'
 import {getActiveKey as _getActiveKey} from '../router-v2/util'
-import {createNavigationContainerRef} from '@react-navigation/native'
-import {StackActions, CommonActions} from '@react-navigation/core'
+import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 // import {tabRoots} from '../router-v2/routes'

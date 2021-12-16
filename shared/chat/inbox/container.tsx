@@ -10,7 +10,7 @@ import {isPhone} from '../../constants/platform'
 import {Props} from '.'
 import * as Kb from '../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
-import {useIsFocused} from '@react-navigation/native'
+import {useIsFocused} from '@react-navigation/core'
 
 type OwnProps = {
   navKey: string

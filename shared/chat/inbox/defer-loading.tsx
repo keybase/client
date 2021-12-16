@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import Inbox from './container'
-import {useIsFocused, useNavigationState} from '@react-navigation/native'
+import {useIsFocused, useNavigationState} from '@react-navigation/core'
 
 type Props = Container.RouteProps<{}>
 

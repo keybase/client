@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 // import {getVisiblePath} from '../constants/router2'
-import {useIsFocused} from '@react-navigation/native'
+import {useIsFocused} from '@react-navigation/core'
 
 type Path = Array<string | {props?: any; selected?: string}>
 

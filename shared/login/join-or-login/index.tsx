@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {InfoIcon} from '../../signup/common'
-import { useFocusEffect } from '@react-navigation/native'
+import { useFocusEffect } from '@react-navigation/core'
 
 type Props = {
   bannerMessage: string | null

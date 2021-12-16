@@ -13,7 +13,7 @@ import Icon from './icon'
 import {RPCError} from '../util/errors'
 import {settingsTab} from '../constants/tabs'
 import {feedbackTab} from '../constants/settings'
-import {useFocusEffect} from '@react-navigation/native'
+import {useFocusEffect} from '@react-navigation/core'
 
 const Kb = {
   Box2,
