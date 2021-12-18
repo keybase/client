@@ -57,7 +57,6 @@ export const tabToData: {[key: string]: TabData} = {
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 }
 
-
 export enum AppState {
   UNINIT, // haven't rendered the nav yet
   NEEDS_INIT, // rendered but need to bootstrap
@@ -110,7 +109,7 @@ const useInitialState = () => {
 }
 
 export const useShared = () => {
-useConnectNavToRedux() 
+  useConnectNavToRedux()
   // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
   // if we use useEffect and useState we'll have to deal with extra renders which look really bad
   const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
@@ -142,17 +141,17 @@ useConnectNavToRedux()
   const navKey = useNavKey(appState.current, navContainerKey)
   const initialState = useInitialState()
   return {
-      loggedInLoaded,
-      loggedIn,
-      appState,
-onStateChange,
-navKey,
-initialState
-    }
+    loggedInLoaded,
+    loggedIn,
+    appState,
+    onStateChange,
+    navKey,
+    initialState,
+  }
 }
 
 export const useSharedAfter = (appState: React.MutableRefObject<AppState>) => {
-    // stuff that happens after the first hook is done
+  // stuff that happens after the first hook is done
   // if we handled NEEDS_INIT we're done
   if (appState.current === AppState.NEEDS_INIT) {
     appState.current = AppState.INITED
@@ -190,4 +189,3 @@ const styles = Styles.styleSheetCreate(() => ({
     width: Styles.globalMargins.small,
   },
 }))
-
