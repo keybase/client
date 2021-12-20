@@ -32,9 +32,8 @@ export const newRoutes = {
     ? {getScreen: () => require('./wallet/container').default}
     : // MUST use screen and not getScreen for subnavs!
       {
-        get screen() {
-          return require('./wallets-sub-nav').default
-        },
+        // TODO Fix
+        getScreen: () => require('./wallets-sub-nav').default
       },
   ...sharedRoutes, // these are valid inside AND outside the subnav
 }

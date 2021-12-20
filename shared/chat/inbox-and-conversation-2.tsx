@@ -12,6 +12,7 @@ import * as Container from '../util/container'
 
 type Props = {
   navigation?: any
+  route: any
 }
 
 const InboxAndConversation = (props: Props) => {
@@ -27,7 +28,7 @@ const InboxAndConversation = (props: Props) => {
     const first = state.chat2.inboxLayout?.smallTeams?.[0]
     return first?.convID
   })
-  const navKey = props.navigation.state.key
+  const navKey = props.route.key
 
   React.useEffect(() => {
     if (needSelectConvoID) {
@@ -47,7 +48,7 @@ const InboxAndConversation = (props: Props) => {
       ) : (
         <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
       )}
-      <Conversation navigation={props.navigation} />
+      <Conversation navigation={props.navigation} route={props.route} />
       {infoPanelShowing && <InfoPanel conversationIDKey={conversationIDKey} />}
     </Kb.Box2>
   )

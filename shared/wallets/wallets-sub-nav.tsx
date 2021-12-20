@@ -1,13 +1,12 @@
 import * as Kb from '../common-adapters'
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as React from 'react'
-import {
-  NavigationViewProps,
-  // createNavigator,
-  // createSwitchNavigator,
-  StackRouter,
-  SceneView,
-} from '@react-navigation/core'
+import // NavigationViewProps,
+// createNavigator,
+// createSwitchNavigator,
+// StackRouter,
+// SceneView,
+'@react-navigation/core'
 import {RoutedOnboarding} from './onboarding/container'
 import * as Shim from '../router-v2/shim'
 import Wallet from './wallet/container'
@@ -20,28 +19,29 @@ const walletsSubRoutes = {
 }
 const noScreenProps = {}
 
-class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
-  render() {
-    const navigation = this.props.navigation
-    const index = navigation.state.index
-    const activeKey = navigation.state.routes[index].key
-    const descriptor = this.props.descriptors[activeKey]
-    const childNav = descriptor.navigation
-    const WalletsAndDetails = require('./wallets-and-details').default
-
-    return (
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <WalletsAndDetails>
-          <SceneView
-            navigation={childNav}
-            component={descriptor.getComponent()}
-            screenProps={this.props.screenProps || noScreenProps}
-          />
-        </WalletsAndDetails>
-      </Kb.Box2>
-    )
-  }
-}
+const WalletsSubNav = () => null // TODO
+// class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
+//   render() {
+//     const navigation = this.props.navigation
+//     const index = navigation.state.index
+//     const activeKey = navigation.state.routes[index].key
+//     const descriptor = this.props.descriptors[activeKey]
+//     const childNav = descriptor.navigation
+//     const WalletsAndDetails = require('./wallets-and-details').default
+//
+//     return (
+//       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+//         <WalletsAndDetails>
+//           <SceneView
+//             navigation={childNav}
+//             component={descriptor.getComponent()}
+//             screenProps={this.props.screenProps || noScreenProps}
+//           />
+//         </WalletsAndDetails>
+//       </Kb.Box2>
+//     )
+//   }
+// }
 
 // const WalletsSubNavigator = createNavigator(
 // WalletsSubNav,

@@ -42,6 +42,7 @@ module.exports = function (api /*: any */) {
         '@babel/plugin-proposal-object-rest-spread',
         // '@babel/transform-flow-strip-types',
         '@babel/plugin-proposal-class-properties',
+        'react-native-web',
       ],
       presets: [
         isTest ? ['@babel/preset-env', {targets: {node: 'current'}}] : '@babel/preset-env',

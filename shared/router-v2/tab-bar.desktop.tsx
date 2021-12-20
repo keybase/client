@@ -26,6 +26,7 @@ import openURL from '../util/open-url'
 import {isLinux} from '../constants/platform'
 import {quit} from '../desktop/app/ctl.desktop'
 import {tabRoots} from './routes'
+import {TabActions} from '@react-navigation/core'
 
 export type Props = {
   navigation: any
@@ -169,7 +170,7 @@ const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
 const hotKeys = Object.keys(keysMap)
 
 const TabBar = (props: Props) => {
-  const {selectedTab, navigation} = props
+  const {selectedTab, navigation, onClick, state} = props
   const username = Container.useSelector(state => state.config.username)
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
   const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)
@@ -194,14 +195,29 @@ const TabBar = (props: Props) => {
         <Header />
         <Kb.Divider style={styles.divider} />
       </Kb.Box2>
-      {tabs.map((t, i) => (
+      {state.routes.map((route, index) => (
         <Tab
-          key={t}
-          tab={t}
-          index={i}
-          isSelected={selectedTab === t}
-          onTabClick={selectedTab === t ? onNavUp : onChangeTab}
-          badge={t === Tabs.fsTab && fsCriticalUpdate ? (badgeNumbers.get(t) ?? 0) + 1 : badgeNumbers.get(t)}
+          key={route.key}
+          tab={route.name}
+          index={index}
+          isSelected={index === state.index}
+          onTabClick={() => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            })
+
+            if (!event.defaultPrevented) {
+              navigation.dispatch({
+                ...TabActions.jumpTo(route.name),
+                target: state.key,
+              })
+            }
+          }}
+          badge={
+            (badgeNumbers.get(route.name) ?? 0) + (route.name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
+          }
         />
       ))}
       <RuntimeStats />

@@ -1,8 +1,13 @@
 import * as Kb from '../common-adapters'
+import * as Container from '../util/container'
+import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
+import * as Shared from './router.shared'
 import * as Styles from '../styles'
 import * as React from 'react'
-import TabBar from './tab-bar.desktop'
+import {createLeftTabNavigator} from './left-tab-navigator.desktop'
+// import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
+// import TabBar from './tab-bar.desktop'
 // import {
 //   NavigationViewProps,
 //   // createNavigator,
@@ -14,13 +19,16 @@ import TabBar from './tab-bar.desktop'
 //   // SceneView,
 //   createSwitchNavigator,
 // } from '@react-navigation/core'
-import {modalRoutes, routes, nameToTab, loggedOutRoutes, tabRoots} from './routes'
-import {getActiveIndex, getActiveKey} from './util'
-import * as Shared from './router.shared'
-import Header from './header/index.desktop'
+import {createStackNavigator} from '@react-navigation/stack'
+import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
+import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
+// import {modalRoutes, routes, nameToTab, loggedOutRoutes, tabRoots} from './routes'
+// import {getActiveIndex, getActiveKey} from './util'
+// import Header from './header/index.desktop'
 import * as Shim from './shim.desktop'
-import GlobalError from '../app/global-errors/container'
-import OutOfDate from '../app/out-of-date'
+// import GlobalError from '../app/global-errors/container'
+// import OutOfDate from '../app/out-of-date'
 
 /**
  * How this works:
@@ -35,7 +43,7 @@ import OutOfDate from '../app/out-of-date'
  * Floating is rendered to a portal on top
  */
 
-// export const headerDefaultStyle = {}
+export const headerDefaultStyle = {}
 // const noScreenProps = {}
 // // The app with a tab bar on the left and content area on the right
 // // A single content view and n-modals on top
@@ -545,6 +553,207 @@ import OutOfDate from '../app/out-of-date'
 // type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide'
 //
 // export default ElectronApp
+const actionWidth = 64
+const defaultNavigationOptions: any = {
+  headerLeft: HeaderLeftArrow,
+  headerStyle: headerDefaultStyle,
+  headerTitleContainerStyle: {
+    alignItems: 'stretch',
+    // backgroundColor: 'red',
+    flexGrow: 1,
+  },
+  headerBackTitle: 'temp',
+  headerBackVisible: true,
+  headerRightContainerStyle: {
+    // backgroundColor: 'orange',
+    // width: actionWidth,
+    paddingRight: 8,
+  },
+  headerLeftContainerStyle: {
+    // backgroundColor: 'yellow',
+    paddingLeft: 8,
+    width: actionWidth,
+  },
+  headerTitle: hp => (
+    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
+      {hp.children}
+    </Kb.Text>
+  ),
+}
+const styles = Styles.styleSheetCreate(() => ({
+  headerTitle: {
+    // backgroundColor: 'pink',
+    color: Styles.globalColors.black,
+  },
+  keyboard: {
+    flexGrow: 1,
+    position: 'relative',
+  },
+}))
 
-const ElectronApp = () => <div>HI</div>
+const Tab = createLeftTabNavigator()
+
+// const fastTransitionSpec = {
+//   animation: 'spring',
+//   config: {
+//     stiffness: 1000,
+//     damping: 500,
+//     mass: 0.3,
+//     overshootClamping: true,
+//     restDisplacementThreshold: 10,
+//     restSpeedThreshold: 10,
+//   },
+// }
+
+// so we have a stack per tab?
+const tabToStack = new Map()
+const makeTabStack = tab => {
+  let Comp = tabToStack.get(tab)
+  if (!Comp) {
+    const S = createStackNavigator()
+    Comp = ({navigation, route}) => {
+      React.useLayoutEffect(() => {
+        const routeName = getFocusedRouteNameFromRoute(route)
+        const hideTabs = routeName === 'chatConversation'
+        navigation.setOptions({tabBarStyle: hideTabs ? {display: 'none'} : tabBarStyle})
+      }, [navigation, route])
+      return (
+        <S.Navigator
+          initialRouteName={tabRoots[tab]}
+          screenOptions={{
+            ...defaultNavigationOptions,
+          }}
+        >
+          {makeNavScreens(Shim.shim(routes, false, false), S.Screen, false)}
+        </S.Navigator>
+      )
+    }
+    tabToStack.set(tab, Comp)
+  }
+  return Comp
+}
+
+const makeNavScreens = (rs, Screen, isModal) => {
+  return Object.keys(rs).map(name => {
+    return (
+      <Screen
+        key={name}
+        name={name}
+        getComponent={rs[name].getScreen}
+        options={({route, navigation}) => {
+          const no = rs[name].getScreen().navigationOptions
+          const opt = typeof no === 'function' ? no({route, navigation}) : no
+          const skipAnim =
+            route.params?.animationEnabled === undefined
+              ? {}
+              : {
+                  // immediate pop in, default back animation
+                  transitionSpec: {
+                    open: {
+                      animation: 'timing',
+                      config: {duration: 0},
+                    },
+                    close: TransitionPresets.DefaultTransition,
+                  },
+                }
+          return {
+            ...opt,
+            ...(isModal ? {animationEnabled: true} : {}),
+            ...skipAnim,
+          }
+        }}
+      />
+    )
+  })
+}
+
+const tabBarStyle = {
+  get backgroundColor() {
+    return Styles.globalColors.blueDarkOrGreyDarkest
+  },
+}
+
+const AppTabs = () => {
+  console.log('aaa appTab rendering')
+
+  return (
+    <Tab.Navigator
+      backBehavior="none"
+      screenOptions={({route}) => {
+        return {
+          ...defaultNavigationOptions,
+          tabBarHideOnKeyboard: true,
+          headerShown: false,
+          tabBarShowLabel: Styles.isTablet,
+          tabBarStyle,
+          tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          // tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
+        }
+      }}
+    >
+      {Shared.tabs.map(tab => (
+        <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
+      ))}
+    </Tab.Navigator>
+  )
+}
+const LoggedOutStack = createStackNavigator()
+const LoggedOut = () => (
+  <LoggedOutStack.Navigator
+    initialRouteName="login"
+    screenOptions={{
+      tabBarHideOnKeyboard: true,
+      headerShown: false,
+    }}
+  >
+    {makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)}
+  </LoggedOutStack.Navigator>
+)
+const RootStack = createStackNavigator()
+const ElectronApp = () => {
+  const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
+
+  console.log('bbb RNApp render', {
+    appState: appState.current,
+    navKey,
+    initialState,
+    loggedIn,
+    loggedInLoaded,
+  })
+
+  Shared.useSharedAfter(appState)
+
+  return (
+    <NavigationContainer
+      ref={Constants.navigationRef_}
+      key={String(navKey)}
+      initialState={initialState}
+      onStateChange={onStateChange}
+    >
+      <RootStack.Navigator
+        key="root"
+        screenOptions={{
+          animationEnabled: false,
+          presentation: 'modal',
+          headerLeft: HeaderLeftCancel,
+          title: '',
+          headerShown: false, // eventually do this after we pull apart modal2 etc
+        }}
+      >
+        {!loggedInLoaded && (
+          <RootStack.Screen key="loading" name="loading" component={Shared.SimpleLoading} />
+        )}
+        {loggedInLoaded && loggedIn && (
+          <>
+            <RootStack.Screen name="loggedIn" component={AppTabs} />
+            {makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)}
+          </>
+        )}
+        {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
+      </RootStack.Navigator>
+    </NavigationContainer>
+  )
+}
+
 export default ElectronApp

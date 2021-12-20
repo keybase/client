@@ -46,6 +46,7 @@ const SubNavWrapper = React.memo((props: NavigationViewProps<any>) => {
 })
 
 const initialRouteName = Constants.encryptTab
+const CryptoSubNavigator = () => null // TODO
 // const CryptoSubNavigator = createNavigator(
 // SubNavWrapper,
 // StackRouter(Shim.shim(cryptoSubRoutes), {initialRouteName}),
@@ -62,7 +63,7 @@ export const newRoutes = {
   // Crypto tab is driven by the sub nav on desktop
   cryptoRoot: {
     // MUST use screen and not getScreen for subnavs!
-    screen: CryptoSubNavigator,
+    getScreen: () => CryptoSubNavigator,
   },
 }
 

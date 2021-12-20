@@ -1,7 +1,7 @@
 import * as Constants from '../constants/settings'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
+import {NavigationViewProps, createNavigator, StackRouter} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
 import DevicesTab from '../devices/container'
 import GitTab from '../git/container'
@@ -44,41 +44,43 @@ const settingsSubRoutes = {
   removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
 }
 const noScreenProps = {}
-class SettingsSubNav extends React.PureComponent<NavigationViewProps<any>> {
-  render() {
-    const navigation = this.props.navigation
-    const index = navigation.state.index
-    const activeKey = navigation.state.routes[index].key
-    const descriptor = this.props.descriptors[activeKey]
-    const childNav = descriptor.navigation
+const SettingsSubNav = () => null // TODO
+// class SettingsSubNav extends React.PureComponent<NavigationViewProps<any>> {
+//   render() {
+//     const navigation = this.props.navigation
+//     const index = navigation.state.index
+//     const activeKey = navigation.state.routes[index].key
+//     const descriptor = this.props.descriptors[activeKey]
+//     const childNav = descriptor.navigation
+//
+//     const Settings = require('./').default
+//     return (
+//       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+//         <Settings routeSelected={descriptor.state.routeName}>
+//           <SceneView
+//             navigation={childNav}
+//             component={descriptor.getComponent()}
+//             screenProps={this.props.screenProps || noScreenProps}
+//           />
+//         </Settings>
+//       </Kb.Box2>
+//     )
+//   }
+// }
+const SettingsSubNavigator = () => null // TODO
+// const SettingsSubNavigator = createNavigator(
+//   SettingsSubNav,
+//   StackRouter(Shim.shim(settingsSubRoutes), {initialRouteName: Constants.accountTab}),
+//   {}
+// )
 
-    const Settings = require('./').default
-    return (
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <Settings routeSelected={descriptor.state.routeName}>
-          <SceneView
-            navigation={childNav}
-            component={descriptor.getComponent()}
-            screenProps={this.props.screenProps || noScreenProps}
-          />
-        </Settings>
-      </Kb.Box2>
-    )
-  }
-}
-const SettingsSubNavigator = createNavigator(
-  SettingsSubNav,
-  StackRouter(Shim.shim(settingsSubRoutes), {initialRouteName: Constants.accountTab}),
-  {}
-)
-
-SettingsSubNavigator.navigationOptions = {
-  title: 'Settings',
-}
+// SettingsSubNavigator.navigationOptions = {
+//   title: 'Settings',
+// }
 
 export const newRoutes = {
   // MUST use screen and not getScreen for subnavs!
-  settingsRoot: {screen: SettingsSubNavigator},
+  settingsRoot: {getScreen: () => SettingsSubNavigator},
 }
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},

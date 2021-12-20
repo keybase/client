@@ -244,12 +244,7 @@ const AppTabs = () => {
           tabBarStyle,
           tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
           tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-          tabBarIcon: (
-            {focused} //route.name === Tabs.peopleTab
-          ) => (
-            //? <TabBarPeopleIcon isFocused={focused} routeName={route.name}/>
-            /*:*/ <TabBarIcon isFocused={focused} routeName={route.name} />
-          ),
+          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
         }
       }}
     >
