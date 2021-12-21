@@ -12,51 +12,6 @@ import * as Container from '../util/container'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 
-export const phoneTabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab, Tabs.settingsTab]
-const tabletTabs = [
-  Tabs.peopleTab,
-  Tabs.chatTab,
-  Tabs.fsTab,
-  Tabs.teamsTab,
-  Tabs.walletsTab,
-  Tabs.settingsTab,
-]
-const desktopTabs = [
-  Tabs.peopleTab,
-  Tabs.chatTab,
-  Tabs.cryptoTab,
-  Tabs.fsTab,
-  Tabs.teamsTab,
-  Tabs.walletsTab,
-  Tabs.gitTab,
-  Tabs.devicesTab,
-  Tabs.settingsTab,
-]
-
-const settingsTabChildrenPhone: Array<Tabs.Tab> = [
-  Tabs.gitTab,
-  Tabs.devicesTab,
-  Tabs.walletsTab,
-  Tabs.settingsTab,
-]
-const settingsTabChildrenTablet: Array<Tabs.Tab> = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
-export const settingsTabChildren = Container.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
-
-export const tabs = Styles.isTablet ? tabletTabs : phoneTabs
-
-type TabData = {
-  icon: IconType
-  label: string
-}
-export const tabToData: {[key: string]: TabData} = {
-  [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
-  [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
-  [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
-  [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
-  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-hamburger', label: 'More'},
-  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
-}
-
 export enum AppState {
   UNINIT, // haven't rendered the nav yet
   NEEDS_INIT, // rendered but need to bootstrap

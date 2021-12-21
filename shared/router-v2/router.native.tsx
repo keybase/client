@@ -17,6 +17,9 @@ import {enableFreeze} from 'react-native-screens'
 
 enableFreeze()
 
+const settingsTabChildren = Container.isPhone ? Tabs.settingsTabChildrenPhone : Tabs.settingsTabChildrenTablet
+const tabs = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+
 export const headerDefaultStyle = {
   get backgroundColor() {
     return Styles.globalColors.fastBlank
@@ -66,15 +69,15 @@ const TabBarIcon = props => {
   const onSettings = routeName === Tabs.settingsTab
   const navBadges = Container.useSelector(state => state.notifications.navBadges)
   const pushHasPermissions = Container.useSelector(state => state.push.hasPermissions)
-  const badgeNumber = (onSettings ? Shared.settingsTabChildren : [routeName]).reduce(
+  const badgeNumber = (onSettings ? settingsTabChildren : [routeName]).reduce(
     (res, tab) => res + (navBadges.get(tab) || 0),
     // notifications gets badged on native if there's no push, special case
     onSettings && !pushHasPermissions ? 1 : 0
   )
-  return Shared.tabToData[routeName] ? (
+  return tabToData[routeName] ? (
     <Kb.NativeView style={tabStyles.container}>
       <Kb.Icon
-        type={Shared.tabToData[routeName].icon}
+        type={tabToData[routeName].icon}
         fontSize={32}
         style={tabStyles.tab}
         color={isFocused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
@@ -248,7 +251,7 @@ const AppTabs = () => {
         }
       }}
     >
-      {Shared.tabs.map(tab => (
+      {tabs.map(tab => (
         <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
       ))}
     </Tab.Navigator>

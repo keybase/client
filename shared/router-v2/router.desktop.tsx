@@ -643,24 +643,7 @@ const makeNavScreens = (rs, Screen, isModal) => {
         options={({route, navigation}) => {
           const no = rs[name].getScreen().navigationOptions
           const opt = typeof no === 'function' ? no({route, navigation}) : no
-          const skipAnim =
-            route.params?.animationEnabled === undefined
-              ? {}
-              : {
-                  // immediate pop in, default back animation
-                  transitionSpec: {
-                    open: {
-                      animation: 'timing',
-                      config: {duration: 0},
-                    },
-                    close: TransitionPresets.DefaultTransition,
-                  },
-                }
-          return {
-            ...opt,
-            ...(isModal ? {animationEnabled: true} : {}),
-            ...skipAnim,
-          }
+          return {...opt}
         }}
       />
     )
@@ -692,7 +675,7 @@ const AppTabs = () => {
         }
       }}
     >
-      {Shared.tabs.map(tab => (
+      {Tabs.desktopTabs.map(tab => (
         <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
       ))}
     </Tab.Navigator>

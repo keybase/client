@@ -45,8 +45,6 @@ const data = {
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
 
-const tabs = Tabs.desktopTabOrder
-
 const FilesTabBadge = () => {
   const uploadIcon = FsConstants.getUploadIconForFilesTab(Container.useSelector(state => state.fs.badge))
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.badgeIconUpload} /> : null
@@ -163,7 +161,7 @@ const Header = () => {
   )
 }
 
-const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
+const keysMap = Tabs.desktopTabs.reduce((map, tab, index) => {
   map[`mod+${index + 1}`] = tab
   return map
 }, {})
