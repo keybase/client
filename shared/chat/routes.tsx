@@ -26,7 +26,6 @@ import ChatSearchBot from './conversation/bot/search'
 import ChatConfirmRemoveBot from './conversation/bot/confirm'
 import ChatPDF from './pdf'
 import * as ChatConstants from '../constants/chat2'
-import flags from '../util/feature-flags'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},

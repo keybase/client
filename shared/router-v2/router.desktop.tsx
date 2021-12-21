@@ -6,29 +6,12 @@ import * as Shared from './router.shared'
 import * as Styles from '../styles'
 import * as React from 'react'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
-// import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
-// import TabBar from './tab-bar.desktop'
-// import {
-//   NavigationViewProps,
-//   // createNavigator,
-//   StackRouter,
-//   SwitchRouter,
-//   NavigationActions,
-//   getNavigation,
-//   NavigationContext,
-//   // SceneView,
-//   createSwitchNavigator,
-// } from '@react-navigation/core'
 import {createStackNavigator} from '@react-navigation/stack'
-import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
+import {NavigationContainer} from '@react-navigation/native'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
-// import {modalRoutes, routes, nameToTab, loggedOutRoutes, tabRoots} from './routes'
-// import {getActiveIndex, getActiveKey} from './util'
-// import Header from './header/index.desktop'
 import * as Shim from './shim.desktop'
-// import GlobalError from '../app/global-errors/container'
-// import OutOfDate from '../app/out-of-date'
+import Header from './header/index.desktop'
 
 /**
  * How this works:
@@ -43,7 +26,9 @@ import * as Shim from './shim.desktop'
  * Floating is rendered to a portal on top
  */
 
-export const headerDefaultStyle = {}
+export const headerDefaultStyle = {
+  height: 80,
+}
 // const noScreenProps = {}
 // // The app with a tab bar on the left and content area on the right
 // // A single content view and n-modals on top
@@ -244,226 +229,6 @@ export const headerDefaultStyle = {}
 //   )
 // })
 //
-// const TabView = React.memo((props: NavigationViewProps<any>) => {
-//   const {navigation, descriptors} = props
-//   const {state} = navigation
-//   const {index, routes} = state
-//   const {key} = routes[index]
-//   const descriptor = descriptors[key]
-//   const {navigation: childNav, state: childState} = descriptor
-//   const {routeName} = childState
-//   const sceneView = (
-//     <SceneView
-//       navigation={childNav}
-//       component={descriptor.getComponent()}
-//       screenProps={props.screenProps || noScreenProps}
-//     />
-//   )
-//   return (
-//     <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-//       <TabBar navigation={navigation} selectedTab={routeName as Tabs.AppTab} />
-//       {sceneView}
-//     </Kb.Box2>
-//   )
-// })
-//
-// const tabs = Shared.desktopTabs
-//
-// const TabNavigator = createNavigator(
-//   TabView,
-//   SwitchRouter(
-//     tabs.reduce((map, tab) => {
-//       map[tab] = createNavigator(
-//         AppView,
-//         StackRouter(Shim.shim(routes, false), {
-//           // @ts-ignore types are wrong, this exists
-//           initialRouteKey: tabRoots[tab],
-//           initialRouteName: tabRoots[tab],
-//           initialRouteParams: undefined,
-//         }),
-//         {}
-//       )
-//       return map
-//     }, {}),
-//     {backBehavior: 'none', resetOnBlur: false}
-//   ),
-//   {}
-// )
-//
-// const LoggedInStackNavigator = createNavigator(
-//   ModalView,
-//   StackRouter(
-//     {
-//       Main: {screen: TabNavigator},
-//       ...Shim.shim(modalRoutes, true),
-//     },
-//     {
-//       // @ts-ignore
-//       initialRouteKey: 'Main',
-//       // @ts-ignore
-//       initialRouteName: 'Main',
-//     }
-//   ),
-//   {}
-// )
-//
-// const LoggedOutStackNavigator = createNavigator(
-//   AppView,
-//   StackRouter(
-//     {...Shim.shim(loggedOutRoutes, false)},
-//     {
-//       // @ts-ignore TODO add custom nav options somewhere
-//       defaultNavigationOptions: () => ({headerHideBorder: true}),
-//       initialRouteName: 'login',
-//     }
-//   ),
-//   {}
-// )
-//
-// const RootStackNavigator = createSwitchNavigator(
-//   {
-//     loggedIn: LoggedInStackNavigator,
-//     loggedOut: LoggedOutStackNavigator,
-//   },
-//   {initialRouteName: 'loggedOut'}
-// )
-//
-// type Subscriber = (data: {action: Object | null; lastState: Object | null; state: any; type: string}) => void
-//
-// const createElectronApp = (Component: any) => {
-//   // Based on https://github.com/react-navigation/react-navigation-native/blob/master/src/createAppContainer.js
-//   class ElectronApp extends React.PureComponent<any, any> {
-//     private navState: any = null // always use this value and not whats in state since thats async
-//     private actionEventSubscribers = new Set<Subscriber>()
-//     private navigation: any
-//     private initialAction: any = null
-//
-//     constructor(props: any) {
-//       super(props)
-//       this.initialAction = NavigationActions.init()
-//       this.state = {nav: Component.router.getStateForAction(this.initialAction)}
-//     }
-//
-//     componentDidUpdate() {
-//       // Clear cached navState every tick
-//       if (this.navState === this.state.nav) {
-//         this.navState = null
-//       }
-//     }
-//
-//     componentDidMount() {
-//       const action = this.initialAction
-//       // maybe slightly unsafe but keeping this close to the reference
-//       // eslint-disable-next-line
-//       let startupState = this.state.nav
-//       if (!startupState) {
-//         startupState = Component.router.getStateForAction(action)
-//       }
-//       const dispatchActions = () =>
-//         this.actionEventSubscribers.forEach(subscriber =>
-//           subscriber({
-//             action,
-//             lastState: null,
-//             state: this.state.nav,
-//             type: 'action',
-//           })
-//         )
-//
-//       if (startupState === this.state.nav) {
-//         dispatchActions()
-//         return
-//       }
-//
-//       // eslint-disable-next-line react/no-did-mount-set-state
-//       this.setState({nav: startupState}, () => {
-//         dispatchActions()
-//       })
-//     }
-//
-//     _onNavigationStateChange(prevNav: any, nav: any, action: any) {
-//       this.props.onNavigationStateChange(prevNav, nav, action)
-//     }
-//
-//     dispatch = (action: any) => {
-//       // navState will have the most up-to-date value, because setState sometimes behaves asyncronously
-//       this.navState = this.navState || this.state.nav
-//       const lastNavState = this.navState
-//       const reducedState = Component.router.getStateForAction(action, lastNavState)
-//       const navState = reducedState === null ? lastNavState : reducedState
-//
-//       const dispatchActionEvents = () => {
-//         this.actionEventSubscribers.forEach(subscriber =>
-//           subscriber({
-//             action,
-//             lastState: lastNavState,
-//             state: navState,
-//             type: 'action',
-//           })
-//         )
-//       }
-//
-//       if (reducedState === null) {
-//         // The router will return null when action has been handled and the state hasn't changed.
-//         // dispatch returns true when something has been handled.
-//         dispatchActionEvents()
-//         return true
-//       }
-//
-//       if (navState !== lastNavState) {
-//         // Cache updates to state.nav during the tick to ensure that subsequent calls will not discard this change
-//         this.navState = navState
-//         this.setState({nav: navState}, () => {
-//           this._onNavigationStateChange(lastNavState, navState, action)
-//           dispatchActionEvents()
-//         })
-//         return true
-//       }
-//
-//       dispatchActionEvents()
-//       return false
-//     }
-//
-//     _getScreenProps = () => this.props.screenProps
-//
-//     private setRef = () => {
-//       this.props.updateNavigator(this)
-//     }
-//
-//     render() {
-//       let navigation = this.props.navigation
-//       const navState = this.state.nav
-//       if (!navState) {
-//         return null
-//       }
-//       if (!this.navigation || this.navigation.state !== navState) {
-//         this.navigation = getNavigation(
-//           Component.router,
-//           navState,
-//           this.dispatch,
-//           this.actionEventSubscribers,
-//           this._getScreenProps,
-//           () => this.navigation
-//         )
-//       }
-//       navigation = this.navigation
-//       return (
-//         <NavigationContext.Provider key={this.props.isDarkMode ? 'dark' : 'light'} value={navigation}>
-//           <Component {...this.props} navigation={navigation} ref={this.setRef} />
-//         </NavigationContext.Provider>
-//       )
-//     }
-//
-//     getNavState = () => this.navState || this.state.nav
-//
-//     dispatchOldAction = (old: any) => {
-//       const actions = Shared.oldActionToNewActions(old, this.getNavState()) || []
-//       actions.forEach(a => this.dispatch(a))
-//     }
-//   }
-//   return ElectronApp
-// }
-//
-// const ElectronApp: any = createElectronApp(RootStackNavigator)
 //
 // const styles = Styles.styleSheetCreate(() => {
 //   const modalModeCommon = Styles.platformStyles({
@@ -555,6 +320,7 @@ export const headerDefaultStyle = {}
 // export default ElectronApp
 const actionWidth = 64
 const defaultNavigationOptions: any = {
+  header: (p: any) => <Header {...p} />,
   headerLeft: HeaderLeftArrow,
   headerStyle: headerDefaultStyle,
   headerTitleContainerStyle: {
@@ -611,12 +377,7 @@ const makeTabStack = tab => {
   let Comp = tabToStack.get(tab)
   if (!Comp) {
     const S = createStackNavigator()
-    Comp = ({navigation, route}) => {
-      React.useLayoutEffect(() => {
-        const routeName = getFocusedRouteNameFromRoute(route)
-        const hideTabs = routeName === 'chatConversation'
-        navigation.setOptions({tabBarStyle: hideTabs ? {display: 'none'} : tabBarStyle})
-      }, [navigation, route])
+    Comp = () => {
       return (
         <S.Navigator
           initialRouteName={tabRoots[tab]}
@@ -633,7 +394,7 @@ const makeTabStack = tab => {
   return Comp
 }
 
-const makeNavScreens = (rs, Screen, isModal) => {
+const makeNavScreens = (rs, Screen, _isModal) => {
   return Object.keys(rs).map(name => {
     return (
       <Screen
@@ -666,6 +427,7 @@ const AppTabs = () => {
         return {
           ...defaultNavigationOptions,
           tabBarHideOnKeyboard: true,
+          header: undefined,
           headerShown: false,
           tabBarShowLabel: Styles.isTablet,
           tabBarStyle,

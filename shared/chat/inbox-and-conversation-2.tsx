@@ -16,6 +16,7 @@ type Props = {
 }
 
 const InboxAndConversation = (props: Props) => {
+  console.log('aaa inboc convo render')
   const dispatch = Container.useDispatch()
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)

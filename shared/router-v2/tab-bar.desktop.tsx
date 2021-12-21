@@ -30,7 +30,7 @@ import {TabActions} from '@react-navigation/core'
 
 export type Props = {
   navigation: any
-  selectedTab: Tabs.AppTab
+  state: any
 }
 
 const data = {
@@ -168,7 +168,8 @@ const keysMap = Tabs.desktopTabs.reduce((map, tab, index) => {
 const hotKeys = Object.keys(keysMap)
 
 const TabBar = (props: Props) => {
-  const {selectedTab, navigation, onClick, state} = props
+  const {navigation, onClick, state} = props
+  const selectedTab = state.routes[state.index]?.name as Tabs.AppTab
   const username = Container.useSelector(state => state.config.username)
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
   const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)

@@ -7,19 +7,19 @@ import flags from '../../util/feature-flags'
 
 // if we want to remove stricemode
 const disableStrict = __DEV__ && false
-const MaybeStrict = !disableStrict ? React.Fragment : React.StrictMode
+// const MaybeStrict = !disableStrict ? React.Fragment : React.StrictMode
 // if we want to load the read profiler before the app is loaded
 const deferLoadingApp = __DEV__ && false
 
 const Root = ({store, children}: any) => {
   return (
-    <MaybeStrict>
+    <React.StrictMode>
       <GlobalKeyEventHandler>
         <GatewayProvider>
           <Provider store={store}>{children}</Provider>
         </GatewayProvider>
       </GlobalKeyEventHandler>
-    </MaybeStrict>
+    </React.StrictMode>
   )
 }
 
