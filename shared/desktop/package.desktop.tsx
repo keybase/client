@@ -54,7 +54,7 @@ const packagerOpts: any = {
   dir: desktopPath('./build'),
   download: {
     mirrorOptions: {
-      mirror: 'https://kbelectron.keybase.pub/electron-download/',
+      // mirror: 'https://kbelectron.keybase.pub/electron-download/',
     },
   },
   electronVersion: 0,
