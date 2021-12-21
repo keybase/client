@@ -455,6 +455,31 @@ const LoggedOut = () => (
     {makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)}
   </LoggedOutStack.Navigator>
 )
+
+const theme: Theme = {
+  dark: false,
+  colors: {
+    get primary() {
+      return Styles.globalColors.fastBlank
+    },
+    get background() {
+      return Styles.globalColors.fastBlank
+    },
+    get card() {
+      return Styles.globalColors.white
+    },
+    get text() {
+      return Styles.globalColors.black
+    },
+    get border() {
+      return Styles.globalColors.black_10
+    },
+    get notification() {
+      return Styles.globalColors.black
+    },
+  },
+}
+
 const RootStack = createStackNavigator()
 const ElectronApp = () => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
@@ -473,6 +498,7 @@ const ElectronApp = () => {
     <NavigationContainer
       ref={Constants.navigationRef_}
       key={String(navKey)}
+      theme={theme}
       initialState={initialState}
       onStateChange={onStateChange}
     >

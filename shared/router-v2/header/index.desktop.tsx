@@ -96,7 +96,7 @@ class DesktopHeader extends React.PureComponent<Props> {
     win.removeListener('unmaximize', this._refreshWindowIcons)
   }
 
-  _pop() {
+  _pop = () => {
     this.props.back && this.props.navigation.pop()
   }
 

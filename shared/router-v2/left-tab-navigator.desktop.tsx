@@ -13,7 +13,7 @@ function LeftTabNavigator({initialRouteName, children, screenOptions}) {
 
   return (
     <NavigationContent>
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
         <TabBar state={state} navigation={navigation} />
         <Kb.BoxGrow>
           {state.routes.map((route, i) => {
@@ -28,6 +28,12 @@ function LeftTabNavigator({initialRouteName, children, screenOptions}) {
     </NavigationContent>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  box: {
+    backgroundColor: Styles.globalColors.white,
+  },
+}))
 
 // const tabStyles = Styles.styleSheetCreate(
 //   () =>
