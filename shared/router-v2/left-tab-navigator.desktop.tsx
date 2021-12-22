@@ -30,48 +30,7 @@ function LeftTabNavigator({initialRouteName, children, screenOptions}) {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  box: {
-    backgroundColor: Styles.globalColors.white,
-  },
+  box: {backgroundColor: Styles.globalColors.white},
 }))
-
-// const tabStyles = Styles.styleSheetCreate(
-//   () =>
-//     ({
-//       badge: Styles.platformStyles({
-//         common: {
-//           position: 'absolute',
-//           right: 8,
-//           top: 3,
-//         },
-//       }),
-//       container: Styles.platformStyles({
-//         common: {
-//           justifyContent: 'center',
-//           flex: 1,
-//         },
-//         isTablet: {
-//           // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
-//           minWidth: Styles.globalMargins.xlarge,
-//         },
-//       }),
-//       label: {marginLeft: Styles.globalMargins.medium},
-//       labelDarkMode: {color: Styles.globalColors.black_50},
-//       labelDarkModeFocused: {color: Styles.globalColors.black},
-//       labelLightMode: {color: Styles.globalColors.blueLighter},
-//       labelLightModeFocused: {color: Styles.globalColors.white},
-//       tab: Styles.platformStyles({
-//         common: {
-//           paddingBottom: 6,
-//           paddingLeft: 16,
-//           paddingRight: 16,
-//           paddingTop: 6,
-//         },
-//         isTablet: {
-//           width: '100%',
-//         },
-//       }),
-//     } as const)
-// )
 
 export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)

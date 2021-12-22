@@ -1,5 +1,5 @@
 import * as Kb from '../common-adapters'
-import * as Container from '../util/container'
+// import * as Container from '../util/container'
 import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import * as Shared from './router.shared'

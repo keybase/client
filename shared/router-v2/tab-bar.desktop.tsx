@@ -168,22 +168,13 @@ const keysMap = Tabs.desktopTabs.reduce((map, tab, index) => {
 const hotKeys = Object.keys(keysMap)
 
 const TabBar = (props: Props) => {
-  const {navigation, onClick, state} = props
-  const selectedTab = state.routes[state.index]?.name as Tabs.AppTab
+  const {navigation, state} = props
   const username = Container.useSelector(state => state.config.username)
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
   const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)
 
-  const navRef = React.useRef(navigation.navigate)
-
-  const onChangeTab = React.useCallback((tab: Tabs.AppTab) => {
-    navRef.current(tab)
-  }, [])
-  const onNavUp = React.useCallback((tab: Tabs.AppTab) => {
-    navRef.current(tabRoots[tab])
-  }, [])
   const onHotKey = React.useCallback((cmd: string) => {
-    navRef.current(keysMap[cmd])
+    navigation.navigate(keysMap[cmd])
   }, [])
 
   return username ? (
