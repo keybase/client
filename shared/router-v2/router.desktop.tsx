@@ -506,7 +506,7 @@ const ElectronApp = () => {
         key="root"
         screenOptions={{
           animationEnabled: false,
-          presentation: 'modal',
+          presentation: 'transparentModal',
           headerLeft: HeaderLeftCancel,
           title: '',
           headerShown: false, // eventually do this after we pull apart modal2 etc
