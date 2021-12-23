@@ -4,8 +4,9 @@ import * as Kb from '../common-adapters'
 import TabBar from './tab-bar.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 
-function LeftTabNavigator({initialRouteName, children, screenOptions}) {
+function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}) {
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
+    backBehavior,
     children,
     screenOptions,
     initialRouteName,
