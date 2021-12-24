@@ -1,10 +1,12 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/crypto'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Constants from '../../constants/crypto'
 import NavRow from './nav-row'
+import {useNavigation} from '@react-navigation/core'
 
 const SubNav = () => {
+  const navigator = useNavigation()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="tiny" style={styles.container}>
       {Constants.Tabs.map(t => (
@@ -14,6 +16,7 @@ const SubNav = () => {
           title={t.title}
           illustration={t.illustration}
           description={t.description}
+          onClick={() => navigator.navigate(t.tab)}
         />
       ))}
     </Kb.Box2>
@@ -33,7 +36,6 @@ const styles = Styles.styleSheetCreate(
 )
 
 SubNav.navigationOptions = {
-  header: undefined,
   title: 'Crypto',
 }
 

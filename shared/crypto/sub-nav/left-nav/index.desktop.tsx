@@ -3,7 +3,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
-import NavRow from './nav-row'
+import NavRow from '../nav-row'
 import {Props} from '.'
 
 type Row = Types.Tab & {

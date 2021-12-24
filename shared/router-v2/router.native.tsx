@@ -19,6 +19,14 @@ enableFreeze()
 
 const settingsTabChildren = Container.isPhone ? Tabs.settingsTabChildrenPhone : Tabs.settingsTabChildrenTablet
 const tabs = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+const tabToData = {
+  [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
+  [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
+  [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
+  [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
+  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-hamburger', label: 'More'},
+  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
+} as const
 
 export const headerDefaultStyle = {
   get backgroundColor() {

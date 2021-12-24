@@ -8,12 +8,14 @@ import {tabRoots} from './routes'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as DeeplinksConstants from '../constants/deeplinks'
 
+const tabs = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+
 type OptionsType = {
-    dispatch: Container.TypedDispatch,
-    startupTab?: string,
-    showMonster: boolean,
-    startupFollowUser?: string,
-    startupConversation?: string
+  dispatch: Container.TypedDispatch
+  startupTab?: string
+  showMonster: boolean
+  startupFollowUser?: string
+  startupConversation?: string
 }
 
 const makeLinking = (options: OptionsType) => {
@@ -48,7 +50,7 @@ const makeLinking = (options: OptionsType) => {
         initialRouteName: 'loggedIn',
         loggedIn: {
           screens: {
-            ...Shared.tabs.reduce((m, name) => {
+            ...tabs.reduce((m, name) => {
               // m[name] = name
               m[name] = {
                 initialRouteName: tabRoots[name],
@@ -176,5 +178,3 @@ export const useReduxToLinking = (appState: Shared.AppState) => {
       })
     : undefined
 }
-
-
