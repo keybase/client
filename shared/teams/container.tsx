@@ -15,7 +15,6 @@ import * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
-import flags from '../util/feature-flags'
 
 type OwnProps = {}
 
@@ -124,7 +123,6 @@ const filterStyles = Styles.styleSheetCreate(() => ({
 }))
 
 Reloadable.navigationOptions = {
-  header: undefined,
   headerRightActions: !Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
   title: 'Teams',
 }
