@@ -2,9 +2,10 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/crypto'
+import * as Common from '../../router-v2/common.desktop'
 import * as Shim from '../../router-v2/shim'
-import LeftNav from '../left-nav'
-import {useNavigationBuilder, TabRouter, createNavigatorFactory, TabActions} from '@react-navigation/core'
+import LeftNav from './left-nav'
+import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import type Encrypt from '../operations/encrypt'
 import type Decrypt from '../operations/decrypt'
 import type Sign from '../operations/sign'
@@ -12,11 +13,11 @@ import type Verify from '../operations/verify'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
-  [Constants.encryptTab]: {
-    getScreen: (): typeof Encrypt => require('../operations/encrypt/index').default,
-  },
   [Constants.decryptTab]: {
     getScreen: (): typeof Decrypt => require('../operations/decrypt/index').default,
+  },
+  [Constants.encryptTab]: {
+    getScreen: (): typeof Encrypt => require('../operations/encrypt/index').default,
   },
   [Constants.signTab]: {getScreen: (): typeof Sign => require('../operations/sign/index').default},
   [Constants.verifyTab]: {getScreen: (): typeof Verify => require('../operations/verify/index').default},
@@ -29,25 +30,14 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
     initialRouteName,
   })
 
-  const onChangeTab = React.useCallback(
-    tab => {
-      const event = navigation.emit({
-        type: 'tabPress',
-        canPreventDefault: true,
-      })
-
-      if (!event.defaultPrevented) {
-        navigation.dispatch(TabActions.jumpTo(tab))
-      }
-    },
-    [navigation]
-  )
+  const selectedTab = state.routes[state.index]?.name ?? ''
+  const onSelectTab = Common.useSubnavTabAction(navigation, state)
 
   return (
     <NavigationContent>
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.nav}>
-          <LeftNav state={state} navigation={navigation} routes={state.routes} />
+          <LeftNav onClick={onSelectTab} selected={selectedTab} />
         </Kb.Box2>
         <Kb.BoxGrow>
           {state.routes.map((route, i) => {
@@ -91,7 +81,6 @@ const CryptoSubNavigator = () => (
 )
 
 CryptoSubNavigator.navigationOptions = {
-  header: undefined,
   title: 'Crypto tools',
 }
 

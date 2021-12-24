@@ -1,11 +1,10 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Constants from '../../constants/crypto'
-import * as Types from '../../constants/types/crypto'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import * as Constants from '../../../constants/crypto'
+import * as Types from '../../../constants/types/crypto'
 import NavRow from './nav-row'
-import {Props} from './index'
-import {TabActions} from '@react-navigation/core'
+import {Props} from '.'
 
 type Row = Types.Tab & {
   isSelected: boolean
@@ -14,26 +13,14 @@ type Row = Types.Tab & {
 
 class SubNav extends React.PureComponent<Props> {
   private getRows = () =>
-    Constants.Tabs.map((t, i) => ({
+    Constants.Tabs.map(t => ({
       ...t,
-      isSelected: this.props.state.index === i,
+      isSelected: this.props.selected === t.tab,
       key: t.tab,
     }))
 
   private _onClick = (tab: Types.CryptoSubTab) => {
-    const route = this.props.routes.find(r => r.name === tab)
-    const event = this.props.navigation.emit({
-      type: 'tabPress',
-      target: route.key,
-      canPreventDefault: true,
-    })
-
-    if (!event.defaultPrevented) {
-      this.props.navigation.dispatch({
-        ...TabActions.jumpTo(tab),
-        target: this.props.state.key,
-      })
-    }
+    this.props.onClick(tab)
   }
 
   private renderItem = (_: number, row: Row) => {

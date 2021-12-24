@@ -296,7 +296,7 @@ export const getAppPath = () => {
 }
 
 export const navToThread = conversationIDKey => {
-  const rs = _getNavigator()?.getRootState() ?? {}
+  const rs: any = _getNavigator()?.getRootState() ?? {}
   const nextState = Container.produce(rs, draft => {
     // app stack
     draft.index = 0

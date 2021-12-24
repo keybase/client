@@ -1,5 +1,3 @@
-import * as Kb from '../common-adapters'
-// import * as Container from '../util/container'
 import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import * as Shared from './router.shared'
@@ -9,9 +7,9 @@ import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createStackNavigator} from '@react-navigation/stack'
 import {NavigationContainer} from '@react-navigation/native'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
-import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
 import * as Shim from './shim.desktop'
-import Header from './header/index.desktop'
+import * as Common from './common.desktop'
+import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 
 /**
  * How this works:
@@ -26,9 +24,7 @@ import Header from './header/index.desktop'
  * Floating is rendered to a portal on top
  */
 
-export const headerDefaultStyle = {
-  height: 80,
-}
+export const headerDefaultStyle = Common.headerDefaultStyle
 // const noScreenProps = {}
 // // The app with a tab bar on the left and content area on the right
 // // A single content view and n-modals on top
@@ -318,44 +314,6 @@ export const headerDefaultStyle = {
 // type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide'
 //
 // export default ElectronApp
-const actionWidth = 64
-const defaultNavigationOptions: any = {
-  header: (p: any) => <Header {...p} />,
-  headerLeft: HeaderLeftArrow,
-  headerStyle: headerDefaultStyle,
-  headerTitleContainerStyle: {
-    alignItems: 'stretch',
-    // backgroundColor: 'red',
-    flexGrow: 1,
-  },
-  headerBackTitle: 'temp',
-  headerBackVisible: true,
-  headerRightContainerStyle: {
-    // backgroundColor: 'orange',
-    // width: actionWidth,
-    paddingRight: 8,
-  },
-  headerLeftContainerStyle: {
-    // backgroundColor: 'yellow',
-    paddingLeft: 8,
-    width: actionWidth,
-  },
-  headerTitle: hp => (
-    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
-      {hp.children}
-    </Kb.Text>
-  ),
-}
-const styles = Styles.styleSheetCreate(() => ({
-  headerTitle: {
-    // backgroundColor: 'pink',
-    color: Styles.globalColors.black,
-  },
-  keyboard: {
-    flexGrow: 1,
-    position: 'relative',
-  },
-}))
 
 const Tab = createLeftTabNavigator()
 
@@ -381,9 +339,7 @@ const makeTabStack = tab => {
       return (
         <S.Navigator
           initialRouteName={tabRoots[tab]}
-          screenOptions={{
-            ...defaultNavigationOptions,
-          }}
+          screenOptions={ Common.defaultNavigationOptions }
         >
           {makeNavScreens(Shim.shim(routes, false, false), S.Screen, false)}
         </S.Navigator>
@@ -425,7 +381,7 @@ const AppTabs = () => {
       backBehavior="none"
       screenOptions={({route}) => {
         return {
-          ...defaultNavigationOptions,
+          ...Common.defaultNavigationOptions,
           tabBarHideOnKeyboard: true,
           header: undefined,
           headerShown: false,

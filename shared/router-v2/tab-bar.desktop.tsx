@@ -16,6 +16,7 @@ import * as SettingsConstants from '../constants/settings'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
+import * as Common from './common.desktop'
 import * as TrackerConstants from '../constants/tracker2'
 import flags from '../util/feature-flags'
 import AccountSwitcher from './account-switcher/container'
@@ -25,8 +26,6 @@ import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {isLinux} from '../constants/platform'
 import {quit} from '../desktop/app/ctl.desktop'
-import {tabRoots} from './routes'
-import {TabActions} from '@react-navigation/core'
 
 export type Props = {
   navigation: any
@@ -177,6 +176,8 @@ const TabBar = (props: Props) => {
     navigation.navigate(keysMap[cmd])
   }, [])
 
+  const onSelectTab = Common.useSubnavTabAction(navigation, state)
+
   return username ? (
     <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
       <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
@@ -191,20 +192,7 @@ const TabBar = (props: Props) => {
           tab={route.name}
           index={index}
           isSelected={index === state.index}
-          onTabClick={() => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            })
-
-            if (!event.defaultPrevented) {
-              navigation.dispatch({
-                ...TabActions.jumpTo(route.name),
-                target: state.key,
-              })
-            }
-          }}
+          onTabClick={() => onSelectTab(route.name)}
           badge={
             (badgeNumbers.get(route.name) ?? 0) + (route.name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
           }
