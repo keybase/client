@@ -9,8 +9,10 @@ import {keybaseFM} from '../../constants/whats-new'
 import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
 import WhatsNewIcon from '../../whats-new/icon/container'
-import SplitNav from './split-nav'
+// import SplitNav from './left-nav'
 import noop from 'lodash/noop'
+
+const LeftNav = () => null // TODO
 
 type Props = {
   badgeNotifications?: boolean
@@ -73,7 +75,7 @@ function SettingsNav(props: Props) {
 
   return (
     <Kb.NativeSectionList
-        overScrollMode="never"
+      overScrollMode="never"
       onScrollToIndexFailed={noop}
       keyboardShouldPersistTaps="handled"
       keyExtractor={(item, index) => item.text + index}
@@ -194,4 +196,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Styles.isPhone ? SettingsNav : SplitNav
+export default Styles.isPhone ? SettingsNav : LeftNav

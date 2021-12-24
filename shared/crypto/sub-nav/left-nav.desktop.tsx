@@ -1,14 +1,18 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/crypto'
-import * as Types from '../../../constants/types/crypto'
-import NavRow from '../nav-row'
-import {Props} from '.'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Constants from '../../constants/crypto'
+import * as Types from '../../constants/types/crypto'
+import NavRow from './nav-row'
 
 type Row = Types.Tab & {
   isSelected: boolean
   key: string
+}
+
+type Props = {
+  onClick: (string) => void
+  selected: string
 }
 
 class SubNav extends React.PureComponent<Props> {
