@@ -337,10 +337,7 @@ const makeTabStack = tab => {
     const S = createStackNavigator()
     Comp = () => {
       return (
-        <S.Navigator
-          initialRouteName={tabRoots[tab]}
-          screenOptions={ Common.defaultNavigationOptions }
-        >
+        <S.Navigator initialRouteName={tabRoots[tab]} screenOptions={Common.defaultNavigationOptions}>
           {makeNavScreens(Shim.shim(routes, false, false), S.Screen, false)}
         </S.Navigator>
       )
@@ -354,7 +351,7 @@ const makeNavScreens = (rs, Screen, _isModal) => {
   return Object.keys(rs).map(name => {
     return (
       <Screen
-        key={name}
+        navigationKey={name}
         name={name}
         getComponent={rs[name].getScreen}
         options={({route, navigation}) => {

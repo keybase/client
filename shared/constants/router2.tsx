@@ -312,3 +312,9 @@ export const navToThread = conversationIDKey => {
 
   rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState), target: rs.key})
 }
+
+export const chatRootKey = () => {
+  const rs: any = _getNavigator()?.getRootState() ?? {}
+  const chatTabIdx = rs.routes[0]?.state.routes.findIndex(r => r.name === Tabs.chatTab)
+  return rs.routes[0].state.routes[chatTabIdx].state.routes[0].key
+}

@@ -2576,7 +2576,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     return [
       ...tabSwitchAction,
       ...modalClearAction,
-      RouteTreeGen.createSetParams({key: 'chatRoot', params: {conversationIDKey}}),
+      RouteTreeGen.createSetParams({key: Router2Constants.chatRootKey(), params: {conversationIDKey}}),
       RouteTreeGen.createNavUpToScreen({routeName: Constants.threadRouteName}),
     ]
   } else {

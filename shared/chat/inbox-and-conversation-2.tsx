@@ -20,7 +20,7 @@ const InboxAndConversation = (props: Props) => {
   const dispatch = Container.useDispatch()
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
-  const conversationIDKey = props.navigation.state?.params?.conversationIDKey
+  const conversationIDKey = props.route.params?.conversationIDKey
   const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
   const needSelectConvoID = Container.useSelector(state => {
     if (validConvoID) {
