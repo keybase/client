@@ -1,7 +1,6 @@
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Common from '../router-v2/common.desktop'
-// import {LeftAction} from '../common-adapters/header-hoc'
 import * as React from 'react'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import {createStackNavigator} from '@react-navigation/stack'
@@ -17,7 +16,7 @@ const walletSubRoutes = {
 }
 
 function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}) {
-  const {state, /*navigation, */ descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
+  const {state, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
     screenOptions,
@@ -25,8 +24,6 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
   })
 
   const WalletsAndDetails = require('./wallets-and-details').default
-  // const selectedTab = state.routes[state.index]?.name ?? ''
-  // const onSelectTab = Common.useSubnavTabAction(navigation, state)
 
   return (
     <NavigationContent>
