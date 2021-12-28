@@ -1,23 +1,16 @@
 import * as React from 'react'
-import {Box2} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import AccountReloader from '../common/account-reloader'
 import WalletList from '../wallet-list/container'
 import * as Styles from '../../styles'
 
-type Props = {
-  children: React.ReactNode
-}
-
-const WalletsAndDetails = (props: Props) => (
+const WalletsAndDetails = () => (
   <AccountReloader>
-    <Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-      <Box2 direction="vertical" fullHeight={true} style={styles.walletListContainer}>
+    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.walletListContainer}>
         <WalletList style={{height: '100%'}} />
-      </Box2>
-      <Box2 direction="vertical" fullHeight={true} style={Styles.globalStyles.flexOne}>
-        {props.children}
-      </Box2>
-    </Box2>
+      </Kb.Box2>
+    </Kb.Box2>
   </AccountReloader>
 )
 
