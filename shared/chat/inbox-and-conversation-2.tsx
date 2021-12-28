@@ -55,11 +55,10 @@ const InboxAndConversation = (props: Props) => {
   )
 }
 
-InboxAndConversation.navigationOptions = {
-  header: undefined,
-  headerTitle: Header,
+InboxAndConversation.navigationOptions = ({navigation, route}) => ({
+  headerTitle: () => <Header navigation={navigation} route={route} />,
   headerTitleContainerStyle: {left: 0, right: 0},
-}
+})
 
 const Memoed = React.memo(InboxAndConversation)
 Container.hoistNonReactStatic(Memoed, InboxAndConversation)

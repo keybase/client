@@ -12,6 +12,7 @@ import ChatInboxHeader from './inbox/header/container'
 
 type OwnProps = {
   navigation: any
+  route: any
 }
 
 type Props = {
@@ -288,8 +289,8 @@ const Connected = Container.connect(
     // temp until nav 5 when this all goes away
     const _conversationIDKey =
       (Container.isTablet
-        ? ownProps.navigation.state.params?.conversationIDKey
-        : ownProps.navigation.state.routes[0]?.params?.conversationIDKey) ?? Constants.noConversationIDKey
+        ? ownProps.route.state?.params?.conversationIDKey
+        : ownProps.route.state?.routes?.[0]?.params?.conversationIDKey) ?? Constants.noConversationIDKey
     const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)
