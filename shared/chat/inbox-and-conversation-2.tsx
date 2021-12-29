@@ -33,12 +33,15 @@ const InboxAndConversation = (props: Props) => {
 
   React.useEffect(() => {
     if (needSelectConvoID) {
-      dispatch(
-        Chat2Gen.createNavigateToThread({
-          conversationIDKey: needSelectConvoID,
-          reason: 'findNewestConversationFromLayout',
-        })
-      )
+      // hack to select the convo after we render, TODO move this elsewhere maybe
+      setTimeout(() => {
+        dispatch(
+          Chat2Gen.createNavigateToThread({
+            conversationIDKey: needSelectConvoID,
+            reason: 'findNewestConversationFromLayout',
+          })
+        )
+      }, 1)
     }
   }, [needSelectConvoID, dispatch])
 
