@@ -793,6 +793,7 @@ export type TypedActionsMap = {
   'recover-password:displayError': recoverpassword.DisplayErrorPayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload
   'route-tree:navigateUp': routetree.NavigateUpPayload
+  'route-tree:navigateUpNoop': routetree.NavigateUpNoopPayload
   'route-tree:clearModals': routetree.ClearModalsPayload
   'route-tree:navUpToScreen': routetree.NavUpToScreenPayload
   'route-tree:switchLoggedIn': routetree.SwitchLoggedInPayload

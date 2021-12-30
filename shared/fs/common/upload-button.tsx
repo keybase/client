@@ -1,4 +1,4 @@
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {TypedState} from '../../constants/reducer'
@@ -126,4 +126,4 @@ const UploadButton = Kb.OverlayParentHOC((props: Kb.PropsWithOverlay<UploadButto
   )
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'UploadButton')(UploadButton)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(UploadButton)

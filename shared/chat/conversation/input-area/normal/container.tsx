@@ -145,7 +145,7 @@ const getInputHintText = (
   return undefined
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, {conversationIDKey}: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
     const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
@@ -414,5 +414,4 @@ export default Container.namedConnect(
       userEmojisLoading: stateProps.userEmojisLoading,
     }
   },
-  'Input'
 )(Input)

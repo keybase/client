@@ -116,7 +116,7 @@ const getDecorate = (message: Types.Message) => {
   }
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const {conversationIDKey, ordinal, previous: previousOrdinal} = ownProps
     const {orangeLineMap, unfurlPromptMap, messageCenterOrdinals} = state.chat2
@@ -238,6 +238,5 @@ export default Container.namedConnect(
       showUsername,
       youAreAuthor,
     }
-  },
-  'WrapperMessage'
+  }
 )(WrapperMessage)

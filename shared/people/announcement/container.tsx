@@ -6,7 +6,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
 import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
-import {namedConnect, isMobile} from '../../util/container'
+import * as Container from '../../util/container'
 
 type OwnProps = {
   appLink: RPCTypes.AppLinkType | null
@@ -36,26 +36,26 @@ const mapDispatchToProps = dispatch => ({
         dispatch(Chat2Gen.createNavigateToInbox())
         break
       case RPCTypes.AppLinkType.files:
-        dispatch(RouteTree.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.fsTab}))
-        if (isMobile) {
+        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.fsTab}))
+        if (Container.isMobile) {
           dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.fsTab]}))
         }
         break
       case RPCTypes.AppLinkType.wallet:
-        dispatch(RouteTree.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
-        if (isMobile) {
+        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
+        if (Container.isMobile) {
           dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.walletsTab]}))
         }
         break
       case RPCTypes.AppLinkType.git:
-        dispatch(RouteTree.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.gitTab}))
-        if (isMobile) {
+        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.gitTab}))
+        if (Container.isMobile) {
           dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.gitTab]}))
         }
         break
       case RPCTypes.AppLinkType.devices:
-        dispatch(RouteTree.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab}))
-        if (isMobile) {
+        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.devicesTab}))
+        if (Container.isMobile) {
           dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.devicesTab]}))
         }
         break
@@ -85,4 +85,4 @@ const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
   url: ownProps.url,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Announcement')(Announcement)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Announcement)

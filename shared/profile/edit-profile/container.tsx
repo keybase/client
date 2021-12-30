@@ -6,7 +6,7 @@ import EditProfile from '.'
 
 type OwnProps = {}
 
-export default Container.namedConnect(
+export default Container.connect(
   state => {
     const d = Constants.getDetails(state, state.config.username)
     return {
@@ -29,6 +29,5 @@ export default Container.namedConnect(
     onCancel: dispatchProps.onCancel,
     onSubmit: dispatchProps.onSubmit,
     title: 'Edit Profile',
-  }),
-  'EditProfile'
+  })
 )(EditProfile)

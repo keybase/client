@@ -634,11 +634,10 @@ const mergeProps = (
   }
 }
 
-const Connected = Container.namedConnect(
+const Connected = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
-  'TeamBuilding'
 )(TeamBuilding)
 
 type RealOwnProps = Container.RouteProps<{

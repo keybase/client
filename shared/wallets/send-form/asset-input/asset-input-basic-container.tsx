@@ -1,6 +1,6 @@
 import AssetInputBasic from './asset-input-basic'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
 
@@ -46,9 +46,4 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   value: stateProps.value,
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'AssetInputBasic'
-)(AssetInputBasic)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(AssetInputBasic)

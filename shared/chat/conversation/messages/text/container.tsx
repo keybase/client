@@ -77,7 +77,7 @@ const getClaimProps = (state: Container.TypedState, ownProps: OwnProps) => {
 
 type MsgType = Props['type']
 
-export default Container.namedConnect(
+export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
     const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
@@ -108,6 +108,5 @@ export default Container.namedConnect(
       : ownProps.message.submitState === null
       ? 'sent'
       : 'pending') as MsgType,
-  }),
-  'TextMessage'
+  })
 )(TextMessage)

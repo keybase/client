@@ -52,11 +52,10 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   waiting: stateProps.waiting,
 })
 
-const ConnectedEnterUsername = Container.namedConnect(
+const ConnectedEnterUsername = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps,
-  'ConnectedEnterUsername'
+  mergeProps
 )(EnterUsername)
 
 export default ConnectedEnterUsername

@@ -49,7 +49,7 @@ const Wrapper = (props: WrapperProps) =>
     />
   )
 
-const Connected = Container.namedConnect(
+const Connected = Container.connect(
   mapStateToProps,
   () => ({}),
   (stateProps, _, ownProps: OwnProps) => ({
@@ -61,7 +61,6 @@ const Connected = Container.namedConnect(
     onClick: ownProps.onClick,
     pending: stateProps.pending,
     style: ownProps.style,
-  }),
-  'ExplodingMeta'
+  })
 )(Wrapper)
 export default Connected

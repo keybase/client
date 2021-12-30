@@ -20,21 +20,5 @@ const compareAndComplain = (msp: any, try1: any, try2: any, loc: any) => {
 }
 
 const connect_ = RR.connect
-
 const connect: RR.Connect<TypedState> = connect_ as any
-
-/** TODO deprecate, not compatible with hooks */
-export const namedConnect = <TOwnProps, TDispatchProps, TMergedProps>(
-  mapStateToProps: RR.MapStateToProps<TypedState, TOwnProps>,
-  mapDispatchToProps: RR.MapDispatchToProps<TDispatchProps, TOwnProps>,
-  mergeProps: RR.MergeProps<TypedState, TDispatchProps, TOwnProps, TMergedProps>,
-  displayName: string,
-  options?: RR.Options<TypedState, TypedState, TOwnProps, TMergedProps>
-) => {
-  const Connected = connect(mapStateToProps, mapDispatchToProps, mergeProps, options)
-  // @ts-ignore
-  Connected.displayName = displayName
-  return Connected as any // RR.ConnectedComponentType<TMergedProps, TOwnProps>
-}
-
 export default connect

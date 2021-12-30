@@ -78,7 +78,7 @@ ChooseComponent.navigationOptions = (ownProps: OwnProps) => {
 
 type OwnProps = Container.RouteProps<{path: Types.Path}>
 
-const Connected = Container.namedConnect(
+const Connected = Container.connect(
   (state, ownProps: OwnProps) => {
     const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
     return {
@@ -107,8 +107,7 @@ const Connected = Container.namedConnect(
       path,
       pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,
     }
-  },
-  'FsMain'
+  }
 )(ChooseComponent)
 
 export default Connected

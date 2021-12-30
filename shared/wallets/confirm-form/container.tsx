@@ -6,12 +6,12 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Participants from './participants/container'
 import {anyWaiting} from '../../constants/waiting'
-import {namedConnect, isMobile, RouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Types from '../../constants/types/wallets'
 
-type OwnProps = RouteProps
+type OwnProps = Container.RouteProps
 
-export default namedConnect(
+export default Container.connect(
   state => {
     const build = state.wallets.building
     const _built = state.wallets.builtPayment
@@ -33,7 +33,7 @@ export default namedConnect(
   },
   dispatch => ({
     _onReviewProofs: (username: string) =>
-      isMobile
+      Container.isMobile
         ? dispatch(ProfileGen.createShowUserProfile({username}))
         : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
     onAbandonPayment: () => dispatch(WalletsGen.createAbandonPayment()),
@@ -97,6 +97,5 @@ export default namedConnect(
       showCancelInsteadOfBackOnMobile: false,
       waitingKey: stateProps.waitingKey,
     }
-  },
-  'ConfirmSend'
+  }
 )(ConfirmSend)

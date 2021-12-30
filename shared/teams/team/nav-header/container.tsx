@@ -85,7 +85,7 @@ export const HeaderTitle = Container.connect(
   })
 )(_HeaderTitle)
 
-export const SubHeader = Container.namedConnect(
+export const SubHeader = Container.connect(
   (state, {teamID}: OwnProps) => ({
     _canAddSelf: Constants.getCanPerformByID(state, teamID).joinTeam,
     _you: state.config.username,
@@ -98,6 +98,5 @@ export const SubHeader = Container.namedConnect(
   }),
   (stateProps, dispatchProps) => ({
     onAddSelf: stateProps._canAddSelf ? () => dispatchProps.onAddSelf(stateProps._you) : null,
-  }),
-  'TeamSubHeader'
+  })
 )(_SubHeader)

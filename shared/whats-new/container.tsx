@@ -103,11 +103,6 @@ WhatsNew.navigationOptions = Container.isMobile
     }
   : {}
 
-const WhatsNewContainer = Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'WhatsNewContainer'
-)(WhatsNew)
+const WhatsNewContainer = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(WhatsNew)
 
 export default WhatsNewContainer

@@ -8,7 +8,7 @@ type SendButtonOwnProps = {
   small?: boolean
 }
 
-export const SendButton = Container.namedConnect(
+export const SendButton = Container.connect(
   state => {
     const _account = Constants.getSelectedAccountData(state)
     return {
@@ -29,6 +29,5 @@ export const SendButton = Container.namedConnect(
       dispatchProps._onGoToSendReceive(stateProps._account.accountID, 'stellarPublicKey'),
     small: ownProps.small,
     thisDeviceIsLockedOut: stateProps.thisDeviceIsLockedOut,
-  }),
-  'WalletSendButton'
+  })
 )(_SendButton)
