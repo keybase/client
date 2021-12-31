@@ -568,7 +568,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                 Styles.globalStyles.flexGrow,
                 !expanded && styles.contentCollapsedFixedHeight,
                 expanded && styles.membershipExpanded,
-              ])}
+              ] as const)}
             >
               <Kb.Box2
                 direction="vertical"
@@ -585,7 +585,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   style={Styles.collapseStyles([
                     !expanded && styles.contentCollapsedFixedHeight,
                     expanded && styles.membershipContentExpanded,
-                  ])}
+                  ] as const)}
                 >
                   <Kb.Avatar teamname={props.node.teamname} size={32} />
                   <Kb.Box2
@@ -595,7 +595,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                       styles.membershipTeamText,
                       expanded && styles.membershipTeamTextExpanded,
                       !expanded && styles.contentCollapsedFixedHeight,
-                    ])}
+                    ] as const)}
                   >
                     <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
                       {props.node.teamname}

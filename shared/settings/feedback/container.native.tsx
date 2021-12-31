@@ -82,7 +82,7 @@ class FeedbackContainer extends React.Component<Props, State> {
           logger.info('logSendId is', logSendId)
           if (this.mounted) {
             this.setState({
-              sendError: null,
+              sendError: undefined,
               sending: false,
             })
           }
