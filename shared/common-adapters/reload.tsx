@@ -193,4 +193,4 @@ export default Container.connect(
     style: ownProps.style,
     title: ownProps.title,
   })
-)(Reloadable)
+)(Reloadable as any)

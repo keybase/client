@@ -1,1 +1,1 @@
-export type headerNavigationOptions = (route: any) => Object
+declare function headerNavigationOptions(route: any): Object

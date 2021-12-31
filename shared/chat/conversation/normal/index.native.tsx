@@ -10,7 +10,6 @@ import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
 import {PortalHost} from '@gorhom/portal'
 import InvitationToBlock from '../../blocking/invitation-to-block'
-import {useSafeAreaInsets} from '../../../common-adapters/safe-area-view.native'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -24,15 +23,15 @@ const Conversation = React.memo((props: Props) => {
     setMaxInputArea(e.nativeEvent.layout.height)
   }, [])
 
-  const [keyboardShowing, setKeyboardShowing] = React.useState(false)
-  React.useEffect(() => {
-    const willShowSub = Kb.NativeKeyboard.addListener('keyboardWillShow', () => setKeyboardShowing(true))
-    const willHideSub = Kb.NativeKeyboard.addListener('keyboardWillHide', () => setKeyboardShowing(false))
-    return () => {
-      willShowSub.remove()
-      willHideSub.remove()
-    }
-  }, [])
+  // const [keyboardShowing, setKeyboardShowing] = React.useState(false)
+  // React.useEffect(() => {
+  //   const willShowSub = Kb.NativeKeyboard.addListener('keyboardWillShow', () => setKeyboardShowing(true))
+  //   const willHideSub = Kb.NativeKeyboard.addListener('keyboardWillHide', () => setKeyboardShowing(false))
+  //   return () => {
+  //     willShowSub.remove()
+  //     willHideSub.remove()
+  //   }
+  // }, [])
 
   // const insets = useSafeAreaInsets()
   const innerComponent = (

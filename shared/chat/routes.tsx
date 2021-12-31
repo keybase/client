@@ -1,7 +1,6 @@
 import type ChatConversation from './conversation/container'
 import type ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
 import type ChatRoot from './inbox/container'
-import type ChatAddToChannel from './conversation/info-panel/add-to-channel/container'
 import type ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
 import type ChatAttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import type ChatAttachmentGetTitles from './conversation/attachment-get-titles/container'

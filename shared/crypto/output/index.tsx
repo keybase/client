@@ -203,11 +203,13 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const onSaveAsText = () => {
     if (operation === Constants.Operations.Sign) {
-      return dispatch(CryptoGen.createDownloadSignedText())
+      dispatch(CryptoGen.createDownloadSignedText())
+      return
     }
 
     if (operation === Constants.Operations.Encrypt) {
-      return dispatch(CryptoGen.createDownloadEncryptedText())
+      dispatch(CryptoGen.createDownloadEncryptedText())
+      return
     }
   }
 
