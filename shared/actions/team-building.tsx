@@ -9,7 +9,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import {validateEmailAddress} from '../util/email-address'
 
-const closeTeamBuilding = (_: TypedState, {payload: {namespace}}: NSAction) => {
+const closeTeamBuilding = (_: TypedState /*, {payload: {namespace}}: NSAction*/) => {
   // if (namespace === 'teams') {
   // // add members wizard handles navigation
   // return false

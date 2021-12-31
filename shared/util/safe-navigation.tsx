@@ -19,9 +19,9 @@ export const useSafeNavigation = () => {
   return React.useMemo(
     () => ({
       safeNavigateAppendPayload: ({path, replace}: SafeNavigateAppendArg) =>
-        isFocused && RouteTreeGen.createNavigateAppend({path, replace}),
+        isFocused ? RouteTreeGen.createNavigateAppend({path, replace}) : RouteTreeGen.createNavigateUpNoop(),
       safeNavigateUpPayload: () =>
-        isFocused ? RouteTreeGen.createNavigateUp({}) : RouteTreeGen.createNavigateUpNoop({}),
+        isFocused ? RouteTreeGen.createNavigateUp({}) : RouteTreeGen.createNavigateUpNoop(),
     }),
     [isFocused]
   )

@@ -10,10 +10,10 @@
     "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "lib": ["ESNext", "dom"],
+    "lib": ["ESNext"],
     "module": "commonjs",
     "paths": {
-      "@electron/remote": ["override-d.ts/@electron-remote/index.d.ts"],
+      "@electron/remote": ["override-d.ts/@electron-remote/index.d.ts"]
     },
     "noErrorTruncation": true,
     "noFallthroughCasesInSwitch": true,

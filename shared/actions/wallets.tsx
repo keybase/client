@@ -21,7 +21,6 @@ import {RPCError} from '../util/errors'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {TypedActions, TypedState} from '../util/container'
-import {Action} from 'redux'
 
 const stateToBuildRequestParams = (state: TypedState) => ({
   amount: state.wallets.building.amount,
@@ -1071,7 +1070,7 @@ const acceptDisclaimer = () =>
 const checkDisclaimer = async (_: WalletsGen.CheckDisclaimerPayload, logger: Saga.SagaLogger) => {
   try {
     const accepted = await RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
-    const actions: Array<Action> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
+    const actions: Array<TypedActions> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
     if (!accepted) {
       return actions
     }
@@ -1086,7 +1085,7 @@ const checkDisclaimer = async (_: WalletsGen.CheckDisclaimerPayload, logger: Sag
   } catch (err_) {
     const err = err_ as RPCError
     logger.error(`Error checking wallet disclaimer: ${err.message}`)
-    return false
+    return null
   }
 }
 

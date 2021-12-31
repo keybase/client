@@ -18,7 +18,7 @@ class List2<T> extends PureComponent<Props<T>> {
     return this.props.renderItem(index, item)
   }
 
-  _getItemLayout = (data: Array<T> | null, index: number) => {
+  _getItemLayout = (data: Array<T> | null | undefined, index: number) => {
     switch (this.props.itemHeight.type) {
       case 'fixed':
         return {index, length: this.props.itemHeight.height, offset: this.props.itemHeight.height * index}
@@ -53,7 +53,7 @@ class List2<T> extends PureComponent<Props<T>> {
       <View style={styles.outerView}>
         {/* need windowSize so iphone 6 doesn't have OOM issues */}
         <List
-              overScrollMode="never"
+          overScrollMode="never"
           bounces={this.props.bounces}
           renderItem={this._itemRender}
           data={this.props.items}

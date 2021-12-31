@@ -109,4 +109,4 @@ export default Container.connect(
       width,
     }
   }
-)(ImageAttachment) as any
+)(ImageAttachment as any) as any

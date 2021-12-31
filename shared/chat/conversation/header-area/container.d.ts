@@ -1,1 +1,1 @@
-export const headerNavigationOptions = (route: any) => Object
+export type headerNavigationOptions = (route: any) => Object

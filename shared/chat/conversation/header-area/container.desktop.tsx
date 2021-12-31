@@ -3,5 +3,4 @@ const usesDifferentHeader = () => null
 export default usesDifferentHeader
 
 // TODO?
-export const headerNavigationOptions = route => ({
-})
+export const headerNavigationOptions = (/*route*/) => ({})

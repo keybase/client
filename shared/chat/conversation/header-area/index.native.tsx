@@ -1,8 +1,7 @@
 import * as React from 'react'
-import {Avatar, Box2, HeaderHocHeader, Icon, Text, ConnectedUsernames} from '../../../common-adapters'
+import {Avatar, Box2, Icon, Text, ConnectedUsernames} from '../../../common-adapters'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
 import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
 
 export type Props = {
   badgeNumber?: number

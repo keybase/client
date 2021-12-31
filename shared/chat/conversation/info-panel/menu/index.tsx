@@ -6,7 +6,6 @@ import * as TeamTypes from '../../../../constants/types/teams'
 import * as InfoPanelCommon from '../common'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
-import flags from '../../../../util/feature-flags'
 
 export type ConvProps = {
   fullname: string

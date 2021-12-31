@@ -13,7 +13,7 @@ import * as Tabs from '../../../constants/tabs'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-  progress: any
+  progress?: any
 }
 
 const HeaderBranch = (props: Props & {progress: any}) => {

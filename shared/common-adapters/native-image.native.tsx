@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import {Image, ImageProps, ImageURISource} from 'react-native'
-import RNFI from 'react-native-fast-image'
+import {Image, ImageProps} from 'react-native'
+import RNFI, {Source} from 'react-native-fast-image'
 import isArray from 'lodash/isArray'
 import LoadingStateView from './loading-state-view'
 
@@ -50,11 +50,11 @@ class FastImageImpl extends React.Component<
       return null
     }
 
-    let source: ImageURISource
+    let source: Source
     if (isArray(this.props.source)) {
-      source = this.props.source[0] // TODO smarter choice?
+      source = {uri: this.props.source[0].uri} // TODO smarter choice?
     } else {
-      source = this.props.source
+      source = {uri: this.props.source.uri}
     }
 
     if (!source || !source.uri) {
@@ -72,7 +72,7 @@ class FastImageImpl extends React.Component<
             this.props.style,
             this.props.showLoadingStateUntilLoaded && this.state.loading && styles.absolute,
             {opacity},
-          ])}
+          ] as const)}
           onLoadStart={this._onLoadStart}
           onLoadEnd={this._onLoadEnd}
           onProgress={this._onProgress}

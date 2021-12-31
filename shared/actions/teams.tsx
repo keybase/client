@@ -26,8 +26,8 @@ import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import {RPCError} from '../util/errors'
-import flags from '../util/feature-flags'
-import {appendNewTeamBuilder} from './typed-routes'
+// import flags from '../util/feature-flags'
+// import {appendNewTeamBuilder} from './typed-routes'
 
 async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
   const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
@@ -1111,7 +1111,7 @@ const refreshTeamRoleMap = async (
 }
 
 const teamDeletedOrExit = (
-  action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
+  //action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
 ) => {
   if (Router2Constants.getCurrentTab() == Tabs.teamsTab) {
     return RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
@@ -1545,7 +1545,7 @@ const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
 const setTeamWizardChannels = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard6Subteams'}]})
 const setTeamWizardSubteams = () => TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
-const startAddMembersWizard = (action: TeamsGen.StartAddMembersWizardPayload) =>
+const startAddMembersWizard = (/*action: TeamsGen.StartAddMembersWizardPayload*/) =>
   RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamFromWhere']})
 const finishNewTeamWizard = async (state: TypedState) => {
   const {name, description, open, openTeamJoinRole, profileShowcase, addYourself} = state.teams.newTeamWizard
