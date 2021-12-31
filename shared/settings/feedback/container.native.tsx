@@ -13,7 +13,7 @@ type OwnProps = Container.RouteProps<{heading: string; feedback: string}>
 
 export type State = {
   sending: boolean
-  sendError: Error | null
+  sendError?: Error
 }
 export type Props = {
   chat: Object
@@ -39,7 +39,7 @@ class FeedbackContainer extends React.Component<Props, State> {
   private timeoutID?: ReturnType<typeof setTimeout>
 
   state = {
-    sendError: null,
+    sendError: undefined,
     sending: false,
   }
   private dumpLogs = () => logger.dump().then(writeLogLinesToFile)

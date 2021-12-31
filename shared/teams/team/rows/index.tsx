@@ -13,7 +13,7 @@ import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers
 import MemberRow from './member-row/container'
 import {BotRow, AddBotRow} from './bot-row'
 import {RequestRow, InviteRow} from './invite-row'
-import {SubteamAddRow, SubteamInfoRow} from './subteam-row'
+import {SubteamAddRow, SubteamInfoRow, SubteamTeamRow } from './subteam-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import {EmojiItemRow, EmojiAddRow, EmojiHeader} from './emoji-row'
 import LoadingRow from './loading'
@@ -119,7 +119,7 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
     sections.push(requestsSection)
   }
   if (details.invites?.size) {
-    empty = false
+    // empty = false
     sections.push({
       collapsed,
       data: collapsed ? [] : [...details.invites].sort(sortInvites),

@@ -95,7 +95,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const newMemberCount = 0 // TODO plumbing
 
   // const mostRecentInviteLink = Constants.maybeGetMostRecentValidInviteLink(details.inviteLinks)
-  const validInviteLinkCount = Constants.countValidInviteLinks(details.inviteLinks)
+  // const validInviteLinkCount = Constants.countValidInviteLinks(details.inviteLinks)
 
   const callbacks = useHeaderCallbacks(teamID)
 

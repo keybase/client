@@ -31,7 +31,6 @@ import {
   SelectedUser,
   ServiceIdWithContact,
 } from '../constants/types/team-building'
-import RolePickerHeaderAction from './role-picker-header-action'
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
 
 export const numSectionLabel = '0-9'

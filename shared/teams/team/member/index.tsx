@@ -40,12 +40,12 @@ export type MemberProps = {
 
 export type Props = MemberProps & RolePickerSpecificProps
 
-const useCloseIfNoLongerInTeam = (type: Types.TeamRoleType | null) => {
+const useCloseIfNoLongerInTeam = (type: Types.TeamRoleType | null | undefined) => {
   const prevType = Container.usePrevious(type)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   React.useEffect(() => {
-    if (type === null && prevType !== null) {
+    if (!type && !!prevType !== !!type) {
       dispatch(nav.safeNavigateUpPayload())
     }
   })

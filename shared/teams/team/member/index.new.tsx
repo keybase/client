@@ -384,7 +384,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
             Styles.globalStyles.flexGrow,
             styles.inviteTeamInfo,
             styles.contentCollapsedFixedHeight,
-          ])}
+          ] as const)}
         >
           <Kb.Avatar teamname={props.node.teamname} size={32} />
           <Kb.Box2

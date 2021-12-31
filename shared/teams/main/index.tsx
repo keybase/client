@@ -244,7 +244,7 @@ class Teams extends React.PureComponent<Props, State> {
       }
       case 'team': {
         const team = item.team
-        const reset = this.props.teamresetusers.get(team.id)
+        // const reset = this.props.teamresetusers.get(team.id)
         // const resetUserCount = (reset && reset.size) || 0
         return <TeamRowNew firstItem={index === 2} showChat={!Styles.isMobile} teamID={team.id} />
       }

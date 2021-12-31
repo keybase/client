@@ -113,4 +113,4 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
     signed,
     summary,
   }
-})(SEP7Confirm)
+})(SEP7Confirm as any)

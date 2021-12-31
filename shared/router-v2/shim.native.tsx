@@ -4,7 +4,6 @@ import * as Styles from '../styles'
 import * as Shared from './shim.shared'
 import * as Container from '../util/container'
 // import {SafeAreaProvider} from 'react-native-safe-area-context'
-import {useHeaderHeight, getDefaultHeaderHeight, SafeAreaProviderCompat} from '@react-navigation/elements'
 import {SafeAreaView} from 'react-native'
 
 export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
