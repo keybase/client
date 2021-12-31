@@ -634,11 +634,7 @@ const mergeProps = (
   }
 }
 
-const Connected = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-)(TeamBuilding)
+const Connected = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamBuilding)
 
 type RealOwnProps = Container.RouteProps<{
   namespace: Types.AllowedNamespace
@@ -695,9 +691,17 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         showServiceResultCount={false}
         focusInputCounter={this.state.focusInputCounter}
         incFocusInputCounter={this._incFocusInputCounter}
-        title={Container.getRouteProps(this.props, 'title', '')}
-        goButtonLabel={Container.getRouteProps(this.props, 'goButtonLabel', 'Start')}
-        recommendedHideYourself={Container.getRouteProps(this.props, 'recommendedHideYourself', false)}
+        title={
+            // @ts-ignore
+                Container.getRouteProps(this.props, 'title', '')}
+        goButtonLabel={
+          // @ts-ignore
+          Container.getRouteProps(this.props, 'goButtonLabel', 'Start')
+        }
+        recommendedHideYourself={
+          // @ts-ignore
+          Container.getRouteProps(this.props, 'recommendedHideYourself', false)
+        }
       />
     )
   }

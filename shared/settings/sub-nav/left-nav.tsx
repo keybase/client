@@ -11,6 +11,7 @@ import {keybaseFM} from '../../constants/whats-new'
 type Props = {
   onClick: (string) => void
   selected: string
+  contactsLabel: string
 }
 
 const LeftNav = (props: Props) => {

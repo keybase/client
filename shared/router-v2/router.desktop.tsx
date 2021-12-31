@@ -5,7 +5,7 @@ import * as Styles from '../styles'
 import * as React from 'react'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createStackNavigator} from '@react-navigation/stack'
-import {NavigationContainer} from '@react-navigation/native'
+import {NavigationContainer, Theme} from '@react-navigation/native'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import * as Shim from './shim.desktop'
 import * as Common from './common.desktop'
@@ -376,7 +376,7 @@ const AppTabs = () => {
   return (
     <Tab.Navigator
       backBehavior="none"
-      screenOptions={({route}) => {
+      screenOptions={() => {
         return {
           ...Common.defaultNavigationOptions,
           tabBarHideOnKeyboard: true,

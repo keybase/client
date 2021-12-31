@@ -10,10 +10,12 @@ type Props = Container.RouteProps<{teamID: TeamsTypes.TeamID}>
 const CreateChannels = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', TeamsTypes.noTeamID)
   const dispatch = Container.useDispatch()
-  React.useEffect(() => () => dispatch(TeamsGen.createSetChannelCreationError({error: ''})), [
-    teamID,
-    dispatch,
-  ])
+  React.useEffect(
+    () => () => {
+      dispatch(TeamsGen.createSetChannelCreationError({error: ''}))
+    },
+    [teamID, dispatch]
+  )
   const waiting = Container.useSelector(s => s.teams.creatingChannels)
   const error = Container.useSelector(s => s.teams.errorInChannelCreation)
   const prevWaiting = Container.usePrevious(waiting)

@@ -9,10 +9,8 @@ import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import capitalize from 'lodash/capitalize'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
-import flags from '../../util/feature-flags'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
-import {InviteItem} from './invites/invite-item'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
   const dispatch = Container.useDispatch()
@@ -32,10 +30,9 @@ type FeatureTeamCardProps = {teamID: Types.TeamID}
 const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
   const dispatch = Container.useDispatch()
   const onFeature = () => dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
-  const onNoThanks = React.useCallback(
-    () => dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false})),
-    [dispatch]
-  )
+  const onNoThanks = React.useCallback(() => {
+    dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false}))
+  }, [dispatch])
   // Automatically dismisses this when the user navigates away
   React.useEffect(() => onNoThanks, [onNoThanks])
   const waiting = Container.useAnyWaiting(Constants.setMemberPublicityWaitingKey(teamID))
@@ -97,7 +94,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
 
-  const mostRecentInviteLink = Constants.maybeGetMostRecentValidInviteLink(details.inviteLinks)
+  // const mostRecentInviteLink = Constants.maybeGetMostRecentValidInviteLink(details.inviteLinks)
   const validInviteLinkCount = Constants.countValidInviteLinks(details.inviteLinks)
 
   const callbacks = useHeaderCallbacks(teamID)
@@ -227,7 +224,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </>
   )
 
-  const additionalValidIndicator = validInviteLinkCount > 1 ? `(${validInviteLinkCount} active)` : ''
+  // const additionalValidIndicator = validInviteLinkCount > 1 ? `(${validInviteLinkCount} active)` : ''
   const addInviteAndLinkBox =
     justFinishedAddWizard && !meta.showcasing ? (
       <FeatureTeamCard teamID={props.teamID} />

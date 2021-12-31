@@ -170,7 +170,7 @@ const makeTabStack = tab => {
     Comp = ({navigation, route}) => {
       const dispatch = Container.useDispatch()
       React.useEffect(() => {
-        const unsubscribe = navigation.addListener('tabLongPress', e => {
+        const unsubscribe = navigation.addListener('tabLongPress', () => {
           dispatch(RouteTreeGen.createTabLongPress({tab}))
         })
         return unsubscribe
@@ -283,10 +283,10 @@ const theme: Theme = {
   dark: false,
   colors: {
     get primary() {
-      return Styles.globalColors.fastBlank
+      return Styles.globalColors.fastBlank as string
     },
     get background() {
-      return Styles.globalColors.fastBlank
+      return Styles.globalColors.fastBlank as string
     },
     get card() {
       return Styles.globalColors.white

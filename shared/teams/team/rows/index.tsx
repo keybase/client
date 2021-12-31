@@ -9,12 +9,11 @@ import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Constants from '../../../constants/chat2'
 import {Section as _Section} from '../../../common-adapters/section-list'
-import flags from '../../../util/feature-flags'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import MemberRow from './member-row/container'
 import {BotRow, AddBotRow} from './bot-row'
-import {RequestRow, InviteRow, InvitesEmptyRow} from './invite-row'
-import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
+import {RequestRow, InviteRow} from './invite-row'
+import {SubteamAddRow, SubteamInfoRow} from './subteam-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import {EmojiItemRow, EmojiAddRow, EmojiHeader} from './emoji-row'
 import LoadingRow from './loading'
@@ -91,9 +90,9 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
   const sections: Array<Section> = []
   const resetMembers = [...details.members?.values()].filter(m => m.status === 'reset')
 
-  let empty = true
+  // let empty = true
   if (details.requests?.size || resetMembers.length) {
-    empty = false
+    // empty = false
     const requestsSection: _Section<
       Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>,
       SectionExtras

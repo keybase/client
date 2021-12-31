@@ -1,9 +1,7 @@
-import * as Tabs from '../constants/tabs'
 import * as Kbfs from '../fs/common'
 import * as FsConstants from '../constants/fs'
 import Loading from '../login/loading'
 import * as Styles from '../styles'
-import {IconType} from '../common-adapters/icon.constants-gen'
 import * as ConfigConstants from '../constants/config'
 import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -30,7 +28,9 @@ const useConnectNavToRedux = () => {
         dispatch(ConfigGen.createSetNavigator({navigator}))
 
         if (__DEV__) {
+          // @ts-ignore
           window.DEBUGNavigator = Constants.navigationRef_.current
+          // @ts-ignore
           window.DEBUGRouter2 = Constants
           console.log('aaaa debug nav', Constants.navigationRef_.current)
         }

@@ -64,7 +64,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
       <Kb.FloatingPicker
         items={items}
         selectedValue={selected}
-        onSelect={setSelected}
+        onSelect={s => s !== null && setSelected(s)}
         prompt={<Prompt />}
         promptString="Pick a display currency"
         onHidden={onClose}

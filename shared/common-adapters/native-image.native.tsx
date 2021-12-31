@@ -67,7 +67,7 @@ class FastImageImpl extends React.Component<
     return (
       <>
         <RNFI
-          {...this.props}
+          {...(this.props as any)}
           style={Styles.collapseStyles([
             this.props.style,
             this.props.showLoadingStateUntilLoaded && this.state.loading && styles.absolute,

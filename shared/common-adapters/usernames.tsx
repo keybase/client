@@ -95,7 +95,7 @@ const UsernameText = (
           userStyle,
           props.style,
           props.type.startsWith('Body') && styles.kerning,
-        ])
+        ] as const)
 
         // Make sure onClick is undefined when _onUsernameClicked is, so
         // as to not override any existing onClick handler from containers
@@ -169,7 +169,9 @@ UsernameText.defaultProps = {
 const inlineProps = Styles.isMobile ? {lineClamp: 1 as const} : {}
 
 const _Usernames = (props: Props) => {
-  const containerStyle = props.inline ? styles.inlineStyle : styles.nonInlineStyle
+  const containerStyle: Styles.StylesCrossPlatform = props.inline
+    ? (styles.inlineStyle as any)
+    : (styles.nonInlineStyle as any)
   const bgMode = props.backgroundMode || null
   const isNegative = backgroundModeIsNegative(bgMode)
 
@@ -297,7 +299,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       textDecoration: 'inherit',
     },
-  }),
+  } as const),
 }))
 
 export {UsernameText}

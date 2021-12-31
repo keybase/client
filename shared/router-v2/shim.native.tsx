@@ -25,7 +25,7 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => 
     // we try and determine the  offset based on seeing if the header exists
     // this isn't perfect and likely we should move where this avoiding view is relative to the stack maybe
     // but it works for now
-    let headerHeight: number | undefined = undefined
+    // let headerHeight: number | undefined = undefined
     // let usesNav2Header = false
     // if (navigationOptions) {
     // // explicitly passed a getter?
@@ -53,11 +53,11 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => 
     // if (isModal && Styles.isMobile) {
     // headerHeight = 54
     // }
-    const uhh = useHeaderHeight()
+    // const uhh = useHeaderHeight()
     // const insets = Kb.useSafeAreaInsets()
-    headerHeight = isModal
-      ? getDefaultHeaderHeight(SafeAreaProviderCompat.initialMetrics.frame, isModal, 0)
-      : uhh
+    // headerHeight = isModal
+    //   ? getDefaultHeaderHeight(SafeAreaProviderCompat.initialMetrics.frame, isModal, 0)
+    //   : uhh
     // console.log('aaa keyboard', uhh, insets, headerHeight)
     //
     let wrap = body

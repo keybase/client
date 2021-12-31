@@ -3,7 +3,6 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {typeToLabel} from '../../../../../constants/teams'
 import {TeamRoleType} from '../../../../../constants/types/teams'
-import flags from '../../../../../util/feature-flags'
 
 export type Props = {
   isKeybaseUser?: boolean
@@ -63,12 +62,12 @@ const _TeamInviteMenu = (props: Kb.PropsWithOverlay<{onCancelInvite?: () => void
 }
 const TeamInviteMenu = Kb.OverlayParentHOC(_TeamInviteMenu)
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-  },
-  usernameRole: {
-    flex: 1,
-    marginLeft: Styles.globalMargins.small,
-  },
-}))
+// const styles = Styles.styleSheetCreate(() => ({
+//   container: {
+//     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+//   },
+//   usernameRole: {
+//     flex: 1,
+//     marginLeft: Styles.globalMargins.small,
+//   },
+// }))

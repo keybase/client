@@ -1,10 +1,7 @@
 import * as RR from 'react-redux'
 import {TypedState} from '../constants/reducer'
-import flags from './feature-flags'
 import shallowEqual from 'shallowequal'
 import {red} from './local-console'
-
-const checkedMSP = new WeakMap()
 
 const compareAndComplain = (msp: any, try1: any, try2: any, loc: any) => {
   if (!shallowEqual(try1, try2)) {

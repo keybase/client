@@ -44,7 +44,6 @@ export const HeaderRightActions = Container.connect(
   (s, d, _) => ({
     loading: s._accountID === Types.noAccountID,
     noDisclaimer: s.noDisclaimer,
-    onBuy: d.onBuy,
     onReceive: () => d._onReceive(s._accountID),
     onSettings: d.onSettings,
   })

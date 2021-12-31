@@ -4,13 +4,11 @@ import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
-import Header from './header'
 import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
 import {memoize} from '../../util/memoize'
 import {pluralize} from '../../util/string'
-import flags from '../../util/feature-flags'
 
 type DeletedTeam = {
   teamName: string
@@ -213,9 +211,9 @@ class Teams extends React.PureComponent<Props, State> {
     this.setState({sawChatBanner: true})
     this.props.onHideChatBanner()
   }
-  private onOpenFolder = id => this.props.onOpenFolder(id)
-  private onManageChat = id => this.props.onManageChat(id)
-  private onViewTeam = (teamID: Types.TeamID) => this.props.onViewTeam(teamID)
+  // private onOpenFolder = id => this.props.onOpenFolder(id)
+  // private onManageChat = id => this.props.onManageChat(id)
+  // private onViewTeam = (teamID: Types.TeamID) => this.props.onViewTeam(teamID)
 
   private renderItem = (index: number, item: Row) => {
     switch (item.type) {
@@ -247,7 +245,7 @@ class Teams extends React.PureComponent<Props, State> {
       case 'team': {
         const team = item.team
         const reset = this.props.teamresetusers.get(team.id)
-        const resetUserCount = (reset && reset.size) || 0
+        // const resetUserCount = (reset && reset.size) || 0
         return <TeamRowNew firstItem={index === 2} showChat={!Styles.isMobile} teamID={team.id} />
       }
     }

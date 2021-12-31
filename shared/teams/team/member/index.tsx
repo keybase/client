@@ -22,7 +22,7 @@ export type MemberProps = {
   following: boolean
   loading: boolean
   user: {
-    type: Types.TeamRoleType | null
+    type: Types.TeamRoleType | null | undefined
     username: string
   }
   teamID: Types.TeamID

@@ -7,7 +7,7 @@ import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-rout
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
 import {useSelector as RRuseSelector, useDispatch as RRuseDispatch, TypedUseSelectorHook} from 'react-redux'
-import {Dispatch} from 'redux'
+import {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
 
 // to keep fallback objects static for react
@@ -45,7 +45,7 @@ export function getRoutePropsOr<O extends _RouteProps<any>, R extends GetRouteTy
 export type RemoteWindowSerializeProps<P> = {[K in keyof P]-?: (val: P[K], old?: P[K]) => any}
 
 export type TypedDispatch = (action: _TypedActions) => void
-// export type Dispatch = TypedDispatch
+export type Dispatch = TypedDispatch
 
 export const useAnyWaiting = (...waitingKeys: string[]) =>
   useSelector(state => anyWaiting(state, ...waitingKeys))
@@ -110,5 +110,5 @@ export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
 export {default as useWatchActions} from './use-watch-actions'
 export type RootState = _TypedState
-export const useDispatch = () => RRuseDispatch<Dispatch<_TypedActions>>()
+export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
 export const useSelector: TypedUseSelectorHook<RootState> = RRuseSelector

@@ -278,7 +278,6 @@ const TeamMember = (props: OwnProps) => {
         }
         keyExtractor={item => `member:${username}:${item.teamname}`}
         onScroll={onScroll.current}
-        style={styles.list}
       />
     </Kb.Box2>
   )

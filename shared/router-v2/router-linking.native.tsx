@@ -122,6 +122,7 @@ const makeLinking = (options: OptionsType) => {
         console.log('bbb getsatefrompath', path)
         const [, id] = path.split('/')
         return Container.produce(getStateFromPath('chat/REPLACE', options), draft => {
+          // @ts-ignore
           draft.routes[0].state.routes[0].state.routes[1].params.conversationIDKey = id
         })
       } else {
