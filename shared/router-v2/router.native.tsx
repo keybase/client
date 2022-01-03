@@ -77,7 +77,8 @@ const TabBarIcon = props => {
   const onSettings = routeName === Tabs.settingsTab
   const navBadges = Container.useSelector(state => state.notifications.navBadges)
   const pushHasPermissions = Container.useSelector(state => state.push.hasPermissions)
-  const badgeNumber = (onSettings ? settingsTabChildren : [routeName]).reduce(
+  const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
+  const badgeNumber = tabsToCount.reduce(
     (res, tab) => res + (navBadges.get(tab) || 0),
     // notifications gets badged on native if there's no push, special case
     onSettings && !pushHasPermissions ? 1 : 0
@@ -271,7 +272,7 @@ const LoggedOut = () => (
   <LoggedOutStack.Navigator
     initialRouteName="login"
     screenOptions={{
-      tabBarHideOnKeyboard: true,
+      // tabBarHideOnKeyboard: true,
       headerShown: false,
     }}
   >
@@ -316,7 +317,7 @@ const useInitialStateChangeAfterLinking = (goodLinking, onStateChange) => {
 const RootStack = createStackNavigator()
 const RNApp = () => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
-  const goodLinking = RouterLinking.useReduxToLinking(appState.current)
+  const goodLinking: any = RouterLinking.useReduxToLinking(appState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
   // we use linking and force a key change if we're in NEEDS_INIT
@@ -351,7 +352,7 @@ const RNApp = () => {
           screenOptions={{
             animationEnabled: false,
             presentation: 'modal',
-            headerLeft: HeaderLeftCancel,
+            headerLeft: () => <HeaderLeftCancel />,
             title: '',
             headerShown: false, // eventually do this after we pull apart modal2 etc
           }}

@@ -19,7 +19,7 @@ export default function SettingsItem(props: SettingsItemProps) {
   return (
     <ClickableBox
       onClick={props.onClick}
-      style={Styles.collapseStyles([styles.item, props.selected && styles.selected])}
+      style={Styles.collapseStyles([styles.item, props.selected && styles.selected] as const)}
     >
       {props.iconComponent ? (
         <props.iconComponent />

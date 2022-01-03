@@ -297,7 +297,7 @@ export const getAppPath = () => {
 
 export const navToThread = conversationIDKey => {
   const rs: any = _getNavigator()?.getRootState() ?? {}
-  const nextState = Container.produce(rs, draft => {
+  const nextState: any = Container.produce(rs as any, draft => {
     // app stack
     draft.index = 0
     // select chat tab

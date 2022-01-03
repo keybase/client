@@ -11,7 +11,7 @@ import {keybaseFM} from '../../constants/whats-new'
 type Props = {
   onClick: (string) => void
   selected: string
-  contactsLabel: string
+  contactsLabel?: string
 }
 
 const LeftNav = (props: Props) => {
@@ -45,7 +45,7 @@ const LeftNav = (props: Props) => {
 
           <SettingsItem
             text={keybaseFM}
-            iconComponent={WhatsNewIcon}
+            iconComponent={WhatsNewIcon as any}
             selected={props.selected === Constants.whatsNewTab}
             onClick={() => props.onClick(Constants.whatsNewTab)}
           />

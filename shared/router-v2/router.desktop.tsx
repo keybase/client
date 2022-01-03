@@ -351,6 +351,7 @@ const makeNavScreens = (rs, Screen, _isModal) => {
   return Object.keys(rs).map(name => {
     return (
       <Screen
+      key={name}
         navigationKey={name}
         name={name}
         getComponent={rs[name].getScreen}
@@ -400,10 +401,12 @@ const LoggedOutStack = createStackNavigator()
 const LoggedOut = () => (
   <LoggedOutStack.Navigator
     initialRouteName="login"
-    screenOptions={{
-      tabBarHideOnKeyboard: true,
-      headerShown: false,
-    }}
+    screenOptions={
+      {
+        // tabBarHideOnKeyboard: true,
+        headerShown: false,
+      } as const
+    }
   >
     {makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)}
   </LoggedOutStack.Navigator>
@@ -413,10 +416,10 @@ const theme: Theme = {
   dark: false,
   colors: {
     get primary() {
-      return Styles.globalColors.fastBlank
+      return Styles.globalColors.fastBlank as string
     },
     get background() {
-      return Styles.globalColors.fastBlank
+      return Styles.globalColors.fastBlank as string
     },
     get card() {
       return Styles.globalColors.white
@@ -460,7 +463,7 @@ const ElectronApp = () => {
         screenOptions={{
           animationEnabled: false,
           presentation: 'transparentModal',
-          headerLeft: HeaderLeftCancel,
+          headerLeft: () => <HeaderLeftCancel />,
           title: '',
           headerShown: false, // eventually do this after we pull apart modal2 etc
         }}
@@ -469,12 +472,14 @@ const ElectronApp = () => {
           <RootStack.Screen key="loading" name="loading" component={Shared.SimpleLoading} />
         )}
         {loggedInLoaded && loggedIn && (
-          <>
-            <RootStack.Screen name="loggedIn" component={AppTabs} />
+          <React.Fragment key="loggedIn">
+            <RootStack.Screen key="loggedIn" name="loggedIn" component={AppTabs} />
             {makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)}
-          </>
+          </React.Fragment>
         )}
-        {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
+        {loggedInLoaded && !loggedIn && (
+          <RootStack.Screen key="loggedOut" name="loggedOut" component={LoggedOut} />
+        )}
       </RootStack.Navigator>
     </NavigationContainer>
   )

@@ -8,7 +8,7 @@ import {tabRoots} from './routes'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as DeeplinksConstants from '../constants/deeplinks'
 
-const tabs = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+const tabs: ReadonlyArray<Tabs.Tab> = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
 type OptionsType = {
   dispatch: Container.TypedDispatch
