@@ -1,18 +1,16 @@
 import * as React from 'react'
-import * as TabConstants from '../../constants/tabs'
-import * as Kb from '../../common-adapters/mobile.native'
-import * as Constants from '../../constants/settings'
-import * as Container from '../../util/container'
-import * as Styles from '../../styles'
-import {logPerfLogPointRpcPromise} from '../../constants/types/rpc-gen'
-import {keybaseFM} from '../../constants/whats-new'
-import {isAndroid} from '../../constants/platform'
-import SettingsItem from './settings-item'
-import WhatsNewIcon from '../../whats-new/icon/container'
-// import SplitNav from './left-nav'
+import * as TabConstants from '../constants/tabs'
+import * as Kb from '../common-adapters/mobile.native'
+import * as Constants from '../constants/settings'
+import * as Container from '../util/container'
+import * as Styles from '../styles'
+import {logPerfLogPointRpcPromise} from '../constants/types/rpc-gen'
+import {keybaseFM} from '../constants/whats-new'
+import {isAndroid} from '../constants/platform'
+import SettingsItem from './sub-nav/settings-item'
+import WhatsNewIcon from '../whats-new/icon/container'
+import LeftNav from './sub-nav/left-nav'
 import noop from 'lodash/noop'
-
-const LeftNav = () => null // TODO
 
 type Props = {
   badgeNotifications?: boolean

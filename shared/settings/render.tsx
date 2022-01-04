@@ -1,20 +1,14 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
-import SettingsNav from './nav'
+import SubNav from './sub-nav'
 import {Box} from '../common-adapters'
-import {Tab} from '../constants/tabs'
 import {SettingsTab} from '../constants/settings'
 
 type Props = {
-  badgeNotifications: boolean
-  badgeNumbers: Map<Tab, number>
   children: React.ReactNode
-  hasRandomPW?: boolean
   loadHasRandomPW: () => void
   contactsLabel: string
-  logoutInProgress: boolean
-  onLogout: () => void
   onTabChange: (tab: SettingsTab) => void
   selectedTab: SettingsTab
 }
@@ -25,16 +19,7 @@ const SettingsRender = (props: Props) => {
     loadHasRandomPW()
   }, [loadHasRandomPW])
   const SettingsNavComponent = (
-    <SettingsNav
-      badgeNotifications={props.badgeNotifications}
-      badgeNumbers={props.badgeNumbers}
-      contactsLabel={props.contactsLabel}
-      logoutInProgress={props.logoutInProgress}
-      selectedTab={props.selectedTab}
-      onTabChange={props.onTabChange}
-      onLogout={props.onLogout}
-      hasRandomPW={props.hasRandomPW || null}
-    />
+    <SubNav contactsLabel={props.contactsLabel} selected={props.selectedTab} onClick={props.onTabChange} />
   )
   return Container.isPhone ? (
     SettingsNavComponent

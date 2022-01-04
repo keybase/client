@@ -10,6 +10,7 @@ import {keybaseFM} from '../../constants/whats-new'
 
 type Props = {
   onClick: (string) => void
+  navigate: (string) => void
   selected: string
   contactsLabel?: string
 }
@@ -112,7 +113,13 @@ const LeftNav = (props: Props) => {
       />
       {/* TODO: Do something with logoutInProgress once Offline is
         removed from the settings page. */}
-      <SettingsItem text="Sign out" selected={false} onClick={() => props.onClick(Constants.logOutTab)} />
+      <SettingsItem
+        text="Sign out"
+        selected={false}
+        onClick={() => {
+          props.navigate(Constants.logOutTab)
+        }}
+      />
     </Kb.ScrollView>
   )
 }

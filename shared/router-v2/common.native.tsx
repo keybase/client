@@ -1,16 +1,15 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import Header from './header/index.desktop'
 import * as Kb from '../common-adapters'
-import {HeaderLeftArrow} from '../common-adapters/header-hoc'
 import {TabActions} from '@react-navigation/core'
+import {HeaderLeftArrow} from '../common-adapters/header-hoc'
 
-export const headerDefaultStyle = {
-  height: 80,
-}
+export const headerDefaultStyle = {}
+
 const actionWidth = 64
+
+// Options used by default on all navigators
 export const defaultNavigationOptions: any = {
-  header: (p: any) => <Header {...p} />,
   headerLeft: HeaderLeftArrow,
   headerStyle: headerDefaultStyle,
   headerTitleContainerStyle: {
@@ -22,7 +21,7 @@ export const defaultNavigationOptions: any = {
   headerBackVisible: true,
   headerRightContainerStyle: {
     // backgroundColor: 'orange',
-    // width: actionWidth,
+    width: actionWidth,
     paddingRight: 8,
   },
   headerLeftContainerStyle: {
@@ -31,7 +30,7 @@ export const defaultNavigationOptions: any = {
     width: actionWidth,
   },
   headerTitle: hp => (
-    <Kb.Text type="Header" style={styles.headerTitle} lineClamp={1} center={true}>
+    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
       {hp.children}
     </Kb.Text>
   ),
@@ -41,8 +40,6 @@ const styles = Styles.styleSheetCreate(() => ({
   headerTitle: {
     // backgroundColor: 'pink',
     color: Styles.globalColors.black,
-    alignSelf: 'center',
-    marginLeft: Styles.globalMargins.xsmall,
   },
 }))
 

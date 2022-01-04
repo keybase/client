@@ -1,6 +1,6 @@
 import * as Constants from '../constants/settings'
 import type FeedbackTab from './feedback/container'
-import type SettingsSubNavgator from './sub-nav/index.desktop'
+import type Root from './root.desktop'
 import type DeleteConfirm from './delete-confirm/index'
 import type LogOutTab from './logout/container'
 import type ChangePassword from './password/container'
@@ -11,14 +11,13 @@ import type {Email, Phone, VerifyPhone} from './account/add-modals'
 export const newRoutes = {
   // MUST use screen and not getScreen for subnavs!
   settingsRoot: {
-    getScreen: (): typeof SettingsSubNavgator => require('./sub-nav/index.desktop').default,
+    getScreen: (): typeof Root => require('./root.desktop').default,
     skipShim: true,
   },
 }
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
-  // TODO connect broken
-  changePassword: {getScreen: (): typeof ChangePassword => require('./password/container').default},
+  [Constants.passwordTab]: {getScreen: (): typeof ChangePassword => require('./password/container').default},
   deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/index').default},
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>

@@ -8,7 +8,8 @@ import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterLinking from './router-linking.native'
-import {HeaderLeftArrow, HeaderLeftCancel} from '../common-adapters/header-hoc'
+import {defaultNavigationOptions} from './common.native'
+import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute, Theme} from '@react-navigation/native'
 import {createStackNavigator, TransitionPresets} from '@react-navigation/stack'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
@@ -40,36 +41,6 @@ export const headerDefaultStyle = {
   elevation: undefined, // since we use screen on android turn off drop shadow
   // headerExtraHeight is only hooked up for tablet. On other platforms, react-navigation calculates header height.
   ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
-}
-
-const actionWidth = 64
-
-// Options used by default on all navigators
-const defaultNavigationOptions: any = {
-  headerLeft: HeaderLeftArrow,
-  headerStyle: headerDefaultStyle,
-  headerTitleContainerStyle: {
-    alignItems: 'stretch',
-    // backgroundColor: 'red',
-    flexGrow: 1,
-  },
-  headerBackTitle: 'temp',
-  headerBackVisible: true,
-  headerRightContainerStyle: {
-    // backgroundColor: 'orange',
-    width: actionWidth,
-    paddingRight: 8,
-  },
-  headerLeftContainerStyle: {
-    // backgroundColor: 'yellow',
-    paddingLeft: 8,
-    width: actionWidth,
-  },
-  headerTitle: hp => (
-    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
-      {hp.children}
-    </Kb.Text>
-  ),
 }
 
 const TabBarIcon = props => {

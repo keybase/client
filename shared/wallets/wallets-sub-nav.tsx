@@ -1,6 +1,6 @@
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as Common from '../router-v2/common.desktop'
+import * as Common from '../router-v2/common'
 import * as React from 'react'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import {createStackNavigator} from '@react-navigation/stack'
