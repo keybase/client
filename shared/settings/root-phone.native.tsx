@@ -9,19 +9,9 @@ import {keybaseFM} from '../constants/whats-new'
 import {isAndroid} from '../constants/platform'
 import SettingsItem from './sub-nav/settings-item'
 import WhatsNewIcon from '../whats-new/icon/container'
-import LeftNav from './sub-nav/left-nav'
 import noop from 'lodash/noop'
 
-type Props = {
-  badgeNotifications?: boolean
-  badgeNumbers: Map<TabConstants.Tab, number>
-  contactsLabel: string
-  hasRandomPW: boolean | null
-  logoutInProgress: boolean
-  onLogout: () => void
-  onTabChange: (tab: Constants.SettingsTab) => void
-  selectedTab: Constants.SettingsTab
-}
+type Props = {navigation: any}
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
@@ -68,8 +58,14 @@ const renderItem = ({item}) => {
 }
 
 function SettingsNav(props: Props) {
-  const {badgeNumbers} = props
+  const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
+  const badgeNotifications = Container.useSelector(state => !state.push.hasPermissions)
   const statsShown = Container.useSelector(state => !!state.config.runtimeStats)
+  const {navigation} = props
+  const onTabChange = React.useCallback(s => navigation.navigate(s), [navigation])
+  const contactsLabel = Container.useSelector(state =>
+    state.settings.contacts.importEnabled ? 'Phone contacts' : 'Import phone contacts'
+  )
 
   return (
     <Kb.NativeSectionList
@@ -93,30 +89,30 @@ function SettingsNav(props: Props) {
               ...(statsShown ? [{text: 'perf'}] : []),
               {
                 icon: 'iconfont-nav-2-crypto',
-                onClick: () => props.onTabChange(Constants.cryptoTab),
+                onClick: () => onTabChange(Constants.cryptoTab),
                 text: 'Crypto',
               },
               {
                 badgeNumber: badgeNumbers.get(TabConstants.gitTab),
                 icon: 'iconfont-nav-2-git',
-                onClick: () => props.onTabChange(Constants.gitTab),
+                onClick: () => onTabChange(Constants.gitTab),
                 text: 'Git',
               },
               {
                 badgeNumber: badgeNumbers.get(TabConstants.devicesTab),
                 icon: 'iconfont-nav-2-devices',
-                onClick: () => props.onTabChange(Constants.devicesTab),
+                onClick: () => onTabChange(Constants.devicesTab),
                 text: 'Devices',
               },
               {
                 badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
                 icon: 'iconfont-nav-2-wallets',
-                onClick: () => props.onTabChange(Constants.walletsTab),
+                onClick: () => onTabChange(Constants.walletsTab),
                 text: 'Wallet',
               },
               {
                 iconComponent: WhatsNewIcon,
-                onClick: () => props.onTabChange(Constants.whatsNewTab),
+                onClick: () => onTabChange(Constants.whatsNewTab),
                 subText: `What's new?`,
                 text: keybaseFM,
               },
@@ -127,34 +123,34 @@ function SettingsNav(props: Props) {
             data: [
               {
                 badgeNumber: badgeNumbers.get(TabConstants.settingsTab),
-                onClick: () => props.onTabChange(Constants.accountTab),
+                onClick: () => onTabChange(Constants.accountTab),
                 text: 'Your account',
               },
               {
-                onClick: () => props.onTabChange(Constants.chatTab),
+                onClick: () => onTabChange(Constants.chatTab),
                 text: 'Chat',
               },
               {
-                onClick: () => props.onTabChange(Constants.contactsTab),
-                text: props.contactsLabel,
+                onClick: () => onTabChange(Constants.contactsTab),
+                text: contactsLabel,
               },
               {
-                onClick: () => props.onTabChange(Constants.fsTab),
+                onClick: () => onTabChange(Constants.fsTab),
                 text: 'Files',
               },
               {
-                badgeNumber: props.badgeNotifications ? 1 : 0,
-                onClick: () => props.onTabChange(Constants.notificationsTab),
+                badgeNumber: badgeNotifications ? 1 : 0,
+                onClick: () => onTabChange(Constants.notificationsTab),
                 text: 'Notifications',
               },
               {
-                onClick: () => props.onTabChange(Constants.displayTab),
+                onClick: () => onTabChange(Constants.displayTab),
                 text: 'Display',
               },
               ...(isAndroid
                 ? [
                     {
-                      onClick: () => props.onTabChange(Constants.screenprotectorTab),
+                      onClick: () => onTabChange(Constants.screenprotectorTab),
                       text: 'Screen protector',
                     },
                   ]
@@ -164,11 +160,11 @@ function SettingsNav(props: Props) {
           },
           {
             data: [
-              {onClick: () => props.onTabChange(Constants.aboutTab), text: 'About'},
-              {onClick: () => props.onTabChange(Constants.feedbackTab), text: 'Feedback'},
-              {onClick: () => props.onTabChange(Constants.advancedTab), text: 'Advanced'},
+              {onClick: () => onTabChange(Constants.aboutTab), text: 'About'},
+              {onClick: () => onTabChange(Constants.feedbackTab), text: 'Feedback'},
+              {onClick: () => onTabChange(Constants.advancedTab), text: 'Advanced'},
               {
-                onClick: () => props.onTabChange(Constants.logOutTab),
+                onClick: () => onTabChange(Constants.logOutTab),
                 text: 'Sign out',
                 textColor: Styles.globalColors.red,
               },
@@ -179,6 +175,9 @@ function SettingsNav(props: Props) {
       }
     />
   )
+}
+SettingsNav.navigationOptions = {
+title: 'More'
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -194,4 +193,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Styles.isPhone ? SettingsNav : LeftNav
+export default SettingsNav

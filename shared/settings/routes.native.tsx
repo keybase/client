@@ -5,13 +5,15 @@ import type ContactsJoinedModal from './contacts-joined/index.native'
 import type ManageContactsTab from './manage-contacts.native'
 import type PushPrompt from './notifications/push-prompt.native'
 import type ScreenprotectorTab from './screenprotector.native'
-import type SettingsRoot from '.'
+import type RootPhone from './root-phone.native'
 import type WalletsTab from '../wallets/wallet/container'
 import type WebLink from './web-links.native'
 import {sharedNewRoutes, sharedNewModalRoutes} from './routes.shared'
 
 export const newRoutes = {
-  settingsRoot: Container.isPhone ? {getScreen: (): typeof SettingsRoot => require('.').default} : {},
+  settingsRoot: Container.isPhone
+    ? {getScreen: (): typeof RootPhone => require('./root-phone.native').default}
+    : {},
   ...sharedNewRoutes,
   [Constants.walletsTab]: Container.isTablet
     ? {
