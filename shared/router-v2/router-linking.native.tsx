@@ -145,10 +145,7 @@ export const useReduxToLinking = (appState: Shared.AppState) => {
   const startupTab = Container.useSelector(state => state.config.startupTab)
   const startupConversation = Container.useSelector(state => {
     const {startupConversation} = state.config
-    return ChatConstants.isValidConversationIDKey(startupConversation) &&
-      state.config.startupTab === Tabs.chatTab
-      ? startupConversation
-      : undefined
+    return ChatConstants.isValidConversationIDKey(startupConversation) ? startupConversation : undefined
   })
   const showMonster = Container.useSelector(ShowMonsterSelector)
   const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
