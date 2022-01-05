@@ -10,7 +10,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterLinking from './router-linking.native'
 import {defaultNavigationOptions} from './common.native'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
-import {NavigationContainer, getFocusedRouteNameFromRoute, Theme} from '@react-navigation/native'
+import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createStackNavigator, TransitionPresets} from '@react-navigation/stack'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
@@ -259,30 +259,6 @@ const LoggedOut = () => (
   </LoggedOutStack.Navigator>
 )
 
-const theme: Theme = {
-  dark: false,
-  colors: {
-    get primary() {
-      return Styles.globalColors.fastBlank as string
-    },
-    get background() {
-      return Styles.globalColors.fastBlank as string
-    },
-    get card() {
-      return Styles.globalColors.white
-    },
-    get text() {
-      return Styles.globalColors.black
-    },
-    get border() {
-      return Styles.globalColors.black_10
-    },
-    get notification() {
-      return Styles.globalColors.black
-    },
-  },
-}
-
 const useInitialStateChangeAfterLinking = (goodLinking, onStateChange) => {
   // send onNavChanged on initial render after handling linking
   React.useEffect(() => {
@@ -322,7 +298,7 @@ const RNApp = () => {
         linking={goodLinking}
         ref={Constants.navigationRef_}
         key={String(navKey)}
-        theme={theme}
+        theme={Shared.theme}
         initialState={initialState}
         onStateChange={onStateChange}
       >

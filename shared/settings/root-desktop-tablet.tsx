@@ -1,6 +1,6 @@
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as Common from '../router-v2/common.native'
+import * as Common from '../router-v2/common'
 import * as Constants from '../constants/settings'
 import * as React from 'react'
 import * as Shim from '../router-v2/shim'
@@ -45,7 +45,7 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
 
 const styles = Styles.styleSheetCreate(() => ({
   box: {backgroundColor: Styles.globalColors.white},
-  nav: {width: 180},
+  nav: {width: Styles.isTablet ? 200 : 180},
 }))
 
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
@@ -53,6 +53,9 @@ const TabNavigator = createLeftTabNavigator()
 
 const shimmed = Shim.shim(settingsSubRoutes, false, false)
 
+// TODO on ipad this doesn't have a stack navigator so when you go into crypto you get
+// a push from the parent stack. If we care just make a generic left nav / right stack
+// that the global app / etc could use and put it here also. not worth it now
 const SettingsSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Constants.accountTab} backBehavior="none">
     {Object.keys(shimmed).map(name => (
@@ -75,4 +78,3 @@ SettingsSubNavigator.navigationOptions = {
 }
 
 export default SettingsSubNavigator
-

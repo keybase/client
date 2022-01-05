@@ -9,6 +9,7 @@ import * as Constants from '../constants/router2'
 import * as Container from '../util/container'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
+import {Theme} from '@react-navigation/native'
 
 export enum AppState {
   UNINIT, // haven't rendered the nav yet
@@ -144,3 +145,27 @@ const styles = Styles.styleSheetCreate(() => ({
     width: Styles.globalMargins.small,
   },
 }))
+
+export const theme: Theme = {
+  dark: false,
+  colors: {
+    get primary() {
+      return Styles.globalColors.fastBlank as string
+    },
+    get background() {
+      return Styles.globalColors.fastBlank as string
+    },
+    get card() {
+      return Styles.globalColors.white
+    },
+    get text() {
+      return Styles.globalColors.black
+    },
+    get border() {
+      return Styles.globalColors.black_10
+    },
+    get notification() {
+      return Styles.globalColors.black
+    },
+  },
+}

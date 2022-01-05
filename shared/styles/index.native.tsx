@@ -40,9 +40,9 @@ const util = {
     backgroundColor: globalColors.greyLight,
     height: 16,
   },
-  mediumSubNavWidth: isTablet ? '25%' : '100%',
+  mediumSubNavWidth: isTablet ? 270 : '100%',
   mediumWidth: isTablet ? 460 : '100%',
-  shortSubNavWidth: isTablet ? '15%' : '100%',
+  shortSubNavWidth: isTablet ? 162 : '100%',
 }
 
 export const desktopStyles = {

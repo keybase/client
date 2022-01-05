@@ -5,331 +5,16 @@ import * as Styles from '../styles'
 import * as React from 'react'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createStackNavigator} from '@react-navigation/stack'
-import {NavigationContainer, Theme} from '@react-navigation/native'
+import {NavigationContainer} from '@react-navigation/native'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import * as Shim from './shim.desktop'
 import * as Common from './common.desktop'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 
-/**
- * How this works:
- * There are 3 layers
- * Normal screens
- * Modal screens
- * Floating screens
- *
- * You have 2 nested routers, a tab router and modal stack
- * When the modal has a valid route ModalView is rendered, which renders AppView underneath
- * When there are no modals AppView is rendered
- * Floating is rendered to a portal on top
- */
-
 export const headerDefaultStyle = Common.headerDefaultStyle
-// const noScreenProps = {}
-// // The app with a tab bar on the left and content area on the right
-// // A single content view and n-modals on top
-// const AppView = React.memo((props: NavigationViewProps<any>) => {
-//   const {navigation, descriptors} = props
-//   const {state} = navigation
-//   const {index, routes} = state
-//   const {key} = routes[index]
-//   const descriptor = descriptors[key]
-//   const {navigation: childNav, state: childState, options} = descriptor
-//   const {routeName} = childState
-//   const selectedTab = nameToTab[routeName]
-//   // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
-//   const direction = options.headerTransparent ? 'vertical' : 'verticalReverse'
-//   const activeIndex = getActiveIndex(state)
-//   const activeKey = getActiveKey(state)
-//
-//   const sceneView = (
-//     <SceneView
-//       navigation={childNav}
-//       component={descriptor.getComponent()}
-//       screenProps={props.screenProps || noScreenProps}
-//     />
-//   )
-//   // if the header is transparent this needs to be on the same layer
-//   const scene = descriptor.options.headerTransparent ? (
-//     <Kb.Box2 direction="vertical" style={styles.transparentSceneUnderHeader}>
-//       {sceneView}
-//     </Kb.Box2>
-//   ) : (
-//     <Kb.BoxGrow style={styles.sceneContainer}>{sceneView}</Kb.BoxGrow>
-//   )
-//
-//   return (
-//     <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-//       <Kb.Box2
-//         direction={direction}
-//         fullHeight={true}
-//         style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
-//       >
-//         {scene}
-//         <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
-//           <Header
-//             loggedIn={!!selectedTab}
-//             options={descriptor.options}
-//             onPop={() => childNav.goBack(activeKey)}
-//             allowBack={activeIndex !== 0}
-//           />
-//         </Kb.Box2>
-//       </Kb.Box2>
-//     </Kb.Box2>
-//   )
-// })
-//
-// const mouseResetValue = -9999
-// const mouseDistanceThreshold = 5
-//
-// const ModalView = React.memo((props: NavigationViewProps<any>) => {
-//   const {navigation, descriptors} = props
-//   const {state} = navigation
-//   const {index, routes} = state
-//   const {key} = routes[index]
-//   const descriptor = descriptors[key]
-//   const {navigation: childNav, getComponent} = descriptor
-//
-//   // We render the app below us
-//   const appKey = routes[0].key
-//   const appNav = navigation.getChildNavigation(appKey)
-//   const appDescriptor = descriptors[appKey]
-//
-//   const Component = getComponent()
-//   const getNavigationOptions: undefined | Object | ((n: {navigation: typeof childNav}) => Object) =
-//     // @ts-ignore
-//     Component?.navigationOptions
-//   let navigationOptions: undefined | Object
-//   if (typeof getNavigationOptions === 'function') {
-//     navigationOptions = getNavigationOptions({navigation: childNav})
-//   } else if (typeof getNavigationOptions === 'object') {
-//     navigationOptions = getNavigationOptions
-//   }
-//   // @ts-ignore
-//   const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover, modal2NoClose, modal2Type} =
-//     navigationOptions ?? {}
-//
-//   const popRef = React.useRef(navigation.pop)
-//   React.useEffect(() => {
-//     popRef.current = navigation.pop
-//   }, [navigation])
-//
-//   const backgroundRef = React.useRef(null)
-//   // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
-//   // window around to count
-//   const [mouseDownX, setMouseDownX] = React.useState(mouseResetValue)
-//   const [mouseDownY, setMouseDownY] = React.useState(mouseResetValue)
-//   const onMouseDown = React.useCallback(
-//     (e: React.MouseEvent) => {
-//       const {screenX, screenY, target} = e.nativeEvent
-//       if (target !== backgroundRef.current) {
-//         return
-//       }
-//       setMouseDownX(screenX)
-//       setMouseDownY(screenY)
-//     },
-//     [setMouseDownX, setMouseDownY]
-//   )
-//   const onMouseUp = React.useCallback(
-//     (e: React.MouseEvent) => {
-//       const {screenX, screenY, target} = e.nativeEvent
-//       if (target !== backgroundRef.current) {
-//         return
-//       }
-//       const delta = Math.abs(screenX - mouseDownX) + Math.abs(screenY - mouseDownY)
-//       const dismiss = delta < mouseDistanceThreshold
-//       setMouseDownX(mouseResetValue)
-//       setMouseDownY(mouseResetValue)
-//       if (dismiss && !modal2NoClose) {
-//         popRef.current?.()
-//       }
-//     },
-//     [setMouseDownX, setMouseDownY, mouseDownX, mouseDownY, modal2NoClose]
-//   )
-//   // if the modals change clear this value
-//   React.useEffect(() => {
-//     setMouseDownX(mouseResetValue)
-//     setMouseDownY(mouseResetValue)
-//   }, [index])
-//
-//   let modal: React.ReactNode = null
-//
-//   const modalModeToStyle = new Map<ModalType, Styles.StylesCrossPlatform>([
-//     ['Default', styles.modalModeDefault],
-//     ['DefaultFullHeight', styles.modalModeDefaultFullHeight],
-//     ['DefaultFullWidth', styles.modalModeDefaultFullWidth],
-//     ['Wide', styles.modalModeWide],
-//   ])
-//
-//   if (index > 0) {
-//     if (modal2) {
-//       modal = (
-//         <Kb.Box2
-//           key="background"
-//           direction="horizontal"
-//           ref={backgroundRef}
-//           style={Styles.collapseStyles([styles.modal2Container, modal2ClearCover && styles.modal2ClearCover])}
-//           onMouseDown={onMouseDown as any}
-//           onMouseUp={onMouseUp as any}
-//         >
-//           {modal2AvoidTabs && (
-//             <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
-//           )}
-//           <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.modal2Style, modal2Style])}>
-//             <Kb.Box2 direction="vertical" style={modalModeToStyle.get(modal2Type ?? 'Default')}>
-//               <SceneView
-//                 key="ModalLayer"
-//                 navigation={childNav}
-//                 component={Component}
-//                 screenProps={props.screenProps || noScreenProps}
-//               />
-//               {!modal2ClearCover && !modal2NoClose && (
-//                 <Kb.Icon
-//                   type="iconfont-close"
-//                   onClick={() => popRef.current?.()}
-//                   color={Styles.globalColors.whiteOrWhite_75}
-//                   hoverColor={Styles.globalColors.white_40OrWhite_40}
-//                   style={styles.modal2CloseIcon}
-//                 />
-//               )}
-//             </Kb.Box2>
-//           </Kb.Box2>
-//         </Kb.Box2>
-//       )
-//     } else {
-//       modal = (
-//         <Kb.Box2 key="background" direction="vertical" style={styles.modalContainer}>
-//           <SceneView
-//             key="ModalLayer"
-//             navigation={childNav}
-//             component={Component}
-//             screenProps={props.screenProps || noScreenProps}
-//           />
-//         </Kb.Box2>
-//       )
-//     }
-//   }
-//
-//   return (
-//     <>
-//       <SceneView
-//         key="AppLayer"
-//         navigation={appNav}
-//         component={appDescriptor.getComponent()}
-//         screenProps={props.screenProps || noScreenProps}
-//       />
-//       {modal}
-//       <GlobalError />
-//       <OutOfDate />
-//     </>
-//   )
-// })
-//
-//
-// const styles = Styles.styleSheetCreate(() => {
-//   const modalModeCommon = Styles.platformStyles({
-//     isElectron: {
-//       ...Styles.desktopStyles.boxShadow,
-//       backgroundColor: Styles.globalColors.white,
-//       borderRadius: Styles.borderRadius,
-//       pointerEvents: 'auto',
-//       position: 'relative',
-//     },
-//   })
-//   return {
-//     contentArea: {
-//       flexGrow: 1,
-//       position: 'relative',
-//     },
-//     contentAreaLogin: Styles.platformStyles({
-//       isElectron: {
-//         flexGrow: 1,
-//         position: 'relative',
-//       },
-//       isMobile: {
-//         flexGrow: 1,
-//         position: 'relative',
-//       },
-//     }),
-//     modal2AvoidTabs: Styles.platformStyles({
-//       isElectron: {
-//         backgroundColor: undefined,
-//         height: 0,
-//         pointerEvents: 'none',
-//       },
-//     }),
-//     modal2ClearCover: {backgroundColor: undefined},
-//     modal2CloseIcon: Styles.platformStyles({
-//       isElectron: {
-//         cursor: 'pointer',
-//         padding: Styles.globalMargins.tiny,
-//         position: 'absolute',
-//         right: Styles.globalMargins.tiny * -4,
-//         top: 0,
-//       },
-//     }),
-//     modal2Container: {
-//       ...Styles.globalStyles.fillAbsolute,
-//       backgroundColor: Styles.globalColors.black_50OrBlack_60,
-//     },
-//     modal2Style: Styles.platformStyles({
-//       isElectron: {flexGrow: 1, pointerEvents: 'none'},
-//     }),
-//     modalContainer: {
-//       ...Styles.globalStyles.fillAbsolute,
-//     },
-//     modalModeDefault: Styles.platformStyles({
-//       common: {...modalModeCommon},
-//       isElectron: {
-//         maxHeight: 560,
-//         width: 400,
-//       },
-//     }),
-//     modalModeDefaultFullHeight: Styles.platformStyles({
-//       common: {...modalModeCommon},
-//       isElectron: {
-//         height: 560,
-//         width: 400,
-//       },
-//     }),
-//     modalModeDefaultFullWidth: Styles.platformStyles({
-//       common: {...modalModeCommon},
-//       isElectron: {
-//         height: 560,
-//         width: '100%',
-//       },
-//     }),
-//     modalModeWide: Styles.platformStyles({
-//       common: {...modalModeCommon},
-//       isElectron: {
-//         height: 400,
-//         width: 560,
-//       },
-//     }),
-//     sceneContainer: {flexDirection: 'column'},
-//     transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
-//   } as const
-// })
-//
-// type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide'
-//
-// export default ElectronApp
-
 const Tab = createLeftTabNavigator()
 
-// const fastTransitionSpec = {
-//   animation: 'spring',
-//   config: {
-//     stiffness: 1000,
-//     damping: 500,
-//     mass: 0.3,
-//     overshootClamping: true,
-//     restDisplacementThreshold: 10,
-//     restSpeedThreshold: 10,
-//   },
-// }
-
-// so we have a stack per tab?
+// so we have a stack per tab
 const tabToStack = new Map()
 const makeTabStack = tab => {
   let Comp = tabToStack.get(tab)
@@ -351,7 +36,7 @@ const makeNavScreens = (rs, Screen, _isModal) => {
   return Object.keys(rs).map(name => {
     return (
       <Screen
-      key={name}
+        key={name}
         navigationKey={name}
         name={name}
         getComponent={rs[name].getScreen}
@@ -387,7 +72,6 @@ const AppTabs = () => {
           tabBarStyle,
           tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
           tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-          // tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
         }
       }}
     >
@@ -412,30 +96,6 @@ const LoggedOut = () => (
   </LoggedOutStack.Navigator>
 )
 
-const theme: Theme = {
-  dark: false,
-  colors: {
-    get primary() {
-      return Styles.globalColors.fastBlank as string
-    },
-    get background() {
-      return Styles.globalColors.fastBlank as string
-    },
-    get card() {
-      return Styles.globalColors.white
-    },
-    get text() {
-      return Styles.globalColors.black
-    },
-    get border() {
-      return Styles.globalColors.black_10
-    },
-    get notification() {
-      return Styles.globalColors.black
-    },
-  },
-}
-
 const RootStack = createStackNavigator()
 const ElectronApp = () => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
@@ -454,7 +114,7 @@ const ElectronApp = () => {
     <NavigationContainer
       ref={Constants.navigationRef_}
       key={String(navKey)}
-      theme={theme}
+      theme={Shared.theme}
       initialState={initialState}
       onStateChange={onStateChange}
     >

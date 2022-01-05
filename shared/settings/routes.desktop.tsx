@@ -1,6 +1,6 @@
 import * as Constants from '../constants/settings'
 import type FeedbackTab from './feedback/container'
-import type Root from './root.desktop'
+import type Root from './root-desktop-tablet'
 import type DeleteConfirm from './delete-confirm/index'
 import type LogOutTab from './logout/container'
 import type ChangePassword from './password/container'
@@ -9,9 +9,8 @@ import type {DeleteModal} from './account/confirm-delete'
 import type {Email, Phone, VerifyPhone} from './account/add-modals'
 
 export const newRoutes = {
-  // MUST use screen and not getScreen for subnavs!
   settingsRoot: {
-    getScreen: (): typeof Root => require('./root.desktop').default,
+    getScreen: (): typeof Root => require('./root-desktop-tablet').default,
     skipShim: true,
   },
 }

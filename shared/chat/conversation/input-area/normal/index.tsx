@@ -421,9 +421,10 @@ class Input extends React.Component<InputProps, InputState> {
       }
     }
     const fil = filter.toLowerCase()
-    const data = (this._lastText && this._lastText.startsWith('!')
-      ? this.props.suggestBotCommands
-      : this.props.suggestCommands
+    const data = (
+      this._lastText && this._lastText.startsWith('!')
+        ? this.props.suggestBotCommands
+        : this.props.suggestCommands
     ).filter(c => c.name.includes(fil))
     return {
       data,
@@ -658,11 +659,11 @@ class Input extends React.Component<InputProps, InputState> {
           suggestionOverlayStyle={Styles.collapseStyles([
             styles.suggestionOverlay,
             infoPanelShowing && styles.suggestionOverlayWithInfoPanel,
-          ])}
+          ] as const)}
           suggestionSpinnerStyle={Styles.collapseStyles([
             styles.suggestionSpinnerStyle,
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
-          ])}
+          ] as const)}
           suggestBotCommandsUpdateStatus={this.props.suggestBotCommandsUpdateStatus}
           keyExtractors={suggestorKeyExtractors}
           transformers={this._suggestorTransformer}

@@ -16,7 +16,7 @@ const SubNav = () => {
           title={t.title}
           illustration={t.illustration}
           description={t.description}
-          onClick={() => navigator.navigate(t.tab)}
+          onClick={() => navigator.navigate(t.tab as any)}
         />
       ))}
     </Kb.Box2>
