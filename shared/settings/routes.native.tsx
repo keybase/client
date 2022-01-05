@@ -16,13 +16,9 @@ export const newRoutes = {
     ? {getScreen: (): typeof RootPhone => require('./root-phone.native').default}
     : {getScreen: (): typeof RootTablet => require('./root-tablet.native').default},
   ...sharedNewRoutes,
-  [Constants.walletsTab]: Container.isTablet
-    ? {
-        get screen() {
-          return require('../wallets/wallets-sub-nav').default
-        },
-      }
-    : {getScreen: (): typeof WalletsTab => require('../wallets/wallet/container').default},
+  ...(Container.isTablet ? {} : {
+[Constants.walletsTab]: {getScreen: (): typeof WalletsTab => require('../wallets/wallet/container').default},
+    }),
   [Constants.screenprotectorTab]: {
     getScreen: (): typeof ScreenprotectorTab => require('./screenprotector.native').default,
   },

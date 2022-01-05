@@ -8,26 +8,28 @@ export const headerDefaultStyle = {}
 
 const actionWidth = 64
 
+const DEBUGCOLORS = false
+
 // Options used by default on all navigators
 export const defaultNavigationOptions: any = {
   headerLeft: HeaderLeftArrow,
   headerStyle: headerDefaultStyle,
   headerTitleContainerStyle: {
     alignItems: 'stretch',
-    // backgroundColor: 'red',
     flexGrow: 1,
+    ...(DEBUGCOLORS ? {backgroundColor: 'red'} : {}),
   },
   headerBackTitle: 'temp',
   headerBackVisible: true,
   headerRightContainerStyle: {
-    // backgroundColor: 'orange',
     width: actionWidth,
     paddingRight: 8,
+    ...(DEBUGCOLORS ? {backgroundColor: 'orange'} : {}),
   },
   headerLeftContainerStyle: {
-    // backgroundColor: 'yellow',
     paddingLeft: 8,
     width: actionWidth,
+    ...(DEBUGCOLORS ? {backgroundColor: 'yellow'} : {}),
   },
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
@@ -38,8 +40,8 @@ export const defaultNavigationOptions: any = {
 
 const styles = Styles.styleSheetCreate(() => ({
   headerTitle: {
-    // backgroundColor: 'pink',
     color: Styles.globalColors.black,
+    ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
 }))
 

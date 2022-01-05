@@ -2,6 +2,8 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Common from '../router-v2/common'
 import * as React from 'react'
+import type AccountReloaderType from './common/account-reloader'
+import type WalletListType from './wallet-list/container'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import {createStackNavigator} from '@react-navigation/stack'
 import {RoutedOnboarding} from './onboarding/container'
@@ -15,6 +17,24 @@ const walletSubRoutes = {
   wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default},
 }
 
+const WalletsAndDetails = () => {
+  const AccountReloader = require('./common/account-reloader').default as typeof AccountReloaderType
+  const WalletList = require('./wallet-list/container').default as typeof WalletListType
+  return (
+    <AccountReloader>
+      <Kb.Box2
+        direction="vertical"
+        fullHeight={true}
+        fullWidth={true}
+        noShrink={true}
+        style={styles.walletListContainer}
+      >
+        <WalletList style={{height: '100%'}} />
+      </Kb.Box2>
+    </AccountReloader>
+  )
+}
+
 function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}) {
   const {state, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
@@ -22,8 +42,6 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
     screenOptions,
     initialRouteName,
   })
-
-  const WalletsAndDetails = require('./wallets-and-details').default
 
   return (
     <NavigationContent>
@@ -45,10 +63,17 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  box: {backgroundColor: Styles.globalColors.white},
-  nav: {width: Styles.globalStyles.mediumSubNavWidth},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      box: {backgroundColor: Styles.globalColors.white},
+      nav: {width: Styles.globalStyles.mediumSubNavWidth},
+      walletListContainer: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        borderStyle: 'solid',
+      },
+    } as const)
+)
 
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
 const TabNavigator = createLeftTabNavigator()
@@ -75,6 +100,8 @@ const RootStack = createStackNavigator()
 
 const WalletsRootNav = () => {
   const acceptedDisclaimer = Container.useSelector(state => state.wallets.acceptedDisclaimer)
+  const {HeaderTitle} = require('./nav-header/container')
+  const {HeaderRightActions} = require('./nav-header/container')
   return (
     <RootStack.Navigator>
       {acceptedDisclaimer ? (
@@ -83,9 +110,22 @@ const WalletsRootNav = () => {
           component={WalletSubNavigator}
           options={{
             ...Common.defaultNavigationOptions,
-            headerRightActions: require('./nav-header/container').HeaderRightActions,
-            headerTitle: require('./nav-header/container').HeaderTitle,
-            headerTitleContainerStyle: {left: 0, right: 16},
+            headerRightActions: () => <HeaderRightActions />,
+            headerTitle: () => <HeaderTitle />,
+            ...(Container.isTablet
+              ? {
+                  headerTitleContainerStyle: {
+                    ...Common.defaultNavigationOptions.headerTitleContainerStyle,
+                    alignSelf: 'stretch',
+                    marginHorizontal: 0,
+                    maxWidth: 9999,
+                    marginRight: 8,
+                  },
+                  headerStyle: {height: 60},
+                  headerLeftContainerStyle: {maxWidth: 0},
+                  headerRightContainerStyle: {maxWidth: 0},
+                }
+              : {}),
           }}
         />
       ) : (

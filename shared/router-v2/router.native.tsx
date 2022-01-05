@@ -55,22 +55,26 @@ const TabBarIcon = props => {
     onSettings && !pushHasPermissions ? 1 : 0
   )
   return tabToData[routeName] ? (
-    <Kb.NativeView style={tabStyles.container}>
+    <Kb.NativeView style={styles.container}>
       <Kb.Icon
         type={tabToData[routeName].icon}
         fontSize={32}
-        style={tabStyles.tab}
+        style={styles.tab}
         color={isFocused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
       />
-      {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
+      {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
       {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
     </Kb.NativeView>
   ) : null
 }
 
-const tabStyles = Styles.styleSheetCreate(
+const styles = Styles.styleSheetCreate(
   () =>
     ({
+      keyboard: {
+        flexGrow: 1,
+        position: 'relative',
+      },
       badge: Styles.platformStyles({
         common: {
           position: 'absolute',
@@ -100,23 +104,10 @@ const tabStyles = Styles.styleSheetCreate(
           paddingRight: 16,
           paddingTop: 6,
         },
-        isTablet: {
-          width: '100%',
-        },
+        isTablet: {width: '100%'},
       }),
     } as const)
 )
-
-const styles = Styles.styleSheetCreate(() => ({
-  headerTitle: {
-    // backgroundColor: 'pink',
-    color: Styles.globalColors.black,
-  },
-  keyboard: {
-    flexGrow: 1,
-    position: 'relative',
-  },
-}))
 
 // export default RNApp
 const Tab = createBottomTabNavigator()
@@ -227,6 +218,23 @@ const AppTabs = () => {
           tabBarStyle,
           tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
           tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarLabel: ({focused}) => (
+            <Kb.Text
+              style={Styles.collapseStyles([
+                styles.label,
+                Styles.isDarkMode()
+                  ? focused
+                    ? styles.labelDarkModeFocused
+                    : styles.labelDarkMode
+                  : focused
+                  ? styles.labelLightModeFocused
+                  : styles.labelLightMode,
+              ])}
+              type="BodyBig"
+            >
+              {tabToData[route.name].label}
+            </Kb.Text>
+          ),
           tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
         }
       }}
