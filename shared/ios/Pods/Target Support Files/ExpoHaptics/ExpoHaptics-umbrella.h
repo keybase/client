@@ -10,8 +10,7 @@
 #endif
 #endif
 
-#import "EXHapticsModule.h"
 
-FOUNDATION_EXPORT double EXHapticsVersionNumber;
-FOUNDATION_EXPORT const unsigned char EXHapticsVersionString[];
+FOUNDATION_EXPORT double ExpoHapticsVersionNumber;
+FOUNDATION_EXPORT const unsigned char ExpoHapticsVersionString[];
 

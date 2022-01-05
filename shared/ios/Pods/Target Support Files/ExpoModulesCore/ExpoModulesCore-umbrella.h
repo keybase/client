@@ -10,7 +10,10 @@
 #endif
 #endif
 
+#import "ExpoModulesCore/EXAppDelegatesLoader.h"
 #import "ExpoModulesCore/EXAppDelegateWrapper.h"
+#import "ExpoModulesCore/EXLegacyAppDelegateWrapper.h"
+#import "ExpoModulesCore/EXAppDefines.h"
 #import "ExpoModulesCore/EXBridgeModule.h"
 #import "ExpoModulesCore/EXDefines.h"
 #import "ExpoModulesCore/EXErrorCodes.h"
@@ -47,6 +50,9 @@
 #import "ExpoModulesCore/EXTaskLaunchReason.h"
 #import "ExpoModulesCore/EXTaskManagerInterface.h"
 #import "ExpoModulesCore/EXTaskServiceInterface.h"
+#import "ExpoModulesCore/ExpoModulesProxySpec.h"
+#import "ExpoModulesCore/JSIConversions.h"
+#import "ExpoModulesCore/JSIInstaller.h"
 #import "ExpoModulesCore/EXModuleRegistry.h"
 #import "ExpoModulesCore/EXModuleRegistryDelegate.h"
 #import "ExpoModulesCore/EXModuleRegistryAdapter.h"
@@ -65,6 +71,8 @@
 #import "ExpoModulesCore/EXModuleRegistryConsumer.h"
 #import "ExpoModulesCore/EXUIManager.h"
 #import "ExpoModulesCore/EXUtilitiesInterface.h"
+#import "ExpoModulesCore/EXRCTBridgeDelegateInterceptor.h"
+#import "ExpoModulesCore/EXReactDelegateWrapper.h"
 #import "ExpoModulesCore/EXLogManager.h"
 #import "ExpoModulesCore/EXReactFontManager.h"
 #import "ExpoModulesCore/EXReactLogHandler.h"

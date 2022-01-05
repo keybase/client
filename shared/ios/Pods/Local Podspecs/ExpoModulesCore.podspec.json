@@ -1,6 +1,6 @@
 {
   "name": "ExpoModulesCore",
-  "version": "0.4.9",
+  "version": "0.6.4",
   "summary": "The core of Expo Modules architecture",
   "description": "The core of Expo Modules architecture",
   "license": "MIT",
@@ -16,15 +16,25 @@
   "static_framework": true,
   "header_dir": "ExpoModulesCore",
   "pod_target_xcconfig": {
-    "DEFINES_MODULE": "YES"
+    "USE_HEADERMAP": "YES",
+    "DEFINES_MODULE": "YES",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++14",
+    "SWIFT_COMPILATION_MODE": "wholemodule"
   },
   "dependencies": {
     "React-Core": [
 
+    ],
+    "ReactCommon/turbomodule/core": [
+
     ]
   },
-  "source_files": "**/*.{h,m,swift}",
+  "source_files": "**/*.{h,m,mm,swift}",
   "exclude_files": "Tests/",
+  "private_header_files": [
+    "**/*+Private.h",
+    "**/Swift.h"
+  ],
   "testspecs": [
     {
       "name": "Tests",
@@ -37,7 +47,7 @@
 
         ]
       },
-      "source_files": "Tests/**/*.swift"
+      "source_files": "Tests/**/*.{m,swift}"
     }
   ],
   "swift_version": "5.4"
