@@ -23,7 +23,6 @@ import {
   Alert,
   Linking,
   NativeModules,
-  // NativeEventEmitter,
   ActionSheetIOS,
   PermissionsAndroid,
   Vibration,
@@ -64,6 +63,7 @@ const requestPermissionsToWrite = async () => {
 
 export const requestAudioPermission = async () => {
   let chargeForward = true
+  // TODO use expo-av etc and unify around that
   const Permissions = require('expo-permissions')
   let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
   if (status === Permissions.PermissionStatus.UNDETERMINED) {
@@ -135,10 +135,11 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
     // just in case to get their attention.
-    isIOS && PushNotificationIOS.addNotificationRequest({
-      id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
-      body: `Failed to save ${saveType} to camera roll`,
-    })
+    isIOS &&
+      PushNotificationIOS.addNotificationRequest({
+        id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
+        body: `Failed to save ${saveType} to camera roll`,
+      })
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
   } finally {
@@ -586,10 +587,11 @@ const manageContactsCache = async (
       SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode})
     )
     if (newlyResolved && newlyResolved.length) {
-      isIOS && PushNotificationIOS.addNotificationRequest({
-      id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
-        body: PushConstants.makeContactsResolvedMessage(newlyResolved),
-      })
+      isIOS &&
+        PushNotificationIOS.addNotificationRequest({
+          id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
+          body: PushConstants.makeContactsResolvedMessage(newlyResolved),
+        })
     }
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
       actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
@@ -874,19 +876,18 @@ const onSendAudioRecording = (action: Chat2Gen.SendAudioRecordingPayload) => {
   }
 }
 
-const onTabLongPress = (
-  state: Container.TypedState,
-  action: RouteTreeGen.TabLongPressPayload,
-) => {
-    if (action.payload.tab !== Tabs.peopleTab) return
-    const accountRows = state.config.configuredAccounts
-    const current = state.config.username
-        const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
-        if (row) {
-            return [ConfigGen.createSetUserSwitching({userSwitching: true}),
-            LoginGen.createLogin({password: new Container.HiddenString(''), username: row.username})]
-        }
-        return undefined
+const onTabLongPress = (state: Container.TypedState, action: RouteTreeGen.TabLongPressPayload) => {
+  if (action.payload.tab !== Tabs.peopleTab) return
+  const accountRows = state.config.configuredAccounts
+  const current = state.config.username
+  const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
+  if (row) {
+    return [
+      ConfigGen.createSetUserSwitching({userSwitching: true}),
+      LoginGen.createLogin({password: new Container.HiddenString(''), username: row.username}),
+    ]
+  }
+  return undefined
 }
 
 const onSetAudioRecordingPostInfo = async (
