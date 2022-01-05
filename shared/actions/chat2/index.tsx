@@ -3372,7 +3372,6 @@ const gregorPushState = (
                     const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
                     current.push({conversationIDKey, seconds})
                 } catch {
-                    console.log('aaa gregor push state fail parse')
                 }
                 return current
             },

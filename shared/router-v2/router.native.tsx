@@ -204,8 +204,6 @@ const tabBarStyle = {
 }
 
 const AppTabs = () => {
-  console.log('aaa appTab rendering')
-
   return (
     <Tab.Navigator
       backBehavior="none"
@@ -263,7 +261,6 @@ const useInitialStateChangeAfterLinking = (goodLinking, onStateChange) => {
   // send onNavChanged on initial render after handling linking
   React.useEffect(() => {
     if (goodLinking) {
-      console.log('bbb use effect good linking onstatechange')
       setTimeout(() => onStateChange(), 1)
     }
   }, [goodLinking])
@@ -276,16 +273,7 @@ const RNApp = () => {
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
   // we use linking and force a key change if we're in NEEDS_INIT
-  // while inited we cna use initialStateRef when dark mode changes, we never want both at the same time
-
-  console.log('bbb RNApp render', {
-    appState: appState.current,
-    goodLinking,
-    navKey,
-    initialState,
-    loggedIn,
-    loggedInLoaded,
-  })
+  // while inited we can use initialStateRef when dark mode changes, we never want both at the same time
 
   Shared.useSharedAfter(appState)
 

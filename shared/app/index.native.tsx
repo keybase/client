@@ -18,7 +18,6 @@ module.hot &&
 
 const Keybase = () => {
   const madeStoreRef = React.useRef(false)
-  console.log('aaa rendering root Keybase', {store, madeStoreRef, globalD: global.DEBUGStore})
 
   if (!madeStoreRef.current) {
     madeStoreRef.current = true
@@ -58,23 +57,6 @@ const Keybase = () => {
     </Provider>
   )
 }
-
-// const Keybase = () => {
-//     const val =  Uint8Array.from([0, 1,2,3,])
-//     const [force, setForce]  = React.useState(0)
-//
-//     React.useEffect(() => {
-//         const id = setTimeout(() => {
-//             setForce(n => n+ 1)
-//         }, 2000)
-//         return () => clearTimeout(id)
-//     }, [force])
-//
-//     return <View style={{backgroundColor: 'white', width: '100%', height: '100%'}}>
-//         <Text style={{color: 'black', fontSize: 40}}>{force} this is the val: {val}</Text>
-//     </View>
-//
-// }
 
 function load() {
   AppRegistry.registerComponent('Keybase', () => Keybase)

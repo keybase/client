@@ -18,11 +18,9 @@ export enum AppState {
 }
 
 const useConnectNavToRedux = () => {
-  console.log('bbb ConnectNavToRedux rendering ')
   const dispatch = Container.useDispatch()
   const setNavOnce = React.useRef(false)
   React.useEffect(() => {
-    console.log('bbb ConnectNavToRedux useeffect ', setNavOnce.current)
     if (!setNavOnce.current) {
       if (Constants.navigationRef_.isReady()) {
         setNavOnce.current = true
@@ -33,7 +31,6 @@ const useConnectNavToRedux = () => {
           window.DEBUGNavigator = Constants.navigationRef_.current
           // @ts-ignore
           window.DEBUGRouter2 = Constants
-          console.log('aaaa debug nav', Constants.navigationRef_.current)
         }
       }
     }
@@ -83,7 +80,6 @@ export const useShared = () => {
   const onStateChange = React.useCallback(() => {
     const old = oldNavPath.current
     const vp = Constants.getVisiblePath()
-    console.log('bbb onstatechnaged', vp)
     dispatch(
       RouteTreeGen.createOnNavChanged({
         navAction: undefined,
@@ -115,7 +111,6 @@ export const useSharedAfter = (appState: React.MutableRefObject<AppState>) => {
 }
 
 export const SimpleLoading = React.memo(() => {
-  console.log('bbb simle loading render')
   return (
     <Kb.Box2
       direction="vertical"

@@ -22,7 +22,6 @@ const makeLinking = (options: OptionsType) => {
   let {dispatch, startupTab, showMonster, startupFollowUser, startupConversation} = options
 
   if (__DEV__) {
-    console.log('aaa DEBUG force routes')
     const temp: string = ''
     switch (temp) {
       case 'follow':
@@ -81,9 +80,6 @@ const makeLinking = (options: OptionsType) => {
       // Check if app was opened from a deep link
       // NOTE: This can FAIL debugging in chrome
       let url = await Kb.NativeLinking.getInitialURL()
-
-      console.log('bbbb linking get initial', {url})
-
       if (url != null && !DeeplinksConstants.isValidLink(url)) {
         url = null
       }
@@ -101,14 +97,6 @@ const makeLinking = (options: OptionsType) => {
           url = `keybase://${startupTab ?? ''}`
         }
       }
-      console.log('bbbb linking get initial startuptab', {
-        url,
-        startupTab,
-        showMonster,
-        startupFollowUser,
-        startupConversation,
-      })
-
       // allow deep links sagas access to the first link
       if (DeeplinksConstants.isValidLink(url)) {
         setTimeout(() => url && dispatch(DeeplinksGen.createLink({link: url})), 1)
@@ -119,7 +107,6 @@ const makeLinking = (options: OptionsType) => {
     getStateFromPath: (path, options) => {
       // use the chat path to make the object but swap out the name with the convo id
       if (path.startsWith('convid/')) {
-        console.log('bbb getsatefrompath', path)
         const [, id] = path.split('/')
         return Container.produce(getStateFromPath('chat/REPLACE', options), draft => {
           // @ts-ignore
@@ -132,8 +119,6 @@ const makeLinking = (options: OptionsType) => {
     subscribe(listener) {
       // Listen to incoming links from deep linking
       const linkingSub = Kb.NativeLinking.addEventListener('url', ({url}: {url: string}) => {
-        console.log('bbb got subscribe link', url)
-
         // const originalURL = url
         // if (url.startsWith('keybase://chat/')) {
         // // we go into the chat loading state since the links have names and not conviIDs resolved

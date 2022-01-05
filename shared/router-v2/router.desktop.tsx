@@ -57,8 +57,6 @@ const tabBarStyle = {
 }
 
 const AppTabs = () => {
-  console.log('aaa appTab rendering')
-
   return (
     <Tab.Navigator
       backBehavior="none"
@@ -99,15 +97,6 @@ const LoggedOut = () => (
 const RootStack = createStackNavigator()
 const ElectronApp = () => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
-
-  console.log('bbb RNApp render', {
-    appState: appState.current,
-    navKey,
-    initialState,
-    loggedIn,
-    loggedInLoaded,
-  })
-
   Shared.useSharedAfter(appState)
 
   return (

@@ -259,7 +259,6 @@ export const dispatchOldAction = (
   const actions = oldActionToNewActions(action, navigationRef_.getRootState()) || []
   try {
     actions.forEach(a => {
-      console.log('aaaa nav dispatchOldAction', a)
       navigationRef_.dispatch(a)
     })
   } catch (e) {

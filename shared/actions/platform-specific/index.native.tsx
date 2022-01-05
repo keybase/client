@@ -253,39 +253,6 @@ function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRo
       return false
     })
   }
-  // RouterConstants._getNavigator()?.current?.getRootState()
-  // )
-  // console.log('aaaaa fr', fr)
-  // TODO conver
-  // if (mainOrModal === 'Main') {
-  // const tab = path && path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
-  // if (!tab) return
-  // // top level tab?
-  // if (tab.routeName === 'tabs.chatTab') {
-  // const convo = path && path[path.length - 1]
-  // // a specific convo?
-  // if (convo.routeName === 'chatConversation') {
-  // routeName = convo.routeName
-  // param = {selectedConversationIDKey: convo.params?.conversationIDKey}
-  // } else {
-  // // just the inbox
-  // routeName = tab.routeName
-  // }
-  // } else if (Tabs.isValidInitialTabString(tab.routeName)) {
-  // routeName = tab.routeName
-  // } else {
-  // return // don't write, keep the last
-  // }
-  // } else {
-  // // info panel
-  // if (mainOrModal === 'chatInfoPanel') {
-  // routeName = 'chatConversation'
-  // param = {selectedConversationIDKey: path && path[1].params.conversationIDKey}
-  // } else {
-  // // no path or unknown, default to people
-  // routeName = 'tabs.peopleTab'
-  // }
-  // }
 
   const s = JSON.stringify({param, routeName})
   // don't keep rewriting
