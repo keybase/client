@@ -19,6 +19,7 @@ module.hot &&
 
 const NativeEventsToRedux = () => {
   const dispatch = useDispatch()
+
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
       store &&
