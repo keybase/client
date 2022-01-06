@@ -27,8 +27,8 @@ export type Props = {
   layoutSnippet?: string
   layoutSnippetDecoration: RPCChatTypes.SnippetDecoration
   onHideConversation: () => void
-  onMuteConversation: () => void
-  onSelectConversation: () => void
+  onMuteConversation: (muted: boolean) => void
+  onSelectConversation?: () => void
   participantNeedToRekey: boolean
   participants: Array<string> | string
   showBold: boolean
@@ -78,6 +78,10 @@ class SmallTeam extends React.PureComponent<Props, State> {
       ? Styles.globalColors.blueGreyDark
       : this.props.backgroundColor
 
+  private onMuteConversation = () => {
+    this.props.onMuteConversation(!this.props.isMuted)
+  }
+
   render() {
     const props = this.props
     const clickProps = {
@@ -90,7 +94,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
       <SwipeConvActions
         isMuted={this.props.isMuted}
         onHideConversation={this.props.onHideConversation}
-        onMuteConversation={this.props.onMuteConversation}
+        onMuteConversation={this.onMuteConversation}
       >
         <SmallTeamBox
           {...clickProps}

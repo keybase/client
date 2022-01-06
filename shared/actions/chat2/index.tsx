@@ -2763,9 +2763,7 @@ const fetchConversationBio = async (
 
 const leaveConversation = async (action: Chat2Gen.LeaveConversationPayload) => {
   await RPCChatTypes.localLeaveConversationLocalRpcPromise(
-    {
-      convID: Types.keyToConversationID(action.payload.conversationIDKey),
-    },
+    { convID: Types.keyToConversationID(action.payload.conversationIDKey), },
     Constants.waitingKeyLeaveConversation
   )
 }
