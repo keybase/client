@@ -66,7 +66,9 @@ export {isDarkMode} from './dark-mode'
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
 ): ReadonlyArray<Object | null | false | void> => {
-  const valid = styles.filter(Boolean)
+  const valid = styles.filter(s => {
+    return !!s && Object.keys(s).length
+  })
   if (valid.length === 0) {
     return undefined as any
   }

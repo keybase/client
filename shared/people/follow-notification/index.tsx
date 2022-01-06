@@ -116,12 +116,7 @@ export const MultiFollowNotification = React.memo((props: Props) => {
       >
         {usernames.map(username => (
           <Kb.WithTooltip key={username} tooltip={username}>
-            <Kb.Avatar
-              onClick={() => props.onClickUser(username)}
-              username={username}
-              size={32}
-              style={styles.avatar}
-            />
+            <Kb.Avatar onClick="profile" username={username} size={32} style={styles.avatar} />
           </Kb.WithTooltip>
         ))}
       </Kb.ScrollView>
