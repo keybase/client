@@ -7,7 +7,7 @@ import type DbNukeConfirm from './db-nuke-confirm/container'
 import type DeleteConfirm from './delete-confirm/index'
 import type DevicesTab from '../devices/container'
 import type DisableCertPinningModal from './disable-cert-pinning-modal/container'
-import type DisplayTab from './display/container'
+import type DisplayTab from './display'
 import type FeedbackTab from './feedback/container'
 import type FsTab from './files/container'
 import type GitTab from '../git/container'
@@ -28,7 +28,7 @@ export const sharedNewRoutes = {
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
   [Constants.cryptoTab]: {getScreen: (): typeof ChatTab => require('../crypto/sub-nav').default},
   [Constants.devicesTab]: {getScreen: (): typeof DevicesTab => require('../devices/container').default},
-  [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display/container').default},
+  [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display').default},
   [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
   [Constants.gitTab]: {getScreen: (): typeof GitTab => require('../git/container').default},

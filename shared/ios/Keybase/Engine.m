@@ -187,6 +187,11 @@ RCT_EXPORT_METHOD(start) {
 #else
   NSString * simulatorVal = @"";
 #endif
+  
+  NSString * darkModeSupported = @"0";
+  if (@available(iOS 13.0, *)) {
+    darkModeSupported = @"1";
+  };
 
   NSString * appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
   NSString * appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
@@ -197,6 +202,7 @@ RCT_EXPORT_METHOD(start) {
             @"metaEventEngineReset": metaEventEngineReset,
             @"appVersionName": appVersionString,
             @"appVersionCode": appBuildString,
+            @"darkModeSupported": darkModeSupported,
             @"usingSimulator": simulatorVal,
             @"serverConfig": self.serverConfig ? self.serverConfig : @"",
             @"guiConfig": self.guiConfig ? self.guiConfig : @"",

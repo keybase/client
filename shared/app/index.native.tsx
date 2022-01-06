@@ -2,7 +2,7 @@ import * as ConfigGen from '../actions/config-gen'
 import Main from './main.native'
 import * as React from 'react'
 import configureStore from '../store/configure-store'
-import {AppRegistry, AppState} from 'react-native'
+import {AppRegistry, AppState, Appearance} from 'react-native'
 import {PortalProvider} from '@gorhom/portal'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
@@ -46,6 +46,14 @@ const Keybase = () => {
     })
     return () => appStateChangeSub?.remove()
   }, [])
+
+
+React.useEffect(() => {
+    const sub = Appearance.addChangeListener(() => {
+    store.dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
+    return () => sub?.remove()
+})
+}, [])
 
   return (
     <Provider store={store}>

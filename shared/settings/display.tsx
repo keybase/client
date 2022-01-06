@@ -1,20 +1,21 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import {DarkModePreference, isDarkModeSystemSupported} from '../../styles/dark-mode'
-import logger from '../../logger'
+import * as ConfigGen from '../actions/config-gen'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
+import * as Container from '../util/container'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import {DarkModePreference, isDarkModeSystemSupported} from '../styles/dark-mode'
+import logger from '../logger'
 
-type Props = {
-  allowAnimatedEmojis: boolean
-  darkModePreference: DarkModePreference
-  onBack: () => void
-  onSetDarkModePreference: (pref: DarkModePreference) => void
-}
-
-const Display = (props: Props) => {
+const Display = () => {
+  const allowAnimatedEmojis = Container.useSelector(state => state.config.allowAnimatedEmojis)
+  const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
   const toggleAnimatedEmoji = Container.useRPC(RPCChatTypes.localToggleEmojiAnimationsRpcPromise)
+  const dispatch = Container.useDispatch()
+  const onSetDarkModePreference = React.useCallback(
+    (preference: DarkModePreference) => dispatch(ConfigGen.createSetDarkModePreference({preference})),
+    [dispatch]
+  )
   const doToggleAnimatedEmoji = (enabled: boolean) => {
     toggleAnimatedEmoji(
       [{enabled}],
@@ -33,26 +34,26 @@ const Display = (props: Props) => {
             {isDarkModeSystemSupported() && (
               <Kb.RadioButton
                 label="Respect system settings"
-                selected={props.darkModePreference === 'system' || props.darkModePreference === undefined}
-                onSelect={() => props.onSetDarkModePreference('system')}
+                selected={darkModePreference === 'system' || darkModePreference === undefined}
+                onSelect={() => onSetDarkModePreference('system')}
               />
             )}
             <Kb.RadioButton
               label="Dark"
-              selected={props.darkModePreference === 'alwaysDark'}
-              onSelect={() => props.onSetDarkModePreference('alwaysDark')}
+              selected={darkModePreference === 'alwaysDark'}
+              onSelect={() => onSetDarkModePreference('alwaysDark')}
             />
             <Kb.RadioButton
               label={<Kb.Text type="Body">Light</Kb.Text>}
-              selected={props.darkModePreference === 'alwaysLight'}
-              onSelect={() => props.onSetDarkModePreference('alwaysLight')}
+              selected={darkModePreference === 'alwaysLight'}
+              onSelect={() => onSetDarkModePreference('alwaysLight')}
             />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             <Kb.Text type="Header">Emoji</Kb.Text>
             <Kb.Checkbox
               label="Allow animated emoji"
-              checked={props.allowAnimatedEmojis}
+              checked={allowAnimatedEmojis}
               onCheck={doToggleAnimatedEmoji}
             />
           </Kb.Box2>

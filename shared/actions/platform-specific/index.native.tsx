@@ -19,14 +19,7 @@ import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
 import {getEngine} from '../../engine/require'
 // this CANNOT be an import *, totally screws up the packager
-import {
-  Alert,
-  Linking,
-  NativeModules,
-  ActionSheetIOS,
-  PermissionsAndroid,
-  Vibration,
-} from 'react-native'
+import {Alert, Linking, NativeModules, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
 import Clipboard from '@react-native-clipboard/clipboard'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
@@ -609,39 +602,6 @@ const showContactsJoinedModal = (action: SettingsGen.ShowContactsJoinedModalPayl
     ? [RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})]
     : []
 
-// function* setupDarkMode() {
-// const NativeAppearance = NativeModules.Appearance
-// if (NativeAppearance) {
-// // eslint-disable-next-line no-inner-declarations
-// function* handleGotChangeEvent(action: any) {
-// yield Saga.delay(500)
-// yield Saga.put(action)
-// }
-
-// const channel = Saga.eventChannel(emitter => {
-// const nativeEventEmitter = new NativeEventEmitter(NativeAppearance)
-// nativeEventEmitter.addListener('appearanceChanged', ({colorScheme}) => {
-// emitter(colorScheme)
-// })
-// return () => {}
-// }, Saga.buffers.sliding(1))
-
-// let task: any
-// while (true) {
-// const mode = yield Saga.take(channel)
-// // iOS takes snapshots of the app in light/dark mode and this causes us to get a light/dark call no matter what. so
-// // throttle a bit and ignore this
-// if (task) {
-// yield Saga.cancel(task)
-// }
-// task = yield Saga._fork(
-// handleGotChangeEvent,
-// ConfigGen.createSetSystemDarkMode({dark: mode === 'dark'})
-// )
-// }
-// }
-// }
-
 let locationEmitter: ((input: unknown) => void) | null = null
 
 function* setupLocationUpdateLoop() {
@@ -996,5 +956,4 @@ export function* platformConfigSaga() {
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)
   yield Saga.spawn(setupNetInfoWatcher)
-  // yield Saga.spawn(setupDarkMode)
 }
