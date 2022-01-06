@@ -187,6 +187,9 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
   // case we can just take styles.myStyle and not render thrash
   const valid = styles.filter(Boolean)
+  if (valid.length === 0) {
+    return undefined as any
+  }
   if (valid.length === 1) {
     const s = valid[0]
     if (typeof s === 'object') {

@@ -27,7 +27,7 @@ const borderOffset = -1
 const borderSize = 1
 // Layer on top to extend outside of the image
 
-const Avatar = (props: Props) => {
+const Avatar = React.memo((props: Props) => {
   const {size} = props
   const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
   const containerStyle = Styles.collapseStyles([boxStyles[size], props.style])
@@ -81,7 +81,7 @@ const Avatar = (props: Props) => {
       </Kb.Box>
     </Kb.ClickableBox>
   )
-}
+})
 
 const makeIconStyle = (size: AvatarSize) => ({height: size, width: size})
 const iconStyles = Styles.styleSheetCreate(() => ({

@@ -1,4 +1,5 @@
 // React-native tooling assumes this file is here, so we just require our real entry point
+import './why-did-you-render'
 import './app/globals.native'
 import {Appearance, NativeModules} from 'react-native'
 import {_setSystemIsDarkMode, _setSystemSupported, _setDarkModePreference} from './styles/dark-mode'

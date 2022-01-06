@@ -279,6 +279,15 @@ const RNApp = () => {
 
   useInitialStateChangeAfterLinking(goodLinking, onStateChange)
 
+  console.log('aaa RNApp render', {
+    loggedInLoaded,
+    loggedIn,
+    appState,
+    onStateChange,
+    navKey,
+    initialState,
+  })
+
   return (
     <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
       <NavigationContainer

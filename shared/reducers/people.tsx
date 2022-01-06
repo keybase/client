@@ -47,7 +47,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.version = version
   },
   [PeopleGen.badgeAppForWotNotifications]: (draftState, action) => {
-    draftState.wotUpdates = action.payload.updates
+    // quick skip
+    if (draftState.wotUpdates.size || action.payload.updates.size) {
+      draftState.wotUpdates = action.payload.updates
+    }
   },
   [PeopleGen.setResentEmail]: (draftState, action) => {
     draftState.resentEmail = action.payload.email

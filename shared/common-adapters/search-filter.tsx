@@ -31,7 +31,7 @@ type Props = {
   focusOnMount?: boolean
   size: 'small' | 'full-width' // only affects desktop (https://zpl.io/aMW5AG3)
   negative?: boolean
-  onChange: (text: string) => void
+  onChange?: (text: string) => void
   placeholderText: string
   placeholderCentered?: boolean
   placeholderColor?: AllowedColors
@@ -113,7 +113,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
   private update = (text: string) => {
     this.setState({text})
-    this.props.onChange(text)
+    this.props.onChange?.(text)
   }
   private mouseOver = () => this.setState({hover: true})
   private mouseLeave = () => this.setState({hover: false})
