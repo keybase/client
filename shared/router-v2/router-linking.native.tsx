@@ -116,24 +116,6 @@ const makeLinking = (options: OptionsType) => {
         return getStateFromPath(path, options)
       }
     },
-    subscribe(listener) {
-      // Listen to incoming links from deep linking
-      const linkingSub = Kb.NativeLinking.addEventListener('url', ({url}: {url: string}) => {
-        // const originalURL = url
-        // if (url.startsWith('keybase://chat/')) {
-        // // we go into the chat loading state since the links have names and not conviIDs resolved
-        // url = DeeplinksConstants.convertChatURLToPending(url)
-        // }
-
-        listener(url)
-        // most of the 'plain url=>routing' happens with the above config but sometimes
-        // we need to handle more async actions in the sagas
-        dispatch(DeeplinksGen.createLink({link: url}))
-      })
-      return () => {
-        linkingSub?.remove()
-      }
-    },
   }
 }
 

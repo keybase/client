@@ -1,12 +1,13 @@
 import * as ConfigGen from '../actions/config-gen'
-import Main from './main.native'
+import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as React from 'react'
+import Main from './main.native'
 import configureStore from '../store/configure-store'
-import {AppRegistry, AppState, Appearance} from 'react-native'
+import {AppRegistry, AppState, Appearance, Linking} from 'react-native'
 import {PortalProvider} from '@gorhom/portal'
-import {Provider} from 'react-redux'
-import {makeEngine} from '../engine'
+import {Provider, useDispatch} from 'react-redux'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
+import {makeEngine} from '../engine'
 
 let store: ReturnType<typeof configureStore>['store']
 
@@ -15,6 +16,35 @@ module.hot &&
     console.log('accepted update in shared/index.native')
     store = global.DEBUGStore
   })
+
+const NativeEventsToRedux = () => {
+  const dispatch = useDispatch()
+  React.useEffect(() => {
+    const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
+      store &&
+        nextAppState !== 'unknown' &&
+        nextAppState !== 'extension' &&
+        dispatch(ConfigGen.createMobileAppState({nextAppState}))
+    })
+
+    const darkSub = Appearance.addChangeListener(() => {
+      dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
+    })
+
+    const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
+      console.log('aaa linking', url)
+      dispatch(DeeplinksGen.createLink({link: url}))
+    })
+
+    return () => {
+      appStateChangeSub?.remove()
+      darkSub?.remove()
+      linkingSub?.remove()
+    }
+  }, [])
+
+  return null
+}
 
 const Keybase = () => {
   const madeStoreRef = React.useRef(false)
@@ -37,24 +67,6 @@ const Keybase = () => {
     }
   }
 
-  React.useEffect(() => {
-    const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
-      store &&
-        nextAppState !== 'unknown' &&
-        nextAppState !== 'extension' &&
-        store.dispatch(ConfigGen.createMobileAppState({nextAppState}))
-    })
-    return () => appStateChangeSub?.remove()
-  }, [])
-
-
-React.useEffect(() => {
-    const sub = Appearance.addChangeListener(() => {
-    store.dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
-    return () => sub?.remove()
-})
-}, [])
-
   return (
     <Provider store={store}>
       <PortalProvider>
@@ -62,6 +74,7 @@ React.useEffect(() => {
           <Main />
         </SafeAreaProvider>
       </PortalProvider>
+      <NativeEventsToRedux />
     </Provider>
   )
 }
