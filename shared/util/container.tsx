@@ -91,6 +91,23 @@ export const timeoutPromise = (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
+export const debugMergeProps = __DEV__
+  ? (() => {
+      let oldsp = {}
+      let oldop = {}
+      return (sp, op) => {
+        Object.keys(oldsp).forEach(
+          key => oldsp[key] !== sp[key] && console.log('DEBUGMERGEPROPS: ', key, oldsp[key], sp[key])
+        )
+        Object.keys(oldop).forEach(
+          key => oldop[key] !== op[key] && console.log('DEBUGMERGEPROPS: ', key, oldop[key], op[key])
+        )
+        oldsp = sp || {}
+        oldop = op || {}
+      }
+    })()
+  : () => {}
+
 export {default as connect} from './typed-connect'
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'

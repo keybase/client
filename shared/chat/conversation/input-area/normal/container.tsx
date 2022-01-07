@@ -284,6 +284,7 @@ export default Container.connect(
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
+    Container.debugMergeProps(stateProps, ownProps)
     const botRestrictMap = stateProps._botSettings
       ? Constants.getBotRestrictBlockMap(stateProps._botSettings, stateProps.conversationIDKey, [
           ...stateProps.suggestBotCommands
@@ -413,5 +414,5 @@ export default Container.connect(
       userEmojis: stateProps.userEmojis,
       userEmojisLoading: stateProps.userEmojisLoading,
     }
-  },
+  }
 )(Input)

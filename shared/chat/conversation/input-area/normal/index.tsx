@@ -624,12 +624,18 @@ class Input extends React.Component<InputProps, InputState> {
     const prefix = this._getCommandPrefix(command)
     return standardTransformer(`${prefix}${command.name}`, tData, preview)
   }
-  suggestionSpinnerStyle = memoize(inputHeight => Styles.collapseStyles([styles.suggestionSpinnerStyle, inputHeight && {marginBottom: inputHeight}]))
-  suggestionListStyle= memoize(inputHeight => Styles.collapseStyles([ styles.suggestionList, !!inputHeight && {marginBottom: inputHeight} ]))
-suggestionOverlayStyle= memoize(infoPanelShowing  => Styles.collapseStyles([
-            styles.suggestionOverlay,
-            infoPanelShowing && styles.suggestionOverlayWithInfoPanel,
-          ]))
+  suggestionSpinnerStyle = memoize(inputHeight =>
+    Styles.collapseStyles([styles.suggestionSpinnerStyle, inputHeight && {marginBottom: inputHeight}])
+  )
+  suggestionListStyle = memoize(inputHeight =>
+    Styles.collapseStyles([styles.suggestionList, !!inputHeight && {marginBottom: inputHeight}])
+  )
+  suggestionOverlayStyle = memoize(infoPanelShowing =>
+    Styles.collapseStyles([
+      styles.suggestionOverlay,
+      infoPanelShowing && styles.suggestionOverlayWithInfoPanel,
+    ])
+  )
 
   render() {
     const {
@@ -659,7 +665,7 @@ suggestionOverlayStyle= memoize(infoPanelShowing  => Styles.collapseStyles([
           onChannelSuggestionsTriggered={this.props.onChannelSuggestionsTriggered}
           onFetchEmoji={this.props.onFetchEmoji}
           suggestionListStyle={this.suggestionListStyle(this.state.inputHeight)}
-          suggestionOverlayStyle={this.suggestionOverlayStyle(infoPanelShowing )}
+          suggestionOverlayStyle={this.suggestionOverlayStyle(infoPanelShowing)}
           suggestionSpinnerStyle={this.suggestionSpinnerStyle(this.state.inputHeight)}
           suggestBotCommandsUpdateStatus={this.props.suggestBotCommandsUpdateStatus}
           keyExtractors={suggestorKeyExtractors}
