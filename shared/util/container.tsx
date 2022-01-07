@@ -9,6 +9,8 @@ import {anyWaiting, anyErrors} from '../constants/waiting'
 import {useSelector as RRuseSelector, useDispatch as RRuseDispatch, TypedUseSelectorHook} from 'react-redux'
 import {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
+import typedConnect from './typed-connect'
+import isEqual from 'lodash/isEqual'
 
 // to keep fallback objects static for react
 export const emptyArray: Array<any> = []
@@ -91,24 +93,38 @@ export const timeoutPromise = (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
-export const debugMergeProps = __DEV__
-  ? (() => {
+const debugMergeProps = __DEV__
+  ? () => {
       let oldsp = {}
       let oldop = {}
       return (sp, op) => {
-        Object.keys(oldsp).forEach(
-          key => oldsp[key] !== sp[key] && console.log('DEBUGMERGEPROPS: ', key, oldsp[key], sp[key])
-        )
-        Object.keys(oldop).forEach(
-          key => oldop[key] !== op[key] && console.log('DEBUGMERGEPROPS: ', key, oldop[key], op[key])
-        )
+        Object.keys(oldsp).forEach(key => {
+          if (oldsp[key] !== sp[key] && isEqual(oldsp[key] , sp[key] )) {
+            console.log('DEBUGMERGEPROPS sp: ', key, oldsp[key], sp[key])
+          }
+        })
+        Object.keys(oldop).forEach(key => {
+          if (oldop[key] !== op[key] && isEqual(oldop[key] , op[key] )) {
+            console.log('DEBUGMERGEPROPS op: ', key, oldop[key], op[key])
+          }
+        })
         oldsp = sp || {}
         oldop = op || {}
       }
-    })()
-  : () => {}
+    }
+  : () => () => {}
 
-export {default as connect} from './typed-connect'
+const connect = __DEV__
+  ? (msp, mdp, mp) => {
+      console.log('DEBUG: using debugMergeProps connect')
+      const dmp = debugMergeProps()
+      return typedConnect(msp, mdp, (sp, dp, op) => {
+        dmp(sp, op)
+        return mp(sp, dp, op)
+      })
+    }
+  : typedConnect
+export {connect}
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
