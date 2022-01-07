@@ -539,8 +539,9 @@ class TeamBuilding extends React.PureComponent<Props> {
                       highlightDetails.section === section &&
                       highlightDetails.index === index
                     }
-                    onAdd={() => this.props.onAdd(result.userId)}
-                    onRemove={() => this.props.onRemove(result.userId)}
+                    userId={result.userId}
+                    onAdd={this.props.onAdd}
+                    onRemove={this.props.onRemove}
                   />
                 )
               }
@@ -585,8 +586,9 @@ class TeamBuilding extends React.PureComponent<Props> {
                 isYou={result.isYou}
                 followingState={result.followingState}
                 highlight={!Styles.isMobile && index === this.props.highlightedIndex}
-                onAdd={() => this.props.onAdd(result.userId)}
-                onRemove={() => this.props.onRemove(result.userId)}
+                userId={result.userId}
+                onAdd={this.props.onAdd}
+                onRemove={this.props.onRemove}
               />
             )}
           />

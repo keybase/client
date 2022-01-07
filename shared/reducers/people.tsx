@@ -6,7 +6,7 @@ import * as TeamBuildingConstants from '../constants/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Types from '../constants/types/people'
 import {editTeambuildingDraft} from './team-building'
-import shallowEqual from 'shallowequal'
+import isEqual from 'lodash/isEqual'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 
 const initialState: Types.State = {
@@ -32,16 +32,16 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [PeopleGen.peopleDataProcessed]: (draftState, action) => {
     const {payload} = action
     const {followSuggestions, lastViewed, newItems, oldItems, version} = payload
-    if (!shallowEqual(followSuggestions, draftState.followSuggestions)) {
+    if (!isEqual(followSuggestions, draftState.followSuggestions)) {
       draftState.followSuggestions = followSuggestions
     }
     if (lastViewed.getTime() !== draftState.lastViewed.getTime()) {
       draftState.lastViewed = lastViewed
     }
-    if (!shallowEqual(newItems, draftState.newItems)) {
+    if (!isEqual(newItems, draftState.newItems)) {
       draftState.newItems = newItems
     }
-    if (!shallowEqual(oldItems, draftState.oldItems)) {
+    if (!isEqual(oldItems, draftState.oldItems)) {
       draftState.oldItems = oldItems
     }
     draftState.version = version

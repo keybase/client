@@ -167,12 +167,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
           sizeType={this.iconSizeType()}
           color={this.iconColor()}
           boxStyle={styles.icon}
-          style={{
-            marginRight:
-              !Styles.isMobile && this.props.size === 'small'
-                ? Styles.globalMargins.xtiny
-                : Styles.globalMargins.tiny,
-          }}
+          style={!Styles.isMobile && this.props.size === 'small' ? styles.leftIconXTiny : styles.leftIconTiny}
         />
       )
     )
@@ -345,9 +340,7 @@ const styles = Styles.styleSheetCreate(() => ({
       cursor: 'text',
     },
   }),
-  containerCenter: {
-    justifyContent: 'center',
-  },
+  containerCenter: {justifyContent: 'center'},
   containerMobile: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.tiny,
@@ -373,20 +366,12 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.tiny,
   },
-  dark: {
-    backgroundColor: Styles.globalColors.black_10,
-  },
-  darkNegative: {
-    backgroundColor: Styles.globalColors.black_20,
-  },
+  dark: {backgroundColor: Styles.globalColors.black_10},
+  darkNegative: {backgroundColor: Styles.globalColors.black_20},
   icon: Styles.platformStyles({
-    isElectron: {
-      marginTop: 2,
-    },
+    isElectron: {marginTop: 2},
   }),
-  input: {
-    backgroundColor: Styles.globalColors.transparent,
-  },
+  input: {backgroundColor: Styles.globalColors.transparent},
   inputContainer: {
     ...Styles.globalStyles.flexGrow,
     backgroundColor: Styles.globalColors.transparent,
@@ -394,35 +379,23 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: 0,
     paddingRight: 0,
   },
-  inputNoGrow: {
-    flexGrow: 0,
-  },
-  light: {
-    backgroundColor: Styles.globalColors.black_05,
-  },
-  lightNegative: {
-    backgroundColor: Styles.globalColors.black_10,
-  },
-  removeIconFullWidth: {
-    marginLeft: Styles.globalMargins.xsmall,
-  },
-  removeIconNonFullWidth: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
+  inputNoGrow: {flexGrow: 0},
+  leftIconXTiny: {marginRight: Styles.globalMargins.xtiny},
+  leftIconTiny: {marginRight: Styles.globalMargins.tiny},
+  light: {backgroundColor: Styles.globalColors.black_05},
+  lightNegative: {backgroundColor: Styles.globalColors.black_10},
+  removeIconFullWidth: {marginLeft: Styles.globalMargins.xsmall},
+  removeIconNonFullWidth: {marginLeft: Styles.globalMargins.tiny},
   spinnerFullWidth: {
     height: 20,
     marginLeft: Styles.globalMargins.xsmall,
     width: 20,
   },
-  spinnerMobile: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
+  spinnerMobile: {marginLeft: Styles.globalMargins.tiny},
   spinnerSmall: {
     height: 16,
     marginLeft: Styles.globalMargins.tiny,
     width: 16,
   },
-  textNegative: {
-    color: Styles.globalColors.white,
-  },
+  textNegative: {color: Styles.globalColors.white},
 }))

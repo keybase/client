@@ -126,7 +126,7 @@ const deriveTeamSoFar = memoize(
     })
 )
 
-const deriveServiceResultCount = memoize((searchResults: Types.SearchResults, query: string) =>
+const _deriveServiceResultCount = memoize((searchResults: Types.SearchResults, query: string) =>
   [...(searchResults.get(trim(query)) ?? new Map<Types.ServiceIdWithContact, Array<Types.User>>()).entries()]
     .map(([key, results]) => [key, results.length] as const)
     .reduce<{[k: string]: number}>((o, [key, num]) => {
@@ -134,6 +134,14 @@ const deriveServiceResultCount = memoize((searchResults: Types.SearchResults, qu
       return o
     }, {})
 )
+const emptyObject = {}
+const deriveServiceResultCount = (searchResults: Types.SearchResults, query: string) => {
+  const val = _deriveServiceResultCount(searchResults, query)
+  if (Object.keys(val)) {
+    return val
+  }
+  return emptyObject
+}
 
 const deriveShowResults = memoize(searchString => !!searchString)
 

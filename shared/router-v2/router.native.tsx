@@ -43,7 +43,7 @@ export const headerDefaultStyle = {
   ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
 }
 
-const TabBarIcon = React.memo(props => {
+const TabBarIcon = React.memo((props: {isFocused: boolean; routeName: Tabs.Tab}) => {
   const {isFocused, routeName} = props
   const onSettings = routeName === Tabs.settingsTab
   const navBadges = Container.useSelector(state => state.notifications.navBadges)
@@ -233,7 +233,7 @@ const AppTabs = React.memo(() => {
               {tabToData[route.name].label}
             </Kb.Text>
           ),
-          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name} />,
+          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
         }
       }}
     >
