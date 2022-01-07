@@ -13,6 +13,7 @@ import Text, {
   TextTypeBold,
 } from './text'
 import {backgroundModeIsNegative} from './text.shared'
+import shallowEqual from 'shallowequal'
 
 export type User = {
   username: string
@@ -181,16 +182,23 @@ const _Usernames = (props: Props) => {
   const onOpenTracker = (username: string) =>
     dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
   const you = Container.useSelector(state => state.config.username)
-  const following = Container.useSelector(state => state.config.following)
-  const infoMap = Container.useSelector(state => state.users.infoMap)
 
   const usernamesArray = typeof props.usernames === 'string' ? [props.usernames] : props.usernames
-  const users = usernamesArray.reduce<Array<User>>((arr, username) => {
+  const followingArray = Container.useSelector(state => {
+    const {following} = state.config
+    return usernamesArray.map(user => following.has(user))
+  }, shallowEqual)
+  const brokenArray = Container.useSelector(state => {
+    const {infoMap} = state.users
+    return usernamesArray.map(user => UsersConstants.getIsBroken(infoMap, user) || false)
+  }, shallowEqual)
+
+  const users = usernamesArray.reduce<Array<User>>((arr, username, idx) => {
     const isYou = you === username
     if (!props.skipSelf || !isYou) {
       arr.push({
-        broken: UsersConstants.getIsBroken(infoMap, username) || false,
-        following: following.has(username),
+        broken: brokenArray[idx],
+        following: followingArray[idx],
         username,
         you: isYou,
       })

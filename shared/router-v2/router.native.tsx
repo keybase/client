@@ -43,7 +43,7 @@ export const headerDefaultStyle = {
   ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
 }
 
-const TabBarIcon = props => {
+const TabBarIcon = React.memo(props => {
   const {isFocused, routeName} = props
   const onSettings = routeName === Tabs.settingsTab
   const navBadges = Container.useSelector(state => state.notifications.navBadges)
@@ -66,7 +66,7 @@ const TabBarIcon = props => {
       {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
     </Kb.NativeView>
   ) : null
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -203,7 +203,7 @@ const tabBarStyle = {
   },
 }
 
-const AppTabs = () => {
+const AppTabs = React.memo(() => {
   return (
     <Tab.Navigator
       backBehavior="none"
@@ -242,10 +242,10 @@ const AppTabs = () => {
       ))}
     </Tab.Navigator>
   )
-}
+})
 
 const LoggedOutStack = createStackNavigator()
-const LoggedOut = () => (
+const LoggedOut = React.memo(() => (
   <LoggedOutStack.Navigator
     initialRouteName="login"
     screenOptions={{
@@ -255,7 +255,7 @@ const LoggedOut = () => (
   >
     {makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)}
   </LoggedOutStack.Navigator>
-)
+))
 
 const useInitialStateChangeAfterLinking = (goodLinking, onStateChange) => {
   // send onNavChanged on initial render after handling linking

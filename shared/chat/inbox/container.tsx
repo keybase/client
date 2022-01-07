@@ -224,10 +224,12 @@ const Connected = Container.connect(
       setInboxNumSmallRows: dispatchProps.setInboxNumSmallRows,
       smallTeamsExpanded: stateProps.smallTeamsExpanded || bigTeams.length === 0,
       toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
-      unreadIndices,
+      unreadIndices: unreadIndices.size ? unreadIndices : emptyMap,
       unreadTotal,
     }
   }
 )(InboxWrapper)
+
+const emptyMap = new Map()
 
 export default Connected

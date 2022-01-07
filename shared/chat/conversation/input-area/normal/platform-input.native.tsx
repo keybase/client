@@ -426,7 +426,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
           type="iconfont-arrow-full-up"
           fontSize={18}
           style={{
-            transform: [{rotate: concat(add(45, rotate), 'deg'), scale: 0.7}],
+            transform: [{rotate: concat(add(45, rotate), 'deg')}, {scale: 0.7}],
           }}
           color={Styles.globalColors.black_35}
         />
@@ -438,11 +438,9 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
           fontSize={18}
           style={{
             transform: [
-              {
-                rotate: concat(add(45, rotate), 'deg'),
-                scaleX: -0.7,
-                scaleY: -0.7,
-              },
+              { rotate: concat(add(45, rotate), 'deg'), },
+                { scaleX: -0.7, },
+                { scaleY: -0.7, }
             ],
           }}
           color={Styles.globalColors.black_35}

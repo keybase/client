@@ -2,7 +2,7 @@ import React, {PureComponent} from 'react'
 import {FlatList, View} from 'react-native'
 import * as Styles from '../styles'
 import {Props} from './list'
-import Animated from 'react-native-reanimated'
+import Animated from './reanimated'
 import noop from 'lodash/noop'
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
