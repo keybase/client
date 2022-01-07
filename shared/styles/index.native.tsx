@@ -69,6 +69,9 @@ export const collapseStyles = (
   const valid = styles.filter(s => {
     return !!s && Object.keys(s).length
   })
+  if (valid.length === styles.length) {
+    return styles
+  }
   if (valid.length === 0) {
     return undefined as any
   }

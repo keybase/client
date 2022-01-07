@@ -353,17 +353,20 @@ const Buttons = (p: ButtonsProps) => {
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
 
   const dispatch = Container.useDispatch()
-  const openEmojiPicker = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, onPickAction: insertEmoji},
-            selected: 'chatChooseEmoji',
-          },
-        ],
-      })
-    )
+  const openEmojiPicker = React.useCallback(
+    () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {conversationIDKey, onPickAction: insertEmoji},
+              selected: 'chatChooseEmoji',
+            },
+          ],
+        })
+      ),
+    [dispatch, conversationIDKey, insertEmoji]
+  )
 
   const explodingIcon = !isEditing && !cannotWrite && (
     <Kb.ClickableBox style={styles.explodingWrapper} onClick={toggleShowingMenu}>
@@ -437,11 +440,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
           type="iconfont-arrow-full-up"
           fontSize={18}
           style={{
-            transform: [
-              { rotate: concat(add(45, rotate), 'deg'), },
-                { scaleX: -0.7, },
-                { scaleY: -0.7, }
-            ],
+            transform: [{rotate: concat(add(45, rotate), 'deg')}, {scaleX: -0.7}, {scaleY: -0.7}],
           }}
           color={Styles.globalColors.black_35}
         />
