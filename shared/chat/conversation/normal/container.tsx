@@ -45,12 +45,44 @@ const NormalWrapper = React.memo(
     }, [setScrollListUpCounter, scrollListUpCounter])
 
     // on desktop on convo change focus input
-    const {conversationIDKey} = props
+    const {conversationIDKey, cannotWrite} = props
     React.useEffect(() => {
       if (!Container.isMobile) {
         setFocusInputCounter(c => c + 1)
       }
     }, [conversationIDKey])
+
+    const dispatch = Container.useDispatch()
+    const jumpToRecent = React.useCallback(() => {
+      dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
+    }, [conversationIDKey])
+
+    const onPaste = React.useCallback(
+      (data: Buffer) => {
+        dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data}))
+      },
+      [conversationIDKey]
+    )
+
+    const onToggleThreadSearch = React.useCallback(() => {
+      dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
+    }, [conversationIDKey])
+
+    const onShowTracker = React.useCallback((username: string) => {
+      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+    }, [])
+
+    const onAttach = React.useCallback(
+      (paths: Array<string>) => {
+        const pathAndOutboxIDs = paths.map(p => ({outboxID: null, path: p}))
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+          })
+        )
+      },
+      [conversationIDKey]
+    )
 
     return (
       <Normal
@@ -63,6 +95,11 @@ const NormalWrapper = React.memo(
         scrollListDownCounter={scrollListDownCounter}
         scrollListToBottomCounter={scrollListToBottomCounter}
         scrollListUpCounter={scrollListUpCounter}
+        jumpToRecent={jumpToRecent}
+        onPaste={onPaste}
+        onToggleThreadSearch={onToggleThreadSearch}
+        onShowTracker={onShowTracker}
+        onAttach={cannotWrite ? null : onAttach}
       />
     )
   }
@@ -83,41 +120,16 @@ export default Container.connect(
       showThreadSearch,
     }
   },
-  dispatch => ({
-    _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
-      const pathAndOutboxIDs = paths.map(p => ({
-        outboxID: null,
-        path: p,
-      }))
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-        })
-      )
-    },
-    _onPaste: (conversationIDKey: Types.ConversationIDKey, data: Buffer) =>
-      dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
-    _onToggleThreadSearch: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
-    jumpToRecent: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createJumpToRecent({conversationIDKey})),
-    onShowTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
+  () => ({}),
+  (stateProps, _d, _: OwnProps) => {
     const {conversationIDKey, _meta, showLoader, showThreadSearch} = stateProps
     const {cannotWrite, minWriterRole, offline} = _meta
-    const {jumpToRecent, onShowTracker} = dispatchProps
-    const {_onAttach, _onPaste, _onToggleThreadSearch} = dispatchProps
     return {
+      cannotWrite,
       conversationIDKey,
       dragAndDropRejectReason: cannotWrite
         ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
         : undefined,
-      jumpToRecent: () => jumpToRecent(conversationIDKey),
-      onAttach: cannotWrite ? null : (paths: Array<string>) => _onAttach(conversationIDKey, paths),
-      onPaste: (data: Buffer) => _onPaste(conversationIDKey, data),
-      onShowTracker,
-      onToggleThreadSearch: () => _onToggleThreadSearch(conversationIDKey),
       showLoader,
       showThreadSearch,
       threadLoadedOffline: offline,

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
+import {memoize} from '../../../../../util/memoize'
 import logger from '../../../../../logger'
 import {Props} from './image-render.types'
 import Video from 'react-native-video'
@@ -25,14 +26,18 @@ export class ImageRender extends React.Component<Props, State> {
     this.props.onLoadedVideo()
   }
 
+  private getSource = memoize((videoSrc: string) => {
+    const uri = videoSrc.length > 0 ? videoSrc : 'https://'
+    return {
+      uri: `${uri}&contentforce=true&poster=${encodeURIComponent(this.props.src)}`,
+    }
+  })
+
   render() {
     if (this.props.inlineVideoPlayable && this.props.videoSrc.length > 0) {
-      const uri = this.props.videoSrc.length > 0 ? this.props.videoSrc : 'https://'
-      const source = {
-        uri: `${uri}&contentforce=true&poster=${encodeURIComponent(this.props.src)}`,
-      }
       // poster not working correctly so we need this box
       // https://github.com/react-native-community/react-native-video/issues/1509
+      const source = this.getSource(this.props.videoSrc)
 
       const {height, width} = this.props
       return (
