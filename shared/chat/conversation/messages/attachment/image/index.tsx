@@ -87,6 +87,10 @@ class ImageAttachment extends React.PureComponent<Props, State> {
     ])
   )
 
+  private getStyleOverride = memoize((isEditing, isHighlighted) => ({
+    paragraph: getEditStyle(isEditing, isHighlighted),
+  }))
+
   render() {
     const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(this.props.transferState)
     const mobileImageFilename = this.props.message.deviceType === 'mobile'
@@ -145,7 +149,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         }}
                       >
                         <ImageRender
-                          ref={ref => { this.imageRef = ref }}
+                          ref={ref => {
+                            this.imageRef = ref
+                          }}
                           src={this.props.path}
                           videoSrc={this.props.fullPath}
                           onLoad={this.setLoaded}
@@ -223,7 +229,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                           style={getEditStyle(this.props.isEditing, this.props.isHighlighted)}
                           styleOverride={
                             Styles.isMobile
-                              ? {paragraph: getEditStyle(this.props.isEditing, this.props.isHighlighted)}
+                              ? this.getStyleOverride(this.props.isEditing, this.props.isHighlighted)
                               : undefined
                           }
                           allowFontScaling={true}
