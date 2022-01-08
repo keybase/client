@@ -76,6 +76,17 @@ class ImageAttachment extends React.PureComponent<Props, State> {
     return {message}
   })
 
+  private imageRenderStyle = memoize((loaded, height, width) =>
+    Styles.collapseStyles([
+      styles.image,
+      {
+        backgroundColor: loaded ? undefined : Styles.globalColors.fastBlank,
+        height,
+        width,
+      },
+    ])
+  )
+
   render() {
     const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(this.props.transferState)
     const mobileImageFilename = this.props.message.deviceType === 'mobile'
@@ -134,9 +145,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         }}
                       >
                         <ImageRender
-                          ref={ref => {
-                            this.imageRef = ref
-                          }}
+                          ref={ref => { this.imageRef = ref }}
                           src={this.props.path}
                           videoSrc={this.props.fullPath}
                           onLoad={this.setLoaded}
@@ -145,14 +154,11 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                           inlineVideoPlayable={this.props.inlineVideoPlayable}
                           height={this.props.height}
                           width={this.props.width}
-                          style={Styles.collapseStyles([
-                            styles.image,
-                            {
-                              backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
-                              height: this.props.height,
-                              width: this.props.width,
-                            },
-                          ])}
+                          style={this.imageRenderStyle(
+                            this.state.loaded,
+                            this.props.height,
+                            this.props.width
+                          )}
                         />
                         {!this.state.playingVideo && (
                           <Kb.Box

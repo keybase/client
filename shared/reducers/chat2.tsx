@@ -14,7 +14,6 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import isEqual from 'lodash/isEqual'
-import shallowEqual from 'shallowequal'
 import {mapGetEnsureValue, mapEqual} from '../util/map'
 
 type EngineActions =
@@ -957,7 +956,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.containsLatestMessageMap = containsLatestMessageMap
     // only if different
-    if (!shallowEqual([...draftState.messageOrdinals], [...messageOrdinals])) {
+    if (!isEqual(draftState.messageOrdinals, messageOrdinals)) {
       draftState.messageOrdinals = messageOrdinals
     }
     draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
@@ -1009,9 +1008,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const {params} = action.payload
       const {inboxHasLoaded, draftMap, mutedMap} = draftState
       const layout: RPCChatTypes.UIInboxLayout = JSON.parse(params.layout)
-      // if (!isEqual(draftState.inboxLayout, layout)) {
       draftState.inboxLayout = layout
-      // }
       draftState.inboxHasLoaded = true
       if (!inboxHasLoaded) {
         const smallTeams = layout.smallTeams || []
@@ -1264,7 +1261,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {
       if (!isEqual(draftState.participantMap.get(part.conversationIDKey), part.participants)) {
-      draftState.participantMap.set(part.conversationIDKey, part.participants)
+        draftState.participantMap.set(part.conversationIDKey, part.participants)
       }
     })
   },
@@ -1276,7 +1273,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       if (participants) {
         const newInfo = Constants.uiParticipantsToParticipantInfo(participants)
         if (!isEqual(draftState.participantMap.get(conversationIDKey), newInfo)) {
-        draftState.participantMap.set(conversationIDKey, newInfo)
+          draftState.participantMap.set(conversationIDKey, newInfo)
         }
       }
     })
@@ -1428,7 +1425,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           name: participants,
         }
         if (!isEqual(draftState.participantMap.get(conversationIDKey), newInfo)) {
-        draftState.participantMap.set(conversationIDKey, newInfo)
+          draftState.participantMap.set(conversationIDKey, newInfo)
         }
       } else {
         const old = draftState.metaMap.get(conversationIDKey)

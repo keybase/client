@@ -33,6 +33,14 @@ export class ImageRender extends React.Component<Props, State> {
     }
   })
 
+  private onErrorVid = e => {
+    logger.error(`Error loading vid: ${JSON.stringify(e)}`)
+  }
+
+  private getSizeStyle = memoize((s, height, width) => Styles.collapseStyles([s, {height, width}]))
+
+  private getFISource = memoize(uri => ({uri}))
+
   render() {
     if (this.props.inlineVideoPlayable && this.props.videoSrc.length > 0) {
       // poster not working correctly so we need this box
@@ -47,18 +55,16 @@ export class ImageRender extends React.Component<Props, State> {
               source={source}
               controls={!this.state.paused}
               paused={this.state.paused}
-              onLoad={() => this._allLoads()}
-              onError={e => {
-                logger.error(`Error loading vid: ${JSON.stringify(e)}`)
-              }}
-              style={Styles.collapseStyles([styles.video, {height, width}])}
+              onLoad={this._allLoads}
+              onError={this.onErrorVid}
+              style={this.getSizeStyle(styles.video, height, width)}
               resizeMode="contain"
               ignoreSilentSwitch="ignore"
             />
           ) : (
             <Kb.NativeFastImage
               onLoad={this.props.onLoad}
-              source={{uri: this.props.src}}
+              source={this.getFISource(this.props.src)}
               resizeMode="cover"
               style={styles.poster}
             />
@@ -69,7 +75,7 @@ export class ImageRender extends React.Component<Props, State> {
     return (
       <Kb.NativeFastImage
         onLoad={this.props.onLoad}
-        source={{uri: this.props.src}}
+        source={this.getFISource(this.props.src)}
         style={this.props.style}
         resizeMode="cover"
       />

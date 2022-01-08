@@ -66,22 +66,21 @@ export {isDarkMode} from './dark-mode'
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
 ): ReadonlyArray<Object | null | false | void> => {
-  const valid = styles.filter(s => {
+  // if we have no / singular values we pass those on in the hopes they're consts
+  const nonNull = styles.filter(s => {
     return !!s && Object.keys(s).length
   })
-  if (valid.length === styles.length) {
-    return styles
-  }
-  if (valid.length === 0) {
+  if (nonNull.length === 0) {
     return undefined as any
   }
-  if (valid.length === 1) {
-    const s = valid[0]
+  if (nonNull.length === 1) {
+    const s = nonNull[0]
     if (typeof s === 'object') {
       return s as any
     }
   }
-  return valid
+  // rn allows falsy values so let memoized values through
+  return styles
 }
 export const transition = () => ({})
 export const backgroundURL = () => ({})

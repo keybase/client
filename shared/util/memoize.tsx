@@ -36,7 +36,7 @@ const debugMemoizeOne = (f: any) => {
   return memoizeOne(f, (a, b) => {
     const defEq = areInputsEqual(a, b)
     if (!defEq && deepEqual(a, b)) {
-      console.log('DEBUG memoize fail on similar objects', a, b)
+      console.log('DEBUG memoize fail on similar objects', a, b, 'orig: ', f)
     }
     return defEq
   })
