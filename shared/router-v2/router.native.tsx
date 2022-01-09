@@ -249,7 +249,6 @@ const LoggedOut = React.memo(() => (
   <LoggedOutStack.Navigator
     initialRouteName="login"
     screenOptions={{
-      // tabBarHideOnKeyboard: true,
       headerShown: false,
     }}
   >
@@ -257,13 +256,26 @@ const LoggedOut = React.memo(() => (
   </LoggedOutStack.Navigator>
 ))
 
-const useInitialStateChangeAfterLinking = (goodLinking, onStateChange) => {
+const useInitialStateChangeAfterLinking = (goodLinking: any, onStateChange: () => {}, loggedIn: boolean) => {
   // send onNavChanged on initial render after handling linking
   React.useEffect(() => {
     if (goodLinking) {
       setTimeout(() => onStateChange(), 1)
     }
   }, [goodLinking])
+
+  // When we do a quick user switch let's go back to the last tab we were on
+  const lastLoggedInTab = React.useRef<string | undefined>(undefined)
+  const lastLoggedIn = Container.usePrevious(loggedIn)
+  if (!loggedIn && lastLoggedIn) {
+    lastLoggedInTab.current = Constants.getVisiblePath()?.[1]?.name
+  }
+
+  React.useEffect(() => {
+    if (loggedIn && !lastLoggedIn && lastLoggedInTab.current) {
+      Constants.navigationRef_.navigate(lastLoggedInTab.current as any)
+    }
+  }, [loggedIn, lastLoggedIn])
 }
 
 const RootStack = createStackNavigator()
@@ -277,7 +289,7 @@ const RNApp = () => {
 
   Shared.useSharedAfter(appState)
 
-  useInitialStateChangeAfterLinking(goodLinking, onStateChange)
+  useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
 
   console.log('aaa RNApp render', {
     loggedInLoaded,

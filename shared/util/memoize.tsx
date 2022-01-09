@@ -3,8 +3,13 @@ import shallowEqual from 'shallowequal'
 import {useMemoOne, useCallbackOne} from 'use-memo-one'
 import deepEqual from 'lodash/isEqual'
 
+export const useMemo = useMemoOne
+export const useCallback = useCallbackOne
 const memoizeShallow = (f: any) => memoize(f, ([a], [b]) => shallowEqual(a, b))
+export {memoizeShallow, memoize}
+// const memoize = memoizeOne
 
+// BEGIN debugging memo
 const safeIsNaN =
   Number.isNaN ||
   function ponyfill(value) {
@@ -45,8 +50,3 @@ const memoize = __DEV__ ? debugMemoizeOne : memoizeOne
 if (__DEV__) {
   console.log('\n\n\nDEBUG: debugMemoizeOne enabled')
 }
-// const memoize = memoizeOne
-export {memoizeShallow, memoize}
-
-export const useMemo = useMemoOne
-export const useCallback = useCallbackOne

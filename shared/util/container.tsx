@@ -93,40 +93,40 @@ export const timeoutPromise = (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
-const debugMergeProps = __DEV__
-  ? () => {
-      let oldsp = {}
-      let oldop = {}
-      return (sp, op, mp) => {
-        Object.keys(oldsp).forEach(key => {
-          if (oldsp[key] !== sp[key] && isEqual(oldsp[key], sp[key])) {
-            console.log('DEBUGMERGEPROPS sp: ', key, oldsp[key], sp[key], 'orig: ', mp)
-          }
-        })
-        Object.keys(oldop).forEach(key => {
-          if (oldop[key] !== op[key] && isEqual(oldop[key], op[key])) {
-            console.log('DEBUGMERGEPROPS op: ', key, oldop[key], op[key], 'orig: ', mp)
-          }
-        })
-        oldsp = sp || {}
-        oldop = op || {}
-      }
-    }
-  : () => () => {}
-
-const debugConnect: any = (msp, mdp, mp) => {
-  console.log('DEBUG: using debugMergeProps connect')
-  const dmp = debugMergeProps()
-  return typedConnect(msp, mdp, (sp, dp, op) => {
-    dmp(sp, op, mp)
-    return mp(sp, dp, op)
-  })
-}
-const connect: typeof typedConnect = __DEV__ ? debugConnect : typedConnect
-if (__DEV__) {
-  console.log('\n\n\nDEBUG: debugConnect enabled')
-}
-// const connect = typedConnect
+// const debugMergeProps = __DEV__
+//   ? () => {
+//       let oldsp = {}
+//       let oldop = {}
+//       return (sp, op, mp) => {
+//         Object.keys(oldsp).forEach(key => {
+//           if (oldsp[key] !== sp[key] && isEqual(oldsp[key], sp[key])) {
+//             console.log('DEBUGMERGEPROPS sp: ', key, oldsp[key], sp[key], 'orig: ', mp)
+//           }
+//         })
+//         Object.keys(oldop).forEach(key => {
+//           if (oldop[key] !== op[key] && isEqual(oldop[key], op[key])) {
+//             console.log('DEBUGMERGEPROPS op: ', key, oldop[key], op[key], 'orig: ', mp)
+//           }
+//         })
+//         oldsp = sp || {}
+//         oldop = op || {}
+//       }
+//     }
+//   : () => () => {}
+//
+// const debugConnect: any = (msp, mdp, mp) => {
+//   console.log('DEBUG: using debugMergeProps connect')
+//   const dmp = debugMergeProps()
+//   return typedConnect(msp, mdp, (sp, dp, op) => {
+//     dmp(sp, op, mp)
+//     return mp(sp, dp, op)
+//   })
+// }
+// const connect: typeof typedConnect = __DEV__ ? debugConnect : typedConnect
+// if (__DEV__) {
+//   console.log('\n\n\nDEBUG: debugConnect enabled')
+// }
+const connect = typedConnect
 export {connect}
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'

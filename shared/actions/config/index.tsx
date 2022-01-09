@@ -358,15 +358,6 @@ function* maybeDoneWithLogoutHandshake(state: Container.TypedState) {
   }
 }
 
-// let lastTab: Tabs.Tab | undefined
-const stashLastRoute = (/*_state: Container.TypedState, action: ConfigGen.PersistRoutePayload*/) => {
-  // TODO?
-  // const {path} = action.payload
-  // if (path?.[1]?.routeName === 'Main') {
-  //   lastTab = path?.[2].routeName
-  // }
-}
-
 const showMonsterPushPrompt = () => [
   RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
   RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
@@ -816,13 +807,6 @@ function* configSaga() {
     [DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut, ConfigGen.loggedIn],
     loadDaemonAccounts
   )
-  // Switch between login or app routes
-  // yield* Saga.chainAction2([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
-  // MUST go above routeToInitialScreen2 so we set the nav correctly
-  // yield* Saga.chainAction(ConfigGen.setNavigator, setNavigator)
-  // Go to the correct starting screen
-  // yield* Saga.chainAction2([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator], routeToInitialScreen2)
-  yield* Saga.chainAction2(ConfigGen.persistRoute, stashLastRoute)
 
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadNotInARush)
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadDaemonConnectedOnce)
