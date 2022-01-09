@@ -7,6 +7,8 @@
 ////////////////////////////////////////////////////
 // BEGIN MOCK
 ////////////////////////////////////////////////////
+
+console.log('\n\n\nDEBUG: mock ReAnimated enabled')
 import {ScrollView, View} from 'react-native'
 class Value {
   _v: any

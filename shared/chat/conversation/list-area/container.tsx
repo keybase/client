@@ -5,6 +5,7 @@ import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/chat2'
 import ListComponent from '.'
 import throttle from 'lodash/throttle'
+import {memoize} from '../../../util/memoize'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -68,7 +69,7 @@ export default Container.connect(
     loadNewerMessages: dispatchProps.loadNewerMessages,
     loadOlderMessages: dispatchProps.loadOlderMessages,
     markInitiallyLoadedThreadAsRead: dispatchProps.markInitiallyLoadedThreadAsRead,
-    messageOrdinals: [...stateProps.messageOrdinals],
+    messageOrdinals: setToArray(stateProps.messageOrdinals),
     onFocusInput: ownProps.onFocusInput,
     onJumpToRecent: dispatchProps.onJumpToRecent,
     scrollListDownCounter: ownProps.scrollListDownCounter,
@@ -76,3 +77,5 @@ export default Container.connect(
     scrollListUpCounter: ownProps.scrollListUpCounter,
   })
 )(ListComponent)
+
+const setToArray = memoize(s => [...s])

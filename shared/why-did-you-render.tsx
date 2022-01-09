@@ -1,10 +1,11 @@
 import React from 'react'
 
-if (process.env.NODE_ENV === 'development') {
-  console.log('\n\n\nWHY DID YOU RENDER ON')
+if (__DEV__) {
+  console.log('\n\n\nDEBUG: WHY DID YOU RENDER enabled')
   const whyDidYouRender = require('@welldone-software/why-did-you-render')
   const ReactRedux = require('react-redux')
   whyDidYouRender(React, {
+    include: [/^ConnectFunction/],
     // TODO reduce these
     exclude: [
       /Pressable/,

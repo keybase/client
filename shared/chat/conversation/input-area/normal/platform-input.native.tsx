@@ -124,7 +124,9 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
   }
 
   private onChangeText = (text: string) => {
-    this.setState({hasText: !!text})
+    if (this.state.hasText !== !!text) {
+      this.setState({hasText: !!text})
+    }
     this.lastText = text
     this.props.onChangeText(text)
     this.watchSizeChanges = true
@@ -212,9 +214,13 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
   }
 
   private onDone = () => {
-    this.setState({animating: false}, () => {
-      this.setState({afterAnimatingExtraStepWorkaround: false})
-    })
+    if (this.state.animating) {
+      this.setState({animating: false}, () => {
+        this.setState(state =>
+          state.afterAnimatingExtraStepWorkaround ? {afterAnimatingExtraStepWorkaround: false} : undefined
+        )
+      })
+    }
   }
 
   private toggleExpandInput = () => {

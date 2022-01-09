@@ -123,6 +123,10 @@ const debugConnect: any = (msp, mdp, mp) => {
   })
 }
 const connect: typeof typedConnect = __DEV__ ? debugConnect : typedConnect
+if (__DEV__) {
+  console.log('\n\n\nDEBUG: debugConnect enabled')
+}
+// const connect = typedConnect
 export {connect}
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'

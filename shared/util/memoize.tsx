@@ -41,9 +41,11 @@ const debugMemoizeOne = (f: any) => {
     return defEq
   })
 }
-
 const memoize = __DEV__ ? debugMemoizeOne : memoizeOne
-
+if (__DEV__) {
+  console.log('\n\n\nDEBUG: debugMemoizeOne enabled')
+}
+// const memoize = memoizeOne
 export {memoizeShallow, memoize}
 
 export const useMemo = useMemoOne
