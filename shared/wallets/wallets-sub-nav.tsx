@@ -1,119 +1,147 @@
 import * as Kb from '../common-adapters'
-import {LeftAction} from '../common-adapters/header-hoc'
+import * as Styles from '../styles'
+import * as Common from '../router-v2/common'
 import * as React from 'react'
-import {
-  NavigationViewProps,
-  // createNavigator,
-  // createSwitchNavigator,
-  StackRouter,
-  SceneView,
-} from '@react-navigation/core'
+import type AccountReloaderType from './common/account-reloader'
+import type WalletListType from './wallet-list/container'
+import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
+import {createStackNavigator} from '@react-navigation/stack'
 import {RoutedOnboarding} from './onboarding/container'
 import * as Shim from '../router-v2/shim'
 import Wallet from './wallet/container'
 import * as Container from '../util/container'
 
 // walletsSubRoutes should only be used on desktop + tablet
-const walletsSubRoutes = {
+const walletSubRoutes = {
   ...require('./routes').sharedRoutes,
   wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default},
 }
-const noScreenProps = {}
 
-class WalletsSubNav extends React.PureComponent<NavigationViewProps<any>> {
-  render() {
-    const navigation = this.props.navigation
-    const index = navigation.state.index
-    const activeKey = navigation.state.routes[index].key
-    const descriptor = this.props.descriptors[activeKey]
-    const childNav = descriptor.navigation
-    const WalletsAndDetails = require('./wallets-and-details').default
-
-    return (
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <WalletsAndDetails>
-          <SceneView
-            navigation={childNav}
-            component={descriptor.getComponent()}
-            screenProps={this.props.screenProps || noScreenProps}
-          />
-        </WalletsAndDetails>
+const WalletsAndDetails = () => {
+  const AccountReloader = require('./common/account-reloader').default as typeof AccountReloaderType
+  const WalletList = require('./wallet-list/container').default as typeof WalletListType
+  return (
+    <AccountReloader>
+      <Kb.Box2
+        direction="vertical"
+        fullHeight={true}
+        fullWidth={true}
+        noShrink={true}
+        style={styles.walletListContainer}
+      >
+        <WalletList style={{height: '100%'}} />
       </Kb.Box2>
-    )
-  }
+    </AccountReloader>
+  )
 }
 
-// const WalletsSubNavigator = createNavigator(
-// WalletsSubNav,
-// StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
-// {}
-// )
-// const OnboardingOrWalletsNavigator = createSwitchNavigator(
-// {
-// onboarding: RoutedOnboarding,
-// walletsubnav: WalletsSubNavigator,
-// },
-// {initialRouteName: 'walletsubnav'}
-// )
+function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}) {
+  const {state, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
+    backBehavior,
+    children,
+    screenOptions,
+    initialRouteName,
+  })
 
-type OnboardingOrWalletsProps = NavigationViewProps<any> & {acceptedDisclaimer: boolean}
-
-class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
-  // static router = OnboardingOrWalletsNavigator.router
-  static navigationOptions = ({navigation}) => {
-    return {
-      header: undefined,
-      headerExpandable: true,
-      headerLeft: Container.isTablet
-        ? hp => {
-            // establish if we have anything on the subnav stack, if so allow a pop
-            const subNav = hp.scene.route?.index === 1
-            const subNavDepth = subNav && (hp.scene.route.routes[1]?.index ?? 0) > 0
-            return subNavDepth ? (
-              <LeftAction
-                badgeNumber={0}
-                leftAction="back"
-                onLeftAction={navigation.pop}
-                customIconColor={hp.tintColor}
-              />
+  return (
+    <NavigationContent>
+      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
+        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.nav}>
+          <WalletsAndDetails />
+        </Kb.Box2>
+        <Kb.BoxGrow>
+          {state.routes.map((route, i) => {
+            return i === state.index ? (
+              <Kb.Box2 key={route.key} direction="vertical" fullHeight={true} fullWidth={true}>
+                {descriptors[route.key].render()}
+              </Kb.Box2>
             ) : null
-          }
-        : undefined,
-      // index 0 means we're on the onboarding page, so hide the header
-      headerMode: navigation.state.index === 0 ? 'none' : undefined,
-      headerRightActions: require('./nav-header/container').HeaderRightActions,
-      headerTitle: require('./nav-header/container').HeaderTitle,
-      headerTitleContainerStyle: {left: 0, right: 16},
-      title: 'Wallet',
-    }
-  }
-
-  componentDidMount() {
-    if (!this.props.acceptedDisclaimer) {
-      this.props.navigation.navigate('onboarding')
-    } else {
-      // We might have navigated to onboarding on a previous mount.
-      this.props.navigation.navigate('walletsubnav')
-    }
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.acceptedDisclaimer === false && this.props.acceptedDisclaimer === true) {
-      this.props.navigation.navigate('walletsubnav')
-    }
-  }
-
-  render() {
-    return <OnboardingOrWalletsNavigator {...this.props} />
-  }
+          })}
+        </Kb.BoxGrow>
+      </Kb.Box2>
+    </NavigationContent>
+  )
 }
-const OnboardingOrWallets = Container.namedConnect(
-  state => ({
-    acceptedDisclaimer: state.wallets.acceptedDisclaimer,
-  }),
-  undefined,
-  (stateProps, _, ownProps: NavigationViewProps<any>) => ({...stateProps, ...ownProps}),
-  'OnboardingOrWallets'
-)(_OnboardingOrWallets)
 
-export default OnboardingOrWallets
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      box: {backgroundColor: Styles.globalColors.white},
+      nav: {width: Styles.globalStyles.mediumSubNavWidth},
+      walletListContainer: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        borderStyle: 'solid',
+      },
+    } as const)
+)
+
+const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
+const TabNavigator = createLeftTabNavigator()
+const shimmed = Shim.shim(walletSubRoutes, false, false)
+
+const WalletSubNavigator = () => (
+  <TabNavigator.Navigator initialRouteName="wallet" backBehavior="none">
+    {Object.keys(shimmed).map(name => (
+      <TabNavigator.Screen
+        key={name}
+        name={name}
+        getComponent={walletSubRoutes[name].getScreen}
+        options={({route, navigation}) => {
+          const no = walletSubRoutes[name].getScreen().navigationOptions
+          const opt = typeof no === 'function' ? no({route, navigation}) : no
+          return {...opt}
+        }}
+      />
+    ))}
+  </TabNavigator.Navigator>
+)
+
+const RootStack = createStackNavigator()
+
+const WalletsRootNav = () => {
+  const acceptedDisclaimer = Container.useSelector(state => state.wallets.acceptedDisclaimer)
+  const {HeaderTitle} = require('./nav-header/container')
+  const {HeaderRightActions} = require('./nav-header/container')
+  return (
+    <RootStack.Navigator>
+      {acceptedDisclaimer ? (
+        <RootStack.Screen
+          name="walletsubnav"
+          component={WalletSubNavigator}
+          options={{
+            ...Common.defaultNavigationOptions,
+            headerRightActions: () => <HeaderRightActions />,
+            headerTitle: () => <HeaderTitle />,
+            ...(Container.isTablet
+              ? {
+                  headerTitleContainerStyle: {
+                    ...Common.defaultNavigationOptions.headerTitleContainerStyle,
+                    alignSelf: 'stretch',
+                    marginHorizontal: 0,
+                    maxWidth: 9999,
+                    marginRight: 8,
+                  },
+                  headerStyle: {height: 60},
+                  headerLeftContainerStyle: {maxWidth: 0},
+                  headerRightContainerStyle: {maxWidth: 0},
+                }
+              : {}),
+          }}
+        />
+      ) : (
+        <RootStack.Screen
+          name="onboarding"
+          component={RoutedOnboarding}
+          options={{headerTitle: '', header: () => null}}
+        />
+      )}
+    </RootStack.Navigator>
+  )
+}
+
+WalletsRootNav.navigationOptions = {
+  headerTitle: '',
+  header: () => null,
+}
+
+export default WalletsRootNav

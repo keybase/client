@@ -12,7 +12,9 @@ const useTeamsSubscribeMobile = () => {
   useFocusEffect(
     React.useCallback(() => {
       dispatch(TeamsGen.createGetTeams({_subscribe: true}))
-      return () => dispatch(TeamsGen.createUnsubscribeTeamList())
+      return () => {
+        dispatch(TeamsGen.createUnsubscribeTeamList())
+      }
     }, [dispatch])
   )
 }
@@ -20,7 +22,9 @@ const useTeamsSubscribeDesktop = () => {
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     dispatch(TeamsGen.createGetTeams({_subscribe: true}))
-    return () => dispatch(TeamsGen.createUnsubscribeTeamList())
+    return () => {
+      dispatch(TeamsGen.createUnsubscribeTeamList())
+    }
   }, [dispatch])
 }
 export const useTeamsSubscribe = Container.isMobile ? useTeamsSubscribeMobile : useTeamsSubscribeDesktop
@@ -50,7 +54,9 @@ const useTeamDetailsSubscribeDesktop = (teamID: Types.TeamID) => {
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     dispatch(TeamsGen.createLoadTeam({_subscribe: true, teamID}))
-    return () => dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
+    return () => {
+      dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
+    }
   }, [dispatch, teamID])
 }
 export const useTeamDetailsSubscribe = Container.isMobile

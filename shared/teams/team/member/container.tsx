@@ -134,4 +134,4 @@ export default Container.connect(
       you,
     }
   }
-)(TeamMemberStateWrapper)
+)(TeamMemberStateWrapper as any)

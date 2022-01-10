@@ -1,12 +1,12 @@
-import CodePage from './code-page/container'
-import ErrorView from './error/container'
-import ForgotUsername from './forgot-username'
-import GpgSign from './gpg-sign/container'
-import Paperkey from './paper-key/container'
-import Password from './password/container'
-import SelectOtherDevice from './select-other-device/container'
-import SetPublicName from './set-public-name/container'
-import Username from './username-or-email/container'
+import type CodePage from './code-page/container'
+import type ErrorView from './error/container'
+import type ForgotUsername from './forgot-username'
+import type GpgSign from './gpg-sign/container'
+import type Paperkey from './paper-key/container'
+import type Password from './password/container'
+import type SelectOtherDevice from './select-other-device/container'
+import type SetPublicName from './set-public-name/container'
+import type Username from './username-or-email/container'
 
 export const newRoutes = {
   codePage: {getScreen: (): typeof CodePage => require('./code-page/container').default},

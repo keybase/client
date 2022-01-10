@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as Kb from '../../../common-adapters'
-import flags from '../../../util/feature-flags'
 import * as Styles from '../../../styles'
 import {Tab as TabType} from '../../../common-adapters/tabs'
 

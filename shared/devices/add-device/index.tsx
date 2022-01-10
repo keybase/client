@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {isLargeScreen} from '../../constants/platform'
 import {useSafeCallback} from '../../util/container'
-import flags from '../../util/feature-flags'
 
 type Props = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>

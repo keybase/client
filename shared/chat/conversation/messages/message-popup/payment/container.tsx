@@ -64,7 +64,7 @@ const getTopLineUser = (paymentInfo: Types.ChatPaymentInfo, sender: string, you:
   }
 }
 
-export const SendPaymentPopup = Container.namedConnect(
+export const SendPaymentPopup = Container.connect(
   (state, ownProps: SendOwnProps) => {
     let paymentInfo = ownProps.paymentID ? state.chat2.paymentStatusMap.get(ownProps.paymentID) || null : null
     if (!paymentInfo && ownProps.message.type === 'sendPayment') {
@@ -146,12 +146,11 @@ export const SendPaymentPopup = Container.namedConnect(
       txVerb: 'sent' as const,
       visible: ownProps.visible,
     }
-  },
-  'PaymentPopup'
+  }
 )(PaymentPopup)
 
 // MessageRequestPayment ================================
-const RequestPaymentPopup = Container.namedConnect(
+const RequestPaymentPopup = Container.connect(
   (state, ownProps: RequestOwnProps) => ({
     _you: state.config.username,
     requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
@@ -233,8 +232,7 @@ const RequestPaymentPopup = Container.namedConnect(
       txVerb: 'requested' as const,
       visible: ownProps.visible,
     }
-  },
-  'PaymentPopup'
+  }
 )(PaymentPopup)
 
 // Wrapper ==============================================

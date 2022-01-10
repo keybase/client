@@ -1,4 +1,4 @@
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -22,4 +22,4 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   path,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FilePreviewHeader')(Header)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Header)

@@ -20,8 +20,9 @@ export type ResultProps = {
   isPreExistingTeamMember: boolean
   isYou: boolean
   namespace: Types.AllowedNamespace
-  onAdd: () => void
-  onRemove: () => void
+  userId: string
+  onAdd: (id: string) => void
+  onRemove: (id: string) => void
   prettyName: string
   pictureUrl?: string
   resultForService: Types.ServiceIdWithContact
@@ -58,8 +59,8 @@ const CommonResult = (props: CommonResultProps) => {
   const isKeybaseResult = props.resultForService === 'keybase'
   const keybaseUsername: string | null = props.services['keybase'] || null
   const serviceUsername = props.services[props.resultForService]
-  const onAdd = !props.isPreExistingTeamMember ? props.onAdd : undefined
-  const onRemove = !props.isPreExistingTeamMember ? props.onRemove : undefined
+  const onAdd = !props.isPreExistingTeamMember ? () => props.onAdd(props.userId) : undefined
+  const onRemove = !props.isPreExistingTeamMember ? () => props.onRemove(props.userId) : undefined
 
   return (
     <Kb.ClickableBox onClick={props.inTeam ? onRemove : onAdd}>

@@ -36,7 +36,7 @@ const Meta = (props: Props) => (
         styles.text,
         props.color && {color: props.color},
         props.size === 'Small' && styles.textSmall,
-      ])}
+      ] as const)}
     >
       {props.noUppercase || typeof props.title === 'number' ? props.title : props.title.toUpperCase()}
     </Text>

@@ -1,7 +1,7 @@
 import * as Constants from '../constants/chat2'
 import * as Types from '../constants/types/chat2'
 import SelectableSmallTeam from './selectable-small-team'
-import {namedConnect} from '../util/container'
+import * as Container from '../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -14,7 +14,7 @@ type OwnProps = {
   onSelectConversation: () => void
 }
 
-export default namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const conversationIDKey = ownProps.conversationIDKey
     return {
@@ -68,6 +68,5 @@ export default namedConnect(
       teamname: _meta.teamname,
       usernameColor: styles.usernameColor,
     }
-  },
-  'SelectableSmallTeam'
+  }
 )(SelectableSmallTeam)

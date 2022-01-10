@@ -13,7 +13,7 @@ import Icon from './icon'
 import {RPCError} from '../util/errors'
 import {settingsTab} from '../constants/tabs'
 import {feedbackTab} from '../constants/settings'
-import {useFocusEffect} from '@react-navigation/native'
+import {useFocusEffect} from '@react-navigation/core'
 
 const Kb = {
   Box2,
@@ -152,7 +152,7 @@ export type OwnProps = {
   errorFilter?: (rPCError: RPCError) => boolean
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     let error = Constants.anyErrors(state, ownProps.waitingKeys)
 
@@ -192,7 +192,5 @@ export default Container.namedConnect(
     reloadOnMount: ownProps.reloadOnMount,
     style: ownProps.style,
     title: ownProps.title,
-  }),
-
-  'Reloadable'
-)(Reloadable)
+  })
+)(Reloadable as any)

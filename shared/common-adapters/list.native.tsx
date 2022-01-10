@@ -2,7 +2,7 @@ import React, {PureComponent} from 'react'
 import {FlatList, View} from 'react-native'
 import * as Styles from '../styles'
 import {Props} from './list'
-import Animated from 'react-native-reanimated'
+import Animated from './reanimated'
 import noop from 'lodash/noop'
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
@@ -15,7 +15,7 @@ class List<Item> extends PureComponent<Props<Item>> {
     return this.props.renderItem(index, item)
   }
 
-  _getItemLayout = (_: Array<Item> | null, index: number) => ({
+  _getItemLayout = (_: Array<Item> | null | undefined, index: number) => ({
     index,
     length: this.props.fixedHeight || 0,
     offset: (this.props.fixedHeight || 0) * index,
@@ -45,7 +45,7 @@ class List<Item> extends PureComponent<Props<Item>> {
        */}
         <View style={Styles.globalStyles.fillAbsolute}>
           <List
-              overScrollMode="never"
+            overScrollMode="never"
             onScrollToIndexFailed={noop}
             bounces={this.props.bounces}
             contentContainerStyle={this.props.contentContainerStyle}

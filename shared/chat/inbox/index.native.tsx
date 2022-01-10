@@ -260,15 +260,10 @@ class Inbox extends React.PureComponent<T.Props, State> {
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-    const HeadComponent = <ChatInboxHeader context="inbox-header" />
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
-          {!!this.props.isLoading && (
-            <Kb.Box style={styles.loadingContainer}>
-              <Kb.LoadingLine />
-            </Kb.Box>
-          )}
+          <LoadingLine isLoading={this.props.isLoading} />
           {this.props.isSearching ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <InboxSearch header={HeadComponent} />
@@ -301,6 +296,15 @@ class Inbox extends React.PureComponent<T.Props, State> {
     )
   }
 }
+
+const LoadingLine = ({isLoading}: {isLoading: boolean}) => {
+  return isLoading ? (
+    <Kb.Box style={styles.loadingContainer}>
+      <Kb.LoadingLine />
+    </Kb.Box>
+  ) : null
+}
+const HeadComponent = <ChatInboxHeader context="inbox-header" />
 
 const styles = Styles.styleSheetCreate(
   () =>

@@ -82,7 +82,7 @@ export const Banner = (props: BannerProps) => (
       props.inline && styles.containerInline,
       props.small && styles.containerSmall,
       props.style,
-    ])}
+    ] as const)}
   >
     <Box2
       key="textBox"

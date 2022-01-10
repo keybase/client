@@ -1,1 +1,2 @@
-export const headerNavigationOptions = (route: any) => Object
+declare function headerNavigationOptions(route: any): Object
+export {headerNavigationOptions}

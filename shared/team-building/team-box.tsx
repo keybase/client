@@ -5,10 +5,8 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import {SelectedUser, GoButtonLabel} from '../constants/types/team-building'
-import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {e164ToDisplay} from '../util/phone-numbers'
 import {RolePickerProps} from '.'
-import flags from '../util/feature-flags'
 
 type Props = {
   allowPhoneEmail: boolean

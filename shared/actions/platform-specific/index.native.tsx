@@ -14,19 +14,12 @@ import * as EngineGen from '../engine-gen-gen'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as LoginGen from '../login-gen'
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
 import {getEngine} from '../../engine/require'
 // this CANNOT be an import *, totally screws up the packager
-import {
-  Alert,
-  Linking,
-  NativeModules,
-  // NativeEventEmitter,
-  ActionSheetIOS,
-  PermissionsAndroid,
-  Vibration,
-} from 'react-native'
+import {Alert, Linking, NativeModules, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
 import Clipboard from '@react-native-clipboard/clipboard'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
@@ -63,6 +56,7 @@ const requestPermissionsToWrite = async () => {
 
 export const requestAudioPermission = async () => {
   let chargeForward = true
+  // TODO use expo-av etc and unify around that
   const Permissions = require('expo-permissions')
   let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
   if (status === Permissions.PermissionStatus.UNDETERMINED) {
@@ -134,10 +128,11 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
     // just in case to get their attention.
-    isIOS && PushNotificationIOS.addNotificationRequest({
-      id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
-      body: `Failed to save ${saveType} to camera roll`,
-    })
+    isIOS &&
+      PushNotificationIOS.addNotificationRequest({
+        id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
+        body: `Failed to save ${saveType} to camera roll`,
+      })
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
   } finally {
@@ -252,39 +247,6 @@ function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRo
       return false
     })
   }
-  // RouterConstants._getNavigator()?.current?.getRootState()
-  // )
-  // console.log('aaaaa fr', fr)
-  // TODO conver
-  // if (mainOrModal === 'Main') {
-  // const tab = path && path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
-  // if (!tab) return
-  // // top level tab?
-  // if (tab.routeName === 'tabs.chatTab') {
-  // const convo = path && path[path.length - 1]
-  // // a specific convo?
-  // if (convo.routeName === 'chatConversation') {
-  // routeName = convo.routeName
-  // param = {selectedConversationIDKey: convo.params?.conversationIDKey}
-  // } else {
-  // // just the inbox
-  // routeName = tab.routeName
-  // }
-  // } else if (Tabs.isValidInitialTabString(tab.routeName)) {
-  // routeName = tab.routeName
-  // } else {
-  // return // don't write, keep the last
-  // }
-  // } else {
-  // // info panel
-  // if (mainOrModal === 'chatInfoPanel') {
-  // routeName = 'chatConversation'
-  // param = {selectedConversationIDKey: path && path[1].params.conversationIDKey}
-  // } else {
-  // // no path or unknown, default to people
-  // routeName = 'tabs.peopleTab'
-  // }
-  // }
 
   const s = JSON.stringify({param, routeName})
   // don't keep rewriting
@@ -618,10 +580,11 @@ const manageContactsCache = async (
       SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode})
     )
     if (newlyResolved && newlyResolved.length) {
-      isIOS && PushNotificationIOS.addNotificationRequest({
-      id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
-        body: PushConstants.makeContactsResolvedMessage(newlyResolved),
-      })
+      isIOS &&
+        PushNotificationIOS.addNotificationRequest({
+          id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
+          body: PushConstants.makeContactsResolvedMessage(newlyResolved),
+        })
     }
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
       actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
@@ -638,39 +601,6 @@ const showContactsJoinedModal = (action: SettingsGen.ShowContactsJoinedModalPayl
   action.payload.resolved.length
     ? [RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})]
     : []
-
-// function* setupDarkMode() {
-// const NativeAppearance = NativeModules.Appearance
-// if (NativeAppearance) {
-// // eslint-disable-next-line no-inner-declarations
-// function* handleGotChangeEvent(action: any) {
-// yield Saga.delay(500)
-// yield Saga.put(action)
-// }
-
-// const channel = Saga.eventChannel(emitter => {
-// const nativeEventEmitter = new NativeEventEmitter(NativeAppearance)
-// nativeEventEmitter.addListener('appearanceChanged', ({colorScheme}) => {
-// emitter(colorScheme)
-// })
-// return () => {}
-// }, Saga.buffers.sliding(1))
-
-// let task: any
-// while (true) {
-// const mode = yield Saga.take(channel)
-// // iOS takes snapshots of the app in light/dark mode and this causes us to get a light/dark call no matter what. so
-// // throttle a bit and ignore this
-// if (task) {
-// yield Saga.cancel(task)
-// }
-// task = yield Saga._fork(
-// handleGotChangeEvent,
-// ConfigGen.createSetSystemDarkMode({dark: mode === 'dark'})
-// )
-// }
-// }
-// }
 
 let locationEmitter: ((input: unknown) => void) | null = null
 
@@ -906,6 +836,20 @@ const onSendAudioRecording = (action: Chat2Gen.SendAudioRecordingPayload) => {
   }
 }
 
+const onTabLongPress = (state: Container.TypedState, action: RouteTreeGen.TabLongPressPayload) => {
+  if (action.payload.tab !== Tabs.peopleTab) return
+  const accountRows = state.config.configuredAccounts
+  const current = state.config.username
+  const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
+  if (row) {
+    return [
+      ConfigGen.createSetUserSwitching({userSwitching: true}),
+      LoginGen.createLogin({password: new Container.HiddenString(''), username: row.username}),
+    ]
+  }
+  return undefined
+}
+
 const onSetAudioRecordingPostInfo = async (
   state: Container.TypedState,
   action: Chat2Gen.SetAudioRecordingPostInfoPayload,
@@ -969,6 +913,8 @@ export function* platformConfigSaga() {
 
   yield* Saga.chainAction(ConfigGen.showShareActionSheet, onShareAction)
 
+  yield* Saga.chainAction2(RouteTreeGen.tabLongPress, onTabLongPress)
+
   // Contacts
   yield* Saga.chainAction2(
     [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
@@ -1010,5 +956,4 @@ export function* platformConfigSaga() {
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)
   yield Saga.spawn(setupNetInfoWatcher)
-  // yield Saga.spawn(setupDarkMode)
 }

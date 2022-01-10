@@ -6,9 +6,9 @@ export const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
   `${prefix}chat/${conv}/${messageID}`
 
-export const convertChatURLToPending = (url: string) => `${prefix}chat/${pendingWaitingConversationIDKey}`
+export const convertChatURLToPending = () => `${prefix}chat/${pendingWaitingConversationIDKey}`
 
-const argArrayGood = (arr: Array<unknown>, len: number) => {
+const argArrayGood = (arr: Array<string>, len: number) => {
   return arr.length === len && arr.every(p => !!p.length)
 }
 export const isValidLink = (link: string) => {

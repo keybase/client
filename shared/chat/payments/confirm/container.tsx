@@ -8,7 +8,7 @@ import * as Container from '../../../util/container'
 
 type OwnProps = {}
 
-export default Container.namedConnect(
+export default Container.connect(
   state => {
     const pinfo = state.chat2.paymentConfirmInfo
     const payments = pinfo?.summary?.payments ?? []
@@ -37,6 +37,5 @@ export default Container.namedConnect(
       )
     },
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'PaymentsConfirm'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(PaymentsConfirm)

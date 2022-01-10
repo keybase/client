@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Types from '../../../../constants/types/wallets'
 import * as Styles from '../../../../styles'
 import {Props} from '.'
 
@@ -65,7 +64,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
       <Kb.FloatingPicker
         items={items}
         selectedValue={selected}
-        onSelect={setSelected}
+        onSelect={s => s !== null && setSelected(s)}
         prompt={<Prompt />}
         promptString="Pick a display currency"
         onHidden={onClose}

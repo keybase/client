@@ -21,7 +21,7 @@ import flags from '../util/feature-flags'
 // />
 // )
 
-const People = (props: Props) => (
+const People = React.memo((props: Props) => (
   <>
     <Kb.ScrollView
       style={styles.scrollView}
@@ -33,7 +33,7 @@ const People = (props: Props) => (
     </Kb.ScrollView>
     {flags.inviteFriends && <InviteFriends />}
   </>
-)
+))
 
 const styles = styleSheetCreate(() => ({
   scrollView: {

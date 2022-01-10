@@ -2576,7 +2576,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     return [
       ...tabSwitchAction,
       ...modalClearAction,
-      RouteTreeGen.createSetParams({key: 'chatRoot', params: {conversationIDKey}}),
+      RouteTreeGen.createSetParams({key: Router2Constants.chatRootKey(), params: {conversationIDKey}}),
       RouteTreeGen.createNavUpToScreen({routeName: Constants.threadRouteName}),
     ]
   } else {
@@ -2763,9 +2763,7 @@ const fetchConversationBio = async (
 
 const leaveConversation = async (action: Chat2Gen.LeaveConversationPayload) => {
   await RPCChatTypes.localLeaveConversationLocalRpcPromise(
-    {
-      convID: Types.keyToConversationID(action.payload.conversationIDKey),
-    },
+    { convID: Types.keyToConversationID(action.payload.conversationIDKey), },
     Constants.waitingKeyLeaveConversation
   )
 }
@@ -3372,7 +3370,6 @@ const gregorPushState = (
                     const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
                     current.push({conversationIDKey, seconds})
                 } catch {
-                    console.log('aaa gregor push state fail parse')
                 }
                 return current
             },

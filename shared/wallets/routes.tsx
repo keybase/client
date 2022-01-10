@@ -1,21 +1,21 @@
 import {isPhone} from '../constants/platform'
-import CreateNewAccount from './create-account/container'
-import LinkExisting from './link-existing/container'
-import {
+import type CreateNewAccount from './create-account/container'
+import type LinkExisting from './link-existing/container'
+import type {
   RenameAccountPopup,
   ReallyRemoveAccountPopup,
   RemoveAccountPopup,
   SetDefaultAccountPopup,
 } from './wallet/settings/popups'
-import Receive from './receive-modal/container'
-import Sep7Confirm from './sep7-confirm/container'
-import KeybaseLinkError from '../deeplinks/error'
-import Trustline from './trustline/container'
-import {RoutedOnboarding} from './onboarding/container'
-import WhatIsStellarModal from './what-is-stellar-modal'
-import Settings from './wallet/settings/container'
-import TransactionDetails from './transaction-details/container'
-import TeamBuilder from '../team-building/container'
+import type Receive from './receive-modal/container'
+import type Sep7Confirm from './sep7-confirm/container'
+import type KeybaseLinkError from '../deeplinks/error'
+import type Trustline from './trustline/container'
+import type {RoutedOnboarding} from './onboarding/container'
+import type WhatIsStellarModal from './what-is-stellar-modal'
+import type Settings from './wallet/settings/container'
+import type TransactionDetails from './transaction-details/container'
+import type TeamBuilder from '../team-building/container'
 // import Partners from './partners/container'
 
 export const sharedRoutes = {
@@ -30,11 +30,9 @@ export const sharedRoutes = {
 export const newRoutes = {
   walletsRoot: isPhone
     ? {getScreen: () => require('./wallet/container').default}
-    : // MUST use screen and not getScreen for subnavs!
-      {
-        get screen() {
-          return require('./wallets-sub-nav').default
-        },
+    : {
+        getScreen: () => require('./wallets-sub-nav').default,
+        skipShim: true,
       },
   ...sharedRoutes, // these are valid inside AND outside the subnav
 }

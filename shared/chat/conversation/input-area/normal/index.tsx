@@ -421,9 +421,10 @@ class Input extends React.Component<InputProps, InputState> {
       }
     }
     const fil = filter.toLowerCase()
-    const data = (this._lastText && this._lastText.startsWith('!')
-      ? this.props.suggestBotCommands
-      : this.props.suggestCommands
+    const data = (
+      this._lastText && this._lastText.startsWith('!')
+        ? this.props.suggestBotCommands
+        : this.props.suggestCommands
     ).filter(c => c.name.includes(fil))
     return {
       data,
@@ -623,6 +624,18 @@ class Input extends React.Component<InputProps, InputState> {
     const prefix = this._getCommandPrefix(command)
     return standardTransformer(`${prefix}${command.name}`, tData, preview)
   }
+  suggestionSpinnerStyle = memoize(inputHeight =>
+    Styles.collapseStyles([styles.suggestionSpinnerStyle, inputHeight && {marginBottom: inputHeight}])
+  )
+  suggestionListStyle = memoize(inputHeight =>
+    Styles.collapseStyles([styles.suggestionList, !!inputHeight && {marginBottom: inputHeight}])
+  )
+  suggestionOverlayStyle = memoize(infoPanelShowing =>
+    Styles.collapseStyles([
+      styles.suggestionOverlay,
+      infoPanelShowing && styles.suggestionOverlayWithInfoPanel,
+    ])
+  )
 
   render() {
     const {
@@ -651,18 +664,9 @@ class Input extends React.Component<InputProps, InputState> {
           suggestorToMarker={suggestorToMarker}
           onChannelSuggestionsTriggered={this.props.onChannelSuggestionsTriggered}
           onFetchEmoji={this.props.onFetchEmoji}
-          suggestionListStyle={Styles.collapseStyles([
-            styles.suggestionList,
-            !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
-          ])}
-          suggestionOverlayStyle={Styles.collapseStyles([
-            styles.suggestionOverlay,
-            infoPanelShowing && styles.suggestionOverlayWithInfoPanel,
-          ])}
-          suggestionSpinnerStyle={Styles.collapseStyles([
-            styles.suggestionSpinnerStyle,
-            !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
-          ])}
+          suggestionListStyle={this.suggestionListStyle(this.state.inputHeight)}
+          suggestionOverlayStyle={this.suggestionOverlayStyle(infoPanelShowing)}
+          suggestionSpinnerStyle={this.suggestionSpinnerStyle(this.state.inputHeight)}
           suggestBotCommandsUpdateStatus={this.props.suggestBotCommandsUpdateStatus}
           keyExtractors={suggestorKeyExtractors}
           transformers={this._suggestorTransformer}

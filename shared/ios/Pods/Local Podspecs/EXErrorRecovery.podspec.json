@@ -1,6 +1,6 @@
 {
   "name": "EXErrorRecovery",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "summary": "Utilities for helping you gracefully handle crashes due to fatal JavaScript errors.",
   "description": "Utilities for helping you gracefully handle crashes due to fatal JavaScript errors.",
   "license": "MIT",

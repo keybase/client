@@ -171,7 +171,7 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const hasLoadedEver = state.chat2.messageOrdinals.get(ownProps.conversationIDKey) !== undefined
     const meta = Constants.getMeta(state, ownProps.conversationIDKey)
@@ -271,6 +271,5 @@ export default Container.namedConnect(
       openPrivateFolder: () => dispatchProps._openPrivateFolder(username),
       ...props,
     }
-  },
-  'SpecialTopMessage'
+  }
 )(SpecialTopMessage)

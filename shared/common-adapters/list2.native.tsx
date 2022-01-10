@@ -3,7 +3,7 @@ import * as Flow from '../util/flow'
 import {FlatList, View} from 'react-native'
 import * as Styles from '../styles'
 import {smallHeight, largeHeight} from './list-item2'
-import Animated from 'react-native-reanimated'
+import Animated from './reanimated'
 import {Props} from './list2'
 import noop from 'lodash/noop'
 
@@ -18,7 +18,7 @@ class List2<T> extends PureComponent<Props<T>> {
     return this.props.renderItem(index, item)
   }
 
-  _getItemLayout = (data: Array<T> | null, index: number) => {
+  _getItemLayout = (data: Array<T> | null | undefined, index: number) => {
     switch (this.props.itemHeight.type) {
       case 'fixed':
         return {index, length: this.props.itemHeight.height, offset: this.props.itemHeight.height * index}
@@ -53,7 +53,7 @@ class List2<T> extends PureComponent<Props<T>> {
       <View style={styles.outerView}>
         {/* need windowSize so iphone 6 doesn't have OOM issues */}
         <List
-              overScrollMode="never"
+          overScrollMode="never"
           bounces={this.props.bounces}
           renderItem={this._itemRender}
           data={this.props.items}

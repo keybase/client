@@ -119,17 +119,8 @@ export const makeConflictStateManualResolvingLocalView = ({
 })
 
 export const makeTlf = (p: Partial<Types.Tlf>): Types.Tlf => {
-  const {
-    conflictState,
-    isFavorite,
-    isIgnored,
-    isNew,
-    name,
-    resetParticipants,
-    syncConfig,
-    teamId,
-    tlfMtime,
-  } = p
+  const {conflictState, isFavorite, isIgnored, isNew, name, resetParticipants, syncConfig, teamId, tlfMtime} =
+    p
   return {
     conflictState: conflictState || tlfNormalViewWithNoConflict,
     isFavorite: isFavorite || false,
@@ -272,10 +263,7 @@ export const pathTypeToTextType = (type: Types.PathType) =>
   type === Types.PathType.Folder ? 'BodySemibold' : 'Body'
 
 export const splitTlfIntoUsernames = (tlf: string): Array<string> =>
-  tlf
-    .split(' ')[0]
-    .replace(/#/g, ',')
-    .split(',')
+  tlf.split(' ')[0].replace(/#/g, ',').split(',')
 
 export const getUsernamesFromPath = (path: Types.Path): Array<string> => {
   const elems = Types.getPathElements(path)
@@ -674,12 +662,7 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
 }
 
 export const rebasePathToDifferentTlf = (path: Types.Path, newTlfPath: Types.Path) =>
-  Types.pathConcat(
-    newTlfPath,
-    Types.getPathElements(path)
-      .slice(3)
-      .join('/')
-  )
+  Types.pathConcat(newTlfPath, Types.getPathElements(path).slice(3).join('/'))
 
 export const canChat = (path: Types.Path) => {
   const parsedPath = parsePath(path)
@@ -856,20 +839,22 @@ export const getPathStatusIconInMergeProps = (
   }
 }
 
+type SafeNavigateAppendArg = {path: any; replace?: boolean}
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
-  navigateAppend: typeof RouteTreeGen.createNavigateAppend,
+  navigateAppend: (a: SafeNavigateAppendArg) => TypedActions,
   headerRightButton?: React.ReactNode
-): Array<TypedActions> => [
-  FsGen.createSetDestinationPickerParentPath({
-    index,
-    path,
-  }),
-  navigateAppend({
-    path: [{props: {headerRightButton, index}, selected: 'destinationPicker'}],
-  }),
-]
+): ReadonlyArray<TypedActions> =>
+  [
+    FsGen.createSetDestinationPickerParentPath({
+      index,
+      path,
+    }),
+    navigateAppend({
+      path: [{props: {headerRightButton, index}, selected: 'destinationPicker'}],
+    }),
+  ] as const
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
 

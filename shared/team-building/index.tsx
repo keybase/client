@@ -7,7 +7,6 @@ import * as TeamConstants from '../constants/teams'
 import TeamBox from './team-box'
 import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
-import Flags from '../util/feature-flags'
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType, TeamID, noTeamID} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
@@ -32,9 +31,7 @@ import {
   SelectedUser,
   ServiceIdWithContact,
 } from '../constants/types/team-building'
-import RolePickerHeaderAction from './role-picker-header-action'
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
-import flags from '../util/feature-flags'
 
 export const numSectionLabel = '0-9'
 
@@ -266,7 +263,7 @@ const FilteredServiceTabBar = (
 const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
 
 class TeamBuilding extends React.PureComponent<Props> {
-  static navigationOptions = ({navigation, route}) => {
+  static navigationOptions = ({route}) => {
     const namespace = route.params.namespace
     const common = {
       modal2: true,
@@ -542,8 +539,9 @@ class TeamBuilding extends React.PureComponent<Props> {
                       highlightDetails.section === section &&
                       highlightDetails.index === index
                     }
-                    onAdd={() => this.props.onAdd(result.userId)}
-                    onRemove={() => this.props.onRemove(result.userId)}
+                    userId={result.userId}
+                    onAdd={this.props.onAdd}
+                    onRemove={this.props.onRemove}
                   />
                 )
               }
@@ -588,8 +586,9 @@ class TeamBuilding extends React.PureComponent<Props> {
                 isYou={result.isYou}
                 followingState={result.followingState}
                 highlight={!Styles.isMobile && index === this.props.highlightedIndex}
-                onAdd={() => this.props.onAdd(result.userId)}
-                onRemove={() => this.props.onRemove(result.userId)}
+                userId={result.userId}
+                onAdd={this.props.onAdd}
+                onRemove={this.props.onRemove}
               />
             )}
           />
@@ -626,14 +625,14 @@ class TeamBuilding extends React.PureComponent<Props> {
           : undefined
       }
       case 'teams': {
-        const rightButton =
-          Styles.isMobile && this.props.rolePickerProps ? (
-            <RolePickerHeaderAction
-              onFinishTeamBuilding={this.props.onFinishTeamBuilding}
-              rolePickerProps={this.props.rolePickerProps}
-              count={this.props.teamSoFar.length}
-            />
-          ) : undefined
+        // const rightButton =
+        //   Styles.isMobile && this.props.rolePickerProps ? (
+        //     <RolePickerHeaderAction
+        //       onFinishTeamBuilding={this.props.onFinishTeamBuilding}
+        //       rolePickerProps={this.props.rolePickerProps}
+        //       count={this.props.teamSoFar.length}
+        //     />
+        //   ) : undefined
         return {
           hideBorder: true,
           leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />,

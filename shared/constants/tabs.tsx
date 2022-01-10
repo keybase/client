@@ -1,17 +1,17 @@
 import {isMobile} from './platform'
 
-const chatTab = 'tabs.chatTab'
-const cryptoTab = 'tabs.cryptoTab'
-const devicesTab = 'tabs.devicesTab'
-const folderTab = 'tabs.folderTab'
-const loginTab = 'tabs.loginTab'
-const peopleTab = 'tabs.peopleTab'
-const searchTab = 'tabs.searchTab'
-const settingsTab = 'tabs.settingsTab'
-const teamsTab = 'tabs.teamsTab'
-const gitTab = 'tabs.gitTab'
-const fsTab = 'tabs.fsTab'
-const walletsTab = 'tabs.walletsTab'
+export const chatTab = 'tabs.chatTab'
+export const cryptoTab = 'tabs.cryptoTab'
+export const devicesTab = 'tabs.devicesTab'
+export const folderTab = 'tabs.folderTab'
+export const loginTab = 'tabs.loginTab'
+export const peopleTab = 'tabs.peopleTab'
+export const searchTab = 'tabs.searchTab'
+export const settingsTab = 'tabs.settingsTab'
+export const teamsTab = 'tabs.teamsTab'
+export const gitTab = 'tabs.gitTab'
+export const fsTab = 'tabs.fsTab'
+export const walletsTab = 'tabs.walletsTab'
 
 export type Tab =
   | typeof chatTab
@@ -39,7 +39,7 @@ export type AppTab =
   | typeof settingsTab
 
 // Canonical ordering for desktop tabs, used visually and for hotkeys
-const desktopTabOrder: Array<AppTab> = [
+export const desktopTabs = [
   peopleTab,
   chatTab,
   fsTab,
@@ -49,13 +49,17 @@ const desktopTabOrder: Array<AppTab> = [
   gitTab,
   devicesTab,
   settingsTab,
-]
+] as const
+export const phoneTabs = [peopleTab, chatTab, fsTab, teamsTab, settingsTab] as const
+export const tabletTabs = [peopleTab, chatTab, fsTab, teamsTab, walletsTab, settingsTab] as const
+export const settingsTabChildrenPhone = [gitTab, devicesTab, walletsTab, settingsTab] as const
+export const settingsTabChildrenTablet = [gitTab, devicesTab, settingsTab] as const
 
-function isValidInitialTab(tab: Tab | null) {
+export function isValidInitialTab(tab: Tab | null) {
   return isValidInitialTabString(tab)
 }
 
-function isValidInitialTabString(tab: string | null) {
+export function isValidInitialTabString(tab: string | null) {
   // Keep this in left-to-right (for mobile) or top-to-bottom (for
   // desktop) order in the app.
   if (isMobile) {
@@ -63,22 +67,4 @@ function isValidInitialTabString(tab: string | null) {
   } else {
     return [peopleTab, chatTab, folderTab, teamsTab, gitTab, devicesTab, settingsTab].includes(tab as Tab)
   }
-}
-
-export {
-  chatTab,
-  cryptoTab,
-  desktopTabOrder,
-  devicesTab,
-  folderTab,
-  fsTab,
-  gitTab,
-  isValidInitialTab,
-  isValidInitialTabString,
-  loginTab,
-  peopleTab,
-  searchTab,
-  settingsTab,
-  teamsTab,
-  walletsTab,
 }

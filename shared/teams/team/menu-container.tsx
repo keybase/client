@@ -7,7 +7,6 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Kb from '../../common-adapters'
-import flags from '../../util/feature-flags'
 import capitalize from 'lodash/capitalize'
 import * as Styles from '../../styles'
 import {pluralize} from '../../util/string'
@@ -164,7 +163,7 @@ export default Container.connect(
       items,
       memberCount: stateProps.memberCount,
       onHidden: ownProps.onHidden,
-      role: stateProps.role,
+      role: stateProps.role as Types.TeamRoleType,
       teamname: stateProps.teamname,
       visible: ownProps.visible,
     }

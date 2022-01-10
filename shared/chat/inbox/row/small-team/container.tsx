@@ -18,15 +18,13 @@ type OwnProps = {
   time: number
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
-    const _conversationIDKey = ownProps.conversationIDKey
-    const _meta = Constants.getMeta(state, _conversationIDKey)
+    const conversationIDKey = ownProps.conversationIDKey
+    const _meta = Constants.getMeta(state, conversationIDKey)
     const youAreReset = _meta.membershipType === 'youAreReset'
-    const typers = state.chat2.typingMap.get(_conversationIDKey)
-    let snippet = state.chat2.metaMap.get(_conversationIDKey)
-      ? _meta.snippetDecorated
-      : ownProps.snippet || ''
+    const typers = state.chat2.typingMap.get(conversationIDKey)
+    let snippet = state.chat2.metaMap.get(conversationIDKey) ? _meta.snippetDecorated : ownProps.snippet || ''
     const snippetDecoration = _meta.snippetDecoration ?? ownProps.snippetDecoration
     let isTypingSnippet = false
     if (typers && typers.size > 0) {
@@ -34,15 +32,31 @@ export default Container.namedConnect(
       snippet =
         typers.size === 1 ? `${typers.values().next().value} is typing...` : 'Multiple people typing...'
     }
-    const _participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)
+    const _participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+    const participantNeedToRekey = _meta.rekeyers.size > 0
+    const _username = state.config.username
+    const hasUnread = Constants.getHasUnread(state, conversationIDKey)
+    const isDecryptingSnippet =
+      (hasUnread || snippet.length === 0) && Constants.isDecryptingSnippet(_meta.trustedState)
+
+    const teamname = _meta.teamname ? _meta.teamname : ownProps.isTeam ? ownProps.name : ''
+    const timestamp = _meta.timestamp > 0 ? _meta.timestamp : ownProps.time || 0
+
     return {
-      _draft: Constants.getDraft(state, _conversationIDKey),
-      _meta,
+      _draft: Constants.getDraft(state, conversationIDKey),
       _participantInfo,
-      _username: state.config.username,
-      hasBadge: Constants.getHasBadge(state, _conversationIDKey),
-      hasUnread: Constants.getHasUnread(state, _conversationIDKey),
-      isMuted: Constants.isMuted(state, _conversationIDKey),
+      _username,
+      conversationIDKey,
+      hasBadge: Constants.getHasBadge(state, conversationIDKey),
+      hasUnread,
+      hasResetUsers: _meta.resetParticipants.size !== 0,
+      isDecryptingSnippet,
+      isFinalized: !!_meta.wasFinalizedBy,
+      teamname,
+      timestamp,
+      participantNeedToRekey,
+      youNeedToRekey: !participantNeedToRekey && _meta.rekeyers.has(_username),
+      isMuted: Constants.isMuted(state, conversationIDKey),
       isSelected: ownProps.selected,
       isTypingSnippet,
       snippet,
@@ -61,11 +75,8 @@ export default Container.namedConnect(
     const isSelected = stateProps.isSelected
     const hasUnread = stateProps.hasUnread
     const styles = Constants.getRowStyles(isSelected, hasUnread)
-    const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
-    const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
-    const isDecryptingSnippet =
-      (hasUnread || stateProps.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
-    const hasResetUsers = stateProps._meta.resetParticipants.size !== 0
+    const {hasResetUsers, isDecryptingSnippet, teamname, timestamp} = stateProps
+    const {participantNeedToRekey, youNeedToRekey, conversationIDKey, isFinalized} = stateProps
     const participantsArray = stateProps._participantInfo.all.length
       ? Constants.getRowParticipants(stateProps._participantInfo, stateProps._username)
       : !ownProps.isTeam
@@ -74,16 +85,10 @@ export default Container.namedConnect(
 
     const participants = participantsArray.length === 1 ? participantsArray[0] : participantsArray
 
-    const teamname = stateProps._meta.teamname
-      ? stateProps._meta.teamname
-      : ownProps.isTeam
-      ? ownProps.name
-      : ''
-    const timestamp = stateProps._meta.timestamp > 0 ? stateProps._meta.timestamp : ownProps.time || 0
     return {
       backgroundColor: styles.backgroundColor,
       channelname: undefined,
-      conversationIDKey: stateProps._meta.conversationIDKey,
+      conversationIDKey,
       draft:
         stateProps._draft && !stateProps.isSelected && !stateProps.hasUnread ? stateProps._draft : undefined,
       hasBadge: stateProps.hasBadge,
@@ -98,7 +103,7 @@ export default Container.namedConnect(
       hasUnread,
       iconHoverColor: styles.iconHoverColor,
       isDecryptingSnippet,
-      isFinalized: !!stateProps._meta.wasFinalizedBy,
+      isFinalized,
       isInWidget: false,
       isMuted: stateProps.isMuted,
       isSelected,
@@ -108,9 +113,9 @@ export default Container.namedConnect(
       layoutSnippet: ownProps.snippet,
       layoutSnippetDecoration: ownProps.snippetDecoration,
       onHideConversation: dispatchProps.onHideConversation,
-      onMuteConversation: () => dispatchProps.onMuteConversation(stateProps._meta.isMuted),
+      onMuteConversation: dispatchProps.onMuteConversation,
       // Don't allow you to select yourself
-      onSelectConversation: isSelected ? () => {} : dispatchProps.onSelectConversation,
+      onSelectConversation: isSelected ? undefined : dispatchProps.onSelectConversation,
       participantNeedToRekey,
       participants,
       showBold: styles.showBold,
@@ -123,6 +128,5 @@ export default Container.namedConnect(
       youAreReset: stateProps.youAreReset,
       youNeedToRekey,
     }
-  },
-  'SmallTeam'
+  }
 )(SmallTeam)

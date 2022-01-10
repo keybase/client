@@ -86,12 +86,12 @@ const BigTeamChannel = (props: Props) => {
                   ? styles.textError
                   : isSelected
                   ? hasUnread
-                    ? styles.textSelectedBold
+                    ? (styles.textSelectedBold as any)
                     : styles.textSelected
                   : hasUnread
                   ? styles.textPlainBold
-                  : styles.textPlain,
-              ])}
+                  : (styles.textPlain as any),
+              ] as any)}
             >
               {channelname}
             </Kb.Text>

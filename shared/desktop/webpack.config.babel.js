@@ -37,6 +37,11 @@ const config = (_, {mode}) => {
         ...(isDev ? {type: 'asset/resource'} : {use: ['null-loader']}),
       },
       {
+        include: path.resolve(__dirname, '../node_modules/@react-navigation/elements/lib/module/assets'),
+        test: /\.(native\.js|gif|png|jpg)$/,
+        use: ['null-loader'],
+      },
+      {
         include: path.resolve(__dirname, '../images/icons'),
         test: /\.(native\.js|gif|png|jpg)$/,
         use: ['null-loader'],
@@ -85,7 +90,9 @@ const config = (_, {mode}) => {
     }
     console.warn('Injecting defines: ', defines)
 
-    const alias = {}
+    const alias = {
+      'react-native$': 'react-native-web',
+    }
     if (isHot) {
       // hot loader
       alias['react-dom'] = '@hot-loader/react-dom'

@@ -12,7 +12,6 @@ import Actions from './actions/container'
 import Friend from './friend/container'
 import Measure from './measure'
 import Teams from './teams/container'
-import Folders from '../folders/container'
 import WebOfTrust from './weboftrust'
 import shallowEqual from 'shallowequal'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -297,7 +296,6 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
           <Teams username={this.props.username} />
           <Proofs {...this.props} />
           {addIdentity}
-          <Folders profileUsername={this.props.username} />
         </Kb.Box2>
       </Kb.Box2>
     ) : (
@@ -319,7 +317,6 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
             <Teams username={this.props.username} />
             <Proofs {...this.props} />
             {addIdentity}
-            <Folders profileUsername={this.props.username} />
           </Kb.Box2>
         </Kb.Box2>
       </>

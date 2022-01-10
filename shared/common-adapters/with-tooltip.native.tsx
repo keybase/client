@@ -6,7 +6,7 @@ import useMounted from './use-mounted'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
-import {useSpring, animated} from './animated'
+import {animated} from './animated'
 import * as Styles from '../styles'
 import {Props} from './with-tooltip'
 

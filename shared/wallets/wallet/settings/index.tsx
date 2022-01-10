@@ -10,7 +10,7 @@ import DisplayCurrencyDropdown from './display-currency-dropdown'
 import {IconType} from '../../../common-adapters/icon.constants-gen'
 import WalletSettingTrustline from './trustline/container'
 import openUrl from '../../../util/open-url'
-import {useFocusEffect} from '@react-navigation/native'
+import {useFocusEffect} from '@react-navigation/core'
 
 export type SettingsProps = {
   accountID: Types.AccountID

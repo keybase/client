@@ -186,7 +186,12 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
   // case we can just take styles.myStyle and not render thrash
-  const valid = styles.filter(Boolean)
+  const valid = styles.filter(s => {
+    return !!s && Object.keys(s).length
+  })
+  if (valid.length === 0) {
+    return undefined as any
+  }
   if (valid.length === 1) {
     const s = valid[0]
     if (typeof s === 'object') {

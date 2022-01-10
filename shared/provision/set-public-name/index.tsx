@@ -5,8 +5,6 @@ import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
 import {defaultDevicename} from '../../constants/signup'
 import debounce from 'lodash/debounce'
-import flags from '../../util/feature-flags'
-
 import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {

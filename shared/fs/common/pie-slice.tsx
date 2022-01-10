@@ -33,7 +33,7 @@ const PieSliceDefault = (props: Props) => {
 const PieSlice = (props: Props) => {
   return props.animated ? (
     <Kb.Animated to={{degrees: props.degrees}}>
-      {({degrees}) => <PieSliceDefault degrees={degrees} style={props.style} negative={props.negative} />}
+      {({degrees}) => <PieSliceDefault degrees={degrees as any} style={props.style} negative={props.negative} />}
     </Kb.Animated>
   ) : (
     <PieSliceDefault degrees={props.degrees} style={props.style} negative={props.negative} />

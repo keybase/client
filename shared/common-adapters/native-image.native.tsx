@@ -1,9 +1,11 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import {Image, ImageProps, ImageURISource} from 'react-native'
+import {Image, ImageProps} from 'react-native'
 import RNFI from 'react-native-fast-image'
 import isArray from 'lodash/isArray'
 import LoadingStateView from './loading-state-view'
+import {memoize} from '../util/memoize'
+import isEqual from 'lodash/isEqual'
 
 export class NativeImage extends React.Component<ImageProps> {
   static getSize = Image.getSize
@@ -17,7 +19,7 @@ type FastImageImplState = {
   progress: number
 }
 
-class FastImageImpl extends React.Component<
+class FastImageImpl extends React.PureComponent<
   ImageProps & {showLoadingStateUntilLoaded?: boolean},
   FastImageImplState
 > {
@@ -33,49 +35,52 @@ class FastImageImpl extends React.Component<
     this._mounted = false
   }
 
-  _onLoadStart = () => {
+  private onLoadStart = () => {
     this._mounted && this.setState({loading: true})
-    this.props.onLoadStart && this.props.onLoadStart()
+    this.props.onLoadStart?.()
   }
-  _onLoadEnd = () => {
+  private onLoadEnd = () => {
     this._mounted && this.setState({loading: false})
-    this.props.onLoadEnd && this.props.onLoadEnd()
+    this.props.onLoadEnd?.()
   }
-  _onProgress = evt => {
+  private onProgress = evt => {
     this._mounted && this.setState({progress: evt.nativeEvent?.loaded / evt.nativeEvent?.total || 0})
-    this.props.onProgress && this.props.onProgress(evt)
+    this.props.onProgress?.(evt)
   }
+
+  private getStyle = memoize((style, loading) => {
+    return Styles.collapseStyles([style, loading ? styles.loading : styles.loaded] as const)
+  }, isEqual)
+
+  private getSource = memoize(source =>
+    isArray(source)
+      ? {uri: source[0].uri} // TODO smarter choice?
+      : {uri: source.uri}
+  )
+
   render() {
     if (typeof this.props.source === 'number') {
       return null
     }
 
-    let source: ImageURISource
-    if (isArray(this.props.source)) {
-      source = this.props.source[0] // TODO smarter choice?
-    } else {
-      source = this.props.source
-    }
+    const source = this.getSource(this.props.source)
 
-    if (!source || !source.uri) {
+    if (!source.uri) {
       return null
     }
 
     // TODO maybe use reanimated2
-    const opacity = this.props.showLoadingStateUntilLoaded && this.state.loading ? 0 : 1
-
     return (
       <>
         <RNFI
-          {...this.props}
-          style={Styles.collapseStyles([
+          {...(this.props as any)}
+          style={this.getStyle(
             this.props.style,
-            this.props.showLoadingStateUntilLoaded && this.state.loading && styles.absolute,
-            {opacity},
-          ])}
-          onLoadStart={this._onLoadStart}
-          onLoadEnd={this._onLoadEnd}
-          onProgress={this._onProgress}
+            this.props.showLoadingStateUntilLoaded && this.state.loading
+          )}
+          onLoadStart={this.onLoadStart}
+          onLoadEnd={this.onLoadEnd}
+          onProgress={this.onProgress}
           source={source}
         />
         {this.props.showLoadingStateUntilLoaded ? (
@@ -87,9 +92,8 @@ class FastImageImpl extends React.Component<
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  absolute: {
-    position: 'absolute',
-  },
+  loading: {position: 'absolute', opacity: 0},
+  loaded: {opacity: 1},
 }))
 
 export const FastImage = FastImageImpl
