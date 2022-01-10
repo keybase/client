@@ -279,7 +279,7 @@ const useInitialStateChangeAfterLinking = (goodLinking: any, onStateChange: () =
 }
 
 const RootStack = createStackNavigator()
-const RNApp = () => {
+const RNApp = React.memo(() => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
   const goodLinking: any = RouterLinking.useReduxToLinking(appState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data
@@ -291,14 +291,17 @@ const RNApp = () => {
 
   useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
 
-  // console.log('aaa RNApp render', {
-  //   loggedInLoaded,
-  //   loggedIn,
-  //   appState,
-  //   onStateChange,
-  //   navKey,
-  //   initialState,
-  // })
+  const DEBUG_RNAPP_RENDER = __DEV__ && false
+    if (DEBUG_RNAPP_RENDER ) {
+        console.log('DEBUG RNApp render', {
+            loggedInLoaded,
+            loggedIn,
+            appState,
+            onStateChange,
+            navKey,
+            initialState,
+        })
+    }
 
   return (
     <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
@@ -335,6 +338,6 @@ const RNApp = () => {
       </NavigationContainer>
     </Kb.KeyboardAvoidingView>
   )
-}
+})
 
 export default RNApp

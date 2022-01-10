@@ -64,13 +64,13 @@ if (__DEV__) {
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
-  config.isDevApplePushToken = false
-  config.printOutstandingRPCs = false
-  config.printOutstandingTimerListeners = false
+  config.isDevApplePushToken = true
+  config.printOutstandingRPCs = true
+  config.printOutstandingTimerListeners = true
   config.printRPCWaitingSession = false
   config.printRPC = true
   // TODO is this even used?
-  config.printRPCStats = false
+  config.printRPCStats = true
   config.userTimings = false
 
   // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
