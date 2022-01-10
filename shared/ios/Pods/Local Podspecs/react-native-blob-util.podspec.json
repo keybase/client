@@ -1,0 +1,21 @@
+{
+  "name": "react-native-blob-util",
+  "version": "0.13.18",
+  "summary": "A module provides upload, download, and files access API. Supports file stream read/write for process large files.",
+  "requires_arc": true,
+  "license": "MIT",
+  "homepage": "n/a",
+  "source": {
+    "git": "https://github.com/RonRadtke/react-native-blob-util"
+  },
+  "authors": "RonRadtke",
+  "source_files": "ios/**/*.{h,m}",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "dependencies": {
+    "React-Core": [
+
+    ]
+  }
+}

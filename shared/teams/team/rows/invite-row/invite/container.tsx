@@ -3,7 +3,6 @@ import * as Constants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import {TeamInviteRow} from '.'
 import {InviteInfo, TeamID} from '../../../../../constants/types/teams'
-import flags from '../../../../../util/feature-flags'
 import {formatPhoneNumber} from '../../../../../util/phone-numbers'
 
 type OwnProps = {

@@ -295,9 +295,6 @@ module.exports = {
   get NativeWebView() {
     return NativeWrappers.NativeWebView
   },
-  get NavigationEvents() {
-    return Index.NavigationEvents
-  },
   get NewInput() {
     return Index.NewInput
   },
@@ -350,10 +347,10 @@ module.exports = {
     return Index.RadioButton
   },
   get ReAnimated() {
-    return require('react-native-reanimated').default
+    return require('./reanimated').default
   },
   get ReAnimatedEasing() {
-    return require('react-native-reanimated').EasingNode
+    return require('./reanimated').EasingNode
   },
   get RectButton() {
     return require('react-native-gesture-handler').RectButton

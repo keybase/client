@@ -124,7 +124,9 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
   }
 
   private onChangeText = (text: string) => {
-    this.setState({hasText: !!text})
+    if (this.state.hasText !== !!text) {
+      this.setState({hasText: !!text})
+    }
     this.lastText = text
     this.props.onChangeText(text)
     this.watchSizeChanges = true
@@ -212,9 +214,13 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
   }
 
   private onDone = () => {
-    this.setState({animating: false}, () => {
-      this.setState({afterAnimatingExtraStepWorkaround: false})
-    })
+    if (this.state.animating) {
+      this.setState({animating: false}, () => {
+        this.setState(state =>
+          state.afterAnimatingExtraStepWorkaround ? {afterAnimatingExtraStepWorkaround: false} : null
+        )
+      })
+    }
   }
 
   private toggleExpandInput = () => {
@@ -353,17 +359,20 @@ const Buttons = (p: ButtonsProps) => {
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
 
   const dispatch = Container.useDispatch()
-  const openEmojiPicker = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, onPickAction: insertEmoji},
-            selected: 'chatChooseEmoji',
-          },
-        ],
-      })
-    )
+  const openEmojiPicker = React.useCallback(
+    () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {conversationIDKey, onPickAction: insertEmoji},
+              selected: 'chatChooseEmoji',
+            },
+          ],
+        })
+      ),
+    [dispatch, conversationIDKey, insertEmoji]
+  )
 
   const explodingIcon = !isEditing && !cannotWrite && (
     <Kb.ClickableBox style={styles.explodingWrapper} onClick={toggleShowingMenu}>
@@ -426,7 +435,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
           type="iconfont-arrow-full-up"
           fontSize={18}
           style={{
-            transform: [{rotate: concat(add(45, rotate), 'deg'), scale: 0.7}],
+            transform: [{rotate: concat(add(45, rotate), 'deg')}, {scale: 0.7}],
           }}
           color={Styles.globalColors.black_35}
         />
@@ -437,13 +446,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
           type="iconfont-arrow-full-up"
           fontSize={18}
           style={{
-            transform: [
-              {
-                rotate: concat(add(45, rotate), 'deg'),
-                scaleX: -0.7,
-                scaleY: -0.7,
-              },
-            ],
+            transform: [{rotate: concat(add(45, rotate), 'deg')}, {scaleX: -0.7}, {scaleY: -0.7}],
           }}
           color={Styles.globalColors.black_35}
         />

@@ -7,13 +7,9 @@ import {isMobile} from '../../../constants/platform'
 import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import TeamJourney from '../../../chat/conversation/messages/cards/team-journey/index'
-import {renderWelcomeMessage} from '../../../chat/conversation/messages/cards/team-journey/util'
 import RetentionPicker from './retention/container'
 import * as Styles from '../../../styles'
-import flags from '../../../util/feature-flags'
 import DefaultChannels from './default-channels'
-import InviteLinks from './invite-links'
 
 type Props = {
   canShowcase: boolean

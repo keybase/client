@@ -6,7 +6,6 @@ import * as Types from '../../constants/types/chat2'
 export type Props = {
   allowShowFloatingButton: boolean
   inboxNumSmallRows: number
-  hasBigTeams: boolean
   isLoading: boolean
   isSearching: boolean
   navKey: string

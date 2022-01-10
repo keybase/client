@@ -17,6 +17,7 @@ import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
+import * as GregorConstants from '../constants/gregor'
 import * as Router2Constants from '../constants/router2'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
@@ -25,8 +26,8 @@ import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import {RPCError} from '../util/errors'
-import flags from '../util/feature-flags'
-import {appendNewTeamBuilder} from './typed-routes'
+// import flags from '../util/feature-flags'
+// import {appendNewTeamBuilder} from './typed-routes'
 
 async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
   const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
@@ -1110,7 +1111,7 @@ const refreshTeamRoleMap = async (
 }
 
 const teamDeletedOrExit = (
-  action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
+  //action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
 ) => {
   if (Router2Constants.getCurrentTab() == Tabs.teamsTab) {
     return RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
@@ -1176,7 +1177,7 @@ function* addTeamWithChosenChannels(
   if (item && item.item && item.item.body) {
     const body = item.item.body
     msgID = item.md && item.md.msgID
-    teams = JSON.parse(body.toString())
+    teams = GregorConstants.bodyToJSON(body)
   } else {
     logger.info(
       `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
@@ -1327,9 +1328,9 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
       chosenChannels = i
     }
     if (i.item.category.startsWith(Constants.newRequestsGregorPrefix)) {
-      const body = i.item.body.toString()
+      const body = GregorConstants.bodyToJSON(i.item.body)
       if (body) {
-        const request: {id: Types.TeamID; username: string} = JSON.parse(body)
+        const request: {id: Types.TeamID; username: string} = body
         const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
         requests.add(request.username)
       }
@@ -1346,10 +1347,9 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
 
   actions.push(TeamsGen.createSetNewTeamRequests({newTeamRequests}))
 
-  const teamsWithChosenChannelsStr: string | undefined = chosenChannels?.item.body.toString()
-  const teamsWithChosenChannels = teamsWithChosenChannelsStr
-    ? new Set<Types.Teamname>(JSON.parse(teamsWithChosenChannelsStr))
-    : new Set<Types.Teamname>()
+    const teamsWithChosenChannels = new Set<Types.Teamname>(GregorConstants.bodyToJSON(chosenChannels?.item.body)
+    )
+
   actions.push(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
 
   return actions
@@ -1545,7 +1545,7 @@ const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
 const setTeamWizardChannels = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard6Subteams'}]})
 const setTeamWizardSubteams = () => TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
-const startAddMembersWizard = (action: TeamsGen.StartAddMembersWizardPayload) =>
+const startAddMembersWizard = (/*action: TeamsGen.StartAddMembersWizardPayload*/) =>
   RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamFromWhere']})
 const finishNewTeamWizard = async (state: TypedState) => {
   const {name, description, open, openTeamJoinRole, profileShowcase, addYourself} = state.teams.newTeamWizard

@@ -1,5 +1,6 @@
 import * as React from 'react'
-import ReAnimated, {EasingNode} from 'react-native-reanimated'
+// @ts-ignore
+import ReAnimated, {EasingNode} from './reanimated'
 import * as Styles from '../styles'
 import {Props} from './loading-line'
 

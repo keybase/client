@@ -1,5 +1,5 @@
-import React from 'react'
-import {namedConnect} from '../../util/container'
+import * as React from 'react'
+import * as Container from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 
 type OwnProps = {}
@@ -27,9 +27,4 @@ class Component extends React.PureComponent<Props> {
   }
 }
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'RefreshDriverStatusOnMount'
-)(Component)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Component)

@@ -4,7 +4,7 @@ import Mention, {OwnProps} from './mention'
 import {isSpecialMention} from '../constants/chat2'
 import * as Container from '../util/container'
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, {username}: OwnProps) => {
     username = username.toLowerCase()
     if (isSpecialMention(username)) {
@@ -33,6 +33,5 @@ export default Container.namedConnect(
         },
   }),
 
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'Mention'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(Mention)

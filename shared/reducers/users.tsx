@@ -18,18 +18,15 @@ type Actions =
   | TeamsGen.SetMembersPayload
 
 const updateInfo = (map: Map<string, Types.UserInfo>, username: string, info: Partial<Types.UserInfo>) => {
-  const next = {
-    ...(map.get(username) || null),
-    ...info,
-  }
+  const nextValue = Container.produce(map.get(username) ?? {}, draft => {
+    Object.keys(info).forEach(key => {
+      draft[key] = info[key]
+    })
+  })
 
-  // cleanup data structure so its not full of empty items
-  !next.fullname && delete next.fullname
-  !next.broken && delete next.broken
-  !next.bio && delete next.bio
-
-  if (Object.keys(next).length) {
-    map.set(username, next)
+  // anything?
+  if (nextValue.fullname || nextValue.broken || nextValue.bio) {
+    map.set(username, nextValue)
   } else {
     map.delete(username)
   }

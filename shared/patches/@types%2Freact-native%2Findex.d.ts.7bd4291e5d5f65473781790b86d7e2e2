@@ -1,0 +1,13 @@
+diff --git a/index.d.ts b/index.d.ts
+index 4a73b15..a2175a7 100755
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -57,7 +57,7 @@
+ //
+ ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+-/// <reference path="globals.d.ts" />
++
+ /// <reference path="legacy-properties.d.ts" />
+ /// <reference path="BatchedBridge.d.ts" />
+ /// <reference path="Devtools.d.ts" />

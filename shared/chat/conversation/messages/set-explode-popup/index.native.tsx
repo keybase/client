@@ -35,12 +35,10 @@ class SetExplodePopup extends React.Component<Props, State> {
     }
   }
 
-  setSelected = (value: number | string) => {
-    if (typeof value === 'string') {
-      // never happens. makes flow happy.
-      return
+  setSelected = (value: number | null) => {
+    if (value !== null) {
+      this.setState({selected: value})
     }
-    this.setState({selected: value})
   }
 
   onDone = () => {

@@ -1,7 +1,6 @@
 import {NavState} from './types/route-tree'
 import {getActiveKey as _getActiveKey} from '../router-v2/util'
-import {createNavigationContainerRef} from '@react-navigation/native'
-import {StackActions, CommonActions} from '@react-navigation/core'
+import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 // import {tabRoots} from '../router-v2/routes'
@@ -260,7 +259,6 @@ export const dispatchOldAction = (
   const actions = oldActionToNewActions(action, navigationRef_.getRootState()) || []
   try {
     actions.forEach(a => {
-      console.log('aaaa nav dispatchOldAction', a)
       navigationRef_.dispatch(a)
     })
   } catch (e) {
@@ -297,8 +295,8 @@ export const getAppPath = () => {
 }
 
 export const navToThread = conversationIDKey => {
-  const rs = _getNavigator()?.getRootState() ?? {}
-  const nextState = Container.produce(rs, draft => {
+  const rs: any = _getNavigator()?.getRootState() ?? {}
+  const nextState: any = Container.produce(rs as any, draft => {
     // app stack
     draft.index = 0
     // select chat tab
@@ -312,4 +310,10 @@ export const navToThread = conversationIDKey => {
   })
 
   rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState), target: rs.key})
+}
+
+export const chatRootKey = () => {
+  const rs: any = _getNavigator()?.getRootState() ?? {}
+  const chatTabIdx = rs.routes[0]?.state.routes.findIndex(r => r.name === Tabs.chatTab)
+  return rs.routes[0].state.routes[chatTabIdx].state.routes[0].key
 }

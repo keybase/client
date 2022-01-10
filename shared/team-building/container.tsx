@@ -126,7 +126,7 @@ const deriveTeamSoFar = memoize(
     })
 )
 
-const deriveServiceResultCount = memoize((searchResults: Types.SearchResults, query: string) =>
+const _deriveServiceResultCount = memoize((searchResults: Types.SearchResults, query: string) =>
   [...(searchResults.get(trim(query)) ?? new Map<Types.ServiceIdWithContact, Array<Types.User>>()).entries()]
     .map(([key, results]) => [key, results.length] as const)
     .reduce<{[k: string]: number}>((o, [key, num]) => {
@@ -134,6 +134,14 @@ const deriveServiceResultCount = memoize((searchResults: Types.SearchResults, qu
       return o
     }, {})
 )
+const emptyObject = {}
+const deriveServiceResultCount = (searchResults: Types.SearchResults, query: string) => {
+  const val = _deriveServiceResultCount(searchResults, query)
+  if (Object.keys(val)) {
+    return val
+  }
+  return emptyObject
+}
 
 const deriveShowResults = memoize(searchString => !!searchString)
 
@@ -634,12 +642,7 @@ const mergeProps = (
   }
 }
 
-const Connected = Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'TeamBuilding'
-)(TeamBuilding)
+const Connected: any = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamBuilding)
 
 type RealOwnProps = Container.RouteProps<{
   namespace: Types.AllowedNamespace
@@ -696,9 +699,11 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         showServiceResultCount={false}
         focusInputCounter={this.state.focusInputCounter}
         incFocusInputCounter={this._incFocusInputCounter}
-        title={Container.getRouteProps(this.props, 'title', '')}
-        goButtonLabel={Container.getRouteProps(this.props, 'goButtonLabel', 'Start')}
-        recommendedHideYourself={Container.getRouteProps(this.props, 'recommendedHideYourself', false)}
+        title={Container.getRouteProps(this.props as any, 'title', '') as any}
+        goButtonLabel={Container.getRouteProps(this.props as any, 'goButtonLabel', 'Start') as any}
+        recommendedHideYourself={
+          Container.getRouteProps(this.props as any, 'recommendedHideYourself', false) as any
+        }
       />
     )
   }

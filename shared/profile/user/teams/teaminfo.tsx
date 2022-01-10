@@ -9,7 +9,6 @@ import Text from '../../../common-adapters/text'
 import {Box2} from '../../../common-adapters/box'
 import WaitingButton from '../../../common-adapters/waiting-button'
 import {Position} from '../../../common-adapters/relative-popup-hoc.types'
-import flags from '../../../util/feature-flags'
 
 const Kb = {
   Box2,

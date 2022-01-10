@@ -136,7 +136,12 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 		sliceMatcherNoOrder{[]keybase1.PathSubscriptionTopic{
 			keybase1.PathSubscriptionTopic_STAT,
 			keybase1.PathSubscriptionTopic_CHILDREN,
-		}}).Do(func(args ...interface{}) { done0(args...); done1(args...) })
+		}}).Do(func(
+		clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
+		path string, topics []keybase1.PathSubscriptionTopic) {
+		done0()
+		done1()
+	})
 	_, _, err = config.KBFSOps().CreateDir(
 		ctx, rootNode, rootNode.ChildName("dir1"))
 	require.NoError(t, err)
@@ -152,7 +157,12 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	sm.Unsubscribe(ctx, sid1)
 	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
 		[]SubscriptionID{sid2}, "/keybase/private/jdoe",
-		[]keybase1.PathSubscriptionTopic{keybase1.PathSubscriptionTopic_STAT}).Do(done2)
+		[]keybase1.PathSubscriptionTopic{keybase1.PathSubscriptionTopic_STAT}).Do(func(
+		clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
+		path string, topics []keybase1.PathSubscriptionTopic) {
+		done2()
+	})
+
 	_, _, err = config.KBFSOps().CreateDir(
 		ctx, rootNode, rootNode.ChildName("dir2"))
 	require.NoError(t, err)
@@ -168,7 +178,11 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	require.NoError(t, err)
 	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
 		[]SubscriptionID{sid1}, "/keybase/private/jdoe/dir1/../file",
-		[]keybase1.PathSubscriptionTopic{keybase1.PathSubscriptionTopic_STAT}).Do(done3)
+		[]keybase1.PathSubscriptionTopic{keybase1.PathSubscriptionTopic_STAT}).Do(func(
+		clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
+		path string, topics []keybase1.PathSubscriptionTopic) {
+		done3()
+	})
 	err = config.KBFSOps().Write(ctx, fileNode, []byte("hello"), 0)
 	require.NoError(t, err)
 	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
@@ -190,7 +204,12 @@ func TestSubscriptionManagerFavoritesChange(t *testing.T) {
 	require.NoError(t, err)
 	notifier.EXPECT().OnNonPathChange(
 		testSubscriptionManagerClientID,
-		[]SubscriptionID{sid1}, keybase1.SubscriptionTopic_FAVORITES).Do(done1)
+		[]SubscriptionID{sid1}, keybase1.SubscriptionTopic_FAVORITES).Do(
+		func(
+			clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
+			topic keybase1.SubscriptionTopic) {
+			done1()
+		})
 	err = config.KBFSOps().AddFavorite(ctx,
 		favorites.Folder{
 			Name: "test",
@@ -227,7 +246,12 @@ func TestSubscriptionManagerSubscribePathNoFolderBranch(t *testing.T) {
 	require.NoError(t, err)
 	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
 		[]SubscriptionID{sid1}, "/keybase/private/jdoe",
-		[]keybase1.PathSubscriptionTopic{keybase1.PathSubscriptionTopic_CHILDREN}).AnyTimes().Do(done0)
+		[]keybase1.PathSubscriptionTopic{keybase1.PathSubscriptionTopic_CHILDREN}).AnyTimes().Do(
+		func(
+			clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
+			path string, topics []keybase1.PathSubscriptionTopic) {
+			done0()
+		})
 
 	tlfHandle, err := GetHandleFromFolderNameAndType(
 		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)

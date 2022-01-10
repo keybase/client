@@ -119,6 +119,6 @@ func TestAddLongDurationTimezone(t *testing.T) {
 	ret, err := AddLongDuration(then, "1000 Y")
 	require.NoError(t, err)
 	require.Equal(t,
-		"3020-04-01 12:23:08 +0100", // timezone changes to +0100 from +0200 (???)
+		"3020-04-01 12:23:08 +0200",
 		ret.Format(testTTzFmt))
 }

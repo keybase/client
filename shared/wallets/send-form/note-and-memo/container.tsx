@@ -1,11 +1,11 @@
 import {SecretNote as SecretNoteComponent, PublicMemo as PublicMemoComponent} from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
 type OwnProps = {}
 
-export const SecretNote = namedConnect(
+export const SecretNote = Container.connect(
   state => {
     const recipientType = state.wallets.building.recipientType
     const building = state.wallets.building
@@ -27,11 +27,10 @@ export const SecretNote = namedConnect(
     onChangeSecretNote: (secretNote: string) =>
       dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(secretNote)})),
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'ConnectedSecretNote'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(SecretNoteComponent)
 
-export const PublicMemo = namedConnect(
+export const PublicMemo = Container.connect(
   state => {
     const building = state.wallets.building
     const built = state.wallets.builtPayment
@@ -51,6 +50,5 @@ export const PublicMemo = namedConnect(
         })
       ),
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'ConnectedPublicMemo'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(PublicMemoComponent)

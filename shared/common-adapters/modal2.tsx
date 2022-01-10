@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import {LayoutChangeEvent} from 'react-native'
 import ScrollView from './scroll-view'
-import {Box2, Box} from './box'
+import {Box2, Box, LayoutEvent} from './box'
 import BoxGrow from './box-grow'
 import Text from './text'
 import {useTimeout} from './use-timers'
@@ -60,7 +59,7 @@ const Header2 = (props: HeaderProps) => {
   const setMeasuredLater = Kb.useTimeout(() => setMeasured(true), 100)
   const [widerWidth, setWiderWidth] = React.useState(-1)
   const onLayoutSide = React.useCallback(
-    (evt: LayoutChangeEvent) => {
+    (evt: LayoutEvent) => {
       if (measured) {
         return
       }
@@ -171,7 +170,7 @@ const Footer = (props: FooterProps & {wide: boolean}) => (
       props.wide && styles.footerWide,
       !props.hideBorder && styles.footerBorder,
       props.style,
-    ])}
+    ] as const)}
   >
     {props.content}
   </Kb.Box2>

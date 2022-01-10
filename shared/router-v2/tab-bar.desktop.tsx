@@ -16,6 +16,7 @@ import * as SettingsConstants from '../constants/settings'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
+import * as Common from './common.desktop'
 import * as TrackerConstants from '../constants/tracker2'
 import flags from '../util/feature-flags'
 import AccountSwitcher from './account-switcher/container'
@@ -25,11 +26,10 @@ import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {isLinux} from '../constants/platform'
 import {quit} from '../desktop/app/ctl.desktop'
-import {tabRoots} from './routes'
 
 export type Props = {
   navigation: any
-  selectedTab: Tabs.AppTab
+  state: any
 }
 
 const data = {
@@ -43,8 +43,6 @@ const data = {
   [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
-
-const tabs = Tabs.desktopTabOrder
 
 const FilesTabBadge = () => {
   const uploadIcon = FsConstants.getUploadIconForFilesTab(Container.useSelector(state => state.fs.badge))
@@ -162,29 +160,23 @@ const Header = () => {
   )
 }
 
-const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
+const keysMap = Tabs.desktopTabs.reduce((map, tab, index) => {
   map[`mod+${index + 1}`] = tab
   return map
 }, {})
 const hotKeys = Object.keys(keysMap)
 
 const TabBar = (props: Props) => {
-  const {selectedTab, navigation} = props
+  const {navigation, state} = props
   const username = Container.useSelector(state => state.config.username)
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
   const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)
 
-  const navRef = React.useRef(navigation.navigate)
-
-  const onChangeTab = React.useCallback((tab: Tabs.AppTab) => {
-    navRef.current(tab)
-  }, [])
-  const onNavUp = React.useCallback((tab: Tabs.AppTab) => {
-    navRef.current(tabRoots[tab])
-  }, [])
   const onHotKey = React.useCallback((cmd: string) => {
-    navRef.current(keysMap[cmd])
+    navigation.navigate(keysMap[cmd])
   }, [])
+
+  const onSelectTab = Common.useSubnavTabAction(navigation, state)
 
   return username ? (
     <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
@@ -194,14 +186,16 @@ const TabBar = (props: Props) => {
         <Header />
         <Kb.Divider style={styles.divider} />
       </Kb.Box2>
-      {tabs.map((t, i) => (
+      {state.routes.map((route, index) => (
         <Tab
-          key={t}
-          tab={t}
-          index={i}
-          isSelected={selectedTab === t}
-          onTabClick={selectedTab === t ? onNavUp : onChangeTab}
-          badge={t === Tabs.fsTab && fsCriticalUpdate ? (badgeNumbers.get(t) ?? 0) + 1 : badgeNumbers.get(t)}
+          key={route.key}
+          tab={route.name}
+          index={index}
+          isSelected={index === state.index}
+          onTabClick={() => onSelectTab(route.name)}
+          badge={
+            (badgeNumbers.get(route.name) ?? 0) + (route.name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
+          }
         />
       ))}
       <RuntimeStats />

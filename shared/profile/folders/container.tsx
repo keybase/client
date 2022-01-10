@@ -1,15 +1,10 @@
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import Folders from '.'
 
-type OwnProps = {
-  profileUsername: string
-}
-
-const noFolders = namedConnect(
+const noFolders = Container.connect(
   () => ({}),
   () => ({}),
-  () => ({loadTlfs: () => {}, tlfs: []}),
-  'ConnectedFolders'
+  () => ({loadTlfs: () => {}, tlfs: []})
 )(Folders)
 
 export default noFolders

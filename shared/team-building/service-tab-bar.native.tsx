@@ -190,7 +190,7 @@ export class ServiceTabBar extends React.PureComponent<Props> {
           flexGrow: 0,
           flexShrink: 0,
           height,
-          transform: [{translateX: this.bounce, translateY}] as any,
+          transform: [{translateX: this.bounce}, {translateY}] as any,
           width: '100%',
         }}
       >

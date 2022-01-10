@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
@@ -62,4 +62,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'TopBarLoading')(Loading)
+export default Container.connect(mapStateToProps, () => ({}), mergeProps)(Loading)

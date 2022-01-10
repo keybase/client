@@ -1,8 +1,8 @@
-import FsRoot from './container'
-import {BarePreview} from './filepreview'
-import ConfirmDelete from './common/path-item-action/confirm-delete/container'
-import KextPermission from './banner/system-file-manager-integration-banner/kext-permission-popup-container'
-import DestinationPicker from './browser/destination-picker/container'
+import type FsRoot from './container'
+import type {BarePreview} from './filepreview'
+import type ConfirmDelete from './common/path-item-action/confirm-delete/container'
+import type KextPermission from './banner/system-file-manager-integration-banner/kext-permission-popup-container'
+import type DestinationPicker from './browser/destination-picker/container'
 
 const fsRoot = {getScreen: (): typeof FsRoot => require('./container').default}
 

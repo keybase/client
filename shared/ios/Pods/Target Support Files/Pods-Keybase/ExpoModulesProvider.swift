@@ -6,13 +6,23 @@
  */
 
 import ExpoModulesCore
-import EXHaptics
+import ExpoHaptics
 
 @objc(ExpoModulesProvider)
 public class ExpoModulesProvider: ModulesProvider {
   public override func getModuleClasses() -> [AnyModule.Type] {
     return [
       HapticsModule.self
+    ]
+  }
+
+  public override func getAppDelegateSubscribers() -> [ExpoAppDelegateSubscriber.Type] {
+    return [
+    ]
+  }
+
+  public override func getReactDelegateHandlers() -> [ExpoReactDelegateHandlerTupleType] {
+    return [
     ]
   }
 }

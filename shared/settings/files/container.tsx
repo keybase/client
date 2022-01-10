@@ -7,7 +7,7 @@ import {isMobile} from '../../constants/platform'
 import {PickerItem} from '../../common-adapters/floating-picker'
 
 type OwnProps = {}
-const SettingsFiles = Container.namedConnect(
+const SettingsFiles = Container.connect(
   state => ({
     areSettingsLoading: state.fs.settings.isLoading,
     driverStatus: state.fs.sfmi.driverStatus,
@@ -44,8 +44,7 @@ const SettingsFiles = Container.namedConnect(
     onChangedSyncNotifications: (selectedIdx: number) =>
       d.onSetSyncNotificationThreshold(allowedNotificationThresholds[selectedIdx]),
     onEnableSyncNotifications: () => d.onSetSyncNotificationThreshold(defaultNotificationThreshold),
-  }),
-  'SettingsFiles'
+  })
 )(Files)
 
 export default SettingsFiles

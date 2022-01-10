@@ -2,15 +2,14 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import {teamsLoadedWaitingKey} from '../../constants/teams'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as TeamsGen from '../../actions/teams-gen'
+// import * as RouteTreeGen from '../../actions/route-tree-gen'
+// import * as TeamsGen from '../../actions/teams-gen'
 import * as Styles from '../../styles'
-import flags from '../../util/feature-flags'
 
 const TeamsFooter = (props: {empty: boolean}) => {
-  const dispatch = Container.useDispatch()
-  const onCreateTeam = () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
-  const onJoinTeam = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['teamJoinTeamDialog']}))
+  // const dispatch = Container.useDispatch()
+  // const onCreateTeam = () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
+  // const onJoinTeam = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['teamJoinTeamDialog']}))
 
   const isLoadingTeams = Container.useAnyWaiting(teamsLoadedWaitingKey)
 

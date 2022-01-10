@@ -6,7 +6,6 @@ import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
-import flags from '../../../util/feature-flags'
 import Menu from './menu'
 import {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
@@ -196,9 +195,8 @@ const mergeProps = (
   }
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
-  'PathItemActionMenu'
 )(Menu)

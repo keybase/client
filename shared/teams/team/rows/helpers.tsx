@@ -1,5 +1,4 @@
 import * as Types from '../../../constants/types/teams'
-import flags from '../../../util/feature-flags'
 
 // Weights for sorting team members
 // 2 is neutral

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import Modal from '../modal'
 
 type OwnProps = {}
@@ -36,9 +36,8 @@ const mapDispatchToProps = dispatch => ({
   onShowImport: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileImport']})),
 })
 
-export default namedConnect(
+export default Container.connect(
   () => ({}),
   mapDispatchToProps,
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'Choice'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(Choice)

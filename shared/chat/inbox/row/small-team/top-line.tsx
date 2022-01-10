@@ -58,6 +58,11 @@ class _SimpleTopLine extends React.Component<Props> {
     ])
   })
 
+  private onHidden = () => {
+    this.props.setShowingMenu(false)
+    this.props.onForceHideMenu()
+  }
+
   render() {
     return (
       <Kb.Box style={styles.container}>
@@ -65,10 +70,7 @@ class _SimpleTopLine extends React.Component<Props> {
           <TeamMenu
             visible={this.props.showingMenu || this.props.forceShowMenu}
             attachTo={this.props.getAttachmentRef}
-            onHidden={() => {
-              this.props.setShowingMenu(false)
-              this.props.onForceHideMenu()
-            }}
+            onHidden={this.onHidden}
             hasHeader={true}
             isSmallTeam={true}
             conversationIDKey={this.props.conversationIDKey}

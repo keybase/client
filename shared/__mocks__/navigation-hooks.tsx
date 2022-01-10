@@ -1,4 +1,4 @@
-import {NavigationEventCallback} from '@react-navigation/core'
+// import {NavigationEventCallback} from '@react-navigation/core'
 
 /**
  * Hooks for react-navigation
@@ -9,4 +9,4 @@ export function useNavigationState() {
   return {key: ''}
 }
 
-export function useNavigationEvents(_: NavigationEventCallback) {}
+export function useNavigationEvents(_: any /*NavigationEventCallback*/) {}

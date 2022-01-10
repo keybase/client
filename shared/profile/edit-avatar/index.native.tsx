@@ -6,7 +6,6 @@ import {Props} from '.'
 import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {ModalTitle} from '../../teams/common'
 import * as Container from '../../util/container'
-import flags from '../../util/feature-flags'
 
 type WrappedProps = {
   onChooseNewAvatar: () => void
@@ -232,7 +231,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
                 : Styles.collapseStyles([
                     styles.zoomContainer,
                     {
-                      borderRadius: this.props.type === 'team' ? 32 : this.avatar_size(),
+                      borderRadius: this.avatar_size(),
                       height: this.avatar_size(),
                       width: this.avatar_size(),
                     },

@@ -11,7 +11,7 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const WalletsIcon = Container.namedConnect(
+const WalletsIcon = Container.connect(
   (state, ownProps: OwnProps) => {
     const selectedConversation = ownProps.conversationIDKey
     const participantInfo = Constants.getParticipantInfo(state, selectedConversation)
@@ -28,8 +28,7 @@ const WalletsIcon = Container.namedConnect(
     onSend: () => dispatchProps._onClick(stateProps._to, false),
     size: ownProps.size,
     style: ownProps.style,
-  }),
-  'WalletsIcon'
+  })
 )(WalletsIconRender)
 
 export default WalletsIcon

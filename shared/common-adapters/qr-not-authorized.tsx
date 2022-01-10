@@ -34,9 +34,8 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Container.namedConnect(
+export default Container.connect(
   () => ({}),
   dispatch => ({onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings())}),
-  (_, dispatchProps, __: OwnProps) => ({...dispatchProps}),
-  'QRScanNotAuthorized'
+  (_, dispatchProps, __: OwnProps) => ({...dispatchProps})
 )(QRScanNotAuthorized)

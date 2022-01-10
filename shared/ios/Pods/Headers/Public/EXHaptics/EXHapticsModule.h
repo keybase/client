@@ -1,1 +1,0 @@
-../../../../../node_modules/expo-haptics/ios/EXHaptics/EXHapticsModule.h

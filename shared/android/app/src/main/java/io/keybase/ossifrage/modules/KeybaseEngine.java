@@ -67,6 +67,16 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         }
     }
 
+    @ReactMethod
+    public void addListener(String eventName) {
+      // Set up any upstream listeners or background tasks as necessary
+    }
+
+    @ReactMethod
+    public void removeListeners(Integer count) {
+      // Remove upstream listeners, stop unnecessary background tasks
+    }
+
     private class ReadFromKBLib implements Runnable {
         private final ReactApplicationContext reactContext;
 
@@ -248,14 +258,14 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     }
 
     // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
-    @ReactMethod
-    public void appColorSchemeChanged(String prefString) {
-        final DarkModePreference pref = DarkModePrefHelper.fromString(prefString);
-        final MainActivity activity = (MainActivity) reactContext.getCurrentActivity();
-        if (activity != null) {
-          activity.setBackgroundColor(pref);
-        }
-    }
+//    @ReactMethod
+//    public void appColorSchemeChanged(String prefString) {
+//        final DarkModePreference pref = DarkModePrefHelper.fromString(prefString);
+//        final MainActivity activity = (MainActivity) reactContext.getCurrentActivity();
+//        if (activity != null) {
+//          activity.setBackgroundColor(pref);
+//        }
+//    }
 
     public void setInitialBundleFromNotification(Bundle bundle) {
         this.initialBundleFromNotification = bundle;

@@ -1,4 +1,4 @@
-import {namedConnect} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import ReactionsRow from '.'
@@ -30,7 +30,7 @@ export type OwnProps = {
   ordinal: Types.Ordinal
 }
 
-export default namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
     if (!message || !Constants.isMessageWithReactions(message)) {
@@ -45,6 +45,5 @@ export default namedConnect(
   (stateProps, _, ownProps: OwnProps) => ({
     ...ownProps,
     emojis: getOrderedReactions(stateProps._reactions),
-  }),
-  'ReactionsRow'
+  })
 )(ReactionsRow)

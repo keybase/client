@@ -44,7 +44,7 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
   </>
 )
 
-export const InfoIcon = Container.namedConnect(
+export const InfoIcon = Container.connect(
   state => ({_loggedIn: state.config.loggedIn}),
   dispatch => ({
     _onFeedback: (loggedIn: boolean) => {
@@ -61,7 +61,6 @@ export const InfoIcon = Container.namedConnect(
     onDocumentation: d.onDocumentation,
     onFeedback: () => d._onFeedback(s._loggedIn),
   }),
-  'SignupInfoIcon'
 )(Kb.OverlayParentHOC(_InfoIcon))
 
 type HeaderProps = {

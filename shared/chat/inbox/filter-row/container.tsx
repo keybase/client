@@ -15,7 +15,7 @@ type OwnProps = {
   showSearch: boolean
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => ({
     filter: ownProps.query,
     isSearching: !!state.chat2.inboxSearch,
@@ -40,6 +40,5 @@ export default Container.namedConnect(
     onStopSearch: dispatchProps.onStopSearch,
     showNewChat: ownProps.showNewChat,
     showSearch: ownProps.showSearch,
-  }),
-  'ChatFilterRow'
+  })
 )(ConversationFilterInput)

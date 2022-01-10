@@ -1,7 +1,7 @@
-import GitRoot from './container'
-import GitDeleteRepo from './delete-repo/container'
-import GitNewRepo from './new-repo/container'
-import GitSelectChannel from './select-channel'
+import type GitRoot from './container'
+import type GitDeleteRepo from './delete-repo/container'
+import type GitNewRepo from './new-repo/container'
+import type GitSelectChannel from './select-channel'
 
 const gitRoot = {getScreen: (): typeof GitRoot => require('./container').default}
 

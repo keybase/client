@@ -108,74 +108,78 @@ const followIconHelper = (
   }
 }
 
-const ConnectedAvatar = Container.connect(
-  (state, ownProps: OwnProps) => ({
-    _counter: state.config.avatarRefreshCounter.get(ownProps.username || ownProps.teamname || '') || 0,
-    _following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
-    _followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
-    _httpSrvAddress: state.config.httpSrvAddress,
-    _httpSrvToken: state.config.httpSrvToken,
-    blocked: state.users?.blockMap?.get(ownProps.username || ownProps.teamname || '')?.chatBlocked,
-  }),
-  dispatch => ({
-    _goToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {username} = ownProps
-    const isTeam = ownProps.isTeam || !!ownProps.teamname
+const ConnectedAvatar = React.memo((ownProps: OwnProps) => {
+  const {username, showFollowingStatus, teamname} = ownProps
+  const isTeam = ownProps.isTeam || !!teamname
+  const counter = Container.useSelector(
+    state => state.config.avatarRefreshCounter.get(username || teamname || '') || 0
+  )
+  const following = Container.useSelector(state =>
+    showFollowingStatus ? state.config.following.has(username || '') : false
+  )
+  const followsYou = Container.useSelector(state =>
+    showFollowingStatus ? state.config.followers.has(username || '') : false
+  )
+  const httpSrvAddress = Container.useSelector(state => state.config.httpSrvAddress)
+  const httpSrvToken = Container.useSelector(state => state.config.httpSrvToken)
+  const blocked = Container.useSelector(
+    state => state.users?.blockMap?.get(username || teamname || '')?.chatBlocked
+  )
+  const dispatch = Container.useDispatch()
+  const goToProfile = React.useCallback(
+    () => username && dispatch(ProfileGen.createShowUserProfile({username})),
+    [dispatch, username]
+  )
 
-    const opClick =
-      ownProps.onClick === 'profile'
-        ? username
-          ? () => dispatchProps._goToProfile(username)
-          : undefined
-        : ownProps.onClick
-    const onClick = ownProps.onEditAvatarClick || opClick
-    const name = isTeam ? ownProps.teamname : username
-    const sizes = [960, 256, 192] as const
-    const urlMap = sizes.reduce<{[key: number]: string}>((m, size) => {
-      m[size] = `http://${stateProps._httpSrvAddress}/av?typ=${
-        isTeam ? 'team' : 'user'
-      }&name=${name}&format=square_${size}&mode=${Styles.isDarkMode() ? 'dark' : 'light'}&token=${
-        stateProps._httpSrvToken
-      }&count=${stateProps._counter}`
-      return m
-    }, {})
-    const url = ownProps.imageOverrideUrl
-      ? `url("${encodeURI(ownProps.imageOverrideUrl)}")`
-      : stateProps._httpSrvAddress && name
-      ? urlsToImgSet(urlMap, ownProps.size)
-      : iconTypeToImgSet(
-          isTeam
-            ? teamPlaceHolders
-            : ownProps.lighterPlaceholders
-            ? avatarLighterPlaceHolders
-            : avatarPlaceHolders,
-          ownProps.size
-        )
-    const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
-    return {
-      blocked: stateProps.blocked,
-      borderColor: ownProps.borderColor,
-      children: ownProps.children,
-      crop: ownProps.crop,
-      editable: ownProps.editable,
-      followIconSize: iconInfo.iconSize,
-      followIconStyle: iconInfo.iconStyle,
-      followIconType: iconInfo.iconType,
-      isTeam,
-      loadingColor: ownProps.loadingColor,
-      name: name || '',
-      onClick,
-      onEditAvatarClick: ownProps.onEditAvatarClick,
-      opacity: ownProps.opacity,
-      size: ownProps.size,
-      skipBackground: ownProps.skipBackground,
-      style: ownProps.style,
-      url,
-    }
-  }
-)(Avatar)
+  const opClick = ownProps.onClick === 'profile' ? (username ? goToProfile : undefined) : ownProps.onClick
+  const onClick = ownProps.onEditAvatarClick || opClick
+  const name = isTeam ? teamname : username
+  const sizes = [960, 256, 192] as const
+  const urlMap = sizes.reduce<{[key: number]: string}>((m, size) => {
+    m[size] = `http://${httpSrvAddress}/av?typ=${
+      isTeam ? 'team' : 'user'
+    }&name=${name}&format=square_${size}&mode=${
+      Styles.isDarkMode() ? 'dark' : 'light'
+    }&token=${httpSrvToken}&count=${counter}`
+    return m
+  }, {})
+  const url = ownProps.imageOverrideUrl
+    ? `url("${encodeURI(ownProps.imageOverrideUrl)}")`
+    : httpSrvAddress && name
+    ? urlsToImgSet(urlMap, ownProps.size)
+    : iconTypeToImgSet(
+        isTeam
+          ? teamPlaceHolders
+          : ownProps.lighterPlaceholders
+          ? avatarLighterPlaceHolders
+          : avatarPlaceHolders,
+        ownProps.size
+      )
+  const iconInfo = followIconHelper(ownProps.size, followsYou, following)
+
+  return (
+    <Avatar
+      blocked={blocked}
+      borderColor={ownProps.borderColor}
+      children={ownProps.children}
+      crop={ownProps.crop}
+      editable={ownProps.editable}
+      followIconSize={iconInfo.iconSize}
+      followIconStyle={iconInfo.iconStyle}
+      followIconType={iconInfo.iconType}
+      isTeam={isTeam}
+      loadingColor={ownProps.loadingColor}
+      name={name || ''}
+      onClick={onClick}
+      onEditAvatarClick={ownProps.onEditAvatarClick}
+      opacity={ownProps.opacity}
+      size={ownProps.size}
+      skipBackground={ownProps.skipBackground}
+      style={ownProps.style}
+      url={url}
+    />
+  )
+})
 
 const mockOwnToViewProps = (
   ownProps: OwnProps,

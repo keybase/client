@@ -13,7 +13,7 @@ import * as Tabs from '../../../constants/tabs'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-  progress: any
+  progress?: any
 }
 
 const HeaderBranch = (props: Props & {progress: any}) => {
@@ -72,8 +72,6 @@ export const HeaderArea = Container.connect(
             .filter(username => username !== state.config.username)
             .map(username => getFullname(state, username))[0]
         : undefined
-
-    console.log('aaa header area container', meta)
 
     return {
       channelName: meta.channelname,

@@ -157,7 +157,7 @@ static void InitializeFlipper(UIApplication *application) {
   // This is a mildly hacky solution to mock out some code when we're in storybook mode.
   // The code that handles this is in `shared/metro.config.js`.
   // NSString *bundlerURL = IS_STORYBOOK ? @"storybook-index" : @"normal-index";
-  NSString *bundlerURL = @"normal-index";
+  NSString *bundlerURL = @"index";
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:bundlerURL fallbackResource:nil];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];

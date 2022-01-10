@@ -1,6 +1,4 @@
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/crypto'
 import * as Styles from '../../styles'
@@ -15,16 +13,11 @@ type Props = {
   // Moible only
   description?: string
   illustration?: IconType
+  onClick: () => void
 }
 
 const NavRow = (props: Props) => {
-  const {tab, isSelected, title, icon, illustration, description} = props
-  const dispatch = Container.useDispatch()
-  const replace = Styles.isMobile ? {} : {replace: true}
-
-  const onSelect = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [tab], ...replace}))
-  }
+  const {isSelected, title, icon, illustration, description, onClick} = props
 
   const desktopRow = icon ? (
     <Kb.Box2
@@ -46,7 +39,7 @@ const NavRow = (props: Props) => {
             padding="xtiny"
           />
         }
-        onClick={onSelect}
+        onClick={onClick}
         hideHover={true}
         body={
           <Kb.Box2
@@ -71,7 +64,7 @@ const NavRow = (props: Props) => {
 
   const mobileRow =
     description && illustration ? (
-      <Kb.RichButton title={title} description={description} icon={illustration} onClick={onSelect} />
+      <Kb.RichButton title={title} description={description} icon={illustration} onClick={onClick} />
     ) : null
 
   return Styles.isMobile ? mobileRow : desktopRow

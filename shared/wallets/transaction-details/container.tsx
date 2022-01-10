@@ -61,11 +61,11 @@ export default Container.connect(
   (stateProps, dispatchProps, _: OwnProps) => {
     const tx = stateProps._transaction
     if (stateProps.loading) {
-      return ({
+      return {
         loading: true,
         onBack: dispatchProps.navigateUp,
         onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
-      } as any) as NotLoadingProps // TODO actually split this container so it doesn't do this. makes it much harder to type
+      } as any as NotLoadingProps // TODO actually split this container so it doesn't do this. makes it much harder to type
     }
     return {
       ...stateProps.yourInfoAndCounterparty,
@@ -108,4 +108,4 @@ export default Container.connect(
       you: stateProps.you,
     }
   }
-)(TransactionDetails)
+)(TransactionDetails as any)

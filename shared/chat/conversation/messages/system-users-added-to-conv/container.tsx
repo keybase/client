@@ -37,7 +37,7 @@ const UsersAddedToConversation = (props: SwitcherProps) => {
   )
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, {message}: OwnProps) => ({
     channelname: Constants.getMeta(state, message.conversationIDKey).channelname,
     you: state.config.username,
@@ -49,6 +49,5 @@ export default Container.namedConnect(
     channelname: stateProps.channelname,
     timestamp: ownProps.message.timestamp,
     you: stateProps.you,
-  }),
-  'ConnectedUsersAddedToConversation'
+  })
 )(UsersAddedToConversation)

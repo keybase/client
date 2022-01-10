@@ -5,7 +5,6 @@ import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner, InfoIcon} from '../common'
 import debounce from 'lodash/debounce'
-import flags from '../../util/feature-flags'
 
 type Props = {
   error: string

@@ -379,7 +379,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           this.showCenteredHighlight() && styles.centeredOrdinal,
           !this.props.showUsername && styles.containerNoUsername,
-        ]),
+        ] as const),
       }
       return this.props.decorate
         ? {
@@ -633,7 +633,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                       style={Styles.collapseStyles([
                         styles.emojiRow,
                         this.props.isLastInThread && styles.emojiRowLast,
-                      ])}
+                      ] as const)}
                     />
                   )}
                 <Kb.Box>

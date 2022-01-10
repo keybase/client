@@ -121,11 +121,15 @@ export type Props = {
 
 const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, type}: Props) => {
   const wrappedMeta = useMemo(() => ({message}), [message])
+  const styleOverride = useMemo(
+    () => (Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined),
+    [type, isEditing, isHighlighted]
+  )
   const markdown = (
     <Kb.Markdown
       style={getStyle(type, isEditing, isHighlighted)}
       meta={wrappedMeta}
-      styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined}
+      styleOverride={styleOverride}
       allowFontScaling={true}
     >
       {text}

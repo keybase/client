@@ -56,13 +56,14 @@ const ButtonBox = Styles.styled(ClickableBox, {
 
 const standardEmojiPattern = /^:([^:])+:$/
 
-const ReactButton = (props: Props) => {
+const ReactButton = React.forwardRef<ClickableBox, Props>((props, ref) => {
   const text = props.decorated.length ? props.decorated : props.emoji
   const isStandardEmoji = !!props.emoji.match(standardEmojiPattern)
   return (
     <ButtonBox
       noEffect={false}
       border={false}
+      ref={ref}
       className={Styles.classNames(props.className, {noShadow: props.active})}
       onLongPress={props.onLongPress}
       onMouseLeave={props.onMouseLeave}
@@ -99,7 +100,7 @@ const ReactButton = (props: Props) => {
       </Box2>
     </ButtonBox>
   )
-}
+})
 
 const iconCycle = ['iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji'] as const
 export type NewReactionButtonProps = {

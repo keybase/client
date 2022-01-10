@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Flow from '../../../util/flow'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import {FloatingMenuProps} from './types'
 import Menu from './menu-container'
 import Confirm from './confirm-container'
@@ -28,9 +28,8 @@ const ChooseView = (props: Props) => {
   }
 }
 
-export default namedConnect(
+export default Container.connect(
   state => ({view: state.fs.pathItemActionMenu.view}),
   () => ({}),
   (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'PathItemActionChooseView'
 )(ChooseView)
