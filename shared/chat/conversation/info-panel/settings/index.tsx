@@ -8,11 +8,9 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import flags from '../../../../util/feature-flags'
 import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
-import {CaptionedDangerIcon} from './channel-utils'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
 type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey; isPreview: boolean}
@@ -29,9 +27,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const ignored = status === RPCChatTypes.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
 
-  const spinnerForHide = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.waitingKeyConvStatusChange(conversationIDKey))
-  )
+  // const spinnerForHide = Container.useSelector(state =>
+  //   Container.anyWaiting(state, Constants.waitingKeyConvStatusChange(conversationIDKey))
+  // )
   const spinnerForLeave = Container.useSelector(state =>
     Container.anyWaiting(state, Constants.waitingKeyLeaveConversation)
   )
@@ -87,106 +85,41 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 
   const onLeaveConversation = () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey}))
 
-  if (flags.teamsRedesign) {
-    return (
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        fullHeight={true}
-        alignItems="flex-start"
-        style={styles.settingsContainer}
-      >
-        <Kb.ScrollView>
-          {isPreview ? (
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.settingsHeader}>
-              <Kb.Text type="BodySmallSemibold">You are not in this channel.</Kb.Text>
-              <Kb.Button type="Success" mode="Primary" label="Join channel" style={styles.buttonStyle} />
-            </Kb.Box2>
-          ) : (
-            <Notifications conversationIDKey={conversationIDKey} />
-          )}
-
-          {entityType === 'channel' && channelname !== 'general' && !isPreview && (
-            <Kb.Button
-              type="Default"
-              mode="Secondary"
-              label="Leave channel"
-              onClick={onLeaveConversation}
-              style={styles.smallButton}
-              waiting={spinnerForLeave}
-              icon="iconfont-leave"
-              iconColor={Styles.globalColors.blue}
-            />
-          )}
-
-          <Kb.Text type="Header" style={styles.settingsHeader}>
-            Conversation
-          </Kb.Text>
-
-          <RetentionPicker
-            containerStyle={styles.retentionContainerStyle}
-            conversationIDKey={['adhoc', 'channel'].includes(entityType) ? conversationIDKey : undefined}
-            dropdownStyle={styles.retentionDropdownStyle}
-            entityType={entityType}
-            showSaveIndicator={true}
-            teamID={teamID}
-          />
-          {(entityType === 'channel' || entityType === 'small team') && (
-            <MinWriterRole conversationIDKey={conversationIDKey} />
-          )}
-
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.section} gap="small">
-            <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
-
-            {canDeleteHistory && (
-              <Kb.Button
-                type="Danger"
-                mode="Secondary"
-                label="Clear entire conversation"
-                onClick={onShowClearConversationDialog}
-              />
-            )}
-            {entityType === 'adhoc' && (
-              <Kb.Button
-                type="Danger"
-                mode="Primary"
-                label="Block"
-                onClick={onShowBlockConversationDialog}
-                icon="iconfont-remove"
-                iconColor={Styles.globalColors.red}
-              />
-            )}
-            {entityType !== 'channel' &&
-              (ignored ? (
-                <Kb.Button
-                  type="Danger"
-                  mode="Secondary"
-                  label="Unhide this conversation"
-                  onClick={onUnhideConv}
-                  icon="iconfont-unhide"
-                  iconColor={Styles.globalColors.red}
-                />
-              ) : (
-                <Kb.Button
-                  type="Danger"
-                  mode="Secondary"
-                  label="Hide this conversation"
-                  onClick={onHideConv}
-                  icon="iconfont-unhide"
-                  iconColor={Styles.globalColors.red}
-                />
-              ))}
-          </Kb.Box2>
-        </Kb.ScrollView>
-      </Kb.Box2>
-    )
-  }
-
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.settingsContainer}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      fullHeight={true}
+      alignItems="flex-start"
+      style={styles.settingsContainer}
+    >
       <Kb.ScrollView>
-        <Notifications conversationIDKey={conversationIDKey} />
-        <Kb.Divider style={styles.divider} />
+        {isPreview ? (
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.settingsHeader}>
+            <Kb.Text type="BodySmallSemibold">You are not in this channel.</Kb.Text>
+            <Kb.Button type="Success" mode="Primary" label="Join channel" style={styles.buttonStyle} />
+          </Kb.Box2>
+        ) : (
+          <Notifications conversationIDKey={conversationIDKey} />
+        )}
+
+        {entityType === 'channel' && channelname !== 'general' && !isPreview && (
+          <Kb.Button
+            type="Default"
+            mode="Secondary"
+            label="Leave channel"
+            onClick={onLeaveConversation}
+            style={styles.smallButton}
+            waiting={spinnerForLeave}
+            icon="iconfont-leave"
+            iconColor={Styles.globalColors.blue}
+          />
+        )}
+
+        <Kb.Text type="Header" style={styles.settingsHeader}>
+          Conversation
+        </Kb.Text>
+
         <RetentionPicker
           containerStyle={styles.retentionContainerStyle}
           conversationIDKey={['adhoc', 'channel'].includes(entityType) ? conversationIDKey : undefined}
@@ -196,52 +129,51 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           teamID={teamID}
         />
         {(entityType === 'channel' || entityType === 'small team') && (
-          <>
-            <Kb.Divider style={styles.divider} />
-            <MinWriterRole conversationIDKey={conversationIDKey} />
-          </>
+          <MinWriterRole conversationIDKey={conversationIDKey} />
         )}
-        <Kb.Divider style={styles.divider} />
-        {canDeleteHistory && (
-          <CaptionedDangerIcon
-            caption="Clear entire conversation"
-            onClick={onShowClearConversationDialog}
-            icon="iconfont-fire"
-          />
-        )}
-        {entityType === 'adhoc' && (
-          <CaptionedDangerIcon
-            caption="Block"
-            onClick={onShowBlockConversationDialog}
-            icon="iconfont-remove"
-          />
-        )}
-        {entityType !== 'channel' &&
-          (ignored ? (
-            <CaptionedDangerIcon
-              caption="Unhide this conversation"
-              icon="iconfont-unhide"
-              onClick={onUnhideConv}
-              noDanger={true}
-              spinner={spinnerForHide}
+
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.section} gap="small">
+          <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
+
+          {canDeleteHistory && (
+            <Kb.Button
+              type="Danger"
+              mode="Secondary"
+              label="Clear entire conversation"
+              onClick={onShowClearConversationDialog}
             />
-          ) : (
-            <CaptionedDangerIcon
-              caption="Hide this conversation"
-              onClick={onHideConv}
-              noDanger={true}
-              icon="iconfont-hide"
-              spinner={spinnerForHide}
+          )}
+          {entityType === 'adhoc' && (
+            <Kb.Button
+              type="Danger"
+              mode="Primary"
+              label="Block"
+              onClick={onShowBlockConversationDialog}
+              icon="iconfont-remove"
+              iconColor={Styles.globalColors.red}
             />
-          ))}
-        {entityType === 'channel' && channelname !== 'general' && (
-          <CaptionedDangerIcon
-            onClick={onLeaveConversation}
-            caption="Leave channel"
-            icon="iconfont-leave"
-            spinner={spinnerForLeave}
-          />
-        )}
+          )}
+          {entityType !== 'channel' &&
+            (ignored ? (
+              <Kb.Button
+                type="Danger"
+                mode="Secondary"
+                label="Unhide this conversation"
+                onClick={onUnhideConv}
+                icon="iconfont-unhide"
+                iconColor={Styles.globalColors.red}
+              />
+            ) : (
+              <Kb.Button
+                type="Danger"
+                mode="Secondary"
+                label="Hide this conversation"
+                onClick={onHideConv}
+                icon="iconfont-unhide"
+                iconColor={Styles.globalColors.red}
+              />
+            ))}
+        </Kb.Box2>
       </Kb.ScrollView>
     </Kb.Box2>
   )

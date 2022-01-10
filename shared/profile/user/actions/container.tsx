@@ -13,7 +13,7 @@ type OwnProps = {
   username: string
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const username = ownProps.username
     const d = Constants.getDetails(state, username)
@@ -98,6 +98,5 @@ export default Container.namedConnect(
     onUnfollow: () => dispatchProps._onFollow(stateProps._guiID, false),
     state: stateProps.state,
     username,
-  }),
-  'Actions'
+  })
 )(Actions)

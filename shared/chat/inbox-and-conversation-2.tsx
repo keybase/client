@@ -9,17 +9,17 @@ import InfoPanel from './conversation/info-panel/container'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
-import {withNavigation} from '@react-navigation/core'
 
 type Props = {
   navigation?: any
+  route: any
 }
 
 const InboxAndConversation = (props: Props) => {
   const dispatch = Container.useDispatch()
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
-  const conversationIDKey = props.navigation.state?.params?.conversationIDKey
+  const conversationIDKey = props.route.params?.conversationIDKey
   const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
   const needSelectConvoID = Container.useSelector(state => {
     if (validConvoID) {
@@ -28,16 +28,19 @@ const InboxAndConversation = (props: Props) => {
     const first = state.chat2.inboxLayout?.smallTeams?.[0]
     return first?.convID
   })
-  const navKey = props.navigation.state.key
+  const navKey = props.route.key
 
   React.useEffect(() => {
     if (needSelectConvoID) {
-      dispatch(
-        Chat2Gen.createNavigateToThread({
-          conversationIDKey: needSelectConvoID,
-          reason: 'findNewestConversationFromLayout',
-        })
-      )
+      // hack to select the convo after we render, TODO move this elsewhere maybe
+      setTimeout(() => {
+        dispatch(
+          Chat2Gen.createNavigateToThread({
+            conversationIDKey: needSelectConvoID,
+            reason: 'findNewestConversationFromLayout',
+          })
+        )
+      }, 1)
     }
   }, [needSelectConvoID, dispatch])
 
@@ -48,17 +51,16 @@ const InboxAndConversation = (props: Props) => {
       ) : (
         <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
       )}
-      <Conversation navigation={props.navigation} />
+      <Conversation navigation={props.navigation} route={props.route} />
       {infoPanelShowing && <InfoPanel conversationIDKey={conversationIDKey} />}
     </Kb.Box2>
   )
 }
 
-InboxAndConversation.navigationOptions = {
-  header: undefined,
-  headerTitle: withNavigation(Header),
+InboxAndConversation.navigationOptions = ({navigation, route}) => ({
+  headerTitle: () => <Header navigation={navigation} route={route} />,
   headerTitleContainerStyle: {left: 0, right: 0},
-}
+})
 
 const Memoed = React.memo(InboxAndConversation)
 Container.hoistNonReactStatic(Memoed, InboxAndConversation)

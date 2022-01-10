@@ -2,11 +2,9 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/teams'
-import flags from '../../../../util/feature-flags'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import {typeToLabel} from '../../../../constants/teams'
-import {isLargeScreen} from '../../../../constants/platform'
 import {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
 import MenuHeader from '../menu-header.new'
 
@@ -73,270 +71,167 @@ export const TeamMemberRow = (props: Props) => {
 
   const roleLabel = !!active && !!props.roleType && typeToLabel[props.roleType]
   const isYou = props.you === props.username
+  const teamID = props.teamID
 
-  if (flags.teamsRedesign) {
-    const teamID = props.teamID
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const teamSelectedMembers = Container.useSelector(state => state.teams.teamSelectedMembers.get(teamID))
+  const anySelected = !!teamSelectedMembers?.size
+  const selected = !!teamSelectedMembers?.has(props.username)
 
-    const dispatch = Container.useDispatch()
-    const nav = Container.useSafeNavigation()
-    const teamSelectedMembers = Container.useSelector(state => state.teams.teamSelectedMembers.get(teamID))
-    const anySelected = !!teamSelectedMembers?.size
-    const selected = !!teamSelectedMembers?.has(props.username)
-
-    const onSelect = (selected: boolean) => {
-      dispatch(TeamsGen.createTeamSetMemberSelected({selected, teamID, username: props.username}))
-    }
-
-    const checkCircle = (
-      <Kb.CheckCircle
-        checked={selected}
-        onCheck={onSelect}
-        key={`check-${props.username}`}
-        style={styles.widenClickableArea}
-      />
-    )
-
-    const body = (
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-        <Kb.Avatar username={props.username} size={32} />
-
-        <Kb.Box2 direction="vertical" style={styles.nameContainer}>
-          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-            <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} colorFollowing={true} />
-          </Kb.Box>
-
-          <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
-            {fullNameLabel}
-            {crown}
-            {!active && (
-              <Kb.Meta
-                backgroundColor={Styles.globalColors.red}
-                title={props.status === 'reset' ? 'locked out' : 'deleted'}
-                style={styles.lockedOutMeta}
-              />
-            )}
-            <Kb.Text type="BodySmall">
-              {!!active && !!props.roleType && typeToLabel[props.roleType]}
-              {resetLabel}
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.Box2>
-      </Kb.Box2>
-    )
-
-    const menuHeader = (
-      <MenuHeader
-        username={props.username}
-        fullName={props.fullName}
-        label={
-          <Kb.Box2 direction="horizontal">
-            <Kb.Text type="BodySmall">{crown}</Kb.Text>
-            <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
-          </Kb.Box2>
-        }
-      />
-    )
-
-    const menuItems: Kb.MenuItems = [
-      'Divider',
-      ...(props.youCanManageMembers
-        ? ([
-            {
-              icon: 'iconfont-chat',
-              onClick: () =>
-                dispatch(
-                  nav.safeNavigateAppendPayload({
-                    path: [{props: {teamID, usernames: [props.username]}, selected: 'teamAddToChannels'}],
-                  })
-                ),
-              title: 'Add to channels...',
-            },
-            {icon: 'iconfont-crown-admin', onClick: props.onClick, title: 'Edit role...'},
-          ] as Kb.MenuItems)
-        : []),
-      {icon: 'iconfont-person', onClick: props.onOpenProfile, title: 'View profile'},
-      {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
-      ...(props.youCanManageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
-      ...(props.youCanManageMembers
-        ? ([
-            {
-              danger: true,
-              icon: 'iconfont-remove',
-              onClick: props.onRemoveFromTeam,
-              title: 'Remove from team',
-            },
-          ] as Kb.MenuItems)
-        : []),
-      ...(!isYou
-        ? ([
-            {
-              danger: true,
-              icon: 'iconfont-block',
-              onClick: props.onBlock,
-              title: 'Block',
-            },
-          ] as Kb.MenuItems)
-        : []),
-    ]
-    const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
-      <Kb.FloatingMenu
-        header={menuHeader}
-        attachTo={attachTo}
-        closeOnSelect={true}
-        items={menuItems}
-        onHidden={toggleShowingPopup}
-        visible={showingPopup}
-      />
-    ))
-
-    const actions = (
-      <Kb.Box2
-        direction="horizontal"
-        gap="tiny"
-        style={props.youCanManageMembers ? styles.mobileMarginsHack : undefined}
-      >
-        {popup}
-        <Kb.Button
-          icon="iconfont-chat"
-          iconColor={Styles.globalColors.black_50}
-          mode="Secondary"
-          onClick={props.onChat}
-          small={true}
-          tooltip="Open chat"
-        />
-        <Kb.Button
-          icon="iconfont-ellipsis"
-          iconColor={Styles.globalColors.black_50}
-          mode="Secondary"
-          onClick={toggleShowingPopup}
-          ref={popupAnchor}
-          small={true}
-          tooltip="More actions"
-        />
-      </Kb.Box2>
-    )
-
-    const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
-    const massActionsProps = props.youCanManageMembers
-      ? {
-          containerStyleOverride: styles.listItemMargin,
-          icon: checkCircle,
-          iconStyleOverride: styles.checkCircle,
-        }
-      : {}
-    return (
-      <Kb.ListItem2
-        {...massActionsProps}
-        action={anySelected ? null : actions}
-        onlyShowActionOnHover="fade"
-        height={Styles.isMobile ? 56 : 48}
-        type="Large"
-        body={body}
-        firstItem={props.firstItem}
-        style={selected ? styles.selected : styles.unselected}
-        onClick={anySelected ? () => onSelect(!selected) : canEnterMemberPage ? props.onClick : undefined}
-      />
-    )
+  const onSelect = (selected: boolean) => {
+    dispatch(TeamsGen.createTeamSetMemberSelected({selected, teamID, username: props.username}))
   }
 
+  const checkCircle = (
+    <Kb.CheckCircle
+      checked={selected}
+      onCheck={onSelect}
+      key={`check-${props.username}`}
+      style={styles.widenClickableArea}
+    />
+  )
+
+  const body = (
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+      <Kb.Avatar username={props.username} size={32} />
+
+      <Kb.Box2 direction="vertical" style={styles.nameContainer}>
+        <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+          <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} colorFollowing={true} />
+        </Kb.Box>
+
+        <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
+          {fullNameLabel}
+          {crown}
+          {!active && (
+            <Kb.Meta
+              backgroundColor={Styles.globalColors.red}
+              title={props.status === 'reset' ? 'locked out' : 'deleted'}
+              style={styles.lockedOutMeta}
+            />
+          )}
+          <Kb.Text type="BodySmall">
+            {!!active && !!props.roleType && typeToLabel[props.roleType]}
+            {resetLabel}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+
+  const menuHeader = (
+    <MenuHeader
+      username={props.username}
+      fullName={props.fullName}
+      label={
+        <Kb.Box2 direction="horizontal">
+          <Kb.Text type="BodySmall">{crown}</Kb.Text>
+          <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
+        </Kb.Box2>
+      }
+    />
+  )
+
+  const menuItems: Kb.MenuItems = [
+    'Divider',
+    ...(props.youCanManageMembers
+      ? ([
+          {
+            icon: 'iconfont-chat',
+            onClick: () =>
+              dispatch(
+                nav.safeNavigateAppendPayload({
+                  path: [{props: {teamID, usernames: [props.username]}, selected: 'teamAddToChannels'}],
+                })
+              ),
+            title: 'Add to channels...',
+          },
+          {icon: 'iconfont-crown-admin', onClick: props.onClick, title: 'Edit role...'},
+        ] as Kb.MenuItems)
+      : []),
+    {icon: 'iconfont-person', onClick: props.onOpenProfile, title: 'View profile'},
+    {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
+    ...(props.youCanManageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
+    ...(props.youCanManageMembers
+      ? ([
+          {
+            danger: true,
+            icon: 'iconfont-remove',
+            onClick: props.onRemoveFromTeam,
+            title: 'Remove from team',
+          },
+        ] as Kb.MenuItems)
+      : []),
+    ...(!isYou
+      ? ([
+          {
+            danger: true,
+            icon: 'iconfont-block',
+            onClick: props.onBlock,
+            title: 'Block',
+          },
+        ] as Kb.MenuItems)
+      : []),
+  ]
+  const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      header={menuHeader}
+      attachTo={attachTo}
+      closeOnSelect={true}
+      items={menuItems}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
+    />
+  ))
+
+  const actions = (
+    <Kb.Box2
+      direction="horizontal"
+      gap="tiny"
+      style={props.youCanManageMembers ? styles.mobileMarginsHack : undefined}
+    >
+      {popup}
+      <Kb.Button
+        icon="iconfont-chat"
+        iconColor={Styles.globalColors.black_50}
+        mode="Secondary"
+        onClick={props.onChat}
+        small={true}
+        tooltip="Open chat"
+      />
+      <Kb.Button
+        icon="iconfont-ellipsis"
+        iconColor={Styles.globalColors.black_50}
+        mode="Secondary"
+        onClick={toggleShowingPopup}
+        ref={popupAnchor}
+        small={true}
+        tooltip="More actions"
+      />
+    </Kb.Box2>
+  )
+
+  const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
+  const massActionsProps = props.youCanManageMembers
+    ? {
+        containerStyleOverride: styles.listItemMargin,
+        icon: checkCircle,
+        iconStyleOverride: styles.checkCircle,
+      }
+    : {}
   return (
-    <Kb.Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
-      <Kb.Box style={styles.innerContainerTop}>
-        <Kb.ClickableBox
-          style={styles.clickable}
-          onClick={active ? props.onClick : props.status === 'deleted' ? undefined : props.onShowTracker}
-        >
-          <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
-          <Kb.Box style={styles.nameContainer}>
-            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-              <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} />
-            </Kb.Box>
-            <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
-              {fullNameLabel}
-              {crown}
-              {!active && (
-                <Kb.Meta
-                  backgroundColor={Styles.globalColors.red}
-                  title={props.status === 'reset' ? 'locked out' : 'deleted'}
-                  style={styles.lockedOutMeta}
-                />
-              )}
-              <Kb.Text type="BodySmall">
-                {roleLabel}
-                {resetLabel}
-              </Kb.Text>
-            </Kb.Box2>
-          </Kb.Box>
-        </Kb.ClickableBox>
-        {!active && !Styles.isMobile && props.youCanManageMembers && (
-          <Kb.Box style={styles.buttonBarContainer}>
-            <Kb.ButtonBar>
-              <Kb.Button
-                small={true}
-                label="Remove"
-                onClick={props.onRemoveFromTeam}
-                type="Dim"
-                waiting={props.waitingForRemove}
-                disabled={props.waitingForAdd}
-              />
-            </Kb.ButtonBar>
-          </Kb.Box>
-        )}
-        <Kb.Box style={styles.chatIconContainer}>
-          {(active || isLargeScreen) && (
-            // Desktop & mobile large screen - display on the far right of the first row
-            // Also when user is active
-            <Kb.Icon
-              onClick={props.onChat}
-              style={
-                Styles.isMobile
-                  ? Styles.collapseStyles([styles.chatButtonMobile, styles.chatButtonMobileSmallTop])
-                  : styles.chatButtonDesktop
-              }
-              fontSize={Styles.isMobile ? 20 : 16}
-              type="iconfont-chat"
-            />
-          )}
-        </Kb.Box>
-      </Kb.Box>
-      {!active && Styles.isMobile && props.youCanManageMembers && (
-        <Kb.Box style={styles.innerContainerBottom}>
-          <Kb.ButtonBar direction="row">
-            {props.status !== 'deleted' && (
-              <Kb.Button
-                small={true}
-                label="Re-Admit"
-                onClick={props.onReAddToTeam}
-                type="Success"
-                waiting={props.waitingForAdd}
-                disabled={props.waitingForRemove}
-              />
-            )}
-            <Kb.Button
-              small={true}
-              label="Remove"
-              onClick={props.onRemoveFromTeam}
-              type="Dim"
-              waiting={props.waitingForRemove}
-              disabled={props.waitingForAdd}
-            />
-          </Kb.ButtonBar>
-          {!isLargeScreen && (
-            // Mobile small screens - for inactive user
-            // display next to reset / deleted controls
-            <Kb.Icon
-              onClick={props.onChat}
-              style={Styles.collapseStyles([
-                styles.chatButtonMobile,
-                active && styles.chatButtonMobileSmallTop,
-              ])}
-              fontSize={20}
-              type="iconfont-chat"
-            />
-          )}
-        </Kb.Box>
-      )}
-    </Kb.Box>
+    <Kb.ListItem2
+      {...massActionsProps}
+      action={anySelected ? null : actions}
+      onlyShowActionOnHover="fade"
+      height={Styles.isMobile ? 56 : 48}
+      type="Large"
+      body={body}
+      firstItem={props.firstItem}
+      style={selected ? styles.selected : styles.unselected}
+      onClick={anySelected ? () => onSelect(!selected) : canEnterMemberPage ? props.onClick : undefined}
+    />
   )
 }
 

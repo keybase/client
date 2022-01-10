@@ -1,4 +1,5 @@
 import {forceImmediateLogging} from '../local-debug'
+import {isMobile} from '../constants/platform'
 
 type TimeoutInfo = {
   didTimeout: boolean
@@ -17,17 +18,19 @@ function immediateCallback(cb: (info: TimeoutInfo) => void): ReturnType<typeof s
 }
 
 function timeoutFallback(cb: (info: TimeoutInfo) => void): ReturnType<typeof setTimeout> {
-  return setTimeout(function() {
+  return setTimeout(function () {
     cb({
       didTimeout: true,
-      timeRemaining: function() {
+      timeRemaining: function () {
         return 0
       },
     })
   }, 20)
 }
 
-const useFallback = typeof window === 'undefined' || !window.requestIdleCallback
+const useFallback =
+  typeof window === 'undefined' || !window.requestIdleCallback || isMobile /* this is broken now in RN */
+
 const requestIdleCallback = forceImmediateLogging
   ? immediateCallback
   : useFallback

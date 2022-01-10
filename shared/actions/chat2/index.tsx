@@ -6,6 +6,7 @@ import * as EngineGen from '../engine-gen-gen'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
+import * as GregorConstants from '../../constants/gregor'
 import * as FsConstants from '../../constants/fs'
 import * as Flow from '../../util/flow'
 import * as NotificationsGen from '../notifications-gen'
@@ -1826,7 +1827,7 @@ function* messageSend(
   const onHideConfirm = ({canceled}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDone']['inParam']) =>
     Saga.callUntyped(function* () {
       const visibleScreen = Router2Constants.getVisibleScreen()
-      if (visibleScreen && visibleScreen.routeName === confirmRouteName) {
+      if (visibleScreen && visibleScreen.name === confirmRouteName) {
         yield Saga.put(RouteTreeGen.createClearModals())
       }
       if (canceled) {
@@ -2551,9 +2552,13 @@ const navigateToInbox = (
 
 const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   const {conversationIDKey, reason} = action.payload
+  // don't nav if its caused by a nav
+  if (reason === 'navChanged') {
+    return
+  }
   const visible = Router2Constants.getVisibleScreen()
   const visibleConvo = visible?.params?.conversationIDKey
-  const visibleRouteName = visible?.routeName
+  const visibleRouteName = visible?.name
 
   if (visibleRouteName !== Constants.threadRouteName && reason === 'findNewestConversation') {
     // service is telling us to change our selection but we're not looking, ignore
@@ -2561,36 +2566,31 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   }
 
   const modalPath = Router2Constants.getModalStack()
-  const mainPath = Router2Constants.getMainStack()
+  const curTab = Router2Constants.getCurrentTab()
 
   const modalClearAction = modalPath.length > 0 ? [RouteTreeGen.createClearModals()] : []
-  const tabSwitchAction =
-    mainPath[1]?.routeName !== Tabs.chatTab ? [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})] : []
+  const tabSwitchAction = curTab !== Tabs.chatTab ? [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})] : []
 
   // we select the chat tab and change the params
   if (Constants.isSplit) {
     return [
       ...tabSwitchAction,
       ...modalClearAction,
-      RouteTreeGen.createSetParams({key: 'chatRoot', params: {conversationIDKey}}),
+      RouteTreeGen.createSetParams({key: Router2Constants.chatRootKey(), params: {conversationIDKey}}),
       RouteTreeGen.createNavUpToScreen({routeName: Constants.threadRouteName}),
     ]
   } else {
     // immediately switch stack to an inbox | thread stack
     if (reason === 'push' || reason === 'savedLastState') {
-      return [
-        ...modalClearAction,
-        RouteTreeGen.createResetStack({
-          actions: [
-            RouteTreeGen.createNavigateAppend({
-              path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
-            }),
-          ],
-          index: 1,
-          tab: Tabs.chatTab,
-        }),
-        ...tabSwitchAction,
-      ]
+      Router2Constants.navToThread(conversationIDKey)
+      return []
+      // ...modalClearAction,
+      // ...tabSwitchAction,
+      // RouteTreeGen.createResetStack({
+      // path: Constants.threadRouteName,
+      // props: {conversationIDKey}
+      // }),
+      // ]
     } else {
       // replace if looking at the pending / waiting screen
       const replace =
@@ -2763,9 +2763,7 @@ const fetchConversationBio = async (
 
 const leaveConversation = async (action: Chat2Gen.LeaveConversationPayload) => {
   await RPCChatTypes.localLeaveConversationLocalRpcPromise(
-    {
-      convID: Types.keyToConversationID(action.payload.conversationIDKey),
-    },
+    { convID: Types.keyToConversationID(action.payload.conversationIDKey), },
     Constants.waitingKeyLeaveConversation
   )
 }
@@ -3357,21 +3355,25 @@ const gregorPushState = (
     actions.push(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
   } else {
     logger.info('Got push state with some exploding modes')
-    const modes = explodingItems.reduce<Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>>(
-      (current, i) => {
-        const {category, body} = i.item
-        const secondsString = body.toString()
-        const seconds = parseInt(secondsString, 10)
-        if (isNaN(seconds)) {
-          logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
-          return current
-        }
-        const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
-        const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
-        current.push({conversationIDKey, seconds})
-        return current
-      },
-      []
+        const modes = explodingItems.reduce<Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>>(
+            (current, i) => {
+                try {
+
+                    const {category, body} = i.item
+                    const secondsString = Buffer.from(body).toString()
+                    const seconds = parseInt(secondsString, 10)
+                    if (isNaN(seconds)) {
+                        logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
+                        return current
+                    }
+                    const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
+                    const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
+                    current.push({conversationIDKey, seconds})
+                } catch {
+                }
+                return current
+            },
+            []
     )
     actions.push(Chat2Gen.createUpdateConvExplodingModes({modes}))
   }
@@ -3387,9 +3389,11 @@ const gregorPushState = (
       .forEach(i => {
         const teamID = i.item.category.substr(Constants.blockButtonsGregorPrefix.length)
         if (!state.chat2.blockButtonsMap.get(teamID)) {
-          const body: {adder: string} = JSON.parse(i.item.body.toString())
-          const adder = body.adder
-          actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
+            try {
+                const body: {adder: string} = GregorConstants.bodyToJSON(i.item.body)
+                const adder = body.adder
+                actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
+            } catch { }
         } else {
           shouldKeepExistingBlockButtons.set(teamID, true)
         }
@@ -3684,7 +3688,7 @@ const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
   const {conversationIDKey, show, tab} = action.payload
   if (Container.isPhone) {
     const visibleScreen = Router2Constants.getVisibleScreen()
-    if ((visibleScreen?.routeName === 'chatInfoPanel') !== show) {
+    if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
       return show
         ? RouteTreeGen.createNavigateAppend({
             path: [{props: {conversationIDKey, tab}, selected: 'chatInfoPanel'}],
@@ -3705,16 +3709,16 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
   const p = prev[prev.length - 1]
   const n = next[next.length - 1]
 
-  const wasModal = prev[1]?.routeName !== 'Main'
-  const isModal = next[1]?.routeName !== 'Main'
+  const wasModal = prev.length && prev[0]?.name !== 'loggedIn'
+  const isModal = next[0]?.name !== 'loggedIn'
 
   // ignore if changes involve a modal
   if (wasModal || isModal) {
     return
   }
 
-  const wasChat = p?.routeName === Constants.threadRouteName
-  const isChat = n?.routeName === Constants.threadRouteName
+  const wasChat = p?.name === Constants.threadRouteName
+  const isChat = n?.name === Constants.threadRouteName
 
   // nothing to do with chat
   if (!wasChat && !isChat) {
@@ -3750,8 +3754,13 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
     ]
   }
 
+  // going into a chat
   if (isChat && Constants.isValidConversationIDKey(isID)) {
-    return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
+    return [
+      ...deselectAction,
+      Chat2Gen.createSelectedConversation({conversationIDKey: isID}),
+      Chat2Gen.createNavigateToThread({conversationIDKey: isID, reason: 'navChanged'}),
+    ]
   }
 
   return false

@@ -130,18 +130,17 @@ const SearchBotPopup = (props: Props) => {
   return (
     <Kb.Modal
       onClose={onClose}
+      noScrollView={true}
       header={{
         leftButton: Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         title: 'Add a bot',
       }}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.modal}>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.modal}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
           <Kb.SearchFilter
             size="full-width"
@@ -155,11 +154,15 @@ const SearchBotPopup = (props: Props) => {
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={true}
           sections={[usersSection, botSection]}
+          style={{flexGrow: 1}}
         />
       </Kb.Box2>
     </Kb.Modal>
   )
 }
+
+// TODO switch to react navigation headers later
+// SearchBotPopup.navigationOptions = { }
 
 const styles = Styles.styleSheetCreate(() => ({
   inputContainer: Styles.platformStyles({
@@ -170,6 +173,10 @@ const styles = Styles.styleSheetCreate(() => ({
   modal: Styles.platformStyles({
     isElectron: {
       height: 500,
+    },
+    isMobile: {
+      backgroundColor: 'green',
+      // flexGrow: 1,
     },
   }),
 }))

@@ -14,7 +14,6 @@ type Props = {
 
 class PaperKey extends React.Component<Props, {paperKey: string}> {
   static navigationOptions = {
-    header: null,
     headerBottomStyle: {height: undefined},
     headerLeft: null, // no back button
   }

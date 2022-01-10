@@ -3,7 +3,7 @@ let isElectron = null
 let isReactNative = null
 let isTest = null
 
-module.exports = function(api /*: any */) {
+module.exports = function (api /*: any */) {
   const apiEnv = api.env()
 
   if (apiEnv === 'test') {
@@ -40,8 +40,9 @@ module.exports = function(api /*: any */) {
         '@babel/plugin-proposal-nullish-coalescing-operator',
         '@babel/plugin-proposal-optional-chaining',
         '@babel/plugin-proposal-object-rest-spread',
-        '@babel/transform-flow-strip-types',
+        // '@babel/transform-flow-strip-types',
         '@babel/plugin-proposal-class-properties',
+        'react-native-web',
       ],
       presets: [
         isTest ? ['@babel/preset-env', {targets: {node: 'current'}}] : '@babel/preset-env',
@@ -52,6 +53,7 @@ module.exports = function(api /*: any */) {
   } else if (isReactNative) {
     console.error('KB babel.config.js for ReactNative')
     return {
+      plugins: ['react-native-reanimated/plugin'],
       presets: ['module:metro-react-native-babel-preset'],
     }
   }

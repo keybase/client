@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {path}: OwnProps)
   },
 })
 
-export default Container.namedConnect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
@@ -34,5 +34,4 @@ export default Container.namedConnect(
     confirm: () => dispatchProps._confirm(stateProps._pathItemActionMenu),
     size: stateProps.size,
   }),
-  'PathItemActionConfirm'
 )(Confirm)

@@ -6,7 +6,7 @@ import GiphySearch from '.'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const {conversationIDKey} = ownProps
     const giphy = state.chat2.giphyResultMap.get(conversationIDKey) ?? null
@@ -20,6 +20,5 @@ export default Container.namedConnect(
       dispatch(Chat2Gen.createGiphySend({conversationIDKey, url: new HiddenString(url)}))
     },
   }),
-  (s, d) => ({...s, ...d}),
-  'GiphySearch'
+  (s, d) => ({...s, ...d})
 )(GiphySearch)

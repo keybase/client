@@ -17,7 +17,6 @@ const resetSignal = 'reset'
 type DeviceOrReset = Types.Device | 'reset'
 class SelectOtherDevice extends React.Component<Props> {
   static navigationOptions = {
-    header: null,
     headerBottomStyle: {height: undefined},
     headerLeft: null, // no back button
   }

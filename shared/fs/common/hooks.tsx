@@ -42,7 +42,9 @@ const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
   React.useEffect(() => {
     const subscriptionID = Constants.makeUUID()
     dispatch(FsGen.createSubscribeNonPath({subscriptionID, topic}))
-    return () => dispatch(FsGen.createUnsubscribe({subscriptionID}))
+    return () => {
+      dispatch(FsGen.createUnsubscribe({subscriptionID}))
+    }
   }, [dispatch, topic])
 }
 
@@ -217,8 +219,6 @@ export const useFuseClosedSourceConsent = (
           </Kb.Text>
         }
       />
-    ) : (
-      undefined
-    ),
+    ) : undefined,
   }
 }

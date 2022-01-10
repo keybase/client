@@ -7,9 +7,7 @@ import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
-import HeaderArea from './header-area/container'
-// @ts-ignore
-import {withNavigationFocus} from '@react-navigation/core'
+import {headerNavigationOptions} from './header-area/container'
 
 type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 
@@ -62,16 +60,11 @@ let Conversation = (p: SwitchProps) => {
   }
 }
 
-if (Container.isMobile) {
-  Conversation = withNavigationFocus(Conversation)
-}
-
 // @ts-ignore
-Conversation.navigationOptions = {
-  header: undefined,
-  headerLeft: null,
-  headerTitle: () => <HeaderArea />,
-}
+Conversation.navigationOptions = ({route}) => ({
+  ...headerNavigationOptions(route),
+  needsSafe: true,
+})
 
 const ConversationMemoed = React.memo(Conversation)
 Container.hoistNonReactStatic(ConversationMemoed, Conversation)

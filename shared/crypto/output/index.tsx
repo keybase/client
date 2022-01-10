@@ -203,11 +203,13 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const onSaveAsText = () => {
     if (operation === Constants.Operations.Sign) {
-      return dispatch(CryptoGen.createDownloadSignedText())
+      dispatch(CryptoGen.createDownloadSignedText())
+      return
     }
 
     if (operation === Constants.Operations.Encrypt) {
-      return dispatch(CryptoGen.createDownloadEncryptedText())
+      dispatch(CryptoGen.createDownloadEncryptedText())
+      return
     }
   }
 
@@ -329,6 +331,8 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
   )
 }
 
+const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
+
 export const OperationOutput = (props: OutputProps) => {
   const {operation} = props
   const textType = Constants.outputTextType.get(operation)
@@ -405,7 +409,7 @@ export const OperationOutput = (props: OutputProps) => {
   }
 
   // Text output
-  const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
+
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <MobileScroll>

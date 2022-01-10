@@ -4,22 +4,6 @@ import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
-import flags from '../../../../util/feature-flags'
-
-const AddSubteam = ({teamID}: {teamID: Types.TeamID}) => {
-  const dispatch = Container.useDispatch()
-  const onCreateSubteam = () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID}))
-  return (
-    <Kb.ClickableBox style={styles.container} onClick={onCreateSubteam}>
-      <Kb.Box2 direction="horizontal" alignItems="center">
-        <Kb.Icon type="iconfont-new" color={Styles.globalColors.blueDark} />
-        <Kb.Text type="BodyBigLink" style={styles.text}>
-          Create subteam
-        </Kb.Text>
-      </Kb.Box2>
-    </Kb.ClickableBox>
-  )
-}
 
 const AddSubteamNew = ({teamID}: {teamID: Types.TeamID}) => {
   const dispatch = Container.useDispatch()
@@ -28,7 +12,7 @@ const AddSubteamNew = ({teamID}: {teamID: Types.TeamID}) => {
   const onChangeFilter = (filter: string) =>
     dispatch(TeamsGen.createSetSubteamFilter({filter, parentTeam: teamID}))
   // clear filter on unmount
-  React.useEffect(() => () => dispatch(TeamsGen.createSetSubteamFilter({filter: ''})), [dispatch])
+  React.useEffect(() => () => {dispatch(TeamsGen.createSetSubteamFilter({filter: ''}))}, [dispatch])
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>
       <Kb.Button mode="Secondary" label="Create subteam" onClick={onCreateSubteam} small={true} />
@@ -69,4 +53,4 @@ const styles = Styles.styleSheetCreate(() => ({
   text: {padding: Styles.globalMargins.xtiny},
 }))
 
-export default flags.teamsRedesign ? AddSubteamNew : AddSubteam
+export default AddSubteamNew

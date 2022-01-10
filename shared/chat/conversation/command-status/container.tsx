@@ -2,7 +2,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ConfigGen from '../../../actions/config-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import {namedConnect, TypedDispatch, TypedState} from '../../../util/container'
+import * as Container from '../../../util/container'
 import CommandStatus from '.'
 
 type OwnProps = {
@@ -15,14 +15,14 @@ const empty = {
   displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const info = state.chat2.commandStatusMap.get(ownProps.conversationIDKey)
   return {
     _info: info || empty,
   }
 }
 
-const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   _onOpenAppSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
   onCancel: () =>
     dispatch(Chat2Gen.createClearCommandStatusInfo({conversationIDKey: ownProps.conversationIDKey})),
@@ -51,4 +51,4 @@ const mergeProps = (
   onCancel: dispatchProps.onCancel,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'CommandStatus')(CommandStatus)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(CommandStatus)

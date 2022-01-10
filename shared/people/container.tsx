@@ -7,23 +7,18 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Types from '../constants/types/people'
 import * as WaitingConstants from '../constants/waiting'
 import {createShowUserProfile} from '../actions/profile-gen'
-import People, {Header} from '.'
+import People from '.'
+import ProfileSearch from '../profile/search/bar'
 
-type OwnProps = {}
-
-const ConnectedHeader = Container.connect(
-  state => ({
-    myUsername: state.config.username,
-  }),
-  dispatch => ({
-    onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
-    onOpenAccountSwitcher: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    myUsername: stateProps.myUsername,
-    ...dispatchProps,
-  })
-)(Header)
+const HeaderAvatar = () => {
+  const myUsername = Container.useSelector(state => state.config.username)
+  const dispatch = Container.useDispatch()
+  const onClick = React.useCallback(
+    () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),
+    [dispatch]
+  )
+  return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
+}
 
 type Props = {
   oldItems: Array<Types.PeopleScreenItem>
@@ -39,13 +34,9 @@ type Props = {
 
 export class LoadOnMount extends React.PureComponent<Props> {
   static navigationOptions = {
-    header: undefined,
-    headerTitle: () => <ConnectedHeader />,
-    headerTitleContainerStyle: {
-      left: 40,
-      right: 0,
-    },
-    underNotch: true,
+    headerTitle: () => <ProfileSearch />,
+    headerRight: () => <HeaderAvatar />,
+    headerLeft: () => <Kb.HeaderLeftBlank />,
   }
   _onReload = () => this.props.getData(false)
   _getData = (markViewed?: boolean) => this.props.getData(markViewed)

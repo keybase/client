@@ -28,7 +28,9 @@ export const TeamJourney = (props: Props) => {
   const {conversationIDKey, teamname, mode} = props
 
   const contentHorizontalPadStyle =
-    mode === 'chat' ? styles.contentHorizontalPadChat : styles.contentHorizontalPadTeamSettings
+    mode === 'chat'
+      ? (styles.contentHorizontalPadChat as Styles.StylesCrossPlatform)
+      : styles.contentHorizontalPadTeamSettings
 
   return (
     <>
@@ -51,7 +53,11 @@ export const TeamJourney = (props: Props) => {
           </Kb.Box2>
           {!!props.image && (
             <Kb.Icon
-              style={props.mode === 'team-settings' ? styles.imageSettingsTab : styles.image}
+              style={
+                props.mode === 'team-settings'
+                  ? (styles.imageSettingsTab as Styles.StylesCrossPlatform)
+                  : styles.image
+              }
               type={props.image}
             />
           )}
@@ -62,7 +68,7 @@ export const TeamJourney = (props: Props) => {
             fullWidth={true}
             alignItems={'flex-start'}
             gap="tiny"
-            style={Styles.collapseStyles([styles.actionsBox, contentHorizontalPadStyle])}
+            style={Styles.collapseStyles([styles.actionsBox, contentHorizontalPadStyle] as const)}
           >
             {props.actions.map(action =>
               action == 'wave' ? (

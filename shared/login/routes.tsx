@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Container from '../util/container'
-import Feedback from '../settings/feedback/container'
-import {ProxySettingsPopup} from '../settings/proxy'
-import {KnowPassword, EnterPassword} from './reset/password'
-import Waiting from './reset/waiting'
-import Confirm from './reset/confirm'
+import type Feedback from '../settings/feedback/container'
+import type {ProxySettingsPopup} from '../settings/proxy'
+import type {KnowPassword, EnterPassword} from './reset/password'
+import type Waiting from './reset/waiting'
+import type Confirm from './reset/confirm'
 
 type OwnProps = {}
 type Props = {
@@ -30,7 +30,6 @@ const _RootLogin = (p: Props) => {
 }
 
 _RootLogin.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }

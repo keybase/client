@@ -33,7 +33,7 @@ export const VerifyOutput = () => (
 )
 
 const navigationOptions = {
-  header: undefined,
+  headerShown: true,
   title: 'Verify',
 }
 

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import {appendNewChatBuilder} from '../../actions/typed-routes'
 
 type OwnProps = {
@@ -33,7 +33,7 @@ const _HeaderNewChatButton = (props: OwnProps) => {
   )
 }
 
-const HeaderNewChatButton = namedConnect(
+const HeaderNewChatButton = Container.connect(
   state => ({
     hide:
       state.chat2.inboxHasLoaded &&
@@ -44,8 +44,7 @@ const HeaderNewChatButton = namedConnect(
   dispatch => ({
     onNewChat: () => dispatch(appendNewChatBuilder()),
   }),
-  (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps}),
-  'HeaderNewChatButton'
+  (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
 )(_HeaderNewChatButton)
 
 const styles = Styles.styleSheetCreate(
@@ -103,6 +102,7 @@ const styles = Styles.styleSheetCreate(
           marginLeft: Styles.globalMargins.small,
           marginRight: Styles.globalMargins.small,
           position: 'relative',
+          height: 36,
           width: 100,
         },
         isAndroid: {

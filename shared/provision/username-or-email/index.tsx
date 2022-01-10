@@ -151,7 +151,6 @@ const styles = Styles.styleSheetCreate(
 )
 
 Username.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }

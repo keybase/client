@@ -79,6 +79,7 @@ function createClient(
       logger.debug('[RPC] Read', payload.length, 'chars:', payload)
     }
 
+    
     const buffer = toBuffer(toByteArray(payload))
     const measureName = `packetize${packetizeCount++}:${buffer.length}`
     measureStart(measureName)

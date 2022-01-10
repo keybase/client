@@ -5,7 +5,7 @@
 //
 // Needed for purepack
 // @ts-ignore
-window.Buffer = require('buffer').Buffer
+globalThis.buffer = global.Buffer = window.Buffer = require('buffer/').Buffer
 const {NativeModules} = require('react-native')
 
 // __STORYBOOK__

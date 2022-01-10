@@ -11,7 +11,7 @@ import AddToChannel from '.'
 
 type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const conversationIDKey = Container.getRouteProps(
       ownProps,
@@ -78,6 +78,5 @@ export default Container.namedConnect(
       users,
       waitingKey: Constants.waitingKeyAddUsersToChannel,
     }
-  },
-  'ConnectedChatAddToChannel'
+  }
 )(AddToChannel)

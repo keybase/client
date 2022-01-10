@@ -13,6 +13,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {_setSystemIsDarkMode, _setDarkModePreference} from '../styles/dark-mode'
+import isEqual from 'lodash/isEqual'
 
 type Actions =
   | ConfigGen.Actions
@@ -48,6 +49,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     defaultUsername: draftState.defaultUsername,
     logoutHandshakeVersion: draftState.logoutHandshakeVersion,
     logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,
+    // loggedInLoaded: draftState.loggedInLoaded,
     menubarWindowID: draftState.menubarWindowID,
     pushLoaded: draftState.pushLoaded,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
@@ -167,15 +169,23 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.followerInfoUpdated]: (draftState, action) => {
     if (draftState.uid === action.payload.uid) {
-      draftState.followers = new Set(action.payload.followers)
-      draftState.following = new Set(action.payload.followees)
+      const newFollowers = new Set(action.payload.followers)
+      if (!isEqual(newFollowers, draftState.followers)) {
+        draftState.followers = newFollowers
+      }
+      const newFollowing = new Set(action.payload.followees)
+      if (!isEqual(newFollowing, draftState.following)) {
+        draftState.following = newFollowing
+      }
     }
   },
   [ConfigGen.loggedIn]: draftState => {
     draftState.loggedIn = true
+    // draftState.loggedInLoaded = true
   },
   [ConfigGen.loggedOut]: draftState => {
     draftState.loggedIn = false
+    // draftState.loggedInLoaded = true
   },
   [EngineGen.keybase1NotifyTrackingTrackingChanged]: (draftState, action) => {
     const {isTracking, username} = action.payload.params

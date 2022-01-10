@@ -14,24 +14,16 @@ import * as EngineGen from '../engine-gen-gen'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as LoginGen from '../login-gen'
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
 import {getEngine} from '../../engine/require'
 // this CANNOT be an import *, totally screws up the packager
-import {
-  Alert,
-  Linking,
-  NativeModules,
-  NativeEventEmitter,
-  ActionSheetIOS,
-  PermissionsAndroid,
-  Clipboard,
-  Vibration,
-} from 'react-native'
+import {Alert, Linking, NativeModules, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
+import Clipboard from '@react-native-clipboard/clipboard'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
-// @ts-ignore strict
-import * as PushNotifications from 'react-native-push-notification'
+import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare} from './push.native'
 import * as Container from '../../util/container'
@@ -64,7 +56,8 @@ const requestPermissionsToWrite = async () => {
 
 export const requestAudioPermission = async () => {
   let chargeForward = true
-  const {Permissions} = require('react-native-unimodules')
+  // TODO use expo-av etc and unify around that
+  const Permissions = require('expo-permissions')
   let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
   if (status === Permissions.PermissionStatus.UNDETERMINED) {
     if (isIOS) {
@@ -88,7 +81,7 @@ export const requestAudioPermission = async () => {
 
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
   if (isIOS) {
-    const {Permissions} = require('react-native-unimodules')
+    const Permissions = require('expo-permissions')
     const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
     switch (mode) {
       case RPCChatTypes.UIWatchPositionPerm.base:
@@ -135,14 +128,16 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
     // just in case to get their attention.
-    PushNotifications.localNotification({
-      message: `Failed to save ${saveType} to camera roll`,
-    })
+    isIOS &&
+      PushNotificationIOS.addNotificationRequest({
+        id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
+        body: `Failed to save ${saveType} to camera roll`,
+      })
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
   } finally {
     try {
-      require('rn-fetch-blob').default.fs.unlink(filePath)
+      require('react-native-blob-util').default.fs.unlink(filePath)
     } catch (_) {
       logger.warn('failed to unlink')
     }
@@ -232,38 +227,25 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
 let _lastPersist = ''
 function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
-  const mainOrModal = path && path[1] && path[1].routeName
+  // const mainOrModal = path && path[1] && path[1].routeName
 
   let param = {}
-  let routeName = ''
-  if (mainOrModal === 'Main') {
-    const tab = path && path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
-    if (!tab) return
-    // top level tab?
-    if (tab.routeName === 'tabs.chatTab') {
-      const convo = path && path[path.length - 1]
-      // a specific convo?
-      if (convo.routeName === 'chatConversation') {
-        routeName = convo.routeName
-        param = {selectedConversationIDKey: convo.params?.conversationIDKey}
-      } else {
-        // just the inbox
-        routeName = tab.routeName
+  let routeName = Tabs.peopleTab
+
+  if (path) {
+    const cur = RouterConstants.getCurrentTab()
+    if (cur) {
+      routeName = cur
+    }
+
+    const ap = RouterConstants.getAppPath()
+    ap.some(r => {
+      if (r.name == 'chatConversation') {
+        param = {selectedConversationIDKey: r.params?.conversationIDKey}
+        return true
       }
-    } else if (Tabs.isValidInitialTabString(tab.routeName)) {
-      routeName = tab.routeName
-    } else {
-      return // don't write, keep the last
-    }
-  } else {
-    // info panel
-    if (mainOrModal === 'chatInfoPanel') {
-      routeName = 'chatConversation'
-      param = {selectedConversationIDKey: path && path[1].params.conversationIDKey}
-    } else {
-      // no path or unknown, default to people
-      routeName = 'tabs.peopleTab'
-    }
+      return false
+    })
   }
 
   const s = JSON.stringify({param, routeName})
@@ -388,6 +370,11 @@ function* loadStartupDetails() {
     }
   }
 
+  // never allow this case
+  if (startupTab === 'blank') {
+    startupTab = undefined
+  }
+
   yield Saga.put(
     ConfigGen.createSetStartupDetails({
       startupConversation,
@@ -454,7 +441,7 @@ const openAppStore = () =>
   ).catch(() => {})
 
 const expoPermissionStatusMap = () => {
-  const {Permissions} = require('react-native-unimodules')
+  const Permissions = require('expo-permissions')
   return {
     [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
     [Permissions.PermissionStatus.DENIED]: 'never_ask_again' as const,
@@ -464,7 +451,7 @@ const expoPermissionStatusMap = () => {
 
 const loadContactPermissionFromNative = async () => {
   if (isIOS) {
-    const {Permissions} = require('react-native-unimodules')
+    const Permissions = require('expo-permissions')
     return expoPermissionStatusMap()[(await Permissions.getAsync(Permissions.CONTACTS)).status]
   }
   return (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
@@ -504,7 +491,7 @@ const askForContactPermissionsAndroid = async () => {
 }
 
 const askForContactPermissionsIOS = async () => {
-  const {Permissions} = require('react-native-unimodules')
+  const Permissions = require('expo-permissions')
   const {status} = await Permissions.askAsync(Permissions.CONTACTS)
   return expoPermissionStatusMap()[status]
 }
@@ -593,9 +580,11 @@ const manageContactsCache = async (
       SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode})
     )
     if (newlyResolved && newlyResolved.length) {
-      PushNotifications.localNotification({
-        message: PushConstants.makeContactsResolvedMessage(newlyResolved),
-      })
+      isIOS &&
+        PushNotificationIOS.addNotificationRequest({
+          id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
+          body: PushConstants.makeContactsResolvedMessage(newlyResolved),
+        })
     }
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
       actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
@@ -612,39 +601,6 @@ const showContactsJoinedModal = (action: SettingsGen.ShowContactsJoinedModalPayl
   action.payload.resolved.length
     ? [RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})]
     : []
-
-function* setupDarkMode() {
-  const NativeAppearance = NativeModules.Appearance
-  if (NativeAppearance) {
-    // eslint-disable-next-line no-inner-declarations
-    function* handleGotChangeEvent(action: any) {
-      yield Saga.delay(500)
-      yield Saga.put(action)
-    }
-
-    const channel = Saga.eventChannel(emitter => {
-      const nativeEventEmitter = new NativeEventEmitter(NativeAppearance)
-      nativeEventEmitter.addListener('appearanceChanged', ({colorScheme}) => {
-        emitter(colorScheme)
-      })
-      return () => {}
-    }, Saga.buffers.sliding(1))
-
-    let task: any
-    while (true) {
-      const mode = yield Saga.take(channel)
-      // iOS takes snapshots of the app in light/dark mode and this causes us to get a light/dark call no matter what. so
-      // throttle a bit and ignore this
-      if (task) {
-        yield Saga.cancel(task)
-      }
-      task = yield Saga._fork(
-        handleGotChangeEvent,
-        ConfigGen.createSetSystemDarkMode({dark: mode === 'dark'})
-      )
-    }
-  }
-}
 
 let locationEmitter: ((input: unknown) => void) | null = null
 
@@ -757,8 +713,8 @@ const configureFileAttachmentDownloadForAndroid = () =>
   RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: require('rn-fetch-blob').default.fs.dirs.CacheDir,
-    downloadDirOverride: require('rn-fetch-blob').default.fs.dirs.DownloadDir,
+    cacheDirOverride: require('react-native-blob-util').default.fs.dirs.CacheDir,
+    downloadDirOverride: require('react-native-blob-util').default.fs.dirs.DownloadDir,
   })
 
 const stopAudioRecording = async (
@@ -880,6 +836,20 @@ const onSendAudioRecording = (action: Chat2Gen.SendAudioRecordingPayload) => {
   }
 }
 
+const onTabLongPress = (state: Container.TypedState, action: RouteTreeGen.TabLongPressPayload) => {
+  if (action.payload.tab !== Tabs.peopleTab) return
+  const accountRows = state.config.configuredAccounts
+  const current = state.config.username
+  const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
+  if (row) {
+    return [
+      ConfigGen.createSetUserSwitching({userSwitching: true}),
+      LoginGen.createLogin({password: new Container.HiddenString(''), username: row.username}),
+    ]
+  }
+  return undefined
+}
+
 const onSetAudioRecordingPostInfo = async (
   state: Container.TypedState,
   action: Chat2Gen.SetAudioRecordingPostInfoPayload,
@@ -896,7 +866,10 @@ const onSetAudioRecordingPostInfo = async (
 const onPersistRoute = async () => {
   await Container.timeoutPromise(1000)
   const path = RouterConstants.getVisiblePath()
+  // if (path[path.length - 1]?.name !== 'blank') {
   return ConfigGen.createPersistRoute({path})
+  // }
+  // return []
 }
 
 function* checkNav(
@@ -940,6 +913,8 @@ export function* platformConfigSaga() {
 
   yield* Saga.chainAction(ConfigGen.showShareActionSheet, onShareAction)
 
+  yield* Saga.chainAction2(RouteTreeGen.tabLongPress, onTabLongPress)
+
   // Contacts
   yield* Saga.chainAction2(
     [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
@@ -981,5 +956,4 @@ export function* platformConfigSaga() {
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)
   yield Saga.spawn(setupNetInfoWatcher)
-  yield Saga.spawn(setupDarkMode)
 }

@@ -26,7 +26,7 @@ jest.mock('constants/platform', () => ({
   version: '',
   windowHeight: 0,
 }))
-jest.mock('rn-fetch-blob', () => ({
+jest.mock('react-native-blob-utils', () => ({
   fs: {
     dirs: {
       CacheDir: '',
@@ -71,7 +71,6 @@ jest.mock('react-native-iphone-x-helper', () => ({
   isIphoneX: () => false,
 }))
 jest.mock('@react-navigation/core', () => ({
-  NavigationEvents: () => null,
   withNavigation: C => {
     return p => {
       return (

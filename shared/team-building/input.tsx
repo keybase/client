@@ -16,39 +16,46 @@ type Props = {
   focusCounter: number
 }
 
-const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string, props: Props) => {
+const handleKeyDown = (
+  preventDefault: () => void,
+  ctrlKey: boolean,
+  key: string,
+  onUpArrowKeyDown: () => void,
+  onDownArrowKeyDown: () => void,
+  onEnterKeyDown: () => void
+) => {
   switch (key) {
     case 'p':
       if (ctrlKey) {
         preventDefault()
-        props.onUpArrowKeyDown()
+        onUpArrowKeyDown()
       }
       break
     case 'n':
       if (ctrlKey) {
         preventDefault()
-        props.onDownArrowKeyDown()
+        onDownArrowKeyDown()
       }
       break
     case 'Tab':
     case ',':
       preventDefault()
-      props.onEnterKeyDown()
+      onEnterKeyDown()
       break
     case 'ArrowDown':
       preventDefault()
-      props.onDownArrowKeyDown()
+      onDownArrowKeyDown()
       break
     case 'ArrowUp':
       preventDefault()
-      props.onUpArrowKeyDown()
+      onUpArrowKeyDown()
       break
   }
 }
 
 const Input = (props: Props) => {
   const ref = React.useRef<Kb.SearchFilter>(null)
-  const {focusCounter} = props
+  const {focusCounter, onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown} = props
   const prevFocusCounter = Container.usePrevious(focusCounter)
   React.useEffect(() => {
     if (
@@ -60,6 +67,28 @@ const Input = (props: Props) => {
       ref.current.focus()
     }
   }, [focusCounter, prevFocusCounter])
+
+  const onKeyDown = React.useCallback(
+    e => {
+      handleKeyDown(
+        () => e.preventDefault(),
+        e.ctrlKey,
+        e.key,
+        onUpArrowKeyDown,
+        onDownArrowKeyDown,
+        onEnterKeyDown
+      )
+    },
+    [onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown]
+  )
+
+  const onKeyPress = React.useCallback(
+    e => {
+      handleKeyDown(noop, false, e.nativeEvent.key, onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown)
+    },
+    [onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown]
+  )
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <Kb.SearchFilter
@@ -71,12 +100,8 @@ const Input = (props: Props) => {
         onChange={props.onChangeText}
         onCancel={props.onClear}
         placeholderText={props.placeholder}
-        onKeyDown={e => {
-          handleKeyDown(() => e.preventDefault(), e.ctrlKey, e.key, props)
-        }}
-        onKeyPress={e => {
-          handleKeyDown(noop, false, e.nativeEvent.key, props)
-        }}
+        onKeyDown={onKeyDown}
+        onKeyPress={onKeyPress}
         onEnterKeyDown={props.onEnterKeyDown}
         ref={ref}
       />

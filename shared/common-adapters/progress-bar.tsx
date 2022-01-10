@@ -13,7 +13,12 @@ const ProgressBar = ({ratio, style, fillStyle}: Props) => (
   <Animated to={{ratio}}>
     {({ratio}) => (
       <Box style={{...outer, ...style}}>
-        <Box style={{...inner, ...fillStyle, width: `${Math.max(0, Math.min(1, ratio)) * 100}%`}} />
+        <Box
+          style={
+            // @ts-ignore
+            {...inner, ...fillStyle, width: `${Math.max(0, Math.min(1, ratio)) * 100}%`}
+          }
+        />
       </Box>
     )}
   </Animated>

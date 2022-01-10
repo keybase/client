@@ -1,1 +1,1 @@
-../../../../../../node_modules/react-native/React/DevSupport/RCTDevMenu.h
+../../../../../../node_modules/react-native/React/CoreModules/RCTDevMenu.h

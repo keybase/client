@@ -27,7 +27,7 @@ export const prepareAccountRows = <T extends {username: string; hasStoredSecret:
   myUsername: string
 ): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
-function isKeybaseIoUrl(url: URL) {
+function isKeybaseIoUrl(url: URL<string>) {
   const {protocol} = url
   if (protocol !== 'http:' && protocol !== 'https:') {
     return false
@@ -56,7 +56,7 @@ function isKeybaseIoUrl(url: URL) {
   return true
 }
 
-export const urlToUsername = (url: URL) => {
+export const urlToUsername = (url: URL<string>) => {
   if (!isKeybaseIoUrl(url)) {
     return null
   }
@@ -80,7 +80,7 @@ export const urlToUsername = (url: URL) => {
   return username
 }
 
-export const urlToTeamDeepLink = (url: URL) => {
+export const urlToTeamDeepLink = (url: URL<string>) => {
   if (!isKeybaseIoUrl(url)) {
     return null
   }
@@ -98,7 +98,7 @@ export const urlToTeamDeepLink = (url: URL) => {
 
   // `url.query` has a wrong type in @types/url-parse. It's a `string` in the
   // code, but @types claim it's a {[k: string]: string | undefined}.
-  const queryString = (url.query as any) as string
+  const queryString = url.query as any as string
 
   // URLSearchParams is not available in react-native. See if any of recognized
   // query parameters is passed using regular expressions.
@@ -139,6 +139,7 @@ export const initialState: Types.State = {
   incomingShareUseOriginal: undefined,
   justDeletedSelf: '',
   loggedIn: false,
+  // loggedInLoaded: false,
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
   menubarWindowID: 0,

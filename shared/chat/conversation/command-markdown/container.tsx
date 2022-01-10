@@ -6,7 +6,7 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const md = state.chat2.commandMarkdownMap.get(ownProps.conversationIDKey)
     return {
@@ -16,5 +16,4 @@ export default Container.namedConnect(
   },
   () => ({}),
   s => s,
-  'CommandMarkdown'
 )(CommandMarkdown)

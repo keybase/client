@@ -76,6 +76,21 @@ class ImageAttachment extends React.PureComponent<Props, State> {
     return {message}
   })
 
+  private imageRenderStyle = memoize((loaded, height, width) =>
+    Styles.collapseStyles([
+      styles.image,
+      {
+        backgroundColor: loaded ? undefined : Styles.globalColors.fastBlank,
+        height,
+        width,
+      },
+    ])
+  )
+
+  private getStyleOverride = memoize((isEditing, isHighlighted) => ({
+    paragraph: getEditStyle(isEditing, isHighlighted),
+  }))
+
   render() {
     const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(this.props.transferState)
     const mobileImageFilename = this.props.message.deviceType === 'mobile'
@@ -145,14 +160,11 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                           inlineVideoPlayable={this.props.inlineVideoPlayable}
                           height={this.props.height}
                           width={this.props.width}
-                          style={Styles.collapseStyles([
-                            styles.image,
-                            {
-                              backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
-                              height: this.props.height,
-                              width: this.props.width,
-                            },
-                          ])}
+                          style={this.imageRenderStyle(
+                            this.state.loaded,
+                            this.props.height,
+                            this.props.width
+                          )}
                         />
                         {!this.state.playingVideo && (
                           <Kb.Box
@@ -217,7 +229,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                           style={getEditStyle(this.props.isEditing, this.props.isHighlighted)}
                           styleOverride={
                             Styles.isMobile
-                              ? {paragraph: getEditStyle(this.props.isEditing, this.props.isHighlighted)}
+                              ? this.getStyleOverride(this.props.isEditing, this.props.isHighlighted)
                               : undefined
                           }
                           allowFontScaling={true}

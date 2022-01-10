@@ -57,9 +57,8 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-export default Container.namedConnect(
+export default Container.connect(
   () => ({}),
   mapDispatchToProps,
-  (_, d) => d,
-  'WalletAddAccount'
+  (_, d) => d
 )(AddAccount)

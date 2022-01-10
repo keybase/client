@@ -15,7 +15,6 @@ import * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
-import flags from '../util/feature-flags'
 
 type OwnProps = {}
 
@@ -124,9 +123,7 @@ const filterStyles = Styles.styleSheetCreate(() => ({
 }))
 
 Reloadable.navigationOptions = {
-  header: undefined,
-  headerRightActions:
-    flags.teamsRedesign && !Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
+  headerRightActions: !Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
   title: 'Teams',
 }
 
@@ -140,7 +137,7 @@ const Connected = Container.connect(
     newTeamRequests: state.teams.newTeamRequests,
     newTeams: state.teams.newTeams,
     sawChatBanner: state.teams.sawChatBanner || false,
-    sortOrder: flags.teamsRedesign ? state.teams.teamListSort : 'alphabetical',
+    sortOrder: state.teams.teamListSort,
     teamIDToResetUsers: state.teams.teamIDToResetUsers,
   }),
   (dispatch: Container.TypedDispatch) => ({

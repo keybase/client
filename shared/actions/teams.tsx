@@ -17,6 +17,7 @@ import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
+import * as GregorConstants from '../constants/gregor'
 import * as Router2Constants from '../constants/router2'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
@@ -25,8 +26,8 @@ import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import {RPCError} from '../util/errors'
-import flags from '../util/feature-flags'
-import {appendNewTeamBuilder} from './typed-routes'
+// import flags from '../util/feature-flags'
+// import {appendNewTeamBuilder} from './typed-routes'
 
 async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
   const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
@@ -888,7 +889,7 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
 
     // Dismiss the create channel dialog.
     const visibleScreen = Router2Constants.getVisibleScreen()
-    if (visibleScreen && visibleScreen.routeName === 'chatCreateChannel') {
+    if (visibleScreen && visibleScreen.name === 'chatCreateChannel') {
       yield Saga.put(RouteTreeGen.createClearModals())
     }
     // Reload on team page
@@ -1110,11 +1111,9 @@ const refreshTeamRoleMap = async (
 }
 
 const teamDeletedOrExit = (
-  action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
+  //action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
 ) => {
-  const {teamID} = action.payload.params
-  const selectedTeams = Constants.getSelectedTeams()
-  if (selectedTeams.includes(teamID)) {
+  if (Router2Constants.getCurrentTab() == Tabs.teamsTab) {
     return RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
   }
   return false
@@ -1141,9 +1140,6 @@ const updateTopic = async (state: TypedState, action: TeamsGen.UpdateTopicPayloa
   }
 
   await RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.updateChannelNameWaitingKey(teamID))
-  if (!flags.teamsRedesign) {
-    return RouteTreeGen.createNavUpToScreen({routeName: 'chatManageChannels'})
-  }
   return []
 }
 
@@ -1181,7 +1177,7 @@ function* addTeamWithChosenChannels(
   if (item && item.item && item.item.body) {
     const body = item.item.body
     msgID = item.md && item.md.msgID
-    teams = JSON.parse(body.toString())
+    teams = GregorConstants.bodyToJSON(body)
   } else {
     logger.info(
       `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
@@ -1332,9 +1328,9 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
       chosenChannels = i
     }
     if (i.item.category.startsWith(Constants.newRequestsGregorPrefix)) {
-      const body = i.item.body.toString()
+      const body = GregorConstants.bodyToJSON(i.item.body)
       if (body) {
-        const request: {id: Types.TeamID; username: string} = JSON.parse(body)
+        const request: {id: Types.TeamID; username: string} = body
         const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
         requests.add(request.username)
       }
@@ -1351,10 +1347,9 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
 
   actions.push(TeamsGen.createSetNewTeamRequests({newTeamRequests}))
 
-  const teamsWithChosenChannelsStr: string | undefined = chosenChannels?.item.body.toString()
-  const teamsWithChosenChannels = teamsWithChosenChannelsStr
-    ? new Set<Types.Teamname>(JSON.parse(teamsWithChosenChannelsStr))
-    : new Set<Types.Teamname>()
+    const teamsWithChosenChannels = new Set<Types.Teamname>(GregorConstants.bodyToJSON(chosenChannels?.item.body)
+    )
+
   actions.push(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
 
   return actions
@@ -1389,25 +1384,12 @@ function addThemToTeamFromTeamBuilder(
     logger.error("Trying to add them to a team, but I don't know what the teamID is.")
     return
   }
-  if (flags.teamsRedesign) {
-    return [
-      TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
-      TeamsGen.createAddMembersWizardPushMembers({
-        members: [...state.teams.teamBuilding.teamSoFar].map(user => ({assertion: user.id, role: 'writer'})),
-      }),
-    ]
-  }
-
-  const role = state.teams.teamBuilding.selectedRole
-  const sendChatNotification = state.teams.teamBuilding.sendNotification
-
-  const users = [...state.teams.teamBuilding.teamSoFar].map(user => ({assertion: user.id, role}))
-  return TeamsGen.createAddToTeam({
-    fromTeamBuilder: true,
-    sendChatNotification,
-    teamID,
-    users,
-  })
+  return [
+    TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
+    TeamsGen.createAddMembersWizardPushMembers({
+      members: [...state.teams.teamBuilding.teamSoFar].map(user => ({assertion: user.id, role: 'writer'})),
+    }),
+  ]
 }
 
 function* teamBuildingSaga() {
@@ -1427,26 +1409,23 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
     teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
   } catch (err) {
     logger.info(`team="${teamname}" cannot be loaded:`, err)
-    if (flags.teamsRedesign) {
-      // navigate to team page for team we're not in
-      logger.info(`showing external team page, join=${join}`)
-      return [
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]}),
-        ...(join
-          ? [
-              RouteTreeGen.createNavigateAppend({
-                path: [
-                  {
-                    props: {initialTeamname: teamname},
-                    selected: 'teamJoinTeamDialog',
-                  },
-                ],
-              }),
-            ]
-          : []),
-      ]
-    }
-    return null
+    // navigate to team page for team we're not in
+    logger.info(`showing external team page, join=${join}`)
+    return [
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]}),
+      ...(join
+        ? [
+            RouteTreeGen.createNavigateAppend({
+              path: [
+                {
+                  props: {initialTeamname: teamname},
+                  selected: 'teamJoinTeamDialog',
+                },
+              ],
+            }),
+          ]
+        : []),
+    ]
   }
 
   if (addMembers) {
@@ -1520,16 +1499,9 @@ const loadTeamTreeActivity = async (
 }
 
 const launchNewTeamWizardOrModal = (action: TeamsGen.LaunchNewTeamWizardOrModalPayload) => {
-  if (flags.teamsRedesign) {
-    if (action.payload.subteamOf) {
-      return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
-    }
-    return TeamsGen.createStartNewTeamWizard()
-  } else {
-    return RouteTreeGen.createNavigateAppend({
-      path: [{props: {subteamOf: action.payload.subteamOf}, selected: 'teamNewTeamDialog'}],
-    })
-  }
+  return action.payload.subteamOf
+    ? RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
+    : TeamsGen.createStartNewTeamWizard()
 }
 const startNewTeamWizard = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard1TeamPurpose'}]})
@@ -1573,12 +1545,8 @@ const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
 const setTeamWizardChannels = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard6Subteams'}]})
 const setTeamWizardSubteams = () => TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
-const startAddMembersWizard = (action: TeamsGen.StartAddMembersWizardPayload) =>
-  flags.teamsRedesign
-    ? RouteTreeGen.createNavigateAppend({
-        path: ['teamAddToTeamFromWhere'],
-      })
-    : appendNewTeamBuilder(action.payload.teamID)
+const startAddMembersWizard = (/*action: TeamsGen.StartAddMembersWizardPayload*/) =>
+  RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamFromWhere']})
 const finishNewTeamWizard = async (state: TypedState) => {
   const {name, description, open, openTeamJoinRole, profileShowcase, addYourself} = state.teams.newTeamWizard
   const {avatarFilename, avatarCrop, channels, subteams} = state.teams.newTeamWizard
@@ -1644,7 +1612,7 @@ const manageChatChannels = (action: TeamsGen.ManageChatChannelsPayload) =>
     path: [
       {
         props: {teamID: action.payload.teamID},
-        selected: flags.teamsRedesign ? 'teamAddToChannels' : 'chatManageChannels',
+        selected: 'teamAddToChannels',
       },
     ],
   })

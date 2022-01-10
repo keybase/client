@@ -118,4 +118,4 @@ export default Container.connect(
           type: 'profile' as const,
         }
   }
-)(EditAvatar)
+)(EditAvatar as any)

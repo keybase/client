@@ -3,7 +3,7 @@
 
 import * as RouteTreeGen from './route-tree-gen'
 import * as TeamTypes from '../constants/types/teams'
-import flags from '../util/feature-flags'
+// import flags from '../util/feature-flags'
 
 // TODO i think this should go away. either we dispatch a team building action that's typed that produces these or
 // we actually type the routes / props
@@ -46,9 +46,7 @@ export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) =>
     path: [
       {
         props: {
-          filterServices: flags.teamsRedesign
-            ? ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
-            : undefined,
+          filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
           goButtonLabel: 'Add',
           namespace: 'teams',
           teamID,

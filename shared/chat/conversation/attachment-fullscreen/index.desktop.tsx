@@ -102,9 +102,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
               >
                 {!this.state.isZoomed ? (
                   <Arrow left={true} onClick={this.props.onPreviousAttachment} />
-                ) : (
-                  undefined
-                )}
+                ) : undefined}
                 <Kb.Box
                   style={Styles.globalStyles.flexGrow}
                   onClick={() => {
@@ -117,7 +115,11 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
                   {!this.props.isVideo ? (
                     <Kb.OrientedImage
                       src={this.props.path}
-                      style={this.state.isZoomed ? styles.imageZoom : styles.imageFit}
+                      style={
+                        this.state.isZoomed
+                          ? (styles.imageZoom as Styles.StylesCrossPlatform)
+                          : (styles.imageFit as Styles.StylesCrossPlatform)
+                      }
                       onLoad={() => {
                         if (this.mounted) {
                           this.setLoaded(this.props.path)

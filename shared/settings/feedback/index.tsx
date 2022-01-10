@@ -20,7 +20,7 @@ type Props = {
   loggedOut: boolean
   onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
   sending: boolean
-  sendError: Error | null
+  sendError?: Error
   showInternalSuccessBanner: boolean // if true, enables the internal success bar
   onFeedbackDone: (success: boolean) => void
 }

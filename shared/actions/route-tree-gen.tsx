@@ -10,16 +10,19 @@ export const clearModals = 'route-tree:clearModals'
 export const navUpToScreen = 'route-tree:navUpToScreen'
 export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateUp = 'route-tree:navigateUp'
+export const navigateUpNoop = 'route-tree:navigateUpNoop'
 export const onNavChanged = 'route-tree:onNavChanged'
 export const resetStack = 'route-tree:resetStack'
 export const setParams = 'route-tree:setParams'
 export const switchLoggedIn = 'route-tree:switchLoggedIn'
 export const switchTab = 'route-tree:switchTab'
+export const tabLongPress = 'route-tree:tabLongPress'
 
 // Payload Types
 type _ClearModalsPayload = void
 type _NavUpToScreenPayload = {readonly routeName: string}
 type _NavigateAppendPayload = {readonly fromKey?: string; readonly path: any; readonly replace?: boolean}
+type _NavigateUpNoopPayload = void
 type _NavigateUpPayload = {readonly fromKey?: string}
 type _OnNavChangedPayload = {
   readonly prev: Array<Types.NavState>
@@ -34,8 +37,16 @@ type _ResetStackPayload = {
 type _SetParamsPayload = {readonly params: Object; readonly key: string}
 type _SwitchLoggedInPayload = {readonly loggedIn: boolean}
 type _SwitchTabPayload = {readonly tab: Tabs.AppTab}
+type _TabLongPressPayload = {readonly tab: string}
 
 // Action Creators
+/**
+ * Nav up but no longer focused, for logging only
+ */
+export const createNavigateUpNoop = (payload: _NavigateUpNoopPayload): NavigateUpNoopPayload => ({
+  payload,
+  type: navigateUpNoop,
+})
 /**
  * ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.
  */
@@ -69,6 +80,13 @@ export const createResetStack = (payload: _ResetStackPayload): ResetStackPayload
   type: resetStack,
 })
 /**
+ * a tab was pressed
+ */
+export const createTabLongPress = (payload: _TabLongPressPayload): TabLongPressPayload => ({
+  payload,
+  type: tabLongPress,
+})
+/**
  * deprecated soon
  */
 export const createSetParams = (payload: _SetParamsPayload): SetParamsPayload => ({payload, type: setParams})
@@ -95,6 +113,10 @@ export type NavigateAppendPayload = {
   readonly payload: _NavigateAppendPayload
   readonly type: typeof navigateAppend
 }
+export type NavigateUpNoopPayload = {
+  readonly payload: _NavigateUpNoopPayload
+  readonly type: typeof navigateUpNoop
+}
 export type NavigateUpPayload = {readonly payload: _NavigateUpPayload; readonly type: typeof navigateUp}
 export type OnNavChangedPayload = {readonly payload: _OnNavChangedPayload; readonly type: typeof onNavChanged}
 export type ResetStackPayload = {readonly payload: _ResetStackPayload; readonly type: typeof resetStack}
@@ -104,6 +126,7 @@ export type SwitchLoggedInPayload = {
   readonly type: typeof switchLoggedIn
 }
 export type SwitchTabPayload = {readonly payload: _SwitchTabPayload; readonly type: typeof switchTab}
+export type TabLongPressPayload = {readonly payload: _TabLongPressPayload; readonly type: typeof tabLongPress}
 
 // All Actions
 // prettier-ignore
@@ -111,10 +134,12 @@ export type Actions =
   | ClearModalsPayload
   | NavUpToScreenPayload
   | NavigateAppendPayload
+  | NavigateUpNoopPayload
   | NavigateUpPayload
   | OnNavChangedPayload
   | ResetStackPayload
   | SetParamsPayload
   | SwitchLoggedInPayload
   | SwitchTabPayload
+  | TabLongPressPayload
   | {type: 'common:resetStore', payload: {}}

@@ -12,7 +12,7 @@ import engineSaga from './saga'
 import throttle from 'lodash/throttle'
 import {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
-import {TypedState, Dispatch} from '../util/container'
+import {TypedState, TypedDispatch} from '../util/container'
 
 const {env} = KB.process
 
@@ -45,7 +45,7 @@ class Engine {
   // App tells us when the sagas are done loading so we can start emitting events
   _sagasAreReady: boolean = false
 
-  static _dispatch: Dispatch
+  static _dispatch: TypedDispatch
 
   // Temporary helper for incoming call maps
   static _getState: () => TypedState
@@ -71,7 +71,7 @@ class Engine {
     return Engine._getState
   }
 
-  constructor(dispatch: Dispatch, getState: () => TypedState) {
+  constructor(dispatch: TypedDispatch, getState: () => TypedState) {
     KB.kb.setEngine(this)
 
     // setup some static vars
@@ -244,13 +244,15 @@ class Engine {
       endHandler: (session: Session) => this._sessionEnded(session),
       incomingCallMap,
       invoke: (method, param, cb) => {
-        const callback = method => (...args) => {
-          // If first argument is set, convert it to an Error type
-          if (args.length > 0 && !!args[0]) {
-            args[0] = convertToError(args[0], method)
+        const callback =
+          method =>
+          (...args) => {
+            // If first argument is set, convert it to an Error type
+            if (args.length > 0 && !!args[0]) {
+              args[0] = convertToError(args[0], method)
+            }
+            cb(...args)
           }
-          cb(...args)
-        }
         this._rpcClient.invoke(method, param || [{}], callback(method))
       },
       sessionID,
@@ -349,7 +351,7 @@ if (__DEV__) {
   engine = global.DEBUGEngine
 }
 
-const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
+const makeEngine = (dispatch: TypedDispatch, getState: () => TypedState) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
   }
@@ -357,7 +359,7 @@ const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
   if (!engine) {
     engine =
       env.KEYBASE_NO_ENGINE || isTesting
-        ? ((new FakeEngine() as unknown) as Engine)
+        ? (new FakeEngine() as unknown as Engine)
         : new Engine(dispatch, getState)
     if (__DEV__) {
       global.DEBUGEngine = engine

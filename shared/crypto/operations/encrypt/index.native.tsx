@@ -43,7 +43,7 @@ export const EncryptOutput = () => {
 }
 
 const navigationOptions = {
-  header: undefined,
+  headerShown: true,
   title: 'Encrypt',
 }
 EncryptInput.navigationOptions = navigationOptions

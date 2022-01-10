@@ -31,7 +31,7 @@ type Props = {
   focusOnMount?: boolean
   size: 'small' | 'full-width' // only affects desktop (https://zpl.io/aMW5AG3)
   negative?: boolean
-  onChange: (text: string) => void
+  onChange?: (text: string) => void
   placeholderText: string
   placeholderCentered?: boolean
   placeholderColor?: AllowedColors
@@ -113,7 +113,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
   private update = (text: string) => {
     this.setState({text})
-    this.props.onChange(text)
+    this.props.onChange?.(text)
   }
   private mouseOver = () => this.setState({hover: true})
   private mouseLeave = () => this.setState({hover: false})
@@ -167,12 +167,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
           sizeType={this.iconSizeType()}
           color={this.iconColor()}
           boxStyle={styles.icon}
-          style={{
-            marginRight:
-              !Styles.isMobile && this.props.size === 'small'
-                ? Styles.globalMargins.xtiny
-                : Styles.globalMargins.tiny,
-          }}
+          style={!Styles.isMobile && this.props.size === 'small' ? styles.leftIconXTiny : styles.leftIconTiny}
         />
       )
     )
@@ -291,11 +286,17 @@ class SearchFilter extends React.PureComponent<Props, State> {
         underlayColor={Styles.globalColors.transparent}
         hoverColor={Styles.globalColors.transparent}
       >
-        {this.keyHandler()}
-        {this.leftIcon()}
-        {this.input()}
-        {this.waiting()}
-        {this.rightCancelIcon()}
+        <Kb.Box2
+          direction="horizontal"
+          style={{alignItems: 'center', width: '100%'}}
+          pointerEvents={Styles.isMobile && this.props.onClick ? 'none' : undefined}
+        >
+          {this.keyHandler()}
+          {this.leftIcon()}
+          {this.input()}
+          {this.waiting()}
+          {this.rightCancelIcon()}
+        </Kb.Box2>
       </Kb.ClickableBox>
     )
     return Styles.isMobile ? (
@@ -339,15 +340,14 @@ const styles = Styles.styleSheetCreate(() => ({
       cursor: 'text',
     },
   }),
-  containerCenter: {
-    justifyContent: 'center',
-  },
+  containerCenter: {justifyContent: 'center'},
   containerMobile: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.tiny,
+      maxWidth: '100%',
     },
     isTablet: {
       paddingLeft: 0,
@@ -366,20 +366,12 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.tiny,
   },
-  dark: {
-    backgroundColor: Styles.globalColors.black_10,
-  },
-  darkNegative: {
-    backgroundColor: Styles.globalColors.black_20,
-  },
+  dark: {backgroundColor: Styles.globalColors.black_10},
+  darkNegative: {backgroundColor: Styles.globalColors.black_20},
   icon: Styles.platformStyles({
-    isElectron: {
-      marginTop: 2,
-    },
+    isElectron: {marginTop: 2},
   }),
-  input: {
-    backgroundColor: Styles.globalColors.transparent,
-  },
+  input: {backgroundColor: Styles.globalColors.transparent},
   inputContainer: {
     ...Styles.globalStyles.flexGrow,
     backgroundColor: Styles.globalColors.transparent,
@@ -387,35 +379,23 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: 0,
     paddingRight: 0,
   },
-  inputNoGrow: {
-    flexGrow: 0,
-  },
-  light: {
-    backgroundColor: Styles.globalColors.black_05,
-  },
-  lightNegative: {
-    backgroundColor: Styles.globalColors.black_10,
-  },
-  removeIconFullWidth: {
-    marginLeft: Styles.globalMargins.xsmall,
-  },
-  removeIconNonFullWidth: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
+  inputNoGrow: {flexGrow: 0},
+  leftIconXTiny: {marginRight: Styles.globalMargins.xtiny},
+  leftIconTiny: {marginRight: Styles.globalMargins.tiny},
+  light: {backgroundColor: Styles.globalColors.black_05},
+  lightNegative: {backgroundColor: Styles.globalColors.black_10},
+  removeIconFullWidth: {marginLeft: Styles.globalMargins.xsmall},
+  removeIconNonFullWidth: {marginLeft: Styles.globalMargins.tiny},
   spinnerFullWidth: {
     height: 20,
     marginLeft: Styles.globalMargins.xsmall,
     width: 20,
   },
-  spinnerMobile: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
+  spinnerMobile: {marginLeft: Styles.globalMargins.tiny},
   spinnerSmall: {
     height: 16,
     marginLeft: Styles.globalMargins.tiny,
     width: 16,
   },
-  textNegative: {
-    color: Styles.globalColors.white,
-  },
+  textNegative: {color: Styles.globalColors.white},
 }))

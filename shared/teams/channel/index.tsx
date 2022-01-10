@@ -248,32 +248,30 @@ const Channel = (props: OwnProps) => {
   )
 
   return (
-    <>
-      <Kb.SafeAreaViewTop />
-      <Kb.Box style={styles.container}>
-        {Styles.isMobile && (
-          <MobileHeader channelname={meta.channelname} teamname={teamname} offset={offset.current} />
-        )}
-        <SectionList
-          renderSectionHeader={renderSectionHeader}
-          stickySectionHeadersEnabled={Styles.isMobile}
-          sections={sections}
-          contentContainerStyle={styles.listContentContainer}
-          style={styles.list}
-          onScroll={onScroll.current}
-        />
-        <SelectionPopup
-          selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
-          conversationIDKey={conversationIDKey}
-          teamID={teamID}
-        />
-      </Kb.Box>
-    </>
+    <Kb.Box style={styles.container}>
+      {Styles.isMobile && (
+        <MobileHeader channelname={meta.channelname} teamname={teamname} offset={offset.current} />
+      )}
+      <SectionList
+        renderSectionHeader={renderSectionHeader}
+        stickySectionHeadersEnabled={Styles.isMobile}
+        sections={sections}
+        contentContainerStyle={styles.listContentContainer}
+        style={styles.list}
+        onScroll={onScroll.current}
+      />
+      <SelectionPopup
+        selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
+        conversationIDKey={conversationIDKey}
+        teamID={teamID}
+      />
+    </Kb.Box>
   )
 }
 Channel.navigationOptions = () => ({
   headerHideBorder: true,
   underNotch: true,
+  headerTitle: '',
 })
 
 const startAnimationOffset = 40
@@ -290,11 +288,11 @@ const MobileHeader = ({
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const top = Kb.ReAnimated.interpolate(offset, {
+  const top = Kb.ReAnimated.interpolateNode(offset, {
     inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
     outputRange: [40, 40, 0, 0],
   })
-  const opacity = Kb.ReAnimated.interpolate(offset, {
+  const opacity = Kb.ReAnimated.interpolateNode(offset, {
     inputRange: [-9999, 0, 1, 9999],
     outputRange: [0, 0, 1, 1],
   })
@@ -342,9 +340,9 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
     },
-    isMobile: {
-      marginTop: 40,
-    },
+    // isMobile: {
+    // marginTop: 40,
+    // },
   }),
   listContentContainer: Styles.platformStyles({
     isElectron: {

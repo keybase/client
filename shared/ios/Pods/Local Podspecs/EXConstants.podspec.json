@@ -1,25 +1,31 @@
 {
   "name": "EXConstants",
-  "version": "7.0.1",
+  "version": "13.0.0",
   "summary": "Provides system information that remains constant throughout the lifetime of your app.",
   "description": "Provides system information that remains constant throughout the lifetime of your app.",
   "license": "MIT",
   "authors": "650 Industries, Inc.",
-  "homepage": "https://docs.expo.io/versions/latest/sdk/constants/",
+  "homepage": "https://docs.expo.dev/versions/latest/sdk/constants/",
   "platforms": {
-    "ios": "10.0"
+    "ios": "12.0"
   },
   "source": {
     "git": "https://github.com/expo/expo.git"
   },
-  "source_files": "**/*.{h,m}",
-  "preserve_paths": "**/*.{h,m}",
-  "requires_arc": true,
+  "static_framework": true,
   "dependencies": {
-    "UMCore": [
+    "ExpoModulesCore": [
 
-    ],
-    "UMConstantsInterface": [
+    ]
+  },
+  "source_files": "EXConstants/**/*.{h,m}",
+  "script_phases": {
+    "name": "Generate app.config for prebuilt Constants.manifest",
+    "script": "bash -l -c \"$PODS_TARGET_SRCROOT/../scripts/get-app-config-ios.sh\"",
+    "execution_position": "before_compile"
+  },
+  "resource_bundles": {
+    "EXConstants": [
 
     ]
   }

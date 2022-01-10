@@ -1,129 +1,166 @@
-import {NavigationParams, StackActions, NavigationActions} from '@react-navigation/core'
-import shallowEqual from 'shallowequal'
+import * as Kbfs from '../fs/common'
+import * as FsConstants from '../constants/fs'
+import Loading from '../login/loading'
+import * as Styles from '../styles'
+import * as ConfigConstants from '../constants/config'
+import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
-import * as Tabs from '../constants/tabs'
-import {tabRoots} from './routes'
-import logger from '../logger'
-import {getActiveKey} from './util'
+import * as Container from '../util/container'
+import * as React from 'react'
+import * as Kb from '../common-adapters'
+import {Theme} from '@react-navigation/native'
 
-export const phoneTabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab, Tabs.settingsTab]
-export const tabletTabs = [
-  Tabs.peopleTab,
-  Tabs.chatTab,
-  Tabs.fsTab,
-  Tabs.teamsTab,
-  Tabs.walletsTab,
-  Tabs.settingsTab,
-]
-export const desktopTabs = [
-  Tabs.peopleTab,
-  Tabs.chatTab,
-  Tabs.cryptoTab,
-  Tabs.fsTab,
-  Tabs.teamsTab,
-  Tabs.walletsTab,
-  Tabs.gitTab,
-  Tabs.devicesTab,
-  Tabs.settingsTab,
-]
+export enum AppState {
+  UNINIT, // haven't rendered the nav yet
+  NEEDS_INIT, // rendered but need to bootstrap
+  INITED, // regular app now
+}
 
-// Helper to convert old route tree actions to new actions. Likely goes away as we make
-// actual routing actions (or make RouteTreeGen append/up the only action)
-export const oldActionToNewActions = (action: any, navigationState: any, allowAppendDupe?: boolean) => {
-  switch (action.type) {
-    case RouteTreeGen.setParams: {
-      return [NavigationActions.setParams({key: action.payload.key, params: action.payload.params})]
-    }
-    case RouteTreeGen.navigateAppend: {
-      if (!navigationState) {
-        return
-      }
-      const p = action.payload.path.last
-        ? action.payload.path.last()
-        : action.payload.path[action.payload.path.length - 1]
-      if (!p) {
-        return
-      }
-      let routeName: string | null = null
-      let params: NavigationParams | undefined
+const useConnectNavToRedux = () => {
+  const dispatch = Container.useDispatch()
+  const setNavOnce = React.useRef(false)
+  React.useEffect(() => {
+    if (!setNavOnce.current) {
+      if (Constants.navigationRef_.isReady()) {
+        setNavOnce.current = true
+        dispatch(ConfigGen.createSetNavigator({navigator}))
 
-      if (typeof p === 'string') {
-        routeName = p
-      } else {
-        routeName = p.selected
-        params = p.props
-      }
-
-      if (!routeName) {
-        return
-      }
-
-      const path = Constants._getVisiblePathForNavigator(navigationState)
-      const visible = path[path.length - 1]
-      if (visible) {
-        if (!allowAppendDupe && routeName === visible.routeName && shallowEqual(visible.params, params)) {
-          console.log('Skipping append dupe')
-          return
+        if (__DEV__) {
+          // @ts-ignore
+          window.DEBUGNavigator = Constants.navigationRef_.current
+          // @ts-ignore
+          window.DEBUGRouter2 = Constants
         }
       }
+    }
+  }, [setNavOnce])
+}
 
-      if (action.payload.fromKey) {
-        const {fromKey} = action.payload
-        const activeKey = getActiveKey(navigationState)
-        if (fromKey !== activeKey) {
-          logger.warn('Skipping append on wrong screen')
-          return
-        }
-      }
+const useIsDarkChanged = () => {
+  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
+  const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
+  return darkChanged
+}
 
-      if (action.payload.replace) {
-        return [StackActions.replace({params, routeName})]
-      }
-
-      return [StackActions.push({params, routeName})]
-    }
-    case RouteTreeGen.switchTab: {
-      return [NavigationActions.navigate({key: action.payload.tab, routeName: action.payload.tab})]
-    }
-    case RouteTreeGen.switchLoggedIn: {
-      return [NavigationActions.navigate({routeName: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]
-    }
-    case RouteTreeGen.clearModals: {
-      return [StackActions.popToTop({key: 'loggedIn'})]
-    }
-    case RouteTreeGen.navigateUp:
-      return [NavigationActions.back({key: action.payload.fromKey})]
-    case RouteTreeGen.navUpToScreen: {
-      const fullPath = Constants._getFullRouteForNavigator(navigationState)
-      const popActions: Array<unknown> = []
-      const isInStack = fullPath.reverse().some(r => {
-        if (r.routeName === action.payload.routeName) {
-          return true
-        }
-        popActions.push(StackActions.pop({}))
-        return false
-      })
-      return isInStack ? popActions : []
-    }
-    case RouteTreeGen.resetStack: {
-      // TODO check for append dupes within these
-      const actions = action.payload.actions.reduce(
-        (arr, a) => [...arr, ...(oldActionToNewActions(a, navigationState, true) || [])],
-        // 'loggedOut' is the root
-        action.payload.tab === 'loggedOut'
-          ? []
-          : [StackActions.push({routeName: tabRoots[action.payload.tab]})]
-      )
-      return [
-        StackActions.reset({
-          actions,
-          index: action.payload.index,
-          key: action.payload.tab,
-        }),
-      ]
-    }
-    default:
-      return undefined
+const useNavKey = (appState: AppState, key: React.MutableRefObject<number>) => {
+  const darkChanged = useIsDarkChanged()
+  if (darkChanged) {
+    key.current++
   }
+
+  return appState === AppState.NEEDS_INIT ? -1 : key.current
+}
+
+const useInitialState = () => {
+  const darkChanged = useIsDarkChanged()
+  return darkChanged
+    ? Constants.navigationRef_?.isReady()
+      ? Constants.navigationRef_?.getRootState()
+      : undefined
+    : undefined
+}
+
+export const useShared = () => {
+  useConnectNavToRedux()
+  // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
+  // if we use useEffect and useState we'll have to deal with extra renders which look really bad
+  const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
+  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  const dispatch = Container.useDispatch()
+  const navContainerKey = React.useRef(1)
+  const oldNavPath = React.useRef<any>([])
+  // keep track if we went to an init route yet or not
+  const appState = React.useRef(loggedInLoaded ? AppState.NEEDS_INIT : AppState.UNINIT)
+
+  if (appState.current === AppState.UNINIT && loggedInLoaded) {
+    appState.current = AppState.NEEDS_INIT
+  }
+
+  const onStateChange = React.useCallback(() => {
+    const old = oldNavPath.current
+    const vp = Constants.getVisiblePath()
+    dispatch(
+      RouteTreeGen.createOnNavChanged({
+        navAction: undefined,
+        next: vp,
+        prev: old,
+      })
+    )
+    oldNavPath.current = vp
+  }, [oldNavPath, dispatch])
+
+  const navKey = useNavKey(appState.current, navContainerKey)
+  const initialState = useInitialState()
+  return {
+    loggedInLoaded,
+    loggedIn,
+    appState,
+    onStateChange,
+    navKey,
+    initialState,
+  }
+}
+
+export const useSharedAfter = (appState: React.MutableRefObject<AppState>) => {
+  // stuff that happens after the first hook is done
+  // if we handled NEEDS_INIT we're done
+  if (appState.current === AppState.NEEDS_INIT) {
+    appState.current = AppState.INITED
+  }
+}
+
+export const SimpleLoading = React.memo(() => {
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      style={{
+        backgroundColor: Styles.globalColors.white,
+        // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
+      }}
+    >
+      <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
+    </Kb.Box2>
+  )
+})
+
+export const FilesTabBadge = () => {
+  const uploadIcon = FsConstants.getUploadIconForFilesTab(Container.useSelector(state => state.fs.badge))
+  return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
+}
+
+const styles = Styles.styleSheetCreate(() => ({
+  fsBadgeIconUpload: {
+    bottom: Styles.globalMargins.tiny,
+    height: Styles.globalMargins.small,
+    position: 'absolute',
+    right: Styles.globalMargins.small,
+    width: Styles.globalMargins.small,
+  },
+}))
+
+export const theme: Theme = {
+  dark: false,
+  colors: {
+    get primary() {
+      return Styles.globalColors.fastBlank as string
+    },
+    get background() {
+      return Styles.globalColors.fastBlank as string
+    },
+    get card() {
+      return Styles.globalColors.white
+    },
+    get text() {
+      return Styles.globalColors.black
+    },
+    get border() {
+      return Styles.globalColors.black_10
+    },
+    get notification() {
+      return Styles.globalColors.black
+    },
+  },
 }

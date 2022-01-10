@@ -2,19 +2,28 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {InfoIcon} from '../../signup/common'
+import {useFocusEffect} from '@react-navigation/core'
 
 type Props = {
   bannerMessage: string | null
   checkIsOnline: () => void
   onLogin: () => void
   onSignup: () => void
-  isOnline: boolean | null
+  isOnline?: boolean
   showProxySettings: () => void
 }
 
 const Intro = (props: Props) => {
   const [showing, setShowing] = React.useState(true)
   Kb.useInterval(props.checkIsOnline, showing ? 5000 : undefined)
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setShowing(true)
+      return () => setShowing(false)
+    }, [])
+  )
+
   return (
     <Kb.Box2
       direction="vertical"
@@ -23,9 +32,6 @@ const Intro = (props: Props) => {
       alignItems="center"
       style={styles.container}
     >
-      {Styles.isMobile && (
-        <Kb.NavigationEvents onDidFocus={() => setShowing(true)} onWillBlur={() => setShowing(false)} />
-      )}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
         <InfoIcon />
       </Kb.Box2>

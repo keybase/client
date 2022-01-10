@@ -1,20 +1,20 @@
 import * as React from 'react'
-import * as Container from '../util/container'
 import {hot} from 'react-hot-loader/root'
-import RouterSwitcheroo from '../router-v2/switcheroo'
+import Router from '../router-v2/router'
 import ResetModal from '../login/reset/modal'
+import GlobalError from './global-errors/container'
+import OutOfDate from './out-of-date'
 
 type Props = {}
 
-const Main = (_: Props) => {
-  const isResetActive = Container.useSelector(state => state.autoreset.active)
-  return (
+const Main = (_: Props) => (
     <>
-      <RouterSwitcheroo />
-      {isResetActive && <ResetModal />}
+      <Router />
+      <ResetModal />
+      <GlobalError />
+      <OutOfDate />
     </>
   )
-}
 
 const maybeHotMain = __HOT__ ? hot(Main) : Main
 export default maybeHotMain

@@ -13,7 +13,7 @@ import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
-import shallowEqual from 'shallowequal'
+import isEqual from 'lodash/isEqual'
 import {mapGetEnsureValue, mapEqual} from '../util/map'
 
 type EngineActions =
@@ -956,7 +956,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.containsLatestMessageMap = containsLatestMessageMap
     // only if different
-    if (!shallowEqual([...draftState.messageOrdinals], [...messageOrdinals])) {
+    if (!isEqual(draftState.messageOrdinals, messageOrdinals)) {
       draftState.messageOrdinals = messageOrdinals
     }
     draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
@@ -1260,7 +1260,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {
-      draftState.participantMap.set(part.conversationIDKey, part.participants)
+      if (!isEqual(draftState.participantMap.get(part.conversationIDKey), part.participants)) {
+        draftState.participantMap.set(part.conversationIDKey, part.participants)
+      }
     })
   },
   [EngineGen.chat1NotifyChatChatParticipantsInfo]: (draftState, action) => {
@@ -1269,10 +1271,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const participants = participantMap[convIDStr]
       const conversationIDKey = Types.stringToConversationIDKey(convIDStr)
       if (participants) {
-        draftState.participantMap.set(
-          conversationIDKey,
-          Constants.uiParticipantsToParticipantInfo(participants)
-        )
+        const newInfo = Constants.uiParticipantsToParticipantInfo(participants)
+        if (!isEqual(draftState.participantMap.get(conversationIDKey), newInfo)) {
+          draftState.participantMap.set(conversationIDKey, newInfo)
+        }
       }
     })
   },
@@ -1416,11 +1418,15 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           trustedState: 'error' as const,
         })
-        draftState.participantMap.set(conversationIDKey, {
+
+        const newInfo = {
           all: participants,
           contactName: Constants.noParticipantInfo.contactName,
           name: participants,
-        })
+        }
+        if (!isEqual(draftState.participantMap.get(conversationIDKey), newInfo)) {
+          draftState.participantMap.set(conversationIDKey, newInfo)
+        }
       } else {
         const old = draftState.metaMap.get(conversationIDKey)
         if (old) {

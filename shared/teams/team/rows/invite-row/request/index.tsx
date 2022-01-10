@@ -3,7 +3,6 @@ import * as Types from '../../../../../constants/types/teams'
 import * as Kb from '../../../../../common-adapters'
 import {FloatingRolePicker} from '../../../../role-picker'
 import * as Styles from '../../../../../styles'
-import flags from '../../../../../util/feature-flags'
 import {isLargeScreen} from '../../../../../constants/platform'
 import {formatTimeRelativeToNow} from '../../../../../util/timestamp'
 import MenuHeader from '../../menu-header.new'
@@ -33,46 +32,7 @@ type RolePickerProps = {
 
 export type Props = {} & RowProps & RolePickerProps
 
-const TeamRequestRowOld = (props: Props) => {
-  const {username, onOpenProfile, onChat, onIgnoreRequest, onAccept} = props
-  return (
-    <Kb.Box style={styles.container}>
-      <Kb.ClickableBox style={styles.clickContainer} onClick={() => onOpenProfile(username)}>
-        <Kb.Avatar username={username} size={Styles.isMobile ? 48 : 32} />
-        <Kb.Box style={styles.userDetails}>
-          <Kb.ConnectedUsernames type="BodyBold" colorFollowing={true} usernames={username} />
-          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-            <Kb.Meta title="please decide" style={styleCharm} backgroundColor={Styles.globalColors.orange} />
-          </Kb.Box>
-        </Kb.Box>
-      </Kb.ClickableBox>
-      <Kb.Box style={styles.floatingRolePickerContainer}>
-        <FloatingRolePicker
-          presetRole="writer"
-          floatingContainerStyle={styles.floatingRolePicker}
-          footerComponent={props.footerComponent}
-          onConfirm={props.onConfirmRolePicker}
-          onCancel={props.onCancelRolePicker}
-          position="bottom left"
-          open={props.isRolePickerOpen}
-          disabledRoles={props.disabledReasonsForRolePicker}
-        >
-          <Kb.Button label="Let in as..." onClick={onAccept} small={true} style={styles.letInButton} />
-        </FloatingRolePicker>
-        <Kb.Button
-          label="Ignore"
-          onClick={onIgnoreRequest}
-          small={true}
-          style={styles.ignoreButton}
-          type="Danger"
-        />
-        {!Styles.isPhone && <Kb.Icon onClick={onChat} style={styles.icon} type="iconfont-chat" />}
-      </Kb.Box>
-    </Kb.Box>
-  )
-}
-
-const TeamRequestRowNew = (props: Props) => {
+export const TeamRequestRow = (props: Props) => {
   const {ctime, fullName, username, onAccept, onOpenProfile, reset} = props
 
   const approveWord = reset ? 'Readmit' : 'Approve'
@@ -179,8 +139,6 @@ const TeamRequestRowNew = (props: Props) => {
     />
   )
 }
-
-export const TeamRequestRow = flags.teamsRedesign ? TeamRequestRowNew : TeamRequestRowOld
 
 const styleCharm = {
   alignSelf: 'center',

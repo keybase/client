@@ -16,7 +16,7 @@ type OwnProps = {
   tooltipPosition?: Position
 }
 
-const ConnectedEmojiRow = Container.namedConnect(
+const ConnectedEmojiRow = Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
     return {
@@ -55,8 +55,7 @@ const ConnectedEmojiRow = Container.namedConnect(
     ordinal: ownProps.ordinal,
     style: ownProps.style,
     tooltipPosition: ownProps.tooltipPosition,
-  }),
-  'ConnectedEmojiRow'
+  })
 )(EmojiRow)
 
 export default ConnectedEmojiRow

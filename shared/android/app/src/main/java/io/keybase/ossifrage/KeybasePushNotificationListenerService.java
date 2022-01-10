@@ -12,7 +12,7 @@ import androidx.core.app.NotificationCompat.MessagingStyle;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 
-import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
+//import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -149,7 +149,8 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
 
             final int badge = data.optInt("badge", -1);
             if (badge >= 0) {
-                ApplicationBadgeHelper.INSTANCE.setApplicationIconBadgeNumber(this, badge);
+                // TODO find a replacement
+            //    ApplicationBadgeHelper.INSTANCE.setApplicationIconBadgeNumber(this, badge);
             }
         }
 

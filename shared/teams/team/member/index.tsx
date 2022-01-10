@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import {FloatingRolePicker, roleIconMap} from '../../role-picker'
 import {useTeamDetailsSubscribe} from '../../subscriber'
+import {useFocusEffect} from '@react-navigation/core'
 
 type RolePickerSpecificProps = {
   isRolePickerOpen: boolean
@@ -21,7 +22,7 @@ export type MemberProps = {
   following: boolean
   loading: boolean
   user: {
-    type: Types.TeamRoleType | null
+    type: Types.TeamRoleType | null | undefined
     username: string
   }
   teamID: Types.TeamID
@@ -39,12 +40,12 @@ export type MemberProps = {
 
 export type Props = MemberProps & RolePickerSpecificProps
 
-const useCloseIfNoLongerInTeam = (type: Types.TeamRoleType | null) => {
+const useCloseIfNoLongerInTeam = (type: Types.TeamRoleType | null | undefined) => {
   const prevType = Container.usePrevious(type)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   React.useEffect(() => {
-    if (type === null && prevType !== null) {
+    if (!type && !!prevType !== !!type) {
       dispatch(nav.safeNavigateUpPayload())
     }
   })
@@ -52,7 +53,12 @@ const useCloseIfNoLongerInTeam = (type: Types.TeamRoleType | null) => {
 
 export const TeamMember = (props: Props) => {
   useTeamDetailsSubscribe(props.teamID)
-  Container.useFocusBlur(undefined, props.onBlur)
+  const {onBlur} = props
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => onBlur()
+    }, [onBlur])
+  )
   const {user, you, error} = props
   const iconType = user.type && roleIconMap[user.type]
   useCloseIfNoLongerInTeam(user.type)
@@ -151,6 +157,10 @@ export const TeamMember = (props: Props) => {
       </Kb.ButtonBar>
     </Kb.Box>
   )
+}
+TeamMember.navigationOptions = {
+  headerHideBorder: true,
+  headerTitle: '',
 }
 
 const styles = Styles.styleSheetCreate(() => ({

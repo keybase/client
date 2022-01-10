@@ -61,28 +61,28 @@ const checkFSEvents = () => {
 }
 
 // TODO use patch
-const fixUnimodules = () => {
-  const root = path.resolve(
-    __dirname,
-    '..',
-    '..',
-    'node_modules',
-    '@unimodules',
-    'react-native-adapter',
-    'android'
-  )
-  try {
-    const buildGradle = fs.readFileSync(path.resolve(__dirname, 'unimodules-build-gradle'), {
-      encoding: 'utf8',
-    })
-    fs.writeFileSync(path.join(root, 'build.gradle'), buildGradle)
-  } catch (_) {}
-}
+// const fixUnimodules = () => {
+// const root = path.resolve(
+// __dirname,
+// '..',
+// '..',
+// 'node_modules',
+// '@unimodules',
+// 'react-native-adapter',
+// 'android'
+// )
+// try {
+// const buildGradle = fs.readFileSync(path.resolve(__dirname, 'unimodules-build-gradle'), {
+// encoding: 'utf8',
+// })
+// fs.writeFileSync(path.join(root, 'build.gradle'), buildGradle)
+// } catch (_) {}
+// }
 
 function fixModules() {
-  if (process.platform !== 'win32') {
-    fixUnimodules()
-  }
+  // if (process.platform !== 'win32') {
+  // fixUnimodules()
+  // }
 
   // storybook uses react-docgen which really cr*ps itself with flow
   // I couldn't find a good way to override this effectively (yarn resolutions didn't work) so we're just killing it with fire

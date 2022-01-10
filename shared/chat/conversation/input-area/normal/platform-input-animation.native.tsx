@@ -56,6 +56,7 @@ export const runTiming = (
       set(config.toValue, dest),
       startClock(clock),
     ]),
+    // @ts-ignore
     timing(clock, state, config),
     cond(state.finished, stopClock(clock)),
     cond(state.finished, call([], cb)),
@@ -92,7 +93,9 @@ export const runRotateToggle = (
       set(state.frameTime, 0),
       startClock(clock),
     ]),
+    // @ts-ignore
     set(config.toValue, dest),
+    // @ts-ignore
     timing(clock, state, config),
     cond(state.finished, stopClock(clock)),
     set(from, state.position),

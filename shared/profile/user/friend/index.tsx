@@ -23,6 +23,7 @@ class Friend extends React.PureComponent<Props> {
           <Kb.ConnectedUsernames
             type={Styles.isMobile ? 'BodySmallBold' : 'BodyBold'}
             usernames={p.username}
+            onUsernameClicked="profile"
             colorBroken={true}
             colorFollowing={true}
           />
