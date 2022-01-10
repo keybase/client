@@ -4,6 +4,7 @@
 //go:build linux && !skipkeyringtests
 // +build linux,!skipkeyringtests
 
+// nolint:unused
 package libkb
 
 import (

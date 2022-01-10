@@ -400,7 +400,7 @@ func ReadB64() (res string, err error) {
 	if err != nil {
 		// Attempt to fix the connection
 		if ierr := Reset(); ierr != nil {
-			fmt.Println("failed to Reset: %v", ierr)
+			fmt.Printf("failed to Reset: %v\n", ierr)
 		}
 		return "", fmt.Errorf("Read error: %s", err)
 	}

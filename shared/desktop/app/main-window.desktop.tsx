@@ -278,6 +278,7 @@ export default () => {
       backgroundThrottling: false,
       contextIsolation: false,
       devTools: showDevTools,
+      enableRemoteModule: true,
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
       preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),

@@ -6,7 +6,7 @@ apply plugin: "com.android.application"
 import com.android.build.OutputFile
 
 // KB: app version
-def VERSION_NAME = "5.8.3"
+def VERSION_NAME = "5.9.0"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets

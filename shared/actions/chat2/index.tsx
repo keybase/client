@@ -1028,7 +1028,8 @@ function* loadMoreMessages(
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
     | Chat2Gen.LoadMessagesCenteredPayload
     | Chat2Gen.MarkConversationsStalePayload
-    | ConfigGen.ChangedFocusPayload,
+    | ConfigGen.ChangedFocusPayload
+    | Chat2Gen.TabSelectedPayload,
   logger: Saga.SagaLogger
 ) {
   // Get the conversationIDKey
@@ -1060,6 +1061,10 @@ function* loadMoreMessages(
         return
       }
       reason = 'got stale'
+      break
+    case Chat2Gen.tabSelected:
+      key = Constants.getSelectedConversation()
+      reason = 'tab selected'
       break
     case Chat2Gen.navigateToThread:
       key = action.payload.conversationIDKey
@@ -3824,6 +3829,7 @@ function* chat2Saga() {
     | Chat2Gen.LoadMessagesCenteredPayload
     | Chat2Gen.MarkConversationsStalePayload
     | ConfigGen.ChangedFocusPayload
+    | Chat2Gen.TabSelectedPayload
   >(
     [
       Chat2Gen.navigateToThread,
@@ -3833,6 +3839,7 @@ function* chat2Saga() {
       Chat2Gen.loadMessagesCentered,
       Chat2Gen.markConversationsStale,
       ConfigGen.changedFocus,
+      Chat2Gen.tabSelected,
     ],
     loadMoreMessages
   )
