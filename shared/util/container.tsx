@@ -10,7 +10,6 @@ import {useSelector as RRuseSelector, useDispatch as RRuseDispatch, TypedUseSele
 import {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
 import typedConnect from './typed-connect'
-import isEqual from 'lodash/isEqual'
 
 // to keep fallback objects static for react
 export const emptyArray: Array<any> = []
@@ -93,6 +92,7 @@ export const timeoutPromise = (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
+// import isEqual from 'lodash/isEqual'
 // const debugMergeProps = __DEV__
 //   ? () => {
 //       let oldsp = {}

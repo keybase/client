@@ -17,7 +17,6 @@ import logger from '../../logger'
 import {ServiceId} from 'util/platforms'
 import {assertNever} from '../../util/container'
 import invert from 'lodash/invert'
-import shallowEqual from 'shallowequal'
 import isEqual from 'lodash/isEqual'
 
 export const getMessageStateExtras = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {

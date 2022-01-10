@@ -179,7 +179,6 @@ const Connected = Container.connect(
   (stateProps, _, ownProps: OwnProps) => {
     const {navKey} = ownProps
     const bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
-    const hasBigTeams = !!bigTeams.length
     const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
     let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
     const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > stateProps.inboxNumSmallRows
@@ -236,7 +235,6 @@ const Connected = Container.connect(
     }
 
     return {
-      hasBigTeams,
       isLoading: stateProps.isLoading,
       isSearching: stateProps.isSearching,
       navKey,
@@ -250,7 +248,6 @@ const Connected = Container.connect(
 )(InboxWrapper)
 
 let cachedRows: Array<Types.ChatInboxRowItem> = []
-
 const emptyMap = new Map()
 
 export default Connected

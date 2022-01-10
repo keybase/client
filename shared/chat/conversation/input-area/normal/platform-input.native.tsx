@@ -217,7 +217,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     if (this.state.animating) {
       this.setState({animating: false}, () => {
         this.setState(state =>
-          state.afterAnimatingExtraStepWorkaround ? {afterAnimatingExtraStepWorkaround: false} : undefined
+          state.afterAnimatingExtraStepWorkaround ? {afterAnimatingExtraStepWorkaround: false} : null
         )
       })
     }

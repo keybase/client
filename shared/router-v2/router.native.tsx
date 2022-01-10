@@ -256,7 +256,7 @@ const LoggedOut = React.memo(() => (
   </LoggedOutStack.Navigator>
 ))
 
-const useInitialStateChangeAfterLinking = (goodLinking: any, onStateChange: () => {}, loggedIn: boolean) => {
+const useInitialStateChangeAfterLinking = (goodLinking: any, onStateChange: () => void, loggedIn: boolean) => {
   // send onNavChanged on initial render after handling linking
   React.useEffect(() => {
     if (goodLinking) {
@@ -291,14 +291,14 @@ const RNApp = () => {
 
   useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
 
-  console.log('aaa RNApp render', {
-    loggedInLoaded,
-    loggedIn,
-    appState,
-    onStateChange,
-    navKey,
-    initialState,
-  })
+  // console.log('aaa RNApp render', {
+  //   loggedInLoaded,
+  //   loggedIn,
+  //   appState,
+  //   onStateChange,
+  //   navKey,
+  //   initialState,
+  // })
 
   return (
     <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>

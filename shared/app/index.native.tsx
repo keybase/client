@@ -33,7 +33,6 @@ const NativeEventsToRedux = () => {
     })
 
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
-      console.log('aaa linking', url)
       dispatch(DeeplinksGen.createLink({link: url}))
     })
 
