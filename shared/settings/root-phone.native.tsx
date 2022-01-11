@@ -177,7 +177,7 @@ function SettingsNav(props: Props) {
   )
 }
 SettingsNav.navigationOptions = {
-title: 'More'
+  title: 'More',
 }
 
 const styles = Styles.styleSheetCreate(() => ({

@@ -60,13 +60,3 @@ const _TeamInviteMenu = (props: Kb.PropsWithOverlay<{onCancelInvite?: () => void
   )
 }
 const TeamInviteMenu = Kb.OverlayParentHOC(_TeamInviteMenu)
-
-// const styles = Styles.styleSheetCreate(() => ({
-//   container: {
-//     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-//   },
-//   usernameRole: {
-//     flex: 1,
-//     marginLeft: Styles.globalMargins.small,
-//   },
-// }))

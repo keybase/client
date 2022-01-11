@@ -12,7 +12,6 @@ type Props = {
   isDefaultWallet: boolean
   keybaseUser: string
   onBack?: () => void
-  // onBuy: () => void
   onReceive: () => void
   onSettings: () => void
   thisDeviceIsLockedOut: boolean
@@ -103,14 +102,6 @@ const Header = (props: Props) => {
           disabled={!props.walletName}
           narrow={Styles.isMobile}
         />
-        {/*<Kb.Button
-          type="Wallet"
-          mode="Secondary"
-          onClick={props.onBuy}
-          label="Buy"
-          disabled={!props.walletName}
-          narrow={Styles.isMobile}
-          />*/}
         <Kb.Button onClick={props.onSettings} mode="Secondary" style={styles.settingsButton} type="Wallet">
           <Kb.Icon type="iconfont-gear" style={styles.gear} />
         </Kb.Button>
@@ -161,9 +152,7 @@ const styles = Styles.styleSheetCreate(
         height: Styles.globalMargins.small,
         width: Styles.globalMargins.small,
       },
-      topContainer: {
-        position: 'relative',
-      },
+      topContainer: {position: 'relative'},
       unread: {
         backgroundColor: Styles.globalColors.orange,
         borderRadius: 6,

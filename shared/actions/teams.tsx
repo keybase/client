@@ -1,5 +1,5 @@
 /// TODO the relationships here are often inverted. we want to clear actions when a bunch of actions happen
-// not have every handler clear it themselves. this reduces the nubmer of actionChains
+// not have every handler clear it themselves. this reduces the number of actionChains
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsGen from './teams-gen'
@@ -26,8 +26,6 @@ import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import {RPCError} from '../util/errors'
-// import flags from '../util/feature-flags'
-// import {appendNewTeamBuilder} from './typed-routes'
 
 async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
   const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
@@ -1110,9 +1108,7 @@ const refreshTeamRoleMap = async (
   }
 }
 
-const teamDeletedOrExit = (
-  //action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
-) => {
+const teamDeletedOrExit = () => {
   if (Router2Constants.getCurrentTab() == Tabs.teamsTab) {
     return RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
   }
@@ -1347,8 +1343,9 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
 
   actions.push(TeamsGen.createSetNewTeamRequests({newTeamRequests}))
 
-    const teamsWithChosenChannels = new Set<Types.Teamname>(GregorConstants.bodyToJSON(chosenChannels?.item.body)
-    )
+  const teamsWithChosenChannels = new Set<Types.Teamname>(
+    GregorConstants.bodyToJSON(chosenChannels?.item.body)
+  )
 
   actions.push(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
 

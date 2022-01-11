@@ -7,12 +7,6 @@ import {enableES5, enableMapSet} from 'immer'
 enableES5()
 enableMapSet()
 
-// Load storybook or the app
-// if (__STORYBOOK__) {
-// const load = require('./storybook/index.native').default
-// load()
-// } else {
-
 const NativeEngine = NativeModules.KeybaseEngine
 _setSystemIsDarkMode(Appearance.getColorScheme() === 'dark')
 _setSystemSupported(NativeEngine.darkModeSupported === '1')
@@ -33,4 +27,3 @@ try {
 
 const {load} = require('./app/index.native')
 load()
-// }

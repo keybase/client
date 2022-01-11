@@ -211,9 +211,6 @@ class Teams extends React.PureComponent<Props, State> {
     this.setState({sawChatBanner: true})
     this.props.onHideChatBanner()
   }
-  // private onOpenFolder = id => this.props.onOpenFolder(id)
-  // private onManageChat = id => this.props.onManageChat(id)
-  // private onViewTeam = (teamID: Types.TeamID) => this.props.onViewTeam(teamID)
 
   private renderItem = (index: number, item: Row) => {
     switch (item.type) {
@@ -244,8 +241,6 @@ class Teams extends React.PureComponent<Props, State> {
       }
       case 'team': {
         const team = item.team
-        // const reset = this.props.teamresetusers.get(team.id)
-        // const resetUserCount = (reset && reset.size) || 0
         return <TeamRowNew firstItem={index === 2} showChat={!Styles.isMobile} teamID={team.id} />
       }
     }
@@ -301,9 +296,7 @@ const styles = Styles.styleSheetCreate(
       openMeta: {alignSelf: 'center'},
       relative: {position: 'relative'},
       sortHeader: Styles.platformStyles({
-        common: {
-          backgroundColor: Styles.globalColors.blueGrey,
-        },
+        common: { backgroundColor: Styles.globalColors.blueGrey, },
         isElectron: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
         isMobile: {...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.tiny)},
       }),

@@ -67,7 +67,6 @@ export type State = {
   incomingShareUseOriginal?: boolean
   justDeletedSelf?: string
   loggedIn: boolean
-  // loggedInLoaded: boolean
   logoutHandshakeWaiters: Map<string, number>
   logoutHandshakeVersion: number
   menubarWindowID: number

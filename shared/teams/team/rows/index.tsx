@@ -90,9 +90,7 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
   const sections: Array<Section> = []
   const resetMembers = [...details.members?.values()].filter(m => m.status === 'reset')
 
-  // let empty = true
   if (details.requests?.size || resetMembers.length) {
-    // empty = false
     const requestsSection: _Section<
       Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>,
       SectionExtras
@@ -119,7 +117,6 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
     sections.push(requestsSection)
   }
   if (details.invites?.size) {
-    // empty = false
     sections.push({
       collapsed,
       data: collapsed ? [] : [...details.invites].sort(sortInvites),

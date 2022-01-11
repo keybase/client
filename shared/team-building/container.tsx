@@ -1,6 +1,5 @@
 import logger from '../logger'
 import * as React from 'react'
-// import unidecode from 'unidecode'
 import debounce from 'lodash/debounce'
 import trim from 'lodash/trim'
 import TeamBuilding, {

@@ -105,7 +105,7 @@ const config = (_, {mode}) => {
     return {
       bail: true,
       context: path.resolve(__dirname, '..'),
-      devtool: isDev ? 'source-map' : 'source-map', // TEMP
+      devtool: isDev ? 'eval' : 'source-map',
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {

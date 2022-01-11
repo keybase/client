@@ -83,12 +83,7 @@ const LoggedOutStack = createStackNavigator()
 const LoggedOut = () => (
   <LoggedOutStack.Navigator
     initialRouteName="login"
-    screenOptions={
-      {
-        // tabBarHideOnKeyboard: true,
-        headerShown: false,
-      } as const
-    }
+    screenOptions={ { headerShown: false, } as const }
   >
     {makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)}
   </LoggedOutStack.Navigator>

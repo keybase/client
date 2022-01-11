@@ -3,27 +3,9 @@ import {getActiveKey as _getActiveKey} from '../router-v2/util'
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-// import {tabRoots} from '../router-v2/routes'
 import logger from '../logger'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
-
-// let _navigator: Navigator | undefined
-// // Private API only used by config sagas
-// export const _setNavigator = (navigator: Navigator) => {
-// _navigator = navigator
-// if (__DEV__) {
-// if (require('./platform').isMobile) {
-// global.DEBUGNavigator = _navigator
-// } else {
-// // @ts-ignore
-// window.DEBUGNavigator = _navigator
-// }
-// }
-// }
-// export const _getNavigator = () => {
-// return _navigator
-// }
 
 export const navigationRef_ = createNavigationContainerRef()
 export const _getNavigator = () => {
@@ -67,45 +49,10 @@ const findModalRoute = (s: NavState) => {
   return s.routes.slice(1) ?? []
 }
 
-// this returns the full path as seen from a stack. So if you pop you'll go up
-// this path stack
-// TODO this depends on our specific nav setup, check for it somehow
-// export const _getStackPathHelper = (arr: Array<NavState>, s: NavState): Array<NavState> => {
-// if (!s) return arr
-// if (!s.routes) return arr
-// const route = s.routes[s.index]
-// if (!route) return arr
-// if (route.routes) return _getStackPathHelper([...arr, s.routes[s.index]], route)
-// if (s.name === 'loggedIn' && s.index !== 0) {
-// // Modal stack is selected, make sure we get app routes too
-// // modals are at indices >= 1
-// return [...arr, ..._getStackPathHelper([], s.routes[0]), ...s.routes.slice(1)]
-// }
-// // leaf router - this is a stack router within a tab
-// // start slice at 0 to also get the pages stacked below the current one
-// return [...arr, ...s.routes.slice(0, s.index + 1)]
-// }
-
-// const findFullRoute = (s: NavState) => {
-// if (!s) {
-// return []
-// }
-// const loggedInOut = s.routes && s.routes[s.index]
-// if (loggedInOut?.name === 'loggedIn') {
-// return _getStackPathHelper([], s)
-// }
-// return (loggedInOut && loggedInOut.routes) || []
-// }
-// Private API used by navigator itself
 export const _getVisiblePathForNavigator = (navState: NavState) => {
   if (!navState) return []
   return findVisibleRoute([], navState)
 }
-
-// export const _getFullRouteForNavigator = (navState: NavState) => {
-// if (!navState) return []
-// return findFullRoute(navState)
-// }
 
 // Public API
 export const getVisiblePath = () => {
@@ -189,7 +136,6 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
     }
     case RouteTreeGen.switchLoggedIn: {
       // no longer used
-      // return [CommonActions.navigate({name: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]
       return []
     }
     case RouteTreeGen.clearModals: {
@@ -201,18 +147,8 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
     case RouteTreeGen.navUpToScreen: {
-      // TODO
+      // TODO ?
       return []
-      // const fullPath = _getFullRouteForNavigator(navigationState)
-      // const popActions: Array<unknown> = []
-      // const isInStack = fullPath.reverse().some(r => {
-      // if (r.name === action.payload.routeName) {
-      // return true
-      // }
-      // popActions.push(StackActions.pop())
-      // return false
-      // })
-      // return isInStack ? popActions : []
     }
     case RouteTreeGen.resetStack: {
       return [
@@ -222,20 +158,6 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
           routes: [{name: action.payload.path}],
         }),
       ]
-      // TODO check for append dupes within these
-      // const actions = action.payload.actions.reduce(
-      // (arr, a) => [...arr, ...(oldActionToNewActions(a, navigationState, true) || [])],
-      // // 'loggedOut' is the root
-      // action.payload.tab === 'loggedOut' ? [] : [StackActions.push(tabRoots[action.payload.tab])]
-      // )
-      // return undefined // TEMP
-      // return [
-      // StackActions.reset({
-      // actions,
-      // index: action.payload.index,
-      // key: action.payload.tab,
-      // }),
-      // ]
     }
     default:
       return undefined

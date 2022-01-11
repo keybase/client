@@ -9,11 +9,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import {validateEmailAddress} from '../util/email-address'
 
-const closeTeamBuilding = (_: TypedState /*, {payload: {namespace}}: NSAction*/) => {
-  // if (namespace === 'teams') {
-  // // add members wizard handles navigation
-  // return false
-  // }
+const closeTeamBuilding = (_: TypedState) => {
   const modals = RouterConstants.getModalStack()
   const routeNames = [...namespaceToRoute.values()]
   const routeName = modals[modals.length - 1]?.name

@@ -23,31 +23,6 @@ export type Props = {
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
 
-// const Wrapper = (
-// props: {
-// children: React.ReactNode
-// } & Props
-// ) => {
-// const dispatch = Container.useDispatch()
-// const nav = Container.useSafeNavigation()
-// // const onBack = () => dispatch(nav.safeNavigateUpPayload())
-// return (
-// <HeaderHocHeader
-// // badgeNumber={props.badgeNumber}
-// // onLeftAction={onBack}
-// rightActions={
-// props.pendingWaiting
-// ? undefined
-// : [
-// {icon: 'iconfont-search', label: 'search', onPress: props.onToggleThreadSearch},
-// {icon: 'iconfont-info', label: 'Info', onPress: props.onShowInfoPanel},
-// ]
-// }
-// titleComponent={props.children}
-// />
-// )
-// }
-
 const ShhIcon = (props: {onClick: () => void}) => (
   <Icon
     type="iconfont-shh"
@@ -150,15 +125,9 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.tiny,
         paddingRight: Styles.globalMargins.tiny,
       },
-      channelName: {
-        color: Styles.globalColors.black,
-      },
-      channelNameLight: {
-        color: Styles.globalColors.black_50,
-      },
-      lessMargins: {
-        marginBottom: -5,
-      },
+      channelName: {color: Styles.globalColors.black},
+      channelNameLight: {color: Styles.globalColors.black_50},
+      lessMargins: {marginBottom: -5},
       nameMutedContainer: {
         alignItems: 'center',
         justifyContent: 'center',

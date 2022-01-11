@@ -45,7 +45,6 @@ export const HeaderTitle = (props: HeaderTitleProps) =>
 type HeaderRightActionsProps = {
   loading: boolean
   noDisclaimer: boolean
-  // onBuy: () => void
   onReceive: () => void
   onSettings: () => void
 }
@@ -62,7 +61,6 @@ export const HeaderRightActions = (props: HeaderRightActionsProps) =>
         onClick={props.onReceive}
         disabled={props.loading}
       />
-      {/*<Kb.Button type="Wallet" mode="Secondary" label="Buy" small={true} onClick={props.onBuy} />*/}
       <Kb.Button
         onClick={props.onSettings}
         mode="Secondary"
@@ -79,9 +77,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       accountArea: Styles.platformStyles({
-        isTablet: {
-          flexGrow: 1,
-        },
+        isTablet: { flexGrow: 1, },
       }),
       accountID: Styles.platformStyles({
         isElectron: {...Styles.desktopStyles.windowDraggingClickable},
@@ -99,9 +95,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       accountNameContainer: Styles.platformStyles({
-        common: {
-          alignSelf: 'flex-start',
-        },
+        common: { alignSelf: 'flex-start', },
         isElectron: {
           ...Styles.desktopStyles.windowDraggingClickable,
           marginTop: -Styles.globalMargins.xxtiny,

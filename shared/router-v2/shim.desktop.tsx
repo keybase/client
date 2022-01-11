@@ -3,7 +3,6 @@ import * as Shared from './shim.shared'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
-// import {PerfWrapper} from '../util/use-perf'
 
 export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
   Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
@@ -194,12 +193,6 @@ const shimNewRoute = (Original: any, isModal: boolean, _isLoggedOut: boolean) =>
     const original = <Original {...props} />
     let body = original
 
-    // const renderDebug = Shared.getRenderDebug()
-    // if (renderDebug) {
-    //   body = <PerfWrapper style={styles.perf}>{original}</PerfWrapper>
-    // }
-
-    // TEMP just to test
     if (isModal) {
       body = (
         <ModalWrapper navigation={props.navigation} navigationOptions={navigationOptions}>
@@ -213,10 +206,3 @@ const shimNewRoute = (Original: any, isModal: boolean, _isLoggedOut: boolean) =>
   Container.hoistNonReactStatic(ShimmedNew, Original)
   return ShimmedNew
 }
-
-// const styles = Styles.styleSheetCreate(() => ({
-//   perf: {
-//     height: '100%',
-//     width: '100%',
-//   },
-// }))

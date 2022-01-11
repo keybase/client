@@ -139,7 +139,6 @@ export const initialState: Types.State = {
   incomingShareUseOriginal: undefined,
   justDeletedSelf: '',
   loggedIn: false,
-  // loggedInLoaded: false,
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
   menubarWindowID: 0,
