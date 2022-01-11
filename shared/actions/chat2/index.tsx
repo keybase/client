@@ -2589,13 +2589,6 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     if (reason === 'push' || reason === 'savedLastState') {
       Router2Constants.navToThread(conversationIDKey)
       return []
-      // ...modalClearAction,
-      // ...tabSwitchAction,
-      // RouteTreeGen.createResetStack({
-      // path: Constants.threadRouteName,
-      // props: {conversationIDKey}
-      // }),
-      // ]
     } else {
       // replace if looking at the pending / waiting screen
       const replace =
@@ -3363,7 +3356,6 @@ const gregorPushState = (
         const modes = explodingItems.reduce<Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>>(
             (current, i) => {
                 try {
-
                     const {category, body} = i.item
                     const secondsString = Buffer.from(body).toString()
                     const seconds = parseInt(secondsString, 10)

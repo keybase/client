@@ -90,22 +90,9 @@ const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActio
     emitter(PushGen.createNotification({notification}))
   }
 
-  // const onError = (error: Error) => {
-  //   logger.error('push error:', error)
-  // }
-
   isIOS && PushNotificationIOS.addEventListener('notification', onNotification)
   isIOS && PushNotificationIOS.addEventListener('localNotification', onNotification)
   isIOS && PushNotificationIOS.addEventListener('register', onRegister)
-  // PushNotifications.configure({
-  //   onError,
-  //   onNotification,
-  //   onRegister,
-  //   popInitialNotification: false,
-  //   // Don't request permissions for ios, we'll ask later, after showing UI
-  //   requestPermissions: !isIOS,
-  //   senderID: Constants.androidSenderID,
-  // })
 }
 
 function* setupPushEventLoop() {

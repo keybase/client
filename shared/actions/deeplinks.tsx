@@ -103,7 +103,6 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
             return []
           }
           return [
-            // RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
             ChatGen.createPreviewConversation({
               channelname,
               highlightMessageID,
@@ -118,7 +117,6 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
             return []
           }
           return [
-            // RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
             ChatGen.createPreviewConversation({
               highlightMessageID,
               participants: parts[1].split(','),
