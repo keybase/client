@@ -1,7 +1,6 @@
 package io.keybase.ossifrage.modules;
 
 import android.content.Context;
-//import android.os.Build;
 import android.telephony.TelephonyManager;
 
 import androidx.annotation.NonNull;
@@ -17,7 +16,6 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
-//import com.google.firebase.messaging.FirebaseMessaging;
 
 public class Utils extends ReactContextBaseJavaModule {
     private static final String NAME = "Utils";

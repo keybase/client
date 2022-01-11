@@ -213,9 +213,6 @@
     "webpack-dev-server": "4.6.0",
     "webpack-merge": "5.8.0"
   },
-  "TODODEPS": {
-  },
-  "optionalDependencies": {},
   "resolutions": {
     "**/purepack": "git://github.com/keybase/nullModule",
     "react-devtools-core": "4.22.1"

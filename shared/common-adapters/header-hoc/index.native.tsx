@@ -261,7 +261,7 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       opacity: 1,
       paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: 0, //Styles.globalMargins.tiny,
+      paddingLeft: 0,
       paddingRight: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
@@ -269,25 +269,16 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
     },
-    isIOS: {
-      paddingLeft: Styles.globalMargins.tiny,
-    },
+    isIOS: { paddingLeft: Styles.globalMargins.tiny, },
   }),
-  actionPressable: {
-    opacity: 0.3,
-  },
-  borderless: {
-    borderBottomWidth: 0,
-  },
+  actionPressable: { opacity: 0.3, },
+  borderless: { borderBottomWidth: 0, },
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     height: '100%',
     position: 'relative',
-    // width: '100%',
   },
-  grow: {
-    flexGrow: 1,
-  },
+  grow: { flexGrow: 1, },
   header: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -296,32 +287,23 @@ const styles = Styles.styleSheetCreate(() => ({
       borderBottomWidth: 1,
       borderStyle: 'solid',
       justifyContent: 'flex-start',
-      // width: '100%',
     },
     isAndroid: {
       backgroundColor: Styles.globalColors.white,
       height: 56,
     },
-    isIOS: {
-      height: 44,
-    },
+    isIOS: { height: 44, },
     isTablet: {
       height: 40 + Styles.headerExtraHeight,
     },
   }),
-  innerWrapper: {
-    ...Styles.globalStyles.fillAbsolute,
-  },
+  innerWrapper: { ...Styles.globalStyles.fillAbsolute, },
   leftAction: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'flex-start',
       flexShrink: 1,
       justifyContent: 'flex-start',
-      // backgroundColor: 'orange', // TEMP
-    },
-    isIOS: {
-      // paddingLeft: Styles.globalMargins.tiny,
     },
   }),
   rightActions: Styles.platformStyles({
@@ -331,16 +313,10 @@ const styles = Styles.styleSheetCreate(() => ({
       flexShrink: 1,
       justifyContent: 'flex-end',
     },
-    isIOS: {
-      paddingRight: Styles.globalMargins.tiny,
-    },
+    isIOS: { paddingRight: Styles.globalMargins.tiny, },
   }),
-  rightActionsWrapper: {
-    ...Styles.globalStyles.flexBoxRow,
-  },
-  title: {
-    color: Styles.globalColors.black,
-  },
+  rightActionsWrapper: { ...Styles.globalStyles.flexBoxRow, },
+  title: { color: Styles.globalColors.black, },
   titleContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -349,27 +325,19 @@ const styles = Styles.styleSheetCreate(() => ({
       flexShrink: 2,
       justifyContent: 'center',
     },
-    isAndroid: {
-      alignItems: 'flex-start',
-    },
+    isAndroid: { alignItems: 'flex-start', },
     isIOS: {
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
   titleContainerLeftPadding: Styles.platformStyles({
-    isAndroid: {
-      paddingLeft: Styles.globalMargins.small,
-    },
+    isAndroid: { paddingLeft: Styles.globalMargins.small, },
   }),
   titleContainerRightPadding: Styles.platformStyles({
-    isAndroid: {
-      paddingRight: Styles.globalMargins.small,
-    },
+    isAndroid: { paddingRight: Styles.globalMargins.small, },
   }),
-  titleTextContainer: {
-    ...Styles.globalStyles.fillAbsolute,
-  },
+  titleTextContainer: { ...Styles.globalStyles.fillAbsolute, },
 }))
 
 const noop = () => {}

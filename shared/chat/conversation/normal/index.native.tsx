@@ -23,17 +23,6 @@ const Conversation = React.memo((props: Props) => {
     setMaxInputArea(e.nativeEvent.layout.height)
   }, [])
 
-  // const [keyboardShowing, setKeyboardShowing] = React.useState(false)
-  // React.useEffect(() => {
-  //   const willShowSub = Kb.NativeKeyboard.addListener('keyboardWillShow', () => setKeyboardShowing(true))
-  //   const willHideSub = Kb.NativeKeyboard.addListener('keyboardWillHide', () => setKeyboardShowing(false))
-  //   return () => {
-  //     willShowSub.remove()
-  //     willHideSub.remove()
-  //   }
-  // }, [])
-
-  // const insets = useSafeAreaInsets()
   const innerComponent = (
     <Kb.BoxGrow onLayout={onLayout}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
@@ -62,12 +51,7 @@ const Conversation = React.memo((props: Props) => {
     </Kb.BoxGrow>
   )
   return (
-    <Kb.Box
-      style={Styles.collapseStyles([
-        styles.innerContainer,
-        // !keyboardShowing && {paddingBottom: insets.bottom},
-      ])}
-    >
+    <Kb.Box style={styles.innerContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {props.threadLoadedOffline && <Offline />}
         {innerComponent}
@@ -84,9 +68,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         position: 'relative',
       },
-      offline: {
-        padding: Styles.globalMargins.xxtiny,
-      },
+      offline: {padding: Styles.globalMargins.xxtiny},
       outerContainer: Styles.platformStyles({
         isTablet: {
           flex: 1,

@@ -7,12 +7,9 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
 import {useFocusEffect} from '@react-navigation/core'
-// import CustomTitle from './custom-title/container'
 import {memoize} from '../../util/memoize'
-// import flags from '../../util/feature-flags'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import {SelectionPopup, useActivityLevels} from '../common'
-// import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
 import TeamTabs from './tabs/container'
 import NewTeamHeader from './new-header'
 import Settings from './settings-tab/container'
@@ -199,43 +196,7 @@ const Team = (props: Props) => {
 Team.navigationOptions = {
   headerHideBorder: true,
   headerTitle: '',
-  // underNotch: true,
 }
-
-// const startAnimationOffset = 40
-// const AnimatedBox2 = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2) : undefined
-// const MobileHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: any}) => {
-// const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-// const dispatch = Container.useDispatch()
-// const nav = Container.useSafeNavigation()
-// const onBack = () => dispatch(nav.safeNavigateUpPayload())
-// const top = Kb.ReAnimated.interpolateNode(offset, {
-// inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
-// outputRange: [40, 40, 0, 0],
-// })
-// const opacity = Kb.ReAnimated.interpolateNode(offset, {
-// inputRange: [-9999, 0, 1, 9999],
-// outputRange: [0, 0, 1, 1],
-// })
-// return (
-// <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.header}>
-// <AnimatedBox2
-// style={[styles.smallHeader, {opacity, top}]}
-// gap="tiny"
-// direction="horizontal"
-// centerChildren={true}
-// fullWidth={true}
-// fullHeight={true}
-// >
-// <Kb.Avatar size={16} teamname={meta.teamname} />
-// <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
-// {meta.teamname}
-// </Kb.Text>
-// </AnimatedBox2>
-// <Kb.BackButton onClick={onBack} style={styles.backButton} />
-// </Kb.Box2>
-// )
-// }
 
 const styles = Styles.styleSheetCreate(() => ({
   backButton: {
@@ -267,7 +228,6 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
     },
-    // isMobile: {marginTop: 40},
   }),
   listContentContainer: Styles.platformStyles({
     isMobile: {

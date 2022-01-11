@@ -92,6 +92,30 @@ export const timeoutPromise = (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
+const connect = typedConnect
+export {connect}
+export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
+export {anyWaiting, anyErrors} from '../constants/waiting'
+export {safeSubmit, safeSubmitPerMount} from './safe-submit'
+export {useSafeNavigation} from './safe-navigation'
+export type RouteProps<P = {}> = _RouteProps<P>
+export type TypedActions = _TypedActions
+export type TypedState = _TypedState
+export const compose = flowRight
+export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
+export {produce, castDraft, castImmutable} from 'immer'
+export type Draft<T> = _Draft<T>
+export {default as HiddenString} from './hidden-string'
+export {default as makeReducer} from './make-reducer'
+export type ActionHandler<S, A> = _ActionHandler<S, A>
+export {default as useRPC} from './use-rpc'
+export {default as useSafeCallback} from './use-safe-callback'
+export {default as useWatchActions} from './use-watch-actions'
+export type RootState = _TypedState
+export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
+export const useSelector: TypedUseSelectorHook<RootState> = RRuseSelector
+
+// BEGIN debugging connect
 // import isEqual from 'lodash/isEqual'
 // const debugMergeProps = __DEV__
 //   ? () => {
@@ -126,25 +150,3 @@ export const timeoutPromise = (timeMs: number) =>
 // if (__DEV__) {
 //   console.log('\n\n\nDEBUG: debugConnect enabled')
 // }
-const connect = typedConnect
-export {connect}
-export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
-export {anyWaiting, anyErrors} from '../constants/waiting'
-export {safeSubmit, safeSubmitPerMount} from './safe-submit'
-export {useSafeNavigation} from './safe-navigation'
-export type RouteProps<P = {}> = _RouteProps<P>
-export type TypedActions = _TypedActions
-export type TypedState = _TypedState
-export const compose = flowRight
-export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
-export {produce, castDraft, castImmutable} from 'immer'
-export type Draft<T> = _Draft<T>
-export {default as HiddenString} from './hidden-string'
-export {default as makeReducer} from './make-reducer'
-export type ActionHandler<S, A> = _ActionHandler<S, A>
-export {default as useRPC} from './use-rpc'
-export {default as useSafeCallback} from './use-safe-callback'
-export {default as useWatchActions} from './use-watch-actions'
-export type RootState = _TypedState
-export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
-export const useSelector: TypedUseSelectorHook<RootState> = RRuseSelector

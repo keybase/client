@@ -109,7 +109,6 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-// export default RNApp
 const Tab = createBottomTabNavigator()
 
 const fastTransitionSpec = {
@@ -256,7 +255,11 @@ const LoggedOut = React.memo(() => (
   </LoggedOutStack.Navigator>
 ))
 
-const useInitialStateChangeAfterLinking = (goodLinking: any, onStateChange: () => void, loggedIn: boolean) => {
+const useInitialStateChangeAfterLinking = (
+  goodLinking: any,
+  onStateChange: () => void,
+  loggedIn: boolean
+) => {
   // send onNavChanged on initial render after handling linking
   React.useEffect(() => {
     if (goodLinking) {
@@ -292,16 +295,16 @@ const RNApp = React.memo(() => {
   useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
 
   const DEBUG_RNAPP_RENDER = __DEV__ && false
-    if (DEBUG_RNAPP_RENDER ) {
-        console.log('DEBUG RNApp render', {
-            loggedInLoaded,
-            loggedIn,
-            appState,
-            onStateChange,
-            navKey,
-            initialState,
-        })
-    }
+  if (DEBUG_RNAPP_RENDER) {
+    console.log('DEBUG RNApp render', {
+      loggedInLoaded,
+      loggedIn,
+      appState,
+      onStateChange,
+      navKey,
+      initialState,
+    })
+  }
 
   return (
     <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>

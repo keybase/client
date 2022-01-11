@@ -38,7 +38,6 @@ export const HeaderRightActions = Container.connect(
           ],
         })
       ),
-    // onBuy: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['partners']})),
     onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
   }),
   (s, d, _) => ({

@@ -93,10 +93,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   useActivityLevels()
   const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
-
-  // const mostRecentInviteLink = Constants.maybeGetMostRecentValidInviteLink(details.inviteLinks)
-  // const validInviteLinkCount = Constants.countValidInviteLinks(details.inviteLinks)
-
   const callbacks = useHeaderCallbacks(teamID)
 
   const avatar = (
@@ -224,7 +220,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </>
   )
 
-  // const additionalValidIndicator = validInviteLinkCount > 1 ? `(${validInviteLinkCount} active)` : ''
   const addInviteAndLinkBox =
     justFinishedAddWizard && !meta.showcasing ? (
       <FeatureTeamCard teamID={props.teamID} />

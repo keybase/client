@@ -227,8 +227,6 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
 let _lastPersist = ''
 function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
-  // const mainOrModal = path && path[1] && path[1].routeName
-
   let param = {}
   let routeName = Tabs.peopleTab
 

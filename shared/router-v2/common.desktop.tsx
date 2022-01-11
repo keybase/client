@@ -15,18 +15,14 @@ export const defaultNavigationOptions: any = {
   headerStyle: headerDefaultStyle,
   headerTitleContainerStyle: {
     alignItems: 'stretch',
-    // backgroundColor: 'red',
     flexGrow: 1,
   },
   headerBackTitle: 'temp',
   headerBackVisible: true,
   headerRightContainerStyle: {
-    // backgroundColor: 'orange',
-    // width: actionWidth,
     paddingRight: 8,
   },
   headerLeftContainerStyle: {
-    // backgroundColor: 'yellow',
     paddingLeft: 8,
     width: actionWidth,
   },
@@ -39,7 +35,6 @@ export const defaultNavigationOptions: any = {
 
 const styles = Styles.styleSheetCreate(() => ({
   headerTitle: {
-    // backgroundColor: 'pink',
     color: Styles.globalColors.black,
     alignSelf: 'center',
     marginLeft: Styles.globalMargins.xsmall,

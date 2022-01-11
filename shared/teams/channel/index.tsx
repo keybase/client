@@ -340,9 +340,6 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
     },
-    // isMobile: {
-    // marginTop: 40,
-    // },
   }),
   listContentContainer: Styles.platformStyles({
     isElectron: {

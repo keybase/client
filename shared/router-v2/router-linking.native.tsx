@@ -19,29 +19,7 @@ type OptionsType = {
 }
 
 const makeLinking = (options: OptionsType) => {
-  let {dispatch, startupTab, showMonster, startupFollowUser, startupConversation} = options
-
-  if (__DEV__) {
-    const temp: string = ''
-    switch (temp) {
-      case 'follow':
-        startupConversation = ''
-        startupFollowUser = 'chrisnojima'
-        break
-      case 'convo':
-        startupConversation = '00009798d7df6d682254f9b9cce9a0ad481d8699f5835809dd0d56b8fab032e5' // TEMP
-        break
-      case 'tab':
-        startupConversation = ''
-        startupTab = Tabs.fsTab
-        break
-      case 'monster':
-        startupConversation = ''
-        showMonster = true
-        break
-    }
-  }
-
+  const {dispatch, startupTab, showMonster, startupFollowUser, startupConversation} = options
   const config = Container.produce(
     {
       initialRouteName: 'loggedIn',

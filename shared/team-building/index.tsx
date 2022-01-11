@@ -625,14 +625,6 @@ class TeamBuilding extends React.PureComponent<Props> {
           : undefined
       }
       case 'teams': {
-        // const rightButton =
-        //   Styles.isMobile && this.props.rolePickerProps ? (
-        //     <RolePickerHeaderAction
-        //       onFinishTeamBuilding={this.props.onFinishTeamBuilding}
-        //       rolePickerProps={this.props.rolePickerProps}
-        //       count={this.props.teamSoFar.length}
-        //     />
-        //   ) : undefined
         return {
           hideBorder: true,
           leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onClose} />,
@@ -823,9 +815,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
       },
       container: Styles.platformStyles({
-        common: {
-          position: 'relative',
-        },
+        common: { position: 'relative', },
       }),
       emptyContainer: Styles.platformStyles({
         common: {flex: 1},
@@ -864,9 +854,7 @@ const styles = Styles.styleSheetCreate(
         common: {paddingBottom: Styles.globalMargins.small},
       }),
       listContainer: Styles.platformStyles({
-        common: {
-          position: 'relative',
-        },
+        common: { position: 'relative', },
         isElectron: {flex: 1, height: '100%', overflow: 'hidden'},
         isMobile: {
           flexGrow: 1,
@@ -894,9 +882,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {flex: 1},
       }),
       newChatHeader: Styles.platformStyles({
-        isElectron: {
-          margin: Styles.globalMargins.xsmall,
-        },
+        isElectron: { margin: Styles.globalMargins.xsmall, },
       }),
       noResults: {
         flex: 1,

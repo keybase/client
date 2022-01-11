@@ -5,10 +5,8 @@ import {TabActions} from '@react-navigation/core'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
 
 export const headerDefaultStyle = {}
-
 const actionWidth = 64
-
-const DEBUGCOLORS = false
+const DEBUGCOLORS = __DEV__ && false
 
 // Options used by default on all navigators
 export const defaultNavigationOptions: any = {

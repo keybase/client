@@ -4,16 +4,11 @@ import * as Flow from '../../util/flow'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as SettingsGen from '../settings-gen'
-// import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
-// import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
 import * as RouteTreeGen from '../route-tree-gen'
-// import * as DeeplinksGen from '../deeplinks-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-// import * as Constants from '../../constants/config'
-// import * as ChatConstants from '../../constants/chat2'
 import * as SettingsConstants from '../../constants/settings'
 import * as LoginConstants from '../../constants/login'
 import * as Saga from '../../util/saga'
@@ -21,7 +16,6 @@ import * as PlatformSpecific from '../platform-specific'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
 import * as Platform from '../../constants/platform'
-// import URL from 'url-parse'
 import {noVersion} from '../../constants/whats-new'
 import * as Container from '../../util/container'
 
@@ -294,33 +288,6 @@ const showDeletedSelfRootPage = () => [
   RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}),
 ]
 
-// const switchRouteDef = (
-// state: Container.TypedState,
-// action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
-// ) => {
-// if (state.config.loggedIn) {
-// if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
-// // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
-// return [
-// RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-// RouteTreeGen.createResetStack({path: 'loggedIn'}),
-// // maybe TODO bring this back
-// // RouteTreeGen.createSwitchTab({tab: (lastTab as any) || Tabs.peopleTab}),
-// ...(action.payload.causedBySignup
-// ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
-// : [PushGen.createShowPermissionsPrompt({justSignedUp: false, show: true})]),
-// ]
-// }
-
-// if (action.type === ConfigGen.loggedIn) {
-// return RouteTreeGen.createSwitchLoggedIn({loggedIn: true})
-// }
-// } else {
-// return RouteTreeGen.createSwitchLoggedIn({loggedIn: false})
-// }
-// return undefined
-// }
-
 const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
 
 // Figure out whether we can log out using CanLogout, if so,
@@ -390,172 +357,11 @@ const onShowPermissionsPrompt = (
 
 const onAndroidShare = (state: Container.TypedState) => {
   // already loaded, so just go now
-  if (/*routeToInitialScreenOnce && */ state.config.startupDetailsLoaded) {
+  if (state.config.startupDetailsLoaded) {
     return RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']})
   }
   return false
 }
-
-// let routeToInitialScreenOnce = false
-// const routeToInitialScreen2 = (state: Container.TypedState) => {
-// // bail if we don't have a navigator and loaded
-// if (!Router2._getNavigator()) {
-// return
-// }
-// if (!state.config.startupDetailsLoaded) {
-// return
-// }
-// // bail if not bootstrapped
-// if (state.config.daemonHandshakeState !== 'done') {
-// return
-// }
-
-// return routeToInitialScreen(state)
-// }
-
-// We figure out where to go (push, link, saved state, etc) once ever in a session
-// const routeToInitialScreen = (state: Container.TypedState) => {
-// // This is potentially executed more than once - instead of sticking this code into
-// // both here and switchRouteDef, potentially risking races, we're monitoring the
-// // monster push prompt here to hook on the moment when the stack switches from
-// // logged out to logged in. This code can also be triggered if routeToInitialScreen
-// // starts _after_ the push notifications permissions are computed.
-// if (
-// Platform.isMobile &&
-// state.config.loggedIn &&
-// !state.push.justSignedUp &&
-// state.push.showPushPrompt &&
-// !state.push.hasPermissions
-// ) {
-// logger.info('[ShowMonsterPushPrompt] Entered through the routeToInitialScreen scenario')
-// return showMonsterPushPrompt()
-// }
-
-// if (routeToInitialScreenOnce) {
-// if (state.config.loggedIn) {
-// // already logged in?
-// if (Router2.isLoggedIn()) {
-// return false
-// }
-
-// // don't jump to a screen, just ensure you're logged in / out state is correct
-// return [
-// RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-// RouteTreeGen.createSwitchTab({tab: (lastTab as any) || Tabs.peopleTab}),
-// ]
-// } else {
-// // Show a login screen
-// return [RouteTreeGen.createSwitchLoggedIn({loggedIn: false})]
-// }
-// }
-// routeToInitialScreenOnce = true
-
-// if (state.config.loggedIn) {
-// // A chat
-// if (
-// state.config.startupConversation &&
-// state.config.startupConversation !== ChatConstants.noConversationIDKey
-// ) {
-// return [
-// RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-// ChatGen.createNavigateToThread({
-// conversationIDKey: state.config.startupConversation,
-// pushBody: state.config.startupPushPayload,
-// reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
-// }),
-// ]
-// }
-
-// // A follow
-// if (state.config.startupFollowUser) {
-// return [
-// RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-// RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
-// ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
-// ]
-// }
-
-// // A saltpack file open
-// if (state.config.startupFile.stringValue() && Platform.isElectron) {
-// logger.info('Saltpack file open after log in')
-// return DeeplinksGen.createSaltpackFileOpen({
-// path: state.config.startupFile,
-// })
-// }
-
-// // A deep link
-// if (state.config.startupLink) {
-// if (Platform.isIOS && state.config.startupLink === 'keybase://incoming-share') {
-// return [
-// RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-// RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
-// RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']}),
-// ]
-// }
-
-// if (
-// ['keybase://private/', 'keybase://public/', 'keybase://team/'].some(prefix =>
-// state.config.startupLink.startsWith(prefix)
-// )
-// ) {
-// try {
-// const decoded = decodeURIComponent(state.config.startupLink.substr('keybase://'.length))
-// return [
-// RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-// RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
-// RouteTreeGen.createNavigateAppend({
-// path: [{props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'}],
-// }),
-// ]
-// } catch (e) {
-// logger.warn("Coudn't decode KBFS URI")
-// return []
-// }
-// }
-
-// try {
-// const url = new URL(state.config.startupLink)
-// const username = Constants.urlToUsername(url)
-// logger.info('AppLink: url', url.href, 'username', username)
-// if (username === 'phone-app') {
-// return [SettingsGen.createLoadSettings(), RouteTreeGen.createSwitchLoggedIn({loggedIn: true})]
-// } else if (username && username !== 'app') {
-// return [
-// RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-// RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
-// ProfileGen.createShowUserProfile({username}),
-// ]
-// } else {
-// return [
-// RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-// RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
-// DeeplinksGen.createLink({link: state.config.startupLink}),
-// ]
-// }
-// } catch {
-// logger.info('AppLink: could not parse link', state.config.startupLink)
-// }
-// }
-
-// // External android share?
-// if (state.config.androidShare) {
-// return [
-// RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-// RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
-// RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']}),
-// ]
-// }
-
-// // Just a saved tab
-// return [
-// RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-// RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
-// ]
-// } else {
-// // Show a login screen
-// return [RouteTreeGen.createSwitchLoggedIn({loggedIn: false})]
-// }
-// }
 
 let maybeLoadAppLinkOnce = false
 const maybeLoadAppLink = (state: Container.TypedState) => {
@@ -610,12 +416,6 @@ const updateServerConfig = async (state: Container.TypedState, action: ConfigGen
   }).catch(e => {
     logger.warn("Can't call UpdateLastLoggedInAndServerConfig", e)
   })
-
-// const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
-// not needed anymore, action is sitll needed
-// const navigator = action.payload.navigator
-// Router2._setNavigator(navigator)
-// }
 
 const newNavigation = (
   action:

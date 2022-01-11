@@ -26,10 +26,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   )
   const ignored = status === RPCChatTypes.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
-
-  // const spinnerForHide = Container.useSelector(state =>
-  //   Container.anyWaiting(state, Constants.waitingKeyConvStatusChange(conversationIDKey))
-  // )
   const spinnerForLeave = Container.useSelector(state =>
     Container.anyWaiting(state, Constants.waitingKeyLeaveConversation)
   )

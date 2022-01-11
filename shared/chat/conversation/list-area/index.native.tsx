@@ -305,7 +305,7 @@ class ConversationList extends React.PureComponent<Props> {
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
           <Kb.NativeVirtualizedList
-              overScrollMode="never"
+            overScrollMode="never"
             contentContainerStyle={styles.contentContainer}
             data={this.props.messageOrdinals}
             inverted={true}

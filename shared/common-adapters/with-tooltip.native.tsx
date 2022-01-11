@@ -51,7 +51,6 @@ const WithTooltip = (props: Props) => {
   const [top, setTop] = React.useState(0)
   const [visible, setVisible] = React.useState(false)
   const animatedStyle = {opacity: visible ? 1 : 0}
-  // const animatedStyle = useSpring({opacity: visible ? 1 : 0})
   const clickableRef = React.useRef<NativeView>(null)
   const tooltipRef = React.useRef<NativeView>(null)
   const setVisibleFalseLater = useTimeout(() => {
@@ -138,7 +137,5 @@ const styles = Styles.styleSheetCreate(() => ({
     maxWidth: 280,
     padding: Styles.globalMargins.xtiny,
   },
-  text: {
-    color: Styles.globalColors.white,
-  },
+  text: {color: Styles.globalColors.white},
 }))
