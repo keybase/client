@@ -1,49 +1,41 @@
 {
   "name": "React-Core",
-  "version": "0.66.4",
+  "version": "0.61.5",
   "summary": "The core of React Native.",
-  "homepage": "https://reactnative.dev/",
+  "homepage": "http://facebook.github.io/react-native/",
   "license": "MIT",
   "authors": "Facebook, Inc. and its affiliates",
   "platforms": {
-    "ios": "11.0"
+    "ios": "9.0",
+    "tvos": "9.2"
   },
   "source": {
     "git": "https://github.com/facebook/react-native.git",
-    "tag": "v0.66.4"
-  },
-  "resource_bundles": {
-    "AccessibilityResources": [
-      "React/AccessibilityResources/*.lproj"
-    ]
+    "tag": "v0.61.5"
   },
   "compiler_flags": "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -Wno-comma -Wno-shorten-64-to-32 -Wno-documentation",
   "header_dir": "React",
   "frameworks": "JavaScriptCore",
   "libraries": "stdc++",
   "pod_target_xcconfig": {
-    "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/ReactCommon\" \"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/DoubleConversion\" \"$(PODS_ROOT)/RCT-Folly\" \"${PODS_ROOT}/Headers/Public/React-hermes\" \"${PODS_ROOT}/Headers/Public/hermes-engine\"",
-    "DEFINES_MODULE": "YES"
+    "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/ReactCommon\" \"$(PODS_ROOT)/boost-for-react-native\" \"$(PODS_ROOT)/DoubleConversion\" \"$(PODS_ROOT)/Folly\""
   },
   "user_target_xcconfig": {
     "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/Headers/Private/React-Core\""
   },
   "default_subspecs": "Default",
   "dependencies": {
-    "RCT-Folly": [
-      "2021.06.28.00-v2"
+    "Folly": [
+      "2018.10.22.00"
     ],
     "React-cxxreact": [
-      "0.66.4"
-    ],
-    "React-perflogger": [
-      "0.66.4"
+      "0.61.5"
     ],
     "React-jsi": [
-      "0.66.4"
+      "0.61.5"
     ],
     "React-jsiexecutor": [
-      "0.66.4"
+      "0.61.5"
     ],
     "Yoga": [
 
@@ -60,11 +52,23 @@
         "React/CoreModules/**/*",
         "React/DevSupport/**/*",
         "React/Fabric/**/*",
-        "React/FBReactNativeSpec/**/*",
-        "React/Tests/**/*",
         "React/Inspector/**/*"
       ],
-      "private_header_files": "React/Cxx*/*.h"
+      "ios": {
+        "exclude_files": "React/**/RCTTV*.*"
+      },
+      "private_header_files": "React/Cxx*/*.h",
+      "tvos": {
+        "exclude_files": [
+          "React/Modules/RCTClipboard*",
+          "React/Views/RCTDatePicker*",
+          "React/Views/RCTPicker*",
+          "React/Views/RCTRefreshControl*",
+          "React/Views/RCTSlider*",
+          "React/Views/RCTSwitch*",
+          "React/Cxx*/*.h"
+        ]
+      }
     },
     {
       "name": "DevSupport",
@@ -74,13 +78,13 @@
       ],
       "dependencies": {
         "React-Core/Default": [
-          "0.66.4"
+          "0.61.5"
         ],
         "React-Core/RCTWebSocket": [
-          "0.66.4"
+          "0.61.5"
         ],
         "React-jsinspector": [
-          "0.66.4"
+          "0.61.5"
         ]
       }
     },
@@ -89,7 +93,16 @@
       "source_files": "Libraries/WebSocket/*.{h,m}",
       "dependencies": {
         "React-Core/Default": [
-          "0.66.4"
+          "0.61.5"
+        ]
+      }
+    },
+    {
+      "name": "ARTHeaders",
+      "source_files": "Libraries/ART/**/*.h",
+      "dependencies": {
+        "React-Core/Default": [
+
         ]
       }
     },

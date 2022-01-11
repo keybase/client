@@ -102,7 +102,7 @@ static VP8StatusCode AllocateBuffer(WebPDecBuffer* const buffer) {
     int stride;
     uint64_t size;
 
-    if ((uint64_t)w * kModeBpp[mode] >= (1ull << 31)) {
+    if ((uint64_t)w * kModeBpp[mode] >= (1ull << 32)) {
       return VP8_STATUS_INVALID_PARAM;
     }
     stride = w * kModeBpp[mode];
@@ -117,6 +117,7 @@ static VP8StatusCode AllocateBuffer(WebPDecBuffer* const buffer) {
     }
     total_size = size + 2 * uv_size + a_size;
 
+    // Security/sanity checks
     output = (uint8_t*)WebPSafeMalloc(total_size, sizeof(*output));
     if (output == NULL) {
       return VP8_STATUS_OUT_OF_MEMORY;
@@ -155,11 +156,11 @@ VP8StatusCode WebPFlipBuffer(WebPDecBuffer* const buffer) {
   }
   if (WebPIsRGBMode(buffer->colorspace)) {
     WebPRGBABuffer* const buf = &buffer->u.RGBA;
-    buf->rgba += (int64_t)(buffer->height - 1) * buf->stride;
+    buf->rgba += (buffer->height - 1) * buf->stride;
     buf->stride = -buf->stride;
   } else {
     WebPYUVABuffer* const buf = &buffer->u.YUVA;
-    const int64_t H = buffer->height;
+    const int H = buffer->height;
     buf->y += (H - 1) * buf->y_stride;
     buf->y_stride = -buf->y_stride;
     buf->u += ((H - 1) >> 1) * buf->u_stride;
@@ -187,7 +188,8 @@ VP8StatusCode WebPAllocateDecBuffer(int width, int height,
       const int ch = options->crop_height;
       const int x = options->crop_left & ~1;
       const int y = options->crop_top & ~1;
-      if (!WebPCheckCropDimensions(width, height, x, y, cw, ch)) {
+      if (x < 0 || y < 0 || cw <= 0 || ch <= 0 ||
+          x + cw > width || y + ch > height) {
         return VP8_STATUS_INVALID_PARAM;   // out of frame boundary.
       }
       width = cw;

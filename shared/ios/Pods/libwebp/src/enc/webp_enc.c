@@ -400,7 +400,7 @@ int WebPEncode(const WebPConfig* config, WebPPicture* pic) {
     }
 
     if (!config->exact) {
-      WebPReplaceTransparentPixels(pic, 0x000000);
+      WebPCleanupTransparentAreaLossless(pic);
     }
 
     ok = VP8LEncodeImage(config, pic);  // Sets pic->error in case of problem.

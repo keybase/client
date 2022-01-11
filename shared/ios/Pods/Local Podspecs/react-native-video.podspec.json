@@ -1,14 +1,14 @@
 {
   "name": "react-native-video",
-  "version": "5.2.0",
+  "version": "5.0.2",
   "summary": "A <Video /> element for react-native",
   "description": "A <Video /> element for react-native",
   "license": "MIT",
   "authors": "Brent Vatne <brentvatne@gmail.com> (https://github.com/brentvatne)",
-  "homepage": "https://github.com/react-native-community/react-native-video",
+  "homepage": "https://github.com/brentvatne/react-native-video",
   "source": {
-    "git": "https://github.com/react-native-community/react-native-video.git",
-    "tag": "5.2.0"
+    "git": "https://github.com/brentvatne/react-native-video.git",
+    "tag": "5.0.2"
   },
   "platforms": {
     "ios": "8.0",
@@ -16,14 +16,11 @@
   },
   "static_framework": true,
   "dependencies": {
-    "React-Core": [
+    "React": [
 
     ]
   },
   "default_subspecs": "Video",
-  "xcconfig": {
-    "OTHER_LDFLAGS": "-ObjC"
-  },
   "subspecs": [
     {
       "name": "Video",

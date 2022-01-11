@@ -1,23 +1,26 @@
 {
   "name": "EXFileSystem",
-  "version": "13.1.0",
+  "version": "7.0.0",
   "summary": "Provides access to the local file system on the device.",
   "description": "Provides access to the local file system on the device.",
   "license": "MIT",
   "authors": "650 Industries, Inc.",
-  "homepage": "https://docs.expo.dev/versions/latest/sdk/filesystem/",
+  "homepage": "https://docs.expo.io/versions/latest/sdk/filesystem/",
   "platforms": {
-    "ios": "12.0"
+    "ios": "10.0"
   },
   "source": {
     "git": "https://github.com/expo/expo.git"
   },
-  "static_framework": true,
+  "source_files": "EXFileSystem/**/*.{h,m}",
+  "preserve_paths": "EXFileSystem/**/*.{h,m}",
+  "requires_arc": true,
   "dependencies": {
-    "ExpoModulesCore": [
+    "UMCore": [
+
+    ],
+    "UMFileSystemInterface": [
 
     ]
-  },
-  "source_files": "EXFileSystem/**/*.h",
-  "vendored_frameworks": "EXFileSystem.xcframework"
+  }
 }

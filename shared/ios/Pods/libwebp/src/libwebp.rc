@@ -6,8 +6,8 @@
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,2,1
- PRODUCTVERSION 1,0,2,1
+ FILEVERSION 1,0,0,3
+ PRODUCTVERSION 1,0,0,3
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -24,12 +24,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Google, Inc."
             VALUE "FileDescription", "libwebp DLL"
-            VALUE "FileVersion", "1.2.1"
+            VALUE "FileVersion", "1.0.3"
             VALUE "InternalName", "libwebp.dll"
-            VALUE "LegalCopyright", "Copyright (C) 2021"
+            VALUE "LegalCopyright", "Copyright (C) 2019"
             VALUE "OriginalFilename", "libwebp.dll"
             VALUE "ProductName", "WebP Image Codec"
-            VALUE "ProductVersion", "1.2.1"
+            VALUE "ProductVersion", "1.0.3"
         END
     END
     BLOCK "VarFileInfo"

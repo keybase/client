@@ -8,15 +8,15 @@
 
 #import "CocoaLumberjack.h"
 #import <React/RCTBridgeDelegate.h>
-#import <UserNotifications/UNUserNotificationCenter.h>
 #import <UIKit/UIKit.h>
-#import <Expo/Expo.h>
+#import <UMReactNativeAdapter/UMModuleRegistryAdapter.h>
+
 
 @class Engine;
 
-@interface AppDelegate : EXAppDelegateWrapper <UIApplicationDelegate, RCTBridgeDelegate, UNUserNotificationCenterDelegate>
+@interface AppDelegate : UIResponder <UIApplicationDelegate, RCTBridgeDelegate>
 
-// @property (nonatomic, strong) UMModuleRegistryAdapter *moduleRegistryAdapter;
+@property (nonatomic, strong) UMModuleRegistryAdapter *moduleRegistryAdapter;
 @property (nonatomic, strong) UIWindow *window;
 @property (nonatomic, strong) Engine *engine;
 @property (nonatomic, strong) DDFileLogger *fileLogger;
