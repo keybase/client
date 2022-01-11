@@ -5,7 +5,7 @@ import * as React from 'react'
 import type AccountReloaderType from './common/account-reloader'
 import type WalletListType from './wallet-list/container'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
-import {createStackNavigator} from '@react-navigation/stack'
+import createNoDupeStackNavigator from '../router-v2/stack'
 import {RoutedOnboarding} from './onboarding/container'
 import * as Shim from '../router-v2/shim'
 import Wallet from './wallet/container'
@@ -96,7 +96,7 @@ const WalletSubNavigator = () => (
   </TabNavigator.Navigator>
 )
 
-const RootStack = createStackNavigator()
+const RootStack = createNoDupeStackNavigator()
 
 const WalletsRootNav = () => {
   const acceptedDisclaimer = Container.useSelector(state => state.wallets.acceptedDisclaimer)

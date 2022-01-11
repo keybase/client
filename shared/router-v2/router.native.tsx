@@ -11,10 +11,11 @@ import * as RouterLinking from './router-linking.native'
 import {defaultNavigationOptions} from './common.native'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
-import {createStackNavigator, TransitionPresets} from '@react-navigation/stack'
+import {TransitionPresets} from '@react-navigation/stack'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
+import createNoDupeStackNavigator from './stack'
 
 enableFreeze()
 
@@ -128,7 +129,7 @@ const tabToStack = new Map()
 const makeTabStack = tab => {
   let Comp = tabToStack.get(tab)
   if (!Comp) {
-    const S = createStackNavigator()
+    const S = createNoDupeStackNavigator()
     Comp = ({navigation, route}) => {
       const dispatch = Container.useDispatch()
       React.useEffect(() => {
@@ -243,7 +244,7 @@ const AppTabs = React.memo(() => {
   )
 })
 
-const LoggedOutStack = createStackNavigator()
+const LoggedOutStack = createNoDupeStackNavigator()
 const LoggedOut = React.memo(() => (
   <LoggedOutStack.Navigator
     initialRouteName="login"
@@ -281,7 +282,7 @@ const useInitialStateChangeAfterLinking = (
   }, [loggedIn, lastLoggedIn])
 }
 
-const RootStack = createStackNavigator()
+const RootStack = createNoDupeStackNavigator()
 const RNApp = React.memo(() => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
   const goodLinking: any = RouterLinking.useReduxToLinking(appState.current)

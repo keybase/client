@@ -1,5 +1,4 @@
 import {NavState} from './types/route-tree'
-import {getActiveKey as _getActiveKey} from '../router-v2/util'
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -70,10 +69,6 @@ export const getVisibleScreen = () => {
   return visible[visible.length - 1]
 }
 
-export const getActiveKey = (): string => {
-  if (!navigationRef_.isReady()) return ''
-  return _getActiveKey(navigationRef_.getRootState())
-}
 
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
 // actual routing actions (or make RouteTreeGen append/up the only action)

@@ -4,7 +4,7 @@ import * as Shared from './router.shared'
 import * as Styles from '../styles'
 import * as React from 'react'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
-import {createStackNavigator} from '@react-navigation/stack'
+import createNoDupeStackNavigator from './stack'
 import {NavigationContainer} from '@react-navigation/native'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import * as Shim from './shim.desktop'
@@ -19,7 +19,7 @@ const tabToStack = new Map()
 const makeTabStack = tab => {
   let Comp = tabToStack.get(tab)
   if (!Comp) {
-    const S = createStackNavigator()
+    const S = createNoDupeStackNavigator()
     Comp = () => {
       return (
         <S.Navigator initialRouteName={tabRoots[tab]} screenOptions={Common.defaultNavigationOptions}>
@@ -79,17 +79,14 @@ const AppTabs = () => {
     </Tab.Navigator>
   )
 }
-const LoggedOutStack = createStackNavigator()
+const LoggedOutStack = createNoDupeStackNavigator()
 const LoggedOut = () => (
-  <LoggedOutStack.Navigator
-    initialRouteName="login"
-    screenOptions={ { headerShown: false, } as const }
-  >
+  <LoggedOutStack.Navigator initialRouteName="login" screenOptions={{headerShown: false} as const}>
     {makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)}
   </LoggedOutStack.Navigator>
 )
 
-const RootStack = createStackNavigator()
+const RootStack = createNoDupeStackNavigator()
 const ElectronApp = () => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
   Shared.useSharedAfter(appState)
