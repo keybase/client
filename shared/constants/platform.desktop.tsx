@@ -123,9 +123,6 @@ export const pprofDir = ''
 export const version = 'TODO'
 export {runMode}
 
-// Noop – Just for Android
-export const appColorSchemeChanged = () => {}
-
 export const isRemoteDebuggerAttached = false
 
 const getTimeLocale = () => {

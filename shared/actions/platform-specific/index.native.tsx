@@ -894,6 +894,12 @@ function* checkNav(
   yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
 }
 
+const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
+  if (isAndroid) {
+    NativeModules.KeybaseEngine.appColorSchemeChanged(state.config.darkModePreference)
+  }
+}
+
 export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction(ConfigGen.mobileAppState, updateChangedFocus)
@@ -941,6 +947,7 @@ export function* platformConfigSaga() {
   }
 
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkNav)
+  yield* Saga.chainAction2(ConfigGen.setDarkModePreference, notifyNativeOfDarkModeChange)
 
   // Audio
   yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording)
