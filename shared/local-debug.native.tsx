@@ -7,7 +7,7 @@ import noop from 'lodash/noop'
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Toggle this to disable yellowboxes
-// LogBox.ignoreAllLogs()
+LogBox.ignoreAllLogs()
 
 // store the vanilla console helpers
 window.console._log = window.console.log

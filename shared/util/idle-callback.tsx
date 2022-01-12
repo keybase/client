@@ -1,5 +1,5 @@
 import {forceImmediateLogging} from '../local-debug'
-import {isMobile} from '../constants/platform'
+import {isMobile, isDebuggingInChrome} from '../constants/platform'
 
 type TimeoutInfo = {
   didTimeout: boolean
@@ -28,8 +28,9 @@ function timeoutFallback(cb: (info: TimeoutInfo) => void): ReturnType<typeof set
   }, 20)
 }
 
+// Timers in RN in chrome are super problematic. https://github.com/facebook/react-native/issues/4470
 const useFallback =
-  typeof window === 'undefined' || !window.requestIdleCallback || isMobile /* this is broken now in RN */
+  typeof window === 'undefined' || !window.requestIdleCallback || (isMobile && isDebuggingInChrome)
 
 const requestIdleCallback = forceImmediateLogging
   ? immediateCallback
