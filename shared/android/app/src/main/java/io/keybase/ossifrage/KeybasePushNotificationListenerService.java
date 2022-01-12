@@ -12,17 +12,13 @@ import androidx.core.app.NotificationCompat.MessagingStyle;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 
-//import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
+import me.leolin.shortcutbadger.ShortcutBadger;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,11 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.keybase.ossifrage.modules.NativeLogger;
-import io.keybase.ossifrage.util.DNSNSFetcher;
-import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
-
-import static keybase.Keybase.initOnce;
 
 public class KeybasePushNotificationListenerService extends FirebaseMessagingService {
     public static String CHAT_CHANNEL_ID = "kb_chat_channel";
@@ -149,8 +141,7 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
 
             final int badge = data.optInt("badge", -1);
             if (badge >= 0) {
-                // TODO find a replacement
-            //    ApplicationBadgeHelper.INSTANCE.setApplicationIconBadgeNumber(this, badge);
+                ShortcutBadger.applyCount(this, badge);
             }
         }
 

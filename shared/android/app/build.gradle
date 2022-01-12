@@ -236,34 +236,7 @@ android {
 // def firebaseMessagingVersion  = project.ext.react.get("firebaseMessagingVersion", false)
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
-
-     // def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
-    // def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
-    // def isWebpAnimatedEnabled = (findProperty('expo.webp.animated') ?: "") == "true";
-
-    // If your app supports Android versions before Ice Cream Sandwich (API level 14)
-    // All fresco packages should use the same version
-    // if (isGifEnabled || isWebpEnabled) {
-        // implementation 'com.facebook.fresco:fresco:2.6.0'
-        // implementation 'com.facebook.fresco:imagepipeline-okhttp3:2.0.0'
-    // }
-
-    // if (isGifEnabled) {
-        // // For animated gif support
-        // implementation 'com.facebook.fresco:animated-gif:2.0.0'
-    // }
-
-    // if (isWebpEnabled) {
-        // // For webp support
-       // implementation 'com.facebook.fresco:webpsupport:2.0.0'
-        // if (isWebpAnimatedEnabled) {
-            // // Animated webp support
-            // implementation 'com.facebook.fresco:animated-webp:2.0.0'
-        // }
-    // }
-
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni'
@@ -282,9 +255,6 @@ dependencies {
         def hermesPath = "../../node_modules/hermes-engine/android/"
         debugImplementation files(hermesPath + "hermes-debug.aar")
         releaseImplementation files(hermesPath + "hermes-release.aar")
-    // } else if (enableV8) {
-        // // Add v8-android - prebuilt libv8.so into APK
-        // implementation 'org.chromium:v8-android:+'
     } else {
         project.logger.lifecycle('Loading jsc')
         implementation jscFlavor
@@ -292,18 +262,15 @@ dependencies {
 
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "com.google.firebase:firebase-messaging:17.3.0"
-    // implementation "com.google.firebase:firebase-messaging:${firebaseMessagingVersion}"
     implementation "com.facebook.fresco:animated-gif:2.6.0"
     implementation "com.facebook.fresco:fresco:2.6.0"
     implementation "com.evernote:android-job:1.4.2"
-    // implementation 'org.msgpack:msgpack:0.6.12'
     implementation 'org.msgpack:msgpack-core:0.9.0'
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'
     implementation "androidx.appcompat:appcompat:1.0.0"
+    implementation "me.leolin:ShortcutBadger:1.1.22@aar"
 }
-
-// apply plugin: 'com.google.gms.google-services'
 
 // Run this once to be able to run the application with BUCK
 // puts all compile dependencies into folder libs for BUCK to use
