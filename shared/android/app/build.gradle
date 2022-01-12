@@ -1,6 +1,5 @@
 apply plugin: "com.android.application"
-// TODO bring back
-// apply plugin: 'com.github.triplet.play'
+apply plugin: 'com.github.triplet.play'
 
 import com.android.build.OutputFile
 
@@ -211,12 +210,10 @@ android {
         exclude "**/libjsc.so"
     }
 
-// TODO 
-    // KB:
-//    play {
-//        track = 'internal'
-//        serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
-//    }
+   play {
+       track = 'internal'
+       serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
+   }
 }
 
 dependencies {
