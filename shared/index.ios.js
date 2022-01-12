@@ -1,4 +1,5 @@
 // React-native tooling assumes this file is here, so we just require our real entry point
+import 'react-native-gesture-handler' // MUST BE FIRST https://github.com/software-mansion/react-native-gesture-handler/issues/320
 import './why-did-you-render'
 import './app/globals.native'
 import {Appearance, NativeModules} from 'react-native'
