@@ -1,12 +1,11 @@
 apply plugin: "com.android.application"
-// KB:
-// TODO put back
+// TODO bring back
 // apply plugin: 'com.github.triplet.play'
 
 import com.android.build.OutputFile
 
 // KB: app version
-def VERSION_NAME = "5.9.0"
+def VERSION_NAME = "5.8.4"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -145,15 +144,11 @@ android {
 
 
     defaultConfig {
-    // KB:
         applicationId "io.keybase.ossifrage"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-    // KB:
         versionCode getVersionCode()
-    // KB:
         versionName VERSION_NAME
-    // KB: our binary is too big
         multiDexEnabled true
     }
 
@@ -169,7 +164,6 @@ android {
         }
     }
 
-    // KB:
     signingConfigs {
         release {
             storeFile file(KB_RELEASE_STORE_FILE)
@@ -180,7 +174,6 @@ android {
     }
 
     buildTypes {
-        // KB:
         debug {
             // applicationIdSuffix ".debug"
             if (nativeArchitectures) {
@@ -190,22 +183,17 @@ android {
             }
         }
 
-        // KB:
         storyBook.initWith(buildTypes.debug)
-        // KB:
         storyBook {
             applicationIdSuffix ".storybook"
             matchingFallbacks = ['debug']
         }
         release {
-            // KB:
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
-        // KB:
         releaseUnsigned.initWith(buildTypes.release)
-        // KB:
         releaseUnsigned {
             applicationIdSuffix ".unsigned"
             signingConfig buildTypes.debug.signingConfig
@@ -220,12 +208,10 @@ android {
     }
 
     packagingOptions {
-        // if (enableV8) {
-            // Make sure libjsc.so does not packed in APK
-            exclude "**/libjsc.so"
-        // }
+        exclude "**/libjsc.so"
     }
 
+// TODO 
     // KB:
 //    play {
 //        track = 'internal'
@@ -233,7 +219,6 @@ android {
 //    }
 }
 
-// def firebaseMessagingVersion  = project.ext.react.get("firebaseMessagingVersion", false)
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
