@@ -151,7 +151,7 @@ export const theme: Theme = {
       return Styles.globalColors.fastBlank as string
     },
     get card() {
-      return Styles.globalColors.white
+      return Styles.globalColors.fastBlank as string
     },
     get text() {
       return Styles.globalColors.black

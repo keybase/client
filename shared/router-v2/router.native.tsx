@@ -214,8 +214,8 @@ const AppTabs = React.memo(() => {
           headerShown: false,
           tabBarShowLabel: Styles.isTablet,
           tabBarStyle,
-          tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-          tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarActiveBackgroundColor: Styles.globalColors.transparent,
+          tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
           tabBarLabel: ({focused}) => (
             <Kb.Text
               style={Styles.collapseStyles([
