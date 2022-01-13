@@ -223,15 +223,22 @@ export const navToThread = conversationIDKey => {
     // set inbox + convo
     chatStack.state = chatStack.state ?? {}
     chatStack.state.index = 1
+    // key is required or you'll run into issues w/ the nav
+    let convoRoute: any = {
+      name: 'chatConversation',
+      params: {conversationIDKey},
+      key: `chatConversation-${conversationIDKey}`,
+    }
     // reuse visible route if it's the same
-    let convoRoute: any = {name: 'chatConversation', params: {conversationIDKey}}
     const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]
     if (visible) {
       if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
         convoRoute = visible
       }
     }
-    chatStack.state.routes = [{name: 'chatRoot'}, convoRoute]
+
+    const chatRoot = chatStack.state.routes?.[0]
+    chatStack.state.routes = [chatRoot, convoRoute]
   })
 
   if (!isEqual(rs, nextState)) {

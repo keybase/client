@@ -238,11 +238,7 @@ const AudioButton = (props: ButtonProps) => {
           opacity: 0.9,
           position: 'absolute',
           right: 30,
-          transform: [
-            {
-              scale: outerScale,
-            },
-          ],
+          transform: [{scale: outerScale}],
           width: outerSize,
         }}
       />

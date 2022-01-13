@@ -27,7 +27,6 @@ function timeoutFallback(cb: (info: TimeoutInfo) => void): ReturnType<typeof set
     })
   }, 20)
 }
-
 // Timers in RN in chrome are super problematic. https://github.com/facebook/react-native/issues/4470
 const useFallback =
   typeof window === 'undefined' || !window.requestIdleCallback || (isMobile && isDebuggingInChrome)

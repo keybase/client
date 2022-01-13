@@ -70,6 +70,12 @@ if (__DEV__) {
   // MessageQueue.spy(msg => console._log('queuespy: ', msg, JSON.stringify(msg).length))
 }
 
+// TEMP
+for(let i = 0 ; i  < 50 ; ++i ){
+console.log('aaaaa TEMP dev push token!')
+}
+config.isDevApplePushToken = true
+
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
 

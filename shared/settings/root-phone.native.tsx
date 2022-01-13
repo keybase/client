@@ -73,6 +73,7 @@ function SettingsNav(props: Props) {
       onScrollToIndexFailed={noop}
       keyboardShouldPersistTaps="handled"
       keyExtractor={(item, index) => item.text + index}
+      initialNumToRender={20}
       renderItem={renderItem}
       renderSectionHeader={({section: {title}}) =>
         title ? (
