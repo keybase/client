@@ -214,12 +214,18 @@ export const getAppPath = () => {
 export const navToThread = conversationIDKey => {
   const rs: any = _getNavigator()?.getRootState() ?? {}
   const nextState: any = Container.produce(rs as any, draft => {
-    // app stack
+    // select tabs
     draft.index = 0
+    // remove modals
+    draft.routes.length = 1 
+
+    const loggedInRoute = draft.routes[0]
+    const loggedInTabs = loggedInRoute?.state.routes
     // select chat tab
-    const chatTabIdx = draft.routes[0]?.state.routes.findIndex(r => r.name === Tabs.chatTab)
-    draft.routes[0].state.index = chatTabIdx
-    const chatStack = draft.routes[0].state.routes[chatTabIdx]
+    const chatTabIdx = loggedInTabs.findIndex(r => r.name === Tabs.chatTab)
+    loggedInRoute.state.index = chatTabIdx
+
+    const chatStack = loggedInTabs[chatTabIdx]
     // set inbox + convo
     chatStack.state = chatStack.state ?? {}
     chatStack.state.index = 1
