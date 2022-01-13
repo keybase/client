@@ -25,6 +25,9 @@ import {
   runRotateToggle,
 } from './platform-input-animation.native'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
+import {Alert} from 'react-native'
+import logSend from '../../../../native/log-send'
+import {_getNavigator} from '../../../../constants/router2'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -388,6 +391,21 @@ const Buttons = (p: ButtonsProps) => {
     </Kb.ClickableBox>
   )
 
+  // TODO remove before actual release
+  const onLogSend = React.useCallback(() => {
+    Alert.alert('Log send details?', 'May leak convoids etc', [
+      {
+        text: 'Yup',
+        onPress: () => {
+          const msg = JSON.stringify(_getNavigator()?.getRootState())
+          console.log('DEBUG', msg)
+          logSend(msg, 'NAV6', true, true, '', '')
+        },
+      },
+      {text: 'Nope', onPress: () => {}},
+    ])
+  }, [])
+
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.actionContainer}>
       {isEditing && (
@@ -403,6 +421,9 @@ const Buttons = (p: ButtonsProps) => {
       <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" />
       <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
+      <Kb.Text onClick={onLogSend} type="Body" style={styles.logSend}>
+        LOGSEND
+      </Kb.Text>
       {!hasText && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
           <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" />
@@ -464,9 +485,7 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         minHeight: 32,
       },
-      audioRecorderIconStyle: {
-        padding: Styles.globalMargins.tiny,
-      },
+      audioRecorderIconStyle: {padding: Styles.globalMargins.tiny},
       container: {
         alignItems: 'center',
         backgroundColor: Styles.globalColors.fastBlank,
@@ -499,9 +518,7 @@ const styles = Styles.styleSheetCreate(
         margin: Styles.globalMargins.xtiny,
         width: 28,
       },
-      explodingContainer: {
-        borderTopColor: Styles.globalColors.black,
-      },
+      explodingContainer: {borderTopColor: Styles.globalColors.black},
       explodingSendBtn: {
         backgroundColor: Styles.globalColors.black,
         marginRight: Styles.globalMargins.tiny,
@@ -553,9 +570,8 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
       },
-      sendBtn: {
-        marginRight: Styles.globalMargins.tiny,
-      },
+      sendBtn: {marginRight: Styles.globalMargins.tiny},
+      logSend: {color: Styles.globalColors.red},
     } as const)
 )
 
