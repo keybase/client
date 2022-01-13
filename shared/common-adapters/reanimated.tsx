@@ -1,6 +1,6 @@
+import {isDebuggingInChrome} from '../constants/platform'
 // when reanimated is on you can't use the chrome debugger
 // comment this out and use the mock if you want to stub out reanimated
-import {isDebuggingInChrome} from '../constants/platform'
 import ReAnimated, {Easing as ReAnimatedEasing} from 'react-native-reanimated'
 export {ReAnimated, ReAnimatedEasing}
 export * from 'react-native-reanimated'

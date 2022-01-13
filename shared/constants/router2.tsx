@@ -5,6 +5,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import logger from '../logger'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
+import isEqual from 'lodash/isEqual'
 
 export const navigationRef_ = createNavigationContainerRef()
 export const _getNavigator = () => {
@@ -68,7 +69,6 @@ export const getVisibleScreen = () => {
   const visible = getVisiblePath()
   return visible[visible.length - 1]
 }
-
 
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
 // actual routing actions (or make RouteTreeGen append/up the only action)
@@ -223,10 +223,20 @@ export const navToThread = conversationIDKey => {
     // set inbox + convo
     chatStack.state = chatStack.state ?? {}
     chatStack.state.index = 1
-    chatStack.state.routes = [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey}}]
+    // reuse visible route if it's the same
+    let convoRoute: any = {name: 'chatConversation', params: {conversationIDKey}}
+    const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]
+    if (visible) {
+      if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
+        convoRoute = visible
+      }
+    }
+    chatStack.state.routes = [{name: 'chatRoot'}, convoRoute]
   })
 
-  rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState), target: rs.key})
+  if (!isEqual(rs, nextState)) {
+    rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState), target: rs.key})
+  }
 }
 
 export const chatRootKey = () => {
