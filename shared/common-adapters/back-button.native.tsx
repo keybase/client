@@ -35,7 +35,11 @@ const BackButton = React.memo((props: Props) => {
 })
 
 const styles = Styles.styleSheetCreate(() => ({
-  arrow: {marginRight: -3, marginTop: 2},
+  arrow: {
+    backgroundColor: Styles.globalColors.fastBlank,
+    marginRight: -3,
+    marginTop: 2,
+  },
   container: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
