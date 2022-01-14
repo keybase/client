@@ -37,10 +37,10 @@ const LastModifiedLine = (props: LastModifiedLineProps) => {
     case 'menu':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          <Kb.Text type="BodyTiny" center={true}>
+          <Kb.Text fixOverdraw={true} type="BodyTiny" center={true}>
             {time}
           </Kb.Text>
-          <Kb.Text type="BodyTiny" center={true}>
+          <Kb.Text fixOverdraw={true} type="BodyTiny" center={true}>
             {by}
           </Kb.Text>
         </Kb.Box2>
@@ -48,7 +48,7 @@ const LastModifiedLine = (props: LastModifiedLineProps) => {
     case 'row':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="BodySmall" lineClamp={1}>
+          <Kb.Text fixOverdraw={true} type="BodySmall" lineClamp={1}>
             {time}
             {by}
           </Kb.Text>
@@ -57,7 +57,7 @@ const LastModifiedLine = (props: LastModifiedLineProps) => {
     case 'default':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          <Kb.Text type="BodySmall" center={true}>
+          <Kb.Text fixOverdraw={true} type="BodySmall" center={true}>
             {time}
             {by}
           </Kb.Text>
