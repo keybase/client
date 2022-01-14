@@ -25,7 +25,6 @@ import {
   runRotateToggle,
 } from './platform-input-animation.native'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
-import {Alert} from 'react-native'
 import {_getNavigator} from '../../../../constants/router2'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
@@ -385,7 +384,11 @@ const Buttons = (p: ButtonsProps) => {
           </Kb.Text>
         </Kb.Box2>
       ) : (
-        <Kb.Icon color={isExploding ? Styles.globalColors.black : null} type="iconfont-timer" />
+        <Kb.Icon
+          color={isExploding ? Styles.globalColors.black : null}
+          type="iconfont-timer"
+          fixOverdraw={true}
+        />
       )}
     </Kb.ClickableBox>
   )
@@ -402,14 +405,14 @@ const Buttons = (p: ButtonsProps) => {
         />
       )}
       {explodingIcon}
-      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" />
-      <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
+      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" fixOverdraw={true} />
+      <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" fixOverdraw={true} />
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
       {!hasText && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
-          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" />
+          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" fixOverdraw={true} />
           <AudioRecorder conversationIDKey={conversationIDKey} iconStyle={styles.audioRecorderIconStyle} />
-          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" />
+          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" fixOverdraw={true} />
         </Kb.Box2>
       )}
       {hasText && (
@@ -433,6 +436,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
     <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconTop}>
         <AnimatedIcon
+          fixOverdraw={true}
           onClick={expandInput}
           type="iconfont-arrow-full-up"
           fontSize={18}
@@ -444,6 +448,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom}>
         <AnimatedIcon
+          fixOverdraw={true}
           onClick={expandInput}
           type="iconfont-arrow-full-up"
           fontSize={18}
