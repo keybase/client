@@ -157,9 +157,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         colorFollowing={true}
         colorYou={true}
         onUsernameClicked={this.onAuthorClick}
-        style={Styles.collapseStyles([
-          this.showCenteredHighlight() && this.props.youAreAuthor && styles.usernameHighlighted,
-        ])}
+        containerStyle={styles.username}
+        style={
+          this.showCenteredHighlight() && this.props.youAreAuthor ? styles.usernameHighlighted : undefined
+        }
         type="BodySmallBold"
         usernames={this.props.showUsername}
       />
@@ -834,17 +835,19 @@ const styles = Styles.styleSheetCreate(
       }),
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       send: Styles.platformStyles({
-        isElectron: {
-          pointerEvents: 'none',
-        },
+        isElectron: {pointerEvents: 'none'},
       }),
       timestamp: Styles.platformStyles({
         isElectron: {
           flexShrink: 0,
           lineHeight: 19,
         },
+        isMobile: {backgroundColor: Styles.globalColors.fastBlank},
       }),
       timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
+      username: Styles.platformStyles({
+        isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+      }),
       usernameCrown: Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',

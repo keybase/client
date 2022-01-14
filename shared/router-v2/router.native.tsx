@@ -100,6 +100,7 @@ const styles = Styles.styleSheetCreate(
       labelLightModeFocused: {color: Styles.globalColors.white},
       tab: Styles.platformStyles({
         common: {
+          backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
           paddingBottom: 6,
           paddingLeft: 16,
           paddingRight: 16,

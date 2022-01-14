@@ -72,6 +72,7 @@ const BigTeamHeader = React.memo((props: Props) => {
           className="hover_contained_color_black"
           color={Styles.globalColors.black_35}
           type="iconfont-gear"
+          style={styles.gear}
         />
         <Kb.Box style={Styles.collapseStyles([styles.badge, badgeSubscribe && styles.badgeVisible])} />
       </Kb.ClickableBox>
@@ -82,6 +83,9 @@ const BigTeamHeader = React.memo((props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      gear: {
+        backgroundColor: Styles.globalColors.fastBlank,
+      },
       badge: {
         height: 10,
         position: 'absolute',

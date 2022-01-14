@@ -44,11 +44,23 @@ const AccountPayment = (props: Props) => {
       gap={Styles.isMobile ? 'tiny' : 'small'}
     >
       {!!props.balanceChange && (
-        <Kb.Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
+        <Kb.Text
+          type="BodyExtrabold"
+          selectable={true}
+          style={{
+            backgroundColor: Styles.globalColors.fastBlank,
+            color: props.balanceChangeColor,
+          }}
+        >
           {props.balanceChange}
         </Kb.Text>
       )}
-      {props.showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
+      {props.showCoinsIcon && (
+        <Kb.Icon
+          type="icon-stellar-coins-stacked-16"
+          style={{backgroundColor: Styles.globalColors.fastBlank}}
+        />
+      )}
     </Kb.Box2>
   )
   const contents = props.loading ? (
@@ -179,6 +191,7 @@ const styles = Styles.styleSheetCreate(
       memo: Styles.platformStyles({
         isMobile: {
           paddingRight: Styles.globalMargins.small,
+          backgroundColor: Styles.globalColors.fastBlank,
         },
       }),
       progressIndicator: Styles.platformStyles({
@@ -192,7 +205,10 @@ const styles = Styles.styleSheetCreate(
           width: 22,
         },
       }),
-      purple: {color: Styles.globalColors.purpleDark},
+      purple: {
+        color: Styles.globalColors.purpleDark,
+        backgroundColor: Styles.globalColors.fastBlank,
+      },
       purpleOrWhite: {color: Styles.globalColors.purpleDarkOrWhite},
       tooltipText: Styles.platformStyles({
         isElectron: {wordBreak: 'normal'},

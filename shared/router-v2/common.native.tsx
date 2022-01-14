@@ -4,7 +4,11 @@ import * as Kb from '../common-adapters'
 import {TabActions} from '@react-navigation/core'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
 
-export const headerDefaultStyle = {backgroundColor: Styles.globalColors.fastBlank}
+export const headerDefaultStyle = {
+  get backgroundColor() {
+    return Styles.globalColors.fastBlank
+  },
+}
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && false
 

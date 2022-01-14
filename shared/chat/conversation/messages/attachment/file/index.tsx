@@ -150,6 +150,7 @@ const styles = Styles.styleSheetCreate(
       },
       error: {color: Styles.globalColors.redDark},
       iconStyle: {
+        backgroundColor: Styles.globalColors.fastBlank,
         height: 32,
         width: 32,
       },
