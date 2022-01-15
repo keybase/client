@@ -6,7 +6,6 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import {appendNewChatBuilder} from '../../actions/typed-routes'
 import Inbox from '.'
-import {isPhone} from '../../constants/platform'
 import {Props} from '.'
 import * as Kb from '../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
@@ -169,7 +168,6 @@ const Connected = Container.connect(
       _inboxLayout: inboxLayout,
       _selectedConversationIDKey: conversationIDKey ?? Constants.noConversationIDKey,
       inboxNumSmallRows,
-      isLoading: isPhone ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it
       isSearching: !!state.chat2.inboxSearch,
       neverLoaded,
       smallTeamsExpanded: state.chat2.smallTeamsExpanded,
@@ -235,7 +233,6 @@ const Connected = Container.connect(
     }
 
     return {
-      isLoading: stateProps.isLoading,
       isSearching: stateProps.isSearching,
       navKey,
       neverLoaded: stateProps.neverLoaded,

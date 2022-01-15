@@ -16,6 +16,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
 import createNoDupeStackNavigator from './stack'
+import shallowEqual from 'shallowequal'
 
 enableFreeze()
 
@@ -127,38 +128,50 @@ const fastTransitionSpec = {
 
 // so we have a stack per tab?
 const tabToStack = new Map()
-const makeTabStack = tab => {
+const makeTabStack = (tab: string) => {
   let Comp = tabToStack.get(tab)
   if (!Comp) {
     const S = createNoDupeStackNavigator()
-    Comp = ({navigation, route}) => {
-      const dispatch = Container.useDispatch()
-      React.useEffect(() => {
-        const unsubscribe = navigation.addListener('tabLongPress', () => {
-          dispatch(RouteTreeGen.createTabLongPress({tab}))
-        })
-        return unsubscribe
-      }, [navigation, dispatch])
-      React.useLayoutEffect(() => {
-        const routeName = getFocusedRouteNameFromRoute(route)
-        const hideTabs = routeName === 'chatConversation'
-        navigation.setOptions({tabBarStyle: hideTabs ? {display: 'none'} : tabBarStyle})
-      }, [navigation, route])
-      return (
-        <S.Navigator
-          initialRouteName={tabRoots[tab]}
-          screenOptions={{
-            ...defaultNavigationOptions,
-            transitionSpec: {
-              open: fastTransitionSpec,
-              close: fastTransitionSpec,
-            },
-          }}
-        >
-          {makeNavScreens(Shim.shim(routes, false, false), S.Screen, false)}
-        </S.Navigator>
-      )
-    }
+    Comp = React.memo(
+      ({navigation, route}: any) => {
+        const dispatch = Container.useDispatch()
+        React.useEffect(() => {
+          const unsubscribe = navigation.addListener('tabLongPress', () => {
+            dispatch(RouteTreeGen.createTabLongPress({tab}))
+          })
+          return unsubscribe
+        }, [navigation, dispatch])
+        React.useLayoutEffect(() => {
+          const routeName = getFocusedRouteNameFromRoute(route)
+          const hideTabs = routeName === 'chatConversation'
+          navigation.setOptions({tabBarStyle: hideTabs ? {display: 'none'} : tabBarStyle})
+        }, [navigation, route])
+        return (
+          <S.Navigator
+            initialRouteName={tabRoots[tab]}
+            screenOptions={{
+              ...defaultNavigationOptions,
+              transitionSpec: {
+                open: fastTransitionSpec,
+                close: fastTransitionSpec,
+              },
+            }}
+          >
+            {makeNavScreens(Shim.shim(routes, false, false), S.Screen, false)}
+          </S.Navigator>
+        )
+      },
+      (a, b) => {
+        if (!shallowEqual(a.navigation, b.navigation)) {
+          return false
+        }
+        if (!shallowEqual(a.route, b.route)) {
+          return false
+        }
+
+        return true
+      }
+    )
     tabToStack.set(tab, Comp)
   }
   return Comp
@@ -204,46 +217,49 @@ const tabBarStyle = {
   },
 }
 
-const AppTabs = React.memo(() => {
-  return (
-    <Tab.Navigator
-      backBehavior="none"
-      screenOptions={({route}) => {
-        return {
-          ...defaultNavigationOptions,
-          tabBarHideOnKeyboard: true,
-          headerShown: false,
-          tabBarShowLabel: Styles.isTablet,
-          tabBarStyle,
-          tabBarActiveBackgroundColor: Styles.globalColors.transparent,
-          tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
-          tabBarLabel: ({focused}) => (
-            <Kb.Text
-              style={Styles.collapseStyles([
-                styles.label,
-                Styles.isDarkMode()
-                  ? focused
-                    ? styles.labelDarkModeFocused
-                    : styles.labelDarkMode
-                  : focused
-                  ? styles.labelLightModeFocused
-                  : styles.labelLightMode,
-              ])}
-              type="BodyBig"
-            >
-              {tabToData[route.name].label}
-            </Kb.Text>
-          ),
-          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
-        }
-      }}
-    >
-      {tabs.map(tab => (
-        <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
-      ))}
-    </Tab.Navigator>
-  )
-})
+const AppTabs = React.memo(
+  () => {
+    return (
+      <Tab.Navigator
+        backBehavior="none"
+        screenOptions={({route}) => {
+          return {
+            ...defaultNavigationOptions,
+            tabBarHideOnKeyboard: true,
+            headerShown: false,
+            tabBarShowLabel: Styles.isTablet,
+            tabBarStyle,
+            tabBarActiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarLabel: ({focused}) => (
+              <Kb.Text
+                style={Styles.collapseStyles([
+                  styles.label,
+                  Styles.isDarkMode()
+                    ? focused
+                      ? styles.labelDarkModeFocused
+                      : styles.labelDarkMode
+                    : focused
+                    ? styles.labelLightModeFocused
+                    : styles.labelLightMode,
+                ])}
+                type="BodyBig"
+              >
+                {tabToData[route.name].label}
+              </Kb.Text>
+            ),
+            tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
+          }
+        }}
+      >
+        {tabs.map(tab => (
+          <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
+        ))}
+      </Tab.Navigator>
+    )
+  },
+  () => true // ignore all props
+)
 
 const LoggedOutStack = createNoDupeStackNavigator()
 const LoggedOut = React.memo(() => (

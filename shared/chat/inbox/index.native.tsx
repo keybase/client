@@ -4,6 +4,8 @@ import * as RowSizes from './row/sizes'
 import * as Styles from '../../styles'
 import * as T from './index.d'
 import * as Types from '../../constants/types/chat2'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/chat2'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import ChatInboxHeader from './header/container'
@@ -263,7 +265,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
-          <LoadingLine isLoading={this.props.isLoading} />
+          <LoadingLine />
           {this.props.isSearching ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <InboxSearch header={HeadComponent} />
@@ -285,9 +287,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
           )}
           {noChats}
           {floatingDivider ||
-            (this.props.rows.length === 0 && !this.props.isLoading && !this.props.neverLoaded && (
-              <BuildTeam />
-            ))}
+            (this.props.rows.length === 0 && !this.props.neverLoaded && <NoRowsBuildTeam />)}
           {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
             <UnreadShortcut onClick={this.scrollToUnread} unreadCount={this.state.unreadCount} />
           )}
@@ -297,7 +297,13 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 }
 
-const LoadingLine = ({isLoading}: {isLoading: boolean}) => {
+const NoRowsBuildTeam = () => {
+  const isLoading = Container.useSelector(state => Constants.anyChatWaitingKeys(state))
+  return isLoading ? null : <BuildTeam />
+}
+
+const LoadingLine = () => {
+  const isLoading = Container.useSelector(state => Constants.anyChatWaitingKeys(state))
   return isLoading ? (
     <Kb.Box style={styles.loadingContainer}>
       <Kb.LoadingLine />
