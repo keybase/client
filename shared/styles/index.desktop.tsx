@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {themed, colors, darkColors} from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import * as Shared from './shared'
@@ -231,3 +232,4 @@ export const dimensionWidth = 0
 export const dimensionHeight = 0
 export {isDarkMode} from './dark-mode'
 export const headerExtraHeight = 0
+export const StyleContext = React.createContext({canFixOverdraw: false})

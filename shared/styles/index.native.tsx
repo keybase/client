@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {StyleSheet, Dimensions} from 'react-native'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import {isIOS, isTablet} from '../constants/platform'
@@ -102,3 +103,4 @@ export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width
 export const dimensionHeight = Dimensions.get('window').height
 export const headerExtraHeight = isTablet ? 16 : 0
+export const StyleContext = React.createContext({canFixOverdraw: true})

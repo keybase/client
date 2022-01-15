@@ -14,7 +14,9 @@ const DEBUGCOLORS = __DEV__ && false
 
 // Options used by default on all navigators
 export const defaultNavigationOptions: any = {
-  headerLeft: HeaderLeftArrow,
+  headerLeft: ({canGoBack, onPress, tintColor}) => (
+    <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
+  ),
   headerStyle: headerDefaultStyle,
   headerTitleContainerStyle: {
     alignItems: 'stretch',

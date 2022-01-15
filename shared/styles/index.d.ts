@@ -1,4 +1,5 @@
 // Styles from our designers
+import * as React from 'react'
 import * as CSS from './css'
 export {default as globalColors} from './colors'
 
@@ -146,3 +147,4 @@ export {
 } from './css'
 export {default as classNames} from 'classnames'
 export {default as styled} from '@emotion/styled'
+export declare const StyleContext: React.Context<{canFixOverdraw: boolean}>

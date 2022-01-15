@@ -17,6 +17,7 @@ import shallowEqual from 'shallowequal'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
 import {SiteIcon} from '../generic/shared'
+import {HeaderLeftArrow} from '../../common-adapters/header-hoc'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -333,6 +334,11 @@ type Tab = 'followers' | 'following' | 'webOfTrust'
 
 class User extends React.Component<Props, State> {
   static navigationOptions = () => ({
+    headerLeft: ({canGoBack, onPress, tintColor}) => (
+      <Styles.StyleContext.Provider value={{canFixOverdraw: false}}>
+        <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
+      </Styles.StyleContext.Provider>
+    ),
     headerTitle: () => <ProfileSearch />,
     headerTransparent: true,
   })
