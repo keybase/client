@@ -235,6 +235,7 @@ sign() {(
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libGLESv2.dylib"
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libswiftshader_libEGL.dylib"
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libswiftshader_libGLESv2.dylib"
+  codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib"
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt"
 
   codesign --verbose --force --deep --timestamp --options runtime --entitlements $client_dir/osx/Keybase.entitlements --sign "$code_sign_identity" "$app_name.app"
