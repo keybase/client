@@ -14,32 +14,32 @@ const DEBUGCOLORS = __DEV__ && false
 
 // Options used by default on all navigators
 export const defaultNavigationOptions: any = {
+  headerBackTitle: 'temp',
+  headerBackVisible: true,
   headerLeft: ({canGoBack, onPress, tintColor}) => (
     <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
   ),
-  headerStyle: headerDefaultStyle,
-  headerTitleContainerStyle: {
-    alignItems: 'stretch',
-    flexGrow: 1,
-    ...(DEBUGCOLORS ? {backgroundColor: 'red'} : {}),
-  },
-  headerBackTitle: 'temp',
-  headerBackVisible: true,
-  headerRightContainerStyle: {
-    width: actionWidth,
-    paddingRight: 8,
-    ...(DEBUGCOLORS ? {backgroundColor: 'orange'} : {}),
-  },
   headerLeftContainerStyle: {
     paddingLeft: 8,
     width: actionWidth,
     ...(DEBUGCOLORS ? {backgroundColor: 'yellow'} : {}),
   },
-  headerTitle: hp => (
+  headerRightContainerStyle: {
+    paddingRight: 8,
+    width: actionWidth,
+    ...(DEBUGCOLORS ? {backgroundColor: 'orange'} : {}),
+  },
+  headerStyle: headerDefaultStyle,
+  headerTitle: (hp: any) => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
       {hp.children}
     </Kb.Text>
   ),
+  headerTitleContainerStyle: {
+    alignItems: 'stretch',
+    flexGrow: 1,
+    ...(DEBUGCOLORS ? {backgroundColor: 'red'} : {}),
+  },
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -55,9 +55,9 @@ export const useSubnavTabAction = (navigation, state) =>
       const route = state.routes.find(r => r.name === tab)
       const event = route
         ? navigation.emit({
-            type: 'tabPress',
-            target: route.key,
             canPreventDefault: true,
+            target: route.key,
+            type: 'tabPress',
           })
         : {}
 

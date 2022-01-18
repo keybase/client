@@ -8,8 +8,8 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
-    screenOptions,
     initialRouteName,
+    screenOptions,
   })
 
   return (

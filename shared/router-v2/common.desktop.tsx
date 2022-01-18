@@ -11,32 +11,30 @@ export const headerDefaultStyle = {
 const actionWidth = 64
 export const defaultNavigationOptions: any = {
   header: (p: any) => <Header {...p} />,
-  headerLeft: HeaderLeftArrow,
-  headerStyle: headerDefaultStyle,
-  headerTitleContainerStyle: {
-    alignItems: 'stretch',
-    flexGrow: 1,
-  },
   headerBackTitle: 'temp',
   headerBackVisible: true,
-  headerRightContainerStyle: {
-    paddingRight: 8,
-  },
+  headerLeft: HeaderLeftArrow,
   headerLeftContainerStyle: {
     paddingLeft: 8,
     width: actionWidth,
   },
-  headerTitle: hp => (
+  headerRightContainerStyle: {paddingRight: 8},
+  headerStyle: headerDefaultStyle,
+  headerTitle: (hp: any) => (
     <Kb.Text type="Header" style={styles.headerTitle} lineClamp={1} center={true}>
       {hp.children}
     </Kb.Text>
   ),
+  headerTitleContainerStyle: {
+    alignItems: 'stretch',
+    flexGrow: 1,
+  },
 }
 
 const styles = Styles.styleSheetCreate(() => ({
   headerTitle: {
-    color: Styles.globalColors.black,
     alignSelf: 'center',
+    color: Styles.globalColors.black,
     marginLeft: Styles.globalMargins.xsmall,
   },
 }))
@@ -47,9 +45,9 @@ export const useSubnavTabAction = (navigation, state) =>
       const route = state.routes.find(r => r.name === tab)
       const event = route
         ? navigation.emit({
-            type: 'tabPress',
-            target: route.key,
             canPreventDefault: true,
+            target: route.key,
+            type: 'tabPress',
           })
         : {}
 

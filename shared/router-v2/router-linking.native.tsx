@@ -50,8 +50,7 @@ const makeLinking = (options: OptionsType) => {
   )
 
   return {
-    prefixes: ['keybase://', 'https://keybase.io'],
-
+    config,
     // Custom function to get the URL which was used to open the app
     async getInitialURL() {
       // First, you may want to do the default deep link handling
@@ -81,8 +80,7 @@ const makeLinking = (options: OptionsType) => {
       }
       return url
     },
-    config,
-    getStateFromPath: (path, options) => {
+    getStateFromPath: (path: string, options: Parameters<typeof getStateFromPath>[1]) => {
       // use the chat path to make the object but swap out the name with the convo id
       if (path.startsWith('convid/')) {
         const [, id] = path.split('/')
@@ -94,6 +92,7 @@ const makeLinking = (options: OptionsType) => {
         return getStateFromPath(path, options)
       }
     },
+    prefixes: ['keybase://', 'https://keybase.io'],
   }
 }
 
@@ -114,10 +113,10 @@ export const useReduxToLinking = (appState: Shared.AppState) => {
   return appState === Shared.AppState.NEEDS_INIT
     ? makeLinking({
         dispatch,
-        startupConversation,
-        startupTab,
         showMonster,
+        startupConversation,
         startupFollowUser,
+        startupTab,
       })
     : undefined
 }
