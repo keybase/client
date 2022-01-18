@@ -8,10 +8,10 @@ import {enableES5, enableMapSet} from 'immer'
 enableES5()
 enableMapSet()
 
-const NativeEngine = NativeModules.KeybaseEngine
 _setSystemIsDarkMode(Appearance.getColorScheme() === 'dark')
-_setSystemSupported(NativeEngine.darkModeSupported === '1')
 
+const NativeEngine = NativeModules.KeybaseEngine
+_setSystemSupported(NativeEngine.darkModeSupported === '1')
 try {
   const obj = JSON.parse(NativeEngine.guiConfig)
   if (obj && obj.ui) {

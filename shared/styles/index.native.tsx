@@ -95,8 +95,7 @@ export {
   platformStyles,
   padding,
 } from './shared'
-export {default as glamorous} from '@emotion/native'
-export {default as styled, css as styledCss} from '@emotion/native'
+export {default as styled} from '@emotion/native'
 export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'
 export const borderRadius = 6

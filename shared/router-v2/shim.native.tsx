@@ -17,7 +17,7 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => 
         ? Original.navigationOptions({navigation: props.navigation, route: props.route})
         : Original.navigationOptions
     const original = <Original {...props} />
-    let body = original
+    const body = original
     let wrap = body
 
     const isSafe = navigationOptions?.needsSafe || isModal || isLoggedOut

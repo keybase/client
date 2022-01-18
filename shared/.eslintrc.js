@@ -30,7 +30,7 @@ module.exports = {
     require: 'readonly',
   },
   reportUnusedDisableDirectives: true,
-  plugins: ['promise', 'react', 'filenames', 'import', 'react-hooks'],
+  plugins: ['promise', 'react', 'react-hooks'],
   settings: {
     'import/core-modules': ['electron', 'react-native'],
     'import/extensions': ['.js', '.tsx', '.d.ts', '.native.tsx', '.desktop.tsx', '.native.js', '.desktop.js'],

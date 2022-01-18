@@ -14,8 +14,6 @@ PODS:
     - ExpoModulesCore
   - EXErrorRecovery (3.0.4):
     - ExpoModulesCore
-  - EXFileSystem (13.1.0):
-    - ExpoModulesCore
   - EXFont (10.0.4):
     - ExpoModulesCore
   - EXImageLoader (3.1.0):
@@ -278,7 +276,7 @@ PODS:
     - react-native-video/Video (= 5.2.0)
   - react-native-video/Video (5.2.0):
     - React-Core
-  - react-native-webview (11.15.0):
+  - react-native-webview (11.16.0):
     - React-Core
   - React-perflogger (0.66.4)
   - React-RCTActionSheet (0.66.4):
@@ -389,7 +387,7 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.10.1):
+  - RNScreens (3.10.2):
     - React-Core
     - React-RCTImage
   - SDWebImage (5.11.1):
@@ -413,7 +411,6 @@ DEPENDENCIES:
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXContacts (from `../node_modules/expo-contacts/ios`)
   - EXErrorRecovery (from `../node_modules/expo-error-recovery/ios`)
-  - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - EXImagePicker (from `../node_modules/expo-image-picker/ios`)
@@ -498,8 +495,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-contacts/ios"
   EXErrorRecovery:
     :path: "../node_modules/expo-error-recovery/ios"
-  EXFileSystem:
-    :path: "../node_modules/expo-file-system/ios"
   EXFont:
     :path: "../node_modules/expo-font/ios"
   EXImageLoader:
@@ -625,7 +620,6 @@ SPEC CHECKSUMS:
   EXConstants: 5d18484e38e8eacef7695a82214b6ac90133dedf
   EXContacts: dc86ef0069dad7fa89096d6023b292047c5f7210
   EXErrorRecovery: deea88a01d38f8b1c1181b4e1d179b0ba0e4bb5b
-  EXFileSystem: 7d1309ba6b38b82ef7fc9e80174de3f9184ac8b4
   EXFont: 1fb13af43dc517c01c0ff21a6e32f9f9bf2ea602
   EXImageLoader: df83442d32bcfb57b7cfc5690096b6caf8203f8d
   EXImagePicker: 91337b8d57a0a8f56800b9ac0f2b2f10aecf88ce
@@ -663,7 +657,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: 27f287f2d191693f3b9d01a4273137fcf91c3b5d
   react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
   react-native-video: a4c2635d0802f983594b7057e1bce8f442f0ad28
-  react-native-webview: e89bf2dba26a04cda967814df3ed1be99f291233
+  react-native-webview: 28a8636d97ee641f2ee8f20492d7a6c269c1d703
   React-perflogger: 93075d8931c32cd1fce8a98c15d2d5ccc4d891bd
   React-RCTActionSheet: 7d3041e6761b4f3044a37079ddcb156575fb6d89
   React-RCTAnimation: 743e88b55ac62511ae5c2e22803d4f503f2a3a13
@@ -684,7 +678,7 @@ SPEC CHECKSUMS:
   RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNReanimated: da3860204e5660c0dd66739936732197d359d753
-  RNScreens: 522705f2e5c9d27efb17f24aceb2bf8335bc7b8e
+  RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: f93010f3f6c031e2f8fb3081ca4ee6966c539815
   Yoga: e7dc4e71caba6472ff48ad7d234389b91dadc280

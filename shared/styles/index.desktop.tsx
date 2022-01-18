@@ -221,7 +221,7 @@ export {
   padding,
 } from './shared'
 
-export {css as styledCss, keyframes as styledKeyframes} from '@emotion/core'
+export {keyframes as styledKeyframes} from '@emotion/react'
 export {default as styled} from '@emotion/styled'
 export {themed as globalColors} from './colors'
 export const statusBarHeight = 0
