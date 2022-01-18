@@ -34,7 +34,7 @@ const useConnectNavToRedux = () => {
         }
       }
     }
-  }, [setNavOnce])
+  }, [setNavOnce, dispatch])
 }
 
 const useIsDarkChanged = () => {
@@ -93,12 +93,12 @@ export const useShared = () => {
   const navKey = useNavKey(appState.current, navContainerKey)
   const initialState = useInitialState()
   return {
-    loggedInLoaded,
-    loggedIn,
     appState,
-    onStateChange,
-    navKey,
     initialState,
+    loggedIn,
+    loggedInLoaded,
+    navKey,
+    onStateChange,
   }
 }
 
@@ -142,25 +142,25 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export const theme: Theme = {
-  dark: false,
   colors: {
-    get primary() {
-      return Styles.globalColors.fastBlank as string
-    },
     get background() {
       return Styles.globalColors.fastBlank as string
     },
+    get border() {
+      return Styles.globalColors.black_10
+    },
     get card() {
+      return Styles.globalColors.fastBlank as string
+    },
+    get notification() {
+      return Styles.globalColors.black
+    },
+    get primary() {
       return Styles.globalColors.fastBlank as string
     },
     get text() {
       return Styles.globalColors.black
     },
-    get border() {
-      return Styles.globalColors.black_10
-    },
-    get notification() {
-      return Styles.globalColors.black
-    },
   },
+  dark: false,
 }

@@ -73,10 +73,6 @@ const TabBarIcon = React.memo((props: {isFocused: boolean; routeName: Tabs.Tab})
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      keyboard: {
-        flexGrow: 1,
-        position: 'relative',
-      },
       badge: Styles.platformStyles({
         common: {
           position: 'absolute',
@@ -86,14 +82,18 @@ const styles = Styles.styleSheetCreate(
       }),
       container: Styles.platformStyles({
         common: {
-          justifyContent: 'center',
           flex: 1,
+          justifyContent: 'center',
         },
         isTablet: {
           // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
           minWidth: Styles.globalMargins.xlarge,
         },
       }),
+      keyboard: {
+        flexGrow: 1,
+        position: 'relative',
+      },
       label: {marginLeft: Styles.globalMargins.medium},
       labelDarkMode: {color: Styles.globalColors.black_50},
       labelDarkModeFocused: {color: Styles.globalColors.black},
@@ -117,12 +117,12 @@ const Tab = createBottomTabNavigator()
 const fastTransitionSpec = {
   animation: 'spring',
   config: {
-    stiffness: 1000,
     damping: 500,
     mass: 0.3,
     overshootClamping: true,
     restDisplacementThreshold: 10,
     restSpeedThreshold: 10,
+    stiffness: 1000,
   },
 }
 
@@ -152,8 +152,8 @@ const makeTabStack = (tab: string) => {
             screenOptions={{
               ...defaultNavigationOptions,
               transitionSpec: {
-                open: fastTransitionSpec,
                 close: fastTransitionSpec,
+                open: fastTransitionSpec,
               },
             }}
           >
@@ -186,18 +186,18 @@ const makeNavScreens = (rs, Screen, isModal) => {
         getComponent={rs[name].getScreen}
         options={({route, navigation}) => {
           const no = rs[name].getScreen().navigationOptions
-          const opt = typeof no === 'function' ? no({route, navigation}) : no
+          const opt = typeof no === 'function' ? no({navigation, route}) : no
           const skipAnim =
             route.params?.animationEnabled === undefined
               ? {}
               : {
                   // immediate pop in, default back animation
                   transitionSpec: {
+                    close: TransitionPresets.DefaultTransition,
                     open: {
                       animation: 'timing',
                       config: {duration: 0},
                     },
-                    close: TransitionPresets.DefaultTransition,
                   },
                 }
           return {
@@ -225,11 +225,10 @@ const AppTabs = React.memo(
         screenOptions={({route}) => {
           return {
             ...defaultNavigationOptions,
-            tabBarHideOnKeyboard: true,
             headerShown: false,
-            tabBarShowLabel: Styles.isTablet,
-            tabBarStyle,
             tabBarActiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarHideOnKeyboard: true,
+            tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
             tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
             tabBarLabel: ({focused}) => (
               <Kb.Text
@@ -248,7 +247,8 @@ const AppTabs = React.memo(
                 {tabToData[route.name].label}
               </Kb.Text>
             ),
-            tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
+            tabBarShowLabel: Styles.isTablet,
+            tabBarStyle,
           }
         }}
       >
@@ -315,12 +315,12 @@ const RNApp = React.memo(() => {
   const DEBUG_RNAPP_RENDER = __DEV__ && false
   if (DEBUG_RNAPP_RENDER) {
     console.log('DEBUG RNApp render', {
-      loggedInLoaded,
-      loggedIn,
       appState,
-      onStateChange,
-      navKey,
       initialState,
+      loggedIn,
+      loggedInLoaded,
+      navKey,
+      onStateChange,
     })
   }
 
@@ -339,10 +339,10 @@ const RNApp = React.memo(() => {
           key="root"
           screenOptions={{
             animationEnabled: false,
-            presentation: 'modal',
             headerLeft: () => <HeaderLeftCancel />,
-            title: '',
             headerShown: false, // eventually do this after we pull apart modal2 etc
+            presentation: 'modal',
+            title: '',
           }}
         >
           {!loggedInLoaded && (

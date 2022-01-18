@@ -16,7 +16,7 @@ const Tab = createLeftTabNavigator()
 
 // so we have a stack per tab
 const tabToStack = new Map()
-const makeTabStack = tab => {
+const makeTabStack = (tab: Tabs.AppTab) => {
   let Comp = tabToStack.get(tab)
   if (!Comp) {
     const S = createNoDupeStackNavigator()
@@ -32,7 +32,7 @@ const makeTabStack = tab => {
   return Comp
 }
 
-const makeNavScreens = (rs, Screen, _isModal) => {
+const makeNavScreens = (rs, Screen, _isModal: boolean) => {
   return Object.keys(rs).map(name => {
     return (
       <Screen
@@ -42,7 +42,7 @@ const makeNavScreens = (rs, Screen, _isModal) => {
         getComponent={rs[name].getScreen}
         options={({route, navigation}) => {
           const no = rs[name].getScreen().navigationOptions
-          const opt = typeof no === 'function' ? no({route, navigation}) : no
+          const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}
       />
@@ -63,13 +63,13 @@ const AppTabs = () => {
       screenOptions={() => {
         return {
           ...Common.defaultNavigationOptions,
-          tabBarHideOnKeyboard: true,
           header: undefined,
           headerShown: false,
+          tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarHideOnKeyboard: true,
+          tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
           tabBarShowLabel: Styles.isTablet,
           tabBarStyle,
-          tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-          tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
         }
       }}
     >
@@ -103,10 +103,10 @@ const ElectronApp = () => {
         key="root"
         screenOptions={{
           animationEnabled: false,
-          presentation: 'transparentModal',
           headerLeft: () => <HeaderLeftCancel />,
-          title: '',
           headerShown: false, // eventually do this after we pull apart modal2 etc
+          presentation: 'transparentModal',
+          title: '',
         }}
       >
         {!loggedInLoaded && (

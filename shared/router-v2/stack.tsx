@@ -1,3 +1,4 @@
+/* eslint-disable */ // keep this as close to the source as possible
 // extending the vanilla createStackNavigator but don't allow pushing dupes
 import {
   createNavigatorFactory,
