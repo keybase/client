@@ -2737,15 +2737,24 @@ func EscapeShrugs(ctx context.Context, body string) string {
 var startQuote = ">"
 var newline = []rune("\n")
 
-var blockQuoteRegex = regexp.MustCompile("((?s)```.*?```)")
-var quoteRegex = regexp.MustCompile("((?s)`.*?`)")
+// fenceRegex matches ```...``` "fence" blocks, and
+// inlineCodeWithSuffixRegex matches `...` inline code with any following non-backtick character.
+// Both must agree with shared/common-adapters/markdown/shared.tsx.
+var fenceRegex = regexp.MustCompile("((?s)```(?:\\\\.|[^\\\\])+?````*)")
+var inlineCodeWithSuffixRegex = regexp.MustCompile("((?s)`[^`]*[^`\\n]\\s*`)(?:$|[^`])")
 
 func ReplaceQuotedSubstrings(xs string, skipAngleQuotes bool) string {
-	replacer := func(s string) string {
+	fenceReplacer := func(s string) string {
 		return strings.Repeat("$", len(s))
 	}
-	xs = blockQuoteRegex.ReplaceAllStringFunc(xs, replacer)
-	xs = quoteRegex.ReplaceAllStringFunc(xs, replacer)
+	inlineCodeWithSuffixReplacer := func(s string) string {
+		if strings.HasSuffix(s, "`") {
+			return strings.Repeat("$", len(s))
+		}
+		return strings.Repeat("$", len(s)-1) + s[len(s)-1:len(s)]
+	}
+	xs = fenceRegex.ReplaceAllStringFunc(xs, fenceReplacer)
+	xs = inlineCodeWithSuffixRegex.ReplaceAllStringFunc(xs, inlineCodeWithSuffixReplacer)
 
 	// Remove all quoted lines. Because we removed all codeblocks
 	// before, we only need to consider single lines.

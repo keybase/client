@@ -145,11 +145,12 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
   },
   fence: {
     // aka the ``` code blocks
+    // must agree with ReplaceQuotedSubstrings in go/chat/utils/utils.go
     ...SimpleMarkdown.defaultRules.fence,
     match: SimpleMarkdown.anyScopeRegex(/^```(?:\n)?((?:\\[\s\S]|[^\\])+?)```(?!`)(\n)?/),
     // original:
     // match: SimpleMarkdown.blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
-    // ours: three ticks (anywhere) and remove any newlines in front and one in back
+    // ours: three ticks (anywhere) and ignore up to one line feed at the start and at the end
     order: 0,
     parse: function(
       capture: SimpleMarkdown.Capture,
@@ -164,6 +165,7 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
     },
   },
   inlineCode: {
+    // must agree with ReplaceQuotedSubstrings in go/chat/utils/utils.go
     ...SimpleMarkdown.defaultRules.inlineCode,
     // original:
     // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
