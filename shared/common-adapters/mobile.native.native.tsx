@@ -451,10 +451,10 @@ module.exports = {
   get useMounted() {
     return Index.useMounted
   },
-  get useTimeout() {
-    return Index.useTimeout
-  },
   get useSafeAreaInsets() {
     return Index.useSafeAreaInsets
+  },
+  get useTimeout() {
+    return Index.useTimeout
   },
 }

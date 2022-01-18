@@ -236,6 +236,10 @@ const styles = Styles.styleSheetCreate(
       outerBox: {
         ...Styles.globalStyles.flexBoxRow,
       },
+      snippetDecoration: {
+        alignSelf: 'flex-start',
+        backgroundColor: Styles.globalColors.fastBlank,
+      },
       typingSnippet: {},
       youAreResetText: Styles.platformStyles({
         isElectron: {
@@ -247,10 +251,6 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 19,
         },
       }),
-      snippetDecoration: {
-        alignSelf: 'flex-start',
-        backgroundColor: Styles.globalColors.fastBlank,
-      },
     } as const)
 )
 export {BottomLine}

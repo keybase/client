@@ -129,7 +129,7 @@ const Header = (props: HeaderProps) => {
   const sideWidth = widerWidth + headerSidePadding * 2
   // end mobile only
 
-  let subTitle
+  let subTitle: React.ReactNode
   if (props.subTitle) {
     subTitle =
       typeof props.subTitle === 'string' ? (

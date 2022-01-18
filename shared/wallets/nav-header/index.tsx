@@ -77,7 +77,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       accountArea: Styles.platformStyles({
-        isTablet: { flexGrow: 1, },
+        isTablet: {flexGrow: 1},
       }),
       accountID: Styles.platformStyles({
         isElectron: {...Styles.desktopStyles.windowDraggingClickable},
@@ -95,7 +95,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       accountNameContainer: Styles.platformStyles({
-        common: { alignSelf: 'flex-start', },
+        common: {alignSelf: 'flex-start'},
         isElectron: {
           ...Styles.desktopStyles.windowDraggingClickable,
           marginTop: -Styles.globalMargins.xxtiny,

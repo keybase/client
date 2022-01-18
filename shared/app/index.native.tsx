@@ -42,7 +42,7 @@ const NativeEventsToRedux = () => {
       darkSub?.remove()
       linkingSub?.remove()
     }
-  }, [])
+  }, [dispatch])
 
   return null
 }

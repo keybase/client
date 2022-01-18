@@ -61,22 +61,25 @@ const NormalWrapper = React.memo((props: Props) => {
   const dispatch = Container.useDispatch()
   const jumpToRecent = React.useCallback(() => {
     dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
-  }, [conversationIDKey])
+  }, [conversationIDKey, dispatch])
 
   const onPaste = React.useCallback(
     (data: Buffer) => {
       dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data}))
     },
-    [conversationIDKey]
+    [conversationIDKey, dispatch]
   )
 
   const onToggleThreadSearch = React.useCallback(() => {
     dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
-  }, [conversationIDKey])
+  }, [conversationIDKey, dispatch])
 
-  const onShowTracker = React.useCallback((username: string) => {
-    dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
-  }, [])
+  const onShowTracker = React.useCallback(
+    (username: string) => {
+      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+    },
+    [dispatch]
+  )
 
   const onAttach = React.useCallback(
     (paths: Array<string>) => {
@@ -87,7 +90,7 @@ const NormalWrapper = React.memo((props: Props) => {
         })
       )
     },
-    [conversationIDKey]
+    [conversationIDKey, dispatch]
   )
 
   return (

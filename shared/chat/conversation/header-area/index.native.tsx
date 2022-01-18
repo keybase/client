@@ -116,9 +116,9 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       center: {
+        backgroundColor: Styles.globalColors.fastBlank,
         justifyContent: 'center',
         textAlign: 'center',
-        backgroundColor: Styles.globalColors.fastBlank,
       },
       channelHeaderContainer: {
         alignItems: 'center',

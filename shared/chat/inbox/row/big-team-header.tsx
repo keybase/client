@@ -83,9 +83,6 @@ const BigTeamHeader = React.memo((props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      gear: {
-        backgroundColor: Styles.globalColors.fastBlank,
-      },
       badge: {
         height: 10,
         position: 'absolute',
@@ -100,6 +97,7 @@ const styles = Styles.styleSheetCreate(
         borderStyle: `solid`,
         borderWidth: 2,
       },
+      gear: {backgroundColor: Styles.globalColors.fastBlank},
       showMenu: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxRow,

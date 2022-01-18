@@ -67,7 +67,7 @@ const makeSmallRows = (
   })
 }
 
-let InboxWrapper = React.memo((props: Props) => {
+const InboxWrapper = React.memo((props: Props) => {
   const dispatch = Container.useDispatch()
   const inboxHasLoaded = Container.useSelector(state => state.chat2.inboxHasLoaded)
   const isFocused = useIsFocused()
@@ -83,21 +83,27 @@ let InboxWrapper = React.memo((props: Props) => {
   // a hack to have it check for marked as read when we mount as the focus events don't fire always
   const onNewChat = React.useCallback(() => {
     dispatch(appendNewChatBuilder())
-  }, [])
-  const onUntrustedInboxVisible = React.useCallback((conversationIDKeys: Array<Types.ConversationIDKey>) => {
-    dispatch(
-      Chat2Gen.createMetaNeedsUpdating({
-        conversationIDKeys,
-        reason: 'untrusted inbox visible',
-      })
-    )
-  }, [])
-  const setInboxNumSmallRows = React.useCallback((rows: number) => {
-    dispatch(Chat2Gen.createSetInboxNumSmallRows({rows}))
-  }, [])
+  }, [dispatch])
+  const onUntrustedInboxVisible = React.useCallback(
+    (conversationIDKeys: Array<Types.ConversationIDKey>) => {
+      dispatch(
+        Chat2Gen.createMetaNeedsUpdating({
+          conversationIDKeys,
+          reason: 'untrusted inbox visible',
+        })
+      )
+    },
+    [dispatch]
+  )
+  const setInboxNumSmallRows = React.useCallback(
+    (rows: number) => {
+      dispatch(Chat2Gen.createSetInboxNumSmallRows({rows}))
+    },
+    [dispatch]
+  )
   const toggleSmallTeamsExpanded = React.useCallback(() => {
     dispatch(Chat2Gen.createToggleSmallTeamsExpanded())
-  }, [])
+  }, [dispatch])
 
   if (Container.isMobile) {
     // eslint-disable-next-line
@@ -137,18 +143,17 @@ let InboxWrapper = React.memo((props: Props) => {
 const buttonWidth = 132
 // @ts-ignore
 InboxWrapper.navigationOptions = {
-  headerRightContainerStyle: {
-    // backgroundColor: 'orange',
-    paddingRight: 8,
-    flexGrow: 0,
-    minWidth: buttonWidth,
-  },
-  headerLeftContainerStyle: {
-    minWidth: buttonWidth,
-    flexGrow: 0,
-  },
   headerLeft: () => <Kb.HeaderLeftBlank />,
+  headerLeftContainerStyle: {
+    flexGrow: 0,
+    minWidth: buttonWidth,
+  },
   headerRight: () => <HeaderNewChatButton />,
+  headerRightContainerStyle: {
+    flexGrow: 0,
+    minWidth: buttonWidth,
+    paddingRight: 8,
+  },
   headerTitle: () => (
     <Kb.Text type="BodyBig" center={true}>
       Chats
@@ -183,8 +188,8 @@ const Connected = Container.connect(
     if (!showAllSmallRows) {
       smallTeams = smallTeams.slice(0, stateProps.inboxNumSmallRows)
     }
-    let smallRows = makeSmallRows(smallTeams, stateProps._selectedConversationIDKey)
-    let bigRows = makeBigRows(bigTeams, stateProps._selectedConversationIDKey)
+    const smallRows = makeSmallRows(smallTeams, stateProps._selectedConversationIDKey)
+    const bigRows = makeBigRows(bigTeams, stateProps._selectedConversationIDKey)
     const teamBuilder: Types.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
 
     const hasAllSmallTeamConvs =

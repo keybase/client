@@ -481,7 +481,7 @@ function* pollJournalFlushStatusUntilDone() {
   polling = true
   try {
     while (1) {
-      let {
+      const {
         syncingPaths,
         totalSyncingBytes,
         endEstimate,
@@ -511,8 +511,6 @@ function* pollJournalFlushStatusUntilDone() {
       ])
     }
   } finally {
-    // eslint is confused i think
-    // eslint-disable-next-line require-atomic-updates
     polling = false
     yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
     yield Saga.put(FsGen.createCheckKbfsDaemonRpcStatus())
@@ -706,7 +704,7 @@ const waitForKbfsDaemon = async () => {
     })
   } catch (_) {}
 
-  waitForKbfsDaemonInProgress = false // eslint-disable-line require-atomic-updates
+  waitForKbfsDaemonInProgress = false
   return FsGen.createCheckKbfsDaemonRpcStatus()
 }
 
@@ -890,6 +888,7 @@ const onPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPath
   if (clientIDFromNotification !== clientID) {
     return null
   }
+  /* eslint-disable-next-line */ // not smart enought to know all cases covered
   return topics?.map(topic => {
     switch (topic) {
       case RPCTypes.PathSubscriptionTopic.children:

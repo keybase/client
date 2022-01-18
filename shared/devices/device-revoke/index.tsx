@@ -55,8 +55,9 @@ const ActionButtons = ({onCancel, onSubmit}) => (
   </Kb.Box2>
 )
 
+// TODO could plumb that this is 1-10
 const getIcon = (deviceType: Types.DeviceType, iconNumber: number) => {
-  let iconType
+  let iconType: Kb.IconType
   const size = Styles.isMobile ? 64 : 48
   switch (deviceType) {
     case 'backup':
@@ -113,8 +114,8 @@ const DeviceRevoke = (props: Props) => (
 )
 
 DeviceRevoke.navigationOptions = {
-  title: '',
   headerLeft: HeaderLeftCancel,
+  title: '',
 }
 
 const styles = Styles.styleSheetCreate(

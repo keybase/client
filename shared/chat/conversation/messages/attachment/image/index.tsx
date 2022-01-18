@@ -296,12 +296,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      filename: {
-        backgroundColor: Styles.globalColors.fastBlank,
-      },
-      absoluteContainer: {
-        position: 'absolute',
-      },
+      absoluteContainer: {position: 'absolute'},
       backgroundContainer: {
         backgroundColor: Styles.globalColors.black_05_on_white,
         borderRadius: Styles.borderRadius,
@@ -349,9 +344,8 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: 3,
         paddingRight: 3,
       },
-      fileNameContainer: {
-        paddingRight: Styles.globalMargins.small,
-      },
+      fileNameContainer: {paddingRight: Styles.globalMargins.small},
+      filename: {backgroundColor: Styles.globalColors.fastBlank},
       image: {
         ...Styles.globalStyles.rounded,
         backgroundColor: Styles.globalColors.fastBlank,

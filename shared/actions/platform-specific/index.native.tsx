@@ -130,8 +130,8 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     // just in case to get their attention.
     isIOS &&
       PushNotificationIOS.addNotificationRequest({
-        id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
         body: `Failed to save ${saveType} to camera roll`,
+        id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
       })
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
@@ -580,8 +580,8 @@ const manageContactsCache = async (
     if (newlyResolved && newlyResolved.length) {
       isIOS &&
         PushNotificationIOS.addNotificationRequest({
-          id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
           body: PushConstants.makeContactsResolvedMessage(newlyResolved),
+          id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
         })
     }
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {

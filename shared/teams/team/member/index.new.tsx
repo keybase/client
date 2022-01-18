@@ -168,7 +168,7 @@ const TeamMember = (props: OwnProps) => {
 
   const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
 
-  const makeTitle = label => {
+  const makeTitle = (label: string) => {
     return (
       <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
         <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
@@ -816,8 +816,8 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   contentCollapsedFixedHeight: Styles.platformStyles({
-    common: { height: 48, },
-    isPhone: { height: 64, },
+    common: {height: 48},
+    isPhone: {height: 64},
   }),
   expandIcon: Styles.platformStyles({
     common: {
@@ -847,21 +847,21 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.white,
       paddingBottom: Styles.globalMargins.small,
     },
-    isElectron: { ...Styles.desktopStyles.windowDraggingClickable, },
-    isPhone: { paddingTop: Styles.globalMargins.small, },
-    isTablet: { paddingTop: Styles.globalMargins.small, },
+    isElectron: {...Styles.desktopStyles.windowDraggingClickable},
+    isPhone: {paddingTop: Styles.globalMargins.small},
+    isTablet: {paddingTop: Styles.globalMargins.small},
   }),
-  headerContent: { ...Styles.padding(0, Styles.globalMargins.small), },
+  headerContent: {...Styles.padding(0, Styles.globalMargins.small)},
   headerText: Styles.platformStyles({
-    common: { width: 127, },
-    isPhone: { flex: 1, },
+    common: {width: 127},
+    isPhone: {flex: 1},
   }),
   headerTextContainer: Styles.platformStyles({
     isPhone: {paddingBottom: Styles.globalMargins.tiny},
   }),
-  inviteButton: { minWidth: 56, },
+  inviteButton: {minWidth: 56},
   inviteTeamInfo: Styles.platformStyles({
-    common: { paddingLeft: Styles.globalMargins.small, },
+    common: {paddingLeft: Styles.globalMargins.small},
   }),
   membershipContentExpanded: Styles.platformStyles({
     common: {
@@ -874,16 +874,16 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   membershipExpanded: Styles.platformStyles({
-    isElectron: { paddingBottom: Styles.globalMargins.tiny, },
-    isTablet: { paddingBottom: Styles.globalMargins.tiny, },
+    isElectron: {paddingBottom: Styles.globalMargins.tiny},
+    isTablet: {paddingBottom: Styles.globalMargins.tiny},
   }),
   membershipIcon: {
     flexShrink: 0,
     paddingTop: Styles.globalMargins.xtiny,
   },
-  membershipTeamText: { justifyContent: 'center', },
+  membershipTeamText: {justifyContent: 'center'},
   membershipTeamTextExpanded: Styles.platformStyles({
-    isMobile: { paddingTop: Styles.globalMargins.tiny, },
+    isMobile: {paddingTop: Styles.globalMargins.tiny},
   }),
   mobileHeader: {
     backgroundColor: Styles.globalColors.white,
@@ -893,15 +893,16 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 0,
   },
   paddingBottomMobile: Styles.platformStyles({
-    isPhone: { paddingBottom: Styles.globalMargins.small, },
+    isPhone: {paddingBottom: Styles.globalMargins.small},
   }),
   reloadButton: {
     marginTop: Styles.globalMargins.tiny,
     minWidth: 56,
   },
-  roleButton: { paddingRight: 0, },
+  roleButton: {paddingRight: 0},
   roleButtonExpanded: Styles.platformStyles({
-    isElectron: { marginTop: 10, // does not exist as an official size
+    isElectron: {
+      marginTop: 10, // does not exist as an official size
     },
     isTablet: {
       marginTop: 10, // does not exist as an official size
@@ -909,14 +910,14 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   row: {paddingRight: Styles.globalMargins.small},
   rowCollapsedFixedHeight: Styles.platformStyles({
-    common: { height: 49, },
+    common: {height: 49},
     isPhone: {
       flexShrink: 0,
       height: 65,
     },
   }),
-  smallHeader: { ...Styles.padding(0, Styles.globalMargins.xlarge), },
-  teamNameLink: { color: Styles.globalColors.black, },
+  smallHeader: {...Styles.padding(0, Styles.globalMargins.xlarge)},
+  teamNameLink: {color: Styles.globalColors.black},
 }))
 
 export default TeamMember

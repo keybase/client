@@ -115,14 +115,14 @@ module.exports = {
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get HeaderLeftBlank() {
-    return require('./header-hoc').HeaderLeftBlank
-  },
   get HeaderHocHeader() {
     return require('./header-hoc').HeaderHocHeader
   },
   get HeaderHocWrapper() {
     return require('./header-hoc').HeaderHocWrapper
+  },
+  get HeaderLeftBlank() {
+    return require('./header-hoc').HeaderLeftBlank
   },
   get HotKey() {
     return require('./hot-key').HotKey

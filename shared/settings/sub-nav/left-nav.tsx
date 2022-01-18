@@ -9,8 +9,8 @@ import SettingsItem from './settings-item'
 import {keybaseFM} from '../../constants/whats-new'
 
 type Props = {
-  onClick: (string) => void
-  navigate: (string) => void
+  onClick: (s: string) => void
+  navigate: (s: string) => void
   selected: string
   contactsLabel?: string
 }
@@ -131,8 +131,8 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.blueGrey,
     },
     isElectron: {
-      paddingTop: Styles.globalMargins.small,
       height: '100%',
+      paddingTop: Styles.globalMargins.small,
     },
   }),
 }))

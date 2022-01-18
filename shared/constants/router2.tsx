@@ -6,6 +6,7 @@ import logger from '../logger'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import isEqual from 'lodash/isEqual'
+import {ConversationIDKey} from './types/chat2/common'
 
 export const navigationRef_ = createNavigationContainerRef()
 export const _getNavigator = () => {
@@ -211,13 +212,13 @@ export const getAppPath = () => {
   return findVisibleRoute([rs.routes[0]], root?.state)
 }
 
-export const navToThread = conversationIDKey => {
+export const navToThread = (conversationIDKey: ConversationIDKey) => {
   const rs: any = _getNavigator()?.getRootState() ?? {}
   const nextState: any = Container.produce(rs as any, draft => {
     // select tabs
     draft.index = 0
     // remove modals
-    draft.routes.length = 1 
+    draft.routes.length = 1
 
     const loggedInRoute = draft.routes[0]
     const loggedInTabs = loggedInRoute?.state.routes
@@ -231,9 +232,9 @@ export const navToThread = conversationIDKey => {
     chatStack.state.index = 1
     // key is required or you'll run into issues w/ the nav
     let convoRoute: any = {
+      key: `chatConversation-${conversationIDKey}`,
       name: 'chatConversation',
       params: {conversationIDKey},
-      key: `chatConversation-${conversationIDKey}`,
     }
     // reuse visible route if it's the same
     const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]

@@ -88,8 +88,8 @@ export const HeaderArea = Container.connect(
   },
   (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
     onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
-    onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
     onShowInfoPanel: () => dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true})),
+    onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
     onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
     unMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
   }),
@@ -141,8 +141,8 @@ const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}) => {
   return <HeaderLeftArrow badgeNumber={badgeNumber} {...rest} />
 }
 
-export const headerNavigationOptions = route => ({
-  headerLeft: props => (
+export const headerNavigationOptions = (route: any) => ({
+  headerLeft: (props: any) => (
     <BadgeHeaderLeftArray {...props} conversationIDKey={route.params?.conversationIDKey} />
   ),
   headerRight: () => <HeaderAreaRight conversationIDKey={route.params?.conversationIDKey} />,

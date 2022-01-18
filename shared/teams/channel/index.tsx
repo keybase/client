@@ -270,8 +270,8 @@ const Channel = (props: OwnProps) => {
 }
 Channel.navigationOptions = () => ({
   headerHideBorder: true,
-  underNotch: true,
   headerTitle: '',
+  underNotch: true,
 })
 
 const startAnimationOffset = 40

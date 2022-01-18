@@ -190,8 +190,8 @@ const styles = Styles.styleSheetCreate(
       },
       memo: Styles.platformStyles({
         isMobile: {
-          paddingRight: Styles.globalMargins.small,
           backgroundColor: Styles.globalColors.fastBlank,
+          paddingRight: Styles.globalMargins.small,
         },
       }),
       progressIndicator: Styles.platformStyles({
@@ -206,8 +206,8 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       purple: {
-        color: Styles.globalColors.purpleDark,
         backgroundColor: Styles.globalColors.fastBlank,
+        color: Styles.globalColors.purpleDark,
       },
       purpleOrWhite: {color: Styles.globalColors.purpleDarkOrWhite},
       tooltipText: Styles.platformStyles({
