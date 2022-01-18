@@ -36,7 +36,7 @@ if (isDebuggingInChrome) {
 //   Value,
 //   block: (_: any) => 0,
 //   event: (_: any) => {},
-//   createAnimatedComponent: f => f,
+//   createAnimatedComponent: (f: any) => f,
 //   greaterOrEq: (_: any) => {},
 //   startClock: (_: any) => {},
 //   stopClock: (_: any) => {},

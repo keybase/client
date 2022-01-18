@@ -269,9 +269,7 @@ class TeamBuilding extends React.PureComponent<Props> {
       modal2: true,
       modal2AvoidTabs: false,
       modal2ClearCover: false,
-      modal2Style: {
-        alignSelf: 'center',
-      },
+      modal2Style: {alignSelf: 'center'},
       modal2Type: 'DefaultFullHeight',
     }
 
@@ -815,7 +813,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
       },
       container: Styles.platformStyles({
-        common: { position: 'relative', },
+        common: {position: 'relative'},
       }),
       emptyContainer: Styles.platformStyles({
         common: {flex: 1},
@@ -854,7 +852,7 @@ const styles = Styles.styleSheetCreate(
         common: {paddingBottom: Styles.globalMargins.small},
       }),
       listContainer: Styles.platformStyles({
-        common: { position: 'relative', },
+        common: {position: 'relative'},
         isElectron: {flex: 1, height: '100%', overflow: 'hidden'},
         isMobile: {
           flexGrow: 1,
@@ -882,7 +880,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {flex: 1},
       }),
       newChatHeader: Styles.platformStyles({
-        isElectron: { margin: Styles.globalMargins.xsmall, },
+        isElectron: {margin: Styles.globalMargins.xsmall},
       }),
       noResults: {
         flex: 1,
