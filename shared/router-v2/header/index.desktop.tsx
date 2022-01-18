@@ -156,7 +156,7 @@ class DesktopHeader extends React.PureComponent<Props> {
     ] as const)
     const iconColor =
       opt.headerBackIconColor ||
-      (!!this.props.back
+      (this.props.back
         ? Styles.globalColors.black_50
         : this.props.loggedIn
         ? Styles.globalColors.black_10

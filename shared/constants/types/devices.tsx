@@ -40,3 +40,4 @@ export function stringToDeviceType(s: string): DeviceType {
 
 export const stringToDeviceID = (s: string): DeviceID => s
 export const deviceIDToString = (id: DeviceID): string => id
+export type IconNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10

@@ -8,7 +8,7 @@ import * as Styles from '../../styles'
 export type Props = {
   device: Types.Device
   endangeredTLFs: Array<string>
-  iconNumber: number
+  iconNumber: Types.IconNumber
   onCancel: () => void
   onSubmit: () => void
   waiting: boolean
@@ -55,8 +55,7 @@ const ActionButtons = ({onCancel, onSubmit}) => (
   </Kb.Box2>
 )
 
-// TODO could plumb that this is 1-10
-const getIcon = (deviceType: Types.DeviceType, iconNumber: number) => {
+const getIcon = (deviceType: Types.DeviceType, iconNumber: Types.IconNumber) => {
   let iconType: Kb.IconType
   const size = Styles.isMobile ? 64 : 48
   switch (deviceType) {

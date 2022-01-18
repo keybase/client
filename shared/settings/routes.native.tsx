@@ -29,8 +29,9 @@ export const newRoutes = {
   [Constants.contactsTab]: {
     getScreen: (): typeof ManageContactsTab => require('./manage-contacts.native').default,
   },
-  terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
+  // eslint-disable-next-line sort-keys
   privacyPolicy: {getScreen: (): typeof WebLink => require('./web-links.native').default},
+  terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
 }
 
 export const newModalRoutes = {
@@ -39,10 +40,10 @@ export const newModalRoutes = {
     getScreen: (): typeof CheckPassphraseMobile =>
       require('./delete-confirm/check-passphrase.native').default,
   },
-  settingsPushPrompt: {
-    getScreen: (): typeof PushPrompt => require('./notifications/push-prompt.native').default,
-  },
   settingsContactsJoined: {
     getScreen: (): typeof ContactsJoinedModal => require('./contacts-joined/index.native').default,
+  },
+  settingsPushPrompt: {
+    getScreen: (): typeof PushPrompt => require('./notifications/push-prompt.native').default,
   },
 }

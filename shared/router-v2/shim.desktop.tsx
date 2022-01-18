@@ -7,10 +7,10 @@ import * as Kb from '../common-adapters'
 export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
   Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
 
-const useMouseClick = (navigation, noClose) => {
-  const mouseResetValue = -9999
-  const mouseDistanceThreshold = 5
+const mouseResetValue = -9999
+const mouseDistanceThreshold = 5
 
+const useMouseClick = (navigation, noClose) => {
   const backgroundRef = React.useRef(null)
 
   // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
@@ -42,7 +42,7 @@ const useMouseClick = (navigation, noClose) => {
         navigation.pop()
       }
     },
-    [setMouseDownX, setMouseDownY, mouseDownX, mouseDownY, noClose]
+    [setMouseDownX, setMouseDownY, mouseDownX, mouseDownY, noClose, navigation]
   )
 
   return [backgroundRef, onMouseUp, onMouseDown] as const

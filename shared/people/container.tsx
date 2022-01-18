@@ -34,9 +34,9 @@ type Props = {
 
 export class LoadOnMount extends React.PureComponent<Props> {
   static navigationOptions = {
-    headerTitle: () => <ProfileSearch />,
-    headerRight: () => <HeaderAvatar />,
     headerLeft: () => <Kb.HeaderLeftBlank />,
+    headerRight: () => <HeaderAvatar />,
+    headerTitle: () => <ProfileSearch />,
   }
   _onReload = () => this.props.getData(false)
   _getData = (markViewed?: boolean) => this.props.getData(markViewed)

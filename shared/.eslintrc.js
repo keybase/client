@@ -49,7 +49,7 @@ module.exports = {
     'no-script-url': 'error',
     'no-self-compare': 'error',
     'no-sequences': 'error',
-    'no-shadow': 'warn',
+    'no-shadow': 'off',
     'no-unused-expressions': 'off',
     'no-use-before-define': 'off',
     'no-useless-return': 'off',

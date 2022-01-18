@@ -172,9 +172,12 @@ const TabBar = (props: Props) => {
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
   const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)
 
-  const onHotKey = React.useCallback((cmd: string) => {
-    navigation.navigate(keysMap[cmd])
-  }, [])
+  const onHotKey = React.useCallback(
+    (cmd: string) => {
+      navigation.navigate(keysMap[cmd])
+    },
+    [navigation]
+  )
 
   const onSelectTab = Common.useSubnavTabAction(navigation, state)
 
