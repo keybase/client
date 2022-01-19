@@ -32,7 +32,7 @@ type State = {
 }
 
 const normalHeight = 91
-const expandedHeight = Dimensions.get('window').height - 40 - normalHeight
+const expandedHeight = Dimensions.get('window').height
 
 class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
