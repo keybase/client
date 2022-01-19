@@ -17,45 +17,30 @@ import {formatDurationShort} from '../../../../util/timestamp'
 import {indefiniteArticle} from '../../../../util/string'
 import {isOpen} from '../../../../util/keyboard'
 import AudioRecorder from '../../../audio/audio-recorder.native'
-import {
-  AnimatedBox2,
-  AnimatedIcon,
-  AnimationState,
-  runToggle,
-  runRotateToggle,
-} from './platform-input-animation.native'
+import {AnimatedBox2, AnimatedIcon} from './platform-input-animation.native'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
 import {_getNavigator} from '../../../../constants/router2'
+import throttle from 'lodash/throttle'
+import {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated'
+import {Dimensions} from 'react-native'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 type State = {
-  animating: boolean // delayed due to setstate, updates after
-  afterAnimatingExtraStepWorkaround: boolean // used to twiddle height
   expanded: boolean
   hasText: boolean
 }
 
-const defaultMaxHeight = 145
-const {block, Value, Clock, add, concat} = Kb.ReAnimated
+const normalHeight = 91
+const expandedHeight = Dimensions.get('window').height - 40 - normalHeight
 
 class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
   private lastText?: string
   private whichMenu?: menuType
-  private clock = new Clock()
-  private animateState = new Value<AnimationState>(AnimationState.none)
-  private animateHeight = new Value<number>(defaultMaxHeight)
-  // if we should update lastHeight when onLayout happens
-  private watchSizeChanges = true
-  private lastHeight: undefined | number
-  private rotate = new Value<number>(0)
-  private rotateClock = new Clock()
 
   state = {
-    afterAnimatingExtraStepWorkaround: false,
-    animating: false,
-    expanded: false, // updates immediately, used for the icon etc
+    expanded: false,
     hasText: false,
   }
 
@@ -130,7 +115,6 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     }
     this.lastText = text
     this.props.onChangeText(text)
-    this.watchSizeChanges = true
   }
 
   private onSubmit = () => {
@@ -154,12 +138,10 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     const {nativeEvent} = p
     const {layout} = nativeEvent
     const {height} = layout
-    if (this.watchSizeChanges) {
-      this.lastHeight = height
-      this.animateHeight.setValue(height)
-    }
-    this.props.setHeight(height)
+    this.setHeightThrottled(height)
   }
+
+  private setHeightThrottled = throttle((h: number) => this.props.setHeight(h))
 
   private insertText = (toInsert: string) => {
     if (this.input) {
@@ -214,80 +196,24 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     )
   }
 
-  private onDone = () => {
-    if (this.state.animating) {
-      this.setState({animating: false}, () => {
-        this.setState(state =>
-          state.afterAnimatingExtraStepWorkaround ? {afterAnimatingExtraStepWorkaround: false} : null
-        )
-      })
-    }
-  }
-
   private toggleExpandInput = () => {
-    this.watchSizeChanges = false
-    // eslint-disable-next-line react/no-access-state-in-setstate
     const nextState = !this.state.expanded
-    this.setState({afterAnimatingExtraStepWorkaround: true, expanded: nextState}, () =>
-      this.props.onExpanded(nextState)
-    )
-    this.setState({animating: true}, () => {
-      this.animateState.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
-    })
+    this.setState({expanded: nextState})
+    this.props.onExpanded(nextState)
   }
 
   render() {
     const {suggestionsVisible, onCancelEditing, isEditing} = this.props
-    const {conversationIDKey, cannotWrite, onBlur, onFocus, onSelectionChange, maxInputArea} = this.props
+    const {conversationIDKey, cannotWrite, onBlur, onFocus, onSelectionChange} = this.props
     const {isExploding, explodingModeSeconds, showTypingStatus} = this.props
 
     return (
-      <AnimatedBox2
-        direction="vertical"
-        onLayout={this.onLayout}
-        fullWidth={true}
-        style={[
-          {
-            flexShrink: 1,
-            minHeight: 0,
-          },
-          this.state.expanded || this.state.animating
-            ? {height: this.animateHeight, maxHeight: 9999}
-            : // workaround auto height not working?
-            this.state.afterAnimatingExtraStepWorkaround
-            ? {
-                height: this.lastHeight,
-                maxHeight: defaultMaxHeight,
-              }
-            : {height: undefined, maxHeight: defaultMaxHeight},
-        ]}
-      >
-        <Kb.ReAnimated.Code>
-          {() => block([runRotateToggle(this.rotateClock, this.animateState, this.rotate)])}
-        </Kb.ReAnimated.Code>
-        <Kb.ReAnimated.Code key={this.lastHeight}>
-          {() =>
-            block([
-              runToggle(
-                this.clock,
-                this.animateState,
-                this.animateHeight,
-                this.lastHeight,
-                maxInputArea ?? Styles.dimensionHeight,
-                this.onDone
-              ),
-            ])
-          }
-        </Kb.ReAnimated.Code>
+      <AnimatedContainer expanded={this.state.expanded} onLayout={this.onLayout}>
         {this.getMenu()}
         {showTypingStatus && !suggestionsVisible && <Typing conversationIDKey={conversationIDKey} />}
         <Kb.Box2
           direction="vertical"
-          style={Styles.collapseStyles([
-            styles.container,
-            isExploding && styles.explodingContainer,
-            (this.state.expanded || this.state.animating) && {height: '100%', minHeight: 0},
-          ])}
+          style={Styles.collapseStyles([styles.container, isExploding && styles.explodingContainer])}
           fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
@@ -308,7 +234,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
               textType="Body"
               rowsMin={1}
             />
-            <AnimatedExpand expandInput={this.toggleExpandInput} rotate={this.rotate} />
+            <AnimatedExpand expanded={this.state.expanded} expandInput={this.toggleExpandInput} />
           </Kb.Box2>
           <Buttons
             conversationIDKey={conversationIDKey}
@@ -327,9 +253,25 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
             onCancelEditing={onCancelEditing}
           />
         </Kb.Box2>
-      </AnimatedBox2>
+      </AnimatedContainer>
     )
   }
+}
+
+const AnimatedContainer = ({children, expanded, onLayout}) => {
+  const offset = useSharedValue(expanded ? 1 : 0)
+  const as = useAnimatedStyle(() => ({
+    maxHeight: withTiming(offset.value ? expandedHeight : normalHeight),
+  }))
+  React.useEffect(() => {
+    offset.value = expanded ? 1 : 0
+  }, [expanded, offset])
+
+  return (
+    <AnimatedBox2 direction="vertical" onLayout={onLayout} fullWidth={true} style={as}>
+      {children}
+    </AnimatedBox2>
+  )
 }
 
 type ButtonsProps = Pick<
@@ -430,37 +372,44 @@ const Buttons = (p: ButtonsProps) => {
   )
 }
 
-const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value<number>}) => {
-  const {expandInput, rotate} = p
+const AnimatedExpand = React.memo((p: {expandInput: () => void; expanded: boolean}) => {
+  const {expandInput, expanded} = p
+  const offset = useSharedValue(expanded ? 1 : 0)
+  const topStyle = useAnimatedStyle(() => ({
+    // @ts-ignore
+    transform: [{rotate: withTiming(`${offset.value ? 45 : 45 + 180}deg`)}, {scale: 0.7}],
+  }))
+  const bottomStyle = useAnimatedStyle(() => ({
+    // @ts-ignore
+    transform: [{rotate: withTiming(`${offset.value ? 45 : 45 + 180}deg`)}, {scaleX: -0.7}, {scaleY: -0.7}],
+  }))
+  React.useEffect(() => {
+    offset.value = expanded ? 1 : 0
+  }, [expanded, offset])
+
   return (
     <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconTop}>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconTop} pointerEvents="none">
         <AnimatedIcon
-          fixOverdraw={true}
-          onClick={expandInput}
+          fixOverdraw={false}
           type="iconfont-arrow-full-up"
           fontSize={18}
-          style={{
-            transform: [{rotate: concat(add(45, rotate), 'deg')}, {scale: 0.7}],
-          }}
+          style={topStyle}
           color={Styles.globalColors.black_35}
         />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom}>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom} pointerEvents="none">
         <AnimatedIcon
-          fixOverdraw={true}
-          onClick={expandInput}
+          fixOverdraw={false}
           type="iconfont-arrow-full-up"
           fontSize={18}
-          style={{
-            transform: [{rotate: concat(add(45, rotate), 'deg')}, {scaleX: -0.7}, {scaleY: -0.7}],
-          }}
+          style={bottomStyle}
           color={Styles.globalColors.black_35}
         />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
-}
+})
 
 const PlatformInput = AddSuggestors(_PlatformInput)
 
@@ -477,9 +426,7 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.fastBlank,
         borderTopColor: Styles.globalColors.black_10,
         borderTopWidth: 1,
-        flexGrow: 1,
-        flexShrink: 1,
-        maxHeight: '100%',
+        height: '100%',
         minHeight: 1,
         overflow: 'hidden',
         ...Styles.padding(0, 0, Styles.globalMargins.tiny, 0),
