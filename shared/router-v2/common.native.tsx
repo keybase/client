@@ -9,6 +9,13 @@ export const headerDefaultStyle = {
     return Styles.globalColors.fastBlank
   },
 }
+
+export const tabBarStyle = {
+  get backgroundColor() {
+    return Styles.globalColors.blueDarkOrGreyDarkest
+  },
+}
+
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && false
 

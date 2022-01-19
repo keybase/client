@@ -8,6 +8,11 @@ import {TabActions} from '@react-navigation/core'
 export const headerDefaultStyle = {
   height: 80,
 }
+export const tabBarStyle = {
+  get backgroundColor() {
+    return Styles.globalColors.blueDarkOrGreyDarkest
+  },
+}
 const actionWidth = 64
 export const defaultNavigationOptions: any = {
   header: (p: any) => <Header {...p} />,

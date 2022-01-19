@@ -8,12 +8,30 @@ import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import {headerNavigationOptions} from './header-area/container'
+import {useFocusEffect, useNavigation} from '@react-navigation/core'
+import {tabBarStyle} from '../../router-v2/common'
 
 type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 
 type SwitchProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
+const hideTabBarStyle = {display: 'none'}
 
-let Conversation = (p: SwitchProps) => {
+const Conversation = (p: SwitchProps) => {
+  const navigation = useNavigation()
+  let tabNav: any = navigation.getParent()
+  if (tabNav?.getState()?.type !== 'tab') {
+    tabNav = undefined
+  }
+
+  useFocusEffect(
+    React.useCallback(() => {
+      tabNav && tabNav.setOptions({tabBarStyle: hideTabBarStyle})
+      return () => {
+        tabNav && tabNav.setOptions({tabBarStyle})
+      }
+    }, [tabNav])
+  )
+
   const conversationIDKey = Container.getRouteProps(p, 'conversationIDKey', Constants.noConversationIDKey)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
 

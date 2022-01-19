@@ -8,9 +8,9 @@ import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterLinking from './router-linking.native'
-import {defaultNavigationOptions} from './common.native'
+import * as Common from './common.native'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
-import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
+import {NavigationContainer} from '@react-navigation/native'
 import {TransitionPresets} from '@react-navigation/stack'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
@@ -133,7 +133,7 @@ const makeTabStack = (tab: string) => {
   if (!Comp) {
     const S = createNoDupeStackNavigator()
     Comp = React.memo(
-      ({navigation, route}: any) => {
+      ({navigation}: any) => {
         const dispatch = Container.useDispatch()
         React.useEffect(() => {
           const unsubscribe = navigation.addListener('tabLongPress', () => {
@@ -141,16 +141,11 @@ const makeTabStack = (tab: string) => {
           })
           return unsubscribe
         }, [navigation, dispatch])
-        React.useLayoutEffect(() => {
-          const routeName = getFocusedRouteNameFromRoute(route)
-          const hideTabs = routeName === 'chatConversation'
-          navigation.setOptions({tabBarStyle: hideTabs ? {display: 'none'} : tabBarStyle})
-        }, [navigation, route])
         return (
           <S.Navigator
             initialRouteName={tabRoots[tab]}
             screenOptions={{
-              ...defaultNavigationOptions,
+              ...Common.defaultNavigationOptions,
               transitionSpec: {
                 close: fastTransitionSpec,
                 open: fastTransitionSpec,
@@ -211,12 +206,6 @@ const makeNavScreens = (rs, Screen, isModal) => {
   })
 }
 
-const tabBarStyle = {
-  get backgroundColor() {
-    return Styles.globalColors.blueDarkOrGreyDarkest
-  },
-}
-
 const AppTabs = React.memo(
   () => {
     return (
@@ -224,7 +213,7 @@ const AppTabs = React.memo(
         backBehavior="none"
         screenOptions={({route}) => {
           return {
-            ...defaultNavigationOptions,
+            ...Common.defaultNavigationOptions,
             headerShown: false,
             tabBarActiveBackgroundColor: Styles.globalColors.transparent,
             tabBarHideOnKeyboard: true,
@@ -248,7 +237,7 @@ const AppTabs = React.memo(
               </Kb.Text>
             ),
             tabBarShowLabel: Styles.isTablet,
-            tabBarStyle,
+            tabBarStyle: Common.tabBarStyle,
           }
         }}
       >

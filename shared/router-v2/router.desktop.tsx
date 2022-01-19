@@ -50,12 +50,6 @@ const makeNavScreens = (rs, Screen, _isModal: boolean) => {
   })
 }
 
-const tabBarStyle = {
-  get backgroundColor() {
-    return Styles.globalColors.blueDarkOrGreyDarkest
-  },
-}
-
 const AppTabs = () => {
   return (
     <Tab.Navigator
@@ -69,7 +63,7 @@ const AppTabs = () => {
           tabBarHideOnKeyboard: true,
           tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
           tabBarShowLabel: Styles.isTablet,
-          tabBarStyle,
+          tabBarStyle: Common.tabBarStyle,
         }
       }}
     >
