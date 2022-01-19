@@ -609,8 +609,14 @@ export const styles = Styles.styleSheetCreate(() => ({
   followTabSelected: {
     borderBottomColor: Styles.globalColors.blue,
   },
-  followTabText: {color: Styles.globalColors.black_50},
-  followTabTextSelected: {color: Styles.globalColors.black},
+  followTabText: Styles.platformStyles({
+    common: {color: Styles.globalColors.black_50},
+    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+  }),
+  followTabTextSelected: Styles.platformStyles({
+    common: {color: Styles.globalColors.black},
+    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+  }),
   friendRow: Styles.platformStyles({
     common: {
       maxWidth: '100%',

@@ -63,7 +63,13 @@ export const TeamMember = (props: Props) => {
   const iconType = user.type && roleIconMap[user.type]
   useCloseIfNoLongerInTeam(user.type)
   return (
-    <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
+    <Kb.Box
+      style={{
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        flex: 1,
+      }}
+    >
       {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
       <Kb.Box
         style={{

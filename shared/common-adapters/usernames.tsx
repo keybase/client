@@ -170,6 +170,7 @@ UsernameText.defaultProps = {
 const inlineProps = Styles.isMobile ? {lineClamp: 1 as const} : {}
 
 const _Usernames = (props: Props) => {
+  const styleContext = React.useContext(Styles.StyleContext)
   const containerStyle: Styles.StylesCrossPlatform = props.inline
     ? (styles.inlineStyle as any)
     : (styles.nonInlineStyle as any)
@@ -227,6 +228,7 @@ const _Usernames = (props: Props) => {
     <Text
       type={props.type}
       negative={isNegative}
+      fixOverdraw={styleContext.canFixOverdraw}
       style={Styles.collapseStyles([containerStyle, props.containerStyle])}
       title={props.title}
       ellipsizeMode="tail"
@@ -292,21 +294,15 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   } as const),
   joinerStyle: Styles.platformStyles({
-    isElectron: {
-      textDecoration: 'none',
-    },
+    isElectron: {textDecoration: 'none'},
   } as const),
-  kerning: {
-    letterSpacing: 0.2,
-  },
+  kerning: {letterSpacing: 0.2},
   nonInlineStyle: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
       flexWrap: 'wrap',
     },
-    isElectron: {
-      textDecoration: 'inherit',
-    },
+    isElectron: {textDecoration: 'inherit'},
   } as const),
 }))
 
