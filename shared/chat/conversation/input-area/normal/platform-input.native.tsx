@@ -377,11 +377,11 @@ const AnimatedExpand = React.memo((p: {expandInput: () => void; expanded: boolea
   const offset = useSharedValue(expanded ? 1 : 0)
   const topStyle = useAnimatedStyle(() => ({
     // @ts-ignore
-    transform: [{rotate: withTiming(`${offset.value ? 45 : 45 + 180}deg`)}, {scale: 0.7}],
+    transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.7}],
   }))
   const bottomStyle = useAnimatedStyle(() => ({
     // @ts-ignore
-    transform: [{rotate: withTiming(`${offset.value ? 45 : 45 + 180}deg`)}, {scaleX: -0.7}, {scaleY: -0.7}],
+    transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scaleX: -0.7}, {scaleY: -0.7}],
   }))
   React.useEffect(() => {
     offset.value = expanded ? 1 : 0
