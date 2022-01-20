@@ -66,8 +66,8 @@ export default Container.connect(
   },
   (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
     onHideConversation: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
-    onMuteConversation: (isMuted: boolean) =>
-      dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted})),
+    onMuteConversation: (muted: boolean) =>
+      dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted})),
     onSelectConversation: () =>
       dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'})),
   }),
