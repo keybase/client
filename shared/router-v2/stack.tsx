@@ -47,6 +47,10 @@ const NoDupeStackRouter = options => {
         case 'NAVIGATE': // fallthrough
         case 'PUSH': {
           const s = router.getStateForAction(state, action, options)
+          // not handled by us
+          if (!s) {
+            return s
+          }
           if (state.routes.length + 1 === s?.routes?.length) {
             const oldLast = state.routes[state.routes.length - 1]
             const newLast = s?.routes?.[s?.routes?.length - 1]

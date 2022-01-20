@@ -19,9 +19,10 @@ import {isOpen} from '../../../../util/keyboard'
 import AudioRecorder from '../../../audio/audio-recorder.native'
 import {AnimatedIcon} from './platform-input-animation.native'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
-import {_getNavigator} from '../../../../constants/router2'
 import throttle from 'lodash/throttle'
 import {useSharedValue, useAnimatedStyle, withTiming} from '../../../../common-adapters/reanimated'
+
+const SKIP_ANIM = __DEV__ && false
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -263,19 +264,27 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
   }
 }
 
-const AnimatedPlainInput = Kb.ReAnimated.createAnimatedComponent(Kb.PlainInput)
-const AnimatedInput = React.forwardRef<any, any>((p: any, ref) => {
-  const {expanded, ...rest} = p
-  const offset = useSharedValue(expanded ? 1 : 0)
-  const as = useAnimatedStyle(() => ({
-    maxHeight: withTiming(offset.value ? 9999 : threeLineHeight),
-    minHeight: withTiming(offset.value ? expandedHeight : singleLineHeight),
-  }))
-  React.useEffect(() => {
-    offset.value = expanded ? 1 : 0
-  }, [expanded, offset])
-  return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style, as]} />
-})
+const AnimatedInput = (() => {
+  if (SKIP_ANIM) {
+    return React.forwardRef<any, any>((p: any, ref) => {
+      return null
+    })
+  } else {
+    const AnimatedPlainInput = Kb.ReAnimated.createAnimatedComponent(Kb.PlainInput)
+    return React.forwardRef<any, any>((p: any, ref) => {
+      const {expanded, ...rest} = p
+      const offset = useSharedValue(expanded ? 1 : 0)
+      const as = useAnimatedStyle(() => ({
+        maxHeight: withTiming(offset.value ? 9999 : threeLineHeight),
+        minHeight: withTiming(offset.value ? expandedHeight : singleLineHeight),
+      }))
+      React.useEffect(() => {
+        offset.value = expanded ? 1 : 0
+      }, [expanded, offset])
+      return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style, as]} />
+    })
+  }
+})()
 
 type ButtonsProps = Pick<
   PlatformInputPropsInternal,
@@ -375,44 +384,56 @@ const Buttons = (p: ButtonsProps) => {
   )
 }
 
-const AnimatedExpand = React.memo((p: {expandInput: () => void; expanded: boolean}) => {
-  const {expandInput, expanded} = p
-  const offset = useSharedValue(expanded ? 1 : 0)
-  const topStyle: any = useAnimatedStyle(() => ({
-    // @ts-ignore
-    transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.7}],
-  }))
-  const bottomStyle: any = useAnimatedStyle(() => ({
-    // @ts-ignore
-    transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scaleX: -0.7}, {scaleY: -0.7}],
-  }))
-  React.useEffect(() => {
-    offset.value = expanded ? 1 : 0
-  }, [expanded, offset])
+const AnimatedExpand = (() => {
+  if (SKIP_ANIM) {
+    return React.memo(() => {
+      return null
+    })
+  } else {
+    return React.memo((p: {expandInput: () => void; expanded: boolean}) => {
+      const {expandInput, expanded} = p
+      const offset = useSharedValue(expanded ? 1 : 0)
+      const topStyle: any = useAnimatedStyle(() => ({
+        // @ts-ignore
+        transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.7}],
+      }))
+      const bottomStyle: any = useAnimatedStyle(() => ({
+        // @ts-ignore
+        transform: [
+          {rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)},
+          {scaleX: -0.7},
+          {scaleY: -0.7},
+        ],
+      }))
+      React.useEffect(() => {
+        offset.value = expanded ? 1 : 0
+      }, [expanded, offset])
 
-  return (
-    <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconTop} pointerEvents="none">
-        <AnimatedIcon
-          fixOverdraw={false}
-          type="iconfont-arrow-full-up"
-          fontSize={18}
-          style={topStyle}
-          color={Styles.globalColors.black_35}
-        />
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom} pointerEvents="none">
-        <AnimatedIcon
-          fixOverdraw={false}
-          type="iconfont-arrow-full-up"
-          fontSize={18}
-          style={bottomStyle}
-          color={Styles.globalColors.black_35}
-        />
-      </Kb.Box2>
-    </Kb.ClickableBox>
-  )
-})
+      return (
+        <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
+          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconTop} pointerEvents="none">
+            <AnimatedIcon
+              fixOverdraw={false}
+              type="iconfont-arrow-full-up"
+              fontSize={18}
+              style={topStyle}
+              color={Styles.globalColors.black_35}
+            />
+          </Kb.Box2>
+          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom} pointerEvents="none">
+            <AnimatedIcon
+              fixOverdraw={false}
+              type="iconfont-arrow-full-up"
+              fontSize={18}
+              style={bottomStyle}
+              color={Styles.globalColors.black_35}
+            />
+          </Kb.Box2>
+        </Kb.ClickableBox>
+      )
+    })
+  }
+})()
 
 const PlatformInput = AddSuggestors(_PlatformInput)
 

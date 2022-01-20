@@ -120,7 +120,11 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       }
 
       if (action.payload.replace) {
-        return [StackActions.replace(routeName, params)]
+        if (visible?.name === routeName) {
+          return [CommonActions.setParams(params)]
+        } else {
+          return [StackActions.replace(routeName, params)]
+        }
       }
 
       return [StackActions.push(routeName, params)]
