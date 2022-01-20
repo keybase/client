@@ -1,6 +1,7 @@
 import {isDebuggingInChrome} from '../constants/platform'
-// when reanimated is on you can't use the chrome debugger
+// when reanimated is on you can't use the chrome debugger currently
 // comment this out and use the mock if you want to stub out reanimated
+// you might have to disable the babel plugin for reanimated also
 import ReAnimated, {Easing as ReAnimatedEasing} from 'react-native-reanimated'
 export {ReAnimated, ReAnimatedEasing}
 export * from 'react-native-reanimated'
@@ -52,7 +53,9 @@ if (isDebuggingInChrome) {
 //   stopClock: (_: any) => {},
 //   timing: (_: any, __: any, ___: any) => {},
 // }
-
+// export const useSharedValue = (a: any) => ({value: a})
+// export const useAnimatedStyle = (f: () => Object) => f()
+// export const withTiming = (a: any) => a
 // export const ReAnimatedEasing = (_: any) => {}
 // export const EasingNode = {
 //   ease: (_: any) => 0,

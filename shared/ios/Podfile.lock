@@ -14,6 +14,8 @@ PODS:
     - ExpoModulesCore
   - EXErrorRecovery (3.0.4):
     - ExpoModulesCore
+  - EXFileSystem (13.1.0):
+    - ExpoModulesCore
   - EXFont (10.0.4):
     - ExpoModulesCore
   - EXImageLoader (3.1.0):
@@ -411,6 +413,7 @@ DEPENDENCIES:
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXContacts (from `../node_modules/expo-contacts/ios`)
   - EXErrorRecovery (from `../node_modules/expo-error-recovery/ios`)
+  - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - EXImagePicker (from `../node_modules/expo-image-picker/ios`)
@@ -495,6 +498,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-contacts/ios"
   EXErrorRecovery:
     :path: "../node_modules/expo-error-recovery/ios"
+  EXFileSystem:
+    :path: "../node_modules/expo-file-system/ios"
   EXFont:
     :path: "../node_modules/expo-font/ios"
   EXImageLoader:
@@ -620,6 +625,7 @@ SPEC CHECKSUMS:
   EXConstants: 5d18484e38e8eacef7695a82214b6ac90133dedf
   EXContacts: dc86ef0069dad7fa89096d6023b292047c5f7210
   EXErrorRecovery: deea88a01d38f8b1c1181b4e1d179b0ba0e4bb5b
+  EXFileSystem: 7d1309ba6b38b82ef7fc9e80174de3f9184ac8b4
   EXFont: 1fb13af43dc517c01c0ff21a6e32f9f9bf2ea602
   EXImageLoader: df83442d32bcfb57b7cfc5690096b6caf8203f8d
   EXImagePicker: 91337b8d57a0a8f56800b9ac0f2b2f10aecf88ce

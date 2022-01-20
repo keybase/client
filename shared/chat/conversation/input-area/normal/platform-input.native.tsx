@@ -17,12 +17,11 @@ import {formatDurationShort} from '../../../../util/timestamp'
 import {indefiniteArticle} from '../../../../util/string'
 import {isOpen} from '../../../../util/keyboard'
 import AudioRecorder from '../../../audio/audio-recorder.native'
-import {AnimatedBox2, AnimatedIcon} from './platform-input-animation.native'
+import {AnimatedIcon} from './platform-input-animation.native'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
 import {_getNavigator} from '../../../../constants/router2'
 import throttle from 'lodash/throttle'
-import {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated'
-import {Dimensions} from 'react-native'
+import {useSharedValue, useAnimatedStyle, withTiming} from '../../../../common-adapters/reanimated'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -31,8 +30,13 @@ type State = {
   hasText: boolean
 }
 
-const normalHeight = 91
-const expandedHeight = Dimensions.get('window').height
+// to simplify the animation we just go to a fixed size. We could bring back the old behavior later
+const singleLineHeight = 36
+const threeLineHeight = 78
+const keyboardHeight = 320 // an overestimate
+const headerHeight = 88
+const inputAreaHeight = 91
+const expandedHeight = Styles.dimensionHeight - keyboardHeight - headerHeight - inputAreaHeight
 
 class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
@@ -208,7 +212,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     const {isExploding, explodingModeSeconds, showTypingStatus} = this.props
 
     return (
-      <AnimatedContainer expanded={this.state.expanded} onLayout={this.onLayout}>
+      <Kb.Box2 direction="vertical" fullWidth={true} onLayout={this.onLayout}>
         {this.getMenu()}
         {showTypingStatus && !suggestionsVisible && <Typing conversationIDKey={conversationIDKey} />}
         <Kb.Box2
@@ -217,7 +221,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
           fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
-            <Kb.PlainInput
+            <AnimatedInput
               autoCorrect={true}
               autoCapitalize="sentences"
               disabled={cannotWrite ?? false}
@@ -233,6 +237,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
               style={styles.input}
               textType="Body"
               rowsMin={1}
+              expanded={this.state.expanded}
             />
             <AnimatedExpand expanded={this.state.expanded} expandInput={this.toggleExpandInput} />
           </Kb.Box2>
@@ -253,26 +258,24 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
             onCancelEditing={onCancelEditing}
           />
         </Kb.Box2>
-      </AnimatedContainer>
+      </Kb.Box2>
     )
   }
 }
 
-const AnimatedContainer = ({children, expanded, onLayout}) => {
+const AnimatedPlainInput = Kb.ReAnimated.createAnimatedComponent(Kb.PlainInput)
+const AnimatedInput = React.forwardRef<any, any>((p: any, ref) => {
+  const {expanded, ...rest} = p
   const offset = useSharedValue(expanded ? 1 : 0)
   const as = useAnimatedStyle(() => ({
-    maxHeight: withTiming(offset.value ? expandedHeight : normalHeight),
+    maxHeight: withTiming(offset.value ? 9999 : threeLineHeight),
+    minHeight: withTiming(offset.value ? expandedHeight : singleLineHeight),
   }))
   React.useEffect(() => {
     offset.value = expanded ? 1 : 0
   }, [expanded, offset])
-
-  return (
-    <AnimatedBox2 direction="vertical" onLayout={onLayout} fullWidth={true} style={as}>
-      {children}
-    </AnimatedBox2>
-  )
-}
+  return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style, as]} />
+})
 
 type ButtonsProps = Pick<
   PlatformInputPropsInternal,
@@ -375,11 +378,11 @@ const Buttons = (p: ButtonsProps) => {
 const AnimatedExpand = React.memo((p: {expandInput: () => void; expanded: boolean}) => {
   const {expandInput, expanded} = p
   const offset = useSharedValue(expanded ? 1 : 0)
-  const topStyle = useAnimatedStyle(() => ({
+  const topStyle: any = useAnimatedStyle(() => ({
     // @ts-ignore
     transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.7}],
   }))
-  const bottomStyle = useAnimatedStyle(() => ({
+  const bottomStyle: any = useAnimatedStyle(() => ({
     // @ts-ignore
     transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scaleX: -0.7}, {scaleY: -0.7}],
   }))
@@ -426,7 +429,6 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.fastBlank,
         borderTopColor: Styles.globalColors.black_10,
         borderTopWidth: 1,
-        height: '100%',
         minHeight: 1,
         overflow: 'hidden',
         ...Styles.padding(0, 0, Styles.globalMargins.tiny, 0),
