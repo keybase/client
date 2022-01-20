@@ -16,6 +16,10 @@ type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rek
 type SwitchProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 const hideTabBarStyle = {display: 'none'}
 
+// due to timing issues if we go between convos we can 'lose track' of focus in / out
+// so instead we keep a count and only bring back the tab if we're entirely gone
+let focusRefCount = 0
+
 const Conversation = (p: SwitchProps) => {
   const navigation = useNavigation()
   let tabNav: any = navigation.getParent()
@@ -25,9 +29,13 @@ const Conversation = (p: SwitchProps) => {
 
   useFocusEffect(
     React.useCallback(() => {
+      ++focusRefCount
       tabNav && tabNav.setOptions({tabBarStyle: hideTabBarStyle})
       return () => {
-        tabNav && tabNav.setOptions({tabBarStyle})
+        --focusRefCount
+        if (focusRefCount === 0) {
+          tabNav && tabNav.setOptions({tabBarStyle})
+        }
       }
     }, [tabNav])
   )
