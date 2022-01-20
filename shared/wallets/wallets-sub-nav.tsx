@@ -5,7 +5,7 @@ import * as React from 'react'
 import type AccountReloaderType from './common/account-reloader'
 import type WalletListType from './wallet-list/container'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
-import {createStackNavigator} from '@react-navigation/stack'
+import createNoDupeStackNavigator from '../router-v2/stack'
 import {RoutedOnboarding} from './onboarding/container'
 import * as Shim from '../router-v2/shim'
 import Wallet from './wallet/container'
@@ -39,8 +39,8 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
   const {state, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
-    screenOptions,
     initialRouteName,
+    screenOptions,
   })
 
   return (
@@ -88,7 +88,7 @@ const WalletSubNavigator = () => (
         getComponent={walletSubRoutes[name].getScreen}
         options={({route, navigation}) => {
           const no = walletSubRoutes[name].getScreen().navigationOptions
-          const opt = typeof no === 'function' ? no({route, navigation}) : no
+          const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}
       />
@@ -96,7 +96,7 @@ const WalletSubNavigator = () => (
   </TabNavigator.Navigator>
 )
 
-const RootStack = createStackNavigator()
+const RootStack = createNoDupeStackNavigator()
 
 const WalletsRootNav = () => {
   const acceptedDisclaimer = Container.useSelector(state => state.wallets.acceptedDisclaimer)
@@ -114,16 +114,16 @@ const WalletsRootNav = () => {
             headerTitle: () => <HeaderTitle />,
             ...(Container.isTablet
               ? {
+                  headerLeftContainerStyle: {maxWidth: 0},
+                  headerRightContainerStyle: {maxWidth: 0},
+                  headerStyle: {height: 60},
                   headerTitleContainerStyle: {
                     ...Common.defaultNavigationOptions.headerTitleContainerStyle,
                     alignSelf: 'stretch',
                     marginHorizontal: 0,
-                    maxWidth: 9999,
                     marginRight: 8,
+                    maxWidth: 9999,
                   },
-                  headerStyle: {height: 60},
-                  headerLeftContainerStyle: {maxWidth: 0},
-                  headerRightContainerStyle: {maxWidth: 0},
                 }
               : {}),
           }}
@@ -132,7 +132,7 @@ const WalletsRootNav = () => {
         <RootStack.Screen
           name="onboarding"
           component={RoutedOnboarding}
-          options={{headerTitle: '', header: () => null}}
+          options={{header: () => null, headerTitle: ''}}
         />
       )}
     </RootStack.Navigator>
@@ -140,8 +140,8 @@ const WalletsRootNav = () => {
 }
 
 WalletsRootNav.navigationOptions = {
-  headerTitle: '',
   header: () => null,
+  headerTitle: '',
 }
 
 export default WalletsRootNav

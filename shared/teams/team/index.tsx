@@ -173,22 +173,24 @@ const Team = (props: Props) => {
   )
 
   return (
-    <Kb.Box style={styles.container}>
-      <SectionList
-        renderSectionHeader={renderSectionHeader}
-        stickySectionHeadersEnabled={Styles.isMobile}
-        sections={sections}
-        contentContainerStyle={styles.listContentContainer}
-        style={styles.list}
-        onScroll={onScroll.current}
-      />
-      <SelectionPopup
-        selectedTab={
-          selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
-        }
-        teamID={teamID}
-      />
-    </Kb.Box>
+    <Styles.StyleContext.Provider value={{canFixOverdraw: false}}>
+      <Kb.Box style={styles.container}>
+        <SectionList
+          renderSectionHeader={renderSectionHeader}
+          stickySectionHeadersEnabled={Styles.isMobile}
+          sections={sections}
+          contentContainerStyle={styles.listContentContainer}
+          style={styles.list}
+          onScroll={onScroll.current}
+        />
+        <SelectionPopup
+          selectedTab={
+            selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
+          }
+          teamID={teamID}
+        />
+      </Kb.Box>
+    </Styles.StyleContext.Provider>
   )
 }
 

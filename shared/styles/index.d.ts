@@ -1,4 +1,5 @@
 // Styles from our designers
+import * as React from 'react'
 import * as CSS from './css'
 export {default as globalColors} from './colors'
 
@@ -120,7 +121,6 @@ export declare function padding(
   paddingLeft: number
 }
 
-export declare const styledCss: any
 export declare const styledKeyframes: any
 export declare const isAndroid: boolean
 export declare const isIOS: boolean
@@ -146,3 +146,4 @@ export {
 } from './css'
 export {default as classNames} from 'classnames'
 export {default as styled} from '@emotion/styled'
+export declare const StyleContext: React.Context<{canFixOverdraw: boolean}>

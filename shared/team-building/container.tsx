@@ -216,8 +216,8 @@ const makeDebouncedSearch = (time: number) =>
       service: Types.ServiceIdWithContact,
       includeContacts: boolean,
       limit?: number
-    ) =>
-      requestIdleCallback(() =>
+    ) => {
+      requestIdleCallback(() => {
         dispatch(
           TeamBuildingGen.createSearch({
             includeContacts,
@@ -227,7 +227,8 @@ const makeDebouncedSearch = (time: number) =>
             service,
           })
         )
-      ),
+      })
+    },
     time
   )
 

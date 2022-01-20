@@ -26,90 +26,87 @@ const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
 
 const AnimatedView = animated(NativeView)
 
-const KBWebView = React.memo(
-  animated((props: WebViewProps) => {
-    const {allowFileAccessFromFileURLs, allowFileAccess, originWhitelist} = props
-    const {allowUniversalAccessFromFileURLs, url, renderLoading, onError} = props
-    const {showLoadingStateUntilLoaded} = props
-    const [loading, _setLoading] = React.useState(true)
-    const [progress, setProgress] = React.useState(0)
-    const isMounted = React.useRef<Boolean>(true)
-    React.useEffect(
-      () => () => {
-        isMounted.current = false
-      },
-      []
-    )
+const KBWebViewBase = (props: WebViewProps) => {
+  const {allowFileAccessFromFileURLs, allowFileAccess, originWhitelist} = props
+  const {allowUniversalAccessFromFileURLs, url, renderLoading, onError} = props
+  const {showLoadingStateUntilLoaded} = props
+  const [loading, _setLoading] = React.useState(true)
+  const [progress, setProgress] = React.useState(0)
+  const isMounted = React.useRef<Boolean>(true)
+  React.useEffect(
+    () => () => {
+      isMounted.current = false
+    },
+    []
+  )
 
-    const isLoaded = showLoadingStateUntilLoaded ? !loading : true
-    const [opacity, api] = useSpring(() => ({
-      from: {opacity: isLoaded ? 1 : 0},
-    }))
+  const isLoaded = showLoadingStateUntilLoaded ? !loading : true
+  const [opacity, api] = useSpring(() => ({
+    from: {opacity: isLoaded ? 1 : 0},
+  }))
 
-    const setLoading = React.useCallback(
-      (l: boolean) => {
-        _setLoading(l)
-        api.start({opacity: l ? 0 : 1})
-      },
-      [_setLoading, api]
-    )
+  const setLoading = React.useCallback(
+    (l: boolean) => {
+      _setLoading(l)
+      api.start({opacity: l ? 0 : 1})
+    },
+    [_setLoading, api]
+  )
 
-    return (
-      <>
-        <AnimatedView
-          style={{
-            ...opacity,
-            width: '100%',
-            height: '100%',
-          }}
-        >
-          <NativeWebView
-            allowUniversalAccessFromFileURLs={allowUniversalAccessFromFileURLs}
-            originWhitelist={originWhitelist}
-            allowFileAccess={allowFileAccess}
-            allowFileAccessFromFileURLs={allowFileAccessFromFileURLs}
-            allowsInlineMediaPlayback={true}
-            source={{uri: url}}
-            injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
-            style={[
-              Styles.collapseStyles([
-                props.style,
-                props.showLoadingStateUntilLoaded && loading && styles.absolute,
-              ]),
-            ]}
-            onLoadStart={() => isMounted.current && setLoading(true)}
-            onLoadEnd={() => isMounted.current && setLoading(false)}
-            onLoadProgress={({nativeEvent}) => isMounted.current && setProgress(nativeEvent.progress)}
-            onError={onError && (syntheticEvent => onError(syntheticEvent.nativeEvent.description))}
-            startInLoadingState={!!renderLoading}
-            renderLoading={renderLoading}
-            onShouldStartLoadWithRequest={
-              props.pinnedURLMode
-                ? request => {
-                    if (request.url === url) {
-                      return true
-                    }
-                    // With links from the Files tab, URL can change because of the
-                    // token. So only open the URL when navigationType is 'click'.
-                    request.navigationType === 'click' && openURL(request.url)
-                    return false
+  return (
+    <>
+      <AnimatedView
+        style={{
+          ...opacity,
+          height: '100%',
+          width: '100%',
+        }}
+      >
+        <NativeWebView
+          allowUniversalAccessFromFileURLs={allowUniversalAccessFromFileURLs}
+          originWhitelist={originWhitelist}
+          allowFileAccess={allowFileAccess}
+          allowFileAccessFromFileURLs={allowFileAccessFromFileURLs}
+          allowsInlineMediaPlayback={true}
+          source={{uri: url}}
+          injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
+          style={[
+            Styles.collapseStyles([
+              props.style,
+              props.showLoadingStateUntilLoaded && loading && styles.absolute,
+            ]),
+          ]}
+          onLoadStart={() => isMounted.current && setLoading(true)}
+          onLoadEnd={() => isMounted.current && setLoading(false)}
+          onLoadProgress={({nativeEvent}) => isMounted.current && setProgress(nativeEvent.progress)}
+          onError={onError && (syntheticEvent => onError(syntheticEvent.nativeEvent.description))}
+          startInLoadingState={!!renderLoading}
+          renderLoading={renderLoading}
+          onShouldStartLoadWithRequest={
+            props.pinnedURLMode
+              ? request => {
+                  if (request.url === url) {
+                    return true
                   }
-                : undefined
-            }
-          />
-        </AnimatedView>
-        {props.showLoadingStateUntilLoaded ? (
-          <LoadingStateView loading={loading} progress={progress} />
-        ) : null}
-      </>
-    )
-  })
-)
+                  // With links from the Files tab, URL can change because of the
+                  // token. So only open the URL when navigationType is 'click'.
+                  request.navigationType === 'click' && openURL(request.url)
+                  return false
+                }
+              : undefined
+          }
+        />
+      </AnimatedView>
+      {props.showLoadingStateUntilLoaded ? <LoadingStateView loading={loading} progress={progress} /> : null}
+    </>
+  )
+}
+
+const KBWebViewAnimated = animated(KBWebViewBase)
+const KBWebView = React.memo(KBWebViewAnimated)
 
 const styles = Styles.styleSheetCreate(() => ({
-  absolute: {
-    position: 'absolute',
-  },
+  absolute: {position: 'absolute'},
 }))
 
 export default KBWebView

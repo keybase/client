@@ -14,7 +14,7 @@ module.exports = function (api /*: any */) {
     isReactNative = true
   } else {
     api.caller(c => {
-      console.error('KB: Babel config detected caller: ', c, c && c.name, api.env())
+      // console.error('KB: Babel config detected caller: ', c, c && c.name, api.env())
       if (!c || c.name === 'metro') {
         isReactNative = true
       } else {
@@ -33,7 +33,7 @@ module.exports = function (api /*: any */) {
   }
 
   if (isElectron) {
-    console.error('KB babel.config.js for Electron')
+    // console.error('KB babel.config.js for Electron')
     return {
       plugins: [
         '@babel/plugin-proposal-optional-catch-binding',
@@ -50,7 +50,7 @@ module.exports = function (api /*: any */) {
       ],
     }
   } else if (isReactNative) {
-    console.error('KB babel.config.js for ReactNative')
+    // console.error('KB babel.config.js for ReactNative')
     return {
       plugins: ['react-native-reanimated/plugin'],
       presets: ['module:metro-react-native-babel-preset'],

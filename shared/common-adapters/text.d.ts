@@ -64,6 +64,7 @@ type Props = {
   onLongPress?: () => void
   onLongPressURL?: string | null
   onPress?: void
+  fixOverdraw?: boolean // use fastBlank to fix overdraw issues
   plainText?: boolean
   selectable?: boolean
   style?: StylesTextCrossPlatform

@@ -2761,7 +2761,7 @@ const fetchConversationBio = async (
 
 const leaveConversation = async (action: Chat2Gen.LeaveConversationPayload) => {
   await RPCChatTypes.localLeaveConversationLocalRpcPromise(
-    { convID: Types.keyToConversationID(action.payload.conversationIDKey), },
+    {convID: Types.keyToConversationID(action.payload.conversationIDKey)},
     Constants.waitingKeyLeaveConversation
   )
 }
@@ -3353,24 +3353,23 @@ const gregorPushState = (
     actions.push(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
   } else {
     logger.info('Got push state with some exploding modes')
-        const modes = explodingItems.reduce<Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>>(
-            (current, i) => {
-                try {
-                    const {category, body} = i.item
-                    const secondsString = Buffer.from(body).toString()
-                    const seconds = parseInt(secondsString, 10)
-                    if (isNaN(seconds)) {
-                        logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
-                        return current
-                    }
-                    const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
-                    const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
-                    current.push({conversationIDKey, seconds})
-                } catch {
-                }
-                return current
-            },
-            []
+    const modes = explodingItems.reduce<Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>>(
+      (current, i) => {
+        try {
+          const {category, body} = i.item
+          const secondsString = Buffer.from(body).toString()
+          const seconds = parseInt(secondsString, 10)
+          if (isNaN(seconds)) {
+            logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
+            return current
+          }
+          const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
+          const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
+          current.push({conversationIDKey, seconds})
+        } catch {}
+        return current
+      },
+      []
     )
     actions.push(Chat2Gen.createUpdateConvExplodingModes({modes}))
   }
@@ -3386,11 +3385,11 @@ const gregorPushState = (
       .forEach(i => {
         const teamID = i.item.category.substr(Constants.blockButtonsGregorPrefix.length)
         if (!state.chat2.blockButtonsMap.get(teamID)) {
-            try {
-                const body: {adder: string} = GregorConstants.bodyToJSON(i.item.body)
-                const adder = body.adder
-                actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
-            } catch { }
+          try {
+            const body: {adder: string} = GregorConstants.bodyToJSON(i.item.body)
+            const adder = body.adder
+            actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
+          } catch {}
         } else {
           shouldKeepExistingBlockButtons.set(teamID, true)
         }

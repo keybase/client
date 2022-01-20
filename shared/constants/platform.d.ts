@@ -16,6 +16,7 @@ export const isWindows: boolean
 export const isLinux: boolean
 export const isIPhoneX: boolean
 export const isMac: boolean
+export const isDebuggingInChrome: boolean // only useful in RN
 
 export const isAndroidNewerThanN: boolean
 export const defaultUseNativeFrame: boolean
@@ -30,4 +31,3 @@ export declare const serverConfigFileName: string
 export declare const shortcutSymbol: string
 export declare const realDeviceName: string
 export declare const uses24HourClock: boolean
-export const appColorSchemeChanged: (pref: DarkModePreference) => void

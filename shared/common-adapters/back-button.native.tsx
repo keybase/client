@@ -16,6 +16,7 @@ const Kb = {
 }
 
 const BackButton = React.memo((props: Props) => {
+  const styleContext = React.useContext(Styles.StyleContext)
   const dispatch = Container.useDispatch()
   const onBack = props.disabled ? () => {} : props.onClick ?? (() => dispatch(createNavigateUp()))
   return (
@@ -27,7 +28,12 @@ const BackButton = React.memo((props: Props) => {
       }}
     >
       <Kb.Box style={Styles.collapseStyles([styles.container, props.style])}>
-        <Kb.Icon type="iconfont-arrow-left" color={props.iconColor} style={styles.arrow} />
+        <Kb.Icon
+          fixOverdraw={styleContext.canFixOverdraw}
+          type="iconfont-arrow-left"
+          color={props.iconColor}
+          style={styles.arrow}
+        />
         {!!props.badgeNumber && <Kb.Badge badgeNumber={props.badgeNumber} />}
       </Kb.Box>
     </Kb.NativeTouchableWithoutFeedback>
@@ -35,7 +41,10 @@ const BackButton = React.memo((props: Props) => {
 })
 
 const styles = Styles.styleSheetCreate(() => ({
-  arrow: {marginRight: -3, marginTop: 2},
+  arrow: {
+    marginRight: -3,
+    marginTop: 2,
+  },
   container: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',

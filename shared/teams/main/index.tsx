@@ -24,7 +24,6 @@ export type OwnProps = {
   onOpenFolder: (teamID: Types.TeamID) => void
   onReadMore: () => void
   onViewTeam: (teamID: Types.TeamID) => void
-  sawChatBanner: boolean
   teamresetusers: Map<Types.TeamID, Set<string>>
   newTeamRequests: Map<Types.TeamID, Set<string>>
   teams: Array<Types.TeamMeta>
@@ -190,13 +189,7 @@ type Row = {key: React.Key} & (
   | {team: Types.TeamMeta; type: 'team'}
 )
 
-type State = {
-  sawChatBanner: boolean
-}
-
-class Teams extends React.PureComponent<Props, State> {
-  state = {sawChatBanner: this.props.sawChatBanner}
-
+class Teams extends React.PureComponent<Props> {
   private teamsAndExtras = memoize(
     (deletedTeams: Props['deletedTeams'], teams: Props['teams']): Array<Row> => [
       {key: '_buttons', type: '_buttons' as const},
@@ -208,7 +201,6 @@ class Teams extends React.PureComponent<Props, State> {
   )
 
   private onHideChatBanner = () => {
-    this.setState({sawChatBanner: true})
     this.props.onHideChatBanner()
   }
 
@@ -243,13 +235,6 @@ class Teams extends React.PureComponent<Props, State> {
         const team = item.team
         return <TeamRowNew firstItem={index === 2} showChat={!Styles.isMobile} teamID={team.id} />
       }
-    }
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    // Don't need to worry about the true->false direction.
-    if (!prevProps.sawChatBanner && this.props.sawChatBanner) {
-      this.setState({sawChatBanner: true})
     }
   }
 
@@ -296,7 +281,7 @@ const styles = Styles.styleSheetCreate(
       openMeta: {alignSelf: 'center'},
       relative: {position: 'relative'},
       sortHeader: Styles.platformStyles({
-        common: { backgroundColor: Styles.globalColors.blueGrey, },
+        common: {backgroundColor: Styles.globalColors.blueGrey},
         isElectron: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
         isMobile: {...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.tiny)},
       }),

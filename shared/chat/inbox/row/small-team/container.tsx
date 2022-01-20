@@ -48,26 +48,26 @@ export default Container.connect(
       _username,
       conversationIDKey,
       hasBadge: Constants.getHasBadge(state, conversationIDKey),
-      hasUnread,
       hasResetUsers: _meta.resetParticipants.size !== 0,
+      hasUnread,
       isDecryptingSnippet,
       isFinalized: !!_meta.wasFinalizedBy,
-      teamname,
-      timestamp,
-      participantNeedToRekey,
-      youNeedToRekey: !participantNeedToRekey && _meta.rekeyers.has(_username),
       isMuted: Constants.isMuted(state, conversationIDKey),
       isSelected: ownProps.selected,
       isTypingSnippet,
+      participantNeedToRekey,
       snippet,
       snippetDecoration,
+      teamname,
+      timestamp,
       youAreReset,
+      youNeedToRekey: !participantNeedToRekey && _meta.rekeyers.has(_username),
     }
   },
   (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
     onHideConversation: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
-    onMuteConversation: (isMuted: boolean) =>
-      dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted})),
+    onMuteConversation: (muted: boolean) =>
+      dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted})),
     onSelectConversation: () =>
       dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'})),
   }),

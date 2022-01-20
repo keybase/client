@@ -24,7 +24,7 @@ const AccountEntry = (props: AccountEntryProps) => (
     centerChildren={props.center}
     fullWidth={props.fullWidth}
   >
-    {props.showWalletIcon && (
+    {(props.showWalletIcon ?? true) && (
       <Kb.Icon
         type={Styles.isMobile ? 'icon-wallet-32' : 'icon-wallet-64'}
         color={Styles.globalColors.black}
@@ -54,10 +54,6 @@ const AccountEntry = (props: AccountEntryProps) => (
     </Kb.Box2>
   </Kb.Box2>
 )
-
-AccountEntry.defaultProps = {
-  showWalletIcon: true,
-}
 
 const rightColumnStyle = Styles.platformStyles({
   isElectron: {

@@ -55,14 +55,15 @@ const Avatar = React.memo((props: Props) => {
             ]}
           />
         )}
-        {(!!props.borderColor || props.isTeam) && (
-          <Kb.Box
-            style={[
-              styles.borderBase,
-              {borderColor: props.borderColor || Styles.globalColors.black_10, borderRadius},
-            ]}
-          />
-        )}
+        {(!!props.borderColor || props.isTeam) &&
+          false && ( // looks better off i think
+            <Kb.Box
+              style={[
+                styles.borderBase,
+                {borderColor: props.borderColor || Styles.globalColors.black_10, borderRadius},
+              ]}
+            />
+          )}
         {props.followIconType && (
           <Kb.Icon
             type={props.followIconType}

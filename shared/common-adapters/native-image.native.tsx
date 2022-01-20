@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import {Image, ImageProps} from 'react-native'
-import RNFI from 'react-native-fast-image'
+import RNFI, {OnProgressEvent} from 'react-native-fast-image'
 import isArray from 'lodash/isArray'
 import LoadingStateView from './loading-state-view'
 import {memoize} from '../util/memoize'
@@ -43,9 +43,9 @@ class FastImageImpl extends React.PureComponent<
     this._mounted && this.setState({loading: false})
     this.props.onLoadEnd?.()
   }
-  private onProgress = evt => {
+  private onProgress = (evt: OnProgressEvent) => {
     this._mounted && this.setState({progress: evt.nativeEvent?.loaded / evt.nativeEvent?.total || 0})
-    this.props.onProgress?.(evt)
+    this.props.onProgress?.(evt as any)
   }
 
   private getStyle = memoize((style, loading) => {
@@ -92,8 +92,8 @@ class FastImageImpl extends React.PureComponent<
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  loading: {position: 'absolute', opacity: 0},
   loaded: {opacity: 1},
+  loading: {opacity: 0, position: 'absolute'},
 }))
 
 export const FastImage = FastImageImpl

@@ -8,6 +8,7 @@ import {PortalProvider} from '@gorhom/portal'
 import {Provider, useDispatch} from 'react-redux'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
+import {StyleContext} from '../styles'
 
 let store: ReturnType<typeof configureStore>['store']
 
@@ -41,7 +42,7 @@ const NativeEventsToRedux = () => {
       darkSub?.remove()
       linkingSub?.remove()
     }
-  }, [])
+  }, [dispatch])
 
   return null
 }
@@ -71,7 +72,9 @@ const Keybase = () => {
     <Provider store={store}>
       <PortalProvider>
         <SafeAreaProvider>
-          <Main />
+          <StyleContext.Provider value={{canFixOverdraw: true}}>
+            <Main />
+          </StyleContext.Provider>
         </SafeAreaProvider>
       </PortalProvider>
       <NativeEventsToRedux />

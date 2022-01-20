@@ -343,11 +343,11 @@ const styles = Styles.styleSheetCreate(() => ({
   containerCenter: {justifyContent: 'center'},
   containerMobile: Styles.platformStyles({
     common: {
+      maxWidth: '100%',
       paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.tiny,
-      maxWidth: '100%',
     },
     isTablet: {
       paddingLeft: 0,
@@ -380,8 +380,8 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: 0,
   },
   inputNoGrow: {flexGrow: 0},
-  leftIconXTiny: {marginRight: Styles.globalMargins.xtiny},
   leftIconTiny: {marginRight: Styles.globalMargins.tiny},
+  leftIconXTiny: {marginRight: Styles.globalMargins.xtiny},
   light: {backgroundColor: Styles.globalColors.black_05},
   lightNegative: {backgroundColor: Styles.globalColors.black_10},
   removeIconFullWidth: {marginLeft: Styles.globalMargins.xsmall},

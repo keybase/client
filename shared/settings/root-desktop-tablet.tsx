@@ -16,8 +16,8 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
-    screenOptions,
     initialRouteName,
+    screenOptions,
   })
 
   const selectedTab = state.routes[state.index]?.name ?? ''
@@ -65,7 +65,7 @@ const SettingsSubNavigator = () => (
         getComponent={settingsSubRoutes[name].getScreen}
         options={({route, navigation}) => {
           const no = settingsSubRoutes[name].getScreen().navigationOptions
-          const opt = typeof no === 'function' ? no({route, navigation}) : no
+          const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}
       />

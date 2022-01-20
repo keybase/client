@@ -130,8 +130,8 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     // just in case to get their attention.
     isIOS &&
       PushNotificationIOS.addNotificationRequest({
-        id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
         body: `Failed to save ${saveType} to camera roll`,
+        id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
       })
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
@@ -580,8 +580,8 @@ const manageContactsCache = async (
     if (newlyResolved && newlyResolved.length) {
       isIOS &&
         PushNotificationIOS.addNotificationRequest({
-          id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
           body: PushConstants.makeContactsResolvedMessage(newlyResolved),
+          id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
         })
     }
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
@@ -894,6 +894,12 @@ function* checkNav(
   yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
 }
 
+const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
+  if (isAndroid) {
+    NativeModules.KeybaseEngine.appColorSchemeChanged(state.config.darkModePreference)
+  }
+}
+
 export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction(ConfigGen.mobileAppState, updateChangedFocus)
@@ -941,6 +947,7 @@ export function* platformConfigSaga() {
   }
 
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkNav)
+  yield* Saga.chainAction2(ConfigGen.setDarkModePreference, notifyNativeOfDarkModeChange)
 
   // Audio
   yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording)

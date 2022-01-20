@@ -74,7 +74,7 @@ const UsernameHeader = (props: Props) => (
     style={styles.usernameHeaderContainer}
   >
     {!!props.theirFullname && (
-      <Text lineClamp={1} type="BodyBig">
+      <Text lineClamp={1} type="BodyBig" fixOverdraw={true}>
         {props.theirFullname}
       </Text>
     )}
@@ -116,6 +116,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       center: {
+        backgroundColor: Styles.globalColors.fastBlank,
         justifyContent: 'center',
         textAlign: 'center',
       },

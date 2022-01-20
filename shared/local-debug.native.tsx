@@ -7,7 +7,7 @@ import noop from 'lodash/noop'
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Toggle this to disable yellowboxes
-// LogBox.ignoreAllLogs()
+LogBox.ignoreAllLogs()
 
 // store the vanilla console helpers
 window.console._log = window.console.log
@@ -69,6 +69,12 @@ if (__DEV__) {
   // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
   // MessageQueue.spy(msg => console._log('queuespy: ', msg, JSON.stringify(msg).length))
 }
+
+// TEMP
+for(let i = 0 ; i  < 50 ; ++i ){
+console.log('aaaaa TEMP dev push token!')
+}
+config.isDevApplePushToken = true
 
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')

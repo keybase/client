@@ -97,8 +97,11 @@ export const emojiDataToRenderableEmoji = (
   unicodeStock:
     emoji.unified &&
     String.fromCodePoint(
-      // @ts-ignore
-      ...(skinToneModifier && skinToneKey ? emoji.skin_variations?.[skinToneKey].unified : emoji.unified)
+      ...(skinToneModifier && skinToneKey
+        ? // @ts-ignore
+          emoji.skin_variations?.[skinToneKey].unified ?? ''
+        : emoji.unified
+      )
         .split('-')
         .map((str: string) => Number.parseInt(str, 16))
     ),

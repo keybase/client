@@ -227,7 +227,9 @@ const styles = Styles.styleSheetCreate(() => ({
   fullWidthTextContainer: Styles.platformStyles({isElectron: {textAlign: 'center', width: '100%'}}),
   hAvatarStyle: Styles.platformStyles({
     isElectron: {marginRight: Styles.globalMargins.tiny},
-    isMobile: {marginRight: Styles.globalMargins.small},
+    isMobile: {
+      marginRight: Styles.globalMargins.small,
+    },
   }),
   hContainerStyle: {
     ...Styles.globalStyles.flexBoxRow,
@@ -261,6 +263,7 @@ const styles = Styles.styleSheetCreate(() => ({
       width: 48,
     },
     isMobile: {
+      backgroundColor: Styles.globalColors.fastBlank,
       height: 64,
       width: 64,
     },

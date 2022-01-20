@@ -8,13 +8,15 @@ import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterLinking from './router-linking.native'
-import {defaultNavigationOptions} from './common.native'
+import * as Common from './common.native'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
-import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
-import {createStackNavigator, TransitionPresets} from '@react-navigation/stack'
+import {NavigationContainer} from '@react-navigation/native'
+import {TransitionPresets} from '@react-navigation/stack'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
+import createNoDupeStackNavigator from './stack'
+import shallowEqual from 'shallowequal'
 
 enableFreeze()
 
@@ -71,10 +73,6 @@ const TabBarIcon = React.memo((props: {isFocused: boolean; routeName: Tabs.Tab})
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      keyboard: {
-        flexGrow: 1,
-        position: 'relative',
-      },
       badge: Styles.platformStyles({
         common: {
           position: 'absolute',
@@ -84,14 +82,18 @@ const styles = Styles.styleSheetCreate(
       }),
       container: Styles.platformStyles({
         common: {
-          justifyContent: 'center',
           flex: 1,
+          justifyContent: 'center',
         },
         isTablet: {
           // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
           minWidth: Styles.globalMargins.xlarge,
         },
       }),
+      keyboard: {
+        flexGrow: 1,
+        position: 'relative',
+      },
       label: {marginLeft: Styles.globalMargins.medium},
       labelDarkMode: {color: Styles.globalColors.black_50},
       labelDarkModeFocused: {color: Styles.globalColors.black},
@@ -99,6 +101,7 @@ const styles = Styles.styleSheetCreate(
       labelLightModeFocused: {color: Styles.globalColors.white},
       tab: Styles.platformStyles({
         common: {
+          backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
           paddingBottom: 6,
           paddingLeft: 16,
           paddingRight: 16,
@@ -114,49 +117,56 @@ const Tab = createBottomTabNavigator()
 const fastTransitionSpec = {
   animation: 'spring',
   config: {
-    stiffness: 1000,
     damping: 500,
     mass: 0.3,
     overshootClamping: true,
     restDisplacementThreshold: 10,
     restSpeedThreshold: 10,
+    stiffness: 1000,
   },
 }
 
 // so we have a stack per tab?
 const tabToStack = new Map()
-const makeTabStack = tab => {
+const makeTabStack = (tab: string) => {
   let Comp = tabToStack.get(tab)
   if (!Comp) {
-    const S = createStackNavigator()
-    Comp = ({navigation, route}) => {
-      const dispatch = Container.useDispatch()
-      React.useEffect(() => {
-        const unsubscribe = navigation.addListener('tabLongPress', () => {
-          dispatch(RouteTreeGen.createTabLongPress({tab}))
-        })
-        return unsubscribe
-      }, [navigation, dispatch])
-      React.useLayoutEffect(() => {
-        const routeName = getFocusedRouteNameFromRoute(route)
-        const hideTabs = routeName === 'chatConversation'
-        navigation.setOptions({tabBarStyle: hideTabs ? {display: 'none'} : tabBarStyle})
-      }, [navigation, route])
-      return (
-        <S.Navigator
-          initialRouteName={tabRoots[tab]}
-          screenOptions={{
-            ...defaultNavigationOptions,
-            transitionSpec: {
-              open: fastTransitionSpec,
-              close: fastTransitionSpec,
-            },
-          }}
-        >
-          {makeNavScreens(Shim.shim(routes, false, false), S.Screen, false)}
-        </S.Navigator>
-      )
-    }
+    const S = createNoDupeStackNavigator()
+    Comp = React.memo(
+      ({navigation}: any) => {
+        const dispatch = Container.useDispatch()
+        React.useEffect(() => {
+          const unsubscribe = navigation.addListener('tabLongPress', () => {
+            dispatch(RouteTreeGen.createTabLongPress({tab}))
+          })
+          return unsubscribe
+        }, [navigation, dispatch])
+        return (
+          <S.Navigator
+            initialRouteName={tabRoots[tab]}
+            screenOptions={{
+              ...Common.defaultNavigationOptions,
+              transitionSpec: {
+                close: fastTransitionSpec,
+                open: fastTransitionSpec,
+              },
+            }}
+          >
+            {makeNavScreens(Shim.shim(routes, false, false), S.Screen, false)}
+          </S.Navigator>
+        )
+      },
+      (a, b) => {
+        if (!shallowEqual(a.navigation, b.navigation)) {
+          return false
+        }
+        if (!shallowEqual(a.route, b.route)) {
+          return false
+        }
+
+        return true
+      }
+    )
     tabToStack.set(tab, Comp)
   }
   return Comp
@@ -171,18 +181,18 @@ const makeNavScreens = (rs, Screen, isModal) => {
         getComponent={rs[name].getScreen}
         options={({route, navigation}) => {
           const no = rs[name].getScreen().navigationOptions
-          const opt = typeof no === 'function' ? no({route, navigation}) : no
+          const opt = typeof no === 'function' ? no({navigation, route}) : no
           const skipAnim =
             route.params?.animationEnabled === undefined
               ? {}
               : {
                   // immediate pop in, default back animation
                   transitionSpec: {
+                    close: TransitionPresets.DefaultTransition,
                     open: {
                       animation: 'timing',
                       config: {duration: 0},
                     },
-                    close: TransitionPresets.DefaultTransition,
                   },
                 }
           return {
@@ -196,54 +206,51 @@ const makeNavScreens = (rs, Screen, isModal) => {
   })
 }
 
-const tabBarStyle = {
-  get backgroundColor() {
-    return Styles.globalColors.blueDarkOrGreyDarkest
+const AppTabs = React.memo(
+  () => {
+    return (
+      <Tab.Navigator
+        backBehavior="none"
+        screenOptions={({route}) => {
+          return {
+            ...Common.defaultNavigationOptions,
+            headerShown: false,
+            tabBarActiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarHideOnKeyboard: true,
+            tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
+            tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarLabel: ({focused}) => (
+              <Kb.Text
+                style={Styles.collapseStyles([
+                  styles.label,
+                  Styles.isDarkMode()
+                    ? focused
+                      ? styles.labelDarkModeFocused
+                      : styles.labelDarkMode
+                    : focused
+                    ? styles.labelLightModeFocused
+                    : styles.labelLightMode,
+                ])}
+                type="BodyBig"
+              >
+                {tabToData[route.name].label}
+              </Kb.Text>
+            ),
+            tabBarShowLabel: Styles.isTablet,
+            tabBarStyle: Common.tabBarStyle,
+          }
+        }}
+      >
+        {tabs.map(tab => (
+          <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
+        ))}
+      </Tab.Navigator>
+    )
   },
-}
+  () => true // ignore all props
+)
 
-const AppTabs = React.memo(() => {
-  return (
-    <Tab.Navigator
-      backBehavior="none"
-      screenOptions={({route}) => {
-        return {
-          ...defaultNavigationOptions,
-          tabBarHideOnKeyboard: true,
-          headerShown: false,
-          tabBarShowLabel: Styles.isTablet,
-          tabBarStyle,
-          tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-          tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-          tabBarLabel: ({focused}) => (
-            <Kb.Text
-              style={Styles.collapseStyles([
-                styles.label,
-                Styles.isDarkMode()
-                  ? focused
-                    ? styles.labelDarkModeFocused
-                    : styles.labelDarkMode
-                  : focused
-                  ? styles.labelLightModeFocused
-                  : styles.labelLightMode,
-              ])}
-              type="BodyBig"
-            >
-              {tabToData[route.name].label}
-            </Kb.Text>
-          ),
-          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
-        }
-      }}
-    >
-      {tabs.map(tab => (
-        <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
-      ))}
-    </Tab.Navigator>
-  )
-})
-
-const LoggedOutStack = createStackNavigator()
+const LoggedOutStack = createNoDupeStackNavigator()
 const LoggedOut = React.memo(() => (
   <LoggedOutStack.Navigator
     initialRouteName="login"
@@ -281,7 +288,7 @@ const useInitialStateChangeAfterLinking = (
   }, [loggedIn, lastLoggedIn])
 }
 
-const RootStack = createStackNavigator()
+const RootStack = createNoDupeStackNavigator()
 const RNApp = React.memo(() => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
   const goodLinking: any = RouterLinking.useReduxToLinking(appState.current)
@@ -297,12 +304,12 @@ const RNApp = React.memo(() => {
   const DEBUG_RNAPP_RENDER = __DEV__ && false
   if (DEBUG_RNAPP_RENDER) {
     console.log('DEBUG RNApp render', {
-      loggedInLoaded,
-      loggedIn,
       appState,
-      onStateChange,
-      navKey,
       initialState,
+      loggedIn,
+      loggedInLoaded,
+      navKey,
+      onStateChange,
     })
   }
 
@@ -321,10 +328,10 @@ const RNApp = React.memo(() => {
           key="root"
           screenOptions={{
             animationEnabled: false,
-            presentation: 'modal',
             headerLeft: () => <HeaderLeftCancel />,
-            title: '',
             headerShown: false, // eventually do this after we pull apart modal2 etc
+            presentation: 'modal',
+            title: '',
           }}
         >
           {!loggedInLoaded && (

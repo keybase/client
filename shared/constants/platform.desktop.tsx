@@ -10,6 +10,7 @@ export const isLargeScreen = true
 export const isIPhoneX = false
 export const isTablet = false
 export const windowHeight = 0 // not implemented on desktop
+export const isDebuggingInChrome = true
 
 export const isElectron = true
 export const isDarwin = platform === 'darwin'
@@ -121,9 +122,6 @@ export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || join(
 export const pprofDir = ''
 export const version = 'TODO'
 export {runMode}
-
-// Noop – Just for Android
-export const appColorSchemeChanged = () => {}
 
 export const isRemoteDebuggerAttached = false
 

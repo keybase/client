@@ -269,16 +269,18 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
     },
-    isIOS: { paddingLeft: Styles.globalMargins.tiny, },
+    isIOS: {
+      paddingLeft: Styles.globalMargins.tiny,
+    },
   }),
-  actionPressable: { opacity: 0.3, },
-  borderless: { borderBottomWidth: 0, },
+  actionPressable: {opacity: 0.3},
+  borderless: {borderBottomWidth: 0},
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     height: '100%',
     position: 'relative',
   },
-  grow: { flexGrow: 1, },
+  grow: {flexGrow: 1},
   header: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -292,12 +294,12 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.white,
       height: 56,
     },
-    isIOS: { height: 44, },
+    isIOS: {height: 44},
     isTablet: {
       height: 40 + Styles.headerExtraHeight,
     },
   }),
-  innerWrapper: { ...Styles.globalStyles.fillAbsolute, },
+  innerWrapper: {...Styles.globalStyles.fillAbsolute},
   leftAction: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -313,10 +315,10 @@ const styles = Styles.styleSheetCreate(() => ({
       flexShrink: 1,
       justifyContent: 'flex-end',
     },
-    isIOS: { paddingRight: Styles.globalMargins.tiny, },
+    isIOS: {paddingRight: Styles.globalMargins.tiny},
   }),
-  rightActionsWrapper: { ...Styles.globalStyles.flexBoxRow, },
-  title: { color: Styles.globalColors.black, },
+  rightActionsWrapper: {...Styles.globalStyles.flexBoxRow},
+  title: {color: Styles.globalColors.black},
   titleContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -325,26 +327,28 @@ const styles = Styles.styleSheetCreate(() => ({
       flexShrink: 2,
       justifyContent: 'center',
     },
-    isAndroid: { alignItems: 'flex-start', },
+    isAndroid: {alignItems: 'flex-start'},
     isIOS: {
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
   titleContainerLeftPadding: Styles.platformStyles({
-    isAndroid: { paddingLeft: Styles.globalMargins.small, },
+    isAndroid: {paddingLeft: Styles.globalMargins.small},
   }),
   titleContainerRightPadding: Styles.platformStyles({
-    isAndroid: { paddingRight: Styles.globalMargins.small, },
+    isAndroid: {paddingRight: Styles.globalMargins.small},
   }),
-  titleTextContainer: { ...Styles.globalStyles.fillAbsolute, },
+  titleTextContainer: {...Styles.globalStyles.fillAbsolute},
 }))
 
 const noop = () => {}
-export const HeaderLeftBlank = () => (
-  <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
+export const HeaderLeftBlank = React.memo(
+  () => <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />,
+  () => true
 )
-export const HeaderLeftArrow = hp =>
+
+export const HeaderLeftArrow = React.memo((hp: any) =>
   hp.canGoBack ? (
     <LeftAction
       badgeNumber={hp.badgeNumber ?? 0}
@@ -353,8 +357,9 @@ export const HeaderLeftArrow = hp =>
       customIconColor={hp.tintColor}
     />
   ) : null
+)
 
-export const HeaderLeftCancel = hp =>
+export const HeaderLeftCancel = React.memo((hp: any) =>
   hp.canGoBack ? (
     <LeftAction
       badgeNumber={0}
@@ -363,5 +368,6 @@ export const HeaderLeftCancel = hp =>
       customIconColor={hp.tintColor}
     />
   ) : null
+)
 
 export default HeaderHoc

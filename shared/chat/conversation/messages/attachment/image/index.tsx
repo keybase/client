@@ -88,7 +88,10 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   )
 
   private getStyleOverride = memoize((isEditing, isHighlighted) => ({
-    paragraph: getEditStyle(isEditing, isHighlighted),
+    paragraph: {
+      ...getEditStyle(isEditing, isHighlighted),
+      backgroundColor: Styles.globalColors.black_05_on_white,
+    },
   }))
 
   render() {
@@ -105,7 +108,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         >
           {(!mobileImageFilename || !Styles.isMobile) && (
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.fileNameContainer}>
-              <Kb.Text type="BodyTiny" lineClamp={1}>
+              <Kb.Text type="BodyTiny" lineClamp={1} style={styles.filename}>
                 {mobileImageFilename ? 'Image from mobile' : this.props.fileName}
               </Kb.Text>
               <Kb.Icon
@@ -293,11 +296,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      absoluteContainer: {
-        position: 'absolute',
-      },
+      absoluteContainer: {position: 'absolute'},
       backgroundContainer: {
-        backgroundColor: Styles.globalColors.black_05,
+        backgroundColor: Styles.globalColors.black_05_on_white,
         borderRadius: Styles.borderRadius,
         maxWidth: 330,
         position: 'relative',
@@ -343,9 +344,8 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: 3,
         paddingRight: 3,
       },
-      fileNameContainer: {
-        paddingRight: Styles.globalMargins.small,
-      },
+      fileNameContainer: {paddingRight: Styles.globalMargins.small},
+      filename: {backgroundColor: Styles.globalColors.fastBlank},
       image: {
         ...Styles.globalStyles.rounded,
         backgroundColor: Styles.globalColors.fastBlank,

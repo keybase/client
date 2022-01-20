@@ -17,44 +17,35 @@ import {formatDurationShort} from '../../../../util/timestamp'
 import {indefiniteArticle} from '../../../../util/string'
 import {isOpen} from '../../../../util/keyboard'
 import AudioRecorder from '../../../audio/audio-recorder.native'
-import {
-  AnimatedBox2,
-  AnimatedIcon,
-  AnimationState,
-  runToggle,
-  runRotateToggle,
-} from './platform-input-animation.native'
+import {AnimatedIcon} from './platform-input-animation.native'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
+import throttle from 'lodash/throttle'
+import {useSharedValue, useAnimatedStyle, withTiming} from '../../../../common-adapters/reanimated'
+
+const SKIP_ANIM = __DEV__ && false
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 type State = {
-  animating: boolean // delayed due to setstate, updates after
-  afterAnimatingExtraStepWorkaround: boolean // used to twiddle height
   expanded: boolean
   hasText: boolean
 }
 
-const defaultMaxHeight = 145
-const {block, Value, Clock, add, concat} = Kb.ReAnimated
+// to simplify the animation we just go to a fixed size. We could bring back the old behavior later
+const singleLineHeight = 36
+const threeLineHeight = 78
+const keyboardHeight = 320 // an overestimate
+const headerHeight = 88
+const inputAreaHeight = 91
+const expandedHeight = Styles.dimensionHeight - keyboardHeight - headerHeight - inputAreaHeight
 
 class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
   private lastText?: string
   private whichMenu?: menuType
-  private clock = new Clock()
-  private animateState = new Value<AnimationState>(AnimationState.none)
-  private animateHeight = new Value<number>(defaultMaxHeight)
-  // if we should update lastHeight when onLayout happens
-  private watchSizeChanges = true
-  private lastHeight: undefined | number
-  private rotate = new Value<number>(0)
-  private rotateClock = new Clock()
 
   state = {
-    afterAnimatingExtraStepWorkaround: false,
-    animating: false,
-    expanded: false, // updates immediately, used for the icon etc
+    expanded: false,
     hasText: false,
   }
 
@@ -129,7 +120,6 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     }
     this.lastText = text
     this.props.onChangeText(text)
-    this.watchSizeChanges = true
   }
 
   private onSubmit = () => {
@@ -153,12 +143,10 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     const {nativeEvent} = p
     const {layout} = nativeEvent
     const {height} = layout
-    if (this.watchSizeChanges) {
-      this.lastHeight = height
-      this.animateHeight.setValue(height)
-    }
-    this.props.setHeight(height)
+    this.setHeightThrottled(height)
   }
+
+  private setHeightThrottled = throttle((h: number) => this.props.setHeight(h))
 
   private insertText = (toInsert: string) => {
     if (this.input) {
@@ -213,84 +201,28 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     )
   }
 
-  private onDone = () => {
-    if (this.state.animating) {
-      this.setState({animating: false}, () => {
-        this.setState(state =>
-          state.afterAnimatingExtraStepWorkaround ? {afterAnimatingExtraStepWorkaround: false} : null
-        )
-      })
-    }
-  }
-
   private toggleExpandInput = () => {
-    this.watchSizeChanges = false
-    // eslint-disable-next-line react/no-access-state-in-setstate
     const nextState = !this.state.expanded
-    this.setState({afterAnimatingExtraStepWorkaround: true, expanded: nextState}, () =>
-      this.props.onExpanded(nextState)
-    )
-    this.setState({animating: true}, () => {
-      this.animateState.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
-    })
+    this.setState({expanded: nextState})
+    this.props.onExpanded(nextState)
   }
 
   render() {
     const {suggestionsVisible, onCancelEditing, isEditing} = this.props
-    const {conversationIDKey, cannotWrite, onBlur, onFocus, onSelectionChange, maxInputArea} = this.props
+    const {conversationIDKey, cannotWrite, onBlur, onFocus, onSelectionChange} = this.props
     const {isExploding, explodingModeSeconds, showTypingStatus} = this.props
 
     return (
-      <AnimatedBox2
-        direction="vertical"
-        onLayout={this.onLayout}
-        fullWidth={true}
-        style={[
-          {
-            flexShrink: 1,
-            minHeight: 0,
-          },
-          this.state.expanded || this.state.animating
-            ? {height: this.animateHeight, maxHeight: 9999}
-            : // workaround auto height not working?
-            this.state.afterAnimatingExtraStepWorkaround
-            ? {
-                height: this.lastHeight,
-                maxHeight: defaultMaxHeight,
-              }
-            : {height: undefined, maxHeight: defaultMaxHeight},
-        ]}
-      >
-        <Kb.ReAnimated.Code>
-          {() => block([runRotateToggle(this.rotateClock, this.animateState, this.rotate)])}
-        </Kb.ReAnimated.Code>
-        <Kb.ReAnimated.Code key={this.lastHeight}>
-          {() =>
-            block([
-              runToggle(
-                this.clock,
-                this.animateState,
-                this.animateHeight,
-                this.lastHeight,
-                maxInputArea ?? Styles.dimensionHeight,
-                this.onDone
-              ),
-            ])
-          }
-        </Kb.ReAnimated.Code>
+      <Kb.Box2 direction="vertical" fullWidth={true} onLayout={this.onLayout}>
         {this.getMenu()}
         {showTypingStatus && !suggestionsVisible && <Typing conversationIDKey={conversationIDKey} />}
         <Kb.Box2
           direction="vertical"
-          style={Styles.collapseStyles([
-            styles.container,
-            isExploding && styles.explodingContainer,
-            (this.state.expanded || this.state.animating) && {height: '100%', minHeight: 0},
-          ])}
+          style={Styles.collapseStyles([styles.container, isExploding && styles.explodingContainer])}
           fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
-            <Kb.PlainInput
+            <AnimatedInput
               autoCorrect={true}
               autoCapitalize="sentences"
               disabled={cannotWrite ?? false}
@@ -306,8 +238,9 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
               style={styles.input}
               textType="Body"
               rowsMin={1}
+              expanded={this.state.expanded}
             />
-            <AnimatedExpand expandInput={this.toggleExpandInput} rotate={this.rotate} />
+            <AnimatedExpand expanded={this.state.expanded} expandInput={this.toggleExpandInput} />
           </Kb.Box2>
           <Buttons
             conversationIDKey={conversationIDKey}
@@ -326,10 +259,32 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
             onCancelEditing={onCancelEditing}
           />
         </Kb.Box2>
-      </AnimatedBox2>
+      </Kb.Box2>
     )
   }
 }
+
+const AnimatedInput = (() => {
+  if (SKIP_ANIM) {
+    return React.forwardRef<any, any>((p: any, ref) => {
+      return null
+    })
+  } else {
+    const AnimatedPlainInput = Kb.ReAnimated.createAnimatedComponent(Kb.PlainInput)
+    return React.forwardRef<any, any>((p: any, ref) => {
+      const {expanded, ...rest} = p
+      const offset = useSharedValue(expanded ? 1 : 0)
+      const as = useAnimatedStyle(() => ({
+        maxHeight: withTiming(offset.value ? 9999 : threeLineHeight),
+        minHeight: withTiming(offset.value ? expandedHeight : singleLineHeight),
+      }))
+      React.useEffect(() => {
+        offset.value = expanded ? 1 : 0
+      }, [expanded, offset])
+      return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style, as]} />
+    })
+  }
+})()
 
 type ButtonsProps = Pick<
   PlatformInputPropsInternal,
@@ -383,7 +338,11 @@ const Buttons = (p: ButtonsProps) => {
           </Kb.Text>
         </Kb.Box2>
       ) : (
-        <Kb.Icon color={isExploding ? Styles.globalColors.black : null} type="iconfont-timer" />
+        <Kb.Icon
+          color={isExploding ? Styles.globalColors.black : null}
+          type="iconfont-timer"
+          fixOverdraw={true}
+        />
       )}
     </Kb.ClickableBox>
   )
@@ -400,14 +359,14 @@ const Buttons = (p: ButtonsProps) => {
         />
       )}
       {explodingIcon}
-      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" />
-      <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
+      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" fixOverdraw={true} />
+      <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" fixOverdraw={true} />
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
       {!hasText && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
-          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" />
+          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" fixOverdraw={true} />
           <AudioRecorder conversationIDKey={conversationIDKey} iconStyle={styles.audioRecorderIconStyle} />
-          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" />
+          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" fixOverdraw={true} />
         </Kb.Box2>
       )}
       {hasText && (
@@ -425,35 +384,56 @@ const Buttons = (p: ButtonsProps) => {
   )
 }
 
-const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value<number>}) => {
-  const {expandInput, rotate} = p
-  return (
-    <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconTop}>
-        <AnimatedIcon
-          onClick={expandInput}
-          type="iconfont-arrow-full-up"
-          fontSize={18}
-          style={{
-            transform: [{rotate: concat(add(45, rotate), 'deg')}, {scale: 0.7}],
-          }}
-          color={Styles.globalColors.black_35}
-        />
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom}>
-        <AnimatedIcon
-          onClick={expandInput}
-          type="iconfont-arrow-full-up"
-          fontSize={18}
-          style={{
-            transform: [{rotate: concat(add(45, rotate), 'deg')}, {scaleX: -0.7}, {scaleY: -0.7}],
-          }}
-          color={Styles.globalColors.black_35}
-        />
-      </Kb.Box2>
-    </Kb.ClickableBox>
-  )
-}
+const AnimatedExpand = (() => {
+  if (SKIP_ANIM) {
+    return React.memo(() => {
+      return null
+    })
+  } else {
+    return React.memo((p: {expandInput: () => void; expanded: boolean}) => {
+      const {expandInput, expanded} = p
+      const offset = useSharedValue(expanded ? 1 : 0)
+      const topStyle: any = useAnimatedStyle(() => ({
+        // @ts-ignore
+        transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.7}],
+      }))
+      const bottomStyle: any = useAnimatedStyle(() => ({
+        // @ts-ignore
+        transform: [
+          {rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)},
+          {scaleX: -0.7},
+          {scaleY: -0.7},
+        ],
+      }))
+      React.useEffect(() => {
+        offset.value = expanded ? 1 : 0
+      }, [expanded, offset])
+
+      return (
+        <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
+          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconTop} pointerEvents="none">
+            <AnimatedIcon
+              fixOverdraw={false}
+              type="iconfont-arrow-full-up"
+              fontSize={18}
+              style={topStyle}
+              color={Styles.globalColors.black_35}
+            />
+          </Kb.Box2>
+          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom} pointerEvents="none">
+            <AnimatedIcon
+              fixOverdraw={false}
+              type="iconfont-arrow-full-up"
+              fontSize={18}
+              style={bottomStyle}
+              color={Styles.globalColors.black_35}
+            />
+          </Kb.Box2>
+        </Kb.ClickableBox>
+      )
+    })
+  }
+})()
 
 const PlatformInput = AddSuggestors(_PlatformInput)
 
@@ -464,17 +444,12 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         minHeight: 32,
       },
-      audioRecorderIconStyle: {
-        padding: Styles.globalMargins.tiny,
-      },
+      audioRecorderIconStyle: {padding: Styles.globalMargins.tiny},
       container: {
         alignItems: 'center',
         backgroundColor: Styles.globalColors.fastBlank,
         borderTopColor: Styles.globalColors.black_10,
         borderTopWidth: 1,
-        flexGrow: 1,
-        flexShrink: 1,
-        maxHeight: '100%',
         minHeight: 1,
         overflow: 'hidden',
         ...Styles.padding(0, 0, Styles.globalMargins.tiny, 0),
@@ -499,9 +474,7 @@ const styles = Styles.styleSheetCreate(
         margin: Styles.globalMargins.xtiny,
         width: 28,
       },
-      explodingContainer: {
-        borderTopColor: Styles.globalColors.black,
-      },
+      explodingContainer: {borderTopColor: Styles.globalColors.black},
       explodingSendBtn: {
         backgroundColor: Styles.globalColors.black,
         marginRight: Styles.globalMargins.tiny,
@@ -553,9 +526,7 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
       },
-      sendBtn: {
-        marginRight: Styles.globalMargins.tiny,
-      },
+      sendBtn: {marginRight: Styles.globalMargins.tiny},
     } as const)
 )
 

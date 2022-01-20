@@ -45,6 +45,7 @@ export const isElectron = false
 export const isLinux = false
 export const isWindows = false
 export const isMac = false
+export const isDebuggingInChrome = typeof location !== 'undefined'
 
 export const defaultUseNativeFrame = true
 export const fileUIName = 'File Explorer'
@@ -66,10 +67,3 @@ export const pprofDir = _dir
 export const serverConfigFileName = `${_dir}/keybase.app.serverConfig`
 
 export const downloadFolder = ''
-
-// Noop on iOS.
-// If we want to implement this on iOS it may be better to have iOS and android
-// subscribe to changes from Go directly. Instead of having to rely on JS as the
-// middle person.
-export const appColorSchemeChanged =
-  NativeModules.KeybaseEngine && isAndroid ? NativeModules.KeybaseEngine.appColorSchemeChanged : () => {}

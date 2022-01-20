@@ -660,12 +660,6 @@ function* configSaga() {
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 
   yield* Saga.chainAction2(ConfigGen.setDarkModePreference, saveDarkPrefs)
-  if (Platform.isAndroid) {
-    yield* Saga.chainAction2(ConfigGen.setDarkModePreference, (state: Container.TypedState) =>
-      Platform.appColorSchemeChanged(state.config.darkModePreference)
-    )
-  }
-
   yield* Saga.chainAction2(ConfigGen.loadOnStart, getFollowerInfo)
 
   yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)

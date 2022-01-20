@@ -108,7 +108,7 @@ const followIconHelper = (
   }
 }
 
-const ConnectedAvatar = React.memo((ownProps: OwnProps) => {
+const ConnectedAvatar = (ownProps: OwnProps) => {
   const {username, showFollowingStatus, teamname} = ownProps
   const isTeam = ownProps.isTeam || !!teamname
   const counter = Container.useSelector(
@@ -179,7 +179,7 @@ const ConnectedAvatar = React.memo((ownProps: OwnProps) => {
       url={url}
     />
   )
-})
+}
 
 const mockOwnToViewProps = (
   ownProps: OwnProps,
@@ -222,7 +222,7 @@ const mockOwnToViewProps = (
   }
 }
 
-export default ConnectedAvatar
+export default React.memo(ConnectedAvatar)
 export {mockOwnToViewProps}
 
 export function castPlatformStyles(styles: any) {

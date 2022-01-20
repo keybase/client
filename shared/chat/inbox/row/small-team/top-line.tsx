@@ -66,7 +66,7 @@ class _SimpleTopLine extends React.Component<Props> {
   render() {
     return (
       <Kb.Box style={styles.container}>
-        {this.props.showGear && (
+        {this.props.showGear && (this.props.showingMenu || this.props.forceShowMenu) && (
           <TeamMenu
             visible={this.props.showingMenu || this.props.forceShowMenu}
             attachTo={this.props.getAttachmentRef}

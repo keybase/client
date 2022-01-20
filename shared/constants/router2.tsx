@@ -1,11 +1,12 @@
 import {NavState} from './types/route-tree'
-import {getActiveKey as _getActiveKey} from '../router-v2/util'
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import logger from '../logger'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
+import isEqual from 'lodash/isEqual'
+import {ConversationIDKey} from './types/chat2/common'
 
 export const navigationRef_ = createNavigationContainerRef()
 export const _getNavigator = () => {
@@ -70,11 +71,6 @@ export const getVisibleScreen = () => {
   return visible[visible.length - 1]
 }
 
-export const getActiveKey = (): string => {
-  if (!navigationRef_.isReady()) return ''
-  return _getActiveKey(navigationRef_.getRootState())
-}
-
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
 // actual routing actions (or make RouteTreeGen append/up the only action)
 const oldActionToNewActions = (action: any, navigationState: any, allowAppendDupe?: boolean) => {
@@ -124,7 +120,11 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
       }
 
       if (action.payload.replace) {
-        return [StackActions.replace(routeName, params)]
+        if (visible?.name === routeName) {
+          return [CommonActions.setParams(params)]
+        } else {
+          return [StackActions.replace(routeName, params)]
+        }
       }
 
       return [StackActions.push(routeName, params)]
@@ -216,22 +216,45 @@ export const getAppPath = () => {
   return findVisibleRoute([rs.routes[0]], root?.state)
 }
 
-export const navToThread = conversationIDKey => {
+export const navToThread = (conversationIDKey: ConversationIDKey) => {
   const rs: any = _getNavigator()?.getRootState() ?? {}
   const nextState: any = Container.produce(rs as any, draft => {
-    // app stack
+    // select tabs
     draft.index = 0
+    // remove modals
+    draft.routes.length = 1
+
+    const loggedInRoute = draft.routes[0]
+    const loggedInTabs = loggedInRoute?.state.routes
     // select chat tab
-    const chatTabIdx = draft.routes[0]?.state.routes.findIndex(r => r.name === Tabs.chatTab)
-    draft.routes[0].state.index = chatTabIdx
-    const chatStack = draft.routes[0].state.routes[chatTabIdx]
+    const chatTabIdx = loggedInTabs.findIndex(r => r.name === Tabs.chatTab)
+    loggedInRoute.state.index = chatTabIdx
+
+    const chatStack = loggedInTabs[chatTabIdx]
     // set inbox + convo
     chatStack.state = chatStack.state ?? {}
     chatStack.state.index = 1
-    chatStack.state.routes = [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey}}]
+    // key is required or you'll run into issues w/ the nav
+    let convoRoute: any = {
+      key: `chatConversation-${conversationIDKey}`,
+      name: 'chatConversation',
+      params: {conversationIDKey},
+    }
+    // reuse visible route if it's the same
+    const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]
+    if (visible) {
+      if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
+        convoRoute = visible
+      }
+    }
+
+    const chatRoot = chatStack.state.routes?.[0]
+    chatStack.state.routes = [chatRoot, convoRoute]
   })
 
-  rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState), target: rs.key})
+  if (!isEqual(rs, nextState)) {
+    rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState), target: rs.key})
+  }
 }
 
 export const chatRootKey = () => {

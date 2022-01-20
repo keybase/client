@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {StyleSheet, Dimensions} from 'react-native'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import {isIOS, isTablet} from '../constants/platform'
@@ -94,11 +95,11 @@ export {
   platformStyles,
   padding,
 } from './shared'
-export {default as glamorous} from '@emotion/native'
-export {default as styled, css as styledCss} from '@emotion/native'
+export {default as styled} from '@emotion/native'
 export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'
 export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width
 export const dimensionHeight = Dimensions.get('window').height
 export const headerExtraHeight = isTablet ? 16 : 0
+export const StyleContext = React.createContext({canFixOverdraw: true})

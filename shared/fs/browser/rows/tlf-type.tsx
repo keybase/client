@@ -16,6 +16,7 @@ const TlfType = (props: TlfTypeProps) => (
     writingToJournal={false}
     content={
       <Kb.Text
+        fixOverdraw={true}
         type={Constants.pathTypeToTextType(PathType.Folder)}
         style={rowStyles.rowText}
         lineClamp={Styles.isMobile ? 1 : undefined}
