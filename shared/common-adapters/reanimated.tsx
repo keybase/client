@@ -21,6 +21,10 @@ if (!skipAnimations) {
   const rnr = require('react-native-reanimated')
   ReAnimated = rnr.default
   ReAnimatedEasing = rnr.Easing
+  EasingNode = rnr.EasingNode
+  useAnimatedStyle = rnr.useAnimatedStyle
+  useSharedValue = rnr.useSharedValue
+  withTiming = rnr.withTiming
   if (isDebuggingInChrome) {
     console.log('DEBUG: Real ReAnimated enabled, yet in chrome. Might not work!')
   }
