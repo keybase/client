@@ -39,9 +39,6 @@ static void InitializeFlipper(UIApplication *application) {
 }
 #endif
 
-// #import <UMCore/UMModuleRegistry.h>
-// #import <UMReactNativeAdapter/UMNativeModulesProxy.h>
-// #import <UMReactNativeAdapter/UMModuleRegistryAdapter.h>
 #import <RNHWKeyboardEvent.h>
 
 @interface AppDelegate ()
@@ -61,6 +58,8 @@ static void InitializeFlipper(UIApplication *application) {
 #endif
   // set to true to see logs in xcode
   BOOL skipLogFile = false;
+  // uncomment to get more console.logs
+  // RCTSetLogThreshold(RCTLogLevelInfo - 1);
 
   NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:YES];
   NSError* err;
@@ -94,9 +93,6 @@ static void InitializeFlipper(UIApplication *application) {
   [self setupGo];
   [self notifyAppState:application];
 
-  // unimodules
-  // self.moduleRegistryAdapter = [[UMModuleRegistryAdapter alloc] initWithModuleRegistryProvider: [[UMModuleRegistryProvider alloc] init]];
-  
   UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
    center.delegate = self;
 
@@ -152,7 +148,7 @@ static void InitializeFlipper(UIApplication *application) {
 {
 #if DEBUG
   // uncomment to get a prod bundle. If you set this it remembers so set it back and re-run to reset it!
-//  [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
+  // [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
 
   // This is a mildly hacky solution to mock out some code when we're in storybook mode.
   // The code that handles this is in `shared/metro.config.js`.
@@ -359,12 +355,10 @@ RNHWKeyboardEvent *hwKeyEvent = nil;
 
 - (void)sendEnter:(UIKeyCommand *)sender {
   // Detects user pressing the enter key
-  //NSString *selected = sender.input;
   [hwKeyEvent sendHWKeyEvent:@"enter"];
 }
 - (void)sendShiftEnter:(UIKeyCommand *)sender {
 // Detects user pressing the shift-enter combination
-  //NSString *selected = sender.input;
   [hwKeyEvent sendHWKeyEvent:@"shift-enter"];
 }
 
