@@ -1,4 +1,5 @@
 // Cache in the module. This can get called from multiple places and env vars can get lost
+const skipAnimation = require('./common-adapters/skip-animations')
 let isElectron = null
 let isReactNative = null
 let isTest = null
@@ -52,7 +53,7 @@ module.exports = function (api /*: any */) {
   } else if (isReactNative) {
     // console.error('KB babel.config.js for ReactNative')
     return {
-      plugins: ['react-native-reanimated/plugin'],
+      plugins: [...(skipAnimation ? [] : ['react-native-reanimated/plugin'])],
       presets: ['module:metro-react-native-babel-preset'],
     }
   }

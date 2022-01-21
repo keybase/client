@@ -20,9 +20,12 @@ import AudioRecorder from '../../../audio/audio-recorder.native'
 import {AnimatedIcon} from './platform-input-animation.native'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
 import throttle from 'lodash/throttle'
-import {useSharedValue, useAnimatedStyle, withTiming} from '../../../../common-adapters/reanimated'
-
-const SKIP_ANIM = __DEV__ && false
+import {
+  skipAnimations,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from '../../../../common-adapters/reanimated'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -264,13 +267,14 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
   }
 }
 
+const AnimatedPlainInput = Kb.ReAnimated.createAnimatedComponent(Kb.PlainInput)
 const AnimatedInput = (() => {
-  if (SKIP_ANIM) {
+  if (skipAnimations) {
     return React.forwardRef<any, any>((p: any, ref) => {
-      return null
+      const {expanded, ...rest} = p
+      return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style]} />
     })
   } else {
-    const AnimatedPlainInput = Kb.ReAnimated.createAnimatedComponent(Kb.PlainInput)
     return React.forwardRef<any, any>((p: any, ref) => {
       const {expanded, ...rest} = p
       const offset = useSharedValue(expanded ? 1 : 0)
@@ -385,7 +389,7 @@ const Buttons = (p: ButtonsProps) => {
 }
 
 const AnimatedExpand = (() => {
-  if (SKIP_ANIM) {
+  if (skipAnimations) {
     return React.memo(() => {
       return null
     })
