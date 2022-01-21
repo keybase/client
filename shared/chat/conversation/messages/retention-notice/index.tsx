@@ -30,11 +30,7 @@ const RetentionNotice = (props: Props) => {
         <Kb.Icon color={Styles.globalColors.black_20} fontSize={20} type={iconType} />
       </Kb.Box>
       {!!props.explanation && (
-        <Kb.Text
-          center={true}
-          type="BodySmallSemibold"
-          style={{backgroundColor: Styles.globalColors.fastBlank}}
-        >
+        <Kb.Text center={true} type="BodySmallSemibold">
           {props.explanation}
         </Kb.Text>
       )}
