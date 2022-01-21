@@ -42,7 +42,7 @@ const FileAttachment = React.memo((props: Props) => {
       <ShowToastAfterSaving transferState={props.transferState} />
       <Kb.Box style={Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing, isHighlighted)])}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
-          <Kb.Icon type={iconType} style={styles.iconStyle} onClick={props.onDownload} />
+          <Kb.Icon fixOverdraw={true} type={iconType} style={styles.iconStyle} onClick={props.onDownload} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
             {props.fileName === props.title ? (
               // if the title is the filename, don't try to parse it as markdown
@@ -150,13 +150,10 @@ const styles = Styles.styleSheetCreate(
       },
       error: {color: Styles.globalColors.redDark},
       iconStyle: {
-        backgroundColor: Styles.globalColors.fastBlank,
         height: 32,
         width: 32,
       },
-      linkStyle: {
-        color: Styles.globalColors.black_50,
-      },
+      linkStyle: {color: Styles.globalColors.black_50},
       progressContainerStyle: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
@@ -173,17 +170,13 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.greenDark,
       },
       saltpackOperation: Styles.platformStyles({
-        isTablet: {
-          alignSelf: 'flex-start',
-        },
+        isTablet: {alignSelf: 'flex-start'},
       }),
       saltpackOperationContainer: {
         alignItems: 'flex-start',
         marginTop: Styles.globalMargins.xtiny,
       },
-      titleStyle: {
-        flex: 1,
-      },
+      titleStyle: {flex: 1},
     } as const)
 )
 

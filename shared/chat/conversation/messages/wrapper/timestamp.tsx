@@ -21,7 +21,6 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxCenter,
       },
       text: {
-        backgroundColor: Styles.globalColors.fastBlank,
         color: Styles.globalColors.black_50_on_white,
         padding: Styles.globalMargins.tiny,
       },
