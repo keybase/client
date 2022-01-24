@@ -20,7 +20,10 @@ class AudioVideo extends React.Component<Props> {
         source={{uri: this.props.url}}
         style={{height: 0, width: 0}}
         paused={this.props.paused}
-        ignoreSilentSwitch="ignore"
+        // RNVideo can't mix multiple components that change these flags so
+        // we have to mix else giphys will pause background audio
+        ignoreSilentSwitch="obey"
+        mixWithOthers="mix"
       />
     )
   }
