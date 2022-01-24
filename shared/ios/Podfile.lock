@@ -3,15 +3,14 @@ PODS:
   - DoubleConversion (1.1.6)
   - EXApplication (4.0.1):
     - ExpoModulesCore
-  - EXAV (10.2.0):
+  - EXAV (10.1.3):
     - ExpoModulesCore
-    - ReactCommon/turbomodule/core
   - EXBarCodeScanner (11.2.0):
     - EXImageLoader
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
-  - EXConstants (13.0.0):
+  - EXConstants (13.0.1):
     - ExpoModulesCore
   - EXContacts (10.1.0):
     - ExpoModulesCore
@@ -627,9 +626,9 @@ SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
   EXApplication: bdc8dc27713235565da1029a34385229f31b8e08
-  EXAV: e501565d5aff495b7b5e9249d489f5ef94db03b2
+  EXAV: 8adf9a1c0161144d77e96149a1e5a5f9358be290
   EXBarCodeScanner: 7deeeb35f396ce9a13434a75b581c19fc2564205
-  EXConstants: 5d18484e38e8eacef7695a82214b6ac90133dedf
+  EXConstants: 6966f4fa7a22770dd240a66d029819ff94c748c9
   EXContacts: dc86ef0069dad7fa89096d6023b292047c5f7210
   EXErrorRecovery: deea88a01d38f8b1c1181b4e1d179b0ba0e4bb5b
   EXFileSystem: 6545bf5f2944a38f3c1e14559639d379a708c8dc

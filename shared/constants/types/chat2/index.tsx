@@ -314,7 +314,7 @@ export type State = {
 }
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>
-  Common.stringToConversationIDKey(conversationID.toString('hex'))
+  Common.stringToConversationIDKey(Buffer.from(conversationID).toString('hex'))
 
 export const keyToConversationID = (key: Common.ConversationIDKey): RPCChatTypes.ConversationID =>
   Buffer.from(Common.conversationIDKeyToString(key), 'hex')

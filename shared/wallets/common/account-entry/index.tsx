@@ -9,7 +9,7 @@ type AccountEntryProps = {
   isDefault?: boolean
   keybaseUser: string
   name: string
-  showWalletIcon: boolean
+  showWalletIcon?: boolean
   style?: Styles.StylesCrossPlatform
 }
 

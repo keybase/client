@@ -1,6 +1,6 @@
 {
   "name": "EXAV",
-  "version": "10.2.0",
+  "version": "10.1.3",
   "summary": "Expo universal module for Audio and Video playback",
   "description": "Expo universal module for Audio and Video playback",
   "license": "MIT",
@@ -16,10 +16,8 @@
   "dependencies": {
     "ExpoModulesCore": [
 
-    ],
-    "ReactCommon/turbomodule/core": [
-
     ]
   },
-  "source_files": "EXAV/**/*.{h,m,mm}"
+  "source_files": "EXAV/**/*.h",
+  "vendored_frameworks": "EXAV.xcframework"
 }
