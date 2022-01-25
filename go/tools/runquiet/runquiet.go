@@ -37,7 +37,7 @@ var (
 )
 
 func GetWindowThreadProcessId(hwnd syscall.Handle) int {
-	var processID int
+	var processID uint32
 	_, _, _ = procGetWindowThreadProcessId.Call(
 		uintptr(hwnd),
 		uintptr(unsafe.Pointer(&processID)))
@@ -145,9 +145,9 @@ func getUserToken() (syscall.Token, error) {
 		return 0, errors.New("can't get desktop window proc ID")
 	}
 
-	h, e := syscall.OpenProcess(syscall.PROCESS_QUERY_INFORMATION, false, uint32(processID))
+	h, e := syscall.OpenProcess(syscall.PROCESS_QUERY_INFORMATION, false, processID)
 	if e != nil {
-		return 0, fmt.Errorf("OpenProcess error: %s", e)
+		return 0, fmt.Errorf("OpenProcess error: %s %d", e, processID)
 	}
 	defer syscall.CloseHandle(h)
 
