@@ -157,7 +157,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         colorFollowing={true}
         colorYou={true}
         onUsernameClicked={this.onAuthorClick}
-        containerStyle={styles.username}
+        fixOverdraw={true}
         style={
           this.showCenteredHighlight() && this.props.youAreAuthor ? styles.usernameHighlighted : undefined
         }
@@ -211,10 +211,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               )}
               <Kb.Text
                 type="BodyTiny"
-                style={Styles.collapseStyles([
-                  styles.timestamp,
-                  this.showCenteredHighlight() && styles.timestampHighlighted,
-                ])}
+                fixOverdraw={true}
+                style={Styles.collapseStyles([this.showCenteredHighlight() && styles.timestampHighlighted])}
               >
                 {formatTimeForChat(this.props.message.timestamp)}
               </Kb.Text>
@@ -708,7 +706,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
-const fast = {backgroundColor: Styles.globalColors.fastBlank}
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -802,7 +799,6 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
-      fast,
       menuButtons: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
@@ -842,12 +838,8 @@ const styles = Styles.styleSheetCreate(
           flexShrink: 0,
           lineHeight: 19,
         },
-        isMobile: {backgroundColor: Styles.globalColors.fastBlank},
       }),
       timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
-      username: Styles.platformStyles({
-        isMobile: {backgroundColor: Styles.globalColors.fastBlank},
-      }),
       usernameCrown: Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',

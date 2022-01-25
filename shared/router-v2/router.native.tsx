@@ -16,7 +16,6 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
 import createNoDupeStackNavigator from './stack'
-import shallowEqual from 'shallowequal'
 
 enableFreeze()
 
@@ -156,14 +155,8 @@ const makeTabStack = (tab: string) => {
           </S.Navigator>
         )
       },
-      (a, b) => {
-        if (!shallowEqual(a.navigation, b.navigation)) {
-          return false
-        }
-        if (!shallowEqual(a.route, b.route)) {
-          return false
-        }
-
+      () => {
+        // don't rerender on props changes else we'll thrash things like the inbox for no reason
         return true
       }
     )

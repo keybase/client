@@ -37,6 +37,13 @@ allprojects {
                 // TODO these are older deps that use the now deprecated jcenter repo. hopefully they'll be updated
                 includeModule("com.yqritc", "android-scalablevideoview") // for react-native-video
                 includeModule("com.theartofdev.edmodo", "android-image-cropper") // for expo-image-picker dep
+                includeModule("com.google.android.exoplayer", "exoplayer") // for expo-av
+                includeModule("com.google.android.exoplayer", "exoplayer-ui") // for expo-av
+                includeModule("com.google.android.exoplayer", "exoplayer-smoothstreaming") // for expo-av
+                includeModule("com.google.android.exoplayer", "extension-okhttp") // for expo-av
+                includeModule("com.google.android.exoplayer", "exoplayer-core") // for expo-av
+                includeModule("com.google.android.exoplayer", "exoplayer-dash") // for expo-av
+                includeModule("com.google.android.exoplayer", "exoplayer-hls") // for expo-av
             }
         }
     }
