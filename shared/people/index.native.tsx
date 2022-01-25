@@ -11,7 +11,7 @@ const People = React.memo((props: Props) => (
     <Kb.ScrollView
       style={styles.scrollView}
       refreshControl={
-        <Kb.NativeRefreshControl refreshing={props.waiting} onRefresh={() => props.getData()} />
+        <Kb.NativeRefreshControl refreshing={props.waiting} onRefresh={() => props.getData(false, true)} />
       }
     >
       <PeoplePageList {...props} />
