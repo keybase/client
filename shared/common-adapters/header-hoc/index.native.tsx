@@ -343,12 +343,12 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const noop = () => {}
-export const HeaderLeftBlank = React.memo(
-  () => <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />,
-  () => true
+const HeaderLeftBlank_ = () => (
+  <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
 )
+export const HeaderLeftBlank = React.memo(HeaderLeftBlank_, () => true)
 
-export const HeaderLeftArrow = React.memo((hp: any) =>
+const HeaderLeftArrow_ = (hp: any) =>
   hp.canGoBack ? (
     <LeftAction
       badgeNumber={hp.badgeNumber ?? 0}
@@ -357,9 +357,10 @@ export const HeaderLeftArrow = React.memo((hp: any) =>
       customIconColor={hp.tintColor}
     />
   ) : null
-)
 
-export const HeaderLeftCancel = React.memo((hp: any) =>
+export const HeaderLeftArrow = React.memo(HeaderLeftArrow_)
+
+const HeaderLeftCancel_ = (hp: any) =>
   hp.canGoBack ? (
     <LeftAction
       badgeNumber={0}
@@ -368,6 +369,6 @@ export const HeaderLeftCancel = React.memo((hp: any) =>
       customIconColor={hp.tintColor}
     />
   ) : null
-)
 
+export const HeaderLeftCancel = React.memo(HeaderLeftCancel_)
 export default HeaderHoc

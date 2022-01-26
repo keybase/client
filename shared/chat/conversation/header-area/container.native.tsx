@@ -142,9 +142,10 @@ const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}) => {
 }
 
 export const headerNavigationOptions = (route: any) => ({
-  headerLeft: (props: any) => (
-    <BadgeHeaderLeftArray {...props} conversationIDKey={route.params?.conversationIDKey} />
-  ),
+  headerLeft: (props: any) => {
+    const {onLabelLayout, labelStyle, ...rest} = props
+    return <BadgeHeaderLeftArray {...rest} conversationIDKey={route.params?.conversationIDKey} />
+  },
   headerRight: () => <HeaderAreaRight conversationIDKey={route.params?.conversationIDKey} />,
   headerTitle: () => <HeaderArea conversationIDKey={route.params?.conversationIDKey} />,
 })

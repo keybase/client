@@ -199,47 +199,49 @@ const makeNavScreens = (rs, Screen, isModal) => {
   })
 }
 
+const AppTabsInner = () => {
+  return (
+    <Tab.Navigator
+      backBehavior="none"
+      screenOptions={({route}) => {
+        return {
+          ...Common.defaultNavigationOptions,
+          headerShown: false,
+          tabBarActiveBackgroundColor: Styles.globalColors.transparent,
+          tabBarHideOnKeyboard: true,
+          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
+          tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
+          tabBarLabel: ({focused}) => (
+            <Kb.Text
+              style={Styles.collapseStyles([
+                styles.label,
+                Styles.isDarkMode()
+                  ? focused
+                    ? styles.labelDarkModeFocused
+                    : styles.labelDarkMode
+                  : focused
+                  ? styles.labelLightModeFocused
+                  : styles.labelLightMode,
+              ])}
+              type="BodyBig"
+            >
+              {tabToData[route.name].label}
+            </Kb.Text>
+          ),
+          tabBarShowLabel: Styles.isTablet,
+          tabBarStyle: Common.tabBarStyle,
+        }
+      }}
+    >
+      {tabs.map(tab => (
+        <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
+      ))}
+    </Tab.Navigator>
+  )
+}
+
 const AppTabs = React.memo(
-  () => {
-    return (
-      <Tab.Navigator
-        backBehavior="none"
-        screenOptions={({route}) => {
-          return {
-            ...Common.defaultNavigationOptions,
-            headerShown: false,
-            tabBarActiveBackgroundColor: Styles.globalColors.transparent,
-            tabBarHideOnKeyboard: true,
-            tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
-            tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
-            tabBarLabel: ({focused}) => (
-              <Kb.Text
-                style={Styles.collapseStyles([
-                  styles.label,
-                  Styles.isDarkMode()
-                    ? focused
-                      ? styles.labelDarkModeFocused
-                      : styles.labelDarkMode
-                    : focused
-                    ? styles.labelLightModeFocused
-                    : styles.labelLightMode,
-                ])}
-                type="BodyBig"
-              >
-                {tabToData[route.name].label}
-              </Kb.Text>
-            ),
-            tabBarShowLabel: Styles.isTablet,
-            tabBarStyle: Common.tabBarStyle,
-          }
-        }}
-      >
-        {tabs.map(tab => (
-          <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
-        ))}
-      </Tab.Navigator>
-    )
-  },
+  AppTabsInner,
   () => true // ignore all props
 )
 
