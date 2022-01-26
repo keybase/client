@@ -157,7 +157,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         colorFollowing={true}
         colorYou={true}
         onUsernameClicked={this.onAuthorClick}
-        fixOverdraw={true}
+        fixOverdraw={!this.showCenteredHighlight()}
         style={
           this.showCenteredHighlight() && this.props.youAreAuthor ? styles.usernameHighlighted : undefined
         }
@@ -211,7 +211,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               )}
               <Kb.Text
                 type="BodyTiny"
-                fixOverdraw={true}
+                fixOverdraw={!this.showCenteredHighlight()}
                 style={Styles.collapseStyles([this.showCenteredHighlight() && styles.timestampHighlighted])}
               >
                 {formatTimeForChat(this.props.message.timestamp)}

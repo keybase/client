@@ -112,7 +112,6 @@ export type Props = {
   claim?: ClaimProps
   isEditing: boolean
   isHighlighted?: boolean
-  // eslint-disable-next-line
   message: Types.MessageText
   reply?: ReplyProps
   text: string
@@ -157,9 +156,13 @@ const getStyle = (type: Props['type'], isEditing: boolean, isHighlighted?: boole
   if (isHighlighted) {
     return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
   } else if (type === 'sent') {
-    return isEditing ? sharedStyles.sentEditing : sharedStyles.sent
+    return isEditing
+      ? sharedStyles.sentEditing
+      : Styles.collapseStyles([sharedStyles.sent, Styles.globalStyles.fastBackground])
   } else {
-    return isEditing ? sharedStyles.pendingFailEditing : sharedStyles.pendingFail
+    return isEditing
+      ? sharedStyles.pendingFailEditing
+      : Styles.collapseStyles([sharedStyles.pendingFail, Styles.globalStyles.fastBackground])
   }
 }
 const styles = Styles.styleSheetCreate(

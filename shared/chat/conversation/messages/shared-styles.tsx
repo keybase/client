@@ -19,7 +19,6 @@ export const sharedStyles = Styles.styleSheetCreate(() => {
     } as const,
     isMobile: {
       ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.fastBlank,
     },
   })
   const sentEditing = {

@@ -19,7 +19,7 @@ const LongPressable = (props: {children: React.ElementType; onSwipeLeft?: () => 
     swipeable.current && swipeable.current.close()
   }
   const inner = (
-    <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>
+    <Kb.NativeTouchableHighlight key="longPressable" {...rest}>
       <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
     </Kb.NativeTouchableHighlight>
   )
