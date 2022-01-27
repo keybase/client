@@ -113,7 +113,7 @@ const DeviceRevoke = (props: Props) => (
 )
 
 DeviceRevoke.navigationOptions = {
-  headerLeft: HeaderLeftCancel,
+  headerLeft: p => <HeaderLeftCancel {...p} />,
   title: '',
 }
 

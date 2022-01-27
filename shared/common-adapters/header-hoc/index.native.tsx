@@ -349,7 +349,7 @@ const HeaderLeftBlank_ = () => (
 export const HeaderLeftBlank = React.memo(HeaderLeftBlank_, () => true)
 
 const HeaderLeftArrow_ = (hp: any) =>
-  hp.canGoBack ? (
+  hp.canGoBack ?? true ? (
     <LeftAction
       badgeNumber={hp.badgeNumber ?? 0}
       leftAction="back"
@@ -361,7 +361,7 @@ const HeaderLeftArrow_ = (hp: any) =>
 export const HeaderLeftArrow = React.memo(HeaderLeftArrow_)
 
 const HeaderLeftCancel_ = (hp: any) =>
-  hp.canGoBack ? (
+  hp.canGoBack ?? true ? (
     <LeftAction
       badgeNumber={0}
       leftAction="cancel"
