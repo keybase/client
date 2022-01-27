@@ -426,7 +426,7 @@ const newNavigation = (
     | RouteTreeGen.ClearModalsPayload
     | RouteTreeGen.NavUpToScreenPayload
     | RouteTreeGen.SwitchTabPayload
-    | RouteTreeGen.ResetStackPayload
+    | RouteTreeGen.PopStackPayload
 ) => {
   Router2.dispatchOldAction(action)
 }
@@ -624,7 +624,7 @@ function* configSaga() {
       RouteTreeGen.clearModals,
       RouteTreeGen.navUpToScreen,
       RouteTreeGen.switchTab,
-      RouteTreeGen.resetStack,
+      RouteTreeGen.popStack,
     ],
     newNavigation
   )

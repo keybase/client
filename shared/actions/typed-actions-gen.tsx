@@ -798,7 +798,7 @@ export type TypedActionsMap = {
   'route-tree:navUpToScreen': routetree.NavUpToScreenPayload
   'route-tree:switchLoggedIn': routetree.SwitchLoggedInPayload
   'route-tree:switchTab': routetree.SwitchTabPayload
-  'route-tree:resetStack': routetree.ResetStackPayload
+  'route-tree:popStack': routetree.PopStackPayload
   'route-tree:onNavChanged': routetree.OnNavChangedPayload
   'route-tree:setParams': routetree.SetParamsPayload
   'route-tree:tabLongPress': routetree.TabLongPressPayload

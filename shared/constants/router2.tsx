@@ -73,7 +73,7 @@ export const getVisibleScreen = () => {
 
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
 // actual routing actions (or make RouteTreeGen append/up the only action)
-const oldActionToNewActions = (action: any, navigationState: any, allowAppendDupe?: boolean) => {
+const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAppendDupe?: boolean) => {
   switch (action.type) {
     case RouteTreeGen.setParams: {
       return [{...CommonActions.setParams(action.payload.params), source: action.payload.key}]
@@ -147,34 +147,28 @@ const oldActionToNewActions = (action: any, navigationState: any, allowAppendDup
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
     case RouteTreeGen.navUpToScreen: {
-      // TODO ?
-      return []
+      const {routeName} = action.payload
+      return [CommonActions.navigate(routeName)]
     }
-    case RouteTreeGen.resetStack: {
-      return [
-        CommonActions.reset({
-          ...navigationState,
-          index: 0,
-          routes: [{name: action.payload.path}],
-        }),
-      ]
+    case RouteTreeGen.popStack: {
+      return [StackActions.popToTop()]
     }
     default:
       return undefined
   }
 }
 
-export const dispatchOldAction = (
-  action:
-    | RouteTreeGen.SetParamsPayload
-    | RouteTreeGen.NavigateAppendPayload
-    | RouteTreeGen.NavigateUpPayload
-    | RouteTreeGen.SwitchLoggedInPayload
-    | RouteTreeGen.ClearModalsPayload
-    | RouteTreeGen.NavUpToScreenPayload
-    | RouteTreeGen.SwitchTabPayload
-    | RouteTreeGen.ResetStackPayload
-) => {
+type RTGActions =
+  | RouteTreeGen.SetParamsPayload
+  | RouteTreeGen.NavigateAppendPayload
+  | RouteTreeGen.NavigateUpPayload
+  | RouteTreeGen.SwitchLoggedInPayload
+  | RouteTreeGen.ClearModalsPayload
+  | RouteTreeGen.NavUpToScreenPayload
+  | RouteTreeGen.SwitchTabPayload
+  | RouteTreeGen.PopStackPayload
+
+export const dispatchOldAction = (action: RTGActions) => {
   if (!navigationRef_.isReady()) {
     return
   }

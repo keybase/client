@@ -92,7 +92,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
               styles.titleContainer,
               onLeftAction && styles.titleContainerRightPadding,
               rightActions.length && styles.titleContainerLeftPadding,
-            ])}
+            ] as const)}
           >
             {this.props.titleComponent}
           </Box>

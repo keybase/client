@@ -867,11 +867,8 @@ const navigateToAccount = (action: WalletsGen.SelectAccountPayload) => {
 
   return [
     RouteTreeGen.createClearModals(),
-    RouteTreeGen.createResetStack({
-      actions: isMobile ? [RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]})] : [],
-      index: isMobile ? 1 : 0,
-      tab: Constants.rootWalletTab,
-    }),
+    RouteTreeGen.createSwitchTab({tab: Constants.rootWalletTab}),
+    ...(isMobile ? [RouteTreeGen.createNavUpToScreen({routeName: SettingsConstants.walletsTab})] : []),
   ]
 }
 

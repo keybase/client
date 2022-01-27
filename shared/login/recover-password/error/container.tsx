@@ -11,15 +11,7 @@ const connector = Container.connect(
   }),
   dispatch => ({
     onBack: (loggedIn: boolean) =>
-      loggedIn
-        ? dispatch(RouteTreeGen.createNavigateUp())
-        : dispatch(
-            RouteTreeGen.createResetStack({
-              actions: [RouteTreeGen.createNavigateAppend({path: ['login']})],
-              index: 0,
-              tab: 'loggedOut',
-            })
-          ),
+      loggedIn ? dispatch(RouteTreeGen.createNavigateUp()) : dispatch(RouteTreeGen.createPopStack()),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     error: stateProps.error,
