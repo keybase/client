@@ -36,7 +36,7 @@ var (
 	procCreateProcessWithTokenW  *windows.LazyProc = modadvapi32.NewProc("CreateProcessWithTokenW")
 )
 
-func GetWindowThreadProcessId(hwnd syscall.Handle) int {
+func GetWindowThreadProcessId(hwnd syscall.Handle) uint32 {
 	var processID uint32
 	_, _, _ = procGetWindowThreadProcessId.Call(
 		uintptr(hwnd),
