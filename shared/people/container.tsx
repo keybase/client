@@ -25,7 +25,7 @@ type Props = {
   newItems: Array<Types.PeopleScreenItem>
   wotUpdates: Map<string, Types.WotUpdate>
   followSuggestions: Array<Types.FollowSuggestion>
-  getData: (markViewed?: boolean) => void
+  getData: (markViewed?: boolean, force?: boolean) => void
   onClickUser: (username: string) => void
   signupEmail: string
   myUsername: string
@@ -39,7 +39,7 @@ export class LoadOnMount extends React.PureComponent<Props> {
     headerTitle: () => <ProfileSearch />,
   }
   _onReload = () => this.props.getData(false)
-  _getData = (markViewed?: boolean) => this.props.getData(markViewed)
+  _getData = (markViewed?: boolean, force?: boolean) => this.props.getData(markViewed, force)
   _onClickUser = (username: string) => this.props.onClickUser(username)
   render() {
     return (
@@ -64,6 +64,9 @@ export class LoadOnMount extends React.PureComponent<Props> {
   }
 }
 
+let lastRefresh: number = 0
+const waitToRefresh = 1000 * 60 * 5
+
 export default Container.connect(
   state => ({
     followSuggestions: state.people.followSuggestions,
@@ -75,8 +78,13 @@ export default Container.connect(
     wotUpdates: state.people.wotUpdates,
   }),
   dispatch => ({
-    getData: (markViewed = true) =>
-      dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10})),
+    getData: (markViewed = true, force = false) => {
+      const now = Date.now()
+      if (force || !lastRefresh || lastRefresh + waitToRefresh < now) {
+        lastRefresh = now
+        dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10}))
+      }
+    },
     onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
   }),
   (stateProps, dispatchProps) => ({

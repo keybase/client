@@ -64,7 +64,7 @@ type Props = {
   onLongPress?: () => void
   onLongPressURL?: string | null
   onPress?: void
-  fixOverdraw?: boolean // use fastBlank to fix overdraw issues
+  fixOverdraw?: boolean // use fastBlank to fix overdraw issues TODO support auto when this is a function
   plainText?: boolean
   selectable?: boolean
   style?: StylesTextCrossPlatform

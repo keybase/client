@@ -12,6 +12,7 @@ type _fakeFontDefSeeCommentsOnThisStyle = {
 }
 
 export declare const globalStyles: {
+  fastBackground: _fakeFontDefSeeCommentsOnThisStyle
   fillAbsolute: {
     bottom: 0
     left: 0

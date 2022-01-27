@@ -29,12 +29,9 @@ const Main = () => {
         pointerEvents="box-none"
         behavior={Styles.isIOS ? 'padding' : undefined}
       >
-        <PortalHost
-          name="keyboard-avoiding-root"
-          // @ts-ignore
-          pointerEvents="box-none"
-          style={styles.gatewayDest}
-        />
+        <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} style={styles.portalParent}>
+          <PortalHost name="keyboard-avoiding-root" />
+        </Kb.Box2>
       </Kb.KeyboardAvoidingView>
       <ResetModal />
       <GlobalError />
@@ -45,7 +42,7 @@ const Main = () => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  gatewayDest: {flexGrow: 1, width: '100%'},
+  portalParent: {flexGrow: 1, position: 'relative'},
 }))
 
 export default Main

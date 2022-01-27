@@ -4,11 +4,6 @@
 //   const whyDidYouRender = require('@welldone-software/why-did-you-render')
 //   const ReactRedux = require('react-redux')
 //   whyDidYouRender(React, {
-//     include: [
-//       /^ConnectFunction/,
-//       // uncomment to watch everything, realllllly slows things down
-//       // /.*/,
-//     ],
 //     // TODO reduce these
 //     exclude: [
 //       /Pressable/,
@@ -20,6 +15,11 @@
 //       /^AnimatedComponentWrapper$/,
 //       // /CardContainer/,
 //       // /StaticContainer/,
+//     ],
+//     include: [
+//       /^ConnectFunction/,
+//       // uncomment to watch everything, realllllly slows things down
+//       // /.*/,
 //     ],
 //     trackAllPureComponents: true,
 //     trackExtraHooks: [[ReactRedux, 'useSelector']],

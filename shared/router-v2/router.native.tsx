@@ -199,47 +199,49 @@ const makeNavScreens = (rs, Screen, isModal) => {
   })
 }
 
+const AppTabsInner = () => {
+  return (
+    <Tab.Navigator
+      backBehavior="none"
+      screenOptions={({route}) => {
+        return {
+          ...Common.defaultNavigationOptions,
+          headerShown: false,
+          tabBarActiveBackgroundColor: Styles.globalColors.transparent,
+          tabBarHideOnKeyboard: true,
+          tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
+          tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
+          tabBarLabel: ({focused}) => (
+            <Kb.Text
+              style={Styles.collapseStyles([
+                styles.label,
+                Styles.isDarkMode()
+                  ? focused
+                    ? styles.labelDarkModeFocused
+                    : styles.labelDarkMode
+                  : focused
+                  ? styles.labelLightModeFocused
+                  : styles.labelLightMode,
+              ])}
+              type="BodyBig"
+            >
+              {tabToData[route.name].label}
+            </Kb.Text>
+          ),
+          tabBarShowLabel: Styles.isTablet,
+          tabBarStyle: Common.tabBarStyle,
+        }
+      }}
+    >
+      {tabs.map(tab => (
+        <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
+      ))}
+    </Tab.Navigator>
+  )
+}
+
 const AppTabs = React.memo(
-  () => {
-    return (
-      <Tab.Navigator
-        backBehavior="none"
-        screenOptions={({route}) => {
-          return {
-            ...Common.defaultNavigationOptions,
-            headerShown: false,
-            tabBarActiveBackgroundColor: Styles.globalColors.transparent,
-            tabBarHideOnKeyboard: true,
-            tabBarIcon: ({focused}) => <TabBarIcon isFocused={focused} routeName={route.name as Tabs.Tab} />,
-            tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
-            tabBarLabel: ({focused}) => (
-              <Kb.Text
-                style={Styles.collapseStyles([
-                  styles.label,
-                  Styles.isDarkMode()
-                    ? focused
-                      ? styles.labelDarkModeFocused
-                      : styles.labelDarkMode
-                    : focused
-                    ? styles.labelLightModeFocused
-                    : styles.labelLightMode,
-                ])}
-                type="BodyBig"
-              >
-                {tabToData[route.name].label}
-              </Kb.Text>
-            ),
-            tabBarShowLabel: Styles.isTablet,
-            tabBarStyle: Common.tabBarStyle,
-          }
-        }}
-      >
-        {tabs.map(tab => (
-          <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
-        ))}
-      </Tab.Navigator>
-    )
-  },
+  AppTabsInner,
   () => true // ignore all props
 )
 
@@ -260,12 +262,26 @@ const useInitialStateChangeAfterLinking = (
   onStateChange: () => void,
   loggedIn: boolean
 ) => {
-  // send onNavChanged on initial render after handling linking
+  // When we load an initial state we use goodLinking. When an initial state is loaded we need to
+  //manually call onStateChange as the framework itself won't call in this case. This is only valid
+  // *after* we get a onReady callback so we need to keep track of 1. a valid goodLinking, 2. onReady called
+  const goodLinkingState = React.useRef<GoodLinkingState>(
+    goodLinking ? GoodLinkingState.GoodLinkingExists : GoodLinkingState.GoodLinkingHandled
+  )
   React.useEffect(() => {
     if (goodLinking) {
-      setTimeout(() => onStateChange(), 1)
+      if (goodLinkingState.current === GoodLinkingState.GoodLinkingHandled) {
+        goodLinkingState.current = GoodLinkingState.GoodLinkingExists
+      }
     }
   }, [goodLinking])
+
+  const onReady = React.useCallback(() => {
+    if (goodLinkingState.current === GoodLinkingState.GoodLinkingExists) {
+      goodLinkingState.current = GoodLinkingState.GoodLinkingHandled
+      onStateChange()
+    }
+  }, [onStateChange])
 
   // When we do a quick user switch let's go back to the last tab we were on
   const lastLoggedInTab = React.useRef<string | undefined>(undefined)
@@ -279,6 +295,13 @@ const useInitialStateChangeAfterLinking = (
       Constants.navigationRef_.navigate(lastLoggedInTab.current as any)
     }
   }, [loggedIn, lastLoggedIn])
+
+  return onReady
+}
+
+enum GoodLinkingState {
+  GoodLinkingExists,
+  GoodLinkingHandled,
 }
 
 const RootStack = createNoDupeStackNavigator()
@@ -292,12 +315,13 @@ const RNApp = React.memo(() => {
 
   Shared.useSharedAfter(appState)
 
-  useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
+  const onReady = useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
 
   const DEBUG_RNAPP_RENDER = __DEV__ && false
   if (DEBUG_RNAPP_RENDER) {
     console.log('DEBUG RNApp render', {
       appState,
+      goodLinking,
       initialState,
       loggedIn,
       loggedInLoaded,
@@ -316,6 +340,7 @@ const RNApp = React.memo(() => {
         theme={Shared.theme}
         initialState={initialState}
         onStateChange={onStateChange}
+        onReady={onReady}
       >
         <RootStack.Navigator
           key="root"

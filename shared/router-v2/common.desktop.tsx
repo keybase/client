@@ -18,7 +18,7 @@ export const defaultNavigationOptions: any = {
   header: (p: any) => <Header {...p} />,
   headerBackTitle: 'temp',
   headerBackVisible: true,
-  headerLeft: HeaderLeftArrow,
+  headerLeft: (p: any) => <HeaderLeftArrow {...p} />,
   headerLeftContainerStyle: {
     paddingLeft: 8,
     width: actionWidth,

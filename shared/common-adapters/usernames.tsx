@@ -47,6 +47,7 @@ export type Props = {
   underline?: boolean
   usernames: Array<string> | string
   withProfileCardPopup?: boolean
+  fixOverdraw?: boolean | 'auto'
 } & ({colorFollowing?: false; type: TextType} | {colorFollowing: boolean; type: TextTypeBold})
 
 // Mobile handles spaces correctly so don't insert anything
@@ -228,7 +229,11 @@ const _Usernames = (props: Props) => {
     <Text
       type={props.type}
       negative={isNegative}
-      fixOverdraw={styleContext.canFixOverdraw}
+      fixOverdraw={
+        props.fixOverdraw === 'auto'
+          ? styleContext.canFixOverdraw
+          : props.fixOverdraw ?? styleContext.canFixOverdraw
+      }
       style={Styles.collapseStyles([containerStyle, props.containerStyle])}
       title={props.title}
       ellipsizeMode="tail"

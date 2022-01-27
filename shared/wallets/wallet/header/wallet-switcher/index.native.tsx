@@ -37,7 +37,7 @@ export const WalletSwitcher = (props: Props) => {
   props.accountIDs.forEach(accountID => {
     items.push({
       title: `Account ${accountID}`,
-      view: <WalletRow accountID={accountID} hideMenu={() => {}} />,
+      view: <WalletRow accountID={accountID} hideMenu={props.hideMenu} />,
     })
   })
 

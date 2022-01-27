@@ -402,8 +402,8 @@ const AnimatedExpand = (() => {
         transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.7}],
       }))
       const bottomStyle: any = useAnimatedStyle(() => ({
-        // @ts-ignore
         transform: [
+          // @ts-ignore
           {rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)},
           {scaleX: -0.7},
           {scaleY: -0.7},

@@ -12,7 +12,7 @@ export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateUp = 'route-tree:navigateUp'
 export const navigateUpNoop = 'route-tree:navigateUpNoop'
 export const onNavChanged = 'route-tree:onNavChanged'
-export const resetStack = 'route-tree:resetStack'
+export const popStack = 'route-tree:popStack'
 export const setParams = 'route-tree:setParams'
 export const switchLoggedIn = 'route-tree:switchLoggedIn'
 export const switchTab = 'route-tree:switchTab'
@@ -29,11 +29,7 @@ type _OnNavChangedPayload = {
   readonly next: Array<Types.NavState>
   readonly navAction: any
 }
-type _ResetStackPayload = {
-  readonly tab: Tabs.AppTab | 'loggedOut'
-  readonly actions: Array<any>
-  readonly index: number
-}
+type _PopStackPayload = void
 type _SetParamsPayload = {readonly params: Object; readonly key: string}
 type _SwitchLoggedInPayload = {readonly loggedIn: boolean}
 type _SwitchTabPayload = {readonly tab: Tabs.AppTab}
@@ -73,12 +69,9 @@ export const createClearModals = (payload: _ClearModalsPayload): ClearModalsPayl
   type: clearModals,
 })
 /**
- * Reset a specific stack. actions is route tree actions TODO better typing
+ * Reset a stack
  */
-export const createResetStack = (payload: _ResetStackPayload): ResetStackPayload => ({
-  payload,
-  type: resetStack,
-})
+export const createPopStack = (payload: _PopStackPayload): PopStackPayload => ({payload, type: popStack})
 /**
  * a tab was pressed
  */
@@ -119,7 +112,7 @@ export type NavigateUpNoopPayload = {
 }
 export type NavigateUpPayload = {readonly payload: _NavigateUpPayload; readonly type: typeof navigateUp}
 export type OnNavChangedPayload = {readonly payload: _OnNavChangedPayload; readonly type: typeof onNavChanged}
-export type ResetStackPayload = {readonly payload: _ResetStackPayload; readonly type: typeof resetStack}
+export type PopStackPayload = {readonly payload: _PopStackPayload; readonly type: typeof popStack}
 export type SetParamsPayload = {readonly payload: _SetParamsPayload; readonly type: typeof setParams}
 export type SwitchLoggedInPayload = {
   readonly payload: _SwitchLoggedInPayload
@@ -137,7 +130,7 @@ export type Actions =
   | NavigateUpNoopPayload
   | NavigateUpPayload
   | OnNavChangedPayload
-  | ResetStackPayload
+  | PopStackPayload
   | SetParamsPayload
   | SwitchLoggedInPayload
   | SwitchTabPayload

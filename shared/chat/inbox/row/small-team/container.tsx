@@ -22,10 +22,12 @@ export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const conversationIDKey = ownProps.conversationIDKey
     const _meta = Constants.getMeta(state, conversationIDKey)
+    const isEmptyMeta = _meta.conversationIDKey !== conversationIDKey
     const youAreReset = _meta.membershipType === 'youAreReset'
     const typers = state.chat2.typingMap.get(conversationIDKey)
     let snippet = state.chat2.metaMap.get(conversationIDKey) ? _meta.snippetDecorated : ownProps.snippet || ''
-    const snippetDecoration = _meta.snippetDecoration ?? ownProps.snippetDecoration
+    // valid meta or empty?
+    const snippetDecoration = isEmptyMeta ? ownProps.snippetDecoration : _meta.snippetDecoration
     let isTypingSnippet = false
     if (typers && typers.size > 0) {
       isTypingSnippet = true
@@ -37,7 +39,7 @@ export default Container.connect(
     const _username = state.config.username
     const hasUnread = Constants.getHasUnread(state, conversationIDKey)
     const isDecryptingSnippet =
-      (hasUnread || snippet.length === 0) && Constants.isDecryptingSnippet(_meta.trustedState)
+      (hasUnread || snippet.length === 0) && Constants.isDecryptingSnippet(_meta.trustedState) && !isEmptyMeta
 
     const teamname = _meta.teamname ? _meta.teamname : ownProps.isTeam ? ownProps.name : ''
     const timestamp = _meta.timestamp > 0 ? _meta.timestamp : ownProps.time || 0
