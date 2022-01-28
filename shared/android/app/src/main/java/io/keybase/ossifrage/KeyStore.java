@@ -7,7 +7,6 @@ import android.os.Build;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.util.Base64;
 
-//import org.msgpack.MessagePack;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 

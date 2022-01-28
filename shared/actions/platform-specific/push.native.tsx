@@ -17,14 +17,14 @@ import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS, isAndroid} from '../../constants/platform'
 import * as Container from '../../util/container'
 
+const setApplicationIconBadgeNumber = isIOS
+  ? PushNotificationIOS.setApplicationIconBadgeNumber
+  : NativeModules.KeybaseEngine.setApplicationIconBadgeNumber
+
 let lastCount = -1
 const updateAppBadge = (action: NotificationsGen.ReceivedBadgeStatePayload) => {
-  if (isAndroid) {
-    // TODO
-    return
-  }
   const count = action.payload.badgeState.bigTeamBadgeCount + action.payload.badgeState.smallTeamBadgeCount
-  PushNotificationIOS.setApplicationIconBadgeNumber(count)
+  setApplicationIconBadgeNumber(count)
   // Only do this native call if the count actually changed, not over and over if its zero
   if (count === 0 && lastCount !== 0) {
     PushNotificationIOS.removeAllPendingNotificationRequests()

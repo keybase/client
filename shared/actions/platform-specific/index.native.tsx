@@ -864,10 +864,7 @@ const onSetAudioRecordingPostInfo = async (
 const onPersistRoute = async () => {
   await Container.timeoutPromise(1000)
   const path = RouterConstants.getVisiblePath()
-  // if (path[path.length - 1]?.name !== 'blank') {
   return ConfigGen.createPersistRoute({path})
-  // }
-  // return []
 }
 
 function* checkNav(

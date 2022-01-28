@@ -35,6 +35,7 @@ import io.keybase.ossifrage.MainActivity;
 import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.ReadFileAsString;
 import keybase.Keybase;
+import me.leolin.shortcutbadger.ShortcutBadger;
 
 import static io.keybase.ossifrage.MainActivity.isTestDevice;
 import static keybase.Keybase.readB64;
@@ -265,6 +266,11 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         if (activity != null) {
           activity.setBackgroundColor(pref);
         }
+    }
+
+    @ReactMethod
+    public void setApplicationIconBadgeNumber(int badge) {
+        ShortcutBadger.applyCount(this, badge);
     }
 
     public void setInitialBundleFromNotification(Bundle bundle) {
