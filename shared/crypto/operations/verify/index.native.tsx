@@ -32,12 +32,14 @@ export const VerifyOutput = () => (
   </>
 )
 
-const navigationOptions = {
+VerifyInput.navigationOptions = {
   headerShown: true,
   title: 'Verify',
 }
-
-VerifyInput.navigationOptions = navigationOptions
-VerifyOutput.navigationOptions = navigationOptions
+VerifyOutput.navigationOptions = {
+  headerLeft: p => <Kb.HeaderLeftCancel {...p} />,
+  headerShown: true,
+  title: 'Verify',
+}
 
 export default VerifyInput

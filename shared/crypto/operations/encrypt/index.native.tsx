@@ -42,11 +42,14 @@ export const EncryptOutput = () => {
   )
 }
 
-const navigationOptions = {
+EncryptInput.navigationOptions = {
   headerShown: true,
   title: 'Encrypt',
 }
-EncryptInput.navigationOptions = navigationOptions
-EncryptOutput.navigationOptions = navigationOptions
+EncryptOutput.navigationOptions = {
+  headerLeft: p => <Kb.HeaderLeftCancel {...p} />,
+  headerShown: true,
+  title: 'Encrypt',
+}
 
 export default EncryptInput

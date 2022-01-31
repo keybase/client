@@ -124,6 +124,9 @@ module.exports = {
   get HeaderLeftBlank() {
     return require('./header-hoc').HeaderLeftBlank
   },
+  get HeaderLeftCancel() {
+    return require('./header-hoc').HeaderLeftCancel
+  },
   get HotKey() {
     return require('./hot-key').HotKey
   },

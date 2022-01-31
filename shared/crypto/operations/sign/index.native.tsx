@@ -34,11 +34,14 @@ export const SignOutput = () => (
   </>
 )
 
-const navigationOptions = {
+SignInput.navigationOptions = {
   headerShown: true,
   title: 'Sign',
 }
-SignInput.navigationOptions = navigationOptions
-SignOutput.navigationOptions = navigationOptions
+SignOutput.navigationOptions = {
+  headerLeft: p => <Kb.HeaderLeftCancel {...p} />,
+  headerShown: true,
+  title: 'Sign',
+}
 
 export default SignInput
