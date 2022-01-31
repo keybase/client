@@ -14,16 +14,14 @@ an older kernel and run it on newer kernels. So we'll try to build for the
 oldest possible (compatible) kernel, to have a fewer kernel extensions built as
 possible.
 
-For OSXFuse, it's possible to use a kernel extension that's built against the
-macOS 10.14 SDK on macOS 10.12, 10.13, 10.14 and 10.15. However, to build
-against 10.11 we need to be on an older macOS. So are targeting 10.14+ now.
-We'll build for 10.14, then we'll make symlinks for 10.15. All these are
-handled by the build script, but we'll need the appropriate SDKs to build
-against.
+It's possible to build for many macOS versions but it requrues a patched Xcode.
+So are targeting 11+ now.  We'll build for macOS 11, and make a symlink of
+macOS 12 All these are handled by the build script, but we'll need the
+appropriate SDKs to build against.
 
-Xcode 10.3 is the latest version that includes the macOS 10.14 SDK, so we'll
-need it installed on the macOS where you build the KBFuse bundle. Additionally,
-macOS 11 needs to be built with Xcode 12.3, so we need that as well.
+Xcode 13 (13.0) is the latest version that includes the macOS 11 SDK, so we'll
+need it installed on the macOS where you build the KBFuse bundle. I have Xcode
+13.2.1 installed as well but not sure it's needed
 
 Older versions of Xcode can be downloaded from the [Apple official developer
 site](https://developer.apple.com/download/more/). It has to live under
@@ -43,7 +41,7 @@ for some pointers.
 
 ### Building KBFuse
 
-    VERSION=4.0.4 ./build.sh
+    VERSION=4.2.4 ./build.sh
 
 This should generate a kbfuse.bundle (and fsbundle.tgz, that includes debug symbols)
 which you can submit for PR.
@@ -75,7 +73,7 @@ Don't try to kextunload unless you have everything unmounted.
 
 After install if you are having problems loading the kext:
 
-    sudo kextutil -l /Library/Filesystems/kbfuse.fs/Contents/Extensions/10.10/kbfuse.kext
+    sudo kextutil -l /Library/Filesystems/kbfuse.fs/Contents/Extensions/11/kbfuse.kext
 
 View kext status:
 
