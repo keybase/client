@@ -71,25 +71,25 @@ if (__DEV__) {
 }
 
 // uncomment if doing local archive builds
-const debuggingOnLocalArchiveBuild = true
-if (debuggingOnLocalArchiveBuild) {
-  for (let i = 0; i < 50; ++i) {
-    console.log('TEMP dev push token!')
-  }
-  config.isDevApplePushToken = true
-}
+// const debuggingOnLocalArchiveBuild = true
+// if (debuggingOnLocalArchiveBuild) {
+//   for (let i = 0; i < 50; ++i) {
+//     console.log('TEMP dev push token!')
+//   }
+//   config.isDevApplePushToken = true
+// }
 
-const debuggingReleaseBuild = false
-if (debuggingReleaseBuild) {
-  for (let i = 0; i < 50; ++i) {
-    console.log('TEMP debug release build one')
-  }
-  // in release we don't get console logs on ios, so instead use native logger and edit the objc side
-  window.console.log = (...a) => NativeModules.KBNativeLogger.log([['e', a.join(' ')]])
-  window.console.warn = window.console.log
-  window.console.error = window.console.log
-  window.console.info = window.console.log
-}
+// const debuggingReleaseBuild = false
+// if (debuggingReleaseBuild) {
+//   for (let i = 0; i < 50; ++i) {
+//     console.log('TEMP debug release build one')
+//   }
+//   // in release we don't get console logs on ios, so instead use native logger and edit the objc side
+//   window.console.log = (...a) => NativeModules.KBNativeLogger.log([['e', a.join(' ')]])
+//   window.console.warn = window.console.log
+//   window.console.error = window.console.log
+//   window.console.info = window.console.log
+// }
 
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
