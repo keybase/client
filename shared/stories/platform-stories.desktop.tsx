@@ -1,3 +1,4 @@
+/*
 import Pinentry from '../pinentry/index.stories.desktop'
 import Menubar from '../menubar/index.stories.desktop'
 import UnlockFolders from '../unlock-folders/index.stories'
@@ -13,3 +14,6 @@ const stories = {
 }
 
 export default stories
+*/
+
+export default {}

@@ -1,3 +1,4 @@
+/*
 import participantsRow from './participants-row/index.stories'
 import accountEntry from './account-entry/index.stories'
 import enterName from './enter-name/index.stories'
@@ -9,3 +10,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

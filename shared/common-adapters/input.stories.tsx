@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import Button from './button'
@@ -277,3 +278,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

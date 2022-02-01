@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Types from '../constants/types/team-building'
@@ -1517,3 +1518,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

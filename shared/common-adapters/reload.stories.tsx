@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import Reloadable from './reload'
@@ -72,3 +73,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

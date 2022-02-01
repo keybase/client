@@ -1,3 +1,4 @@
+/*
 import qrScan from './qr-scan/index.stories.native'
 
 const load = () => {
@@ -5,3 +6,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

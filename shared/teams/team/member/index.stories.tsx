@@ -1,3 +1,4 @@
+/*
 import React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {default as TeamMember, TeamMemberHeader} from './index.new'
@@ -18,3 +19,6 @@ const load = () =>
     .add('Add self to channels', () => <AddToChannels {...addToChannelsSelfProps} />)
 
 export default load
+*/
+
+export default {}

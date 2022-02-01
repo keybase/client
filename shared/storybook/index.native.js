@@ -1,4 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
+/*
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -139,3 +140,6 @@ const styles = Styles.styleSheetCreate({
 })
 
 export default load
+*/
+
+export default {}

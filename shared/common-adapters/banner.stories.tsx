@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {Box2} from './box'
 import {Banner, BannerParagraph} from './banner'
@@ -116,3 +117,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

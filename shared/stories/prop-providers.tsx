@@ -1,3 +1,4 @@
+/*
 // TODO deprecated
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
@@ -16,14 +17,14 @@ import * as TeamTypes from '../constants/types/teams'
 import * as Tracker2Constants from '../constants/tracker2'
 import rootReducer, {TypedState} from '../reducers'
 
-/*
+/
  * Some common prop factory creators.
  *
  *  Params: specific pieces of data (not necessarily store data)
  *          that are needed to derive view props
  *  Output: a map of DisplayName: Function(...) that returns the
  *          view props the connected component is concerned with
- */
+ /
 
 const defaultYou = 'ayoubd'
 const defaultFollowing = ['max', 'cnojima', 'cdixon', 'following', 'both', 'weijiekohyalenus']
@@ -265,3 +266,6 @@ export const createStoreWithCommon = (): TypedState => {
     },
   }
 }
+*/
+
+export default {}

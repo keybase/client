@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import {Props as ContactRowProps, OwnProps as ContactRowOwnProps} from './email-phone-row'
@@ -106,3 +107,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

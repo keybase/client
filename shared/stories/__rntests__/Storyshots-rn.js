@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/*
 // eslint-disable-next-line
 import path from 'path'
 import initStoryshots from '@storybook/addon-storyshots'
@@ -10,3 +11,6 @@ initStoryshots({
   configPath: path.resolve(__dirname, '../../.storybook-rn/config.js'),
   framework: 'react-native',
 })
+*/
+
+export default {}

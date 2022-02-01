@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
 import * as Kb from '../../../../common-adapters'
@@ -126,3 +127,6 @@ const availableTriggers = Object.values(props.suggestorToMarker)
 const load = () => Sb.storiesOf('Chat/Suggestors', module).add('Basic', () => <TestArea {...props} />)
 
 export default load
+*/
+
+export default {}

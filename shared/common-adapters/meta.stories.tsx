@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {Box2} from './box'
 import Meta from './meta'
@@ -15,3 +16,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

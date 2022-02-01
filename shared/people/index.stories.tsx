@@ -1,3 +1,4 @@
+/*
 import announcement from './announcement/index.stories'
 import followNotification from './follow-notification/index.stories'
 import followSuggestions from './follow-suggestions/index.stories'
@@ -14,3 +15,6 @@ const load = () => {
   wotTask()
 }
 export default load
+*/
+
+export default {}

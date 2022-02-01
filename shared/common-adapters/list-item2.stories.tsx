@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import ListItem from './list-item2'
@@ -86,3 +87,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

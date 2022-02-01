@@ -1,3 +1,4 @@
+/*
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Container from '../../util/container'
@@ -48,13 +49,13 @@ const load = () =>
         <JoinTeamFromInvite />
       </Sb.MockStore>
     ))
-    /*
+    /
       .add('Join team from invite - accepted', () => (
         <Sb.MockStore store={acceptedStore}>
           <JoinTeamFromInvite />
         </Sb.MockStore>
       ))
-    */
+    /
     .add('Join team from invite - error', () => (
       <Sb.MockStore store={errorStore}>
         <JoinTeamFromInvite />
@@ -62,3 +63,6 @@ const load = () =>
     ))
 
 export default load
+*/
+
+export default {}

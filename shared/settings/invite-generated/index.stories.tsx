@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import InvitesGenerated from '.'
 import {action, storiesOf} from '../../stories/storybook'
@@ -15,3 +16,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

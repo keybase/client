@@ -1,3 +1,4 @@
+/*
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Types from '../../constants/types/fs'
@@ -33,3 +34,6 @@ const load = () =>
     ))
 
 export default () => [conversationList, load].forEach(l => l())
+*/
+
+export default {}

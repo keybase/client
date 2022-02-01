@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import TeamRow from './team-row'
@@ -15,3 +16,6 @@ const load = () =>
     ))
 
 export default load
+*/
+
+export default {}

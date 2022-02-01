@@ -1,3 +1,4 @@
+/*
 import recoverPassword from './recover-password/index.stories'
 import relogin from './relogin/index.stories'
 import reset from './reset/index.stories'
@@ -64,3 +65,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

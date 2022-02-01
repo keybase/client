@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
@@ -243,3 +244,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

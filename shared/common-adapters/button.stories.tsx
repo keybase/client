@@ -1,3 +1,4 @@
+/*
 import {Box2} from './box'
 import Text from './text'
 import Button, {ButtonType, ButtonColor} from './button'
@@ -154,3 +155,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

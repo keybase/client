@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import Box from './box'
 import {storiesOf} from '../stories/storybook'
@@ -35,3 +36,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

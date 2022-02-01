@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Styles from '../styles'
@@ -100,3 +101,6 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export default load
+*/
+
+export default {}
