@@ -70,6 +70,12 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'flex-end',
         paddingRight: Styles.globalMargins.tiny,
       },
+      walletName: Styles.platformStyles({
+        isTablet: {
+          // Prevent max width wallet name from pushing UnreadIcon off screen
+          maxWidth: 160,
+        },
+      }),
     } as const)
 )
 
@@ -95,16 +101,26 @@ const WalletRow = (props: Props) => {
           color={Styles.globalColors.black}
           style={styles.icon}
         />
-        <Kb.Box2 direction="vertical" style={styles.rightColumn}>
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.rightColumn])}>
+          <Kb.Box2 direction="horizontal" style={styles.walletName}>
             {!!props.keybaseUser && (
               <Kb.Avatar size={16} style={styles.avatar} username={props.keybaseUser} />
             )}
-            <Kb.Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
+            <Kb.Text
+              type="BodySemibold"
+              lineClamp={1}
+              ellipsizeMode="tail"
+              style={props.isSelected ? styles.titleSelected : styles.title}
+            >
               {props.name}
             </Kb.Text>
           </Kb.Box2>
-          <Kb.Text type="BodySmall" style={props.isSelected ? styles.amountSelected : styles.amount}>
+          <Kb.Text
+            type="BodySmall"
+            lineClamp={1}
+            ellipsizeMode="clip"
+            style={props.isSelected ? styles.amountSelected : styles.amount}
+          >
             {props.contents}
           </Kb.Text>
         </Kb.Box2>
