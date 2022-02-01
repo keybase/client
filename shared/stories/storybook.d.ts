@@ -39,5 +39,3 @@ export declare function propOverridesForStory(p: any): {}
 export declare class MockStore extends React.Component<{store: any; children: React.ReactNode}> {}
 export {PropProviders}
 */
-
-export default {}
