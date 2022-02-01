@@ -77,14 +77,6 @@ echo "Ensuring correct"
 yarn --check-files
 # fi
 
-# TEMP
-ls -la node_modules
-ls -laR node_modules/expo-error-recovery/ios
-echo "BAILING on purpose now"
-exit 1
-# TEMP
-
-
 if [ ! "$cache_go_lib" = "1" ]; then
   echo "Building Go library"
   CHECK_CI="$check_ci" yarn run rn-gobuild-ios
