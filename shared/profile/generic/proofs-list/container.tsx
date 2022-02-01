@@ -24,6 +24,5 @@ export default Container.connect(
       new: s.metas.some(({label}) => label === 'new'),
     })),
     title: 'Prove your...',
-  }),
-  'ProofsList'
+  })
 )(ProofsList)

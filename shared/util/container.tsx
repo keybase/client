@@ -7,8 +7,7 @@ import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-rout
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
 import flowRight from 'lodash/flowRight'
-import {useSelector as RRuseSelector, useDispatch as RRuseDispatch, TypedUseSelectorHook} from 'react-redux'
-import {Dispatch as RRDispatch} from 'redux'
+import {useSelector as RRuseSelector, useDispatch as RRuseDispatch} from 'react-redux'
 import typedConnect from './typed-connect'
 
 // to keep fallback objects static for react
@@ -113,8 +112,8 @@ export {default as useSafeCallback} from './use-safe-callback'
 export {default as useFocusBlur} from './use-focus-blur'
 export {default as useWatchActions} from './use-watch-actions'
 export type RootState = _TypedState
-export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
-export const useSelector: TypedUseSelectorHook<RootState> = RRuseSelector
+export const useDispatch = RRuseDispatch
+export const useSelector = RRuseSelector
 
 // BEGIN debugging connect
 // import isEqual from 'lodash/isEqual'

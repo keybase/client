@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
-import * as Container from '../../util/typed-connect'
+import * as Container from '../../util/container'
 import PieSlice from '../../fs/common/pie-slice'
 
 type OwnProps = {
