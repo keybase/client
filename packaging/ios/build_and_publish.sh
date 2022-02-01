@@ -74,6 +74,13 @@ echo "Cleaning up main node_modules from previous runs"
 yarn modules
 # fi
 
+# TEMP
+ls -la node_modules
+ls -laR node_modules/expo-error-recovery/ios
+echo "BAILING on purpose now"
+exit 1
+# TEMP
+
 
 if [ ! "$cache_go_lib" = "1" ]; then
   echo "Building Go library"
