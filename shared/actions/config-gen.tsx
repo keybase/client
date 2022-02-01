@@ -48,6 +48,7 @@ export const setDefaultUsername = 'config:setDefaultUsername'
 export const setDeletedSelf = 'config:setDeletedSelf'
 export const setIncomingShareUseOriginal = 'config:setIncomingShareUseOriginal'
 export const setNavigator = 'config:setNavigator'
+export const setNotify = 'config:setNotify'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
@@ -141,6 +142,7 @@ type _SetDefaultUsernamePayload = {readonly username: string}
 type _SetDeletedSelfPayload = {readonly deletedUsername: string}
 type _SetIncomingShareUseOriginalPayload = {readonly useOriginal: boolean}
 type _SetNavigatorPayload = {readonly navigator: any}
+type _SetNotifyPayload = {readonly notify: boolean}
 type _SetNotifySoundPayload = {readonly notifySound: boolean}
 type _SetOpenAtLoginPayload = {readonly openAtLogin: boolean}
 type _SetStartupDetailsPayload = {
@@ -393,6 +395,7 @@ export const createSetNavigator = (payload: _SetNavigatorPayload): SetNavigatorP
   payload,
   type: setNavigator,
 })
+export const createSetNotify = (payload: _SetNotifyPayload): SetNotifyPayload => ({payload, type: setNotify})
 export const createSetNotifySound = (payload: _SetNotifySoundPayload): SetNotifySoundPayload => ({
   payload,
   type: setNotifySound,
@@ -546,6 +549,7 @@ export type SetIncomingShareUseOriginalPayload = {
   readonly type: typeof setIncomingShareUseOriginal
 }
 export type SetNavigatorPayload = {readonly payload: _SetNavigatorPayload; readonly type: typeof setNavigator}
+export type SetNotifyPayload = {readonly payload: _SetNotifyPayload; readonly type: typeof setNotify}
 export type SetNotifySoundPayload = {
   readonly payload: _SetNotifySoundPayload
   readonly type: typeof setNotifySound
@@ -651,6 +655,7 @@ export type Actions =
   | SetDeletedSelfPayload
   | SetIncomingShareUseOriginalPayload
   | SetNavigatorPayload
+  | SetNotifyPayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload
   | SetStartupDetailsPayload

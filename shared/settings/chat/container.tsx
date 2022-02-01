@@ -33,6 +33,7 @@ export default Container.namedConnect(
       contactSettingsTeamsEnabled,
       groups: state.settings.notifications.groups,
       mobileHasPermissions: state.push.hasPermissions,
+      notify: state.config.notify, // desktop
       sound: state.config.notifySound, // desktop
       teamMeta: state.teams.teamMeta,
       unfurlError: state.settings.chat.unfurl.unfurlError,
@@ -65,6 +66,7 @@ export default Container.namedConnect(
     },
     onToggle: (group: string, name?: string) =>
       dispatch(SettingsGen.createNotificationsToggle({group, name})),
+    onToggleNotifications: (notify: boolean) => dispatch(ConfigGen.createSetNotify({notify})),
     onToggleSound: (notifySound: boolean) => dispatch(ConfigGen.createSetNotifySound({notifySound})),
     onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => {
       dispatch(SettingsGen.createUnfurlSettingsSaved({mode, whitelist: whitelist}))

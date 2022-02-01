@@ -217,6 +217,9 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.setNotifySound]: (draftState, action) => {
     draftState.notifySound = action.payload.notifySound
   },
+  [ConfigGen.setNotify]: (draftState, action) => {
+    draftState.notify = action.payload.notify
+  },
   [ConfigGen.setOpenAtLogin]: (draftState, action) => {
     draftState.openAtLogin = action.payload.openAtLogin
   },

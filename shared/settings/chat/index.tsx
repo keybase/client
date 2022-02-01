@@ -16,6 +16,7 @@ export type Props = {
   contactSettingsTeamsEnabled?: boolean
   contactSettingsSelectedTeams: {[K in TeamID]: boolean}
   groups: Map<string, Types.NotificationsGroupState>
+  notify: boolean
   sound: boolean
   unfurlMode?: RPCChatTypes.UnfurlMode
   unfurlWhitelist?: Array<string>
@@ -29,6 +30,7 @@ export type Props = {
   ) => void
   onToggle: (groupName: string, name: string) => void
   onToggleSound: (notifySound: boolean) => void
+  onToggleNotifications: (notify: boolean) => void
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => void
   onRefresh: () => void
   teamMeta: Array<TeamMeta>
@@ -142,6 +144,7 @@ class Chat extends React.Component<Props, State> {
 
   render() {
     const showDesktopSound = !Platform.isMobile && !Platform.isLinux
+    const showNotificationConfig = !Platform.isMobile
     const showMobileSound = !!this.props.groups.get('sound')?.settings.length
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -376,6 +379,19 @@ class Chat extends React.Component<Props, State> {
                       />
                     )}
                   </>
+                </Kb.Box2>
+              </>
+            )}
+            {showNotificationConfig && (
+              <>
+                <Kb.Divider style={styles.divider} />
+                <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.innerContainer}>
+                  <Kb.Text type="Header">Notifications</Kb.Text>
+                  <Kb.Checkbox
+                    onCheck={this.props.onToggleNotifications}
+                    checked={this.props.notify}
+                    label="Send notifications"
+                  />
                 </Kb.Box2>
               </>
             )}

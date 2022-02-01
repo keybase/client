@@ -71,6 +71,7 @@ export type State = {
   logoutHandshakeVersion: number
   menubarWindowID: number
   notifySound: boolean
+  notify: boolean
   openAtLogin: boolean
   osNetworkOnline: boolean
   outOfDate?: OutOfDate
