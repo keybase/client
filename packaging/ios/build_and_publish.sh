@@ -71,7 +71,7 @@ cd "$shared_dir"
 
 # if [ ! "$cache_npm" = "1" ]; then
 echo "Cleaning up main node_modules from previous runs"
-yarn install --pure-lockfile --ignore-optional --prefer-offline --check-files
+yarn modules
 # fi
 
 
