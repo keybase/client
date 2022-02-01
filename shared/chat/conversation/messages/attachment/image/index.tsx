@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {ImageRender} from './image-render'
+import {VideoRender} from './video-render'
 import {isMobile} from '../../../../../util/container'
 import {memoize} from '../../../../../util/memoize'
 import * as Types from '../../../../../constants/types/chat2'
@@ -19,7 +20,6 @@ type Props = {
   onClick: () => void
   onCollapse: () => void
   onShowInFinder?: (e: React.BaseSyntheticEvent) => void
-  onDoubleClick: () => void
   onRetry: () => void
   path: string
   fullPath: string
@@ -32,13 +32,12 @@ type Props = {
   toggleMessageMenu: () => void
   videoDuration: string
   inlineVideoPlayable: boolean
+  inlineVideoShouldAutoPlayOnCellular: boolean
   width: number
 }
 
 type State = {
   loaded: boolean
-  loadingVideo: 'notloaded' | 'loading' | 'loaded'
-  playingVideo: boolean
 }
 
 // TODO the relationship between this class and the image renderer is very messy. This thing holds a ton of state
@@ -46,31 +45,8 @@ type State = {
 class ImageAttachment extends React.PureComponent<Props, State> {
   imageRef: any
 
-  state = {loaded: false, loadingVideo: 'notloaded', playingVideo: false} as State
+  state = {loaded: false} as State
   private setLoaded = () => this.setState({loaded: true})
-  private setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
-
-  private onClick = () => {
-    // Once the user clicks the inline video once, then just let the native controls handle everything else.
-    if (this.state.playingVideo) {
-      return
-    }
-    if (this.props.inlineVideoPlayable && this.imageRef) {
-      this.imageRef.onVideoClick()
-      this.setState(p => ({
-        loadingVideo: p.loadingVideo === 'notloaded' ? 'loading' : p.loadingVideo,
-        playingVideo: !p.playingVideo,
-      }))
-    } else {
-      this.props.onClick()
-    }
-  }
-  private onDoubleClick = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef) {
-      this.imageRef.pauseVideo()
-    }
-    this.props.onDoubleClick()
-  }
 
   private memoizedMeta = memoize((message: Props['message']) => {
     return {message}
@@ -118,93 +94,54 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               >
                 {!!this.props.path && (
                   <Kb.Box2 direction="vertical" alignItems="center">
-                    <Kb.ClickableBox
-                      onClick={this.onClick}
-                      onDoubleClick={this.onDoubleClick}
-                      onLongPress={this.props.toggleMessageMenu}
-                    >
-                      <Kb.Box2
-                        direction="vertical"
-                        alignItems="center"
-                        style={{
-                          height: this.props.height,
-                          margin: 3,
-                          overflow: 'hidden',
-                          width: this.props.width,
-                        }}
+                    {this.props.inlineVideoPlayable ? (
+                      <VideoRender
+                        autoPlayOnCellular={this.props.inlineVideoShouldAutoPlayOnCellular}
+                        durationText={this.props.videoDuration}
+                        posterSrc={this.props.path}
+                        videoSrc={this.props.fullPath}
+                        height={this.props.height}
+                        width={this.props.width}
+                        style={Styles.collapseStyles([styles.image])}
+                      />
+                    ) : (
+                      <Kb.ClickableBox
+                        onClick={this.props.onClick}
+                        onLongPress={this.props.toggleMessageMenu}
                       >
-                        <ImageRender
-                          ref={ref => {
-                            this.imageRef = ref
+                        <Kb.Box2
+                          direction="vertical"
+                          alignItems="center"
+                          style={{
+                            height: this.props.height,
+                            margin: 3,
+                            overflow: 'hidden',
+                            width: this.props.width,
                           }}
-                          src={this.props.path}
-                          videoSrc={this.props.fullPath}
-                          onLoad={this.setLoaded}
-                          onLoadedVideo={this.setVideoLoaded}
-                          loaded={this.state.loaded}
-                          inlineVideoPlayable={this.props.inlineVideoPlayable}
-                          height={this.props.height}
-                          width={this.props.width}
-                          style={Styles.collapseStyles([
-                            styles.image,
-                            {
-                              backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
-                              height: this.props.height,
-                              width: this.props.width,
-                            },
-                          ])}
-                        />
-                        {!this.state.playingVideo && (
-                          <Kb.Box
+                        >
+                          <ImageRender
+                            ref={ref => {
+                              this.imageRef = ref
+                            }}
+                            src={this.props.path}
+                            onLoad={this.setLoaded}
+                            loaded={this.state.loaded}
+                            height={this.props.height}
+                            width={this.props.width}
                             style={Styles.collapseStyles([
-                              styles.absoluteContainer,
+                              styles.image,
                               {
+                                backgroundColor: this.state.loaded
+                                  ? undefined
+                                  : Styles.globalColors.fastBlank,
                                 height: this.props.height,
                                 width: this.props.width,
                               },
                             ])}
-                          >
-                            {!!this.props.showButton && (
-                              <Kb.Icon
-                                type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-                                style={styles.playButton}
-                              />
-                            )}
-                            {this.props.videoDuration.length > 0 && this.state.loaded && (
-                              <Kb.Box style={styles.durationContainer}>
-                                <Kb.Text type="BodyTinyBold" style={styles.durationText}>
-                                  {this.props.videoDuration}
-                                </Kb.Text>
-                              </Kb.Box>
-                            )}
-                            {!!this.props.arrowColor && (
-                              <Kb.Box style={styles.downloadedIconWrapper}>
-                                <Kb.Icon
-                                  type="iconfont-download"
-                                  style={styles.downloadIcon}
-                                  color={this.props.arrowColor}
-                                />
-                              </Kb.Box>
-                            )}
-                            {!this.state.loaded && (
-                              <Kb.Box2
-                                direction="vertical"
-                                centerChildren={true}
-                                style={Styles.collapseStyles([
-                                  styles.spinnerContainer,
-                                  {
-                                    height: this.props.height,
-                                    width: this.props.width,
-                                  },
-                                ])}
-                              >
-                                <Kb.ProgressIndicator style={styles.progress} />
-                              </Kb.Box2>
-                            )}
-                          </Kb.Box>
-                        )}
-                      </Kb.Box2>
-                    </Kb.ClickableBox>
+                          />
+                        </Kb.Box2>
+                      </Kb.ClickableBox>
+                    )}
                     {this.props.title.length > 0 && (
                       <Kb.Box2
                         direction="vertical"
@@ -226,21 +163,6 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         </Kb.Markdown>
                       </Kb.Box2>
                     )}
-                  </Kb.Box2>
-                )}
-                {Styles.isMobile && this.state.loadingVideo === 'loading' && (
-                  <Kb.Box2
-                    style={Styles.collapseStyles([
-                      styles.spinnerContainer,
-                      {
-                        height: this.props.height,
-                        width: this.props.width,
-                      },
-                    ])}
-                    centerChildren={true}
-                    direction="vertical"
-                  >
-                    <Kb.ProgressIndicator style={styles.progress} />
                   </Kb.Box2>
                 )}
               </Kb.Box>
@@ -281,9 +203,6 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      absoluteContainer: {
-        position: 'absolute',
-      },
       backgroundContainer: {
         backgroundColor: Styles.globalColors.black_05,
         borderRadius: Styles.borderRadius,
@@ -302,34 +221,6 @@ const styles = Styles.styleSheetCreate(
       downloadErrorLabel: {
         color: Styles.globalColors.redDark,
         marginRight: Styles.globalMargins.tiny,
-      },
-      downloadIcon: {
-        maxHeight: 14,
-        position: 'relative',
-        top: 1,
-      },
-      downloadedIconWrapper: {
-        ...Styles.globalStyles.flexBoxCenter,
-        backgroundColor: Styles.globalColors.fastBlank,
-        borderRadius: 20,
-        bottom: 0,
-        padding: 3,
-        position: 'absolute',
-        right: 0,
-      },
-      durationContainer: {
-        alignSelf: 'flex-start',
-        backgroundColor: Styles.globalColors.black_50,
-        borderRadius: 2,
-        bottom: Styles.globalMargins.tiny,
-        padding: 1,
-        position: 'absolute',
-        right: Styles.globalMargins.tiny,
-      },
-      durationText: {
-        color: Styles.globalColors.white,
-        paddingLeft: 3,
-        paddingRight: 3,
       },
       fileNameContainer: {
         paddingRight: Styles.globalMargins.small,
@@ -353,17 +244,6 @@ const styles = Styles.styleSheetCreate(
       link: {
         color: Styles.globalColors.black_50,
       },
-      playButton: {
-        bottom: '50%',
-        left: '50%',
-        marginBottom: -32,
-        marginLeft: -32,
-        marginRight: -32,
-        marginTop: -32,
-        position: 'absolute',
-        right: '50%',
-        top: '50%',
-      },
       progress: {
         width: 48,
       },
@@ -378,9 +258,6 @@ const styles = Styles.styleSheetCreate(
       retry: {
         color: Styles.globalColors.redDark,
         textDecorationLine: 'underline',
-      },
-      spinnerContainer: {
-        position: 'absolute',
       },
       title: Styles.platformStyles({
         common: {

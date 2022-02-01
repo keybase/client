@@ -7,6 +7,8 @@ import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
 import {imgMaxWidth} from './image-render'
 
+const videoShouldAutoPlayOnCellular = (message: Types.MessageAttachment) => message.fileSize < 5 * 1024 * 1024 // 5MB
+
 type OwnProps = {
   message: Types.MessageAttachment
   toggleMessageMenu: () => void
@@ -26,12 +28,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
         collapse: !message.isCollapsed,
         conversationIDKey: message.conversationIDKey,
         messageID: message.id,
-      })
-    ),
-  _onDoubleClick: (message: Types.MessageAttachment) =>
-    dispatch(
-      Chat2Gen.createAttachmentPreviewSelect({
-        message,
       })
     ),
   _onRetry: (message: Types.MessageAttachment) =>
@@ -83,13 +79,13 @@ export default Container.connect(
       hasProgress,
       height,
       inlineVideoPlayable: message.inlineVideoPlayable,
+      inlineVideoShouldAutoPlayOnCellular: videoShouldAutoPlayOnCellular(message),
       isCollapsed: message.isCollapsed,
       isEditing: stateProps.isEditing,
       isHighlighted: ownProps.isHighlighted,
       message,
       onClick: () => dispatchProps._onClick(message),
       onCollapse: () => dispatchProps._onCollapse(message),
-      onDoubleClick: () => dispatchProps._onDoubleClick(message),
       onRetry: () => dispatchProps._onRetry(message),
       onShowInFinder:
         !Container.isMobile && message.downloadPath

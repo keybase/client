@@ -302,6 +302,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.osNetworkStatusChanged]: (draftState, action) => {
     draftState.osNetworkOnline = action.payload.online
+    draftState.osNetworkIsCellular = action.payload.type === 'cellular' || action.payload.type === 'wimax'
   },
   [ConfigGen.setDarkModePreference]: (draftState, action) => {
     _setDarkModePreference(action.payload.preference)

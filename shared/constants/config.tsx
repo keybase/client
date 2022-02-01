@@ -144,6 +144,7 @@ export const initialState: Types.State = {
   menubarWindowID: 0,
   notifySound: false,
   openAtLogin: true,
+  osNetworkIsCellular: false,
   osNetworkOnline: false,
   outOfDate: undefined,
   pushLoaded: false,
