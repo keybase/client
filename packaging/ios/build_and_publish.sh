@@ -2,9 +2,6 @@
 
 set -eE -u -o pipefail # Fail on error, call ERR trap
 
-echo "NOJIMA TEMP"
-exit 1
-
 automated_build=${AUTOMATED_BUILD:-}
 gopath=${GOPATH:-}
 kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
@@ -75,6 +72,7 @@ cd "$shared_dir"
 # if [ ! "$cache_npm" = "1" ]; then
 echo "Cleaning up main node_modules from previous runs"
 yarn modules
+yarn --check-files
 # fi
 
 # TEMP
