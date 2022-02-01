@@ -374,12 +374,21 @@ const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
         Constants.addMemberWaitingKey(teamID, ...users.map(({assertion}) => assertion)),
       ]
     )
-    if (res.notAdded && res.notAdded.length > 0) {
-      const usernames = res.notAdded.map(elem => elem.username)
+    if (
+      (res.notAddedForBrokenFollow && res.notAddedForBrokenFollow.length > 0) ||
+      (res.notAddedForContactRestrictions && res.notAddedForContactRestrictions.length > 0)
+    ) {
+      const usernamesWithBrokenFollow = res.notAddedForBrokenFollow?.map(elem => elem.username)
+      const usernamesWithContactRestr = res.notAddedForContactRestrictions?.map(elem => elem.username)
       return [
         TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {source: 'teamAddSomeFailed', usernames}, selected: 'contactRestricted'}],
+          path: [
+            {
+              props: {source: 'teamAddSomeFailed', usernamesWithBrokenFollow, usernamesWithContactRestr},
+              selected: 'contactRestricted',
+            },
+          ],
         }),
       ]
     }
@@ -388,11 +397,23 @@ const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
     // If all of the users couldn't be added due to contact settings, the RPC fails.
     if (err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       const users = err.fields?.filter((elem: any) => elem.key === 'usernames').map((elem: any) => elem.value)
-      const usernames = users[0].split(',')
+      // Haven't really looked at this catch case here, so it might not work at
+      // all.
+      //
+      // possibly the source could be different here, as now we do not
+      // return errors when all additions fail due to follow or contact
+      // restrictions
+
+      const usernamesWithContactRestr = users[0].split(',')
       return [
         TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {source: 'teamAddAllFailed', usernames}, selected: 'contactRestricted'}],
+          path: [
+            {
+              props: {source: 'teamAddAllFailed', usernamesWithContactRestr},
+              selected: 'contactRestricted',
+            },
+          ],
         }),
       ]
     }

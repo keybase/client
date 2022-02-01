@@ -1499,18 +1499,24 @@ const load = () => {
   ))
 
   Sb.storiesOf('Team-Building/Contact restriction', module)
-    .add('New private folder failed', () => <ContactRestricted source="newFolder" usernames={['cjb']} />)
+    .add('New private folder failed', () => (
+      <ContactRestricted
+        source="newFolder"
+        usernamesWithContactRestr={['cjb']}
+        usernamesWithBrokenFollow={[]}
+      />
+    ))
     .add('Team add some failed', () => (
-      <ContactRestricted source="teamAddSomeFailed" usernames={['cjb', 'max']} />
+      <ContactRestricted source="teamAddSomeFailed" usernamesWithContactRestr={['cjb', 'max']} />
     ))
     .add('Team add all (multiple) failed', () => (
-      <ContactRestricted source="teamAddAllFailed" usernames={['cjb', 'max']} />
+      <ContactRestricted source="teamAddAllFailed" usernamesWithContactRestr={['cjb', 'max']} />
     ))
     .add('Team add all (single) failed', () => (
-      <ContactRestricted source="teamAddAllFailed" usernames={['cjb']} />
+      <ContactRestricted source="teamAddAllFailed" usernamesWithContactRestr={['cjb']} />
     ))
     .add('Wallets request failed', () => (
-      <ContactRestricted source="walletsRequest" usernames={['cjb', 'max']} />
+      <ContactRestricted source="walletsRequest" usernamesWithContactRestr={['cjb', 'max']} />
     ))
 
   emailSearch()

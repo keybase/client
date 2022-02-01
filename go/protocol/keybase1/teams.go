@@ -3391,12 +3391,13 @@ func (o TeamAddMemberResult) DeepCopy() TeamAddMemberResult {
 }
 
 type TeamAddMembersResult struct {
-	NotAdded []User `codec:"notAdded" json:"notAdded"`
+	NotAddedForContactRestrictions []User `codec:"notAddedForContactRestrictions" json:"notAddedForContactRestrictions"`
+	NotAddedForBrokenFollow        []User `codec:"notAddedForBrokenFollow" json:"notAddedForBrokenFollow"`
 }
 
 func (o TeamAddMembersResult) DeepCopy() TeamAddMembersResult {
 	return TeamAddMembersResult{
-		NotAdded: (func(x []User) []User {
+		NotAddedForContactRestrictions: (func(x []User) []User {
 			if x == nil {
 				return nil
 			}
@@ -3406,7 +3407,18 @@ func (o TeamAddMembersResult) DeepCopy() TeamAddMembersResult {
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.NotAdded),
+		})(o.NotAddedForContactRestrictions),
+		NotAddedForBrokenFollow: (func(x []User) []User {
+			if x == nil {
+				return nil
+			}
+			ret := make([]User, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.NotAddedForBrokenFollow),
 	}
 }
 
