@@ -48,11 +48,4 @@ const mockConnect = () => RR.connectAdvanced(selectorDelegatorFactory)
 
 const connect = RR.connect
 
-export const namedConnect = (_: any, __: any, ___: any, displayName: string) => (component: any) => {
-  component.displayName = displayName
-  const Connected = mockConnect()(component)
-  Connected.displayName = displayName
-  return Connected
-}
-
 export default connect

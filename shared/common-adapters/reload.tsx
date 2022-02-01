@@ -149,7 +149,7 @@ export type OwnProps = {
   errorFilter?: (rPCError: RPCError) => boolean
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     let error = Constants.anyErrors(state, ownProps.waitingKeys)
 
@@ -189,7 +189,5 @@ export default Container.namedConnect(
     reloadOnMount: ownProps.reloadOnMount,
     style: ownProps.style,
     title: ownProps.title,
-  }),
-
-  'Reloadable'
+  })
 )(Reloadable)

@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(DevicesGen.createShowDevicePage({deviceID})),
 })
 
-export default Container.namedConnect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
@@ -40,6 +40,5 @@ export default Container.namedConnect(
       dispatchProps._showExistingDevicePage(ownProps.deviceID)
     },
     type: stateProps.type,
-  }),
-  'DeviceRow'
+  })
 )(DeviceRow)

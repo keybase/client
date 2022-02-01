@@ -177,7 +177,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onViewProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
-export default Container.namedConnect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -241,6 +241,5 @@ export default Container.namedConnect(
       visible: ownProps.visible,
       yourMessage,
     }
-  },
-  'MessagePopupText'
+  }
 )(Text)

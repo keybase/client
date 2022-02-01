@@ -42,15 +42,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   openInSystemFileManager: (path: Types.Path) => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 
-const ConnectedBanner = Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o: OwnProps) => ({
-    ...d,
-    conflictState: s._tlf.conflictState,
-    tlfPath: Constants.getTlfPath(o.path),
-  }),
-  'ConflictBanner'
-)(ConflictBanner)
+const ConnectedBanner = Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({
+  ...d,
+  conflictState: s._tlf.conflictState,
+  tlfPath: Constants.getTlfPath(o.path),
+}))(ConflictBanner)
 
 export default ConnectedBanner

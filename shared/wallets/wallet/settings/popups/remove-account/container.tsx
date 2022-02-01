@@ -6,7 +6,7 @@ import RemoveAccountPopup from '.'
 
 type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
     const account = Constants.getAccount(state, accountID)
@@ -32,6 +32,5 @@ export default Container.namedConnect(
     name: stateProps.name,
     onClose: () => dispatchProps._onClose(),
     onDelete: () => dispatchProps._onDelete(stateProps.accountID),
-  }),
-  'RemoveAccountPopup'
+  })
 )(RemoveAccountPopup)

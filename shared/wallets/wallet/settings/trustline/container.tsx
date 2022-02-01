@@ -9,7 +9,7 @@ type OwnProps = {
   accountID: Types.AccountID
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, {accountID}: OwnProps) => ({
     acceptedAssets:
       state.wallets.trustline.acceptedAssets.get(accountID) ?? Constants.emptyAccountAcceptedAssets,
@@ -30,6 +30,5 @@ export default Container.namedConnect(
     onSetupTrustline: d.onSetupTrustline,
     refresh: d.refresh,
     thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
-  }),
-  'WalletSettingTrustline'
+  })
 )(WalletSettingTrustline)

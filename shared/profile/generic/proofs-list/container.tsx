@@ -1,13 +1,12 @@
-import {namedConnect, RouteProps} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as ProfileGen from '../../../actions/profile-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
 import openURL from '../../../util/open-url'
 import * as Styles from '../../../styles'
 
-type OwnProps = RouteProps
-
-export default namedConnect(
+type OwnProps = Container.RouteProps
+export default Container.connect(
   state => ({_proofSuggestions: state.tracker2.proofSuggestions}),
   dispatch => ({
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),

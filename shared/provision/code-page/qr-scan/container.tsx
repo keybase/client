@@ -8,7 +8,7 @@ import HiddenString from '../../../util/hidden-string'
 
 type OwnProps = {}
 
-export default Container.namedConnect(
+export default Container.connect(
   state => ({
     error: state.provision.error.stringValue(),
     waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
@@ -23,6 +23,5 @@ export default Container.namedConnect(
     onOpenSettings: dispatchProps.onOpenSettings,
     onSubmitTextCode: dispatchProps.onSubmitTextCode,
     waiting: stateProps.waiting,
-  }),
-  'QRScan'
+  })
 )(Container.safeSubmit(['onSubmitTextCode'], ['error'])(CodePage2))

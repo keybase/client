@@ -2,7 +2,7 @@ import * as FsGen from '../../actions/fs-gen'
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import flags from '../../util/feature-flags'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import Folders from '.'
 
 type OwnProps = {
@@ -103,14 +103,13 @@ const mergeProps = (stateProps, dispatchProps, {profileUsername}: OwnProps) => (
             })),
         ],
 })
-const hasFolders = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedFolders')(Folders)
+const hasFolders = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Folders)
 
 // @ts-ignore
-const noFolders: typeof hasFolders = namedConnect(
+const noFolders: typeof hasFolders = Container.connect(
   () => ({}),
   () => ({}),
-  () => ({loadTlfs: () => {}, tlfs: []}),
-  'ConnectedFolders'
+  () => ({loadTlfs: () => {}, tlfs: []})
 )(Folders)
 
 export default flags.foldersInProfileTab ? hasFolders : noFolders

@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import OldProfileReset from './system-old-profile-reset-notice/container'
 import ResetUser from './reset-user/container'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 
 type Props = {
   showResetParticipants: Types.ConversationIDKey | null
@@ -37,7 +37,7 @@ type OwnProps = {
   measure: (() => void) | null
 }
 
-export default namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const meta = Constants.getMeta(state, ownProps.conversationIDKey)
     const showResetParticipants = meta.resetParticipants.size !== 0 ? ownProps.conversationIDKey : null
@@ -53,6 +53,5 @@ export default namedConnect(
     }
   },
   () => ({}),
-  (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps}),
-  'BottomMessage'
+  (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
 )(BottomMessage) as any

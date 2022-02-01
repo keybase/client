@@ -42,7 +42,7 @@ const prepareExternalPartners = (
 
 // TODO remove compose
 export default Container.compose(
-  Container.namedConnect(
+  Container.connect(
     state => {
       const accountID = Constants.getSelectedAccount(state)
       const account = Constants.getAccount(state, accountID)
@@ -132,9 +132,7 @@ export default Container.compose(
         : undefined,
       onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
       refresh: () => dispatchProps._refresh(stateProps.accountID),
-    }),
-
-    'Settings'
+    })
   ),
   Container.safeSubmit(['onCurrencyChange'], ['currencyWaiting'])
 )(Settings)

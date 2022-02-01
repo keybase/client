@@ -107,13 +107,12 @@ class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
     return <OnboardingOrWalletsNavigator {...this.props} />
   }
 }
-const OnboardingOrWallets = Container.namedConnect(
+const OnboardingOrWallets = Container.connect(
   state => ({
     acceptedDisclaimer: state.wallets.acceptedDisclaimer,
   }),
   undefined,
-  (stateProps, _, ownProps: NavigationViewProps<any>) => ({...stateProps, ...ownProps}),
-  'OnboardingOrWallets'
+  (stateProps, _, ownProps: NavigationViewProps<any>) => ({...stateProps, ...ownProps})
 )(_OnboardingOrWallets)
 
 export default OnboardingOrWallets

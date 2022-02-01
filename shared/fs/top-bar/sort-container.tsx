@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {path}: OwnProps)
       : () => dispatch(FsGen.createSortSetting({path, sortSetting: Types.SortSetting.TimeDesc})),
 })
 
-export default Container.namedConnect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, {path}: OwnProps) => ({
@@ -41,6 +41,5 @@ export default Container.namedConnect(
       ? stateProps._sortSetting
       : undefined,
     ...dispatchProps,
-  }),
-  'TopBarSort'
+  })
 )(Sort)
