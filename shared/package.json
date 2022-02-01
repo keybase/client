@@ -15,7 +15,6 @@
         "prettier-debug-check": "git ls-files | grep \"\\.\\(js\\|ts\\|tsx\\)\\$\" | xargs ./node_modules/.bin/prettier --debug-check",
         "prettier-write-all": "yarn run _helper prettier-write-all",
         "render-screenshots": "yarn run _helper render-screenshots",
-        "test": "yarn run _helper test",
         "update-icon-constants": "yarn run _helper update-icon-constants",
         "update-icon-font": "yarn run _helper update-icon-font",
         "update-web-font": "yarn run _helper update-web-font",
@@ -51,7 +50,8 @@
         "DEPRECATED_storybook": "cross-env-shell BABEL_ENV=yarn node_modules/@storybook/react/bin/index.js -s . -p 6006",
         "DEPRECATED_storybook-build": "cross-env-shell build-storybook -c .storybook -o .static-storybook",
         "DEPRECATED_rn-storybook": "cross-env-shell node_modules/@storybook/react-native-server/bin/index.js -p 7007",
-        "DEPRECATED_build-storybook": "build-storybook"
+        "DEPRECATED_build-storybook": "build-storybook",
+        "DEPRECATED_test": "yarn run _helper test"
     },
     "keywords": [],
     "author": "",
