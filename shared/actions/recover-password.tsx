@@ -20,7 +20,7 @@ const chooseDevice =
     }
   ) => {
     return Saga.callUntyped(function* () {
-      const devices = (params.devices || []).map((d) => ProvisionConstants.rpcDeviceToDevice(d))
+      const devices = (params.devices || []).map(d => ProvisionConstants.rpcDeviceToDevice(d))
       yield Saga.put(
         RecoverPasswordGen.createDisplayDeviceSelect({
           devices,

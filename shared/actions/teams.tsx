@@ -166,7 +166,7 @@ const getTeamProfileAddList = async (action: TeamsGen.GetTeamProfileAddListPaylo
     t && arr.push(t)
     return arr
   }, [])
-  const teamlist = res.map((team) => ({
+  const teamlist = res.map(team => ({
     disabledReason: team.disabledReason,
     open: team.open,
     teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
@@ -387,7 +387,7 @@ const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
       ]
     )
     if (res.notAdded && res.notAdded.length > 0) {
-      const usernames = res.notAdded.map((elem) => elem.username)
+      const usernames = res.notAdded.map(elem => elem.username)
       return [
         TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
         RouteTreeGen.createNavigateAppend({
@@ -477,7 +477,7 @@ const editMembership = async (action: TeamsGen.EditMembershipPayload) => {
     await RPCTypes.teamsTeamEditMembersRpcPromise(
       {
         teamID,
-        users: usernames.map((assertion) => ({assertion, role})),
+        users: usernames.map(assertion => ({assertion, role})),
       },
       [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, ...usernames)]
     )
@@ -607,8 +607,8 @@ async function createNewTeamFromConversation(
 
   const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
   // exclude bots from the newly created team, they can be added back later.
-  const participants = participantInfo.name.filter((p) => p !== me) // we will already be in as 'owner'
-  const users = participants.map((assertion) => ({
+  const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
+  const users = participants.map(assertion => ({
     assertion,
     role: assertion === me ? ('admin' as const) : ('writer' as const),
   }))
@@ -739,7 +739,7 @@ function* getTeams(
     const teams: Array<RPCTypes.AnnotatedMemberInfo> = results.teams || []
     const teamnames: Array<string> = []
     const teamNameToID = new Map<string, Types.TeamID>()
-    teams.forEach((team) => {
+    teams.forEach(team => {
       teamnames.push(team.fqName)
       teamNameToID.set(team.fqName, team.teamID)
     })
@@ -796,7 +796,7 @@ const checkRequestedAccess = async () => {
     {},
     Constants.teamsAccessRequestWaitingKey
   )
-  const teams = (result || []).map((row) => (row && row.parts ? row.parts.join('.') : ''))
+  const teams = (result || []).map(row => (row && row.parts ? row.parts.join('.') : ''))
   return TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: new Set<Types.Teamname>(teams)})
 }
 
@@ -1190,7 +1190,7 @@ function* addTeamWithChosenChannels(
   }
   const item =
     pushState.items &&
-    pushState.items.find((i) => i.item && i.item.category === Constants.chosenChannelsGregorKey)
+    pushState.items.find(i => i.item && i.item.category === Constants.chosenChannelsGregorKey)
   let teams: Array<string> = []
   let msgID
   if (item && item.item && item.item.body) {
@@ -1231,7 +1231,7 @@ function* addTeamWithChosenChannels(
       category: Constants.chosenChannelsGregorKey,
       dtime,
     },
-    teams.map((t) => Constants.teamWaitingKey(Constants.getTeamID(state, t)))
+    teams.map(t => Constants.teamWaitingKey(Constants.getTeamID(state, t)))
   )
 }
 
@@ -1315,7 +1315,7 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
 
   const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []
   const teamsWithResetUsersMap = new Map<Types.TeamID, Set<string>>()
-  teamsWithResetUsers.forEach((entry) => {
+  teamsWithResetUsers.forEach(entry => {
     const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
     existing.add(entry.username)
   })
@@ -1338,7 +1338,7 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
   let sawSubteamsBanner = false
   let chosenChannels: any
   const newTeamRequests = new Map<Types.TeamID, Set<string>>()
-  items.forEach((i) => {
+  items.forEach(i => {
     if (i.item.category === 'sawChatBanner') {
       sawChatBanner = true
     }
@@ -1409,7 +1409,7 @@ function addThemToTeamFromTeamBuilder(
   return [
     TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
     TeamsGen.createAddMembersWizardPushMembers({
-      members: [...state.teams.teamBuilding.teamSoFar].map((user) => ({assertion: user.id, role: 'writer'})),
+      members: [...state.teams.teamBuilding.teamSoFar].map(user => ({assertion: user.id, role: 'writer'})),
     }),
   ]
 }
@@ -1580,7 +1580,7 @@ const finishNewTeamWizard = async (state: TypedState) => {
     openSettings: {joinAs: RPCTypes.TeamRole[openTeamJoinRole], open},
     profileShowcase,
     subteams,
-    users: state.teams.addMembersWizard.addingMembers.map((member) => ({
+    users: state.teams.addMembersWizard.addingMembers.map(member => ({
       assertion: member.assertion,
       role: RPCTypes.TeamRole[member.role],
     })),
@@ -1607,7 +1607,7 @@ const addMembersWizardPushMembers = async (
   // members to addMembersWizardSetMembers action.
   const {teamID} = state.teams.addMembersWizard
   const assertions = action.payload.members
-    .filter((member) => member.assertion.includes('@') || !!member.resolvedFrom)
+    .filter(member => member.assertion.includes('@') || !!member.resolvedFrom)
     .map(({assertion}) => assertion)
 
   const existingAssertions =

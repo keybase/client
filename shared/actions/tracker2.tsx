@@ -146,7 +146,7 @@ const loadWebOfTrustEntries = async (
       Constants.profileLoadWaitingKey
     )
     const webOfTrustEntries =
-      wotVouches?.map((entry) => ({
+      wotVouches?.map(entry => ({
         attestation: entry.vouchText,
         attestingUser: entry.voucherUsername,
         otherText: entry.confidence.other,
@@ -154,7 +154,7 @@ const loadWebOfTrustEntries = async (
         proofs: entry.proofs ?? undefined,
         status: entry.status,
         verificationType: (ProfileConstants.choosableWotVerificationTypes.find(
-          (x) => x === entry.confidence.usernameVerifiedVia
+          x => x === entry.confidence.usernameVerifiedVia
         )
           ? entry.confidence.usernameVerifiedVia
           : 'none') as WebOfTrustVerificationType,
@@ -174,7 +174,7 @@ const loadWebOfTrustEntries = async (
 const loadFollowers = async (action: Tracker2Gen.LoadPayload) => {
   const {assertion} = action.payload
   const convertTrackers = (fs: Saga.RPCPromiseType<typeof RPCTypes.userListTrackersUnverifiedRpcPromise>) => {
-    return (fs.users || []).map((f) => ({
+    return (fs.users || []).map(f => ({
       fullname: f.fullName,
       username: f.username,
     }))
@@ -204,7 +204,7 @@ const loadFollowers = async (action: Tracker2Gen.LoadPayload) => {
 const loadFollowing = async (action: Tracker2Gen.LoadPayload) => {
   const {assertion} = action.payload
   const convertTracking = (fs: Saga.RPCPromiseType<typeof RPCTypes.userListTrackingRpcPromise>) => {
-    return (fs.users || []).map((f) => ({
+    return (fs.users || []).map(f => ({
       fullname: f.fullName,
       username: f.username,
     }))

@@ -11,7 +11,7 @@ function* generatePgp(state: Container.TypedState) {
 
   const ids = [state.profile.pgpEmail1, state.profile.pgpEmail2, state.profile.pgpEmail3]
     .filter(Boolean)
-    .map((email) => ({
+    .map(email => ({
       comment: '',
       email: email || '',
       username: state.profile.pgpFullName || '',

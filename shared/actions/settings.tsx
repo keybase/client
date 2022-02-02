@@ -78,12 +78,12 @@ const toggleNotifications = async (state: Container.TypedState) => {
     if (groupName === Constants.securityGroup || groupName === Constants.soundGroup) {
       // Special case this since it will go to chat settings endpoint
       group.settings.forEach(
-        (setting) =>
+        setting =>
           (chatGlobalArg[`${ChatTypes.GlobalAppNotificationSetting[setting.name as any]}`] =
             setting.name === 'disabletyping' ? !setting.subscribed : !!setting.subscribed)
       )
     } else {
-      group.settings.forEach((setting) =>
+      group.settings.forEach(setting =>
         JSONPayload.push({
           key: `${setting.name}|${groupName}`,
           value: setting.subscribed ? '1' : '0',
@@ -160,7 +160,7 @@ const refreshInvites = async () => {
   const acceptedInvites: Array<Types.Invitation> = []
   const pendingInvites: Array<Types.Invitation> = []
 
-  results.invitations.forEach((i) => {
+  results.invitations.forEach(i => {
     const invite: Types.Invitation = {
       created: i.ctime,
       email: i.email,
@@ -344,7 +344,7 @@ const loadSettings = async (
   try {
     const settings = await RPCTypes.userLoadMySettingsRpcPromise(undefined, Constants.loadSettingsWaitingKey)
     const emailMap = new Map(
-      (settings.emails ?? []).map((row) => [row.email, {...Constants.makeEmailRow(), ...row}])
+      (settings.emails ?? []).map(row => [row.email, {...Constants.makeEmailRow(), ...row}])
     )
     const phoneMap = (settings.phoneNumbers ?? []).reduce<Map<string, Types.PhoneRow>>((map, row) => {
       if (map.get(row.phoneNumber) && !map.get(row.phoneNumber)?.superseded) {

@@ -132,7 +132,7 @@ const loadFavorites = async (state: Container.TypedState) => {
         ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
         : []),
     ].forEach(({folders, isFavorite, isIgnored, isNew}) =>
-      folders.forEach((folder) => {
+      folders.forEach(folder => {
         const tlfType = rpcFolderTypeToTlfType(folder.folderType)
         const tlfName =
           tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
@@ -177,7 +177,7 @@ const getSyncConfigFromRPC = (
     case RPCTypes.FolderSyncMode.partial:
       return Constants.makeTlfSyncPartial({
         enabledPaths: config.paths
-          ? config.paths.map((str) => Types.getPathFromRelative(tlfName, tlfType, str))
+          ? config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str))
           : [],
       })
     default:
@@ -439,16 +439,16 @@ const loadUploadStatus = async (_: Container.TypedState) => {
 const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.UploadFromDragAndDropPayload) => {
   if (Platform.isDarwin) {
     const localPaths = await Promise.all(
-      action.payload.localPaths.map((localPath) => KB.kb.darwinCopyToKBFSTempUploadFile(localPath))
+      action.payload.localPaths.map(localPath => KB.kb.darwinCopyToKBFSTempUploadFile(localPath))
     )
-    return localPaths.map((localPath) =>
+    return localPaths.map(localPath =>
       FsGen.createUpload({
         localPath,
         parentPath: action.payload.parentPath,
       })
     )
   }
-  return action.payload.localPaths.map((localPath) =>
+  return action.payload.localPaths.map(localPath =>
     FsGen.createUpload({
       localPath,
       parentPath: action.payload.parentPath,
@@ -652,7 +652,7 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
           },
         ]
       : state.fs.destinationPicker.source.source
-          .map((item) => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
+          .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
           .filter(({originalPath}) => !!originalPath)
           .map(({originalPath, scaledPath}) => ({
             dest: Constants.pathToRPCPath(
@@ -678,7 +678,7 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
       action.type === FsGen.move
         ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise
         : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise
-    await Promise.all(params.map((p) => rpc(p)))
+    await Promise.all(params.map(p => rpc(p)))
     await Promise.all(params.map(({opID}) => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})))
     return null
     // We get source/dest paths from state rather than action, so we can't
@@ -893,7 +893,7 @@ const onPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPath
   if (clientIDFromNotification !== clientID) {
     return null
   }
-  return topics?.map((topic) => {
+  return topics?.map(topic => {
     switch (topic) {
       case RPCTypes.PathSubscriptionTopic.children:
         return FsGen.createFolderListLoad({path: Types.stringToPath(path), recursive: false})
@@ -968,7 +968,7 @@ const loadDownloadStatus = async (_: Container.TypedState) => {
     return FsGen.createLoadedDownloadStatus({
       regularDownloads: res.regularDownloadIDs || [],
       state: new Map(
-        (res.states || []).map((s) => [
+        (res.states || []).map(s => [
           s.downloadID,
           {
             canceled: s.canceled,

@@ -91,7 +91,7 @@ class ProvisioningManager {
     this.stashedResponse['keybase.1.provisionUi.chooseDevice'] = response
     return Saga.put(
       ProvisionGen.createShowDeviceListPage({
-        devices: (params.devices ?? []).map((d) => Constants.rpcDeviceToDevice(d)),
+        devices: (params.devices ?? []).map(d => Constants.rpcDeviceToDevice(d)),
       })
     )
   }
@@ -402,7 +402,7 @@ class ProvisioningManager {
       return false
     }
 
-    Object.keys(this.stashedResponse).forEach((key) => {
+    Object.keys(this.stashedResponse).forEach(key => {
       logger.info('ProvisioningManager - canceling ongoing stashed response')
       Constants.cancelOnCallback(null, (this.stashedResponse as any)[key])
     })
