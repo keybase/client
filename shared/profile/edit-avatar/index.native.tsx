@@ -28,8 +28,9 @@ const AvatarUploadWrapper = (props: Props) => {
       } else if (!props.wizard) {
         navUp()
       }
-    } catch (e) {
-      setImageError(e)
+    } catch (error_) {
+      const error = error_ as any
+      setImageError(error)
     }
   }, [setImageError, setSelectedImage, navUp, props.wizard])
 
@@ -181,9 +182,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
               <Kb.Text type="BodyBigLink" onClick={this.props.onSkip}>
                 Skip
               </Kb.Text>
-            ) : (
-              undefined
-            ),
+            ) : undefined,
 
             title: (
               <ModalTitle

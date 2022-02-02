@@ -62,11 +62,11 @@ const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row
 // Remove those that have been obsolete and have a replacement. But it doens't
 // cover cases like :man-facepalming: vs :face_palm: even though they look
 // same.
-const removeObsolete = (emojis: Array<EmojiData>) => emojis.filter(e => !e.obsoleted_by)
+const removeObsolete = (emojis: Array<EmojiData>) => emojis.filter((e) => !e.obsoleted_by)
 
 const getEmojiSections = memoize(
   (emojisPerLine: number): Array<Section> =>
-    _getData().categories.map(c => ({
+    _getData().categories.map((c) => ({
       data: chunkEmojis(removeObsolete(c.emojis), emojisPerLine),
       key: c.category,
       title: c.category,
@@ -139,17 +139,17 @@ type Bookmark = {
 const emojiGroupsToEmojiArrayArray = (
   emojiGroups: Array<RPCChatGen.EmojiGroup>
 ): Array<{emojis: Array<EmojiData>; name: string}> =>
-  emojiGroups.map(emojiGroup => ({
+  emojiGroups.map((emojiGroup) => ({
     emojis:
       emojiGroup.emojis
-        ?.map(e => RPCToEmojiData(e, false))
+        ?.map((e) => RPCToEmojiData(e, false))
         .sort((a, b) => a.short_name.localeCompare(b.short_name)) || [],
     name: emojiGroup.name,
   }))
 
 const getCustomEmojiSections = memoize(
   (emojiGroups: Array<RPCChatGen.EmojiGroup>, emojisPerLine: number): Array<Section> =>
-    emojiGroupsToEmojiArrayArray(emojiGroups).map(group => ({
+    emojiGroupsToEmojiArrayArray(emojiGroups).map((group) => ({
       data: chunkEmojis(group.emojis, emojisPerLine),
       key: group.name,
       title: group.name,
@@ -158,8 +158,8 @@ const getCustomEmojiSections = memoize(
 
 const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) => {
   const mapper = new Map<string, EmojiData>()
-  emojiGroupsToEmojiArrayArray(emojiGroups).forEach(emojiGroup =>
-    emojiGroup.emojis.forEach(emoji => {
+  emojiGroupsToEmojiArrayArray(emojiGroups).forEach((emojiGroup) =>
+    emojiGroup.emojis.forEach((emoji) => {
       mapper.set(emoji.short_name, emoji)
     })
   )
@@ -171,8 +171,8 @@ const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) 
     filter: (filter: string): Array<EmojiData> =>
       // @ts-ignore ts doesn't know Boolean filters out undefined.
       keys
-        .filter(k => k.includes(filter))
-        .map(key => mapper.get(key))
+        .filter((k) => k.includes(filter))
+        .map((key) => mapper.get(key))
         .filter(Boolean),
     get: (shortName: string): EmojiData | undefined => mapper.get(shortName),
   }
@@ -188,6 +188,7 @@ const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
       ...removeObsolete(
         // @ts-ignore type wrong?
         emojiIndex
+          // @ts-ignore type wrong?
           .search(filter, {maxResults: maxEmojiSearchResults})
           .map((res: {id: string}) => emojiNameMap[res.id])
       ),
@@ -221,7 +222,7 @@ const getSectionsAndBookmarks = (
     sections.push(frequentSection)
   }
 
-  getEmojiSections(emojisPerLine).forEach(section => {
+  getEmojiSections(emojisPerLine).forEach((section) => {
     const categoryIcon = Data.categoryIcons[section.title]
     categoryIcon &&
       bookmarks.push({
@@ -238,7 +239,7 @@ const getSectionsAndBookmarks = (
       iconType: 'iconfont-keybase',
       sectionIndex: sections.length,
     } as Bookmark
-    getCustomEmojiSections(customEmojiGroups, emojisPerLine).forEach(section => {
+    getCustomEmojiSections(customEmojiGroups, emojisPerLine).forEach((section) => {
       bookmark.coveredSectionKeys.add(section.key)
       sections.push(section)
     })
@@ -283,7 +284,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     // and haven't received width yet.
     row.emojis.length > emojisPerLine ? null : (
       <Kb.Box2 key={row.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
-        {row.emojis.map(e => this.getEmojiSingle(e, this.props.skinTone))}
+        {row.emojis.map((e) => this.getEmojiSingle(e, this.props.skinTone))}
         {[...Array(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
       </Kb.Box2>
     )
@@ -335,7 +336,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   )
 
   private onSectionChange = debounce(
-    section => this.mounted && this.setState({activeSectionKey: section.key}),
+    (section) => this.mounted && this.setState({activeSectionKey: section.key}),
     200
   )
 
@@ -387,7 +388,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
             style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
           >
             {this.getSectionHeader('Search results')}
-            {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
+            {results.map((e) => this.getEmojiSingle(e, this.props.skinTone))}
             {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
               makeEmojiPlaceholder(index)
             )}
@@ -411,7 +412,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           <Kb.SectionList
             ref={this.sectionListRef}
             getItemHeight={() => emojiWidthWithPadding}
-            getSectionHeaderHeight={sectionIndex =>
+            getSectionHeaderHeight={(sectionIndex) =>
               sections[sectionIndex].key === 'not-found' ? notFoundHeight : 32
             }
             keyboardShouldPersistTaps="handled"

@@ -10,39 +10,41 @@ import * as Saga from '../util/saga'
 import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
 
-const chooseDevice = (replaceRoute: boolean) => (
-  params: RPCTypes.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['inParam'],
-  response: {
-    result: (id: string) => void
-    error: (res: {code: RPCTypes.StatusCode; desc: string}) => void
-  }
-) => {
-  return Saga.callUntyped(function*() {
-    const devices = (params.devices || []).map(d => ProvisionConstants.rpcDeviceToDevice(d))
-    yield Saga.put(
-      RecoverPasswordGen.createDisplayDeviceSelect({
-        devices,
-        replaceRoute,
-      })
-    )
-
-    const action:
-      | RecoverPasswordGen.SubmitDeviceSelectPayload
-      | RecoverPasswordGen.AbortDeviceSelectPayload = yield Saga.take([
-      RecoverPasswordGen.submitDeviceSelect,
-      RecoverPasswordGen.abortDeviceSelect,
-    ])
-    if (action.type === RecoverPasswordGen.submitDeviceSelect) {
-      response.result(action.payload.id)
-    } else {
-      response.error({
-        code: RPCTypes.StatusCode.scinputcanceled,
-        desc: 'Input canceled',
-      })
-      yield Saga.put(RouteTreeGen.createNavigateUp())
+const chooseDevice =
+  (replaceRoute: boolean) =>
+  (
+    params: RPCTypes.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['inParam'],
+    response: {
+      result: (id: string) => void
+      error: (res: {code: RPCTypes.StatusCode; desc: string}) => void
     }
-  })
-}
+  ) => {
+    return Saga.callUntyped(function* () {
+      const devices = (params.devices || []).map((d) => ProvisionConstants.rpcDeviceToDevice(d))
+      yield Saga.put(
+        RecoverPasswordGen.createDisplayDeviceSelect({
+          devices,
+          replaceRoute,
+        })
+      )
+
+      const action:
+        | RecoverPasswordGen.SubmitDeviceSelectPayload
+        | RecoverPasswordGen.AbortDeviceSelectPayload = yield Saga.take([
+        RecoverPasswordGen.submitDeviceSelect,
+        RecoverPasswordGen.abortDeviceSelect,
+      ])
+      if (action.type === RecoverPasswordGen.submitDeviceSelect) {
+        response.result(action.payload.id)
+      } else {
+        response.error({
+          code: RPCTypes.StatusCode.scinputcanceled,
+          desc: 'Input canceled',
+        })
+        yield Saga.put(RouteTreeGen.createNavigateUp())
+      }
+    })
+  }
 
 const explainDevice = (
   params: RPCTypes.MessageTypes['keybase.1.loginUi.explainDeviceRecovery']['inParam']
@@ -69,7 +71,7 @@ const promptReset = (
     result: (res: RPCTypes.ResetPromptResponse) => void
   }
 ) => {
-  return Saga.callUntyped(function*() {
+  return Saga.callUntyped(function* () {
     if (params.prompt.t == RPCTypes.ResetPromptType.enterResetPw) {
       yield Saga.put(RecoverPasswordGen.createPromptResetPassword())
 
@@ -92,7 +94,7 @@ const getPaperKeyOrPw = (
     error: (res: {code: RPCTypes.StatusCode; desc: string}) => void
   }
 ) => {
-  return Saga.callUntyped(function*() {
+  return Saga.callUntyped(function* () {
     if (params.pinentry.type === RPCTypes.PassphraseType.paperKey) {
       if (params.pinentry.retryLabel) {
         yield Saga.put(
@@ -107,12 +109,8 @@ const getPaperKeyOrPw = (
           replace: true,
         })
       )
-      const action:
-        | RecoverPasswordGen.SubmitPaperKeyPayload
-        | RecoverPasswordGen.AbortPaperKeyPayload = yield Saga.take([
-        RecoverPasswordGen.submitPaperKey,
-        RecoverPasswordGen.abortPaperKey,
-      ])
+      const action: RecoverPasswordGen.SubmitPaperKeyPayload | RecoverPasswordGen.AbortPaperKeyPayload =
+        yield Saga.take([RecoverPasswordGen.submitPaperKey, RecoverPasswordGen.abortPaperKey])
 
       if (action.type === RecoverPasswordGen.submitPaperKey) {
         response.result({
@@ -167,18 +165,19 @@ function* startRecoverPassword(
       },
       waitingKey: Constants.waitingKey,
     })
-  } catch (e) {
+  } catch (error_) {
+    const error = error_ as RPCError
     hadError = true
-    logger.warn('RPC returned error: ' + e.message)
+    logger.warn('RPC returned error: ' + error.message)
     if (
       !(
-        e instanceof RPCError &&
-        (e.code === RPCTypes.StatusCode.sccanceled || e.code === RPCTypes.StatusCode.scinputcanceled)
+        error instanceof RPCError &&
+        (error.code === RPCTypes.StatusCode.sccanceled || error.code === RPCTypes.StatusCode.scinputcanceled)
       )
     ) {
       yield Saga.put(
         RecoverPasswordGen.createDisplayError({
-          error: new HiddenString(e.message),
+          error: new HiddenString(error.message),
         })
       )
     }

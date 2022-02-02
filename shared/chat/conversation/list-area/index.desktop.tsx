@@ -56,7 +56,7 @@ class Thread extends React.PureComponent<Props, State> {
   private isScrolling = false
 
   private lastResizeHeight = 0
-  private resizeObserver =
+  private resizeObserver: any =
     // @ts-ignore doesn't know about ResizeObserver
     typeof ResizeObserver !== 'undefined' &&
     // @ts-ignore doesn't know about ResizeObserver
@@ -276,7 +276,7 @@ class Thread extends React.PureComponent<Props, State> {
         const waypoints = list.querySelectorAll('[data-key]')
         // find an id that should be our parent
         const toFind = Types.ordinalToNumber(ordinal)
-        const found = (Array.from(waypoints) as Array<HTMLElement>).reverse().find(w => {
+        const found = (Array.from(waypoints) as Array<HTMLElement>).reverse().find((w) => {
           const key = w.dataset.key
           return key !== undefined && parseInt(key, 10) < toFind
         })
@@ -546,7 +546,7 @@ type TopBottomItemState = {
 class TopItem extends React.PureComponent<TopBottomItemProps, TopBottomItemState> {
   state = {keyCount: 0}
   private measure = () => {
-    this.setState(p => ({keyCount: p.keyCount + 1}))
+    this.setState((p) => ({keyCount: p.keyCount + 1}))
   }
 
   render() {
@@ -557,7 +557,7 @@ class TopItem extends React.PureComponent<TopBottomItemProps, TopBottomItemState
 class BottomItem extends React.PureComponent<TopBottomItemProps, TopBottomItemState> {
   state = {keyCount: 0}
   private measure = () => {
-    this.setState(p => ({keyCount: p.keyCount + 1}))
+    this.setState((p) => ({keyCount: p.keyCount + 1}))
   }
 
   render() {

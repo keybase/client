@@ -27,7 +27,7 @@ type OwnProps = Container.RouteProps<{errorSource: 'app' | 'sep6' | 'sep7'}>
 
 const KeybaseLinkError = (props: OwnProps) => {
   const errorSource = Container.getRouteProps(props, 'errorSource', 'app')
-  const message = Container.useSelector(s => {
+  const message = Container.useSelector((s) => {
     switch (errorSource) {
       case 'app':
         return s.deeplinks.keybaseLinkError
@@ -35,9 +35,11 @@ const KeybaseLinkError = (props: OwnProps) => {
         return s.wallets.sep7ConfirmError
       case 'sep6':
         return s.wallets.sep6Message
+      default:
+        return 'unknown'
     }
   })
-  const sep6Error = Container.useSelector(s => s.wallets.sep6Error)
+  const sep6Error = Container.useSelector((s) => s.wallets.sep6Error)
   const isError = errorSource !== 'sep6' || sep6Error
   const dispatch = Container.useDispatch()
   const onClose = () => dispatch(RouteTreeGen.createNavigateUp())

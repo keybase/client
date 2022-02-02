@@ -62,7 +62,7 @@ function rpcLog(info: {method: string; reason: string; extra?: Object; type: str
     engineInternal: '=',
     engineToServer: '<< OUT',
     serverToEngine: 'IN >>',
-  }[info.type]
+  }[info.type] as string
 
   requestIdleCallback(
     () => {

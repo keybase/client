@@ -15,12 +15,14 @@ import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants
 import {writeLogLinesToFile} from '../util/forward-logs'
 import * as Container from '../util/container'
 import openURL from '../util/open-url'
+import {RPCError} from 'util/errors'
 
 const onUpdatePGPSettings = async () => {
   try {
     const {hasServerKeys} = await RPCTypes.accountHasServerKeysRpcPromise()
     return SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys})
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     return SettingsGen.createOnUpdatePasswordError({error})
   }
 }
@@ -30,7 +32,8 @@ const onSubmitNewEmail = async (state: Container.TypedState) => {
     const newEmail = state.settings.email.newEmail
     await RPCTypes.accountEmailChangeRpcPromise({newEmail}, Constants.settingsWaitingKey)
     return [SettingsGen.createLoadSettings(), RouteTreeGen.createNavigateUp()]
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     return SettingsGen.createOnUpdateEmailError({error})
   }
 }
@@ -57,7 +60,8 @@ const onSubmitNewPassword = async (
       RouteTreeGen.createNavigateUp(),
       ...(action.payload.thenSignOut ? [ConfigGen.createLogout()] : []),
     ]
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     return SettingsGen.createOnUpdatePasswordError({error})
   }
 }
@@ -74,12 +78,12 @@ const toggleNotifications = async (state: Container.TypedState) => {
     if (groupName === Constants.securityGroup || groupName === Constants.soundGroup) {
       // Special case this since it will go to chat settings endpoint
       group.settings.forEach(
-        setting =>
+        (setting) =>
           (chatGlobalArg[`${ChatTypes.GlobalAppNotificationSetting[setting.name as any]}`] =
             setting.name === 'disabletyping' ? !setting.subscribed : !!setting.subscribed)
       )
     } else {
-      group.settings.forEach(setting =>
+      group.settings.forEach((setting) =>
         JSONPayload.push({
           key: `${setting.name}|${groupName}`,
           value: setting.subscribed ? '1' : '0',
@@ -156,7 +160,7 @@ const refreshInvites = async () => {
   const acceptedInvites: Array<Types.Invitation> = []
   const pendingInvites: Array<Types.Invitation> = []
 
-  results.invitations.forEach(i => {
+  results.invitations.forEach((i) => {
     const invite: Types.Invitation = {
       created: i.ctime,
       email: i.email,
@@ -216,15 +220,16 @@ const sendInvite = async (action: SettingsGen.InvitesSendPayload) => {
     } else {
       return false
     }
-  } catch (e) {
-    logger.warn('Error sending an invite:', e)
-    return [SettingsGen.createInvitesSent({error: e}), SettingsGen.createInvitesRefresh()]
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn('Error sending an invite:', error)
+    return [SettingsGen.createInvitesSent({error: error}), SettingsGen.createInvitesRefresh()]
   }
 }
 
 function* refreshNotifications() {
   // If the rpc is fast don't clear it out first
-  const delayThenEmptyTask = yield Saga._fork(function*(): Iterable<any> {
+  const delayThenEmptyTask = yield Saga._fork(function* (): Iterable<any> {
     yield Saga.delay(500)
     yield Saga.put(SettingsGen.createNotificationsRefreshed({notifications: new Map()}))
   })
@@ -233,28 +238,27 @@ function* refreshNotifications() {
   let chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings
 
   try {
-    const [json, _chatGlobalSettings]: [
-      {body: string} | null,
-      ChatTypes.GlobalAppNotificationSettings
-    ] = yield Saga.all([
-      Saga.callUntyped(
-        RPCTypes.apiserverGetWithSessionRpcPromise,
-        {args: [], endpoint: 'account/subscriptions'},
-        Constants.refreshNotificationsWaitingKey
-      ),
-      Saga.callUntyped(
-        ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise,
-        undefined,
-        Constants.refreshNotificationsWaitingKey
-      ),
-    ])
+    const [json, _chatGlobalSettings]: [{body: string} | null, ChatTypes.GlobalAppNotificationSettings] =
+      yield Saga.all([
+        Saga.callUntyped(
+          RPCTypes.apiserverGetWithSessionRpcPromise,
+          {args: [], endpoint: 'account/subscriptions'},
+          Constants.refreshNotificationsWaitingKey
+        ),
+        Saga.callUntyped(
+          ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise,
+          undefined,
+          Constants.refreshNotificationsWaitingKey
+        ),
+      ])
     if (json) {
       body = json.body
     }
     chatGlobalSettings = _chatGlobalSettings
-  } catch (err) {
+  } catch (error_) {
+    const error = error_ as RPCError
     // No need to throw black bars -- handled by Reloadable.
-    logger.warn(`Error getting notification settings: ${err.desc}`)
+    logger.warn(`Error getting notification settings: ${error.desc}`)
     return
   }
 
@@ -268,17 +272,15 @@ function* refreshNotifications() {
         description: 'Show message content in phone chat notifications',
         description_h: 'Show message content in phone chat notifications',
         name: 'plaintextmobile',
-        subscribed: !!chatGlobalSettings.settings[
-          `${ChatTypes.GlobalAppNotificationSetting.plaintextmobile}`
-        ],
+        subscribed:
+          !!chatGlobalSettings.settings[`${ChatTypes.GlobalAppNotificationSetting.plaintextmobile}`],
       },
       {
         description: 'Show message content in computer chat notifications',
         description_h: 'Show message content in computer chat notifications',
         name: 'plaintextdesktop',
-        subscribed: !!chatGlobalSettings.settings[
-          `${ChatTypes.GlobalAppNotificationSetting.plaintextdesktop}`
-        ],
+        subscribed:
+          !!chatGlobalSettings.settings[`${ChatTypes.GlobalAppNotificationSetting.plaintextdesktop}`],
       },
       {
         description: "Show others when you're typing",
@@ -297,9 +299,8 @@ function* refreshNotifications() {
             description: 'Phone: use default sound for new messages',
             description_h: 'Phone: use default sound for new messages',
             name: 'defaultsoundmobile',
-            subscribed: !!chatGlobalSettings.settings[
-              `${ChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`
-            ],
+            subscribed:
+              !!chatGlobalSettings.settings[`${ChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`],
           },
         ],
     unsub: false,
@@ -343,7 +344,7 @@ const loadSettings = async (
   try {
     const settings = await RPCTypes.userLoadMySettingsRpcPromise(undefined, Constants.loadSettingsWaitingKey)
     const emailMap = new Map(
-      (settings.emails ?? []).map(row => [row.email, {...Constants.makeEmailRow(), ...row}])
+      (settings.emails ?? []).map((row) => [row.email, {...Constants.makeEmailRow(), ...row}])
     )
     const phoneMap = (settings.phoneNumbers ?? []).reduce<Map<string, Types.PhoneRow>>((map, row) => {
       if (map.get(row.phoneNumber) && !map.get(row.phoneNumber)?.superseded) {
@@ -356,8 +357,9 @@ const loadSettings = async (
       emails: emailMap,
       phones: phoneMap,
     })
-  } catch (e) {
-    logger.warn(`Error loading settings: ${e.message}`)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn(`Error loading settings: ${error.message}`)
     return false
   }
 }
@@ -547,7 +549,8 @@ const sendFeedback = async (state: Container.TypedState, action: SettingsGen.Sen
     )
     logger.info('logSendId is', logSendId)
     return false
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     logger.warn('err in sending logs', error)
     return SettingsGen.createFeedbackSent({error})
   }
@@ -662,8 +665,9 @@ const loadHasRandomPW = async (state: Container.TypedState) => {
     const passphraseState = await RPCTypes.userLoadPassphraseStateRpcPromise()
     const randomPW = passphraseState === RPCTypes.PassphraseState.random
     return SettingsGen.createLoadedHasRandomPw({randomPW})
-  } catch (e) {
-    logger.warn('Error loading hasRandomPW:', e.message)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn('Error loading hasRandomPW:', error.message)
     return false
   }
 }
@@ -690,9 +694,10 @@ const addPhoneNumber = async (action: SettingsGen.AddPhoneNumberPayload, logger:
     )
     logger.info('success')
     return SettingsGen.createAddedPhoneNumber({phoneNumber, searchable})
-  } catch (err) {
-    logger.warn('error ', err.message)
-    const message = Constants.makePhoneError(err)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn('error ', error.message)
+    const message = Constants.makePhoneError(error)
     return SettingsGen.createAddedPhoneNumber({error: message, phoneNumber, searchable})
   }
 }
@@ -709,8 +714,9 @@ const resendVerificationForPhoneNumber = async (
       Constants.resendVerificationForPhoneWaitingKey
     )
     return false
-  } catch (err) {
-    const message = Constants.makePhoneError(err)
+  } catch (error_) {
+    const error = error_ as RPCError
+    const message = Constants.makePhoneError(error)
     logger.warn('error ', message)
     return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
   }
@@ -726,8 +732,9 @@ const verifyPhoneNumber = async (action: SettingsGen.VerifyPhoneNumberPayload, l
     )
     logger.info('success')
     return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
-  } catch (err) {
-    const message = Constants.makePhoneError(err)
+  } catch (error_) {
+    const error = error_ as RPCError
+    const message = Constants.makePhoneError(error)
     logger.warn('error ', message)
     return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
   }
@@ -755,9 +762,10 @@ const loadContactImportEnabled = async (
       Constants.importContactsWaitingKey
     )
     enabled = !!value.b && !value.isNull
-  } catch (err) {
-    if (!err.message.includes('no such key')) {
-      logger.error(`Error reading config: ${err.message}`)
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (!error.message.includes('no such key')) {
+      logger.error(`Error reading config: ${error.message}`)
     }
   }
   return SettingsGen.createLoadedContactImportEnabled({enabled})
@@ -802,9 +810,10 @@ const addEmail = async (
     )
     logger.info('success')
     return SettingsGen.createAddedEmail({email})
-  } catch (err) {
-    logger.warn(`error: ${err.message}`)
-    return SettingsGen.createAddedEmail({email, error: Constants.makeAddEmailError(err)})
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn(`error: ${error.message}`)
+    return SettingsGen.createAddedEmail({email, error: Constants.makeAddEmailError(error)})
   }
 }
 

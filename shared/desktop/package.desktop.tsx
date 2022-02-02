@@ -158,7 +158,7 @@ function startPack() {
       process.exit(1)
     }
 
-    if (stats.hasErrors()) {
+    if (stats?.hasErrors()) {
       console.error(stats.toJson('errors-only').errors)
       process.exit(1)
     }
@@ -176,15 +176,11 @@ function startPack() {
 
           platforms.forEach(plat => {
             archs.forEach(arch => {
-              pack(plat, arch)
-                .then(postPack(plat, arch))
-                .catch(postPackError)
+              pack(plat, arch).then(postPack(plat, arch)).catch(postPackError)
             })
           })
         } else {
-          pack(platform, arch)
-            .then(postPack(platform, arch))
-            .catch(postPackError)
+          pack(platform, arch).then(postPack(platform, arch)).catch(postPackError)
         }
       })
       .catch(err => {

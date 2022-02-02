@@ -16,6 +16,7 @@ import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
 import {_getNavigator} from '../../constants/router2'
+import {RPCError} from 'util/errors'
 
 const {resolve} = KB.path
 const {argv, env, pid} = KB.process
@@ -120,7 +121,7 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
             }
             const result = JSON.parse(stdout.toString())
             if (result.isOwner) {
-              resolve()
+              resolve(undefined)
               return
             }
             logger.info(`pipeowner check result: ${stdout.toString()}`)
@@ -135,11 +136,12 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
         version: action.payload.version,
       })
     )
-  } catch (e) {
+  } catch (error_) {
+    const error = error_ as RPCError
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
         failedFatal: true,
-        failedReason: e.message || 'windows pipe owner fail',
+        failedReason: error.message || 'windows pipe owner fail',
         increment: false,
         name: waitKey,
         version: action.payload.version,
@@ -315,11 +317,10 @@ const saveUseNativeFrame = async (state: Container.TypedState) => {
 
 function* initializeUseNativeFrame() {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
-      {
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
+      yield RPCTypes.configGuiGetValueRpcPromise({
         path: nativeFrameKey,
-      }
-    )
+      })
     const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
     yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
   } catch (_) {}
@@ -340,11 +341,10 @@ const saveWindowState = async (state: Container.TypedState) => {
 const notifySoundKey = 'notifySound'
 function* initializeNotifySound() {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
-      {
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
+      yield RPCTypes.configGuiGetValueRpcPromise({
         path: notifySoundKey,
-      }
-    )
+      })
     const notifySound: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
     if (notifySound !== undefined && notifySound !== state.config.notifySound) {
@@ -367,11 +367,10 @@ const setNotifySound = async (state: Container.TypedState) => {
 const openAtLoginKey = 'openAtLogin'
 function* initializeOpenAtLogin() {
   try {
-    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
-      {
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> =
+      yield RPCTypes.configGuiGetValueRpcPromise({
         path: openAtLoginKey,
-      }
-    )
+      })
 
     const openAtLogin: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()

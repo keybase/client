@@ -13,6 +13,7 @@ import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import * as Container from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
+import {RPCError} from 'util/errors'
 
 const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab, 'devicesRoot']
 
@@ -90,7 +91,7 @@ class ProvisioningManager {
     this.stashedResponse['keybase.1.provisionUi.chooseDevice'] = response
     return Saga.put(
       ProvisionGen.createShowDeviceListPage({
-        devices: (params.devices ?? []).map(d => Constants.rpcDeviceToDevice(d)),
+        devices: (params.devices ?? []).map((d) => Constants.rpcDeviceToDevice(d)),
       })
     )
   }
@@ -123,7 +124,7 @@ class ProvisioningManager {
       logger.info('ProvisioningManager done, yet chooseDeviceTypeHandler called')
       return
     }
-    return Saga.callUntyped(function*() {
+    return Saga.callUntyped(function* () {
       const state: Container.TypedState = yield* Saga.selectState()
       switch (state.provision.codePageOtherDevice.type) {
         case 'mobile':
@@ -401,7 +402,7 @@ class ProvisioningManager {
       return false
     }
 
-    Object.keys(this.stashedResponse).forEach(key => {
+    Object.keys(this.stashedResponse).forEach((key) => {
       logger.info('ProvisioningManager - canceling ongoing stashed response')
       Constants.cancelOnCallback(null, (this.stashedResponse as any)[key])
     })
@@ -441,7 +442,8 @@ function* startProvisioning(state: Container.TypedState) {
       waitingKey: Constants.waitingKey,
     })
     ProvisioningManager.getSingleton().setDone('provision call done w/ success')
-  } catch (finalError) {
+  } catch (finalError_) {
+    const finalError = finalError_ as RPCError
     manager.setDone(
       'startProvisioning call done w/ error ' + (finalError ? finalError.message : ' unknown error')
     )
@@ -493,7 +495,8 @@ function* addNewDevice() {
     yield Saga.put(DevicesGen.createLoad())
     yield Saga.put(RouteTreeGen.createNavigateAppend({path: devicesRoot}))
     yield Saga.put(RouteTreeGen.createClearModals())
-  } catch (finalError) {
+  } catch (finalError_) {
+    const finalError = finalError_ as RPCError
     manager.setDone('addNewDevice call done w/ error ' + (finalError ? finalError.message : ' unknown error'))
 
     if (ProvisioningManager.getSingleton() !== manager) {
@@ -595,7 +598,8 @@ const forgotUsername = async (action: ProvisionGen.ForgotUsernamePayload) => {
         Constants.forgotUsernameWaitingKey
       )
       return ProvisionGen.createForgotUsernameResult({result: 'success'})
-    } catch (error) {
+    } catch (error_) {
+      const error = error_ as RPCError
       return ProvisionGen.createForgotUsernameResult({
         result: Constants.decodeForgotUsernameError(error),
       })
@@ -608,7 +612,8 @@ const forgotUsername = async (action: ProvisionGen.ForgotUsernamePayload) => {
         Constants.forgotUsernameWaitingKey
       )
       return ProvisionGen.createForgotUsernameResult({result: 'success'})
-    } catch (error) {
+    } catch (error_) {
+      const error = error_ as RPCError
       return ProvisionGen.createForgotUsernameResult({
         result: Constants.decodeForgotUsernameError(error),
       })

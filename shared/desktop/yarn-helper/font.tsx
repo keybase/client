@@ -94,13 +94,14 @@ function updateIconFont(web) {
     // Check if fontforge is installed, required to generate the font
     try {
       execSync('fontforge')
-    } catch (e) {
-      if (e.message.includes('not found')) {
+    } catch (error_) {
+      const error = error_ as any
+      if (error.message.includes('not found')) {
         throw new Error(
           'FontForge is required to generate the icon font. Run `yarn`, install FontForge CLI globally, and try again.'
         )
       }
-      throw e
+      throw error
     }
   }
 
@@ -554,8 +555,9 @@ function unusedAssetes() {
     const command = `ag --ignore "./common-adapters/icon.constants-gen.tsx" "${image}"`
     try {
       execSync(command, {encoding: 'utf8', env: process.env})
-    } catch (e) {
-      if (e.status === 1) {
+    } catch (error_) {
+      const error = error_ as any
+      if (error.status === 1) {
         console.log(images[image].join('\n'))
       }
     }
