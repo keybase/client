@@ -5,10 +5,8 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import {SelectedUser, GoButtonLabel} from '../constants/types/team-building'
-import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {e164ToDisplay} from '../util/phone-numbers'
 import {RolePickerProps} from '.'
-import flags from '../util/feature-flags'
 
 type Props = {
   allowPhoneEmail: boolean
@@ -107,37 +105,13 @@ const TeamBox = (props: Props) => {
         </Kb.ScrollView>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullHeight={true} style={{marginLeft: 'auto'}}>
-        {!!props.teamSoFar.length &&
-          (props.rolePickerProps && !flags.teamsRedesign ? (
-            <FloatingRolePicker
-              presetRole={props.rolePickerProps.selectedRole}
-              open={props.rolePickerProps.showRolePicker}
-              onConfirm={role => {
-                props.rolePickerProps?.onSelectRole(role)
-                props.rolePickerProps?.changeShowRolePicker(false)
-                props.onFinishTeamBuilding()
-              }}
-              onCancel={() => props.rolePickerProps && props.rolePickerProps.changeShowRolePicker(false)}
-              disabledRoles={props.rolePickerProps.disabledRoles}
-              footerComponent={sendNotificationFooter(
-                'Announce them in #general',
-                props.rolePickerProps.sendNotification,
-                props.rolePickerProps.changeSendNotification
-              )}
-            >
-              <GoButton
-                label={props.goButtonLabel ?? 'Add'}
-                onClick={() => props.rolePickerProps && props.rolePickerProps.changeShowRolePicker(true)}
-                waitingKey={props.waitingKey}
-              />
-            </FloatingRolePicker>
-          ) : (
-            <GoButton
-              label={props.goButtonLabel ?? 'Start'}
-              onClick={props.onFinishTeamBuilding}
-              waitingKey={props.waitingKey}
-            />
-          ))}
+        {!!props.teamSoFar.length && (
+          <GoButton
+            label={props.goButtonLabel ?? 'Start'}
+            onClick={props.onFinishTeamBuilding}
+            waitingKey={props.waitingKey}
+          />
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )

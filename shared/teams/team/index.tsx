@@ -6,15 +6,11 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
-import CustomTitle from './custom-title/container'
 import {memoize} from '../../util/memoize'
-import flags from '../../util/feature-flags'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import {SelectionPopup, useActivityLevels} from '../common'
-import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
 import TeamTabs from './tabs/container'
 import NewTeamHeader from './new-header'
-import TeamHeader from './header/container'
 import Settings from './settings-tab/container'
 import {
   useMembersSections,
@@ -106,15 +102,11 @@ const Team = (props: Props) => {
 
   // Sections
   const headerSection = {
-    data: Container.isMobile || flags.teamsRedesign ? ['header', 'tabs'] : ['tabs'],
+    data: ['header', 'tabs'],
     key: 'headerSection',
     renderItem: ({item}) =>
       item === 'header' ? (
-        flags.teamsRedesign ? (
-          <NewTeamHeader teamID={teamID} />
-        ) : (
-          <TeamHeader teamID={teamID} />
-        )
+        <NewTeamHeader teamID={teamID} />
       ) : (
         <TeamTabs teamID={teamID} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
       ),
@@ -130,7 +122,7 @@ const Team = (props: Props) => {
 
   switch (selectedTab) {
     case 'members':
-      if (yourOperations.manageMembers && flags.teamsRedesign) {
+      if (yourOperations.manageMembers) {
         sections.push(...invitesSections)
       }
       sections.push(...membersSections)
@@ -179,7 +171,7 @@ const Team = (props: Props) => {
     <>
       <Kb.SafeAreaViewTop />
       <Kb.Box style={styles.container}>
-        {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={teamID} offset={offset.current} />}
+        {Styles.isMobile && <MobileHeader teamID={teamID} offset={offset.current} />}
         <SectionList
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={Styles.isMobile}
@@ -201,32 +193,10 @@ const Team = (props: Props) => {
   return body
 }
 
-const newNavigationOptions = () => ({
+Team.navigationOptions = {
   headerHideBorder: true,
   underNotch: true,
-})
-
-Team.navigationOptions = flags.teamsRedesign
-  ? newNavigationOptions
-  : (props: Props) => ({
-      header: undefined,
-      headerExpandable: true,
-      headerHideBorder: true,
-      headerRight: Container.isMobile ? (
-        <CustomTitle teamID={Container.getRouteProps(props, 'teamID', '')} />
-      ) : (
-        undefined
-      ),
-      headerRightActions: Container.isMobile
-        ? undefined
-        : () => <HeaderRightActions teamID={Container.getRouteProps(props, 'teamID', '')} />,
-      headerTitle: Container.isMobile
-        ? ' '
-        : () => <HeaderTitle teamID={Container.getRouteProps(props, 'teamID', '')} />,
-      subHeader: Container.isMobile
-        ? undefined
-        : () => <SubHeader teamID={Container.getRouteProps(props, 'teamID', '')} />,
-    })
+}
 
 const startAnimationOffset = 40
 const AnimatedBox2 = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2) : undefined
@@ -273,7 +243,7 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
-    backgroundColor: flags.teamsRedesign ? Styles.globalColors.blueGrey : undefined,
+    backgroundColor: Styles.globalColors.blueGrey,
     flex: 1,
     height: '100%',
     position: 'relative',
@@ -293,7 +263,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
     },
-    isMobile: flags.teamsRedesign ? {marginTop: 40} : Styles.globalStyles.fillAbsolute,
+    isMobile: {marginTop: 40},
   }),
   listContentContainer: Styles.platformStyles({
     isMobile: {
@@ -301,9 +271,7 @@ const styles = Styles.styleSheetCreate(() => ({
       flexGrow: 1,
     },
   }),
-  smallHeader: {
-    ...Styles.padding(0, Styles.globalMargins.xlarge),
-  },
+  smallHeader: {...Styles.padding(0, Styles.globalMargins.xlarge)},
 }))
 
 export default Team
