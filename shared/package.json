@@ -133,7 +133,8 @@
         "unidecode": "0.1.8",
         "url-parse": "1.5.4",
         "use-memo-one": "1.1.2",
-        "whatwg-url": "7.0.0"
+        "whatwg-url": "7.0.0",
+        "util": "0.12.4"
     },
     "devDependencies": {
         "@babel/cli": "7.6.2",
