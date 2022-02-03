@@ -1,6 +1,6 @@
 import Banner from './index'
 import * as FsGen from '../../../actions/fs-gen'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 
@@ -23,6 +23,6 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onRetry: dispatchProps._onRetry(stateProps._name),
 })
 
-const ConnectedBanner = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'MainBanner')(Banner)
+const ConnectedBanner = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Banner)
 
 export default ConnectedBanner

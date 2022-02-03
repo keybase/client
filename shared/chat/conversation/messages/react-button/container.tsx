@@ -130,6 +130,6 @@ const mergeProps = (
   style: ownProps.style,
 })
 
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ReactButton', {
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps, {
   forwardRef: true,
 })(Wrapper)

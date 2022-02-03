@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Button from './button'
-import {namedConnect} from '../util/container'
+import * as Container from '../util/container'
 import * as WaitingConstants from '../constants/waiting'
 
 const Kb = {
@@ -63,7 +63,7 @@ class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
   }
 }
 
-const ConnectedWaitingButton = namedConnect(
+const ConnectedWaitingButton = Container.connect(
   (state, ownProps: OwnProps) => {
     const waitingKey = ownProps.waitingKey || ''
     return {
@@ -74,7 +74,6 @@ const ConnectedWaitingButton = namedConnect(
     }
   },
   () => ({}),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'WaitingButton'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(WaitingButton)
 export default ConnectedWaitingButton

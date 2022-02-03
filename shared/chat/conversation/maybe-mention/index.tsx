@@ -63,7 +63,7 @@ type OwnProps = {
   style?: StylesTextCrossPlatform
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => ({
     info: state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(ownProps.name, ownProps.channel)),
   }),
@@ -78,6 +78,5 @@ export default Container.namedConnect(
     name: ownProps.name,
     onResolve: dispatchProps.onResolve,
     style: ownProps.style,
-  }),
-  'MaybeMention'
+  })
 )(MaybeMention)

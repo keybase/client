@@ -16,11 +16,12 @@ const loadHasPrompted = () => {
   try {
     const data = fs.readFileSync(file, 'utf8')
     return JSON.parse(data).promptedForCLI
-  } catch (err) {
-    if (err && err.code === 'ENOENT') {
+  } catch (error_) {
+    const error = error_ as any
+    if (error && error.code === 'ENOENT') {
       console.log('[Installer] loadHasPrompted: No installer.json file')
     } else {
-      console.warn('[Installer] loadHasPrompted: Error loading state:', err)
+      console.warn('[Installer] loadHasPrompted: Error loading state:', error)
     }
     return false
   }

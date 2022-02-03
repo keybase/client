@@ -1,6 +1,6 @@
 import * as Types from '../../../constants/types/chat2'
 import * as WalletTypes from '../../../constants/types/wallets'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import PaymentStatus, {Props} from '.'
 
 type OwnProps = {
@@ -30,7 +30,7 @@ const reduceStatus = (status: string): Status => {
   }
 }
 
-export default namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const {error, paymentID, message, text} = ownProps
     const paymentInfo = paymentID ? state.chat2.paymentStatusMap.get(paymentID) || null : null
@@ -51,6 +51,5 @@ export default namedConnect(
     }
   },
   () => ({}),
-  (s, d, _: OwnProps) => ({...s, ...d}),
-  'PaymentStatus'
+  (s, d, _: OwnProps) => ({...s, ...d})
 )(PaymentStatus)

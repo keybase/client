@@ -9,10 +9,8 @@ import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import capitalize from 'lodash/capitalize'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
-import flags from '../../util/feature-flags'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
-import {InviteItem} from './invites/invite-item'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
   const dispatch = Container.useDispatch()
@@ -96,9 +94,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   useActivityLevels()
   const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
-
-  const mostRecentInviteLink = Constants.maybeGetMostRecentValidInviteLink(details.inviteLinks)
-  const validInviteLinkCount = Constants.countValidInviteLinks(details.inviteLinks)
 
   const callbacks = useHeaderCallbacks(teamID)
 
@@ -227,7 +222,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </>
   )
 
-  const additionalValidIndicator = validInviteLinkCount > 1 ? `(${validInviteLinkCount} active)` : ''
   const addInviteAndLinkBox =
     justFinishedAddWizard && !meta.showcasing ? (
       <FeatureTeamCard teamID={props.teamID} />
@@ -241,33 +235,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         alignSelf="flex-end"
       >
         <AddPeopleButton teamID={props.teamID} />
-        {flags.teamInvites && (
-          <Kb.Text type={mostRecentInviteLink ? 'BodyTiny' : 'BodySmall'}>
-            {mostRecentInviteLink ? 'or share a link:' : 'or'}
-          </Kb.Text>
-        )}
-        {flags.teamInvites &&
-          (mostRecentInviteLink ? (
-            <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
-              <InviteItem
-                inviteLink={mostRecentInviteLink}
-                teamID={props.teamID}
-                style={styles.inviteLinkContainer}
-                showDetails={false}
-                showExpireAction={false}
-              />
-              <Kb.Text type="BodyTiny" onClick={callbacks.onManageInvites} className="hover-underline">
-                Manage invite links {additionalValidIndicator}
-              </Kb.Text>
-            </Kb.Box2>
-          ) : (
-            <Kb.Button
-              label="Generate invite link"
-              onClick={callbacks.onGenerateLink}
-              mode="Secondary"
-              fullWidth={true}
-            />
-          ))}
       </Kb.Box2>
     )
 
@@ -423,53 +390,24 @@ const styles = Styles.styleSheetCreate(
           width: 260,
         },
       }),
-      addPeopleButton: {
-        flexGrow: 0,
-      },
+      addPeopleButton: {flexGrow: 0},
       addSelfLink: {
         marginLeft: Styles.globalMargins.xtiny,
         textDecorationLine: 'underline',
       },
-      alignSelfFlexStart: {
-        alignSelf: 'flex-start',
-      },
-      backButton: {
-        backgroundColor: Styles.globalColors.white,
-      },
-      backgroundWhite: {
-        backgroundColor: Styles.globalColors.white,
-      },
-      banner: {
-        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall, 0),
-      },
+      alignSelfFlexStart: {alignSelf: 'flex-start'},
+      backButton: {backgroundColor: Styles.globalColors.white},
+      backgroundWhite: {backgroundColor: Styles.globalColors.white},
       clickable: Styles.platformStyles({
-        isElectron: {
-          ...Styles.desktopStyles.windowDraggingClickable,
-        },
+        isElectron: {...Styles.desktopStyles.windowDraggingClickable},
       }),
-      flexShrink: {
-        flexShrink: 1,
-      },
+      flexShrink: {flexShrink: 1},
       flexShrinkGrow: {
         flexGrow: 1,
         flexShrink: 1,
       },
-      greenText: {
-        color: Styles.globalColors.greenDark,
-      },
-      header: {
-        flexShrink: 1,
-      },
+      header: {flexShrink: 1},
       illustration: {borderRadius: 4, overflow: 'hidden', width: '100%'},
-      inviteLinkContainer: Styles.platformStyles({
-        common: {
-          borderColor: 'transparent',
-          borderRadius: 0,
-          borderStyle: undefined,
-          borderWidth: 0,
-          padding: 0,
-        },
-      }),
       marginBottomRightTiny: {
         marginBottom: Styles.globalMargins.tiny,
         marginRight: Styles.globalMargins.tiny,

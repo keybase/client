@@ -3,7 +3,7 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import Modal from '../modal'
 
 type OwnProps = {}
@@ -36,7 +36,7 @@ export class Finished extends React.Component<Props, State> {
             `keybase pgp help` from your terminal. If you have GPG installed, it has also been written to
             GPG’s keychain.
           </Kb.Text>
-          <textarea style={styles.pgpKeyString} readOnly={true} value={this.props.pgpKeyString} />
+          <textarea style={styles.pgpKeyString as any} readOnly={true} value={this.props.pgpKeyString} />
           {this.props.promptShouldStoreKeyOnServer && (
             <Kb.Box2 direction="vertical">
               <Kb.Checkbox
@@ -87,7 +87,7 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default namedConnect(
+export default Container.connect(
   state => ({
     pgpKeyString: state.profile.pgpPublicKey || 'Error getting public key...',
     promptShouldStoreKeyOnServer: state.profile.promptShouldStoreKeyOnServer,
@@ -98,6 +98,5 @@ export default namedConnect(
       dispatch(RouteTreeGen.createClearModals())
     },
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'Finished'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(Finished)

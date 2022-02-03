@@ -162,12 +162,12 @@ const dismissAnnouncement = async (action: PeopleGen.DismissAnnouncementPayload)
 const markViewed = async () => {
   try {
     await RPCTypes.homeHomeMarkViewedRpcPromise()
-  } catch (e) {
-    const err: RPCError = e
-    if (Container.isNetworkErr(err.code)) {
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (Container.isNetworkErr(error.code)) {
       logger.warn('Network error calling homeMarkViewed')
     } else {
-      throw err
+      throw error
     }
   }
 }
@@ -227,7 +227,7 @@ function* peopleTeamBuildingSaga() {
   yield* Saga.chainAction2(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
 }
 
-const peopleSaga = function*() {
+const peopleSaga = function* () {
   yield* Saga.chainAction2(PeopleGen.getPeopleData, getPeopleData)
   yield* Saga.chainAction2(PeopleGen.markViewed, markViewed)
   yield* Saga.chainAction(PeopleGen.skipTodo, skipTodo)

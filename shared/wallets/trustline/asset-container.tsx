@@ -14,7 +14,7 @@ type OwnProps = {
   firstItem: boolean
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => ({
     acceptedAssets:
       state.wallets.trustline.acceptedAssets.get(ownProps.accountID) ?? Constants.emptyAccountAcceptedAssets,
@@ -65,6 +65,5 @@ export default Container.namedConnect(
     waitingKeyAdd: Constants.addTrustlineWaitingKey(o.accountID, o.assetID),
     waitingKeyDelete: Constants.deleteTrustlineWaitingKey(o.accountID, o.assetID),
     waitingRefresh: s.waitingRefresh,
-  }),
-  'Asset'
+  })
 )(Asset)

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Types from '../../constants/types/chat2'
 import * as Constants from '../../constants/chat2'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import InboxSearch from '.'
@@ -13,7 +13,7 @@ type OwnProps = {
 
 const emptySearch = Constants.makeInboxSearchInfo()
 
-export default namedConnect(
+export default Container.connect(
   state => ({_inboxSearch: state.chat2.inboxSearch ?? emptySearch}),
   dispatch => ({
     onCancel: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
@@ -74,6 +74,5 @@ export default namedConnect(
       })),
       textStatus,
     }
-  },
-  'InboxSearch'
+  }
 )(InboxSearch)

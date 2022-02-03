@@ -7,7 +7,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 
 type OwnProps = {}
 
-export default Container.namedConnect(
+export default Container.connect(
   (state: Container.TypedState) => ({
     loggedOut: !state.config.loggedIn,
     sendError: state.settings.feedback.error,
@@ -19,6 +19,5 @@ export default Container.namedConnect(
     onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) =>
       dispatch(SettingsGen.createSendFeedback({feedback, sendLogs, sendMaxBytes})),
   }),
-  (s, d, o: OwnProps) => ({...s, ...d, ...o}),
-  'ConnectedSignupFeedback'
+  (s, d, o: OwnProps) => ({...s, ...d, ...o})
 )(SignupFeedback)

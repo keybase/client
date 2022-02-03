@@ -7,9 +7,8 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, {conversationIDKey}: OwnProps) => ({names: Constants.getTyping(state, conversationIDKey)}),
   () => ({}),
-  (stateProps, _, __: OwnProps) => ({...stateProps}),
-  'Typing'
+  (stateProps, _, __: OwnProps) => ({...stateProps})
 )(Typing)

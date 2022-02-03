@@ -8,7 +8,7 @@ import SetDefaultAccountPopup from '.'
 
 type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
 
@@ -34,6 +34,5 @@ export default Container.namedConnect(
     onClose: () => dispatchProps._onClose(),
     username: stateProps.username,
     waiting: stateProps.waiting,
-  }),
-  'SetDefaultAccountPopup'
+  })
 )(SetDefaultAccountPopup)

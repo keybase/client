@@ -40,7 +40,7 @@ export class WatchForGoToVerify extends React.Component<WatcherProps> {
   }
 }
 
-const ConnectedEnterPhoneNumber = Container.namedConnect(
+const ConnectedEnterPhoneNumber = Container.connect(
   state => ({
     defaultCountry: state.settings.phoneNumbers.defaultCountry,
     error: state.settings.phoneNumbers.error,
@@ -62,8 +62,7 @@ const ConnectedEnterPhoneNumber = Container.namedConnect(
       )
     },
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'ConnectedEnterPhoneNumber'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(WatchForGoToVerify)
 
 export default ConnectedEnterPhoneNumber

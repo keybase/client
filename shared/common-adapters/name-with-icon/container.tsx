@@ -11,7 +11,7 @@ export type ConnectedNameWithIconProps = {
 
 type OwnProps = ConnectedNameWithIconProps
 
-const ConnectedNameWithIcon = Container.namedConnect(
+const ConnectedNameWithIcon = Container.connect(
   state => ({_teamNameToID: state.teams.teamNameToID}),
   dispatch => ({
     onOpenTeamProfile: (teamID: TeamID) => {
@@ -62,8 +62,7 @@ const ConnectedNameWithIcon = Container.namedConnect(
       teamname,
       username,
     }
-  },
-  'NameWithIcon'
+  }
 )(NameWithIcon)
 
 export default ConnectedNameWithIcon

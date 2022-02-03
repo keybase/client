@@ -75,13 +75,14 @@ function* login(_: Container.TypedState, action: LoginGen.LoginPayload) {
     })
     logger.info('login call succeeded')
     yield Saga.put(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
-  } catch (e) {
-    if (e.code === RPCTypes.StatusCode.scalreadyloggedin) {
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (error.code === RPCTypes.StatusCode.scalreadyloggedin) {
       yield Saga.put(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
-    } else if (e.desc !== cancelDesc) {
+    } else if (error.desc !== cancelDesc) {
       // If we're canceling then ignore the error
-      e.desc = niceError(e)
-      yield Saga.put(LoginGen.createLoginError({error: e}))
+      error.desc = niceError(error)
+      yield Saga.put(LoginGen.createLoginError({error: error}))
     }
   }
 }

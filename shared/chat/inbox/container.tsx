@@ -118,7 +118,7 @@ InboxWrapper.navigationOptions = {
   ),
 }
 
-const Connected = Container.namedConnect(
+const Connected = Container.connect(
   (state, ownProps: OwnProps) => {
     const {inboxLayout, inboxHasLoaded} = state.chat2
     let {inboxNumSmallRows} = state.chat2
@@ -226,8 +226,7 @@ const Connected = Container.namedConnect(
       unreadIndices,
       unreadTotal,
     }
-  },
-  'Inbox'
+  }
 )(InboxWrapper)
 
 export default Connected

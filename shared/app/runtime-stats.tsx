@@ -4,8 +4,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {isIPhoneX} from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
-// @ts-ignore strict
-import lagRadar from 'lag-radar'
+// import lagRadar from 'lag-radar'
 
 type Props = {
   stats: RPCTypes.RuntimeStats
@@ -51,27 +50,27 @@ const dbTypeString = (s: RPCTypes.DbType) => {
   }
 }
 
-let destroyRadar: (() => void) | undefined
-let radarNode: HTMLDivElement | undefined
-const radarSize = 30
+// let destroyRadar: (() => void) | undefined
+// let radarNode: HTMLDivElement | undefined
+// const radarSize = 30
 
-const makeRadar = (show: boolean) => {
-  if (destroyRadar) {
-    destroyRadar()
-    destroyRadar = undefined
-  }
-  if (!radarNode || !show) {
-    return
-  }
+// const makeRadar = (show: boolean) => {
+//   if (destroyRadar) {
+//     destroyRadar()
+//     destroyRadar = undefined
+//   }
+//   if (!radarNode || !show) {
+//     return
+//   }
 
-  destroyRadar = lagRadar({
-    frames: 5,
-    inset: 1,
-    parent: radarNode,
-    size: radarSize,
-    speed: 0.0017 * 0.7,
-  })
-}
+//   destroyRadar = lagRadar({
+//     frames: 5,
+//     inset: 1,
+//     parent: radarNode,
+//     size: radarSize,
+//     speed: 0.0017 * 0.7,
+//   })
+// }
 
 // simple bucketing of incoming log lines, we have a queue of incoming items, we bucket them
 // and choose a max to show. We use refs a lot since we only want to figure stuff out based on an interval
@@ -203,19 +202,19 @@ const LogStats = (props: {num?: number}) => {
 }
 
 const RuntimeStatsDesktop = ({stats}: Props) => {
-  const [showRadar, setShowRadar] = React.useState(false)
-  const refContainer = React.useCallback(
-    node => {
-      radarNode = node
-      makeRadar(showRadar)
-    },
-    [showRadar]
-  )
-  const toggleRadar = () => {
-    const show = !showRadar
-    setShowRadar(show)
-    makeRadar(show)
-  }
+  // const [showRadar, setShowRadar] = React.useState(false)
+  // const refContainer = React.useCallback(
+  //   node => {
+  //     radarNode = node
+  //     makeRadar(showRadar)
+  //   },
+  //   [showRadar]
+  // )
+  // const toggleRadar = () => {
+  //   const show = !showRadar
+  //   setShowRadar(show)
+  //   makeRadar(show)
+  // }
 
   const [moreLogs, setMoreLogs] = React.useState(false)
 
@@ -295,9 +294,9 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
                   </Kb.Box2>
                 )
               })}
-            {!moreLogs && (
+            {/*!moreLogs && (
               <Kb.Box style={styles.radarContainer} forwardedRef={refContainer} onClick={toggleRadar} />
-            )}
+            )*/}
             <LogStats num={moreLogs ? 25 : 5} />
           </Kb.Box2>
         </Kb.ClickableBox>
@@ -444,17 +443,17 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 20,
     width: 20,
   },
-  radarContainer: Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Styles.globalColors.white_20,
-      borderRadius: '50%',
-      height: radarSize,
-      position: 'absolute',
-      right: Styles.globalMargins.tiny,
-      top: Styles.globalMargins.tiny,
-      width: radarSize,
-    },
-  }),
+  // radarContainer: Styles.platformStyles({
+  //   isElectron: {
+  //     backgroundColor: Styles.globalColors.white_20,
+  //     borderRadius: '50%',
+  //     height: radarSize,
+  //     position: 'absolute',
+  //     right: Styles.globalMargins.tiny,
+  //     top: Styles.globalMargins.tiny,
+  //     width: radarSize,
+  //   },
+  // }),
   stat: Styles.platformStyles({
     common: {color: Styles.globalColors.whiteOrGreenDark},
     isElectron: {wordBreak: 'break-all'},

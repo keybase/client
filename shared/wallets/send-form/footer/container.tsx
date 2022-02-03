@@ -54,17 +54,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   },
 })
 
-export default Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, _: OwnProps) => ({
-    calculating: s.calculating,
-    disabled: s.disabled,
-    onClickRequest: s.isRequest ? d.onClickRequest : undefined,
-    onClickSend: s.isRequest ? undefined : d.onClickSend,
-    thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
-    waitingKey: s.waitingKey,
-    worthDescription: s.worthDescription,
-  }),
-  'Footer'
-)(Container.safeSubmit(['onClickRequest'], ['calculating'])(Footer))
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, _: OwnProps) => ({
+  calculating: s.calculating,
+  disabled: s.disabled,
+  onClickRequest: s.isRequest ? d.onClickRequest : undefined,
+  onClickSend: s.isRequest ? undefined : d.onClickSend,
+  thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
+  waitingKey: s.waitingKey,
+  worthDescription: s.worthDescription,
+}))(Container.safeSubmit(['onClickRequest'], ['calculating'])(Footer))

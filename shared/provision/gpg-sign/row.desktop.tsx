@@ -21,7 +21,7 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
       onClick={onClick}
     >
       <div style={styles.iconContainer}>
-        <div className="register-background" style={styles.iconBackground} />
+        <div className="register-background" style={styles.iconBackground as any} />
         <Kb.Icon
           className="register-icon"
           type={icon}
