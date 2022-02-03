@@ -4,8 +4,6 @@ import {PeoplePageList} from './index.shared'
 import {Props} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
 import ProfileSearch from '../profile/search/bar'
-import InviteFriends from './invite-friends/tab-bar-button'
-import flags from '../util/feature-flags'
 export const Header = (props: Props) => (
   <Kb.HeaderHocHeader
     borderless={true}
@@ -30,7 +28,6 @@ const People = (props: Props) => (
     >
       <PeoplePageList {...props} />
     </Kb.ScrollView>
-    {flags.inviteFriends && <InviteFriends />}
   </>
 )
 

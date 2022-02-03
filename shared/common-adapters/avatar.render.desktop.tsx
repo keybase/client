@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import {Props, AvatarSize} from './avatar.render'
 import {AVATAR_SIZE} from '../common-adapters/avatar'
-import flags from '../util/feature-flags'
 
 const avatarSizeToPoopIconType = (s: AvatarSize): IconType | null =>
   s === 128
@@ -92,12 +91,7 @@ const Avatar = (props: Props) => {
         />
       )}
       {props.followIconType && <Icon type={props.followIconType} style={props.followIconStyle} />}
-      {props.editable && (
-        <Icon
-          type="iconfont-edit"
-          style={props.isTeam ? (flags.teamsRedesign ? styles.editTeam : styles.editTeamOld) : styles.edit}
-        />
-      )}
+      {props.editable && <Icon type="iconfont-edit" style={props.isTeam ? styles.editTeam : styles.edit} />}
       {props.children}
     </div>
   )

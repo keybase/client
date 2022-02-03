@@ -9,12 +9,11 @@ import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Constants from '../../../constants/chat2'
 import {Section as _Section} from '../../../common-adapters/section-list'
-import flags from '../../../util/feature-flags'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import MemberRow from './member-row/container'
 import {BotRow, AddBotRow} from './bot-row'
-import {RequestRow, InviteRow, InvitesEmptyRow} from './invite-row'
-import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
+import {RequestRow, InviteRow} from './invite-row'
+import {SubteamAddRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import {EmojiItemRow, EmojiAddRow, EmojiHeader} from './emoji-row'
 import LoadingRow from './loading'
@@ -50,12 +49,12 @@ export const useMembersSections = (
       renderItem: ({index, item}) => (
         <MemberRow teamID={teamID} username={item.username} firstItem={index == 0} />
       ),
-      title: flags.teamsRedesign ? `Already in team (${meta.memberCount})` : '',
+      title: `Already in team (${meta.memberCount})`,
     },
   ]
 
   // When you're the only one in the team, still show the no-members row
-  if (flags.teamsRedesign && (meta.memberCount === 0 || (meta.memberCount === 1 && meta.role !== 'none'))) {
+  if (meta.memberCount === 0 || (meta.memberCount === 1 && meta.role !== 'none')) {
     sections.push(makeSingleRow('members-none', () => <EmptyRow teamID={teamID} type="members" />))
   }
   return sections
@@ -87,16 +86,10 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
   const dispatch = Container.useDispatch()
   const collapsed = invitesCollapsed.has(teamID)
   const onToggleCollapsed = () => dispatch(TeamsGen.createToggleInvitesCollapsed({teamID}))
-
   const sections: Array<Section> = []
+  const resetMembers = [...details.members?.values()].filter(m => m.status === 'reset')
 
-  const resetMembers = flags.teamsRedesign
-    ? [...details.members?.values()].filter(m => m.status === 'reset')
-    : []
-
-  let empty = true
   if (details.requests?.size || resetMembers.length) {
-    empty = false
     const requestsSection: _Section<
       Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>,
       SectionExtras
@@ -123,7 +116,6 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
     sections.push(requestsSection)
   }
   if (details.invites?.size) {
-    empty = false
     sections.push({
       collapsed,
       data: collapsed ? [] : [...details.invites].sort(sortInvites),
@@ -132,9 +124,6 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
       renderItem: ({index, item}) => <InviteRow teamID={teamID} id={item.id} firstItem={index == 0} />,
       title: `Invitations (${details.invites.size})`,
     })
-  }
-  if (empty && !flags.teamsRedesign) {
-    sections.push(makeSingleRow('invites-empty', () => <InvitesEmptyRow />))
   }
   return sections
 }
@@ -181,16 +170,10 @@ export const useSubteamsSections = (
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
   const subteamsFiltered = Container.useSelector(state => state.teams.subteamsFiltered)
-  const subteams = (flags.teamsRedesign
-    ? [...(subteamsFiltered ?? details.subteams)]
-    : [...details.subteams]
-  ).sort()
+  const subteams = [...(subteamsFiltered ?? details.subteams)].sort()
   const sections: Array<Section> = []
 
-  if (!flags.teamsRedesign) {
-    sections.push(makeSingleRow('subteam-intro', () => <SubteamIntroRow teamID={teamID} />))
-  }
-  if (yourOperations.manageSubteams && (!flags.teamsRedesign || details.subteams.size)) {
+  if (yourOperations.manageSubteams && details.subteams.size) {
     sections.push(makeSingleRow('subteam-add', () => <SubteamAddRow teamID={teamID} />))
   }
   sections.push({
@@ -199,12 +182,10 @@ export const useSubteamsSections = (
     renderItem: ({item, index}) => <SubteamTeamRow teamID={item} firstItem={index === 0} />,
   })
 
-  if (flags.teamsRedesign && details.subteams.size) {
+  if (details.subteams.size) {
     sections.push(makeSingleRow('subteam-info', () => <SubteamInfoRow />))
-  } else if (flags.teamsRedesign) {
+  } else {
     sections.push(makeSingleRow('subteam-none', () => <EmptyRow teamID={teamID} type="subteams" />))
-  } else if (!details.subteams.size) {
-    sections.push(makeSingleRow('subteam-none', () => <SubteamNoneRow />))
   }
   return sections
 }

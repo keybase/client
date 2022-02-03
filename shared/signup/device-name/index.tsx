@@ -5,7 +5,6 @@ import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner, InfoIcon} from '../common'
 import debounce from 'lodash/debounce'
-import flags from '../../util/feature-flags'
 
 type Props = {
   error: string
@@ -38,13 +37,7 @@ const EnterDevicename = (props: Props) => {
       banners={errorBanner(props.error)}
       buttons={[{disabled, label: 'Continue', onClick: onContinue, type: 'Success', waiting: props.waiting}]}
       onBack={props.onBack}
-      title={
-        Styles.isMobile
-          ? flags.tabletSupport
-            ? 'Name this device'
-            : 'Name this phone'
-          : 'Name this computer'
-      }
+      title={Styles.isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2
         alignItems="center"

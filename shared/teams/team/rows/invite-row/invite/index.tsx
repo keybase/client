@@ -1,9 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
 import {typeToLabel} from '../../../../../constants/teams'
 import {TeamRoleType} from '../../../../../constants/types/teams'
-import flags from '../../../../../util/feature-flags'
 
 export type Props = {
   isKeybaseUser?: boolean
@@ -14,37 +12,7 @@ export type Props = {
   firstItem: boolean
 }
 
-const TeamInviteRowOld = (props: Props) => {
-  const {onCancelInvite, role, label, isKeybaseUser} = props
-  return (
-    <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.container}>
-      <Kb.Avatar username={isKeybaseUser ? label : ''} size={Styles.isMobile ? 48 : 32} />
-      <Kb.Box2 alignItems="flex-start" direction="vertical" style={styles.usernameRole}>
-        {isKeybaseUser ? (
-          <Kb.ConnectedUsernames
-            lineClamp={1}
-            type="BodyBold"
-            colorFollowing={true}
-            inline={true}
-            usernames={label}
-          />
-        ) : (
-          <Kb.Text type="BodyBold">{label}</Kb.Text>
-        )}
-        <Kb.Text type="BodySmall">{role && typeToLabel[role]}</Kb.Text>
-      </Kb.Box2>
-      <Kb.WaitingButton
-        small={true}
-        label={Styles.isMobile ? 'Cancel' : 'Cancel invite'}
-        onClick={onCancelInvite}
-        type="Dim"
-        waitingKey={null}
-      />
-    </Kb.Box2>
-  )
-}
-
-const TeamInviteRowNew = (props: Props) => {
+export const TeamInviteRow = (props: Props) => {
   const {onCancelInvite, role, label, firstItem, subLabel, isKeybaseUser} = props
   const text2 = subLabel ? (role ? `${subLabel} · ${typeToLabel[role]}` : subLabel) : typeToLabel[role]
   return (
@@ -92,15 +60,3 @@ const _TeamInviteMenu = (props: Kb.PropsWithOverlay<{onCancelInvite?: () => void
   )
 }
 const TeamInviteMenu = Kb.OverlayParentHOC(_TeamInviteMenu)
-
-export const TeamInviteRow = flags.teamsRedesign ? TeamInviteRowNew : TeamInviteRowOld
-
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-  },
-  usernameRole: {
-    flex: 1,
-    marginLeft: Styles.globalMargins.small,
-  },
-}))
