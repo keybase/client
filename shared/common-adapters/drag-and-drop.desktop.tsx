@@ -35,8 +35,9 @@ class DragAndDrop extends React.PureComponent<Props, State> {
               return
             }
             // delegate to handler for any errors
-          } catch (e) {
-            logger.warn(`Error stating dropped attachment: ${e.code}`)
+          } catch (error_) {
+            const error = error_ as any
+            logger.warn(`Error stating dropped attachment: ${error.code}`)
           }
         }
       }

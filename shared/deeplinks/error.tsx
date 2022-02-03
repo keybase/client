@@ -35,6 +35,8 @@ const KeybaseLinkError = (props: OwnProps) => {
         return s.wallets.sep7ConfirmError
       case 'sep6':
         return s.wallets.sep6Message
+      default:
+        return 'unknown'
     }
   })
   const sep6Error = Container.useSelector(s => s.wallets.sep6Error)

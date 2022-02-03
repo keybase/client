@@ -60,7 +60,7 @@ export function usePrevious<T>(value: T) {
 
 /** like useSelector but for remote stores **/
 export function useRemoteStore<S>(): S {
-  return (useSelector(s => s) as unknown) as S
+  return useSelector(s => s) as unknown as S
 }
 /**
       like useEffect but doesn't call on initial mount, only when deps change
@@ -88,7 +88,7 @@ export const assertNever = (_: never) => undefined
 
 export const timeoutPromise = (timeMs: number) =>
   new Promise(resolve => {
-    setTimeout(() => resolve(), timeMs)
+    setTimeout(() => resolve(undefined), timeMs)
   })
 
 const connect = typedConnect

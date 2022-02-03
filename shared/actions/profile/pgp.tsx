@@ -4,6 +4,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as RouteTreeGen from '../route-tree-gen'
 import {peopleTab} from '../../constants/tabs'
+import {RPCError} from 'util/errors'
 
 function* generatePgp(state: Container.TypedState) {
   let canceled = false
@@ -22,7 +23,7 @@ function* generatePgp(state: Container.TypedState) {
     })
   )
   // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
-  const cancelTask = yield Saga._fork(function*() {
+  const cancelTask = yield Saga._fork(function* () {
     yield Saga.take(ProfileGen.cancelPgpGen)
     canceled = true
   })
@@ -39,7 +40,7 @@ function* generatePgp(state: Container.TypedState) {
           }
         },
         'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
-          return Saga.callUntyped(function*() {
+          return Saga.callUntyped(function* () {
             yield Saga.put(
               RouteTreeGen.createNavigateAppend({
                 path: [
@@ -65,10 +66,11 @@ function* generatePgp(state: Container.TypedState) {
       incomingCallMap: {'keybase.1.pgpUi.finished': () => {}},
       params: {createUids: {ids, useDefault: false}},
     })
-  } catch (e) {
+  } catch (error_) {
+    const error = error_ as RPCError
     // did we cancel?
-    if (e.code !== RPCTypes.StatusCode.scinputcanceled) {
-      throw e
+    if (error.code !== RPCTypes.StatusCode.scinputcanceled) {
+      throw error
     }
   }
   cancelTask.cancel()

@@ -1,28 +1,29 @@
 {
-  "bracketSpacing": false,
-  "printWidth": 110,
-  "semi": false,
-  "singleQuote": true,
-  "tabWidth": 2,
-  "trailingComma": "es5",
-  "overrides": [
-    {
-      "files": "*-gen.js",
-      "options": {
-        "printWidth": 500
-      }
-    },
-    {
-      "files": "rpc-*gen*",
-      "options": {
-        "printWidth": 99999
-      }
-    },
-    {
-      "files": "*.json",
-      "options": {
-        "printWidth": 100
-      }
-    }
-  ]
+    "arrowParens": "avoid",
+    "bracketSpacing": false,
+    "printWidth": 110,
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "overrides": [
+        {
+            "files": "*-gen.js",
+            "options": {
+                "printWidth": 500
+            }
+        },
+        {
+            "files": "rpc-*gen*",
+            "options": {
+                "printWidth": 99999
+            }
+        },
+        {
+            "files": "*.json",
+            "options": {
+                "printWidth": 100
+            }
+        }
+    ]
 }
