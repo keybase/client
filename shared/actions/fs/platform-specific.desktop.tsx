@@ -123,13 +123,7 @@ const escapeBackslash = isWindows
   : (pathElem: string): string => pathElem
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
-  path.resolve(
-    mountLocation,
-    Types.getPathElements(kbfsPath)
-      .slice(1)
-      .map(escapeBackslash)
-      .join(sep)
-  )
+  path.resolve(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(sep))
 
 const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathInSystemFileManagerPayload) =>
   state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled && state.fs.sfmi.directMountDir
@@ -162,37 +156,36 @@ const fuseStatusToUninstallExecPath = isWindows
     }
   : (_: RPCTypes.FuseStatus | null) => null
 
-const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
-  status: RPCTypes.FuseStatus | null
-) => {
-  if (!status) {
-    return FsGen.createSetDriverStatus({
-      driverStatus: Constants.defaultDriverStatus,
-    })
+const fuseStatusToActions =
+  (previousStatusType: Types.DriverStatusType) => (status: RPCTypes.FuseStatus | null) => {
+    if (!status) {
+      return FsGen.createSetDriverStatus({
+        driverStatus: Constants.defaultDriverStatus,
+      })
+    }
+    return status.kextStarted
+      ? [
+          FsGen.createSetDriverStatus({
+            driverStatus: {
+              ...Constants.emptyDriverStatusEnabled,
+              dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
+              dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
+            },
+          }),
+          ...(previousStatusType === Types.DriverStatusType.Disabled
+            ? [
+                FsGen.createOpenPathInSystemFileManager({
+                  path: Types.stringToPath('/keybase'),
+                }),
+              ]
+            : []), // open Finder/Explorer/etc for newly enabled
+        ]
+      : [
+          FsGen.createSetDriverStatus({
+            driverStatus: Constants.emptyDriverStatusDisabled,
+          }),
+        ]
   }
-  return status.kextStarted
-    ? [
-        FsGen.createSetDriverStatus({
-          driverStatus: {
-            ...Constants.emptyDriverStatusEnabled,
-            dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
-            dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
-          },
-        }),
-        ...(previousStatusType === Types.DriverStatusType.Disabled
-          ? [
-              FsGen.createOpenPathInSystemFileManager({
-                path: Types.stringToPath('/keybase'),
-              }),
-            ]
-          : []), // open Finder/Explorer/etc for newly enabled
-      ]
-    : [
-        FsGen.createSetDriverStatus({
-          driverStatus: Constants.emptyDriverStatusDisabled,
-        }),
-      ]
-}
 
 const windowsCheckMountFromOtherDokanInstall = (status: RPCTypes.FuseStatus) =>
   RPCTypes.kbfsMountGetCurrentMountDirRpcPromise().then(mountPoint =>
@@ -299,12 +292,12 @@ const uninstallDokan = (state: TypedState) => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) return
   const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath || ''
   logger.info('Invoking dokan uninstaller', execPath)
-  return new Promise(resolve => {
+  return new Promise<void>(resolve => {
     try {
-      exec(execPath, {windowsHide: true}, resolve)
+      exec(execPath, {windowsHide: true}, () => resolve())
     } catch (e) {
       logger.error('uninstallDokan caught', e)
-      resolve()
+      resolve(undefined)
     }
   }).then(() => FsGen.createRefreshDriverStatus())
 }
@@ -345,7 +338,7 @@ const installCachedDokan = () =>
         stdio: 'ignore',
       })
 
-      resolve()
+      resolve(undefined)
     })
   })
     .then(() => FsGen.createRefreshDriverStatus())

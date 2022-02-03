@@ -161,7 +161,7 @@ function main() {
       const ns = path.basename(file, '.json')
       created.push(ns)
       console.log(`Generating ${ns}`)
-      const desc = json5.parse(fs.readFileSync(path.join(root, file)))
+      const desc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
       const outPath = path.join(root, '..', ns + '-gen.tsx')
       const generated = prettier.format(compile(ns, desc), {
         ...prettier.resolveConfig.sync(outPath),

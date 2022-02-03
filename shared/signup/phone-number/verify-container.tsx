@@ -38,7 +38,7 @@ export class WatchForSuccess extends React.Component<WatcherProps> {
   }
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   state => ({
     error: state.settings.phoneNumbers.verificationState === 'error' ? state.settings.phoneNumbers.error : '',
     phoneNumber: state.settings.phoneNumbers.pendingVerification,
@@ -70,6 +70,5 @@ export default Container.namedConnect(
     resendWaiting: stateProps.resendWaiting,
     verificationStatus: stateProps.verificationStatus,
     verifyWaiting: stateProps.verifyWaiting,
-  }),
-  'ConnectedVerifyPhoneNumber'
+  })
 )(WatchForSuccess)

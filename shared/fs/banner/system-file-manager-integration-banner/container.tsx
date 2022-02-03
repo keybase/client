@@ -1,6 +1,6 @@
 import Banner from './index'
 import * as FsGen from '../../../actions/fs-gen'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 
 type OwnProps = {
   alwaysShow?: boolean | null
@@ -17,11 +17,10 @@ const mapDispatchToProps = dispatch => ({
   onEnable: () => dispatch(FsGen.createDriverEnable({})),
 })
 
-const ConnectedBanner = namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'SystemFileManagerIntegrationBanner'
-)(Banner)
+const ConnectedBanner = Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({
+  ...o,
+  ...s,
+  ...d,
+}))(Banner)
 
 export default ConnectedBanner

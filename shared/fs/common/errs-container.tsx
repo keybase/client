@@ -1,8 +1,8 @@
 import * as FsGen from '../../actions/fs-gen'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import Errs from './errs'
 
-export default namedConnect(
+export default Container.connect(
   state => ({
     _edits: state.fs.edits,
     _errors: state.fs.errors,
@@ -15,6 +15,5 @@ export default namedConnect(
       dismiss: () => dispatchProps._dismiss(i),
       msg: err,
     })),
-  }),
-  'ConnectedErrs'
+  })
 )(Errs)

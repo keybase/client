@@ -1,7 +1,7 @@
 import * as Constants from '../constants/chat2'
 import SelectableBigTeamChannel from './selectable-big-team-channel'
 import * as Types from '../constants/types/chat2'
-import {namedConnect} from '../util/container'
+import * as Container from '../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -12,7 +12,7 @@ type OwnProps = {
   onSelectConversation: () => void
 }
 
-export default namedConnect(
+export default Container.connect(
   (state, {conversationIDKey}: OwnProps) => {
     const showBold = Constants.getHasUnread(state, conversationIDKey)
     const showBadge = Constants.getHasBadge(state, conversationIDKey)
@@ -44,6 +44,5 @@ export default namedConnect(
       snippetDecoration: _meta.snippetDecoration,
       teamname,
     }
-  },
-  'SelectableBigTeamChannel'
+  }
 )(SelectableBigTeamChannel)

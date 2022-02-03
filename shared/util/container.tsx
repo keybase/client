@@ -6,8 +6,9 @@ import {TypedState as _TypedState} from '../constants/reducer'
 import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
-import {useSelector} from 'react-redux'
 import flowRight from 'lodash/flowRight'
+import {useSelector as RRuseSelector, useDispatch as RRuseDispatch} from 'react-redux'
+import typedConnect from './typed-connect'
 
 // to keep fallback objects static for react
 export const emptyArray: Array<any> = []
@@ -59,7 +60,7 @@ export function usePrevious<T>(value: T) {
 
 /** like useSelector but for remote stores **/
 export function useRemoteStore<S>(): S {
-  return (useSelector(s => s) as unknown) as S
+  return useSelector(s => s) as unknown as S
 }
 /**
       like useEffect but doesn't call on initial mount, only when deps change
@@ -87,10 +88,11 @@ export const assertNever = (_: never) => undefined
 
 export const timeoutPromise = (timeMs: number) =>
   new Promise(resolve => {
-    setTimeout(() => resolve(), timeMs)
+    setTimeout(() => resolve(undefined), timeMs)
   })
 
-export {default as connect, namedConnect} from './typed-connect'
+const connect = typedConnect
+export {connect}
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
@@ -98,7 +100,6 @@ export {useSafeNavigation} from './safe-navigation'
 export type RouteProps<P = {}> = _RouteProps<P>
 export type TypedActions = _TypedActions
 export type TypedState = _TypedState
-export {useSelector, useDispatch} from 'react-redux'
 export const compose = flowRight
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
 export {produce, castDraft, castImmutable} from 'immer'
@@ -110,3 +111,42 @@ export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
 export {default as useFocusBlur} from './use-focus-blur'
 export {default as useWatchActions} from './use-watch-actions'
+export type RootState = _TypedState
+export const useDispatch = RRuseDispatch
+export const useSelector = RRuseSelector
+
+// BEGIN debugging connect
+// import isEqual from 'lodash/isEqual'
+// const debugMergeProps = __DEV__
+//   ? () => {
+//       let oldsp = {}
+//       let oldop = {}
+//       return (sp, op, mp) => {
+//         Object.keys(oldsp).forEach(key => {
+//           if (oldsp[key] !== sp[key] && isEqual(oldsp[key], sp[key])) {
+//             console.log('DEBUGMERGEPROPS sp: ', key, oldsp[key], sp[key], 'orig: ', mp)
+//           }
+//         })
+//         Object.keys(oldop).forEach(key => {
+//           if (oldop[key] !== op[key] && isEqual(oldop[key], op[key])) {
+//             console.log('DEBUGMERGEPROPS op: ', key, oldop[key], op[key], 'orig: ', mp)
+//           }
+//         })
+//         oldsp = sp || {}
+//         oldop = op || {}
+//       }
+//     }
+//   : () => () => {}
+//
+// const debugConnect: any = (msp, mdp, mp) => {
+//   console.log('DEBUG: using debugMergeProps connect')
+//   const dmp = debugMergeProps()
+//   return typedConnect(msp, mdp, (sp, dp, op) => {
+//     dmp(sp, op, mp)
+//     return mp(sp, dp, op)
+//   })
+// }
+// const connect: typeof typedConnect = __DEV__ ? debugConnect : typedConnect
+// if (__DEV__) {
+//   console.log('\n\n\nDEBUG: debugConnect enabled')
+// }

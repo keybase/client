@@ -1,3 +1,4 @@
+/*
 import asset from './asset/index.stories'
 import banner from './banner/index.stories'
 import common from './common/index.stories'
@@ -37,3 +38,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

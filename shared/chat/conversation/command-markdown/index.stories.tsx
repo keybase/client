@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Sb from '../../../stories/storybook'
@@ -21,7 +22,7 @@ And for a quick game of face-up poker:
 The blog post announcing this feature and how it works:
     https://keybase.io/coin-flipping
 `,
-  title: `*/flip* [options]
+  title: `/flip* [options]
 Flip a cryptographic coin
 `,
 }
@@ -33,3 +34,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

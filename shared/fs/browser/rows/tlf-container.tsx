@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import OpenHOC from '../../common/open-hoc'
 import Tlf from './tlf'
 
@@ -40,4 +40,4 @@ const mergeProps = (
 }
 
 export default ((ComposedComponent: React.ComponentType<any>) =>
-  namedConnect(mapStateToProps, () => ({}), mergeProps, 'ConnectedTlfRow')(OpenHOC(ComposedComponent)))(Tlf)
+  Container.connect(mapStateToProps, () => ({}), mergeProps)(OpenHOC(ComposedComponent)))(Tlf)

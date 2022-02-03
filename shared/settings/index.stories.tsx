@@ -1,3 +1,4 @@
+/*
 import account from './account/index.stories'
 import deleteConfirm from './delete-confirm/index.stories'
 import inviteGenerated from './invite-generated/index.stories'
@@ -25,3 +26,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

@@ -35,7 +35,7 @@ const notAUserAssertion = {
   timestamp: 0,
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     let a = Constants.noAssertion
     let notAUser = false
@@ -155,6 +155,5 @@ export default Container.namedConnect(
       type: stateProps.type,
       value: stateProps.value,
     }
-  },
-  'Assertion'
+  }
 )(Assertion)

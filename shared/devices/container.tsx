@@ -56,7 +56,7 @@ ReloadableDevices.navigationOptions = Container.isMobile
       title: 'Devices',
     }
 
-const NamedConnected = Container.namedConnect(
+const Connected = Container.connect(
   state => ({
     _deviceMap: state.devices.deviceMap,
     _newlyChangedItemIds: state.devices.isNew,
@@ -88,9 +88,8 @@ const NamedConnected = Container.namedConnect(
       title: 'Devices',
       waiting: stateProps.waiting,
     }
-  },
-  'Devices'
+  }
 )
 
 const SafeSub = Container.safeSubmitPerMount(['onBack'])
-export default NamedConnected(SafeSub(ReloadableDevices))
+export default Connected(SafeSub(ReloadableDevices))

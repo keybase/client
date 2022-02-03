@@ -7,7 +7,7 @@ import * as Constants from '../../constants/settings'
 
 type OwnProps = Container.RouteProps<{heading: string; feedback: string}>
 
-export default Container.namedConnect(
+export default Container.connect(
   state => ({
     loggedOut: !state.config.loggedIn,
     sendError: state.settings.feedback.error,
@@ -24,6 +24,5 @@ export default Container.namedConnect(
     feedback: Container.getRouteProps(o, 'feedback', ''),
     onFeedbackDone: () => null,
     showInternalSuccessBanner: true,
-  }),
-  'Feedback'
+  })
 )(Feedback)

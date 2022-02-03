@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import {stringToAccountID} from '../../constants/types/wallets'
@@ -51,3 +52,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

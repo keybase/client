@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/*
 import * as Tabs from '../../constants/tabs'
 import * as GitGen from '../git-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -296,3 +297,5 @@ describe('Create / Delete', () => {
     expect(rpc).toHaveBeenCalled()
   })
 })
+*/
+export default {}

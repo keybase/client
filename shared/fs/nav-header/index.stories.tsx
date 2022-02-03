@@ -1,3 +1,4 @@
+/*
 import React from 'react'
 import {isMobile} from '../../constants/platform'
 import * as Types from '../../constants/types/fs'
@@ -71,3 +72,6 @@ export default () => {
       <MainBanner {...Sb.propOverridesForStory({bannerType: Types.MainBannerType.Offline})} />
     ))
 }
+*/
+
+export default {}

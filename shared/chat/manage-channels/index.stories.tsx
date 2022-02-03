@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as ChatTypes from '../../constants/types/chat2'
@@ -249,3 +250,6 @@ const editChannelStyle = {
 }
 
 export default load
+*/
+
+export default {}

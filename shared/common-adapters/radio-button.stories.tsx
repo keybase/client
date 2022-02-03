@@ -1,3 +1,4 @@
+/*
 import Box from './box'
 import RadioButton from './radio-button'
 import React from 'react'
@@ -36,3 +37,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

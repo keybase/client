@@ -3,7 +3,7 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import Modal from '../modal'
 
 type OwnProps = {}
@@ -87,9 +87,9 @@ const mapDispatchToProps = dispatch => ({
   onNext: () => dispatch(ProfileGen.createGeneratePgp()),
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o: OwnProps) => ({...o, ...s, ...d, nextDisabled: !s.email1 || !s.fullName || !!s.errorText}),
-  'Info'
-)(Info)
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({
+  ...o,
+  ...s,
+  ...d,
+  nextDisabled: !s.email1 || !s.fullName || !!s.errorText,
+}))(Info)

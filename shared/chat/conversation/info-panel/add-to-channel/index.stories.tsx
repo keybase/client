@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
 import AddToChannel from '.'
@@ -36,3 +37,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

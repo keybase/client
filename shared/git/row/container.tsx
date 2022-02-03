@@ -18,7 +18,7 @@ type OwnProps = {
   onToggleExpand: (id: string) => void
 }
 
-const ConnectedRow = Container.namedConnect(
+const ConnectedRow = Container.connect(
   (state, {id, expanded}: OwnProps) => {
     const git = state.git.idToInfo.get(id) || Constants.makeGitInfo()
     const teamID = git.teamname ? TeamConstants.getTeamID(state, git.teamname) : undefined
@@ -109,8 +109,7 @@ const ConnectedRow = Container.namedConnect(
       url: git.url,
       you: stateProps.you,
     }
-  },
-  'GitRow'
+  }
 )(Row)
 
 export default ConnectedRow

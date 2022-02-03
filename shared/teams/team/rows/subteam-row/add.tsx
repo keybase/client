@@ -4,24 +4,8 @@ import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
-import flags from '../../../../util/feature-flags'
 
 const AddSubteam = ({teamID}: {teamID: Types.TeamID}) => {
-  const dispatch = Container.useDispatch()
-  const onCreateSubteam = () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID}))
-  return (
-    <Kb.ClickableBox style={styles.container} onClick={onCreateSubteam}>
-      <Kb.Box2 direction="horizontal" alignItems="center">
-        <Kb.Icon type="iconfont-new" color={Styles.globalColors.blueDark} />
-        <Kb.Text type="BodyBigLink" style={styles.text}>
-          Create subteam
-        </Kb.Text>
-      </Kb.Box2>
-    </Kb.ClickableBox>
-  )
-}
-
-const AddSubteamNew = ({teamID}: {teamID: Types.TeamID}) => {
   const dispatch = Container.useDispatch()
   const subteamFilter = Container.useSelector(s => s.teams.subteamFilter)
   const onCreateSubteam = () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID}))
@@ -56,9 +40,7 @@ const styles = Styles.styleSheetCreate(() => ({
       justifyContent: 'center',
       width: '100%',
     },
-    isMobile: {
-      paddingTop: Styles.globalMargins.small,
-    },
+    isMobile: {paddingTop: Styles.globalMargins.small},
   }),
   containerNew: {
     ...Styles.padding(6, Styles.globalMargins.small),
@@ -69,4 +51,4 @@ const styles = Styles.styleSheetCreate(() => ({
   text: {padding: Styles.globalMargins.xtiny},
 }))
 
-export default flags.teamsRedesign ? AddSubteamNew : AddSubteam
+export default AddSubteam

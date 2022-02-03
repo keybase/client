@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Constants from '../../constants/wallets'
 import {Box, Divider} from '../../common-adapters'
@@ -114,3 +115,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

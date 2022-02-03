@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {Box} from '../../../../../common-adapters'
 import {action, storiesOf} from '../../../../../stories/storybook'
@@ -26,3 +27,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

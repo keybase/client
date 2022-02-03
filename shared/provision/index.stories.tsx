@@ -1,3 +1,4 @@
+/*
 import codePage from './code-page/index.stories'
 import error from './error/index.stories'
 import gpgSign from './gpg-sign/index.stories'
@@ -27,3 +28,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

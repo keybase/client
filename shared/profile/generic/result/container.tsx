@@ -3,7 +3,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as ProfileGen from '../../../actions/profile-gen'
 import Success from '.'
 
-export default Container.namedConnect(
+export default Container.connect(
   state => ({
     errorText: state.profile.errorCode !== null ? state.profile.errorText || 'Failed to verify proof' : '',
     proofUsername: state.profile.username + state.profile.platformGenericParams?.suffix ?? '@unknown',
@@ -16,6 +16,5 @@ export default Container.namedConnect(
       dispatch(ProfileGen.createClearPlatformGeneric())
     },
   }),
-  (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps}),
-  'GenericProofSuccess'
+  (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
 )(Success)

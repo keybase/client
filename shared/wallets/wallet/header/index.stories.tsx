@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import * as Types from '../../../constants/types/wallets'
@@ -54,3 +55,6 @@ const load = () => {
 const styleWidth = {width: 520}
 
 export default load
+*/
+
+export default {}

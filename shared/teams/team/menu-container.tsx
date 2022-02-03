@@ -7,7 +7,6 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Kb from '../../common-adapters'
-import flags from '../../util/feature-flags'
 import capitalize from 'lodash/capitalize'
 import * as Styles from '../../styles'
 import {pluralize} from '../../util/string'
@@ -102,7 +101,7 @@ const TeamMenu = (props: Props) => {
     <Kb.FloatingMenu
       attachTo={attachTo}
       closeOnSelect={true}
-      header={flags.teamsRedesign ? header : undefined}
+      header={header}
       items={items}
       onHidden={onHidden}
       visible={visible}
@@ -126,51 +125,23 @@ export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const items: Kb.MenuItems = flags.teamsRedesign ? ['Divider'] : []
-    if (flags.teamsRedesign) {
-      if (stateProps.canInvite) {
-        items.push({
-          icon: 'iconfont-new',
-          onClick: dispatchProps.onAddOrInvitePeople,
-          title: 'Add/Invite people',
-        })
-        if (flags.teamInvites) {
-          items.push({
-            icon: 'iconfont-link',
-            onClick: dispatchProps.onCopyInviteLink,
-            title: 'Copy invite link',
-          })
-        }
-      }
-      if (stateProps.canViewFolder) {
-        items.push({
-          icon: 'iconfont-folder-open',
-          onClick: () => dispatchProps.onOpenFolder(stateProps.teamname),
-          title: 'Open team folder',
-        })
-      }
-      if (items.length > 0 && (stateProps.canLeaveTeam || stateProps.canDeleteTeam)) {
-        items.push('Divider')
-      }
-    } else {
-      if (stateProps.canManageChat) {
-        items.push({
-          icon: 'iconfont-hash',
-          onClick: dispatchProps.onManageChat,
-          subTitle: stateProps.isBigTeam ? undefined : 'Turns this into a big team',
-          title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
-        })
-      }
-      if (stateProps.canCreateSubteam) {
-        items.push({icon: 'iconfont-people', onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})
-      }
-      if (stateProps.canViewFolder) {
-        items.push({
-          icon: 'iconfont-folder-open',
-          onClick: () => dispatchProps.onOpenFolder(stateProps.teamname),
-          title: 'Open team folder',
-        })
-      }
+    const items: Kb.MenuItems = ['Divider']
+    if (stateProps.canInvite) {
+      items.push({
+        icon: 'iconfont-new',
+        onClick: dispatchProps.onAddOrInvitePeople,
+        title: 'Add/Invite people',
+      })
+    }
+    if (stateProps.canViewFolder) {
+      items.push({
+        icon: 'iconfont-folder-open',
+        onClick: () => dispatchProps.onOpenFolder(stateProps.teamname),
+        title: 'Open team folder',
+      })
+    }
+    if (items.length > 0 && (stateProps.canLeaveTeam || stateProps.canDeleteTeam)) {
+      items.push('Divider')
     }
     items.push({
       danger: true,

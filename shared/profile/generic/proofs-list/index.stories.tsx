@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import ProofsList from './index'
@@ -91,3 +92,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

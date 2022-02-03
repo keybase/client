@@ -1,3 +1,4 @@
+/*
 import {FeatureFlags} from '../util/feature-flags'
 
 if (!__STORYBOOK__) {
@@ -21,3 +22,5 @@ const ff: FeatureFlags = {
 console.warn('feature flag mock in effect')
 
 export default ff
+*/
+export {}

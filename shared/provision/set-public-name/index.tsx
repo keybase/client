@@ -5,7 +5,6 @@ import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
 import {defaultDevicename} from '../../constants/signup'
 import debounce from 'lodash/debounce'
-import flags from '../../util/feature-flags'
 
 import {SignupScreen, errorBanner} from '../../signup/common'
 
@@ -64,13 +63,7 @@ const SetPublicName = (props: Props) => {
         },
       ]}
       onBack={props.onBack}
-      title={
-        Styles.isMobile
-          ? flags.tabletSupport
-            ? 'Name this device'
-            : 'Name this phone'
-          : 'Name this computer'
-      }
+      title={Styles.isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
         <Kb.Icon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />

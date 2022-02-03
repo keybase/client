@@ -11,7 +11,7 @@ type OwnProps = {
 
 const noTeams = []
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const d = Constants.getDetails(state, ownProps.username)
     return {
@@ -43,6 +43,5 @@ export default Container.namedConnect(
       return map
     }, {}),
     teamShowcase: stateProps.teamShowcase,
-  }),
-  'Teams'
+  })
 )(Teams)

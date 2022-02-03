@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import {Box, Box2, NewInput} from '../../../../../common-adapters'
@@ -45,3 +46,6 @@ const load = () =>
     .add('No top reacjis', () => <WithFilter topReacjis={[]} />)
 
 export default load
+*/
+
+export default {}

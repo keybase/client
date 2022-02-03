@@ -17,7 +17,7 @@ type OwnProps = {
 
 const noAdmins: Array<string> = []
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, {allowFontScaling, name, channel, style}: OwnProps) => {
     const maybeMentionInfo = state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
     const mentionInfo =
@@ -64,6 +64,5 @@ export default Container.namedConnect(
       resolved: stateProps.resolved,
       style: stateProps.style,
     }
-  },
-  'TeamMention'
+  }
 )(TeamMention)

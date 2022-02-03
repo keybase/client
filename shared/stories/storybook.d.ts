@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as PropProviders from './prop-providers'
 import {TypedState} from '../reducers'
@@ -37,3 +38,4 @@ export declare class Rnd {
 export declare function propOverridesForStory(p: any): {}
 export declare class MockStore extends React.Component<{store: any; children: React.ReactNode}> {}
 export {PropProviders}
+*/

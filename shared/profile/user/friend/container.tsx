@@ -7,7 +7,7 @@ type OwnProps = {
   width: number
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => ({
     fullname: (state.users.infoMap.get(ownProps.username) || {fullname: ''}).fullname,
     username: ownProps.username,
@@ -18,6 +18,5 @@ export default Container.namedConnect(
     onClick: () => dispatchProps._onClick(stateProps.username),
     username: stateProps.username,
     width: ownProps.width,
-  }),
-  'Friend'
+  })
 )(Friend)

@@ -60,9 +60,9 @@ const checkInviteCode = async (state: Container.TypedState) => {
       Constants.waitingKey
     )
     return SignupGen.createCheckedInviteCode({inviteCode: state.signup.inviteCode})
-  } catch (e) {
-    const err: RPCError = e
-    return SignupGen.createCheckedInviteCode({error: err.desc, inviteCode: state.signup.inviteCode})
+  } catch (error_) {
+    const error = error_ as RPCError
+    return SignupGen.createCheckedInviteCode({error: error.desc, inviteCode: state.signup.inviteCode})
   }
 }
 
@@ -95,11 +95,11 @@ const requestInvite = async (state: Container.TypedState) => {
       email: state.signup.email,
       name: state.signup.name,
     })
-  } catch (e) {
-    const err: RPCError = e
+  } catch (error_) {
+    const error = error_ as RPCError
     return SignupGen.createRequestedInvite({
       email: state.signup.email,
-      emailError: `Sorry can't get an invite: ${err.desc}`,
+      emailError: `Sorry can't get an invite: ${error.desc}`,
       name: state.signup.name,
       nameError: '',
     })
@@ -123,16 +123,16 @@ const checkUsername = async (
     )
     logger.info(`${state.signup.username} success`)
     return SignupGen.createCheckedUsername({error: '', username: state.signup.username})
-  } catch (e) {
-    const err: RPCError = e
-    logger.warn(`${state.signup.username} error: ${err.message}`)
-    const error = err.code === RPCTypes.StatusCode.scinputerror ? Constants.usernameHint : err.desc
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn(`${state.signup.username} error: ${error.message}`)
+    const s = error.code === RPCTypes.StatusCode.scinputerror ? Constants.usernameHint : error.desc
     return SignupGen.createCheckedUsername({
       // Don't set error if it's 'username taken', we show a banner in that case
-      error: err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : error,
+      error: error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : s,
       username: state.signup.username,
       usernameTaken:
-        err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
+        error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
     })
   }
 }
@@ -147,11 +147,11 @@ const checkDevicename = async (state: Container.TypedState) => {
       Constants.waitingKey
     )
     return SignupGen.createCheckedDevicename({devicename: state.signup.devicename})
-  } catch (e) {
-    const err: RPCError = e
+  } catch (error_) {
+    const error = error_ as RPCError
     return SignupGen.createCheckedDevicename({
       devicename: state.signup.devicename,
-      error: `Device name is invalid: ${err.desc}.`,
+      error: `Device name is invalid: ${error.desc}.`,
     })
   }
 }
@@ -207,7 +207,8 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
       waitingKey: Constants.waitingKey,
     })
     yield Saga.put(SignupGen.createSignedup())
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     yield Saga.put(SignupGen.createSignedup({error}))
     yield Saga.put(
       PushGen.createShowPermissionsPrompt({
@@ -233,7 +234,7 @@ const maybeClearJustSignedUpEmail = (
   return false
 }
 
-const signupSaga = function*() {
+const signupSaga = function* () {
   // validation actions
   yield* Saga.chainAction2(SignupGen.requestInvite, requestInvite)
   yield* Saga.chainAction2(SignupGen.checkUsername, checkUsername)

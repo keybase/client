@@ -1,4 +1,4 @@
-/* eslint-disable sort-keys */
+/*
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {Button, ButtonBar, Box2, Text} from '../../../common-adapters'
@@ -385,3 +385,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

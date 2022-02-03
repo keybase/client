@@ -1,4 +1,4 @@
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
 import * as Constants from '../../../constants/fs'
@@ -159,7 +159,7 @@ const filterRowItems = (rows, filter) =>
       )
     : rows
 
-export default namedConnect(
+export default Container.connect(
   (state, {path}: OwnProps) => ({
     _edits: state.fs.edits,
     _filter: state.fs.folderViewFilter,
@@ -200,6 +200,5 @@ export default namedConnect(
       ],
       path: o.path,
     }
-  },
-  'ConnectedRows'
+  }
 )(Rows)
