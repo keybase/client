@@ -33,7 +33,6 @@ const SendFeedback = (props: Props) => {
     >
       <FeedbackForm
         loggedOut={props.loggedOut}
-        sendError={null} // nulled out on purpose so that we handle the error
         sending={props.sending}
         onSendFeedback={props.onSendFeedback}
         showInternalSuccessBanner={false}
