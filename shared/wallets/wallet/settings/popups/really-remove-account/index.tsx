@@ -26,10 +26,10 @@ const ReallyRemoveAccountPopup = (props: Props) => {
     () => dispatch(WalletsGen.createExportSecretKey({accountID: accountID})),
     [dispatch, accountID]
   )
-  const onSecretKeySeen = React.useCallback(() => dispatch(WalletsGen.createSecretKeySeen({accountID})), [
-    accountID,
-    dispatch,
-  ])
+  const onSecretKeySeen = React.useCallback(
+    () => dispatch(WalletsGen.createSecretKeySeen({accountID})),
+    [accountID, dispatch]
+  )
   React.useEffect(() => {
     onLoadSecretKey()
     return () => {
@@ -83,7 +83,7 @@ const ReallyRemoveAccountPopup = (props: Props) => {
           <Kb.Text
             center={true}
             type="HeaderItalic"
-            style={Styles.collapseStyles([styles.warningText, styles.mainText])}
+            style={Styles.collapseStyles([styles.warningText, styles.mainText] as const)}
           >
             {props.name}.
           </Kb.Text>

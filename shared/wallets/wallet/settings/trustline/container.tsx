@@ -24,7 +24,7 @@ export default Container.connect(
       dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})),
   }),
   (s, d, _: OwnProps) => ({
-    assets: [...s.acceptedAssets?.keys()]
+    assets: [...(s.acceptedAssets?.keys() ?? [])]
       .map(assetID => s.assetMap.get(assetID) ?? Constants.emptyAssetDescription)
       .map(asset => ({code: asset.code, desc: asset.issuerVerifiedDomain || asset.issuerAccountID})),
     onSetupTrustline: d.onSetupTrustline,

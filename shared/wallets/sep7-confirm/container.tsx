@@ -52,6 +52,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
       sep7WaitingKey: stateProps.sep7WaitingKey,
       signed: null,
       summary: {
+        // @ts-ignore
         fee: '',
         memo: '',
         memoType: '',
@@ -112,4 +113,4 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
     signed,
     summary,
   }
-})(SEP7Confirm)
+})(SEP7Confirm as any)
