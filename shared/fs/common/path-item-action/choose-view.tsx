@@ -31,5 +31,5 @@ const ChooseView = (props: Props) => {
 export default Container.connect(
   state => ({view: state.fs.pathItemActionMenu.view}),
   () => ({}),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ChooseView)

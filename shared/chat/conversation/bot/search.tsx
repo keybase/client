@@ -163,7 +163,6 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   modal: Styles.platformStyles({
     isElectron: {height: 500},
-    isMobile: {backgroundColor: 'green'},
   }),
 }))
 

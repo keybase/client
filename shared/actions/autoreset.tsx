@@ -117,7 +117,7 @@ function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAc
   } catch (error_) {
     const error = error_ as RPCError
     logger.warn('Error resetting account:', error)
-    yield Saga.put(AutoresetGen.createResetError({error: error as RPCError}))
+    yield Saga.put(AutoresetGen.createResetError({error}))
   }
 }
 const showFinalResetScreen = (__: AutoresetGen.ShowFinalResetScreenPayload) =>
