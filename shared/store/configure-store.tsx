@@ -36,10 +36,10 @@ const errorCatching = () => next => action => {
   } catch (error_) {
     const error = error_ as any
     // Don't let the same error keep getting caught
-    if (lastError.message === (error as Error).message) {
+    if (lastError.message === error.message) {
       return
     }
-    lastError = error as Error
+    lastError = error
     logger.warn(`Caught a middleware exception`)
     logger.debug(`Caught a middleware exception`, error)
 

@@ -70,7 +70,7 @@ const ConnectedParticipantsStellarPublicKey = Container.connect(
       dispatch(WalletsGen.createSetReadyToReview({readyToReview}))
     },
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ParticipantsStellarPublicKey)
 
 const makeAccount = (stateAccount: Types.Account) => ({
@@ -123,7 +123,7 @@ const ConnectedParticipantsOtherAccount = Container.connect(
         })
       ),
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ParticipantsOtherAccount)
 
 const ParticipantsChooser = props => {
@@ -146,7 +146,7 @@ const ConnectedParticipantsChooser = Container.connect(
     return {recipientType}
   },
   () => ({}),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ParticipantsChooser)
 
 export default ConnectedParticipantsChooser
