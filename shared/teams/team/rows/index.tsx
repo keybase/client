@@ -13,7 +13,7 @@ import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers
 import MemberRow from './member-row/container'
 import {BotRow, AddBotRow} from './bot-row'
 import {RequestRow, InviteRow} from './invite-row'
-import {SubteamAddRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
+import {SubteamAddRow, SubteamInfoRow, SubteamTeamRow} from './subteam-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import {EmojiItemRow, EmojiAddRow, EmojiHeader} from './emoji-row'
 import LoadingRow from './loading'
@@ -86,8 +86,9 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
   const dispatch = Container.useDispatch()
   const collapsed = invitesCollapsed.has(teamID)
   const onToggleCollapsed = () => dispatch(TeamsGen.createToggleInvitesCollapsed({teamID}))
+
   const sections: Array<Section> = []
-  const resetMembers = [...details.members?.values()].filter(m => m.status === 'reset')
+  const resetMembers = [...(details.members?.values() ?? [])].filter(m => m.status === 'reset')
 
   if (details.requests?.size || resetMembers.length) {
     const requestsSection: _Section<

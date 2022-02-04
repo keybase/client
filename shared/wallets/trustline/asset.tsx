@@ -24,9 +24,9 @@ export type Props = {
   waitingRefresh: boolean
 }
 
-const stopPropagation = onClick => e => {
+const stopPropagation = (onClick?: () => void) => (e: {stopPropagation: () => void}) => {
   e.stopPropagation()
-  onClick && onClick()
+  onClick?.()
 }
 
 const getCode = (props: Props) => (

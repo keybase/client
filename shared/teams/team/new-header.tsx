@@ -30,10 +30,9 @@ type FeatureTeamCardProps = {teamID: Types.TeamID}
 const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
   const dispatch = Container.useDispatch()
   const onFeature = () => dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
-  const onNoThanks = React.useCallback(
-    () => dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false})),
-    [dispatch]
-  )
+  const onNoThanks = React.useCallback(() => {
+    dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false}))
+  }, [dispatch])
   // Automatically dismisses this when the user navigates away
   React.useEffect(() => onNoThanks, [onNoThanks])
   const waiting = Container.useAnyWaiting(Constants.setMemberPublicityWaitingKey(teamID))

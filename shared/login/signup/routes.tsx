@@ -1,7 +1,7 @@
-import InviteCode from './invite-code/container'
-import RequestInvite from './request-invite/container'
-import RequestInviteSuccess from './request-invite-success/container'
-import SignupError from './error/container'
+import type InviteCode from './invite-code/container'
+import type RequestInvite from './request-invite/container'
+import type RequestInviteSuccess from './request-invite-success/container'
+import type SignupError from './error/container'
 
 export const newRoutes = {
   signupError: {getScreen: (): typeof SignupError => require('./error/container').default},

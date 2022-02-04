@@ -11,9 +11,9 @@ import * as Tabs from '../constants/tabs'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
+import {RPCError} from '../util/errors'
 import * as Container from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
-import {RPCError} from 'util/errors'
 
 const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab, 'devicesRoot']
 

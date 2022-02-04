@@ -10,6 +10,7 @@ export const isLargeScreen = true
 export const isIPhoneX = false
 export const isTablet = false
 export const windowHeight = 0 // not implemented on desktop
+export const isDebuggingInChrome = true
 
 export const isElectron = true
 export const isDarwin = platform === 'darwin'
@@ -106,14 +107,8 @@ if (!paths) {
   throw new Error('Unknown OS')
 }
 
-export const {
-  dataRoot,
-  cacheRoot,
-  socketPath,
-  jsonDebugFileName,
-  serverConfigFileName,
-  guiConfigFilename,
-} = paths
+export const {dataRoot, cacheRoot, socketPath, jsonDebugFileName, serverConfigFileName, guiConfigFilename} =
+  paths
 
 export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || join(os.homedir, 'Downloads')
 

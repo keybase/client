@@ -16,6 +16,7 @@ export const isWindows: boolean
 export const isLinux: boolean
 export const isIPhoneX: boolean
 export const isMac: boolean
+export const isDebuggingInChrome: boolean // only useful in RN
 
 export const isAndroidNewerThanN: boolean
 export const defaultUseNativeFrame: boolean

@@ -183,9 +183,7 @@ const AddToChannels = (props: Props) => {
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
             Cancel
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         rightButton:
           Styles.isMobile && mode === 'others' ? (
             waiting ? (
@@ -195,9 +193,7 @@ const AddToChannels = (props: Props) => {
                 Add
               </Kb.Text>
             )
-          ) : (
-            undefined
-          ),
+          ) : undefined,
         title: <Common.ModalTitle teamID={teamID} title={title} />,
       }}
       footer={
@@ -283,7 +279,7 @@ const SelfChannelActions = ({
   selfMode,
 }: {
   meta: ChatTypes.ConversationMeta
-  reloadChannels: () => Promise<undefined>
+  reloadChannels: () => Promise<void>
   selfMode: boolean
 }) => {
   const dispatch = Container.useDispatch()
@@ -401,7 +397,7 @@ type ChannelRowProps = {
   selected: boolean
   onSelect: () => void
   mode: 'self' | 'others'
-  reloadChannels: () => Promise<undefined>
+  reloadChannels: () => Promise<void>
   usernames: string[]
 }
 const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, usernames}: ChannelRowProps) => {
