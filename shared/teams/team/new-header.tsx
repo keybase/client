@@ -30,10 +30,9 @@ type FeatureTeamCardProps = {teamID: Types.TeamID}
 const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
   const dispatch = Container.useDispatch()
   const onFeature = () => dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
-  const onNoThanks = React.useCallback(
-    () => dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false})),
-    [dispatch]
-  )
+  const onNoThanks = React.useCallback(() => {
+    dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false}))
+  }, [dispatch])
   // Automatically dismisses this when the user navigates away
   React.useEffect(() => onNoThanks, [onNoThanks])
   const waiting = Container.useAnyWaiting(Constants.setMemberPublicityWaitingKey(teamID))
@@ -94,7 +93,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   useActivityLevels()
   const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
-
   const callbacks = useHeaderCallbacks(teamID)
 
   const avatar = (
@@ -390,24 +388,53 @@ const styles = Styles.styleSheetCreate(
           width: 260,
         },
       }),
-      addPeopleButton: {flexGrow: 0},
+      addPeopleButton: {
+        flexGrow: 0,
+      },
       addSelfLink: {
         marginLeft: Styles.globalMargins.xtiny,
         textDecorationLine: 'underline',
       },
-      alignSelfFlexStart: {alignSelf: 'flex-start'},
-      backButton: {backgroundColor: Styles.globalColors.white},
-      backgroundWhite: {backgroundColor: Styles.globalColors.white},
+      alignSelfFlexStart: {
+        alignSelf: 'flex-start',
+      },
+      backButton: {
+        backgroundColor: Styles.globalColors.white,
+      },
+      backgroundWhite: {
+        backgroundColor: Styles.globalColors.white,
+      },
+      banner: {
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall, 0),
+      },
       clickable: Styles.platformStyles({
-        isElectron: {...Styles.desktopStyles.windowDraggingClickable},
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+        },
       }),
-      flexShrink: {flexShrink: 1},
+      flexShrink: {
+        flexShrink: 1,
+      },
       flexShrinkGrow: {
         flexGrow: 1,
         flexShrink: 1,
       },
-      header: {flexShrink: 1},
+      greenText: {
+        color: Styles.globalColors.greenDark,
+      },
+      header: {
+        flexShrink: 1,
+      },
       illustration: {borderRadius: 4, overflow: 'hidden', width: '100%'},
+      inviteLinkContainer: Styles.platformStyles({
+        common: {
+          borderColor: 'transparent',
+          borderRadius: 0,
+          borderStyle: undefined,
+          borderWidth: 0,
+          padding: 0,
+        },
+      }),
       marginBottomRightTiny: {
         marginBottom: Styles.globalMargins.tiny,
         marginRight: Styles.globalMargins.tiny,

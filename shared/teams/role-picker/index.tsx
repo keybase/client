@@ -107,6 +107,9 @@ type RoleRowWrapperProps = {
   role: Role<true>
   plural: boolean
 }
+
+const AnimatedClickableBox = animated(Kb.ClickableBox)
+
 const RoleRowWrapper = (props: RoleRowWrapperProps) => {
   const {role, selected, onSelect, disabledReason, plural} = props
   const roleInfo = rolesMetaInfo(role)
@@ -116,8 +119,6 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
     ...(Styles.isMobile ? {flexGrow: selected ? 1 : 0} : {height: selected ? 160 : 42}),
     config: {tension: Styles.isMobile ? 250 : 260},
   })
-  const AnimatedClickableBox = animated(Kb.ClickableBox)
-
   return (
     <AnimatedClickableBox onClick={onSelect} style={Styles.collapseStyles([styles.roleRow, style])}>
       <Kb.Divider />

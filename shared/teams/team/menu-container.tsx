@@ -163,7 +163,7 @@ export default Container.connect(
       items,
       memberCount: stateProps.memberCount,
       onHidden: ownProps.onHidden,
-      role: stateProps.role,
+      role: stateProps.role as Types.TeamRoleType,
       teamname: stateProps.teamname,
       visible: ownProps.visible,
     }
