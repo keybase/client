@@ -148,7 +148,10 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
     case RouteTreeGen.navUpToScreen: {
       const {routeName} = action.payload
-      return [CommonActions.navigate(routeName)]
+      // find with matching params
+      const path = _getVisiblePathForNavigator(navigationState)
+      const p = path.find(p => p.name === routeName)
+      return [CommonActions.navigate(routeName, p?.params)]
     }
     case RouteTreeGen.popStack: {
       return [StackActions.popToTop()]
