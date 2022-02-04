@@ -1,9 +1,9 @@
-import DeviceSelector from './device-selector/container'
-import ExplainDevice from './explain-device/container'
+import type DeviceSelector from './device-selector/container'
+import type ExplainDevice from './explain-device/container'
 import Error, {ConnectedErrorModal} from './error/container'
-import PaperKey from './paper-key/container'
-import {PromptResetAccount, PromptResetPassword} from './prompt-reset'
-import Password from './password'
+import type PaperKey from './paper-key/container'
+import type {PromptResetAccount, PromptResetPassword} from './prompt-reset'
+import type Password from './password'
 
 export const newRoutes = {
   recoverPasswordDeviceSelector: {

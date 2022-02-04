@@ -45,7 +45,9 @@ const styles = Styles.styleSheetCreate(() => ({
       justifyContent: 'center',
       width: '100%',
     },
-    isMobile: {paddingTop: Styles.globalMargins.small},
+    isMobile: {
+      paddingTop: Styles.globalMargins.small,
+    },
   }),
   containerNew: {
     ...Styles.padding(6, Styles.globalMargins.small),

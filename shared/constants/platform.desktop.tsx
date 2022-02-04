@@ -107,14 +107,8 @@ if (!paths) {
   throw new Error('Unknown OS')
 }
 
-export const {
-  dataRoot,
-  cacheRoot,
-  socketPath,
-  jsonDebugFileName,
-  serverConfigFileName,
-  guiConfigFilename,
-} = paths
+export const {dataRoot, cacheRoot, socketPath, jsonDebugFileName, serverConfigFileName, guiConfigFilename} =
+  paths
 
 export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || join(os.homedir, 'Downloads')
 

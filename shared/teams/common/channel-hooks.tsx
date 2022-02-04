@@ -58,7 +58,7 @@ export const useAllChannelMetas = (
             Constants.getChannelsWaitingKey(teamID),
           ],
           ({convs}) => {
-            resolve(undefined)
+            resolve()
             convs && setConvs(convs)
             setLoadingChannels(false)
           },
