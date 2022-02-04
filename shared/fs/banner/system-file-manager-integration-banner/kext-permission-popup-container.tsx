@@ -12,8 +12,12 @@ const mapDispatchToProps = dispatch => ({
   openSecurityPrefs: () => dispatch(FsGen.createOpenSecurityPreferences()),
 })
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, _: {}) => ({
-  driverStatus: s.driverStatus,
-  onCancel: d.onCancel,
-  openSecurityPrefs: d.openSecurityPrefs,
-}))(KextPermissionPopup)
+export default Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, _: {}) => ({
+    driverStatus: s.driverStatus,
+    onCancel: d.onCancel,
+    openSecurityPrefs: d.openSecurityPrefs,
+  }),
+)(KextPermissionPopup)

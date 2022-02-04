@@ -1,6 +1,6 @@
-import PeopleRoot from './container'
-import TeamBuilder from '../team-building/container'
-import AccountSwitcher from '../router-v2/account-switcher/container'
+import type PeopleRoot from './container'
+import type TeamBuilder from '../team-building/container'
+import type AccountSwitcher from '../router-v2/account-switcher/container'
 
 export const newRoutes = {
   peopleRoot: {getScreen: (): typeof PeopleRoot => require('./container').default},

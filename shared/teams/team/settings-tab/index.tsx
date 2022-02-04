@@ -263,10 +263,12 @@ export class Settings extends React.Component<Props, State> {
   }
 
   // TODO just use real keys/setState and not this abstraction
-  setBoolSettings = (key: SettingName) => (newSetting: boolean): void => {
-    // @ts-ignore not sure how to type this
-    this.setState({[key]: newSetting})
-  }
+  setBoolSettings =
+    (key: SettingName) =>
+    (newSetting: boolean): void => {
+      // @ts-ignore not sure how to type this
+      this.setState({[key]: newSetting})
+    }
 
   onSaveSettings = () => {
     this.props.savePublicity({

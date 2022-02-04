@@ -76,7 +76,8 @@ export const numBackgrounds = 10
 export const getDeviceIconNumberInner = (
   devices: Map<Types.DeviceID, Types.Device>,
   deviceID: Types.DeviceID
-): number => ((devices.get(deviceID) || {deviceNumberOfType: 0}).deviceNumberOfType % numBackgrounds) + 1
+): Types.IconNumber =>
+  (((devices.get(deviceID) || {deviceNumberOfType: 0}).deviceNumberOfType % numBackgrounds) + 1) as any
 
 const getNextDeviceIconNumberInner = memoize((devices: Map<Types.DeviceID, Types.Device>) => {
   // Find the max device number and add one (+ one more since these are 1-indexed)

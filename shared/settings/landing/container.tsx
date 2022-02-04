@@ -1,5 +1,6 @@
 import logger from '../../logger'
 import * as SettingsGen from '../../actions/settings-gen'
+import * as Constants from '../../constants/settings'
 import {connect, compose} from '../../util/container'
 import Bootstrapable from '../../util/bootstrapable'
 import Landing from '.'
@@ -45,7 +46,7 @@ const mapDispatchToProps = (dispatch: (a: any) => void) => ({
     dispatch(SettingsGen.createLoadHasRandomPw())
   },
   onChangeEmail: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changeEmail']})),
-  onChangePassword: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changePassword']})),
+  onChangePassword: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.passwordTab]})),
   onChangeRememberPassword: (checked: boolean) =>
     dispatch(SettingsGen.createOnChangeRememberPassword({remember: checked})),
   onInfo: selectedLevel =>

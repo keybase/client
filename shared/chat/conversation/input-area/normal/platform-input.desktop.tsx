@@ -206,7 +206,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                   !!this.props.explodingModeSeconds && {
                     backgroundColor: Styles.globalColors.black,
                   },
-                ])}
+                ] as const)}
               >
                 {this.props.explodingModeSeconds ? (
                   <Kb.Text type="BodyTinyBold" negative={true}>

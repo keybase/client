@@ -17,10 +17,10 @@ const mapDispatchToProps = dispatch => ({
   onEnable: () => dispatch(FsGen.createDriverEnable({})),
 })
 
-const ConnectedBanner = Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({
-  ...o,
-  ...s,
-  ...d,
-}))(Banner)
+const ConnectedBanner = Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
+)(Banner)
 
 export default ConnectedBanner

@@ -32,6 +32,7 @@ type Props = {
   onMouseDown?: (evt: React.BaseSyntheticEvent) => void // desktop only
   height?: number // optional, for non-standard heights
   style?: Styles.StylesCrossPlatform
+  innerStyle?: Styles.StylesCrossPlatform
   iconStyleOverride?: Styles.StylesCrossPlatform
   containerStyleOverride?: Styles.StylesCrossPlatform
 }
@@ -54,6 +55,7 @@ const ListItem = (props: Props) => (
       style={Styles.collapseStyles([
         props.type === 'Small' ? styles.rowSmall : styles.rowLarge,
         !!props.height && {minHeight: props.height},
+        props.innerStyle,
       ])}
       fullWidth={true}
     >

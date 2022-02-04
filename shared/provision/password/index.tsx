@@ -23,7 +23,12 @@ const Password = (props: Props) => {
   const {onSubmit} = props
   const _onSubmit = React.useCallback(() => onSubmit(password), [password, onSubmit])
 
-  React.useEffect(() => () => dispatch(RecoverPasswordGen.createResetResetPasswordState()), [dispatch])
+  React.useEffect(
+    () => () => {
+      dispatch(RecoverPasswordGen.createResetResetPasswordState())
+    },
+    [dispatch]
+  )
 
   return (
     <SignupScreen

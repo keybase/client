@@ -176,7 +176,7 @@ const mergeProps = (
         : c(dispatchProps._ignoreTlf)
       : null,
     me: stateProps._username,
-    moveOrCopy: c(dispatchProps._moveOrCopy),
+    moveOrCopy: null,
     newFolder: layout.newFolder ? c(dispatchProps._newFolder) : null,
     openChatNonTeam: layout.openChatNonTeam ? c(dispatchProps._openChat) : null,
     openChatTeam: layout.openChatTeam ? c(dispatchProps._openChat) : null,
@@ -195,4 +195,8 @@ const mergeProps = (
   }
 }
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Menu)
+export default Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+)(Menu)
