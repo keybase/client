@@ -2,9 +2,9 @@ import * as Container from '../../util/container'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
+import {RPCError} from '../../util/errors'
 import * as RouteTreeGen from '../route-tree-gen'
 import {peopleTab} from '../../constants/tabs'
-import {RPCError} from 'util/errors'
 
 function* generatePgp(state: Container.TypedState) {
   let canceled = false

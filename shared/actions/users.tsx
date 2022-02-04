@@ -12,7 +12,7 @@ import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import {TypedState} from '../util/container'
 import logger from '../logger'
-import {RPCError} from 'util/errors'
+import {RPCError} from '../util/errors'
 
 const onIdentifyUpdate = (action: EngineGen.Keybase1NotifyUsersIdentifyUpdatePayload) =>
   UsersGen.createUpdateBrokenState({

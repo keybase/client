@@ -7,8 +7,8 @@ import * as RPCGen from '../constants/types/rpc-gen'
 import * as RecoverPasswordGen from './recover-password-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
+import {RPCError} from '../util/errors'
 import logger from '../logger'
-import {RPCError} from 'util/errors'
 
 const receivedBadgeState = async (
   state: Container.TypedState,

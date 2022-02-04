@@ -13,9 +13,9 @@ import * as WaitingGen from './waiting-gen'
 import trim from 'lodash/trim'
 import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
+import {RPCError} from '../util/errors'
 import * as Container from '../util/container'
 import openURL from '../util/open-url'
-import {RPCError} from 'util/errors'
 
 const onUpdatePGPSettings = async () => {
   try {
@@ -552,7 +552,7 @@ const sendFeedback = async (state: Container.TypedState, action: SettingsGen.Sen
   } catch (error_) {
     const error = error_ as RPCError
     logger.warn('err in sending logs', error)
-    return SettingsGen.createFeedbackSent({error})
+    return SettingsGen.createFeedbackSent({error: error as Error})
   }
 }
 

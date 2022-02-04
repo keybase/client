@@ -10,8 +10,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Platform from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {TypedState} from '../util/container'
+import {RPCError} from '../util/errors'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
-import {RPCError} from 'util/errors'
 
 type OperationActionArgs = {
   operation: Types.Operations

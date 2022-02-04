@@ -6,12 +6,12 @@ import * as DeeplinksGen from './deeplinks-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Container from '../util/container'
+import {RPCError} from '../util/errors'
 import * as Constants from '../constants/tracker2'
 import * as ProfileConstants from '../constants/profile'
 import {WebOfTrustVerificationType} from '../constants/types/more'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
-import {RPCError} from 'util/errors'
 
 const identify3Result = (action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) =>
   Tracker2Gen.createUpdateResult({
