@@ -183,7 +183,7 @@ const uint8_t* VP8DecompressAlphaRows(VP8Decoder* const dec,
   assert(dec != NULL && io != NULL);
 
   if (row < 0 || num_rows <= 0 || row + num_rows > height) {
-    return NULL;
+    return NULL;    // sanity check.
   }
 
   if (!dec->is_alpha_decoded_) {

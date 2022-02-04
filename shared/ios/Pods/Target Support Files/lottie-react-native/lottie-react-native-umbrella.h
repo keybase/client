@@ -11,7 +11,6 @@
 #endif
 
 #import "Bridging.h"
-#import "RCTConvert+Lottie.h"
 
 FOUNDATION_EXPORT double lottie_react_nativeVersionNumber;
 FOUNDATION_EXPORT const unsigned char lottie_react_nativeVersionString[];
