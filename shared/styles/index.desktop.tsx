@@ -60,7 +60,7 @@ const font = {
 
 const util = {
   ...Shared.util,
-  fastBackground: colors.transparent,
+  fastBackground: {backgroundColor: colors.transparent},
   largeWidthPercent: '70%',
   loadingTextStyle: {
     // this won't really work with dark mode
