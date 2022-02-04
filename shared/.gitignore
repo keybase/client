@@ -38,6 +38,7 @@ keybase.xcframework
 ios/AppStore_keybase.ios.KeybaseShare.mobileprovision
 ios/AppStore_keybase.ios.mobileprovision
 ios/dist
+ios/Pods
 
 main.jsbundle
 .eslintcache
