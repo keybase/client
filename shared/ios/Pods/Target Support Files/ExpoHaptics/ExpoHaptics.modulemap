@@ -1,6 +1,0 @@
-module ExpoHaptics {
-  umbrella header "ExpoHaptics-umbrella.h"
-
-  export *
-  module * { export * }
-}

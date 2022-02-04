@@ -1,1 +1,0 @@
-../../../../../node_modules/expo-image-picker/ios/EXImagePicker/Permissions/EXImagePickerCameraPermissionRequester.h
