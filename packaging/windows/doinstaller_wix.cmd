@@ -4,6 +4,10 @@
 ::
 set GOARCH=amd64
 
+echo TEMP NOSIGN
+set KEYBASE_WINBUILD=0
+echo TEMP NOSIGN
+
 echo %KEYBASE_SECRET_STORE_FILE%
 :: This has to be reset too for a separate batch command
 if DEFINED BUILD_NUMBER set KEYBASE_WINBUILD=%BUILD_NUMBER%
