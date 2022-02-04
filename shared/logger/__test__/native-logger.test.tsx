@@ -61,5 +61,5 @@ describe('parseLine', () => {
     }
   })
 })
- */
-export {}
+*/
+export default {}

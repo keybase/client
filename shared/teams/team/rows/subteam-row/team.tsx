@@ -1,2 +1,2 @@
-import TeamRowNew from '../../../main/team-row'
-export default TeamRowNew
+import TeamRow from '../../../main/team-row'
+export default TeamRow

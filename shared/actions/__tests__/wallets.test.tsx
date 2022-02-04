@@ -251,4 +251,4 @@ it('primes send/request form', () => {
     })
 })
 */
-export {}
+export default {}

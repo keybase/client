@@ -388,4 +388,4 @@ describe('shows paperkey page correctly', () => {
   })
 })
 */
-export {}
+export default {}

@@ -130,4 +130,6 @@ const mergeProps = (
   style: ownProps.style,
 })
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps, {forwardRef: true})(Wrapper)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps, {
+  forwardRef: true,
+})(Wrapper)

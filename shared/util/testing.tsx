@@ -7,7 +7,7 @@ import {TypedState} from '../constants/reducer'
 
 // See https://github.com/pekala/test-problem-example
 export const flushPromises = <T extends {}>(result?: T): Promise<T> =>
-  new Promise(resolve => setImmediate(() => resolve(result)))
+  new Promise<any>(resolve => setImmediate(() => resolve(result)))
 
 export const makeStartReduxSaga = (rootSaga: any, initialStore: any, init: (dispatch: any) => void) => {
   return (is?: Object | null) => {

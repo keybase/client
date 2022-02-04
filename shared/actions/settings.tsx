@@ -21,8 +21,9 @@ const onUpdatePGPSettings = async () => {
   try {
     const {hasServerKeys} = await RPCTypes.accountHasServerKeysRpcPromise()
     return SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys})
-  } catch (error) {
-    return SettingsGen.createOnUpdatePasswordError({error: error as Error})
+  } catch (error_) {
+    const error = error_ as RPCError
+    return SettingsGen.createOnUpdatePasswordError({error})
   }
 }
 
@@ -31,8 +32,9 @@ const onSubmitNewEmail = async (state: Container.TypedState) => {
     const newEmail = state.settings.email.newEmail
     await RPCTypes.accountEmailChangeRpcPromise({newEmail}, Constants.settingsWaitingKey)
     return [SettingsGen.createLoadSettings(), RouteTreeGen.createNavigateUp()]
-  } catch (error) {
-    return SettingsGen.createOnUpdateEmailError({error: error as Error})
+  } catch (error_) {
+    const error = error_ as RPCError
+    return SettingsGen.createOnUpdateEmailError({error})
   }
 }
 
@@ -58,8 +60,9 @@ const onSubmitNewPassword = async (
       RouteTreeGen.createNavigateUp(),
       ...(action.payload.thenSignOut ? [ConfigGen.createLogout()] : []),
     ]
-  } catch (error) {
-    return SettingsGen.createOnUpdatePasswordError({error: error as Error})
+  } catch (error_) {
+    const error = error_ as RPCError
+    return SettingsGen.createOnUpdatePasswordError({error})
   }
 }
 
@@ -217,9 +220,10 @@ const sendInvite = async (action: SettingsGen.InvitesSendPayload) => {
     } else {
       return false
     }
-  } catch (e) {
-    logger.warn('Error sending an invite:', e)
-    return [SettingsGen.createInvitesSent({error: e as Error}), SettingsGen.createInvitesRefresh()]
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn('Error sending an invite:', error)
+    return [SettingsGen.createInvitesSent({error: error}), SettingsGen.createInvitesRefresh()]
   }
 }
 
@@ -251,9 +255,10 @@ function* refreshNotifications() {
       body = json.body
     }
     chatGlobalSettings = _chatGlobalSettings
-  } catch (err) {
+  } catch (error_) {
+    const error = error_ as RPCError
     // No need to throw black bars -- handled by Reloadable.
-    logger.warn(`Error getting notification settings: ${(err as any).desc}`)
+    logger.warn(`Error getting notification settings: ${error.desc}`)
     return
   }
 
@@ -352,8 +357,9 @@ const loadSettings = async (
       emails: emailMap,
       phones: phoneMap,
     })
-  } catch (e) {
-    logger.warn(`Error loading settings: ${(e as Error).message}`)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn(`Error loading settings: ${error.message}`)
     return false
   }
 }
@@ -543,7 +549,8 @@ const sendFeedback = async (state: Container.TypedState, action: SettingsGen.Sen
     )
     logger.info('logSendId is', logSendId)
     return false
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     logger.warn('err in sending logs', error)
     return SettingsGen.createFeedbackSent({error: error as Error})
   }
@@ -658,8 +665,9 @@ const loadHasRandomPW = async (state: Container.TypedState) => {
     const passphraseState = await RPCTypes.userLoadPassphraseStateRpcPromise()
     const randomPW = passphraseState === RPCTypes.PassphraseState.random
     return SettingsGen.createLoadedHasRandomPw({randomPW})
-  } catch (e) {
-    logger.warn('Error loading hasRandomPW:', (e as Error).message)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn('Error loading hasRandomPW:', error.message)
     return false
   }
 }
@@ -686,10 +694,10 @@ const addPhoneNumber = async (action: SettingsGen.AddPhoneNumberPayload, logger:
     )
     logger.info('success')
     return SettingsGen.createAddedPhoneNumber({phoneNumber, searchable})
-  } catch (err_) {
-    const err = err_ as RPCError
-    logger.warn('error ', err.message)
-    const message = Constants.makePhoneError(err)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn('error ', error.message)
+    const message = Constants.makePhoneError(error)
     return SettingsGen.createAddedPhoneNumber({error: message, phoneNumber, searchable})
   }
 }
@@ -706,8 +714,9 @@ const resendVerificationForPhoneNumber = async (
       Constants.resendVerificationForPhoneWaitingKey
     )
     return false
-  } catch (err) {
-    const message = Constants.makePhoneError(err as RPCError)
+  } catch (error_) {
+    const error = error_ as RPCError
+    const message = Constants.makePhoneError(error)
     logger.warn('error ', message)
     return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
   }
@@ -723,8 +732,9 @@ const verifyPhoneNumber = async (action: SettingsGen.VerifyPhoneNumberPayload, l
     )
     logger.info('success')
     return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
-  } catch (err) {
-    const message = Constants.makePhoneError(err as RPCError)
+  } catch (error_) {
+    const error = error_ as RPCError
+    const message = Constants.makePhoneError(error)
     logger.warn('error ', message)
     return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
   }
@@ -752,10 +762,10 @@ const loadContactImportEnabled = async (
       Constants.importContactsWaitingKey
     )
     enabled = !!value.b && !value.isNull
-  } catch (err_) {
-    const err = err_ as Error
-    if (!err.message.includes('no such key')) {
-      logger.error(`Error reading config: ${err.message}`)
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (!error.message.includes('no such key')) {
+      logger.error(`Error reading config: ${error.message}`)
     }
   }
   return SettingsGen.createLoadedContactImportEnabled({enabled})
@@ -800,10 +810,10 @@ const addEmail = async (
     )
     logger.info('success')
     return SettingsGen.createAddedEmail({email})
-  } catch (err_) {
-    const err = err_ as RPCError
-    logger.warn(`error: ${err.message}`)
-    return SettingsGen.createAddedEmail({email, error: Constants.makeAddEmailError(err)})
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn(`error: ${error.message}`)
+    return SettingsGen.createAddedEmail({email, error: Constants.makeAddEmailError(error)})
   }
 }
 

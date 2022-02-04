@@ -1,4 +1,3 @@
-/* eslint-disable sort-keys */
 /*
 import * as React from 'react'
 import * as Types from '../../constants/types/chat2'
@@ -7,8 +6,9 @@ import {isMobile, globalColors, globalMargins} from '../../styles'
 import Inbox from '.'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
-//  * Rows
-
+*
+ * Rows
+ *
 const makeRowItemSmall = (conversationIDKey: string = ''): Types.ChatInboxRowItemSmall => ({
   type: 'small',
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
@@ -42,11 +42,11 @@ const makeRowItemDivider = (showButton: boolean = false): Types.ChatInboxRowItem
 })
 const makeRowItemTeamBuilder = (): Types.ChatInboxRowItemTeamBuilder => ({type: 'teamBuilder'})
 
-//  *
-//  * Component Prop Map
-//  *
-//  * mapPropProviderProps: [coversationIDKey] -> PropProvider props
-//  *
+*
+ * Component Prop Map
+ *
+ * mapPropProviderProps: [coversationIDKey] -> PropProvider props
+ *
 
 const commonSmallTeam = {
   backgroundColor: globalColors.white,
@@ -331,15 +331,11 @@ const mapPropProviderProps: any = {
   },
 }
 
-// *
-//  * Prop Provider Helpers
-//  *
-//
-// *
-//  * Look up the correct props to return for a given row component
-//  * Called from the row component's PropProvider
-//  * Uses either conversationIDKey or teamname as a key in mapPropProviderProps
-//  *
+*
+ * Look up the correct props to return for a given row component
+ * Called from the row component's PropProvider
+ * Uses either conversationIDKey or teamname as a key in mapPropProviderProps
+ 
 const getPropProviderProps = (own: any): any => {
   if (own.conversationIDKey && own.conversationIDKey !== 'EMPTY') {
     const props: any = mapPropProviderProps[own.conversationIDKey]
@@ -353,9 +349,6 @@ const getPropProviderProps = (own: any): any => {
   return own.teamname ? mapPropProviderProps[own.teamname] : {}
 }
 
-// *
-//  * Inbox
-//  *
 const propsInboxCommon = {
   allowShowFloatingButton: false,
   hasBigTeams: false,
@@ -480,9 +473,6 @@ const propsInboxExpanded = {
   ],
 }
 
-// *
-//  * Prop Providers
-//  *
 
 const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(),
@@ -565,4 +555,5 @@ const load = () => {
 
 export default load
 */
-export {}
+
+export default {}

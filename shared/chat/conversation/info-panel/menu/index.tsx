@@ -135,6 +135,7 @@ class InfoPanelMenu extends React.Component<Props> {
         title: hasChannelSection ? 'Add/Invite people to team' : 'Add/invite people',
       },
     ]
+
     const channelHeader: Kb.MenuItem = {
       title: 'channelHeader',
       unWrapped: true,

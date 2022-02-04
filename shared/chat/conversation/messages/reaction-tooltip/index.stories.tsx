@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
@@ -146,3 +147,6 @@ export const propProvider = {
 }
 
 export default load
+*/
+
+export default {}

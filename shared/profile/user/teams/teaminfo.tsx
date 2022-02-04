@@ -92,6 +92,7 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
                 mode="Secondary"
               />
             )}
+            {/* With teamsRedesign we have external team page, always show view team button */}
             <Kb.WaitingButton
               waitingKey={Constants.waitingKey}
               label="View team"

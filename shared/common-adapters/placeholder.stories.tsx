@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import Placeholder from './placeholder'
@@ -32,3 +33,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

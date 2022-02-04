@@ -1,5 +1,4 @@
 import * as React from 'react'
-// @ts-ignore
 import ReAnimated, {EasingNode} from './reanimated'
 import * as Styles from '../styles'
 import {Props} from './loading-line'
@@ -47,7 +46,7 @@ function runLoop() {
 }
 
 class LoadingLine extends React.Component<Props> {
-  _opacity = runLoop()
+  private _opacity = runLoop()
 
   render() {
     return <R.View style={[styles.line, {opacity: this._opacity}]} />

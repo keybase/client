@@ -99,4 +99,5 @@ const load = () => {
 
 export default load
 */
-export {}
+
+export default {}

@@ -47,5 +47,5 @@ describe('toStringForLog', () => {
     expect(toStringForLog({x: 3, y: true, z: null})).toBe('{"x":3,"y":true,"z":null}')
   })
 })
- */
-export {}
+*/
+export default {}

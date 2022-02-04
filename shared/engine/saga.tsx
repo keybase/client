@@ -204,9 +204,10 @@ function* call(p: {
         finalError = res.error
       }
     }
-  } catch (e) {
+  } catch (error_) {
+    const error = error_ as any
     // capture errors when we handle the callbacks and treat the whole process as an error
-    finalError = e as Error
+    finalError = error
   } finally {
     // eventChannel will jump to finally when RS.END is emitted
     if (waitingKey) {

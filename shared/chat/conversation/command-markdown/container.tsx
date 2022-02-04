@@ -15,5 +15,5 @@ export default Container.connect(
     }
   },
   () => ({}),
-  s => s,
+  s => s
 )(CommandMarkdown)

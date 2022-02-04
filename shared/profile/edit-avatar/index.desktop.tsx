@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as fs from 'fs'
 import clamp from 'lodash/clamp'
-import {EDIT_AVATAR_ZINDEX} from '../../constants/profile'
 import {Props} from '.'
 import {ModalTitle} from '../../teams/common'
 import {
@@ -522,7 +521,6 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.padding(Styles.globalMargins.xlarge, 0),
     alignItems: 'center',
   },
-  cover: {zIndex: EDIT_AVATAR_ZINDEX},
   createdBanner: {
     backgroundColor: Styles.globalColors.green,
     borderTopLeftRadius: 4,
@@ -541,19 +539,10 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'absolute',
     top: '50%',
   },
-  instructions: {
-    maxWidth: 200,
-  },
-  overflowHidden: {overflow: 'hidden'},
-  paddingTopForCreatedTeam: {
-    paddingTop: Styles.globalMargins.xlarge,
-  },
-  skipButton: {
-    minWidth: 60,
-  },
-  spinner: {
-    alignSelf: 'center',
-  },
+  instructions: {maxWidth: 200},
+  paddingTopForCreatedTeam: {paddingTop: Styles.globalMargins.xlarge},
+  skipButton: {minWidth: 60},
+  spinner: {alignSelf: 'center'},
   spinnerContainer: {
     backgroundColor: Styles.globalColors.grey,
     justifyContent: 'center',

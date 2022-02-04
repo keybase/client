@@ -694,4 +694,4 @@ describe('reset works', () => {
   expect(getState().provision).toEqual(Constants.makeState())
 })
 */
-export {}
+export default {}

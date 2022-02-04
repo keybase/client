@@ -236,66 +236,14 @@ export const TeamMemberRow = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  buttonBarContainer: {...Styles.globalStyles.flexBoxRow, flexShrink: 1},
-  chatButtonDesktop: {
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.tiny,
-    padding: Styles.globalMargins.tiny,
-  },
-  chatButtonMobile: {
-    position: 'absolute',
-    right: 16,
-    top: 24,
-  },
-  chatButtonMobileSmallTop: {
-    top: 12,
-  },
-  chatIconContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flexShrink: 1,
-    height: '100%',
-  },
   checkCircle: {
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
     alignSelf: 'center',
   },
-  clickable: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flexGrow: 1,
-  },
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    height: '100%',
-    position: 'relative',
-    width: '100%',
-  },
-  containerReset: {
-    backgroundColor: Styles.globalColors.blueLighter2,
-  },
-  crownIcon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
+  crownIcon: {marginRight: Styles.globalMargins.xtiny},
   fullNameLabel: {flexShrink: 1, marginRight: Styles.globalMargins.xtiny},
-  innerContainerBottom: {...Styles.globalStyles.flexBoxRow, flexShrink: 1},
-  innerContainerTop: {
-    ...Styles.globalStyles.flexBoxRow,
-    ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-    alignItems: 'center',
-    flexShrink: 0,
-    height: Styles.isMobile ? 56 : 48,
-    width: '100%',
-  },
   listItemMargin: {marginLeft: 0},
-  lockedOutMeta: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  menuButton: {
-    marginLeft: Styles.globalMargins.xtiny,
-  },
+  lockedOutMeta: {marginRight: Styles.globalMargins.xtiny},
   mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
   nameContainer: {
     ...Styles.globalStyles.flexBoxColumn,

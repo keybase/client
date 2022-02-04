@@ -6,7 +6,6 @@ import * as Styles from '../../styles'
 
 const TeamsFooter = (props: {empty: boolean}) => {
   const isLoadingTeams = Container.useAnyWaiting(teamsLoadedWaitingKey)
-
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
       {isLoadingTeams ? (

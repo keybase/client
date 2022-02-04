@@ -10,7 +10,7 @@ const commands = {
   'build-dev': {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
-    shell: `${webpackCmd} --mode development --progress --profile `,
+    shell: `${webpackCmd} --mode development --progress --profile`,
   },
   'build-prod': {
     env: {

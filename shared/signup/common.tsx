@@ -60,7 +60,7 @@ export const InfoIcon = Container.connect(
     ...o,
     onDocumentation: d.onDocumentation,
     onFeedback: () => d._onFeedback(s._loggedIn),
-  }),
+  })
 )(Kb.OverlayParentHOC(_InfoIcon))
 
 type HeaderProps = {

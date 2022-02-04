@@ -38,28 +38,28 @@ class DestBox extends React.Component {
   }
 }
 
-///
-// * Creates a provider using a faux store of closures that compute derived viewProps
-// * @param {SelectorMap} map an object of the form {DisplayName: Function(ownProps)} with
-// *                          each closure returning the derived viewProps for the connected component
-// * @returns {React.Node} a <Provider /> that creates a store from the supplied map of closures.
-// *                       The Provider will ignore all dispatched actions. It also wraps the component
-// *                       tree in an <ErrorBoundary /> that adds auxiliary info in case of an error.
-//
-//// Redux doesn't allow swapping the store given a single provider so we use a new key to force a new provider to
-//// work around this issue
-//// TODO remove this and move to use MockStore instead
+/
+ * Creates a provider using a faux store of closures that compute derived viewProps
+ * @param {SelectorMap} map an object of the form {DisplayName: Function(ownProps)} with
+ *                          each closure returning the derived viewProps for the connected component
+ * @returns {React.Node} a <Provider /> that creates a store from the supplied map of closures.
+ *                       The Provider will ignore all dispatched actions. It also wraps the component
+ *                       tree in an <ErrorBoundary /> that adds auxiliary info in case of an error.
+ /
+// Redux doesn't allow swapping the store given a single provider so we use a new key to force a new provider to
+// work around this issue
+// TODO remove this and move to use MockStore instead
 let uniqueProviderKey = 1
 const createPropProvider = (...maps: SelectorMap[]) => {
   const merged: SelectorMap = maps.reduce((obj, merged) => ({...obj, ...merged}), {})
 
-
-   // * GatewayDest and GatewayProvider need to be wrapped by the Provider here in
-   // * order for storybook to correctly mock connected components inside of
-   // * popups.
-   // * React.Fragment is used to render StorybookErrorBoundary and GatewayDest as
-   // * children to GatewayProvider which only takes one child
-
+  *
+   * GatewayDest and GatewayProvider need to be wrapped by the Provider here in
+   * order for storybook to correctly mock connected components inside of
+   * popups.
+   * React.Fragment is used to render StorybookErrorBoundary and GatewayDest as
+   * children to GatewayProvider which only takes one child
+   /
   return (story: () => React.ReactNode) => (
     <Provider
       key={`provider:${uniqueProviderKey++}`}
@@ -179,9 +179,9 @@ class StorybookErrorBoundary extends React.Component<
   }
 }
 
-// *
-// * Utilities for writing stories
-//
+ *
+ * Utilities for writing stories
+ 
 
 class Rnd {
   _seed = 0
@@ -281,4 +281,5 @@ export {
   perfDecorator,
 }
 */
-export {}
+
+export default {}

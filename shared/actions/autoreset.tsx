@@ -114,7 +114,8 @@ function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAc
       waitingKey: Constants.enterPipelineWaitingKey,
     })
     yield Saga.put(AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password}))
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as RPCError
     logger.warn('Error resetting account:', error)
     yield Saga.put(AutoresetGen.createResetError({error: error as RPCError}))
   }

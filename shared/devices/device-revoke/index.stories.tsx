@@ -1,3 +1,4 @@
+/*
 import * as Constants from '../../constants/devices'
 import * as Container from '../../util/container'
 import * as React from 'react'
@@ -72,3 +73,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

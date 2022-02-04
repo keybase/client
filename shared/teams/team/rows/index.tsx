@@ -86,7 +86,6 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
   const dispatch = Container.useDispatch()
   const collapsed = invitesCollapsed.has(teamID)
   const onToggleCollapsed = () => dispatch(TeamsGen.createToggleInvitesCollapsed({teamID}))
-
   const sections: Array<Section> = []
   const resetMembers = [...(details.members?.values() ?? [])].filter(m => m.status === 'reset')
 

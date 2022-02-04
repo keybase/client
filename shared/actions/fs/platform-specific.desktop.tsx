@@ -291,9 +291,9 @@ const uninstallDokan = (state: TypedState) => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) return
   const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath || ''
   logger.info('Invoking dokan uninstaller', execPath)
-  return new Promise(resolve => {
+  return new Promise<void>(resolve => {
     try {
-      exec(execPath, {windowsHide: true}, resolve)
+      exec(execPath, {windowsHide: true}, () => resolve())
     } catch (e) {
       logger.error('uninstallDokan caught', e)
       resolve(undefined)
@@ -337,7 +337,7 @@ const installCachedDokan = () =>
         stdio: 'ignore',
       })
 
-      resolve()
+      resolve(undefined)
     })
   })
     .then(() => FsGen.createRefreshDriverStatus())

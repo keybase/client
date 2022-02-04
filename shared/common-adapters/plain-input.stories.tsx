@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import PlainInput from './plain-input'
 import Box, {Box2} from './box'
@@ -202,3 +203,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

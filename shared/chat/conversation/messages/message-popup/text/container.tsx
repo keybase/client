@@ -241,5 +241,5 @@ export default Container.connect(
       visible: ownProps.visible,
       yourMessage,
     }
-  },
+  }
 )(Text)

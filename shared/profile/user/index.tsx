@@ -12,7 +12,6 @@ import Actions from './actions/container'
 import Friend from './friend/container'
 import Measure from './measure'
 import Teams from './teams/container'
-import WebOfTrust from './weboftrust'
 import shallowEqual from 'shallowequal'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
@@ -168,16 +167,9 @@ type TabsProps = {
 class Tabs extends React.Component<TabsProps> {
   _onClickFollowing = () => this.props.onSelectTab('following')
   _onClickFollowers = () => this.props.onSelectTab('followers')
-  _onClickWebOfTrust = () => this.props.onSelectTab('webOfTrust')
   _tab = (tab: Tab) => (
     <Kb.ClickableBox
-      onClick={
-        tab === 'following'
-          ? this._onClickFollowing
-          : tab === 'followers'
-          ? this._onClickFollowers
-          : this._onClickWebOfTrust
-      }
+      onClick={tab === 'following' ? this._onClickFollowing : this._onClickFollowers}
       style={Styles.collapseStyles([
         styles.followTab,
         tab === this.props.selectedTab && styles.followTabSelected,
@@ -190,9 +182,7 @@ class Tabs extends React.Component<TabsProps> {
         >
           {tab === 'following'
             ? `Following${!this.props.loadingFollowing ? ` (${this.props.numFollowing || 0})` : ''}`
-            : tab === 'followers'
-            ? `Followers${!this.props.loadingFollowers ? ` (${this.props.numFollowers || 0})` : ''}`
-            : `Web of Trust (${this.props.numWebOfTrust})`}
+            : `Followers${!this.props.loadingFollowers ? ` (${this.props.numFollowers || 0})` : ''}`}
         </Kb.Text>
         {((tab === 'following' && this.props.loadingFollowing) || this.props.loadingFollowers) && (
           <Kb.ProgressIndicator style={{position: 'absolute'}} />
@@ -330,7 +320,7 @@ type State = {
   width: number
 }
 
-type Tab = 'followers' | 'following' | 'webOfTrust'
+type Tab = 'followers' | 'following'
 
 class User extends React.Component<Props, State> {
   static navigationOptions = () => ({
@@ -381,25 +371,6 @@ class User extends React.Component<Props, State> {
       />
     )
   }
-
-  _renderWebOfTrust = ({item}) =>
-    item.type === 'IKnowThem' ? (
-      this.props.vouchShowButton && (
-        <Kb.Box2 key="iknowthem" direction="horizontal" fullWidth={true} style={styles.knowThemBox}>
-          <Kb.Button
-            key="iknowthembtn"
-            type="Default"
-            label={item.text}
-            onClick={this.props.onIKnowThem}
-            disabled={this.props.vouchDisableButton}
-          >
-            <Kb.Icon type="iconfont-proof-good" style={styles.knowThemIcon} />
-          </Kb.Button>
-        </Kb.Box2>
-      )
-    ) : (
-      <WebOfTrust webOfTrustAttestation={item} username={this.props.username} />
-    )
 
   _renderOtherUsers = ({item, section, index}) =>
     this.props.notAUser ? null : item.type === 'noFriends' || item.type === 'loading' ? (
@@ -460,14 +431,7 @@ class User extends React.Component<Props, State> {
       | {type: 'loading'; text: string}
     >
     let chunks: ChunkType = this.state.width ? chunk(friends, itemsInARow) : []
-    if (this.state.selectedTab === 'webOfTrust') {
-      chunks = this.props.onIKnowThem
-        ? (this.props.webOfTrustEntries as ChunkType).concat({
-            text: 'I know them!',
-            type: 'IKnowThem',
-          })
-        : this.props.webOfTrustEntries
-    } else if (chunks.length === 0) {
+    if (chunks.length === 0) {
       if (this.props.following && this.props.followers) {
         chunks.push({
           text:
@@ -514,10 +478,7 @@ class User extends React.Component<Props, State> {
                   {
                     data: chunks,
                     itemWidth,
-                    renderItem:
-                      this.state.selectedTab === 'webOfTrust'
-                        ? this._renderWebOfTrust
-                        : this._renderOtherUsers,
+                    renderItem: this._renderOtherUsers,
                   },
                 ]}
                 style={styles.sectionList}
@@ -543,9 +504,7 @@ export const styles = Styles.styleSheetCreate(() => ({
     marginTop: Styles.globalMargins.xsmall,
   },
   addIdentityContainer: Styles.platformStyles({
-    common: {
-      justifyContent: 'center',
-    },
+    common: {justifyContent: 'center'},
     isElectron: {
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
@@ -570,9 +529,7 @@ export const styles = Styles.styleSheetCreate(() => ({
     isElectron: {paddingTop: Styles.globalMargins.tiny},
     isMobile: {paddingBottom: Styles.globalMargins.small},
   }),
-  container: {
-    paddingTop: headerHeight,
-  },
+  container: {paddingTop: headerHeight},
   followTab: Styles.platformStyles({
     common: {
       alignItems: 'center',
@@ -630,22 +587,6 @@ export const styles = Styles.styleSheetCreate(() => ({
     height: '100%',
     width: '100%',
   },
-  invisible: {opacity: 0},
-  knowThemBox: {padding: Styles.globalMargins.small},
-  knowThemIcon: {paddingRight: Styles.globalMargins.tiny},
-  label: {
-    color: Styles.globalColors.black,
-  },
-  newMeta: Styles.platformStyles({
-    common: {
-      alignSelf: 'center',
-      marginRight: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      position: 'relative',
-      top: -1,
-    },
-  }),
   noGrow: {flexGrow: 0},
   profileSearch: {marginTop: Styles.globalMargins.xtiny},
   proofs: Styles.platformStyles({
@@ -662,20 +603,12 @@ export const styles = Styles.styleSheetCreate(() => ({
       paddingRight: Styles.globalMargins.medium,
     },
   }),
-  proveIt: {
-    paddingTop: Styles.globalMargins.small,
-  },
+  proveIt: {paddingTop: Styles.globalMargins.small},
   reason: Styles.platformStyles({
-    isElectron: {
-      height: avatarSize / 2 + Styles.globalMargins.small,
-    },
-    isMobile: {
-      padding: Styles.globalMargins.tiny,
-    },
+    isElectron: {height: avatarSize / 2 + Styles.globalMargins.small},
+    isMobile: {padding: Styles.globalMargins.tiny},
   }),
-  reloadable: {
-    paddingTop: Styles.isMobile ? 60 : 0,
-  },
+  reloadable: {paddingTop: Styles.isMobile ? 60 : 0},
   search: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.black_10,
@@ -690,17 +623,6 @@ export const styles = Styles.styleSheetCreate(() => ({
       minWidth: 200,
     },
   }),
-  searchContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      flexGrow: 1,
-      justifyContent: 'center',
-    },
-    isElectron: {
-      ...Styles.desktopStyles.clickable,
-    },
-  }),
-  searchLabel: {color: Styles.globalColors.white_75},
   sectionList: Styles.platformStyles({
     common: {width: '100%'},
     isElectron: {
@@ -713,12 +635,6 @@ export const styles = Styles.styleSheetCreate(() => ({
     common: {backgroundColor: Styles.globalColors.white, paddingBottom: Styles.globalMargins.xtiny},
     isMobile: {minHeight: '100%'},
   }),
-  teamLink: {color: Styles.globalColors.black},
-  teamShowcase: {alignItems: 'center'},
-  teamShowcases: {
-    flexShrink: 0,
-    paddingBottom: Styles.globalMargins.small,
-  },
   textEmpty: {
     paddingBottom: Styles.globalMargins.large,
     paddingTop: Styles.globalMargins.large,

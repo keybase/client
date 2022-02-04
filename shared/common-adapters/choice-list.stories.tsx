@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import ChoiceList from './choice-list'
 import {action, storiesOf} from '../stories/storybook'
@@ -24,3 +25,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

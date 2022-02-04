@@ -102,4 +102,4 @@ describe('computeNextState', () => {
   })
 })
 */
-export {}
+export default {}

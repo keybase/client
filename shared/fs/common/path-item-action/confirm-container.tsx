@@ -33,5 +33,5 @@ export default Container.connect(
         : ('send-to-other-app' as Props['action']),
     confirm: () => dispatchProps._confirm(stateProps._pathItemActionMenu),
     size: stateProps.size,
-  }),
+  })
 )(Confirm)

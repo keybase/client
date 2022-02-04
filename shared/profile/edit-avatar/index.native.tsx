@@ -28,8 +28,9 @@ const AvatarUploadWrapper = (props: Props) => {
       } else if (!props.wizard) {
         navUp()
       }
-    } catch (e) {
-      setImageError(e as string)
+    } catch (error_) {
+      const error = error_ as any
+      setImageError(error)
     }
   }, [setImageError, setSelectedImage, navUp, props.wizard])
 

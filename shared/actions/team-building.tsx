@@ -8,6 +8,7 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import {validateEmailAddress} from '../util/email-address'
+import {RPCError} from '../util/errors'
 
 const closeTeamBuilding = (_: TypedState) => {
   const modals = RouterConstants.getModalStack()
@@ -43,8 +44,9 @@ const apiSearch = async (
       u && arr.push(u)
       return arr
     }, [])
-  } catch (err) {
-    logger.error(`Error in searching for ${query} on ${service}. ${(err as Error).message}`)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.error(`Error in searching for ${query} on ${service}. ${error.message}`)
     return []
   }
 }

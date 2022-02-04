@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {ConversationListRender} from './conversation-list'
@@ -43,3 +44,6 @@ export default () =>
   Sb.storiesOf('Files/SendToChat/Attachment/ConversationList', module)
     .addDecorator(story => <Box style={{height: 500, width: 320}}>{story()}</Box>)
     .add('normal', () => <ConversationListRender {...props} />)
+    */
+
+export default {}

@@ -1,14 +1,15 @@
-// import * as React from 'react'
-// import * as Sb from '../../stories/storybook'
-// import * as Container from '../../util/container'
-// import ConfirmKickOut from './confirm-kick-out'
-// import DeleteChannel from './delete-channel'
-// import {store, fakeTeamID} from '../stories'
-// import reallyLeaveTeam from './really-leave-team/index.stories'
-//
-// const storeWithSelection = Container.produce(store, draftState => {
-//   draftState.teams.teamSelectedChannels = new Map([[fakeTeamID, new Set(['1', '2'])]])
-// })
+/*
+import * as React from 'react'
+import * as Sb from '../../stories/storybook'
+import * as Container from '../../util/container'
+import ConfirmKickOut from './confirm-kick-out'
+import DeleteChannel from './delete-channel'
+import {store, fakeTeamID} from '../stories'
+import reallyLeaveTeam from './really-leave-team/index.stories'
+
+const storeWithSelection = Container.produce(store, draftState => {
+  draftState.teams.teamSelectedChannels = new Map([[fakeTeamID, new Set(['1', '2'])]])
+})
 
 const load = () => {
   // reallyLeaveTeam()
@@ -35,3 +36,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

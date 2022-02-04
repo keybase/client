@@ -298,4 +298,4 @@ describe('Create / Delete', () => {
   })
 })
 */
-export {}
+export default {}

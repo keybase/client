@@ -40,5 +40,5 @@ describe('validateNumber', () => {
     expect(e164ToDisplay('+12015551112')).toBe('+1 (201) 555-1112')
   })
 })
- */
-export {}
+*/
+export default {}

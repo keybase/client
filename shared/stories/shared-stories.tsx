@@ -40,5 +40,6 @@ const stories = {
 }
 
 export default stories
- */
-export {}
+*/
+
+export default {}

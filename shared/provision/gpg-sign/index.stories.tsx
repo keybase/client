@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import GPGSign from './index'
 import {storiesOf, action} from '../../stories/storybook'
@@ -11,3 +12,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

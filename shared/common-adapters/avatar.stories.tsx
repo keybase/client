@@ -47,5 +47,6 @@ const avatarStyle = {
 }
 
 export default load
- */
-export {}
+*/
+
+export default {}

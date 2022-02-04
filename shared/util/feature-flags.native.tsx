@@ -7,7 +7,6 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: __DEV__,
-  inviteFriends: true,
 }
 
 // load overrides

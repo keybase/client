@@ -353,9 +353,7 @@ const styles = styleSheetCreate(() => ({
     marginBottom: Styles.globalMargins.tiny,
   },
   joinAs: platformStyles({
-    isElectron: {
-      paddingRight: globalMargins.xtiny,
-    },
+    isElectron: {paddingRight: globalMargins.xtiny},
   }),
   main: {
     alignSelf: 'flex-start',
@@ -379,22 +377,14 @@ const styles = styleSheetCreate(() => ({
     paddingTop: globalMargins.small,
   },
   shrink: {flex: 1},
-  spinner: {
-    paddingLeft: Styles.globalMargins.xtiny,
-  },
+  spinner: {paddingLeft: Styles.globalMargins.xtiny},
   teamPadding: {paddingTop: globalMargins.small},
-  welcomeMessage: {
-    paddingRight: globalMargins.small,
-  },
+  welcomeMessage: {paddingRight: globalMargins.small},
   welcomeMessageBorder: {
     alignSelf: 'stretch',
     backgroundColor: Styles.globalColors.grey,
     paddingLeft: Styles.globalMargins.xtiny,
   },
-  welcomeMessageCard: {
-    paddingBottom: Styles.globalMargins.tiny,
-  },
-  welcomeMessageContainer: {
-    position: 'relative',
-  },
+  welcomeMessageCard: {paddingBottom: Styles.globalMargins.tiny},
+  welcomeMessageContainer: {position: 'relative'},
 }))

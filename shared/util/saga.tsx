@@ -111,12 +111,13 @@ function* chainAction2Impl<Actions extends {readonly type: string}>(
         if (sl.isTagged) {
           sl.info('-> ok')
         }
-      } catch (error) {
-        sl.warn((error as any).message)
+      } catch (error_) {
+        const error = error_ as any
+        sl.warn(error.message)
         // Convert to global error so we don't kill the takeEvery loop
         yield Effects.put(
           ConfigGen.createGlobalError({
-            globalError: convertToError(error as Object),
+            globalError: convertToError(error),
           })
         )
       } finally {
@@ -155,12 +156,13 @@ function* chainActionImpl<Actions extends {readonly type: string}>(
         if (sl.isTagged) {
           sl.info('-> ok')
         }
-      } catch (error) {
-        sl.warn((error as any).message)
+      } catch (error_) {
+        const error = error_ as any
+        sl.warn(error.message)
         // Convert to global error so we don't kill the takeEvery loop
         yield Effects.put(
           ConfigGen.createGlobalError({
-            globalError: convertToError(error as Object),
+            globalError: convertToError(error),
           })
         )
       } finally {
@@ -190,8 +192,9 @@ function* chainGenerator<
       if (sl.isTagged) {
         sl.info('-> ok')
       }
-    } catch (error) {
-      sl.warn((error as any).message)
+    } catch (error_) {
+      const error = error_ as any
+      sl.warn(error.message)
       // Convert to global error so we don't kill the takeEvery loop
       yield Effects.put(
         ConfigGen.createGlobalError({

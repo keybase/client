@@ -69,9 +69,7 @@ const styles = Styles.styleSheetCreate(() => ({
       flexGrow: 1,
     },
   }),
-  container: {
-    backgroundColor: Styles.globalColors.white,
-  },
+  container: {backgroundColor: Styles.globalColors.white},
   inlineProgressIndicator: {
     height: 17,
     position: 'absolute',
@@ -80,9 +78,7 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 17,
   },
   tab: Styles.platformStyles({
-    isElectron: {
-      flexGrow: 1,
-    },
+    isElectron: {flexGrow: 1},
     isMobile: {
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,

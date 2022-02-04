@@ -228,4 +228,4 @@ describe('reply with device type', () => {
   })
 })
 */
-export {}
+export default {}

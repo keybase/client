@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import * as Kb from '../../../common-adapters'
@@ -78,7 +79,7 @@ const StatefulAssetInputBasic = (p: Props) => {
   return <AssetInputBasic {...rest} value={_value} onChangeAmount={_onChangeAmount} />
 }
 
-/*
+
 const StatefulAssetInputRecipientAdvanced = asStatefulInput(AssetInputRecipientAdvanced)
 
 export const propsRecipientAdvanced = {
@@ -127,7 +128,7 @@ export const propsSenderAdvancedCalculated = {
   }),
   xlmToRecipientAsset: 0.8347,
 } as const
-   */
+   
 
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Asset input basic', module)
@@ -142,7 +143,7 @@ const load = () => {
     .add('asset type warning', () => <AssetInputBasic {...props3} {...warning3} />)
     .add('Input validation (XLM)', () => <StatefulAssetInputBasic {...props2} />)
     .add('Input validation (Currency)', () => <StatefulAssetInputBasic {...props1} />)
-  /*
+  
   Sb.storiesOf('Wallets/SendForm/Asset input advanced', module)
     .addDecorator(provider)
     .addDecorator(story => <Kb.Box style={{maxWidth: 500, padding: 20}}>{story()}</Kb.Box>)
@@ -161,7 +162,10 @@ const load = () => {
         <AssetInputSenderAdvanced {...propsSenderAdvancedCalculated} error={true} />
       </Kb.Box2>
     ))
-     */
+     
 }
 
 export default load
+*/
+
+export default {}

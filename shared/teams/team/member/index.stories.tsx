@@ -1,11 +1,9 @@
-// import React from 'react'
-// import * as Sb from '../../../stories/storybook'
-// import {default as TeamMember, TeamMemberHeader} from './index.new'
-// import AddToChannels from './add-to-channels'
-// import {fakeTeamID, store} from '../../stories'
-//
-// const addToChannelsProps = Sb.createNavigator({teamID: fakeTeamID, usernames: ['andonuts']})
-// const addToChannelsSelfProps = Sb.createNavigator({teamID: fakeTeamID})
+/*
+import React from 'react'
+import * as Sb from '../../../stories/storybook'
+import {default as TeamMember, TeamMemberHeader} from './index.new'
+import AddToChannels from './add-to-channels'
+import {fakeTeamID, store} from '../../stories'
 
 const load = () => {}
 // Sb.storiesOf('Teams/Member', module)
@@ -18,3 +16,6 @@ const load = () => {}
 //   .add('Add self to channels', () => <AddToChannels {...addToChannelsSelfProps} />)
 
 export default load
+*/
+
+export default {}

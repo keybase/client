@@ -1,10 +1,11 @@
-// import * as React from 'react'
-// import * as Sb from '../../stories/storybook'
-// import * as Constants from '../../constants/teams'
-// import TeamsFooter from './footer'
-// import Header from './header'
-// import TeamList from '.'
-// import {Box} from '../../common-adapters'
+/*
+import * as React from 'react'
+import * as Sb from '../../stories/storybook'
+import * as Constants from '../../constants/teams'
+import TeamsFooter from './footer'
+import Header from './header'
+import TeamList from '.'
+import {Box} from '../../common-adapters'
 
 // const teams = [
 //   Constants.makeTeamMeta({
@@ -65,3 +66,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

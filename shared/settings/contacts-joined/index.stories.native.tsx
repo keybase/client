@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import ContactsJoinedModal from './index.native'
 import * as Sb from '../../stories/storybook'
@@ -7,3 +8,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

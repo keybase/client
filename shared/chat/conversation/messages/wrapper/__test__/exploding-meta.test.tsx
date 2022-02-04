@@ -90,4 +90,4 @@ describe('getLoopInterval', () => {
   })
 })
 */
-export {}
+export default {}

@@ -21,5 +21,5 @@ describe('teamname', () => {
     })
   })
 })
- */
-export {}
+*/
+export default {}

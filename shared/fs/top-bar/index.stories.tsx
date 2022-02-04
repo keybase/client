@@ -1,3 +1,4 @@
+/*
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../../common-adapters'
@@ -61,3 +62,6 @@ const styles = Styles.styleSheetCreate(
       flex: {flex: 1},
     } as const)
 )
+*/
+
+export default {}

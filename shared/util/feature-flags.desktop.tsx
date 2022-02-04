@@ -7,7 +7,6 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
-  inviteFriends: false,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {}

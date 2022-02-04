@@ -31,9 +31,10 @@ function useRPC<
         if (isMounted.current) {
           setResult(result)
         }
-      } catch (e) {
+      } catch (error_) {
+        const error = error_ as RPCError
         if (isMounted.current) {
-          setError(e as RPCError)
+          setError(error)
         }
       }
     },

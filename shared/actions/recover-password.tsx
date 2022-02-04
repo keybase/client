@@ -165,19 +165,19 @@ function* startRecoverPassword(
       },
       waitingKey: Constants.waitingKey,
     })
-  } catch (e_) {
-    const e = e_ as RPCError
+  } catch (error_) {
+    const error = error_ as RPCError
     hadError = true
-    logger.warn('RPC returned error: ' + e.message)
+    logger.warn('RPC returned error: ' + error.message)
     if (
       !(
-        e instanceof RPCError &&
-        (e.code === RPCTypes.StatusCode.sccanceled || e.code === RPCTypes.StatusCode.scinputcanceled)
+        error instanceof RPCError &&
+        (error.code === RPCTypes.StatusCode.sccanceled || error.code === RPCTypes.StatusCode.scinputcanceled)
       )
     ) {
       yield Saga.put(
         RecoverPasswordGen.createDisplayError({
-          error: new HiddenString(e.message),
+          error: new HiddenString(error.message),
         })
       )
     }

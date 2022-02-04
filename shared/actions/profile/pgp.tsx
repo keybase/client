@@ -66,10 +66,11 @@ function* generatePgp(state: Container.TypedState) {
       incomingCallMap: {'keybase.1.pgpUi.finished': () => {}},
       params: {createUids: {ids, useDefault: false}},
     })
-  } catch (e) {
+  } catch (error_) {
+    const error = error_ as RPCError
     // did we cancel?
-    if ((e as RPCError).code !== RPCTypes.StatusCode.scinputcanceled) {
-      throw e
+    if (error.code !== RPCTypes.StatusCode.scinputcanceled) {
+      throw error
     }
   }
   cancelTask.cancel()

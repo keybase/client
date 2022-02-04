@@ -93,10 +93,10 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
         tlfPath: action.payload.tlfPath,
       })
     )
-  } catch (err) {
-    const e = err as RPCError
-    if (e.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-      const users = e.fields?.filter((elem: any) => elem.key === 'usernames')
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+      const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
       const usernames = users?.map((elem: any) => elem.value)
       // Don't leave the user on a broken FS dir screen.
       return [
@@ -106,7 +106,7 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
         }),
       ]
     }
-    return errorToActionOrThrow(e, action.payload.tlfPath)
+    return errorToActionOrThrow(error, action.payload.tlfPath)
   }
 }
 
@@ -565,15 +565,16 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
         })
         await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.commitEditWaitingKey)
         return FsGen.createEditSuccess({editID})
-      } catch (e) {
+      } catch (error_) {
+        const error = error_ as RPCError
         if (
           [RPCTypes.StatusCode.scsimplefsnameexists, RPCTypes.StatusCode.scsimplefsdirnotempty].includes(
-            (e as RPCError).code
+            error.code
           )
         ) {
-          return FsGen.createEditError({editID, error: (e as RPCError).desc || 'name exists'})
+          return FsGen.createEditError({editID, error: error.desc || 'name exists'})
         }
-        throw e
+        throw error
       }
   }
 }
@@ -765,8 +766,9 @@ const checkKbfsServerReachabilityIfNeeded = async (action: ConfigGen.OsNetworkSt
   if (!action.payload.isInit) {
     try {
       await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
-    } catch (err) {
-      logger.warn(`failed to check KBFS reachability: ${(err as Error).message}`)
+    } catch (error_) {
+      const error = error_ as RPCError
+      logger.warn(`failed to check KBFS reachability: ${error.message}`)
     }
   }
   return null
@@ -849,12 +851,13 @@ const subscribePath = async (action: FsGen.SubscribePathPayload) => {
       topic: action.payload.topic,
     })
     return null
-  } catch (err) {
-    if ((err as RPCError).code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       // We'll handle this error in loadAdditionalTLF instead.
       return
     }
-    return errorToActionOrThrow(err, action.payload.path)
+    return errorToActionOrThrow(error, action.payload.path)
   }
 }
 

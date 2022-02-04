@@ -237,9 +237,7 @@ const styles = Styles.styleSheetCreate(() => ({
       flexGrow: 1,
     },
   }),
-  smallHeader: {
-    ...Styles.padding(0, Styles.globalMargins.xlarge),
-  },
+  smallHeader: {...Styles.padding(0, Styles.globalMargins.xlarge)},
 }))
 
 export default Team

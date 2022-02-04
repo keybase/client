@@ -6,7 +6,6 @@ import openURL from '../../../util/open-url'
 import * as Styles from '../../../styles'
 
 type OwnProps = Container.RouteProps
-
 export default Container.connect(
   state => ({_proofSuggestions: state.tracker2.proofSuggestions}),
   dispatch => ({

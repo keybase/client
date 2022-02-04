@@ -1,3 +1,4 @@
+/*
 import deviceSelector from './device-selector/index.stories'
 import error from './error/index.stories'
 import explainDevice from './explain-device/index.stories'
@@ -9,3 +10,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

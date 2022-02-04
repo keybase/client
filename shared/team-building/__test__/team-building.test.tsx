@@ -180,4 +180,4 @@ describe('team building list', () => {
   })
 })
 */
-export {}
+export default {}

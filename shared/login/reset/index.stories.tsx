@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import ResetModal from './modal'
@@ -23,3 +24,6 @@ const load = () => {
     .add('Confirm', () => <ConfirmReset />)
 }
 export default load
+*/
+
+export default {}

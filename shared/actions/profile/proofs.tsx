@@ -332,8 +332,8 @@ const submitCryptoAddress = async (
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.ProofStatus.ok}),
       RouteTreeGen.createNavigateAppend({path: ['profileConfirmOrPending']}),
     ]
-  } catch (e) {
-    const error = e as RPCError
+  } catch (error_) {
+    const error = error_ as RPCError
     logger.warn('Error making proof')
     return ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc})
   }

@@ -26,6 +26,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   )
   const ignored = status === RPCChatTypes.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
+
   const spinnerForLeave = Container.useSelector(state =>
     Container.anyWaiting(state, Constants.waitingKeyLeaveConversation)
   )
@@ -182,14 +183,6 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
         marginBottom: Styles.globalMargins.small,
         marginTop: Styles.globalMargins.small,
-      },
-      divider: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginTop: Styles.globalMargins.tiny,
-      },
-      membersContainer: {
-        flex: 1,
-        paddingTop: Styles.globalMargins.tiny,
       },
       retentionContainerStyle: Styles.platformStyles({
         common: {

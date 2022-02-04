@@ -1,3 +1,4 @@
+/*
 import confirmOrPending from './confirm-or-pending/index.stories'
 import editAvatar from './edit-avatar/index.stories'
 import folders from './folders/index.stories'
@@ -27,3 +28,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

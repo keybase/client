@@ -154,9 +154,7 @@ const styles = Styles.styleSheetCreate(() => ({
       flexGrow: 0,
       flexShrink: 1,
     },
-    isElectron: {
-      width: 'initial',
-    },
+    isElectron: {width: 'initial'},
   }),
   container: Styles.platformStyles({
     common: {
@@ -174,9 +172,7 @@ const styles = Styles.styleSheetCreate(() => ({
       flexDirection: 'column',
       height: 112,
     },
-    isTablet: {
-      height: 56,
-    },
+    isTablet: {height: 56},
   }),
   disabled: {backgroundColor: Styles.globalColors.white, opacity: 0.4},
   floatingRolePicker: Styles.platformStyles({
@@ -191,17 +187,13 @@ const styles = Styles.styleSheetCreate(() => ({
       alignItems: 'center',
       marginTop: 0,
     },
-    isMobile: {
-      marginTop: Styles.globalMargins.tiny,
-    },
+    isMobile: {marginTop: Styles.globalMargins.tiny},
   }),
   icon: {
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.tiny,
   },
-  ignoreButton: {
-    marginLeft: Styles.globalMargins.xtiny,
-  },
+  ignoreButton: {marginLeft: Styles.globalMargins.xtiny},
   letInButton: {
     backgroundColor: Styles.globalColors.green,
     marginLeft: Styles.globalMargins.xtiny,

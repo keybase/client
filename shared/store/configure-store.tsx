@@ -33,7 +33,8 @@ let lastError = new Error('')
 const errorCatching = () => next => action => {
   try {
     return next(action)
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as any
     // Don't let the same error keep getting caught
     if (lastError.message === (error as Error).message) {
       return

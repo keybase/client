@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Storybook from '../stories/storybook'
 import * as Kb from '../common-adapters'
@@ -167,3 +168,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

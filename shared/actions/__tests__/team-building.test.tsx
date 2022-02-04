@@ -352,4 +352,4 @@ describe('Extra search', () => {
   })
 })
 */
-export {}
+export default {}

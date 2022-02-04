@@ -87,7 +87,7 @@ const ElectronApp = () => {
 
   return (
     <NavigationContainer
-      ref={Constants.navigationRef_}
+      ref={Constants.navigationRef_ as any}
       key={String(navKey)}
       theme={Shared.theme}
       initialState={initialState}

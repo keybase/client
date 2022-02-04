@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {storiesOf} from '../../../../../stories/storybook'
 import SendIndicator from '.'
@@ -16,3 +17,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

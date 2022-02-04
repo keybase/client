@@ -91,7 +91,8 @@ const AttachmentPopupMenu = (props: Props) => {
       ? [{icon: 'iconfont-link', onClick: props.onCopyLink, title: 'Copy a link to this message'}]
       : []),
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
-    ...(props.isEditable
+    //@ts-ignore
+    ...(props.onEdit && props.isEditable
       ? [
           {
             icon: 'iconfont-edit',

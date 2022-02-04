@@ -52,5 +52,5 @@ describe('serviceMessageTypeToMessageTypes', () => {
     expect(handledTypes.sort()).toEqual(serviceTypes.sort())
   })
 })
- */
-export {}
+*/
+export default {}

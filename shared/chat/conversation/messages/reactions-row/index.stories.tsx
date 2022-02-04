@@ -1,3 +1,4 @@
+/*
 import {Rnd} from '../../../../stories/storybook'
 import * as Types from '../../../../constants/types/chat2'
 import {emojiIndexByName} from '../../../../common-adapters/markdown/emoji-gen'
@@ -28,3 +29,6 @@ export const propProvider = {
     ordinal: props.ordinal,
   }),
 }
+*/
+
+export default {}

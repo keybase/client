@@ -126,4 +126,4 @@ describe('TransportShared', () => {
   })
 })
 */
-export {}
+export default {}

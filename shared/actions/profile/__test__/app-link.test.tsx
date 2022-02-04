@@ -110,4 +110,4 @@ describe('urlToTeamLink', () => {
   })
 })
 */
-export {}
+export default {}

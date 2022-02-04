@@ -5,7 +5,7 @@ import * as WaitingConstants from './waiting'
 import * as ChatConstants from './chat2'
 import {getMeta} from './chat2/meta'
 import * as RPCTypes from './types/rpc-gen'
-import {RPCError} from 'util/errors'
+import {RPCError} from '../util/errors'
 import {ContactResponse} from 'expo-contacts'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 

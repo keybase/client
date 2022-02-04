@@ -39,5 +39,5 @@ describe('emoji data processing', () => {
     expect(missingEmojis.sort()).toEqual(searchIndexOmissions)
   })
 })
- */
-export {}
+*/
+export default {}

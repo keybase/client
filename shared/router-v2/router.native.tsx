@@ -335,7 +335,7 @@ const RNApp = React.memo(() => {
       <NavigationContainer
         fallback={<Kb.NativeView style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
         linking={goodLinking}
-        ref={Constants.navigationRef_}
+        ref={Constants.navigationRef_ as any}
         key={String(navKey)}
         theme={Shared.theme}
         initialState={initialState}

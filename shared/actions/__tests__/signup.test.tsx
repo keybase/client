@@ -349,4 +349,4 @@ describe('actually sign up', () => {
   })
 })
 */
-export {}
+export default {}

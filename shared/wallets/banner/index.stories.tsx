@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {Box} from '../../common-adapters'
 import Banner, {Props} from '.'
@@ -38,3 +39,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
 /*
 import * as React from 'react'
 import * as Sb from './storybook'
@@ -105,4 +106,5 @@ const load = () => {
 
 export default load
 */
-export {}
+
+export default {}

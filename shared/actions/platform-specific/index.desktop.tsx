@@ -17,6 +17,7 @@ import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
 import {_getNavigator} from '../../constants/router2'
+import {RPCError} from '../../util/errors'
 
 const {resolve} = KB.path
 const {argv, env, pid} = KB.process
@@ -121,7 +122,7 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
             }
             const result = JSON.parse(stdout.toString())
             if (result.isOwner) {
-              resolve()
+              resolve(undefined)
               return
             }
             logger.info(`pipeowner check result: ${stdout.toString()}`)
@@ -136,11 +137,12 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
         version: action.payload.version,
       })
     )
-  } catch (e) {
+  } catch (error_) {
+    const error = error_ as RPCError
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
         failedFatal: true,
-        failedReason: (e as Error).message || 'windows pipe owner fail',
+        failedReason: error.message || 'windows pipe owner fail',
         increment: false,
         name: waitKey,
         version: action.payload.version,

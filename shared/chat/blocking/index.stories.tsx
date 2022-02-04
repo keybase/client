@@ -1,4 +1,4 @@
-/* eslint-disable sort-keys */
+/*
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import BlockModal from './block-modal/container'
@@ -83,3 +83,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}
