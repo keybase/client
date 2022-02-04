@@ -11,18 +11,18 @@ import landing from './landing/index.stories'
 import files from './files/index.stories'
 
 const load = () => {
-  // ;[
-  //   account,
-  //   password,
-  //   deleteConfirm,
-  //   notifications,
-  //   inviteGenerated,
-  //   invites,
-  //   nav,
-  //   chat,
-  //   landing,
-  //   files,
-  // ].forEach(load => load())
+  ;[
+    account,
+    password,
+    deleteConfirm,
+    notifications,
+    inviteGenerated,
+    invites,
+    nav,
+    chat,
+    landing,
+    files,
+  ].forEach(load => load())
 }
 
 export default load

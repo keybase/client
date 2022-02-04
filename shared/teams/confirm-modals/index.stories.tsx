@@ -12,27 +12,27 @@ const storeWithSelection = Container.produce(store, draftState => {
 })
 
 const load = () => {
-  // reallyLeaveTeam()
-  // Sb.storiesOf('Teams/Confirm modals', module)
-  //   .addDecorator((story: any) => <Sb.MockStore store={storeWithSelection}>{story()}</Sb.MockStore>)
-  //   .add('Kick out of team - single', () => (
-  //     <ConfirmKickOut {...Sb.createNavigator({members: ['chris'], teamID: fakeTeamID})} />
-  //   ))
-  //   .add('Kick out of team - multiple', () => (
-  //     <ConfirmKickOut
-  //       {...Sb.createNavigator({
-  //         members: ['chris', 'adamjspooner', 'ayoubd', 'chrisnojima', 'jzila', 'max'],
-  //         teamID: fakeTeamID,
-  //       })}
-  //     />
-  //   ))
-  //   .add('Delete channel', () => (
-  //     <DeleteChannel
-  //       {...Sb.createNavigator({
-  //         teamID: fakeTeamID,
-  //       })}
-  //     />
-  //   ))
+  reallyLeaveTeam()
+  Sb.storiesOf('Teams/Confirm modals', module)
+    .addDecorator((story: any) => <Sb.MockStore store={storeWithSelection}>{story()}</Sb.MockStore>)
+    .add('Kick out of team - single', () => (
+      <ConfirmKickOut {...Sb.createNavigator({members: ['chris'], teamID: fakeTeamID})} />
+    ))
+    .add('Kick out of team - multiple', () => (
+      <ConfirmKickOut
+        {...Sb.createNavigator({
+          members: ['chris', 'adamjspooner', 'ayoubd', 'chrisnojima', 'jzila', 'max'],
+          teamID: fakeTeamID,
+        })}
+      />
+    ))
+    .add('Delete channel', () => (
+      <DeleteChannel
+        {...Sb.createNavigator({
+          teamID: fakeTeamID,
+        })}
+      />
+    ))
 }
 
 export default load

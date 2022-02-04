@@ -58,19 +58,19 @@ const addStories = story =>
   ].forEach(pathStr => story.add(pathStr, () => <TestWrapper path={Types.stringToPath(pathStr)} />))
 
 export default () => {
-  // addStories(Sb.storiesOf('Files/NavHeaders', module).addDecorator(provider))
-  //
-  // Sb.storiesOf('Files/Banners', module)
-  //   .addDecorator(provider)
-  //   .add('Trying to connect', () => (
-  //     <MainBanner {...Sb.propOverridesForStory({bannerType: Types.MainBannerType.TryingToConnect})} />
-  //   ))
-  //   .add('Out of space', () => (
-  //     <MainBanner {...Sb.propOverridesForStory({bannerType: Types.MainBannerType.OutOfSpace})} />
-  //   ))
-  //   .add('Offline', () => (
-  //     <MainBanner {...Sb.propOverridesForStory({bannerType: Types.MainBannerType.Offline})} />
-  //   ))
+  addStories(Sb.storiesOf('Files/NavHeaders', module).addDecorator(provider))
+
+  Sb.storiesOf('Files/Banners', module)
+    .addDecorator(provider)
+    .add('Trying to connect', () => (
+      <MainBanner {...Sb.propOverridesForStory({bannerType: Types.MainBannerType.TryingToConnect})} />
+    ))
+    .add('Out of space', () => (
+      <MainBanner {...Sb.propOverridesForStory({bannerType: Types.MainBannerType.OutOfSpace})} />
+    ))
+    .add('Offline', () => (
+      <MainBanner {...Sb.propOverridesForStory({bannerType: Types.MainBannerType.Offline})} />
+    ))
 }
 */
 

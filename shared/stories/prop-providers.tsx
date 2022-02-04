@@ -1,6 +1,5 @@
 /*
 // TODO deprecated
-/*
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import {OwnProps as ReloadableOwnProps, Props as ReloadableProps} from '../common-adapters/reload'
