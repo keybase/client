@@ -226,7 +226,7 @@ const loadWelcomeMessage = async (action: TeamsGen.LoadWelcomeMessagePayload, lo
   } catch (error_) {
     const error = error_ as RPCError
     logger.error(error)
-    return TeamsGen.createSettingsError({error: (error as RPCError).desc})
+    return TeamsGen.createSettingsError({error: error.desc})
   }
 }
 
@@ -241,7 +241,7 @@ const setWelcomeMessage = async (action: TeamsGen.SetWelcomeMessagePayload, logg
   } catch (error_) {
     const error = error_ as RPCError
     logger.error(error)
-    return TeamsGen.createSetWelcomeMessageError({error: (error as RPCError).desc})
+    return TeamsGen.createSetWelcomeMessageError({error: error.desc})
   }
 }
 

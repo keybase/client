@@ -303,7 +303,7 @@ const reviewPayment = async (state: TypedState) => {
       // failing review and then we build or stop a payment
       return undefined
     } else {
-      return WalletsGen.createSentPaymentError({error: (error as RPCError).desc})
+      return WalletsGen.createSentPaymentError({error: error.desc})
     }
   }
 }

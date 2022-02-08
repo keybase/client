@@ -601,7 +601,7 @@ const forgotUsername = async (action: ProvisionGen.ForgotUsernamePayload) => {
     } catch (error_) {
       const error = error_ as RPCError
       return ProvisionGen.createForgotUsernameResult({
-        result: Constants.decodeForgotUsernameError(error as RPCError),
+        result: Constants.decodeForgotUsernameError(error),
       })
     }
   }
@@ -615,7 +615,7 @@ const forgotUsername = async (action: ProvisionGen.ForgotUsernamePayload) => {
     } catch (error_) {
       const error = error_ as RPCError
       return ProvisionGen.createForgotUsernameResult({
-        result: Constants.decodeForgotUsernameError(error as RPCError),
+        result: Constants.decodeForgotUsernameError(error),
       })
     }
   }
