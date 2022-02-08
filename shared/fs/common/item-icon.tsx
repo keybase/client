@@ -67,11 +67,11 @@ export type TlfTypeIconProps = {
 const getTlfTypeIcon = (size: Size, tlfType: Types.TlfType) => {
   switch (tlfType) {
     case Types.TlfType.Private:
-      return <Kb.Icon type={icons.tlfList.private[getIconSizeString(size)]} />
+      return <Kb.Icon fixOverdraw={true} type={icons.tlfList.private[getIconSizeString(size)]} />
     case Types.TlfType.Public:
-      return <Kb.Icon type={icons.tlfList.public[getIconSizeString(size)]} />
+      return <Kb.Icon fixOverdraw={true} type={icons.tlfList.public[getIconSizeString(size)]} />
     case Types.TlfType.Team:
-      return <Kb.Icon type={icons.tlfList.team[getIconSizeString(size)]} />
+      return <Kb.Icon fixOverdraw={true} type={icons.tlfList.team[getIconSizeString(size)]} />
   }
 }
 
@@ -84,7 +84,7 @@ export const TlfTypeIcon = (props: TlfTypeIconProps) => {
       {getTlfTypeIcon(props.size, props.tlfType)}
       {props.badgeOverride ? (
         <Kb.Box style={styles.badgeContainer}>
-          <Kb.Icon type={props.badgeOverride} style={badgeStyle.rightBottomBadge} />
+          <Kb.Icon fixOverdraw={true} type={props.badgeOverride} style={badgeStyle.rightBottomBadge} />
           color={Styles.globalColors.greyDarker}
         </Kb.Box>
       ) : (
@@ -110,11 +110,12 @@ const TlfIcon = (props: TlfIconProps) => (
     {props.tlfTypeForFolderIconOverride ? (
       getTlfTypeIcon(props.size, props.tlfTypeForFolderIconOverride)
     ) : (
-      <Kb.Icon type={icons.folder[getIconSizeString(props.size)]} />
+      <Kb.Icon fixOverdraw={true} type={icons.folder[getIconSizeString(props.size)]} />
     )}
     {!!props.badgeOverride && (
       <Kb.Box style={styles.badgeContainer}>
         <Kb.Icon
+          fixOverdraw={true}
           type={props.badgeOverride}
           style={badgeStyles[getIconSizeString(props.size)].rightBottomBadge}
           color={Styles.globalColors.greyDarker}
@@ -175,7 +176,7 @@ const ItemIcon = (props: ItemIconProps) => {
   const parsedPath = Constants.parsePath(props.path)
   switch (parsedPath.kind) {
     case Types.PathKind.Root:
-      return <Kb.Icon type={icons['folder'][getIconSizeString(props.size)]} />
+      return <Kb.Icon fixOverdraw={true} type={icons['folder'][getIconSizeString(props.size)]} />
     case Types.PathKind.TlfList:
       return (
         <TlfTypeIcon

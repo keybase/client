@@ -78,12 +78,15 @@ const Avatar = (props: Props) => {
       {(!!props.borderColor || props.isTeam) && (
         <div
           style={Styles.collapseStyles([
-            props.isTeam ? styles.borderTeam : styles.border,
-            props.borderColor && {
-              boxShadow: `0px 0px 0px ${props.isTeam ? 1 : 2}px ${props.borderColor ||
-                Styles.globalColors.black_10} ${props.isTeam ? 'inset' : ''}`,
-            },
-          ])}
+            props.isTeam && styles.borderTeam,
+            !props.isTeam && styles.border,
+            props.borderColor &&
+              ({
+                boxShadow: `0px 0px 0px ${props.isTeam ? 1 : 2}px ${
+                  props.borderColor || Styles.globalColors.black_10
+                } ${props.isTeam ? 'inset' : ''}`,
+              } as const),
+          ] as const)}
           className={Styles.classNames(
             {'avatar-border': !props.isTeam, 'avatar-border-team': props.isTeam},
             avatarSizeClasName
@@ -102,11 +105,11 @@ const styles = Styles.styleSheetCreate(
     ({
       border: Styles.platformStyles({
         isElectron: {boxShadow: `0px 0px 0px 2px ${Styles.globalColors.black_10}}`},
-      }),
+      } as const),
       borderTeam: Styles.platformStyles({
         isElectron: {boxShadow: `0px 0px 0px 1px ${Styles.globalColors.black_10} inset`},
-      }),
-      clickable: Styles.platformStyles({isElectron: {...Styles.desktopStyles.clickable}}),
+      } as const),
+      clickable: Styles.platformStyles({isElectron: {...Styles.desktopStyles.clickable}} as const),
       edit: {
         bottom: 0,
         position: 'absolute',

@@ -60,6 +60,7 @@ const getPrefixText = (props: Props) =>
   props.mixedMode && props.tlfType ? (
     <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true}>
       <Kb.Text
+        fixOverdraw={true}
         type="BodySmall"
         style={props.mode === 'default' ? styles.textDefault : styles.textRow}
         lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
@@ -72,6 +73,7 @@ const getPrefixText = (props: Props) =>
 const timeText = (props: Props) =>
   props.tlfMtime ? (
     <Kb.Text
+      fixOverdraw={true}
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
       lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
@@ -100,6 +102,7 @@ const TlfInfoLine = (props: Props) => {
   const prefix = getPrefixText(props)
   const dot = (
     <Kb.Text
+      fixOverdraw={true}
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
       lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}

@@ -108,15 +108,14 @@ const TeamPicker = (props: Props) => {
   }
   return (
     <Kb.Modal
+      noScrollView={true}
       onClose={onClose}
       header={{
         leftButton: Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         title: 'Forward to team or chat',
       }}
     >

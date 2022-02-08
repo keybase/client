@@ -23,6 +23,7 @@ const SectionList = React.forwardRef<NativeSectionList, Props<any>>(
     const NativeSectionListAny = NativeSectionList as any
     return (
       <NativeSectionListAny
+        overScrollMode="never"
         onScrollToIndexFailed={noop}
         ref={forwardedRef}
         {...rest}
