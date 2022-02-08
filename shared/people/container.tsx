@@ -38,7 +38,7 @@ export class LoadOnMount extends React.PureComponent<Props> {
     headerRight: () => <HeaderAvatar />,
     headerTitle: () => <ProfileSearch />,
   }
-  _onReload = () => this.props.getData(false)
+  _onReload = () => this.props.getData(false, !this.props.followSuggestions.length)
   _getData = (markViewed?: boolean, force?: boolean) => this.props.getData(markViewed, force)
   _onClickUser = (username: string) => this.props.onClickUser(username)
   render() {
