@@ -1,0 +1,12 @@
+diff --git a/RNFastImage.podspec b/RNFastImage.podspec
+index db0fada..47dbd5b 100644
+--- a/RNFastImage.podspec
++++ b/RNFastImage.podspec
+@@ -16,6 +16,6 @@ Pod::Spec.new do |s|
+   s.source_files  = "ios/**/*.{h,m}"
+ 
+   s.dependency 'React-Core'
+-  s.dependency 'SDWebImage', '~> 5.11.1'
++  s.dependency 'SDWebImage', '~> 5.12.1'
+   s.dependency 'SDWebImageWebPCoder', '~> 0.8.4'
+ end

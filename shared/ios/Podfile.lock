@@ -1,7 +1,7 @@
 PODS:
   - boost (1.76.0)
   - DoubleConversion (1.1.6)
-  - EXApplication (4.0.1):
+  - EXApplication (4.0.2):
     - ExpoModulesCore
   - EXAV (10.1.3):
     - ExpoModulesCore
@@ -10,22 +10,22 @@ PODS:
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
-  - EXConstants (13.0.1):
+  - EXConstants (13.0.2):
     - ExpoModulesCore
   - EXContacts (10.1.0):
     - ExpoModulesCore
-  - EXErrorRecovery (3.0.4):
+  - EXErrorRecovery (3.0.5):
     - ExpoModulesCore
   - EXFileSystem (13.1.1):
     - ExpoModulesCore
-  - EXFont (10.0.4):
+  - EXFont (10.0.5):
     - ExpoModulesCore
-  - EXImageLoader (3.1.0):
+  - EXImageLoader (3.1.1):
     - ExpoModulesCore
     - React-Core
   - EXImagePicker (12.0.1):
     - ExpoModulesCore
-  - EXKeepAwake (10.0.1):
+  - EXKeepAwake (10.0.2):
     - ExpoModulesCore
   - EXMailComposer (11.1.0):
     - ExpoModulesCore
@@ -359,7 +359,7 @@ PODS:
     - React-Core
   - RNFastImage (8.5.11):
     - React-Core
-    - SDWebImage (~> 5.11.1)
+    - SDWebImage (~> 5.12.1)
     - SDWebImageWebPCoder (~> 0.8.4)
   - RNGestureHandler (1.10.3):
     - React-Core
@@ -394,9 +394,9 @@ PODS:
   - RNScreens (3.10.2):
     - React-Core
     - React-RCTImage
-  - SDWebImage (5.11.1):
-    - SDWebImage/Core (= 5.11.1)
-  - SDWebImage/Core (5.11.1)
+  - SDWebImage (5.12.3):
+    - SDWebImage/Core (= 5.12.3)
+  - SDWebImage/Core (5.12.3)
   - SDWebImageWebPCoder (0.8.4):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
@@ -625,17 +625,17 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
-  EXApplication: bdc8dc27713235565da1029a34385229f31b8e08
+  EXApplication: 54fe5bd6268d697771645e8f1aef8b806a65247a
   EXAV: 8adf9a1c0161144d77e96149a1e5a5f9358be290
   EXBarCodeScanner: 7deeeb35f396ce9a13434a75b581c19fc2564205
-  EXConstants: 6966f4fa7a22770dd240a66d029819ff94c748c9
+  EXConstants: 88bf79622fbd9b476c96d8ec57fe97ca44fe8e3c
   EXContacts: dc86ef0069dad7fa89096d6023b292047c5f7210
-  EXErrorRecovery: deea88a01d38f8b1c1181b4e1d179b0ba0e4bb5b
+  EXErrorRecovery: b0d7582714a2cc896e94a2308a356f94dbf14ef7
   EXFileSystem: 6545bf5f2944a38f3c1e14559639d379a708c8dc
-  EXFont: 1fb13af43dc517c01c0ff21a6e32f9f9bf2ea602
-  EXImageLoader: df83442d32bcfb57b7cfc5690096b6caf8203f8d
+  EXFont: 2597c10ac85a69d348d44d7873eccf5a7576ef5e
+  EXImageLoader: 347b72c2ec2df65120ccec40ea65a4c4f24317ff
   EXImagePicker: 91337b8d57a0a8f56800b9ac0f2b2f10aecf88ce
-  EXKeepAwake: b571c2ad8323b2fced6e907766e2549f75119471
+  EXKeepAwake: bf48d7f740a5cd2befed6cf9a49911d385c6c47d
   EXMailComposer: 644af6884933ff15eb22711d5be5289d1ae902c5
   EXPermissions: f4c65fa770489cbf16ea17c3013a670671525014
   Expo: 337c72b7e9314e93023af79c875930db8e008275
@@ -687,11 +687,11 @@ SPEC CHECKSUMS:
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
   RNCPushNotificationIOS: 87b8d16d3ede4532745e05b03c42cff33a36cc45
-  RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
+  RNFastImage: ebb19e12093e819d982a41eda1527053624f4dd7
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNReanimated: da3860204e5660c0dd66739936732197d359d753
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
-  SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
+  SDWebImage: 53179a2dba77246efa8a9b85f5c5b21f8f43e38f
   SDWebImageWebPCoder: f93010f3f6c031e2f8fb3081ca4ee6966c539815
   Yoga: e7dc4e71caba6472ff48ad7d234389b91dadc280
   ZXingObjC: fdbb269f25dd2032da343e06f10224d62f537bdb
