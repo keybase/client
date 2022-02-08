@@ -1315,7 +1315,7 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@expo/config-plugins@4.0.16", "@expo/config-plugins@^4.0.2":
+"@expo/config-plugins@4.0.16", "@expo/config-plugins@^4.0.14", "@expo/config-plugins@^4.0.2":
   version "4.0.16"
   resolved "https://registry.yarnpkg.com/@expo/config-plugins/-/config-plugins-4.0.16.tgz#832fb533245180c6dfd82fd359474f68a8e857b2"
   integrity sha512-UTyE5JTBatMSwoOZCtX0u2H3zkp/ybMftc1228ARMop35Dbq+sYO11Ym3MrY5RPh8PYPofokDSOvoUq1jjORXw==
@@ -4635,6 +4635,14 @@ expo-keep-awake@~10.0.1:
   version "10.0.2"
   resolved "https://registry.yarnpkg.com/expo-keep-awake/-/expo-keep-awake-10.0.2.tgz#706bda839782bb3e8ad4cbe43bde471a56368813"
   integrity sha512-Ro1lgyKldbFs4mxhWM+goX9sg0S2SRR8FiJJeOvaRzf8xNhrZfWA00Zpr+/3ocCoWQ3eEL+X9UF4PXXHf0KoOg==
+
+expo-location@14.1.0:
+  version "14.1.0"
+  resolved "https://registry.yarnpkg.com/expo-location/-/expo-location-14.1.0.tgz#eea7e0b903e77fb5658287ccc90c8c7fba40c9ca"
+  integrity sha512-9nhfW1Fv7aTqoJdRDI+YIOjGw9pTyJZOYtbvL6k5Kwyv24znh7D6A/fsLYL49A3xSJrGu0+p9KugjGySeQPayg==
+  dependencies:
+    "@expo/config-plugins" "^4.0.14"
+    unimodules-task-manager-interface "~7.1.0"
 
 expo-mail-composer@11.1.0:
   version "11.1.0"
@@ -9713,6 +9721,11 @@ unicode-property-aliases-ecmascript@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/unicode-property-aliases-ecmascript/-/unicode-property-aliases-ecmascript-2.0.0.tgz#0a36cb9a585c4f6abd51ad1deddb285c165297c8"
   integrity sha512-5Zfuy9q/DFr4tfO7ZPeVXb1aPoeQSdeFMLpYuFebehDAhbuevLs5yxSZmIFN1tP5F9Wl4IpJrYojg85/zgyZHQ==
+
+unimodules-task-manager-interface@~7.1.0:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/unimodules-task-manager-interface/-/unimodules-task-manager-interface-7.1.1.tgz#1d48585012018971a0f0b62bc5ac53508a7addb4"
+  integrity sha512-vvtxJO3O6fJXvSc9qvgB2FS9xJk2nWG4NOvwCMmTmfblmvzGPFcTheOKzV7Z1dvjlqTZZ+TDqd5XOGa+0+NXVA==
 
 union-value@^1.0.0:
   version "1.0.1"

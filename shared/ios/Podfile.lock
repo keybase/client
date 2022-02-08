@@ -27,6 +27,9 @@ PODS:
     - ExpoModulesCore
   - EXKeepAwake (10.0.2):
     - ExpoModulesCore
+  - EXLocation (14.1.0):
+    - ExpoModulesCore
+    - UMTaskManagerInterface
   - EXMailComposer (11.1.0):
     - ExpoModulesCore
   - EXPermissions (13.1.0):
@@ -400,6 +403,8 @@ PODS:
   - SDWebImageWebPCoder (0.8.4):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
+  - UMTaskManagerInterface (7.1.1):
+    - ExpoModulesCore
   - Yoga (1.14.0)
   - ZXingObjC/Core (3.6.5)
   - ZXingObjC/OneD (3.6.5):
@@ -421,6 +426,7 @@ DEPENDENCIES:
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - EXImagePicker (from `../node_modules/expo-image-picker/ios`)
   - EXKeepAwake (from `../node_modules/expo-keep-awake/ios`)
+  - EXLocation (from `../node_modules/expo-location/ios`)
   - EXMailComposer (from `../node_modules/expo-mail-composer/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - Expo (from `../node_modules/expo/ios`)
@@ -476,6 +482,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - UMTaskManagerInterface (from `../node_modules/unimodules-task-manager-interface/ios`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -513,6 +520,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-image-picker/ios"
   EXKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
+  EXLocation:
+    :path: "../node_modules/expo-location/ios"
   EXMailComposer:
     :path: "../node_modules/expo-mail-composer/ios"
   EXPermissions:
@@ -619,6 +628,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  UMTaskManagerInterface:
+    :path: "../node_modules/unimodules-task-manager-interface/ios"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -636,6 +647,7 @@ SPEC CHECKSUMS:
   EXImageLoader: 347b72c2ec2df65120ccec40ea65a4c4f24317ff
   EXImagePicker: 91337b8d57a0a8f56800b9ac0f2b2f10aecf88ce
   EXKeepAwake: bf48d7f740a5cd2befed6cf9a49911d385c6c47d
+  EXLocation: 973927cbd5fb4ebf0eb72c37b2078cee1478bd1b
   EXMailComposer: 644af6884933ff15eb22711d5be5289d1ae902c5
   EXPermissions: f4c65fa770489cbf16ea17c3013a670671525014
   Expo: 337c72b7e9314e93023af79c875930db8e008275
@@ -693,6 +705,7 @@ SPEC CHECKSUMS:
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
   SDWebImage: 53179a2dba77246efa8a9b85f5c5b21f8f43e38f
   SDWebImageWebPCoder: f93010f3f6c031e2f8fb3081ca4ee6966c539815
+  UMTaskManagerInterface: 3184c93ecc290bd422c6e344badc89b601e9c29b
   Yoga: e7dc4e71caba6472ff48ad7d234389b91dadc280
   ZXingObjC: fdbb269f25dd2032da343e06f10224d62f537bdb
 

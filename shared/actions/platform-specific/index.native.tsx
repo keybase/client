@@ -35,6 +35,7 @@ import {AudioRecorder} from 'react-native-audio'
 import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
 import {RPCError} from '../../util/errors'
+import type PermissionsType from 'expo-permissions'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -58,7 +59,7 @@ const requestPermissionsToWrite = async () => {
 export const requestAudioPermission = async () => {
   let chargeForward = true
   // TODO use expo-av etc and unify around that
-  const Permissions = require('expo-permissions')
+  const Permissions: typeof PermissionsType = require('expo-permissions')
   let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
   if (status === Permissions.PermissionStatus.UNDETERMINED) {
     if (isIOS) {
@@ -82,7 +83,7 @@ export const requestAudioPermission = async () => {
 
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
   if (isIOS) {
-    const Permissions = require('expo-permissions')
+    const Permissions: typeof PermissionsType = require('expo-permissions')
     const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
     switch (mode) {
       case RPCChatTypes.UIWatchPositionPerm.base:
@@ -91,8 +92,8 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
         }
         break
       case RPCChatTypes.UIWatchPositionPerm.always: {
-        const iOSPerms = permissions[Permissions.LOCATION].ios
-        if (!iOSPerms || iOSPerms.scope !== 'always') {
+        const perms = permissions[Permissions.LOCATION]
+        if (perms?.scope !== 'always') {
           throw new Error(
             'Please allow Keybase to access your location even if the app is not running for live location.'
           )
@@ -441,7 +442,7 @@ const openAppStore = () =>
   ).catch(() => {})
 
 const expoPermissionStatusMap = () => {
-  const Permissions = require('expo-permissions')
+  const Permissions: typeof PermissionsType = require('expo-permissions')
   return {
     [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
     [Permissions.PermissionStatus.DENIED]: 'never_ask_again' as const,
@@ -451,7 +452,7 @@ const expoPermissionStatusMap = () => {
 
 const loadContactPermissionFromNative = async () => {
   if (isIOS) {
-    const Permissions = require('expo-permissions')
+    const Permissions: typeof PermissionsType = require('expo-permissions')
     return expoPermissionStatusMap()[(await Permissions.getAsync(Permissions.CONTACTS)).status]
   }
   return (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
@@ -491,7 +492,7 @@ const askForContactPermissionsAndroid = async () => {
 }
 
 const askForContactPermissionsIOS = async () => {
-  const Permissions = require('expo-permissions')
+  const Permissions: typeof PermissionsType = require('expo-permissions')
   const {status} = await Permissions.askAsync(Permissions.CONTACTS)
   return expoPermissionStatusMap()[status]
 }
