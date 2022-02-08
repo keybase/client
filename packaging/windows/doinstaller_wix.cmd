@@ -4,12 +4,6 @@
 ::
 set GOARCH=amd64
 
-echo TEMP NOSIGN
-set SIGNTOOL=echo
-set CONFIGURATION=Debug
-set KEYBASE_WINBUILD=0
-echo TEMP NOSIGN
-
 echo %KEYBASE_SECRET_STORE_FILE%
 :: This has to be reset too for a separate batch command
 if DEFINED BUILD_NUMBER set KEYBASE_WINBUILD=%BUILD_NUMBER%
@@ -21,6 +15,12 @@ if "%~1"=="debug" (
   if NOT DEFINED KEYBASE_WINBUILD set KEYBASE_WINBUILD=0
 )
 set CERTISSUER=DigiCert
+
+echo TEMP NOSIGN 2
+set SIGNTOOL=echo
+set CONFIGURATION=Debug
+set KEYBASE_WINBUILD=0
+echo TEMP NOSIGN 2
 
 ::
 :: get the target build folder. Assume winresource.exe has been built.
