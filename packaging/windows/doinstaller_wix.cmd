@@ -5,6 +5,8 @@
 set GOARCH=amd64
 
 echo TEMP NOSIGN
+set SIGNTOOL=echo
+set CONFIGURATION=Debug
 set KEYBASE_WINBUILD=0
 echo TEMP NOSIGN
 
