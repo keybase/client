@@ -71,13 +71,13 @@ if (__DEV__) {
 }
 
 // uncomment if doing local archive builds
-const debuggingOnLocalArchiveBuild = true
-if (debuggingOnLocalArchiveBuild) {
-  for (let i = 0; i < 50; ++i) {
-    console.log('TEMP dev push token!')
-  }
-  config.isDevApplePushToken = true
-}
+// const debuggingOnLocalArchiveBuild = true
+// if (debuggingOnLocalArchiveBuild) {
+//   for (let i = 0; i < 50; ++i) {
+//     console.log('TEMP dev push token!')
+//   }
+//   config.isDevApplePushToken = true
+// }
 
 // const debuggingReleaseBuild = false
 // if (debuggingReleaseBuild) {
