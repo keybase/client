@@ -69,13 +69,16 @@ git log -n 3
 
 cd "$shared_dir"
 
-# if [ ! "$cache_npm" = "1" ]; then
 echo "Cleaning up main node_modules from previous runs"
 rm -rf node_modules
 yarn modules
 echo "Ensuring correct"
 yarn --check-files
-# fi
+
+echo "Cocoapods"
+cd ios
+pod install
+cd ..
 
 if [ ! "$cache_go_lib" = "1" ]; then
   echo "Building Go library"
