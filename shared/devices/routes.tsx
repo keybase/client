@@ -1,9 +1,9 @@
 import {newRoutes as provisionNewRoutes} from '../provision/routes'
-import DevicePage from './device-page/container'
-import DeviceRevoke from './device-revoke/container'
-import DevicesRoot from './container'
-import DeviceAdd from './add-device/container'
-import DevicePaperKey from './paper-key'
+import type DevicePage from './device-page/container'
+import type DeviceRevoke from './device-revoke/container'
+import type DevicesRoot from './container'
+import type DeviceAdd from './add-device/container'
+import type DevicePaperKey from './paper-key'
 
 export const newRoutes = {
   devicePage: {getScreen: (): typeof DevicePage => require('./device-page/container').default},

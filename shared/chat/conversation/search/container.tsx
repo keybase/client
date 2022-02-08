@@ -11,7 +11,7 @@ type OwnProps = {
   style?: Styles.StylesCrossPlatform
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, {conversationIDKey}: OwnProps) => {
     const info = Constants.getThreadSearchInfo(state, conversationIDKey)
     return {
@@ -52,6 +52,5 @@ export default Container.namedConnect(
     selfHide: dispatchProps.selfHide,
     status: stateProps.status,
     style,
-  }),
-  'ThreadSearch'
+  })
 )(ThreadSearch)

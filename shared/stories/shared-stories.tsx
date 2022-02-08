@@ -1,3 +1,4 @@
+/*
 import chat from '../chat/index.stories'
 import common from '../common-adapters/index.stories'
 import crypto from '../crypto/index.stories'
@@ -39,3 +40,6 @@ const stories = {
 }
 
 export default stories
+*/
+
+export default {}

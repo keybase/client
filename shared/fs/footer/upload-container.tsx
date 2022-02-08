@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
-import {compose, namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import Upload, {UploadProps} from './upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from './upload-countdown-hoc'
 import * as Constants from '../../constants/fs'
@@ -68,8 +68,8 @@ const mergeProps = ({_kbfsDaemonStatus, _pathItems, _uploads}, {debugToggleShow}
     isOnline: _kbfsDaemonStatus.onlineStatus !== Types.KbfsDaemonOnlineStatus.Offline,
   } as UploadCountdownHOCProps)
 
-export default compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedUpload'),
+export default Container.compose(
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   UploadCountdownHOC
 )((props: UploadProps) => {
   return <Upload {...props} />

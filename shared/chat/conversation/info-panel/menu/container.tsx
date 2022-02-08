@@ -24,7 +24,7 @@ export type OwnProps = {
 
 // TODO convProps was being made all the time and thrashing
 // how this works should change. i just normalized this so it doesn't thrash
-export default Container.namedConnect(
+export default Container.connect(
   (state, {conversationIDKey, isSmallTeam, teamID: _teamID, visible}: OwnProps) => {
     let _convPropsFullname: ConvProps['fullname'] | undefined
     let _convPropsIgnored: ConvProps['ignored'] | undefined
@@ -198,6 +198,5 @@ export default Container.namedConnect(
       teamname: s.teamname,
       visible: o.visible,
     }
-  },
-  'TeamDropdownMenu'
+  }
 )(InfoPanelMenu)

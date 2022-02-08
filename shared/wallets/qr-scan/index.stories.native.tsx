@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {action, storiesOf} from '../../stories/storybook'
 import QRScan from './index.native'
@@ -12,3 +13,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

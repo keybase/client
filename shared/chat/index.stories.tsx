@@ -1,3 +1,4 @@
+/*
 import commandMarkdown from './conversation/command-markdown/index.stories'
 import commandStatus from './conversation/command-status/index.stories'
 import confirmPayment from './payments/confirm/index.stories'
@@ -49,3 +50,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

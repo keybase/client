@@ -1,4 +1,4 @@
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -30,9 +30,4 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
   }
 }
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'FilePreviewDefaultView'
-)(DefaultView)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(DefaultView)

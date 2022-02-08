@@ -8,7 +8,7 @@ export type OwnProps = {
   mode: 'row' | 'default' | 'menu'
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, {path}: OwnProps) => ({_pathItem: Constants.getPathItem(state.fs.pathItems, path)}),
   () => ({}),
   (stateProps, _, {mode}: OwnProps) => ({
@@ -19,6 +19,5 @@ export default Container.namedConnect(
     lastWriter:
       stateProps._pathItem === Constants.unknownPathItem ? undefined : stateProps._pathItem.lastWriter,
     mode,
-  }),
-  'LastModifiedLine'
+  })
 )(LastModifiedLine)

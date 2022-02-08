@@ -1,4 +1,4 @@
-import IncomingShareChat from '.'
+import type IncomingShareChat from '.'
 
 export const newModalRoutes = {
   incomingShareNew: {

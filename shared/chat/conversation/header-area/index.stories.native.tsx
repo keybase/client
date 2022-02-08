@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {UsernameHeader, ChannelHeader, PhoneOrEmailHeader} from './index.native'
@@ -85,3 +86,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

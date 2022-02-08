@@ -1,3 +1,4 @@
+/*
 import newRepo from './new-repo/index.stories'
 import deleteRepo from './delete-repo/index.stories'
 import * as Sb from '../stories/storybook'
@@ -53,3 +54,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

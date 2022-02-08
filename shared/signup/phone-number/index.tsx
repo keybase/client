@@ -63,7 +63,7 @@ const EnterPhoneNumber = (props: Props) => {
 }
 
 type BodyProps = {
-  autoFocus: boolean
+  autoFocus?: boolean
   defaultCountry?: string
   onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onContinue: () => void
@@ -84,7 +84,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       <Kb.Icon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <Kb.PhoneInput
-          autoFocus={props.autoFocus}
+          autoFocus={props.autoFocus ?? true}
           defaultCountry={props.defaultCountry}
           style={styles.input}
           onChangeNumber={props.onChangeNumber}
@@ -103,9 +103,6 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       </Kb.Box2>
     </Kb.Box2>
   )
-}
-EnterPhoneNumberBody.defaultProps = {
-  autoFocus: true,
 }
 
 const styles = Styles.styleSheetCreate(() => ({

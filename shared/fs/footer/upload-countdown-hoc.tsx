@@ -49,9 +49,9 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
     componentWillUnmount() {
       this.stopTicker()
     }
-    private tickerID?: ReturnType<typeof setInterval>
+    tickerID?: ReturnType<typeof setInterval>
 
-    private tick = () =>
+    tick = () =>
       this.setState(prevState => {
         const {mode, glueTTL, displayDuration} = prevState
         const newDisplayDuration = displayDuration > 1000 ? displayDuration - 1000 : 0
@@ -80,7 +80,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
 
     // Idempotently start the ticker. If the ticker has already been started,
     // this is a no-op.
-    private startTicker = () => {
+    startTicker = () => {
       if (this.tickerID) {
         return
       }
@@ -89,7 +89,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
 
     // Idempotently stop the ticker. If the ticker is not running, this is a
     // no-op.
-    private stopTicker = () => {
+    stopTicker = () => {
       if (!this.tickerID) {
         return
       }
@@ -97,7 +97,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       this.tickerID = undefined
     }
 
-    private updateState = (prevState: State, props: Props) => {
+    updateState = (prevState: State, props: Props) => {
       const isUploading = props.isOnline && (!!props.files || !!props.totalSyncingBytes)
       const newDisplayDuration = props.endEstimate ? props.endEstimate - Date.now() : 0
       const {mode, glueTTL} = prevState

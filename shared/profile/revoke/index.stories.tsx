@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {action, storiesOf} from '../../stories/storybook'
 import Revoke from '.'
@@ -58,3 +59,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

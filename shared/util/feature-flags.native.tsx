@@ -7,16 +7,6 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: __DEV__,
-  connectThrashCheck: false,
-  foldersInProfileTab: false,
-  inviteFriends: true,
-  moveOrCopy: false,
-  newTeamBuildingForChatAllowMakeTeam: false,
-  tabletSupport: true,
-  teamInvites: false,
-  teamsRedesign: true,
-  webOfTrust: false,
-  whyDidYouRender: false,
 }
 
 // load overrides

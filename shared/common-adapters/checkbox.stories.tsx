@@ -1,3 +1,4 @@
+/*
 import Box from './box'
 import Checkbox from './checkbox'
 import * as React from 'react'
@@ -23,3 +24,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

@@ -62,4 +62,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Splash
+export default React.memo(Splash)

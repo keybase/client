@@ -1,3 +1,4 @@
+/*
 import React from 'react'
 import * as RPCTypes from '../../../../constants/types/rpc-gen'
 import * as Types from '../../../../constants/types/chat2'
@@ -107,3 +108,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

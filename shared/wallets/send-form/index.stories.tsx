@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import assetInput, {props4 as assetInputProps} from './asset-input/index.stories'
@@ -79,7 +80,7 @@ const load = () => {
     .add('PickAsset - sender', () => <PickAsset isSender={true} />)
     .add('PickAsset - recipient keybaseUser', () => <PickAsset isSender={false} username="songgao" />)
     .add('PickAsset - recipient stellar', () => <PickAsset isSender={false} />)
-     */
+     
     .addDecorator(provider({}))
     .add('Send', () => (
       <SendRequestForm
@@ -117,3 +118,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

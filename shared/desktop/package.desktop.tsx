@@ -1,4 +1,4 @@
-import del from 'del'
+import rimraf from 'rimraf'
 import fs from 'fs-extra'
 import klawSync from 'klaw-sync'
 import minimist from 'minimist'
@@ -98,8 +98,8 @@ const packagerOpts: any = {
 }
 
 function main() {
-  del.sync(desktopPath('dist'))
-  del.sync(desktopPath('build'))
+  rimraf.sync(desktopPath('dist'))
+  rimraf.sync(desktopPath('build'))
 
   copySync('Icon.png', 'build/desktop/Icon.png')
   copySync('Icon@2x.png', 'build/desktop/Icon@2x.png')
@@ -158,7 +158,7 @@ function startPack() {
       process.exit(1)
     }
 
-    if (stats.hasErrors()) {
+    if (stats?.hasErrors()) {
       console.error(stats.toJson('errors-only').errors)
       process.exit(1)
     }
@@ -167,30 +167,20 @@ function startPack() {
     copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png', '.html'])
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
 
-    del(desktopPath('release'))
-      .then(() => {
-        if (shouldBuildAll) {
-          // build for all platforms
-          const archs = ['ia32', 'x64']
-          const platforms = ['linux', 'win32', 'darwin']
+    rimraf.sync(desktopPath('release'))
+    if (shouldBuildAll) {
+      // build for all platforms
+      const archs = ['ia32', 'x64']
+      const platforms = ['linux', 'win32', 'darwin']
 
-          platforms.forEach(plat => {
-            archs.forEach(arch => {
-              pack(plat, arch)
-                .then(postPack(plat, arch))
-                .catch(postPackError)
-            })
-          })
-        } else {
-          pack(platform, arch)
-            .then(postPack(platform, arch))
-            .catch(postPackError)
-        }
+      platforms.forEach(plat => {
+        archs.forEach(arch => {
+          pack(plat, arch).then(postPack(plat, arch)).catch(postPackError)
+        })
       })
-      .catch(err => {
-        console.error(err)
-        process.exit(1)
-      })
+    } else {
+      pack(platform, arch).then(postPack(platform, arch)).catch(postPackError)
+    }
   })
 }
 

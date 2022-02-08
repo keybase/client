@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import Button from './button'
 import Box, {Box2} from './box'
@@ -121,3 +122,6 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export default load
+*/
+
+export default {}

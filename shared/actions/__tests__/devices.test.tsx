@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/*
 import * as Constants from '../../constants/devices'
 import * as Container from '../../util/container'
 import * as DevicesGen from '../devices-gen'
@@ -386,3 +387,5 @@ describe('shows paperkey page correctly', () => {
     expect(getState().devices.newPaperkey).toEqual(paperKey)
   })
 })
+*/
+export default {}

@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/*
 import rpc from 'framed-msgpack-rpc'
 import {TransportShared} from '../transport-shared'
 import {SendArg} from '../index.platform'
@@ -124,3 +125,5 @@ describe('TransportShared', () => {
     expect(t.lastMessage).toEqual(expectedMessageCompressed)
   })
 })
+*/
+export default {}

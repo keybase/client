@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import Error from '.'
@@ -13,3 +14,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

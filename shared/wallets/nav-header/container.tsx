@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/wallets'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderTitle as _HeaderTitle, HeaderRightActions as _HeaderRightActions} from '.'
 
-export const HeaderTitle = Container.namedConnect(
+export const HeaderTitle = Container.connect(
   state => ({
     _account: Constants.getSelectedAccountData(state),
     noDisclaimer: !state.wallets.acceptedDisclaimer,
@@ -18,11 +18,10 @@ export const HeaderTitle = Container.namedConnect(
     loading: s._account.accountID === Types.noAccountID,
     noDisclaimer: s.noDisclaimer,
     username: s.username,
-  }),
-  'WalletHeaderTitle'
+  })
 )(_HeaderTitle)
 
-export const HeaderRightActions = Container.namedConnect(
+export const HeaderRightActions = Container.connect(
   state => ({
     _accountID: Constants.getSelectedAccount(state),
     noDisclaimer: !state.wallets.acceptedDisclaimer,
@@ -48,6 +47,5 @@ export const HeaderRightActions = Container.namedConnect(
     onBuy: d.onBuy,
     onReceive: () => d._onReceive(s._accountID),
     onSettings: d.onSettings,
-  }),
-  'WalletHeaderRightActions'
+  })
 )(_HeaderRightActions)

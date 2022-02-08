@@ -93,10 +93,10 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
         tlfPath: action.payload.tlfPath,
       })
     )
-  } catch (err) {
-    const e: RPCError = err
-    if (e.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-      const users = e.fields?.filter((elem: any) => elem.key === 'usernames')
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+      const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
       const usernames = users?.map((elem: any) => elem.value)
       // Don't leave the user on a broken FS dir screen.
       return [
@@ -106,7 +106,7 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
         }),
       ]
     }
-    return errorToActionOrThrow(e, action.payload.tlfPath)
+    return errorToActionOrThrow(error, action.payload.tlfPath)
   }
 }
 
@@ -325,9 +325,8 @@ function* folderList(_: Container.TypedState, action: FsGen.FolderListLoadPayloa
 
     yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.folderListWaitingKey)
 
-    const result: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise> = yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise(
-      {opID}
-    )
+    const result: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise> =
+      yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise({opID})
     const entries = result.entries || []
     const childMap = entries.reduce((m, d) => {
       const [parent, child] = d.name.split('/')
@@ -482,15 +481,14 @@ function* pollJournalFlushStatusUntilDone() {
   polling = true
   try {
     while (1) {
-      let {
+      const {
         syncingPaths,
         totalSyncingBytes,
         endEstimate,
-      }: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise> = yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise(
-        {
+      }: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise> =
+        yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
           filter: RPCTypes.ListFilter.filterSystemHidden,
-        }
-      )
+        })
       yield Saga.sequentially([
         Saga.put(
           FsGen.createJournalUpdate({
@@ -513,8 +511,6 @@ function* pollJournalFlushStatusUntilDone() {
       ])
     }
   } finally {
-    // eslint is confused i think
-    // eslint-disable-next-line require-atomic-updates
     polling = false
     yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
     yield Saga.put(FsGen.createCheckKbfsDaemonRpcStatus())
@@ -569,15 +565,16 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
         })
         await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.commitEditWaitingKey)
         return FsGen.createEditSuccess({editID})
-      } catch (e) {
+      } catch (error_) {
+        const error = error_ as RPCError
         if (
           [RPCTypes.StatusCode.scsimplefsnameexists, RPCTypes.StatusCode.scsimplefsdirnotempty].includes(
-            e.code
+            error.code
           )
         ) {
-          return FsGen.createEditError({editID, error: e.desc || 'name exists'})
+          return FsGen.createEditError({editID, error: error.desc || 'name exists'})
         }
-        throw e
+        throw error
       }
   }
 }
@@ -708,7 +705,7 @@ const waitForKbfsDaemon = async () => {
     })
   } catch (_) {}
 
-  waitForKbfsDaemonInProgress = false // eslint-disable-line require-atomic-updates
+  waitForKbfsDaemonInProgress = false
   return FsGen.createCheckKbfsDaemonRpcStatus()
 }
 
@@ -769,8 +766,9 @@ const checkKbfsServerReachabilityIfNeeded = async (action: ConfigGen.OsNetworkSt
   if (!action.payload.isInit) {
     try {
       await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
-    } catch (err) {
-      logger.warn(`failed to check KBFS reachability: ${err.message}`)
+    } catch (error_) {
+      const error = error_ as RPCError
+      logger.warn(`failed to check KBFS reachability: ${error.message}`)
     }
   }
   return null
@@ -853,12 +851,13 @@ const subscribePath = async (action: FsGen.SubscribePathPayload) => {
       topic: action.payload.topic,
     })
     return null
-  } catch (err) {
-    if (err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       // We'll handle this error in loadAdditionalTLF instead.
       return
     }
-    return errorToActionOrThrow(err, action.payload.path)
+    return errorToActionOrThrow(error, action.payload.path)
   }
 }
 
@@ -892,6 +891,7 @@ const onPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPath
   if (clientIDFromNotification !== clientID) {
     return null
   }
+  /* eslint-disable-next-line */ // not smart enought to know all cases covered
   return topics?.map(topic => {
     switch (topic) {
       case RPCTypes.PathSubscriptionTopic.children:

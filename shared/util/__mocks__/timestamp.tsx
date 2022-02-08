@@ -1,3 +1,4 @@
+/*
 export const daysToLabel = () => '[mocked]'
 export const formatDuration = () => '[mocked]'
 export const formatDurationForAutoreset = () => '[mocked]'
@@ -17,3 +18,5 @@ export const formatTimeForStellarTooltip = () => '[mocked]'
 export const formatTimeRelativeToNow = () => '[mocked]'
 export const msToDHMS = () => '[mocked]'
 export const formatAudioRecordDuration = () => '[mocked]'
+*/
+export default {}

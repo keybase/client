@@ -12,7 +12,7 @@ import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import {TypedState} from '../util/container'
 import logger from '../logger'
-import {RPCError} from 'util/errors'
+import {RPCError} from '../util/errors'
 
 const onIdentifyUpdate = (action: EngineGen.Keybase1NotifyUsersIdentifyUpdatePayload) =>
   UsersGen.createUpdateBrokenState({
@@ -36,12 +36,12 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
     }
 
     return UsersGen.createUpdateBio({userCard, username}) // set bio in user infomap
-  } catch (e) {
-    const err: RPCError = e
-    if (Container.isNetworkErr(err.code)) {
+  } catch (error_) {
+    const error = error_ as RPCError
+    if (Container.isNetworkErr(error.code)) {
       logger.info('Network error getting userCard')
     } else {
-      logger.info(err.message)
+      logger.info(error.message)
     }
     return
   }
@@ -105,10 +105,11 @@ const wotReact = async (action: UsersGen.WotReactPayload, logger: Saga.SagaLogge
       {allowEmptySigID: false, reaction, sigID, voucher},
       Constants.wotReactWaitingKey
     )
-  } catch (e) {
-    logger.warn('Error from wotReact:', e)
+  } catch (error_) {
+    const error = error_ as RPCError
+    logger.warn('Error from wotReact:', error)
     return ProfileGen.createWotVouchSetError({
-      error: e.desc || `There was an error reviewing the claim.`,
+      error: error.desc || `There was an error reviewing the claim.`,
     })
   }
   return [ProfileGen.createWotVouchSetError({error: ''}), RouteTreeGen.createClearModals()]

@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '..'
@@ -189,3 +190,6 @@ const load = () => {
 const generateColorFromSeed = s => `rgba(${s * 4}, ${s * 4}, ${s * 4}, 0.7)`
 
 export default load
+*/
+
+export default {}

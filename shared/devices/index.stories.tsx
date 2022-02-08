@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import {stringToDeviceID} from '../constants/types/devices'
@@ -169,3 +170,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

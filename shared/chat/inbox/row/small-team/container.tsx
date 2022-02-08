@@ -18,7 +18,7 @@ type OwnProps = {
   time: number
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const _conversationIDKey = ownProps.conversationIDKey
     const _meta = Constants.getMeta(state, _conversationIDKey)
@@ -123,6 +123,5 @@ export default Container.namedConnect(
       youAreReset: stateProps.youAreReset,
       youNeedToRekey,
     }
-  },
-  'SmallTeam'
+  }
 )(SmallTeam)

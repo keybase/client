@@ -7,12 +7,12 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
-import {namedConnect, isMobile} from '../../../util/container'
+import * as Container from '../../../util/container'
 import {appendWalletPersonBuilder} from '../../../actions/typed-routes'
 
 type OwnProps = {}
 
-const ConnectedParticipantsKeybaseUser = namedConnect(
+const ConnectedParticipantsKeybaseUser = Container.connect(
   state => {
     const build = state.wallets.building
     const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
@@ -31,11 +31,13 @@ const ConnectedParticipantsKeybaseUser = namedConnect(
     onOpenTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
     onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
     onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
-    onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
+    onScanQRCode: Container.isMobile
+      ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']}))
+      : null,
     onSearch: () => dispatch(appendWalletPersonBuilder()),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
-    const onShowProfile = isMobile ? dispatchProps.onOpenUserProfile : dispatchProps.onOpenTracker
+    const onShowProfile = Container.isMobile ? dispatchProps.onOpenUserProfile : dispatchProps.onOpenTracker
     return {
       ...stateProps,
       onChangeRecipient: dispatchProps.onChangeRecipient,
@@ -44,11 +46,10 @@ const ConnectedParticipantsKeybaseUser = namedConnect(
       onSearch: dispatchProps.onSearch,
       onShowProfile,
     }
-  },
-  'ParticipantsKeybaseUser'
+  }
 )(ParticipantsKeybaseUser)
 
-const ConnectedParticipantsStellarPublicKey = namedConnect(
+const ConnectedParticipantsStellarPublicKey = Container.connect(
   state => {
     const build = state.wallets.building
     const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
@@ -62,13 +63,14 @@ const ConnectedParticipantsStellarPublicKey = namedConnect(
     onChangeRecipient: (to: string) => {
       dispatch(WalletsGen.createSetBuildingTo({to}))
     },
-    onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
+    onScanQRCode: Container.isMobile
+      ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']}))
+      : null,
     setReadyToReview: (readyToReview: boolean) => {
       dispatch(WalletsGen.createSetReadyToReview({readyToReview}))
     },
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'ParticipantsStellarPublicKey'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ParticipantsStellarPublicKey)
 
 const makeAccount = (stateAccount: Types.Account) => ({
@@ -79,7 +81,7 @@ const makeAccount = (stateAccount: Types.Account) => ({
   unknown: stateAccount === Constants.unknownAccount,
 })
 
-const ConnectedParticipantsOtherAccount = namedConnect(
+const ConnectedParticipantsOtherAccount = Container.connect(
   state => {
     const build = state.wallets.building
 
@@ -121,8 +123,7 @@ const ConnectedParticipantsOtherAccount = namedConnect(
         })
       ),
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'ParticipantsOtherAccount'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ParticipantsOtherAccount)
 
 const ParticipantsChooser = props => {
@@ -139,14 +140,13 @@ const ParticipantsChooser = props => {
   }
 }
 
-const ConnectedParticipantsChooser = namedConnect(
+const ConnectedParticipantsChooser = Container.connect(
   state => {
     const recipientType = state.wallets.building.recipientType
     return {recipientType}
   },
   () => ({}),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
-  'Participants'
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ParticipantsChooser)
 
 export default ConnectedParticipantsChooser

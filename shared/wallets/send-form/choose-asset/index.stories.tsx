@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {action, storiesOf} from '../../../stories/storybook'
 import ChooseAsset from '.'
@@ -27,3 +28,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

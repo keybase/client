@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 
 if (!__STORYBOOK__) {
@@ -21,3 +22,5 @@ class AutoSizerMock extends React.Component<Props, {}> {
 }
 
 export default AutoSizerMock
+*/
+export default {}

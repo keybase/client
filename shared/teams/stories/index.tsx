@@ -1,3 +1,4 @@
+/*
 import * as Sb from '../../stories/storybook'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
@@ -232,3 +233,6 @@ export const store = Container.produce(Sb.createStoreWithCommon(), draftState =>
     username: 'andonuts',
   }
 })
+*/
+
+export default {}

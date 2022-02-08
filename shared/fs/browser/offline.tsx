@@ -4,7 +4,7 @@ import * as Styles from '../../styles/index'
 import * as Types from '../../constants/types/fs'
 import TopBar from '../top-bar'
 import * as Constants from '../../constants/fs'
-import {namedConnect} from '../../util/typed-connect'
+import * as Container from '../../util/container'
 
 type Props = {
   path: Types.Path
@@ -56,4 +56,4 @@ const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
   syncEnabled: !!stateProps.syncConfig && stateProps.syncConfig.mode === Types.TlfSyncMode.Enabled,
 })
 
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'OfflineFolder')(OfflineFolder)
+export default Container.connect(mapStateToProps, () => ({}), mergeProps)(OfflineFolder)

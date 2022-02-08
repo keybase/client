@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {Tab, gitTab} from '../../constants/tabs'
 import SettingsNav from '.'
@@ -26,3 +27,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

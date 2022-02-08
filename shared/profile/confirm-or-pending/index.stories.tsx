@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import {action, storiesOf} from '../../stories/storybook'
 import ConfirmOrPending from '.'
@@ -32,3 +33,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

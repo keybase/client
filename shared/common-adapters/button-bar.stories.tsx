@@ -1,3 +1,4 @@
+/*
 import Box from './box'
 import Button from './button'
 import ButtonBar from './button-bar'
@@ -78,3 +79,6 @@ const load = () => {
 // style={{flexGrow: 1}}
 
 export default load
+*/
+
+export default {}

@@ -1,3 +1,4 @@
+/*
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Constants from '../../constants/fs'
@@ -106,3 +107,6 @@ const load = () =>
     ))
 
 export default load
+*/
+
+export default {}

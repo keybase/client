@@ -11,7 +11,7 @@ type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
 
 const emptyAccountAsset = Constants.makeAssets()
 
-export default Container.namedConnect(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
     return {
@@ -47,6 +47,5 @@ export default Container.namedConnect(
       waitingSearch: s.waitingSearch,
       ...d,
     }
-  },
-  'Trustline'
+  }
 )(Trustline)

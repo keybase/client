@@ -1,4 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
+/*
 import * as React from 'react'
 import * as Sb from './storybook'
 import * as Kb from '../common-adapters'
@@ -83,3 +84,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as WalletTypes from '../../../constants/types/wallets'
@@ -68,3 +69,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

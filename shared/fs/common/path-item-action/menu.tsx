@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import * as Kbfs from '../../common'
+import * as Kbfs from '../../common/hooks'
 import * as FsGen from '../../../actions/fs-gen'
 import {FloatingMenuProps} from './types'
 import {fileUIName} from '../../../constants/platform'
@@ -31,12 +31,11 @@ type Props = {
   sendToOtherApp?: ActionOrInProgress | null
 }
 
-const hideMenuOnClick = (onClick: (evt?: React.SyntheticEvent) => void, hideMenu: () => void) => (
-  evt?: React.SyntheticEvent
-) => {
-  onClick(evt)
-  hideMenu()
-}
+const hideMenuOnClick =
+  (onClick: (evt?: React.SyntheticEvent) => void, hideMenu: () => void) => (evt?: React.SyntheticEvent) => {
+    onClick(evt)
+    hideMenu()
+  }
 
 const makeMenuItems = (props: Props, hideMenu: () => void) => {
   const items: Kb.MenuItems = [

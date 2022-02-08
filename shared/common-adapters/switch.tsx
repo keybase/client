@@ -61,7 +61,7 @@ const getContent = (props: Props, ref: React.Ref<ClickableBox>) => (
           props.align === 'right' && styles.switchRight,
           props.disabled && styles.disabled,
           !!props.labelSubtitle && styles.switch,
-        ])}
+        ] as const)}
       />
     </Kb.ClickableBox>
     {!!props.gapInBetween && <Kb.Box style={styles.gap} />}

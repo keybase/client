@@ -10,13 +10,17 @@ type Props = {
 }
 
 const NewChannel = (props: Props) => {
-  const descStyleOverride = {
-    link: {fontSize: Styles.isMobile ? 15 : 13, fontWeight: '600'},
-    paragraph: {
-      fontSize: Styles.isMobile ? 15 : 13,
-      ...styles.text,
-    },
-  } as const
+  const descStyleOverride = React.useMemo(
+    () =>
+      ({
+        link: {fontSize: Styles.isMobile ? 15 : 13, fontWeight: '600'},
+        paragraph: {
+          fontSize: Styles.isMobile ? 15 : 13,
+          ...styles.text,
+        },
+      } as const),
+    []
+  )
   const {message, onManageChannels} = props
   return (
     <UserNotice>

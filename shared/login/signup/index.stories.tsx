@@ -1,3 +1,4 @@
+/*
 import error from './error/index.stories'
 import invitecode from './invite-code/index.stories'
 import requestInviteSuccess from './request-invite-success/index.stories'
@@ -8,3 +9,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}

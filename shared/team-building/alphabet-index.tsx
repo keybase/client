@@ -27,9 +27,11 @@ const AlphabetIndex = (props: Props) => {
   const storeMeasure = Kb.useTimeout(() => {
     if (topSectionRef.current && Styles.isMobile) {
       // @ts-ignore measure exists on mobile
-      topSectionRef.current.measure((_1, _2, _3, height: number, _4, pageY: number) => {
-        sectionMeasureRef.current = updateMeasure(sectionMeasureRef.current, {height, pageY})
-      })
+      topSectionRef.current.measure(
+        (_1: unknown, _2: unknown, _3: unknown, height: number, _4: unknown, pageY: number) => {
+          sectionMeasureRef.current = updateMeasure(sectionMeasureRef.current, {height, pageY})
+        }
+      )
     }
   }, 200)
   React.useEffect(storeMeasure, [props.measureKey])

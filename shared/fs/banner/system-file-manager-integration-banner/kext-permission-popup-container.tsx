@@ -1,4 +1,4 @@
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
 import KextPermissionPopup from './kext-permission-popup'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -12,7 +12,7 @@ const mapDispatchToProps = dispatch => ({
   openSecurityPrefs: () => dispatch(FsGen.createOpenSecurityPreferences()),
 })
 
-export default namedConnect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, _: {}) => ({
@@ -20,5 +20,4 @@ export default namedConnect(
     onCancel: d.onCancel,
     openSecurityPrefs: d.openSecurityPrefs,
   }),
-  'KextPermissionPopup'
 )(KextPermissionPopup)

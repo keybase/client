@@ -8,7 +8,7 @@ type OwnProps = {
   username: string
 }
 
-export default Container.namedConnect(
+export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const d = Constants.getDetails(state, ownProps.username)
     const common = {
@@ -46,6 +46,5 @@ export default Container.namedConnect(
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
-  }),
-  'Bio'
+  })
 )(Bio)

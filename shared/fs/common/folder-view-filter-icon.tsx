@@ -1,4 +1,4 @@
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
@@ -19,7 +19,7 @@ export const FolderViewFilterIcon = (props: Props) =>
 
 type OwnProps = Omit<Props, 'pathItem'>
 
-export default namedConnect(
+export default Container.connect(
   (state, {path}: OwnProps) => ({
     pathItem: Constants.getPathItem(state.fs.pathItems, path),
   }),
@@ -27,6 +27,5 @@ export default namedConnect(
   (s, _, o: OwnProps) => ({
     ...o,
     pathItem: s.pathItem,
-  }),
-  'FolderViewFilterIcon'
+  })
 )(FolderViewFilterIcon)

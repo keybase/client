@@ -123,8 +123,10 @@ class Rows extends React.PureComponent<Props> {
   render() {
     return this.props.emptyMode !== 'not-empty' ? (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-        {// The folder is empty so these should all be header rows.
-        this.props.items.map(item => item.rowType === RowTypes.RowType.Header && item.node)}
+        {
+          // The folder is empty so these should all be header rows.
+          this.props.items.map(item => item.rowType === RowTypes.RowType.Header && item.node)
+        }
         <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true} gap="small">
           <Kb.Text type="BodySmall">
             {this.props.emptyMode === 'empty'
@@ -161,7 +163,7 @@ const styles = Styles.styleSheetCreate(
     ({
       divider: Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.black_05,
+          backgroundColor: Styles.globalColors.black_05_on_white,
         },
         isElectron: {
           marginLeft: 94,

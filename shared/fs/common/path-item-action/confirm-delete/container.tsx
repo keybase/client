@@ -7,7 +7,7 @@ import * as Constants from '../../../../constants/fs'
 
 type OwnProps = Container.RouteProps<{path: Types.Path; mode: 'row' | 'screen'}>
 
-export default Container.namedConnect(
+export default Container.connect(
   () => ({}),
   (dispatch, ownProps: OwnProps) => {
     const path = Container.getRouteProps(ownProps, 'path', null)
@@ -37,6 +37,5 @@ export default Container.namedConnect(
       path: path,
       title: 'Confirmation',
     }
-  },
-  'ReallyDelete'
+  }
 )(ReallyDelete)

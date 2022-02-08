@@ -1,3 +1,4 @@
+/*
 import Box from './box'
 import CheckCircle from './check-circle'
 import * as React from 'react'
@@ -30,3 +31,6 @@ const load = () => {
 }
 
 export default load
+*/
+
+export default {}
