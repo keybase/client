@@ -20,6 +20,7 @@ export type Props = {
   onPress?: void // Use onClick, not onPress.,,
   onMouseEnter?: (() => void) | null
   onMouseLeave?: (() => void) | null
+  fixOverdraw?: boolean // use fastblank
   style?: IconStyle
   opacity?: boolean
   inheritColor?: boolean

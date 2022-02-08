@@ -21,6 +21,7 @@ const ClickableBox = React.forwardRef<NativeTouchableWithoutFeedback | NativeTou
           <Kb.NativeTouchableOpacity
             // @ts-ignore
             ref={ref}
+            pointerEvents={pointerEvents}
             disabled={!onClick}
             onPress={onClick}
             onPressIn={onPressIn}
@@ -37,6 +38,7 @@ const ClickableBox = React.forwardRef<NativeTouchableWithoutFeedback | NativeTou
           <Kb.NativeTouchableWithoutFeedback
             // @ts-ignore
             ref={ref}
+            pointerEvents={pointerEvents}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             style={clickStyle}

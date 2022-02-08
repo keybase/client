@@ -86,12 +86,12 @@ const BigTeamChannel = (props: Props) => {
                   ? styles.textError
                   : isSelected
                   ? hasUnread
-                    ? styles.textSelectedBold
+                    ? (styles.textSelectedBold as any)
                     : styles.textSelected
                   : hasUnread
                   ? styles.textPlainBold
-                  : styles.textPlain,
-              ])}
+                  : (styles.textPlain as any),
+              ] as any)}
             >
               {channelname}
             </Kb.Text>
@@ -154,7 +154,10 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingLeft: Styles.globalMargins.tiny,
     },
   }),
-  channelHash: {color: Styles.globalColors.black_20},
+  channelHash: {
+    backgroundColor: Styles.globalColors.fastBlank,
+    color: Styles.globalColors.black_20,
+  },
   channelHashSelected: {color: Styles.globalColors.white_60},
   channelText: Styles.platformStyles({
     isElectron: {wordBreak: 'break-all'},
@@ -168,7 +171,7 @@ const styles = Styles.styleSheetCreate(() => ({
     flex: 1,
     justifyContent: 'flex-end',
   },
-  muted: {marginLeft: Styles.globalMargins.xtiny},
+  muted: {backgroundColor: Styles.globalColors.fastBlank, marginLeft: Styles.globalMargins.xtiny},
   rowContainer: Styles.platformStyles({
     common: {
       alignItems: 'stretch',

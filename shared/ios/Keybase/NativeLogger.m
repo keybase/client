@@ -19,6 +19,8 @@ RCT_REMAP_METHOD(log,tagsAndLogs:(NSArray*)tagsAndLogs)
 {
   for (NSArray * tagAndLog in tagsAndLogs) {
     DDLogInfo(@"%@%@: %@", tagAndLog[0], tagName, tagAndLog[1]);
+    // uncomment this to get logs in xcode from the js side with the native logger. NSLogs don't show
+//    printf("DEBUGJS: %s\n", [tagAndLog[1] UTF8String]);
   }
 }
 

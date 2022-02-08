@@ -26,7 +26,7 @@ const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) =
       color={color}
       type={type}
       fontSize={Styles.isMobile ? 16 : 12}
-      style={{alignSelf: 'flex-start'}}
+      style={styles.snippetDecoration}
     />
   )
   return tooltip ? <Kb.WithTooltip tooltip={tooltip}>{icon}</Kb.WithTooltip> : icon
@@ -204,6 +204,7 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
         isMobile: {
+          backgroundColor: Styles.globalColors.fastBlank,
           color: Styles.globalColors.black_50,
           flex: 1,
           fontSize: 15,
@@ -234,6 +235,10 @@ const styles = Styles.styleSheetCreate(
       }),
       outerBox: {
         ...Styles.globalStyles.flexBoxRow,
+      },
+      snippetDecoration: {
+        alignSelf: 'flex-start',
+        backgroundColor: Styles.globalColors.fastBlank,
       },
       typingSnippet: {},
       youAreResetText: Styles.platformStyles({

@@ -33,8 +33,8 @@ export const normalizePush = (n: any): Types.PushNotification | undefined => {
       return undefined
     }
 
-    const userInteraction = !!n.userInteraction
     const data = isIOS ? n.data || n._data : n
+    const userInteraction = !!data.userInteraction
     const message = n.message
 
     if (!data) {

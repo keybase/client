@@ -32,10 +32,7 @@ export default Container.connect(
       dispatch(SettingsGen.createLoadRememberPassword())
       dispatch(SettingsGen.createLoadHasRandomPw())
     },
-    onSetPassword: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: isMobile ? [Constants.passwordTab] : ['changePassword']})
-      ),
+    onSetPassword: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.passwordTab]})),
     onStartPhoneConversation: () => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
       dispatch(

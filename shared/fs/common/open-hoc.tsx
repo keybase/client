@@ -10,7 +10,7 @@ type Props = {
 type InjectedProps = {onOpen: (() => void) | null}
 
 function OpenHOC(Component: React.ComponentType<Props & InjectedProps>): React.ComponentType<Props> {
-  return (props: Props) => {
+  const Inner = (props: Props) => {
     const destPicker = Container.useSelector(state => state.fs.destinationPicker)
     const pathItems = Container.useSelector(state => state.fs.pathItems)
 
@@ -46,6 +46,7 @@ function OpenHOC(Component: React.ComponentType<Props & InjectedProps>): React.C
 
     return <Component {...props} onOpen={destinationPickerGoTo} />
   }
+  return Inner
 }
 
 export default OpenHOC
