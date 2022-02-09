@@ -112,7 +112,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
       containerStyle={Styles.collapseStyles([
         !props.horizontal && !Styles.isMobile && styles.vUsernameContainerStyle,
         props.size === 'smaller' && styles.smallerWidthTextContainer,
-      ])}
+      ] as const)}
       inline={!props.horizontal}
       underline={props.underline}
       selectable={props.selectable}
@@ -184,11 +184,12 @@ const NameWithIcon = (props: NameWithIconProps) => {
             : Styles.collapseStyles([
                 Styles.globalStyles.flexBoxRow,
                 styles.metaStyle,
-                props.size === 'smaller' ? styles.smallerWidthTextContainer : styles.fullWidthTextContainer,
+                props.size === 'smaller' && styles.smallerWidthTextContainer,
+                props.size !== 'smaller' && styles.fullWidthTextContainer,
                 {marginTop: adapterProps.metaMargin},
                 props.metaStyle,
                 props.size === 'smaller' ? styles.smallerWidthTextContainer : {},
-              ])
+              ] as const)
         }
       >
         {botAlias}
@@ -226,7 +227,9 @@ const styles = Styles.styleSheetCreate(() => ({
   fullWidthTextContainer: Styles.platformStyles({isElectron: {textAlign: 'center', width: '100%'}}),
   hAvatarStyle: Styles.platformStyles({
     isElectron: {marginRight: Styles.globalMargins.tiny},
-    isMobile: {marginRight: Styles.globalMargins.small},
+    isMobile: {
+      marginRight: Styles.globalMargins.small,
+    },
   }),
   hContainerStyle: {
     ...Styles.globalStyles.flexBoxRow,
@@ -260,6 +263,7 @@ const styles = Styles.styleSheetCreate(() => ({
       width: 48,
     },
     isMobile: {
+      backgroundColor: Styles.globalColors.fastBlank,
       height: 64,
       width: 64,
     },

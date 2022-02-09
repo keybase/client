@@ -66,7 +66,7 @@ type SentProps = {
   conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
 }
-const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
+const Sent_ = ({children, conversationIDKey, ordinal}: SentProps) => {
   const you = Container.useSelector(state => state.config.username)
   const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
   const youSent = message && message.author === you && message.ordinal !== message.id
@@ -86,7 +86,8 @@ const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
   } else {
     return children || null
   }
-})
+}
+const Sent = React.memo(Sent_)
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
@@ -305,6 +306,7 @@ class ConversationList extends React.PureComponent<Props> {
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
           <Kb.NativeVirtualizedList
+            overScrollMode="never"
             contentContainerStyle={styles.contentContainer}
             data={this.props.messageOrdinals}
             inverted={true}

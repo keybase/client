@@ -157,9 +157,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         colorFollowing={true}
         colorYou={true}
         onUsernameClicked={this.onAuthorClick}
-        style={Styles.collapseStyles([
-          this.showCenteredHighlight() && this.props.youAreAuthor && styles.usernameHighlighted,
-        ])}
+        fixOverdraw={!this.showCenteredHighlight()}
+        style={
+          this.showCenteredHighlight() && this.props.youAreAuthor ? styles.usernameHighlighted : undefined
+        }
         type="BodySmallBold"
         usernames={this.props.showUsername}
       />
@@ -210,10 +211,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               )}
               <Kb.Text
                 type="BodyTiny"
-                style={Styles.collapseStyles([
-                  styles.timestamp,
-                  this.showCenteredHighlight() && styles.timestampHighlighted,
-                ])}
+                fixOverdraw={!this.showCenteredHighlight()}
+                style={Styles.collapseStyles([this.showCenteredHighlight() && styles.timestampHighlighted])}
               >
                 {formatTimeForChat(this.props.message.timestamp)}
               </Kb.Text>
@@ -379,7 +378,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           this.showCenteredHighlight() && styles.centeredOrdinal,
           !this.props.showUsername && styles.containerNoUsername,
-        ]),
+        ] as const),
       }
       return this.props.decorate
         ? {
@@ -387,7 +386,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             onLongPress: this.props.toggleShowingMenu,
             onPress: this.dismissKeyboard,
             onSwipeLeft: this.props.onSwipeLeft,
-            underlayColor: Styles.globalColors.blueLighter3,
           }
         : props
     } else {
@@ -633,7 +631,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                       style={Styles.collapseStyles([
                         styles.emojiRow,
                         this.props.isLastInThread && styles.emojiRowLast,
-                      ])}
+                      ] as const)}
                     />
                   )}
                 <Kb.Box>
@@ -707,7 +705,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
-const fast = {backgroundColor: Styles.globalColors.fastBlank}
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -801,7 +798,6 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
-      fast,
       menuButtons: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
@@ -834,9 +830,7 @@ const styles = Styles.styleSheetCreate(
       }),
       paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       send: Styles.platformStyles({
-        isElectron: {
-          pointerEvents: 'none',
-        },
+        isElectron: {pointerEvents: 'none'},
       }),
       timestamp: Styles.platformStyles({
         isElectron: {

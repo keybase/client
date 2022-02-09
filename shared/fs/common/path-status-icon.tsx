@@ -88,6 +88,7 @@ const PathStatusIcon = (props: Props) =>
         <UploadIcon uploadIcon={props.statusIcon} style={styles.iconNonFont} />
       ) : (
         <Kb.Icon
+          fixOverdraw={true}
           type={getIcon(props.statusIcon)}
           sizeType="Small"
           style={styles.iconFont}
@@ -96,7 +97,7 @@ const PathStatusIcon = (props: Props) =>
       )}
     </Kb.WithTooltip>
   ) : props.isTlfType ? (
-    <Kb.Icon type="iconfont-root" sizeType="Small" style={styles.iconFont} />
+    <Kb.Icon fixOverdraw={true} type="iconfont-root" sizeType="Small" style={styles.iconFont} />
   ) : (
     <Kb.Box style={styles.placeholder} />
   )

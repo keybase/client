@@ -23,8 +23,6 @@ const resultEmptyPlaceholder = '---EMPTYRESULT---'
 const SearchBotPopup = (props: Props) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
   const teamID = Container.getRouteProps(props, 'teamID', undefined)
-
-  // state
   const [lastQuery, setLastQuery] = React.useState('')
   const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
   const results = Container.useSelector(state => state.chat2.botSearchResults)
@@ -32,7 +30,6 @@ const SearchBotPopup = (props: Props) => {
     Constants.waitingKeyBotSearchUsers,
     Constants.waitingKeyBotSearchFeatured
   )
-  // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
@@ -62,7 +59,6 @@ const SearchBotPopup = (props: Props) => {
       })
     )
   }
-  // lifecycle
   React.useEffect(() => {
     dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query: '', results: undefined}))
     dispatch(BotsGen.createGetFeaturedBots({}))
@@ -130,18 +126,17 @@ const SearchBotPopup = (props: Props) => {
   return (
     <Kb.Modal
       onClose={onClose}
+      noScrollView={true}
       header={{
         leftButton: Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
           </Kb.Text>
-        ) : (
-          undefined
-        ),
+        ) : undefined,
         title: 'Add a bot',
       }}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.modal}>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.modal}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
           <Kb.SearchFilter
             size="full-width"
@@ -155,6 +150,7 @@ const SearchBotPopup = (props: Props) => {
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={true}
           sections={[usersSection, botSection]}
+          style={{flexGrow: 1}}
         />
       </Kb.Box2>
     </Kb.Modal>
@@ -163,14 +159,10 @@ const SearchBotPopup = (props: Props) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   inputContainer: Styles.platformStyles({
-    isElectron: {
-      padding: Styles.globalMargins.tiny,
-    },
+    isElectron: {padding: Styles.globalMargins.tiny},
   }),
   modal: Styles.platformStyles({
-    isElectron: {
-      height: 500,
-    },
+    isElectron: {height: 500},
   }),
 }))
 

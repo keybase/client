@@ -14,48 +14,44 @@ export type Props = {
   onCollapse: () => void
 }
 
-class UnfurlGiphy extends React.Component<Props> {
-  render() {
-    return (
-      <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
-        {!Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
-        <Kb.Box2 style={styles.innerContainer} gap="xtiny" direction="vertical">
-          <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
-            <Kb.Box2 direction="horizontal" gap="tiny">
-              {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
-              <Kb.Text type="BodySmall">Giphy</Kb.Text>
-              <Kb.Icon
-                boxStyle={styles.collapseBox}
-                style={styles.collapse}
-                onClick={this.props.onCollapse}
-                sizeType="Tiny"
-                type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
-              />
-            </Kb.Box2>
-            {!!this.props.onClose && (
-              <Kb.Icon
-                type="iconfont-close"
-                onClick={this.props.onClose}
-                className="unfurl-closebox"
-                padding="xtiny"
-                fontSize={12}
-              />
-            )}
-          </Kb.Box2>
-          {!this.props.isCollapsed && (
-            <UnfurlImage
-              url={this.props.imageURL}
-              height={this.props.imageHeight}
-              width={this.props.imageWidth}
-              isVideo={this.props.isVideo}
-              autoplayVideo={true}
-            />
-          )}
+const UnfurlGiphy = (props: Props) => (
+  <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
+    {!Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
+    <Kb.Box2 style={styles.innerContainer} gap="xtiny" direction="vertical">
+      <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
+        <Kb.Box2 direction="horizontal" gap="tiny">
+          {!!props.faviconURL && <Kb.Image src={props.faviconURL} style={styles.favicon} />}
+          <Kb.Text type="BodySmall">Giphy</Kb.Text>
+          <Kb.Icon
+            boxStyle={styles.collapseBox}
+            style={styles.collapse}
+            onClick={props.onCollapse}
+            sizeType="Tiny"
+            type={props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+          />
         </Kb.Box2>
+        {!!props.onClose && (
+          <Kb.Icon
+            type="iconfont-close"
+            onClick={props.onClose}
+            className="unfurl-closebox"
+            padding="xtiny"
+            fontSize={12}
+          />
+        )}
       </Kb.Box2>
-    )
-  }
-}
+      {!props.isCollapsed && (
+        <UnfurlImage
+          url={props.imageURL}
+          height={props.imageHeight}
+          width={props.imageWidth}
+          isVideo={props.isVideo}
+          autoplayVideo={true}
+        />
+      )}
+    </Kb.Box2>
+  </Kb.Box2>
+)
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -123,4 +119,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default UnfurlGiphy
+export default React.memo(UnfurlGiphy)
