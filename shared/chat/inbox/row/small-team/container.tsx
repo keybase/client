@@ -39,7 +39,7 @@ export default Container.connect(
     const _username = state.config.username
     const hasUnread = Constants.getHasUnread(state, conversationIDKey)
     const isDecryptingSnippet =
-      (hasUnread || snippet.length === 0) && Constants.isDecryptingSnippet(_meta.trustedState) && !isEmptyMeta
+      (hasUnread || snippet.length === 0) && Constants.isDecryptingSnippet(_meta.trustedState) && isEmptyMeta
 
     const teamname = _meta.teamname ? _meta.teamname : ownProps.isTeam ? ownProps.name : ''
     const timestamp = _meta.timestamp > 0 ? _meta.timestamp : ownProps.time || 0
