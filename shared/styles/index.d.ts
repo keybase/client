@@ -95,11 +95,11 @@ type NamedStyles = {[key: string]: CSS._StylesCrossPlatform}
 // order important!
 export declare function styleSheetCreate<O extends NamedStyles>(styles: () => O): O
 
-type _Elem = Object | null | false | void
+type _Elem = Object | null | false
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
 export type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
-export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): any
+export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): StylesCrossPlatform
 
 export declare const windowStyle: {
   minWidth: number

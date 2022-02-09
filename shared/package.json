@@ -136,6 +136,8 @@
         "util": "0.12.4"
     },
     "devDependencies": {
+        "@typescript-eslint/parser": "5.11.1-alpha.10",
+        "@typescript-eslint/eslint-plugin": "5.11.1-alpha.10",
         "@babel/cli": "7.17.0",
         "@babel/core": "7.17.0",
         "@babel/generator": "7.17.0",
@@ -181,7 +183,6 @@
         "@types/webpack-env": "1.16.3",
         "@types/whatwg-url": "6.4.0",
         "babel-core": "7.0.0-bridge.0",
-        "babel-eslint": "11.0.0-beta.0",
         "babel-loader": "8.2.3",
         "cross-env": "7.0.3",
         "css-loader": "6.6.0",
