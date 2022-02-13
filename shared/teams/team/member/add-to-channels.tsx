@@ -227,7 +227,7 @@ const AddToChannels = (props: Props) => {
       onClose={onCancel}
     >
       {loadingChannels && !channelMetas?.size ? (
-        <Kb.Box fullWidth={true} style={Styles.globalStyles.flexOne}>
+        <Kb.Box style={Styles.globalStyles.flexOne}>
           <Kb.ProgressIndicator type="Large" />
         </Kb.Box>
       ) : (

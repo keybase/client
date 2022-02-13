@@ -1133,7 +1133,7 @@ function* loadMoreMessages(
   const conversationIDKey = key
 
   const conversationID = Types.keyToConversationID(conversationIDKey)
-  if (!conversationID) {
+  if (!conversationID.length) {
     logger.info('bail: invalid conversationIDKey')
     return
   }
@@ -1237,9 +1237,7 @@ function* loadMoreMessages(
       },
       waitingKey: loadingKey,
     })
-    yield Saga.put(
-      Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
-    )
+    yield Saga.put(Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results.offline}))
   } catch (error_) {
     const error = error_ as RPCError
     logger.warn(error.message)
@@ -1335,7 +1333,7 @@ function* desktopNotify(
   }
 
   const actions = yield Saga.callUntyped(
-    () =>
+    async () =>
       new Promise<any>(resolve => {
         const onClick = () => {
           resolve(
@@ -1471,7 +1469,7 @@ function* messageEdit(
   }
 }
 
-const messageRetry = (action: Chat2Gen.MessageRetryPayload) => {
+const messageRetry = async (action: Chat2Gen.MessageRetryPayload) => {
   const {outboxID} = action.payload
   return RPCChatTypes.localRetryPostRpcPromise(
     {outboxID: Types.outboxIDToRpcOutboxID(outboxID)},
@@ -1936,7 +1934,7 @@ type StellarConfirmWindowResponse = {result: (b: boolean) => void}
 let _stellarConfirmWindowResponse: StellarConfirmWindowResponse | null = null
 
 function storeStellarConfirmWindowResponse(accept: boolean, response: StellarConfirmWindowResponse | null) {
-  _stellarConfirmWindowResponse && _stellarConfirmWindowResponse.result(accept)
+  _stellarConfirmWindowResponse?.result(accept)
   _stellarConfirmWindowResponse = response
 }
 
@@ -2290,7 +2288,7 @@ function* attachmentsUpload(
     return obids
   }, [])
   yield Saga.sequentially(
-    paths.map((p, i) =>
+    paths.map(async (p, i) =>
       RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
         arg: {
           ...ephemeralData,
@@ -2315,7 +2313,7 @@ const attachFromDragAndDrop = async (
 ) => {
   if (Platform.isDarwin) {
     const paths = await Promise.all(
-      action.payload.paths.map(p => KB.kb.darwinCopyToChatTempUploadFile(p.path))
+      action.payload.paths.map(async p => KB.kb.darwinCopyToChatTempUploadFile(p.path))
     )
     return Chat2Gen.createAttachmentsUpload({
       conversationIDKey: action.payload.conversationIDKey,
@@ -2331,7 +2329,7 @@ const attachFromDragAndDrop = async (
 }
 
 // Tell service we're typing
-const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
+const sendTyping = async (action: Chat2Gen.SendTypingPayload) => {
   const {conversationIDKey, typing} = action.payload
   return RPCChatTypes.localUpdateTypingRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
@@ -2354,7 +2352,7 @@ const resetChatWithoutThem = (state: Container.TypedState, action: Chat2Gen.Rese
 }
 
 // let them back in after they reset
-const resetLetThemIn = (action: Chat2Gen.ResetLetThemInPayload) =>
+const resetLetThemIn = async (action: Chat2Gen.ResetLetThemInPayload) =>
   RPCChatTypes.localAddTeamMemberAfterResetRpcPromise({
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
     username: action.payload.username,
@@ -2743,8 +2741,8 @@ function* mobileMessageAttachmentSave(
     logger.info('Trying to save chat attachment to camera roll')
     yield saveAttachmentToCameraRoll(fileName, fileType)
   } catch (err) {
-    logger.error('Failed to save attachment: ' + err)
-    throw new Error('Failed to save attachment: ' + err)
+    logger.error(`Failed to save attachment: ${err}`)
+    throw new Error(`Failed to save attachment: ${err}`)
   }
   yield Saga.put(Chat2Gen.createAttachmentMobileSaved({conversationIDKey, ordinal}))
 }
@@ -2756,10 +2754,7 @@ const joinConversation = async (action: Chat2Gen.JoinConversationPayload) => {
   )
 }
 
-const fetchConversationBio = async (
-  state: Container.TypedState,
-  action: Chat2Gen.SelectedConversationPayload
-) => {
+const fetchConversationBio = (state: Container.TypedState, action: Chat2Gen.SelectedConversationPayload) => {
   const {conversationIDKey} = action.payload
   const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
   const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username || '')
@@ -2858,7 +2853,7 @@ function* hideConversation(
       Constants.waitingKeyConvStatusChange(conversationIDKey)
     )
   } catch (err) {
-    logger.error('Failed to hide conversation: ' + err)
+    logger.error(`Failed to hide conversation: ${err}`)
   }
 }
 
@@ -2878,7 +2873,7 @@ function* unhideConversation(
       Constants.waitingKeyConvStatusChange(conversationIDKey)
     )
   } catch (err) {
-    logger.error('Failed to unhide conversation: ' + err)
+    logger.error(`Failed to unhide conversation: ${err}`)
   }
 }
 
@@ -2900,7 +2895,7 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload, 
   return false
 }
 
-const toggleMessageCollapse = (action: Chat2Gen.ToggleMessageCollapsePayload) => {
+const toggleMessageCollapse = async (action: Chat2Gen.ToggleMessageCollapsePayload) => {
   const {collapse, conversationIDKey, messageID} = action.payload
   return RPCChatTypes.localToggleMessageCollapseRpcPromise({
     collapse,
@@ -3197,7 +3192,7 @@ const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) 
     smallTeamBadgeCount: action.payload.badgeState.smallTeamBadgeCount,
   })
 
-const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload, logger: Saga.SagaLogger) => {
+const setMinWriterRole = async (action: Chat2Gen.SetMinWriterRolePayload, logger: Saga.SagaLogger) => {
   const {conversationIDKey, role} = action.payload
   logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
   return RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise({
@@ -3241,7 +3236,7 @@ const unfurlDismissPrompt = (action: Chat2Gen.UnfurlResolvePromptPayload) => {
   })
 }
 
-const unfurlResolvePrompt = (action: Chat2Gen.UnfurlResolvePromptPayload) => {
+const unfurlResolvePrompt = async (action: Chat2Gen.UnfurlResolvePromptPayload) => {
   const {conversationIDKey, messageID, result} = action.payload
   return RPCChatTypes.localResolveUnfurlPromptRpcPromise({
     convID: Types.keyToConversationID(conversationIDKey),
@@ -3251,7 +3246,7 @@ const unfurlResolvePrompt = (action: Chat2Gen.UnfurlResolvePromptPayload) => {
   })
 }
 
-const unsentTextChanged = (state: Container.TypedState, action: Chat2Gen.UnsentTextChangedPayload) => {
+const unsentTextChanged = async (state: Container.TypedState, action: Chat2Gen.UnsentTextChangedPayload) => {
   const {conversationIDKey, text} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   return RPCChatTypes.localUpdateUnsentTextRpcPromise({
@@ -3317,7 +3312,7 @@ const onChatMaybeMentionUpdate = (action: EngineGen.Chat1ChatUiChatMaybeMentionU
   })
 }
 
-const resolveMaybeMention = (action: Chat2Gen.ResolveMaybeMentionPayload) =>
+const resolveMaybeMention = async (action: Chat2Gen.ResolveMaybeMentionPayload) =>
   RPCChatTypes.localResolveMaybeMentionRpcPromise({
     mention: {channel: action.payload.channel, name: action.payload.name},
   })
@@ -3550,8 +3545,9 @@ const setInboxNumSmallRows = async (
 const getInboxNumSmallRows = async () => {
   try {
     const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-    if (rows && rows.i && rows.i > 0) {
-      return Chat2Gen.createSetInboxNumSmallRows({ignoreWrite: true, rows: rows.i})
+    const ri = rows?.i ?? 0
+    if (ri > 0) {
+      return Chat2Gen.createSetInboxNumSmallRows({ignoreWrite: true, rows: ri})
     }
   } catch (_) {}
   return false
@@ -3618,7 +3614,7 @@ const refreshBotPublicCommands = async (
 const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const actions: Array<Container.TypedActions> = [RouteTreeGen.createClearModals()]
   const meta = state.chat2.metaMap.get(conversationIDKey)
-  if (meta && meta.teamname) {
+  if (meta?.teamname) {
     actions.push(TeamsGen.createGetMembers({teamID: meta.teamID}))
   }
   return actions

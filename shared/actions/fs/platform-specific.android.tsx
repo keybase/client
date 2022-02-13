@@ -61,7 +61,7 @@ const finishedRegularDownload = async (state: TypedState, action: FsGen.Finished
   return null
 }
 
-const configureDownload = () =>
+const configureDownload = async () =>
   RPCTypes.SimpleFSSimpleFSConfigureDownloadRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
