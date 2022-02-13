@@ -1,8 +1,10 @@
+import * as React from 'react'
 import {StyleSheet, Dimensions} from 'react-native'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import {isIOS, isTablet} from '../constants/platform'
-import globalColors from './colors'
+import globalColors, {darkColors} from './colors'
 import styleSheetCreateProxy from './style-sheet-proxy'
+import {isDarkMode} from './dark-mode'
 import * as Shared from './shared'
 
 type _Elem = Object | null | false | void
@@ -58,15 +60,27 @@ export const globalStyles = {
   ...util,
 }
 
+const cachedBackground = {
+  dark: {backgroundColor: darkColors.fastBlank},
+  light: {backgroundColor: globalColors.fastBlank},
+}
+Object.defineProperty(globalStyles, 'fastBackground', {
+  configurable: false,
+  enumerable: true,
+  get() {
+    return cachedBackground[isDarkMode() ? 'dark' : 'light']
+  },
+})
+
 export const statusBarHeight = iPhoneXHelper.getStatusBarHeight(true)
 export const hairlineWidth = StyleSheet.hairlineWidth
 // @ts-ignore TODO fix native styles
 export const styleSheetCreate = obj => styleSheetCreateProxy(obj, o => StyleSheet.create(o))
-export {isDarkMode} from './dark-mode'
+export {isDarkMode}
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
-): ReadonlyArray<Object | null | false | void> => {
-  return styles.filter(Boolean)
+): ReadonlyArray<Object | null | false> => {
+  return styles.filter(Boolean) as any
 }
 export const transition = () => ({})
 export const backgroundURL = () => ({})
@@ -88,3 +102,4 @@ export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width
 export const dimensionHeight = Dimensions.get('window').height
 export const headerExtraHeight = isTablet ? 16 : 0
+export const StyleContext = React.createContext({canFixOverdraw: true})

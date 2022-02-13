@@ -90,7 +90,7 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(
           _containerStyle,
           onClick || props.onMouseDown ? desktopStyles.clickable : null,
           style,
-        ])}
+        ] as any)}
       >
         {underlay}
         {children}

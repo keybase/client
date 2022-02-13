@@ -33,7 +33,7 @@ class FilteredTopLine extends PureComponent<Props> {
           style={Styles.collapseStyles([
             this.props.showBold && styles.boldOverride,
             styles.usernames,
-            {color: this.props.usernameColor},
+            {color: this.props.usernameColor} as any,
           ])}
         >
           {this.props.participants.join(', ')}

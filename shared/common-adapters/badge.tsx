@@ -66,10 +66,10 @@ export default class Badge extends React.Component<Badge2Props> {
                 {
                   fontSize: this.props.fontSize,
                   height: this.props.height,
-                  lineHeight: Styles.isMobile ? this.props.height : `${this.props.height}px`,
+                  lineHeight: Styles.isMobile ? this.props.height : `${this.props.height}px`, // likely unneeded
                 },
                 this.props.badgeNumberStyle,
-              ])}
+              ] as any)}
             >
               {this.props.badgeNumber}
             </Text>
@@ -107,7 +107,7 @@ export default class Badge extends React.Component<Badge2Props> {
                 lineHeight: Styles.isMobile ? this.props.height : `${this.props.height}px`,
               },
               this.props.badgeNumberStyle,
-            ])}
+            ] as any)}
           >
             {this.props.badgeNumber}
           </Text>

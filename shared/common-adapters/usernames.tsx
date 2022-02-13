@@ -46,6 +46,7 @@ export type Props = {
   underline?: boolean
   usernames: Array<string> | string
   withProfileCardPopup?: boolean
+  fixOverdraw?: boolean | 'auto'
 } & ({colorFollowing?: false; type: TextType} | {colorFollowing: boolean; type: TextTypeBold})
 
 // Mobile handles spaces correctly so don't insert anything

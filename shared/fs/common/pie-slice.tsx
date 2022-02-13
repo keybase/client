@@ -18,7 +18,7 @@ const PieSliceDefault = (props: Props) => {
   return (
     <Kb.Box style={Styles.collapseStyles([styles.container, ...(props.style ? [props.style] : [])])}>
       <Kb.Box style={Styles.collapseStyles([styles.wholeUnfilled, styleUnfilled])} />
-      <Kb.Box style={Styles.collapseStyles([styles.rotateContainer, styleRotate])}>
+      <Kb.Box style={Styles.collapseStyles([styles.rotateContainer, styleRotate] as any)}>
         <Kb.Box style={Styles.collapseStyles([styles.leftFilled, styleFilled])} />
       </Kb.Box>
       <Kb.Box
@@ -33,7 +33,9 @@ const PieSliceDefault = (props: Props) => {
 const PieSlice = (props: Props) => {
   return props.animated ? (
     <Kb.Animated to={{degrees: props.degrees}}>
-      {({degrees}) => <PieSliceDefault degrees={degrees as any} style={props.style} negative={props.negative} />}
+      {({degrees}) => (
+        <PieSliceDefault degrees={degrees as any} style={props.style} negative={props.negative} />
+      )}
     </Kb.Animated>
   ) : (
     <PieSliceDefault degrees={props.degrees} style={props.style} negative={props.negative} />

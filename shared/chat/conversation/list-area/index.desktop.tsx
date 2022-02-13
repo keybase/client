@@ -519,9 +519,13 @@ class Thread extends React.PureComponent<Props, State> {
     return (
       <ErrorBoundary>
         {debugInfo}
-        <div style={styles.container} onClick={this.handleListClick} onCopyCapture={this.onCopyCapture}>
+        <div
+          style={styles.container as any}
+          onClick={this.handleListClick}
+          onCopyCapture={this.onCopyCapture}
+        >
           <style>{realCSS}</style>
-          <div key={this.props.conversationIDKey} style={styles.list} ref={this.setListRef}>
+          <div key={this.props.conversationIDKey} style={styles.list as any} ref={this.setListRef}>
             <div style={styles.listContents} ref={this.setListContents}>
               {items}
             </div>

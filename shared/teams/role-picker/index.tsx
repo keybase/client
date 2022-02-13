@@ -4,9 +4,9 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {pluralize} from '../../util/string'
-import {Position} from '../../common-adapters/relative-popup-hoc.types'
-import {TeamRoleType} from '../../constants/types/teams'
-import {StylesCrossPlatform} from '../../styles/css'
+import type {Position} from '../../common-adapters/relative-popup-hoc.types'
+import type {TeamRoleType} from '../../constants/types/teams'
+import type {StylesCrossPlatform} from '../../styles/css'
 
 // Controls the ordering of the role picker
 const orderedRoles: Array<Role<true>> = ['owner', 'admin', 'writer', 'reader', 'setIndividually']
@@ -118,7 +118,7 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
   const style = useSpring({
     ...(Styles.isMobile ? {flexGrow: selected ? 1 : 0} : {height: selected ? 160 : 42}),
     config: {tension: Styles.isMobile ? 250 : 260},
-  })
+  }) as Styles.StylesCrossPlatform
   return (
     <AnimatedClickableBox onClick={onSelect} style={Styles.collapseStyles([styles.roleRow, style])}>
       <Kb.Divider />
@@ -323,9 +323,7 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {paddingRight: Styles.globalMargins.tiny, paddingTop: 4},
       }),
-      canText: {
-        color: Styles.globalColors.black,
-      },
+      canText: {color: Styles.globalColors.black},
       checkIcon: {
         left: -24,
         paddingTop: 2,
@@ -336,9 +334,7 @@ const styles = Styles.styleSheetCreate(
         flexGrow: 0,
       },
       container: Styles.platformStyles({
-        common: {
-          backgroundColor: Styles.globalColors.white,
-        },
+        common: {backgroundColor: Styles.globalColors.white},
         isElectron: {
           borderColor: Styles.globalColors.blue,
           borderRadius: Styles.borderRadius,
@@ -352,9 +348,7 @@ const styles = Styles.styleSheetCreate(
           flex: 1,
         },
       }),
-      disabledRow: {
-        opacity: 0.4,
-      },
+      disabledRow: {opacity: 0.4},
       footer: {
         flexGrow: 0,
         justifyContent: 'flex-end',
@@ -366,21 +360,15 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
       },
-      header: {
-        padding: Styles.globalMargins.xsmall,
-      },
+      header: {padding: Styles.globalMargins.xsmall},
       opaqueContainer: Styles.platformStyles({
         isMobile: {
           backgroundColor: Styles.globalColors.white,
           paddingTop: 10,
         },
       }),
-      radioButton: Styles.platformStyles({
-        isMobile: {paddingRight: Styles.globalMargins.tiny},
-      }),
-      roleIcon: {
-        paddingRight: Styles.globalMargins.xtiny,
-      },
+      radioButton: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
+      roleIcon: {paddingRight: Styles.globalMargins.xtiny},
       roleRow: Styles.platformStyles({common: {overflow: 'hidden'}, isMobile: {height: 56}}),
       row: {
         backgroundColor: Styles.globalColors.blueGreyLight,
@@ -390,12 +378,8 @@ const styles = Styles.styleSheetCreate(
         // To push the body out of the zone visible when deselected
         common: {paddingTop: 6},
         // Width of the radio button. Used to align text with title
-        isElectron: {
-          paddingLeft: 22,
-        },
-        isMobile: {
-          paddingLeft: 38,
-        },
+        isElectron: {paddingLeft: 22},
+        isMobile: {paddingLeft: 38},
       }),
       rowChild: Styles.platformStyles({
         common: {
@@ -411,19 +395,11 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       rowPadding: Styles.platformStyles({
-        isElectron: {
-          paddingTop: Styles.globalMargins.xtiny,
-        },
+        isElectron: {paddingTop: Styles.globalMargins.xtiny},
       }),
-      rowSelected: {
-        position: 'relative',
-      },
-      scroll: {
-        backgroundColor: Styles.globalColors.white,
-      },
-      text: {
-        textAlign: 'left',
-      },
+      rowSelected: {position: 'relative'},
+      scroll: {backgroundColor: Styles.globalColors.white},
+      text: {textAlign: 'left'},
     } as const)
 )
 

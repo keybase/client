@@ -217,7 +217,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
                   !Styles.isMobile && (this.props.showBorder ? {top: 4} : {top: 1}),
                   !this.state.applyClasses &&
                     (iconIndex === this.state.iconIndex
-                      ? {transform: 'translateX(-8px)'}
+                      ? ({transform: 'translateX(-8px)'} as any)
                       : {transform: 'translateX(22px)'}),
                 ])}
                 className={this._getClass(iconIndex)}

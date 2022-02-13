@@ -31,8 +31,8 @@ export const setRecipients = 'crypto:setRecipients'
 // Payload Types
 type _ClearInputPayload = {readonly operation: Types.Operations}
 type _ClearRecipientsPayload = {readonly operation: Types.Operations}
-type _DownloadEncryptedTextPayload = void
-type _DownloadSignedTextPayload = void
+type _DownloadEncryptedTextPayload = undefined
+type _DownloadSignedTextPayload = undefined
 type _OnOperationErrorPayload = {readonly operation: Types.Operations; readonly errorMessage: HiddenString}
 type _OnOperationSuccessPayload = {
   readonly input: any
@@ -144,15 +144,14 @@ export const createClearInput = (payload: _ClearInputPayload): ClearInputPayload
  * Download the encrypted output to a text file
  */
 export const createDownloadEncryptedText = (
-  payload: _DownloadEncryptedTextPayload
+  payload?: _DownloadEncryptedTextPayload
 ): DownloadEncryptedTextPayload => ({payload, type: downloadEncryptedText})
 /**
  * Download the signed output to a text file
  */
-export const createDownloadSignedText = (payload: _DownloadSignedTextPayload): DownloadSignedTextPayload => ({
-  payload,
-  type: downloadSignedText,
-})
+export const createDownloadSignedText = (
+  payload?: _DownloadSignedTextPayload
+): DownloadSignedTextPayload => ({payload, type: downloadSignedText})
 /**
  * On saltpack RPC error response
  */

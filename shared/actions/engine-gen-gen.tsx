@@ -657,8 +657,8 @@ type _Chat1NotifyChatNewChatActivityPayload = {
     sessionID: number
   }
 }
-type _ConnectedPayload = void
-type _DisconnectedPayload = void
+type _ConnectedPayload = undefined
+type _DisconnectedPayload = undefined
 type _Keybase1GpgUiConfirmDuplicateKeyChosenPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.gpgUi.confirmDuplicateKeyChosen']['inParam'] & {
     sessionID: number
@@ -2204,8 +2204,8 @@ export const createChat1NotifyChatChatWelcomeMessageLoaded = (
 export const createChat1NotifyChatNewChatActivity = (
   payload: _Chat1NotifyChatNewChatActivityPayload
 ): Chat1NotifyChatNewChatActivityPayload => ({payload, type: chat1NotifyChatNewChatActivity})
-export const createConnected = (payload: _ConnectedPayload): ConnectedPayload => ({payload, type: connected})
-export const createDisconnected = (payload: _DisconnectedPayload): DisconnectedPayload => ({
+export const createConnected = (payload?: _ConnectedPayload): ConnectedPayload => ({payload, type: connected})
+export const createDisconnected = (payload?: _DisconnectedPayload): DisconnectedPayload => ({
   payload,
   type: disconnected,
 })

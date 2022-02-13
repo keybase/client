@@ -35,7 +35,7 @@ const actionHasType = (actions, toFind) =>
 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   const rpcGenImport = actionHasType(actions, /(^|\W)RPCTypes\./)
-    ? "import * as RPCTypes from '../constants/types/rpc-gen'"
+    ? "import type * as RPCTypes from '../constants/types/rpc-gen'"
     : ''
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
@@ -105,7 +105,7 @@ function printPayload(p: Object) {
           .map(key => `readonly ${key}: ${Array.isArray(p[key]) ? p[key].join(' | ') : p[key]}`)
           .join(',\n') +
         '}'
-    : 'void'
+    : 'undefined'
 }
 
 function compileActionPayloads(_: ActionNS, actionName: ActionName) {
@@ -126,9 +126,11 @@ function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionD
      */
     `
       : '') +
-    `export const create${capitalize(actionName)} = (payload: _${capitalize(actionName)}Payload${
-      payloadOptional(desc) ? ' = Object.freeze({})' : ''
-    }): ${capitalize(actionName)}Payload => (
+    `export const create${capitalize(actionName)} = (payload${
+      payloadKeys(desc).length ? '' : '?'
+    }: _${capitalize(actionName)}Payload${payloadOptional(desc) ? ' = Object.freeze({})' : ''}): ${capitalize(
+      actionName
+    )}Payload => (
   { payload, type: ${actionName}, }
 )`
   )

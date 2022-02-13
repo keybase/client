@@ -42,6 +42,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
   React.useEffect(() => {
     if (!waiting && wasWaiting && !error) dispatch(nav.safeNavigateUpPayload())
   }, [waiting, wasWaiting, nav, dispatch, error])
+
   return (
     <Kb.Modal
       mode="Default"
@@ -91,8 +92,8 @@ const EditTeamWelcomeMessage = (props: Props) => {
             type="BodySmall"
             style={Styles.collapseStyles([
               styles.info,
-              !(welcomeMessage.set && welcomeMessage.raw.length === 0) && {visibility: 'hidden'},
-            ])}
+              !(welcomeMessage.set && welcomeMessage.raw.length === 0) && {visibility: 'hidden' as const},
+            ] as any)}
           >
             No welcome note will be shown to new members.
           </Kb.Text>

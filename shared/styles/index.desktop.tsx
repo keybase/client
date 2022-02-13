@@ -1,9 +1,10 @@
+import * as React from 'react'
 import {themed, colors, darkColors} from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import * as Shared from './shared'
 import {isDarkMode} from './dark-mode'
 import styleSheetCreateProxy from './style-sheet-proxy'
-import * as CSS from './css'
+import type * as CSS from './css'
 const {extname, basename} = KB.path
 
 type _Elem = Object | null | false | void
@@ -59,6 +60,7 @@ const font = {
 
 const util = {
   ...Shared.util,
+  fastBackground: {backgroundColor: colors.transparent},
   largeWidthPercent: '70%',
   loadingTextStyle: {
     // this won't really work with dark mode
@@ -226,3 +228,4 @@ export const dimensionWidth = 0
 export const dimensionHeight = 0
 export {isDarkMode} from './dark-mode'
 export const headerExtraHeight = 0
+export const StyleContext = React.createContext({canFixOverdraw: false})

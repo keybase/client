@@ -213,7 +213,7 @@ const AshBox = Styles.styled.div(
       width: '100%',
     },
   },
-  () => styles.ashBox
+  () => styles.ashBox as any
 )
 
 export default ExplodingHeightRetainer

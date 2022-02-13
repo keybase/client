@@ -68,7 +68,7 @@ const Icon = React.memo<Props>(
         !hasContainer ? style : {},
         onClick ? Styles.desktopStyles.clickable : {},
         props.color ? {color: color} : {},
-      ])
+      ] as any)
 
       iconElement = (
         <img
@@ -107,7 +107,7 @@ const Icon = React.memo<Props>(
 
       const mergedStyle = Styles.collapseStyles([
         fontSizeHint,
-        onClick && Styles.desktopStyles.clickable,
+        onClick && (Styles.desktopStyles.clickable as any),
         inheritStyle,
         colorOverride && {color: colorOverride},
         style,
@@ -159,8 +159,9 @@ const imgName = (
   prefix?: string,
   postfix?: string
 ) =>
-  `${prefix || ''}${resolveImageAsURL(imagesDir, name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix ||
-    ''} ${mult}x`
+  `${prefix || ''}${resolveImageAsURL(imagesDir, name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${
+    postfix || ''
+  } ${mult}x`
 
 function iconTypeToSrcSet(type: IconType) {
   const ext = Shared.typeExtension(type)

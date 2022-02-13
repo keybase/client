@@ -54,7 +54,7 @@ class SimpleTopLineInner extends React.Component<Props> {
     return Styles.collapseStyles([
       showBold && styles.bold,
       styles.timestamp,
-      subColor !== false && {color: subColor},
+      subColor !== false && ({color: subColor} as any), //sketchy api...
     ])
   })
 

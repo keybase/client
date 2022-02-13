@@ -26,7 +26,7 @@ const NewChannel = (props: Props) => {
     <UserNotice>
       <Kb.Markdown
         smallStandaloneEmoji={true}
-        styleOverride={descStyleOverride}
+        styleOverride={descStyleOverride as any}
         selectable={true}
         style={styles.text}
       >

@@ -48,7 +48,7 @@ const ActionButton = (props: {
       <Kb.Box2
         direction="vertical"
         centerChildren={true}
-        style={Styles.collapseStyles([styles.actionButton, props.inTeam && {backgroundColor: null}])}
+        style={Styles.collapseStyles([styles.actionButton, props.inTeam && {backgroundColor: undefined}])}
       >
         <Icon />
       </Kb.Box2>

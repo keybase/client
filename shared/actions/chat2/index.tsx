@@ -45,7 +45,7 @@ const onConnect = async () => {
 
 const onGetInboxUnverifiedConvs = (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
   const {inbox} = action.payload.params
-  const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+  const result = JSON.parse(inbox) as RPCChatTypes.UnverifiedInboxUIItems
   const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items ?? []
   // We get a subset of meta information from the cache even in the untrusted payload
   const metas = items.reduce<Array<Types.ConversationMeta>>((arr, item) => {
@@ -85,7 +85,7 @@ const inboxRefresh = (
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
   }
 
-  logger.info(`Inbox refresh due to ${reason ?? '???'}`)
+  logger.info(`Inbox refresh due to ${reason}`)
   if (clearExistingMetas) {
     actions.push(Chat2Gen.createClearMetas())
   }
@@ -97,6 +97,8 @@ const inboxRefresh = (
       ? RPCChatTypes.InboxLayoutReselectMode.default
       : RPCChatTypes.InboxLayoutReselectMode.force
   RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
+    .then(() => {})
+    .catch(() => {})
   return actions
 }
 
@@ -111,13 +113,14 @@ const queueMetaToRequest = (
   action: Chat2Gen.MetaNeedsUpdatingPayload,
   logger: Saga.SagaLogger
 ) => {
-  let added = false
+  let added: boolean = false
   untrustedConversationIDKeys(state, action.payload.conversationIDKeys).forEach(k => {
     if (!metaQueue.has(k)) {
       added = true
       metaQueue.add(k)
     }
   })
+  // eslint-ignore-next-line // thinks added is false for some reason
   if (added) {
     // only unboxMore if something changed
     return Chat2Gen.createMetaHandleQueue()
@@ -128,7 +131,7 @@ const queueMetaToRequest = (
 }
 
 // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
-function* requestMeta(state: Container.TypedState, _: Chat2Gen.MetaHandleQueuePayload) {
+function* requestMeta(state: Container.TypedState) {
   const maxToUnboxAtATime = 10
   const ar = [...metaQueue]
   const maybeUnbox = ar.slice(0, maxToUnboxAtATime)
@@ -179,7 +182,7 @@ const onGetInboxConvsUnboxed = (
   const {infoMap} = state.users
   const actions: Array<Container.TypedActions> = []
   const {convs} = action.payload.params
-  const inboxUIItems: Array<RPCChatTypes.InboxUIItem> = JSON.parse(convs)
+  const inboxUIItems = JSON.parse(convs) as Array<RPCChatTypes.InboxUIItem>
   const metas: Array<Types.ConversationMeta> = []
   let added = false
   const usernameToFullname: {[username: string]: string} = {}
@@ -209,6 +212,7 @@ const onGetInboxConvsUnboxed = (
       }
     })
   })
+  // eslint-ignore-next-line
   if (added) {
     actions.push(UsersGen.createUpdateFullnames({usernameToFullname}))
   }
@@ -311,6 +315,8 @@ const unboxRows = (
   RPCChatTypes.localRequestInboxUnboxRpcPromise({
     convIDs: conversationIDKeys.map(k => Types.keyToConversationID(k)),
   })
+    .then(() => {})
+    .catch(() => {})
   return Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})
 }
 
@@ -359,8 +365,8 @@ const onIncomingMessage = (
       // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
       if (
         cMsg.state === RPCChatTypes.MessageUnboxedState.valid &&
-        cMsg.valid?.messageBody.messageType === RPCChatTypes.MessageType.attachmentuploaded &&
-        cMsg.valid?.messageBody.attachmentuploaded &&
+        cMsg.valid.messageBody.messageType === RPCChatTypes.MessageType.attachmentuploaded &&
+        cMsg.valid.messageBody.attachmentuploaded &&
         message.type === 'attachment'
       ) {
         actions.push(
@@ -405,7 +411,7 @@ const onIncomingMessage = (
         case RPCChatTypes.MessageType.delete: {
           const {delete: d} = body
           const {messageMap} = state.chat2
-          if (d && d.messageIDs) {
+          if (d?.messageIDs) {
             // check if the delete is acting on an exploding message
             const messageIDs = d.messageIDs
             const messages = messageMap.get(conversationIDKey)
@@ -432,6 +438,8 @@ const onIncomingMessage = (
           }
           break
         }
+        default:
+        // nothing
       }
     }
     if (
@@ -461,12 +469,12 @@ const chatActivityToMetasAction = (
     readonly conv?: RPCChatTypes.InboxUIItem | null
   }
 ) => {
-  const conv = payload ? payload.conv : null
+  const {conv} = payload
   if (!conv) {
     return []
   }
   const meta = Constants.inboxUIItemToConversationMeta(state, conv)
-  const usernameToFullname = (conv?.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
+  const usernameToFullname = (conv.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
     if (part.fullName) {
       map[part.assertion] = part.fullName
     }
@@ -486,19 +494,17 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
       const conversationIDKey = Types.conversationIDToKey(outboxRecord.convID)
       const outboxID = Types.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
 
-      if (error) {
-        // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
-        const reason = Constants.rpcErrorToString(error)
-        let tempForceRedBox: string | null = null
-        if (error.typ === RPCChatTypes.OutboxErrorType.identify) {
-          // Find out the user who failed identify
-          const match = error.message.match(/"(.*)"/)
-          tempForceRedBox = match && match[1]
-        }
-        arr.push(Chat2Gen.createMessageErrored({conversationIDKey, errorTyp: error.typ, outboxID, reason}))
-        if (tempForceRedBox) {
-          arr.push(UsersGen.createUpdateBrokenState({newlyBroken: [tempForceRedBox], newlyFixed: []}))
-        }
+      // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
+      const reason = Constants.rpcErrorToString(error)
+      let tempForceRedBox: string | undefined = undefined
+      if (error.typ === RPCChatTypes.OutboxErrorType.identify) {
+        // Find out the user who failed identify
+        const match = error.message.match(/"(.*)"/)
+        tempForceRedBox = match?.[1]
+      }
+      arr.push(Chat2Gen.createMessageErrored({conversationIDKey, errorTyp: error.typ, outboxID, reason}))
+      if (tempForceRedBox) {
+        arr.push(UsersGen.createUpdateBrokenState({newlyBroken: [tempForceRedBox], newlyFixed: []}))
       }
     }
     return arr
@@ -655,7 +661,7 @@ const onChatInboxSynced = (
     // We got some new messages appended
     case RPCChatTypes.SyncInboxResType.incremental: {
       const selectedConversation = Constants.getSelectedConversation()
-      const items = (syncRes.incremental && syncRes.incremental.items) || []
+      const items = syncRes.incremental?.items || []
       const metas = items.reduce<Array<Types.ConversationMeta>>((arr, i) => {
         const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv)
         if (meta) {
@@ -794,7 +800,7 @@ const onChatSetTeamRetention = (
     }
     return l
   }, [])
-  if (metas) {
+  if (metas.length) {
     return Chat2Gen.createUpdateTeamRetentionPolicy({metas})
   }
   // this is a more serious problem, but we don't need to bug the user about it
@@ -1056,7 +1062,7 @@ function* loadMoreMessages(
     case Chat2Gen.markConversationsStale:
       key = Constants.getSelectedConversation()
       // not mentioned?
-      if (action.payload.conversationIDKeys.indexOf(key) === -1) {
+      if (action.payload.conversationIDKeys.includes(key)) {
         return
       }
       reason = 'got stale'
@@ -1067,7 +1073,7 @@ function* loadMoreMessages(
       break
     case Chat2Gen.navigateToThread:
       key = action.payload.conversationIDKey
-      reason = action.payload.reason || 'navigated'
+      reason = action.payload.reason
       if (action.payload.pushBody && action.payload.pushBody.length > 0) {
         knownRemotes.push(action.payload.pushBody)
       }

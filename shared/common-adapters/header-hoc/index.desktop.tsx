@@ -16,11 +16,11 @@ export const HeaderHocHeader = ({
   rightActions,
   theme = 'light',
 }: Props) => (
-  <Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+  <Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle] as any)}>
     {customComponent}
     {onCancel && (
       <Icon
-        style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]])}
+        style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]] as any)}
         type="iconfont-close"
         onClick={onCancel}
       />

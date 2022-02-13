@@ -33,7 +33,7 @@ class PendingBackground extends React.Component<Props, State> {
           style={Styles.collapseStyles([
             styles.image,
             {
-              transform: [{translateY: this.state.yOffset}],
+              transform: [{translateY: this.state.yOffset}] as any,
             },
           ])}
         />

@@ -17,7 +17,7 @@ export const switchLoggedIn = 'route-tree:switchLoggedIn'
 export const switchTab = 'route-tree:switchTab'
 
 // Payload Types
-type _ClearModalsPayload = void
+type _ClearModalsPayload = undefined
 type _NavUpToScreenPayload = {readonly routeName: string}
 type _NavigateAppendPayload = {readonly fromKey?: string; readonly path: any; readonly replace?: boolean}
 type _NavigateUpPayload = {readonly fromKey?: string}
@@ -57,7 +57,7 @@ export const createSwitchTab = (payload: _SwitchTabPayload): SwitchTabPayload =>
 /**
  * ONLY used by the new nav. use this to clear any modal routes
  */
-export const createClearModals = (payload: _ClearModalsPayload): ClearModalsPayload => ({
+export const createClearModals = (payload?: _ClearModalsPayload): ClearModalsPayload => ({
   payload,
   type: clearModals,
 })

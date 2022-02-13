@@ -128,7 +128,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
                     />
                   ) : (
                     <video
-                      style={styles.videoFit}
+                      style={styles.videoFit as any}
                       onLoadedMetadata={() => this.setLoaded(this.props.path)}
                       controlsList="nodownload nofullscreen noremoteplayback"
                       controls={true}
