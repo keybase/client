@@ -24,7 +24,7 @@ const kbProcess = {
 
 const darwinCopyToKBFSTempUploadFile = isDarwin
   ? async (originalFilePath: string) => {
-      const simpleFSSimpleFSMakeTempDirForUploadRpcPromise = (params: void, waitingKey?: any) =>
+      const simpleFSSimpleFSMakeTempDirForUploadRpcPromise = async (params: unknown, waitingKey?: any) =>
         new Promise<any>((resolve, reject) => {
           if (!engine) {
             throw new Error('Preload missing engine')

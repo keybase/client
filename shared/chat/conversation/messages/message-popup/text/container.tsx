@@ -1,16 +1,16 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as DeeplinksConstants from '../../../../../constants/deeplinks'
-import * as Types from '../../../../../constants/types/chat2'
-import * as TeamTypes from '../../../../../constants/types/teams'
+import type * as Types from '../../../../../constants/types/chat2'
+import type * as TeamTypes from '../../../../../constants/types/teams'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerformByID} from '../../../../../constants/teams'
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
-import {StylesCrossPlatform} from '../../../../../styles/css'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 import openURL from '../../../../../util/open-url'
 import Text from '.'
 
@@ -28,12 +28,12 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, message.conversationIDKey)
   const participantInfo = Constants.getParticipantInfo(state, message.conversationIDKey)
   const yourOperations = getCanPerformByID(state, meta.teamID)
-  const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
-  const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
+  const _canDeleteHistory = yourOperations.deleteChatHistory
+  const _canAdminDelete = yourOperations.deleteOtherMessages
   const _label = Constants.getConversationLabel(state, meta, true)
   let _canPinMessage = message.type === 'text'
   if (_canPinMessage && meta.teamname) {
-    _canPinMessage = yourOperations && yourOperations.pinMessage
+    _canPinMessage = yourOperations.pinMessage
   }
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const _canReplyPrivately =
@@ -191,9 +191,7 @@ export default Container.connect(
     const isLocation = !!mapUnfurl
     // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
     const onViewMap =
-      mapUnfurl && mapUnfurl.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone
-        ? () => openURL(mapUnfurl.url)
-        : undefined
+      mapUnfurl?.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone ? () => openURL(mapUnfurl.url) : undefined
     const blockModalSingle = !stateProps._teamname && stateProps._participants.length === 2
     return {
       attachTo: ownProps.attachTo,

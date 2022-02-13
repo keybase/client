@@ -139,7 +139,7 @@ const openPathInSystemFileManager = async (
           Constants.parsePath(action.payload.path).kind
         ) || Constants.getPathItem(state.fs.pathItems, action.payload.path).type === Types.PathType.Folder
       ).catch(e => errorToActionOrThrow(action.payload.path, e))
-    : (new Promise<void>((resolve, reject) => {
+    : new Promise<void>((resolve, reject) => {
         if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
           // This usually indicates a developer error as
           // openPathInSystemFileManager shouldn't be used when FUSE integration
@@ -149,7 +149,7 @@ const openPathInSystemFileManager = async (
           logger.warn('empty directMountDir') // if this happens it might be a race?
           resolve()
         }
-      }) as Promise<void>)
+      })
 
 const fuseStatusToUninstallExecPath = isWindows
   ? (status: RPCTypes.FuseStatus) => {

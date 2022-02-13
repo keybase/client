@@ -2,18 +2,17 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import * as React from 'react'
 import * as FsGen from '../../../actions/fs-gen'
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {formatTimeForMessages} from '../../../util/timestamp'
+import {formatAudioRecordDuration, formatTimeForMessages} from '../../../util/timestamp'
 import MessagePopup from '../messages/message-popup'
 import chunk from 'lodash/chunk'
-import {OverlayParentProps} from '../../../common-adapters/overlay/parent-hoc'
+import type {OverlayParentProps} from '../../../common-adapters/overlay/parent-hoc'
 import {infoPanelWidth} from './common'
-import {Section} from '../../../common-adapters/section-list'
-import {formatAudioRecordDuration} from '../../../util/timestamp'
+import type {Section} from '../../../common-adapters/section-list'
 
 const monthNames = [
   'January',
@@ -204,7 +203,7 @@ const _DocViewRow = (props: DocViewRowProps) => {
       {Styles.isMobile && showingMenu && item.message && (
         <MessagePopup
           attachTo={getAttachmentRef}
-          message={item.message as Types.Message}
+          message={item.message}
           onHidden={toggleShowingMenu}
           position="top right"
           visible={showingMenu}
@@ -527,7 +526,7 @@ export const useAttachmentSections = (
             (attachmentInfo.messages as Array<Types.MessageAttachment>).map(
               m =>
                 ({
-                  audioDuration: m.audioDuration ?? undefined,
+                  audioDuration: m.audioDuration,
                   ctime: m.timestamp,
                   height: m.previewHeight,
                   key: `media-${m.ordinal}-${m.timestamp}-${m.previewURL}`,
@@ -619,16 +618,16 @@ export const useAttachmentSections = (
                 author: m.author,
                 ctime: m.timestamp,
                 key: `unfurl-empty-${m.ordinal}-${m.author}-${m.timestamp}`,
-                snippet: (m.decoratedText && m.decoratedText.stringValue()) ?? '',
+                snippet: m.decoratedText?.stringValue() ?? '',
               })
             } else {
               ;[...m.unfurls.values()].forEach((u, i) => {
-                if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic && u.unfurl.generic) {
+                if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic) {
                   l.push({
                     author: m.author,
                     ctime: m.timestamp,
                     key: `unfurl-${m.ordinal}-${i}-${m.author}-${m.timestamp}-${u.unfurl.generic.url}`,
-                    snippet: (m.decoratedText && m.decoratedText.stringValue()) ?? '',
+                    snippet: m.decoratedText?.stringValue() ?? '',
                     title: u.unfurl.generic.title,
                     url: u.unfurl.generic.url,
                   })

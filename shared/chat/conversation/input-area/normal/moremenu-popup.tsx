@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
@@ -57,7 +57,7 @@ const MoreMenuPopup = (props: Props) => {
   let to = ''
   if (wallet) {
     const otherParticipants = participantInfo.all.filter(u => u !== you)
-    to = (otherParticipants && otherParticipants[0]) || ''
+    to = otherParticipants[0] || ''
   }
   const onSendLumens = wallet ? () => onLumens(to, false) : undefined
   const onRequestLumens = wallet ? () => onLumens(to, true) : undefined

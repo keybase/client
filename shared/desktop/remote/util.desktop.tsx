@@ -11,7 +11,10 @@ export const getMainWindow = (): Electron.BrowserWindow | null => {
 
 export const mainWindowDispatch = (action: TypedActions): void => {
   if (isRenderer) {
-    Electron.ipcRenderer.invoke('KBdispatchAction', action)
+    Electron.ipcRenderer
+      .invoke('KBdispatchAction', action)
+      .then(() => {})
+      .catch(() => {})
   } else {
     getMainWindow()?.webContents.send('KBdispatchAction', action)
   }

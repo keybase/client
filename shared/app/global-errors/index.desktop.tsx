@@ -3,8 +3,8 @@ import logger from '../../logger'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
-import {RPCError} from '../../util/errors'
-import {Props} from './index'
+import type {RPCError} from '../../util/errors'
+import type {Props} from './index'
 
 type Size = 'Closed' | 'Small' | 'Big'
 
@@ -102,8 +102,7 @@ class GlobalError extends Component<Props, State> {
     }
 
     const message =
-      (this.props.daemonError && this.props.daemonError.message) ||
-      'Keybase is currently unreachable. Trying to reconnect you…'
+      this.props.daemonError?.message || 'Keybase is currently unreachable. Trying to reconnect you…'
     return (
       <Kb.Box style={styles.containerOverlay}>
         <Kb.Box style={styles.overlayRow}>

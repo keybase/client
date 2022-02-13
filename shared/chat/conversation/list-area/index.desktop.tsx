@@ -14,7 +14,7 @@ import SpecialTopMessage from '../messages/special-top-message'
 import logger from '../../../logger'
 import shallowEqual from 'shallowequal'
 import {ErrorBoundary} from '../../../common-adapters'
-import {Props} from '.'
+import type {Props} from '.'
 import {Waypoint} from 'react-waypoint'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
@@ -260,7 +260,7 @@ class Thread extends React.PureComponent<Props, State> {
     }
 
     // Are we prepending older messages?
-    if (snapshot && snapshot.scrollHeight && list && !this.isLockedToBottom()) {
+    if (snapshot?.scrollHeight && list && !this.isLockedToBottom()) {
       requestAnimationFrame(() => {
         const {current} = this.listRef
         if (current) {
@@ -403,7 +403,7 @@ class Thread extends React.PureComponent<Props, State> {
     }
 
     const sel = window.getSelection()
-    if (sel && sel.isCollapsed) {
+    if (sel?.isCollapsed) {
       this.props.onFocusInput()
     }
   }

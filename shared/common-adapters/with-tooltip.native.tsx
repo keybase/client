@@ -30,14 +30,10 @@ type Dims = {
   top: number
   width: number
 }
-const measureCb = (resolve: (dims: Dims) => void) => (
-  _x: number,
-  _y: number,
-  width: number,
-  height: number,
-  pageX: number,
-  pageY: number
-) => resolve({height, left: pageX, top: pageY, width})
+const measureCb =
+  (resolve: (dims: Dims) => void) =>
+  (_x: number, _y: number, width: number, height: number, pageX: number, pageY: number) =>
+    resolve({height, left: pageX, top: pageY, width})
 
 const WithTooltip = (props: Props) => {
   const {position} = props
@@ -62,25 +58,27 @@ const WithTooltip = (props: Props) => {
       new Promise(resolve => clickableRef.current && clickableRef.current.measure(measureCb(resolve))),
       new Promise(resolve => tooltipRef.current && tooltipRef.current.measure(measureCb(resolve))),
       // @ts-ignore this stucture makes this very hard to type
-    ]).then(([c, t]: [Dims, Dims]) => {
-      if (!getIsMounted()) {
-        return
-      }
+    ])
+      .then(([c, t]: [Dims, Dims]) => {
+        if (!getIsMounted()) {
+          return
+        }
 
-      const constrainLeft = (ideal: number) => Math.max(0, Math.min(ideal, screenWidth - t.width))
-      const constrainTop = (ideal: number) => Math.max(0, Math.min(ideal, screenHeight - t.height))
-      if (position === 'bottom center') {
-        setLeft(constrainLeft(c.left + c.width / 2 - t.width / 2))
-        setTop(constrainTop(c.top + c.height))
-      } else {
-        // default to top center
-        setLeft(constrainLeft(c.left + c.width / 2 - t.width / 2))
-        setTop(constrainTop(c.top - t.height))
-      }
+        const constrainLeft = (ideal: number) => Math.max(0, Math.min(ideal, screenWidth - t.width))
+        const constrainTop = (ideal: number) => Math.max(0, Math.min(ideal, screenHeight - t.height))
+        if (position === 'bottom center') {
+          setLeft(constrainLeft(c.left + c.width / 2 - t.width / 2))
+          setTop(constrainTop(c.top + c.height))
+        } else {
+          // default to top center
+          setLeft(constrainLeft(c.left + c.width / 2 - t.width / 2))
+          setTop(constrainTop(c.top - t.height))
+        }
 
-      setVisible(true)
-      setVisibleFalseLater()
-    })
+        setVisible(true)
+        setVisibleFalseLater()
+      })
+      .catch(() => {})
   }
 
   if (!props.showOnPressMobile || props.disabled) {

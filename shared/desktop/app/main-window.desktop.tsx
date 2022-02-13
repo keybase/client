@@ -5,7 +5,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as fs from 'fs'
 import menuHelper from './menu-helper.desktop'
 import {mainWindowDispatch} from '../remote/util.desktop'
-import {WindowState} from '../../constants/types/config'
+import type {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
@@ -84,7 +84,10 @@ const changeDock = (show: boolean) => {
   if (!dock) return
 
   if (show) {
-    dock.show()
+    dock
+      .show()
+      .then(() => {})
+      .catch(() => {})
   } else {
     dock.hide()
   }

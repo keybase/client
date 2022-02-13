@@ -40,11 +40,11 @@ const log = (tagPrefix: string, toLog: string) => {
 }
 
 const dump: NativeLogDump = __STORYBOOK__
-  ? () => {
+  ? async () => {
       const p: Promise<Array<string>> = Promise.resolve([])
       return p
     }
-  : (...args) => {
+  : async (...args) => {
       actuallyLog.flush()
       return NativeModules.KBNativeLogger.dump(...args)
     }

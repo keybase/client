@@ -76,7 +76,10 @@ export default function makeMenu(window: Electron.BrowserWindow) {
     submenu: Electron.Menu.buildFromTemplate([
       new Electron.MenuItem({
         click: () => {
-          Electron.shell.openExternal('https://keybase.io')
+          Electron.shell
+            .openExternal('https://keybase.io')
+            .then(() => {})
+            .catch(() => {})
         },
         label: 'Learn More',
       }),

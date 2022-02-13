@@ -20,8 +20,8 @@ import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {RPCError} from '../util/errors'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
-import {TypedActions, TypedState} from '../util/container'
-import {Action} from 'redux'
+import type {TypedActions, TypedState} from '../util/container'
+import type {Action} from 'redux'
 
 const stateToBuildRequestParams = (state: TypedState) => ({
   amount: state.wallets.building.amount,
@@ -39,7 +39,7 @@ const buildErrCatcher = (err: any) => {
   }
 }
 
-const buildPayment = async (state: TypedState, _: WalletsGen.BuildPaymentPayload) => {
+const buildPayment = async (state: TypedState) => {
   try {
     if (state.wallets.building.isRequest) {
       const build = await RPCStellarTypes.localBuildRequestLocalRpcPromise(
@@ -102,7 +102,7 @@ const spawnBuildPayment = (
   return WalletsGen.createBuildPayment()
 }
 
-const openSendRequestForm = (state: TypedState, _: WalletsGen.OpenSendRequestFormPayload) => {
+const openSendRequestForm = (state: TypedState) => {
   if (!state.wallets.acceptedDisclaimer) {
     // redirect to disclaimer
     return RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
@@ -116,7 +116,7 @@ const openSendRequestForm = (state: TypedState, _: WalletsGen.OpenSendRequestFor
   ]
 }
 
-const maybePopulateBuildingCurrency = (state: TypedState, _: WalletsGen.AccountsReceivedPayload) =>
+const maybePopulateBuildingCurrency = (state: TypedState) =>
   (state.wallets.building.bid || state.wallets.building.isRequest) && !state.wallets.building.currency // building a payment and haven't set currency yet
     ? WalletsGen.createSetBuildingCurrency({
         currency: Constants.getDefaultDisplayCurrency(state.wallets).code,
@@ -309,7 +309,7 @@ const reviewPayment = async (state: TypedState) => {
   }
 }
 
-const stopPayment = (state: TypedState, _: WalletsGen.AbandonPaymentPayload) =>
+const stopPayment = async (state: TypedState) =>
   RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid})
 
 const validateSEP7Link = async (action: WalletsGen.ValidateSEP7LinkPayload) => {
@@ -871,7 +871,7 @@ const navigateUp = (
 }
 
 const navigateToAccount = (action: WalletsGen.SelectAccountPayload) => {
-  if (action.type === WalletsGen.selectAccount && !action.payload.show) {
+  if (!action.payload.show) {
     // we don't want to show, don't nav
     return false
   }
@@ -1069,7 +1069,7 @@ const maybeClearErrors = () => WalletsGen.createClearErrors()
 const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) =>
   WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []})
 
-const acceptDisclaimer = () =>
+const acceptDisclaimer = async () =>
   RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).catch(
     () => {
       // disclaimer screen handles showing error
@@ -1100,14 +1100,14 @@ const checkDisclaimer = async (_: WalletsGen.CheckDisclaimerPayload, logger: Sag
   }
 }
 
-const rejectDisclaimer = (_: WalletsGen.RejectDisclaimerPayload) =>
+const rejectDisclaimer = () =>
   isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
 
 const loadMobileOnlyMode = async (
   action: WalletsGen.LoadMobileOnlyModePayload | WalletsGen.SelectAccountPayload,
   logger: Saga.SagaLogger
 ) => {
-  let accountID = action.payload.accountID
+  const accountID = action.payload.accountID
   if (!Types.isValidAccountID(accountID)) {
     logger.warn('invalid account ID, bailing')
     return false
@@ -1128,8 +1128,8 @@ const loadMobileOnlyMode = async (
 }
 
 const changeMobileOnlyMode = async (action: WalletsGen.ChangeMobileOnlyModePayload) => {
-  let accountID = action.payload.accountID
-  let f = action.payload.enabled
+  const accountID = action.payload.accountID
+  const f = action.payload.enabled
     ? RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise
     : RPCStellarTypes.localSetAccountAllDevicesLocalRpcPromise
   await f({accountID}, Constants.setAccountMobileOnlyWaitingKey(accountID))
@@ -1175,7 +1175,7 @@ const readLastSentXLM = async (__: ConfigGen.DaemonHandshakeDonePayload, logger:
   }
 }
 
-const exitFailedPayment = (state: TypedState, _: WalletsGen.ExitFailedPaymentPayload) => {
+const exitFailedPayment = (state: TypedState) => {
   const accountID = state.wallets.builtPayment.from
   return [
     WalletsGen.createAbandonPayment(),
@@ -1465,13 +1465,13 @@ const calculateBuildingAdvanced = async (
   } catch (error_) {
     const error = error_ as RPCError
     let errorMessage = 'Error finding a path to convert these 2 assets.'
-    if (error && error.desc) {
+    if (error?.desc) {
       errorMessage = error.desc
     }
-    if (error && error.code === RPCTypes.StatusCode.scapinetworkerror) {
+    if (error?.code === RPCTypes.StatusCode.scapinetworkerror) {
       errorMessage = 'Network error.'
     }
-    if (error && error.desc === 'no payment path found') {
+    if (error?.desc === 'no payment path found') {
       errorMessage = 'No path was found to convert these 2 assets. Please pick other assets.'
     }
     return WalletsGen.createSetBuiltPaymentAdvanced({

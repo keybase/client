@@ -61,10 +61,10 @@ class AggregateLoggerImpl implements AggregateLogger {
     this.debug = debug.log
   }
 
-  dump(filter?: Array<LogLevel>) {
+  async dump(filter?: Array<LogLevel>) {
     const allKeys = Object.keys(this._allLoggers) as Array<LogLevel>
     const filterKeys = filter || allKeys
-    const logDumpPromises = filterKeys.map((level: LogLevel) => this._allLoggers[level].dump(level))
+    const logDumpPromises = filterKeys.map(async (level: LogLevel) => this._allLoggers[level].dump(level))
     const p: Promise<Array<LogLineWithLevelISOTimestamp>> = Promise.all(logDumpPromises).then(
       (logsToDump: Array<Array<LogLineWithLevel>>): Array<LogLineWithLevelISOTimestamp> =>
         _mergeSortedArraysHelper(
@@ -76,9 +76,9 @@ class AggregateLoggerImpl implements AggregateLogger {
     return p
   }
 
-  flush() {
+  async flush() {
     const allKeys = Object.keys(this._allLoggers) as Array<LogLevel>
-    allKeys.map(level => this._allLoggers[level].flush())
+    allKeys.map(async level => this._allLoggers[level].flush())
     const p: Promise<void> = Promise.all(allKeys).then(() => {})
     return p
   }

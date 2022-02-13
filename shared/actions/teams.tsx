@@ -1685,12 +1685,13 @@ const loadTeamChannelList = async (
 
     // ensure we refresh participants, but don't fail the saga if this somehow fails
     try {
-      ;[...channels.values()].forEach(
-        async ({conversationIDKey}) =>
-          await RPCChatTypes.localRefreshParticipantsRpcPromise({
-            convID: ChatTypes.keyToConversationID(conversationIDKey),
-          })
-      )
+      ;[...channels.values()].forEach(({conversationIDKey}) => {
+        RPCChatTypes.localRefreshParticipantsRpcPromise({
+          convID: ChatTypes.keyToConversationID(conversationIDKey),
+        })
+          .then(() => {})
+          .catch(() => {})
+      })
     } catch (e) {
       logger.error('this should never happen', e)
     }

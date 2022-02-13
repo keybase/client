@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import * as Types from '../../../../../constants/types/chat2'
-import * as RPCTypes from '../../../../../constants/types/rpc-gen'
+import type * as Types from '../../../../../constants/types/chat2'
+import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import {EmojiPickerDesktop} from '../emoji-picker/container'
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../../util/emoji'
 
 type Props = {
@@ -51,7 +51,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   state = {showingPicker: false}
   _attachmentRef = React.createRef<Kb.Box2>()
   _setShowingPicker = (showingPicker: boolean) => {
-    this.props.onShowingEmojiPicker && this.props.onShowingEmojiPicker(showingPicker)
+    this.props.onShowingEmojiPicker?.(showingPicker)
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   }
   _showPicker = () => this._setShowingPicker(true)

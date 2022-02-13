@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import MessagePopup from '../messages/message-popup'
 import * as Styles from '../../../styles'
-import {Props} from '.'
+import type {Props} from '.'
 
 type State = {
   loaded: string
@@ -52,7 +52,10 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
   componentDidMount() {
     this.mounted = true
     if (this.vidRef.current && this.props.autoPlay) {
-      this.vidRef.current.play()
+      this.vidRef.current
+        .play()
+        .then(() => {})
+        .catch(() => {})
     }
   }
 

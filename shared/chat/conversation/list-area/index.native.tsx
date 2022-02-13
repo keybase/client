@@ -8,8 +8,8 @@ import Message from '../messages'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import logger from '../../../logger'
-import {Animated, ListRenderItemInfo} from 'react-native'
-import {Props, ItemType} from '.'
+import {Animated, type ListRenderItemInfo} from 'react-native'
+import type {Props, ItemType} from '.'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 
 const debugEnabled = false
@@ -19,7 +19,7 @@ const debug = debugEnabled ? (s: string) => logger.debug('scroll: ' + s) : () =>
 const targetHitArea = 1
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
-const animatingMap = new Map<string, null | React.ReactElement<any>>()
+const animatingMap = new Map<string, null | React.ReactElement>()
 
 type AnimatedChildProps = {
   animatingKey: string
@@ -62,7 +62,7 @@ const AnimatedChild = React.memo(({children, animatingKey}: AnimatedChildProps) 
 })
 
 type SentProps = {
-  children?: React.ReactElement<any>
+  children?: React.ReactElement
   conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
 }
@@ -177,7 +177,7 @@ class ConversationList extends React.PureComponent<Props> {
 
   private getItemCount = (messageOrdinals: Array<Types.Ordinal>) => {
     if (this.mounted) {
-      return messageOrdinals ? messageOrdinals.length + 2 : 2
+      return messageOrdinals.length + 2
     } else {
       // needed else VirtualizedList will yellowbox
       return 0

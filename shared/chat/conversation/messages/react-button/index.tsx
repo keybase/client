@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import {Box2, ClickableBox, Icon, Text, EmojiIfExists} from '../../../../common-adapters'
-import {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
+import type {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
 import DelayInterval from './delay-interval'
 
@@ -128,7 +128,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
 
   _setShowingPicker = (showingPicker: boolean) => {
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
-    this.props.onShowPicker && this.props.onShowPicker(showingPicker)
+    this.props.onShowPicker?.(showingPicker)
   }
 
   _onAddReaction = ({colons}: {colons: string}) => {
@@ -173,7 +173,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
 
   componentWillUnmount() {
     this._stopCycle()
-    this.props.onShowPicker && this.props.onShowPicker(false)
+    this.props.onShowPicker?.(false)
   }
 
   render() {

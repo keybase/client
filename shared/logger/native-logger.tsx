@@ -38,7 +38,7 @@ class NativeLogger implements Logger {
     log(this._tagPrefix, dumpLine(Date.now(), toLog))
   }
 
-  dump(levelPrefix: LogLevel) {
+  async dump(levelPrefix: LogLevel) {
     return dump(this._tagPrefix).then((lines: any) =>
       lines.map((l: string): any => {
         const [ts, logLine] = parseLine(l)
@@ -47,7 +47,7 @@ class NativeLogger implements Logger {
     )
   }
 
-  flush() {
+  async flush() {
     flush()
     return Promise.resolve()
   }

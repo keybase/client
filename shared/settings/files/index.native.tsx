@@ -59,13 +59,14 @@ class ThresholdDropdown extends React.PureComponent<
 
 const Files = (props: Props) => {
   const syncOnCellular = Container.useSelector(state => state.fs.settings.syncOnCellular)
-  const toggleSyncOnCellular = () =>
+  const toggleSyncOnCellular = () => {
     RPCTypes.SimpleFSSimpleFSSetSyncOnCellularRpcPromise(
-      {
-        syncOnCellular: !syncOnCellular,
-      },
+      {syncOnCellular: !syncOnCellular},
       Constants.setSyncOnCellularWaitingKey
     )
+      .then(() => {})
+      .catch(() => {})
+  }
   const waitingToggleSyncOnCellular = Container.useSelector(state =>
     Container.anyWaiting(state, Constants.setSyncOnCellularWaitingKey)
   )

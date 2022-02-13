@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../common-adapters/index'
 import * as Styles from '../../../styles'
 
@@ -38,7 +38,7 @@ class GetTitles extends React.Component<Props, State> {
   }
 
   _onNext = (e?: React.BaseSyntheticEvent) => {
-    e && e.preventDefault()
+    e?.preventDefault()
 
     const {info} = this.props.pathAndInfos[this.state.index]
     if (!info) return
@@ -55,7 +55,7 @@ class GetTitles extends React.Component<Props, State> {
   }
 
   _onSubmit = (e?: React.BaseSyntheticEvent) => {
-    e && e.preventDefault()
+    e?.preventDefault()
     this.props.onSubmit(this.state.titles)
   }
 

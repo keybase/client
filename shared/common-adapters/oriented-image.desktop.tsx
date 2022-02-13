@@ -4,8 +4,8 @@ import EXIF from 'exif-js'
 import noop from 'lodash/noop'
 import isNumber from 'lodash/isNumber'
 import logger from '../logger'
-import {Props} from './oriented-image'
-import {StylesCrossPlatform} from 'styles'
+import type {Props} from './oriented-image'
+import type {StylesCrossPlatform} from 'styles'
 
 type State = {
   srcTransformed: string
@@ -174,12 +174,12 @@ class OrientedImage extends React.Component<Props, State> {
    */
 
   // EXIF will make a local HTTP request for images that have been uploaded to the Keybase service.
-  _fetchExifUploaded = () => {
+  _fetchExifUploaded = async () => {
     const {src} = this.props
     return new Promise((resolve, reject) => {
       try {
         // @ts-ignore types actually wrong
-        const ret = EXIF.getData({src}, function(this: unknown) {
+        const ret = EXIF.getData({src}, function (this: unknown) {
           const orientation = EXIF.getTag(this, 'Orientation')
           resolve(orientation)
         })
@@ -192,7 +192,7 @@ class OrientedImage extends React.Component<Props, State> {
 
   // Read the file contents directly into a buffer and pass it to EXIF which
   // can extract the EXIF data
-  _readExifLocal = () => {
+  _readExifLocal = async () => {
     const {src} = this.props
     return new Promise((resolve, reject) => {
       // data is a Node Buffer which is backed by a JavaScript ArrayBuffer.

@@ -40,10 +40,13 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
         if (Object.keys(toSend).length) {
           const propsStr = JSON.stringify(toSend)
           debugSerializer && console.log('[useSerializeProps]: throttled send', propsStr.length, toSend)
-          Electron.ipcRenderer.invoke('KBkeybase', {
-            payload: {propsStr, windowComponent, windowParam},
-            type: 'rendererNewProps',
-          })
+          Electron.ipcRenderer
+            .invoke('KBkeybase', {
+              payload: {propsStr, windowComponent, windowParam},
+              type: 'rendererNewProps',
+            })
+            .then(() => {})
+            .catch(() => {})
         }
         lastSent.current = serialized
         lastForceUpdate.current = currentForceUpdate
