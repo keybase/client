@@ -41,7 +41,7 @@ const requestIdleCallback = forceImmediateLogging
   ? timeoutFallback
   : window.requestIdleCallback.bind(window)
 
-const onIdlePromise = (timeout: number = 100): Promise<TimeoutInfo> =>
+const onIdlePromise = async (timeout: number = 100): Promise<TimeoutInfo> =>
   new Promise(resolve => requestIdleCallback(resolve, {timeout}))
 
 export {requestIdleCallback, onIdlePromise}

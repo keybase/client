@@ -291,7 +291,10 @@ export default () => {
     y: windowState.y,
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
-  win.loadURL(htmlFile)
+  win
+    .loadURL(htmlFile)
+    .then(() => {})
+    .catch(() => {})
   if (!disableSpellCheck) {
     win.webContents.session.setSpellCheckerDictionaryDownloadURL(
       'https://keybase.io/dictionaries/hunspell_dictionaries.zip/'

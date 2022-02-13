@@ -2,8 +2,8 @@
 const serialPromises = async (funcs: Array<() => Promise<any>>) =>
   funcs.reduce(
     (promise: Promise<any>, func: () => Promise<any>): any =>
-      promise.then((result: any) => func().then(Array.prototype.concat.bind(result)) as Promise<any>),
-    Promise.resolve([]) as Promise<any>
+      promise.then(async (result: any) => func().then(Array.prototype.concat.bind(result))),
+    Promise.resolve([])
   )
 
 export {serialPromises}

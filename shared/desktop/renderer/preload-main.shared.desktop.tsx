@@ -57,12 +57,12 @@ const setEngine = (e: any) => {
 const darwinCopyToChatTempUploadFile = isDarwin
   ? async (originalFilePath: string): Promise<{outboxID: Buffer; path: string}> => {
       const outboxID = generateOutboxID()
-      const localGetUploadTempFileRpcPromise = (params: any, waitingKey?: any) => {
+      const localGetUploadTempFileRpcPromise = async (params: any, waitingKey?: any) => {
         return new Promise<any>((resolve, reject) => {
           if (!engine) {
             throw new Error('Preload missing engine')
           }
-          engine!._rpcOutgoing({
+          engine._rpcOutgoing({
             callback: (error, result) => (error ? reject(error) : resolve(result)),
             method: 'chat.1.local.getUploadTempFile',
             params,

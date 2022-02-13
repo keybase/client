@@ -74,6 +74,8 @@ export const useAllChannelMetas = (
   React.useEffect(() => {
     if (!dontCallRPC) {
       reloadChannels()
+        .then(() => {})
+        .catch(() => {})
     }
   }, [reloadChannels, dontCallRPC])
 
