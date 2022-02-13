@@ -106,6 +106,8 @@ function* setupPushEventLoop() {
   const pushChannel = yield Saga.eventChannel(emitter => {
     if (isAndroid) {
       listenForNativeAndroidIntentNotifications(emitter)
+        .then(() => {})
+        .catch(() => {})
     } else {
       listenForPushNotificationsFromJS(emitter)
     }

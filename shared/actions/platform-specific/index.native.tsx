@@ -803,6 +803,8 @@ const stopAudioRecording = async (
   if (ChatConstants.audioRecordingDuration(audio) < 500 || audio.path.length === 0) {
     logger.info('stopAudioRecording: recording too short, skipping')
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+      .then(() => {})
+      .catch(() => {})
     return Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL})
   }
 
@@ -851,6 +853,8 @@ const onEnableAudioRecording = async (
 
   if (isIOS) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+      .then(() => {})
+      .catch(() => {})
   } else {
     Vibration.vibrate(50)
   }
@@ -879,6 +883,8 @@ const onSendAudioRecording = (action: Chat2Gen.SendAudioRecordingPayload) => {
   if (!action.payload.fromStaged) {
     if (isIOS) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+        .then(() => {})
+        .catch(() => {})
     } else {
       Vibration.vibrate(50)
     }
