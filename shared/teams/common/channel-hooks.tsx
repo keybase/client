@@ -44,32 +44,32 @@ export const useAllChannelMetas = (
   const [inboxUIItems, setConvs] = React.useState<RPCChatTypes.InboxUIItem[] | null>(null)
   const [loadingChannels, setLoadingChannels] = React.useState(true)
 
-  const reloadChannels = React.useCallback(() => {
-    new Promise<void>((resolve, reject) => {
-      setLoadingChannels(true)
-      getConversations(
-        [
-          {
-            membersType: RPCChatTypes.ConversationMembersType.team,
-            tlfName: teamname,
-            topicType: RPCChatTypes.TopicType.chat,
+  const reloadChannels = React.useCallback(
+    async () =>
+      new Promise<void>((resolve, reject) => {
+        setLoadingChannels(true)
+        getConversations(
+          [
+            {
+              membersType: RPCChatTypes.ConversationMembersType.team,
+              tlfName: teamname,
+              topicType: RPCChatTypes.TopicType.chat,
+            },
+            Constants.getChannelsWaitingKey(teamID),
+          ],
+          ({convs}) => {
+            resolve()
+            convs && setConvs(convs)
+            setLoadingChannels(false)
           },
-          Constants.getChannelsWaitingKey(teamID),
-        ],
-        ({convs}) => {
-          resolve()
-          convs && setConvs(convs)
-          setLoadingChannels(false)
-        },
-        error => {
-          setLoadingChannels(false)
-          reject(error)
-        }
-      )
-    })
-      .then(() => {})
-      .catch(() => {})
-  }, [setLoadingChannels, teamID, teamname, getConversations])
+          error => {
+            setLoadingChannels(false)
+            reject(error)
+          }
+        )
+      }),
+    [setLoadingChannels, teamID, teamname, getConversations]
+  )
 
   React.useEffect(() => {
     if (!dontCallRPC) {

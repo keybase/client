@@ -55,11 +55,11 @@ const WithTooltip = (props: Props) => {
     const screenHeight = Kb.NativeDimensions.get('window').height
 
     Promise.all([
-      new Promise(resolve => clickableRef.current && clickableRef.current.measure(measureCb(resolve))),
-      new Promise(resolve => tooltipRef.current && tooltipRef.current.measure(measureCb(resolve))),
+      new Promise(resolve => clickableRef.current?.measure(measureCb(resolve))),
+      new Promise(resolve => tooltipRef.current?.measure(measureCb(resolve))),
       // @ts-ignore this stucture makes this very hard to type
     ])
-      .then(([c, t]: [Dims, Dims]) => {
+      .then(([c, t]: [any, any]) => {
         if (!getIsMounted()) {
           return
         }

@@ -319,11 +319,23 @@ const SelfChannelActions = ({
   const convID = ChatTypes.keyToConversationID(meta.conversationIDKey)
   const onLeave = () => {
     setWaiting(true)
-    leaveRPC([{convID}], () => reloadChannels().then(stopWaiting, stopWaiting), stopWaiting)
+    leaveRPC(
+      [{convID}],
+      () => {
+        reloadChannels().then(stopWaiting, stopWaiting)
+      },
+      stopWaiting
+    )
   }
   const onJoin = () => {
     setWaiting(true)
-    joinRPC([{convID}], () => reloadChannels().then(stopWaiting, stopWaiting), stopWaiting)
+    joinRPC(
+      [{convID}],
+      () => {
+        reloadChannels().then(stopWaiting, stopWaiting)
+      },
+      stopWaiting
+    )
   }
 
   const menuItems = [

@@ -13,7 +13,7 @@ import useRPC from '../../util/use-rpc'
 import pickFiles from '../../util/pick-files'
 import kebabCase from 'lodash/kebabCase'
 
-const pickEmojisPromise = () => pickFiles('Select emoji images to upload')
+const pickEmojisPromise = async () => pickFiles('Select emoji images to upload')
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
@@ -159,16 +159,13 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
 }
 
 export const AddEmojiModal = (props: Props) => {
-  const {
-    addFiles,
-    bannerError,
-    clearErrors,
-    clearFiles,
-    doAddEmojis,
-    emojisToAdd,
-    waitingAddEmojis,
-  } = useStuff(props.conversationIDKey, props.onChange)
-  const pick = () => pickEmojisPromise().then(addFiles)
+  const {addFiles, bannerError, clearErrors, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} =
+    useStuff(props.conversationIDKey, props.onChange)
+  const pick = () => {
+    pickEmojisPromise()
+      .then(addFiles)
+      .catch(() => {})
+  }
   return !emojisToAdd.length ? (
     <Modal
       title="Add emoji"
@@ -224,7 +221,7 @@ const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
     filesToAdd.length && addFiles(filesToAdd)
     setDragOver(false)
   }
-  const pick = () => pickEmojisPromise().then(addFiles)
+  const pick = async () => pickEmojisPromise().then(addFiles)
   return {dragOver, onDragLeave, onDragOver, onDrop, pick}
 }
 
