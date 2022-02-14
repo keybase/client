@@ -40,6 +40,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       resizable: false,
       transparent: true,
       webPreferences: {
+        contextIsolation: false,
         enableRemoteModule: true,
         nodeIntegration: true,
         nodeIntegrationInWorker: false,

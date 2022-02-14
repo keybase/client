@@ -185,7 +185,7 @@
         "babel-loader": "8.2.3",
         "cross-env": "7.0.3",
         "css-loader": "6.6.0",
-        "electron": "11.5.0",
+        "electron": "13.6.9",
         "electron-packager": "14.0.6",
         "eslint": "8.7.0",
         "eslint-plugin-promise": "6.0.0",

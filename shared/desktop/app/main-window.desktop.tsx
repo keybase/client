@@ -276,6 +276,7 @@ export default () => {
     show: false,
     webPreferences: {
       backgroundThrottling: false,
+      contextIsolation: false,
       devTools: showDevTools,
       enableRemoteModule: true,
       nodeIntegration: true,
