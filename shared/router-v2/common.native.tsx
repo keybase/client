@@ -3,8 +3,11 @@ import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import {TabActions} from '@react-navigation/core'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
+import {initialWindowMetrics} from 'react-native-safe-area-context'
 
 export const headerDefaultStyle = {
+  height: (initialWindowMetrics?.insets?.top ?? 0) + 44,
+  flexShrink: 0,
   get backgroundColor() {
     return Styles.globalColors.fastBlank
   },
@@ -26,6 +29,10 @@ export const defaultNavigationOptions: any = {
   headerLeft: ({canGoBack, onPress, tintColor}) => (
     <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
   ),
+  headerBackgroundContainerStyle: {
+    flexShrink: 0,
+    ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
+  },
   headerLeftContainerStyle: {
     paddingLeft: 8,
     width: actionWidth,
@@ -45,7 +52,9 @@ export const defaultNavigationOptions: any = {
   headerTitleContainerStyle: {
     alignItems: 'stretch',
     flexGrow: 1,
-    ...(DEBUGCOLORS ? {backgroundColor: 'red'} : {}),
+    minHeight: 44,
+    flexShrink: 0,
+    ...(DEBUGCOLORS ? {backgroundColor: 'cyan'} : {}),
   },
 }
 
