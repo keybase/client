@@ -47,8 +47,8 @@ const NoDupeStackRouter = options => {
         case 'NAVIGATE': // fallthrough
         case 'PUSH': {
           const s = router.getStateForAction(state, action, options)
-          // not handled by us
-          if (!s) {
+          // not handled by us or weird internal state
+          if (!s || !state.routes) {
             return s
           }
           if (state.routes.length + 1 === s?.routes?.length) {

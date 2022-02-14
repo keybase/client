@@ -139,7 +139,7 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
       return []
     }
     case RouteTreeGen.clearModals: {
-      if (_isLoggedIn(navigationState) && navigationState.routes.length > 1) {
+      if (_isLoggedIn(navigationState) && navigationState?.routes?.length > 1) {
         return [{...StackActions.popToTop(), target: navigationState.key}]
       }
       return []
