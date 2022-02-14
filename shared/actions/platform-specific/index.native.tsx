@@ -893,6 +893,7 @@ function* checkNav(
     if (_getNavigator()) {
       break
     }
+    logger.info('Waiting on nav, got setNavigator but nothing in constants?')
   }
   yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
 }
