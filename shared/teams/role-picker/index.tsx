@@ -275,23 +275,25 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
   return (
     <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container} fullHeight={Styles.isMobile}>
       {!Styles.isMobile && <Header />}
-      {roles.map(role => {
-        const disabled = props.disabledRoles ? props.disabledRoles[role as string] : undefined
-        if (disabled === null) {
-          return null
-        }
-        const onSelect = disabled ? undefined : () => setSelectedRole(role)
-        return (
-          <RoleRowWrapper
-            key={role as string}
-            role={role}
-            disabledReason={disabled}
-            onSelect={onSelect}
-            selected={selectedRole === role}
-            plural={props.plural ?? false}
-          />
-        )
-      })}
+      <Kb.ScrollView style={styles.innerScroll}>
+        {roles.map(role => {
+          const disabled = props.disabledRoles ? props.disabledRoles[role as string] : undefined
+          if (disabled === null) {
+            return null
+          }
+          const onSelect = disabled ? undefined : () => setSelectedRole(role)
+          return (
+            <RoleRowWrapper
+              key={role as string}
+              role={role}
+              disabledReason={disabled}
+              onSelect={onSelect}
+              selected={selectedRole === role}
+              plural={props.plural ?? false}
+            />
+          )
+        })}
+      </Kb.ScrollView>
 
       <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
         {props.footerComponent}
@@ -417,6 +419,10 @@ const styles = Styles.styleSheetCreate(
       }),
       rowSelected: {
         position: 'relative',
+      },
+      innerScroll: {
+        flexGrow: 1,
+        width: '100%',
       },
       scroll: {
         backgroundColor: Styles.globalColors.white,
