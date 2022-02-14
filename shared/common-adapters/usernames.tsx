@@ -229,11 +229,7 @@ const _Usernames = (props: Props) => {
     <Text
       type={props.type}
       negative={isNegative}
-      fixOverdraw={
-        props.fixOverdraw === 'auto'
-          ? styleContext.canFixOverdraw
-          : props.fixOverdraw ?? styleContext.canFixOverdraw
-      }
+      fixOverdraw={props.fixOverdraw === 'auto' ? styleContext.canFixOverdraw : props.fixOverdraw ?? false}
       style={Styles.collapseStyles([containerStyle, props.containerStyle])}
       title={props.title}
       ellipsizeMode="tail"
