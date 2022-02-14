@@ -214,7 +214,16 @@ export const getAppPath = () => {
 }
 
 export const navToThread = (conversationIDKey: ConversationIDKey) => {
-  const rs: any = _getNavigator()?.getRootState() ?? {}
+  const rs: any = _getNavigator()?.getRootState()
+  // some kind of unknown race, just bail
+  if (!rs) {
+    console.log('Avoiding trying to nav to thread when missing nav state, bailing')
+    return
+  }
+  if (!rs.routes) {
+    console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
+    return
+  }
   const nextState: any = Container.produce(rs as any, draft => {
     // select tabs
     draft.index = 0
