@@ -7,7 +7,6 @@ import {initialWindowMetrics} from 'react-native-safe-area-context'
 
 export const headerDefaultStyle = {
   height: (initialWindowMetrics?.insets?.top ?? 0) + 44,
-  flexShrink: 0,
   get backgroundColor() {
     return Styles.globalColors.fastBlank
   },

@@ -391,6 +391,7 @@ const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         state: SimpleMarkdown.State
       ) => (
         <Emoji
+          style={Styles.isMobile ? state.styleOverride?.paragraph : undefined}
           emojiName={String(node.content)}
           size={32}
           key={state.key}
