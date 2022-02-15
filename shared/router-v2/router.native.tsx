@@ -6,6 +6,7 @@ import * as Shim from './shim.native'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
+import {useMemo} from '../util/memoize'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
@@ -42,6 +43,40 @@ export const headerDefaultStyle = {
   elevation: undefined, // since we use screen on android turn off drop shadow
   // headerExtraHeight is only hooked up for tablet. On other platforms, react-navigation calculates header height.
   ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
+}
+
+const makeNavScreens = (rs, Screen, isModal) => {
+  return Object.keys(rs).map(name => {
+    return (
+      <Screen
+        key={name}
+        name={name}
+        getComponent={rs[name].getScreen}
+        options={({route, navigation}) => {
+          const no = rs[name].getScreen().navigationOptions
+          const opt = typeof no === 'function' ? no({navigation, route}) : no
+          const skipAnim =
+            route.params?.animationEnabled === undefined
+              ? {}
+              : {
+                  // immediate pop in, default back animation
+                  transitionSpec: {
+                    close: TransitionPresets.DefaultTransition,
+                    open: {
+                      animation: 'timing',
+                      config: {duration: 0},
+                    },
+                  },
+                }
+          return {
+            ...opt,
+            ...(isModal ? {animationEnabled: true} : {}),
+            ...skipAnim,
+          }
+        }}
+      />
+    )
+  })
 }
 
 const TabBarIcon = React.memo((props: {isFocused: boolean; routeName: Tabs.Tab}) => {
@@ -125,81 +160,60 @@ const fastTransitionSpec = {
   },
 }
 
-// so we have a stack per tab?
-const tabToStack = new Map()
+// we must ensure we don't keep remaking these components
+const tabScreensCache = new Map()
 const makeTabStack = (tab: string) => {
-  let Comp = tabToStack.get(tab)
-  if (!Comp) {
-    const S = createNoDupeStackNavigator()
-    Comp = React.memo(
-      ({navigation}: any) => {
-        const dispatch = Container.useDispatch()
-        React.useEffect(() => {
-          const unsubscribe = navigation.addListener('tabLongPress', () => {
-            dispatch(RouteTreeGen.createTabLongPress({tab}))
-          })
-          return unsubscribe
-        }, [navigation, dispatch])
-        return (
-          <S.Navigator
-            initialRouteName={tabRoots[tab]}
-            screenOptions={{
-              ...Common.defaultNavigationOptions,
-              transitionSpec: {
-                close: fastTransitionSpec,
-                open: fastTransitionSpec,
-              },
-            }}
-          >
-            {makeNavScreens(Shim.shim(routes, false, false), S.Screen, false)}
-          </S.Navigator>
-        )
-      },
-      () => {
-        // don't rerender on props changes else we'll thrash things like the inbox for no reason
-        return true
-      }
-    )
-    tabToStack.set(tab, Comp)
+  const S = createNoDupeStackNavigator()
+
+  let tabScreens = tabScreensCache.get(tab)
+  if (!tabScreens) {
+    tabScreens = makeNavScreens(Shim.shim(routes, false, false), S.Screen, false)
+    tabScreensCache.set(tab, tabScreens)
   }
+
+  const Comp = React.memo(
+    () => {
+      return (
+        <S.Navigator
+          initialRouteName={tabRoots[tab]}
+          screenOptions={{
+            ...Common.defaultNavigationOptions,
+            transitionSpec: {
+              close: fastTransitionSpec,
+              open: fastTransitionSpec,
+            },
+          }}
+        >
+          {tabScreens}
+        </S.Navigator>
+      )
+    },
+    () => true
+  )
   return Comp
 }
 
-const makeNavScreens = (rs, Screen, isModal) => {
-  return Object.keys(rs).map(name => {
-    return (
-      <Screen
-        key={name}
-        name={name}
-        getComponent={rs[name].getScreen}
-        options={({route, navigation}) => {
-          const no = rs[name].getScreen().navigationOptions
-          const opt = typeof no === 'function' ? no({navigation, route}) : no
-          const skipAnim =
-            route.params?.animationEnabled === undefined
-              ? {}
-              : {
-                  // immediate pop in, default back animation
-                  transitionSpec: {
-                    close: TransitionPresets.DefaultTransition,
-                    open: {
-                      animation: 'timing',
-                      config: {duration: 0},
-                    },
-                  },
-                }
-          return {
-            ...opt,
-            ...(isModal ? {animationEnabled: true} : {}),
-            ...skipAnim,
-          }
-        }}
-      />
-    )
-  })
-}
-
 const AppTabsInner = () => {
+  const dispatch = Container.useDispatch()
+
+  // so we have a stack per tab
+  const tabStacks = useMemo(
+    () =>
+      tabs.map(tab => (
+        <Tab.Screen
+          key={tab}
+          name={tab}
+          component={makeTabStack(tab)}
+          listeners={() => ({
+            tabLongPress: () => {
+              dispatch(RouteTreeGen.createTabLongPress({tab}))
+            },
+          })}
+        />
+      )),
+    []
+  )
+
   return (
     <Tab.Navigator
       backBehavior="none"
@@ -233,9 +247,7 @@ const AppTabsInner = () => {
         }
       }}
     >
-      {tabs.map(tab => (
-        <Tab.Screen key={tab} name={tab} getComponent={() => makeTabStack(tab)} />
-      ))}
+      {tabStacks}
     </Tab.Navigator>
   )
 }
@@ -246,6 +258,7 @@ const AppTabs = React.memo(
 )
 
 const LoggedOutStack = createNoDupeStackNavigator()
+const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
 const LoggedOut = React.memo(() => (
   <LoggedOutStack.Navigator
     initialRouteName="login"
@@ -253,7 +266,7 @@ const LoggedOut = React.memo(() => (
       headerShown: false,
     }}
   >
-    {makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)}
+    {LoggedOutScreens}
   </LoggedOutStack.Navigator>
 ))
 
@@ -305,6 +318,7 @@ enum GoodLinkingState {
 }
 
 const RootStack = createNoDupeStackNavigator()
+const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 const RNApp = React.memo(() => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
   const goodLinking: any = RouterLinking.useReduxToLinking(appState.current)
@@ -358,7 +372,7 @@ const RNApp = React.memo(() => {
           {loggedInLoaded && loggedIn && (
             <>
               <RootStack.Screen name="loggedIn" component={AppTabs} />
-              {makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)}
+              {ModalScreens}
             </>
           )}
           {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
