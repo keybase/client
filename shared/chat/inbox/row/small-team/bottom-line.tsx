@@ -32,7 +32,7 @@ const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) =
   return tooltip ? <Kb.WithTooltip tooltip={tooltip}>{icon}</Kb.WithTooltip> : icon
 }
 
-const BottomLine = React.memo((props: Props) => {
+const BottomLineInner = (props: Props) => {
   let content: React.ReactNode
   const style = Styles.collapseStyles([
     styles.bottomLine,
@@ -175,7 +175,8 @@ const BottomLine = React.memo((props: Props) => {
       <Kb.Box style={styles.innerBox}>{content}</Kb.Box>
     </Kb.Box>
   )
-})
+}
+const BottomLine = React.memo(BottomLineInner)
 
 const styles = Styles.styleSheetCreate(
   () =>
