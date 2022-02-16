@@ -27,7 +27,7 @@ type State = {
   showMobileTooltip: boolean
 }
 
-class ReactionsRow extends React.Component<Props, State> {
+class ReactionsRow extends React.PureComponent<Props, State> {
   state = {
     activeEmoji: '',
     showMobileTooltip: false,

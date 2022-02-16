@@ -1170,7 +1170,7 @@ function* loadMoreMessages(
       const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
       const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
       let shouldClearOthers = false
-      if ((forceClear || sd === 'none') && !calledClear) {
+      if (forceClear && !calledClear) {
         shouldClearOthers = true
         calledClear = true
       }

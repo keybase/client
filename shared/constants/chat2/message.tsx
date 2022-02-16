@@ -1405,6 +1405,9 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
       // special case
       if (toRet[key] instanceof HiddenString && m[key]?.stringValue?.() === old[key]?.stringValue?.()) {
         toRet[key] = old[key]
+      } else if (key === 'replyTo' && m['replyTo'].id === old['replyTo'].id) {
+        // we have a sub message, that'll never get updated incrementally
+        toRet[key] = old[key]
       } else {
         unmatched++
       }
@@ -1435,6 +1438,9 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message): Types.Mess
     if (!validUpgrade(old, m)) {
       return old
     }
+    if (m.ordinal === old.ordinal) {
+      return old
+    }
     return {...m, ordinal: old.ordinal}
   }
   if (old.type === 'attachment' && m.type === 'attachment') {
@@ -1448,23 +1454,36 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message): Types.Mess
       // jump in the conversation view
       // hold on to the previewURL so that we
       // don't show the gray box.
+      // dupe check
+      if (m.ordinal === old.ordinal && m.previewURL === old.previewURL) {
+        return old
+      }
       return {
         ...m,
         ordinal: old.ordinal,
         previewURL: old.previewURL,
       }
     }
-    return {
-      ...m,
+
+    const previewURL = old.previewURL && !m.previewURL ? old.previewURL : m.previewURL
+    const transferState = old.transferState === 'remoteUploading' ? null : old.transferState
+
+    const temp = {
       // We got an attachment-uploaded message. Hold on to the old ID
       // because that's what the service expects to delete this message
       downloadPath: old.downloadPath,
       id: old.id,
       ordinal: old.ordinal,
-      previewURL: old.previewURL && !m.previewURL ? old.previewURL : m.previewURL,
+      previewURL,
       transferProgress: old.transferProgress,
-      transferState: old.transferState === 'remoteUploading' ? null : old.transferState,
+      transferState,
     }
+
+    if (Object.keys(temp).every(key => m[key] === old[key])) {
+      return old
+    }
+
+    return {...m, ...temp}
   }
   return m
 }

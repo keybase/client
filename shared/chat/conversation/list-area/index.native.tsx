@@ -65,8 +65,9 @@ type SentProps = {
   children?: React.ReactElement<any>
   conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
+  prevOrdinal: Types.Ordinal | undefined
 }
-const Sent_ = ({children, conversationIDKey, ordinal}: SentProps) => {
+const Sent_ = ({conversationIDKey, ordinal, prevOrdinal}: SentProps) => {
   const you = Container.useSelector(state => state.config.username)
   const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
   const youSent = message && message.author === you && message.ordinal !== message.id
@@ -77,6 +78,10 @@ const Sent_ = ({children, conversationIDKey, ordinal}: SentProps) => {
   if (state) {
     return state
   }
+
+  const children = (
+    <Message key={ordinal} ordinal={ordinal} previous={prevOrdinal} conversationIDKey={conversationIDKey} />
+  )
 
   // if state is null we already animated it
   if (youSent && state === undefined) {
@@ -126,14 +131,12 @@ class ConversationList extends React.PureComponent<Props> {
 
       if (this.props.messageOrdinals.length - 1 === ordinalIndex) {
         return (
-          <Sent key={ordinal} ordinal={ordinal} conversationIDKey={this.props.conversationIDKey}>
-            <Message
-              key={ordinal}
-              ordinal={ordinal}
-              previous={prevOrdinal}
-              conversationIDKey={this.props.conversationIDKey}
-            />
-          </Sent>
+          <Sent
+            key={ordinal}
+            ordinal={ordinal}
+            prevOrdinal={prevOrdinal}
+            conversationIDKey={this.props.conversationIDKey}
+          />
         )
       }
 
