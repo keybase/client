@@ -12,7 +12,6 @@ import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 import {NavigationContainer} from '@react-navigation/native'
-import {TransitionPresets} from '@react-navigation/stack'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {enableFreeze} from 'react-native-screens'
@@ -319,6 +318,7 @@ enum GoodLinkingState {
 
 const RootStack = createNoDupeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
+
 const RNApp = React.memo(() => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
   const goodLinking: any = RouterLinking.useReduxToLinking(appState.current)

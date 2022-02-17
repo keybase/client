@@ -288,7 +288,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
       >
         <Kb.Box2
           direction="horizontal"
-          style={{alignItems: 'center', width: '100%'}}
+          style={{alignItems: 'center'}}
           pointerEvents={Styles.isMobile && this.props.onClick ? 'none' : undefined}
         >
           {this.keyHandler()}
@@ -300,24 +300,25 @@ class SearchFilter extends React.PureComponent<Props, State> {
       </Kb.ClickableBox>
     )
     return Styles.isMobile ? (
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        style={Styles.collapseStyles([styles.containerMobile, this.props.style])}
-        alignItems="center"
-        gap="xsmall"
-      >
-        {!!this.props.mobileCancelButton && this.typing() && (
-          <Kb.Text
-            type={this.props.negative ? 'BodyBig' : 'BodyBigLink'}
-            onClick={this.cancel}
-            negative={!!this.props.negative}
-          >
-            Cancel
-          </Kb.Text>
-        )}
-        {content}
-      </Kb.Box2>
+      <Kb.Box style={{alignSelf: 'stretch'}}>
+        <Kb.Box2
+          direction="horizontal"
+          style={Styles.collapseStyles([styles.containerMobile, this.props.style])}
+          alignItems="center"
+          gap="xsmall"
+        >
+          {!!this.props.mobileCancelButton && this.typing() && (
+            <Kb.Text
+              type={this.props.negative ? 'BodyBig' : 'BodyBigLink'}
+              onClick={this.cancel}
+              negative={!!this.props.negative}
+            >
+              Cancel
+            </Kb.Text>
+          )}
+          {content}
+        </Kb.Box2>
+      </Kb.Box>
     ) : (
       content
     )
@@ -343,7 +344,6 @@ const styles = Styles.styleSheetCreate(() => ({
   containerCenter: {justifyContent: 'center'},
   containerMobile: Styles.platformStyles({
     common: {
-      maxWidth: '100%',
       paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,

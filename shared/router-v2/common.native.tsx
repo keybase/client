@@ -23,8 +23,8 @@ const DEBUGCOLORS = __DEV__ && false
 
 // Options used by default on all navigators
 export const defaultNavigationOptions: any = {
-  headerBackTitle: 'temp',
-  headerBackVisible: true,
+  headerBackTitle: '',
+  headerBackVisible: false,
   headerLeft: ({canGoBack, onPress, tintColor}) => (
     <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
   ),

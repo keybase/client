@@ -68,17 +68,13 @@ const ChannelHeader = (props: Props) => (
 )
 
 const UsernameHeader = (props: Props) => (
-  <Box2
-    direction={props.theirFullname ? 'vertical' : 'horizontal'}
-    fullWidth={true}
-    style={styles.usernameHeaderContainer}
-  >
+  <Box2 direction={props.theirFullname ? 'vertical' : 'horizontal'} style={styles.usernameHeaderContainer}>
     {!!props.theirFullname && (
       <Text lineClamp={1} type="BodyBig" fixOverdraw={true}>
         {props.theirFullname}
       </Text>
     )}
-    <Box2 direction="horizontal" fullWidth={true} style={styles.nameMutedContainer}>
+    <Box2 direction="horizontal" style={styles.nameMutedContainer}>
       <ConnectedUsernames
         colorFollowing={true}
         inline={false}

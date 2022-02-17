@@ -156,7 +156,7 @@ export const theme: Theme = {
       return Styles.globalColors.black
     },
     get primary() {
-      return Styles.globalColors.fastBlank as string
+      return Styles.globalColors.black
     },
     get text() {
       return Styles.globalColors.black
