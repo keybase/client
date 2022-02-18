@@ -20,9 +20,9 @@ export const showRevokePage = 'devices:showRevokePage'
 
 // Payload Types
 type _BadgeAppForDevicesPayload = {readonly ids: Array<string>}
-type _ClearBadgesPayload = void
+type _ClearBadgesPayload = undefined
 type _EndangeredTLFsLoadedPayload = {readonly deviceID: Types.DeviceID; readonly tlfs: Array<string>}
-type _LoadPayload = void
+type _LoadPayload = undefined
 type _LoadedPayload = {readonly devices: Array<Types.Device>}
 type _PaperKeyCreatedPayload = {readonly paperKey: HiddenString}
 type _RevokePayload = {readonly deviceID: Types.DeviceID}
@@ -32,7 +32,7 @@ type _RevokedPayload = {
   readonly deviceName: string
 }
 type _ShowDevicePagePayload = {readonly deviceID: Types.DeviceID}
-type _ShowPaperKeyPagePayload = void
+type _ShowPaperKeyPagePayload = undefined
 type _ShowRevokePagePayload = {readonly deviceID: Types.DeviceID}
 
 // Action Creators
@@ -40,14 +40,14 @@ export const createBadgeAppForDevices = (payload: _BadgeAppForDevicesPayload): B
   payload,
   type: badgeAppForDevices,
 })
-export const createClearBadges = (payload: _ClearBadgesPayload): ClearBadgesPayload => ({
+export const createClearBadges = (payload?: _ClearBadgesPayload): ClearBadgesPayload => ({
   payload,
   type: clearBadges,
 })
 export const createEndangeredTLFsLoaded = (
   payload: _EndangeredTLFsLoadedPayload
 ): EndangeredTLFsLoadedPayload => ({payload, type: endangeredTLFsLoaded})
-export const createLoad = (payload: _LoadPayload): LoadPayload => ({payload, type: load})
+export const createLoad = (payload?: _LoadPayload): LoadPayload => ({payload, type: load})
 export const createLoaded = (payload: _LoadedPayload): LoadedPayload => ({payload, type: loaded})
 export const createPaperKeyCreated = (payload: _PaperKeyCreatedPayload): PaperKeyCreatedPayload => ({
   payload,
@@ -59,7 +59,7 @@ export const createShowDevicePage = (payload: _ShowDevicePagePayload): ShowDevic
   payload,
   type: showDevicePage,
 })
-export const createShowPaperKeyPage = (payload: _ShowPaperKeyPagePayload): ShowPaperKeyPagePayload => ({
+export const createShowPaperKeyPage = (payload?: _ShowPaperKeyPagePayload): ShowPaperKeyPagePayload => ({
   payload,
   type: showPaperKeyPage,
 })

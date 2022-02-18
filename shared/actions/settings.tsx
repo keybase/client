@@ -2,7 +2,7 @@ import logger from '../logger'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
-import * as Types from '../constants/types/settings'
+import type * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as ConfigGen from './config-gen'
 import * as EngineGen from './engine-gen-gen'
@@ -13,8 +13,8 @@ import * as WaitingGen from './waiting-gen'
 import trim from 'lodash/trim'
 import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
-import {RPCError} from '../util/errors'
-import * as Container from '../util/container'
+import type {RPCError} from '../util/errors'
+import type * as Container from '../util/container'
 import openURL from '../util/open-url'
 
 const onUpdatePGPSettings = async () => {
@@ -113,7 +113,7 @@ const toggleNotifications = async (state: Container.TypedState) => {
     Constants.settingsWaitingKey
   )
 
-  if (!result || !result.body || JSON.parse(result.body).status.code !== 0) {
+  if (!result || !result.body || JSON.parse(result.body)?.status?.code !== 0) {
     throw new Error(`Invalid response ${result || '(no result)'}`)
   }
 
@@ -155,7 +155,7 @@ const refreshInvites = async () => {
       uid: string
       username: string
     }>
-  } = JSON.parse((json && json.body) ?? '')
+  } = JSON.parse(json?.body ?? '')
 
   const acceptedInvites: Array<Types.Invitation> = []
   const pendingInvites: Array<Types.Invitation> = []
@@ -673,7 +673,7 @@ const loadHasRandomPW = async (state: Container.TypedState) => {
 }
 
 // Mark that we are not randomPW anymore if we got a password change.
-const passwordChanged = async (action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload) => {
+const passwordChanged = (action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload) => {
   const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
   return SettingsGen.createLoadedHasRandomPw({randomPW})
 }

@@ -19,11 +19,11 @@ export const submittedReset = 'autoreset:submittedReset'
 export const updateAutoresetState = 'autoreset:updateAutoresetState'
 
 // Payload Types
-type _CancelResetPayload = void
+type _CancelResetPayload = undefined
 type _DisplayProgressPayload = {readonly endTime: number; readonly needVerify: boolean}
-type _FinishedResetPayload = void
+type _FinishedResetPayload = undefined
 type _ResetAccountPayload = {readonly password?: HiddenString}
-type _ResetCancelledPayload = void
+type _ResetCancelledPayload = undefined
 type _ResetErrorPayload = {readonly error: RPCError}
 type _SetUsernamePayload = {readonly username: string}
 type _ShowFinalResetScreenPayload = {readonly hasWallet: boolean}
@@ -35,14 +35,14 @@ type _UpdateAutoresetStatePayload = {readonly active: boolean; readonly endTime:
 /**
  * Cancel an autoreset for the currently logged-in account. Don't use with a temporary (web) session
  */
-export const createCancelReset = (payload: _CancelResetPayload): CancelResetPayload => ({
+export const createCancelReset = (payload?: _CancelResetPayload): CancelResetPayload => ({
   payload,
   type: cancelReset,
 })
 /**
  * Cancelled an account reset.
  */
-export const createResetCancelled = (payload: _ResetCancelledPayload): ResetCancelledPayload => ({
+export const createResetCancelled = (payload?: _ResetCancelledPayload): ResetCancelledPayload => ({
   payload,
   type: resetCancelled,
 })
@@ -70,7 +70,7 @@ export const createDisplayProgress = (payload: _DisplayProgressPayload): Display
   payload,
   type: displayProgress,
 })
-export const createFinishedReset = (payload: _FinishedResetPayload): FinishedResetPayload => ({
+export const createFinishedReset = (payload?: _FinishedResetPayload): FinishedResetPayload => ({
   payload,
   type: finishedReset,
 })

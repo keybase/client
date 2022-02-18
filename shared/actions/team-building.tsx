@@ -6,9 +6,9 @@ import * as TeamBuildingGen from './team-building-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {TypedState} from '../constants/reducer'
+import type {TypedState} from '../constants/reducer'
 import {validateEmailAddress} from '../util/email-address'
-import {RPCError} from '../util/errors'
+import type {RPCError} from 'util/errors'
 
 const closeTeamBuilding = (_: TypedState) => {
   const modals = RouterConstants.getModalStack()
@@ -144,7 +144,7 @@ export function filterForNs<S, A, L, R>(
   fn: (s: S, a: A & NSAction, l: L) => R
 ) {
   return (s: S, a: A & NSAction, l: L) => {
-    if (a && a.payload && a.payload.namespace === namespace) {
+    if (a?.payload?.namespace === namespace) {
       return fn(s, a, l)
     }
     return undefined

@@ -33,6 +33,8 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
         ? {compressPreference: RPCTypes.IncomingShareCompressPreference.original}
         : {compressPreference: RPCTypes.IncomingShareCompressPreference.compressed},
     })
+      .then(() => {})
+      .catch(() => {})
   }, [])
 
   // If it's original only, set original in store.
@@ -339,4 +341,3 @@ const isChatOnly = (items?: Array<RPCTypes.IncomingShareItem>): boolean =>
   !items[0].originalPath
 
 export default IncomingShareMain
-

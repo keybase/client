@@ -87,7 +87,7 @@ export type RouteMap = {[K in string]: Route}
 
 export const assertNever = (_: never) => undefined
 
-export const timeoutPromise = (timeMs: number) =>
+export const timeoutPromise = async (timeMs: number) =>
   new Promise<void>(resolve => {
     setTimeout(() => resolve(), timeMs)
   })

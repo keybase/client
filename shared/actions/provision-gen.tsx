@@ -36,15 +36,15 @@ export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 // Payload Types
 type _AddNewDevicePayload = {readonly otherDeviceType: 'desktop' | 'mobile'}
 type _BackToDeviceListPayload = {readonly username: string}
-type _CancelProvisionPayload = void
+type _CancelProvisionPayload = undefined
 type _ForgotUsernamePayload = {readonly email?: string; readonly phone?: string}
 type _ForgotUsernameResultPayload = {readonly result: string}
-type _ProvisionDonePayload = void
+type _ProvisionDonePayload = undefined
 type _ProvisionErrorPayload = {readonly error: HiddenString | null}
 type _ShowCodePagePayload = {readonly code: HiddenString; readonly error: HiddenString | null}
 type _ShowDeviceListPagePayload = {readonly devices: Array<Types.Device>}
 type _ShowFinalErrorPagePayload = {readonly finalError: RPCError; readonly fromDeviceAdd: boolean}
-type _ShowGPGPagePayload = void
+type _ShowGPGPagePayload = undefined
 type _ShowInlineErrorPayload = {readonly inlineError: RPCError}
 type _ShowNewDeviceNamePagePayload = {
   readonly existingDevices: Array<string>
@@ -80,7 +80,7 @@ export const createShowDeviceListPage = (payload: _ShowDeviceListPagePayload): S
 /**
  * We're no longer holding an open provisioning session; it is safe to start another.
  */
-export const createProvisionDone = (payload: _ProvisionDonePayload): ProvisionDonePayload => ({
+export const createProvisionDone = (payload?: _ProvisionDonePayload): ProvisionDonePayload => ({
   payload,
   type: provisionDone,
 })
@@ -92,7 +92,7 @@ export const createBackToDeviceList = (payload: _BackToDeviceListPayload): BackT
   payload,
   type: backToDeviceList,
 })
-export const createCancelProvision = (payload: _CancelProvisionPayload): CancelProvisionPayload => ({
+export const createCancelProvision = (payload?: _CancelProvisionPayload): CancelProvisionPayload => ({
   payload,
   type: cancelProvision,
 })
@@ -114,7 +114,7 @@ export const createShowFinalErrorPage = (payload: _ShowFinalErrorPagePayload): S
   payload,
   type: showFinalErrorPage,
 })
-export const createShowGPGPage = (payload: _ShowGPGPagePayload): ShowGPGPagePayload => ({
+export const createShowGPGPage = (payload?: _ShowGPGPagePayload): ShowGPGPagePayload => ({
   payload,
   type: showGPGPage,
 })

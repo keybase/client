@@ -1,8 +1,8 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import SetExplodeTime from '.'
 
 const makeItems = (meta: Types.ConversationMeta) => {
@@ -35,7 +35,7 @@ const SetExplodePopup = Container.connect(
   (dispatch, ownProps: OwnProps) => ({
     onSelect: (seconds: number) => {
       dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey: ownProps.conversationIDKey, seconds}))
-      ownProps.onAfterSelect && ownProps.onAfterSelect(seconds)
+      ownProps.onAfterSelect?.(seconds)
     },
   }),
   (stateProps, dispatchProps, ownProps) => {

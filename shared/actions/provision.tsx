@@ -11,8 +11,8 @@ import * as Tabs from '../constants/tabs'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
-import {RPCError} from '../util/errors'
-import * as Container from '../constants/reducer'
+import type {RPCError} from '../util/errors'
+import type * as Container from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 
 const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab, 'devicesRoot']
@@ -32,7 +32,7 @@ type ValidCallback =
   | 'keybase.1.provisionUi.switchToGPGSignOK'
   | 'keybase.1.secretUi.getPassphrase'
 
-const ignoreCallback = (_: any) => {}
+const ignoreCallback = () => {}
 
 type CustomParam<T extends ValidCallback> = RPCTypes.MessageTypes[T]['inParam']
 type CustomResp<T extends ValidCallback> = {
@@ -347,7 +347,7 @@ class ProvisioningManager {
     response.result({passphrase: password, storeSecret: false})
   }
 
-  displaySecretExchanged = (_params: CustomParam<'keybase.1.provisionUi.DisplaySecretExchanged'>) => {
+  displaySecretExchanged = () => {
     // special case, we actually aren't waiting when we get this so our count goes negative. This is very unusual and a one-off
     return Saga.put(
       WaitingGen.createBatchChangeWaiting({changes: [{increment: true, key: Constants.waitingKey}]})

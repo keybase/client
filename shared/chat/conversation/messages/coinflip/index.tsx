@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {pluralize} from '../../../../util/string'
 import CoinFlipParticipants from './participants'
 import CoinFlipError from './errors'
@@ -90,7 +90,7 @@ class CoinFlip extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.phase != prevProps.phase) {
-      this.props.measure && this.props.measure()
+      this.props.measure?.()
     }
   }
   render() {

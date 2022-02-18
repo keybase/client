@@ -26,7 +26,7 @@ class Input extends Component<Props, State> {
 
   private timeoutIds: Array<ReturnType<typeof setTimeout>>
 
-  private setTimeout = (f, n) => {
+  private setTimeout = (f: () => void, n) => {
     const id = setTimeout(f, n)
     this.timeoutIds.push(id)
     return id

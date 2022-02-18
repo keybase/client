@@ -3,7 +3,7 @@ import * as FsGen from '../fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Saga from '../../util/saga'
-import {TypedState} from '../../constants/reducer'
+import type {TypedState} from '../../constants/reducer'
 import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {errorToActionOrThrow} from './shared'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
@@ -11,7 +11,7 @@ import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-spec
 const pickAndUploadToPromise = async (_: TypedState, action: FsGen.PickAndUploadPayload) => {
   try {
     const result = await launchImageLibraryAsync(action.payload.type)
-    return result.cancelled === true
+    return result.cancelled
       ? null
       : FsGen.createUpload({
           localPath: parseUri(result),

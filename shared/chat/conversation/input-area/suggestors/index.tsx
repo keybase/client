@@ -247,7 +247,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
     _onChangeText = (text: string) => {
       this._lastText = text
-      this.props.onChangeText && this.props.onChangeText(text)
+      this.props.onChangeText?.(text)
       this._checkTrigger()
     }
 
@@ -258,7 +258,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
       if (!this.state.active || this._getResults().data.length === 0) {
         // not showing list, bail
-        this.props.onKeyDown && this.props.onKeyDown(evt)
+        this.props.onKeyDown?.(evt)
         return
       }
 
@@ -289,22 +289,22 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
 
       if (shouldCallParentCallback) {
-        this.props.onKeyDown && this.props.onKeyDown(evt)
+        this.props.onKeyDown?.(evt)
       }
     }
 
     _onBlur = () => {
-      this.props.onBlur && this.props.onBlur()
+      this.props.onBlur?.()
       this._setInactive()
     }
 
     _onFocus = () => {
-      this.props.onFocus && this.props.onFocus()
+      this.props.onFocus?.()
       this._checkTrigger()
     }
 
     _onSelectionChange = (selection: TransformerData['position']) => {
-      this.props.onSelectionChange && this.props.onSelectionChange(selection)
+      this.props.onSelectionChange?.(selection)
       this._checkTrigger()
     }
 
@@ -334,12 +334,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     _itemRenderer = (index: number, value: string): React.ReactElement | null =>
       !this.state.active ? null : (
         <Kb.ClickableBox
-          key={
-            (this.props.keyExtractors &&
-              this.props.keyExtractors[this.state.active] &&
-              this.props.keyExtractors[this.state.active](value)) ||
-            value
-          }
+          key={this.props.keyExtractors?.[this.state.active]?.(value) || value}
           onClick={() => this._triggerTransform(value)}
           onMouseMove={() => this.setState(s => (s.selected === index ? null : {selected: index}))}
         >

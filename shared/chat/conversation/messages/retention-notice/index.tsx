@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
-import {RetentionPolicy} from '../../../../constants/types/retention-policy'
+import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 
 export type Props = {
   canChange: boolean
@@ -15,7 +15,7 @@ export type Props = {
 
 const RetentionNotice = (props: Props) => {
   Container.useDepChangeEffect(() => {
-    props.measure && props.measure()
+    props.measure?.()
   }, [props.canChange, props.policy, props.teamPolicy])
 
   const iconType =

@@ -59,7 +59,7 @@ const Toast = (props: Props) => {
             styles.container,
             props.containerStyle,
             {opacity: opacityRef.current},
-          ])}
+          ] as any)}
         >
           {props.children}
         </NativeAnimated.View>

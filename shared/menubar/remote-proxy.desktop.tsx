@@ -55,10 +55,13 @@ function useUpdateBadges(p: WidgetProps, darkCount: number) {
 
   React.useEffect(() => {
     const icon = getIcons(widgetBadge, desktopAppBadgeCount > 0)
-    Electron.ipcRenderer.invoke('KBmenu', {
-      payload: {desktopAppBadgeCount, icon},
-      type: 'showTray',
-    })
+    Electron.ipcRenderer
+      .invoke('KBmenu', {
+        payload: {desktopAppBadgeCount, icon},
+        type: 'showTray',
+      })
+      .then(() => {})
+      .catch(() => {})
   }, [widgetBadge, desktopAppBadgeCount, darkCount])
 }
 

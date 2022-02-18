@@ -1,9 +1,8 @@
 import * as React from 'react'
-import {GestureResponderEvent} from 'react-native'
-import {CustomStyles, _CustomStyles} from '../styles/css'
+import type {CustomStyles, _CustomStyles, StylesCrossPlatform} from '../styles/css'
 import {allTextTypes} from './text.shared'
-import * as CSS from '../styles/css'
-import colors from '../styles/colors'
+import type * as CSS from '../styles/css'
+import type colors from '../styles/colors'
 
 type Background =
   | 'Announcements'
@@ -67,7 +66,7 @@ type Props = {
   fixOverdraw?: boolean // use fastBlank to fix overdraw issues TODO support auto when this is a function
   plainText?: boolean
   selectable?: boolean
-  style?: StylesTextCrossPlatform
+  style?: StylesCrossPlatform //StylesTextCrossPlatform ideally this but its more complex than its worth now
   textBreakStrategy?: 'simple' | 'highQuality' | 'balanced' // android only,,
   title?: string | null
   type: TextType

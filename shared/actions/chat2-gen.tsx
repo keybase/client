@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
 import * as TeamsTypes from '../constants/types/teams'
@@ -261,9 +261,9 @@ type _ChangeFocusPayload = {readonly nextFocus: Types.Focus}
 type _ChannelSuggestionsTriggeredPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearAttachmentViewPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearCommandStatusInfoPayload = {readonly conversationIDKey: Types.ConversationIDKey}
-type _ClearMessagesPayload = void
-type _ClearMetasPayload = void
-type _ClearPaymentConfirmInfoPayload = void
+type _ClearMessagesPayload = undefined
+type _ClearMetasPayload = undefined
+type _ClearPaymentConfirmInfoPayload = undefined
 type _ConfirmScreenResponsePayload = {readonly accept: boolean}
 type _ConversationErroredPayload = {
   readonly allowedUsers: Array<string>
@@ -348,7 +348,7 @@ type _InboxSearchSelectPayload = {
 }
 type _InboxSearchSetIndexPercentPayload = {readonly percent: number}
 type _InboxSearchSetTextStatusPayload = {readonly status: Types.InboxSearchStatus}
-type _InboxSearchStartedPayload = void
+type _InboxSearchStartedPayload = undefined
 type _InboxSearchTextResultPayload = {readonly result: Types.InboxSearchTextHit}
 type _JoinConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _JumpToRecentPayload = {readonly conversationIDKey: Types.ConversationIDKey}
@@ -472,7 +472,7 @@ type _MetaDeletePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly selectSomethingElse: boolean
 }
-type _MetaHandleQueuePayload = void
+type _MetaHandleQueuePayload = undefined
 type _MetaNeedsUpdatingPayload = {
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
   readonly reason: string
@@ -509,7 +509,7 @@ type _MetasReceivedPayload = {
   readonly initialTrustedLoad?: boolean
 }
 type _MuteConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly muted: boolean}
-type _NavigateToInboxPayload = void
+type _NavigateToInboxPayload = undefined
 type _NavigateToThreadPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly highlightMessageID?: number
@@ -739,7 +739,7 @@ type _StopAudioRecordingPayload = {
   readonly stopType: Types.AudioStopType
   readonly amps?: AmpTracker
 }
-type _TabSelectedPayload = void
+type _TabSelectedPayload = undefined
 type _ThreadSearchPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly query: HiddenString
@@ -772,7 +772,7 @@ type _ToggleReplyToMessagePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly ordinal?: Types.Ordinal
 }
-type _ToggleSmallTeamsExpandedPayload = void
+type _ToggleSmallTeamsExpandedPayload = undefined
 type _ToggleThreadSearchPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _UnfurlRemovePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -921,7 +921,7 @@ export const createClearCommandStatusInfo = (
  * Clear data for payment confirm modal
  */
 export const createClearPaymentConfirmInfo = (
-  payload: _ClearPaymentConfirmInfoPayload
+  payload?: _ClearPaymentConfirmInfoPayload
 ): ClearPaymentConfirmInfoPayload => ({payload, type: clearPaymentConfirmInfo})
 /**
  * Consume a service notification that a conversation's retention policy has been updated
@@ -957,7 +957,7 @@ export const createMessageDeleteHistory = (
 /**
  * Desktop changed tab to chat
  */
-export const createTabSelected = (payload: _TabSelectedPayload): TabSelectedPayload => ({
+export const createTabSelected = (payload?: _TabSelectedPayload): TabSelectedPayload => ({
   payload,
   type: tabSelected,
 })
@@ -1068,10 +1068,9 @@ export const createInboxSearchBotsResults = (
 /**
  * Inbox search has started
  */
-export const createInboxSearchStarted = (payload: _InboxSearchStartedPayload): InboxSearchStartedPayload => ({
-  payload,
-  type: inboxSearchStarted,
-})
+export const createInboxSearchStarted = (
+  payload?: _InboxSearchStartedPayload
+): InboxSearchStartedPayload => ({payload, type: inboxSearchStarted})
 /**
  * Inbox search name results received
  */
@@ -1093,7 +1092,7 @@ export const createInboxSearchTextResult = (
 /**
  * Internal action: pull more metas from the queue to request
  */
-export const createMetaHandleQueue = (payload: _MetaHandleQueuePayload): MetaHandleQueuePayload => ({
+export const createMetaHandleQueue = (payload?: _MetaHandleQueuePayload): MetaHandleQueuePayload => ({
   payload,
   type: metaHandleQueue,
 })
@@ -1137,7 +1136,7 @@ export const createMarkTeamAsRead = (payload: _MarkTeamAsReadPayload): MarkTeamA
 /**
  * Navigation helper. Nav is slightly different on mobile / desktop.
  */
-export const createNavigateToInbox = (payload: _NavigateToInboxPayload): NavigateToInboxPayload => ({
+export const createNavigateToInbox = (payload?: _NavigateToInboxPayload): NavigateToInboxPayload => ({
   payload,
   type: navigateToInbox,
 })
@@ -1786,11 +1785,11 @@ export const createAttemptAudioRecording = (
 export const createChannelSuggestionsTriggered = (
   payload: _ChannelSuggestionsTriggeredPayload
 ): ChannelSuggestionsTriggeredPayload => ({payload, type: channelSuggestionsTriggered})
-export const createClearMessages = (payload: _ClearMessagesPayload): ClearMessagesPayload => ({
+export const createClearMessages = (payload?: _ClearMessagesPayload): ClearMessagesPayload => ({
   payload,
   type: clearMessages,
 })
-export const createClearMetas = (payload: _ClearMetasPayload): ClearMetasPayload => ({
+export const createClearMetas = (payload?: _ClearMetasPayload): ClearMetasPayload => ({
   payload,
   type: clearMetas,
 })
@@ -1865,7 +1864,7 @@ export const createStopAudioRecording = (payload: _StopAudioRecordingPayload): S
   type: stopAudioRecording,
 })
 export const createToggleSmallTeamsExpanded = (
-  payload: _ToggleSmallTeamsExpandedPayload
+  payload?: _ToggleSmallTeamsExpandedPayload
 ): ToggleSmallTeamsExpandedPayload => ({payload, type: toggleSmallTeamsExpanded})
 export const createUnhideConversation = (payload: _UnhideConversationPayload): UnhideConversationPayload => ({
   payload,

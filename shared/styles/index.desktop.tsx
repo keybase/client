@@ -4,7 +4,7 @@ import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import * as Shared from './shared'
 import {isDarkMode} from './dark-mode'
 import styleSheetCreateProxy from './style-sheet-proxy'
-import * as CSS from './css'
+import type * as CSS from './css'
 const {extname, basename} = KB.path
 
 type _Elem = Object | null | false | void

@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
 
 // Constants
@@ -12,7 +12,7 @@ export const updateCategory = 'gregor:updateCategory'
 export const updateReachable = 'gregor:updateReachable'
 
 // Payload Types
-type _CheckReachabilityPayload = void
+type _CheckReachabilityPayload = undefined
 type _PushOOBMPayload = {readonly messages: Array<RPCTypesGregor.OutOfBandMessage>}
 type _PushStatePayload = {
   readonly state: Array<{md: RPCTypesGregor.Metadata; item: RPCTypesGregor.Item}>
@@ -26,7 +26,7 @@ type _UpdateCategoryPayload = {
 type _UpdateReachablePayload = {readonly reachable: RPCTypes.Reachable}
 
 // Action Creators
-export const createCheckReachability = (payload: _CheckReachabilityPayload): CheckReachabilityPayload => ({
+export const createCheckReachability = (payload?: _CheckReachabilityPayload): CheckReachabilityPayload => ({
   payload,
   type: checkReachability,
 })

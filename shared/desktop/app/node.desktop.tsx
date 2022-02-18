@@ -203,7 +203,10 @@ const getStartupProcessArgs = () => {
 const handleActivate = () => {
   mainWindow && mainWindow.show()
   const dock = Electron.app.dock
-  dock.show()
+  dock
+    .show()
+    .then(() => {})
+    .catch(() => {})
 }
 
 const handleQuitting = (event: Electron.Event) => {
@@ -290,7 +293,7 @@ const plumbEvents = () => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })
 
-  Electron.ipcMain.handle('KBkeybase', async (_event, action: Action) => {
+  Electron.ipcMain.handle('KBkeybase', (_event, action: Action) => {
     switch (action.type) {
       case 'showMainWindow':
         {
@@ -388,7 +391,10 @@ const plumbEvents = () => {
           )
         }
 
-        remoteWindow.loadURL(remoteURL(action.payload.windowComponent, action.payload.windowParam))
+        remoteWindow
+          .loadURL(remoteURL(action.payload.windowComponent, action.payload.windowParam))
+          .then(() => {})
+          .catch(() => {})
 
         if (action.payload.windowComponent !== 'menubar') {
           menuHelper(remoteWindow)

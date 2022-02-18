@@ -18,6 +18,8 @@ const openPopup = async () => {
 
 const closePopup = () => {
   RPCTypes.rekeyRekeyStatusFinishRpcPromise()
+    .then(() => {})
+    .catch(() => {})
   return UnlockFoldersGen.createCloseDone()
 }
 
@@ -60,7 +62,7 @@ const delegateRekeyUI = (action: EngineGen.Keybase1RekeyUIDelegateRekeyUIPayload
     },
   })
   const {response} = action.payload
-  response && response.result(session.id)
+  response.result(session.id)
 }
 
 function* unlockFoldersSaga() {

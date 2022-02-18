@@ -504,16 +504,19 @@ const hoverStyles = Styles.styleSheetCreate(
     } as const)
 )
 
-const HoverBox = Styles.styled(Kb.Box)(() => ({
-  '&.filled': hoverStyles.filled,
-  '&.filled:active': {cursor: '-webkit-grabbing'},
-  '&.filled:hover': hoverStyles.filledHover,
-  '&:hover': hoverStyles.hover,
-  '&:hover .icon': hoverStyles.hoverIcon,
-  '.dropping &': hoverStyles.dropping,
-  '.dropping & .icon': hoverStyles.droppingIcon,
-  ...hoverStyles.hoverContainer,
-}))
+const HoverBox = Styles.styled(Kb.Box)(
+  () =>
+    ({
+      '&.filled': hoverStyles.filled,
+      '&.filled:active': {cursor: '-webkit-grabbing'},
+      '&.filled:hover': hoverStyles.filledHover,
+      '&:hover': hoverStyles.hover,
+      '&:hover .icon': hoverStyles.hoverIcon,
+      '.dropping &': hoverStyles.dropping,
+      '.dropping & .icon': hoverStyles.droppingIcon,
+      ...hoverStyles.hoverContainer,
+    } as any)
+)
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {

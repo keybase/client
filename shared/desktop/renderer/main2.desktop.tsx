@@ -82,19 +82,27 @@ const setupApp = (store, runSagas) => {
   // See if we're connected, and try starting keybase if not
   if (isWindows) {
     setTimeout(() => {
-      Electron.ipcRenderer.invoke('KBkeybase', {type: 'requestWindowsStartService'})
+      Electron.ipcRenderer
+        .invoke('KBkeybase', {type: 'requestWindowsStartService'})
+        .then(() => {})
+        .catch(() => {})
     }, 0)
   }
 
   // After a delay dump logs in case some startup stuff happened
   setTimeout(() => {
     dumpLogs()
+      .then(() => {})
+      .catch(() => {})
   }, 5 * 1000)
 
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
 
-  Electron.ipcRenderer.invoke('KBkeybase', {type: 'appStartedUp'})
+  Electron.ipcRenderer
+    .invoke('KBkeybase', {type: 'appStartedUp'})
+    .then(() => {})
+    .catch(() => {})
 }
 
 const FontLoader = () => (

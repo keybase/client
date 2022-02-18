@@ -12,13 +12,13 @@ export const login = 'login:login'
 export const loginError = 'login:loginError'
 
 // Payload Types
-type _LoadIsOnlinePayload = void
+type _LoadIsOnlinePayload = undefined
 type _LoadedIsOnlinePayload = {readonly isOnline: boolean}
 type _LoginErrorPayload = {readonly error?: RPCError}
 type _LoginPayload = {readonly username: string; readonly password: HiddenString}
 
 // Action Creators
-export const createLoadIsOnline = (payload: _LoadIsOnlinePayload): LoadIsOnlinePayload => ({
+export const createLoadIsOnline = (payload?: _LoadIsOnlinePayload): LoadIsOnlinePayload => ({
   payload,
   type: loadIsOnline,
 })

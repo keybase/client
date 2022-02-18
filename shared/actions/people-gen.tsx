@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/people'
 
 // Constants
@@ -19,7 +19,7 @@ type _BadgeAppForWotNotificationsPayload = {readonly updates: Map<string, Types.
 type _DismissAnnouncementPayload = {readonly id: RPCTypes.HomeScreenAnnouncementID}
 type _DismissWotNotificationsPayload = {readonly voucher: string; readonly vouchee: string}
 type _GetPeopleDataPayload = {readonly markViewed: boolean; readonly numFollowSuggestionsWanted: number}
-type _MarkViewedPayload = void
+type _MarkViewedPayload = undefined
 type _PeopleDataProcessedPayload = {
   readonly oldItems: Array<Types.PeopleScreenItem>
   readonly newItems: Array<Types.PeopleScreenItem>
@@ -44,7 +44,7 @@ export const createGetPeopleData = (payload: _GetPeopleDataPayload): GetPeopleDa
   payload,
   type: getPeopleData,
 })
-export const createMarkViewed = (payload: _MarkViewedPayload): MarkViewedPayload => ({
+export const createMarkViewed = (payload?: _MarkViewedPayload): MarkViewedPayload => ({
   payload,
   type: markViewed,
 })

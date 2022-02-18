@@ -7,7 +7,7 @@ import * as Constants from '../../constants/fs'
 import * as Tabs from '../../constants/tabs'
 import * as remote from '@electron/remote'
 import fs from 'fs'
-import {TypedState, TypedActions} from '../../util/container'
+import type {TypedState, TypedActions} from '../../util/container'
 import {fileUIName, isWindows, isLinux} from '../../constants/platform'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
@@ -26,14 +26,14 @@ function pathToURL(p: string): string {
   let goodPath = p.replace(/\\/g, '/')
 
   // Windows drive letter must be prefixed with a slash
-  if (goodPath[0] !== '/') {
+  if (!goodPath.startsWith('/')) {
     goodPath = '/' + goodPath
   }
 
   return encodeURI('file://' + goodPath).replace(/#/g, '%23')
 }
 
-const openInDefaultDirectory = (openPath: string): Promise<void> => {
+const openInDefaultDirectory = async (openPath: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     // Paths in directories might be symlinks, so resolve using
     // realpath.
@@ -41,7 +41,7 @@ const openInDefaultDirectory = (openPath: string): Promise<void> => {
     // /keybase/private/chris,gabrielh.
     fs.realpath(openPath, (err, resolvedPath) => {
       if (err) {
-        reject(new Error(`No realpath for ${openPath}: ${err}`))
+        reject(new Error(`No realpath for ${openPath}`))
         return
       }
       // Convert to URL for openExternal call.
@@ -64,7 +64,7 @@ const openInDefaultDirectory = (openPath: string): Promise<void> => {
   })
 }
 
-function getPathType(openPath: string): Promise<pathType> {
+async function getPathType(openPath: string): Promise<pathType> {
   return new Promise((resolve, reject) => {
     fs.stat(openPath, (err, stats) => {
       if (err) {
@@ -86,7 +86,7 @@ function getPathType(openPath: string): Promise<pathType> {
 // If isFolder is true, it just opens it. Otherwise, it shows it in its parent
 // folder. This function does not check if the file exists, or try to convert
 // KBFS paths. Caller should take care of those.
-const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean): Promise<void> =>
+const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: boolean): Promise<void> =>
   new Promise((resolve, reject) => {
     if (isFolder) {
       if (isWindows) {
@@ -124,7 +124,10 @@ const escapeBackslash = isWindows
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
   path.resolve(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(sep))
 
-const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathInSystemFileManagerPayload) =>
+const openPathInSystemFileManager = async (
+  state: TypedState,
+  action: FsGen.OpenPathInSystemFileManagerPayload
+) =>
   state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled && state.fs.sfmi.directMountDir
     ? _openPathInSystemFileManagerPromise(
         _rebaseKbfsPathToMountLocation(action.payload.path, state.fs.sfmi.directMountDir),
@@ -132,7 +135,7 @@ const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathIn
           Constants.parsePath(action.payload.path).kind
         ) || Constants.getPathItem(state.fs.pathItems, action.payload.path).type === Types.PathType.Folder
       ).catch(e => errorToActionOrThrow(action.payload.path, e))
-    : (new Promise((resolve, reject) => {
+    : new Promise<void>((resolve, reject) => {
         if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
           // This usually indicates a developer error as
           // openPathInSystemFileManager shouldn't be used when FUSE integration
@@ -142,18 +145,14 @@ const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathIn
           logger.warn('empty directMountDir') // if this happens it might be a race?
           resolve()
         }
-      }) as Promise<void>)
+      })
 
 const fuseStatusToUninstallExecPath = isWindows
   ? (status: RPCTypes.FuseStatus) => {
-      const field =
-        status &&
-        status.status &&
-        status.status.fields &&
-        status.status.fields.find(({key}) => key === 'uninstallString')
-      return field && field.value
+      const field = status?.status?.fields?.find(({key}) => key === 'uninstallString')
+      return field?.value
     }
-  : (_: RPCTypes.FuseStatus | null) => null
+  : () => null
 
 const fuseStatusToActions =
   (previousStatusType: Types.DriverStatusType) => (status: RPCTypes.FuseStatus | null) => {
@@ -186,7 +185,7 @@ const fuseStatusToActions =
         ]
   }
 
-const windowsCheckMountFromOtherDokanInstall = (status: RPCTypes.FuseStatus) =>
+const windowsCheckMountFromOtherDokanInstall = async (status: RPCTypes.FuseStatus) =>
   RPCTypes.kbfsMountGetCurrentMountDirRpcPromise().then(mountPoint =>
     mountPoint
       ? new Promise(resolve => fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))).then(
@@ -223,9 +222,7 @@ const refreshDriverStatus = async (
 }
 
 const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult): boolean =>
-  !!result &&
-  !!result.componentResults &&
-  result.componentResults.findIndex(
+  result?.componentResults?.findIndex(
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
@@ -254,24 +251,24 @@ const uninstallKBFSConfirm = async () => {
       })
       // resp is the index of the button that's clicked
       .then(({response}) => (response === 0 ? resolve(FsGen.createDriverDisabling()) : resolve(false)))
+      .catch(() => resolve(false))
   )
   return action
 }
 
-const uninstallKBFS = () =>
+const uninstallKBFS = async () =>
   RPCTypes.installUninstallKBFSRpcPromise().then(() => {
     // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
     remote.app.relaunch()
     remote.app.exit(0)
   })
 
-// @ts-ignore
-const uninstallDokanConfirm = async (state: TypedState) => {
+const uninstallDokanConfirm = async (state: TypedState): Promise<TypedActions | false> => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
     return false
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
-    const action = await new Promise<TypedActions>(resolve =>
+    const action = await new Promise<TypedActions>(resolve => {
       remote.dialog
         .showMessageBox({
           buttons: ['Got it'],
@@ -281,7 +278,8 @@ const uninstallDokanConfirm = async (state: TypedState) => {
           type: 'info',
         })
         .then(() => resolve(FsGen.createRefreshDriverStatus()))
-    )
+        .catch(() => resolve(FsGen.createRefreshDriverStatus()))
+    })
     return action
   }
   return FsGen.createDriverDisabling()
@@ -360,7 +358,7 @@ const openAndUpload = async (action: FsGen.OpenAndUploadPayload) => {
   return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 }
 
-const loadUserFileEdits = async (_: TypedState) => {
+const loadUserFileEdits = async () => {
   try {
     const writerEdits = await RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
     return FsGen.createUserFileEditsLoaded({
@@ -409,9 +407,9 @@ const refreshMountDirs = async (
   ]
 }
 
-export const ensureDownloadPermissionPromise = () => Promise.resolve()
+export const ensureDownloadPermissionPromise = async () => Promise.resolve()
 
-const setSfmiBannerDismissed = (
+const setSfmiBannerDismissed = async (
   _: TypedState,
   action: FsGen.SetSfmiBannerDismissedPayload | FsGen.DriverEnablePayload | FsGen.DriverDisablePayload
 ) => {

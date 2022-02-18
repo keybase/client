@@ -31,6 +31,8 @@ const PerfRow = () => {
         label="PerfLog"
         onClick={() => {
           logPerfLogPointRpcPromise({msg: toSubmit})
+            .then(() => {})
+            .catch(() => {})
           ref.current?.transformText(
             () => ({
               selection: {end: 0, start: 0},

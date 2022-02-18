@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../constants/types/chat2'
 import * as Types from '../constants/types/teams'
@@ -153,7 +153,7 @@ type _AddUserToTeamsPayload = {
   readonly user: string
 }
 type _AddedToTeamPayload = {readonly error?: string; readonly fromTeamBuilder?: boolean}
-type _CancelAddMembersWizardPayload = void
+type _CancelAddMembersWizardPayload = undefined
 type _ChannelSetMemberSelectedPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly username: string
@@ -161,8 +161,8 @@ type _ChannelSetMemberSelectedPayload = {
   readonly clearAll?: boolean
 }
 type _CheckRequestedAccessPayload = {readonly teamname: string}
-type _ClearAddUserToTeamsResultsPayload = void
-type _ClearNavBadgesPayload = void
+type _ClearAddUserToTeamsResultsPayload = undefined
+type _ClearNavBadgesPayload = undefined
 type _CreateChannelPayload = {
   readonly teamID: Types.TeamID
   readonly channelname: string
@@ -195,10 +195,10 @@ type _EditMembershipPayload = {
   readonly role: Types.TeamRoleType
 }
 type _EditTeamDescriptionPayload = {readonly teamID: Types.TeamID; readonly description: string}
-type _FinishNewTeamWizardPayload = void
-type _FinishedAddMembersWizardPayload = void
+type _FinishNewTeamWizardPayload = undefined
+type _FinishedAddMembersWizardPayload = undefined
 type _FinishedNewTeamWizardPayload = {readonly teamID: Types.TeamID}
-type _GetActivityForTeamsPayload = void
+type _GetActivityForTeamsPayload = undefined
 type _GetMembersPayload = {readonly teamID: Types.TeamID}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID}
@@ -249,7 +249,7 @@ type _RemoveParticipantPayload = {
 }
 type _RemovePendingInvitePayload = {readonly teamID: Types.TeamID; readonly inviteID: string}
 type _RenameTeamPayload = {readonly oldName: string; readonly newName: string}
-type _RequestInviteLinkDetailsPayload = void
+type _RequestInviteLinkDetailsPayload = undefined
 type _RespondToInviteLinkPayload = {readonly accept: boolean}
 type _SaveChannelMembershipPayload = {
   readonly teamID: Types.TeamID
@@ -321,8 +321,8 @@ type _SetTeamRetentionPolicyPayload = {
 }
 type _SetTeamRoleMapLatestKnownVersionPayload = {readonly version: number}
 type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
-type _SetTeamSawChatBannerPayload = void
-type _SetTeamSawSubteamsBannerPayload = void
+type _SetTeamSawChatBannerPayload = undefined
+type _SetTeamSawSubteamsBannerPayload = undefined
 type _SetTeamVersionPayload = {readonly teamID: Types.TeamID; readonly version: Types.TeamVersion}
 type _SetTeamWizardAvatarPayload = {readonly crop?: Types.AvatarCrop; readonly filename?: string}
 type _SetTeamWizardChannelsPayload = {readonly channels: Array<string>}
@@ -363,7 +363,7 @@ type _ShowTeamByNamePayload = {
   readonly addMembers?: boolean
 }
 type _StartAddMembersWizardPayload = {readonly teamID: Types.TeamID}
-type _StartNewTeamWizardPayload = void
+type _StartNewTeamWizardPayload = undefined
 type _TeamChannelListLoadedPayload = {
   readonly teamID: Types.TeamID
   readonly channels: Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>
@@ -383,7 +383,7 @@ type _TeamSetMemberSelectedPayload = {
 }
 type _ToggleInvitesCollapsedPayload = {readonly teamID: Types.TeamID}
 type _UnsubscribeTeamDetailsPayload = {readonly teamID: Types.TeamID}
-type _UnsubscribeTeamListPayload = void
+type _UnsubscribeTeamListPayload = undefined
 type _UpdateChannelNamePayload = {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -407,7 +407,7 @@ type _UploadTeamAvatarPayload = {
  * Called by the modal if the key is missing
  */
 export const createRequestInviteLinkDetails = (
-  payload: _RequestInviteLinkDetailsPayload
+  payload?: _RequestInviteLinkDetailsPayload
 ): RequestInviteLinkDetailsPayload => ({payload, type: requestInviteLinkDetails})
 /**
  * Called either by the join team UI or invite links when the modal appears
@@ -435,7 +435,7 @@ export const createRespondToInviteLink = (
  * Don't eagerly reload team list anymore.
  */
 export const createUnsubscribeTeamList = (
-  payload: _UnsubscribeTeamListPayload
+  payload?: _UnsubscribeTeamListPayload
 ): UnsubscribeTeamListPayload => ({payload, type: unsubscribeTeamList})
 /**
  * Edit the role of one or more members in a team
@@ -448,7 +448,7 @@ export const createEditMembership = (payload: _EditMembershipPayload): EditMembe
  * Fetch activity levels.
  */
 export const createGetActivityForTeams = (
-  payload: _GetActivityForTeamsPayload
+  payload?: _GetActivityForTeamsPayload
 ): GetActivityForTeamsPayload => ({payload, type: getActivityForTeams})
 /**
  * First stage of the invite link process, opens the modal
@@ -507,13 +507,13 @@ export const createLoadedWelcomeMessage = (
  * Nav away from add members wizard and clear related state.
  */
 export const createCancelAddMembersWizard = (
-  payload: _CancelAddMembersWizardPayload
+  payload?: _CancelAddMembersWizardPayload
 ): CancelAddMembersWizardPayload => ({payload, type: cancelAddMembersWizard})
 /**
  * Nav away from add members wizard and clear related state.
  */
 export const createFinishedAddMembersWizard = (
-  payload: _FinishedAddMembersWizardPayload
+  payload?: _FinishedAddMembersWizardPayload
 ): FinishedAddMembersWizardPayload => ({payload, type: finishedAddMembersWizard})
 /**
  * Remove a pending member from the add members wizard.
@@ -673,9 +673,9 @@ export const createCheckRequestedAccess = (
   payload: _CheckRequestedAccessPayload
 ): CheckRequestedAccessPayload => ({payload, type: checkRequestedAccess})
 export const createClearAddUserToTeamsResults = (
-  payload: _ClearAddUserToTeamsResultsPayload
+  payload?: _ClearAddUserToTeamsResultsPayload
 ): ClearAddUserToTeamsResultsPayload => ({payload, type: clearAddUserToTeamsResults})
-export const createClearNavBadges = (payload: _ClearNavBadgesPayload): ClearNavBadgesPayload => ({
+export const createClearNavBadges = (payload?: _ClearNavBadgesPayload): ClearNavBadgesPayload => ({
   payload,
   type: clearNavBadges,
 })
@@ -708,7 +708,7 @@ export const createEditTeamDescription = (
   payload: _EditTeamDescriptionPayload
 ): EditTeamDescriptionPayload => ({payload, type: editTeamDescription})
 export const createFinishNewTeamWizard = (
-  payload: _FinishNewTeamWizardPayload
+  payload?: _FinishNewTeamWizardPayload
 ): FinishNewTeamWizardPayload => ({payload, type: finishNewTeamWizard})
 export const createGetMembers = (payload: _GetMembersPayload): GetMembersPayload => ({
   payload,
@@ -837,10 +837,10 @@ export const createSetTeamRoleMapLatestKnownVersion = (
   payload: _SetTeamRoleMapLatestKnownVersionPayload
 ): SetTeamRoleMapLatestKnownVersionPayload => ({payload, type: setTeamRoleMapLatestKnownVersion})
 export const createSetTeamSawChatBanner = (
-  payload: _SetTeamSawChatBannerPayload
+  payload?: _SetTeamSawChatBannerPayload
 ): SetTeamSawChatBannerPayload => ({payload, type: setTeamSawChatBanner})
 export const createSetTeamSawSubteamsBanner = (
-  payload: _SetTeamSawSubteamsBannerPayload
+  payload?: _SetTeamSawSubteamsBannerPayload
 ): SetTeamSawSubteamsBannerPayload => ({payload, type: setTeamSawSubteamsBanner})
 export const createSetTeamVersion = (payload: _SetTeamVersionPayload): SetTeamVersionPayload => ({
   payload,
@@ -888,10 +888,9 @@ export const createSettingsError = (payload: _SettingsErrorPayload): SettingsErr
   payload,
   type: settingsError,
 })
-export const createStartNewTeamWizard = (payload: _StartNewTeamWizardPayload): StartNewTeamWizardPayload => ({
-  payload,
-  type: startNewTeamWizard,
-})
+export const createStartNewTeamWizard = (
+  payload?: _StartNewTeamWizardPayload
+): StartNewTeamWizardPayload => ({payload, type: startNewTeamWizard})
 export const createTeamCreated = (payload: _TeamCreatedPayload): TeamCreatedPayload => ({
   payload,
   type: teamCreated,

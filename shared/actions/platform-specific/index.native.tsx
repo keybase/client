@@ -34,7 +34,7 @@ import Geolocation from '@react-native-community/geolocation'
 import {AudioRecorder} from 'react-native-audio'
 import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
-import {RPCError} from '../../util/errors'
+import type {RPCError} from '../../util/errors'
 import type PermissionsType from 'expo-permissions'
 
 const requestPermissionsToWrite = async () => {
@@ -193,7 +193,7 @@ const openAppSettings = async () => {
     const settingsURL = 'app-settings:'
     const can = await Linking.canOpenURL(settingsURL)
     if (can) {
-      Linking.openURL(settingsURL)
+      return Linking.openURL(settingsURL)
     } else {
       logger.warn('Unable to open app settings')
     }
@@ -758,6 +758,8 @@ const stopAudioRecording = async (
   if (ChatConstants.audioRecordingDuration(audio) < 500 || audio.path.length === 0) {
     logger.info('stopAudioRecording: recording too short, skipping')
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+      .then(() => {})
+      .catch(() => {})
     return Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL})
   }
 
@@ -806,6 +808,8 @@ const onEnableAudioRecording = async (
 
   if (isIOS) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+      .then(() => {})
+      .catch(() => {})
   } else {
     Vibration.vibrate(50)
   }
@@ -834,6 +838,8 @@ const onSendAudioRecording = (action: Chat2Gen.SendAudioRecordingPayload) => {
   if (!action.payload.fromStaged) {
     if (isIOS) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+        .then(() => {})
+        .catch(() => {})
     } else {
       Vibration.vibrate(50)
     }

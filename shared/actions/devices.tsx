@@ -116,7 +116,7 @@ const showDevicePage = (action: DevicesGen.ShowDevicePagePayload) =>
 const showPaperKeyPage = () =>
   RouteTreeGen.createNavigateAppend({path: [...Constants.devicesTabLocation, 'devicePaperKey']})
 
-const clearNavBadges = () => RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
+const clearNavBadges = async () => RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
 
 const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) =>
   DevicesGen.createBadgeAppForDevices({

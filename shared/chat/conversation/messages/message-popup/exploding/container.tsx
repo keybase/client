@@ -1,18 +1,18 @@
 import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamConstants from '../../../../../constants/teams'
-import * as Types from '../../../../../constants/types/chat2'
-import * as TeamTypes from '../../../../../constants/types/teams'
+import type * as Types from '../../../../../constants/types/chat2'
+import type * as TeamTypes from '../../../../../constants/types/teams'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Container from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
-import {StylesCrossPlatform} from '../../../../../styles/css'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
-import {MenuItems} from '../../../../../common-adapters'
+import type {MenuItems} from '../../../../../common-adapters'
 import openURL from '../../../../../util/open-url'
 import ReactionItem from '../reactionitem'
 
@@ -254,11 +254,7 @@ export default Container.connect(
       items.push({icon: 'iconfont-forward', onClick: dispatchProps._onForward, title: 'Forward'})
       items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     } else {
-      if (
-        stateProps._mapUnfurl &&
-        stateProps._mapUnfurl.mapInfo &&
-        !stateProps._mapUnfurl.mapInfo.isLiveLocationDone
-      ) {
+      if (stateProps._mapUnfurl?.mapInfo && !stateProps._mapUnfurl.mapInfo.isLiveLocationDone) {
         const url = stateProps._mapUnfurl.url
         items.push({icon: 'iconfont-location', onClick: () => openURL(url), title: 'View on Google Maps'})
       }

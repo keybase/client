@@ -5,13 +5,14 @@ import * as UsersGen from './users-gen'
 import * as DeeplinksGen from './deeplinks-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
-import * as Container from '../util/container'
-import {RPCError} from '../util/errors'
+import type * as Container from '../util/container'
+import type {RPCError} from '../util/errors'
 import * as Constants from '../constants/tracker2'
 import * as ProfileConstants from '../constants/profile'
-import {WebOfTrustVerificationType} from '../constants/types/more'
+import type {WebOfTrustVerificationType} from '../constants/types/more'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
+import type {formatPhoneNumberInternational as formatPhoneNumberInternationalType} from '../util/phone-numbers'
 
 const identify3Result = (action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) =>
   Tracker2Gen.createUpdateResult({
@@ -305,7 +306,8 @@ const loadNonUserProfile = async (action: Tracker2Gen.LoadNonUserProfilePayload)
           ...res.service,
         })
       } else {
-        const {formatPhoneNumberInternational} = require('../util/phone-numbers')
+        const formatPhoneNumberInternational: typeof formatPhoneNumberInternationalType =
+          require('../util/phone-numbers').formatPhoneNumberInternational
         const formattedName =
           res.assertionKey === 'phone' ? formatPhoneNumberInternational('+' + res.assertionValue) : undefined
         const fullName = res.contact ? res.contact.contactName : ''
@@ -324,7 +326,7 @@ const loadNonUserProfile = async (action: Tracker2Gen.LoadNonUserProfilePayload)
   }
 }
 
-const refreshTrackerBlock = async (action: Tracker2Gen.UpdatedDetailsPayload) =>
+const refreshTrackerBlock = (action: Tracker2Gen.UpdatedDetailsPayload) =>
   UsersGen.createGetBlockState({
     usernames: [action.payload.username],
   })

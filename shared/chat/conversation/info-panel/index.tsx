@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import {AdhocHeader, TeamHeader} from './header'
@@ -7,10 +7,10 @@ import SettingsList from './settings'
 import MembersList from './members'
 import BotsList from './bot'
 import AttachmentsList from './attachments'
-import {MaybeTeamRoleType} from 'constants/types/teams'
+import type {MaybeTeamRoleType} from 'constants/types/teams'
 import * as TeamConstants from '../../../constants/teams'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
-import {Tab as TabType} from '../../../common-adapters/tabs'
+import type {Tab as TabType} from '../../../common-adapters/tabs'
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 type InfoPanelProps = {
@@ -27,7 +27,7 @@ type InfoPanelProps = {
 
 export class InfoPanel extends React.PureComponent<InfoPanelProps> {
   private getTabs = (): Array<TabType<Panel>> => {
-    var showSettings =
+    const showSettings =
       !this.props.isPreview ||
       TeamConstants.isAdmin(this.props.yourRole) ||
       TeamConstants.isOwner(this.props.yourRole)

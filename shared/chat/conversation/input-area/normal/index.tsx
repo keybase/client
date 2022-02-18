@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
 import PlatformInput from './platform-input'
-import {standardTransformer, TransformerData} from '../suggestors'
-import {InputProps} from './types'
+import {standardTransformer, type TransformerData} from '../suggestors'
+import type {InputProps} from './types'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import {memoize} from '../../../../util/memoize'
@@ -15,7 +15,7 @@ import Giphy from '../../giphy/container'
 import ReplyPreview from '../../reply-preview/container'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {emojiIndex, emojiNameMap} from '../../messages/react-button/emoji-picker/data'
-import {emojiDataToRenderableEmoji, renderEmoji, EmojiData, RPCToEmojiData} from '../../../../util/emoji'
+import {emojiDataToRenderableEmoji, renderEmoji, type EmojiData, RPCToEmojiData} from '../../../../util/emoji'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
@@ -403,7 +403,7 @@ class Input extends React.Component<InputProps, InputState> {
       }
     }
 
-    const sel = this._input && this._input.getSelection()
+    const sel = this._input?.getSelection()
     if (sel && this._lastText) {
       // a little messy. Check if the message starts with '/' and that the cursor is
       // within maxCmdLength chars away from it. This happens before `onChangeText`, so
@@ -422,7 +422,7 @@ class Input extends React.Component<InputProps, InputState> {
     }
     const fil = filter.toLowerCase()
     const data = (
-      this._lastText && this._lastText.startsWith('!')
+      this._lastText?.startsWith('!')
         ? this.props.suggestBotCommands
         : this.props.suggestCommands
     ).filter(c => c.name.includes(fil))

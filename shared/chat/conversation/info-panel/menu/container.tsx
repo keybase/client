@@ -1,13 +1,13 @@
 import * as TeamConstants from '../../../../constants/teams'
 import * as ChatConstants from '../../../../constants/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as React from 'react'
+import type * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as ChatGen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
-import {InfoPanelMenu, ConvProps} from '.'
-import * as ChatTypes from '../../../../constants/types/chat2'
+import {InfoPanelMenu, type ConvProps} from '.'
+import type * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
 import * as Styles from '../../../../styles'
 
@@ -160,7 +160,7 @@ export default Container.connect(
       s._convPropsFullname != null
         ? {
             conversationIDKey: o.conversationIDKey,
-            fullname: s._convPropsFullname!,
+            fullname: s._convPropsFullname,
             ignored: s._convPropsIgnored!,
             muted: s._convPropsMuted!,
             teamID: s._convPropsTeamID!,

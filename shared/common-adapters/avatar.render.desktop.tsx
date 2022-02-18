@@ -86,7 +86,7 @@ const Avatar = (props: Props) => {
                   props.borderColor || Styles.globalColors.black_10
                 } ${props.isTeam ? 'inset' : ''}`,
               } as const),
-          ] as const)}
+          ] as any)}
           className={Styles.classNames(
             {'avatar-border': !props.isTeam, 'avatar-border-team': props.isTeam},
             avatarSizeClasName

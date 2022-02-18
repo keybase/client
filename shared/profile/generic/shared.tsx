@@ -32,7 +32,11 @@ export const SiteIcon = (props: SiteIconProps) => {
     />
   ) : (
     <Kb.Box
-      style={Styles.collapseStyles([style, props.style, {backgroundImage: siteIconToSrcSet(props.set)}])}
+      style={Styles.collapseStyles([
+        style,
+        props.style,
+        {backgroundImage: siteIconToSrcSet(props.set)},
+      ] as any)}
     />
   )
 }

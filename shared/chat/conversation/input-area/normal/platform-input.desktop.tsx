@@ -2,12 +2,12 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
 import WalletsIcon from './wallets-icon/container'
-import {PlatformInputPropsInternal} from './platform-input'
+import type {PlatformInputPropsInternal} from './platform-input'
 import Typing from './typing'
 import AddSuggestors from '../suggestors'
 import {indefiniteArticle} from '../../../../util/string'
@@ -33,17 +33,17 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   }
 
   _inputFocus = () => {
-    this._input && this._input.focus()
+    this._input?.focus()
   }
 
   _emojiPickerToggle = () => {
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
   }
 
-  _filePickerFiles = () => (this._fileInput && this._fileInput.files) || []
+  _filePickerFiles = () => this._fileInput?.files || []
 
   _filePickerOpen = () => {
-    this._fileInput && this._fileInput.click()
+    this._fileInput?.click()
   }
 
   _filePickerSetRef = (r: HTMLInputElement | null) => {
@@ -89,7 +89,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
 
   _onKeyDown = (e: React.KeyboardEvent) => {
     this._commonOnKeyDown(e)
-    this.props.onKeyDown && this.props.onKeyDown(e)
+    this.props.onKeyDown?.(e)
   }
 
   _onChangeText = (text: string) => {
@@ -144,7 +144,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
           .call(fileList, (f: File) => {
             // We rely on path being here, even though it's
             // not part of the File spec.
-            return f.path as string
+            return f.path
           })
           .reduce<Array<string>>((arr, p: any) => {
             p && arr.push(p)

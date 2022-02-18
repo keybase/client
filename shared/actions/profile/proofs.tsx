@@ -194,7 +194,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
       // We don't get this directly (yet) so we parse this out
       try {
         const match = instructions.data.match(/<url>(http[s]+):\/\//)
-        const protocol = match && match[1]
+        const protocol = match?.[1]
         actions.push(
           Saga.put(ProfileGen.createUpdatePlatform({platform: protocol === 'https' ? 'https' : 'http'}))
         )

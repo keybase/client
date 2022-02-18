@@ -55,10 +55,10 @@ class InputMonitor {
         this.listenForMouseKeyboard()
         break
       case 'blurred':
-        this.notifyActive && this.notifyActive(false)
+        this.notifyActive?.(false)
         break
       case 'appActive':
-        this.notifyActive && this.notifyActive(true)
+        this.notifyActive?.(true)
         console.log('InputMonitor: 5 minute timeout')
         this.timeoutID = setTimeout(() => this.transition('timeout'), timeToConsiderActiveForAwhile)
         break
@@ -70,7 +70,7 @@ class InputMonitor {
       case 'appInactive':
         console.log('InputMonitor: Inactive')
         this.listenForMouseKeyboard()
-        this.notifyActive && this.notifyActive(false)
+        this.notifyActive?.(false)
         break
     }
   }

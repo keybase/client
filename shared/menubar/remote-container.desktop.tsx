@@ -75,6 +75,8 @@ const RemoteContainer = () => {
             version
           )}`
         )
+          .then(() => {})
+          .catch(() => {})
       }}
       showHelp={() => {
         const link = urlHelper('help')

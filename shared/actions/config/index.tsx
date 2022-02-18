@@ -43,7 +43,10 @@ const onLog = (action: EngineGen.Keybase1LogUiLogPayload) => {
 
 const onConnected = () => ConfigGen.createStartHandshake()
 const onDisconnected = () => {
-  logger.flush()
+  logger
+    .flush()
+    .then(() => {})
+    .catch(() => {})
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
@@ -72,6 +75,8 @@ const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnSt
   if (uid) {
     // request follower info in the background
     RPCTypes.configRequestFollowingAndUnverifiedFollowersRpcPromise()
+      .then(() => {})
+      .catch(() => {})
   }
 }
 

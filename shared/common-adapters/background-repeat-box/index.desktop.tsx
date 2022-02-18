@@ -21,7 +21,7 @@ const BackgroundRepeatBox = (props: Props) => {
           backgroundSize: `${props.imageWidth}px ${props.imageHeight}px`,
         },
         props.style,
-      ])}
+      ] as any)}
     >
       {props.children}
     </Box>

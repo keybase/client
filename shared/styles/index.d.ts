@@ -1,6 +1,6 @@
 // Styles from our designers
 import * as React from 'react'
-import * as CSS from './css'
+import type * as CSS from './css'
 export {default as globalColors} from './colors'
 
 export declare const transition: (...properties: Array<string>) => any
@@ -97,10 +97,12 @@ type NamedStyles = {[key: string]: CSS._StylesCrossPlatform}
 // order important!
 export declare function styleSheetCreate<O extends NamedStyles>(styles: () => O): O
 
-type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
-export type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
+type RemovedStyle = false | '' | 0 | null | undefined
+type CollapsibleStyle = CSS.StylesCrossPlatform | RemovedStyle
+
+// TODO better styles that aren't slow
 export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): any
 
 export declare const windowStyle: {
@@ -135,7 +137,7 @@ export declare const dimensionHeight: number
 export declare const headerExtraHeight: number
 
 export {platformStyles, globalMargins, backgroundModeToColor, backgroundModeToTextColor} from './shared'
-export {
+export type {
   StylesDesktop,
   StylesMobile,
   StylesCrossPlatform,

@@ -31,9 +31,9 @@ RUN apt-get install -y nodejs yarn
 # When updating the version, remember to bump keybase_packaging_v# in docker_build.sh.
 # Copy over the new hash when upgrading version. But if not upgrading version,
 # the check should not ever fail.
-ENV GOLANG_VERSION 1.17.3
+ENV GOLANG_VERSION 1.13.7
 ENV GOLANG_DOWNLOAD_URL https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz
-ENV GOLANG_DOWNLOAD_SHA256 550f9845451c0c94be679faf116291e7807a8d78b43149f9506c1b15eb89008c
+ENV GOLANG_DOWNLOAD_SHA256 b3dd4bd781a0271b33168e627f7f43886b4c5d1c794a4015abf34e99c6526ca3
 RUN wget "$GOLANG_DOWNLOAD_URL" -O /root/go.tar.gz
 RUN echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status --strict -
 RUN tar -C /usr/local -xzf /root/go.tar.gz

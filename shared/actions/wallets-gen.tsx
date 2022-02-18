@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/wallets'
 import * as ChatTypes from '../constants/types/chat2'
 import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'
@@ -127,8 +127,8 @@ export const validatedSecretKey = 'wallets:validatedSecretKey'
 export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 
 // Payload Types
-type _AbandonPaymentPayload = void
-type _AcceptDisclaimerPayload = void
+type _AbandonPaymentPayload = undefined
+type _AcceptDisclaimerPayload = undefined
 type _AcceptSEP7PathPayload = {readonly inputURI: string}
 type _AcceptSEP7PayPayload = {readonly amount: string; readonly inputURI: string}
 type _AcceptSEP7TxPayload = {readonly inputURI: string}
@@ -147,7 +147,7 @@ type _AssetWithdrawPayload = {
 }
 type _AssetsReceivedPayload = {readonly accountID: Types.AccountID; readonly assets: Array<Types.Assets>}
 type _BadgesUpdatedPayload = {readonly accounts: Array<RPCTypes.WalletAccountInfo>}
-type _BuildPaymentPayload = void
+type _BuildPaymentPayload = undefined
 type _BuildingPaymentIDReceivedPayload = {readonly bid: string}
 type _BuiltPaymentReceivedPayload = {readonly build: Types.BuiltPayment; readonly forBuildCounter: number}
 type _BuiltRequestReceivedPayload = {readonly build: Types.BuiltRequest; readonly forBuildCounter: number}
@@ -168,12 +168,12 @@ type _ChangedAccountNamePayload = {
 }
 type _ChangedTrustlinePayload = {readonly error?: string}
 type _CheckDisclaimerPayload = {readonly nextScreen: Types.NextScreenAfterAcceptance}
-type _ClearBuildingAdvancedPayload = void
-type _ClearBuildingPayload = void
-type _ClearBuiltPaymentPayload = void
-type _ClearBuiltRequestPayload = void
-type _ClearErrorsPayload = void
-type _ClearTrustlineSearchResultsPayload = void
+type _ClearBuildingAdvancedPayload = undefined
+type _ClearBuildingPayload = undefined
+type _ClearBuiltPaymentPayload = undefined
+type _ClearBuiltRequestPayload = undefined
+type _ClearErrorsPayload = undefined
+type _ClearTrustlineSearchResultsPayload = undefined
 type _CreateNewAccountPayload = {
   readonly name: string
   readonly showOnCreation?: boolean
@@ -188,7 +188,7 @@ type _CreatedNewAccountPayload = {
 }
 type _DeleteAccountPayload = {readonly accountID: Types.AccountID}
 type _DeleteTrustlinePayload = {readonly accountID: Types.AccountID; readonly assetID: Types.AssetID}
-type _DeletedAccountPayload = void
+type _DeletedAccountPayload = undefined
 type _DidSetAccountAsDefaultPayload = {readonly accounts: Array<Types.Account>}
 type _DisplayCurrenciesReceivedPayload = {readonly currencies: Array<Types.Currency>}
 type _DisplayCurrencyReceivedPayload = {
@@ -196,7 +196,7 @@ type _DisplayCurrencyReceivedPayload = {
   readonly currency: Types.Currency
   readonly setBuildingCurrency?: boolean
 }
-type _ExitFailedPaymentPayload = void
+type _ExitFailedPaymentPayload = undefined
 type _ExportSecretKeyPayload = {readonly accountID: Types.AccountID}
 type _ExternalPartnersReceivedPayload = {readonly externalPartners: Array<Types.PartnerUrl>}
 type _LinkExistingAccountPayload = {
@@ -215,18 +215,18 @@ type _LinkedExistingAccountPayload = {
 }
 type _LoadAccountsPayload = {readonly reason: 'initial-load' | 'open-send-req-form'}
 type _LoadAssetsPayload = {readonly accountID: Types.AccountID}
-type _LoadDisplayCurrenciesPayload = void
+type _LoadDisplayCurrenciesPayload = undefined
 type _LoadDisplayCurrencyPayload = {
   readonly accountID: Types.AccountID | null
   readonly setBuildingCurrency?: boolean
 }
-type _LoadExternalPartnersPayload = void
+type _LoadExternalPartnersPayload = undefined
 type _LoadMobileOnlyModePayload = {readonly accountID: Types.AccountID}
 type _LoadMorePaymentsPayload = {readonly accountID: Types.AccountID}
 type _LoadPaymentDetailPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
 type _LoadPaymentsPayload = {readonly accountID: Types.AccountID}
 type _LoadSendAssetChoicesPayload = {readonly from: Types.AccountID; readonly to: string}
-type _LoadWalletDisclaimerPayload = void
+type _LoadWalletDisclaimerPayload = undefined
 type _LoadedMobileOnlyModePayload = {readonly accountID: Types.AccountID; readonly enabled: boolean}
 type _MarkAsReadPayload = {readonly accountID: Types.AccountID; readonly mostRecentID: Types.PaymentID}
 type _OpenSendRequestFormPayload = {
@@ -264,16 +264,16 @@ type _RecentPaymentsReceivedPayload = {
 }
 type _RefreshTrustlineAcceptedAssetsByUsernamePayload = {readonly username: string}
 type _RefreshTrustlineAcceptedAssetsPayload = {readonly accountID: Types.AccountID}
-type _RefreshTrustlinePopularAssetsPayload = void
-type _RejectDisclaimerPayload = void
-type _RequestPaymentPayload = void
+type _RefreshTrustlinePopularAssetsPayload = undefined
+type _RejectDisclaimerPayload = undefined
+type _RequestPaymentPayload = undefined
 type _RequestedPaymentPayload = {
   readonly kbRqID: HiddenString
   readonly lastSentXLM: boolean
   readonly requestee: string
 }
-type _ResetAcceptingDisclaimerPayload = void
-type _ReviewPaymentPayload = void
+type _ResetAcceptingDisclaimerPayload = undefined
+type _ReviewPaymentPayload = undefined
 type _ReviewedPaymentReceivedPayload = {
   readonly bid: string
   readonly reviewID: number
@@ -291,8 +291,8 @@ type _SelectAccountPayload = {
 type _SendAssetChoicesReceivedPayload = {
   readonly sendAssetChoices: Array<StellarRPCTypes.SendAssetChoiceLocal>
 }
-type _SendPaymentAdvancedPayload = void
-type _SendPaymentPayload = void
+type _SendPaymentAdvancedPayload = undefined
+type _SendPaymentPayload = undefined
 type _SentPaymentErrorPayload = {readonly error: string}
 type _SentPaymentPayload = {
   readonly kbTxID: HiddenString
@@ -360,7 +360,7 @@ type _WalletDisclaimerReceivedPayload = {readonly accepted: boolean}
 /**
  * A response from the service after an account is deleted.
  */
-export const createDeletedAccount = (payload: _DeletedAccountPayload): DeletedAccountPayload => ({
+export const createDeletedAccount = (payload?: _DeletedAccountPayload): DeletedAccountPayload => ({
   payload,
   type: deletedAccount,
 })
@@ -379,7 +379,7 @@ export const createChangedAccountName = (
 /**
  * Accept the Stellar account disclaimer
  */
-export const createAcceptDisclaimer = (payload: _AcceptDisclaimerPayload): AcceptDisclaimerPayload => ({
+export const createAcceptDisclaimer = (payload?: _AcceptDisclaimerPayload): AcceptDisclaimerPayload => ({
   payload,
   type: acceptDisclaimer,
 })
@@ -474,28 +474,28 @@ export const createChangeAccountName = (payload: _ChangeAccountNamePayload): Cha
 /**
  * Clear a payment or request that was being prepared
  */
-export const createClearBuilding = (payload: _ClearBuildingPayload): ClearBuildingPayload => ({
+export const createClearBuilding = (payload?: _ClearBuildingPayload): ClearBuildingPayload => ({
   payload,
   type: clearBuilding,
 })
 /**
  * Clear a prepared payment once it has been sent or canceled
  */
-export const createClearBuiltPayment = (payload: _ClearBuiltPaymentPayload): ClearBuiltPaymentPayload => ({
+export const createClearBuiltPayment = (payload?: _ClearBuiltPaymentPayload): ClearBuiltPaymentPayload => ({
   payload,
   type: clearBuiltPayment,
 })
 /**
  * Clear a prepared request once it has been sent or canceled
  */
-export const createClearBuiltRequest = (payload: _ClearBuiltRequestPayload): ClearBuiltRequestPayload => ({
+export const createClearBuiltRequest = (payload?: _ClearBuiltRequestPayload): ClearBuiltRequestPayload => ({
   payload,
   type: clearBuiltRequest,
 })
 /**
  * Clear errors from the store at times like opening or closing a form dialog.
  */
-export const createClearErrors = (payload: _ClearErrorsPayload): ClearErrorsPayload => ({
+export const createClearErrors = (payload?: _ClearErrorsPayload): ClearErrorsPayload => ({
   payload,
   type: clearErrors,
 })
@@ -509,7 +509,7 @@ export const createSecretKeySeen = (payload: _SecretKeySeenPayload): SecretKeySe
 /**
  * Close the send form and show the user their transactions so they can review.
  */
-export const createExitFailedPayment = (payload: _ExitFailedPaymentPayload): ExitFailedPaymentPayload => ({
+export const createExitFailedPayment = (payload?: _ExitFailedPaymentPayload): ExitFailedPaymentPayload => ({
   payload,
   type: exitFailedPayment,
 })
@@ -592,13 +592,13 @@ export const createLoadSendAssetChoices = (
  * Load valid display currencies to choose from
  */
 export const createLoadDisplayCurrencies = (
-  payload: _LoadDisplayCurrenciesPayload
+  payload?: _LoadDisplayCurrenciesPayload
 ): LoadDisplayCurrenciesPayload => ({payload, type: loadDisplayCurrencies})
 /**
  * Load wallet disclaimer
  */
 export const createLoadWalletDisclaimer = (
-  payload: _LoadWalletDisclaimerPayload
+  payload?: _LoadWalletDisclaimerPayload
 ): LoadWalletDisclaimerPayload => ({payload, type: loadWalletDisclaimer})
 /**
  * Mark the given payment ID and anything older as read.
@@ -610,7 +610,7 @@ export const createMarkAsRead = (payload: _MarkAsReadPayload): MarkAsReadPayload
 /**
  * Move to the confirm screen on a built payment.
  */
-export const createReviewPayment = (payload: _ReviewPaymentPayload): ReviewPaymentPayload => ({
+export const createReviewPayment = (payload?: _ReviewPaymentPayload): ReviewPaymentPayload => ({
   payload,
   type: reviewPayment,
 })
@@ -624,7 +624,7 @@ export const createShowTransaction = (payload: _ShowTransactionPayload): ShowTra
 /**
  * Perform sending a payment
  */
-export const createSendPayment = (payload: _SendPaymentPayload): SendPaymentPayload => ({
+export const createSendPayment = (payload?: _SendPaymentPayload): SendPaymentPayload => ({
   payload,
   type: sendPayment,
 })
@@ -668,7 +668,7 @@ export const createLoadAssets = (payload: _LoadAssetsPayload): LoadAssetsPayload
  * Refresh our list of external tools and partner links
  */
 export const createLoadExternalPartners = (
-  payload: _LoadExternalPartnersPayload
+  payload?: _LoadExternalPartnersPayload
 ): LoadExternalPartnersPayload => ({payload, type: loadExternalPartners})
 /**
  * Refresh our list of payments for a given account
@@ -680,14 +680,14 @@ export const createLoadPayments = (payload: _LoadPaymentsPayload): LoadPaymentsP
 /**
  * Reject (temporarily) the Stellar account disclaimer
  */
-export const createRejectDisclaimer = (payload: _RejectDisclaimerPayload): RejectDisclaimerPayload => ({
+export const createRejectDisclaimer = (payload?: _RejectDisclaimerPayload): RejectDisclaimerPayload => ({
   payload,
   type: rejectDisclaimer,
 })
 /**
  * Request payment
  */
-export const createRequestPayment = (payload: _RequestPaymentPayload): RequestPaymentPayload => ({
+export const createRequestPayment = (payload?: _RequestPaymentPayload): RequestPaymentPayload => ({
   payload,
   type: requestPayment,
 })
@@ -695,7 +695,7 @@ export const createRequestPayment = (payload: _RequestPaymentPayload): RequestPa
  * Reset to the pre-accepting-disclaimer state.
  */
 export const createResetAcceptingDisclaimer = (
-  payload: _ResetAcceptingDisclaimerPayload
+  payload?: _ResetAcceptingDisclaimerPayload
 ): ResetAcceptingDisclaimerPayload => ({payload, type: resetAcceptingDisclaimer})
 /**
  * Scrolled down the list of payments for a given account
@@ -714,7 +714,7 @@ export const createSelectAccount = (payload: _SelectAccountPayload): SelectAccou
 /**
  * Send a potential payment to the service for validation
  */
-export const createBuildPayment = (payload: _BuildPaymentPayload): BuildPaymentPayload => ({
+export const createBuildPayment = (payload?: _BuildPaymentPayload): BuildPaymentPayload => ({
   payload,
   type: buildPayment,
 })
@@ -806,7 +806,7 @@ export const createSetSEP6Message = (payload: _SetSEP6MessagePayload): SetSEP6Me
 /**
  * Signal that a payment being built is abandoned and reset the form fields to their initial states.
  */
-export const createAbandonPayment = (payload: _AbandonPaymentPayload): AbandonPaymentPayload => ({
+export const createAbandonPayment = (payload?: _AbandonPaymentPayload): AbandonPaymentPayload => ({
   payload,
   type: abandonPayment,
 })
@@ -969,13 +969,13 @@ export const createAccountUpdateReceived = (
  * replace the current buildingAdvanced builtPaymentAdvanced data with an empty ones
  */
 export const createClearBuildingAdvanced = (
-  payload: _ClearBuildingAdvancedPayload
+  payload?: _ClearBuildingAdvancedPayload
 ): ClearBuildingAdvancedPayload => ({payload, type: clearBuildingAdvanced})
 /**
  * tell service to send this path payment
  */
 export const createSendPaymentAdvanced = (
-  payload: _SendPaymentAdvancedPayload
+  payload?: _SendPaymentAdvancedPayload
 ): SendPaymentAdvancedPayload => ({payload, type: sendPaymentAdvanced})
 export const createAddTrustline = (payload: _AddTrustlinePayload): AddTrustlinePayload => ({
   payload,
@@ -988,7 +988,7 @@ export const createChangedTrustline = (
   payload: _ChangedTrustlinePayload = Object.freeze({})
 ): ChangedTrustlinePayload => ({payload, type: changedTrustline})
 export const createClearTrustlineSearchResults = (
-  payload: _ClearTrustlineSearchResultsPayload
+  payload?: _ClearTrustlineSearchResultsPayload
 ): ClearTrustlineSearchResultsPayload => ({payload, type: clearTrustlineSearchResults})
 export const createDeleteTrustline = (payload: _DeleteTrustlinePayload): DeleteTrustlinePayload => ({
   payload,
@@ -1004,7 +1004,7 @@ export const createRefreshTrustlineAcceptedAssetsByUsername = (
   type: refreshTrustlineAcceptedAssetsByUsername,
 })
 export const createRefreshTrustlinePopularAssets = (
-  payload: _RefreshTrustlinePopularAssetsPayload
+  payload?: _RefreshTrustlinePopularAssetsPayload
 ): RefreshTrustlinePopularAssetsPayload => ({payload, type: refreshTrustlinePopularAssets})
 export const createSetBuildingAdvancedPublicMemo = (
   payload: _SetBuildingAdvancedPublicMemoPayload

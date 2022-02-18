@@ -80,7 +80,7 @@ export default Container.connect(
           setFollowBlock: userBlocks.followBlocked,
           username,
         }))
-      if (blocks && blocks.length) {
+      if (blocks.length) {
         dispatch(UsersGen.createSetUserBlocks({blocks}))
       }
     },

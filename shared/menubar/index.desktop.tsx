@@ -89,7 +89,7 @@ class MenubarRender extends React.Component<Props, State> {
             styles.topRow,
             {justifyContent: 'flex-end'},
             Styles.desktopStyles.clickable,
-          ])}
+          ] as any)}
         >
           <Kb.Icon
             color={Styles.isDarkMode() ? 'rgba(255, 255, 255, 0.85)' : Styles.globalColors.blueDarker}
@@ -158,7 +158,7 @@ class MenubarRender extends React.Component<Props, State> {
             styles.topRow,
             {justifyContent: 'flex-end'},
             Styles.desktopStyles.clickable,
-          ])}
+          ] as any)}
         >
           <Kb.Icon
             color={Styles.globalColors.blueDarker}
@@ -304,7 +304,7 @@ class MenubarRender extends React.Component<Props, State> {
                 marginRight: Styles.globalMargins.tiny,
                 position: 'relative',
               },
-            ])}
+            ] as any)}
           >
             <Kb.Icon
               color={

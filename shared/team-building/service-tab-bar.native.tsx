@@ -45,7 +45,7 @@ const TabletBottomBorderExtension = React.memo((props: {offset: number; services
             position: 'absolute',
           },
           {transform: [{translateY}]},
-        ])}
+        ] as any)}
       />
     </Kb.Box2>
   )
@@ -113,7 +113,7 @@ const ServiceIcon = React.memo((props: IconProps) => {
           props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
           props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
           {transform: [{translateY}]},
-        ])}
+        ] as any)}
       />
     </Kb.ClickableBox>
   )

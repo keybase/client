@@ -1,17 +1,17 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as DeeplinksConstants from '../../../../../constants/deeplinks'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Constants from '../../../../../constants/chat2'
-import * as Types from '../../../../../constants/types/chat2'
-import * as TeamTypes from '../../../../../constants/types/teams'
+import type * as Types from '../../../../../constants/types/chat2'
+import type * as TeamTypes from '../../../../../constants/types/teams'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {getCanPerformByID} from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
-import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
-import {StylesCrossPlatform} from '../../../../../styles/css'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 import Attachment from '.'
 
 type OwnProps = {
@@ -30,9 +30,9 @@ export default Container.connect(
     const isTeam = !!meta.teamname
     const participantInfo = Constants.getParticipantInfo(state, message.conversationIDKey)
     const yourOperations = getCanPerformByID(state, meta.teamID)
-    const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
-    const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
-    const _canPinMessage = !isTeam || (yourOperations && yourOperations.pinMessage)
+    const _canDeleteHistory = yourOperations.deleteChatHistory
+    const _canAdminDelete = yourOperations.deleteOtherMessages
+    const _canPinMessage = !isTeam || yourOperations.pinMessage
     const _authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
     const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID)
     const _label = Constants.getConversationLabel(state, meta, true)

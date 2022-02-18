@@ -24,7 +24,7 @@ const BackButton = React.memo((props: Props) => {
       style={Styles.collapseStyles([
         props.disabled ? styles.disabledContainer : styles.container,
         props.style,
-      ])}
+      ] as any)}
       onClick={_onClick}
     >
       <Kb.Icon
@@ -72,6 +72,6 @@ export const styles = {
   icon: {
     marginRight: 6,
   },
-}
+} as const
 
 export default BackButton

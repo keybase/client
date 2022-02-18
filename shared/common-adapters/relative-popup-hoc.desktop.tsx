@@ -298,7 +298,7 @@ function ModalPositionRelative<PP>(
           this.props.positionFallbacks
         ),
         this.props.style,
-      ])
+      ] as any)
       this.setState({style})
     }
 

@@ -55,7 +55,7 @@ const Header = (p: Props) => {
     <Kb.Markdown
       smallStandaloneEmoji={true}
       style={styles.desc}
-      styleOverride={descStyleOverride}
+      styleOverride={descStyleOverride as any}
       lineClamp={1}
       selectable={true}
     >
@@ -91,7 +91,7 @@ const Header = (p: Props) => {
       <Kb.Markdown
         smallStandaloneEmoji={true}
         style={{...styles.desc, flex: 1}}
-        styleOverride={descStyleOverride}
+        styleOverride={descStyleOverride as any}
         lineClamp={1}
         selectable={true}
       >
@@ -263,11 +263,11 @@ const styles = Styles.styleSheetCreate(
           wordBreak: 'break-all',
         },
         isMobile: {
-          color: Styles.globalColors.black_50,
+          color: Styles.globalColors.black_50 as any,
           fontSize: 15,
           lineHeight: 19,
         },
-      }),
+      } as any),
       right: Styles.platformStyles({
         common: {
           flex: 1,

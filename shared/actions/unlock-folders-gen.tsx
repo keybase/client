@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of unlock-folders but is handled by every reducer. NEVER dispatch this
@@ -17,17 +17,17 @@ export const toPaperKeyInput = 'unlock-folders:toPaperKeyInput'
 // Payload Types
 type _CheckPaperKeyDonePayload = {readonly error?: string}
 type _CheckPaperKeyPayload = {readonly paperKey: string}
-type _CloseDonePayload = void
-type _ClosePopupPayload = void
-type _FinishPayload = void
+type _CloseDonePayload = undefined
+type _ClosePopupPayload = undefined
+type _FinishPayload = undefined
 type _NewRekeyPopupPayload = {
   readonly sessionID: number
   readonly devices: Array<RPCTypes.Device>
   readonly problemSet: RPCTypes.ProblemSet
 }
-type _OnBackFromPaperKeyPayload = void
-type _OpenPopupPayload = void
-type _ToPaperKeyInputPayload = void
+type _OnBackFromPaperKeyPayload = undefined
+type _OpenPopupPayload = undefined
+type _ToPaperKeyInputPayload = undefined
 
 // Action Creators
 export const createCheckPaperKey = (payload: _CheckPaperKeyPayload): CheckPaperKeyPayload => ({
@@ -37,22 +37,21 @@ export const createCheckPaperKey = (payload: _CheckPaperKeyPayload): CheckPaperK
 export const createCheckPaperKeyDone = (
   payload: _CheckPaperKeyDonePayload = Object.freeze({})
 ): CheckPaperKeyDonePayload => ({payload, type: checkPaperKeyDone})
-export const createCloseDone = (payload: _CloseDonePayload): CloseDonePayload => ({payload, type: closeDone})
-export const createClosePopup = (payload: _ClosePopupPayload): ClosePopupPayload => ({
+export const createCloseDone = (payload?: _CloseDonePayload): CloseDonePayload => ({payload, type: closeDone})
+export const createClosePopup = (payload?: _ClosePopupPayload): ClosePopupPayload => ({
   payload,
   type: closePopup,
 })
-export const createFinish = (payload: _FinishPayload): FinishPayload => ({payload, type: finish})
+export const createFinish = (payload?: _FinishPayload): FinishPayload => ({payload, type: finish})
 export const createNewRekeyPopup = (payload: _NewRekeyPopupPayload): NewRekeyPopupPayload => ({
   payload,
   type: newRekeyPopup,
 })
-export const createOnBackFromPaperKey = (payload: _OnBackFromPaperKeyPayload): OnBackFromPaperKeyPayload => ({
-  payload,
-  type: onBackFromPaperKey,
-})
-export const createOpenPopup = (payload: _OpenPopupPayload): OpenPopupPayload => ({payload, type: openPopup})
-export const createToPaperKeyInput = (payload: _ToPaperKeyInputPayload): ToPaperKeyInputPayload => ({
+export const createOnBackFromPaperKey = (
+  payload?: _OnBackFromPaperKeyPayload
+): OnBackFromPaperKeyPayload => ({payload, type: onBackFromPaperKey})
+export const createOpenPopup = (payload?: _OpenPopupPayload): OpenPopupPayload => ({payload, type: openPopup})
+export const createToPaperKeyInput = (payload?: _ToPaperKeyInputPayload): ToPaperKeyInputPayload => ({
   payload,
   type: toPaperKeyInput,
 })

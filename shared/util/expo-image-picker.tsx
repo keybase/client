@@ -44,7 +44,7 @@ const mediaTypeToImagePickerMediaType = (
     ? ImagePicker.MediaTypeOptions.Videos
     : ImagePicker.MediaTypeOptions.All
 
-export const launchCameraAsync = (
+export const launchCameraAsync = async (
   mediaType: 'photo' | 'video' | 'mixed',
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
@@ -56,7 +56,7 @@ export const launchCameraAsync = (
   )
 }
 
-export const launchImageLibraryAsync = (
+export const launchImageLibraryAsync = async (
   mediaType: 'photo' | 'video' | 'mixed',
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
