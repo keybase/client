@@ -19,7 +19,7 @@ const closeTeamBuilding = (_: TypedState, {payload: {namespace}}: NSAction) => {
   const routeNames = [...namespaceToRoute.values()]
   const routeName = modals[modals.length - 1]?.routeName
 
-  if (!routeNames.includes(routeName)) {
+  if (routeNames.includes(routeName)) {
     return RouteTreeGen.createNavigateUp()
   }
   return false

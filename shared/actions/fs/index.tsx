@@ -352,7 +352,7 @@ function* folderList(_: Container.TypedState, action: FsGen.FolderListLoadPayloa
     const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
       const path = Types.pathConcat(rootPath, d.name)
       const entry = makeEntry(d, childMap.get(path))
-      if (entry.type === Types.PathType.Folder && isRecursive && d.name.includes('/')) {
+      if (entry.type === Types.PathType.Folder && isRecursive && !d.name.includes('/')) {
         // Since we are loading with a depth of 2, first level directories are
         // considered "loaded".
         return [
