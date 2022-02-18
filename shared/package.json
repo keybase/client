@@ -7,7 +7,7 @@
         "_node": "cross-env-shell BABEL_ENV=yarn babel-node --extensions='.tsx' --extensions='.js' ",
         "help": "yarn run _helper help",
         "lint": "yarn run lint-specific .",
-        "lint-specific": "eslint --cache --quiet --ext js,ts,tsx,d.ts,mobile.tsx,desktop.tsx",
+        "lint-specific": "eslint --cache --quiet --ext ts,tsx,d.ts,mobile.tsx,desktop.tsx",
         "postinstall": "yarn run _helper postinstall",
         "prettier": "./node_modules/.bin/prettier --write ",
         "prettier-bare": "./node_modules/.bin/prettier ",
@@ -136,6 +136,8 @@
         "util": "0.12.4"
     },
     "devDependencies": {
+        "@typescript-eslint/parser": "5.11.1-alpha.10",
+        "@typescript-eslint/eslint-plugin": "5.11.1-alpha.10",
         "@babel/cli": "7.17.0",
         "@babel/core": "7.17.0",
         "@babel/generator": "7.17.0",
@@ -181,7 +183,6 @@
         "@types/webpack-env": "1.16.3",
         "@types/whatwg-url": "6.4.0",
         "babel-core": "7.0.0-bridge.0",
-        "babel-eslint": "11.0.0-beta.0",
         "babel-loader": "8.2.3",
         "cross-env": "7.0.3",
         "css-loader": "6.6.0",
@@ -210,6 +211,7 @@
         "style-loader": "3.3.1",
         "terser-webpack-plugin": "5.3.1",
         "tls": "git://github.com/keybase/nullModule",
+        "ts-toolbelt": "9.6.0",
         "typescript": "4.5.5",
         "v8-android-nointl": "git://github.com/keybase/v8-android-nointl#v8.80.1",
         "webpack": "5.68.0",

@@ -42,7 +42,7 @@ import Geolocation from '@react-native-community/geolocation'
 import {AudioRecorder} from 'react-native-audio'
 import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
-import {RPCError} from 'util/errors'
+import type {RPCError} from 'util/errors'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -139,7 +139,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     PushNotifications.localNotification({
       message: `Failed to save ${saveType} to camera roll`,
     })
-    logger.debug(logPrefix + 'failed to save: ' + e)
+    logger.debug(`${logPrefix} failed to save: ${e}`)
     throw e
   } finally {
     try {
@@ -197,7 +197,7 @@ const openAppSettings = async () => {
     const settingsURL = 'app-settings:'
     const can = await Linking.canOpenURL(settingsURL)
     if (can) {
-      Linking.openURL(settingsURL)
+      return Linking.openURL(settingsURL)
     } else {
       logger.warn('Unable to open app settings')
     }
@@ -233,12 +233,12 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
 let _lastPersist = ''
 function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
-  const mainOrModal = path && path[1] && path[1].routeName
+  const mainOrModal = path?.[1]?.routeName
 
   let param = {}
   let routeName = ''
   if (mainOrModal === 'Main') {
-    const tab = path && path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
+    const tab = path?.[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
     if (!tab) return
     // top level tab?
     if (tab.routeName === 'tabs.chatTab') {
@@ -803,6 +803,8 @@ const stopAudioRecording = async (
   if (ChatConstants.audioRecordingDuration(audio) < 500 || audio.path.length === 0) {
     logger.info('stopAudioRecording: recording too short, skipping')
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+      .then(() => {})
+      .catch(() => {})
     return Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL})
   }
 
@@ -851,6 +853,8 @@ const onEnableAudioRecording = async (
 
   if (isIOS) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+      .then(() => {})
+      .catch(() => {})
   } else {
     Vibration.vibrate(50)
   }
@@ -879,6 +883,8 @@ const onSendAudioRecording = (action: Chat2Gen.SendAudioRecordingPayload) => {
   if (!action.payload.fromStaged) {
     if (isIOS) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+        .then(() => {})
+        .catch(() => {})
     } else {
       Vibration.vibrate(50)
     }

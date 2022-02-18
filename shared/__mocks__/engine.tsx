@@ -1,3 +1,4 @@
+/*
 console.error('mock engine loaded')
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
@@ -12,3 +13,5 @@ const getEngine = () => mockEngine
 const getEngineSaga = () => {}
 export default getEngine
 export {getEngine, makeEngine, Engine, EngineChannel, getEngineSaga}
+*/
+export default {}

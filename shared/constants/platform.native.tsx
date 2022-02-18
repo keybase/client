@@ -4,11 +4,11 @@ import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import Constants from 'expo-constants'
 
 const nativeBridge = NativeModules.KeybaseEngine || {
-  getSecureFlagSetting: () => Promise.resolve(true),
+  getSecureFlagSetting: async () => Promise.resolve(true),
   isDeviceSecure: 'fallback',
   isTestDevice: false,
   serverConfig: '',
-  setSecureFlagSetting: () => Promise.resolve(true),
+  setSecureFlagSetting: async () => Promise.resolve(true),
   uses24HourClock: false,
   usingSimulator: 'fallback',
   version: 'fallback',
@@ -18,9 +18,9 @@ type SetSecure = (s: boolean) => Promise<boolean> // true on successful write
 type GetSecure = () => Promise<boolean>
 
 export const setSecureFlagSetting: SetSecure =
-  NativeModules?.ScreenProtector?.setSecureFlagSetting ?? ((_s: boolean) => Promise.resolve(false))
+  NativeModules?.ScreenProtector?.setSecureFlagSetting ?? (async (_s: boolean) => Promise.resolve(false))
 export const getSecureFlagSetting: GetSecure =
-  NativeModules?.ScreenProtector?.getSecureFlagSetting ?? (() => Promise.resolve(false))
+  NativeModules?.ScreenProtector?.getSecureFlagSetting ?? (async () => Promise.resolve(false))
 export const {version, isTestDevice, uses24HourClock} = nativeBridge
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.
 // Android only field that tells us if there is a lock screen.

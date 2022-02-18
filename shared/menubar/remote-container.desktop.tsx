@@ -70,11 +70,14 @@ const RemoteContainer = () => {
       refreshUserFileEdits={throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5)}
       showBug={() => {
         const version = __VERSION__
-        Electron.remote.shell.openExternal(
-          `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
-            version
-          )}`
-        )
+        Electron.remote.shell
+          .openExternal(
+            `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
+              version
+            )}`
+          )
+          .then(() => {})
+          .catch(() => {})
       }}
       showHelp={() => {
         const link = urlHelper('help')

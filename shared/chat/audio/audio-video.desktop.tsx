@@ -20,7 +20,10 @@ class AudioVideo extends React.Component<Props> {
     if (this.props.paused && !prevProps.paused) {
       this.vidRef.current.pause()
     } else if (!this.props.paused && prevProps.paused) {
-      this.vidRef.current.play()
+      this.vidRef.current
+        .play()
+        .then(() => {})
+        .catch(() => {})
     }
   }
 

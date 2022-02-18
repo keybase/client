@@ -289,7 +289,7 @@ type AmountProps = {
   selectableText: boolean
 }
 
-const roleToColor = (role: Types.Role): string => {
+const roleToColor = (role: Types.Role) => {
   switch (role) {
     case 'airdrop':
       return Styles.globalColors.purpleDark

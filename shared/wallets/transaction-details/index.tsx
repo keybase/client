@@ -9,6 +9,7 @@ import {Transaction, TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
 import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
 import PaymentPath, {Asset} from './payment-path'
+import {AllowedColors} from 'common-adapters/text'
 
 export type NotLoadingProps = {
   amountUser: string
@@ -469,7 +470,10 @@ const TransactionDetails = (props: NotLoadingProps) => {
             <Kb.Text
               style={Styles.collapseStyles([
                 styles.statusText,
-                {color: colorForStatus(props.status), marginLeft: Styles.globalMargins.xtiny},
+                {
+                  color: colorForStatus(props.status) as AllowedColors, // this isn't actually an allowed color. maybe see what's up here
+                  marginLeft: Styles.globalMargins.xtiny,
+                },
               ])}
               type="Body"
             >

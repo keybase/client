@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/provision'
 import HiddenString from '../util/hidden-string'
 
@@ -25,14 +25,14 @@ export const submitResetPassword = 'recover-password:submitResetPassword'
 export const submitResetPrompt = 'recover-password:submitResetPrompt'
 
 // Payload Types
-type _AbortDeviceSelectPayload = void
-type _AbortPaperKeyPayload = void
-type _CompleteResetPasswordPayload = void
+type _AbortDeviceSelectPayload = undefined
+type _AbortPaperKeyPayload = undefined
+type _CompleteResetPasswordPayload = undefined
 type _DisplayDeviceSelectPayload = {readonly devices: Array<Types.Device>; readonly replaceRoute?: boolean}
 type _DisplayErrorPayload = {readonly error: HiddenString}
-type _PromptResetPasswordPayload = void
-type _ResetResetPasswordStatePayload = void
-type _RestartRecoveryPayload = void
+type _PromptResetPasswordPayload = undefined
+type _ResetResetPasswordStatePayload = undefined
+type _RestartRecoveryPayload = undefined
 type _SetPaperKeyErrorPayload = {readonly error: HiddenString}
 type _SetPasswordErrorPayload = {readonly error: HiddenString}
 type _ShowExplainDevicePayload = {readonly type: RPCTypes.DeviceType; readonly name: string}
@@ -48,16 +48,16 @@ type _SubmitResetPasswordPayload = {readonly action: RPCTypes.ResetPromptRespons
 type _SubmitResetPromptPayload = {readonly action: RPCTypes.ResetPromptResponse}
 
 // Action Creators
-export const createAbortDeviceSelect = (payload: _AbortDeviceSelectPayload): AbortDeviceSelectPayload => ({
+export const createAbortDeviceSelect = (payload?: _AbortDeviceSelectPayload): AbortDeviceSelectPayload => ({
   payload,
   type: abortDeviceSelect,
 })
-export const createAbortPaperKey = (payload: _AbortPaperKeyPayload): AbortPaperKeyPayload => ({
+export const createAbortPaperKey = (payload?: _AbortPaperKeyPayload): AbortPaperKeyPayload => ({
   payload,
   type: abortPaperKey,
 })
 export const createCompleteResetPassword = (
-  payload: _CompleteResetPasswordPayload
+  payload?: _CompleteResetPasswordPayload
 ): CompleteResetPasswordPayload => ({payload, type: completeResetPassword})
 export const createDisplayDeviceSelect = (
   payload: _DisplayDeviceSelectPayload
@@ -67,12 +67,12 @@ export const createDisplayError = (payload: _DisplayErrorPayload): DisplayErrorP
   type: displayError,
 })
 export const createPromptResetPassword = (
-  payload: _PromptResetPasswordPayload
+  payload?: _PromptResetPasswordPayload
 ): PromptResetPasswordPayload => ({payload, type: promptResetPassword})
 export const createResetResetPasswordState = (
-  payload: _ResetResetPasswordStatePayload
+  payload?: _ResetResetPasswordStatePayload
 ): ResetResetPasswordStatePayload => ({payload, type: resetResetPasswordState})
-export const createRestartRecovery = (payload: _RestartRecoveryPayload): RestartRecoveryPayload => ({
+export const createRestartRecovery = (payload?: _RestartRecoveryPayload): RestartRecoveryPayload => ({
   payload,
   type: restartRecovery,
 })

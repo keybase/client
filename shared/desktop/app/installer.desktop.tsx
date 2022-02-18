@@ -111,7 +111,7 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
     timeout = 90
   }
 
-  const logOutput = (stdout, stderr) =>
+  const logOutput = async (stdout, stderr) =>
     Promise.all([
       new Promise((resolve, reject) =>
         zlib.gzip(stdout, (error, res) => (error ? reject(error) : resolve(res)))
@@ -162,15 +162,17 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
       const buttons = errorTypes.fuse || errorTypes.kbnm ? ['Okay'] : ['Ignore', 'Quit']
       const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
       const message = 'Keybase Install Error'
-      loggingPromise.then(() =>
-        Electron.dialog.showMessageBox({buttons, detail, message}).then(({response}) => {
-          if (response === 1) {
-            quit()
-          } else {
-            callback(null)
-          }
-        })
-      )
+      loggingPromise
+        .then(async () =>
+          Electron.dialog.showMessageBox({buttons, detail, message}).then(({response}) => {
+            if (response === 1) {
+              quit()
+            } else {
+              callback(null)
+            }
+          })
+        )
+        .catch(() => {})
       return
     }
 

@@ -53,7 +53,7 @@ const PinnedMessage = (props: Props) => {
             smallStandaloneEmoji={true}
             lineClamp={1}
             style={styles.text}
-            styleOverride={{link: styles.styleOverride}}
+            styleOverride={{link: styles.styleOverride} as any}
             serviceOnly={true}
           >
             {props.text}

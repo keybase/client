@@ -1,7 +1,7 @@
 import * as SMS from 'expo-sms'
 
-const openSMS = (phonenos: Array<string>, body?: string): Promise<any> => {
-  return SMS.isAvailableAsync().then(isAvailable => {
+const openSMS = async (phonenos: Array<string>, body?: string): Promise<any> => {
+  return SMS.isAvailableAsync().then(async isAvailable => {
     if (!isAvailable) {
       throw new Error('SMS not available')
     }

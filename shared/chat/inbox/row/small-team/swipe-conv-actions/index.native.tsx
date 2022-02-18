@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
-import {Props} from '.'
+import type {Props} from '.'
 
 let curSwipeRef: React.RefObject<Kb.Swipeable> | null = null
 
 const onPress = (onPressAction: () => void, ref: React.RefObject<Kb.Swipeable>) => {
-  ref.current && ref.current.close()
+  ref.current?.close()
   curSwipeRef = null
   onPressAction()
 }
@@ -25,11 +25,7 @@ const renderRightAction = (
   })
   return (
     <Kb.NativeAnimated.View style={{flex: 1, transform: [{translateX: trans}]}}>
-      <Kb.RectButton
-        // @ts-ignore TODO fix styles
-        style={[styles.rightAction, {backgroundColor: color}]}
-        onPress={handler}
-      >
+      <Kb.RectButton style={[styles.rightAction, {backgroundColor: color as string}]} onPress={handler}>
         {icon}
         <Kb.Text type="BodySmall" style={styles.actionText}>
           {text}
@@ -67,7 +63,7 @@ const renderRightActions = (
 }
 
 const onOpen = (ref: React.RefObject<Kb.Swipeable>) => {
-  if (curSwipeRef && curSwipeRef.current && curSwipeRef !== ref) {
+  if (curSwipeRef?.current && curSwipeRef !== ref) {
     curSwipeRef.current.close()
   }
   curSwipeRef = ref

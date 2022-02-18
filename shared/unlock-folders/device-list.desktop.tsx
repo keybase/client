@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
-import {Device} from '../constants/types/unlock-folders'
+import type {Device} from '../constants/types/unlock-folders'
 
 export type Props = {
   devices: Array<Device> | null
@@ -9,11 +9,13 @@ export type Props = {
 }
 
 const DeviceRow = ({device}: {device: Device}) => {
-  const icon = ({
-    backup: 'icon-paper-key-32',
-    desktop: 'icon-computer-32',
-    mobile: 'icon-phone-32',
-  } as const)[device.type]
+  const icon = (
+    {
+      backup: 'icon-paper-key-32',
+      desktop: 'icon-computer-32',
+      mobile: 'icon-phone-32',
+    } as const
+  )[device.type]
 
   return (
     <div style={{...Styles.globalStyles.flexBoxRow, marginBottom: 16}}>
@@ -33,8 +35,10 @@ const DeviceList = (props: Props) => (
       This computer and possibly others are unable to read some of your folders. To avoid losing data forever,
       please turn on one of the devices below:
     </Kb.Text>
-    <div style={styles.devicesContainer}>
-      {props.devices && props.devices.map(d => <DeviceRow key={d.deviceID} device={d} />)}
+    <div style={styles.devicesContainer as any}>
+      {props.devices?.map(d => (
+        <DeviceRow key={d.deviceID} device={d} />
+      ))}
     </div>
     <div style={styles.buttonsContainer}>
       <Kb.Button

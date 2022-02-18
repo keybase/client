@@ -42,7 +42,7 @@ class FeedbackContainer extends React.Component<Props, State> {
     sendError: undefined,
     sending: false,
   }
-  private dumpLogs = () => logger.dump().then(writeLogLinesToFile)
+  private dumpLogs = async () => logger.dump().then(writeLogLinesToFile)
 
   componentWillUnmount() {
     this.mounted = false
@@ -62,7 +62,7 @@ class FeedbackContainer extends React.Component<Props, State> {
       const maybeDump = sendLogs ? this.dumpLogs() : Promise.resolve()
 
       maybeDump
-        .then(() => {
+        .then(async () => {
           logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
           const extra = sendLogs
             ? {...this.props.status, ...this.props.chat, ...this.props.push}

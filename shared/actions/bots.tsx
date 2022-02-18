@@ -5,7 +5,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/bots'
 import * as EngineGen from './engine-gen-gen'
 import logger from '../logger'
-import {RPCError} from '../util/errors'
+import type {RPCError} from '../util/errors'
 
 const pageSize = 100
 
@@ -102,7 +102,7 @@ const searchFeaturedAndUsers = async (action: BotsGen.SearchFeaturedAndUsersPayl
   return BotsGen.createSetSearchFeaturedAndUsersResults({
     query,
     results: {
-      bots: botRes?.bots ?? [],
+      bots: botRes?.bots || [],
       users: (userRes ?? []).reduce<Array<string>>((l, r) => {
         const username = r?.keybase?.username
         if (username) {

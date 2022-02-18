@@ -5,7 +5,10 @@ const openURL = (url: string | null) => {
     console.warn('openURL received empty url')
     return
   }
-  Electron.remote.shell.openExternal(url)
+  Electron.remote.shell
+    .openExternal(url)
+    .then(() => {})
+    .catch(() => {})
 }
 
 export default openURL

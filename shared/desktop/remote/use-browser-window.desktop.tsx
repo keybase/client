@@ -19,24 +19,30 @@ function useBrowserWindow(options: UseBrowserOptions) {
   const {windowOpts, windowComponent, windowParam, windowPositionBottomRight} = options
   React.useEffect(() => {
     if (windowComponent) {
-      Electron.ipcRenderer.invoke('KBkeybase', {
-        payload: {
-          windowComponent,
-          windowOpts,
-          windowParam,
-          windowPositionBottomRight,
-        },
-        type: 'makeRenderer',
-      })
+      Electron.ipcRenderer
+        .invoke('KBkeybase', {
+          payload: {
+            windowComponent,
+            windowOpts,
+            windowParam,
+            windowPositionBottomRight,
+          },
+          type: 'makeRenderer',
+        })
+        .then(() => {})
+        .catch(() => {})
     }
     return () => {
-      Electron.ipcRenderer.invoke('KBkeybase', {
-        payload: {
-          windowComponent,
-          windowParam,
-        },
-        type: 'closeRenderer',
-      })
+      Electron.ipcRenderer
+        .invoke('KBkeybase', {
+          payload: {
+            windowComponent,
+            windowParam,
+          },
+          type: 'closeRenderer',
+        })
+        .then(() => {})
+        .catch(() => {})
     }
   }, [windowComponent, windowParam, windowOpts, windowPositionBottomRight])
 }

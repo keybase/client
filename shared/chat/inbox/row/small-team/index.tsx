@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import {AllowedColors} from '../../../../common-adapters/text'
+import type {AllowedColors} from '../../../../common-adapters/text'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
-import * as ChatTypes from '../../../../constants/types/chat2'
+import type * as ChatTypes from '../../../../constants/types/chat2'
 import SwipeConvActions from './swipe-conv-actions'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 export type Props = {
   backgroundColor?: string
@@ -155,7 +155,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                     youAreReset={props.youAreReset}
                     showBold={props.showBold}
                     snippet={props.snippet || props.layoutSnippet || ''}
-                    snippetDecoration={props.snippetDecoration ?? props.layoutSnippetDecoration}
+                    snippetDecoration={props.snippetDecoration}
                     subColor={props.subColor}
                     hasResetUsers={props.hasResetUsers}
                     youNeedToRekey={props.youNeedToRekey}

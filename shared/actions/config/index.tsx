@@ -49,7 +49,10 @@ const onLog = (action: EngineGen.Keybase1LogUiLogPayload) => {
 
 const onConnected = () => ConfigGen.createStartHandshake()
 const onDisconnected = () => {
-  logger.flush()
+  logger
+    .flush()
+    .then(() => {})
+    .catch(() => {})
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
@@ -78,6 +81,8 @@ const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnSt
   if (uid) {
     // request follower info in the background
     RPCTypes.configRequestFollowingAndUnverifiedFollowersRpcPromise()
+      .then(() => {})
+      .catch(() => {})
   }
 }
 
@@ -101,7 +106,8 @@ function* loadDaemonBootstrapStatus(
   }
 
   function* makeCall() {
-    const s: Saga.RPCPromiseType<typeof RPCTypes.configGetBootstrapStatusRpcPromise> = yield RPCTypes.configGetBootstrapStatusRpcPromise()
+    const s: Saga.RPCPromiseType<typeof RPCTypes.configGetBootstrapStatusRpcPromise> =
+      yield RPCTypes.configGetBootstrapStatusRpcPromise()
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       deviceID: s.deviceID,
       deviceName: s.deviceName,
@@ -251,7 +257,8 @@ function* loadDaemonAccounts(
       )
     }
 
-    const configuredAccounts: Array<RPCTypes.ConfiguredAccount> = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
+    const configuredAccounts: Array<RPCTypes.ConfiguredAccount> =
+      yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
     const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
     yield Saga.put(loadedAction)
 
@@ -632,7 +639,7 @@ const newNavigation = (
     | RouteTreeGen.ResetStackPayload
 ) => {
   const n = Router2._getNavigator()
-  n && n.dispatchOldAction(action)
+  n?.dispatchOldAction(action)
 }
 
 function* criticalOutOfDateCheck() {
@@ -640,9 +647,8 @@ function* criticalOutOfDateCheck() {
   // check every hour
   while (true) {
     try {
-      const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> = yield RPCTypes.configGetUpdateInfo2RpcPromise(
-        {}
-      )
+      const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> =
+        yield RPCTypes.configGetUpdateInfo2RpcPromise({})
       let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
       let message: string | null = null
       switch (s.status) {

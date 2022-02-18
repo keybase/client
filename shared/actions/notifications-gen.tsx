@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/notifications'
 import * as Tabs from '../constants/tabs'
 
@@ -14,18 +14,18 @@ export const setBadgeCounts = 'notifications:setBadgeCounts'
 
 // Payload Types
 type _BadgeAppPayload = {readonly key: Types.NotificationKeys; readonly on: boolean; readonly count?: number}
-type _ListenForKBFSNotificationsPayload = void
-type _ListenForNotificationsPayload = void
+type _ListenForKBFSNotificationsPayload = undefined
+type _ListenForNotificationsPayload = undefined
 type _ReceivedBadgeStatePayload = {readonly badgeState: RPCTypes.BadgeState}
 type _SetBadgeCountsPayload = {readonly counts: Map<Tabs.Tab, number>}
 
 // Action Creators
 export const createBadgeApp = (payload: _BadgeAppPayload): BadgeAppPayload => ({payload, type: badgeApp})
 export const createListenForKBFSNotifications = (
-  payload: _ListenForKBFSNotificationsPayload
+  payload?: _ListenForKBFSNotificationsPayload
 ): ListenForKBFSNotificationsPayload => ({payload, type: listenForKBFSNotifications})
 export const createListenForNotifications = (
-  payload: _ListenForNotificationsPayload
+  payload?: _ListenForNotificationsPayload
 ): ListenForNotificationsPayload => ({payload, type: listenForNotifications})
 export const createReceivedBadgeState = (payload: _ReceivedBadgeStatePayload): ReceivedBadgeStatePayload => ({
   payload,

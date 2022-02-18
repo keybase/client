@@ -13,11 +13,12 @@ const wrapStyle = Styles.platformStyles({
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
   } as const,
-})
+}) as any
 
 const markdownStyles = Styles.styleSheetCreate(
   () =>
     ({
+      // @ts-ignore
       bigTextBlockStyle: Styles.platformStyles({
         isElectron: {
           ...wrapStyle,
@@ -34,7 +35,7 @@ const markdownStyles = Styles.styleSheetCreate(
         common: {
           ...Styles.globalStyles.fontBold,
         },
-        isElectron: {color: 'inherit', ...wrapStyle},
+        isElectron: {color: 'inherit', ...wrapStyle} as any,
         isMobile: {color: undefined},
       }),
       get codeSnippetBlockStyle() {
@@ -50,7 +51,7 @@ const markdownStyles = Styles.styleSheetCreate(
             paddingTop: Styles.globalMargins.xtiny,
           },
           isElectron: {
-            ...wrapStyle,
+            ...(wrapStyle as any),
             color: Styles.globalColors.black,
             display: 'block',
           },
@@ -335,7 +336,7 @@ const reactComponentsForMarkdownType = {
         allowFontScaling={state.allowFontScaling}
         message={(state.markdownMeta && state.markdownMeta.message) || undefined}
         styleOverride={state.styleOverride}
-        styles={markdownStyles}
+        styles={markdownStyles as any}
         disableBigEmojis={false}
         disableEmojiAnimation={false}
       />

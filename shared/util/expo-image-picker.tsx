@@ -9,16 +9,18 @@ export const parseUri = (result: {uri: string}, withPrefix: boolean = false): st
   return isIOS ? result.uri.replace('file://', '') : result.uri.replace('file:', '')
 }
 
-const retyAfterAskingPerm = (
-  perms: Array<Permissions.PermissionType>,
-  retryFn: null | (() => Promise<ImagePicker.ImagePickerResult>)
-) => (error: any): Promise<ImagePicker.ImagePickerResult> => {
-  if (error.code === 'E_MISSING_PERMISSION' && retryFn) {
-    return Permissions.askAsync(...perms).then(retryFn)
-  } else {
-    throw error
+const retyAfterAskingPerm =
+  (
+    perms: Array<Permissions.PermissionType>,
+    retryFn: null | (() => Promise<ImagePicker.ImagePickerResult>)
+  ) =>
+  async (error: any): Promise<ImagePicker.ImagePickerResult> => {
+    if (error.code === 'E_MISSING_PERMISSION' && retryFn) {
+      return Permissions.askAsync(...perms).then(retryFn)
+    } else {
+      throw error
+    }
   }
-}
 
 const quality = 0.4
 
@@ -31,7 +33,7 @@ const mediaTypeToImagePickerMediaType = (
     ? ImagePicker.MediaTypeOptions.Videos
     : ImagePicker.MediaTypeOptions.All
 
-export const launchCameraAsync = (
+export const launchCameraAsync = async (
   mediaType: 'photo' | 'video' | 'mixed',
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
@@ -42,12 +44,12 @@ export const launchCameraAsync = (
   }).catch(
     retyAfterAskingPerm(
       [Permissions.CAMERA, Permissions.CAMERA_ROLL],
-      askPermAndRetry ? () => launchCameraAsync(mediaType, false) : null
+      askPermAndRetry ? async () => launchCameraAsync(mediaType, false) : null
     )
   )
 }
 
-export const launchImageLibraryAsync = (
+export const launchImageLibraryAsync = async (
   mediaType: 'photo' | 'video' | 'mixed',
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
@@ -58,7 +60,7 @@ export const launchImageLibraryAsync = (
   }).catch(
     retyAfterAskingPerm(
       [Permissions.CAMERA_ROLL],
-      askPermAndRetry ? () => launchImageLibraryAsync(mediaType, false) : null
+      askPermAndRetry ? async () => launchImageLibraryAsync(mediaType, false) : null
     )
   )
 }

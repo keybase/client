@@ -1,11 +1,11 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
 import * as Container from '../../../../util/container'
-import {AllowedColors} from '../../../../common-adapters/text'
+import type {AllowedColors} from '../../../../common-adapters/text'
 import {formatTimeForConversationList} from '../../../../util/timestamp'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -27,12 +27,14 @@ export default Container.connect(
     let snippet = state.chat2.metaMap.get(_conversationIDKey)
       ? _meta.snippetDecorated
       : ownProps.snippet || ''
-    const snippetDecoration = _meta.snippetDecoration ?? ownProps.snippetDecoration
+    const snippetDecoration = _meta.snippetDecoration
     let isTypingSnippet = false
     if (typers && typers.size > 0) {
       isTypingSnippet = true
       snippet =
-        typers.size === 1 ? `${typers.values().next().value} is typing...` : 'Multiple people typing...'
+        typers.size === 1
+          ? `${typers.values().next().value as string} is typing...`
+          : 'Multiple people typing...'
     }
     const _participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)
     return {
@@ -64,7 +66,8 @@ export default Container.connect(
     const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
     const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
     const isDecryptingSnippet =
-      (hasUnread || stateProps.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
+      (hasUnread || stateProps.snippet.length === 0) &&
+      Constants.isDecryptingSnippet(stateProps._meta.trustedState)
     const hasResetUsers = stateProps._meta.resetParticipants.size !== 0
     const participantsArray = stateProps._participantInfo.all.length
       ? Constants.getRowParticipants(stateProps._participantInfo, stateProps._username)

@@ -29,7 +29,7 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
         Styles.desktopStyles.windowDraggingClickable,
         props.invisible && styles.opacityNone,
         props.style,
-      ])}
+      ] as any)}
     />
     <Kb.FloatingMenu
       items={[

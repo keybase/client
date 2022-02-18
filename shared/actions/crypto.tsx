@@ -1,6 +1,6 @@
 import * as Saga from '../util/saga'
 import * as Container from '../util/container'
-import * as Types from '../constants/types/crypto'
+import type * as Types from '../constants/types/crypto'
 import * as Constants from '../constants/crypto'
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
@@ -9,8 +9,8 @@ import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Platform from '../constants/platform'
 import HiddenString from '../util/hidden-string'
-import {TypedState} from '../util/container'
-import {RPCError} from '../util/errors'
+import type {TypedState} from '../util/container'
+import type {RPCError} from '../util/errors'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 
 type OperationActionArgs = {
@@ -24,7 +24,7 @@ type OperationActionArgs = {
 
 type SetRecipientsSagaActions = CryptoGen.SetRecipientsPayload | CryptoGen.SetEncryptOptionsPayload
 // Get list of users from crypto TeamBuilding for encrypt operation
-const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuildingPayload) => {
+const onSetRecipients = (state: TypedState) => {
   const {username: currentUser} = state.config
   const {options} = state.crypto.encrypt
 
@@ -289,7 +289,7 @@ const makeOperationAction = (p: OperationActionArgs) => {
   const {operation, input, inputType, recipients, options, destinationDir} = p
   switch (operation) {
     case Constants.Operations.Encrypt: {
-      return recipients && recipients.length && options
+      return recipients?.length && options
         ? CryptoGen.createSaltpackEncrypt({destinationDir, input, options, recipients, type: inputType})
         : null
     }

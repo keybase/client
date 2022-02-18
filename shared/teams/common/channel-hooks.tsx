@@ -45,7 +45,7 @@ export const useAllChannelMetas = (
   const [loadingChannels, setLoadingChannels] = React.useState(true)
 
   const reloadChannels = React.useCallback(
-    () =>
+    async () =>
       new Promise<void>((resolve, reject) => {
         setLoadingChannels(true)
         getConversations(
@@ -74,6 +74,8 @@ export const useAllChannelMetas = (
   React.useEffect(() => {
     if (!dontCallRPC) {
       reloadChannels()
+        .then(() => {})
+        .catch(() => {})
     }
   }, [reloadChannels, dontCallRPC])
 

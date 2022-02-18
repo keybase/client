@@ -22,7 +22,7 @@ export const updatedDetails = 'tracker2:updatedDetails'
 // Payload Types
 type _ChangeFollowPayload = {readonly guiID: string; readonly follow: boolean}
 type _CloseTrackerPayload = {readonly guiID: string}
-type _GetProofSuggestionsPayload = void
+type _GetProofSuggestionsPayload = undefined
 type _IgnorePayload = {readonly guiID: string}
 type _LoadNonUserProfilePayload = {readonly assertion: string}
 type _LoadPayload = {
@@ -93,7 +93,7 @@ export const createCloseTracker = (payload: _CloseTrackerPayload): CloseTrackerP
   type: closeTracker,
 })
 export const createGetProofSuggestions = (
-  payload: _GetProofSuggestionsPayload
+  payload?: _GetProofSuggestionsPayload
 ): GetProofSuggestionsPayload => ({payload, type: getProofSuggestions})
 export const createIgnore = (payload: _IgnorePayload): IgnorePayload => ({payload, type: ignore})
 export const createLoad = (payload: _LoadPayload): LoadPayload => ({payload, type: load})

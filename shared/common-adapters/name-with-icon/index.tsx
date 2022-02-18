@@ -121,7 +121,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
       colorFollowing={props.colorFollowing}
       colorYou={props.notFollowingColorOverride || true}
       notFollowingColorOverride={props.notFollowingColorOverride}
-      style={props.size === 'smaller' ? {} : styles.fullWidthText}
+      style={props.size === 'smaller' ? {} : (styles.fullWidthText as any)}
       withProfileCardPopup={props.withProfileCardPopup}
     />
   )
@@ -129,21 +129,21 @@ const NameWithIcon = (props: NameWithIconProps) => {
     <TextOrComponent
       textType={props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
       val={props.metaOne || null}
-      style={props.horizontal ? undefined : styles.fullWidthText}
+      style={props.horizontal ? undefined : (styles.fullWidthText as any)}
     />
   )
   const metaTwo = (
     <TextOrComponent
       textType="BodySmall"
       val={props.metaTwo || null}
-      style={props.horizontal ? undefined : styles.fullWidthText}
+      style={props.horizontal ? undefined : (styles.fullWidthText as any)}
     />
   )
   const botAlias = (
     <TextOrComponent
       textType="Header"
       val={props.botAlias || null}
-      style={props.horizontal ? styles.botAlias : styles.fullWidthText}
+      style={props.horizontal ? styles.botAlias : (styles.fullWidthText as any)}
     />
   )
   const metas = props.horizontal ? (

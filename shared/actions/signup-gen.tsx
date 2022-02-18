@@ -35,8 +35,8 @@ type _CheckedUsernamePayload = {
   readonly usernameTaken?: string
   readonly error: string
 }
-type _ClearJustSignedUpEmailPayload = void
-type _GoBackAndClearErrorsPayload = void
+type _ClearJustSignedUpEmailPayload = undefined
+type _GoBackAndClearErrorsPayload = undefined
 type _RequestAutoInvitePayload = {readonly username?: string}
 type _RequestInvitePayload = {readonly email: string; readonly name: string}
 type _RequestedAutoInvitePayload = {readonly inviteCode?: string; readonly error?: boolean}
@@ -46,7 +46,7 @@ type _RequestedInvitePayload = {
   readonly emailError?: string
   readonly nameError?: string
 }
-type _RestartSignupPayload = void
+type _RestartSignupPayload = undefined
 type _SetJustSignedUpEmailPayload = {readonly email: string}
 type _SignedupPayload = {readonly error?: RPCError}
 
@@ -80,10 +80,10 @@ export const createCheckedUsername = (payload: _CheckedUsernamePayload): Checked
   type: checkedUsername,
 })
 export const createClearJustSignedUpEmail = (
-  payload: _ClearJustSignedUpEmailPayload
+  payload?: _ClearJustSignedUpEmailPayload
 ): ClearJustSignedUpEmailPayload => ({payload, type: clearJustSignedUpEmail})
 export const createGoBackAndClearErrors = (
-  payload: _GoBackAndClearErrorsPayload
+  payload?: _GoBackAndClearErrorsPayload
 ): GoBackAndClearErrorsPayload => ({payload, type: goBackAndClearErrors})
 export const createRequestAutoInvite = (
   payload: _RequestAutoInvitePayload = Object.freeze({})
@@ -99,7 +99,7 @@ export const createRequestedInvite = (payload: _RequestedInvitePayload): Request
   payload,
   type: requestedInvite,
 })
-export const createRestartSignup = (payload: _RestartSignupPayload): RestartSignupPayload => ({
+export const createRestartSignup = (payload?: _RestartSignupPayload): RestartSignupPayload => ({
   payload,
   type: restartSignup,
 })

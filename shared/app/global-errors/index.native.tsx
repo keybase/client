@@ -112,7 +112,7 @@ class GlobalError extends React.Component<Props, State> {
         {this.state.size === 'Big' && (
           <Kb.NativeScrollView>
             <Kb.Text type="BodySmall" selectable={true} style={styles.details}>
-              {this.props.error && this.props.error.message}
+              {this.props.error?.message}
               {'\n\n'}
               {details}
             </Kb.Text>

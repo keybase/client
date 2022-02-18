@@ -22,9 +22,9 @@ import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
-import {TypedState, TypedActions, isMobile} from '../util/container'
+import {type TypedState, type TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
-import {RPCError} from '../util/errors'
+import type {RPCError} from '../util/errors'
 
 async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
   const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
@@ -63,7 +63,7 @@ const showTeamAfterCreation = (action: TeamsGen.TeamCreatedPayload) => {
   ]
 }
 
-const openInviteLink = (_: TeamsGen.OpenInviteLinkPayload) => {
+const openInviteLink = () => {
   return RouteTreeGen.createNavigateAppend({
     path: ['teamInviteLinkJoin'],
   })
@@ -121,7 +121,7 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
       TeamsGen.createSetTeamJoinSuccess({
         open: result?.wasOpenTeam,
         success: true,
-        teamname: result && result.wasTeamName ? teamname : '',
+        teamname: result?.wasTeamName ? teamname : '',
       })
     )
   } catch (error_) {
@@ -135,7 +135,7 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
     yield Saga.put(TeamsGen.createSetTeamJoinError({error: desc}))
   }
 }
-const requestInviteLinkDetails = async (state: TypedState, _: TeamsGen.RequestInviteLinkDetailsPayload) => {
+const requestInviteLinkDetails = async (state: TypedState) => {
   try {
     const details = await RPCTypes.teamsGetInviteLinkDetailsRpcPromise({
       inviteID: state.teams.teamInviteDetails.inviteID,
@@ -598,7 +598,7 @@ const ignoreRequest = async (action: TeamsGen.IgnoreRequestPayload) => {
   return false
 }
 
-async function createNewTeamFromConversation(
+function createNewTeamFromConversation(
   state: TypedState,
   action: TeamsGen.CreateNewTeamFromConversationPayload
 ) {
@@ -796,7 +796,7 @@ const checkRequestedAccess = async () => {
     {},
     Constants.teamsAccessRequestWaitingKey
   )
-  const teams = (result || []).map(row => (row && row.parts ? row.parts.join('.') : ''))
+  const teams = (result || []).map(row => (row?.parts ? row.parts.join('.') : ''))
   return TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: new Set<Types.Teamname>(teams)})
 }
 
@@ -1188,19 +1188,17 @@ function* addTeamWithChosenChannels(
     logger.error(`${logPrefix} error fetching gregor state: ${err}`)
     return
   }
-  const item =
-    pushState.items &&
-    pushState.items.find(i => i.item && i.item.category === Constants.chosenChannelsGregorKey)
+  const item = pushState?.items?.find(i => i.item?.category === Constants.chosenChannelsGregorKey)
   let teams: Array<string> = []
   let msgID
-  if (item && item.item && item.item.body) {
+  if (item?.item?.body) {
     const body = item.item.body
-    msgID = item.md && item.md.msgID
+    msgID = item.md?.msgID
     teams = JSON.parse(body.toString())
   } else {
     logger.info(
       `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
-        (pushState.items && pushState.items.length) || 0
+        pushState.items?.length || 0
       }`
     )
   }
@@ -1484,7 +1482,7 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
 }
 
 // See protocol/avdl/keybase1/teams.avdl:loadTeamTreeAsync for a description of this RPC.
-const loadTeamTree = async (action: TeamsGen.LoadTeamTreePayload, _logger: Saga.SagaLogger) => {
+const loadTeamTree = async (action: TeamsGen.LoadTeamTreePayload) => {
   await RPCTypes.teamsLoadTeamTreeMembershipsAsyncRpcPromise(action.payload)
 }
 
@@ -1687,12 +1685,13 @@ const loadTeamChannelList = async (
 
     // ensure we refresh participants, but don't fail the saga if this somehow fails
     try {
-      ;[...channels.values()].forEach(
-        async ({conversationIDKey}) =>
-          await RPCChatTypes.localRefreshParticipantsRpcPromise({
-            convID: ChatTypes.keyToConversationID(conversationIDKey),
-          })
-      )
+      ;[...channels.values()].forEach(({conversationIDKey}) => {
+        RPCChatTypes.localRefreshParticipantsRpcPromise({
+          convID: ChatTypes.keyToConversationID(conversationIDKey),
+        })
+          .then(() => {})
+          .catch(() => {})
+      })
     } catch (e) {
       logger.error('this should never happen', e)
     }

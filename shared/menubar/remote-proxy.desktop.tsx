@@ -54,10 +54,13 @@ function useUpdateBadges(p: WidgetProps, darkCount: number) {
 
   React.useEffect(() => {
     const icon = getIcons(widgetBadge, desktopAppBadgeCount > 0)
-    Electron.ipcRenderer.invoke('KBmenu', {
-      payload: {desktopAppBadgeCount, icon},
-      type: 'showTray',
-    })
+    Electron.ipcRenderer
+      .invoke('KBmenu', {
+        payload: {desktopAppBadgeCount, icon},
+        type: 'showTray',
+      })
+      .then(() => {})
+      .catch(() => {})
   }, [widgetBadge, desktopAppBadgeCount, darkCount])
 }
 
@@ -113,10 +116,10 @@ const RemoteProxy = () => {
   const users = Container.useSelector(s => s.users)
   const {infoMap: _infoMap} = users
 
-  const remoteTlfUpdates = React.useMemo(() => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)), [
-    tlfUpdates,
-    uploads,
-  ])
+  const remoteTlfUpdates = React.useMemo(
+    () => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)),
+    [tlfUpdates, uploads]
+  )
 
   const conversationsToSend = React.useMemo(
     () =>

@@ -74,7 +74,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
 
   private launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
     const handleSelection = (result: ImagePicker.ImagePickerResult) => {
-      if (result.cancelled === true || !this.props.conversationIDKey) {
+      if (result.cancelled || !this.props.conversationIDKey) {
         return
       }
       const filename = parseUri(result)

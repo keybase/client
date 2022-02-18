@@ -16,7 +16,7 @@ type Props = {
   style: Styles.StylesCrossPlatform
 }
 
-const QRScanner = (p: Props): React.ReactElement<any> | null => {
+const QRScanner = (p: Props): React.ReactElement | null => {
   const [hasCameraPermission, setHasCameraPermission] = React.useState<boolean | undefined>(undefined)
   const [scanned, setScanned] = React.useState<boolean>(false)
 
@@ -26,6 +26,8 @@ const QRScanner = (p: Props): React.ReactElement<any> | null => {
       setHasCameraPermission(status === 'granted')
     }
     getPermissionsGranted()
+      .then(() => {})
+      .catch(() => {})
   }, [])
 
   if (hasCameraPermission === undefined) {
@@ -33,7 +35,7 @@ const QRScanner = (p: Props): React.ReactElement<any> | null => {
       <Kb.Box2 direction="vertical" style={Styles.collapseStyles([p.style, styles.gettingPermissions])} />
     )
   }
-  if (hasCameraPermission === false) {
+  if (!hasCameraPermission) {
     return p.notAuthorizedView || null
   }
 
