@@ -6,10 +6,10 @@ import {HeaderLeftArrow} from '../common-adapters/header-hoc'
 import {initialWindowMetrics} from 'react-native-safe-area-context'
 
 export const headerDefaultStyle = {
-  height: (initialWindowMetrics?.insets?.top ?? 0) + 44,
   get backgroundColor() {
     return Styles.globalColors.fastBlank
   },
+  height: (initialWindowMetrics?.insets?.top ?? 0) + 44,
 }
 
 export const tabBarStyle = {
