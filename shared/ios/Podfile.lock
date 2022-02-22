@@ -264,11 +264,11 @@ PODS:
   - React-jsinspector (0.66.4)
   - React-logger (0.66.4):
     - glog
-  - react-native-blob-util (0.13.18):
+  - react-native-blob-util (0.14.0):
     - React-Core
   - react-native-cameraroll (4.1.2):
     - React-Core
-  - react-native-contacts (7.0.3):
+  - react-native-contacts (7.0.4):
     - React-Core
   - react-native-geolocation (2.0.2):
     - React
@@ -276,14 +276,14 @@ PODS:
     - React
   - react-native-netinfo (8.0.0):
     - React-Core
-  - react-native-safe-area-context (3.3.2):
+  - react-native-safe-area-context (3.4.1):
     - React-Core
   - react-native-video (5.2.0):
     - React-Core
     - react-native-video/Video (= 5.2.0)
   - react-native-video/Video (5.2.0):
     - React-Core
-  - react-native-webview (11.16.0):
+  - react-native-webview (11.17.2):
     - React-Core
   - React-perflogger (0.66.4)
   - React-RCTActionSheet (0.66.4):
@@ -673,15 +673,15 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 94ce921e1d8ce7023366873ec371f3441383b396
   React-jsinspector: d0374f7509d407d2264168b6d0fad0b54e300b85
   React-logger: 933f80c97c633ee8965d609876848148e3fef438
-  react-native-blob-util: 600972b1782380a5a7d5db61a3817ea32349dae9
+  react-native-blob-util: 180714990c4563645fa70e9202cd32e27656a6e6
   react-native-cameraroll: 2957f2bce63ae896a848fbe0d5352c1bd4d20866
-  react-native-contacts: 0568645a2cd0b625c4d1dc8623648a42b2a5d24f
+  react-native-contacts: 1bff4c47816d611f26b06fa8b3eaf2db4d1b2c86
   react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-netinfo: ba4ea50d836c60580c59079233c400753fe5bcb6
-  react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
+  react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   react-native-video: a4c2635d0802f983594b7057e1bce8f442f0ad28
-  react-native-webview: 28a8636d97ee641f2ee8f20492d7a6c269c1d703
+  react-native-webview: 380c1a03ec94b7ed764dac8db1e7c9952d08c93a
   React-perflogger: 93075d8931c32cd1fce8a98c15d2d5ccc4d891bd
   React-RCTActionSheet: 7d3041e6761b4f3044a37079ddcb156575fb6d89
   React-RCTAnimation: 743e88b55ac62511ae5c2e22803d4f503f2a3a13
