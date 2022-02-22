@@ -5,6 +5,7 @@ import {_setSystemIsDarkMode, _setSystemSupported} from '../../styles/dark-mode'
 import {isDarwin} from '../../constants/platform'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {enableMapSet} from 'immer'
+import '../../why-did-you-render'
 
 enableMapSet()
 _setSystemIsDarkMode(SafeElectron.workingIsDarkMode())

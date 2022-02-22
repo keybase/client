@@ -117,7 +117,7 @@ const config = (_, {mode}) => {
       plugins: [
         new webpack.DefinePlugin(defines), // Inject some defines
         new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}), // Skip a bunch of crap moment pulls in
-        new webpack.IgnorePlugin({resourceRegExp: /^lodash$/}), // Disallow entire lodash
+        ...(isDev ? [] : [new webpack.IgnorePlugin({resourceRegExp: /^lodash$/})]), // Disallow entire lodash
       ],
       resolve: {
         alias,
