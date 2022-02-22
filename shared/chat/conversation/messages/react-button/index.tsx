@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type * as Types from '../../../../constants/types/chat2'
-import {Box2, ClickableBox, Icon, Text, EmojiIfExists} from '../../../../common-adapters'
+import {Box2, ClickableBox, Icon, Text, EmojiIfExists, Markdown} from '../../../../common-adapters'
 import type {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
 import DelayInterval from './delay-interval'
@@ -55,10 +55,11 @@ const ButtonBox = Styles.styled(ClickableBox, {
 )
 
 const standardEmojiPattern = /^:([^:])+:$/
-
-const ReactButton = React.forwardRef<ClickableBox, Props>((props, ref) => {
+const markdownOverride = {
+  paragraph: {fontSize: Styles.isMobile ? 16 : 18, lineHeight: Styles.isMobile ? 24 : '24px'},
+}
+const ReactButtonInner = (props: Props, ref) => {
   const text = props.decorated.length ? props.decorated : props.emoji
-  const isStandardEmoji = !!props.emoji.match(standardEmojiPattern)
   return (
     <ButtonBox
       noEffect={false}
@@ -84,12 +85,11 @@ const ReactButton = React.forwardRef<ClickableBox, Props>((props, ref) => {
         style={styles.container}
       >
         <Box2 direction="horizontal" style={styles.emojiWrapper}>
-          <EmojiIfExists
-            paragraphTextClassName={Styles.classNames({noLineHeight: isStandardEmoji})}
-            size={Styles.isMobile ? 16 : 18}
-            lineClamp={1}
-            emojiName={text}
-          />
+          <Box2 direction="vertical" style={styles.emojiWrapper2}>
+            <Markdown styleOverride={markdownOverride} lineClamp={1} smallStandaloneEmoji={true}>
+              {text}
+            </Markdown>
+          </Box2>
         </Box2>
         <Text
           type="BodyTinyBold"
@@ -100,7 +100,9 @@ const ReactButton = React.forwardRef<ClickableBox, Props>((props, ref) => {
       </Box2>
     </ButtonBox>
   )
-})
+}
+
+const ReactButton = React.forwardRef<ClickableBox, Props>(ReactButtonInner)
 
 const iconCycle = ['iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji'] as const
 export type NewReactionButtonProps = {
@@ -249,6 +251,8 @@ const styles = Styles.styleSheetCreate(
       },
       container: Styles.platformStyles({
         common: {
+          alignItems: 'center',
+          justifyContent: 'center',
           paddingLeft: 6,
           paddingRight: 6,
         },
@@ -262,9 +266,8 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         top: 1,
       },
-      countActive: {
-        color: Styles.globalColors.blueDark,
-      },
+      countActive: {color: Styles.globalColors.blueDark},
+      emoji: {height: 25},
       emojiContainer: Styles.platformStyles({
         isElectron: {
           ...Styles.desktopStyles.boxShadow,
@@ -279,12 +282,21 @@ const styles = Styles.styleSheetCreate(
         isMobile: {marginTop: 2},
       }),
       emojiWrapper: Styles.platformStyles({
-        isMobile: {marginTop: -2},
+        common: {
+          alignItems: 'center',
+          height: '100%',
+        },
+      }),
+      emojiWrapper2: {
+        alignItems: 'flex-end',
+        height: 22,
+        justifyContent: 'flex-end',
+      },
+      emojiWrapperCustom: Styles.platformStyles({
+        isMobile: {height: 89},
       }),
       newReactionButtonBox: Styles.platformStyles({
-        common: {
-          width: 37,
-        },
+        common: {width: 37},
         isElectron: {
           minHeight: 18,
           overflow: 'hidden',
