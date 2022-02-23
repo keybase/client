@@ -5,11 +5,13 @@ import {TabActions} from '@react-navigation/core'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
 import {initialWindowMetrics} from 'react-native-safe-area-context'
 
+const initialSafeHeight = Math.max(0, initialWindowMetrics?.insets?.top ?? 0)
+
 export const headerDefaultStyle = {
   get backgroundColor() {
     return Styles.globalColors.fastBlank
   },
-  height: (initialWindowMetrics?.insets?.top ?? 0) + 44,
+  height: initialSafeHeight + 44,
 }
 
 export const tabBarStyle = {

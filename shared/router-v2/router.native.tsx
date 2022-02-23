@@ -31,20 +31,6 @@ const tabToData = {
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
 
-export const headerDefaultStyle = {
-  get backgroundColor() {
-    return Styles.globalColors.fastBlank
-  },
-  get borderBottomColor() {
-    return Styles.globalColors.black_10
-  },
-  borderBottomWidth: 1,
-  borderStyle: 'solid',
-  elevation: undefined, // since we use screen on android turn off drop shadow
-  // headerExtraHeight is only hooked up for tablet. On other platforms, react-navigation calculates header height.
-  ...(Styles.isTablet ? {height: 44 + Styles.headerExtraHeight} : {}),
-}
-
 const makeNavScreens = (rs, Screen, isModal) => {
   return Object.keys(rs).map(name => {
     return (
