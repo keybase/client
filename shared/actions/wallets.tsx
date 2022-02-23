@@ -21,7 +21,6 @@ import {RPCError} from '../util/errors'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import type {TypedActions, TypedState} from '../util/container'
-import type {Action} from 'redux'
 
 const stateToBuildRequestParams = (state: TypedState) => ({
   amount: state.wallets.building.amount,

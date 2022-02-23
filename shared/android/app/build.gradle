@@ -113,7 +113,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 /**
  * Whether to enable the Hermes VM.
  *
- * This should be set on project.ext.react and mirrored here.  If it is not set
+ * This should be set on project.ext.react and that value will be read here. If it is not set
  * on project.ext.react, JavaScript will not be compiled to Hermes Bytecode
  * and the benefits of using Hermes will therefore be sharply reduced.
  */
@@ -149,6 +149,10 @@ android {
         versionCode getVersionCode()
         versionName VERSION_NAME
         multiDexEnabled true
+        configurations.all {
+            // force flipper dep to be compat w/ android 30
+            resolutionStrategy { force 'androidx.sqlite:sqlite-framework:2.1.0' }
+        }
     }
 
     bundle {

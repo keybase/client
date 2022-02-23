@@ -79,12 +79,19 @@ export const styleSheetCreate = obj => styleSheetCreateProxy(obj, o => StyleShee
 export {isDarkMode}
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
-): ReadonlyArray<Object | null | false | void> => {
+): ReadonlyArray<Object | null | false> => {
   // if we have no / singular values we pass those on in the hopes they're consts
   const nonNull = styles.filter(s => {
-    return !!s && Object.keys(s).length
+    if (!s) {
+      return false
+    }
+    // has a value?
+    for (const _ in s) {
+      return true
+    }
+    return false
   })
-  if (nonNull.length === 0) {
+  if (!nonNull.length) {
     return undefined as any
   }
   if (nonNull.length === 1) {
@@ -94,7 +101,7 @@ export const collapseStyles = (
     }
   }
   // rn allows falsy values so let memoized values through
-  return styles
+  return styles as any
 }
 export const transition = () => ({})
 export const backgroundURL = () => ({})

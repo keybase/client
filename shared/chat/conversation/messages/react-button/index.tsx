@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type * as Types from '../../../../constants/types/chat2'
-import {Box2, ClickableBox, Icon, Text, EmojiIfExists, Markdown} from '../../../../common-adapters'
+import {Box2, ClickableBox, Icon, Text, Markdown} from '../../../../common-adapters'
 import type {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
 import DelayInterval from './delay-interval'
@@ -54,7 +54,6 @@ const ButtonBox = Styles.styled(ClickableBox, {
       }
 )
 
-const standardEmojiPattern = /^:([^:])+:$/
 const markdownOverride = {
   paragraph: {fontSize: Styles.isMobile ? 16 : 18, lineHeight: Styles.isMobile ? 24 : '24px'},
 }

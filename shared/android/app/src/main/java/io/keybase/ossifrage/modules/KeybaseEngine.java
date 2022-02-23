@@ -270,7 +270,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     @ReactMethod
     public void setApplicationIconBadgeNumber(int badge) {
-        ShortcutBadger.applyCount(this, badge);
+        ShortcutBadger.applyCount(this.reactContext, badge);
     }
 
     public void setInitialBundleFromNotification(Bundle bundle) {
