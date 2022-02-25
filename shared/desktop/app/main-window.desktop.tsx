@@ -11,6 +11,7 @@ import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../
 import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 import logger from '../../logger'
 import debounce from 'lodash/debounce'
+import {setupDevToolsExtensions} from './dev-tools.desktop'
 
 const {env} = KB.process
 
@@ -291,6 +292,11 @@ export default () => {
     y: windowState.y,
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
+
+  if (__DEV__) {
+    setupDevToolsExtensions()
+  }
+
   win
     .loadURL(htmlFile)
     .then(() => {})
