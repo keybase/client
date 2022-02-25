@@ -13,31 +13,22 @@ import AddSuggestors from '../suggestors'
 import {indefiniteArticle} from '../../../../util/string'
 import {EmojiPickerDesktop} from '../../messages/react-button/emoji-picker/container'
 
-type State = {
-  emojiPickerOpen: boolean
-}
-
-class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> {
+// TODO deprecate
+class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
   _input: Kb.PlainInput | null = null
   _lastText?: string
   _fileInput: HTMLInputElement | null = null
-  state = {
-    emojiPickerOpen: false,
-  }
-
   _inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref
     this.props.inputSetRef(ref)
     // @ts-ignore this is probably wrong: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
     this.props.inputRef.current = ref
+
+    this.props.plainInputRef.current = ref
   }
 
   _inputFocus = () => {
     this._input?.focus()
-  }
-
-  _emojiPickerToggle = () => {
-    this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
   }
 
   _filePickerFiles = () => this._fileInput?.files || []
@@ -119,20 +110,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       'Escape',
     ].includes(ev.key)
     if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
-      this._inputFocus()
-    }
-  }
-
-  _insertEmoji = (emojiColons: string) => {
-    if (this._input) {
-      this._input.transformText(({text, selection}) => {
-        const newText = text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0)
-        const pos = (selection.start || 0) + emojiColons.length
-        return {
-          selection: {end: pos, start: pos},
-          text: newText,
-        }
-      }, true)
       this._inputFocus()
     }
   }
@@ -265,13 +242,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 visible={this.props.showingMenu}
               />
             )}
-            {this.state.emojiPickerOpen && (
-              <EmojiPicker
-                conversationIDKey={this.props.conversationIDKey}
-                emojiPickerToggle={this._emojiPickerToggle}
-                onClick={this._insertEmoji}
-              />
-            )}
             {!this.props.cannotWrite && this.props.showWalletsIcon && (
               <Kb.WithTooltip tooltip="Lumens">
                 <WalletsIcon
@@ -291,8 +261,8 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 <Kb.WithTooltip tooltip="Emoji">
                   <Kb.Box style={styles.icon}>
                     <Kb.Icon
-                      color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
-                      onClick={this._emojiPickerToggle}
+                      color={this.props.emojiPickerOpen ? Styles.globalColors.black : null}
+                      onClick={this.props.emojiPickerToggle}
                       type="iconfont-emoji"
                     />
                   </Kb.Box>
@@ -322,7 +292,52 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     )
   }
 }
-const PlatformInput = AddSuggestors(_PlatformInput)
+
+// TODO better props type
+const PlatformInputInner = React.forwardRef((p: any, ref) => {
+  const {...old} = p
+  const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false)
+  const emojiPickerToggle = React.useCallback(() => {
+    setEmojiPickerOpen(o => !o)
+  }, [setEmojiPickerOpen])
+
+  const plainInputRef = React.useRef<Kb.PlainInput>()
+
+  const insertEmoji = React.useCallback((emojiColons: string) => {
+    plainInputRef.current?.transformText(({text, selection}) => {
+      const newText = text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0)
+      const pos = (selection.start || 0) + emojiColons.length
+      return {
+        selection: {end: pos, start: pos},
+        text: newText,
+      }
+    }, true)
+    plainInputRef.current?.focus()
+  }, [])
+
+  // const {} = Kb.usePopup(attachTo => )
+
+  return (
+    <>
+      <PlatformInputOld
+        ref={ref}
+        {...old}
+        emojiPickerToggle={emojiPickerToggle}
+        emojiPickerOpen={emojiPickerOpen}
+        plainInputRef={plainInputRef}
+      />
+      {emojiPickerOpen && (
+        <EmojiPicker
+          conversationIDKey={p.conversationIDKey}
+          emojiPickerToggle={emojiPickerToggle}
+          onClick={insertEmoji}
+        />
+      )}
+    </>
+  )
+})
+
+const PlatformInput = AddSuggestors(PlatformInputInner)
 
 const EmojiPicker = ({
   conversationIDKey,
