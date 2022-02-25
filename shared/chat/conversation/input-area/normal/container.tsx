@@ -329,6 +329,7 @@ export default Container.connect(
       isSearching: stateProps.isSearching,
       maxInputArea: ownProps.maxInputArea,
       minWriterRole: stateProps.minWriterRole,
+      // TODO remove
       onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
       onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
       onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
@@ -338,6 +339,7 @@ export default Container.connect(
         dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
       onFetchEmoji: () => dispatchProps._onFetchEmoji(stateProps.conversationIDKey),
       onFilePickerError: dispatchProps.onFilePickerError,
+      // TODO remove
       onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
       onRequestScrollDown: ownProps.onRequestScrollDown,
       onRequestScrollUp: ownProps.onRequestScrollUp,

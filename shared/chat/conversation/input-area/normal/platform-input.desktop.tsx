@@ -11,19 +11,19 @@ import type {PlatformInputPropsInternal} from './platform-input'
 import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
 import {indefiniteArticle} from '../../../../util/string'
+import * as Container from '../../../../util/container'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {EmojiPickerDesktop} from '../../messages/react-button/emoji-picker/container'
 
 // TODO deprecate
 class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
   _input: Kb.PlainInput | null = null
   _lastText?: string
-  _fileInput: HTMLInputElement | null = null
   _inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref
     this.props.inputSetRef(ref)
-    // @ts-ignore this is probably wrong: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
     this.props.inputRef.current = ref
-
     this.props.plainInputRef.current = ref
   }
 
@@ -31,18 +31,8 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
     this._input?.focus()
   }
 
-  _filePickerFiles = () => this._fileInput?.files || []
-
-  _filePickerOpen = () => {
-    this._fileInput?.click()
-  }
-
-  _filePickerSetRef = (r: HTMLInputElement | null) => {
-    this._fileInput = r
-  }
-
-  _filePickerSetValue = (value: string) => {
-    if (this._fileInput) this._fileInput.value = value
+  private filePickerOpen = () => {
+    this.props.htmlInputRef.current?.click()
   }
 
   _getText = () => {
@@ -65,7 +55,7 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
       this.props.onCancelReply()
       return true
     } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
-      this._filePickerOpen()
+      this.filePickerOpen()
       return true
     } else if (e.key === 'PageDown') {
       this.props.onRequestScrollDown()
@@ -114,26 +104,6 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
     }
   }
 
-  _pickFile = () => {
-    const fileList = this._filePickerFiles()
-    const paths: Array<string> = fileList.length
-      ? Array.prototype.map
-          .call(fileList, (f: File) => {
-            // We rely on path being here, even though it's
-            // not part of the File spec.
-            return f.path
-          })
-          .reduce<Array<string>>((arr, p: any) => {
-            p && arr.push(p)
-            return arr
-          }, [])
-      : []
-    if (paths) {
-      this.props.onAttach(paths)
-    }
-    this._filePickerSetValue('')
-  }
-
   _toggleShowingMenu = () => {
     if (this.props.isEditing || this.props.cannotWrite) return
     this.props.toggleShowingMenu()
@@ -153,6 +123,10 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
   }
 
   render() {
+    const {conversationIDKey, isEditing, explodingModeSeconds, cannotWrite, htmlInputRef} = this.props
+    const {setAttachmentRef, showingMenu, onCancelEditing, getAttachmentRef} = this.props
+    const {toggleShowingMenu, showWalletsIcon, emojiPickerPopupRef, emojiPickerOpen, emojiPickerToggle} =
+      this.props
     return (
       <KeyEventHandler
         onKeyDown={this._globalKeyDownPressHandler}
@@ -163,38 +137,34 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
             style={Styles.collapseStyles([
               styles.inputWrapper,
               {
-                backgroundColor: this.props.isEditing
-                  ? Styles.globalColors.yellowLight
-                  : Styles.globalColors.white,
-                borderColor: this.props.explodingModeSeconds
-                  ? Styles.globalColors.black
-                  : Styles.globalColors.black_20,
+                backgroundColor: isEditing ? Styles.globalColors.yellowLight : Styles.globalColors.white,
+                borderColor: explodingModeSeconds ? Styles.globalColors.black : Styles.globalColors.black_20,
               },
             ])}
           >
-            {!this.props.isEditing && !this.props.cannotWrite && (
+            {!isEditing && !cannotWrite && (
               <HoverBox
-                className={Styles.classNames({expanded: this.props.showingMenu})}
+                className={Styles.classNames({expanded: showingMenu})}
                 onClick={this._toggleShowingMenu}
-                ref={this.props.setAttachmentRef}
+                ref={setAttachmentRef}
                 style={Styles.collapseStyles([
                   styles.explodingIconContainer,
-                  !this.props.cannotWrite && styles.explodingIconContainerClickable,
-                  !!this.props.explodingModeSeconds && {
+                  styles.explodingIconContainerClickable,
+                  !!explodingModeSeconds && {
                     backgroundColor: Styles.globalColors.black,
                   },
                 ] as const)}
               >
-                {this.props.explodingModeSeconds ? (
+                {explodingModeSeconds ? (
                   <Kb.Text type="BodyTinyBold" negative={true}>
-                    {formatDurationShort(this.props.explodingModeSeconds * 1000)}
+                    {formatDurationShort(explodingModeSeconds * 1000)}
                   </Kb.Text>
                 ) : (
                   <Kb.WithTooltip tooltip="Timer">
                     <Kb.Icon
                       className="timer"
-                      colorOverride={this.props.cannotWrite ? Styles.globalColors.black_20 : null}
-                      onClick={this.props.cannotWrite ? undefined : this._toggleShowingMenu}
+                      colorOverride={cannotWrite ? Styles.globalColors.black_20 : null}
+                      onClick={cannotWrite ? undefined : this._toggleShowingMenu}
                       padding="xtiny"
                       type="iconfont-timer"
                     />
@@ -202,30 +172,23 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
                 )}
               </HoverBox>
             )}
-            {this.props.isEditing && (
+            {isEditing && (
               <Kb.Button
                 label="Cancel"
-                onClick={this.props.onCancelEditing}
+                onClick={onCancelEditing}
                 small={true}
                 style={styles.cancelEditingBtn}
                 type="Dim"
               />
             )}
-            <input
-              type="file"
-              style={styles.hidden}
-              ref={this._filePickerSetRef}
-              onChange={this._pickFile}
-              multiple={true}
-            />
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
               <Kb.PlainInput
                 allowKeyboardEvents={true}
-                disabled={this.props.cannotWrite ?? false}
+                disabled={cannotWrite ?? false}
                 autoFocus={false}
                 ref={this._inputSetRef}
                 placeholder={this.getHintText()}
-                style={Styles.collapseStyles([styles.input, this.props.isEditing && styles.inputEditing])}
+                style={Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}
                 onChangeText={this._onChangeText}
                 multiline={true}
                 rowsMin={1}
@@ -233,87 +196,132 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
                 onKeyDown={this._onKeyDown}
               />
             </Kb.Box2>
-            {this.props.showingMenu && (
+            {showingMenu && (
               <SetExplodingMessagePopup
-                attachTo={this.props.getAttachmentRef}
-                conversationIDKey={this.props.conversationIDKey}
+                attachTo={getAttachmentRef}
+                conversationIDKey={conversationIDKey}
                 onAfterSelect={this._inputFocus}
-                onHidden={this.props.toggleShowingMenu}
-                visible={this.props.showingMenu}
+                onHidden={toggleShowingMenu}
+                visible={showingMenu}
               />
             )}
-            {!this.props.cannotWrite && this.props.showWalletsIcon && (
+            {!cannotWrite && showWalletsIcon && (
               <Kb.WithTooltip tooltip="Lumens">
-                <WalletsIcon
-                  size={16}
-                  style={styles.walletsIcon}
-                  conversationIDKey={this.props.conversationIDKey}
-                />
+                <WalletsIcon size={16} style={styles.walletsIcon} conversationIDKey={conversationIDKey} />
               </Kb.WithTooltip>
             )}
-            {!this.props.cannotWrite && (
+            {!cannotWrite && (
               <>
-                <Kb.WithTooltip tooltip="GIF">
-                  <Kb.Box style={styles.icon}>
-                    <Kb.Icon onClick={this.props.onGiphyToggle} type="iconfont-gif" />
-                  </Kb.Box>
-                </Kb.WithTooltip>
+                <GiphyButton conversationIDKey={conversationIDKey} />
                 <Kb.WithTooltip tooltip="Emoji">
-                  <Kb.Box style={styles.icon} ref={this.props.emojiPickerPopupRef}>
+                  <Kb.Box style={styles.icon} ref={emojiPickerPopupRef}>
                     <Kb.Icon
-                      color={this.props.emojiPickerOpen ? Styles.globalColors.black : null}
-                      onClick={this.props.emojiPickerToggle}
+                      color={emojiPickerOpen ? Styles.globalColors.black : null}
+                      onClick={emojiPickerToggle}
                       type="iconfont-emoji"
                     />
                   </Kb.Box>
                 </Kb.WithTooltip>
-                <Kb.WithTooltip tooltip="Attachment">
-                  <Kb.Box style={styles.icon}>
-                    <Kb.Icon onClick={this._filePickerOpen} type="iconfont-attachment" />
-                  </Kb.Box>
-                </Kb.WithTooltip>
+                <FileButton filePickerOpen={this.filePickerOpen} htmlInputRef={htmlInputRef} />
               </>
             )}
           </Kb.Box>
-          <Kb.Box style={styles.footerContainer}>
-            <Typing conversationIDKey={this.props.conversationIDKey} />
-            <Kb.Text
-              lineClamp={1}
-              type="BodyTiny"
-              style={styles.footer}
-              onClick={this._inputFocus}
-              selectable={true}
-            >
-              {`*bold*, _italics_, \`code\`, >quote, @user, @team, #channel`}
-            </Kb.Text>
-          </Kb.Box>
+          <Footer conversationIDKey={conversationIDKey} inputFocus={this._inputFocus} />
         </Kb.Box>
       </KeyEventHandler>
     )
   }
 }
 
-// TODO better props type
-const PlatformInputInner = React.forwardRef((p: any, ref) => {
-  const {...old} = p
-  // const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false)
-  // const emojiPickerToggle = React.useCallback(() => {
-  //   setEmojiPickerOpen(o => !o)
-  // }, [setEmojiPickerOpen])
+const GiphyButton = (p: {conversationIDKey: Types.ConversationIDKey}) => {
+  const {conversationIDKey} = p
+  const dispatch = Container.useDispatch()
+  const onGiphyToggle = React.useCallback(() => {
+    dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey}))
+  }, [conversationIDKey, dispatch])
 
-  const plainInputRef = React.useRef<Kb.PlainInput>()
+  return (
+    <Kb.WithTooltip tooltip="GIF">
+      <Kb.Box style={styles.icon}>
+        <Kb.Icon onClick={onGiphyToggle} type="iconfont-gif" />
+      </Kb.Box>
+    </Kb.WithTooltip>
+  )
+}
 
-  const insertEmoji = React.useCallback((emojiColons: string) => {
-    plainInputRef.current?.transformText(({text, selection}) => {
-      const newText = text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0)
-      const pos = (selection.start || 0) + emojiColons.length
-      return {
-        selection: {end: pos, start: pos},
-        text: newText,
-      }
-    }, true)
-    plainInputRef.current?.focus()
-  }, [])
+const fileListToPaths = (f: FileList | undefined | null): Array<string> => {
+  return Array.prototype.map.call((f || []) as any, (f: File) => {
+    // We rely on path being here, even though it's
+    // not part of the File spec.
+    return f.path
+  }) as any
+}
+
+const FileButton = (p: {
+  filePickerOpen: () => void
+  conversationIDKey: Types.ConversationIDKey
+  htmlInputRef: React.MutableRefObject<HTMLInputElement | null>
+}) => {
+  const {filePickerOpen, htmlInputRef, conversationIDKey} = p
+  const dispatch = Container.useDispatch()
+  const pickFile = React.useCallback(() => {
+    const paths = fileListToPaths(htmlInputRef.current?.files)
+    const pathAndOutboxIDs = paths.reduce<Array<{outboxID: null; path: string}>>((arr, path: string) => {
+      path && arr.push({outboxID: null, path})
+      return arr
+    }, [])
+    if (pathAndOutboxIDs.length) {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+        })
+      )
+    }
+
+    if (htmlInputRef.current) {
+      htmlInputRef.current.value = ''
+    }
+  }, [htmlInputRef, dispatch, conversationIDKey])
+
+  return (
+    <Kb.WithTooltip tooltip="Attachment">
+      <Kb.Box style={styles.icon}>
+        <Kb.Icon onClick={filePickerOpen} type="iconfont-attachment" />
+        <input type="file" style={styles.hidden} ref={htmlInputRef} onChange={pickFile} multiple={true} />
+      </Kb.Box>
+    </Kb.WithTooltip>
+  )
+}
+
+const Footer = (p: {conversationIDKey: Types.ConversationIDKey; inputFocus: () => void}) => {
+  return (
+    <Kb.Box style={styles.footerContainer}>
+      <Typing conversationIDKey={p.conversationIDKey} />
+      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} onClick={p.inputFocus} selectable={true}>
+        {`*bold*, _italics_, \`code\`, >quote, @user, @team, #channel`}
+      </Kb.Text>
+    </Kb.Box>
+  )
+}
+
+const useEmojiPicker = (
+  plainInputRef: React.MutableRefObject<Kb.PlainInput | undefined>,
+  conversationIDKey: Types.ConversationIDKey
+) => {
+  const insertEmoji = React.useCallback(
+    (emojiColons: string) => {
+      plainInputRef.current?.transformText(({text, selection}) => {
+        const newText = text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0)
+        const pos = (selection.start || 0) + emojiColons.length
+        return {
+          selection: {end: pos, start: pos},
+          text: newText,
+        }
+      }, true)
+      plainInputRef.current?.focus()
+    },
+    [plainInputRef]
+  )
 
   const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(attachTo => {
     return (
@@ -324,52 +332,48 @@ const PlatformInputInner = React.forwardRef((p: any, ref) => {
         position="top right"
       >
         <EmojiPickerDesktop
-          conversationIDKey={p.conversationIDKey}
+          conversationIDKey={conversationIDKey}
           onPickAction={insertEmoji}
           onDidPick={toggleShowingPopup}
         />
       </Kb.Overlay>
     )
   })
+  return {
+    emojiPickerOpen: showingPopup,
+    emojiPickerPopupRef: popupAnchor,
+    emojiPickerToggle: toggleShowingPopup,
+    emojiPopup: popup,
+  }
+}
+
+// TODO better props type
+const PlatformInputInner = React.forwardRef((p: any, ref) => {
+  const {...old} = p
+  const plainInputRef = React.useRef<Kb.PlainInput>()
+  const htmlInputRef = React.useRef<input>()
+  const {emojiPickerToggle, emojiPickerOpen, emojiPickerPopupRef, emojiPopup} = useEmojiPicker(
+    plainInputRef,
+    p.conversationIDKey
+  )
 
   return (
     <>
       <PlatformInputOld
         ref={ref}
         {...old}
-        emojiPickerToggle={toggleShowingPopup}
-        emojiPickerOpen={showingPopup}
-        emojiPickerPopupRef={popupAnchor}
+        emojiPickerToggle={emojiPickerToggle}
+        emojiPickerOpen={emojiPickerOpen}
+        emojiPickerPopupRef={emojiPickerPopupRef}
         plainInputRef={plainInputRef}
+        htmlInputRef={htmlInputRef}
       />
-      {popup}
+      {emojiPopup}
     </>
   )
 })
 
 const PlatformInput = AddSuggestors(PlatformInputInner)
-
-// const EmojiPicker = ({
-//   conversationIDKey,
-//   onClick,
-// }: {
-//   conversationIDKey: Types.ConversationIDKey
-//   onClick: (c: any) => void
-// }) => (
-//   <Kb.Box>
-//     <Kb.Box style={styles.emojiPickerContainerWrapper} onClick={emojiPickerToggle} />
-//     <Kb.Box style={styles.emojiPickerRelative}>
-//       <Kb.Box style={styles.emojiPickerContainer}>
-//         <EmojiPickerDesktop
-//           conversationIDKey={conversationIDKey}
-//           onPickAction={onClick}
-//           onDidPick={emojiPickerToggle}
-//         />
-//       </Kb.Box>
-//     </Kb.Box>
-//   </Kb.Box>
-// )
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({
