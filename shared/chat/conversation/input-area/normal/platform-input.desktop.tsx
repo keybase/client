@@ -259,7 +259,7 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
                   </Kb.Box>
                 </Kb.WithTooltip>
                 <Kb.WithTooltip tooltip="Emoji">
-                  <Kb.Box style={styles.icon}>
+                  <Kb.Box style={styles.icon} ref={this.props.emojiPickerPopupRef}>
                     <Kb.Icon
                       color={this.props.emojiPickerOpen ? Styles.globalColors.black : null}
                       onClick={this.props.emojiPickerToggle}
@@ -296,10 +296,10 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
 // TODO better props type
 const PlatformInputInner = React.forwardRef((p: any, ref) => {
   const {...old} = p
-  const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false)
-  const emojiPickerToggle = React.useCallback(() => {
-    setEmojiPickerOpen(o => !o)
-  }, [setEmojiPickerOpen])
+  // const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false)
+  // const emojiPickerToggle = React.useCallback(() => {
+  //   setEmojiPickerOpen(o => !o)
+  // }, [setEmojiPickerOpen])
 
   const plainInputRef = React.useRef<Kb.PlainInput>()
 
@@ -315,52 +315,60 @@ const PlatformInputInner = React.forwardRef((p: any, ref) => {
     plainInputRef.current?.focus()
   }, [])
 
-  // const {} = Kb.usePopup(attachTo => )
+  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(attachTo => {
+    return (
+      <Kb.Overlay
+        attachTo={attachTo}
+        visible={showingPopup}
+        onHidden={toggleShowingPopup}
+        position="top right"
+      >
+        <EmojiPickerDesktop
+          conversationIDKey={p.conversationIDKey}
+          onPickAction={insertEmoji}
+          onDidPick={toggleShowingPopup}
+        />
+      </Kb.Overlay>
+    )
+  })
 
   return (
     <>
       <PlatformInputOld
         ref={ref}
         {...old}
-        emojiPickerToggle={emojiPickerToggle}
-        emojiPickerOpen={emojiPickerOpen}
+        emojiPickerToggle={toggleShowingPopup}
+        emojiPickerOpen={showingPopup}
+        emojiPickerPopupRef={popupAnchor}
         plainInputRef={plainInputRef}
       />
-      {emojiPickerOpen && (
-        <EmojiPicker
-          conversationIDKey={p.conversationIDKey}
-          emojiPickerToggle={emojiPickerToggle}
-          onClick={insertEmoji}
-        />
-      )}
+      {popup}
     </>
   )
 })
 
 const PlatformInput = AddSuggestors(PlatformInputInner)
 
-const EmojiPicker = ({
-  conversationIDKey,
-  emojiPickerToggle,
-  onClick,
-}: {
-  conversationIDKey: Types.ConversationIDKey
-  emojiPickerToggle: () => void
-  onClick: (c: any) => void
-}) => (
-  <Kb.Box>
-    <Kb.Box style={styles.emojiPickerContainerWrapper} onClick={emojiPickerToggle} />
-    <Kb.Box style={styles.emojiPickerRelative}>
-      <Kb.Box style={styles.emojiPickerContainer}>
-        <EmojiPickerDesktop
-          conversationIDKey={conversationIDKey}
-          onPickAction={onClick}
-          onDidPick={emojiPickerToggle}
-        />
-      </Kb.Box>
-    </Kb.Box>
-  </Kb.Box>
-)
+// const EmojiPicker = ({
+//   conversationIDKey,
+//   onClick,
+// }: {
+//   conversationIDKey: Types.ConversationIDKey
+//   onClick: (c: any) => void
+// }) => (
+//   <Kb.Box>
+//     <Kb.Box style={styles.emojiPickerContainerWrapper} onClick={emojiPickerToggle} />
+//     <Kb.Box style={styles.emojiPickerRelative}>
+//       <Kb.Box style={styles.emojiPickerContainer}>
+//         <EmojiPickerDesktop
+//           conversationIDKey={conversationIDKey}
+//           onPickAction={onClick}
+//           onDidPick={emojiPickerToggle}
+//         />
+//       </Kb.Box>
+//     </Kb.Box>
+//   </Kb.Box>
+// )
 
 const styles = Styles.styleSheetCreate(
   () =>
