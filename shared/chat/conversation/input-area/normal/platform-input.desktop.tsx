@@ -19,22 +19,19 @@ import {EmojiPickerDesktop} from '../../messages/react-button/emoji-picker/conta
 
 // TODO deprecate
 class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
-  _lastText?: string
   _inputSetRef = (ref: null | Kb.PlainInput) => {
+    // from normal/index
     this.props.inputSetRef(ref)
+    // from suggestors/index
     this.props.inputRef.current = ref
     this.props.plainInputRef.current = ref
-  }
-
-  _getText = () => {
-    return this._lastText || ''
   }
 
   // Key-handling code shared by both the input key handler
   // (_onKeyDown) and the global key handler
   // (_globalKeyDownPressHandler).
   _commonOnKeyDown = (e: React.KeyboardEvent | KeyboardEvent) => {
-    const text = this._getText()
+    const text = this.props.lastText.current
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
       e.preventDefault()
       this.props.onEditLastMessage()
@@ -65,7 +62,7 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
   }
 
   _onChangeText = (text: string) => {
-    this._lastText = text
+    this.props.lastText.current = text
     this.props.onChangeText(text)
   }
 
@@ -362,6 +359,8 @@ const PlatformInputInner = React.forwardRef((p: any, ref) => {
     p.conversationIDKey
   )
 
+  const lastText = React.useRef('')
+
   const focusInput = React.useCallback(() => {
     plainInputRef.current?.focus()
   }, [plainInputRef])
@@ -389,6 +388,7 @@ const PlatformInputInner = React.forwardRef((p: any, ref) => {
         htmlInputRef={htmlInputRef}
         hintText={hintText}
         focusInput={focusInput}
+        lastText={lastText}
       />
       {emojiPopup}
     </>
