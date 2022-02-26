@@ -18,168 +18,94 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {EmojiPickerDesktop} from '../../messages/react-button/emoji-picker/container'
 
 // TODO deprecate
-class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
-  _inputSetRef = (ref: null | Kb.PlainInput) => {
-    // from normal/index
-    this.props.inputSetRef(ref)
-    // from suggestors/index
-    this.props.inputRef.current = ref
-    this.props.plainInputRef.current = ref
-  }
-
-  // Key-handling code shared by both the input key handler
-  // (_onKeyDown) and the global key handler
-  // (_globalKeyDownPressHandler).
-  _commonOnKeyDown = (e: React.KeyboardEvent | KeyboardEvent) => {
-    const text = this.props.lastText.current
-    if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
-      e.preventDefault()
-      this.props.onEditLastMessage()
-      return true
-    } else if (e.key === 'Escape' && this.props.isEditing) {
-      this.props.onCancelEditing()
-      return true
-    } else if (e.key === 'Escape' && this.props.showReplyPreview) {
-      this.props.onCancelReply()
-      return true
-    } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
-      this.props.htmlInputRef.current?.click()
-      return true
-    } else if (e.key === 'PageDown') {
-      this.props.onRequestScrollDown()
-      return true
-    } else if (e.key === 'PageUp') {
-      this.props.onRequestScrollUp()
-      return true
-    }
-
-    return false
-  }
-
-  _onKeyDown = (e: React.KeyboardEvent) => {
-    this._commonOnKeyDown(e)
-    this.props.onKeyDown?.(e)
-  }
-
-  _onChangeText = (text: string) => {
-    this.props.lastText.current = text
-    this.props.onChangeText(text)
-  }
-
-  _globalKeyDownPressHandler = (ev: KeyboardEvent) => {
-    const target = ev.target
-    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-      return
-    }
-
-    if (this._commonOnKeyDown(ev)) {
-      return
-    }
-
-    const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
-    const isValidSpecialKey = [
-      'Backspace',
-      'Delete',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowUp',
-      'ArrowDown',
-      'Enter',
-      'Escape',
-    ].includes(ev.key)
-    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
-      this.props.focusInput()
-    }
-  }
-
-  _toggleShowingMenu = () => {
-    if (this.props.isEditing || this.props.cannotWrite) return
-    this.props.toggleShowingMenu()
-  }
-
-  render() {
-    const {conversationIDKey, isEditing, explodingModeSeconds, cannotWrite, htmlInputRef} = this.props
-    const {setAttachmentRef, showingMenu, onCancelEditing, getAttachmentRef} = this.props
-    const {toggleShowingMenu, showWalletsIcon, emojiPickerPopupRef} = this.props
-    const {emojiPickerOpen, emojiPickerToggle, hintText} = this.props
-
-    const showingExplodingMenu = showingMenu
-    return (
-      <KeyEventHandler
-        onKeyDown={this._globalKeyDownPressHandler}
-        onKeyPress={this._globalKeyDownPressHandler}
-      >
-        <Kb.Box style={styles.container}>
-          <Kb.Box
-            style={Styles.collapseStyles([
-              styles.inputWrapper,
-              isEditing && styles.inputWrapperEditing,
-              explodingModeSeconds && styles.inputWrapperExplodingMode,
-            ])}
-          >
-            {!isEditing && !cannotWrite && (
-              <ExplodingButton
-                showingExplodingMenu={showingExplodingMenu}
-                setAttachmentRef={setAttachmentRef}
-                explodingModeSeconds={explodingModeSeconds}
-                toggleShowingMenu={toggleShowingMenu}
+const PlatformInputOld = (p: any) => {
+  const {conversationIDKey, isEditing, explodingModeSeconds, cannotWrite, htmlInputRef} = p
+  const {setAttachmentRef, showingMenu, onCancelEditing, getAttachmentRef, inputRef, plainInputRef} = p
+  const {toggleShowingMenu, showWalletsIcon, emojiPickerPopupRef, inputSetRef, onChangeText} = p
+  const {emojiPickerOpen, emojiPickerToggle, hintText, globalKeyDownPressHandler} = p
+  const {commonOnKeyDown, onKeyDown, focusInput} = p
+  const showingExplodingMenu = showingMenu
+  return (
+    <KeyEventHandler onKeyDown={globalKeyDownPressHandler} onKeyPress={globalKeyDownPressHandler}>
+      <Kb.Box style={styles.container}>
+        <Kb.Box
+          style={Styles.collapseStyles([
+            styles.inputWrapper,
+            isEditing && styles.inputWrapperEditing,
+            explodingModeSeconds && styles.inputWrapperExplodingMode,
+          ])}
+        >
+          {!isEditing && !cannotWrite && (
+            <ExplodingButton
+              showingExplodingMenu={showingExplodingMenu}
+              setAttachmentRef={setAttachmentRef}
+              explodingModeSeconds={explodingModeSeconds}
+              toggleShowingMenu={toggleShowingMenu}
+            />
+          )}
+          {isEditing && (
+            <Kb.Button
+              label="Cancel"
+              onClick={onCancelEditing}
+              small={true}
+              style={styles.cancelEditingBtn}
+              type="Dim"
+            />
+          )}
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
+            <Kb.PlainInput
+              allowKeyboardEvents={true}
+              disabled={cannotWrite ?? false}
+              autoFocus={false}
+              ref={(ref: null | Kb.PlainInput) => {
+                // from normal/index
+                inputSetRef(ref)
+                // from suggestors/index
+                inputRef.current = ref
+                plainInputRef.current = ref
+              }}
+              placeholder={hintText}
+              style={Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}
+              onChangeText={onChangeText}
+              multiline={true}
+              rowsMin={1}
+              rowsMax={10}
+              onKeyDown={(e: React.KeyboardEvent) => {
+                commonOnKeyDown(e)
+                onKeyDown?.(e)
+              }}
+            />
+          </Kb.Box2>
+          {showingExplodingMenu && (
+            <SetExplodingMessagePopup
+              attachTo={getAttachmentRef}
+              conversationIDKey={conversationIDKey}
+              onAfterSelect={focusInput}
+              onHidden={toggleShowingMenu}
+              visible={showingExplodingMenu}
+            />
+          )}
+          {!cannotWrite && showWalletsIcon && (
+            <Kb.WithTooltip tooltip="Lumens">
+              <WalletsIcon size={16} style={styles.walletsIcon} conversationIDKey={conversationIDKey} />
+            </Kb.WithTooltip>
+          )}
+          {!cannotWrite && (
+            <>
+              <GiphyButton conversationIDKey={conversationIDKey} />
+              <EmojiButton
+                emojiPickerPopupRef={emojiPickerPopupRef}
+                emojiPickerOpen={emojiPickerOpen}
+                emojiPickerToggle={emojiPickerToggle}
               />
-            )}
-            {isEditing && (
-              <Kb.Button
-                label="Cancel"
-                onClick={onCancelEditing}
-                small={true}
-                style={styles.cancelEditingBtn}
-                type="Dim"
-              />
-            )}
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
-              <Kb.PlainInput
-                allowKeyboardEvents={true}
-                disabled={cannotWrite ?? false}
-                autoFocus={false}
-                ref={this._inputSetRef}
-                placeholder={hintText}
-                style={Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}
-                onChangeText={this._onChangeText}
-                multiline={true}
-                rowsMin={1}
-                rowsMax={10}
-                onKeyDown={this._onKeyDown}
-              />
-            </Kb.Box2>
-            {showingExplodingMenu && (
-              <SetExplodingMessagePopup
-                attachTo={getAttachmentRef}
-                conversationIDKey={conversationIDKey}
-                onAfterSelect={this.props.focusInput}
-                onHidden={toggleShowingMenu}
-                visible={showingExplodingMenu}
-              />
-            )}
-            {!cannotWrite && showWalletsIcon && (
-              <Kb.WithTooltip tooltip="Lumens">
-                <WalletsIcon size={16} style={styles.walletsIcon} conversationIDKey={conversationIDKey} />
-              </Kb.WithTooltip>
-            )}
-            {!cannotWrite && (
-              <>
-                <GiphyButton conversationIDKey={conversationIDKey} />
-                <EmojiButton
-                  emojiPickerPopupRef={emojiPickerPopupRef}
-                  emojiPickerOpen={emojiPickerOpen}
-                  emojiPickerToggle={emojiPickerToggle}
-                />
-                <FileButton conversationIDKey={conversationIDKey} htmlInputRef={htmlInputRef} />
-              </>
-            )}
-          </Kb.Box>
-          <Footer conversationIDKey={conversationIDKey} focusInpu={this.props.focusInput} />
+              <FileButton conversationIDKey={conversationIDKey} htmlInputRef={htmlInputRef} />
+            </>
+          )}
         </Kb.Box>
-      </KeyEventHandler>
-    )
-  }
+        <Footer conversationIDKey={conversationIDKey} focusInput={focusInput} />
+      </Kb.Box>
+    </KeyEventHandler>
+  )
 }
 
 // TODO types
@@ -352,8 +278,9 @@ const useEmojiPicker = (
 const PlatformInputInner = React.forwardRef((p: any, ref) => {
   const {...old} = p
   const {cannotWrite, minWriterRole, inputHintText, isEditing, isExploding} = p
+  const onChangeTextIncoming = p.onChangeText
   const plainInputRef = React.useRef<Kb.PlainInput>()
-  const htmlInputRef = React.useRef<input>()
+  const htmlInputRef = React.useRef<HTMLInputElement>()
   const {emojiPickerToggle, emojiPickerOpen, emojiPickerPopupRef, emojiPopup} = useEmojiPicker(
     plainInputRef,
     p.conversationIDKey
@@ -376,6 +303,93 @@ const PlatformInputInner = React.forwardRef((p: any, ref) => {
     return inputHintText || 'Write a message'
   }, [cannotWrite, minWriterRole, inputHintText, isEditing, isExploding])
 
+  const onChangeText = React.useCallback(
+    (text: string) => {
+      lastText.current = text
+      onChangeTextIncoming(text)
+    },
+    [onChangeTextIncoming, lastText]
+  )
+
+  // Key-handling code shared by both the input key handler
+  // (_onKeyDown) and the global key handler
+  // (_globalKeyDownPressHandler).
+  const {
+    onEditLastMessage,
+    onCancelEditing,
+    onCancelReply,
+    onRequestScrollDown,
+    onRequestScrollUp,
+    showReplyPreview,
+  } = p
+  const commonOnKeyDown = React.useCallback(
+    (e: React.KeyboardEvent | KeyboardEvent) => {
+      const text = lastText.current
+      if (e.key === 'ArrowUp' && !isEditing && !text) {
+        e.preventDefault()
+        onEditLastMessage()
+        return true
+      } else if (e.key === 'Escape' && isEditing) {
+        onCancelEditing()
+        return true
+      } else if (e.key === 'Escape' && showReplyPreview) {
+        onCancelReply()
+        return true
+      } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
+        htmlInputRef.current?.click()
+        return true
+      } else if (e.key === 'PageDown') {
+        onRequestScrollDown()
+        return true
+      } else if (e.key === 'PageUp') {
+        onRequestScrollUp()
+        return true
+      }
+
+      return false
+    },
+    [
+      isEditing,
+      showReplyPreview,
+      htmlInputRef,
+      lastText,
+      onEditLastMessage,
+      onCancelEditing,
+      onCancelReply,
+      onRequestScrollDown,
+      onRequestScrollUp,
+    ]
+  )
+
+  const globalKeyDownPressHandler = React.useCallback(
+    (ev: KeyboardEvent) => {
+      const target = ev.target
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+        return
+      }
+
+      if (commonOnKeyDown(ev)) {
+        return
+      }
+
+      const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
+      const isValidSpecialKey = [
+        'Backspace',
+        'Delete',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'ArrowDown',
+        'Enter',
+        'Escape',
+      ].includes(ev.key)
+      if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
+        focusInput()
+      }
+    },
+    [focusInput, commonOnKeyDown]
+  )
+
   return (
     <>
       <PlatformInputOld
@@ -389,6 +403,9 @@ const PlatformInputInner = React.forwardRef((p: any, ref) => {
         hintText={hintText}
         focusInput={focusInput}
         lastText={lastText}
+        onChangeText={onChangeText}
+        commonOnKeyDown={commonOnKeyDown}
+        globalKeyDownPressHandler={globalKeyDownPressHandler}
       />
       {emojiPopup}
     </>
