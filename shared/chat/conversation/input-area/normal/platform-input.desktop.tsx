@@ -12,27 +12,18 @@ import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
 import {indefiniteArticle} from '../../../../util/string'
 import * as Container from '../../../../util/container'
+import {useMemo} from '../../../../util/memoize'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {EmojiPickerDesktop} from '../../messages/react-button/emoji-picker/container'
 
 // TODO deprecate
 class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
-  _input: Kb.PlainInput | null = null
   _lastText?: string
   _inputSetRef = (ref: null | Kb.PlainInput) => {
-    this._input = ref
     this.props.inputSetRef(ref)
     this.props.inputRef.current = ref
     this.props.plainInputRef.current = ref
-  }
-
-  _inputFocus = () => {
-    this._input?.focus()
-  }
-
-  private filePickerOpen = () => {
-    this.props.htmlInputRef.current?.click()
   }
 
   _getText = () => {
@@ -55,7 +46,7 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
       this.props.onCancelReply()
       return true
     } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
-      this.filePickerOpen()
+      this.props.htmlInputRef.current?.click()
       return true
     } else if (e.key === 'PageDown') {
       this.props.onRequestScrollDown()
@@ -100,7 +91,7 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
       'Escape',
     ].includes(ev.key)
     if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
-      this._inputFocus()
+      this.props.focusInput()
     }
   }
 
@@ -109,24 +100,13 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
     this.props.toggleShowingMenu()
   }
 
-  private getHintText = () => {
-    if (this.props.cannotWrite) {
-      return `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
-        this.props.minWriterRole
-      } to post.`
-    } else if (this.props.isEditing) {
-      return 'Edit your message'
-    } else if (this.props.isExploding) {
-      return 'Write an exploding message'
-    }
-    return this.props.inputHintText || 'Write a message'
-  }
-
   render() {
     const {conversationIDKey, isEditing, explodingModeSeconds, cannotWrite, htmlInputRef} = this.props
     const {setAttachmentRef, showingMenu, onCancelEditing, getAttachmentRef} = this.props
-    const {toggleShowingMenu, showWalletsIcon, emojiPickerPopupRef, emojiPickerOpen, emojiPickerToggle} =
-      this.props
+    const {toggleShowingMenu, showWalletsIcon, emojiPickerPopupRef} = this.props
+    const {emojiPickerOpen, emojiPickerToggle, hintText} = this.props
+
+    const showingExplodingMenu = showingMenu
     return (
       <KeyEventHandler
         onKeyDown={this._globalKeyDownPressHandler}
@@ -136,41 +116,17 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
           <Kb.Box
             style={Styles.collapseStyles([
               styles.inputWrapper,
-              {
-                backgroundColor: isEditing ? Styles.globalColors.yellowLight : Styles.globalColors.white,
-                borderColor: explodingModeSeconds ? Styles.globalColors.black : Styles.globalColors.black_20,
-              },
+              isEditing && styles.inputWrapperEditing,
+              explodingModeSeconds && styles.inputWrapperExplodingMode,
             ])}
           >
             {!isEditing && !cannotWrite && (
-              <HoverBox
-                className={Styles.classNames({expanded: showingMenu})}
-                onClick={this._toggleShowingMenu}
-                ref={setAttachmentRef}
-                style={Styles.collapseStyles([
-                  styles.explodingIconContainer,
-                  styles.explodingIconContainerClickable,
-                  !!explodingModeSeconds && {
-                    backgroundColor: Styles.globalColors.black,
-                  },
-                ] as const)}
-              >
-                {explodingModeSeconds ? (
-                  <Kb.Text type="BodyTinyBold" negative={true}>
-                    {formatDurationShort(explodingModeSeconds * 1000)}
-                  </Kb.Text>
-                ) : (
-                  <Kb.WithTooltip tooltip="Timer">
-                    <Kb.Icon
-                      className="timer"
-                      colorOverride={cannotWrite ? Styles.globalColors.black_20 : null}
-                      onClick={cannotWrite ? undefined : this._toggleShowingMenu}
-                      padding="xtiny"
-                      type="iconfont-timer"
-                    />
-                  </Kb.WithTooltip>
-                )}
-              </HoverBox>
+              <ExplodingButton
+                showingExplodingMenu={showingExplodingMenu}
+                setAttachmentRef={setAttachmentRef}
+                explodingModeSeconds={explodingModeSeconds}
+                toggleShowingMenu={toggleShowingMenu}
+              />
             )}
             {isEditing && (
               <Kb.Button
@@ -187,7 +143,7 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
                 disabled={cannotWrite ?? false}
                 autoFocus={false}
                 ref={this._inputSetRef}
-                placeholder={this.getHintText()}
+                placeholder={hintText}
                 style={Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}
                 onChangeText={this._onChangeText}
                 multiline={true}
@@ -196,13 +152,13 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
                 onKeyDown={this._onKeyDown}
               />
             </Kb.Box2>
-            {showingMenu && (
+            {showingExplodingMenu && (
               <SetExplodingMessagePopup
                 attachTo={getAttachmentRef}
                 conversationIDKey={conversationIDKey}
-                onAfterSelect={this._inputFocus}
+                onAfterSelect={this.props.focusInput}
                 onHidden={toggleShowingMenu}
-                visible={showingMenu}
+                visible={showingExplodingMenu}
               />
             )}
             {!cannotWrite && showWalletsIcon && (
@@ -213,25 +169,71 @@ class PlatformInputOld extends React.Component<PlatformInputPropsInternal> {
             {!cannotWrite && (
               <>
                 <GiphyButton conversationIDKey={conversationIDKey} />
-                <Kb.WithTooltip tooltip="Emoji">
-                  <Kb.Box style={styles.icon} ref={emojiPickerPopupRef}>
-                    <Kb.Icon
-                      color={emojiPickerOpen ? Styles.globalColors.black : null}
-                      onClick={emojiPickerToggle}
-                      type="iconfont-emoji"
-                    />
-                  </Kb.Box>
-                </Kb.WithTooltip>
-                <FileButton filePickerOpen={this.filePickerOpen} htmlInputRef={htmlInputRef} />
+                <EmojiButton
+                  emojiPickerPopupRef={emojiPickerPopupRef}
+                  emojiPickerOpen={emojiPickerOpen}
+                  emojiPickerToggle={emojiPickerToggle}
+                />
+                <FileButton conversationIDKey={conversationIDKey} htmlInputRef={htmlInputRef} />
               </>
             )}
           </Kb.Box>
-          <Footer conversationIDKey={conversationIDKey} inputFocus={this._inputFocus} />
+          <Footer conversationIDKey={conversationIDKey} focusInpu={this.props.focusInput} />
         </Kb.Box>
       </KeyEventHandler>
     )
   }
 }
+
+// TODO types
+const ExplodingButton = (p: any) => {
+  const {showingExplodingMenu, setAttachmentRef, explodingModeSeconds, toggleShowingMenu} = p
+  return (
+    <HoverBox
+      className={Styles.classNames({expanded: showingExplodingMenu})}
+      onClick={toggleShowingMenu}
+      ref={setAttachmentRef}
+      style={Styles.collapseStyles([
+        styles.explodingIconContainer,
+        styles.explodingIconContainerClickable,
+        !!explodingModeSeconds && {
+          backgroundColor: Styles.globalColors.black,
+        },
+      ] as const)}
+    >
+      {explodingModeSeconds ? (
+        <Kb.Text type="BodyTinyBold" negative={true}>
+          {formatDurationShort(explodingModeSeconds * 1000)}
+        </Kb.Text>
+      ) : (
+        <Kb.WithTooltip tooltip="Timer">
+          <Kb.Icon
+            className="timer"
+            colorOverride={null}
+            onClick={toggleShowingMenu}
+            padding="xtiny"
+            type="iconfont-timer"
+          />
+        </Kb.WithTooltip>
+      )}
+    </HoverBox>
+  )
+}
+
+// TODO better types
+const EmojiButton = (
+  p: Pick<ReturnType<typeof useEmojiPicker>, 'emojiPickerPopupRef' | 'emojiPickerOpen' | 'emojiPickerToggle'>
+) => (
+  <Kb.WithTooltip tooltip="Emoji">
+    <Kb.Box style={styles.icon} ref={p.emojiPickerPopupRef}>
+      <Kb.Icon
+        color={p.emojiPickerOpen ? Styles.globalColors.black : null}
+        onClick={p.emojiPickerToggle}
+        type="iconfont-emoji"
+      />
+    </Kb.Box>
+  </Kb.WithTooltip>
+)
 
 const GiphyButton = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   const {conversationIDKey} = p
@@ -249,20 +251,18 @@ const GiphyButton = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   )
 }
 
-const fileListToPaths = (f: FileList | undefined | null): Array<string> => {
-  return Array.prototype.map.call((f || []) as any, (f: File) => {
+const fileListToPaths = (f: FileList | undefined | null): Array<string> =>
+  Array.prototype.map.call((f || []) as any, (f: File) => {
     // We rely on path being here, even though it's
     // not part of the File spec.
     return f.path
   }) as any
-}
 
 const FileButton = (p: {
-  filePickerOpen: () => void
   conversationIDKey: Types.ConversationIDKey
   htmlInputRef: React.MutableRefObject<HTMLInputElement | null>
 }) => {
-  const {filePickerOpen, htmlInputRef, conversationIDKey} = p
+  const {htmlInputRef, conversationIDKey} = p
   const dispatch = Container.useDispatch()
   const pickFile = React.useCallback(() => {
     const paths = fileListToPaths(htmlInputRef.current?.files)
@@ -283,6 +283,10 @@ const FileButton = (p: {
     }
   }, [htmlInputRef, dispatch, conversationIDKey])
 
+  const filePickerOpen = React.useCallback(() => {
+    htmlInputRef.current?.click()
+  }, [htmlInputRef])
+
   return (
     <Kb.WithTooltip tooltip="Attachment">
       <Kb.Box style={styles.icon}>
@@ -293,11 +297,11 @@ const FileButton = (p: {
   )
 }
 
-const Footer = (p: {conversationIDKey: Types.ConversationIDKey; inputFocus: () => void}) => {
+const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () => void}) => {
   return (
     <Kb.Box style={styles.footerContainer}>
       <Typing conversationIDKey={p.conversationIDKey} />
-      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} onClick={p.inputFocus} selectable={true}>
+      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} onClick={p.focusInput} selectable={true}>
         {`*bold*, _italics_, \`code\`, >quote, @user, @team, #channel`}
       </Kb.Text>
     </Kb.Box>
@@ -350,12 +354,28 @@ const useEmojiPicker = (
 // TODO better props type
 const PlatformInputInner = React.forwardRef((p: any, ref) => {
   const {...old} = p
+  const {cannotWrite, minWriterRole, inputHintText, isEditing, isExploding} = p
   const plainInputRef = React.useRef<Kb.PlainInput>()
   const htmlInputRef = React.useRef<input>()
   const {emojiPickerToggle, emojiPickerOpen, emojiPickerPopupRef, emojiPopup} = useEmojiPicker(
     plainInputRef,
     p.conversationIDKey
   )
+
+  const focusInput = React.useCallback(() => {
+    plainInputRef.current?.focus()
+  }, [plainInputRef])
+
+  const hintText = useMemo(() => {
+    if (cannotWrite) {
+      return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
+    } else if (isEditing) {
+      return 'Edit your message'
+    } else if (isExploding) {
+      return 'Write an exploding message'
+    }
+    return inputHintText || 'Write a message'
+  }, [cannotWrite, minWriterRole, inputHintText, isEditing, isExploding])
 
   return (
     <>
@@ -367,6 +387,8 @@ const PlatformInputInner = React.forwardRef((p: any, ref) => {
         emojiPickerPopupRef={emojiPickerPopupRef}
         plainInputRef={plainInputRef}
         htmlInputRef={htmlInputRef}
+        hintText={hintText}
+        focusInput={focusInput}
       />
       {emojiPopup}
     </>
@@ -467,6 +489,8 @@ const styles = Styles.styleSheetCreate(
       inputWrapper: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'flex-end',
+        backgroundColor: Styles.globalColors.white,
+        borderColor: Styles.globalColors.black_20,
         borderRadius: 4,
         borderStyle: 'solid',
         borderWidth: 1,
@@ -474,6 +498,8 @@ const styles = Styles.styleSheetCreate(
         marginRight: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.xtiny,
       },
+      inputWrapperEditing: {backgroundColor: Styles.globalColors.yellowLight},
+      inputWrapperExplodingMode: {borderColor: Styles.globalColors.black},
       walletsIcon: {
         alignSelf: 'flex-end',
         marginBottom: 2,
