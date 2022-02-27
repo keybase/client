@@ -110,48 +110,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     SuggestorHooks
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
-    _timeoutID?: ReturnType<typeof setTimeout>
-
-    componentWillUnmount() {
-      this._timeoutID && clearTimeout(this._timeoutID)
-    }
-
-    _checkTrigger = () => {
-      this._timeoutID = setTimeout(() => {
-        // inside a timeout so selection will settle, there was a problem where
-        // desktop would get the previous selection on arrowleft / arrowright
-        const cursorInfo = this.props.getWordAtCursor()
-        if (!cursorInfo) {
-          return
-        }
-        const {word} = cursorInfo
-        const {active} = this.props
-
-        if (active) {
-          const activeMarker = this.props.suggestorToMarker[active]
-          const matchInfo = matchesMarker(word, activeMarker)
-          if (!matchInfo.matches) {
-            // not active anymore
-            this.props.setInactive()
-          } else {
-            this.props.setFilter(word.substring(matchInfo.marker.length))
-            // call this._stabilizeSelection?
-            return
-          }
-        }
-        // @ts-ignore we know entries will give this type
-        for (let [suggestor, marker]: [string, string | RegExp] of Object.entries(
-          this.props.suggestorToMarker
-        )) {
-          const matchInfo = matchesMarker(word, marker)
-          if (matchInfo.matches && this.props.inputRef?.current?.isFocused()) {
-            this.props.setActive(suggestor)
-            this.props.setFilter(word.substring(matchInfo.marker.length))
-          }
-        }
-      }, 0)
-    }
-
     _move = (up: boolean) => {
       if (!this.props.active) {
         return
@@ -168,12 +126,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     _onChangeText = (text: string) => {
       this.props.lastText.current = text
       this.props.onChangeText?.(text)
-      this._checkTrigger()
+      this.props.checkTrigger()
     }
 
     _onKeyDown = (evt: React.KeyboardEvent) => {
       if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
-        this._checkTrigger()
+        this.props.checkTrigger()
       }
 
       if (!this.props.active || this.props.results.data.length === 0) {
@@ -215,12 +173,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
     _onFocus = () => {
       this.props.onFocus?.()
-      this._checkTrigger()
+      this.props.checkTrigger()
     }
 
     _onSelectionChange = (selection: TransformerData['position']) => {
       this.props.onSelectionChange?.(selection)
-      this._checkTrigger()
+      this.props.checkTrigger()
     }
 
     _triggerTransform = (value: any, final = true) => {
@@ -456,9 +414,64 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
     }, [active, onChannelSuggestionsTriggered, onFetchEmoji])
 
+    const triggerIDRef = React.useRef<any>(0)
+
+    React.useEffect(() => {
+      return () => {
+        clearTimeout(triggerIDRef.current)
+      }
+    }, [])
+
+    const checkTrigger = React.useCallback(() => {
+      if (triggerIDRef.current) {
+        clearTimeout(triggerIDRef.current)
+      }
+      triggerIDRef.current = setTimeout(() => {
+        // inside a timeout so selection will settle, there was a problem where
+        // desktop would get the previous selection on arrowleft / arrowright
+        const cursorInfo = getWordAtCursor()
+        if (!cursorInfo) {
+          return
+        }
+        const {word} = cursorInfo
+
+        if (active) {
+          const activeMarker = suggestorToMarker[active]
+          const matchInfo = matchesMarker(word, activeMarker)
+          if (!matchInfo.matches) {
+            // not active anymore
+            setInactive()
+          } else {
+            setFilter(word.substring(matchInfo.marker.length))
+
+            // call this._stabilizeSelection?
+            return
+          }
+        }
+        // @ts-ignore we know entries will give this type
+        for (let [suggestor, marker]: [string, string | RegExp] of Object.entries(suggestorToMarker)) {
+          const matchInfo = matchesMarker(word, marker as any)
+          if (matchInfo.matches && inputRef.current?.isFocused()) {
+            setActive(suggestor)
+            setFilter(word.substring(matchInfo.marker.length))
+          }
+        }
+      }, 1)
+    }, [
+      getWordAtCursor,
+      triggerIDRef,
+      setActive,
+      setFilter,
+      suggestorToMarker,
+      setInactive,
+      active,
+      inputRef,
+    ])
+
     return (
       <SuggestorsComponent
         {...p}
+        checkTrigger={checkTrigger}
         getWordAtCursor={getWordAtCursor}
         onBlur={onBlur2}
         getSelected={getSelected}
