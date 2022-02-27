@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import invert from 'lodash/invert'
+import {useMemo} from '../../../../util/memoize'
 import SuggestionList from './suggestion-list'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
@@ -43,6 +43,7 @@ const matchesMarker = (
 }
 
 type AddSuggestorsProps = {
+  lastText: React.MutableRefObject<string>
   setInactive: () => void
   active: string
   setActive: (a: string) => void
@@ -109,58 +110,17 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     SuggestorHooks
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
-    _lastText?: string
-    _suggestors = Object.keys(this.props.suggestorToMarker)
-    _markerToSuggestor: {[K in string]: string} = invert(this.props.suggestorToMarker)
     _timeoutID?: ReturnType<typeof setTimeout>
 
     componentWillUnmount() {
       this._timeoutID && clearTimeout(this._timeoutID)
     }
 
-    _getWordAtCursor = () => {
-      if (this.props.inputRef.current) {
-        const {useSpaces} = this._getResults()
-        const input = this.props.inputRef.current
-        const selection = input.getSelection()
-        const text = this._lastText
-        if (!selection || selection.start === null || text === undefined) {
-          return null
-        }
-        const upToCursor = text.substring(0, selection.start)
-
-        let wordRegex: string | RegExp
-
-        // If the datasource has data which contains spaces, we can't just split by a space character.
-        // So if we need to, we instead split on the next space which precedes another special marker
-        if (useSpaces) {
-          const markers = Object.values(this.props.suggestorToMarker).map(p =>
-            p instanceof RegExp ? p.source : p
-          )
-          wordRegex = new RegExp(` (?=${markers.join('|')})`, 'g')
-        } else {
-          wordRegex = / |\n/
-        }
-        const words = upToCursor.split(wordRegex)
-        const word = words[words.length - 1]
-        const position = {end: selection.start, start: selection.start - word.length}
-        return {position, word}
-      }
-      return null
-    }
-
-    _stabilizeSelection = () => {
-      const {data} = this._getResults()
-      if (this.props.selected > data.length - 1) {
-        this.props.setSelected(0)
-      }
-    }
-
     _checkTrigger = () => {
       this._timeoutID = setTimeout(() => {
         // inside a timeout so selection will settle, there was a problem where
         // desktop would get the previous selection on arrowleft / arrowright
-        const cursorInfo = this._getWordAtCursor()
+        const cursorInfo = this.props.getWordAtCursor()
         if (!cursorInfo) {
           return
         }
@@ -196,7 +156,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       if (!this.props.active) {
         return
       }
-      const length = this._getResults().data.length
+      const length = this.props.results.data.length
       const selected = (((up ? this.props.selected - 1 : this.props.selected + 1) % length) + length) % length
       if (selected !== this.props.selected) {
         this.props.setSelected(selected)
@@ -206,7 +166,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }
 
     _onChangeText = (text: string) => {
-      this._lastText = text
+      this.props.lastText.current = text
       this.props.onChangeText?.(text)
       this._checkTrigger()
     }
@@ -216,7 +176,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         this._checkTrigger()
       }
 
-      if (!this.props.active || this._getResults().data.length === 0) {
+      if (!this.props.active || this.props.results.data.length === 0) {
         // not showing list, bail
         this.props.onKeyDown?.(evt)
         return
@@ -235,12 +195,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
-        this._triggerTransform(this._getResults().data[this.props.selected])
+        this._triggerTransform(this.props.results.data[this.props.selected])
         shouldCallParentCallback = false
       } else if (evt.key === 'Tab') {
         evt.preventDefault()
         if (this.props.filter.length) {
-          this._triggerTransform(this._getSelected())
+          this._triggerTransform(this.props.getSelected())
         } else {
           // shift held -> move up
           this._move(evt.shiftKey)
@@ -251,11 +211,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       if (shouldCallParentCallback) {
         this.props.onKeyDown?.(evt)
       }
-    }
-
-    _onBlur = () => {
-      this.props.onBlur?.()
-      this.props.setInactive()
     }
 
     _onFocus = () => {
@@ -269,10 +224,10 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }
 
     _triggerTransform = (value: any, final = true) => {
-      if (this.props.inputRef.current && this.props.active) {
+      if (this.props.inputRef?.current && this.props.active) {
         const input = this.props.inputRef.current
         const {active} = this.props
-        const cursorInfo = this._getWordAtCursor()
+        const cursorInfo = this.props.getWordAtCursor()
         if (!cursorInfo) {
           return
         }
@@ -282,11 +237,11 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           matchInfo.marker,
           {
             position: cursorInfo.position,
-            text: this._lastText || '',
+            text: this.props.lastText.current || '',
           },
           !final
         )
-        this._lastText = transformedText.text
+        this.props.lastText.current = transformedText.text
         input.transformText(() => transformedText, final)
       }
     }
@@ -305,26 +260,13 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         </Kb.ClickableBox>
       )
 
-    _getResults = (): {data: any[]; loading: boolean; useSpaces: boolean} => {
-      const {active} = this.props
-      return active
-        ? this.props.dataSources[active](this.props.filter)
-        : {data: [], loading: false, useSpaces: false}
-    }
-
-    _getSelected = () => (this.props.active ? this._getResults().data[this.props.selected] : null)
-
-    _onExpanded = (expanded: boolean) => {
-      this.props.setExpanded(expanded)
-    }
-
     render() {
       let overlay: React.ReactNode = null
       if (this.props.active) {
         this.props.validateProps()
       }
       let suggestionsVisible = false
-      const results = this._getResults()
+      const results = this.props.results
       const suggestBotCommandsUpdateStatus = this.props.suggestBotCommandsUpdateStatus
       if (
         results.data.length ||
@@ -410,32 +352,52 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
             suggestionsVisible={suggestionsVisible}
             inputRef={this.props.inputRef}
-            onBlur={this._onBlur}
+            onBlur={this.props.onBlur}
             onFocus={this._onFocus}
             onChangeText={this._onChangeText}
             onKeyDown={this._onKeyDown}
             onSelectionChange={this._onSelectionChange}
-            onExpanded={this._onExpanded}
+            onExpanded={this.props.setExpanded}
           />
         </>
       )
     }
   }
 
+  // needed?
+  // _stabilizeSelection = () => {
+  //   const {data} = this.props.getResults()
+  //   if (this.props.selected > data.length - 1) {
+  //     this.props.setSelected(0)
+  //   }
+  // }
+
   const SuggestorsComponentOuter = (p: any) => {
     const {dataSources, renderers, suggestorToMarker, transformers} = p
-    const {onChannelSuggestionsTriggered, onFetchEmoji} = p
+    const {onChannelSuggestionsTriggered, onFetchEmoji, onBlur, userEmojisLoading} = p
 
     const [active, setActive] = React.useState('')
     const [expanded, setExpanded] = React.useState(false)
     const [filter, setFilter] = React.useState('')
     const [selected, setSelected] = React.useState(0)
+    const inputRef = React.useRef<Kb.PlainInput>()
+    const lastText = React.useRef('')
 
     const setInactive = React.useCallback(() => {
       setActive('')
       setFilter('')
       setSelected(0)
     }, [setActive, setFilter, setSelected])
+
+    const results = useMemo(() => {
+      return active ? dataSources[active](filter) : {data: [], loading: false, useSpaces: false}
+    }, [active, dataSources, filter, userEmojisLoading])
+    // userEmojisLoading is an implicit dep which should change
+
+    const getSelected = React.useCallback(
+      () => (active ? results.data[selected] : null),
+      [active, results, selected]
+    )
 
     const validateProps = React.useCallback(() => {
       if (!active) {
@@ -448,8 +410,40 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
     }, [active, dataSources, renderers, suggestorToMarker, transformers])
 
-    const inputRef = React.useRef<Kb.PlainInput>()
+    const onBlur2 = React.useCallback(() => {
+      onBlur?.()
+      setInactive()
+    }, [onBlur, setInactive])
+
     const getAttachmentRef = React.useCallback(() => inputRef.current, [inputRef])
+
+    const getWordAtCursor = React.useCallback(() => {
+      if (inputRef.current) {
+        const {useSpaces} = results
+        const input = inputRef.current
+        const selection = input.getSelection()
+        const text = lastText.current
+        if (!selection || selection.start === null || text === undefined) {
+          return null
+        }
+        const upToCursor = text.substring(0, selection.start)
+        let wordRegex: string | RegExp
+
+        // If the datasource has data which contains spaces, we can't just split by a space character.
+        // So if we need to, we instead split on the next space which precedes another special marker
+        if (useSpaces) {
+          const markers = Object.values(suggestorToMarker).map(p => (p instanceof RegExp ? p.source : p))
+          wordRegex = new RegExp(` (?=${markers.join('|')})`, 'g')
+        } else {
+          wordRegex = / |\n/
+        }
+        const words = upToCursor.split(wordRegex)
+        const word = words[words.length - 1]
+        const position = {end: selection.start, start: selection.start - word.length}
+        return {position, word}
+      }
+      return null
+    }, [inputRef, results, suggestorToMarker])
 
     React.useEffect(() => {
       switch (active) {
@@ -465,6 +459,11 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     return (
       <SuggestorsComponent
         {...p}
+        getWordAtCursor={getWordAtCursor}
+        onBlur={onBlur2}
+        getSelected={getSelected}
+        results={results}
+        lastText={lastText}
         getAttachmentRef={getAttachmentRef}
         inputRef={inputRef}
         validateProps={validateProps}
