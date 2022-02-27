@@ -44,6 +44,14 @@ const matchesMarker = (
 }
 
 type AddSuggestorsProps = {
+  active: string
+  setActive: (a: string) => void
+  expanded: boolean
+  setExpanded: (e: boolean) => void
+  filter: string
+  setFilter: (f: string) => void
+  selected: number
+  setSelected: (s: number) => void
   dataSources: {[K in string]: (filter: string) => {data: Array<any>; loading: boolean; useSpaces: boolean}}
   keyExtractors?: {[K in string]: (item: any) => string}
   onChannelSuggestionsTriggered: () => void
@@ -101,9 +109,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     SuggestorHooks
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
-    state: AddSuggestorsState = {active: undefined, expanded: false, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
-    // _attachmentRef = React.createRef()
     _lastText?: string
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor: {[K in string]: string} = invert(this.props.suggestorToMarker)
@@ -113,33 +119,13 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       this._timeoutID && clearTimeout(this._timeoutID)
     }
 
-    componentDidUpdate(_, prevState: AddSuggestorsState) {
-      if (prevState.active !== this.state.active) {
-        switch (this.state.active) {
-          case 'channels':
-            this.props.onChannelSuggestionsTriggered()
-            break
-          case 'emoji':
-            this.props.onFetchEmoji()
-            break
-        }
-      }
-    }
-
-    // _setAttachmentRef = (r: null | typeof WrappedComponent) => {
-    //   // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
-    //   this._attachmentRef.current = r
-    //   if (typeof this.props.forwardedRef === 'function') {
-    //     this.props.forwardedRef(r)
-    //   } else if (this.props.forwardedRef && typeof this.props.forwardedRef !== 'string') {
-    //     // @ts-ignore we probably shouldn't be doing this
-    //     this.props.forwardedRef.current = r
-    //   } // intentionally not supporting string refs
-    // }
-
     _getAttachmentRef: () => any = () => this._inputRef.current
 
-    _setInactive = () => this.setState(s => (s.active ? {active: undefined, filter: '', selected: 0} : null))
+    _setInactive = () => {
+      this.props.setActive('')
+      this.props.setFilter('')
+      this.props.setSelected(0)
+    }
 
     _getWordAtCursor = () => {
       if (this._inputRef.current) {
@@ -174,8 +160,8 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
     _stabilizeSelection = () => {
       const {data} = this._getResults()
-      if (this.state.selected > data.length - 1) {
-        this.setState({selected: 0})
+      if (this.props.selected > data.length - 1) {
+        this.props.setSelected(0)
       }
     }
 
@@ -188,7 +174,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           return
         }
         const {word} = cursorInfo
-        const {active} = this.state
+        const {active} = this.props
 
         if (active) {
           const activeMarker = this.props.suggestorToMarker[active]
@@ -197,7 +183,8 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             // not active anymore
             this._setInactive()
           } else {
-            this.setState({filter: word.substring(matchInfo.marker.length)}, this._stabilizeSelection)
+            this.props.setFilter(word.substring(matchInfo.marker.length))
+            // call this._stabilizeSelection?
             return
           }
         }
@@ -207,14 +194,15 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         )) {
           const matchInfo = matchesMarker(word, marker)
           if (matchInfo.matches && this._inputRef.current && this._inputRef.current.isFocused()) {
-            this.setState({active: suggestor, filter: word.substring(matchInfo.marker.length)})
+            this.props.setActive(suggestor)
+            this.props.setFilter(word.substring(matchInfo.marker.length))
           }
         }
       }, 0)
     }
 
     _validateProps = () => {
-      const {active} = this.state
+      const {active} = this.props
       if (!active) {
         return
       }
@@ -231,17 +219,16 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }
 
     _move = (up: boolean) => {
-      this.setState(
-        s => {
-          if (!s.active) {
-            return null
-          }
-          const length = this._getResults().data.length
-          const selected = (((up ? s.selected - 1 : s.selected + 1) % length) + length) % length
-          return selected === s.selected ? null : {selected}
-        },
-        () => this._triggerTransform(this._getSelected(), false)
-      )
+      if (!this.props.active) {
+        return
+      }
+      const length = this._getResults().data.length
+      const selected = (((up ? this.props.selected - 1 : this.props.selected + 1) % length) + length) % length
+      if (selected !== this.props.selected) {
+        this.props.setSelected(selected)
+      }
+      // TODO after setState?
+      // () => this._triggerTransform(this._getSelected(), false)
     }
 
     _onChangeText = (text: string) => {
@@ -255,7 +242,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         this._checkTrigger()
       }
 
-      if (!this.state.active || this._getResults().data.length === 0) {
+      if (!this.props.active || this._getResults().data.length === 0) {
         // not showing list, bail
         this.props.onKeyDown?.(evt)
         return
@@ -274,11 +261,11 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
-        this._triggerTransform(this._getResults().data[this.state.selected])
+        this._triggerTransform(this._getResults().data[this.props.selected])
         shouldCallParentCallback = false
       } else if (evt.key === 'Tab') {
         evt.preventDefault()
-        if (this.state.filter.length) {
+        if (this.props.filter.length) {
           this._triggerTransform(this._getSelected())
         } else {
           // shift held -> move up
@@ -308,9 +295,9 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }
 
     _triggerTransform = (value: any, final = true) => {
-      if (this._inputRef.current && this.state.active) {
+      if (this._inputRef.current && this.props.active) {
         const input = this._inputRef.current
-        const {active} = this.state
+        const {active} = this.props
         const cursorInfo = this._getWordAtCursor()
         if (!cursorInfo) {
           return
@@ -331,35 +318,35 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }
 
     _itemRenderer = (index: number, value: string): React.ReactElement | null =>
-      !this.state.active ? null : (
+      !this.props.active ? null : (
         <Kb.ClickableBox
-          key={this.props.keyExtractors?.[this.state.active]?.(value) || value}
+          key={this.props.keyExtractors?.[this.props.active]?.(value) || value}
           onClick={() => this._triggerTransform(value)}
-          onMouseMove={() => this.setState(s => (s.selected === index ? null : {selected: index}))}
+          onMouseMove={() => this.props.setSelected(index)}
         >
-          {this.props.renderers[this.state.active](
+          {this.props.renderers[this.props.active](
             value,
-            Styles.isMobile ? false : index === this.state.selected
+            Styles.isMobile ? false : index === this.props.selected
           )}
         </Kb.ClickableBox>
       )
 
     _getResults = (): {data: any[]; loading: boolean; useSpaces: boolean} => {
-      const {active} = this.state
+      const {active} = this.props
       return active
-        ? this.props.dataSources[active](this.state.filter)
+        ? this.props.dataSources[active](this.props.filter)
         : {data: [], loading: false, useSpaces: false}
     }
 
-    _getSelected = () => (this.state.active ? this._getResults().data[this.state.selected] : null)
+    _getSelected = () => (this.props.active ? this._getResults().data[this.props.selected] : null)
 
     _onExpanded = (expanded: boolean) => {
-      this.setState({expanded})
+      this.props.setExpanded(expanded)
     }
 
     render() {
       let overlay: React.ReactNode = null
-      if (this.state.active) {
+      if (this.props.active) {
         this._validateProps()
       }
       let suggestionsVisible = false
@@ -371,12 +358,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
       ) {
         suggestionsVisible = true
-        const active = this.state.active
+        const active = this.props.active
         const content = results.data.length ? (
           <>
             <SuggestionList
               style={
-                this.state.expanded
+                this.props.expanded
                   ? {bottom: 95, position: 'absolute', top: 95}
                   : this.props.suggestionListStyle
               }
@@ -385,7 +372,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
                 (this.props.keyExtractors && !!active && this.props.keyExtractors[active]) || undefined
               }
               renderItem={this._itemRenderer}
-              selectedIndex={this.state.selected}
+              selectedIndex={this.props.selected}
               suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
             />
             {results.loading && (
@@ -461,8 +448,41 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }
   }
 
+  const SuggestorsComponentOuter = (p: any) => {
+    const [active, setActive] = React.useState('')
+    const [expanded, setExpanded] = React.useState(false)
+    const [filter, setFilter] = React.useState('')
+    const [selected, setSelected] = React.useState(0)
+
+    const {onChannelSuggestionsTriggered, onFetchEmoji} = p
+
+    React.useEffect(() => {
+      switch (active) {
+        case 'channels':
+          onChannelSuggestionsTriggered()
+          break
+        case 'emoji':
+          onFetchEmoji()
+          break
+      }
+    }, [active, onChannelSuggestionsTriggered, onFetchEmoji])
+
+    return (
+      <SuggestorsComponent
+        {...p}
+        active={active}
+        setActive={setActive}
+        expanded={expanded}
+        setExpanded={setExpanded}
+        filter={filter}
+        setFilter={setFilter}
+        selected={selected}
+        setSelected={setSelected}
+      />
+    )
+  }
   // @ts-ignore TODO fix these types
-  return React.forwardRef((props, ref) => <SuggestorsComponent {...props} forwardedRef={ref} />)
+  return React.forwardRef((props, ref) => <SuggestorsComponentOuter {...props} forwardedRef={ref} />)
 }
 
 const styles = Styles.styleSheetCreate(() => ({
