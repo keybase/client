@@ -186,60 +186,22 @@ const useEmojiPicker = (
   }
 }
 
-type Props = PlatformInputPropsInternal
-
-const PlatformInputInner = (p: Props) => {
+const useKeyboard = (
+  p: Props,
+  lastText: React.MutableRefObject<string>,
+  htmlInputRef: React.RefObject<HTMLInputElement>,
+  focusInput: () => void
+) => {
   const {
-    cannotWrite,
-    conversationIDKey,
-    explodingModeSeconds,
-    getAttachmentRef,
-    inputHintText,
-    inputRef,
-    inputSetRef,
     isEditing,
-    isExploding,
-    minWriterRole,
-    onCancelEditing,
     onCancelReply,
-    onChangeText,
+    onCancelEditing,
     onEditLastMessage,
     onKeyDown,
     onRequestScrollDown,
     onRequestScrollUp,
-    setAttachmentRef,
     showReplyPreview,
-    showWalletsIcon,
-    showingMenu,
-    toggleShowingMenu,
   } = p
-  const plainInputRef = React.useRef<Kb.PlainInput>(null)
-  const htmlInputRef = React.useRef<HTMLInputElement>(null)
-  const {emojiPickerToggle, emojiPickerOpen, emojiPickerPopupRef, emojiPopup} = useEmojiPicker(
-    plainInputRef,
-    p.conversationIDKey
-  )
-  const lastText = React.useRef('')
-  const focusInput = React.useCallback(() => {
-    plainInputRef.current?.focus()
-  }, [plainInputRef])
-  const hintText = useMemo(() => {
-    if (cannotWrite) {
-      return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
-    } else if (isEditing) {
-      return 'Edit your message'
-    } else if (isExploding) {
-      return 'Write an exploding message'
-    }
-    return inputHintText || 'Write a message'
-  }, [cannotWrite, minWriterRole, inputHintText, isEditing, isExploding])
-  const onChangeText2 = React.useCallback(
-    (text: string) => {
-      lastText.current = text
-      onChangeText(text)
-    },
-    [onChangeText, lastText]
-  )
   // Key-handling code shared by both the input key handler
   // (_onKeyDown) and the global key handler
   // (_globalKeyDownPressHandler).
@@ -311,7 +273,54 @@ const PlatformInputInner = (p: Props) => {
     [focusInput, commonOnKeyDown]
   )
 
+  const inputKeyDown = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      commonOnKeyDown(e)
+      onKeyDown?.(e)
+    },
+    [commonOnKeyDown, onKeyDown]
+  )
+
+  return {globalKeyDownPressHandler, inputKeyDown}
+}
+
+type Props = PlatformInputPropsInternal
+
+const PlatformInputInner = (p: Props) => {
+  const {cannotWrite, conversationIDKey, explodingModeSeconds, getAttachmentRef, inputHintText} = p
+  const {onChangeText, setAttachmentRef, showWalletsIcon, showingMenu, toggleShowingMenu} = p
+  const {isExploding, minWriterRole, onCancelEditing, inputRef, inputSetRef, isEditing} = p
+  const plainInputRef = React.useRef<Kb.PlainInput>(null)
+  const htmlInputRef = React.useRef<HTMLInputElement>(null)
+  const {emojiPickerToggle, emojiPickerOpen, emojiPickerPopupRef, emojiPopup} = useEmojiPicker(
+    plainInputRef,
+    conversationIDKey
+  )
+  const lastText = React.useRef('')
+  const focusInput = React.useCallback(() => {
+    plainInputRef.current?.focus()
+  }, [plainInputRef])
+  const hintText = useMemo(() => {
+    if (cannotWrite) {
+      return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
+    } else if (isEditing) {
+      return 'Edit your message'
+    } else if (isExploding) {
+      return 'Write an exploding message'
+    }
+    return inputHintText || 'Write a message'
+  }, [cannotWrite, minWriterRole, inputHintText, isEditing, isExploding])
+  const onChangeText2 = React.useCallback(
+    (text: string) => {
+      lastText.current = text
+      onChangeText(text)
+    },
+    [onChangeText, lastText]
+  )
+
+  const {globalKeyDownPressHandler, inputKeyDown} = useKeyboard(p, lastText, htmlInputRef, focusInput)
   const showingExplodingMenu = showingMenu
+
   return (
     <>
       <KeyEventHandler onKeyDown={globalKeyDownPressHandler} onKeyPress={globalKeyDownPressHandler}>
@@ -358,10 +367,7 @@ const PlatformInputInner = (p: Props) => {
                 multiline={true}
                 rowsMin={1}
                 rowsMax={10}
-                onKeyDown={(e: React.KeyboardEvent) => {
-                  commonOnKeyDown(e)
-                  onKeyDown?.(e)
-                }}
+                onKeyDown={inputKeyDown}
               />
             </Kb.Box2>
             {showingExplodingMenu && (
@@ -402,9 +408,7 @@ const PlatformInput = AddSuggestors(PlatformInputInner)
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      cancelEditingBtn: {
-        margin: Styles.globalMargins.xtiny,
-      },
+      cancelEditingBtn: {margin: Styles.globalMargins.xtiny},
       container: {
         ...Styles.globalStyles.flexBoxColumn,
         backgroundColor: Styles.globalColors.white,
@@ -417,16 +421,10 @@ const styles = Styles.styleSheetCreate(
           position: 'absolute',
           right: -64,
         },
-        isElectron: {
-          ...Styles.desktopStyles.boxShadow,
-        },
+        isElectron: {...Styles.desktopStyles.boxShadow},
       }),
-      emojiPickerContainerWrapper: {
-        ...Styles.globalStyles.fillAbsolute,
-      },
-      emojiPickerRelative: {
-        position: 'relative',
-      },
+      emojiPickerContainerWrapper: {...Styles.globalStyles.fillAbsolute},
+      emojiPickerRelative: {position: 'relative'},
       explodingIconContainer: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxColumn,
@@ -438,9 +436,7 @@ const styles = Styles.styleSheetCreate(
           textAlign: 'center',
           width: 32,
         },
-        isElectron: {
-          borderRight: `1px solid ${Styles.globalColors.black_20}`,
-        },
+        isElectron: {borderRight: `1px solid ${Styles.globalColors.black_20}`},
       }),
       explodingIconContainerClickable: Styles.platformStyles({
         isElectron: {...Styles.desktopStyles.clickable},
@@ -458,9 +454,7 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'flex-start',
         justifyContent: 'space-between',
       },
-      hidden: {
-        display: 'none',
-      },
+      hidden: {display: 'none'},
       icon: {
         alignSelf: 'flex-end',
         marginBottom: 2,
@@ -486,9 +480,7 @@ const styles = Styles.styleSheetCreate(
         paddingTop: Styles.globalMargins.tiny - 2,
         textAlign: 'left',
       },
-      inputEditing: {
-        color: Styles.globalColors.blackOrBlack,
-      },
+      inputEditing: {color: Styles.globalColors.blackOrBlack},
       inputWrapper: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'flex-end',
