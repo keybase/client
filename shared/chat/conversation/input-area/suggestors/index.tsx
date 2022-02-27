@@ -118,8 +118,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       this._timeoutID && clearTimeout(this._timeoutID)
     }
 
-    _getAttachmentRef: () => any = () => this.props.inputRef.current
-
     _getWordAtCursor = () => {
       if (this.props.inputRef.current) {
         const {useSpaces} = this._getResults()
@@ -378,7 +376,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           </Kb.FloatingBox>
         ) : (
           <Kb.Overlay
-            attachTo={this._getAttachmentRef}
+            attachTo={this.props.getAttachmentRef}
             matchDimension={true}
             position="top center"
             positionFallbacks={['bottom center']}
@@ -451,6 +449,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }, [active, dataSources, renderers, suggestorToMarker, transformers])
 
     const inputRef = React.useRef<Kb.PlainInput>()
+    const getAttachmentRef = React.useCallback(() => inputRef.current, [inputRef])
 
     React.useEffect(() => {
       switch (active) {
@@ -466,6 +465,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     return (
       <SuggestorsComponent
         {...p}
+        getAttachmentRef={getAttachmentRef}
         inputRef={inputRef}
         validateProps={validateProps}
         setInactive={setInactive}
