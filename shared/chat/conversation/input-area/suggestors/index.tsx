@@ -1,4 +1,3 @@
-// TODO hookify, this hierarchy is very confusing
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
@@ -44,6 +43,7 @@ const matchesMarker = (
 }
 
 type AddSuggestorsProps = {
+  setInactive: () => void
   active: string
   setActive: (a: string) => void
   expanded: boolean
@@ -109,7 +109,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     SuggestorHooks
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
-    _inputRef = React.createRef<Kb.PlainInput>()
     _lastText?: string
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor: {[K in string]: string} = invert(this.props.suggestorToMarker)
@@ -119,18 +118,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       this._timeoutID && clearTimeout(this._timeoutID)
     }
 
-    _getAttachmentRef: () => any = () => this._inputRef.current
-
-    _setInactive = () => {
-      this.props.setActive('')
-      this.props.setFilter('')
-      this.props.setSelected(0)
-    }
+    _getAttachmentRef: () => any = () => this.props.inputRef.current
 
     _getWordAtCursor = () => {
-      if (this._inputRef.current) {
+      if (this.props.inputRef.current) {
         const {useSpaces} = this._getResults()
-        const input = this._inputRef.current
+        const input = this.props.inputRef.current
         const selection = input.getSelection()
         const text = this._lastText
         if (!selection || selection.start === null || text === undefined) {
@@ -181,7 +174,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           const matchInfo = matchesMarker(word, activeMarker)
           if (!matchInfo.matches) {
             // not active anymore
-            this._setInactive()
+            this.props.setInactive()
           } else {
             this.props.setFilter(word.substring(matchInfo.marker.length))
             // call this._stabilizeSelection?
@@ -193,29 +186,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           this.props.suggestorToMarker
         )) {
           const matchInfo = matchesMarker(word, marker)
-          if (matchInfo.matches && this._inputRef.current && this._inputRef.current.isFocused()) {
+          if (matchInfo.matches && this.props.inputRef?.current?.isFocused()) {
             this.props.setActive(suggestor)
             this.props.setFilter(word.substring(matchInfo.marker.length))
           }
         }
       }, 0)
-    }
-
-    _validateProps = () => {
-      const {active} = this.props
-      if (!active) {
-        return
-      }
-      if (
-        !this.props.dataSources[active] ||
-        !this.props.renderers[active] ||
-        !this.props.suggestorToMarker[active] ||
-        !this.props.transformers[active]
-      ) {
-        throw new Error(
-          `AddSuggestors: invalid props for suggestor '${active}', did you miss a key somewhere?`
-        )
-      }
     }
 
     _move = (up: boolean) => {
@@ -281,7 +257,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
     _onBlur = () => {
       this.props.onBlur?.()
-      this._setInactive()
+      this.props.setInactive()
     }
 
     _onFocus = () => {
@@ -295,8 +271,8 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }
 
     _triggerTransform = (value: any, final = true) => {
-      if (this._inputRef.current && this.props.active) {
-        const input = this._inputRef.current
+      if (this.props.inputRef.current && this.props.active) {
+        const input = this.props.inputRef.current
         const {active} = this.props
         const cursorInfo = this._getWordAtCursor()
         if (!cursorInfo) {
@@ -347,7 +323,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     render() {
       let overlay: React.ReactNode = null
       if (this.props.active) {
-        this._validateProps()
+        this.props.validateProps()
       }
       let suggestionsVisible = false
       const results = this._getResults()
@@ -396,7 +372,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           <Kb.FloatingBox
             containerStyle={this.props.suggestionOverlayStyle}
             dest="keyboard-avoiding-root"
-            onHidden={this._setInactive}
+            onHidden={this.props.setInactive}
           >
             {content}
           </Kb.FloatingBox>
@@ -408,7 +384,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             positionFallbacks={['bottom center']}
             visible={true}
             propagateOutsideClicks={false}
-            onHidden={this._setInactive}
+            onHidden={this.props.setInactive}
             style={this.props.suggestionOverlayStyle}
           >
             {content}
@@ -435,7 +411,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             {...(wrappedOP as WrappedOwnProps)}
             suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
             suggestionsVisible={suggestionsVisible}
-            inputRef={this._inputRef}
+            inputRef={this.props.inputRef}
             onBlur={this._onBlur}
             onFocus={this._onFocus}
             onChangeText={this._onChangeText}
@@ -449,12 +425,32 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
   }
 
   const SuggestorsComponentOuter = (p: any) => {
+    const {dataSources, renderers, suggestorToMarker, transformers} = p
+    const {onChannelSuggestionsTriggered, onFetchEmoji} = p
+
     const [active, setActive] = React.useState('')
     const [expanded, setExpanded] = React.useState(false)
     const [filter, setFilter] = React.useState('')
     const [selected, setSelected] = React.useState(0)
 
-    const {onChannelSuggestionsTriggered, onFetchEmoji} = p
+    const setInactive = React.useCallback(() => {
+      setActive('')
+      setFilter('')
+      setSelected(0)
+    }, [setActive, setFilter, setSelected])
+
+    const validateProps = React.useCallback(() => {
+      if (!active) {
+        return
+      }
+      if (!dataSources[active] || !renderers[active] || !suggestorToMarker[active] || !transformers[active]) {
+        throw new Error(
+          `AddSuggestors: invalid props for suggestor '${active}', did you miss a key somewhere?`
+        )
+      }
+    }, [active, dataSources, renderers, suggestorToMarker, transformers])
+
+    const inputRef = React.useRef<Kb.PlainInput>()
 
     React.useEffect(() => {
       switch (active) {
@@ -470,6 +466,9 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     return (
       <SuggestorsComponent
         {...p}
+        inputRef={inputRef}
+        validateProps={validateProps}
+        setInactive={setInactive}
         active={active}
         setActive={setActive}
         expanded={expanded}
@@ -499,9 +498,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isMobile: {},
   }),
   spinnerBackground: Styles.platformStyles({
-    common: {
-      justifyContent: 'center',
-    },
+    common: {justifyContent: 'center'},
     isElectron: {
       backgroundColor: Styles.globalColors.white,
       borderRadius: 4,
