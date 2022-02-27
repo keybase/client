@@ -103,7 +103,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
     state: AddSuggestorsState = {active: undefined, expanded: false, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
-    _attachmentRef = React.createRef()
+    // _attachmentRef = React.createRef()
     _lastText?: string
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor: {[K in string]: string} = invert(this.props.suggestorToMarker)
@@ -126,19 +126,18 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
     }
 
-    _setAttachmentRef = (r: null | typeof WrappedComponent) => {
-      // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
-      this._attachmentRef.current = r
-      if (typeof this.props.forwardedRef === 'function') {
-        this.props.forwardedRef(r)
-      } else if (this.props.forwardedRef && typeof this.props.forwardedRef !== 'string') {
-        // @ts-ignore we probably shouldn't be doing this
-        this.props.forwardedRef.current = r
-      } // intentionally not supporting string refs
-    }
+    // _setAttachmentRef = (r: null | typeof WrappedComponent) => {
+    //   // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
+    //   this._attachmentRef.current = r
+    //   if (typeof this.props.forwardedRef === 'function') {
+    //     this.props.forwardedRef(r)
+    //   } else if (this.props.forwardedRef && typeof this.props.forwardedRef !== 'string') {
+    //     // @ts-ignore we probably shouldn't be doing this
+    //     this.props.forwardedRef.current = r
+    //   } // intentionally not supporting string refs
+    // }
 
-    _getInputRef = () => this._inputRef.current
-    _getAttachmentRef: () => any = () => this._attachmentRef.current
+    _getAttachmentRef: () => any = () => this._inputRef.current
 
     _setInactive = () => this.setState(s => (s.active ? {active: undefined, filter: '', selected: 0} : null))
 
@@ -449,7 +448,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             {...(wrappedOP as WrappedOwnProps)}
             suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
             suggestionsVisible={suggestionsVisible}
-            ref={this._setAttachmentRef}
             inputRef={this._inputRef}
             onBlur={this._onBlur}
             onFocus={this._onFocus}
