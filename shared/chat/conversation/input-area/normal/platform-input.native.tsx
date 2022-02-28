@@ -32,82 +32,23 @@ const defaultMaxHeight = 145
 const {block, Value, Clock, add, concat} = Kb.ReAnimated
 
 class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal> {
-  private openFilePicker = () => {
-    this.toggleShowingMenu('filepickerpopup')
-  }
-  private openMoreMenu = () => {
-    this.toggleShowingMenu('moremenu')
-  }
-
-  private launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
-    const handleSelection = (result: ImagePicker.ImagePickerResult) => {
-      if (result.cancelled || !this.props.conversationIDKey) {
-        return
-      }
-      const filename = parseUri(result)
-      if (filename) {
-        this.props.onAttach([filename])
-      }
-    }
-
-    switch (location) {
-      case 'camera':
-        launchCameraAsync(mediaType)
-          .then(handleSelection)
-          .catch(error => this.props.onFilePickerError(new Error(error)))
-        break
-      case 'library':
-        launchImageLibraryAsync(mediaType)
-          .then(handleSelection)
-          .catch(error => this.props.onFilePickerError(new Error(error)))
-        break
-    }
-  }
-
-  // Enter should send a message like on desktop, when a hardware keyboard's
-  // attached.  On Android we get "hardware" keypresses from soft keyboards,
-  // so check whether a soft keyboard's up.
-  private handleHardwareEnterPress = (hwKeyEvent: {pressedKey: string}) => {
-    switch (hwKeyEvent.pressedKey) {
-      case 'enter':
-        Styles.isIOS || !isOpen() ? this.onSubmit() : this.insertText('\n')
-        break
-      case 'shift-enter':
-        this.insertText('\n')
-    }
-  }
-
   componentDidMount() {
-    // @ts-ignore supplied type seems incorrect, has the onHWKeyPressed param as an object
-    HWKeyboardEvent.onHWKeyPressed(this.handleHardwareEnterPress)
+    // Enter should send a message like on desktop, when a hardware keyboard's
+    // attached.  On Android we get "hardware" keypresses from soft keyboards,
+    // so check whether a soft keyboard's up.
+    HWKeyboardEvent.onHWKeyPressed((hwKeyEvent: {pressedKey: string}) => {
+      switch (hwKeyEvent.pressedKey) {
+        case 'enter':
+          Styles.isIOS || !isOpen() ? this.props.onSubmit() : this.insertText('\n')
+          break
+        case 'shift-enter':
+          this.insertText('\n')
+      }
+    })
   }
 
   componentWillUnmount() {
     HWKeyboardEvent.removeOnHWKeyPressed()
-  }
-
-  private onChangeText = (text: string) => {
-    this.props.setHasText(!!text)
-    this.props.lastText.current = text
-    this.props.onChangeText(text)
-    this.props.watchSizeChanges.current = true
-  }
-
-  private onSubmit = () => {
-    const text = this.props.lastText.current
-    if (text) {
-      this.props.onSubmit(text)
-      if (this.props.expanded) {
-        this.toggleExpandInput()
-      }
-    }
-  }
-
-  private toggleShowingMenu = (menu: menuType) => {
-    // Hide the keyboard on mobile when showing the menu.
-    Kb.NativeKeyboard.dismiss()
-    this.props.whichMenu.current = menu
-    this.props.toggleShowingMenu()
   }
 
   private onLayout = (p: LayoutEvent) => {
@@ -154,7 +95,7 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal>
         attachTo={this.props.getAttachmentRef}
         visible={this.props.showingMenu}
         onHidden={this.props.toggleShowingMenu}
-        onSelect={this.launchNativeImagePicker}
+        onSelect={this.props.launchNativeImagePicker}
       />
     ) : this.props.whichMenu.current === 'moremenu' ? (
       <MoreMenuPopup
@@ -176,17 +117,6 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal>
     this.props.setAnimating(false)
     // still needed?
     // this.setState({afterAnimatingExtraStepWorkaround: false})
-  }
-
-  private toggleExpandInput = () => {
-    this.props.watchSizeChanges.current = false
-    const nextState = !this.props.expanded
-    this.props.setAfterAnimatingExtraStepWorkaround(true)
-    this.props.setExpanded(nextState)
-    this.props.setAnimating(true)
-    this.props.animateState.current.setValue(
-      nextState ? AnimationState.expanding : AnimationState.contracting
-    )
   }
 
   render() {
@@ -262,7 +192,12 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal>
               onFocus={onFocus}
               // TODO: Call onCancelQuoting on text change or selection
               // change to match desktop.
-              onChangeText={this.onChangeText}
+              onChangeText={(text: string) => {
+                this.props.setHasText(!!text)
+                this.props.lastText.current = text
+                this.props.onChangeText(text)
+                this.props.watchSizeChanges.current = true
+              }}
               onSelectionChange={onSelectionChange}
               ref={(ref: null | Kb.PlainInput) => {
                 this.props.inputSetRef(ref)
@@ -272,22 +207,26 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal>
               textType="Body"
               rowsMin={1}
             />
-            <AnimatedExpand expandInput={this.toggleExpandInput} rotate={this.props.rotate.current} />
+            <AnimatedExpand expandInput={this.props.toggleExpandInput} rotate={this.props.rotate.current} />
           </Kb.Box2>
           <Buttons
             conversationIDKey={conversationIDKey}
             insertEmoji={this.insertText}
             insertMentionMarker={this.insertMentionMarker}
-            openFilePicker={this.openFilePicker}
-            openMoreMenu={this.openMoreMenu}
+            openFilePicker={() => {
+              this.props.ourShowMenu('filepickerpopup')
+            }}
+            openMoreMenu={() => {
+              this.props.ourShowMenu('moremenu')
+            }}
             onSelectionChange={onSelectionChange}
-            onSubmit={this.onSubmit}
+            onSubmit={this.props.onSubmit}
             hasText={this.props.hasText}
             isEditing={isEditing}
             isExploding={isExploding}
             explodingModeSeconds={explodingModeSeconds}
             cannotWrite={cannotWrite}
-            toggleShowingMenu={() => this.toggleShowingMenu('exploding')}
+            toggleShowingMenu={() => this.props.ourShowMenu('exploding')}
             onCancelEditing={onCancelEditing}
           />
         </Kb.Box2>
@@ -424,7 +363,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
 }
 
 const PlatformInputOuter = (p: any) => {
-  const {onExpanded} = p
+  const {onExpanded, conversationIDKey, onAttach, onFilePickerError, onSubmit, toggleShowingMenu} = p
   const lastText = React.useRef('')
   const whichMenu = React.useRef<MenuType | undefined>()
   const clock = React.useRef(new Clock())
@@ -441,6 +380,70 @@ const PlatformInputOuter = (p: any) => {
   const [animating, setAnimating] = React.useState(false)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const [hasText, setHasText] = React.useState(false)
+
+  const launchNativeImagePicker = React.useCallback(
+    (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
+      const handleSelection = (result: ImagePicker.ImagePickerResult) => {
+        if (result.cancelled || !conversationIDKey) {
+          return
+        }
+        const filename = parseUri(result)
+        if (filename) {
+          onAttach([filename])
+        }
+      }
+
+      switch (location) {
+        case 'camera':
+          launchCameraAsync(mediaType)
+            .then(handleSelection)
+            .catch(error => onFilePickerError(new Error(error)))
+          break
+        case 'library':
+          launchImageLibraryAsync(mediaType)
+            .then(handleSelection)
+            .catch(error => onFilePickerError(new Error(error)))
+          break
+      }
+    },
+    [conversationIDKey, onAttach, onFilePickerError]
+  )
+
+  const toggleExpandInput = React.useCallback(() => {
+    watchSizeChanges.current = false
+    const nextState = !expanded
+    setAfterAnimatingExtraStepWorkaround(true)
+    setExpanded(nextState)
+    setAnimating(true)
+    animateState.current.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
+  }, [
+    watchSizeChanges,
+    expanded,
+    setAfterAnimatingExtraStepWorkaround,
+    setExpanded,
+    setAnimating,
+    animateState,
+  ])
+
+  const onSubmit2 = React.useCallback(() => {
+    const text = lastText.current
+    if (text) {
+      onSubmit(text)
+      if (expanded) {
+        toggleExpandInput()
+      }
+    }
+  }, [lastText, onSubmit, expanded, toggleExpandInput])
+
+  const ourShowMenu = React.useCallback(
+    (menu: MenuType) => {
+      // Hide the keyboard on mobile when showing the menu.
+      Kb.NativeKeyboard.dismiss()
+      whichMenu.current = menu
+      toggleShowingMenu()
+    },
+    [whichMenu, toggleShowingMenu]
+  )
 
   Container.useDepChangeEffect(() => {
     onExpanded(expanded)
@@ -466,6 +469,10 @@ const PlatformInputOuter = (p: any) => {
       setExpanded={setExpanded}
       hasText={hasText}
       setHasText={setHasText}
+      launchNativeImagePicker={launchNativeImagePicker}
+      onSubmit={onSubmit2}
+      toggleExpandInput={toggleExpandInput}
+      ourShowMenu={ourShowMenu}
     />
   )
 }
