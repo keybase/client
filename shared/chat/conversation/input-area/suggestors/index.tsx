@@ -102,48 +102,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     SuggestorHooks
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps> {
-    _onKeyDown = (evt: React.KeyboardEvent) => {
-      if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
-        this.props.checkTrigger()
-      }
-
-      if (!this.props.active || this.props.results.data.length === 0) {
-        // not showing list, bail
-        this.props.onKeyDown?.(evt)
-        return
-      }
-
-      let shouldCallParentCallback = true
-
-      // check trigger keys (up, down, enter, tab)
-      if (evt.key === 'ArrowDown') {
-        evt.preventDefault()
-        this.props.move(false)
-        shouldCallParentCallback = false
-      } else if (evt.key === 'ArrowUp') {
-        evt.preventDefault()
-        this.props.move(true)
-        shouldCallParentCallback = false
-      } else if (evt.key === 'Enter') {
-        evt.preventDefault()
-        this.props.triggerTransform(this.props.results.data[this.props.selected])
-        shouldCallParentCallback = false
-      } else if (evt.key === 'Tab') {
-        evt.preventDefault()
-        if (this.props.filter.length) {
-          this.props.triggerTransform(this.props.getSelected())
-        } else {
-          // shift held -> move up
-          this.props.move(evt.shiftKey)
-        }
-        shouldCallParentCallback = false
-      }
-
-      if (shouldCallParentCallback) {
-        this.props.onKeyDown?.(evt)
-      }
-    }
-
     _onFocus = () => {
       this.props.onFocus?.()
       this.props.checkTrigger()
@@ -263,7 +221,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             onBlur={this.props.onBlur}
             onFocus={this._onFocus}
             onChangeText={this.props.onChangeText}
-            onKeyDown={this._onKeyDown}
+            onKeyDown={this.props.onKeyDown}
             onSelectionChange={this._onSelectionChange}
             onExpanded={this.props.setExpanded}
           />
@@ -281,7 +239,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
   // }
 
   const SuggestorsComponentOuter = (p: any) => {
-    const {dataSources, renderers, suggestorToMarker, transformers, onChangeText} = p
+    const {dataSources, renderers, suggestorToMarker, transformers, onChangeText, onKeyDown} = p
     const {onChannelSuggestionsTriggered, onFetchEmoji, onBlur, userEmojisLoading} = p
 
     const [active, setActive] = React.useState('')
@@ -450,6 +408,51 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       [lastText, onChangeText, checkTrigger]
     )
 
+    const onKeyDown2 = React.useCallback(
+      (evt: React.KeyboardEvent) => {
+        if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
+          checkTrigger()
+        }
+
+        if (!active || results.data.length === 0) {
+          // not showing list, bail
+          onKeyDown?.(evt)
+          return
+        }
+
+        let shouldCallParentCallback = true
+
+        // check trigger keys (up, down, enter, tab)
+        if (evt.key === 'ArrowDown') {
+          evt.preventDefault()
+          move(false)
+          shouldCallParentCallback = false
+        } else if (evt.key === 'ArrowUp') {
+          evt.preventDefault()
+          move(true)
+          shouldCallParentCallback = false
+        } else if (evt.key === 'Enter') {
+          evt.preventDefault()
+          triggerTransform(results.data[selected])
+          shouldCallParentCallback = false
+        } else if (evt.key === 'Tab') {
+          evt.preventDefault()
+          if (filter.length) {
+            triggerTransform(getSelected())
+          } else {
+            // shift held -> move up
+            move(evt.shiftKey)
+          }
+          shouldCallParentCallback = false
+        }
+
+        if (shouldCallParentCallback) {
+          onKeyDown?.(evt)
+        }
+      },
+      [onKeyDown, active, checkTrigger, filter, results, selected, move, getSelected, triggerTransform]
+    )
+
     React.useEffect(() => {
       switch (active) {
         case 'channels':
@@ -470,6 +473,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     return (
       <SuggestorsComponent
         {...p}
+        onKeyDown={onKeyDown2}
         onChangeText={onChangeText2}
         move={move}
         triggerTransform={triggerTransform}
