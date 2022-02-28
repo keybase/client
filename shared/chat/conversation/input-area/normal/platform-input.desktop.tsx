@@ -9,7 +9,7 @@ import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
 import Typing from './typing/container'
-import AddSuggestors from '../suggestors'
+import {useSuggestors} from '../suggestors'
 import {indefiniteArticle} from '../../../../util/string'
 import * as Container from '../../../../util/container'
 import {useMemo} from '../../../../util/memoize'
@@ -445,7 +445,28 @@ const PlatformInputInner = (p: Props) => {
   )
 }
 
-const PlatformInput = AddSuggestors(PlatformInputInner)
+const PlatformInput = React.forwardRef((p: any, forwardedRef: any) => {
+  const {popup, inputRef, onChangeText, onKeyDown, onBlur, onExpanded, onSelectionChange, onFocus} =
+    useSuggestors(p)
+
+  return (
+    <>
+      {popup}
+      <PlatformInputInner
+        {...p}
+        forwardedRef={forwardedRef}
+        inputRef={inputRef}
+        onChangeText={onChangeText}
+        onKeyDown={onKeyDown}
+        onBlur={onBlur}
+        onExpanded={onExpanded}
+        onSelectionChange={onSelectionChange}
+        onFocus={onFocus}
+      />
+    </>
+  )
+})
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
