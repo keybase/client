@@ -102,11 +102,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     SuggestorHooks
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps> {
-    _onFocus = () => {
-      this.props.onFocus?.()
-      this.props.checkTrigger()
-    }
-
     _onSelectionChange = (selection: TransformerData['position']) => {
       this.props.onSelectionChange?.(selection)
       this.props.checkTrigger()
@@ -219,7 +214,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             suggestionsVisible={suggestionsVisible}
             inputRef={this.props.inputRef}
             onBlur={this.props.onBlur}
-            onFocus={this._onFocus}
+            onFocus={this.props.onFocus}
             onChangeText={this.props.onChangeText}
             onKeyDown={this.props.onKeyDown}
             onSelectionChange={this._onSelectionChange}
@@ -240,7 +235,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
   const SuggestorsComponentOuter = (p: any) => {
     const {dataSources, renderers, suggestorToMarker, transformers, onChangeText, onKeyDown} = p
-    const {onChannelSuggestionsTriggered, onFetchEmoji, onBlur, userEmojisLoading} = p
+    const {onChannelSuggestionsTriggered, onFetchEmoji, onBlur, userEmojisLoading, onFocus} = p
 
     const [active, setActive] = React.useState('')
     const [expanded, setExpanded] = React.useState(false)
@@ -453,6 +448,11 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       [onKeyDown, active, checkTrigger, filter, results, selected, move, getSelected, triggerTransform]
     )
 
+    const onFocus2 = React.useCallback(() => {
+      onFocus?.()
+      checkTrigger()
+    }, [onFocus, checkTrigger])
+
     React.useEffect(() => {
       switch (active) {
         case 'channels':
@@ -473,6 +473,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     return (
       <SuggestorsComponent
         {...p}
+        onFocus={onFocus2}
         onKeyDown={onKeyDown2}
         onChangeText={onChangeText2}
         move={move}
