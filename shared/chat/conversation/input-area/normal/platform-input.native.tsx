@@ -11,7 +11,7 @@ import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
 import MoreMenuPopup from './moremenu-popup'
 import {PlatformInputPropsInternal} from './platform-input'
-import AddSuggestors, {standardTransformer} from '../suggestors'
+import {useSuggestors, standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {indefiniteArticle} from '../../../../util/string'
@@ -38,7 +38,7 @@ type State = {
 const defaultMaxHeight = 145
 const {block, Value, Clock, add, concat} = Kb.ReAnimated
 
-class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, State> {
+class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
   private lastText?: string
   private whichMenu?: menuType
@@ -452,7 +452,27 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
   )
 }
 
-const PlatformInput = AddSuggestors(_PlatformInput)
+const PlatformInput = React.forwardRef((p: any, forwardedRef: any) => {
+  const {popup, inputRef, onChangeText, onKeyDown, onBlur, onExpanded, onSelectionChange, onFocus} =
+    useSuggestors(p)
+
+  return (
+    <>
+      {popup}
+      <PlatformInputInner
+        {...p}
+        forwardedRef={forwardedRef}
+        inputRef={inputRef}
+        onChangeText={onChangeText}
+        onKeyDown={onKeyDown}
+        onBlur={onBlur}
+        onExpanded={onExpanded}
+        onSelectionChange={onSelectionChange}
+        onFocus={onFocus}
+      />
+    </>
+  )
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

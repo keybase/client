@@ -13,7 +13,7 @@ export type TransformerData = {
   }
 }
 
-const standardTransformer = (
+export const standardTransformer = (
   toInsert: string,
   {text, position: {start, end}}: TransformerData,
   preview: boolean
@@ -456,30 +456,6 @@ const Popup = (p: any) => {
   )
 }
 
-const AddSuggestors = (WrappedComponent: any): any => {
-  return React.forwardRef((props, forwardedRef) => {
-    const {popup, inputRef, onChangeText, onKeyDown, onBlur, onExpanded, onSelectionChange, onFocus} =
-      useSuggestors(props)
-
-    return (
-      <>
-        {popup}
-        <WrappedComponent
-          {...props}
-          forwardedRef={forwardedRef}
-          inputRef={inputRef}
-          onChangeText={onChangeText}
-          onKeyDown={onKeyDown}
-          onBlur={onBlur}
-          onExpanded={onExpanded}
-          onSelectionChange={onSelectionChange}
-          onFocus={onFocus}
-        />
-      </>
-    )
-  })
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   commandStatusContainer: Styles.platformStyles({
     common: {
@@ -507,6 +483,3 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
 }))
-
-export {standardTransformer}
-export default AddSuggestors
