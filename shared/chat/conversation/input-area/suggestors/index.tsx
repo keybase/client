@@ -81,7 +81,7 @@ type AddSuggestorsProps = {
 
 type SuggestorHooks = {
   suggestionsVisible: boolean
-  inputRef: React.RefObject<Kb.PlainInput> | null
+  inputRef: React.MutableRefObject<Kb.PlainInput | null>
   onChangeText: (arg0: string) => void
   onKeyDown: (event: React.KeyboardEvent) => void
   onBlur: () => void

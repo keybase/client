@@ -144,12 +144,12 @@ const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () =
 }
 
 const useEmojiPicker = (
-  plainInputRef: React.MutableRefObject<Kb.PlainInput | null>,
+  inputRef: React.MutableRefObject<Kb.PlainInput | null>,
   conversationIDKey: Types.ConversationIDKey
 ) => {
   const insertEmoji = React.useCallback(
     (emojiColons: string) => {
-      plainInputRef.current?.transformText(({text, selection}) => {
+      inputRef.current?.transformText(({text, selection}) => {
         const newText = text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0)
         const pos = (selection.start || 0) + emojiColons.length
         return {
@@ -157,9 +157,9 @@ const useEmojiPicker = (
           text: newText,
         }
       }, true)
-      plainInputRef.current?.focus()
+      inputRef.current?.focus()
     },
-    [plainInputRef]
+    [inputRef]
   )
 
   const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(attachTo => {
@@ -344,15 +344,14 @@ const PlatformInputInner = (p: Props) => {
   const {cannotWrite, conversationIDKey, explodingModeSeconds, getAttachmentRef, inputHintText} = p
   const {onChangeText, setAttachmentRef, showWalletsIcon, showingMenu, toggleShowingMenu} = p
   const {isExploding, minWriterRole, onCancelEditing, inputRef, inputSetRef, isEditing} = p
-  const plainInputRef = React.useRef<Kb.PlainInput>(null)
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
   const {emojiPickerToggle, emojiPickerOpen, emojiPickerPopupRef, emojiPopup} = useEmojiPicker(
-    plainInputRef,
+    inputRef,
     conversationIDKey
   )
   const focusInput = React.useCallback(() => {
-    plainInputRef.current?.focus()
-  }, [plainInputRef])
+    inputRef.current?.focus()
+  }, [inputRef])
   const hintText = useMemo(() => {
     if (cannotWrite) {
       return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
@@ -412,7 +411,6 @@ const PlatformInputInner = (p: Props) => {
                   inputSetRef(ref)
                   // from suggestors/index
                   inputRef.current = ref
-                  plainInputRef.current = ref
                 }}
                 placeholder={hintText}
                 style={Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}

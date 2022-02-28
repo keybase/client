@@ -26,45 +26,12 @@ import {
 } from './platform-input-animation.native'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
 
-type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
-
-type State = {
-  animating: boolean // delayed due to setstate, updates after
-  afterAnimatingExtraStepWorkaround: boolean // used to twiddle height
-  expanded: boolean
-  hasText: boolean
-}
+type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 const defaultMaxHeight = 145
 const {block, Value, Clock, add, concat} = Kb.ReAnimated
 
-class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal, State> {
-  private input: null | Kb.PlainInput = null
-  private lastText?: string
-  private whichMenu?: menuType
-  private clock = new Clock()
-  private animateState = new Value<AnimationState>(AnimationState.none)
-  private animateHeight = new Value<number>(defaultMaxHeight)
-  // if we should update lastHeight when onLayout happens
-  private watchSizeChanges = true
-  private lastHeight: undefined | number
-  private rotate = new Value<number>(0)
-  private rotateClock = new Clock()
-
-  state = {
-    afterAnimatingExtraStepWorkaround: false,
-    animating: false,
-    expanded: false, // updates immediately, used for the icon etc
-    hasText: false,
-  }
-
-  private inputSetRef = (ref: null | Kb.PlainInput) => {
-    this.input = ref
-    this.props.inputSetRef(ref)
-    // @ts-ignore this is probably wrong: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
-    this.props.inputRef.current = ref
-  }
-
+class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal> {
   private openFilePicker = () => {
     this.toggleShowingMenu('filepickerpopup')
   }
@@ -119,22 +86,18 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal,
     HWKeyboardEvent.removeOnHWKeyPressed()
   }
 
-  private getText = () => {
-    return this.lastText || ''
-  }
-
   private onChangeText = (text: string) => {
-    this.setState({hasText: !!text})
-    this.lastText = text
+    this.props.setHasText(!!text)
+    this.props.lastText.current = text
     this.props.onChangeText(text)
-    this.watchSizeChanges = true
+    this.props.watchSizeChanges.current = true
   }
 
   private onSubmit = () => {
-    const text = this.getText()
+    const text = this.props.lastText.current
     if (text) {
       this.props.onSubmit(text)
-      if (this.state.expanded) {
+      if (this.props.expanded) {
         this.toggleExpandInput()
       }
     }
@@ -143,7 +106,7 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal,
   private toggleShowingMenu = (menu: menuType) => {
     // Hide the keyboard on mobile when showing the menu.
     Kb.NativeKeyboard.dismiss()
-    this.whichMenu = menu
+    this.props.whichMenu.current = menu
     this.props.toggleShowingMenu()
   }
 
@@ -151,23 +114,21 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal,
     const {nativeEvent} = p
     const {layout} = nativeEvent
     const {height} = layout
-    if (this.watchSizeChanges) {
-      this.lastHeight = height
-      this.animateHeight.setValue(height)
+    if (this.props.watchSizeChanges.current) {
+      this.props.lastHeight.current = height
+      this.props.animateHeight.current.setValue(height)
     }
     this.props.setHeight(height)
   }
 
   private insertText = (toInsert: string) => {
-    if (this.input) {
-      const input = this.input
-      input.focus()
-      input.transformText(
-        ({selection: {end, start}, text}) =>
-          standardTransformer(toInsert, {position: {end, start}, text}, true),
-        true
-      )
-    }
+    const i = this.props.inputRef.current
+    i?.focus()
+    i?.transformText(
+      ({selection: {end, start}, text}) =>
+        standardTransformer(toInsert, {position: {end, start}, text}, true),
+      true
+    )
   }
 
   private insertMentionMarker = () => {
@@ -188,14 +149,14 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal,
   }
 
   private getMenu = () => {
-    return this.props.showingMenu && this.whichMenu === 'filepickerpopup' ? (
+    return this.props.showingMenu && this.props.whichMenu.current === 'filepickerpopup' ? (
       <FilePickerPopup
         attachTo={this.props.getAttachmentRef}
         visible={this.props.showingMenu}
         onHidden={this.props.toggleShowingMenu}
         onSelect={this.launchNativeImagePicker}
       />
-    ) : this.whichMenu === 'moremenu' ? (
+    ) : this.props.whichMenu.current === 'moremenu' ? (
       <MoreMenuPopup
         conversationIDKey={this.props.conversationIDKey}
         onHidden={this.props.toggleShowingMenu}
@@ -212,21 +173,20 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal,
   }
 
   private onDone = () => {
-    this.setState({animating: false}, () => {
-      this.setState({afterAnimatingExtraStepWorkaround: false})
-    })
+    this.props.setAnimating(false)
+    // still needed?
+    // this.setState({afterAnimatingExtraStepWorkaround: false})
   }
 
   private toggleExpandInput = () => {
-    this.watchSizeChanges = false
-    // eslint-disable-next-line react/no-access-state-in-setstate
-    const nextState = !this.state.expanded
-    this.setState({afterAnimatingExtraStepWorkaround: true, expanded: nextState}, () =>
-      this.props.onExpanded(nextState)
+    this.props.watchSizeChanges.current = false
+    const nextState = !this.props.expanded
+    this.props.setAfterAnimatingExtraStepWorkaround(true)
+    this.props.setExpanded(nextState)
+    this.props.setAnimating(true)
+    this.props.animateState.current.setValue(
+      nextState ? AnimationState.expanding : AnimationState.contracting
     )
-    this.setState({animating: true}, () => {
-      this.animateState.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
-    })
   }
 
   render() {
@@ -244,28 +204,36 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal,
             flexShrink: 1,
             minHeight: 0,
           },
-          this.state.expanded || this.state.animating
-            ? {height: this.animateHeight, maxHeight: 9999}
+          this.props.expanded || this.props.animating
+            ? {height: this.props.animateHeight.current, maxHeight: 9999}
             : // workaround auto height not working?
-            this.state.afterAnimatingExtraStepWorkaround
+            this.props.afterAnimatingExtraStepWorkaround
             ? {
-                height: this.lastHeight,
+                height: this.props.lastHeight.current,
                 maxHeight: defaultMaxHeight,
               }
             : {height: undefined, maxHeight: defaultMaxHeight},
         ]}
       >
         <Kb.ReAnimated.Code>
-          {() => block([runRotateToggle(this.rotateClock, this.animateState, this.rotate)])}
+          {() =>
+            block([
+              runRotateToggle(
+                this.props.rotateClock.current,
+                this.props.animateState.current,
+                this.props.rotate.current
+              ),
+            ])
+          }
         </Kb.ReAnimated.Code>
-        <Kb.ReAnimated.Code key={this.lastHeight}>
+        <Kb.ReAnimated.Code key={this.props.lastHeight.current}>
           {() =>
             block([
               runToggle(
-                this.clock,
-                this.animateState,
-                this.animateHeight,
-                this.lastHeight,
+                this.props.clock.current,
+                this.props.animateState.current,
+                this.props.animateHeight.current,
+                this.props.lastHeight.current,
                 maxInputArea ?? Styles.dimensionHeight,
                 this.onDone
               ),
@@ -279,7 +247,7 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal,
           style={Styles.collapseStyles([
             styles.container,
             isExploding && styles.explodingContainer,
-            (this.state.expanded || this.state.animating) && {height: '100%', minHeight: 0},
+            (this.props.expanded || this.props.animating) && {height: '100%', minHeight: 0},
           ])}
           fullWidth={true}
         >
@@ -296,12 +264,15 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal,
               // change to match desktop.
               onChangeText={this.onChangeText}
               onSelectionChange={onSelectionChange}
-              ref={this.inputSetRef}
+              ref={(ref: null | Kb.PlainInput) => {
+                this.props.inputSetRef(ref)
+                this.props.inputRef.current = ref
+              }}
               style={styles.input}
               textType="Body"
               rowsMin={1}
             />
-            <AnimatedExpand expandInput={this.toggleExpandInput} rotate={this.rotate} />
+            <AnimatedExpand expandInput={this.toggleExpandInput} rotate={this.props.rotate.current} />
           </Kb.Box2>
           <Buttons
             conversationIDKey={conversationIDKey}
@@ -311,7 +282,7 @@ class PlatformInputInner extends React.PureComponent<PlatformInputPropsInternal,
             openMoreMenu={this.openMoreMenu}
             onSelectionChange={onSelectionChange}
             onSubmit={this.onSubmit}
-            hasText={this.state.hasText}
+            hasText={this.props.hasText}
             isEditing={isEditing}
             isExploding={isExploding}
             explodingModeSeconds={explodingModeSeconds}
@@ -452,6 +423,53 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
   )
 }
 
+const PlatformInputOuter = (p: any) => {
+  const {onExpanded} = p
+  const lastText = React.useRef('')
+  const whichMenu = React.useRef<MenuType | undefined>()
+  const clock = React.useRef(new Clock())
+  const animateState = React.useRef(new Value<AnimationState>(AnimationState.none))
+  const animateHeight = React.useRef(new Value<number>(defaultMaxHeight))
+  const lastHeight = React.useRef<undefined | number>()
+  const rotate = React.useRef(new Value<number>(0))
+  const rotateClock = React.useRef(new Clock())
+
+  // if we should update lastHeight when onLayout happens
+  const watchSizeChanges = React.useRef(true)
+
+  const [afterAnimatingExtraStepWorkaround, setAfterAnimatingExtraStepWorkaround] = React.useState(false)
+  const [animating, setAnimating] = React.useState(false)
+  const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
+  const [hasText, setHasText] = React.useState(false)
+
+  Container.useDepChangeEffect(() => {
+    onExpanded(expanded)
+  }, [expanded, onExpanded])
+
+  return (
+    <PlatformInputInner
+      {...p}
+      lastText={lastText}
+      whichMenu={whichMenu}
+      clock={clock}
+      animateState={animateState}
+      animateHeight={animateHeight}
+      watchSizeChanges={watchSizeChanges}
+      lastHeight={lastHeight}
+      rotate={rotate}
+      rotateClock={rotateClock}
+      afterAnimatingExtraStepWorkaround={afterAnimatingExtraStepWorkaround}
+      setAfterAnimatingExtraStepWorkaround={setAfterAnimatingExtraStepWorkaround}
+      animating={animating}
+      setAnimating={setAnimating}
+      expanded={expanded}
+      setExpanded={setExpanded}
+      hasText={hasText}
+      setHasText={setHasText}
+    />
+  )
+}
+
 const PlatformInput = React.forwardRef((p: any, forwardedRef: any) => {
   const {popup, inputRef, onChangeText, onKeyDown, onBlur, onExpanded, onSelectionChange, onFocus} =
     useSuggestors(p)
@@ -459,7 +477,7 @@ const PlatformInput = React.forwardRef((p: any, forwardedRef: any) => {
   return (
     <>
       {popup}
-      <PlatformInputInner
+      <PlatformInputOuter
         {...p}
         forwardedRef={forwardedRef}
         inputRef={inputRef}
