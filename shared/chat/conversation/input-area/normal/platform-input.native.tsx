@@ -38,25 +38,27 @@ type ButtonsProps = Pick<
   hasText: boolean
   isEditing: boolean
   openMoreMenu: () => void
-  toggleShowingMenu: () => void
-  insertEmoji: (emoji: string) => void
-  insertMentionMarker: () => void
-  openFilePicker: () => void
-  onSubmit: () => void
   onCancelEditing: () => void
+  toggleShowingMenu: () => void
+  insertText: (s: string) => void
+  onSubmit: () => void
+  ourShowMenu: (m: MenuType) => void
 }
 
 const Buttons = (p: ButtonsProps) => {
-  const {
-    conversationIDKey,
-    insertEmoji,
-    insertMentionMarker,
-    openFilePicker,
-    openMoreMenu,
-    onSubmit,
-    onCancelEditing,
-  } = p
+  const {conversationIDKey, insertText, ourShowMenu} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
+  const {onSubmit, onCancelEditing} = p
+  const openFilePicker = React.useCallback(() => {
+    ourShowMenu('filepickerpopup')
+  }, [ourShowMenu])
+  const openMoreMenu = React.useCallback(() => {
+    ourShowMenu('moremenu')
+  }, [ourShowMenu])
+
+  const insertMentionMarker = React.useCallback(() => {
+    insertText('@')
+  }, [insertText])
 
   const dispatch = Container.useDispatch()
   const openEmojiPicker = () =>
@@ -64,7 +66,7 @@ const Buttons = (p: ButtonsProps) => {
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey, onPickAction: insertEmoji},
+            props: {conversationIDKey, onPickAction: insertText},
             selected: 'chatChooseEmoji',
           },
         ],
@@ -158,7 +160,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
   )
 }
 
-const PlatformInputOuter = (p: any) => {
+const PlatformInputInner = (p: any) => {
   const {cannotWrite, conversationIDKey, inputHintText, inputRef, isEditing, isExploding, onCancelEditing} = p
   const {minWriterRole, onAttach, onExpanded, onFilePickerError, onSubmit, toggleShowingMenu} = p
   const {getAttachmentRef, showingMenu, setHeight, inputSetRef, maxInputArea, showTypingStatus} = p
@@ -291,62 +293,35 @@ const PlatformInputOuter = (p: any) => {
     onExpanded(expanded)
   }, [expanded, onExpanded])
 
-  // return (
-  //   <PlatformInputInner
-  //     {...p}
-  //     lastText={lastText}
-  //     whichMenu={whichMenu}
-  //     clock={clock}
-  //     animateState={animateState}
-  //     animateHeight={animateHeight}
-  //     watchSizeChanges={watchSizeChanges}
-  //     lastHeight={lastHeight}
-  //     rotate={rotate}
-  //     rotateClock={rotateClock}
-  //     afterAnimatingExtraStepWorkaround={afterAnimatingExtraStepWorkaround}
-  //     setAfterAnimatingExtraStepWorkaround={setAfterAnimatingExtraStepWorkaround}
-  //     animating={animating}
-  //     setAnimating={setAnimating}
-  //     expanded={expanded}
-  //     setExpanded={setExpanded}
-  //     hasText={hasText}
-  //     setHasText={setHasText}
-  //     launchNativeImagePicker={launchNativeImagePicker}
-  //     onSubmit={onSubmit2}
-  //     toggleExpandInput={toggleExpandInput}
-  //     ourShowMenu={ourShowMenu}
-  //     insertText={insertText}
-  //     hintText={hintText}
-  //   />
-  // )
-
   let menu: React.ReactNode = null
-  if (showingMenu && whichMenu.current === 'filepickerpopup') {
-    menu = (
-      <FilePickerPopup
-        attachTo={getAttachmentRef}
-        visible={showingMenu}
-        onHidden={toggleShowingMenu}
-        onSelect={launchNativeImagePicker}
-      />
-    )
-  } else if (whichMenu.current === 'moremenu') {
-    menu = (
-      <MoreMenuPopup
-        conversationIDKey={conversationIDKey}
-        onHidden={toggleShowingMenu}
-        visible={showingMenu}
-      />
-    )
-  } else {
-    menu = (
-      <SetExplodingMessagePicker
-        attachTo={getAttachmentRef}
-        conversationIDKey={conversationIDKey}
-        onHidden={toggleShowingMenu}
-        visible={showingMenu}
-      />
-    )
+  if (showingMenu) {
+    if (whichMenu.current === 'filepickerpopup') {
+      menu = (
+        <FilePickerPopup
+          attachTo={getAttachmentRef}
+          visible={showingMenu}
+          onHidden={toggleShowingMenu}
+          onSelect={launchNativeImagePicker}
+        />
+      )
+    } else if (whichMenu.current === 'moremenu') {
+      menu = (
+        <MoreMenuPopup
+          conversationIDKey={conversationIDKey}
+          onHidden={toggleShowingMenu}
+          visible={showingMenu}
+        />
+      )
+    } else {
+      menu = (
+        <SetExplodingMessagePicker
+          attachTo={getAttachmentRef}
+          conversationIDKey={conversationIDKey}
+          onHidden={toggleShowingMenu}
+          visible={showingMenu}
+        />
+      )
+    }
   }
 
   return (
@@ -441,16 +416,8 @@ const PlatformInputOuter = (p: any) => {
         </Kb.Box2>
         <Buttons
           conversationIDKey={conversationIDKey}
-          insertEmoji={insertText}
-          insertMentionMarker={() => {
-            insertText('@')
-          }}
-          openFilePicker={() => {
-            ourShowMenu('filepickerpopup')
-          }}
-          openMoreMenu={() => {
-            ourShowMenu('moremenu')
-          }}
+          insertText={insertText}
+          ourShowMenu={ourShowMenu}
           onSelectionChange={onSelectionChange}
           onSubmit={onSubmit2}
           hasText={hasText}
@@ -473,7 +440,7 @@ const PlatformInput = React.forwardRef((p: any, forwardedRef: any) => {
   return (
     <>
       {popup}
-      <PlatformInputOuter
+      <PlatformInputInner
         {...p}
         forwardedRef={forwardedRef}
         inputRef={inputRef}
