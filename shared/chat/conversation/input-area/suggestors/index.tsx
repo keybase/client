@@ -103,77 +103,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps> {
     render() {
-      let overlay: React.ReactNode = null
-      if (this.props.active) {
-        this.props.validateProps()
-      }
-      let suggestionsVisible = false
-      const results = this.props.results
-      const suggestBotCommandsUpdateStatus = this.props.suggestBotCommandsUpdateStatus
-      if (
-        results.data.length ||
-        results.loading ||
-        suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
-      ) {
-        suggestionsVisible = true
-        const active = this.props.active
-        const content = results.data.length ? (
-          <>
-            <SuggestionList
-              style={
-                this.props.expanded
-                  ? {bottom: 95, position: 'absolute', top: 95}
-                  : this.props.suggestionListStyle
-              }
-              items={results.data}
-              keyExtractor={
-                (this.props.keyExtractors && !!active && this.props.keyExtractors[active]) || undefined
-              }
-              renderItem={this.props.itemRenderer}
-              selectedIndex={this.props.selected}
-              suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
-            />
-            {results.loading && (
-              <Kb.ProgressIndicator
-                type={Styles.isMobile ? undefined : 'Large'}
-                style={this.props.suggestionSpinnerStyle}
-              />
-            )}
-          </>
-        ) : (
-          <Kb.Box2
-            direction="vertical"
-            alignItems="center"
-            fullWidth={true}
-            style={Styles.collapseStyles([styles.spinnerBackground, this.props.suggestionListStyle])}
-          >
-            <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
-          </Kb.Box2>
-        )
-        overlay = Styles.isMobile ? (
-          <Kb.FloatingBox
-            containerStyle={this.props.suggestionOverlayStyle}
-            dest="keyboard-avoiding-root"
-            onHidden={this.props.setInactive}
-          >
-            {content}
-          </Kb.FloatingBox>
-        ) : (
-          <Kb.Overlay
-            attachTo={this.props.getAttachmentRef}
-            matchDimension={true}
-            position="top center"
-            positionFallbacks={['bottom center']}
-            visible={true}
-            propagateOutsideClicks={false}
-            onHidden={this.props.setInactive}
-            style={this.props.suggestionOverlayStyle}
-          >
-            {content}
-          </Kb.Overlay>
-        )
-      }
-
       const {
         dataSources,
         forwardedRef,
@@ -185,6 +114,80 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         transformers,
         ...wrappedOP
       } = this.props
+
+      const {
+        active,
+        expanded,
+        itemRenderer,
+        results,
+        selected,
+        suggestBotCommandsUpdateStatus,
+        validateProps,
+        suggestionSpinnerStyle,
+        getAttachmentRef,
+        setInactive,
+      } = wrappedOP
+      let overlay: React.ReactNode = null
+      if (active) {
+        validateProps()
+      }
+      let suggestionsVisible = false
+      if (
+        results.data.length ||
+        results.loading ||
+        suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
+      ) {
+        suggestionsVisible = true
+        const content = results.data.length ? (
+          <>
+            <SuggestionList
+              style={expanded ? {bottom: 95, position: 'absolute', top: 95} : suggestionListStyle}
+              items={results.data}
+              keyExtractor={(keyExtractors && !!active && keyExtractors[active]) || undefined}
+              renderItem={itemRenderer}
+              selectedIndex={selected}
+              suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
+            />
+            {results.loading && (
+              <Kb.ProgressIndicator
+                type={Styles.isMobile ? undefined : 'Large'}
+                style={suggestionSpinnerStyle}
+              />
+            )}
+          </>
+        ) : (
+          <Kb.Box2
+            direction="vertical"
+            alignItems="center"
+            fullWidth={true}
+            style={Styles.collapseStyles([styles.spinnerBackground, suggestionListStyle])}
+          >
+            <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
+          </Kb.Box2>
+        )
+        overlay = Styles.isMobile ? (
+          <Kb.FloatingBox
+            containerStyle={suggestionOverlayStyle}
+            dest="keyboard-avoiding-root"
+            onHidden={setInactive}
+          >
+            {content}
+          </Kb.FloatingBox>
+        ) : (
+          <Kb.Overlay
+            attachTo={getAttachmentRef}
+            matchDimension={true}
+            position="top center"
+            positionFallbacks={['bottom center']}
+            visible={true}
+            propagateOutsideClicks={false}
+            onHidden={setInactive}
+            style={suggestionOverlayStyle}
+          >
+            {content}
+          </Kb.Overlay>
+        )
+      }
 
       return (
         <>
