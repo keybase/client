@@ -120,24 +120,6 @@ const suggestorKeyExtractors = {
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 
-const emojiRenderer = (item: EmojiData, selected: boolean) => {
-  return (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      style={Styles.collapseStyles([
-        styles.suggestionBase,
-        {
-          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-        },
-      ])}
-      gap="small"
-    >
-      {renderEmoji(emojiDataToRenderableEmoji(item), 24, false)}
-      <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
-    </Kb.Box2>
-  )
-}
 const emojiTransformer = (emoji: EmojiData, marker: string, tData: TransformerData, preview: boolean) => {
   return standardTransformer(`${marker}${emoji.short_name}:`, tData, preview)
 }
@@ -161,16 +143,219 @@ class Input extends React.Component<InputProps, InputState> {
     this.state = {inputHeight: 0, showBotCommandUpdateStatus: false}
     this._lastQuote = 0
     this._suggestorDatasource = {
-      channels: this._getChannelSuggestions,
-      commands: this._getCommandSuggestions,
-      emoji: this._getEmojiSuggestions,
-      users: this._getUserSuggestions,
+      channels: (filter: string) => {
+        const fil = filter.toLowerCase()
+        return {
+          data: this.props.suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
+          loading: this.props.suggestChannelsLoading,
+          useSpaces: false,
+        }
+      },
+      commands: (filter: string) => {
+        if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
+          return {
+            data: [],
+            loading: false,
+            useSpaces: true,
+          }
+        }
+
+        const sel = this._input?.getSelection()
+        if (sel && this._lastText) {
+          // a little messy. Check if the message starts with '/' and that the cursor is
+          // within maxCmdLength chars away from it. This happens before `onChangeText`, so
+          // we can't do a more robust check on `this._lastText` because it's out of date.
+          if (
+            !(this._lastText.startsWith('/') || this._lastText.startsWith('!')) ||
+            (sel.start || 0) > this._maxCmdLength
+          ) {
+            // not at beginning of message
+            return {
+              data: [],
+              loading: false,
+              useSpaces: true,
+            }
+          }
+        }
+        const fil = filter.toLowerCase()
+        const data = (
+          this._lastText?.startsWith('!') ? this.props.suggestBotCommands : this.props.suggestCommands
+        ).filter(c => c.name.includes(fil))
+        return {
+          data,
+          loading: false,
+          useSpaces: true,
+        }
+      },
+      emoji: (filter: string) => {
+        if (!emojiPrepass.test(filter)) {
+          return {
+            data: [],
+            loading: false,
+            useSpaces: false,
+          }
+        }
+
+        // prefill data with stock emoji
+        let emojiData: Array<EmojiData> = []
+        emojiIndex.search(filter)?.forEach((res: {id?: string}) => {
+          if (res.id) {
+            emojiData.push(emojiNameMap[res.id])
+          }
+        })
+
+        if (this.props.userEmojis) {
+          const userEmoji = this.props.userEmojis
+            .filter(emoji => emoji.alias.toLowerCase().includes(filter))
+            .map(emoji => RPCToEmojiData(emoji, false))
+          emojiData = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(emojiData)
+        }
+
+        return {
+          data: emojiData,
+          loading: this.props.userEmojisLoading,
+          useSpaces: false,
+        }
+      },
+      users: (filter: string) => ({
+        data: searchUsersAndTeamsAndTeamChannels(
+          this.props.suggestUsers,
+          this.props.suggestTeams,
+          this.props.suggestAllChannels,
+          filter
+        ),
+        loading: false,
+        useSpaces: false,
+      }),
     }
     this._suggestorRenderer = {
-      channels: this._renderChannelSuggestion,
-      commands: this._renderCommandSuggestion,
-      emoji: emojiRenderer,
-      users: this._renderUserSuggestion,
+      channels: ({channelname, teamname}: {channelname: string; teamname?: string}, selected: boolean) =>
+        teamname ? (
+          this._renderTeamSuggestion(teamname, channelname, selected)
+        ) : (
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            style={Styles.collapseStyles([
+              styles.suggestionBase,
+              styles.fixSuggestionHeight,
+              {
+                backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
+              },
+            ])}
+          >
+            <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
+          </Kb.Box2>
+        ),
+      commands: (command: RPCChatTypes.ConversationCommand, selected: boolean) => {
+        const prefix = this._getCommandPrefix(command)
+        const enabled = !this.props.botRestrictMap?.get(command.username ?? '') ?? true
+        return (
+          <Kb.Box2
+            direction="horizontal"
+            gap="tiny"
+            fullWidth={true}
+            style={Styles.collapseStyles([
+              styles.suggestionBase,
+              {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
+              {
+                alignItems: 'flex-start',
+              },
+            ])}
+          >
+            {!!command.username && <Kb.Avatar size={32} username={command.username} />}
+            <Kb.Box2
+              fullWidth={true}
+              direction="vertical"
+              style={Styles.collapseStyles([
+                styles.fixSuggestionHeight,
+                {
+                  alignItems: 'flex-start',
+                },
+              ])}
+            >
+              <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+                <Kb.Text type="BodySemibold">
+                  {prefix}
+                  {command.name}
+                </Kb.Text>
+                <Kb.Text type="Body">{command.usage}</Kb.Text>
+              </Kb.Box2>
+              {enabled ? (
+                <Kb.Text type="BodySmall">{command.description}</Kb.Text>
+              ) : (
+                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.redDark}}>
+                  Command unavailable due to bot restriction configuration.
+                </Kb.Text>
+              )}
+            </Kb.Box2>
+          </Kb.Box2>
+        )
+      },
+      emoji: (item: EmojiData, selected: boolean) => {
+        return (
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            style={Styles.collapseStyles([
+              styles.suggestionBase,
+              {
+                backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
+              },
+            ])}
+            gap="small"
+          >
+            {renderEmoji(emojiDataToRenderableEmoji(item), 24, false)}
+            <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
+          </Kb.Box2>
+        )
+      },
+      users: (
+        {
+          username,
+          fullName,
+          teamname,
+          channelname,
+        }: {
+          username: string
+          fullName: string
+          teamname?: string
+          channelname?: string
+        },
+        selected: boolean
+      ) => {
+        return teamname ? (
+          this._renderTeamSuggestion(teamname, channelname, selected)
+        ) : (
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            style={Styles.collapseStyles([
+              styles.suggestionBase,
+              styles.fixSuggestionHeight,
+              {
+                backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
+              },
+            ])}
+            gap="tiny"
+          >
+            {Constants.isSpecialMention(username) ? (
+              <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
+                <Kb.Icon type="iconfont-people" color={Styles.globalColors.blueDark} fontSize={16} />
+              </Kb.Box2>
+            ) : (
+              <Kb.Avatar username={username} size={32} />
+            )}
+            <Kb.ConnectedUsernames
+              type="BodyBold"
+              colorFollowing={true}
+              usernames={username}
+              withProfileCardPopup={false}
+            />
+            <Kb.Text type="BodySmall">{fullName}</Kb.Text>
+          </Kb.Box2>
+        )
+      },
     }
     this._suggestorTransformer = {
       channels: this._transformChannelSuggestion,
@@ -352,85 +537,6 @@ class Input extends React.Component<InputProps, InputState> {
     }
   }
 
-  _getEmojiSuggestions = (filter: string) => {
-    if (!emojiPrepass.test(filter)) {
-      return {
-        data: [],
-        loading: false,
-        useSpaces: false,
-      }
-    }
-
-    // prefill data with stock emoji
-    let emojiData: Array<EmojiData> = []
-    emojiIndex.search(filter)?.forEach((res: {id?: string}) => {
-      if (res.id) {
-        emojiData.push(emojiNameMap[res.id])
-      }
-    })
-
-    if (this.props.userEmojis) {
-      const userEmoji = this.props.userEmojis
-        .filter(emoji => emoji.alias.toLowerCase().includes(filter))
-        .map(emoji => RPCToEmojiData(emoji, false))
-      emojiData = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(emojiData)
-    }
-
-    return {
-      data: emojiData,
-      loading: this.props.userEmojisLoading,
-      useSpaces: false,
-    }
-  }
-
-  _getUserSuggestions = (filter: string) => ({
-    data: searchUsersAndTeamsAndTeamChannels(
-      this.props.suggestUsers,
-      this.props.suggestTeams,
-      this.props.suggestAllChannels,
-      filter
-    ),
-    loading: false,
-    useSpaces: false,
-  })
-
-  _getCommandSuggestions = (filter: string) => {
-    if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
-      return {
-        data: [],
-        loading: false,
-        useSpaces: true,
-      }
-    }
-
-    const sel = this._input?.getSelection()
-    if (sel && this._lastText) {
-      // a little messy. Check if the message starts with '/' and that the cursor is
-      // within maxCmdLength chars away from it. This happens before `onChangeText`, so
-      // we can't do a more robust check on `this._lastText` because it's out of date.
-      if (
-        !(this._lastText.startsWith('/') || this._lastText.startsWith('!')) ||
-        (sel.start || 0) > this._maxCmdLength
-      ) {
-        // not at beginning of message
-        return {
-          data: [],
-          loading: false,
-          useSpaces: true,
-        }
-      }
-    }
-    const fil = filter.toLowerCase()
-    const data = (
-      this._lastText?.startsWith('!') ? this.props.suggestBotCommands : this.props.suggestCommands
-    ).filter(c => c.name.includes(fil))
-    return {
-      data,
-      loading: false,
-      useSpaces: true,
-    }
-  }
-
   _renderTeamSuggestion = (teamname: string, channelname: string | undefined, selected: boolean) => (
     <Kb.Box2
       direction="horizontal"
@@ -448,53 +554,6 @@ class Input extends React.Component<InputProps, InputState> {
       <Kb.Text type="BodyBold">{channelname ? teamname + ' #' + channelname : teamname}</Kb.Text>
     </Kb.Box2>
   )
-
-  _renderUserSuggestion = (
-    {
-      username,
-      fullName,
-      teamname,
-      channelname,
-    }: {
-      username: string
-      fullName: string
-      teamname?: string
-      channelname?: string
-    },
-    selected: boolean
-  ) => {
-    return teamname ? (
-      this._renderTeamSuggestion(teamname, channelname, selected)
-    ) : (
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        style={Styles.collapseStyles([
-          styles.suggestionBase,
-          styles.fixSuggestionHeight,
-          {
-            backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-          },
-        ])}
-        gap="tiny"
-      >
-        {Constants.isSpecialMention(username) ? (
-          <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
-            <Kb.Icon type="iconfont-people" color={Styles.globalColors.blueDark} fontSize={16} />
-          </Kb.Box2>
-        ) : (
-          <Kb.Avatar username={username} size={32} />
-        )}
-        <Kb.ConnectedUsernames
-          type="BodyBold"
-          colorFollowing={true}
-          usernames={username}
-          withProfileCardPopup={false}
-        />
-        <Kb.Text type="BodySmall">{fullName}</Kb.Text>
-      </Kb.Box2>
-    )
-  }
 
   _transformUserSuggestion = (
     input: {
@@ -520,37 +579,6 @@ class Input extends React.Component<InputProps, InputState> {
     return standardTransformer(`${marker}${s}`, tData, preview)
   }
 
-  _getChannelSuggestions = (filter: string) => {
-    const fil = filter.toLowerCase()
-    return {
-      data: this.props.suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
-      loading: this.props.suggestChannelsLoading,
-      useSpaces: false,
-    }
-  }
-
-  _renderChannelSuggestion = (
-    {channelname, teamname}: {channelname: string; teamname?: string},
-    selected: boolean
-  ) =>
-    teamname ? (
-      this._renderTeamSuggestion(teamname, channelname, selected)
-    ) : (
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        style={Styles.collapseStyles([
-          styles.suggestionBase,
-          styles.fixSuggestionHeight,
-          {
-            backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-          },
-        ])}
-      >
-        <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
-      </Kb.Box2>
-    )
-
   _transformChannelSuggestion = (
     {channelname, teamname}: {channelname: string; teamname?: string},
     marker: string,
@@ -565,52 +593,6 @@ class Input extends React.Component<InputProps, InputState> {
 
   _getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
     return command.username ? '!' : '/'
-  }
-
-  _renderCommandSuggestion = (command: RPCChatTypes.ConversationCommand, selected: boolean) => {
-    const prefix = this._getCommandPrefix(command)
-    const enabled = !this.props.botRestrictMap?.get(command.username ?? '') ?? true
-    return (
-      <Kb.Box2
-        direction="horizontal"
-        gap="tiny"
-        fullWidth={true}
-        style={Styles.collapseStyles([
-          styles.suggestionBase,
-          {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
-          {
-            alignItems: 'flex-start',
-          },
-        ])}
-      >
-        {!!command.username && <Kb.Avatar size={32} username={command.username} />}
-        <Kb.Box2
-          fullWidth={true}
-          direction="vertical"
-          style={Styles.collapseStyles([
-            styles.fixSuggestionHeight,
-            {
-              alignItems: 'flex-start',
-            },
-          ])}
-        >
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-            <Kb.Text type="BodySemibold">
-              {prefix}
-              {command.name}
-            </Kb.Text>
-            <Kb.Text type="Body">{command.usage}</Kb.Text>
-          </Kb.Box2>
-          {enabled ? (
-            <Kb.Text type="BodySmall">{command.description}</Kb.Text>
-          ) : (
-            <Kb.Text type="BodySmall" style={{color: Styles.globalColors.redDark}}>
-              Command unavailable due to bot restriction configuration.
-            </Kb.Text>
-          )}
-        </Kb.Box2>
-      </Kb.Box2>
-    )
   }
 
   _transformCommandSuggestion = (

@@ -93,134 +93,29 @@ type SuggestorHooks = {
 export type PropsWithSuggestorOuter<P> = P & AddSuggestorsProps
 export type PropsWithSuggestor<P> = P & SuggestorHooks
 
-const AddSuggestors = <WrappedOwnProps extends {}>(
-  WrappedComponent: React.ComponentType<PropsWithSuggestor<WrappedOwnProps>>
-): React.ComponentType<PropsWithSuggestorOuter<WrappedOwnProps>> => {
-  type SuggestorsComponentProps = {
-    forwardedRef: React.Ref<typeof WrappedComponent> | null
-  } & PropsWithSuggestorOuter<WrappedOwnProps> &
-    SuggestorHooks
-
-  class SuggestorsComponent extends React.Component<SuggestorsComponentProps> {
-    render() {
-      const {
-        dataSources,
-        forwardedRef,
-        keyExtractors,
-        renderers,
-        suggestionListStyle,
-        suggestionOverlayStyle,
-        suggestorToMarker,
-        transformers,
-        ...wrappedOP
-      } = this.props
-
-      const {
-        active,
-        expanded,
-        itemRenderer,
-        results,
-        selected,
-        suggestBotCommandsUpdateStatus,
-        validateProps,
-        suggestionSpinnerStyle,
-        getAttachmentRef,
-        setInactive,
-      } = wrappedOP
-      let overlay: React.ReactNode = null
-      if (active) {
-        validateProps()
-      }
-      let suggestionsVisible = false
-      if (
-        results.data.length ||
-        results.loading ||
-        suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
-      ) {
-        suggestionsVisible = true
-        const content = results.data.length ? (
-          <>
-            <SuggestionList
-              style={expanded ? {bottom: 95, position: 'absolute', top: 95} : suggestionListStyle}
-              items={results.data}
-              keyExtractor={(keyExtractors && !!active && keyExtractors[active]) || undefined}
-              renderItem={itemRenderer}
-              selectedIndex={selected}
-              suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
-            />
-            {results.loading && (
-              <Kb.ProgressIndicator
-                type={Styles.isMobile ? undefined : 'Large'}
-                style={suggestionSpinnerStyle}
-              />
-            )}
-          </>
-        ) : (
-          <Kb.Box2
-            direction="vertical"
-            alignItems="center"
-            fullWidth={true}
-            style={Styles.collapseStyles([styles.spinnerBackground, suggestionListStyle])}
-          >
-            <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
-          </Kb.Box2>
-        )
-        overlay = Styles.isMobile ? (
-          <Kb.FloatingBox
-            containerStyle={suggestionOverlayStyle}
-            dest="keyboard-avoiding-root"
-            onHidden={setInactive}
-          >
-            {content}
-          </Kb.FloatingBox>
-        ) : (
-          <Kb.Overlay
-            attachTo={getAttachmentRef}
-            matchDimension={true}
-            position="top center"
-            positionFallbacks={['bottom center']}
-            visible={true}
-            propagateOutsideClicks={false}
-            onHidden={setInactive}
-            style={suggestionOverlayStyle}
-          >
-            {content}
-          </Kb.Overlay>
-        )
-      }
-
-      return (
-        <>
-          {overlay}
-          <WrappedComponent
-            {...(wrappedOP as WrappedOwnProps)}
-            suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
-            suggestionsVisible={suggestionsVisible}
-            inputRef={this.props.inputRef}
-            onBlur={this.props.onBlur}
-            onFocus={this.props.onFocus}
-            onChangeText={this.props.onChangeText}
-            onKeyDown={this.props.onKeyDown}
-            onSelectionChange={this.props.onSelectionChange}
-            onExpanded={this.props.setExpanded}
-          />
-        </>
-      )
-    }
-  }
-
-  // needed?
-  // _stabilizeSelection = () => {
-  //   const {data} = this.props.getResults()
-  //   if (this.props.selected > data.length - 1) {
-  //     this.props.setSelected(0)
-  //   }
-  // }
-
+const AddSuggestors = (WrappedComponent: any): any => {
   const SuggestorsComponentOuter = (p: any) => {
-    const {suggestorToMarker, transformers, onChangeText, onKeyDown, onChannelSuggestionsTriggered} = p
-    const {onFetchEmoji, onBlur, userEmojisLoading, onFocus, onSelectionChange} = p
-    const {dataSources, renderers, keyExtractors} = p
+    const {
+      dataSources,
+      forwardedRef,
+      keyExtractors,
+      renderers,
+      suggestionListStyle,
+      suggestionOverlayStyle,
+      suggestorToMarker,
+      transformers,
+      ...wrappedOP
+    } = p
+    const {onChangeText, onKeyDown, onChannelSuggestionsTriggered} = wrappedOP
+    const {
+      onFetchEmoji,
+      onBlur,
+      userEmojisLoading,
+      onFocus,
+      onSelectionChange,
+      suggestBotCommandsUpdateStatus,
+      suggestionSpinnerStyle,
+    } = wrappedOP
 
     const [active, setActive] = React.useState('')
     const [expanded, setExpanded] = React.useState(false)
@@ -261,8 +156,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       onBlur?.()
       setInactive()
     }, [onBlur, setInactive])
-
-    const getAttachmentRef = React.useCallback(() => inputRef.current, [inputRef])
 
     const getWordAtCursor = React.useCallback(() => {
       if (inputRef.current) {
@@ -446,20 +339,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       [onSelectionChange, checkTrigger]
     )
 
-    const itemRenderer = React.useCallback(
-      (index: number, value: string): React.ReactElement | null =>
-        !active ? null : (
-          <Kb.ClickableBox
-            key={keyExtractors?.[active]?.(value) || value}
-            onClick={() => triggerTransform(value)}
-            onMouseMove={() => setSelected(index)}
-          >
-            {renderers[active](value, Styles.isMobile ? false : index === selected)}
-          </Kb.ClickableBox>
-        ),
-      [active, keyExtractors, renderers, triggerTransform, setSelected, selected]
-    )
-
     React.useEffect(() => {
       switch (active) {
         case 'channels':
@@ -477,37 +356,130 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
     }, [])
 
+    if (active) {
+      validateProps()
+    }
+    const suggestionsVisible =
+      results.data.length ||
+      results.loading ||
+      suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
     return (
-      <SuggestorsComponent
-        {...p}
-        itemRenderer={itemRenderer}
-        onSelectionChange={onSelectionChange2}
-        onFocus={onFocus2}
-        onKeyDown={onKeyDown2}
-        onChangeText={onChangeText2}
-        move={move}
-        triggerTransform={triggerTransform}
-        checkTrigger={checkTrigger}
-        getWordAtCursor={getWordAtCursor}
-        onBlur={onBlur2}
-        getSelected={getSelected}
-        results={results}
-        lastText={lastText}
-        getAttachmentRef={getAttachmentRef}
-        inputRef={inputRef}
-        validateProps={validateProps}
-        setInactive={setInactive}
-        active={active}
-        setActive={setActive}
-        expanded={expanded}
-        setExpanded={setExpanded}
-        filter={filter}
-        setFilter={setFilter}
-        selected={selected}
-        setSelected={setSelected}
-      />
+      <>
+        {suggestionsVisible && (
+          <Popup
+            suggestionOverlayStyle={suggestionOverlayStyle}
+            setInactive={setInactive}
+            inputRef={inputRef}
+          >
+            <ListOrLoading
+              active={active}
+              expanded={expanded}
+              keyExtractors={keyExtractors}
+              results={results}
+              selected={selected}
+              suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
+              suggestionListStyle={suggestionListStyle}
+              suggestionSpinnerStyle={suggestionSpinnerStyle}
+              setSelected={setSelected}
+              triggerTransform={triggerTransform}
+              renderers={renderers}
+            />
+          </Popup>
+        )}
+        <WrappedComponent
+          {...wrappedOP}
+          inputRef={inputRef}
+          onChangeText={onChangeText2}
+          // desktop only
+          onKeyDown={onKeyDown2}
+          // mobile only
+          onBlur={onBlur2}
+          onExpanded={setExpanded}
+          onSelectionChange={onSelectionChange2}
+          onFocus={onFocus2}
+        />
+      </>
     )
   }
+
+  const ListOrLoading = (p: any) => {
+    const {active, expanded, keyExtractors, results, selected, setSelected, renderers} = p
+    const {suggestBotCommandsUpdateStatus, suggestionListStyle, suggestionSpinnerStyle, triggerTransform} = p
+
+    const itemRenderer = React.useCallback(
+      (index: number, value: string): React.ReactElement | null =>
+        !active ? null : (
+          <Kb.ClickableBox
+            key={keyExtractors?.[active]?.(value) || value}
+            onClick={() => triggerTransform(value)}
+            onMouseMove={() => setSelected(index)}
+          >
+            {renderers[active](value, Styles.isMobile ? false : index === selected)}
+          </Kb.ClickableBox>
+        ),
+      [active, keyExtractors, renderers, triggerTransform, setSelected, selected]
+    )
+
+    if (results.data.length) {
+      return (
+        <>
+          <SuggestionList
+            style={expanded ? {bottom: 95, position: 'absolute', top: 95} : suggestionListStyle}
+            items={results.data}
+            keyExtractor={(keyExtractors && !!active && keyExtractors[active]) || undefined}
+            renderItem={itemRenderer}
+            selectedIndex={selected}
+            suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
+          />
+          {results.loading && (
+            <Kb.ProgressIndicator
+              type={Styles.isMobile ? undefined : 'Large'}
+              style={suggestionSpinnerStyle}
+            />
+          )}
+        </>
+      )
+    }
+    return (
+      <Kb.Box2
+        direction="vertical"
+        alignItems="center"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.spinnerBackground, suggestionListStyle])}
+      >
+        <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
+      </Kb.Box2>
+    )
+  }
+
+  const Popup = (p: any) => {
+    const {children, suggestionOverlayStyle, setInactive, inputRef} = p
+    const getAttachmentRef = React.useCallback(() => inputRef.current, [inputRef])
+
+    return Styles.isMobile ? (
+      <Kb.FloatingBox
+        containerStyle={suggestionOverlayStyle}
+        dest="keyboard-avoiding-root"
+        onHidden={setInactive}
+      >
+        {children}
+      </Kb.FloatingBox>
+    ) : (
+      <Kb.Overlay
+        attachTo={getAttachmentRef}
+        matchDimension={true}
+        position="top center"
+        positionFallbacks={['bottom center']}
+        visible={true}
+        propagateOutsideClicks={false}
+        onHidden={setInactive}
+        style={suggestionOverlayStyle}
+      >
+        {children}
+      </Kb.Overlay>
+    )
+  }
+
   // @ts-ignore TODO fix these types
   return React.forwardRef((props, ref) => <SuggestorsComponentOuter {...props} forwardedRef={ref} />)
 }
