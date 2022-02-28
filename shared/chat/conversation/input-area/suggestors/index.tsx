@@ -153,12 +153,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
-        this._triggerTransform(this.props.results.data[this.props.selected])
+        this.props.triggerTransform(this.props.results.data[this.props.selected])
         shouldCallParentCallback = false
       } else if (evt.key === 'Tab') {
         evt.preventDefault()
         if (this.props.filter.length) {
-          this._triggerTransform(this.props.getSelected())
+          this.props.triggerTransform(this.props.getSelected())
         } else {
           // shift held -> move up
           this._move(evt.shiftKey)
@@ -181,34 +181,11 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       this.props.checkTrigger()
     }
 
-    _triggerTransform = (value: any, final = true) => {
-      if (this.props.inputRef?.current && this.props.active) {
-        const input = this.props.inputRef.current
-        const {active} = this.props
-        const cursorInfo = this.props.getWordAtCursor()
-        if (!cursorInfo) {
-          return
-        }
-        const matchInfo = matchesMarker(cursorInfo.word, this.props.suggestorToMarker[active])
-        const transformedText = this.props.transformers[active](
-          value,
-          matchInfo.marker,
-          {
-            position: cursorInfo.position,
-            text: this.props.lastText.current || '',
-          },
-          !final
-        )
-        this.props.lastText.current = transformedText.text
-        input.transformText(() => transformedText, final)
-      }
-    }
-
     _itemRenderer = (index: number, value: string): React.ReactElement | null =>
       !this.props.active ? null : (
         <Kb.ClickableBox
           key={this.props.keyExtractors?.[this.props.active]?.(value) || value}
-          onClick={() => this._triggerTransform(value)}
+          onClick={() => this.props.triggerTransform(value)}
           onMouseMove={() => this.props.setSelected(index)}
         >
           {this.props.renderers[this.props.active](
@@ -403,6 +380,31 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       return null
     }, [inputRef, results, suggestorToMarker])
 
+    const triggerTransform = React.useCallback(
+      (value: any, final = true) => {
+        if (inputRef?.current && active) {
+          const input = inputRef.current
+          const cursorInfo = getWordAtCursor()
+          if (!cursorInfo) {
+            return
+          }
+          const matchInfo = matchesMarker(cursorInfo.word, suggestorToMarker[active])
+          const transformedText = transformers[active](
+            value,
+            matchInfo.marker,
+            {
+              position: cursorInfo.position,
+              text: lastText.current || '',
+            },
+            !final
+          )
+          lastText.current = transformedText.text
+          input.transformText(() => transformedText, final)
+        }
+      },
+      [active, inputRef, getWordAtCursor, transformers, suggestorToMarker, lastText]
+    )
+
     React.useEffect(() => {
       switch (active) {
         case 'channels':
@@ -471,6 +473,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     return (
       <SuggestorsComponent
         {...p}
+        triggerTransform={triggerTransform}
         checkTrigger={checkTrigger}
         getWordAtCursor={getWordAtCursor}
         onBlur={onBlur2}
