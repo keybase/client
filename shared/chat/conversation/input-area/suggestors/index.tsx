@@ -79,13 +79,6 @@ type AddSuggestorsProps = {
   }
 }
 
-type AddSuggestorsState = {
-  active?: string
-  expanded: boolean
-  filter: string
-  selected: number
-}
-
 type SuggestorHooks = {
   suggestionsVisible: boolean
   inputRef: React.RefObject<Kb.PlainInput> | null
@@ -98,7 +91,6 @@ type SuggestorHooks = {
 }
 
 export type PropsWithSuggestorOuter<P> = P & AddSuggestorsProps
-
 export type PropsWithSuggestor<P> = P & SuggestorHooks
 
 const AddSuggestors = <WrappedOwnProps extends {}>(
@@ -109,26 +101,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
   } & PropsWithSuggestorOuter<WrappedOwnProps> &
     SuggestorHooks
 
-  class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
-    _move = (up: boolean) => {
-      if (!this.props.active) {
-        return
-      }
-      const length = this.props.results.data.length
-      const selected = (((up ? this.props.selected - 1 : this.props.selected + 1) % length) + length) % length
-      if (selected !== this.props.selected) {
-        this.props.setSelected(selected)
-      }
-      // TODO after setState?
-      // () => this._triggerTransform(this._getSelected(), false)
-    }
-
-    _onChangeText = (text: string) => {
-      this.props.lastText.current = text
-      this.props.onChangeText?.(text)
-      this.props.checkTrigger()
-    }
-
+  class SuggestorsComponent extends React.Component<SuggestorsComponentProps> {
     _onKeyDown = (evt: React.KeyboardEvent) => {
       if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
         this.props.checkTrigger()
@@ -145,11 +118,11 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       // check trigger keys (up, down, enter, tab)
       if (evt.key === 'ArrowDown') {
         evt.preventDefault()
-        this._move(false)
+        this.props.move(false)
         shouldCallParentCallback = false
       } else if (evt.key === 'ArrowUp') {
         evt.preventDefault()
-        this._move(true)
+        this.props.move(true)
         shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
@@ -161,7 +134,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           this.props.triggerTransform(this.props.getSelected())
         } else {
           // shift held -> move up
-          this._move(evt.shiftKey)
+          this.props.move(evt.shiftKey)
         }
         shouldCallParentCallback = false
       }
@@ -289,7 +262,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             inputRef={this.props.inputRef}
             onBlur={this.props.onBlur}
             onFocus={this._onFocus}
-            onChangeText={this._onChangeText}
+            onChangeText={this.props.onChangeText}
             onKeyDown={this._onKeyDown}
             onSelectionChange={this._onSelectionChange}
             onExpanded={this.props.setExpanded}
@@ -308,7 +281,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
   // }
 
   const SuggestorsComponentOuter = (p: any) => {
-    const {dataSources, renderers, suggestorToMarker, transformers} = p
+    const {dataSources, renderers, suggestorToMarker, transformers, onChangeText} = p
     const {onChannelSuggestionsTriggered, onFetchEmoji, onBlur, userEmojisLoading} = p
 
     const [active, setActive] = React.useState('')
@@ -317,6 +290,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     const [selected, setSelected] = React.useState(0)
     const inputRef = React.useRef<Kb.PlainInput>()
     const lastText = React.useRef('')
+    const triggerIDRef = React.useRef<any>(0)
 
     const setInactive = React.useCallback(() => {
       setActive('')
@@ -405,24 +379,21 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       [active, inputRef, getWordAtCursor, transformers, suggestorToMarker, lastText]
     )
 
-    React.useEffect(() => {
-      switch (active) {
-        case 'channels':
-          onChannelSuggestionsTriggered()
-          break
-        case 'emoji':
-          onFetchEmoji()
-          break
-      }
-    }, [active, onChannelSuggestionsTriggered, onFetchEmoji])
-
-    const triggerIDRef = React.useRef<any>(0)
-
-    React.useEffect(() => {
-      return () => {
-        clearTimeout(triggerIDRef.current)
-      }
-    }, [])
+    const move = React.useCallback(
+      (up: boolean) => {
+        if (!active) {
+          return
+        }
+        const length = results.data.length
+        const s = (((up ? selected - 1 : selected + 1) % length) + length) % length
+        if (s !== selected) {
+          setSelected(s)
+        }
+        // TODO after setState?
+        // () => this._triggerTransform(this._getSelected(), false)
+      },
+      [active, results, selected, setSelected]
+    )
 
     const checkTrigger = React.useCallback(() => {
       if (triggerIDRef.current) {
@@ -470,9 +441,37 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       inputRef,
     ])
 
+    const onChangeText2 = React.useCallback(
+      (text: string) => {
+        lastText.current = text
+        onChangeText?.(text)
+        checkTrigger()
+      },
+      [lastText, onChangeText, checkTrigger]
+    )
+
+    React.useEffect(() => {
+      switch (active) {
+        case 'channels':
+          onChannelSuggestionsTriggered()
+          break
+        case 'emoji':
+          onFetchEmoji()
+          break
+      }
+    }, [active, onChannelSuggestionsTriggered, onFetchEmoji])
+
+    React.useEffect(() => {
+      return () => {
+        clearTimeout(triggerIDRef.current)
+      }
+    }, [])
+
     return (
       <SuggestorsComponent
         {...p}
+        onChangeText={onChangeText2}
+        move={move}
         triggerTransform={triggerTransform}
         checkTrigger={checkTrigger}
         getWordAtCursor={getWordAtCursor}
