@@ -234,8 +234,6 @@ export default Container.connect(
           text: new HiddenString(body),
         })
       ),
-    _onGiphyToggle: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey})),
     _onPostMessage: (
       conversationIDKey: Types.ConversationIDKey,
       text: string,
@@ -305,8 +303,6 @@ export default Container.connect(
       minWriterRole: stateProps.minWriterRole,
       // TODO remove
       onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
-      // TODO remove
-      onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
       onRequestScrollDown: ownProps.onRequestScrollDown,
       onRequestScrollUp: ownProps.onRequestScrollUp,
       onSubmit: (text: string) => {

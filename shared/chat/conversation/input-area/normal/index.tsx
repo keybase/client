@@ -649,7 +649,6 @@ class Input extends React.Component<InputProps, InputState> {
           maxInputArea={this.props.maxInputArea}
           renderers={this._suggestorRenderer}
           suggestorToMarker={suggestorToMarker}
-          onChannelSuggestionsTriggered={this.props.onChannelSuggestionsTriggered}
           suggestionListStyle={Styles.collapseStyles([
             styles.suggestionList,
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
@@ -670,7 +669,6 @@ class Input extends React.Component<InputProps, InputState> {
           setHeight={this._setHeight}
           inputSetRef={this._inputSetRef}
           onChangeText={this._onChangeText}
-          onGiphyToggle={this.props.onGiphyToggle}
         />
       </Kb.Box2>
     )
