@@ -7,7 +7,7 @@ import SetExplodingMessagePopup from '../../messages/set-explode-popup/container
 import {formatDurationShort} from '../../../../util/timestamp'
 import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
 import WalletsIcon from './wallets-icon/container'
-import type {PlatformInputPropsInternal} from './platform-input'
+import type {Props} from './platform-input'
 import Typing from './typing/container'
 import {useSuggestors} from '../suggestors'
 import {indefiniteArticle} from '../../../../util/string'
@@ -17,26 +17,43 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {EmojiPickerDesktop} from '../../messages/react-button/emoji-picker/container'
 
-const ExplodingButton = (
-  p: Pick<
-    PlatformInputPropsInternal,
-    'showingExplodingMenu' | 'setAttachmentRef' | 'explodingModeSeconds' | 'toggleShowingMenu'
-  >
-) => {
-  const {showingExplodingMenu, setAttachmentRef, explodingModeSeconds, toggleShowingMenu} = p
+type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
+type InputRefType = React.MutableRefObject<Kb.PlainInput | null>
+
+type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds' | 'conversationIDKey'> & {
+  focusInput: () => void
+}
+const ExplodingButton = (p: ExplodingButtonProps) => {
+  const {explodingModeSeconds, conversationIDKey, focusInput} = p
+  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(
+    attachTo => {
+      return (
+        <SetExplodingMessagePopup
+          attachTo={attachTo}
+          conversationIDKey={conversationIDKey}
+          onAfterSelect={focusInput}
+          onHidden={toggleShowingPopup}
+          visible={showingPopup}
+        />
+      )
+    },
+    [conversationIDKey, focusInput]
+  )
+
   return (
     <HoverBox
-      className={Styles.classNames({expanded: showingExplodingMenu})}
-      onClick={toggleShowingMenu}
-      ref={setAttachmentRef}
+      className={Styles.classNames({expanded: showingPopup})}
+      onClick={toggleShowingPopup}
+      ref={popupAnchor}
       style={Styles.collapseStyles([
         styles.explodingIconContainer,
         styles.explodingIconContainerClickable,
         !!explodingModeSeconds && {
           backgroundColor: Styles.globalColors.black,
         },
-      ] as const)}
+      ] as any)}
     >
+      {popup}
       {explodingModeSeconds ? (
         <Kb.Text type="BodyTinyBold" negative={true}>
           {formatDurationShort(explodingModeSeconds * 1000)}
@@ -46,7 +63,7 @@ const ExplodingButton = (
           <Kb.Icon
             className="timer"
             colorOverride={null}
-            onClick={toggleShowingMenu}
+            onClick={toggleShowingPopup}
             padding="xtiny"
             type="iconfont-timer"
           />
@@ -56,19 +73,29 @@ const ExplodingButton = (
   )
 }
 
-const EmojiButton = (
-  p: Pick<ReturnType<typeof useEmojiPicker>, 'emojiPickerPopupRef' | 'emojiPickerOpen' | 'emojiPickerToggle'>
-) => (
-  <Kb.WithTooltip tooltip="Emoji">
-    <Kb.Box style={styles.icon} ref={p.emojiPickerPopupRef}>
-      <Kb.Icon
-        color={p.emojiPickerOpen ? Styles.globalColors.black : null}
-        onClick={p.emojiPickerToggle}
-        type="iconfont-emoji"
-      />
-    </Kb.Box>
-  </Kb.WithTooltip>
-)
+type EmojiButtonProps = Pick<Props, 'conversationIDKey'> & {inputRef: InputRefType}
+const EmojiButton = (p: EmojiButtonProps) => {
+  const {inputRef, conversationIDKey} = p
+  const {emojiPickerToggle, emojiPickerOpen, emojiPickerPopupRef, emojiPopup} = useEmojiPicker(
+    inputRef,
+    conversationIDKey
+  )
+
+  return (
+    <>
+      <Kb.WithTooltip tooltip="Emoji">
+        <Kb.Box style={styles.icon} ref={emojiPickerPopupRef}>
+          <Kb.Icon
+            color={emojiPickerOpen ? Styles.globalColors.black : null}
+            onClick={emojiPickerToggle}
+            type="iconfont-emoji"
+          />
+        </Kb.Box>
+      </Kb.WithTooltip>
+      {emojiPopup}
+    </>
+  )
+}
 
 const GiphyButton = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   const {conversationIDKey} = p
@@ -93,10 +120,7 @@ const fileListToPaths = (f: FileList | undefined | null): Array<string> =>
     return f.path
   }) as any
 
-const FileButton = (p: {
-  conversationIDKey: Types.ConversationIDKey
-  htmlInputRef: React.MutableRefObject<HTMLInputElement | null>
-}) => {
+const FileButton = (p: {conversationIDKey: Types.ConversationIDKey; htmlInputRef: HtmlInputRefType}) => {
   const {htmlInputRef, conversationIDKey} = p
   const dispatch = Container.useDispatch()
   const pickFile = React.useCallback(() => {
@@ -143,10 +167,7 @@ const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () =
   )
 }
 
-const useEmojiPicker = (
-  inputRef: React.MutableRefObject<Kb.PlainInput | null>,
-  conversationIDKey: Types.ConversationIDKey
-) => {
+const useEmojiPicker = (inputRef: InputRefType, conversationIDKey: Types.ConversationIDKey) => {
   const insertEmoji = React.useCallback(
     (emojiColons: string) => {
       inputRef.current?.transformText(({text, selection}) => {
@@ -185,9 +206,24 @@ const useEmojiPicker = (
     emojiPopup: popup,
   }
 }
-
-const useKeyboard = (p: Props, htmlInputRef: React.RefObject<HTMLInputElement>, focusInput: () => void) => {
+type UseKeyboardProps = Pick<
+  Props,
+  | 'isEditing'
+  | 'onCancelReply'
+  | 'onCancelEditing'
+  | 'onEditLastMessage'
+  | 'onRequestScrollDown'
+  | 'onRequestScrollUp'
+  | 'showReplyPreview'
+> & {
+  focusInput: () => void
+  htmlInputRef: HtmlInputRefType
+  onKeyDown: (evt: React.KeyboardEvent) => void
+}
+const useKeyboard = (p: UseKeyboardProps) => {
   const {
+    htmlInputRef,
+    focusInput,
     isEditing,
     onCancelReply,
     onCancelEditing,
@@ -282,41 +318,15 @@ const useKeyboard = (p: Props, htmlInputRef: React.RefObject<HTMLInputElement>, 
   return {globalKeyDownPressHandler, inputKeyDown, lastText}
 }
 
-type SideButtonsProps = {
-  getAttachmentRef: any
-  conversationIDKey: any
-  focusInput: any
-  toggleShowingMenu: any
-  showingExplodingMenu: any
-  showWalletsIcon: any
-  emojiPickerPopupRef: any
-  emojiPickerOpen: any
-  emojiPickerToggle: any
-  htmlInputRef: any
-  cannotWrite: any
+type SideButtonsProps = Pick<Props, 'conversationIDKey' | 'showWalletsIcon' | 'cannotWrite'> & {
+  htmlInputRef: HtmlInputRefType
+  inputRef: InputRefType
 }
 
 const SideButtons = (p: SideButtonsProps) => {
-  const {htmlInputRef, getAttachmentRef, conversationIDKey, focusInput, toggleShowingMenu} = p
-  const {
-    showingExplodingMenu,
-    cannotWrite,
-    showWalletsIcon,
-    emojiPickerPopupRef,
-    emojiPickerOpen,
-    emojiPickerToggle,
-  } = p
+  const {htmlInputRef, conversationIDKey, cannotWrite, showWalletsIcon, inputRef} = p
   return (
     <>
-      {showingExplodingMenu && (
-        <SetExplodingMessagePopup
-          attachTo={getAttachmentRef}
-          conversationIDKey={conversationIDKey}
-          onAfterSelect={focusInput}
-          onHidden={toggleShowingMenu}
-          visible={showingExplodingMenu}
-        />
-      )}
       {!cannotWrite && showWalletsIcon && (
         <Kb.WithTooltip tooltip="Lumens">
           <WalletsIcon size={16} style={styles.walletsIcon} conversationIDKey={conversationIDKey} />
@@ -325,11 +335,7 @@ const SideButtons = (p: SideButtonsProps) => {
       {!cannotWrite && (
         <>
           <GiphyButton conversationIDKey={conversationIDKey} />
-          <EmojiButton
-            emojiPickerPopupRef={emojiPickerPopupRef}
-            emojiPickerOpen={emojiPickerOpen}
-            emojiPickerToggle={emojiPickerToggle}
-          />
+          <EmojiButton inputRef={inputRef} conversationIDKey={conversationIDKey} />
           <FileButton conversationIDKey={conversationIDKey} htmlInputRef={htmlInputRef} />
         </>
       )}
@@ -337,18 +343,33 @@ const SideButtons = (p: SideButtonsProps) => {
   )
 }
 
-type Props = PlatformInputPropsInternal
-
-const PlatformInputInner = (p: Props) => {
+const PlatformInput = (p: Props) => {
   // TODO move continer props into here so they can go into sub components
-  const {cannotWrite, conversationIDKey, explodingModeSeconds, getAttachmentRef, inputHintText} = p
-  const {onChangeText, setAttachmentRef, showWalletsIcon, showingMenu, toggleShowingMenu} = p
-  const {isExploding, minWriterRole, onCancelEditing, inputRef, inputSetRef, isEditing} = p
+  const {cannotWrite, conversationIDKey, explodingModeSeconds, inputHintText} = p
+  const {showWalletsIcon, onCancelReply, onCancelEditing, onEditLastMessage} = p
+  const {isExploding, minWriterRole, inputSetRef, isEditing} = p
+  const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
-  const {emojiPickerToggle, emojiPickerOpen, emojiPickerPopupRef, emojiPopup} = useEmojiPicker(
-    inputRef,
-    conversationIDKey
-  )
+  const {popup, inputRef, onChangeText, onKeyDown} = useSuggestors({
+    dataSources: p.dataSources,
+    keyExtractors: p.keyExtractors,
+    onBlur: p.onBlur,
+    onChangeText: p.onChangeText,
+    onChannelSuggestionsTriggered: p.onChannelSuggestionsTriggered,
+    onFetchEmoji: p.onFetchEmoji,
+    onFocus: p.onFocus,
+    onKeyDown: p.onKeyDown,
+    onSelectionChange: p.onSelectionChange,
+    renderers: p.renderers,
+    suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
+    suggestionListStyle: p.suggestionListStyle,
+    suggestionOverlayStyle: p.suggestionOverlayStyle,
+    suggestionSpinnerStyle: p.suggestionSpinnerStyle,
+    suggestorToMarker: p.suggestorToMarker,
+    transformers: p.transformers,
+    userEmojisLoading: p.userEmojisLoading,
+  })
+
   const focusInput = React.useCallback(() => {
     inputRef.current?.focus()
   }, [inputRef])
@@ -362,7 +383,18 @@ const PlatformInputInner = (p: Props) => {
     }
     return inputHintText || 'Write a message'
   }, [cannotWrite, minWriterRole, inputHintText, isEditing, isExploding])
-  const {globalKeyDownPressHandler, inputKeyDown, lastText} = useKeyboard(p, htmlInputRef, focusInput)
+  const {globalKeyDownPressHandler, inputKeyDown, lastText} = useKeyboard({
+    isEditing,
+    onCancelReply,
+    onCancelEditing,
+    onEditLastMessage,
+    onKeyDown,
+    onRequestScrollDown,
+    onRequestScrollUp,
+    showReplyPreview,
+    htmlInputRef,
+    focusInput,
+  })
   const onChangeText2 = React.useCallback(
     (text: string) => {
       lastText.current = text
@@ -371,10 +403,9 @@ const PlatformInputInner = (p: Props) => {
     [onChangeText, lastText]
   )
 
-  const showingExplodingMenu = showingMenu
-
   return (
     <>
+      {popup}
       <KeyEventHandler onKeyDown={globalKeyDownPressHandler} onKeyPress={globalKeyDownPressHandler}>
         <Kb.Box style={styles.container}>
           <Kb.Box
@@ -386,10 +417,9 @@ const PlatformInputInner = (p: Props) => {
           >
             {!isEditing && !cannotWrite && (
               <ExplodingButton
-                showingExplodingMenu={showingExplodingMenu}
-                setAttachmentRef={setAttachmentRef}
                 explodingModeSeconds={explodingModeSeconds}
-                toggleShowingMenu={toggleShowingMenu}
+                conversationIDKey={conversationIDKey}
+                focusInput={focusInput}
               />
             )}
             {isEditing && (
@@ -423,47 +453,18 @@ const PlatformInputInner = (p: Props) => {
             </Kb.Box2>
             <SideButtons
               cannotWrite={cannotWrite}
-              showingExplodingMenu={showingExplodingMenu}
-              getAttachmentRef={getAttachmentRef}
               conversationIDKey={conversationIDKey}
-              focusInput={focusInput}
-              toggleShowingMenu={toggleShowingMenu}
               showWalletsIcon={showWalletsIcon}
-              emojiPickerPopupRef={emojiPickerPopupRef}
-              emojiPickerOpen={emojiPickerOpen}
-              emojiPickerToggle={emojiPickerToggle}
               htmlInputRef={htmlInputRef}
+              inputRef={inputRef}
             />
           </Kb.Box>
           <Footer conversationIDKey={conversationIDKey} focusInput={focusInput} />
         </Kb.Box>
       </KeyEventHandler>
-      {emojiPopup}
     </>
   )
 }
-
-const PlatformInput = React.forwardRef((p: any, forwardedRef: any) => {
-  const {popup, inputRef, onChangeText, onKeyDown, onBlur, onExpanded, onSelectionChange, onFocus} =
-    useSuggestors(p)
-
-  return (
-    <>
-      {popup}
-      <PlatformInputInner
-        {...p}
-        forwardedRef={forwardedRef}
-        inputRef={inputRef}
-        onChangeText={onChangeText}
-        onKeyDown={onKeyDown}
-        onBlur={onBlur}
-        onExpanded={onExpanded}
-        onSelectionChange={onSelectionChange}
-        onFocus={onFocus}
-      />
-    </>
-  )
-})
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -569,4 +570,4 @@ const HoverBox = Styles.styled(Kb.Box)(() => ({
   },
 }))
 
-export default Kb.OverlayParentHOC(PlatformInput)
+export default PlatformInput

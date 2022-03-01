@@ -37,7 +37,6 @@ type ButtonsProps = Pick<
 > & {
   hasText: boolean
   isEditing: boolean
-  openMoreMenu: () => void
   onCancelEditing: () => void
   toggleShowingMenu: () => void
   insertText: (s: string) => void

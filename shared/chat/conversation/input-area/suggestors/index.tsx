@@ -4,6 +4,7 @@ import * as Styles from '../../../../styles'
 import {useMemo} from '../../../../util/memoize'
 import SuggestionList from './suggestion-list'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type {Props} from '../normal/platform-input'
 
 export type TransformerData = {
   text: string
@@ -79,41 +80,31 @@ type AddSuggestorsProps = {
   }
 }
 
-type SuggestorHooks = {
-  suggestionsVisible: boolean
-  inputRef: React.MutableRefObject<Kb.PlainInput | null>
-  onChangeText: (arg0: string) => void
-  onKeyDown: (event: React.KeyboardEvent) => void
-  onBlur: () => void
-  onFocus: () => void
-  onSelectionChange: (arg0: {start: number | null; end: number | null}) => void
-  onExpanded: (e: boolean) => void
-}
-
-export type PropsWithSuggestorOuter<P> = P & AddSuggestorsProps
-export type PropsWithSuggestor<P> = P & SuggestorHooks
-
-export const useSuggestors = (p: any) => {
-  const {
-    dataSources,
-    keyExtractors,
-    renderers,
-    suggestionListStyle,
-    suggestionOverlayStyle,
-    suggestorToMarker,
-    transformers,
-    ...wrappedOP
-  } = p
-  const {onChangeText, onKeyDown, onChannelSuggestionsTriggered} = wrappedOP
-  const {
-    onFetchEmoji,
-    onBlur,
-    userEmojisLoading,
-    onFocus,
-    onSelectionChange,
-    suggestBotCommandsUpdateStatus,
-    suggestionSpinnerStyle,
-  } = wrappedOP
+type UseSuggestorsProps = Pick<
+  Props,
+  | 'dataSources'
+  | 'keyExtractors'
+  | 'onBlur'
+  | 'onChangeText'
+  | 'onChannelSuggestionsTriggered'
+  | 'onFetchEmoji'
+  | 'onFocus'
+  | 'onKeyDown'
+  | 'onSelectionChange'
+  | 'renderers'
+  | 'suggestBotCommandsUpdateStatus'
+  | 'suggestionListStyle'
+  | 'suggestionOverlayStyle'
+  | 'suggestionSpinnerStyle'
+  | 'suggestorToMarker'
+  | 'transformers'
+  | 'userEmojisLoading'
+>
+export const useSuggestors = (p: UseSuggestorsProps) => {
+  const {dataSources, keyExtractors, renderers, suggestionListStyle, suggestionOverlayStyle} = p
+  const {onChangeText, onKeyDown, onChannelSuggestionsTriggered, suggestorToMarker, transformers} = p
+  const {onFetchEmoji, onBlur, userEmojisLoading, onFocus, onSelectionChange} = p
+  const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle} = p
 
   const [active, setActive] = React.useState('')
   const [expanded, setExpanded] = React.useState(false)
