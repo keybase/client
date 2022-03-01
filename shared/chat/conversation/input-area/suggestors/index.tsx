@@ -46,42 +46,6 @@ const matchesMarker = (
   return {marker: match[0] || '', matches: true}
 }
 
-type AddSuggestorsProps = {
-  lastText: React.MutableRefObject<string>
-  setInactive: () => void
-  active: string
-  setActive: (a: string) => void
-  expanded: boolean
-  setExpanded: (e: boolean) => void
-  filter: string
-  setFilter: (f: string) => void
-  selected: number
-  setSelected: (s: number) => void
-  dataSources: {[K in string]: (filter: string) => {data: Array<any>; loading: boolean; useSpaces: boolean}}
-  keyExtractors?: {[K in string]: (item: any) => string}
-  onChannelSuggestionsTriggered: () => void
-  renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
-  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
-  suggestionListStyle?: Styles.StylesCrossPlatform
-  suggestionOverlayStyle?: Styles.StylesCrossPlatform
-  suggestionSpinnerStyle?: Styles.StylesCrossPlatform
-  suggestorToMarker: {[K in string]: string | RegExp}
-  transformers: {
-    [K in string]: (
-      item: any,
-      marker: string,
-      tData: TransformerData,
-      preview: boolean
-    ) => {
-      text: string
-      selection: {
-        start: number
-        end: number
-      }
-    }
-  }
-}
-
 const emojiTransformer = (emoji: EmojiData, marker: string, tData: TransformerData, preview: boolean) => {
   return standardTransformer(`${marker}${emoji.short_name}:`, tData, preview)
 }
@@ -142,10 +106,35 @@ const transformers = {
   users: transformUserSuggestion,
 } as const
 
+const suggestorToMarker = {
+  channels: '#',
+  commands: /(!|\/)/,
+  emoji: /^(\+?):/,
+  // 'users' is for @user, @team, and @team#channel
+  users: /((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
+} as const
+
+const keyExtractors = {
+  channels: ({channelname, teamname}: {channelname: string; teamname?: string}) =>
+    teamname ? `${teamname}#${channelname}` : channelname,
+  commands: (c: RPCChatTypes.ConversationCommand) => c.name + c.username,
+  emoji: (item: EmojiData) => item.short_name,
+  users: ({username, teamname, channelname}: {username: string; teamname?: string; channelname?: string}) => {
+    if (teamname) {
+      if (channelname) {
+        return teamname + '#' + channelname
+      } else {
+        return teamname
+      }
+    } else {
+      return username
+    }
+  },
+}
+
 type UseSuggestorsProps = Pick<
   Props,
   | 'dataSources'
-  | 'keyExtractors'
   | 'onBlur'
   | 'onChangeText'
   | 'onFocus'
@@ -153,17 +142,16 @@ type UseSuggestorsProps = Pick<
   | 'onSelectionChange'
   | 'renderers'
   | 'suggestBotCommandsUpdateStatus'
-  | 'suggestionListStyle'
   | 'suggestionOverlayStyle'
-  | 'suggestionSpinnerStyle'
-  | 'suggestorToMarker'
   | 'userEmojisLoading'
   | 'conversationIDKey'
->
+> & {
+  suggestionListStyle: unknown
+  suggestionSpinnerStyle: unknown
+}
 export const useSuggestors = (p: UseSuggestorsProps) => {
-  const {dataSources, keyExtractors, renderers, suggestionListStyle, suggestionOverlayStyle} = p
-  const {onChangeText, onKeyDown, suggestorToMarker} = p
-  const {onBlur, userEmojisLoading, onFocus, onSelectionChange} = p
+  const {dataSources, renderers, suggestionListStyle, suggestionOverlayStyle} = p
+  const {onBlur, userEmojisLoading, onFocus, onSelectionChange, onChangeText, onKeyDown} = p
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
 
   const [active, setActive] = React.useState('')

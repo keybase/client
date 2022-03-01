@@ -8,7 +8,7 @@ type Props = {
   // setHeight: (inputHeight: number) => void
   dataSources: unknown
   hintText: string
-  keyExtractors: unknown
+  // keyExtractors: unknown
   onBlur: unknown
   onFocus: unknown
   onSelectionChange: unknown
@@ -16,7 +16,7 @@ type Props = {
   // suggestionListStyle: unknown
   suggestionOverlayStyle: unknown
   // suggestionSpinnerStyle: unknown
-  suggestorToMarker: unknown
+  // suggestorToMarker: unknown
   // transformers: unknown
   // botRestrictMap?: Map<string, boolean>
   onKeyDown: (evt: React.KeyboardEvent) => void

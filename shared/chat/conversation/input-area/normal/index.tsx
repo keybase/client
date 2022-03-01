@@ -96,32 +96,6 @@ const searchUsersAndTeamsAndTeamChannels = memoize(
   }
 )
 
-const suggestorToMarker = {
-  channels: '#',
-  commands: /(!|\/)/,
-  emoji: /^(\+?):/,
-  // 'users' is for @user, @team, and @team#channel
-  users: /((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
-}
-
-const suggestorKeyExtractors = {
-  channels: ({channelname, teamname}: {channelname: string; teamname?: string}) =>
-    teamname ? `${teamname}#${channelname}` : channelname,
-  commands: (c: RPCChatTypes.ConversationCommand) => c.name + c.username,
-  emoji: (item: EmojiData) => item.short_name,
-  users: ({username, teamname, channelname}: {username: string; teamname?: string; channelname?: string}) => {
-    if (teamname) {
-      if (channelname) {
-        return teamname + '#' + channelname
-      } else {
-        return teamname
-      }
-    } else {
-      return username
-    }
-  },
-}
-
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 
@@ -586,13 +560,11 @@ class Input extends React.Component<InputProps, InputState> {
           dataSources={this._suggestorDatasource}
           maxInputArea={this.props.maxInputArea}
           renderers={this._suggestorRenderer}
-          suggestorToMarker={suggestorToMarker}
           suggestionOverlayStyle={Styles.collapseStyles([
             styles.suggestionOverlay,
             infoPanelShowing && styles.suggestionOverlayWithInfoPanel,
           ])}
           suggestBotCommandsUpdateStatus={this.props.suggestBotCommandsUpdateStatus}
-          keyExtractors={suggestorKeyExtractors}
           onKeyDown={this._onKeyDown}
           onSubmit={this._onSubmit}
           inputSetRef={this._inputSetRef}
