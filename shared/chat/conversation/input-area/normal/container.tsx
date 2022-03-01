@@ -224,21 +224,8 @@ export default Container.connect(
     _clearUnsentText: (conversationIDKey: Types.ConversationIDKey) => {
       dispatch(Chat2Gen.createSetUnsentText({conversationIDKey}))
     },
-    _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
-      const pathAndOutboxIDs = paths.map(p => ({
-        outboxID: null,
-        path: p,
-      }))
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-        })
-      )
-    },
     _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
-    _onCancelReply: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey})),
     _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>
       dispatch(
         Chat2Gen.createMessageSetEditing({
@@ -275,7 +262,6 @@ export default Container.connect(
       conversationIDKey &&
       dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
     clearInboxFilter: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
-    onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
     onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   }),
@@ -326,12 +312,9 @@ export default Container.connect(
       maxInputArea: ownProps.maxInputArea,
       minWriterRole: stateProps.minWriterRole,
       // TODO remove
-      onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
       onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
-      onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
       onEditLastMessage: () =>
         dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
-      onFilePickerError: dispatchProps.onFilePickerError,
       // TODO remove
       onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
       onRequestScrollDown: ownProps.onRequestScrollDown,

@@ -196,8 +196,8 @@ const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () =
 
 type UseKeyboardProps = Pick<
   Props,
+  | 'conversationIDKey'
   | 'isEditing'
-  | 'onCancelReply'
   | 'onCancelEditing'
   | 'onChangeText'
   | 'onEditLastMessage'
@@ -210,9 +210,13 @@ type UseKeyboardProps = Pick<
   onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 const useKeyboard = (p: UseKeyboardProps) => {
-  const {htmlInputRef, focusInput, isEditing, onCancelReply, onCancelEditing, onKeyDown} = p
+  const {htmlInputRef, focusInput, isEditing, onCancelEditing, onKeyDown, conversationIDKey} = p
   const {onChangeText, onEditLastMessage, onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const lastText = React.useRef('')
+  const dispatch = Container.useDispatch()
+  const onCancelReply = React.useCallback(() => {
+    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
 
   // Key-handling code shared by both the input key handler
   // (_onKeyDown) and the global key handler
@@ -374,11 +378,11 @@ const PlatformInput = (p: Props) => {
     return inputHintText || 'Write a message'
   }, [cannotWrite, minWriterRole, inputHintText, isEditing, isExploding])
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
+    conversationIDKey,
     focusInput,
     htmlInputRef,
     isEditing,
     onCancelEditing,
-    onCancelReply,
     onChangeText: onChangeTextSuggestors,
     onEditLastMessage,
     onKeyDown,

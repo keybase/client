@@ -35,11 +35,9 @@ type Props = {
   // isSearching: boolean
   maxInputArea?: number
   minWriterRole: TeamTypes.TeamRoleType
-  onAttach: (paths: Array<string>) => void
   onCancelEditing: () => void
   onCancelReply: () => void
   onEditLastMessage: () => void
-  onFilePickerError: (error: Error) => void
   // onGiphyToggle: () => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void

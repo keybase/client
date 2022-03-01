@@ -1,9 +1,11 @@
 import type * as ImagePicker from 'expo-image-picker'
+import type * as Types from '../../../../constants/types/chat2'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import {NativeKeyboard} from '../../../../common-adapters/mobile.native'
+import {NativeKeyboard, ReAnimated} from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as ConfigGen from '../../../../actions/config-gen'
 import * as Container from '../../../../util/container'
 import {isLargeScreen} from '../../../../constants/platform'
 import type {LayoutEvent} from '../../../../common-adapters/box'
@@ -30,7 +32,7 @@ import HWKeyboardEvent from 'react-native-hw-keyboard-event'
 
 type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 const defaultMaxHeight = 145
-const {block, Value, Clock, add, concat} = Kb.ReAnimated
+const {block, Value, Clock, add, concat} = ReAnimated
 
 type ButtonsProps = Pick<
   Props,
@@ -123,7 +125,7 @@ const Buttons = (p: ButtonsProps) => {
   )
 }
 
-const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value<number>}) => {
+const AnimatedExpand = (p: {expandInput: () => void; rotate: ReAnimated.Value<number>}) => {
   const {expandInput, rotate} = p
   return (
     <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
@@ -159,6 +161,68 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
   )
 }
 
+type ChatFilePickerProps = {
+  attachTo: () => React.Component | null
+  showingPopup: boolean
+  toggleShowingPopup: () => void
+  conversationIDKey: Types.ConversationIDKey
+}
+const ChatFilePicker = (p: ChatFilePickerProps) => {
+  const {attachTo, showingPopup, toggleShowingPopup, conversationIDKey} = p
+  const dispatch = Container.useDispatch()
+  const launchNativeImagePicker = React.useCallback(
+    (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
+      const handleSelection = (result: ImagePicker.ImagePickerResult) => {
+        if (result.cancelled || !conversationIDKey) {
+          return
+        }
+        const filename = parseUri(result)
+        if (filename) {
+          dispatch(
+            RouteTreeGen.createNavigateAppend({
+              path: [
+                {
+                  props: {
+                    conversationIDKey,
+                    pathAndOutboxIDs: [{outboxID: null, path: filename}],
+                  },
+                  selected: 'chatAttachmentGetTitles',
+                },
+              ],
+            })
+          )
+        }
+      }
+
+      const onFilePickerError = (error: Error) => {
+        dispatch(ConfigGen.createFilePickerError({error}))
+      }
+      switch (location) {
+        case 'camera':
+          launchCameraAsync(mediaType)
+            .then(handleSelection)
+            .catch(error => onFilePickerError(new Error(error)))
+          break
+        case 'library':
+          launchImageLibraryAsync(mediaType)
+            .then(handleSelection)
+            .catch(error => onFilePickerError(new Error(error)))
+          break
+      }
+    },
+    [dispatch, conversationIDKey]
+  )
+
+  return (
+    <FilePickerPopup
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      onSelect={launchNativeImagePicker}
+    />
+  )
+}
+
 const PlatformInput = (p: Props) => {
   const {popup, inputRef, onChangeText, onBlur, onExpanded, onSelectionChange, onFocus, suggestionsVisible} =
     useSuggestors({
@@ -180,7 +244,7 @@ const PlatformInput = (p: Props) => {
       userEmojisLoading: p.userEmojisLoading,
     })
   const {cannotWrite, conversationIDKey, inputHintText, isEditing, isExploding, onCancelEditing} = p
-  const {minWriterRole, onAttach, onFilePickerError, onSubmit, explodingModeSeconds} = p
+  const {minWriterRole, onSubmit, explodingModeSeconds} = p
   const {setHeight, inputSetRef, maxInputArea, showTypingStatus} = p
 
   const lastText = React.useRef('')
@@ -199,34 +263,6 @@ const PlatformInput = (p: Props) => {
   const [animating, setAnimating] = React.useState(false)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const [hasText, setHasText] = React.useState(false)
-
-  const launchNativeImagePicker = React.useCallback(
-    (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
-      const handleSelection = (result: ImagePicker.ImagePickerResult) => {
-        if (result.cancelled || !conversationIDKey) {
-          return
-        }
-        const filename = parseUri(result)
-        if (filename) {
-          onAttach([filename])
-        }
-      }
-
-      switch (location) {
-        case 'camera':
-          launchCameraAsync(mediaType)
-            .then(handleSelection)
-            .catch(error => onFilePickerError(new Error(error)))
-          break
-        case 'library':
-          launchImageLibraryAsync(mediaType)
-            .then(handleSelection)
-            .catch(error => onFilePickerError(new Error(error)))
-          break
-      }
-    },
-    [conversationIDKey, onAttach, onFilePickerError]
-  )
 
   const toggleExpandInput = React.useCallback(() => {
     watchSizeChanges.current = false
@@ -314,11 +350,11 @@ const PlatformInput = (p: Props) => {
       switch (whichMenu.current) {
         case 'filepickerpopup':
           return (
-            <FilePickerPopup
+            <ChatFilePicker
               attachTo={attachTo}
-              visible={showingPopup}
-              onHidden={toggleShowingPopup}
-              onSelect={launchNativeImagePicker}
+              showingPopup={showingPopup}
+              toggleShowingPopup={toggleShowingPopup}
+              conversationIDKey={conversationIDKey}
             />
           )
         case 'moremenu':
@@ -340,7 +376,7 @@ const PlatformInput = (p: Props) => {
           )
       }
     },
-    [conversationIDKey, launchNativeImagePicker]
+    [conversationIDKey]
   )
 
   const ourShowMenu = React.useCallback(
@@ -384,10 +420,10 @@ const PlatformInput = (p: Props) => {
       ]}
     >
       {popup}
-      <Kb.ReAnimated.Code>
+      <ReAnimated.Code>
         {() => block([runRotateToggle(rotateClock.current, animateState.current, rotate.current)])}
-      </Kb.ReAnimated.Code>
-      <Kb.ReAnimated.Code key={lastHeight.current}>
+      </ReAnimated.Code>
+      <ReAnimated.Code key={lastHeight.current}>
         {() =>
           block([
             runToggle(
@@ -404,7 +440,7 @@ const PlatformInput = (p: Props) => {
             ),
           ])
         }
-      </Kb.ReAnimated.Code>
+      </ReAnimated.Code>
       {menu}
       {showTypingStatus && !suggestionsVisible && <Typing conversationIDKey={conversationIDKey} />}
       <Kb.Box2
