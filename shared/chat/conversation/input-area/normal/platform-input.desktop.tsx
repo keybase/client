@@ -76,23 +76,50 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
 type EmojiButtonProps = Pick<Props, 'conversationIDKey'> & {inputRef: InputRefType}
 const EmojiButton = (p: EmojiButtonProps) => {
   const {inputRef, conversationIDKey} = p
-  const {emojiPickerToggle, emojiPickerOpen, emojiPickerPopupRef, emojiPopup} = useEmojiPicker(
-    inputRef,
-    conversationIDKey
+  const insertEmoji = React.useCallback(
+    (emojiColons: string) => {
+      inputRef.current?.transformText(({text, selection}) => {
+        const newText = text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0)
+        const pos = (selection.start || 0) + emojiColons.length
+        return {
+          selection: {end: pos, start: pos},
+          text: newText,
+        }
+      }, true)
+      inputRef.current?.focus()
+    },
+    [inputRef]
   )
+
+  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(attachTo => {
+    return (
+      <Kb.Overlay
+        attachTo={attachTo}
+        visible={showingPopup}
+        onHidden={toggleShowingPopup}
+        position="top right"
+      >
+        <EmojiPickerDesktop
+          conversationIDKey={conversationIDKey}
+          onPickAction={insertEmoji}
+          onDidPick={toggleShowingPopup}
+        />
+      </Kb.Overlay>
+    )
+  })
 
   return (
     <>
       <Kb.WithTooltip tooltip="Emoji">
-        <Kb.Box style={styles.icon} ref={emojiPickerPopupRef}>
+        <Kb.Box style={styles.icon} ref={popupAnchor}>
           <Kb.Icon
-            color={emojiPickerOpen ? Styles.globalColors.black : null}
-            onClick={emojiPickerToggle}
+            color={showingPopup ? Styles.globalColors.black : null}
+            onClick={toggleShowingPopup}
             type="iconfont-emoji"
           />
         </Kb.Box>
       </Kb.WithTooltip>
-      {emojiPopup}
+      {popup}
     </>
   )
 }
@@ -167,45 +194,6 @@ const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () =
   )
 }
 
-const useEmojiPicker = (inputRef: InputRefType, conversationIDKey: Types.ConversationIDKey) => {
-  const insertEmoji = React.useCallback(
-    (emojiColons: string) => {
-      inputRef.current?.transformText(({text, selection}) => {
-        const newText = text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0)
-        const pos = (selection.start || 0) + emojiColons.length
-        return {
-          selection: {end: pos, start: pos},
-          text: newText,
-        }
-      }, true)
-      inputRef.current?.focus()
-    },
-    [inputRef]
-  )
-
-  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(attachTo => {
-    return (
-      <Kb.Overlay
-        attachTo={attachTo}
-        visible={showingPopup}
-        onHidden={toggleShowingPopup}
-        position="top right"
-      >
-        <EmojiPickerDesktop
-          conversationIDKey={conversationIDKey}
-          onPickAction={insertEmoji}
-          onDidPick={toggleShowingPopup}
-        />
-      </Kb.Overlay>
-    )
-  })
-  return {
-    emojiPickerOpen: showingPopup,
-    emojiPickerPopupRef: popupAnchor,
-    emojiPickerToggle: toggleShowingPopup,
-    emojiPopup: popup,
-  }
-}
 type UseKeyboardProps = Pick<
   Props,
   | 'isEditing'
@@ -218,7 +206,7 @@ type UseKeyboardProps = Pick<
 > & {
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
-  onKeyDown: (evt: React.KeyboardEvent) => void
+  onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 const useKeyboard = (p: UseKeyboardProps) => {
   const {
@@ -355,8 +343,6 @@ const PlatformInput = (p: Props) => {
     keyExtractors: p.keyExtractors,
     onBlur: p.onBlur,
     onChangeText: p.onChangeText,
-    onChannelSuggestionsTriggered: p.onChannelSuggestionsTriggered,
-    onFetchEmoji: p.onFetchEmoji,
     onFocus: p.onFocus,
     onKeyDown: p.onKeyDown,
     onSelectionChange: p.onSelectionChange,
@@ -384,16 +370,16 @@ const PlatformInput = (p: Props) => {
     return inputHintText || 'Write a message'
   }, [cannotWrite, minWriterRole, inputHintText, isEditing, isExploding])
   const {globalKeyDownPressHandler, inputKeyDown, lastText} = useKeyboard({
+    focusInput,
+    htmlInputRef,
     isEditing,
-    onCancelReply,
     onCancelEditing,
+    onCancelReply,
     onEditLastMessage,
     onKeyDown,
     onRequestScrollDown,
     onRequestScrollUp,
     showReplyPreview,
-    htmlInputRef,
-    focusInput,
   })
   const onChangeText2 = React.useCallback(
     (text: string) => {

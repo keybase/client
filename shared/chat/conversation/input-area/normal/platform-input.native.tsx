@@ -1,16 +1,16 @@
-import * as ImagePicker from 'expo-image-picker'
+import type * as ImagePicker from 'expo-image-picker'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
 import {isLargeScreen} from '../../../../constants/platform'
-import {LayoutEvent} from '../../../../common-adapters/box'
+import type {LayoutEvent} from '../../../../common-adapters/box'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
 import MoreMenuPopup from './moremenu-popup'
-import {PlatformInputPropsInternal} from './platform-input'
+import type {Props} from './platform-input'
 import {useSuggestors, standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {formatDurationShort} from '../../../../util/timestamp'
@@ -32,7 +32,7 @@ const defaultMaxHeight = 145
 const {block, Value, Clock, add, concat} = Kb.ReAnimated
 
 type ButtonsProps = Pick<
-  PlatformInputPropsInternal,
+  Props,
   'conversationIDKey' | 'onSelectionChange' | 'explodingModeSeconds' | 'isExploding' | 'cannotWrite'
 > & {
   hasText: boolean
@@ -45,9 +45,8 @@ type ButtonsProps = Pick<
 }
 
 const Buttons = (p: ButtonsProps) => {
-  const {conversationIDKey, insertText, ourShowMenu} = p
+  const {conversationIDKey, insertText, ourShowMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
-  const {onSubmit, onCancelEditing} = p
   const openFilePicker = React.useCallback(() => {
     ourShowMenu('filepickerpopup')
   }, [ourShowMenu])
@@ -159,7 +158,7 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
   )
 }
 
-const PlatformInputInner = (p: any) => {
+const PlatformInputInner = (p: Props) => {
   const {cannotWrite, conversationIDKey, inputHintText, inputRef, isEditing, isExploding, onCancelEditing} = p
   const {minWriterRole, onAttach, onExpanded, onFilePickerError, onSubmit, toggleShowingMenu} = p
   const {getAttachmentRef, showingMenu, setHeight, inputSetRef, maxInputArea, showTypingStatus} = p

@@ -44,7 +44,6 @@ type Props = {
   onRequestScrollUp: () => void
   // onSubmit: (text: string) => void
   onChannelSuggestionsTriggered: () => void
-  onFetchEmoji: () => void
   // prependText: string | null
   // quoteCounter: number
   // quoteText: string

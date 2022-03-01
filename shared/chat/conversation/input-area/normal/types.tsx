@@ -29,8 +29,6 @@ type CommonProps = {
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
   onSubmit: (text: string) => void
-  onChannelSuggestionsTriggered: () => void
-  onFetchEmoji: () => void
   prependText: string | null
   quoteCounter: number
   quoteText: string

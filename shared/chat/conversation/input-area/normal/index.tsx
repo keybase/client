@@ -631,7 +631,6 @@ class Input extends React.Component<InputProps, InputState> {
           renderers={this._suggestorRenderer}
           suggestorToMarker={suggestorToMarker}
           onChannelSuggestionsTriggered={this.props.onChannelSuggestionsTriggered}
-          onFetchEmoji={this.props.onFetchEmoji}
           suggestionListStyle={Styles.collapseStyles([
             styles.suggestionList,
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},

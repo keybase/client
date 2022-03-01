@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {useMemo} from '../../../../util/memoize'
+import * as Container from '../../../../util/container'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import SuggestionList from './suggestion-list'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type {Props} from '../normal/platform-input'
@@ -57,7 +59,6 @@ type AddSuggestorsProps = {
   dataSources: {[K in string]: (filter: string) => {data: Array<any>; loading: boolean; useSpaces: boolean}}
   keyExtractors?: {[K in string]: (item: any) => string}
   onChannelSuggestionsTriggered: () => void
-  onFetchEmoji: () => void
   renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
   suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
   suggestionListStyle?: Styles.StylesCrossPlatform
@@ -86,8 +87,6 @@ type UseSuggestorsProps = Pick<
   | 'keyExtractors'
   | 'onBlur'
   | 'onChangeText'
-  | 'onChannelSuggestionsTriggered'
-  | 'onFetchEmoji'
   | 'onFocus'
   | 'onKeyDown'
   | 'onSelectionChange'
@@ -99,12 +98,13 @@ type UseSuggestorsProps = Pick<
   | 'suggestorToMarker'
   | 'transformers'
   | 'userEmojisLoading'
+  | 'conversationIDKey'
 >
 export const useSuggestors = (p: UseSuggestorsProps) => {
   const {dataSources, keyExtractors, renderers, suggestionListStyle, suggestionOverlayStyle} = p
-  const {onChangeText, onKeyDown, onChannelSuggestionsTriggered, suggestorToMarker, transformers} = p
-  const {onFetchEmoji, onBlur, userEmojisLoading, onFocus, onSelectionChange} = p
-  const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle} = p
+  const {onChangeText, onKeyDown, suggestorToMarker, transformers} = p
+  const {onBlur, userEmojisLoading, onFocus, onSelectionChange} = p
+  const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
 
   const [active, setActive] = React.useState('')
   const [expanded, setExpanded] = React.useState(false)
@@ -316,6 +316,16 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     },
     [onSelectionChange, checkTrigger]
   )
+
+  const dispatch = Container.useDispatch()
+
+  const onFetchEmoji = React.useCallback(() => {
+    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
+
+  const onChannelSuggestionsTriggered = React.useCallback(() => {
+    dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
 
   React.useEffect(() => {
     switch (active) {
