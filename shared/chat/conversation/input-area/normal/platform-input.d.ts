@@ -6,13 +6,13 @@ import type {PlainInput} from '../../../../common-adapters'
 
 type Props = {
   // setHeight: (inputHeight: number) => void
-  dataSources: unknown
+  dataSources: any
   hintText: string
   // keyExtractors: unknown
-  onBlur: unknown
-  onFocus: unknown
-  onSelectionChange: unknown
-  renderers: unknown
+  onBlur: () => void
+  onFocus: () => void
+  onSelectionChange?: (p: {start: number | null; end: number | null}) => void
+  // renderers: unknown
   // suggestionListStyle: unknown
   suggestionOverlayStyle: unknown
   // suggestionSpinnerStyle: unknown

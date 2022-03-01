@@ -138,8 +138,8 @@ const GiphyButton = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   )
 }
 
-const fileListToPaths = (f: FileList | undefined | null): Array<string> =>
-  Array.prototype.map.call((f || []) as any, (f: File) => {
+const fileListToPaths = (f: any): Array<string> =>
+  Array.prototype.map.call(f || [], (f: File) => {
     // We rely on path being here, even though it's
     // not part of the File spec.
     return f.path
@@ -345,18 +345,15 @@ const PlatformInput = (p: Props) => {
   } = useSuggestors({
     conversationIDKey,
     dataSources: p.dataSources,
-    keyExtractors: p.keyExtractors,
     onBlur: p.onBlur,
     onChangeText: p.onChangeText,
     onFocus: p.onFocus,
     onKeyDown: p.onKeyDown,
     onSelectionChange: p.onSelectionChange,
-    renderers: p.renderers,
     suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
     suggestionListStyle: undefined,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
     suggestionSpinnerStyle: styles.suggestionSpinnerStyle,
-    suggestorToMarker: p.suggestorToMarker,
     userEmojisLoading: p.userEmojisLoading,
   })
 

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
 import {isLargeScreen} from '../../../../constants/platform'
 import PlatformInput from './platform-input'
@@ -16,15 +15,11 @@ import Giphy from '../../giphy/container'
 import ReplyPreview from '../../reply-preview/container'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {emojiIndex, emojiNameMap} from '../../messages/react-button/emoji-picker/data'
-import {emojiDataToRenderableEmoji, renderEmoji, type EmojiData, RPCToEmojiData} from '../../../../util/emoji'
+import {type EmojiData, RPCToEmojiData} from '../../../../util/emoji'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
 const debounced = debounce((f, param) => f(param), 500)
-
-const getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
-  return command.username ? '!' : '/'
-}
 
 const searchUsersAndTeamsAndTeamChannels = memoize(
   (
@@ -201,135 +196,6 @@ class Input extends React.Component<InputProps, InputState> {
         useSpaces: false,
       }),
     }
-    this._suggestorRenderer = {
-      channels: ({channelname, teamname}: {channelname: string; teamname?: string}, selected: boolean) =>
-        teamname ? (
-          this._renderTeamSuggestion(teamname, channelname, selected)
-        ) : (
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            style={Styles.collapseStyles([
-              styles.suggestionBase,
-              styles.fixSuggestionHeight,
-              {
-                backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-              },
-            ])}
-          >
-            <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
-          </Kb.Box2>
-        ),
-      commands: (command: RPCChatTypes.ConversationCommand, selected: boolean) => {
-        const prefix = getCommandPrefix(command)
-        const enabled = !this.props.botRestrictMap?.get(command.username ?? '') ?? true
-        return (
-          <Kb.Box2
-            direction="horizontal"
-            gap="tiny"
-            fullWidth={true}
-            style={Styles.collapseStyles([
-              styles.suggestionBase,
-              {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
-              {
-                alignItems: 'flex-start',
-              },
-            ])}
-          >
-            {!!command.username && <Kb.Avatar size={32} username={command.username} />}
-            <Kb.Box2
-              fullWidth={true}
-              direction="vertical"
-              style={Styles.collapseStyles([
-                styles.fixSuggestionHeight,
-                {
-                  alignItems: 'flex-start',
-                },
-              ])}
-            >
-              <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-                <Kb.Text type="BodySemibold">
-                  {prefix}
-                  {command.name}
-                </Kb.Text>
-                <Kb.Text type="Body">{command.usage}</Kb.Text>
-              </Kb.Box2>
-              {enabled ? (
-                <Kb.Text type="BodySmall">{command.description}</Kb.Text>
-              ) : (
-                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.redDark}}>
-                  Command unavailable due to bot restriction configuration.
-                </Kb.Text>
-              )}
-            </Kb.Box2>
-          </Kb.Box2>
-        )
-      },
-      emoji: (item: EmojiData, selected: boolean) => {
-        return (
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            style={Styles.collapseStyles([
-              styles.suggestionBase,
-              {
-                backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-              },
-            ])}
-            gap="small"
-          >
-            {renderEmoji(emojiDataToRenderableEmoji(item), 24, false)}
-            <Kb.Text type="BodySmallSemibold">{item.short_name}</Kb.Text>
-          </Kb.Box2>
-        )
-      },
-      users: (
-        {
-          username,
-          fullName,
-          teamname,
-          channelname,
-        }: {
-          username: string
-          fullName: string
-          teamname?: string
-          channelname?: string
-        },
-        selected: boolean
-      ) => {
-        return teamname ? (
-          this._renderTeamSuggestion(teamname, channelname, selected)
-        ) : (
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            style={Styles.collapseStyles([
-              styles.suggestionBase,
-              styles.fixSuggestionHeight,
-              {
-                backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-              },
-            ])}
-            gap="tiny"
-          >
-            {Constants.isSpecialMention(username) ? (
-              <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
-                <Kb.Icon type="iconfont-people" color={Styles.globalColors.blueDark} fontSize={16} />
-              </Kb.Box2>
-            ) : (
-              <Kb.Avatar username={username} size={32} />
-            )}
-            <Kb.ConnectedUsernames
-              type="BodyBold"
-              colorFollowing={true}
-              usernames={username}
-              withProfileCardPopup={false}
-            />
-            <Kb.Text type="BodySmall">{fullName}</Kb.Text>
-          </Kb.Box2>
-        )
-      },
-    }
 
     if (this.props.suggestCommands) {
       // + 1 for '/'
@@ -501,24 +367,6 @@ class Input extends React.Component<InputProps, InputState> {
     }
   }
 
-  _renderTeamSuggestion = (teamname: string, channelname: string | undefined, selected: boolean) => (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      style={Styles.collapseStyles([
-        styles.suggestionBase,
-        styles.fixSuggestionHeight,
-        {
-          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-        },
-      ])}
-      gap="tiny"
-    >
-      <Kb.Avatar teamname={teamname} size={32} />
-      <Kb.Text type="BodyBold">{channelname ? teamname + ' #' + channelname : teamname}</Kb.Text>
-    </Kb.Box2>
-  )
-
   render() {
     const {
       suggestTeams,
@@ -581,27 +429,6 @@ const styles = Styles.styleSheetCreate(
       container: Styles.platformStyles({
         isMobile: {justifyContent: 'flex-end'},
       }),
-      fixSuggestionHeight: Styles.platformStyles({
-        isMobile: {height: 48},
-      }),
-      iconPeople: {
-        alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
-        borderColor: Styles.globalColors.black_10,
-        borderRadius: 16,
-        borderStyle: 'solid',
-        borderWidth: 1,
-        height: 32,
-        justifyContent: 'center',
-        width: 32,
-      },
-      suggestionBase: {
-        alignItems: 'center',
-        paddingBottom: Styles.globalMargins.xtiny,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.xtiny,
-      },
       suggestionOverlay: Styles.platformStyles({
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
         isTablet: {marginLeft: '30%', marginRight: 0},

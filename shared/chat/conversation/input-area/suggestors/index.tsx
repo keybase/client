@@ -5,29 +5,13 @@ import {useMemo} from '../../../../util/memoize'
 import * as Container from '../../../../util/container'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import SuggestionList from './suggestion-list'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type {Props} from '../normal/platform-input'
-import {type EmojiData} from '../../../../util/emoji'
-
-type TransformerData = {
-  text: string
-  position: {
-    start: number | null
-    end: number | null
-  }
-}
-
-const standardTransformer = (
-  toInsert: string,
-  {text, position: {start, end}}: TransformerData,
-  preview: boolean
-) => {
-  const newText = `${text.substring(0, start || 0)}${toInsert}${preview ? '' : ' '}${text.substring(
-    end || 0
-  )}`
-  const newSelection = (start || 0) + toInsert.length + (preview ? 0 : 1)
-  return {selection: {end: newSelection, start: newSelection}, text: newText}
-}
+import * as Channels from './channels'
+import * as Commands from './commands'
+import * as Emoji from './emoji'
+import * as Users from './users'
+import * as Common from './common'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 const matchesMarker = (
   word: string,
@@ -46,64 +30,11 @@ const matchesMarker = (
   return {marker: match[0] || '', matches: true}
 }
 
-const emojiTransformer = (emoji: EmojiData, marker: string, tData: TransformerData, preview: boolean) => {
-  return standardTransformer(`${marker}${emoji.short_name}:`, tData, preview)
-}
-
-const transformChannelSuggestion = (
-  {channelname, teamname}: {channelname: string; teamname?: string},
-  marker: string,
-  tData: TransformerData,
-  preview: boolean
-) =>
-  standardTransformer(
-    teamname ? `@${teamname}${marker}${channelname}` : `${marker}${channelname}`,
-    tData,
-    preview
-  )
-
-const transformUserSuggestion = (
-  input: {
-    fullName: string
-    username: string
-    teamname?: string
-    channelname?: string
-  },
-  marker: string,
-  tData: TransformerData,
-  preview: boolean
-) => {
-  let s: string
-  if (input.teamname) {
-    if (input.channelname) {
-      s = input.teamname + '#' + input.channelname
-    } else {
-      s = input.teamname
-    }
-  } else {
-    s = input.username
-  }
-  return standardTransformer(`${marker}${s}`, tData, preview)
-}
-
-const getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
-  return command.username ? '!' : '/'
-}
-
-const transformCommandSuggestion = (
-  command: RPCChatTypes.ConversationCommand,
-  _: unknown,
-  tData: TransformerData,
-  preview: boolean
-) => {
-  const prefix = getCommandPrefix(command)
-  return standardTransformer(`${prefix}${command.name}`, tData, preview)
-}
 const transformers = {
-  channels: transformChannelSuggestion,
-  commands: transformCommandSuggestion,
-  emoji: emojiTransformer,
-  users: transformUserSuggestion,
+  channels: Channels.transformer,
+  commands: Commands.transformer,
+  emoji: Emoji.transformer,
+  users: Users.transformer,
 } as const
 
 const suggestorToMarker = {
@@ -114,24 +45,6 @@ const suggestorToMarker = {
   users: /((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
 } as const
 
-const keyExtractors = {
-  channels: ({channelname, teamname}: {channelname: string; teamname?: string}) =>
-    teamname ? `${teamname}#${channelname}` : channelname,
-  commands: (c: RPCChatTypes.ConversationCommand) => c.name + c.username,
-  emoji: (item: EmojiData) => item.short_name,
-  users: ({username, teamname, channelname}: {username: string; teamname?: string; channelname?: string}) => {
-    if (teamname) {
-      if (channelname) {
-        return teamname + '#' + channelname
-      } else {
-        return teamname
-      }
-    } else {
-      return username
-    }
-  },
-}
-
 type UseSuggestorsProps = Pick<
   Props,
   | 'dataSources'
@@ -140,7 +53,6 @@ type UseSuggestorsProps = Pick<
   | 'onFocus'
   | 'onKeyDown'
   | 'onSelectionChange'
-  | 'renderers'
   | 'suggestBotCommandsUpdateStatus'
   | 'suggestionOverlayStyle'
   | 'userEmojisLoading'
@@ -149,12 +61,14 @@ type UseSuggestorsProps = Pick<
   suggestionListStyle: unknown
   suggestionSpinnerStyle: unknown
 }
+
+type ActiveType = '' | 'channels' | 'commands' | 'emoji' | 'users'
 export const useSuggestors = (p: UseSuggestorsProps) => {
-  const {dataSources, renderers, suggestionListStyle, suggestionOverlayStyle} = p
+  const {dataSources, suggestionListStyle, suggestionOverlayStyle} = p
   const {onBlur, userEmojisLoading, onFocus, onSelectionChange, onChangeText, onKeyDown} = p
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
 
-  const [active, setActive] = React.useState('')
+  const [active, setActive] = React.useState<ActiveType>('')
   const [expanded, setExpanded] = React.useState(false)
   const [filter, setFilter] = React.useState('')
   const [selected, setSelected] = React.useState(0)
@@ -177,15 +91,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     () => (active ? results.data[selected] : null),
     [active, results, selected]
   )
-
-  const validateProps = React.useCallback(() => {
-    if (!active) {
-      return
-    }
-    if (!dataSources[active] || !renderers[active] || !suggestorToMarker[active] || !transformers[active]) {
-      throw new Error(`AddSuggestors: invalid props for suggestor '${active}', did you miss a key somewhere?`)
-    }
-  }, [active, dataSources, renderers, suggestorToMarker, transformers])
 
   const onBlur2 = React.useCallback(() => {
     onBlur?.()
@@ -218,7 +123,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
       return {position, word}
     }
     return null
-  }, [inputRef, results, suggestorToMarker])
+  }, [inputRef, results])
 
   const triggerTransform = React.useCallback(
     (value: any, final = true) => {
@@ -242,7 +147,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
         input.transformText(() => transformedText, final)
       }
     },
-    [active, inputRef, getWordAtCursor, transformers, suggestorToMarker, lastText]
+    [active, inputRef, getWordAtCursor, lastText]
   )
 
   const move = React.useCallback(
@@ -291,12 +196,12 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
       for (let [suggestor, marker]: [string, string | RegExp] of Object.entries(suggestorToMarker)) {
         const matchInfo = matchesMarker(word, marker as any)
         if (matchInfo.matches && inputRef.current?.isFocused()) {
-          setActive(suggestor)
+          setActive(suggestor as ActiveType)
           setFilter(word.substring(matchInfo.marker.length))
         }
       }
     }, 1)
-  }, [getWordAtCursor, triggerIDRef, setActive, setFilter, suggestorToMarker, setInactive, active, inputRef])
+  }, [getWordAtCursor, triggerIDRef, setActive, setFilter, setInactive, active, inputRef])
 
   const onChangeText2 = React.useCallback(
     (text: string) => {
@@ -358,7 +263,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   }, [onFocus, checkTrigger])
 
   const onSelectionChange2 = React.useCallback(
-    (selection: TransformerData['position']) => {
+    (selection: Common.TransformerData['position']) => {
       onSelectionChange?.(selection)
       checkTrigger()
     },
@@ -392,9 +297,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     }
   }, [])
 
-  if (active) {
-    validateProps()
-  }
   const suggestionsVisible: boolean =
     results.data.length ||
     results.loading ||
@@ -405,7 +307,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
       <ListOrLoading
         active={active}
         expanded={expanded}
-        keyExtractors={keyExtractors}
         results={results}
         selected={selected}
         suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
@@ -413,7 +314,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
         suggestionSpinnerStyle={suggestionSpinnerStyle}
         setSelected={setSelected}
         triggerTransform={triggerTransform}
-        renderers={renderers}
       />
     </Popup>
   )
@@ -432,21 +332,43 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 }
 
 const ListOrLoading = (p: any) => {
-  const {active, expanded, keyExtractors, results, selected, setSelected, renderers} = p
+  const {active, expanded, results, selected, setSelected} = p
   const {suggestBotCommandsUpdateStatus, suggestionListStyle, suggestionSpinnerStyle, triggerTransform} = p
 
   const itemRenderer = React.useCallback(
-    (index: number, value: string): React.ReactElement | null =>
-      !active ? null : (
+    (index: number, value: any): React.ReactElement | null => {
+      const s = Styles.isMobile ? false : index === selected
+      let content: React.ReactNode = null
+      let key = ''
+      switch (active) {
+        case 'channels':
+          content = <Channels.Renderer value={value} selected={s} />
+          key = Channels.keyExtractor(value)
+          break
+        case 'commands':
+          content = <Commands.Renderer value={value} selected={s} />
+          key = Commands.keyExtractor(value)
+          break
+        case 'emoji':
+          content = <Emoji.Renderer value={value} selected={s} />
+          key = Emoji.keyExtractor(value)
+          break
+        case 'users':
+          content = <Users.Renderer value={value} selected={s} />
+          key = Users.keyExtractor(value)
+          break
+      }
+      return !content ? null : (
         <Kb.ClickableBox
-          key={keyExtractors?.[active]?.(value) || value}
+          key={key}
           onClick={() => triggerTransform(value)}
           onMouseMove={() => setSelected(index)}
         >
-          {renderers[active](value, Styles.isMobile ? false : index === selected)}
+          {content}
         </Kb.ClickableBox>
-      ),
-    [active, keyExtractors, renderers, triggerTransform, setSelected, selected]
+      )
+    },
+    [active, triggerTransform, setSelected, selected]
   )
 
   if (results.data.length) {
@@ -455,7 +377,7 @@ const ListOrLoading = (p: any) => {
         <SuggestionList
           style={expanded ? {bottom: 95, position: 'absolute', top: 95} : suggestionListStyle}
           items={results.data}
-          keyExtractor={(keyExtractors && !!active && keyExtractors[active]) || undefined}
+          keyExtractor={undefined /* TODO */}
           renderItem={itemRenderer}
           selectedIndex={selected}
           suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
@@ -517,7 +439,6 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 22,
       position: 'absolute',
     },
-    isMobile: {},
   }),
   spinnerBackground: Styles.platformStyles({
     common: {justifyContent: 'center'},

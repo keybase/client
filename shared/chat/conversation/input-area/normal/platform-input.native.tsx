@@ -13,7 +13,7 @@ import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
 import MoreMenuPopup from './moremenu-popup'
 import type {Props} from './platform-input'
-import {useSuggestors, standardTransformer} from '../suggestors'
+import {useSuggestors} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {isOpen} from '../../../../util/keyboard'
@@ -26,6 +26,7 @@ import {
   runRotateToggle,
 } from './platform-input-animation.native'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
+import {standardTransformer} from '../suggestors/common'
 
 type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 const defaultMaxHeight = 145
@@ -226,13 +227,11 @@ const PlatformInput = (p: Props) => {
     useSuggestors({
       conversationIDKey: p.conversationIDKey,
       dataSources: p.dataSources,
-      keyExtractors: p.keyExtractors,
       onBlur: p.onBlur,
       onChangeText: p.onChangeText,
       onFocus: p.onFocus,
       onKeyDown: p.onKeyDown,
       onSelectionChange: p.onSelectionChange,
-      renderers: p.renderers,
       suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
       suggestionListStyle: Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}]),
       suggestionOverlayStyle: p.suggestionOverlayStyle,
@@ -240,7 +239,6 @@ const PlatformInput = (p: Props) => {
         styles.suggestionSpinnerStyle,
         !!height && {marginBottom: height},
       ]),
-      suggestorToMarker: p.suggestorToMarker,
       userEmojisLoading: p.userEmojisLoading,
     })
   const {cannotWrite, conversationIDKey, isEditing, isExploding, onCancelEditing} = p
