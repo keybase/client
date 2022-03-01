@@ -1,6 +1,7 @@
 import type * as ImagePicker from 'expo-image-picker'
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters/mobile.native'
+import * as Kb from '../../../../common-adapters'
+import {NativeKeyboard} from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
@@ -158,11 +159,30 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
   )
 }
 
-const PlatformInputInner = (p: Props) => {
-  const {cannotWrite, conversationIDKey, inputHintText, inputRef, isEditing, isExploding, onCancelEditing} = p
-  const {minWriterRole, onAttach, onExpanded, onFilePickerError, onSubmit, toggleShowingMenu} = p
-  const {getAttachmentRef, showingMenu, setHeight, inputSetRef, maxInputArea, showTypingStatus} = p
-  const {suggestionsVisible, onBlur, onFocus, onChangeText, onSelectionChange, explodingModeSeconds} = p
+const PlatformInput = (p: Props) => {
+  const {popup, inputRef, onChangeText, onBlur, onExpanded, onSelectionChange, onFocus, suggestionsVisible} =
+    useSuggestors({
+      conversationIDKey: p.conversationIDKey,
+      dataSources: p.dataSources,
+      keyExtractors: p.keyExtractors,
+      onBlur: p.onBlur,
+      onChangeText: p.onChangeText,
+      onFocus: p.onFocus,
+      onKeyDown: p.onKeyDown,
+      onSelectionChange: p.onSelectionChange,
+      renderers: p.renderers,
+      suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
+      suggestionListStyle: p.suggestionListStyle,
+      suggestionOverlayStyle: p.suggestionOverlayStyle,
+      suggestionSpinnerStyle: p.suggestionSpinnerStyle,
+      suggestorToMarker: p.suggestorToMarker,
+      transformers: p.transformers,
+      userEmojisLoading: p.userEmojisLoading,
+    })
+  const {cannotWrite, conversationIDKey, inputHintText, isEditing, isExploding, onCancelEditing} = p
+  const {minWriterRole, onAttach, onFilePickerError, onSubmit, explodingModeSeconds} = p
+  const {setHeight, inputSetRef, maxInputArea, showTypingStatus} = p
+
   const lastText = React.useRef('')
   const whichMenu = React.useRef<MenuType | undefined>()
   const clock = React.useRef(new Clock())
@@ -234,16 +254,6 @@ const PlatformInputInner = (p: Props) => {
     }
   }, [lastText, onSubmit, expanded, toggleExpandInput])
 
-  const ourShowMenu = React.useCallback(
-    (menu: MenuType) => {
-      // Hide the keyboard on mobile when showing the menu.
-      Kb.NativeKeyboard.dismiss()
-      whichMenu.current = menu
-      toggleShowingMenu()
-    },
-    [whichMenu, toggleShowingMenu]
-  )
-
   const insertText = React.useCallback(
     (toInsert: string) => {
       const i = inputRef.current
@@ -253,6 +263,10 @@ const PlatformInputInner = (p: Props) => {
           standardTransformer(toInsert, {position: {end, start}, text}, true),
         true
       )
+      // TODO likely don't need this with nav 6
+      setTimeout(() => {
+        i?.focus()
+      }, 200)
     },
     [inputRef]
   )
@@ -276,7 +290,7 @@ const PlatformInputInner = (p: Props) => {
     HWKeyboardEvent.onHWKeyPressed((hwKeyEvent: any) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
-          Styles.isIOS || !isOpen() ? onSubmit() : insertText('\n')
+          Styles.isIOS || !isOpen() ? onSubmit2() : insertText('\n')
           break
         case 'shift-enter':
           insertText('\n')
@@ -285,42 +299,59 @@ const PlatformInputInner = (p: Props) => {
     return () => {
       HWKeyboardEvent.removeOnHWKeyPressed()
     }
-  }, [onSubmit, insertText])
+  }, [onSubmit2, insertText])
 
   Container.useDepChangeEffect(() => {
     onExpanded(expanded)
   }, [expanded, onExpanded])
 
-  let menu: React.ReactNode = null
-  if (showingMenu) {
-    if (whichMenu.current === 'filepickerpopup') {
-      menu = (
-        <FilePickerPopup
-          attachTo={getAttachmentRef}
-          visible={showingMenu}
-          onHidden={toggleShowingMenu}
-          onSelect={launchNativeImagePicker}
-        />
-      )
-    } else if (whichMenu.current === 'moremenu') {
-      menu = (
-        <MoreMenuPopup
-          conversationIDKey={conversationIDKey}
-          onHidden={toggleShowingMenu}
-          visible={showingMenu}
-        />
-      )
-    } else {
-      menu = (
-        <SetExplodingMessagePicker
-          attachTo={getAttachmentRef}
-          conversationIDKey={conversationIDKey}
-          onHidden={toggleShowingMenu}
-          visible={showingMenu}
-        />
-      )
-    }
-  }
+  const {
+    popup: menu,
+    showingPopup,
+    toggleShowingPopup,
+  } = Kb.usePopup(
+    attachTo => {
+      switch (whichMenu.current) {
+        case 'filepickerpopup':
+          return (
+            <FilePickerPopup
+              attachTo={attachTo}
+              visible={showingPopup}
+              onHidden={toggleShowingPopup}
+              onSelect={launchNativeImagePicker}
+            />
+          )
+        case 'moremenu':
+          return (
+            <MoreMenuPopup
+              conversationIDKey={conversationIDKey}
+              onHidden={toggleShowingPopup}
+              visible={showingPopup}
+            />
+          )
+        default:
+          return (
+            <SetExplodingMessagePicker
+              attachTo={attachTo}
+              conversationIDKey={conversationIDKey}
+              onHidden={toggleShowingPopup}
+              visible={showingPopup}
+            />
+          )
+      }
+    },
+    [conversationIDKey, launchNativeImagePicker]
+  )
+
+  const ourShowMenu = React.useCallback(
+    (menu: MenuType) => {
+      // Hide the keyboard on mobile when showing the menu.
+      NativeKeyboard.dismiss()
+      whichMenu.current = menu
+      toggleShowingPopup()
+    },
+    [whichMenu, toggleShowingPopup]
+  )
 
   return (
     <AnimatedBox2
@@ -352,6 +383,7 @@ const PlatformInputInner = (p: Props) => {
           : {height: undefined, maxHeight: defaultMaxHeight},
       ]}
     >
+      {popup}
       <Kb.ReAnimated.Code>
         {() => block([runRotateToggle(rotateClock.current, animateState.current, rotate.current)])}
       </Kb.ReAnimated.Code>
@@ -430,28 +462,6 @@ const PlatformInputInner = (p: Props) => {
     </AnimatedBox2>
   )
 }
-
-const PlatformInput = React.forwardRef((p: any, forwardedRef: any) => {
-  const {popup, inputRef, onChangeText, onKeyDown, onBlur, onExpanded, onSelectionChange, onFocus} =
-    useSuggestors(p)
-
-  return (
-    <>
-      {popup}
-      <PlatformInputInner
-        {...p}
-        forwardedRef={forwardedRef}
-        inputRef={inputRef}
-        onChangeText={onChangeText}
-        onKeyDown={onKeyDown}
-        onBlur={onBlur}
-        onExpanded={onExpanded}
-        onSelectionChange={onSelectionChange}
-        onFocus={onFocus}
-      />
-    </>
-  )
-})
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -555,4 +565,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.OverlayParentHOC(PlatformInput)
+export default PlatformInput

@@ -110,7 +110,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const [expanded, setExpanded] = React.useState(false)
   const [filter, setFilter] = React.useState('')
   const [selected, setSelected] = React.useState(0)
-  const inputRef = React.useRef<Kb.PlainInput>()
+  const inputRef = React.useRef<Kb.PlainInput | null>(null)
   const lastText = React.useRef('')
   const triggerIDRef = React.useRef<any>(0)
 
@@ -347,7 +347,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   if (active) {
     validateProps()
   }
-  const suggestionsVisible =
+  const suggestionsVisible: boolean =
     results.data.length ||
     results.loading ||
     suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
@@ -379,6 +379,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     onKeyDown: onKeyDown2,
     onSelectionChange: onSelectionChange2,
     popup,
+    suggestionsVisible,
   }
 }
 

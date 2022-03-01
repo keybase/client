@@ -5,6 +5,7 @@ import type * as TeamTypes from '../../../../constants/types/teams'
 import type {PlainInput} from '../../../../common-adapters'
 
 type Props = {
+  setHeight: (inputHeight: number) => void
   dataSources: unknown
   keyExtractors: unknown
   onBlur: unknown
@@ -20,7 +21,7 @@ type Props = {
   onKeyDown: (evt: React.KeyboardEvent) => void
   cannotWrite: boolean
   showWalletsIcon: boolean
-  inputSetRef: React.MutableRefObject<PlainInput>
+  inputSetRef: (r: PlainInput | null) => void
   // clearInboxFilter: () => void
   conversationIDKey: Types.ConversationIDKey
   // editText: string
@@ -32,17 +33,17 @@ type Props = {
   isEditing: boolean
   isExploding: boolean
   // isSearching: boolean
-  // maxInputArea?: number
+  maxInputArea?: number
   minWriterRole: TeamTypes.TeamRoleType
-  // onAttach: (paths: Array<string>) => void
+  onAttach: (paths: Array<string>) => void
   onCancelEditing: () => void
   onCancelReply: () => void
   onEditLastMessage: () => void
-  // onFilePickerError: (error: Error) => void
+  onFilePickerError: (error: Error) => void
   // onGiphyToggle: () => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
-  // onSubmit: (text: string) => void
+  onSubmit: (text: string) => void
   onChannelSuggestionsTriggered: () => void
   // prependText: string | null
   // quoteCounter: number
@@ -53,7 +54,7 @@ type Props = {
   // showCommandStatus: boolean
   // showGiphySearch: boolean
   showReplyPreview: boolean
-  // showTypingStatus: boolean
+  showTypingStatus: boolean
   // unsentText: string | null
   // unsentTextChanged: (text: string) => void
   suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
@@ -88,7 +89,6 @@ type Props = {
 // } & CommonProps
 
 // export type PlatformInputProps = {
-//   setHeight: (inputHeight: number) => void
 // } & CommonProps
 // }
 
