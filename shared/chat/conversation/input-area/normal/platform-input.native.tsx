@@ -221,6 +221,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
 }
 
 const PlatformInput = (p: Props) => {
+  const [height, setHeight] = React.useState(0)
   const {popup, inputRef, onChangeText, onBlur, onExpanded, onSelectionChange, onFocus, suggestionsVisible} =
     useSuggestors({
       conversationIDKey: p.conversationIDKey,
@@ -233,16 +234,18 @@ const PlatformInput = (p: Props) => {
       onSelectionChange: p.onSelectionChange,
       renderers: p.renderers,
       suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
-      suggestionListStyle: p.suggestionListStyle,
+      suggestionListStyle: Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}]),
       suggestionOverlayStyle: p.suggestionOverlayStyle,
-      suggestionSpinnerStyle: p.suggestionSpinnerStyle,
+      suggestionSpinnerStyle: Styles.collapseStyles([
+        styles.suggestionSpinnerStyle,
+        !!height && {marginBottom: height},
+      ]),
       suggestorToMarker: p.suggestorToMarker,
-      transformers: p.transformers,
       userEmojisLoading: p.userEmojisLoading,
     })
   const {cannotWrite, conversationIDKey, isEditing, isExploding, onCancelEditing} = p
   const {onSubmit, explodingModeSeconds, hintText} = p
-  const {setHeight, inputSetRef, maxInputArea, showTypingStatus} = p
+  const {inputSetRef, maxInputArea, showTypingStatus} = p
 
   const lastText = React.useRef('')
   const whichMenu = React.useRef<MenuType | undefined>()
@@ -584,6 +587,23 @@ const styles = Styles.styleSheetCreate(
       sendBtn: {
         marginRight: Styles.globalMargins.tiny,
       },
+      suggestionList: Styles.platformStyles({
+        isMobile: {
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_10,
+          borderStyle: 'solid',
+          borderTopWidth: 3,
+          maxHeight: '50%',
+          overflow: 'hidden',
+        },
+      }),
+      suggestionSpinnerStyle: Styles.platformStyles({
+        isMobile: {
+          bottom: Styles.globalMargins.small,
+          position: 'absolute',
+          right: Styles.globalMargins.small,
+        },
+      }),
     } as const)
 )
 

@@ -5,7 +5,7 @@ import type * as TeamTypes from '../../../../constants/types/teams'
 import type {PlainInput} from '../../../../common-adapters'
 
 type Props = {
-  setHeight: (inputHeight: number) => void
+  // setHeight: (inputHeight: number) => void
   dataSources: unknown
   hintText: string
   keyExtractors: unknown
@@ -13,11 +13,11 @@ type Props = {
   onFocus: unknown
   onSelectionChange: unknown
   renderers: unknown
-  suggestionListStyle: unknown
+  // suggestionListStyle: unknown
   suggestionOverlayStyle: unknown
-  suggestionSpinnerStyle: unknown
+  // suggestionSpinnerStyle: unknown
   suggestorToMarker: unknown
-  transformers: unknown
+  // transformers: unknown
   // botRestrictMap?: Map<string, boolean>
   onKeyDown: (evt: React.KeyboardEvent) => void
   cannotWrite: boolean

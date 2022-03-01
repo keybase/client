@@ -7,8 +7,9 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import SuggestionList from './suggestion-list'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type {Props} from '../normal/platform-input'
+import {type EmojiData} from '../../../../util/emoji'
 
-export type TransformerData = {
+type TransformerData = {
   text: string
   position: {
     start: number | null
@@ -16,7 +17,7 @@ export type TransformerData = {
   }
 }
 
-export const standardTransformer = (
+const standardTransformer = (
   toInsert: string,
   {text, position: {start, end}}: TransformerData,
   preview: boolean
@@ -81,6 +82,66 @@ type AddSuggestorsProps = {
   }
 }
 
+const emojiTransformer = (emoji: EmojiData, marker: string, tData: TransformerData, preview: boolean) => {
+  return standardTransformer(`${marker}${emoji.short_name}:`, tData, preview)
+}
+
+const transformChannelSuggestion = (
+  {channelname, teamname}: {channelname: string; teamname?: string},
+  marker: string,
+  tData: TransformerData,
+  preview: boolean
+) =>
+  standardTransformer(
+    teamname ? `@${teamname}${marker}${channelname}` : `${marker}${channelname}`,
+    tData,
+    preview
+  )
+
+const transformUserSuggestion = (
+  input: {
+    fullName: string
+    username: string
+    teamname?: string
+    channelname?: string
+  },
+  marker: string,
+  tData: TransformerData,
+  preview: boolean
+) => {
+  let s: string
+  if (input.teamname) {
+    if (input.channelname) {
+      s = input.teamname + '#' + input.channelname
+    } else {
+      s = input.teamname
+    }
+  } else {
+    s = input.username
+  }
+  return standardTransformer(`${marker}${s}`, tData, preview)
+}
+
+const getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
+  return command.username ? '!' : '/'
+}
+
+const transformCommandSuggestion = (
+  command: RPCChatTypes.ConversationCommand,
+  _: unknown,
+  tData: TransformerData,
+  preview: boolean
+) => {
+  const prefix = getCommandPrefix(command)
+  return standardTransformer(`${prefix}${command.name}`, tData, preview)
+}
+const transformers = {
+  channels: transformChannelSuggestion,
+  commands: transformCommandSuggestion,
+  emoji: emojiTransformer,
+  users: transformUserSuggestion,
+} as const
+
 type UseSuggestorsProps = Pick<
   Props,
   | 'dataSources'
@@ -96,13 +157,12 @@ type UseSuggestorsProps = Pick<
   | 'suggestionOverlayStyle'
   | 'suggestionSpinnerStyle'
   | 'suggestorToMarker'
-  | 'transformers'
   | 'userEmojisLoading'
   | 'conversationIDKey'
 >
 export const useSuggestors = (p: UseSuggestorsProps) => {
   const {dataSources, keyExtractors, renderers, suggestionListStyle, suggestionOverlayStyle} = p
-  const {onChangeText, onKeyDown, suggestorToMarker, transformers} = p
+  const {onChangeText, onKeyDown, suggestorToMarker} = p
   const {onBlur, userEmojisLoading, onFocus, onSelectionChange} = p
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
 

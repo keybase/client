@@ -5,7 +5,6 @@ import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
 import {isLargeScreen} from '../../../../constants/platform'
 import PlatformInput from './platform-input'
-import {standardTransformer, type TransformerData} from '../suggestors'
 import {indefiniteArticle} from '../../../../util/string'
 import type {InputProps} from './types'
 import debounce from 'lodash/debounce'
@@ -22,6 +21,10 @@ import {emojiDataToRenderableEmoji, renderEmoji, type EmojiData, RPCToEmojiData}
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
 const debounced = debounce((f, param) => f(param), 500)
+
+const getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
+  return command.username ? '!' : '/'
+}
 
 const searchUsersAndTeamsAndTeamChannels = memoize(
   (
@@ -122,12 +125,7 @@ const suggestorKeyExtractors = {
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 
-const emojiTransformer = (emoji: EmojiData, marker: string, tData: TransformerData, preview: boolean) => {
-  return standardTransformer(`${marker}${emoji.short_name}:`, tData, preview)
-}
-
 type InputState = {
-  inputHeight: number
   showBotCommandUpdateStatus: boolean
 }
 
@@ -137,12 +135,11 @@ class Input extends React.Component<InputProps, InputState> {
   _lastText?: string
   _suggestorDatasource = {}
   _suggestorRenderer = {}
-  _suggestorTransformer = {}
   _maxCmdLength = 0
 
   constructor(props: InputProps) {
     super(props)
-    this.state = {inputHeight: 0, showBotCommandUpdateStatus: false}
+    this.state = {showBotCommandUpdateStatus: false}
     this._lastQuote = 0
     this._suggestorDatasource = {
       channels: (filter: string) => {
@@ -250,7 +247,7 @@ class Input extends React.Component<InputProps, InputState> {
           </Kb.Box2>
         ),
       commands: (command: RPCChatTypes.ConversationCommand, selected: boolean) => {
-        const prefix = this._getCommandPrefix(command)
+        const prefix = getCommandPrefix(command)
         const enabled = !this.props.botRestrictMap?.get(command.username ?? '') ?? true
         return (
           <Kb.Box2
@@ -359,12 +356,6 @@ class Input extends React.Component<InputProps, InputState> {
         )
       },
     }
-    this._suggestorTransformer = {
-      channels: this._transformChannelSuggestion,
-      commands: this._transformCommandSuggestion,
-      emoji: emojiTransformer,
-      users: this._transformUserSuggestion,
-    }
 
     if (this.props.suggestCommands) {
       // + 1 for '/'
@@ -452,9 +443,6 @@ class Input extends React.Component<InputProps, InputState> {
     }
     throttled(this.props.sendTyping, !!text)
   }
-
-  _setHeight = (inputHeight: number) =>
-    this.setState(s => (s.inputHeight === inputHeight ? null : {inputHeight}))
 
   componentDidMount() {
     // Set lastQuote so we only inject quoted text after we mount.
@@ -557,56 +545,6 @@ class Input extends React.Component<InputProps, InputState> {
     </Kb.Box2>
   )
 
-  _transformUserSuggestion = (
-    input: {
-      fullName: string
-      username: string
-      teamname?: string
-      channelname?: string
-    },
-    marker: string,
-    tData: TransformerData,
-    preview: boolean
-  ) => {
-    let s: string
-    if (input.teamname) {
-      if (input.channelname) {
-        s = input.teamname + '#' + input.channelname
-      } else {
-        s = input.teamname
-      }
-    } else {
-      s = input.username
-    }
-    return standardTransformer(`${marker}${s}`, tData, preview)
-  }
-
-  _transformChannelSuggestion = (
-    {channelname, teamname}: {channelname: string; teamname?: string},
-    marker: string,
-    tData: TransformerData,
-    preview: boolean
-  ) =>
-    standardTransformer(
-      teamname ? `@${teamname}${marker}${channelname}` : `${marker}${channelname}`,
-      tData,
-      preview
-    )
-
-  _getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
-    return command.username ? '!' : '/'
-  }
-
-  _transformCommandSuggestion = (
-    command: RPCChatTypes.ConversationCommand,
-    _: unknown,
-    tData: TransformerData,
-    preview: boolean
-  ) => {
-    const prefix = this._getCommandPrefix(command)
-    return standardTransformer(`${prefix}${command.name}`, tData, preview)
-  }
-
   render() {
     const {
       suggestTeams,
@@ -649,24 +587,14 @@ class Input extends React.Component<InputProps, InputState> {
           maxInputArea={this.props.maxInputArea}
           renderers={this._suggestorRenderer}
           suggestorToMarker={suggestorToMarker}
-          suggestionListStyle={Styles.collapseStyles([
-            styles.suggestionList,
-            !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
-          ])}
           suggestionOverlayStyle={Styles.collapseStyles([
             styles.suggestionOverlay,
             infoPanelShowing && styles.suggestionOverlayWithInfoPanel,
           ])}
-          suggestionSpinnerStyle={Styles.collapseStyles([
-            styles.suggestionSpinnerStyle,
-            !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
-          ])}
           suggestBotCommandsUpdateStatus={this.props.suggestBotCommandsUpdateStatus}
           keyExtractors={suggestorKeyExtractors}
-          transformers={this._suggestorTransformer}
           onKeyDown={this._onKeyDown}
           onSubmit={this._onSubmit}
-          setHeight={this._setHeight}
           inputSetRef={this._inputSetRef}
           onChangeText={this._onChangeText}
         />
@@ -702,35 +630,12 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.tiny,
         paddingTop: Styles.globalMargins.xtiny,
       },
-      suggestionList: Styles.platformStyles({
-        isMobile: {
-          backgroundColor: Styles.globalColors.white,
-          borderColor: Styles.globalColors.black_10,
-          borderStyle: 'solid',
-          borderTopWidth: 3,
-          maxHeight: '50%',
-          overflow: 'hidden',
-        },
-      }),
       suggestionOverlay: Styles.platformStyles({
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
         isTablet: {marginLeft: '30%', marginRight: 0},
       }),
       suggestionOverlayWithInfoPanel: Styles.platformStyles({
         isTablet: {marginRight: infoPanelWidthTablet},
-      }),
-      suggestionSpinnerStyle: Styles.platformStyles({
-        common: {
-          position: 'absolute',
-        },
-        isElectron: {
-          bottom: Styles.globalMargins.tiny,
-          right: Styles.globalMargins.medium,
-        },
-        isMobile: {
-          bottom: Styles.globalMargins.small,
-          right: Styles.globalMargins.small,
-        },
       }),
     } as const)
 )

@@ -353,11 +353,10 @@ const PlatformInput = (p: Props) => {
     onSelectionChange: p.onSelectionChange,
     renderers: p.renderers,
     suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
-    suggestionListStyle: p.suggestionListStyle,
+    suggestionListStyle: undefined,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
-    suggestionSpinnerStyle: p.suggestionSpinnerStyle,
+    suggestionSpinnerStyle: styles.suggestionSpinnerStyle,
     suggestorToMarker: p.suggestorToMarker,
-    transformers: p.transformers,
     userEmojisLoading: p.userEmojisLoading,
   })
 
@@ -543,6 +542,11 @@ const styles = Styles.styleSheetCreate(
       },
       inputWrapperEditing: {backgroundColor: Styles.globalColors.yellowLight},
       inputWrapperExplodingMode: {borderColor: Styles.globalColors.black},
+      suggestionSpinnerStyle: {
+        bottom: Styles.globalMargins.tiny,
+        position: 'absolute',
+        right: Styles.globalMargins.medium,
+      },
       walletsIcon: {
         alignSelf: 'flex-end',
         marginBottom: 2,
