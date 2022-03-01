@@ -199,6 +199,7 @@ type UseKeyboardProps = Pick<
   | 'isEditing'
   | 'onCancelReply'
   | 'onCancelEditing'
+  | 'onChangeText'
   | 'onEditLastMessage'
   | 'onRequestScrollDown'
   | 'onRequestScrollUp'
@@ -209,19 +210,8 @@ type UseKeyboardProps = Pick<
   onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 const useKeyboard = (p: UseKeyboardProps) => {
-  const {
-    htmlInputRef,
-    focusInput,
-    isEditing,
-    onCancelReply,
-    onCancelEditing,
-    onEditLastMessage,
-    onKeyDown,
-    onRequestScrollDown,
-    onRequestScrollUp,
-    showReplyPreview,
-  } = p
-
+  const {htmlInputRef, focusInput, isEditing, onCancelReply, onCancelEditing, onKeyDown} = p
+  const {onChangeText, onEditLastMessage, onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const lastText = React.useRef('')
 
   // Key-handling code shared by both the input key handler
@@ -303,7 +293,15 @@ const useKeyboard = (p: UseKeyboardProps) => {
     [commonOnKeyDown, onKeyDown]
   )
 
-  return {globalKeyDownPressHandler, inputKeyDown, lastText}
+  const onChangeTextInner = React.useCallback(
+    (text: string) => {
+      lastText.current = text
+      onChangeText(text)
+    },
+    [onChangeText, lastText]
+  )
+
+  return {globalKeyDownPressHandler, inputKeyDown, onChangeText: onChangeTextInner}
 }
 
 type SideButtonsProps = Pick<Props, 'conversationIDKey' | 'showWalletsIcon' | 'cannotWrite'> & {
@@ -338,7 +336,13 @@ const PlatformInput = (p: Props) => {
   const {isExploding, minWriterRole, inputSetRef, isEditing} = p
   const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
-  const {popup, inputRef, onChangeText, onKeyDown} = useSuggestors({
+  const {
+    popup,
+    inputRef,
+    onKeyDown,
+    onChangeText: onChangeTextSuggestors,
+  } = useSuggestors({
+    conversationIDKey,
     dataSources: p.dataSources,
     keyExtractors: p.keyExtractors,
     onBlur: p.onBlur,
@@ -369,25 +373,19 @@ const PlatformInput = (p: Props) => {
     }
     return inputHintText || 'Write a message'
   }, [cannotWrite, minWriterRole, inputHintText, isEditing, isExploding])
-  const {globalKeyDownPressHandler, inputKeyDown, lastText} = useKeyboard({
+  const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
     focusInput,
     htmlInputRef,
     isEditing,
     onCancelEditing,
     onCancelReply,
+    onChangeText: onChangeTextSuggestors,
     onEditLastMessage,
     onKeyDown,
     onRequestScrollDown,
     onRequestScrollUp,
     showReplyPreview,
   })
-  const onChangeText2 = React.useCallback(
-    (text: string) => {
-      lastText.current = text
-      onChangeText(text)
-    },
-    [onChangeText, lastText]
-  )
 
   return (
     <>
@@ -430,7 +428,7 @@ const PlatformInput = (p: Props) => {
                 }}
                 placeholder={hintText}
                 style={Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}
-                onChangeText={onChangeText2}
+                onChangeText={onChangeText}
                 multiline={true}
                 rowsMin={1}
                 rowsMax={10}

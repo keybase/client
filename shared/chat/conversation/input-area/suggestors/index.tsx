@@ -206,11 +206,11 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
       const s = (((up ? selected - 1 : selected + 1) % length) + length) % length
       if (s !== selected) {
         setSelected(s)
+        const val = active ? results.data[s] : null
+        triggerTransform(val, false)
       }
-      // TODO after setState?
-      // () => this._triggerTransform(this._getSelected(), false)
     },
-    [active, results, selected, setSelected]
+    [active, results, selected, setSelected, triggerTransform]
   )
 
   const checkTrigger = React.useCallback(() => {
