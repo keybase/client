@@ -226,14 +226,6 @@ export default Container.connect(
     },
     _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
-    _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>
-      dispatch(
-        Chat2Gen.createMessageSetEditing({
-          conversationIDKey,
-          editLastUser: you,
-          ordinal: null,
-        })
-      ),
     _onEditMessage: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, body: string) =>
       dispatch(
         Chat2Gen.createMessageEdit({
@@ -313,8 +305,6 @@ export default Container.connect(
       minWriterRole: stateProps.minWriterRole,
       // TODO remove
       onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
-      onEditLastMessage: () =>
-        dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
       // TODO remove
       onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
       onRequestScrollDown: ownProps.onRequestScrollDown,

@@ -7,6 +7,7 @@ import type {PlainInput} from '../../../../common-adapters'
 type Props = {
   setHeight: (inputHeight: number) => void
   dataSources: unknown
+  hintText: string
   keyExtractors: unknown
   onBlur: unknown
   onFocus: unknown
@@ -37,7 +38,7 @@ type Props = {
   minWriterRole: TeamTypes.TeamRoleType
   onCancelEditing: () => void
   onCancelReply: () => void
-  onEditLastMessage: () => void
+  // onEditLastMessage: () => void
   // onGiphyToggle: () => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void

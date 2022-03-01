@@ -10,9 +10,7 @@ import WalletsIcon from './wallets-icon/container'
 import type {Props} from './platform-input'
 import Typing from './typing/container'
 import {useSuggestors} from '../suggestors'
-import {indefiniteArticle} from '../../../../util/string'
 import * as Container from '../../../../util/container'
-import {useMemo} from '../../../../util/memoize'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {EmojiPickerDesktop} from '../../messages/react-button/emoji-picker/container'
@@ -200,7 +198,6 @@ type UseKeyboardProps = Pick<
   | 'isEditing'
   | 'onCancelEditing'
   | 'onChangeText'
-  | 'onEditLastMessage'
   | 'onRequestScrollDown'
   | 'onRequestScrollUp'
   | 'showReplyPreview'
@@ -208,6 +205,7 @@ type UseKeyboardProps = Pick<
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
   onKeyDown?: (evt: React.KeyboardEvent) => void
+  onEditLastMessage: () => void
 }
 const useKeyboard = (p: UseKeyboardProps) => {
   const {htmlInputRef, focusInput, isEditing, onCancelEditing, onKeyDown, conversationIDKey} = p
@@ -334,12 +332,11 @@ const SideButtons = (p: SideButtonsProps) => {
 }
 
 const PlatformInput = (p: Props) => {
-  // TODO move continer props into here so they can go into sub components
-  const {cannotWrite, conversationIDKey, explodingModeSeconds, inputHintText} = p
-  const {showWalletsIcon, onCancelReply, onCancelEditing, onEditLastMessage} = p
-  const {isExploding, minWriterRole, inputSetRef, isEditing} = p
+  const {cannotWrite, conversationIDKey, explodingModeSeconds} = p
+  const {showWalletsIcon, onCancelEditing, hintText, inputSetRef, isEditing} = p
   const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
+
   const {
     popup,
     inputRef,
@@ -367,16 +364,18 @@ const PlatformInput = (p: Props) => {
   const focusInput = React.useCallback(() => {
     inputRef.current?.focus()
   }, [inputRef])
-  const hintText = useMemo(() => {
-    if (cannotWrite) {
-      return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
-    } else if (isEditing) {
-      return 'Edit your message'
-    } else if (isExploding) {
-      return 'Write an exploding message'
-    }
-    return inputHintText || 'Write a message'
-  }, [cannotWrite, minWriterRole, inputHintText, isEditing, isExploding])
+  const dispatch = Container.useDispatch()
+  const you = Container.useSelector(state => state.config.username)
+  const onEditLastMessage = React.useCallback(() => {
+    dispatch(
+      Chat2Gen.createMessageSetEditing({
+        conversationIDKey,
+        editLastUser: you,
+        ordinal: null,
+      })
+    )
+  }, [dispatch, conversationIDKey, you])
+
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
     conversationIDKey,
     focusInput,

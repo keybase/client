@@ -7,7 +7,6 @@ import * as Styles from '../../../../styles'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Container from '../../../../util/container'
-import {isLargeScreen} from '../../../../constants/platform'
 import type {LayoutEvent} from '../../../../common-adapters/box'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import Typing from './typing/container'
@@ -17,8 +16,6 @@ import type {Props} from './platform-input'
 import {useSuggestors, standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {formatDurationShort} from '../../../../util/timestamp'
-import {indefiniteArticle} from '../../../../util/string'
-import {useMemo} from '../../../../util/memoize'
 import {isOpen} from '../../../../util/keyboard'
 import AudioRecorder from '../../../audio/audio-recorder.native'
 import {
@@ -243,8 +240,8 @@ const PlatformInput = (p: Props) => {
       transformers: p.transformers,
       userEmojisLoading: p.userEmojisLoading,
     })
-  const {cannotWrite, conversationIDKey, inputHintText, isEditing, isExploding, onCancelEditing} = p
-  const {minWriterRole, onSubmit, explodingModeSeconds} = p
+  const {cannotWrite, conversationIDKey, isEditing, isExploding, onCancelEditing} = p
+  const {onSubmit, explodingModeSeconds, hintText} = p
   const {setHeight, inputSetRef, maxInputArea, showTypingStatus} = p
 
   const lastText = React.useRef('')
@@ -306,17 +303,6 @@ const PlatformInput = (p: Props) => {
     },
     [inputRef]
   )
-
-  const hintText = useMemo(() => {
-    if (isExploding) {
-      return isLargeScreen ? `Write an exploding message` : 'Exploding message'
-    } else if (isEditing) {
-      return 'Edit your message'
-    } else if (cannotWrite) {
-      return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
-    }
-    return inputHintText || 'Write a message'
-  }, [isExploding, isEditing, cannotWrite, minWriterRole, inputHintText])
 
   React.useEffect(() => {
     // Enter should send a message like on desktop, when a hardware keyboard's

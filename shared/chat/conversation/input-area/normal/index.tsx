@@ -3,8 +3,10 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
+import {isLargeScreen} from '../../../../constants/platform'
 import PlatformInput from './platform-input'
 import {standardTransformer, type TransformerData} from '../suggestors'
+import {indefiniteArticle} from '../../../../util/string'
 import type {InputProps} from './types'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
@@ -616,6 +618,22 @@ class Input extends React.Component<InputProps, InputState> {
       infoPanelShowing,
       ...platformInputProps
     } = this.props
+
+    let hintText = ''
+    if (Styles.isMobile && this.props.isExploding) {
+      hintText = isLargeScreen ? `Write an exploding message` : 'Exploding message'
+    } else if (this.props.cannotWrite) {
+      hintText = `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
+        this.props.minWriterRole
+      } to post.`
+    } else if (this.props.isEditing) {
+      hintText = 'Edit your message'
+    } else if (this.props.isExploding) {
+      hintText = 'Write an exploding message'
+    } else {
+      hintText = this.props.inputHintText || 'Write a message'
+    }
+
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
         {this.props.showReplyPreview && <ReplyPreview conversationIDKey={this.props.conversationIDKey} />}
@@ -626,6 +644,7 @@ class Input extends React.Component<InputProps, InputState> {
         {this.props.showGiphySearch && <Giphy conversationIDKey={this.props.conversationIDKey} />}
         <PlatformInput
           {...platformInputProps}
+          hintText={hintText}
           dataSources={this._suggestorDatasource}
           maxInputArea={this.props.maxInputArea}
           renderers={this._suggestorRenderer}
