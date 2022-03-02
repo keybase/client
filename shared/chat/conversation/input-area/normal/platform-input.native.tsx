@@ -224,23 +224,24 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
 const PlatformInput = (p: Props) => {
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
-  const {popup, inputRef, onChangeText, onBlur, onSelectionChange, onFocus, suggestionsVisible} =
-    useSuggestors({
-      conversationIDKey: p.conversationIDKey,
-      expanded,
-      onBlur: p.onBlur,
-      onChangeText: p.onChangeText,
-      onFocus: p.onFocus,
-      onKeyDown: p.onKeyDown,
-      onSelectionChange: p.onSelectionChange,
-      suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
-      suggestionListStyle: Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}]),
-      suggestionOverlayStyle: p.suggestionOverlayStyle,
-      suggestionSpinnerStyle: Styles.collapseStyles([
-        styles.suggestionSpinnerStyle,
-        !!height && {marginBottom: height},
-      ]),
-    })
+  const inputRef = React.useRef<Kb.PlainInput | null>(null)
+  const {popup, onChangeText, onBlur, onSelectionChange, onFocus, suggestionsVisible} = useSuggestors({
+    conversationIDKey: p.conversationIDKey,
+    expanded,
+    inputRef,
+    onBlur: p.onBlur,
+    onChangeText: p.onChangeText,
+    onFocus: p.onFocus,
+    onKeyDown: p.onKeyDown,
+    onSelectionChange: p.onSelectionChange,
+    suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
+    suggestionListStyle: Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}]),
+    suggestionOverlayStyle: p.suggestionOverlayStyle,
+    suggestionSpinnerStyle: Styles.collapseStyles([
+      styles.suggestionSpinnerStyle,
+      !!height && {marginBottom: height},
+    ]),
+  })
   const {cannotWrite, conversationIDKey, isEditing, isExploding, onCancelEditing} = p
   const {onSubmit, explodingModeSeconds, hintText} = p
   const {inputSetRef, maxInputArea, showTypingStatus} = p

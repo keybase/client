@@ -56,9 +56,10 @@ type UseSuggestorsProps = Pick<
   | 'suggestionOverlayStyle'
   | 'conversationIDKey'
 > & {
-  suggestionListStyle: unknown
-  suggestionSpinnerStyle: unknown
+  suggestionListStyle: any
+  suggestionSpinnerStyle: any
   expanded: boolean
+  inputRef: React.MutableRefObject<Kb.PlainInput | null>
 }
 
 type ActiveType = '' | 'channels' | 'commands' | 'emoji' | 'users'
@@ -78,41 +79,21 @@ const useDataSources = (
 }
 
 // handles watching the input and seeing which suggestor we need to use
-export const useFigureActive = () => {
-  const [active, setActive] = React.useState<ActiveType>('')
-  return {active, setActive}
-}
-
-export const useSuggestors = (p: UseSuggestorsProps) => {
-  const {suggestionListStyle, suggestionOverlayStyle, expanded} = p
-  const {onBlur, onFocus, onSelectionChange, onChangeText, onKeyDown} = p
-  const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
-
-  const {active, setActive} = useFigureActive()
-
-  const [filter, setFilter] = React.useState('')
-  const [selected, setSelected] = React.useState(0)
-  const inputRef = React.useRef<Kb.PlainInput | null>(null)
-  const lastText = React.useRef('')
-  const triggerIDRef = React.useRef<any>(0)
-
+export const useSyncInput = (inputRef, results, active, setActive, setSelected, filter, setFilter) => {
   const setInactive = React.useCallback(() => {
     setActive('')
     setFilter('')
     setSelected(0)
   }, [setActive, setFilter, setSelected])
 
-  const results = useDataSources(active, conversationIDKey, filter)
+  const lastText = React.useRef('')
 
-  const getSelected = React.useCallback(
-    () => (active ? results.data[selected] : null),
-    [active, results, selected]
+  const onChangeTextSyncInput = React.useCallback(
+    (text: string) => {
+      lastText.current = text
+    },
+    [lastText]
   )
-
-  const onBlur2 = React.useCallback(() => {
-    onBlur?.()
-    setInactive()
-  }, [onBlur, setInactive])
 
   const getWordAtCursor = React.useCallback(() => {
     if (inputRef.current) {
@@ -142,6 +123,48 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     return null
   }, [inputRef, results])
 
+  const triggerIDRef = React.useRef<any>(0)
+  const checkTrigger = React.useCallback(() => {
+    if (triggerIDRef.current) {
+      clearTimeout(triggerIDRef.current)
+    }
+    triggerIDRef.current = setTimeout(() => {
+      // inside a timeout so selection will settle, there was a problem where
+      // desktop would get the previous selection on arrowleft / arrowright
+      const cursorInfo = getWordAtCursor()
+      if (!cursorInfo) {
+        return
+      }
+      const {word} = cursorInfo
+      if (active) {
+        const activeMarker = suggestorToMarker[active]
+        const matchInfo = matchesMarker(word, activeMarker)
+        if (!matchInfo.matches) {
+          // not active anymore
+          setInactive()
+        } else {
+          setFilter(word.substring(matchInfo.marker.length))
+          // call this._stabilizeSelection?
+          return
+        }
+      }
+      // @ts-ignore we know entries will give this type
+      for (let [suggestor, marker]: [string, string | RegExp] of Object.entries(suggestorToMarker)) {
+        const matchInfo = matchesMarker(word, marker as any)
+        if (matchInfo.matches && inputRef.current?.isFocused()) {
+          setActive(suggestor as ActiveType)
+          setFilter(word.substring(matchInfo.marker.length))
+        }
+      }
+    }, 1)
+  }, [getWordAtCursor, triggerIDRef, setActive, setFilter, setInactive, active, inputRef])
+
+  React.useEffect(() => {
+    return () => {
+      clearTimeout(triggerIDRef.current)
+    }
+  }, [])
+
   const triggerTransform = React.useCallback(
     (value: any, final = true) => {
       if (inputRef?.current && active) {
@@ -154,10 +177,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
         const transformedText = transformers[active](
           value,
           matchInfo.marker,
-          {
-            position: cursorInfo.position,
-            text: lastText.current || '',
-          },
+          {position: cursorInfo.position, text: lastText.current || ''},
           !final
         )
         lastText.current = transformedText.text
@@ -167,6 +187,19 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     [active, inputRef, getWordAtCursor, lastText]
   )
 
+  return {
+    active,
+    checkTrigger,
+    filter,
+    onChangeTextSyncInput,
+    setActive,
+    setInactive,
+    triggerTransform,
+  }
+}
+
+const useHandleKeyEvents = p => {
+  const {onKeyDownProps, active, results, selected, setSelected, triggerTransform, checkTrigger, filter} = p
   const move = React.useCallback(
     (up: boolean) => {
       if (!active) {
@@ -183,53 +216,12 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     [active, results, selected, setSelected, triggerTransform]
   )
 
-  const checkTrigger = React.useCallback(() => {
-    if (triggerIDRef.current) {
-      clearTimeout(triggerIDRef.current)
-    }
-    triggerIDRef.current = setTimeout(() => {
-      // inside a timeout so selection will settle, there was a problem where
-      // desktop would get the previous selection on arrowleft / arrowright
-      const cursorInfo = getWordAtCursor()
-      if (!cursorInfo) {
-        return
-      }
-      const {word} = cursorInfo
-
-      if (active) {
-        const activeMarker = suggestorToMarker[active]
-        const matchInfo = matchesMarker(word, activeMarker)
-        if (!matchInfo.matches) {
-          // not active anymore
-          setInactive()
-        } else {
-          setFilter(word.substring(matchInfo.marker.length))
-
-          // call this._stabilizeSelection?
-          return
-        }
-      }
-      // @ts-ignore we know entries will give this type
-      for (let [suggestor, marker]: [string, string | RegExp] of Object.entries(suggestorToMarker)) {
-        const matchInfo = matchesMarker(word, marker as any)
-        if (matchInfo.matches && inputRef.current?.isFocused()) {
-          setActive(suggestor as ActiveType)
-          setFilter(word.substring(matchInfo.marker.length))
-        }
-      }
-    }, 1)
-  }, [getWordAtCursor, triggerIDRef, setActive, setFilter, setInactive, active, inputRef])
-
-  const onChangeText2 = React.useCallback(
-    (text: string) => {
-      lastText.current = text
-      onChangeText?.(text)
-      checkTrigger()
-    },
-    [lastText, onChangeText, checkTrigger]
+  const getSelected = React.useCallback(
+    () => (active ? results.data[selected] : null),
+    [active, results, selected]
   )
 
-  const onKeyDown2 = React.useCallback(
+  const onKeyDown = React.useCallback(
     (evt: React.KeyboardEvent) => {
       if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
         checkTrigger()
@@ -237,7 +229,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 
       if (!active || results.data.length === 0) {
         // not showing list, bail
-        onKeyDown?.(evt)
+        onKeyDownProps?.(evt)
         return
       }
 
@@ -254,7 +246,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
         shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
-        triggerTransform(results.data[selected])
+        triggerTransform(getSelected())
         shouldCallParentCallback = false
       } else if (evt.key === 'Tab') {
         evt.preventDefault()
@@ -268,10 +260,55 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
       }
 
       if (shouldCallParentCallback) {
-        onKeyDown?.(evt)
+        onKeyDownProps?.(evt)
       }
     },
-    [onKeyDown, active, checkTrigger, filter, results, selected, move, getSelected, triggerTransform]
+    [onKeyDownProps, active, checkTrigger, filter, results, move, getSelected, triggerTransform]
+  )
+
+  return {onKeyDown}
+}
+
+export const useSuggestors = (p: UseSuggestorsProps) => {
+  const [selected, setSelected] = React.useState(0)
+  const [active, setActive] = React.useState<ActiveType>('')
+  const [filter, setFilter] = React.useState('')
+  const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
+  const {onBlur, onFocus, onSelectionChange, onChangeText: onChangeTextProps} = p
+  const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
+  const results = useDataSources(active, conversationIDKey, filter)
+  const {triggerTransform, onChangeTextSyncInput, checkTrigger, setInactive} = useSyncInput(
+    inputRef,
+    results,
+    active,
+    setActive,
+    setSelected,
+    filter,
+    setFilter
+  )
+  const {onKeyDown} = useHandleKeyEvents({
+    active,
+    checkTrigger,
+    filter,
+    onKeyDownProps: p.onKeyDown,
+    results,
+    selected,
+    setSelected,
+    triggerTransform,
+  })
+
+  const onBlur2 = React.useCallback(() => {
+    onBlur?.()
+    setInactive()
+  }, [onBlur, setInactive])
+
+  const onChangeText = React.useCallback(
+    (text: string) => {
+      onChangeTextSyncInput(text)
+      onChangeTextProps?.(text)
+      checkTrigger()
+    },
+    [onChangeTextSyncInput, onChangeTextProps, checkTrigger]
   )
 
   const onFocus2 = React.useCallback(() => {
@@ -311,12 +348,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     }
   }, [active, onChannelSuggestionsTriggered, onFetchEmoji])
 
-  React.useEffect(() => {
-    return () => {
-      clearTimeout(triggerIDRef.current)
-    }
-  }, [])
-
   const suggestionsVisible: boolean =
     results.data.length ||
     results.loading ||
@@ -354,9 +385,9 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   return {
     inputRef,
     onBlur: onBlur2,
-    onChangeText: onChangeText2,
+    onChangeText,
     onFocus: onFocus2,
-    onKeyDown: onKeyDown2,
+    onKeyDown,
     onSelectionChange: onSelectionChange2,
     popup,
     suggestionsVisible,

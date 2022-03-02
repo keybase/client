@@ -336,15 +336,16 @@ const PlatformInput = (p: Props) => {
   const {showWalletsIcon, onCancelEditing, hintText, inputSetRef, isEditing} = p
   const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
+  const inputRef = React.useRef<Kb.PlainInput | null>(null)
 
   const {
     popup,
-    inputRef,
     onKeyDown,
     onChangeText: onChangeTextSuggestors,
   } = useSuggestors({
     conversationIDKey,
     expanded: false,
+    inputRef,
     onBlur: p.onBlur,
     onChangeText: p.onChangeText,
     onFocus: p.onFocus,
