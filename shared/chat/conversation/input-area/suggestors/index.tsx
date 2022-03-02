@@ -4,7 +4,6 @@ import * as Styles from '../../../../styles'
 import {useMemo} from '../../../../util/memoize'
 import * as Container from '../../../../util/container'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import SuggestionList from './suggestion-list'
 import type {Props} from '../normal/platform-input'
 import * as Channels from './channels'
 import * as Commands from './commands'
@@ -73,13 +72,13 @@ const useDataSources = (
   const channels = Channels.useDataSource(active, conversationIDKey, filter)
   const commands = Commands.useDataSource(active, conversationIDKey, filter)
   const emoji = Emoji.useDataSource(active, conversationIDKey, filter)
-  const users = Users.useDataSource(active, conversationIDKey, filter)
+  // const users = Users.useDataSource(active, conversationIDKey, filter)
   const noData = useMemo(() => ({data: [], loading: false, useSpaces: false}), [])
-  return channels || commands || emoji || users || noData
+  return channels || commands || emoji || noData
 }
 
 // handles watching the input and seeing which suggestor we need to use
-export const useSyncInput = (inputRef, results, active, setActive, setSelected, filter, setFilter) => {
+export const useSyncInput = (inputRef, resultsRef, active, setActive, setSelected, filter, setFilter) => {
   const setInactive = React.useCallback(() => {
     setActive('')
     setFilter('')
@@ -97,7 +96,7 @@ export const useSyncInput = (inputRef, results, active, setActive, setSelected, 
 
   const getWordAtCursor = React.useCallback(() => {
     if (inputRef.current) {
-      const {useSpaces} = results
+      const {useSpaces} = resultsRef.current
       const input = inputRef.current
       const selection = input.getSelection()
       const text = lastText.current
@@ -121,7 +120,7 @@ export const useSyncInput = (inputRef, results, active, setActive, setSelected, 
       return {position, word}
     }
     return null
-  }, [inputRef, results])
+  }, [inputRef, resultsRef])
 
   const triggerIDRef = React.useRef<any>(0)
   const checkTrigger = React.useCallback(() => {
@@ -199,26 +198,27 @@ export const useSyncInput = (inputRef, results, active, setActive, setSelected, 
 }
 
 const useHandleKeyEvents = p => {
-  const {onKeyDownProps, active, results, selected, setSelected, triggerTransform, checkTrigger, filter} = p
+  const {onKeyDownProps, active, resultsRef, selected, setSelected, triggerTransform, checkTrigger, filter} =
+    p
   const move = React.useCallback(
     (up: boolean) => {
       if (!active) {
         return
       }
-      const length = results.data.length
+      const length = resultsRef.current.data.length
       const s = (((up ? selected - 1 : selected + 1) % length) + length) % length
       if (s !== selected) {
         setSelected(s)
-        const val = active ? results.data[s] : null
+        const val = active ? resultsRef.current.data[s] : null
         triggerTransform(val, false)
       }
     },
-    [active, results, selected, setSelected, triggerTransform]
+    [active, resultsRef, selected, setSelected, triggerTransform]
   )
 
   const getSelected = React.useCallback(
-    () => (active ? results.data[selected] : null),
-    [active, results, selected]
+    () => (active ? resultsRef.current.data[selected] : null),
+    [active, resultsRef, selected]
   )
 
   const onKeyDown = React.useCallback(
@@ -227,7 +227,7 @@ const useHandleKeyEvents = p => {
         checkTrigger()
       }
 
-      if (!active || results.data.length === 0) {
+      if (!active || resultsRef.current.data.length === 0) {
         // not showing list, bail
         onKeyDownProps?.(evt)
         return
@@ -263,7 +263,7 @@ const useHandleKeyEvents = p => {
         onKeyDownProps?.(evt)
       }
     },
-    [onKeyDownProps, active, checkTrigger, filter, results, move, getSelected, triggerTransform]
+    [onKeyDownProps, active, checkTrigger, filter, resultsRef, move, getSelected, triggerTransform]
   )
 
   return {onKeyDown}
@@ -276,10 +276,12 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
   const {onBlur, onFocus, onSelectionChange, onChangeText: onChangeTextProps} = p
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
-  const results = useDataSources(active, conversationIDKey, filter)
+  // const results = useDataSources(active, conversationIDKey, filter)
+  // injected by the individual lists for now, a little funky since we handle up/down on the list from outside
+  const resultsRef = React.useRef<{useSpaces: boolean; data: Array<unknown>}>({data: [], useSpaces: false})
   const {triggerTransform, onChangeTextSyncInput, checkTrigger, setInactive} = useSyncInput(
     inputRef,
-    results,
+    resultsRef,
     active,
     setActive,
     setSelected,
@@ -291,7 +293,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     checkTrigger,
     filter,
     onKeyDownProps: p.onKeyDown,
-    results,
+    resultsRef,
     selected,
     setSelected,
     triggerTransform,
@@ -348,35 +350,77 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     }
   }, [active, onChannelSuggestionsTriggered, onFetchEmoji])
 
-  const suggestionsVisible: boolean =
-    results.data.length ||
-    results.loading ||
-    suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
+  // const suggestionsVisible: boolean =
+  //   results.data.length ||
+  //   results.loading ||
+  //   suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
 
-  const content = results.data.length ? (
-    <List
-      active={active}
-      expanded={expanded}
-      results={results}
-      selected={selected}
-      suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
-      suggestionListStyle={suggestionListStyle}
-      suggestionSpinnerStyle={suggestionSpinnerStyle}
-      setSelected={setSelected}
-      triggerTransform={triggerTransform}
-    />
-  ) : (
-    <Kb.Box2
-      direction="vertical"
-      alignItems="center"
-      fullWidth={true}
-      style={Styles.collapseStyles([styles.spinnerBackground, suggestionListStyle])}
-    >
-      <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
-    </Kb.Box2>
-  )
+  let content: React.ReactNode = null
 
-  const popup = suggestionsVisible && (
+  // const renderItem = React.useCallback((index, item) => {
+  //     <Kb.ClickableBox
+  //       key={key}
+  //       onClick={() => triggerTransform(value)}
+  //       onMouseMove={() => setSelected(index)}
+  //     >
+  //         {itemRenderer(index, item)}
+  //     </Kb.ClickableBox>
+  // }, [itemRenderer ])
+
+  const listProps = {
+    conversationIDKey,
+    expanded,
+    filter,
+    // items: results.data as any,
+    listStyle: suggestionListStyle,
+    // loading: results.loading,
+    onClick: (item: any) => triggerTransform(item),
+    onMouseMove: (index: number) => setSelected(index),
+    resultsRef,
+    selectedIndex: selected,
+    spinnerStyle: suggestionSpinnerStyle,
+    suggestBotCommandsUpdateStatus,
+  }
+
+  switch (active) {
+    case 'channels':
+      content = <Channels.List {...listProps} />
+      break
+    case 'commands':
+      content = <Commands.List {...listProps} />
+      break
+    case 'emoji':
+      content = <Emoji.List {...listProps} />
+      break
+    case 'users':
+      content = <Users.UsersList {...listProps} />
+      break
+  }
+
+  // const content = results.data.length ? (
+  //   <List
+  //     active={active}
+  //     expanded={expanded}
+  //     results={results}
+  //     selected={selected}
+  //     suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
+  //     suggestionListStyle={suggestionListStyle}
+  //     suggestionSpinnerStyle={suggestionSpinnerStyle}
+  //     setSelected={setSelected}
+  //     triggerTransform={triggerTransform}
+  //   />
+  // ) : (
+  //   <Kb.Box2
+  //     direction="vertical"
+  //     alignItems="center"
+  //     fullWidth={true}
+  //     style={Styles.collapseStyles([styles.spinnerBackground, suggestionListStyle])}
+  //   >
+  //     <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
+  //   </Kb.Box2>
+  // )
+
+  const popup = !!content && (
     <Popup suggestionOverlayStyle={suggestionOverlayStyle} setInactive={setInactive} inputRef={inputRef}>
       {content}
     </Popup>
@@ -390,65 +434,8 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     onKeyDown,
     onSelectionChange: onSelectionChange2,
     popup,
-    suggestionsVisible,
+    // suggestionsVisible,
   }
-}
-
-const List = (p: any) => {
-  const {active, expanded, results, selected, setSelected} = p
-  const {suggestBotCommandsUpdateStatus, suggestionListStyle, suggestionSpinnerStyle, triggerTransform} = p
-
-  const itemRenderer = React.useCallback(
-    (index: number, value: any): React.ReactElement | null => {
-      const s = Styles.isMobile ? false : index === selected
-      let content: React.ReactNode = null
-      let key = ''
-      switch (active) {
-        case 'channels':
-          content = <Channels.Renderer value={value} selected={s} />
-          key = Channels.keyExtractor(value)
-          break
-        case 'commands':
-          content = <Commands.Renderer value={value} selected={s} />
-          key = Commands.keyExtractor(value)
-          break
-        case 'emoji':
-          content = <Emoji.Renderer value={value} selected={s} />
-          key = Emoji.keyExtractor(value)
-          break
-        case 'users':
-          content = <Users.Renderer value={value} selected={s} />
-          key = Users.keyExtractor(value)
-          break
-      }
-      return !content ? null : (
-        <Kb.ClickableBox
-          key={key}
-          onClick={() => triggerTransform(value)}
-          onMouseMove={() => setSelected(index)}
-        >
-          {content}
-        </Kb.ClickableBox>
-      )
-    },
-    [active, triggerTransform, setSelected, selected]
-  )
-
-  return (
-    <>
-      <SuggestionList
-        style={expanded ? {bottom: 95, position: 'absolute', top: 95} : suggestionListStyle}
-        items={results.data}
-        keyExtractor={undefined /* TODO */}
-        renderItem={itemRenderer}
-        selectedIndex={selected}
-        suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
-      />
-      {results.loading && (
-        <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} style={suggestionSpinnerStyle} />
-      )}
-    </>
-  )
 }
 
 const Popup = (p: any) => {

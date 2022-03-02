@@ -225,7 +225,7 @@ const PlatformInput = (p: Props) => {
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
-  const {popup, onChangeText, onBlur, onSelectionChange, onFocus, suggestionsVisible} = useSuggestors({
+  const {popup, onChangeText, onBlur, onSelectionChange, onFocus} = useSuggestors({
     conversationIDKey: p.conversationIDKey,
     expanded,
     inputRef,
@@ -425,7 +425,7 @@ const PlatformInput = (p: Props) => {
         }
       </ReAnimated.Code>
       {menu}
-      {showTypingStatus && !suggestionsVisible && <Typing conversationIDKey={conversationIDKey} />}
+      {showTypingStatus && !popup && <Typing conversationIDKey={conversationIDKey} />}
       <Kb.Box2
         direction="vertical"
         style={Styles.collapseStyles([

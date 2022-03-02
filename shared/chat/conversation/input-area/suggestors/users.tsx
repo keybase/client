@@ -1,5 +1,5 @@
 import * as Common from './common'
-import {memoize} from '../../../../util/memoize'
+import {useMemo} from '../../../../util/memoize'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
@@ -32,65 +32,7 @@ export const transformer = (
   return Common.standardTransformer(`${marker}${s}`, tData, preview)
 }
 
-export const keyExtractor = ({
-  username,
-  teamname,
-  channelname,
-}: {
-  username: string
-  teamname?: string
-  channelname?: string
-}) => {
-  if (teamname) {
-    if (channelname) {
-      return teamname + '#' + channelname
-    } else {
-      return teamname
-    }
-  } else {
-    return username
-  }
-}
-
-export const Renderer = (p: any) => {
-  const selected: boolean = p.selected
-  const username: string = p.value.username
-  const fullName: string = p.value.fullName
-  const teamname: string | undefined = p.value.teamname
-  const channelname: string | undefined = p.value.channelname
-
-  return teamname ? (
-    <Common.TeamSuggestion teamname={teamname} channelname={channelname} selected={selected} />
-  ) : (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      style={Styles.collapseStyles([
-        Common.styles.suggestionBase,
-        Common.styles.fixSuggestionHeight,
-        {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
-      ])}
-      gap="tiny"
-    >
-      {Constants.isSpecialMention(username) ? (
-        <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
-          <Kb.Icon type="iconfont-people" color={Styles.globalColors.blueDark} fontSize={16} />
-        </Kb.Box2>
-      ) : (
-        <Kb.Avatar username={username} size={32} />
-      )}
-      <Kb.ConnectedUsernames
-        type="BodyBold"
-        colorFollowing={true}
-        usernames={username}
-        withProfileCardPopup={false}
-      />
-      <Kb.Text type="BodySmall">{fullName}</Kb.Text>
-    </Kb.Box2>
-  )
-}
-
-export const styles = Styles.styleSheetCreate(() => ({
+const styles = Styles.styleSheetCreate(() => ({
   iconPeople: {
     alignItems: 'center',
     backgroundColor: Styles.globalColors.white,
@@ -104,112 +46,251 @@ export const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-const searchUsersAndTeamsAndTeamChannels = memoize(
-  (users: any, teams: any, allChannels: any, filter: string) => {
-    if (!filter) {
-      return [...users, ...teams]
-    }
-    const fil = filter.toLowerCase()
-    const match = fil.match(/^([a-zA-Z0-9_.]+)#(\S*)$/) // team name followed by #
-    if (match) {
-      const teamname = match[1]
-      const channelfil = match[2]
-      if (!channelfil) {
-        // All the team's channels
-        return allChannels.filter(v => v.teamname === teamname)
-      }
-      return allChannels
-        .filter(v => v.teamname === teamname)
-        .map(v => {
-          let score = 0
-          const channelname = v.channelname.toLowerCase()
-          if (channelname.includes(channelfil)) {
-            score++
-          }
-          if (channelname.startsWith(channelfil)) {
-            score += 2
-          }
-          return {score, v}
-        })
-        .filter(withScore => !!withScore.score)
-        .sort((a, b) => b.score - a.score)
-        .map(({v}) => v)
-    }
-    const sortedUsers = users
-      .map(u => {
-        let score = 0
-        const username = u.username.toLowerCase()
-        const fullName = u.fullName.toLowerCase()
-        if (username.includes(fil) || fullName.includes(fil)) {
-          // 1 point for included somewhere
-          score++
-        }
-        if (fullName.startsWith(fil)) {
-          // 1 point for start of fullname
-          score++
-        }
-        if (username.startsWith(fil)) {
-          // 2 points for start of username
-          score += 2
-        }
-        return {score, user: u}
-      })
-      .filter(withScore => !!withScore.score)
-      .sort((a, b) => b.score - a.score)
-      .map(userWithScore => userWithScore.user)
-    const sortedTeams = teams.filter(t => {
-      return t.teamname.includes(fil)
-    })
-    const usersAndTeams = [...sortedUsers, ...sortedTeams]
-    if (usersAndTeams.length === 1 && usersAndTeams[0].teamname) {
-      // The only user+team result is a single team. Present its channels as well.
-      return [...usersAndTeams, ...allChannels.filter(v => v.teamname === usersAndTeams[0].teamname)]
-    }
-    return usersAndTeams
+const filterTeamNameChannel = (fil: string, allChannels: Array<TeamListItem>) => {
+  const match = fil.match(/^([a-zA-Z0-9_.]+)#(\S*)$/) // team name followed by #
+  if (!match) return null
+  const teamname = match[1]
+  const channelfil = match[2]
+  if (!channelfil) {
+    // All the team's channels
+    return allChannels.filter(v => v.teamname === teamname)
   }
-)
-
-const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
-  const bigTeams = (layout && layout.bigTeams) || []
-  const smallTeams = (layout && layout.smallTeams) || []
-  const bigTeamNames = bigTeams.reduce<Array<string>>((arr, l) => {
-    if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
-      arr.push(l.label.name)
-    }
-    return arr
-  }, [])
-  const smallTeamNames = smallTeams.reduce<Array<string>>((arr, l) => {
-    if (l.isTeam) {
-      arr.push(l.name)
-    }
-    return arr
-  }, [])
-  return bigTeamNames
-    .concat(smallTeamNames)
-    .sort()
-    .map(teamname => ({fullName: '', teamname, username: ''}))
-})
-
-export const useDataSource = (active: string, conversationIDKey: Types.ConversationIDKey, filter: string) => {
-  const isActive = active === 'users'
-  return Container.useSelector(state => {
-    if (!isActive) return null
-
-    const suggestUsers = Constants.getParticipantSuggestions(state, conversationIDKey)
-    const inboxLayout = state.chat2.inboxLayout
-    const suggestTeams = getTeams(inboxLayout)
-    const suggestAllChannels = (inboxLayout?.bigTeams ?? []).reduce<
-      Array<{teamname: string; channelname: string}>
-    >((arr, t) => {
-      if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-        arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
+  return allChannels
+    .filter(v => v.teamname === teamname)
+    .map(v => {
+      let score = 0
+      const channelname = v.channelname.toLowerCase()
+      if (channelname.includes(channelfil)) {
+        score++
       }
-      return arr
-    }, [])
-    return {
-      data: searchUsersAndTeamsAndTeamChannels(suggestUsers, suggestTeams, suggestAllChannels, filter),
-      loading: false,
-      useSpaces: false,
-    }
+      if (channelname.startsWith(channelfil)) {
+        score += 2
+      }
+      return {score, v}
+    })
+    .filter(withScore => !!withScore.score)
+    .sort((a, b) => b.score - a.score)
+    .map(({v}) => v)
+}
+
+const filterUsersAndTeams = (
+  users: Array<UserListItem>,
+  teams: Array<TeamListItem>,
+  allChannels: Array<TeamListItem>,
+  filter: string
+) => {
+  const sortedUsers = users
+    .map(user => {
+      let score = 0
+      const username = user.username.toLowerCase()
+      const fullName = user.fullName.toLowerCase()
+      if (username.includes(filter) || fullName.includes(filter)) {
+        // 1 point for included somewhere
+        score++
+      }
+      if (fullName.startsWith(filter)) {
+        // 1 point for start of fullname
+        score++
+      }
+      if (username.startsWith(filter)) {
+        // 2 points for start of username
+        score += 2
+      }
+      return {score, user}
+    })
+    .filter(withScore => !!withScore.score)
+    .sort((a, b) => b.score - a.score)
+    .map(userWithScore => userWithScore.user)
+  const sortedTeams = teams.filter(t => {
+    return t.teamname.includes(filter)
   })
+
+  if (sortedUsers.length === 0 && sortedTeams.length === 1) {
+    const first = sortedTeams[0]
+    // The only user+team result is a single team. Present its channels as well.
+    return [first, ...allChannels.filter(v => v.teamname === first.teamname)]
+  }
+  return [...sortedUsers, ...sortedTeams]
+}
+
+const filterAndJoin = (
+  users: Array<UserListItem>,
+  teams: Array<TeamListItem>,
+  allChannels: Array<TeamListItem>,
+  filter: string
+) => {
+  if (!filter) {
+    return [...users, ...teams.sort((a, b) => a.teamname.localeCompare(b.teamname))]
+  }
+  const teamNames = filterTeamNameChannel(filter, allChannels)
+  return teamNames ? teamNames : filterUsersAndTeams(users, teams, allChannels, filter)
+}
+
+const getTeams = (layout: RPCChatTypes.UIInboxLayout | null) => {
+  const bigTeams =
+    layout?.bigTeams?.reduce<Array<string>>((arr, l) => {
+      l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label && arr.push(l.label.name)
+      return arr
+    }, []) ?? []
+  const smallTeams =
+    layout?.smallTeams?.reduce<Array<string>>((arr, l) => {
+      l.isTeam && arr.push(l.name)
+      return arr
+    }, []) ?? []
+  return bigTeams.concat(smallTeams).map(teamname => ({channelname: '', teamname}))
+}
+
+const useDataUsers = (conversationIDKey: Types.ConversationIDKey) => {
+  return Container.useSelector(state => {
+    const {teamID, teamType} = Constants.getMeta(state, conversationIDKey)
+    const teamMembers = state.teams.teamIDToMembers.get(teamID)
+    const infoMap = state.users.infoMap
+    const usernames = teamMembers
+      ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
+      : Constants.getParticipantInfo(state, conversationIDKey).all
+    const suggestions = usernames.map(username => ({
+      fullName: infoMap.get(username)?.fullname || '',
+      username,
+    }))
+    if (teamType !== 'adhoc') {
+      const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
+      suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
+    }
+    return suggestions
+  })
+}
+
+const useDataTeams = () => {
+  const inboxLayout = Container.useSelector(state => state.chat2.inboxLayout)
+  const teams = useMemo(() => getTeams(inboxLayout), [inboxLayout])
+  const allChannels = useMemo(
+    () =>
+      inboxLayout?.bigTeams?.reduce<Array<TeamListItem>>((arr, t) => {
+        if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+          arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
+        }
+        return arr
+      }, []) ?? [],
+    [inboxLayout]
+  )
+  return {allChannels, teams}
+}
+
+const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
+  const fl = filter.toLowerCase()
+  const users = useDataUsers(conversationIDKey)
+  const {teams, allChannels} = useDataTeams()
+  return filterAndJoin(users, teams, allChannels, fl)
+}
+
+type UserListItem = {
+  username: string
+  fullName: string
+}
+
+type TeamListItem = {
+  teamname: string
+  channelname: string
+}
+
+type ListItem = {
+  username?: string
+  fullName?: string
+  teamname?: string
+  channelname?: string
+}
+
+type ListProps = Pick<
+  Common.ListProps<ListItem>,
+  | 'expanded'
+  | 'items'
+  | 'suggestBotCommandsUpdateStatus'
+  | 'listStyle'
+  | 'spinnerStyle'
+  | 'loading'
+  | 'selectedIndex'
+> & {
+  conversationIDKey: Types.ConversationIDKey
+  filter: string
+  onClick: (item: any) => void
+  onMouseMove: (index: number) => void
+  resultsRef: React.MutableRefObject<{data: Array<ListItem>; useSpaces: boolean}>
+}
+
+const ItemRenderer = (p: {selected: boolean; item: ListItem}) => {
+  const {selected, item} = p
+  const {username, fullName, teamname, channelname} = item
+
+  if (teamname) {
+    return <Common.TeamSuggestion teamname={teamname} channelname={channelname} selected={selected} />
+  }
+
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={Styles.collapseStyles([
+        Common.styles.suggestionBase,
+        Common.styles.fixSuggestionHeight,
+        {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
+      ])}
+      gap="tiny"
+    >
+      {Constants.isSpecialMention(username ?? '') ? (
+        <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
+          <Kb.Icon type="iconfont-people" color={Styles.globalColors.blueDark} fontSize={16} />
+        </Kb.Box2>
+      ) : (
+        <Kb.Avatar username={username} size={32} />
+      )}
+      <Kb.ConnectedUsernames
+        type="BodyBold"
+        colorFollowing={true}
+        usernames={username ?? ''}
+        withProfileCardPopup={false}
+      />
+      <Kb.Text type="BodySmall">{fullName}</Kb.Text>
+    </Kb.Box2>
+  )
+}
+
+const keyExtractor = (item: ListItem) => {
+  const {teamname, channelname} = item
+  if (teamname) {
+    return channelname ? teamname + '#' + channelname : teamname
+  }
+  return item.username ?? ''
+}
+
+export const UsersList = (p: ListProps) => {
+  const {selectedIndex, onClick, onMouseMove, resultsRef} = p
+  const items = useDataSource(p.conversationIDKey, p.filter)
+
+  const itemRenderer = React.useCallback(
+    (idx, item: ListItem) => (
+      <Kb.ClickableBox key={keyExtractor(item)} onClick={onClick} onMouseMove={() => onMouseMove(idx)}>
+        <ItemRenderer selected={idx === selectedIndex} item={item} />
+      </Kb.ClickableBox>
+    ),
+    [selectedIndex, onClick, onMouseMove]
+  )
+
+  resultsRef.current = {
+    data: items,
+    useSpaces: false,
+  }
+
+  return (
+    <Common.List
+      expanded={p.expanded}
+      keyExtractor={keyExtractor}
+      items={items}
+      itemRenderer={itemRenderer}
+      suggestBotCommandsUpdateStatus={p.suggestBotCommandsUpdateStatus}
+      listStyle={p.listStyle}
+      spinnerStyle={p.spinnerStyle}
+      loading={false}
+      selectedIndex={p.selectedIndex}
+    />
+  )
 }
