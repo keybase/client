@@ -8,91 +8,15 @@ import {indefiniteArticle} from '../../../../util/string'
 import type {InputProps} from './types'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
-import {memoize} from '../../../../util/memoize'
 import CommandMarkdown from '../../command-markdown/container'
 import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
 import ReplyPreview from '../../reply-preview/container'
 import {infoPanelWidthTablet} from '../../info-panel/common'
-import {emojiIndex, emojiNameMap} from '../../messages/react-button/emoji-picker/data'
-import {type EmojiData, RPCToEmojiData} from '../../../../util/emoji'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
 const debounced = debounce((f, param) => f(param), 500)
-
-const searchUsersAndTeamsAndTeamChannels = memoize(
-  (
-    users: InputProps['suggestUsers'],
-    teams: InputProps['suggestTeams'],
-    allChannels: InputProps['suggestAllChannels'],
-    filter: string
-  ) => {
-    if (!filter) {
-      return [...users, ...teams]
-    }
-    const fil = filter.toLowerCase()
-    const match = fil.match(/^([a-zA-Z0-9_.]+)#(\S*)$/) // team name followed by #
-    if (match) {
-      const teamname = match[1]
-      const channelfil = match[2]
-      if (!channelfil) {
-        // All the team's channels
-        return allChannels.filter(v => v.teamname === teamname)
-      }
-      return allChannels
-        .filter(v => v.teamname === teamname)
-        .map(v => {
-          let score = 0
-          const channelname = v.channelname.toLowerCase()
-          if (channelname.includes(channelfil)) {
-            score++
-          }
-          if (channelname.startsWith(channelfil)) {
-            score += 2
-          }
-          return {score, v}
-        })
-        .filter(withScore => !!withScore.score)
-        .sort((a, b) => b.score - a.score)
-        .map(({v}) => v)
-    }
-    const sortedUsers = users
-      .map(u => {
-        let score = 0
-        const username = u.username.toLowerCase()
-        const fullName = u.fullName.toLowerCase()
-        if (username.includes(fil) || fullName.includes(fil)) {
-          // 1 point for included somewhere
-          score++
-        }
-        if (fullName.startsWith(fil)) {
-          // 1 point for start of fullname
-          score++
-        }
-        if (username.startsWith(fil)) {
-          // 2 points for start of username
-          score += 2
-        }
-        return {score, user: u}
-      })
-      .filter(withScore => !!withScore.score)
-      .sort((a, b) => b.score - a.score)
-      .map(userWithScore => userWithScore.user)
-    const sortedTeams = teams.filter(t => {
-      return t.teamname.includes(fil)
-    })
-    const usersAndTeams = [...sortedUsers, ...sortedTeams]
-    if (usersAndTeams.length === 1 && usersAndTeams[0].teamname) {
-      // The only user+team result is a single team. Present its channels as well.
-      return [...usersAndTeams, ...allChannels.filter(v => v.teamname === usersAndTeams[0].teamname)]
-    }
-    return usersAndTeams
-  }
-)
-
-// 2+ valid emoji chars and no ending colon
-const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 
 type InputState = {
   showBotCommandUpdateStatus: boolean
@@ -102,100 +26,12 @@ class Input extends React.Component<InputProps, InputState> {
   _lastQuote: number
   _input: Kb.PlainInput | null = null
   _lastText?: string
-  _suggestorDatasource = {}
-  _suggestorRenderer = {}
   _maxCmdLength = 0
 
   constructor(props: InputProps) {
     super(props)
     this.state = {showBotCommandUpdateStatus: false}
     this._lastQuote = 0
-    this._suggestorDatasource = {
-      channels: (filter: string) => {
-        const fil = filter.toLowerCase()
-        return {
-          data: this.props.suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
-          loading: this.props.suggestChannelsLoading,
-          useSpaces: false,
-        }
-      },
-      commands: (filter: string) => {
-        if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
-          return {
-            data: [],
-            loading: false,
-            useSpaces: true,
-          }
-        }
-
-        const sel = this._input?.getSelection()
-        if (sel && this._lastText) {
-          // a little messy. Check if the message starts with '/' and that the cursor is
-          // within maxCmdLength chars away from it. This happens before `onChangeText`, so
-          // we can't do a more robust check on `this._lastText` because it's out of date.
-          if (
-            !(this._lastText.startsWith('/') || this._lastText.startsWith('!')) ||
-            (sel.start || 0) > this._maxCmdLength
-          ) {
-            // not at beginning of message
-            return {
-              data: [],
-              loading: false,
-              useSpaces: true,
-            }
-          }
-        }
-        const fil = filter.toLowerCase()
-        const data = (
-          this._lastText?.startsWith('!') ? this.props.suggestBotCommands : this.props.suggestCommands
-        ).filter(c => c.name.includes(fil))
-        return {
-          data,
-          loading: false,
-          useSpaces: true,
-        }
-      },
-      emoji: (filter: string) => {
-        if (!emojiPrepass.test(filter)) {
-          return {
-            data: [],
-            loading: false,
-            useSpaces: false,
-          }
-        }
-
-        // prefill data with stock emoji
-        let emojiData: Array<EmojiData> = []
-        emojiIndex.search(filter)?.forEach((res: {id?: string}) => {
-          if (res.id) {
-            emojiData.push(emojiNameMap[res.id])
-          }
-        })
-
-        if (this.props.userEmojis) {
-          const userEmoji = this.props.userEmojis
-            .filter(emoji => emoji.alias.toLowerCase().includes(filter))
-            .map(emoji => RPCToEmojiData(emoji, false))
-          emojiData = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(emojiData)
-        }
-
-        return {
-          data: emojiData,
-          loading: this.props.userEmojisLoading,
-          useSpaces: false,
-        }
-      },
-      users: (filter: string) => ({
-        data: searchUsersAndTeamsAndTeamChannels(
-          this.props.suggestUsers,
-          this.props.suggestTeams,
-          this.props.suggestAllChannels,
-          filter
-        ),
-        loading: false,
-        useSpaces: false,
-      }),
-    }
 
     if (this.props.suggestCommands) {
       // + 1 for '/'
@@ -405,9 +241,7 @@ class Input extends React.Component<InputProps, InputState> {
         <PlatformInput
           {...platformInputProps}
           hintText={hintText}
-          dataSources={this._suggestorDatasource}
           maxInputArea={this.props.maxInputArea}
-          renderers={this._suggestorRenderer}
           suggestionOverlayStyle={Styles.collapseStyles([
             styles.suggestionOverlay,
             infoPanelShowing && styles.suggestionOverlayWithInfoPanel,

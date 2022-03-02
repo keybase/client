@@ -10,7 +10,7 @@ import * as Channels from './channels'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Users from './users'
-import * as Common from './common'
+import type * as Common from './common'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 const matchesMarker = (
@@ -47,7 +47,6 @@ const suggestorToMarker = {
 
 type UseSuggestorsProps = Pick<
   Props,
-  | 'dataSources'
   | 'onBlur'
   | 'onChangeText'
   | 'onFocus'
@@ -55,7 +54,6 @@ type UseSuggestorsProps = Pick<
   | 'onSelectionChange'
   | 'suggestBotCommandsUpdateStatus'
   | 'suggestionOverlayStyle'
-  | 'userEmojisLoading'
   | 'conversationIDKey'
 > & {
   suggestionListStyle: unknown
@@ -63,9 +61,24 @@ type UseSuggestorsProps = Pick<
 }
 
 type ActiveType = '' | 'channels' | 'commands' | 'emoji' | 'users'
+
+// TODO change this, use sep components
+const useDataSources = (
+  active: ActiveType,
+  conversationIDKey: UseSuggestorsProps['conversationIDKey'],
+  filter: string
+) => {
+  const channels = Channels.useDataSource(active, conversationIDKey, filter)
+  const commands = Commands.useDataSource(active, conversationIDKey, filter)
+  const emoji = Emoji.useDataSource(active, conversationIDKey, filter)
+  const users = Users.useDataSource(active, conversationIDKey, filter)
+  const noData = useMemo(() => ({data: [], loading: false, useSpaces: false}), [])
+  return channels || commands || emoji || users || noData
+}
+
 export const useSuggestors = (p: UseSuggestorsProps) => {
-  const {dataSources, suggestionListStyle, suggestionOverlayStyle} = p
-  const {onBlur, userEmojisLoading, onFocus, onSelectionChange, onChangeText, onKeyDown} = p
+  const {suggestionListStyle, suggestionOverlayStyle} = p
+  const {onBlur, onFocus, onSelectionChange, onChangeText, onKeyDown} = p
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
 
   const [active, setActive] = React.useState<ActiveType>('')
@@ -82,10 +95,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     setSelected(0)
   }, [setActive, setFilter, setSelected])
 
-  const results = useMemo(() => {
-    return active ? dataSources[active](filter) : {data: [], loading: false, useSpaces: false}
-  }, [active, dataSources, filter, userEmojisLoading])
-  // userEmojisLoading is an implicit dep which should change
+  const results = useDataSources(active, conversationIDKey, filter)
 
   const getSelected = React.useCallback(
     () => (active ? results.data[selected] : null),
@@ -272,14 +282,17 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 
   const dispatch = Container.useDispatch()
 
+  // TODO move
   const onFetchEmoji = React.useCallback(() => {
     dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
   }, [dispatch, conversationIDKey])
 
+  // TODO move
   const onChannelSuggestionsTriggered = React.useCallback(() => {
     dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey}))
   }, [dispatch, conversationIDKey])
 
+  // TODO move
   React.useEffect(() => {
     switch (active) {
       case 'channels':
@@ -302,19 +315,32 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     results.loading ||
     suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
 
+  const content = results.data.length ? (
+    <List
+      active={active}
+      expanded={expanded}
+      results={results}
+      selected={selected}
+      suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
+      suggestionListStyle={suggestionListStyle}
+      suggestionSpinnerStyle={suggestionSpinnerStyle}
+      setSelected={setSelected}
+      triggerTransform={triggerTransform}
+    />
+  ) : (
+    <Kb.Box2
+      direction="vertical"
+      alignItems="center"
+      fullWidth={true}
+      style={Styles.collapseStyles([styles.spinnerBackground, suggestionListStyle])}
+    >
+      <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
+    </Kb.Box2>
+  )
+
   const popup = suggestionsVisible && (
     <Popup suggestionOverlayStyle={suggestionOverlayStyle} setInactive={setInactive} inputRef={inputRef}>
-      <ListOrLoading
-        active={active}
-        expanded={expanded}
-        results={results}
-        selected={selected}
-        suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
-        suggestionListStyle={suggestionListStyle}
-        suggestionSpinnerStyle={suggestionSpinnerStyle}
-        setSelected={setSelected}
-        triggerTransform={triggerTransform}
-      />
+      {content}
     </Popup>
   )
 
@@ -331,7 +357,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   }
 }
 
-const ListOrLoading = (p: any) => {
+const List = (p: any) => {
   const {active, expanded, results, selected, setSelected} = p
   const {suggestBotCommandsUpdateStatus, suggestionListStyle, suggestionSpinnerStyle, triggerTransform} = p
 
@@ -371,32 +397,20 @@ const ListOrLoading = (p: any) => {
     [active, triggerTransform, setSelected, selected]
   )
 
-  if (results.data.length) {
-    return (
-      <>
-        <SuggestionList
-          style={expanded ? {bottom: 95, position: 'absolute', top: 95} : suggestionListStyle}
-          items={results.data}
-          keyExtractor={undefined /* TODO */}
-          renderItem={itemRenderer}
-          selectedIndex={selected}
-          suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
-        />
-        {results.loading && (
-          <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} style={suggestionSpinnerStyle} />
-        )}
-      </>
-    )
-  }
   return (
-    <Kb.Box2
-      direction="vertical"
-      alignItems="center"
-      fullWidth={true}
-      style={Styles.collapseStyles([styles.spinnerBackground, suggestionListStyle])}
-    >
-      <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
-    </Kb.Box2>
+    <>
+      <SuggestionList
+        style={expanded ? {bottom: 95, position: 'absolute', top: 95} : suggestionListStyle}
+        items={results.data}
+        keyExtractor={undefined /* TODO */}
+        renderItem={itemRenderer}
+        selectedIndex={selected}
+        suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
+      />
+      {results.loading && (
+        <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} style={suggestionSpinnerStyle} />
+      )}
+    </>
   )
 }
 

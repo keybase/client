@@ -6,7 +6,7 @@ import type {PlainInput} from '../../../../common-adapters'
 
 type Props = {
   // setHeight: (inputHeight: number) => void
-  dataSources: any
+  // dataSources: any
   hintText: string
   // keyExtractors: unknown
   onBlur: () => void

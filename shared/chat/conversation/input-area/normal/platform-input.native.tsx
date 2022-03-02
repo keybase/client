@@ -226,7 +226,6 @@ const PlatformInput = (p: Props) => {
   const {popup, inputRef, onChangeText, onBlur, onExpanded, onSelectionChange, onFocus, suggestionsVisible} =
     useSuggestors({
       conversationIDKey: p.conversationIDKey,
-      dataSources: p.dataSources,
       onBlur: p.onBlur,
       onChangeText: p.onChangeText,
       onFocus: p.onFocus,

@@ -1,11 +1,12 @@
-import * as React from 'react'
 import * as Common from './common'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
-import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import type * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
+import * as Container from '../../../../util/container'
+import * as Kb from '../../../../common-adapters'
+import * as React from 'react'
+import * as Styles from '../../../../styles'
+import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type * as TeamsTypes from '../../../../constants/types/teams'
+import type * as Types from '../../../../constants/types/chat2'
 
 const getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
   return command.username ? '!' : '/'
@@ -77,4 +78,56 @@ export const Renderer = (p: any) => {
       </Kb.Box2>
     </Kb.Box2>
   )
+}
+
+export const useDataSource = (
+  _active: string,
+  _conversationIDKey: Types.ConversationIDKey,
+  _filter: string
+) => {
+  return null
+  // const isActive =  (active === 'commands')
+
+  //   return Container.useSelector(state => {
+  //       if (!isActive) return null
+
+  //       // TODO remove from store
+  //   const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
+  //   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey) || false
+  // if (showCommandMarkdown || showGiphySearch) {
+  //   return {
+  //     data: [],
+  //     loading: false,
+  //     useSpaces: true,
+  //   }
+  // }
+
+  // const sel = this._input?.getSelection()
+  // if (sel && this._lastText) {
+  //   // a little messy. Check if the message starts with '/' and that the cursor is
+  //   // within maxCmdLength chars away from it. This happens before `onChangeText`, so
+  //   // we can't do a more robust check on `this._lastText` because it's out of date.
+  //   if (
+  //     !(this._lastText.startsWith('/') || this._lastText.startsWith('!')) ||
+  //     (sel.start || 0) > this._maxCmdLength
+  //   ) {
+  //     // not at beginning of message
+  //     return {
+  //       data: [],
+  //       loading: false,
+  //       useSpaces: true,
+  //     }
+  //   }
+  // }
+  // const fil = filter.toLowerCase()
+  // const data = (
+  //   this._lastText?.startsWith('!') ? this.props.suggestBotCommands : this.props.suggestCommands
+  // ).filter(c => c.name.includes(fil))
+  // return {
+  //   data,
+  //   loading: false,
+  //   useSpaces: true,
+  // }
+
+  //   })
 }

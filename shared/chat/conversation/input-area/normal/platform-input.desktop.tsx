@@ -344,7 +344,6 @@ const PlatformInput = (p: Props) => {
     onChangeText: onChangeTextSuggestors,
   } = useSuggestors({
     conversationIDKey,
-    dataSources: p.dataSources,
     onBlur: p.onBlur,
     onChangeText: p.onChangeText,
     onFocus: p.onFocus,

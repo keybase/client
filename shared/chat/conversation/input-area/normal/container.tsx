@@ -1,18 +1,13 @@
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
-import * as TeamsTypes from '../../../../constants/types/teams'
+import type * as Types from '../../../../constants/types/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ConfigGen from '../../../../actions/config-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Waiting from '../../../../constants/waiting'
 import * as Platform from '../../../../constants/platform'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
-import {memoize} from '../../../../util/memoize'
-import isEqual from 'lodash/isEqual'
 import Input from '.'
 
 type OwnProps = {
@@ -34,83 +29,6 @@ const getUnsentText = (conversationIDKey: Types.ConversationIDKey): string => {
 
 const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string) => {
   unsentText[conversationIDKey] = text
-}
-
-const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
-  const bigTeams = (layout && layout.bigTeams) || []
-  const smallTeams = (layout && layout.smallTeams) || []
-  const bigTeamNames = bigTeams.reduce<Array<string>>((arr, l) => {
-    if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
-      arr.push(l.label.name)
-    }
-    return arr
-  }, [])
-  const smallTeamNames = smallTeams.reduce<Array<string>>((arr, l) => {
-    if (l.isTeam) {
-      arr.push(l.name)
-    }
-    return arr
-  }, [])
-  return bigTeamNames
-    .concat(smallTeamNames)
-    .sort()
-    .map(teamname => ({fullName: '', teamname, username: ''}))
-})
-
-const noChannel: Array<{channelname: string}> = []
-let _channelSuggestions: Array<{channelname: string; teamname?: string}> = noChannel
-
-const getChannelSuggestions = (
-  state: Container.TypedState,
-  teamname: string,
-  _: TeamsTypes.TeamID,
-  convID?: Types.ConversationIDKey
-) => {
-  if (!teamname) {
-    // this is an impteam, so get mutual teams from state
-    if (!convID) {
-      return noChannel
-    }
-    const mutualTeams = (state.chat2.mutualTeamMap.get(convID) ?? []).map(teamID =>
-      TeamsConstants.getTeamNameFromID(state, teamID)
-    )
-    if (!mutualTeams) {
-      return noChannel
-    }
-    // TODO: maybe we shouldn't rely on this inboxlayout being around?
-    const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<
-      Array<{channelname: string; teamname: string}>
-    >((arr, t) => {
-      if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-        if (mutualTeams.includes(t.channel.teamname)) {
-          arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
-        }
-      }
-      return arr
-    }, [])
-
-    if (!isEqual(_channelSuggestions, suggestions)) {
-      _channelSuggestions = suggestions
-    }
-    return _channelSuggestions
-  }
-  // TODO: get all the channels in the team, too, for this
-  const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string}>>(
-    (arr, t) => {
-      if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-        if (t.channel.teamname === teamname) {
-          arr.push({channelname: t.channel.channelname})
-        }
-      }
-      return arr
-    },
-    []
-  )
-
-  if (!isEqual(_channelSuggestions, suggestions)) {
-    _channelSuggestions = suggestions
-  }
-  return _channelSuggestions
 }
 
 const getInputHintText = (
@@ -151,12 +69,8 @@ export default Container.connect(
     const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
     const meta = Constants.getMeta(state, conversationIDKey)
     const isSearching = Constants.getThreadSearchInfo(state, conversationIDKey).visible
-    // don't include 'small' here to ditch the single #general suggestion
-    const teamname = meta.teamType === 'big' ? meta.teamname : ''
     const inputHintText = getInputHintText(state, conversationIDKey)
-
     const _you = state.config.username
-
     const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
     const isExploding = explodingModeSeconds !== 0
     const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
@@ -174,7 +88,6 @@ export default Container.connect(
       _containsLatestMessage,
       _draft: Constants.getDraft(state, conversationIDKey),
       _editOrdinal: editInfo ? editInfo.ordinal : null,
-      _inboxLayout: state.chat2.inboxLayout,
       _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
       _replyTo,
       _you,
@@ -200,19 +113,14 @@ export default Container.connect(
       showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
       suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
       suggestBotCommandsUpdateStatus,
-      suggestChannels: getChannelSuggestions(state, teamname, meta.teamID, conversationIDKey),
       suggestChannelsLoading: Waiting.anyWaiting(
         state,
         TeamsConstants.getChannelsWaitingKey(meta.teamID),
         Constants.waitingKeyMutualTeams(conversationIDKey)
       ),
       suggestCommands: Constants.getCommands(state, conversationIDKey),
-      suggestTeams: getTeams(state.chat2.inboxLayout),
-      suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
       typing: Constants.getTyping(state, conversationIDKey),
       unsentText,
-      userEmojis: state.chat2.userEmojisForAutocomplete,
-      userEmojisLoading: Waiting.anyWaiting(state, Constants.waitingKeyLoadingEmoji),
     }
   },
   dispatch => ({
@@ -334,33 +242,19 @@ export default Container.connect(
         setUnsentText(stateProps.conversationIDKey, text)
       },
 
-      showCommandMarkdown: stateProps.showCommandMarkdown,
       showCommandStatus: stateProps.showCommandStatus,
       showGiphySearch: stateProps.showGiphySearch,
       showReplyPreview: !!stateProps._replyTo,
       showTypingStatus: stateProps.showTypingStatus,
       showWalletsIcon: stateProps.showWalletsIcon,
-      suggestAllChannels: (stateProps._inboxLayout?.bigTeams ?? []).reduce<
-        Array<{teamname: string; channelname: string}>
-      >((arr, t) => {
-        if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-          arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
-        }
-        return arr
-      }, []),
       suggestBotCommands: stateProps.suggestBotCommands,
       suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
-      suggestChannels: stateProps.suggestChannels,
       suggestChannelsLoading: stateProps.suggestChannelsLoading,
       suggestCommands: stateProps.suggestCommands,
-      suggestTeams: stateProps.suggestTeams,
-      suggestUsers: stateProps.suggestUsers,
       unsentText: stateProps.unsentText ? stateProps.unsentText.stringValue() : null,
       unsentTextChanged: (text: string) => {
         dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
       },
-      userEmojis: stateProps.userEmojis,
-      userEmojisLoading: stateProps.userEmojisLoading,
     }
   }
 )(Input)
