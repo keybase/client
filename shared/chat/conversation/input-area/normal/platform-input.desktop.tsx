@@ -344,6 +344,7 @@ const PlatformInput = (p: Props) => {
     onChangeText: onChangeTextSuggestors,
   } = useSuggestors({
     conversationIDKey,
+    expanded: false,
     onBlur: p.onBlur,
     onChangeText: p.onChangeText,
     onFocus: p.onFocus,
@@ -353,7 +354,6 @@ const PlatformInput = (p: Props) => {
     suggestionListStyle: undefined,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
     suggestionSpinnerStyle: styles.suggestionSpinnerStyle,
-    userEmojisLoading: p.userEmojisLoading,
   })
 
   const focusInput = React.useCallback(() => {

@@ -223,9 +223,11 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
 
 const PlatformInput = (p: Props) => {
   const [height, setHeight] = React.useState(0)
-  const {popup, inputRef, onChangeText, onBlur, onExpanded, onSelectionChange, onFocus, suggestionsVisible} =
+  const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
+  const {popup, inputRef, onChangeText, onBlur, onSelectionChange, onFocus, suggestionsVisible} =
     useSuggestors({
       conversationIDKey: p.conversationIDKey,
+      expanded,
       onBlur: p.onBlur,
       onChangeText: p.onChangeText,
       onFocus: p.onFocus,
@@ -238,7 +240,6 @@ const PlatformInput = (p: Props) => {
         styles.suggestionSpinnerStyle,
         !!height && {marginBottom: height},
       ]),
-      userEmojisLoading: p.userEmojisLoading,
     })
   const {cannotWrite, conversationIDKey, isEditing, isExploding, onCancelEditing} = p
   const {onSubmit, explodingModeSeconds, hintText} = p
@@ -258,7 +259,6 @@ const PlatformInput = (p: Props) => {
 
   const [afterAnimatingExtraStepWorkaround, setAfterAnimatingExtraStepWorkaround] = React.useState(false)
   const [animating, setAnimating] = React.useState(false)
-  const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const [hasText, setHasText] = React.useState(false)
 
   const toggleExpandInput = React.useCallback(() => {
@@ -322,10 +322,6 @@ const PlatformInput = (p: Props) => {
       HWKeyboardEvent.removeOnHWKeyPressed()
     }
   }, [onSubmit2, insertText])
-
-  Container.useDepChangeEffect(() => {
-    onExpanded(expanded)
-  }, [expanded, onExpanded])
 
   const {
     popup: menu,

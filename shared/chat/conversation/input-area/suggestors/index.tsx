@@ -58,6 +58,7 @@ type UseSuggestorsProps = Pick<
 > & {
   suggestionListStyle: unknown
   suggestionSpinnerStyle: unknown
+  expanded: boolean
 }
 
 type ActiveType = '' | 'channels' | 'commands' | 'emoji' | 'users'
@@ -76,13 +77,19 @@ const useDataSources = (
   return channels || commands || emoji || users || noData
 }
 
+// handles watching the input and seeing which suggestor we need to use
+export const useFigureActive = () => {
+  const [active, setActive] = React.useState<ActiveType>('')
+  return {active, setActive}
+}
+
 export const useSuggestors = (p: UseSuggestorsProps) => {
-  const {suggestionListStyle, suggestionOverlayStyle} = p
+  const {suggestionListStyle, suggestionOverlayStyle, expanded} = p
   const {onBlur, onFocus, onSelectionChange, onChangeText, onKeyDown} = p
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
 
-  const [active, setActive] = React.useState<ActiveType>('')
-  const [expanded, setExpanded] = React.useState(false)
+  const {active, setActive} = useFigureActive()
+
   const [filter, setFilter] = React.useState('')
   const [selected, setSelected] = React.useState(0)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
@@ -348,7 +355,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     inputRef,
     onBlur: onBlur2,
     onChangeText: onChangeText2,
-    onExpanded: setExpanded,
     onFocus: onFocus2,
     onKeyDown: onKeyDown2,
     onSelectionChange: onSelectionChange2,
