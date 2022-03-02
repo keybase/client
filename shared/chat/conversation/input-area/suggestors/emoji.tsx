@@ -87,6 +87,6 @@ export const useDataSource = (
     }
   })
 }
-export const List = () => {
+export const List = (_p: any) => {
   return null
 }

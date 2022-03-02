@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {useMemo} from '../../../../util/memoize'
 import * as Container from '../../../../util/container'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import type {Props} from '../normal/platform-input'
@@ -10,7 +9,6 @@ import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Users from './users'
 import type * as Common from './common'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 const matchesMarker = (
   word: string,
@@ -64,18 +62,18 @@ type UseSuggestorsProps = Pick<
 type ActiveType = '' | 'channels' | 'commands' | 'emoji' | 'users'
 
 // TODO change this, use sep components
-const useDataSources = (
-  active: ActiveType,
-  conversationIDKey: UseSuggestorsProps['conversationIDKey'],
-  filter: string
-) => {
-  const channels = Channels.useDataSource(active, conversationIDKey, filter)
-  const commands = Commands.useDataSource(active, conversationIDKey, filter)
-  const emoji = Emoji.useDataSource(active, conversationIDKey, filter)
-  // const users = Users.useDataSource(active, conversationIDKey, filter)
-  const noData = useMemo(() => ({data: [], loading: false, useSpaces: false}), [])
-  return channels || commands || emoji || noData
-}
+// const useDataSources = (
+//   active: ActiveType,
+//   conversationIDKey: UseSuggestorsProps['conversationIDKey'],
+//   filter: string
+// ) => {
+//   const channels = Channels.useDataSource(active, conversationIDKey, filter)
+//   const commands = Commands.useDataSource(active, conversationIDKey, filter)
+//   const emoji = Emoji.useDataSource(active, conversationIDKey, filter)
+//   // const users = Users.useDataSource(active, conversationIDKey, filter)
+//   const noData = useMemo(() => ({data: [], loading: false, useSpaces: false}), [])
+//   return channels || commands || emoji || noData
+// }
 
 // handles watching the input and seeing which suggestor we need to use
 export const useSyncInput = (inputRef, resultsRef, active, setActive, setSelected, filter, setFilter) => {
@@ -371,12 +369,9 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     conversationIDKey,
     expanded,
     filter,
-    // items: results.data as any,
     listStyle: suggestionListStyle,
-    // loading: results.loading,
     onClick: (item: any) => triggerTransform(item),
-    onMouseMove: (index: number) => setSelected(index),
-    resultsRef,
+    resultsRef: resultsRef as any,
     selectedIndex: selected,
     spinnerStyle: suggestionSpinnerStyle,
     suggestBotCommandsUpdateStatus,
@@ -465,30 +460,3 @@ const Popup = (p: any) => {
     </Kb.Overlay>
   )
 }
-
-const styles = Styles.styleSheetCreate(() => ({
-  commandStatusContainer: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      justifyContent: 'center',
-    },
-    isElectron: {
-      bottom: 0,
-      height: 22,
-      position: 'absolute',
-    },
-  }),
-  spinnerBackground: Styles.platformStyles({
-    common: {justifyContent: 'center'},
-    isElectron: {
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: 4,
-      height: Styles.globalMargins.large,
-    },
-    isMobile: {
-      flexGrow: 0,
-      height: Styles.globalMargins.mediumLarge,
-      marginTop: 'auto',
-    },
-  }),
-}))

@@ -127,6 +127,6 @@ export const useDataSource = (active: string, conversationIDKey: Types.Conversat
   })
 }
 
-export const List = () => {
+export const List = (_p: any) => {
   return null
 }

@@ -202,18 +202,11 @@ type ListItem = {
 
 type ListProps = Pick<
   Common.ListProps<ListItem>,
-  | 'expanded'
-  | 'items'
-  | 'suggestBotCommandsUpdateStatus'
-  | 'listStyle'
-  | 'spinnerStyle'
-  | 'loading'
-  | 'selectedIndex'
+  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle' | 'selectedIndex'
 > & {
   conversationIDKey: Types.ConversationIDKey
   filter: string
   onClick: (item: any) => void
-  onMouseMove: (index: number) => void
   resultsRef: React.MutableRefObject<{data: Array<ListItem>; useSpaces: boolean}>
 }
 
@@ -263,16 +256,16 @@ const keyExtractor = (item: ListItem) => {
 }
 
 export const UsersList = (p: ListProps) => {
-  const {selectedIndex, onClick, onMouseMove, resultsRef} = p
+  const {selectedIndex, onClick, resultsRef} = p
   const items = useDataSource(p.conversationIDKey, p.filter)
 
   const itemRenderer = React.useCallback(
     (idx, item: ListItem) => (
-      <Kb.ClickableBox key={keyExtractor(item)} onClick={onClick} onMouseMove={() => onMouseMove(idx)}>
+      <Kb.ClickableBox key={keyExtractor(item)} onClick={onClick}>
         <ItemRenderer selected={idx === selectedIndex} item={item} />
       </Kb.ClickableBox>
     ),
-    [selectedIndex, onClick, onMouseMove]
+    [selectedIndex, onClick]
   )
 
   resultsRef.current = {
