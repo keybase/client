@@ -83,29 +83,21 @@ type UseSyncInputProps = {
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
   selectedItemRef: React.MutableRefObject<any>
+  lastTextRef: React.MutableRefObject<string>
 }
 export const useSyncInput = (p: UseSyncInputProps) => {
-  const {inputRef, active, setActive, filter, setFilter, selectedItemRef} = p
+  const {inputRef, active, setActive, filter, setFilter, selectedItemRef, lastTextRef} = p
   const setInactive = React.useCallback(() => {
     setActive('')
     setFilter('')
   }, [setActive, setFilter])
-
-  const lastText = React.useRef('')
-
-  const onChangeTextSyncInput = React.useCallback(
-    (text: string) => {
-      lastText.current = text
-    },
-    [lastText]
-  )
 
   const getWordAtCursor = React.useCallback(() => {
     if (inputRef.current) {
       const useSpaces = active === 'commands'
       const input = inputRef.current
       const selection = input.getSelection()
-      const text = lastText.current
+      const text = lastTextRef.current
       if (!selection || selection.start === null || text === undefined) {
         return null
       }
@@ -126,7 +118,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       return {position, word}
     }
     return null
-  }, [inputRef, active])
+  }, [inputRef, active, lastTextRef])
 
   const triggerIDRef = React.useRef<any>(0)
   const checkTrigger = React.useCallback(() => {
@@ -188,20 +180,19 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       const transformedText = transformers[active](
         value,
         matchInfo.marker,
-        {position: cursorInfo.position, text: lastText.current || ''},
+        {position: cursorInfo.position, text: lastTextRef.current},
         !final
       )
-      lastText.current = transformedText.text
+      lastTextRef.current = transformedText.text
       input.transformText(() => transformedText, final)
     },
-    [active, inputRef, getWordAtCursor, lastText, selectedItemRef]
+    [active, inputRef, getWordAtCursor, selectedItemRef, lastTextRef]
   )
 
   return {
     active,
     checkTrigger,
     filter,
-    onChangeTextSyncInput,
     setActive,
     setInactive,
     triggerTransform,
@@ -211,13 +202,13 @@ export const useSyncInput = (p: UseSyncInputProps) => {
 type UseHandleKeyEventsProps = {
   onKeyDownProps: (evt: React.KeyboardEvent) => void
   active: string
-  triggerTransform: (value?: any, final?: any) => void
   checkTrigger: () => void
   filter: string
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
+  onSubmitRef: React.MutableRefObject<(() => void) | undefined>
 }
 const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
-  const {onKeyDownProps, active, triggerTransform, checkTrigger, filter, onMoveRef} = p
+  const {onKeyDownProps, active, checkTrigger, filter, onMoveRef, onSubmitRef} = p
 
   const onKeyDown = React.useCallback(
     (evt: React.KeyboardEvent) => {
@@ -244,12 +235,14 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
         shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
-        triggerTransform()
+        onSubmitRef.current?.()
+        // triggerTransform(undefined, true)
         shouldCallParentCallback = false
       } else if (evt.key === 'Tab') {
         evt.preventDefault()
         if (filter.length) {
-          triggerTransform()
+          onSubmitRef.current?.()
+          // triggerTransform()
         } else {
           // shift held -> move up
           onMoveRef.current?.(evt.shiftKey)
@@ -261,7 +254,7 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
         onKeyDownProps?.(evt)
       }
     },
-    [onKeyDownProps, active, checkTrigger, filter, triggerTransform, onMoveRef]
+    [onKeyDownProps, active, checkTrigger, filter, onMoveRef, onSubmitRef]
   )
 
   return {onKeyDown}
@@ -269,6 +262,7 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
 
 export const useSuggestors = (p: UseSuggestorsProps) => {
   const selectedItemRef = React.useRef<any>()
+  const lastTextRef = React.useRef('')
   // const [selected, setSelected] = React.useState(0)
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
@@ -277,16 +271,20 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
   // const results = useDataSources(active, conversationIDKey, filter)
   // injected by the individual lists for now, a little funky since we handle up/down on the list from outside
-  const {triggerTransform, onChangeTextSyncInput, checkTrigger, setInactive} = useSyncInput({
+  const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
     filter,
     inputRef,
+    lastTextRef,
     selectedItemRef,
     setActive,
     setFilter,
   })
 
+  // tell list to move the selection
   const onMoveRef = React.useRef<(up: boolean) => void>()
+  // tell list we want to submit the selection
+  const onSubmitRef = React.useRef<() => void>()
 
   const {onKeyDown} = useHandleKeyEvents({
     active,
@@ -294,7 +292,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     filter,
     onKeyDownProps: p.onKeyDown,
     onMoveRef,
-    triggerTransform,
+    onSubmitRef,
   })
 
   const onBlur2 = React.useCallback(() => {
@@ -304,11 +302,11 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 
   const onChangeText = React.useCallback(
     (text: string) => {
-      onChangeTextSyncInput(text)
+      lastTextRef.current = text
       onChangeTextProps?.(text)
       checkTrigger()
     },
-    [onChangeTextSyncInput, onChangeTextProps, checkTrigger]
+    [onChangeTextProps, checkTrigger]
   )
 
   const onFocus2 = React.useCallback(() => {
@@ -380,6 +378,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     listStyle: suggestionListStyle,
     onMoveRef,
     onSelected,
+    onSubmitRef,
     spinnerStyle: suggestionSpinnerStyle,
     suggestBotCommandsUpdateStatus,
   }

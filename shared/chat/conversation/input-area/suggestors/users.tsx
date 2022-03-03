@@ -207,7 +207,8 @@ type ListProps = Pick<
   conversationIDKey: Types.ConversationIDKey
   filter: string
   onSelected: (item: ListItem, final: boolean) => void
-  onMoveRef: React.MutableRefObject<(up: boolean) => void>
+  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
+  onSubmitRef: React.MutableRefObject<(() => void) | undefined>
 }
 
 const ItemRenderer = (p: {selected: boolean; item: ListItem}) => {
@@ -257,7 +258,7 @@ const keyExtractor = (item: ListItem) => {
 
 export const UsersList = (p: ListProps) => {
   const [selectedIndex, setSelectedIndex] = React.useState(0)
-  const {onSelected, onMoveRef} = p
+  const {onSelected, onMoveRef, onSubmitRef} = p
   const items = useDataSource(p.conversationIDKey, p.filter)
 
   const itemRenderer = React.useCallback(
@@ -284,6 +285,11 @@ export const UsersList = (p: ListProps) => {
     },
     [setSelectedIndex, items, selectedIndex]
   )
+
+  onSubmitRef.current = React.useCallback(() => {
+    const sel = items[selectedIndex]
+    sel && onSelected(sel, true)
+  }, [selectedIndex, onSelected, items])
 
   return (
     <Common.List
