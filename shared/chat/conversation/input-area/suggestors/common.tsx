@@ -1,9 +1,9 @@
-import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
+import * as React from 'react'
+import * as Styles from '../../../../styles'
 import SuggestionList from './suggestion-list'
+import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 export type TransformerData = {
   text: string

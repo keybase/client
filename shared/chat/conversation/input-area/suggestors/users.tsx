@@ -1,5 +1,4 @@
 import * as Common from './common'
-import {useMemo} from '../../../../util/memoize'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
@@ -7,6 +6,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import type * as Types from '../../../../constants/types/chat2'
+import {useMemo} from '../../../../util/memoize'
 
 export const transformer = (
   input: {

@@ -61,20 +61,6 @@ type UseSuggestorsProps = Pick<
 
 type ActiveType = '' | 'channels' | 'commands' | 'emoji' | 'users'
 
-// TODO change this, use sep components
-// const useDataSources = (
-//   active: ActiveType,
-//   conversationIDKey: UseSuggestorsProps['conversationIDKey'],
-//   filter: string
-// ) => {
-//   const channels = Channels.useDataSource(active, conversationIDKey, filter)
-//   const commands = Commands.useDataSource(active, conversationIDKey, filter)
-//   const emoji = Emoji.useDataSource(active, conversationIDKey, filter)
-//   // const users = Users.useDataSource(active, conversationIDKey, filter)
-//   const noData = useMemo(() => ({data: [], loading: false, useSpaces: false}), [])
-//   return channels || commands || emoji || noData
-// }
-
 // handles watching the input and seeing which suggestor we need to use
 type UseSyncInputProps = {
   active: ActiveType
@@ -263,14 +249,11 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
 export const useSuggestors = (p: UseSuggestorsProps) => {
   const selectedItemRef = React.useRef<any>()
   const lastTextRef = React.useRef('')
-  // const [selected, setSelected] = React.useState(0)
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
-  const {onBlur, onFocus, onSelectionChange, onChangeText: onChangeTextProps} = p
+  const {onFocus: onFocusProps, onBlur: onBlurProps, onSelectionChange, onChangeText: onChangeTextProps} = p
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
-  // const results = useDataSources(active, conversationIDKey, filter)
-  // injected by the individual lists for now, a little funky since we handle up/down on the list from outside
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
     filter,
@@ -295,10 +278,10 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     onSubmitRef,
   })
 
-  const onBlur2 = React.useCallback(() => {
-    onBlur?.()
+  const onBlur = React.useCallback(() => {
+    onBlurProps?.()
     setInactive()
-  }, [onBlur, setInactive])
+  }, [onBlurProps, setInactive])
 
   const onChangeText = React.useCallback(
     (text: string) => {
@@ -309,10 +292,10 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     [onChangeTextProps, checkTrigger]
   )
 
-  const onFocus2 = React.useCallback(() => {
-    onFocus?.()
+  const onFocus = React.useCallback(() => {
+    onFocusProps?.()
     checkTrigger()
-  }, [onFocus, checkTrigger])
+  }, [onFocusProps, checkTrigger])
 
   const onSelectionChange2 = React.useCallback(
     (selection: Common.TransformerData['position']) => {
@@ -346,23 +329,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     }
   }, [active, onChannelSuggestionsTriggered, onFetchEmoji])
 
-  // const suggestionsVisible: boolean =
-  //   results.data.length ||
-  //   results.loading ||
-  //   suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
-
-  let content: React.ReactNode = null
-
-  // const renderItem = React.useCallback((index, item) => {
-  //     <Kb.ClickableBox
-  //       key={key}
-  //       onClick={() => triggerTransform(value)}
-  //       onMouseMove={() => setSelected(index)}
-  //     >
-  //         {itemRenderer(index, item)}
-  //     </Kb.ClickableBox>
-  // }, [itemRenderer ])
-
   const onSelected = React.useCallback(
     (item: any, final: boolean) => {
       selectedItemRef.current = item
@@ -383,6 +349,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     suggestBotCommandsUpdateStatus,
   }
 
+  let content: React.ReactNode = null
   switch (active) {
     case 'channels':
       content = <Channels.List {...listProps} />
@@ -397,30 +364,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
       content = <Users.UsersList {...listProps} />
       break
   }
-
-  // const content = results.data.length ? (
-  //   <List
-  //     active={active}
-  //     expanded={expanded}
-  //     results={results}
-  //     selected={selected}
-  //     suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
-  //     suggestionListStyle={suggestionListStyle}
-  //     suggestionSpinnerStyle={suggestionSpinnerStyle}
-  //     setSelected={setSelected}
-  //     triggerTransform={triggerTransform}
-  //   />
-  // ) : (
-  //   <Kb.Box2
-  //     direction="vertical"
-  //     alignItems="center"
-  //     fullWidth={true}
-  //     style={Styles.collapseStyles([styles.spinnerBackground, suggestionListStyle])}
-  //   >
-  //     <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} />
-  //   </Kb.Box2>
-  // )
-
   const popup = !!content && (
     <Popup suggestionOverlayStyle={suggestionOverlayStyle} setInactive={setInactive} inputRef={inputRef}>
       {content}
@@ -429,17 +372,22 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 
   return {
     inputRef,
-    onBlur: onBlur2,
+    onBlur,
     onChangeText,
-    onFocus: onFocus2,
+    onFocus,
     onKeyDown,
     onSelectionChange: onSelectionChange2,
     popup,
-    // suggestionsVisible,
   }
 }
 
-const Popup = (p: any) => {
+type PopupProps = {
+  suggestionOverlayStyle: any
+  setInactive: () => void
+  inputRef: React.MutableRefObject<Kb.PlainInput | null>
+  children: React.ReactNode
+}
+const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
   const getAttachmentRef = React.useCallback(() => inputRef.current, [inputRef])
 
