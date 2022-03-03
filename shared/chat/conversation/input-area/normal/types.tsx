@@ -6,7 +6,7 @@ import {PlainInput} from '../../../../common-adapters'
 
 type CommonProps = {
   botRestrictMap?: Map<string, boolean>
-  cannotWrite: boolean | null
+  cannotWrite: boolean
   clearInboxFilter: () => void
   conversationIDKey: Types.ConversationIDKey
   editText: string

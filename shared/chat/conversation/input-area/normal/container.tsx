@@ -129,8 +129,6 @@ export default Container.connect(
     _clearUnsentText: (conversationIDKey: Types.ConversationIDKey) => {
       dispatch(Chat2Gen.createSetUnsentText({conversationIDKey}))
     },
-    _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
     _onEditMessage: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, body: string) =>
       dispatch(
         Chat2Gen.createMessageEdit({
@@ -193,8 +191,6 @@ export default Container.connect(
       isSearching: stateProps.isSearching,
       maxInputArea: ownProps.maxInputArea,
       minWriterRole: stateProps.minWriterRole,
-      // TODO remove
-      onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
       onRequestScrollDown: ownProps.onRequestScrollDown,
       onRequestScrollUp: ownProps.onRequestScrollUp,
       onSubmit: (text: string) => {
