@@ -80,16 +80,12 @@ type UseSyncInputProps = {
   active: ActiveType
   filter: string
   inputRef: React.MutableRefObject<Kb.PlainInput | null>
-  resultsRef: React.MutableRefObject<{
-    useSpaces: boolean
-    data: Array<unknown>
-  }>
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
   selectedItemRef: React.MutableRefObject<any>
 }
 export const useSyncInput = (p: UseSyncInputProps) => {
-  const {inputRef, resultsRef, active, setActive, filter, setFilter, selectedItemRef} = p
+  const {inputRef, active, setActive, filter, setFilter, selectedItemRef} = p
   const setInactive = React.useCallback(() => {
     setActive('')
     setFilter('')
@@ -106,7 +102,8 @@ export const useSyncInput = (p: UseSyncInputProps) => {
 
   const getWordAtCursor = React.useCallback(() => {
     if (inputRef.current) {
-      const {useSpaces} = resultsRef.current
+      const useSpaces = false
+      // const {useSpaces} = resultsRef.current
       const input = inputRef.current
       const selection = input.getSelection()
       const text = lastText.current
@@ -130,7 +127,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       return {position, word}
     }
     return null
-  }, [inputRef, resultsRef])
+  }, [inputRef])
 
   const triggerIDRef = React.useRef<any>(0)
   const checkTrigger = React.useCallback(() => {
@@ -233,7 +230,7 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
         checkTrigger()
       }
 
-      if (!active || resultsRef.current.data.length === 0) {
+      if (!active) {
         // not showing list, bail
         onKeyDownProps?.(evt)
         return
@@ -269,7 +266,7 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
         onKeyDownProps?.(evt)
       }
     },
-    [onKeyDownProps, active, checkTrigger, filter, resultsRef, triggerTransform, onMoveRef]
+    [onKeyDownProps, active, checkTrigger, filter, triggerTransform, onMoveRef]
   )
 
   return {onKeyDown}
@@ -285,12 +282,10 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
   // const results = useDataSources(active, conversationIDKey, filter)
   // injected by the individual lists for now, a little funky since we handle up/down on the list from outside
-  const resultsRef = React.useRef<{useSpaces: boolean; data: Array<unknown>}>({data: [], useSpaces: false})
   const {triggerTransform, onChangeTextSyncInput, checkTrigger, setInactive} = useSyncInput({
     active,
     filter,
     inputRef,
-    resultsRef,
     selectedItemRef,
     setActive,
     setFilter,
@@ -304,7 +299,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     filter,
     onKeyDownProps: p.onKeyDown,
     onMoveRef,
-    resultsRef,
     triggerTransform,
   })
 
@@ -391,7 +385,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     listStyle: suggestionListStyle,
     onMoveRef,
     onSelected,
-    resultsRef: resultsRef as any,
     spinnerStyle: suggestionSpinnerStyle,
     suggestBotCommandsUpdateStatus,
   }

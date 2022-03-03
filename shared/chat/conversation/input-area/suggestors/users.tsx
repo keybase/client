@@ -202,12 +202,11 @@ type ListItem = {
 
 type ListProps = Pick<
   Common.ListProps<ListItem>,
-  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle' | 'selectedIndex'
+  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
   conversationIDKey: Types.ConversationIDKey
   filter: string
   onSelected: (item: ListItem, final: boolean) => void
-  resultsRef: React.MutableRefObject<{data: Array<ListItem>; useSpaces: boolean}>
   onMoveRef: React.MutableRefObject<(up: boolean) => void>
 }
 
@@ -286,12 +285,6 @@ export const UsersList = (p: ListProps) => {
     [setSelectedIndex, items, selectedIndex]
   )
 
-  // TODO likely move
-  resultsRef.current = {
-    data: items,
-    useSpaces: false,
-  }
-
   return (
     <Common.List
       expanded={p.expanded}
@@ -302,7 +295,7 @@ export const UsersList = (p: ListProps) => {
       listStyle={p.listStyle}
       spinnerStyle={p.spinnerStyle}
       loading={false}
-      selectedIndex={p.selectedIndex}
+      selectedIndex={selectedIndex}
     />
   )
 }
