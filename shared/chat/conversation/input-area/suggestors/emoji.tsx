@@ -18,11 +18,10 @@ export const transformer = (
   return Common.standardTransformer(`${marker}${emoji.short_name}:`, tData, preview)
 }
 
-export const keyExtractor = (item: EmojiData) => item.short_name
+const keyExtractor = (item: EmojiData) => item.short_name
 
-export const Renderer = (p: any) => {
-  const item: EmojiData = p.value
-  const selected: boolean = p.selected
+const ItemRenderer = (p: {selected: boolean; item: EmojiData}) => {
+  const {item, selected} = p
   return (
     <Kb.Box2
       direction="horizontal"
@@ -42,21 +41,12 @@ export const Renderer = (p: any) => {
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 
-export const useDataSource = (
-  active: string,
-  _conversationIDKey: Types.ConversationIDKey,
-  filter: string
-) => {
-  const isActive = active === 'emoji'
+export const useDataSource = (_conversationIDKey: Types.ConversationIDKey, filter: string) => {
   return Container.useSelector(state => {
-    if (!isActive) {
-      return null
-    }
     if (!emojiPrepass.test(filter)) {
       return {
-        data: [],
+        items: [],
         loading: false,
-        useSpaces: false,
       }
     }
 
@@ -81,12 +71,32 @@ export const useDataSource = (
     const userEmojisLoading = Waiting.anyWaiting(state, Constants.waitingKeyLoadingEmoji)
 
     return {
-      data: emojiData,
+      items: emojiData,
       loading: userEmojisLoading,
-      useSpaces: false,
     }
   })
 }
-export const List = (_p: any) => {
-  return null
+
+type ListProps = Pick<
+  Common.ListProps<EmojiData>,
+  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+> & {
+  conversationIDKey: Types.ConversationIDKey
+  filter: string
+  onSelected: (item: EmojiData, final: boolean) => void
+  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
+  onSubmitRef: React.MutableRefObject<(() => void) | undefined>
+}
+export const List = (p: ListProps) => {
+  const {conversationIDKey, filter, ...rest} = p
+  const {items, loading} = useDataSource(conversationIDKey, filter)
+  return (
+    <Common.List
+      {...rest}
+      keyExtractor={keyExtractor}
+      items={items}
+      ItemRenderer={ItemRenderer}
+      loading={loading}
+    />
+  )
 }
