@@ -7,9 +7,7 @@ import * as TeamsConstants from '../../../../constants/teams'
 import * as Common from './common'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-// import isEqual from 'lodash/isEqual'
 import * as Container from '../../../../util/container'
-import type * as TeamsTypes from '../../../../constants/types/teams'
 import type * as Types from '../../../../constants/types/chat2'
 
 export const transformer = (
@@ -51,29 +49,22 @@ const noChannel: Array<{channelname: string}> = []
 const getChannelSuggestions = (
   state: Container.TypedState,
   teamname: string,
-  _: TeamsTypes.TeamID,
-  convID?: Types.ConversationIDKey
+  convID: Types.ConversationIDKey
 ) => {
   if (!teamname) {
     // this is an impteam, so get mutual teams from state
-    if (!convID) {
+    const mutualTeams = state.chat2.mutualTeamMap
+      .get(convID)
+      ?.map(teamID => TeamsConstants.getTeamNameFromID(state, teamID))
+    if (!mutualTeams?.length) {
       return noChannel
     }
-    const mutualTeams = (state.chat2.mutualTeamMap.get(convID) ?? []).map(teamID =>
-      TeamsConstants.getTeamNameFromID(state, teamID)
-    )
-    if (!mutualTeams) {
-      return noChannel
-    }
-    // TODO: maybe we shouldn't rely on this inboxlayout being around?
     const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<
       Array<{channelname: string; teamname: string}>
     >((arr, t) => {
-      if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-        if (mutualTeams.includes(t.channel.teamname)) {
-          arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
-        }
-      }
+      t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel &&
+        mutualTeams.includes(t.channel.teamname) &&
+        arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
       return arr
     }, [])
 
@@ -82,11 +73,9 @@ const getChannelSuggestions = (
   // TODO: get all the channels in the team, too, for this
   const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string}>>(
     (arr, t) => {
-      if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-        if (t.channel.teamname === teamname) {
-          arr.push({channelname: t.channel.channelname})
-        }
-      }
+      t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel &&
+        t.channel.teamname === teamname &&
+        arr.push({channelname: t.channel.channelname})
       return arr
     },
     []
@@ -106,7 +95,7 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
     const meta = Constants.getMeta(state, conversationIDKey)
     // don't include 'small' here to ditch the single #general suggestion
     const teamname = meta.teamType === 'big' ? meta.teamname : ''
-    const suggestChannels = getChannelSuggestions(state, teamname, meta.teamID, conversationIDKey)
+    const suggestChannels = getChannelSuggestions(state, teamname, conversationIDKey)
 
     const suggestChannelsLoading = Waiting.anyWaiting(
       state,

@@ -1,22 +1,18 @@
-import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import type {Props} from '../normal/platform-input'
 import * as Channels from './channels'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
+import * as Kb from '../../../../common-adapters'
+import * as React from 'react'
+import * as Styles from '../../../../styles'
 import * as Users from './users'
 import type * as Common from './common'
+import type {Props} from '../normal/platform-input'
 
-const matchesMarker = (
-  word: string,
-  marker: string | RegExp
-): {
+type MatchesMarkerType = {
   marker: string
   matches: boolean
-} => {
+}
+const matchesMarker = (word: string, marker: string | RegExp): MatchesMarkerType => {
   if (typeof marker === 'string') {
     return {marker, matches: word.startsWith(marker)}
   }
