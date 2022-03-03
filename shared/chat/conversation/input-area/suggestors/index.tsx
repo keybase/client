@@ -308,11 +308,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const dispatch = Container.useDispatch()
 
   // TODO move
-  const onFetchEmoji = React.useCallback(() => {
-    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
-
-  // TODO move
   const onChannelSuggestionsTriggered = React.useCallback(() => {
     dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey}))
   }, [dispatch, conversationIDKey])
@@ -323,11 +318,8 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
       case 'channels':
         onChannelSuggestionsTriggered()
         break
-      case 'emoji':
-        onFetchEmoji()
-        break
     }
-  }, [active, onChannelSuggestionsTriggered, onFetchEmoji])
+  }, [active, onChannelSuggestionsTriggered])
 
   const onSelected = React.useCallback(
     (item: any, final: boolean) => {

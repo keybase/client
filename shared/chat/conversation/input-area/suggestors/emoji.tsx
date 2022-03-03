@@ -1,4 +1,5 @@
 import * as Common from './common'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
@@ -41,40 +42,43 @@ const ItemRenderer = (p: {selected: boolean; item: EmojiData}) => {
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 
-export const useDataSource = (_conversationIDKey: Types.ConversationIDKey, filter: string) => {
-  return Container.useSelector(state => {
-    if (!emojiPrepass.test(filter)) {
-      return {
-        items: [],
-        loading: false,
-      }
-    }
+export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
 
-    // prefill data with stock emoji
-    let emojiData: Array<EmojiData> = []
-    emojiIndex.search(filter)?.forEach((res: {id?: string}) => {
-      if (res.id) {
-        emojiData.push(emojiNameMap[res.id])
-      }
-    })
+  // TODO remove from store
+  const userEmojis = Container.useSelector(state => state.chat2.userEmojisForAutocomplete)
+  // TODO remove from store
+  const userEmojisLoading = Container.useSelector(state =>
+    Waiting.anyWaiting(state, Constants.waitingKeyLoadingEmoji)
+  )
 
-    // TODO remove from store
-    const userEmojis = state.chat2.userEmojisForAutocomplete
-
-    if (userEmojis) {
-      const userEmoji = userEmojis
-        .filter(emoji => emoji.alias.toLowerCase().includes(filter))
-        .map(emoji => RPCToEmojiData(emoji, false))
-      emojiData = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(emojiData)
-    }
-
-    const userEmojisLoading = Waiting.anyWaiting(state, Constants.waitingKeyLoadingEmoji)
-
+  if (!emojiPrepass.test(filter)) {
     return {
-      items: emojiData,
-      loading: userEmojisLoading,
+      items: [],
+      loading: false,
     }
+  }
+
+  // prefill data with stock emoji
+  let emojiData: Array<EmojiData> = []
+  emojiIndex.search(filter)?.forEach((res: {id?: string}) => {
+    res.id && emojiData.push(emojiNameMap[res.id])
   })
+
+  if (userEmojis) {
+    const userEmoji = userEmojis
+      .filter(emoji => emoji.alias.toLowerCase().includes(filter))
+      .map(emoji => RPCToEmojiData(emoji, false))
+    emojiData = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(emojiData)
+  }
+
+  return {
+    items: emojiData,
+    loading: userEmojisLoading,
+  }
 }
 
 type ListProps = Pick<
