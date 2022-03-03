@@ -102,8 +102,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
 
   const getWordAtCursor = React.useCallback(() => {
     if (inputRef.current) {
-      const useSpaces = false
-      // const {useSpaces} = resultsRef.current
+      const useSpaces = active === 'commands'
       const input = inputRef.current
       const selection = input.getSelection()
       const text = lastText.current
@@ -127,7 +126,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       return {position, word}
     }
     return null
-  }, [inputRef])
+  }, [inputRef, active])
 
   const triggerIDRef = React.useRef<any>(0)
   const checkTrigger = React.useCallback(() => {
@@ -212,17 +211,13 @@ export const useSyncInput = (p: UseSyncInputProps) => {
 type UseHandleKeyEventsProps = {
   onKeyDownProps: (evt: React.KeyboardEvent) => void
   active: string
-  resultsRef: React.MutableRefObject<{
-    useSpaces: boolean
-    data: Array<unknown>
-  }>
   triggerTransform: (value?: any, final?: any) => void
   checkTrigger: () => void
   filter: string
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
 }
 const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
-  const {onKeyDownProps, active, resultsRef, triggerTransform, checkTrigger, filter, onMoveRef} = p
+  const {onKeyDownProps, active, triggerTransform, checkTrigger, filter, onMoveRef} = p
 
   const onKeyDown = React.useCallback(
     (evt: React.KeyboardEvent) => {
