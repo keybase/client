@@ -257,51 +257,15 @@ const keyExtractor = (item: ListItem) => {
 }
 
 export const UsersList = (p: ListProps) => {
-  const [selectedIndex, setSelectedIndex] = React.useState(0)
-  const {onSelected, onMoveRef, onSubmitRef} = p
-  const items = useDataSource(p.conversationIDKey, p.filter)
-
-  const itemRenderer = React.useCallback(
-    (idx, item: ListItem) => (
-      <Kb.ClickableBox key={keyExtractor(item)} onClick={() => onSelected(item, true)}>
-        <ItemRenderer selected={idx === selectedIndex} item={item} />
-      </Kb.ClickableBox>
-    ),
-    [selectedIndex, onSelected]
-  )
-
-  Container.useDepChangeEffect(() => {
-    const sel = items[selectedIndex]
-    sel && onSelected(sel, false)
-  }, [selectedIndex])
-
-  onMoveRef.current = React.useCallback(
-    (up: boolean) => {
-      const length = items.length
-      const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
-      if (s !== selectedIndex) {
-        setSelectedIndex(s)
-      }
-    },
-    [setSelectedIndex, items, selectedIndex]
-  )
-
-  onSubmitRef.current = React.useCallback(() => {
-    const sel = items[selectedIndex]
-    sel && onSelected(sel, true)
-  }, [selectedIndex, onSelected, items])
-
+  const {conversationIDKey, filter, ...rest} = p
+  const items = useDataSource(conversationIDKey, filter)
   return (
     <Common.List
-      expanded={p.expanded}
+      {...rest}
       keyExtractor={keyExtractor}
       items={items}
-      itemRenderer={itemRenderer}
-      suggestBotCommandsUpdateStatus={p.suggestBotCommandsUpdateStatus}
-      listStyle={p.listStyle}
-      spinnerStyle={p.spinnerStyle}
+      ItemRenderer={ItemRenderer}
       loading={false}
-      selectedIndex={selectedIndex}
     />
   )
 }

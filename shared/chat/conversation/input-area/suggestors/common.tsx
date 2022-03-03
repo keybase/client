@@ -1,4 +1,5 @@
 import * as Styles from '../../../../styles'
+import * as Container from '../../../../util/container'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
@@ -45,54 +46,59 @@ export const TeamSuggestion = (p: {teamname: string; channelname: string | undef
 export type ListProps<T> = {
   expanded: boolean
   items: Array<T>
-  itemRenderer: (index: number, item: T) => React.ReactNode
+  // itemRenderer: (index: number, item: T) => React.ReactNode
   keyExtractor: (item: T) => string
   suggestBotCommandsUpdateStatus?: RPCChatTypes.UIBotCommandsUpdateStatusTyp
   listStyle: any
   spinnerStyle: any
   loading: boolean
-  selectedIndex: number
+  // selectedIndex: number
+
+  //   Common.ListProps<ListItem>,
+  //   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  // > & {
+  //   conversationIDKey: Types.ConversationIDKey
+  //   filter: string
+  onSelected: (item: T, final: boolean) => void
+  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
+  onSubmitRef: React.MutableRefObject<(() => void) | undefined>
+  ItemRenderer: (p: {selected: boolean; item: T}) => JSX.Element
 }
 
 export function List<T>(p: ListProps<T>) {
-  const {expanded, items, selectedIndex, itemRenderer, loading, keyExtractor} = p
-  const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle} = p
+  const {expanded, items, ItemRenderer, loading, keyExtractor, onSelected} = p
+  const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, onMoveRef, onSubmitRef} = p
+  const [selectedIndex, setSelectedIndex] = React.useState(0)
 
-  // const itemRenderer = React.useCallback(
-  //   (index: number, value: any): React.ReactElement | null => {
-  //     const s = Styles.isMobile ? false : index === selected
-  //     let content: React.ReactNode = null
-  //     let key = ''
-  //     switch (active) {
-  //       case 'channels':
-  //         content = <Channels.Renderer value={value} selected={s} />
-  //         key = Channels.keyExtractor(value)
-  //         break
-  //       case 'commands':
-  //         content = <Commands.Renderer value={value} selected={s} />
-  //         key = Commands.keyExtractor(value)
-  //         break
-  //       case 'emoji':
-  //         content = <Emoji.Renderer value={value} selected={s} />
-  //         key = Emoji.keyExtractor(value)
-  //         break
-  //       case 'users':
-  //         content = <Users.Renderer value={value} selected={s} />
-  //         key = Users.keyExtractor(value)
-  //         break
-  //     }
-  //     return !content ? null : (
-  //       <Kb.ClickableBox
-  //         key={key}
-  //         onClick={() => triggerTransform(value)}
-  //         onMouseMove={() => setSelected(index)}
-  //       >
-  //         {content}
-  //       </Kb.ClickableBox>
-  //     )
-  //   },
-  //   [active, triggerTransform, setSelected, selected]
-  // )
+  const renderItem = React.useCallback(
+    (idx, item: T) => (
+      <Kb.ClickableBox key={keyExtractor(item)} onClick={() => onSelected(item, true)}>
+        <ItemRenderer selected={idx === selectedIndex} item={item} />
+      </Kb.ClickableBox>
+    ),
+    [selectedIndex, onSelected, ItemRenderer, keyExtractor]
+  )
+
+  Container.useDepChangeEffect(() => {
+    const sel = items[selectedIndex]
+    sel && onSelected(sel, false)
+  }, [selectedIndex])
+
+  onMoveRef.current = React.useCallback(
+    (up: boolean) => {
+      const length = items.length
+      const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
+      if (s !== selectedIndex) {
+        setSelectedIndex(s)
+      }
+    },
+    [setSelectedIndex, items, selectedIndex]
+  )
+
+  onSubmitRef.current = React.useCallback(() => {
+    const sel = items[selectedIndex]
+    sel && onSelected(sel, true)
+  }, [selectedIndex, onSelected, items])
 
   return (
     <>
@@ -100,7 +106,7 @@ export function List<T>(p: ListProps<T>) {
         style={expanded ? {bottom: 95, position: 'absolute', top: 95} : listStyle}
         items={items}
         keyExtractor={keyExtractor}
-        renderItem={itemRenderer}
+        renderItem={renderItem}
         selectedIndex={selectedIndex}
         suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
       />
