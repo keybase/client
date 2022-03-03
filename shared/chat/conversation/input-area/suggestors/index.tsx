@@ -76,12 +76,24 @@ type ActiveType = '' | 'channels' | 'commands' | 'emoji' | 'users'
 // }
 
 // handles watching the input and seeing which suggestor we need to use
-export const useSyncInput = (inputRef, resultsRef, active, setActive, setSelected, filter, setFilter) => {
+type UseSyncInputProps = {
+  active: ActiveType
+  filter: string
+  inputRef: React.MutableRefObject<Kb.PlainInput | null>
+  resultsRef: React.MutableRefObject<{
+    useSpaces: boolean
+    data: Array<unknown>
+  }>
+  setActive: React.Dispatch<React.SetStateAction<ActiveType>>
+  setFilter: React.Dispatch<React.SetStateAction<string>>
+  selectedItemRef: React.MutableRefObject<any>
+}
+export const useSyncInput = (p: UseSyncInputProps) => {
+  const {inputRef, resultsRef, active, setActive, filter, setFilter, selectedItemRef} = p
   const setInactive = React.useCallback(() => {
     setActive('')
     setFilter('')
-    setSelected(0)
-  }, [setActive, setFilter, setSelected])
+  }, [setActive, setFilter])
 
   const lastText = React.useRef('')
 
@@ -163,25 +175,30 @@ export const useSyncInput = (inputRef, resultsRef, active, setActive, setSelecte
   }, [])
 
   const triggerTransform = React.useCallback(
-    (value: any, final = true) => {
-      if (inputRef?.current && active) {
-        const input = inputRef.current
-        const cursorInfo = getWordAtCursor()
-        if (!cursorInfo) {
-          return
-        }
-        const matchInfo = matchesMarker(cursorInfo.word, suggestorToMarker[active])
-        const transformedText = transformers[active](
-          value,
-          matchInfo.marker,
-          {position: cursorInfo.position, text: lastText.current || ''},
-          !final
-        )
-        lastText.current = transformedText.text
-        input.transformText(() => transformedText, final)
+    (maybeValue: any, final = true) => {
+      if (!inputRef?.current || !active) {
+        return
       }
+      const value = maybeValue ?? selectedItemRef.current
+      if (!value) {
+        return
+      }
+      const input = inputRef.current
+      const cursorInfo = getWordAtCursor()
+      if (!cursorInfo) {
+        return
+      }
+      const matchInfo = matchesMarker(cursorInfo.word, suggestorToMarker[active])
+      const transformedText = transformers[active](
+        value,
+        matchInfo.marker,
+        {position: cursorInfo.position, text: lastText.current || ''},
+        !final
+      )
+      lastText.current = transformedText.text
+      input.transformText(() => transformedText, final)
     },
-    [active, inputRef, getWordAtCursor, lastText]
+    [active, inputRef, getWordAtCursor, lastText, selectedItemRef]
   )
 
   return {
@@ -202,18 +219,13 @@ type UseHandleKeyEventsProps = {
     useSpaces: boolean
     data: Array<unknown>
   }>
-  selected: number
-  triggerTransform: (value: any, final?: any) => void
+  triggerTransform: (value?: any, final?: any) => void
   checkTrigger: () => void
   filter: string
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
 }
 const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
-  const {onKeyDownProps, active, resultsRef, selected, triggerTransform, checkTrigger, filter, onMoveRef} = p
-  const getSelected = React.useCallback(
-    () => (active ? resultsRef.current.data[selected] : null),
-    [active, resultsRef, selected]
-  )
+  const {onKeyDownProps, active, resultsRef, triggerTransform, checkTrigger, filter, onMoveRef} = p
 
   const onKeyDown = React.useCallback(
     (evt: React.KeyboardEvent) => {
@@ -240,12 +252,12 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
         shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
-        triggerTransform(getSelected())
+        triggerTransform()
         shouldCallParentCallback = false
       } else if (evt.key === 'Tab') {
         evt.preventDefault()
         if (filter.length) {
-          triggerTransform(getSelected())
+          triggerTransform()
         } else {
           // shift held -> move up
           onMoveRef.current?.(evt.shiftKey)
@@ -257,14 +269,15 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
         onKeyDownProps?.(evt)
       }
     },
-    [onKeyDownProps, active, checkTrigger, filter, resultsRef, getSelected, triggerTransform, onMoveRef]
+    [onKeyDownProps, active, checkTrigger, filter, resultsRef, triggerTransform, onMoveRef]
   )
 
   return {onKeyDown}
 }
 
 export const useSuggestors = (p: UseSuggestorsProps) => {
-  const [selected, setSelected] = React.useState(0)
+  const selectedItemRef = React.useRef<any>()
+  // const [selected, setSelected] = React.useState(0)
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
@@ -273,15 +286,15 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   // const results = useDataSources(active, conversationIDKey, filter)
   // injected by the individual lists for now, a little funky since we handle up/down on the list from outside
   const resultsRef = React.useRef<{useSpaces: boolean; data: Array<unknown>}>({data: [], useSpaces: false})
-  const {triggerTransform, onChangeTextSyncInput, checkTrigger, setInactive} = useSyncInput(
+  const {triggerTransform, onChangeTextSyncInput, checkTrigger, setInactive} = useSyncInput({
+    active,
+    filter,
     inputRef,
     resultsRef,
-    active,
+    selectedItemRef,
     setActive,
-    setSelected,
-    filter,
-    setFilter
-  )
+    setFilter,
+  })
 
   const onMoveRef = React.useRef<(up: boolean) => void>()
 
@@ -292,7 +305,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     onKeyDownProps: p.onKeyDown,
     onMoveRef,
     resultsRef,
-    selected,
     triggerTransform,
   })
 
@@ -365,8 +377,11 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   // }, [itemRenderer ])
 
   const onSelected = React.useCallback(
-    (item: any, final: boolean) => triggerTransform(item, final),
-    [triggerTransform]
+    (item: any, final: boolean) => {
+      selectedItemRef.current = item
+      triggerTransform(item, final)
+    },
+    [selectedItemRef, triggerTransform]
   )
 
   const listProps = {
@@ -377,8 +392,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     onMoveRef,
     onSelected,
     resultsRef: resultsRef as any,
-    selectedIndex: selected,
-    setSelectedIndex: setSelected,
     spinnerStyle: suggestionSpinnerStyle,
     suggestBotCommandsUpdateStatus,
   }

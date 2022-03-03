@@ -257,8 +257,8 @@ const keyExtractor = (item: ListItem) => {
 }
 
 export const UsersList = (p: ListProps) => {
-  // TODO move setselected inside here
-  const {setSelectedIndex, selectedIndex, onSelected, resultsRef, onMoveRef} = p
+  const [selectedIndex, setSelectedIndex] = React.useState(0)
+  const {onSelected, resultsRef, onMoveRef} = p
   const items = useDataSource(p.conversationIDKey, p.filter)
 
   const itemRenderer = React.useCallback(
