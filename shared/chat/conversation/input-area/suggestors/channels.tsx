@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Waiting from '../../../../constants/waiting'
 import * as Constants from '../../../../constants/chat2'
@@ -6,7 +7,7 @@ import * as TeamsConstants from '../../../../constants/teams'
 import * as Common from './common'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import isEqual from 'lodash/isEqual'
+// import isEqual from 'lodash/isEqual'
 import * as Container from '../../../../util/container'
 import type * as TeamsTypes from '../../../../constants/types/teams'
 import type * as Types from '../../../../constants/types/chat2'
@@ -23,13 +24,12 @@ export const transformer = (
     preview
   )
 
-export const keyExtractor = ({channelname, teamname}: {channelname: string; teamname?: string}) =>
+export const keyExtractor = ({channelname, teamname}: ChannelType) =>
   teamname ? `${teamname}#${channelname}` : channelname
 
-export const Renderer = (p: any) => {
-  const selected: boolean = p.selected
-  const channelname: string = p.value.channelname
-  const teamname: string | undefined = p.value.teamname
+const ItemRenderer = (p: {selected: boolean; item: ChannelType}) => {
+  const {item, selected} = p
+  const {channelname, teamname} = item
   return teamname ? (
     <Common.TeamSuggestion teamname={teamname} channelname={channelname} selected={selected} />
   ) : (
@@ -48,7 +48,6 @@ export const Renderer = (p: any) => {
 }
 
 const noChannel: Array<{channelname: string}> = []
-let _channelSuggestions: Array<{channelname: string; teamname?: string}> = noChannel
 const getChannelSuggestions = (
   state: Container.TypedState,
   teamname: string,
@@ -78,10 +77,7 @@ const getChannelSuggestions = (
       return arr
     }, [])
 
-    if (!isEqual(_channelSuggestions, suggestions)) {
-      _channelSuggestions = suggestions
-    }
-    return _channelSuggestions
+    return suggestions
   }
   // TODO: get all the channels in the team, too, for this
   const suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<{channelname: string}>>(
@@ -96,17 +92,16 @@ const getChannelSuggestions = (
     []
   )
 
-  if (!isEqual(_channelSuggestions, suggestions)) {
-    _channelSuggestions = suggestions
-  }
-  return _channelSuggestions
+  return suggestions
 }
 
-// TODO likely invert this relationship
-export const useDataSource = (active: string, conversationIDKey: Types.ConversationIDKey, filter: string) => {
-  const isActive = active === 'channel'
+export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
+
   return Container.useSelector(state => {
-    if (!isActive) return null
     const fil = filter.toLowerCase()
     const meta = Constants.getMeta(state, conversationIDKey)
     // don't include 'small' here to ditch the single #general suggestion
@@ -120,13 +115,35 @@ export const useDataSource = (active: string, conversationIDKey: Types.Conversat
     )
 
     return {
-      data: suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
+      items: suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
       loading: suggestChannelsLoading,
-      useSpaces: false,
     }
   })
 }
-
-export const List = (_p: any) => {
-  return null
+type ChannelType = {
+  channelname: string
+  teamname?: string
+}
+type ListProps = Pick<
+  Common.ListProps<ChannelType>,
+  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+> & {
+  conversationIDKey: Types.ConversationIDKey
+  filter: string
+  onSelected: (item: ChannelType, final: boolean) => void
+  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
+  onSubmitRef: React.MutableRefObject<(() => void) | undefined>
+}
+export const List = (p: ListProps) => {
+  const {conversationIDKey, filter, ...rest} = p
+  const {items, loading} = useDataSource(conversationIDKey, filter)
+  return (
+    <Common.List
+      {...rest}
+      keyExtractor={keyExtractor}
+      items={items}
+      ItemRenderer={ItemRenderer}
+      loading={loading}
+    />
+  )
 }

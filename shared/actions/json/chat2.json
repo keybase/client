@@ -1,957 +1,957 @@
 {
-    "prelude": [
-        "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
-        "import * as Types from '../constants/types/chat2'",
-        "import * as TeamsTypes from '../constants/types/teams'",
-        "import HiddenString from '../util/hidden-string'",
-        "import {RetentionPolicy} from '../constants/types/retention-policy'",
-        "import {AmpTracker} from '../chat/audio/amptracker'"
-    ],
-    "actions": {
-        "toggleSmallTeamsExpanded": {},
-        "selectedConversation": {
-            "_description": "Selected a conversation (used by nav only)",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "deselectedConversation": {
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "channelSuggestionsTriggered": {
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "conversationErrored": {
-            "_description": "Got an error while creating a conversation.",
-            "allowedUsers": "Array<string>",
-            "code": "number",
-            "disallowedUsers": "Array<string>",
-            "message": "string"
-        },
-        "previewConversation": {
-            "_description": [
-                "Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)",
-                "fromAReset means you were in a reset kbfs convo and you want to make a new one",
-                "Chatting from external places in the app should usually call this",
-                "if you want to preview a team chat (and add it to the inbox use selectConversation instead)"
-            ],
-            "participants?": "Array<string>",
-            "teamname?": "string",
-            "channelname?": "string",
-            "conversationIDKey?": "Types.ConversationIDKey", // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
-            "highlightMessageID?": "number",
-            "reason": [
-                "'channelHeader'",
-                "'manageView'",
-                "'messageLink'",
-                "'resetChatWithoutThem'",
-                "'tracker'",
-                "'teamHeader'",
-                "'files'",
-                "'teamInvite'",
-                "'fromAReset'",
-                "'profile'",
-                "'teamMember'",
-                "'teamHeader'",
-                "'teamRow'",
-                "'convertAdHoc'",
-                "'memberView'",
-                "'newChannel'",
-                "'transaction'",
-                "'sentPayment'",
-                "'requestedPayment'",
-                "'teamMention'",
-                "'appLink'",
-                "'search'",
-                "'journeyCardPopular'",
-                "'forward'"
-            ]
-        },
-        "createConversation": {
-            "_description": "Actually start a conversation",
-            "highlightMessageID?": "number",
-            "participants": "Array<string>"
-        },
-        "changeFocus": {
-            "_description": "Where we want our focus for keypresses",
-            "nextFocus": "Types.Focus"
-        },
-        "badgesUpdated": {
-            "_description": "Update our badges in the nav",
-            "bigTeamBadgeCount": "number",
-            "conversations": "Array<RPCTypes.BadgeConversationInfo>",
-            "smallTeamBadgeCount": "number"
-        },
-        "inboxRefresh": {
-            "_description": "Refresh the inbox",
-            "reason": [
-                "'bootstrap'",
-                "'componentNeverLoaded'",
-                "'inboxStale'",
-                "'inboxSyncedClear'",
-                "'inboxSyncedUnknown'",
-                "'joinedAConversation'",
-                "'leftAConversation'",
-                "'teamTypeChanged'",
-                "'maybeKickedFromTeam'",
-                "'widgetRefresh'",
-                "'shareConfigSearch'"
-            ]
-        },
-        "metaNeedsUpdating": {
-            "_description": "We want to unbox an inbox row",
-            "conversationIDKeys": "Array<Types.ConversationIDKey>",
-            "reason": "string"
-        },
-        "metaHandleQueue": {
-            "_description": "Internal action: pull more metas from the queue to request"
-        },
-        "metaRequestingTrusted": {
-            "_description": "About to try and unbox some inbox rows",
-            "conversationIDKeys": "Array<Types.ConversationIDKey>"
-        },
-        "metaRequestTrusted": {
-            "_description": "Actually unboxing",
-            "force?": "boolean",
-            "noWaiting?": "boolean",
-            "reason": [
-                "'refreshPreviousSelected'",
-                "'requestTeamsUnboxing'",
-                "'inboxSynced'",
-                "'setConvRetention'",
-                "'subTeamRename'",
-                "'tlfFinalize'",
-                "'threadStale'",
-                "'membersUpdate'",
-                "'scroll'",
-                "'ensureSelectedMeta'",
-                "'ensureWidgetMetas'",
-                "'ensureChannelMeta'",
-                "'inboxSearchResults'"
-            ],
-            "conversationIDKeys": "Array<Types.ConversationIDKey>"
-        },
-        "metasReceived": {
-            "_description": "Got some new inbox rows",
-            "metas": "Array<Types.ConversationMeta>",
-            "removals?": "Array<Types.ConversationIDKey>", // convs to remove
-            "fromInboxRefresh?": "boolean", // If true from an inbox refresh
-            "initialTrustedLoad?": "boolean" // If true this is the first trusted inbox load
-        },
-        "clearMetas": {},
-        "clearMessages": {},
-        "metaReceivedError": {
-            "_description": "Got some inbox errors",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "error": "RPCChatTypes.InboxUIItemError | null",
-            "username": "string | null"
-        },
-        "metaDelete": {
-            "_description": "We got a status update saying it was blocked or ignored",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "selectSomethingElse": "boolean"
-        },
-        "updateMoreToLoad": {
-            "_description": "We updated our view of a thread",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "moreToLoad": "boolean"
-        },
-        "messagesAdd": {
-            "_description": [
-                "Add a new message",
-                "",
-                "Context types:",
-                "- sent = we sent it",
-                "- incoming = a streaming message",
-                "- threadLoad = we're loading more messages on select / scroll"
-            ],
-            "context": [
-                "{type: 'sent'}",
-                "{type: 'incoming'}",
-                "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}"
-            ],
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messages": "Array<Types.Message>",
-            // true if these should be the only messages we know about
-            "shouldClearOthers?": "boolean",
-            "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode}>",
-            "forceContainsLatestCalc?": "boolean"
-        },
-        "messageErrored": {
-            "_description": "Got an error sending a message",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "reason": "string",
-            "errorTyp": "number | null",
-            "outboxID": "Types.OutboxID"
-        },
-        "messageSetEditing": {
-            "_description": "Start editing a message / or edit the last message / or clear editing",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "ordinal": "Types.Ordinal | null",
-            "editLastUser?": "string"
-        },
-        "messageSetQuoting": {
-            "_description": "Start quoting a message / or clear quoting",
-            "sourceConversationIDKey": "Types.ConversationIDKey",
-            "targetConversationIDKey": "Types.ConversationIDKey",
-            "ordinal": "Types.Ordinal"
-        },
-        "messageReplyPrivately": {
-            "_description": "Reply privately to a message with quoting",
-            "sourceConversationIDKey": "Types.ConversationIDKey",
-            "ordinal": "Types.Ordinal"
-        },
-        "messageEdit": {
-            "_description": "Submit an edit to the daemon",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "ordinal": "Types.Ordinal",
-            "text": "HiddenString"
-        },
-        "messageWasEdited": {
-            "_description": "Update a message which changed",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageID": "RPCChatTypes.MessageID",
-            "text": "HiddenString",
-            "mentionsAt": "Set<string>",
-            "mentionsChannel": "'none' | 'all' | 'here'",
-            "mentionsChannelName": "Map<string, Types.ConversationIDKey>"
-        },
-        "pendingMessageWasEdited": {
-            "conversationIDKey": "Types.ConversationIDKey",
-            "ordinal": "Types.Ordinal",
-            "text": "HiddenString"
-        },
-        "messagesWereDeleted": {
-            "_description": "Mark a message as deleted",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageIDs?": "Array<RPCChatTypes.MessageID>",
-            "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
-            "deletableMessageTypes?": "Set<Types.MessageType>", // expunge calls don't delete _all_ messages, only these types
-            "ordinals?": "Array<Types.Ordinal>"
-        },
-        "messagesExploded": {
-            "_description": "Exploding messages expired or were manually detonated.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageIDs": "Array<RPCChatTypes.MessageID>",
-            "explodedBy?": "string"
-        },
-        "messageDelete": {
-            "_description": "Delete a message",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "ordinal": "Types.Ordinal"
-        },
-        "messageDeleteHistory": {
-            "_description": "Deletes all messages",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "loadOlderMessagesDueToScroll": {
-            "_description": "Load some more messages for a conversation",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "loadNewerMessagesDueToScroll": {
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "loadMessagesCentered": {
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageID": "Types.MessageID",
-            "highlightMode": "Types.CenterOrdinalHighlightMode"
-        },
-        "desktopNotification": {
-            "_description": "Show a desktop notification",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "author": "string",
-            "body": "string"
-        },
-        "messageSend": {
-            "_description": "Send a text message",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "text": "HiddenString",
-            "replyTo?": "Types.MessageID",
-            "waitingKey?": "string"
-        },
-        "messageSendByUsernames": {
-            "usernames": "string",
-            "text": "HiddenString",
-            "waitingKey?": "string"
-        },
-        "toggleLocalReaction": {
-            "_description": "Toggle a reaction in the store.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "decorated": "string",
-            "emoji": "string",
-            "targetOrdinal": "Types.Ordinal",
-            "username": "string"
-        },
-        "toggleMessageReaction": {
-            "_description": "Tell the service to toggle a reaction on a message.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "emoji": "string",
-            "ordinal": "Types.Ordinal"
-        },
-        "updateReactions": {
-            "_description": "The service sent us an update for the reaction map of a message.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "updates": "Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>"
-        },
-        "messageRetry": {
-            "_description": "Resend a message",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "outboxID": "Types.OutboxID"
-        },
-        "joinConversation": {
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "leaveConversation": {
-            "conversationIDKey": "Types.ConversationIDKey",
-            "dontNavigateToInbox?": "boolean"
-        },
-        "muteConversation": {
-            "conversationIDKey": "Types.ConversationIDKey",
-            "muted": "boolean"
-        },
-        "openFolder": {
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "resetChatWithoutThem": {
-            "_description": "If an implied team chat member resets you can start a new chat w/o any reset people",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "resetLetThemIn": {
-            "_description": "If an implied team chat member resets you can add them back in",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "username": "string"
-        },
-        "attachmentPreviewSelect": {
-            "_description": "The user has selected an attachment with a preview",
-            "message": "Types.MessageAttachment"
-        },
-        "attachmentDownload": {
-            "_description": "We want to save an attachment to the local disk",
-            "message": "Types.Message"
-        },
-        "attachmentMobileSave": {
-            "_description": "Saving an attachment to mobile storage",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "ordinal": "Types.Ordinal"
-        },
-        "attachmentMobileSaved": {
-            "_description": "Saving an attachment to mobile storage has finished",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "ordinal": "Types.Ordinal"
-        },
-        "attachmentDownloaded": {
-            "_description": "We saved an attachment to the local disk",
-            "message": "Types.Message",
-            "error?": "string",
-            "path?": "string"
-        },
-        "attachmentsUpload": {
-            "_description": "We want to upload some attachments",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "paths": "Array<Types.PathAndOutboxID>",
-            "titles": "Array<string>",
-            "tlfName?": "string"
-        },
-        "attachFromDragAndDrop": {
-            "conversationIDKey": "Types.ConversationIDKey",
-            "paths": "Array<Types.PathAndOutboxID>",
-            "titles": "Array<string>"
-        },
-        "attachmentUploading": {
-            "_description": "Update progress on an upload",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "outboxID": "Types.OutboxID",
-            "ratio": "number" // 0-1
-        },
-        "attachmentUploaded": {
-            "_description": "We're done uploading",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "ordinal": "Types.Ordinal"
-        },
-        "attachmentPasted": {
-            "_description": "Image data pasted into a conversation",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "data": "Buffer"
-        },
-        "attachmentUploadCanceled": {
-            "_description": "The attachment upload modal was canceled",
-            "outboxIDs": "Array<RPCChatTypes.OutboxID>"
-        },
-        "messageAttachmentUploaded": {
-            "_description": [
-                "We got an uploaded attachment.",
-                "While online this is like an edit of the placeholder"
-            ],
-            "conversationIDKey": "Types.ConversationIDKey",
-            "placeholderID": "RPCChatTypes.MessageID",
-            "message": "Types.MessageAttachment"
-        },
-        "sendTyping": {
-            "_description": "Tell server we're typing",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "typing": "boolean"
-        },
-        "markInitiallyLoadedThreadAsRead": {
-            "_description": [
-                "On startup we're automatically loading a thread sometimes.",
-                "When we first view it we should go through our marking as read logic"
-            ],
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "markTeamAsRead": {
-            "_description": "Mark all conversations in a team as read",
-            "teamID": "TeamsTypes.TeamID"
-        },
-        "markConversationsStale": {
-            "_description": "Server told us a conversation is out of date",
-            "conversationIDKeys": "Array<Types.ConversationIDKey>",
-            "updateType": "RPCChatTypes.StaleUpdateType"
-        },
-        "navigateToInbox": {
-            "_description": "Navigation helper. Nav is slightly different on mobile / desktop."
-        },
-        "navigateToThread": {
-            "_description": "Navigation helper. Nav is slightly different on mobile / desktop.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "highlightMessageID?": "number",
-            // why this happened, sometimes there's different side effects
-            "reason": [
-                "'focused'", // nav focus changed
-                "'clearSelected'", // deselect
-                "'desktopNotification'", // clicked notification
-                "'createdMessagePrivately'", // messaging privately and maybe made it
-                "'extension'", // from a notification from iOS share extension
-                "'files'", // from the Files tab
-                "'findNewestConversation'", // find a new chat to select (from service)
-                "'findNewestConversationFromLayout'", // find a small chat to select (from js)
-                "'inboxBig'", // inbox row
-                "'inboxFilterArrow'", // arrow keys in inbox filter
-                "'inboxFilterChanged'", // inbox filter made first one selected
-                "'inboxSmall'", // inbox row
-                "'inboxNewConversation'", // new conversation row
-                "'inboxSearch'", // selected from inbox seaech
-                "'jumpFromReset'", // from older reset convo
-                "'jumpToReset'", // going to an older reset convo
-                "'justCreated'", // just made it and select it
-                "'manageView'", // clicked from manage screen
-                "'previewResolved'", // did a preview and are now selecting it
-                "'push'", // from a push
-                "'savedLastState'", // last seen chat tab
-                "'startFoundExisting'", // starting a conversation and found one already
-                "'teamChat'", // from team
-                "'addedToChannel'", // just added people to this channel
-                "'navChanged'", // the nav state changed
-                "'misc'", // misc
-                "'teamMention'" // from team mention
-            ],
-            "pushBody?": "string"
-        },
-        "messageAttachmentNativeShare": {
-            "_description": "Share to external app on mobile",
-            "message": "Types.Message"
-        },
-        "messageAttachmentNativeSave": {
-            "_description": "Save on mobile (camera roll)",
-            "message": "Types.Message"
-        },
-        "updateNotificationSettings": {
-            "_description": "We're changing the notification settings",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "notificationsDesktop": "Types.NotificationsType",
-            "notificationsMobile": "Types.NotificationsType",
-            "notificationsGlobalIgnoreMentions": "boolean"
-        },
-        "notificationSettingsUpdated": {
-            "_description": "We get new notification settings",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "settings": "RPCChatTypes.ConversationNotificationInfo"
-        },
-        "blockConversation": {
-            "_description": "Block a conversation",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "reportUser": "boolean"
-        },
-        "hideConversation": {
-            "_description": "Hide a conversation until future activity",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "unhideConversation": {
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "setConversationOffline": {
-            "_description": "Conversation was loaded and is offline",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "offline": "boolean"
-        },
-        "setConvRetentionPolicy": {
-            "_description": "Sets the retention policy for a conversation.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "policy": "RetentionPolicy"
-        },
-        "updateConvRetentionPolicy": {
-            "_description": "Consume a service notification that a conversation's retention policy has been updated",
-            "meta": "Types.ConversationMeta"
-        },
-        "updateTeamRetentionPolicy": {
-            "_description": "Consume a service notification that a team retention policy was updated",
-            "metas": "Array<Types.ConversationMeta>"
-        },
-        "setConvExplodingMode": {
-            "_description": "Set the remote exploding mode for a conversation.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "seconds": "number"
-        },
-        "setExplodingModeLock": {
-            "_description": "Set a lock on the exploding mode for a conversation.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "unset?": "boolean"
-        },
-        "updateConvExplodingModes": {
-            "_description": "Handle an update to our conversation exploding modes.",
-            "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
-        },
-        "staticConfigLoaded": {
-            "_description": "Static configuration info was loaded from the service.",
-            "staticConfig": "Types.StaticConfig"
-        },
-        "setMinWriterRole": {
-            "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "role": "TeamsTypes.TeamRoleType"
-        },
-        "saveMinWriterRole": {
-            "_description": "Update the minWriterRole stored with the conversation metadata.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "role": "TeamsTypes.TeamRoleType",
-            "cannotWrite": "boolean"
-        },
-        "openChatFromWidget": {
-            "conversationIDKey?": "Types.ConversationIDKey"
-        },
-        "paymentInfoReceived": {
-            "_description": "We received payment info for a sendPayment message",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageID": "RPCChatTypes.MessageID",
-            "paymentInfo": "Types.ChatPaymentInfo"
-        },
-        "requestInfoReceived": {
-            "_description": "We received request info for a requestPayment message",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageID": "RPCChatTypes.MessageID",
-            "requestInfo": "Types.ChatRequestInfo"
-        },
-        "prepareFulfillRequestForm": {
-            "_description": "Prime data to fulfill this message's request and navigate to the send form.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "ordinal": "Types.Ordinal"
-        },
-        "unfurlResolvePrompt": {
-            "_description": "Response to an unfurl prompt",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageID": "Types.MessageID",
-            "domain": "string",
-            "result": "RPCChatTypes.UnfurlPromptResult"
-        },
-        "unfurlTogglePrompt": {
-            "_description": "Add an unfurl prompt to a message",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageID": "Types.MessageID",
-            "domain": "string",
-            "show": "boolean"
-        },
-        "unfurlRemove": {
-            "_description": "Remove an unfurl",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageID": "Types.MessageID"
-        },
-        "unsentTextChanged": {
-            "_description": "Unsent text changed",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "text": "HiddenString"
-        },
-        "updateMessages": {
-            "_description": "Update messages that we might have in the store",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
-        },
-        "giphySend": {
-            "_description": "send a message from Giphy search",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "url": "HiddenString"
-        },
-        "giphyGotSearchResult": {
-            "_description": "Giphy search results obtained",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "results": "RPCChatTypes.GiphySearchResults"
-        },
-        "giphyToggleWindow": {
-            "_description": "Toggle Giphy search preview window",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "show": "boolean",
-            "clearInput": "boolean"
-        },
-        "clearPaymentConfirmInfo": {
-            "_description": "Clear data for payment confirm modal"
-        },
-        "setPaymentConfirmInfo": {
-            "_description": "Set the payment confirm modal payment data",
-            "error?": "RPCTypes.Status",
-            "summary?": "RPCChatTypes.UIChatPaymentSummary"
-        },
-        "confirmScreenResponse": {
-            "_description": "User responded to the chat Stellar confirm screen",
-            "accept": "boolean"
-        },
-        "setUnsentText": {
-            "_description": "Set unsent text for a conversation",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "text?": "HiddenString"
-        },
-        "setPrependText": {
-            "_description": "Set prepend text for a conversation",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "text": "HiddenString | null"
-        },
-        "updateUnreadline": {
-            "_description": "Update the unreadline line position for a conversation",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageID": "Types.MessageID"
-        },
-        "toggleMessageCollapse": {
-            "_description": "Set the collapse status of a message",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageID": "Types.MessageID",
-            "collapse": "boolean"
-        },
-        "updateCoinFlipStatus": {
-            "_description": "Update status of a coin flip game",
-            "statuses": "Array<RPCChatTypes.UICoinFlipStatus>"
-        },
-        "setCommandMarkdown": {
-            "_description": "Set command markdown for a conversation",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "md": "RPCChatTypes.UICommandMarkdown | null"
-        },
-        "addUsersToChannel": {
-            "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "usernames": "Array<string>"
-        },
-        "addUserToChannel": {
-            "_description": "Add a single user to a conversation. Creates a SystemBulkAddToConv message.",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "username": "string"
-        },
-        "jumpToRecent": {
-            "_description": "Jump to most recent messages in a conversation",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "setContainsLastMessage": {
-            "_description": "Explicitly set whether a thread is loaded to the most recent message",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "contains": "boolean"
-        },
-        "threadSearch": {
-            "_description": "Perform a search in a thread",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "query": "HiddenString"
-        },
-        "threadSearchResults": {
-            "_description": "Record a new thread search result",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messages": "Array<Types.Message>",
-            "clear": "boolean"
-        },
-        "setThreadSearchStatus": {
-            "_description": "Set the status of a thread search",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "status": "Types.ThreadSearchStatus"
-        },
-        "toggleThreadSearch": {
-            "_description": "Toggle the display of the thread search window",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "toggleReplyToMessage": {
-            "_description": "Reply to a message publicly",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "ordinal?": "Types.Ordinal"
-        },
-        "replyJump": {
-            "_description": "Jump to a replied to message",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageID": "Types.MessageID"
-        },
-        "setThreadSearchQuery": {
-            "_description": "Set thread search query (used from inbox search to initialize it)",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "query": "HiddenString"
-        },
-        "inboxSearch": {
-            "_description": "Perform an inbox search",
-            "query": "HiddenString"
-        },
-        "inboxSearchStarted": {
-            "_description": "Inbox search has started"
-        },
-        "toggleInboxSearch": {
-            "_description": "Toggle inbox search view",
-            "enabled": "boolean"
-        },
-        "inboxSearchOpenTeamsResults": {
-            "_description": "Inbox search open teams results received",
-            "results": "Array<Types.InboxSearchOpenTeamHit>",
-            "suggested": "boolean"
-        },
-        "inboxSearchBotsResults": {
-            "_description": "Inbox search bot results received",
-            "results": "Array<RPCTypes.FeaturedBot>",
-            "suggested": "boolean"
-        },
-        "inboxSearchNameResults": {
-            "_description": "Inbox search name results received",
-            "results": "Array<Types.InboxSearchConvHit>",
-            "unread": "boolean"
-        },
-        "inboxSearchTextResult": {
-            "_description": "Inbox text result has arrived",
-            "result": "Types.InboxSearchTextHit"
-        },
-        "inboxSearchMoveSelectedIndex": {
-            "_description": "Change selected index of inbox search",
-            "increment": "boolean"
-        },
-        "inboxSearchSelect": {
-            "_description": "Select an inbox search item",
-            "conversationIDKey?": "Types.ConversationIDKey",
-            "query?": "HiddenString",
-            "selectedIndex?": "number"
-        },
-        "inboxSearchSetTextStatus": {
-            "_description": "Set the status of the inbox text search",
-            "status": "Types.InboxSearchStatus"
-        },
-        "inboxSearchSetIndexPercent": {
-            "_description": "Set index percent complete",
-            "percent": "number"
-        },
-        "setMaybeMentionInfo": {
-            "_description": "Set team mention info",
-            "name": "string",
-            "info": "RPCChatTypes.UIMaybeMentionInfo"
-        },
-        "tabSelected": {
-            "_description": "Desktop changed tab to chat"
-        },
-        "resolveMaybeMention": {
-            "_description": "Resolve an unknown @ mention",
-            "name": "string",
-            "channel": "string"
-        },
-        "loadAttachmentView": {
-            "_description": "Load attachment view pane",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "viewType": "RPCChatTypes.GalleryItemTyp",
-            "fromMsgID?": "Types.MessageID"
-        },
-        "addAttachmentViewMessage": {
-            "_description": "Add result for attachment view",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "viewType": "RPCChatTypes.GalleryItemTyp",
-            "message": "Types.Message"
-        },
-        "setAttachmentViewStatus": {
-            "_description": "Set attachment view status",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "viewType": "RPCChatTypes.GalleryItemTyp",
-            "status": "Types.AttachmentViewStatus",
-            "last?": "boolean"
-        },
-        "clearAttachmentView": {
-            "_description": "Clear attachment views",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "updateUserReacjis": {
-            "userReacjis": "RPCTypes.UserReacjis"
-        },
-        "setCommandStatusInfo": {
-            "_description": "Set command status info",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "info": "Types.CommandStatusInfo"
-        },
-        "clearCommandStatusInfo": {
-            "_description": "Clear command status info",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "setThreadLoadStatus": {
-            "_description": "Set thread load status",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "status": "RPCChatTypes.UIChatThreadStatus"
-        },
-        "pinMessage": {
-            "_description": "Pin a message",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "messageID": "Types.MessageID"
-        },
-        "unpinMessage": {
-            "_description": "Unpin a message",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "ignorePinnedMessage": {
-            "_description": "Ignore pinned message",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "dismissBottomBanner": {
-            "_description": "Set the bottom banner on a new conversation as dismissed",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "updateLastCoord": {
-            "_description": "Update last known coordinate",
-            "coord": "Types.Coordinate"
-        },
-        "toggleGiphyPrefill": {
-            "_description": "Toggle /giphy text to trigger preview window",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "updateBlockButtons": {
-            "_description": "Show or hide invitation to block for a given team ID",
-            "teamID": "RPCTypes.TeamID",
-            "adder?": "string",
-            "show": "boolean"
-        },
-        "dismissBlockButtons": {
-            "teamID": "RPCTypes.TeamID"
-        },
-        "setInboxNumSmallRows": {
-            "ignoreWrite?": "boolean",
-            "rows": "number"
-        },
-        "enableAudioRecording": {
-            "conversationIDKey": "Types.ConversationIDKey",
-            "meteringCb": "(amp: number) => void"
-        },
-        "attemptAudioRecording": {
-            "conversationIDKey": "Types.ConversationIDKey",
-            "meteringCb": "(amp: number) => void"
-        },
-        "stopAudioRecording": {
-            "conversationIDKey": "Types.ConversationIDKey",
-            "stopType": "Types.AudioStopType",
-            "amps?": "AmpTracker"
-        },
-        "lockAudioRecording": {
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "sendAudioRecording": {
-            "conversationIDKey": "Types.ConversationIDKey",
-            "fromStaged": "boolean",
-            "info": "Types.AudioRecordingInfo"
-        },
-        "setAudioRecordingPostInfo": {
-            "conversationIDKey": "Types.ConversationIDKey",
-            "path": "string",
-            "outboxID": "Buffer"
-        },
-        "loadNextBotPage": {
-            "_description": "loads next page of featured bots from backend",
-            "pageSize": "number"
-        },
-        "setLoadedBotPage": {
-            "_description": "set page # for a conversation",
-            "page": "number"
-        },
-        "refreshBotPublicCommands": {
-            "_description": "refresh bot public commands",
-            "username": "string"
-        },
-        "setBotPublicCommands": {
-            "_description": "set bot public commands",
-            "username": "string",
-            "commands": "Types.BotPublicCommands"
-        },
-        "addBotMember": {
-            "_description": "add bot member to channel",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "convs?": "Array<string>",
-            "allowCommands": "boolean",
-            "allowMentions": "boolean",
-            "username": "string",
-            "restricted": "boolean"
-        },
-        "refreshBotSettings": {
-            "_description": "refresh bot settings",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "username": "string"
-        },
-        "setBotSettings": {
-            "_description": "set bot settings",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "username": "string",
-            "settings": "RPCTypes.TeamBotSettings"
-        },
-        "removeBotMember": {
-            "_description": "remove a bot member",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "username": "string"
-        },
-        "editBotSettings": {
-            "_description": "edit bot settings",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "username": "string",
-            "allowCommands": "boolean",
-            "allowMentions": "boolean",
-            "convs?": "Array<string>"
-        },
-        "setParticipants": {
-            "_description": "Set conversation participant info",
-            "participants": "Array<{conversationIDKey: Types.ConversationIDKey, participants: Types.ParticipantInfo}>"
-        },
-        "findGeneralConvIDFromTeamID": {
-            "_description": "Get the general channel conv ID from team ID",
-            "teamID": "TeamsTypes.TeamID"
-        },
-        "setGeneralConvFromTeamID": {
-            "_description": "Record teamID to general convID mapping",
-            "teamID": "TeamsTypes.TeamID",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "refreshBotRoleInConv": {
-            "_description": "Refresh role in conversation",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "username": "string"
-        },
-        "setBotRoleInConv": {
-            "_description": "Set bot role in conversation",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "username": "string",
-            "role": "TeamsTypes.TeamRoleType | null"
-        },
-        "showInfoPanel": {
-            "tab?": "'settings' | 'members' | 'attachments' | 'bots'",
-            "show": "boolean",
-            "conversationIDKey?": "Types.ConversationIDKey"
-        },
-        "dismissJourneycard": {
-            "_description": "Dismiss a journeycard",
-            "conversationIDKey": "Types.ConversationIDKey",
-            "cardType": "RPCChatTypes.JourneycardType",
-            "ordinal": "Types.Ordinal"
-        },
-        "addToMessageMap": {
-            "message": "Types.Message"
-        },
-        "refreshMutualTeamsInConv": {
-            "_description": "Refresh loaded mutual teams for a conversation",
-            "conversationIDKey": "Types.ConversationIDKey"
-        },
-        "loadedMutualTeams": {
-            "conversationIDKey": "Types.ConversationIDKey",
-            "teamIDs": "Array<TeamsTypes.TeamID>"
-        },
-        "fetchUserEmoji": {
-            "_description": "Refresh user emoji and put it in store for picker",
-            "conversationIDKey?": "Types.ConversationIDKey",
-            "onlyInTeam?": "boolean"
-        },
-        "loadedUserEmoji": {
-            "results": "RPCChatTypes.UserEmojiRes"
-        }
+  "prelude": [
+    "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
+    "import * as Types from '../constants/types/chat2'",
+    "import * as TeamsTypes from '../constants/types/teams'",
+    "import HiddenString from '../util/hidden-string'",
+    "import {RetentionPolicy} from '../constants/types/retention-policy'",
+    "import {AmpTracker} from '../chat/audio/amptracker'"
+  ],
+  "actions": {
+    "toggleSmallTeamsExpanded": {},
+    "selectedConversation": {
+      "_description": "Selected a conversation (used by nav only)",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "deselectedConversation": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "channelSuggestionsTriggered": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "conversationErrored": {
+      "_description": "Got an error while creating a conversation.",
+      "allowedUsers": "Array<string>",
+      "code": "number",
+      "disallowedUsers": "Array<string>",
+      "message": "string"
+    },
+    "previewConversation": {
+      "_description": [
+        "Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)",
+        "fromAReset means you were in a reset kbfs convo and you want to make a new one",
+        "Chatting from external places in the app should usually call this",
+        "if you want to preview a team chat (and add it to the inbox use selectConversation instead)"
+      ],
+      "participants?": "Array<string>",
+      "teamname?": "string",
+      "channelname?": "string",
+      "conversationIDKey?": "Types.ConversationIDKey", // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
+      "highlightMessageID?": "number",
+      "reason": [
+        "'channelHeader'",
+        "'manageView'",
+        "'messageLink'",
+        "'resetChatWithoutThem'",
+        "'tracker'",
+        "'teamHeader'",
+        "'files'",
+        "'teamInvite'",
+        "'fromAReset'",
+        "'profile'",
+        "'teamMember'",
+        "'teamHeader'",
+        "'teamRow'",
+        "'convertAdHoc'",
+        "'memberView'",
+        "'newChannel'",
+        "'transaction'",
+        "'sentPayment'",
+        "'requestedPayment'",
+        "'teamMention'",
+        "'appLink'",
+        "'search'",
+        "'journeyCardPopular'",
+        "'forward'"
+      ]
+    },
+    "createConversation": {
+      "_description": "Actually start a conversation",
+      "highlightMessageID?": "number",
+      "participants": "Array<string>"
+    },
+    "changeFocus": {
+      "_description": "Where we want our focus for keypresses",
+      "nextFocus": "Types.Focus"
+    },
+    "badgesUpdated": {
+      "_description": "Update our badges in the nav",
+      "bigTeamBadgeCount": "number",
+      "conversations": "Array<RPCTypes.BadgeConversationInfo>",
+      "smallTeamBadgeCount": "number"
+    },
+    "inboxRefresh": {
+      "_description": "Refresh the inbox",
+      "reason": [
+        "'bootstrap'",
+        "'componentNeverLoaded'",
+        "'inboxStale'",
+        "'inboxSyncedClear'",
+        "'inboxSyncedUnknown'",
+        "'joinedAConversation'",
+        "'leftAConversation'",
+        "'teamTypeChanged'",
+        "'maybeKickedFromTeam'",
+        "'widgetRefresh'",
+        "'shareConfigSearch'"
+      ]
+    },
+    "metaNeedsUpdating": {
+      "_description": "We want to unbox an inbox row",
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
+      "reason": "string"
+    },
+    "metaHandleQueue": {
+      "_description": "Internal action: pull more metas from the queue to request"
+    },
+    "metaRequestingTrusted": {
+      "_description": "About to try and unbox some inbox rows",
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    },
+    "metaRequestTrusted": {
+      "_description": "Actually unboxing",
+      "force?": "boolean",
+      "noWaiting?": "boolean",
+      "reason": [
+        "'refreshPreviousSelected'",
+        "'requestTeamsUnboxing'",
+        "'inboxSynced'",
+        "'setConvRetention'",
+        "'subTeamRename'",
+        "'tlfFinalize'",
+        "'threadStale'",
+        "'membersUpdate'",
+        "'scroll'",
+        "'ensureSelectedMeta'",
+        "'ensureWidgetMetas'",
+        "'ensureChannelMeta'",
+        "'inboxSearchResults'"
+      ],
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    },
+    "metasReceived": {
+      "_description": "Got some new inbox rows",
+      "metas": "Array<Types.ConversationMeta>",
+      "removals?": "Array<Types.ConversationIDKey>", // convs to remove
+      "fromInboxRefresh?": "boolean", // If true from an inbox refresh
+      "initialTrustedLoad?": "boolean" // If true this is the first trusted inbox load
+    },
+    "clearMetas": {},
+    "clearMessages": {},
+    "metaReceivedError": {
+      "_description": "Got some inbox errors",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "error": "RPCChatTypes.InboxUIItemError | null",
+      "username": "string | null"
+    },
+    "metaDelete": {
+      "_description": "We got a status update saying it was blocked or ignored",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "selectSomethingElse": "boolean"
+    },
+    "updateMoreToLoad": {
+      "_description": "We updated our view of a thread",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "moreToLoad": "boolean"
+    },
+    "messagesAdd": {
+      "_description": [
+        "Add a new message",
+        "",
+        "Context types:",
+        "- sent = we sent it",
+        "- incoming = a streaming message",
+        "- threadLoad = we're loading more messages on select / scroll"
+      ],
+      "context": [
+        "{type: 'sent'}",
+        "{type: 'incoming'}",
+        "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}"
+      ],
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messages": "Array<Types.Message>",
+      // true if these should be the only messages we know about
+      "shouldClearOthers?": "boolean",
+      "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode}>",
+      "forceContainsLatestCalc?": "boolean"
+    },
+    "messageErrored": {
+      "_description": "Got an error sending a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "reason": "string",
+      "errorTyp": "number | null",
+      "outboxID": "Types.OutboxID"
+    },
+    "messageSetEditing": {
+      "_description": "Start editing a message / or edit the last message / or clear editing",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal | null",
+      "editLastUser?": "string"
+    },
+    "messageSetQuoting": {
+      "_description": "Start quoting a message / or clear quoting",
+      "sourceConversationIDKey": "Types.ConversationIDKey",
+      "targetConversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    "messageReplyPrivately": {
+      "_description": "Reply privately to a message with quoting",
+      "sourceConversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    "messageEdit": {
+      "_description": "Submit an edit to the daemon",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "text": "HiddenString"
+    },
+    "messageWasEdited": {
+      "_description": "Update a message which changed",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "text": "HiddenString",
+      "mentionsAt": "Set<string>",
+      "mentionsChannel": "'none' | 'all' | 'here'",
+      "mentionsChannelName": "Map<string, Types.ConversationIDKey>"
+    },
+    "pendingMessageWasEdited": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "text": "HiddenString"
+    },
+    "messagesWereDeleted": {
+      "_description": "Mark a message as deleted",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageIDs?": "Array<RPCChatTypes.MessageID>",
+      "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
+      "deletableMessageTypes?": "Set<Types.MessageType>", // expunge calls don't delete _all_ messages, only these types
+      "ordinals?": "Array<Types.Ordinal>"
+    },
+    "messagesExploded": {
+      "_description": "Exploding messages expired or were manually detonated.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageIDs": "Array<RPCChatTypes.MessageID>",
+      "explodedBy?": "string"
+    },
+    "messageDelete": {
+      "_description": "Delete a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    "messageDeleteHistory": {
+      "_description": "Deletes all messages",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "loadOlderMessagesDueToScroll": {
+      "_description": "Load some more messages for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "loadNewerMessagesDueToScroll": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "loadMessagesCentered": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "highlightMode": "Types.CenterOrdinalHighlightMode"
+    },
+    "desktopNotification": {
+      "_description": "Show a desktop notification",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "author": "string",
+      "body": "string"
+    },
+    "messageSend": {
+      "_description": "Send a text message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString",
+      "replyTo?": "Types.MessageID",
+      "waitingKey?": "string"
+    },
+    "messageSendByUsernames": {
+      "usernames": "string",
+      "text": "HiddenString",
+      "waitingKey?": "string"
+    },
+    "toggleLocalReaction": {
+      "_description": "Toggle a reaction in the store.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "decorated": "string",
+      "emoji": "string",
+      "targetOrdinal": "Types.Ordinal",
+      "username": "string"
+    },
+    "toggleMessageReaction": {
+      "_description": "Tell the service to toggle a reaction on a message.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "emoji": "string",
+      "ordinal": "Types.Ordinal"
+    },
+    "updateReactions": {
+      "_description": "The service sent us an update for the reaction map of a message.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "updates": "Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>"
+    },
+    "messageRetry": {
+      "_description": "Resend a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "outboxID": "Types.OutboxID"
+    },
+    "joinConversation": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "leaveConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "dontNavigateToInbox?": "boolean"
+    },
+    "muteConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "muted": "boolean"
+    },
+    "openFolder": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "resetChatWithoutThem": {
+      "_description": "If an implied team chat member resets you can start a new chat w/o any reset people",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "resetLetThemIn": {
+      "_description": "If an implied team chat member resets you can add them back in",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    "attachmentPreviewSelect": {
+      "_description": "The user has selected an attachment with a preview",
+      "message": "Types.MessageAttachment"
+    },
+    "attachmentDownload": {
+      "_description": "We want to save an attachment to the local disk",
+      "message": "Types.Message"
+    },
+    "attachmentMobileSave": {
+      "_description": "Saving an attachment to mobile storage",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    "attachmentMobileSaved": {
+      "_description": "Saving an attachment to mobile storage has finished",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    "attachmentDownloaded": {
+      "_description": "We saved an attachment to the local disk",
+      "message": "Types.Message",
+      "error?": "string",
+      "path?": "string"
+    },
+    "attachmentsUpload": {
+      "_description": "We want to upload some attachments",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "paths": "Array<Types.PathAndOutboxID>",
+      "titles": "Array<string>",
+      "tlfName?": "string"
+    },
+    "attachFromDragAndDrop": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "paths": "Array<Types.PathAndOutboxID>",
+      "titles": "Array<string>"
+    },
+    "attachmentUploading": {
+      "_description": "Update progress on an upload",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "outboxID": "Types.OutboxID",
+      "ratio": "number" // 0-1
+    },
+    "attachmentUploaded": {
+      "_description": "We're done uploading",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    "attachmentPasted": {
+      "_description": "Image data pasted into a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "data": "Buffer"
+    },
+    "attachmentUploadCanceled": {
+      "_description": "The attachment upload modal was canceled",
+      "outboxIDs": "Array<RPCChatTypes.OutboxID>"
+    },
+    "messageAttachmentUploaded": {
+      "_description": [
+        "We got an uploaded attachment.",
+        "While online this is like an edit of the placeholder"
+      ],
+      "conversationIDKey": "Types.ConversationIDKey",
+      "placeholderID": "RPCChatTypes.MessageID",
+      "message": "Types.MessageAttachment"
+    },
+    "sendTyping": {
+      "_description": "Tell server we're typing",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "typing": "boolean"
+    },
+    "markInitiallyLoadedThreadAsRead": {
+      "_description": [
+        "On startup we're automatically loading a thread sometimes.",
+        "When we first view it we should go through our marking as read logic"
+      ],
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "markTeamAsRead": {
+      "_description": "Mark all conversations in a team as read",
+      "teamID": "TeamsTypes.TeamID"
+    },
+    "markConversationsStale": {
+      "_description": "Server told us a conversation is out of date",
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
+      "updateType": "RPCChatTypes.StaleUpdateType"
+    },
+    "navigateToInbox": {
+      "_description": "Navigation helper. Nav is slightly different on mobile / desktop."
+    },
+    "navigateToThread": {
+      "_description": "Navigation helper. Nav is slightly different on mobile / desktop.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "highlightMessageID?": "number",
+      // why this happened, sometimes there's different side effects
+      "reason": [
+        "'focused'", // nav focus changed
+        "'clearSelected'", // deselect
+        "'desktopNotification'", // clicked notification
+        "'createdMessagePrivately'", // messaging privately and maybe made it
+        "'extension'", // from a notification from iOS share extension
+        "'files'", // from the Files tab
+        "'findNewestConversation'", // find a new chat to select (from service)
+        "'findNewestConversationFromLayout'", // find a small chat to select (from js)
+        "'inboxBig'", // inbox row
+        "'inboxFilterArrow'", // arrow keys in inbox filter
+        "'inboxFilterChanged'", // inbox filter made first one selected
+        "'inboxSmall'", // inbox row
+        "'inboxNewConversation'", // new conversation row
+        "'inboxSearch'", // selected from inbox seaech
+        "'jumpFromReset'", // from older reset convo
+        "'jumpToReset'", // going to an older reset convo
+        "'justCreated'", // just made it and select it
+        "'manageView'", // clicked from manage screen
+        "'previewResolved'", // did a preview and are now selecting it
+        "'push'", // from a push
+        "'savedLastState'", // last seen chat tab
+        "'startFoundExisting'", // starting a conversation and found one already
+        "'teamChat'", // from team
+        "'addedToChannel'", // just added people to this channel
+        "'navChanged'", // the nav state changed
+        "'misc'", // misc
+        "'teamMention'" // from team mention
+      ],
+      "pushBody?": "string"
+    },
+    "messageAttachmentNativeShare": {
+      "_description": "Share to external app on mobile",
+      "message": "Types.Message"
+    },
+    "messageAttachmentNativeSave": {
+      "_description": "Save on mobile (camera roll)",
+      "message": "Types.Message"
+    },
+    "updateNotificationSettings": {
+      "_description": "We're changing the notification settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "notificationsDesktop": "Types.NotificationsType",
+      "notificationsMobile": "Types.NotificationsType",
+      "notificationsGlobalIgnoreMentions": "boolean"
+    },
+    "notificationSettingsUpdated": {
+      "_description": "We get new notification settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "settings": "RPCChatTypes.ConversationNotificationInfo"
+    },
+    "blockConversation": {
+      "_description": "Block a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "reportUser": "boolean"
+    },
+    "hideConversation": {
+      "_description": "Hide a conversation until future activity",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "unhideConversation": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setConversationOffline": {
+      "_description": "Conversation was loaded and is offline",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "offline": "boolean"
+    },
+    "setConvRetentionPolicy": {
+      "_description": "Sets the retention policy for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "policy": "RetentionPolicy"
+    },
+    "updateConvRetentionPolicy": {
+      "_description": "Consume a service notification that a conversation's retention policy has been updated",
+      "meta": "Types.ConversationMeta"
+    },
+    "updateTeamRetentionPolicy": {
+      "_description": "Consume a service notification that a team retention policy was updated",
+      "metas": "Array<Types.ConversationMeta>"
+    },
+    "setConvExplodingMode": {
+      "_description": "Set the remote exploding mode for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "seconds": "number"
+    },
+    "setExplodingModeLock": {
+      "_description": "Set a lock on the exploding mode for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "unset?": "boolean"
+    },
+    "updateConvExplodingModes": {
+      "_description": "Handle an update to our conversation exploding modes.",
+      "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
+    },
+    "staticConfigLoaded": {
+      "_description": "Static configuration info was loaded from the service.",
+      "staticConfig": "Types.StaticConfig"
+    },
+    "setMinWriterRole": {
+      "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "role": "TeamsTypes.TeamRoleType"
+    },
+    "saveMinWriterRole": {
+      "_description": "Update the minWriterRole stored with the conversation metadata.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "role": "TeamsTypes.TeamRoleType",
+      "cannotWrite": "boolean"
+    },
+    "openChatFromWidget": {
+      "conversationIDKey?": "Types.ConversationIDKey"
+    },
+    "paymentInfoReceived": {
+      "_description": "We received payment info for a sendPayment message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "paymentInfo": "Types.ChatPaymentInfo"
+    },
+    "requestInfoReceived": {
+      "_description": "We received request info for a requestPayment message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "requestInfo": "Types.ChatRequestInfo"
+    },
+    "prepareFulfillRequestForm": {
+      "_description": "Prime data to fulfill this message's request and navigate to the send form.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    "unfurlResolvePrompt": {
+      "_description": "Response to an unfurl prompt",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "domain": "string",
+      "result": "RPCChatTypes.UnfurlPromptResult"
+    },
+    "unfurlTogglePrompt": {
+      "_description": "Add an unfurl prompt to a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "domain": "string",
+      "show": "boolean"
+    },
+    "unfurlRemove": {
+      "_description": "Remove an unfurl",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
+    "unsentTextChanged": {
+      "_description": "Unsent text changed",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString"
+    },
+    "updateMessages": {
+      "_description": "Update messages that we might have in the store",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
+    },
+    "giphySend": {
+      "_description": "send a message from Giphy search",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "url": "HiddenString"
+    },
+    "giphyGotSearchResult": {
+      "_description": "Giphy search results obtained",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "results": "RPCChatTypes.GiphySearchResults"
+    },
+    "giphyToggleWindow": {
+      "_description": "Toggle Giphy search preview window",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "show": "boolean",
+      "clearInput": "boolean"
+    },
+    "clearPaymentConfirmInfo": {
+      "_description": "Clear data for payment confirm modal"
+    },
+    "setPaymentConfirmInfo": {
+      "_description": "Set the payment confirm modal payment data",
+      "error?": "RPCTypes.Status",
+      "summary?": "RPCChatTypes.UIChatPaymentSummary"
+    },
+    "confirmScreenResponse": {
+      "_description": "User responded to the chat Stellar confirm screen",
+      "accept": "boolean"
+    },
+    "setUnsentText": {
+      "_description": "Set unsent text for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text?": "HiddenString"
+    },
+    "setPrependText": {
+      "_description": "Set prepend text for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString | null"
+    },
+    "updateUnreadline": {
+      "_description": "Update the unreadline line position for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
+    "toggleMessageCollapse": {
+      "_description": "Set the collapse status of a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "collapse": "boolean"
+    },
+    "updateCoinFlipStatus": {
+      "_description": "Update status of a coin flip game",
+      "statuses": "Array<RPCChatTypes.UICoinFlipStatus>"
+    },
+    "setCommandMarkdown": {
+      "_description": "Set command markdown for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "md": "RPCChatTypes.UICommandMarkdown | null"
+    },
+    "addUsersToChannel": {
+      "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "usernames": "Array<string>"
+    },
+    "addUserToChannel": {
+      "_description": "Add a single user to a conversation. Creates a SystemBulkAddToConv message.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    "jumpToRecent": {
+      "_description": "Jump to most recent messages in a conversation",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setContainsLastMessage": {
+      "_description": "Explicitly set whether a thread is loaded to the most recent message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "contains": "boolean"
+    },
+    "threadSearch": {
+      "_description": "Perform a search in a thread",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "query": "HiddenString"
+    },
+    "threadSearchResults": {
+      "_description": "Record a new thread search result",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messages": "Array<Types.Message>",
+      "clear": "boolean"
+    },
+    "setThreadSearchStatus": {
+      "_description": "Set the status of a thread search",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "status": "Types.ThreadSearchStatus"
+    },
+    "toggleThreadSearch": {
+      "_description": "Toggle the display of the thread search window",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "toggleReplyToMessage": {
+      "_description": "Reply to a message publicly",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal?": "Types.Ordinal"
+    },
+    "replyJump": {
+      "_description": "Jump to a replied to message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
+    "setThreadSearchQuery": {
+      "_description": "Set thread search query (used from inbox search to initialize it)",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "query": "HiddenString"
+    },
+    "inboxSearch": {
+      "_description": "Perform an inbox search",
+      "query": "HiddenString"
+    },
+    "inboxSearchStarted": {
+      "_description": "Inbox search has started"
+    },
+    "toggleInboxSearch": {
+      "_description": "Toggle inbox search view",
+      "enabled": "boolean"
+    },
+    "inboxSearchOpenTeamsResults": {
+      "_description": "Inbox search open teams results received",
+      "results": "Array<Types.InboxSearchOpenTeamHit>",
+      "suggested": "boolean"
+    },
+    "inboxSearchBotsResults": {
+      "_description": "Inbox search bot results received",
+      "results": "Array<RPCTypes.FeaturedBot>",
+      "suggested": "boolean"
+    },
+    "inboxSearchNameResults": {
+      "_description": "Inbox search name results received",
+      "results": "Array<Types.InboxSearchConvHit>",
+      "unread": "boolean"
+    },
+    "inboxSearchTextResult": {
+      "_description": "Inbox text result has arrived",
+      "result": "Types.InboxSearchTextHit"
+    },
+    "inboxSearchMoveSelectedIndex": {
+      "_description": "Change selected index of inbox search",
+      "increment": "boolean"
+    },
+    "inboxSearchSelect": {
+      "_description": "Select an inbox search item",
+      "conversationIDKey?": "Types.ConversationIDKey",
+      "query?": "HiddenString",
+      "selectedIndex?": "number"
+    },
+    "inboxSearchSetTextStatus": {
+      "_description": "Set the status of the inbox text search",
+      "status": "Types.InboxSearchStatus"
+    },
+    "inboxSearchSetIndexPercent": {
+      "_description": "Set index percent complete",
+      "percent": "number"
+    },
+    "setMaybeMentionInfo": {
+      "_description": "Set team mention info",
+      "name": "string",
+      "info": "RPCChatTypes.UIMaybeMentionInfo"
+    },
+    "tabSelected": {
+      "_description": "Desktop changed tab to chat"
+    },
+    "resolveMaybeMention": {
+      "_description": "Resolve an unknown @ mention",
+      "name": "string",
+      "channel": "string"
+    },
+    "loadAttachmentView": {
+      "_description": "Load attachment view pane",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "viewType": "RPCChatTypes.GalleryItemTyp",
+      "fromMsgID?": "Types.MessageID"
+    },
+    "addAttachmentViewMessage": {
+      "_description": "Add result for attachment view",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "viewType": "RPCChatTypes.GalleryItemTyp",
+      "message": "Types.Message"
+    },
+    "setAttachmentViewStatus": {
+      "_description": "Set attachment view status",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "viewType": "RPCChatTypes.GalleryItemTyp",
+      "status": "Types.AttachmentViewStatus",
+      "last?": "boolean"
+    },
+    "clearAttachmentView": {
+      "_description": "Clear attachment views",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "updateUserReacjis": {
+      "userReacjis": "RPCTypes.UserReacjis"
+    },
+    "setCommandStatusInfo": {
+      "_description": "Set command status info",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "info": "Types.CommandStatusInfo"
+    },
+    "clearCommandStatusInfo": {
+      "_description": "Clear command status info",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setThreadLoadStatus": {
+      "_description": "Set thread load status",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "status": "RPCChatTypes.UIChatThreadStatus"
+    },
+    "pinMessage": {
+      "_description": "Pin a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
+    "unpinMessage": {
+      "_description": "Unpin a message",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "ignorePinnedMessage": {
+      "_description": "Ignore pinned message",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "dismissBottomBanner": {
+      "_description": "Set the bottom banner on a new conversation as dismissed",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "updateLastCoord": {
+      "_description": "Update last known coordinate",
+      "coord": "Types.Coordinate"
+    },
+    "toggleGiphyPrefill": {
+      "_description": "Toggle /giphy text to trigger preview window",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "updateBlockButtons": {
+      "_description": "Show or hide invitation to block for a given team ID",
+      "teamID": "RPCTypes.TeamID",
+      "adder?": "string",
+      "show": "boolean"
+    },
+    "dismissBlockButtons": {
+      "teamID": "RPCTypes.TeamID"
+    },
+    "setInboxNumSmallRows": {
+      "ignoreWrite?": "boolean",
+      "rows": "number"
+    },
+    "enableAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "meteringCb": "(amp: number) => void"
+    },
+    "attemptAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "meteringCb": "(amp: number) => void"
+    },
+    "stopAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "stopType": "Types.AudioStopType",
+      "amps?": "AmpTracker"
+    },
+    "lockAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "sendAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "fromStaged": "boolean",
+      "info": "Types.AudioRecordingInfo"
+    },
+    "setAudioRecordingPostInfo": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "path": "string",
+      "outboxID": "Buffer"
+    },
+    "loadNextBotPage": {
+      "_description": "loads next page of featured bots from backend",
+      "pageSize": "number"
+    },
+    "setLoadedBotPage": {
+      "_description": "set page # for a conversation",
+      "page": "number"
+    },
+    "refreshBotPublicCommands": {
+      "_description": "refresh bot public commands",
+      "username": "string"
+    },
+    "setBotPublicCommands": {
+      "_description": "set bot public commands",
+      "username": "string",
+      "commands": "Types.BotPublicCommands"
+    },
+    "addBotMember": {
+      "_description": "add bot member to channel",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "convs?": "Array<string>",
+      "allowCommands": "boolean",
+      "allowMentions": "boolean",
+      "username": "string",
+      "restricted": "boolean"
+    },
+    "refreshBotSettings": {
+      "_description": "refresh bot settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    "setBotSettings": {
+      "_description": "set bot settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string",
+      "settings": "RPCTypes.TeamBotSettings"
+    },
+    "removeBotMember": {
+      "_description": "remove a bot member",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    "editBotSettings": {
+      "_description": "edit bot settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string",
+      "allowCommands": "boolean",
+      "allowMentions": "boolean",
+      "convs?": "Array<string>"
+    },
+    "setParticipants": {
+      "_description": "Set conversation participant info",
+      "participants": "Array<{conversationIDKey: Types.ConversationIDKey, participants: Types.ParticipantInfo}>"
+    },
+    "findGeneralConvIDFromTeamID": {
+      "_description": "Get the general channel conv ID from team ID",
+      "teamID": "TeamsTypes.TeamID"
+    },
+    "setGeneralConvFromTeamID": {
+      "_description": "Record teamID to general convID mapping",
+      "teamID": "TeamsTypes.TeamID",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "refreshBotRoleInConv": {
+      "_description": "Refresh role in conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    "setBotRoleInConv": {
+      "_description": "Set bot role in conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string",
+      "role": "TeamsTypes.TeamRoleType | null"
+    },
+    "showInfoPanel": {
+      "tab?": "'settings' | 'members' | 'attachments' | 'bots'",
+      "show": "boolean",
+      "conversationIDKey?": "Types.ConversationIDKey"
+    },
+    "dismissJourneycard": {
+      "_description": "Dismiss a journeycard",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "cardType": "RPCChatTypes.JourneycardType",
+      "ordinal": "Types.Ordinal"
+    },
+    "addToMessageMap": {
+      "message": "Types.Message"
+    },
+    "refreshMutualTeamsInConv": {
+      "_description": "Refresh loaded mutual teams for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "loadedMutualTeams": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "teamIDs": "Array<TeamsTypes.TeamID>"
+    },
+    "fetchUserEmoji": {
+      "_description": "Refresh user emoji and put it in store for picker",
+      "conversationIDKey?": "Types.ConversationIDKey",
+      "onlyInTeam?": "boolean"
+    },
+    "loadedUserEmoji": {
+      "results": "RPCChatTypes.UserEmojiRes"
     }
+  }
 }

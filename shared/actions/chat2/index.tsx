@@ -3984,7 +3984,6 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.refreshMutualTeamsInConv, refreshMutualTeamsInConv)
 
-  // TODO remove from redux
   yield* Saga.chainAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)

@@ -305,22 +305,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     [onSelectionChange, checkTrigger]
   )
 
-  const dispatch = Container.useDispatch()
-
-  // TODO move
-  const onChannelSuggestionsTriggered = React.useCallback(() => {
-    dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
-
-  // TODO move
-  React.useEffect(() => {
-    switch (active) {
-      case 'channels':
-        onChannelSuggestionsTriggered()
-        break
-    }
-  }, [active, onChannelSuggestionsTriggered])
-
   const onSelected = React.useCallback(
     (item: any, final: boolean) => {
       selectedItemRef.current = item
