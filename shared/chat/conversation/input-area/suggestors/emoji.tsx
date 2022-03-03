@@ -48,9 +48,7 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
     dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
   }, [dispatch, conversationIDKey])
 
-  // TODO remove from store
   const userEmojis = Container.useSelector(state => state.chat2.userEmojisForAutocomplete)
-  // TODO remove from store
   const userEmojisLoading = Container.useSelector(state =>
     Waiting.anyWaiting(state, Constants.waitingKeyLoadingEmoji)
   )
