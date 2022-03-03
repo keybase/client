@@ -195,25 +195,21 @@ export const useSyncInput = (inputRef, resultsRef, active, setActive, setSelecte
   }
 }
 
-const useHandleKeyEvents = p => {
-  const {onKeyDownProps, active, resultsRef, selected, setSelected, triggerTransform, checkTrigger, filter} =
-    p
-  const move = React.useCallback(
-    (up: boolean) => {
-      if (!active) {
-        return
-      }
-      const length = resultsRef.current.data.length
-      const s = (((up ? selected - 1 : selected + 1) % length) + length) % length
-      if (s !== selected) {
-        setSelected(s)
-        const val = active ? resultsRef.current.data[s] : null
-        triggerTransform(val, false)
-      }
-    },
-    [active, resultsRef, selected, setSelected, triggerTransform]
-  )
-
+type UseHandleKeyEventsProps = {
+  onKeyDownProps: (evt: React.KeyboardEvent) => void
+  active: string
+  resultsRef: React.MutableRefObject<{
+    useSpaces: boolean
+    data: Array<unknown>
+  }>
+  selected: number
+  triggerTransform: (value: any, final?: any) => void
+  checkTrigger: () => void
+  filter: string
+  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
+}
+const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
+  const {onKeyDownProps, active, resultsRef, selected, triggerTransform, checkTrigger, filter, onMoveRef} = p
   const getSelected = React.useCallback(
     () => (active ? resultsRef.current.data[selected] : null),
     [active, resultsRef, selected]
@@ -236,11 +232,11 @@ const useHandleKeyEvents = p => {
       // check trigger keys (up, down, enter, tab)
       if (evt.key === 'ArrowDown') {
         evt.preventDefault()
-        move(false)
+        onMoveRef.current?.(false)
         shouldCallParentCallback = false
       } else if (evt.key === 'ArrowUp') {
         evt.preventDefault()
-        move(true)
+        onMoveRef.current?.(true)
         shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
@@ -252,7 +248,7 @@ const useHandleKeyEvents = p => {
           triggerTransform(getSelected())
         } else {
           // shift held -> move up
-          move(evt.shiftKey)
+          onMoveRef.current?.(evt.shiftKey)
         }
         shouldCallParentCallback = false
       }
@@ -261,7 +257,7 @@ const useHandleKeyEvents = p => {
         onKeyDownProps?.(evt)
       }
     },
-    [onKeyDownProps, active, checkTrigger, filter, resultsRef, move, getSelected, triggerTransform]
+    [onKeyDownProps, active, checkTrigger, filter, resultsRef, getSelected, triggerTransform, onMoveRef]
   )
 
   return {onKeyDown}
@@ -286,14 +282,17 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     filter,
     setFilter
   )
+
+  const onMoveRef = React.useRef<(up: boolean) => void>()
+
   const {onKeyDown} = useHandleKeyEvents({
     active,
     checkTrigger,
     filter,
     onKeyDownProps: p.onKeyDown,
+    onMoveRef,
     resultsRef,
     selected,
-    setSelected,
     triggerTransform,
   })
 
@@ -365,14 +364,21 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   //     </Kb.ClickableBox>
   // }, [itemRenderer ])
 
+  const onSelected = React.useCallback(
+    (item: any, final: boolean) => triggerTransform(item, final),
+    [triggerTransform]
+  )
+
   const listProps = {
     conversationIDKey,
     expanded,
     filter,
     listStyle: suggestionListStyle,
-    onClick: (item: any) => triggerTransform(item),
+    onMoveRef,
+    onSelected,
     resultsRef: resultsRef as any,
     selectedIndex: selected,
+    setSelectedIndex: setSelected,
     spinnerStyle: suggestionSpinnerStyle,
     suggestBotCommandsUpdateStatus,
   }

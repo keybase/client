@@ -206,8 +206,9 @@ type ListProps = Pick<
 > & {
   conversationIDKey: Types.ConversationIDKey
   filter: string
-  onClick: (item: any) => void
+  onSelected: (item: ListItem, final: boolean) => void
   resultsRef: React.MutableRefObject<{data: Array<ListItem>; useSpaces: boolean}>
+  onMoveRef: React.MutableRefObject<(up: boolean) => void>
 }
 
 const ItemRenderer = (p: {selected: boolean; item: ListItem}) => {
@@ -256,18 +257,36 @@ const keyExtractor = (item: ListItem) => {
 }
 
 export const UsersList = (p: ListProps) => {
-  const {selectedIndex, onClick, resultsRef} = p
+  // TODO move setselected inside here
+  const {setSelectedIndex, selectedIndex, onSelected, resultsRef, onMoveRef} = p
   const items = useDataSource(p.conversationIDKey, p.filter)
 
   const itemRenderer = React.useCallback(
     (idx, item: ListItem) => (
-      <Kb.ClickableBox key={keyExtractor(item)} onClick={onClick}>
+      <Kb.ClickableBox key={keyExtractor(item)} onClick={() => onSelected(item, true)}>
         <ItemRenderer selected={idx === selectedIndex} item={item} />
       </Kb.ClickableBox>
     ),
-    [selectedIndex, onClick]
+    [selectedIndex, onSelected]
   )
 
+  Container.useDepChangeEffect(() => {
+    const sel = items[selectedIndex]
+    sel && onSelected(sel, false)
+  }, [selectedIndex])
+
+  onMoveRef.current = React.useCallback(
+    (up: boolean) => {
+      const length = items.length
+      const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
+      if (s !== selectedIndex) {
+        setSelectedIndex(s)
+      }
+    },
+    [setSelectedIndex, items, selectedIndex]
+  )
+
+  // TODO likely move
   resultsRef.current = {
     data: items,
     useSpaces: false,
