@@ -1,23 +1,25 @@
-import type * as ImagePicker from 'expo-image-picker'
-import type * as Types from '../../../../constants/types/chat2'
-import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import {NativeKeyboard, ReAnimated} from '../../../../common-adapters/mobile.native'
-import * as Styles from '../../../../styles'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Container from '../../../../util/container'
-import type {LayoutEvent} from '../../../../common-adapters/box'
+import * as Kb from '../../../../common-adapters'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as Styles from '../../../../styles'
+import AudioRecorder from '../../../audio/audio-recorder.native'
+import FilePickerPopup from '../filepicker-popup'
+import HWKeyboardEvent from 'react-native-hw-keyboard-event'
+import MoreMenuPopup from './moremenu-popup'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import Typing from './typing/container'
-import FilePickerPopup from '../filepicker-popup'
-import MoreMenuPopup from './moremenu-popup'
+import type * as ImagePicker from 'expo-image-picker'
+import type * as Types from '../../../../constants/types/chat2'
+import type {LayoutEvent} from '../../../../common-adapters/box'
 import type {Props} from './platform-input'
-import {useSuggestors} from '../suggestors'
-import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
+import {NativeKeyboard, ReAnimated} from '../../../../common-adapters/mobile.native'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {isOpen} from '../../../../util/keyboard'
-import AudioRecorder from '../../../audio/audio-recorder.native'
+import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
+import {standardTransformer} from '../suggestors/common'
+import {useSuggestors} from '../suggestors'
 import {
   AnimatedBox2,
   AnimatedIcon,
@@ -25,8 +27,6 @@ import {
   runToggle,
   runRotateToggle,
 } from './platform-input-animation.native'
-import HWKeyboardEvent from 'react-native-hw-keyboard-event'
-import {standardTransformer} from '../suggestors/common'
 
 type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 const defaultMaxHeight = 145

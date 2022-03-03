@@ -218,13 +218,11 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
         onSubmitRef.current?.()
-        // triggerTransform(undefined, true)
         shouldCallParentCallback = false
       } else if (evt.key === 'Tab') {
         evt.preventDefault()
         if (filter.length) {
           onSubmitRef.current?.()
-          // triggerTransform()
         } else {
           // shift held -> move up
           onMoveRef.current?.(evt.shiftKey)
