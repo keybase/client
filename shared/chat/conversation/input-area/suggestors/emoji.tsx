@@ -21,7 +21,7 @@ export const transformer = (
 
 const keyExtractor = (item: EmojiData) => item.short_name
 
-const ItemRenderer = (p: {selected: boolean; item: EmojiData}) => {
+const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
   const {item, selected} = p
   return (
     <Kb.Box2
@@ -90,8 +90,8 @@ type ListProps = Pick<
   onSubmitRef: React.MutableRefObject<(() => void) | undefined>
 }
 export const List = (p: ListProps) => {
-  const {conversationIDKey, filter, ...rest} = p
-  const {items, loading} = useDataSource(conversationIDKey, filter)
+  const {filter, ...rest} = p
+  const {items, loading} = useDataSource(p.conversationIDKey, filter)
   return (
     <Common.List
       {...rest}

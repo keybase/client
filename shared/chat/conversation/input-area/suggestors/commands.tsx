@@ -1,11 +1,11 @@
 import * as Common from './common'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
+import {memoize} from '../../../../util/memoize'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import type * as TeamsTypes from '../../../../constants/types/teams'
 import type * as Types from '../../../../constants/types/chat2'
 
 const getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
@@ -24,10 +24,8 @@ export const transformer = (
 
 export const keyExtractor = (c: RPCChatTypes.ConversationCommand) => c.name + c.username
 
-export const Renderer = (p: any) => {
-  const selected: boolean = p.selected
-  const conversationIDKey: Types.ConversationIDKey = p.conversationIDKey
-  const command: RPCChatTypes.ConversationCommand = p.value
+const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
+  const {conversationIDKey, selected, item: command} = p
   const prefix = getCommandPrefix(command)
   const enabled = Container.useSelector(state => {
     const botSettings = state.chat2.botSettings.get(conversationIDKey)
@@ -80,57 +78,83 @@ export const Renderer = (p: any) => {
   )
 }
 
-export const useDataSource = (
-  _active: string,
-  _conversationIDKey: Types.ConversationIDKey,
-  _filter: string
-) => {
-  return null
-  // const isActive =  (active === 'commands')
-
-  //   return Container.useSelector(state => {
-  //       if (!isActive) return null
-
-  //       // TODO remove from store
-  //   const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
-  //   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey) || false
-  // if (showCommandMarkdown || showGiphySearch) {
-  //   return {
-  //     data: [],
-  //     loading: false,
-  //     useSpaces: true,
-  //   }
-  // }
-
-  // const sel = this._input?.getSelection()
-  // if (sel && this._lastText) {
-  //   // a little messy. Check if the message starts with '/' and that the cursor is
-  //   // within maxCmdLength chars away from it. This happens before `onChangeText`, so
-  //   // we can't do a more robust check on `this._lastText` because it's out of date.
-  //   if (
-  //     !(this._lastText.startsWith('/') || this._lastText.startsWith('!')) ||
-  //     (sel.start || 0) > this._maxCmdLength
-  //   ) {
-  //     // not at beginning of message
-  //     return {
-  //       data: [],
-  //       loading: false,
-  //       useSpaces: true,
-  //     }
-  //   }
-  // }
-  // const fil = filter.toLowerCase()
-  // const data = (
-  //   this._lastText?.startsWith('!') ? this.props.suggestBotCommands : this.props.suggestCommands
-  // ).filter(c => c.name.includes(fil))
-  // return {
-  //   data,
-  //   loading: false,
-  //   useSpaces: true,
-  // }
-
-  //   })
+type UseDataSourceProps = {
+  conversationIDKey: Types.ConversationIDKey
+  filter: string
+  inputRef: React.MutableRefObject<Kb.PlainInput | null>
+  lastTextRef: React.MutableRefObject<string>
 }
-export const List = (_p: any) => {
-  return null
+
+const getMaxCmdLength = memoize(
+  (
+    suggestBotCommands: Array<RPCChatTypes.ConversationCommand>,
+    suggestCommands: Array<RPCChatTypes.ConversationCommand>
+  ) =>
+    suggestCommands
+      .concat(suggestBotCommands || [])
+      .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+)
+
+export const useDataSource = (p: UseDataSourceProps) => {
+  const {conversationIDKey, filter, inputRef, lastTextRef} = p
+
+  return Container.useSelector(state => {
+    const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
+    const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey) || false
+    if (showCommandMarkdown || showGiphySearch) {
+      return []
+    }
+
+    const suggestBotCommands = Constants.getBotCommands(state, conversationIDKey)
+    const suggestCommands = Constants.getCommands(state, conversationIDKey)
+    const sel = inputRef.current?.getSelection()
+    if (sel && lastTextRef.current) {
+      const maxCmdLength = getMaxCmdLength(suggestBotCommands, suggestCommands)
+
+      // a little messy. Check if the message starts with '/' and that the cursor is
+      // within maxCmdLength chars away from it. This happens before `onChangeText`, so
+      // we can't do a more robust check on `lastTextRef.current` because it's out of date.
+      if (
+        !(lastTextRef.current.startsWith('/') || lastTextRef.current.startsWith('!')) ||
+        (sel.start || 0) > maxCmdLength
+      ) {
+        // not at beginning of message
+        return []
+      }
+    }
+    const fil = filter.toLowerCase()
+    const data = (lastTextRef.current?.startsWith('!') ? suggestBotCommands : suggestCommands).filter(c =>
+      c.name.includes(fil)
+    )
+    return data
+  })
+}
+
+type CommandType = RPCChatTypes.ConversationCommand
+type ListProps = Pick<
+  Common.ListProps<CommandType>,
+  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+> & {
+  conversationIDKey: Types.ConversationIDKey
+  filter: string
+  onSelected: (item: CommandType, final: boolean) => void
+  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
+  onSubmitRef: React.MutableRefObject<(() => void) | undefined>
+} & {
+  inputRef: React.MutableRefObject<Kb.PlainInput | null>
+  lastTextRef: React.MutableRefObject<string>
+}
+export const List = (p: ListProps) => {
+  const {filter, inputRef, lastTextRef, ...rest} = p
+  const {conversationIDKey} = p
+  const items = useDataSource({conversationIDKey, filter, inputRef, lastTextRef})
+  return (
+    <Common.List
+      {...rest}
+      keyExtractor={keyExtractor}
+      items={items}
+      ItemRenderer={ItemRenderer}
+      loading={false}
+    />
+  )
 }

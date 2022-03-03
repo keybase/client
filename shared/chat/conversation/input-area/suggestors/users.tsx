@@ -211,7 +211,7 @@ type ListProps = Pick<
   onSubmitRef: React.MutableRefObject<(() => void) | undefined>
 }
 
-const ItemRenderer = (p: {selected: boolean; item: ListItem}) => {
+const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
   const {selected, item} = p
   const {username, fullName, teamname, channelname} = item
 
@@ -257,8 +257,8 @@ const keyExtractor = (item: ListItem) => {
 }
 
 export const UsersList = (p: ListProps) => {
-  const {conversationIDKey, filter, ...rest} = p
-  const items = useDataSource(conversationIDKey, filter)
+  const {filter, ...rest} = p
+  const items = useDataSource(p.conversationIDKey, filter)
   return (
     <Common.List
       {...rest}

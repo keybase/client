@@ -325,7 +325,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
       content = <Channels.List {...listProps} />
       break
     case 'commands':
-      content = <Commands.List {...listProps} />
+      content = <Commands.List {...listProps} inputRef={inputRef} lastTextRef={lastTextRef} />
       break
     case 'emoji':
       content = <Emoji.List {...listProps} />

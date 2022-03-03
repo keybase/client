@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import SuggestionList from './suggestion-list'
 import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type * as Types from '../../../../constants/types/chat2'
 
 export type TransformerData = {
   text: string
@@ -43,40 +44,34 @@ export const TeamSuggestion = (p: {teamname: string; channelname: string | undef
   </Kb.Box2>
 )
 
+export type ItemRendererProps<T> = {selected: boolean; item: T; conversationIDKey: Types.ConversationIDKey}
 export type ListProps<T> = {
   expanded: boolean
   items: Array<T>
-  // itemRenderer: (index: number, item: T) => React.ReactNode
   keyExtractor: (item: T) => string
   suggestBotCommandsUpdateStatus?: RPCChatTypes.UIBotCommandsUpdateStatusTyp
-  listStyle: any
-  spinnerStyle: any
+  listStyle: Styles.StylesCrossPlatform
+  spinnerStyle: Styles.StylesCrossPlatform
   loading: boolean
-  // selectedIndex: number
-
-  //   Common.ListProps<ListItem>,
-  //   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
-  // > & {
-  //   conversationIDKey: Types.ConversationIDKey
-  //   filter: string
   onSelected: (item: T, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
   onSubmitRef: React.MutableRefObject<(() => void) | undefined>
-  ItemRenderer: (p: {selected: boolean; item: T}) => JSX.Element
+  ItemRenderer: (p: ItemRendererProps<T>) => JSX.Element
+  conversationIDKey: Types.ConversationIDKey
 }
 
 export function List<T>(p: ListProps<T>) {
-  const {expanded, items, ItemRenderer, loading, keyExtractor, onSelected} = p
+  const {expanded, items, ItemRenderer, loading, keyExtractor, onSelected, conversationIDKey} = p
   const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, onMoveRef, onSubmitRef} = p
   const [selectedIndex, setSelectedIndex] = React.useState(0)
 
   const renderItem = React.useCallback(
     (idx, item: T) => (
       <Kb.ClickableBox key={keyExtractor(item)} onClick={() => onSelected(item, true)}>
-        <ItemRenderer selected={idx === selectedIndex} item={item} />
+        <ItemRenderer selected={idx === selectedIndex} item={item} conversationIDKey={conversationIDKey} />
       </Kb.ClickableBox>
     ),
-    [selectedIndex, onSelected, ItemRenderer, keyExtractor]
+    [selectedIndex, onSelected, ItemRenderer, keyExtractor, conversationIDKey]
   )
 
   Container.useDepChangeEffect(() => {
