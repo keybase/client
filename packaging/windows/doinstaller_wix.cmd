@@ -14,7 +14,6 @@ if "%~1"=="debug" (
   set CONFIGURATION=Debug
   if NOT DEFINED KEYBASE_WINBUILD set KEYBASE_WINBUILD=0
 )
-set CERTISSUER=DigiCert
 
 ::
 :: get the target build folder. Assume winresource.exe has been built.
@@ -185,11 +184,11 @@ goto:eof
 ::   http://timestamp.comodoca.com/authenticode
 ::   http://timestamp.digicert.com
 
-%SIGNTOOL% sign /i digicert /a /tr http://timestamp.digicert.com %~1
+%SIGNTOOL% sign /a /tr http://timestamp.digicert.com %~1
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-%SIGNTOOL% sign /i digicert /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 %~1
+%SIGNTOOL% sign /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 %~1
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

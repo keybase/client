@@ -60,7 +60,7 @@
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <PropertyGroup>
-    <PostBuildEvent>if /I "$(ConfigurationName)" == "Release" "%25SIGNTOOL%25" sign /v /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /i "%25CERTISSUER%25" "$(TargetDir)$(TargetFileName)"</PostBuildEvent>
+    <PostBuildEvent>if /I "$(ConfigurationName)" == "Release" "%25SIGNTOOL%25" sign /v /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /a "$(TargetDir)$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
       <PreBuildEvent>
