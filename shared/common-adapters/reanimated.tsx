@@ -7,14 +7,18 @@ import type {
   useSharedValue as useSharedValueType,
   useAnimatedStyle as useAnimatedStyleType,
   withTiming as withTimingType,
+  withDelay as withDelayType,
+  withRepeat as withRepeatType,
   EasingNode as EasingNodeType,
 } from 'react-native-reanimated'
 
 let ReAnimated: typeof ReAnimatedType
 let ReAnimatedEasing: typeof EasingType
 let useSharedValue: typeof useSharedValueType
+let withRepeat: typeof withRepeatType
 let useAnimatedStyle: typeof useAnimatedStyleType
 let withTiming: typeof withTimingType
+let withDelay: typeof withDelayType
 let EasingNode: typeof EasingNodeType
 
 if (!skipAnimations) {
@@ -24,7 +28,9 @@ if (!skipAnimations) {
   EasingNode = rnr.EasingNode
   useAnimatedStyle = rnr.useAnimatedStyle
   useSharedValue = rnr.useSharedValue
+  withRepeat = rnr.withRepeat
   withTiming = rnr.withTiming
+  withDelay = rnr.withDelay
   if (isDebuggingInChrome) {
     console.log('DEBUG: Real ReAnimated enabled, yet in chrome. Might not work!')
   }
@@ -69,8 +75,10 @@ if (!skipAnimations) {
     timing: (_: any, __: any, ___: any) => {},
   } as any
   useSharedValue = (a: any) => ({value: a})
+  withRepeat = (a: any) => a
   useAnimatedStyle = (f: () => Object): any => f()
   withTiming = (a: any) => a
+  withDelay = (a: any) => a
   ReAnimatedEasing = ((_: any) => {}) as any
   EasingNode = {
     ease: (_: any) => 0,
@@ -88,5 +96,7 @@ export {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  withDelay,
+  withRepeat,
 }
 export default ReAnimated

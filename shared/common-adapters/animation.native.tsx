@@ -1,17 +1,34 @@
 import * as React from 'react'
 import LottieView from 'lottie-react-native'
+import Animated, {useSharedValue, useAnimatedProps, withTiming} from 'react-native-reanimated'
 import Box from './box'
-import {Props} from './animation'
+import type {Props} from './animation'
+
+const AnimatedLottieView = Animated.createAnimatedComponent(LottieView)
 
 const Animation = (props: Props) => {
-  const animationData = require('./animation-data.json')
+  const dataRef = React.useRef()
+  if (!dataRef.current) {
+    dataRef.current = require('./animation-data.json')
+  }
+  const progress = useSharedValue(0)
+  const animatedProps = useAnimatedProps(() => {
+    return {
+      progress: progress.value,
+    }
+  })
+
+  React.useEffect(() => {
+    progress.value = withTiming(1)
+  }, [progress])
   return (
     <Box style={props.containerStyle}>
-      <LottieView
+      <AnimatedLottieView
         autoPlay={true}
         loop={true}
-        source={animationData[props.animationType]}
-        style={props.style || {}}
+        source={dataRef.current[props.animationType]}
+        animatedProps={animatedProps}
+        style={props.style}
       />
     </Box>
   )
