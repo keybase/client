@@ -12,6 +12,7 @@
 
 @interface Engine : NSObject
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error;
+- (void)rpcToGo:(NSString *)data;
 @end
 
 @interface KeybaseEngine : RCTEventEmitter <RCTBridgeModule>

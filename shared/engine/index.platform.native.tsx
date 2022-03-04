@@ -7,6 +7,7 @@ import toBuffer from 'typedarray-to-buffer'
 import {printRPCBytes} from '../local-debug'
 import {measureStart, measureStop} from '../util/user-timings'
 import {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import {isIOS} from '../constants/platform'
 
 const nativeBridge: NativeEventEmitter & {
   runWithData: (arg0: string) => void
@@ -56,7 +57,15 @@ class NativeTransport extends TransportShared {
       logger.debug('[RPC] Writing', b64.length, 'chars:', b64)
     }
     // Pass data over to the native side to be handled
-    nativeBridge.runWithData(b64)
+    if (isIOS) {
+      // JSI!
+      if (isIOS && typeof global.rpcOnGo !== 'function') {
+        NativeModules.GoJSIBridge.install()
+      }
+      global.rpcOnGo(b64)
+    } else {
+      nativeBridge.runWithData(b64)
+    }
     return true
   }
 }

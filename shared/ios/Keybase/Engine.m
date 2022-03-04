@@ -12,6 +12,7 @@
 #import <React/RCTEventDispatcher.h>
 #import "AppDelegate.h"
 #import "Utils.h"
+#import "GoJSIBridge.h"
 
 // singleton so the exported react component can get it
 static Engine * sharedEngine = nil;
@@ -43,6 +44,7 @@ static NSString *const metaEventEngineReset = @"engine-reset";
   if ((self = [super init])) {
     sharedEngine = self;
     self.sharedHome = settings[@"sharedHome"];
+    [GoJSIBridge setEngine:self];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onRNReload) name:RCTJavaScriptWillStartLoadingNotification object:nil];
     [self setupQueues];
     [self setupKeybaseWithSettings:settings error:error];
@@ -94,6 +96,14 @@ static NSString *const metaEventEngineReset = @"engine-reset";
 - (void)start:(KeybaseEngine*)emitter {
   self.keybaseEngine = emitter;
   [self startReadLoop];
+}
+
+- (void)rpcToGo:(NSString *)data {
+  NSError *error = nil;
+  KeybaseWriteB64(data, &error);
+  if (error) {
+    NSLog(@"Error writing data: %@", error);
+  }
 }
 
 - (void)runWithData:(NSString *)data {
