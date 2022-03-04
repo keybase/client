@@ -359,7 +359,8 @@ type PopupProps = {
 }
 const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
-  const getAttachmentRef = React.useCallback(() => inputRef.current, [inputRef])
+  // @ts-ignore hacky but we want the actual input
+  const getAttachmentRef = React.useCallback(() => inputRef.current?._input, [inputRef])
 
   return Styles.isMobile ? (
     <Kb.FloatingBox

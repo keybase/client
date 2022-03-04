@@ -42,7 +42,7 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
     <HoverBox
       className={Styles.classNames({expanded: showingPopup})}
       onClick={toggleShowingPopup}
-      ref={popupAnchor}
+      forwardedRef={popupAnchor}
       style={Styles.collapseStyles([
         styles.explodingIconContainer,
         styles.explodingIconContainerClickable,

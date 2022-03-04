@@ -236,7 +236,7 @@ export default Container.connect(
         }
         setUnsentText(stateProps.conversationIDKey, text)
       },
-
+      showCommandMarkdown: stateProps.showCommandMarkdown,
       showCommandStatus: stateProps.showCommandStatus,
       showReplyPreview: !!stateProps._replyTo,
       showTypingStatus: stateProps.showTypingStatus,

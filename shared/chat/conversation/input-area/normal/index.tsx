@@ -233,9 +233,11 @@ class Input extends React.Component<InputProps, InputState> {
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
         {this.props.showReplyPreview && <ReplyPreview conversationIDKey={this.props.conversationIDKey} />}
-        {this.props.showCommandMarkdown && (
-          <CommandMarkdown conversationIDKey={this.props.conversationIDKey} />
-        )}
+        {
+          /*TODO move this into suggestors*/ this.props.showCommandMarkdown && (
+            <CommandMarkdown conversationIDKey={this.props.conversationIDKey} />
+          )
+        }
         {this.props.showCommandStatus && <CommandStatus conversationIDKey={this.props.conversationIDKey} />}
         {this.props.showGiphySearch && <Giphy conversationIDKey={this.props.conversationIDKey} />}
         <PlatformInput
