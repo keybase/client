@@ -176,17 +176,13 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
         }
         const filename = parseUri(result)
         if (filename) {
+          const props = {
+            conversationIDKey,
+            pathAndOutboxIDs: [{outboxID: null, path: filename}],
+          }
           dispatch(
             RouteTreeGen.createNavigateAppend({
-              path: [
-                {
-                  props: {
-                    conversationIDKey,
-                    pathAndOutboxIDs: [{outboxID: null, path: filename}],
-                  },
-                  selected: 'chatAttachmentGetTitles',
-                },
-              ],
+              path: [{props, selected: 'chatAttachmentGetTitles'}],
             })
           )
         }
@@ -395,10 +391,7 @@ const PlatformInput = (p: Props) => {
           ? {height: animateHeight.current, maxHeight: 9999}
           : // workaround auto height not working?
           afterAnimatingExtraStepWorkaround
-          ? {
-              height: lastHeight.current,
-              maxHeight: defaultMaxHeight,
-            }
+          ? {height: lastHeight.current, maxHeight: defaultMaxHeight}
           : {height: undefined, maxHeight: defaultMaxHeight},
       ]}
     >
@@ -417,8 +410,6 @@ const PlatformInput = (p: Props) => {
               maxInputArea ?? Styles.dimensionHeight,
               () => {
                 setAnimating(false)
-                // still needed?
-                // this.setState({afterAnimatingExtraStepWorkaround: false})
               }
             ),
           ])
@@ -489,9 +480,7 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         minHeight: 32,
       },
-      audioRecorderIconStyle: {
-        padding: Styles.globalMargins.tiny,
-      },
+      audioRecorderIconStyle: {padding: Styles.globalMargins.tiny},
       container: {
         alignItems: 'center',
         backgroundColor: Styles.globalColors.fastBlank,
@@ -524,16 +513,12 @@ const styles = Styles.styleSheetCreate(
         margin: Styles.globalMargins.xtiny,
         width: 28,
       },
-      explodingContainer: {
-        borderTopColor: Styles.globalColors.black,
-      },
+      explodingContainer: {borderTopColor: Styles.globalColors.black},
       explodingSendBtn: {
         backgroundColor: Styles.globalColors.black,
         marginRight: Styles.globalMargins.tiny,
       },
-      explodingSendBtnLabel: {
-        color: Styles.globalColors.white,
-      },
+      explodingSendBtnLabel: {color: Styles.globalColors.white},
       explodingText: {
         fontSize: 11,
         lineHeight: 16,
@@ -578,9 +563,7 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
       },
-      sendBtn: {
-        marginRight: Styles.globalMargins.tiny,
-      },
+      sendBtn: {marginRight: Styles.globalMargins.tiny},
       suggestionList: Styles.platformStyles({
         isMobile: {
           backgroundColor: Styles.globalColors.white,
