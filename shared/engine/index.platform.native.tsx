@@ -52,18 +52,18 @@ class NativeTransport extends TransportShared {
     const buf = new Uint8Array(len.length + packed.length)
     buf.set(len, 0)
     buf.set(packed, len.length)
-    const b64 = fromByteArray(buf)
-    if (printRPCBytes) {
-      logger.debug('[RPC] Writing', b64.length, 'chars:', b64)
-    }
     // Pass data over to the native side to be handled
     if (isIOS) {
       // JSI!
       if (isIOS && typeof global.rpcOnGo !== 'function') {
         NativeModules.GoJSIBridge.install()
       }
-      global.rpcOnGo(b64)
+      global.rpcOnGo(buf.buffer)
     } else {
+      const b64 = fromByteArray(buf)
+      if (printRPCBytes) {
+        logger.debug('[RPC] Writing', b64.length, 'chars:', b64)
+      }
       nativeBridge.runWithData(b64)
     }
     return true

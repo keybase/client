@@ -64,23 +64,39 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
     return [standardUserDefaults stringForKey:key];
 }
 
+NSArray *convertJSIArrayToNSData(
+                                   jsi::Runtime &runtime,
+                                   const jsi::Array &value)
+ {
+     size_t size = value.size(runtime);
+     NSMutableArray *result = [NSMutableArray new];
+     for (size_t i = 0; i < size; i++) {
+         // Insert kCFNull when it's `undefined` value to preserve the indices.
+         [result
+          addObject:convertJSIValueToObjCObject(runtime, value.getValueAtIndex(runtime, i)) ?: (id)kCFNull];
+     }
+     return [result copy];
+ }
+
 static void install(jsi::Runtime &jsiRuntime, GoJSIBridge *goJSIBridge) {
   auto rpcOnGo = Function::createFromHostFunction(jsiRuntime,
-                                                  PropNameID::forAscii(jsiRuntime,
-                                                                       "rpcOnGo"),
-                                                  1,
-                                                  [goJSIBridge](Runtime &runtime,
-                                                           const Value &thisValue,
-                                                           const Value *arguments,
-                                                           size_t count) -> Value {
-      
-      NSString *s = convertJSIStringToNSString(runtime, arguments[0].getString(runtime));
-    NSError *error = nil;
-    [_engine rpcToGo:s];
-    if (error) {
-      NSLog(@"Error writing data: %@", error);
-    }
-      return Value(true);
+    PropNameID::forAscii(jsiRuntime, "rpcOnGo"),
+    1,
+    [goJSIBridge](Runtime &runtime,
+                  const Value &thisValue,
+                  const Value *arguments,
+                  size_t count) -> Value {
+    auto obj =arguments[0].asObject(runtime);
+    auto buffer = obj.getArrayBuffer(runtime);
+    auto ptr = buffer.data(runtime);
+    auto size = buffer.size(runtime);
+    NSData * result = [NSData dataWithBytes:ptr length:size];
+    NSString * str = [result base64EncodedStringWithOptions:0];
+    // the old api works but passing a raw buffer seems to not yet
+    [_engine rpcToGoTEMP:str];
+
+//    [_engine rpcToGo: [result];
+    return Value(true);
   });
   jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", move(rpcOnGo));
   

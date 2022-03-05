@@ -98,14 +98,21 @@ static NSString *const metaEventEngineReset = @"engine-reset";
   [self startReadLoop];
 }
 
-- (void)rpcToGo:(NSString *)data {
+- (void)rpcToGo:(NSData *)data {
   NSError *error = nil;
-  KeybaseWriteB64(data, &error);
+  KeybaseWriteArr(data, &error);
   if (error) {
     NSLog(@"Error writing data: %@", error);
   }
 }
-
+// just to test TEMP
+- (void)rpcToGoTEMP:(NSString *)s {
+  NSError *error = nil;
+  KeybaseWriteB64(s, &error);
+  if (error) {
+    NSLog(@"Error writing data: %@", error);
+  }
+}
 - (void)runWithData:(NSString *)data {
   dispatch_async(self.writeQueue, ^{
     NSError *error = nil;

@@ -374,6 +374,22 @@ func WriteB64(str string) (err error) {
 	return nil
 }
 
+// WriteArr sends raw bytes encoded msgpack rpc payload
+func WriteArr(bytes []byte) (err error) {
+	defer func() { err = flattenError(err) }()
+	if conn == nil {
+		return errors.New("connection not initialized")
+	}
+	n, err := conn.Write(bytes)
+	if err != nil {
+		return fmt.Errorf("Write error: %s", err)
+	}
+	if n != len(bytes) {
+		return errors.New("Did not write all the data")
+	}
+	return nil
+}
+
 const targetBufferSize = 300 * 1024
 
 // bufferSize must be divisible by 3 to ensure that we don't split
