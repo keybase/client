@@ -90,12 +90,8 @@ static void install(jsi::Runtime &jsiRuntime, GoJSIBridge *goJSIBridge) {
     auto buffer = obj.getArrayBuffer(runtime);
     auto ptr = buffer.data(runtime);
     auto size = buffer.size(runtime);
-    NSData * result = [NSData dataWithBytes:ptr length:size];
-    NSString * str = [result base64EncodedStringWithOptions:0];
-    // the old api works but passing a raw buffer seems to not yet
-    [_engine rpcToGoTEMP:str];
-
-//    [_engine rpcToGo: [result];
+    NSData * result = [NSData dataWithBytesNoCopy:ptr length:size freeWhenDone:NO];
+    [_engine rpcToGo: result];
     return Value(true);
   });
   jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", move(rpcOnGo));

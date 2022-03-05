@@ -375,7 +375,9 @@ func WriteB64(str string) (err error) {
 }
 
 // WriteArr sends raw bytes encoded msgpack rpc payload
-func WriteArr(bytes []byte) (err error) {
+func WriteArr(b []byte) (err error) {
+	bytes := make([]byte, len(b))
+	copy(bytes, b)
 	defer func() { err = flattenError(err) }()
 	if conn == nil {
 		return errors.New("connection not initialized")

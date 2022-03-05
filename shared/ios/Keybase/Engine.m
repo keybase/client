@@ -105,14 +105,7 @@ static NSString *const metaEventEngineReset = @"engine-reset";
     NSLog(@"Error writing data: %@", error);
   }
 }
-// just to test TEMP
-- (void)rpcToGoTEMP:(NSString *)s {
-  NSError *error = nil;
-  KeybaseWriteB64(s, &error);
-  if (error) {
-    NSLog(@"Error writing data: %@", error);
-  }
-}
+
 - (void)runWithData:(NSString *)data {
   dispatch_async(self.writeQueue, ^{
     NSError *error = nil;
