@@ -81,20 +81,27 @@ function createClient(
 
   nativeBridge.start()
 
-  let packetizeCount = 0
-  // This is how the RN side writes back to us
-  RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
-    if (printRPCBytes) {
-      logger.debug('[RPC] Read', payload.length, 'chars:', payload)
+  if (isIOS) {
+    global.rpcOnJs = buf => {
+      const buffer = toBuffer(buf)
+      client.transport.packetize_data(buffer)
     }
+  } else {
+    let packetizeCount = 0
+    // This is how the RN side writes back to us
+    RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
+      if (printRPCBytes) {
+        logger.debug('[RPC] Read', payload.length, 'chars:', payload)
+      }
 
-    const buffer = toBuffer(toByteArray(payload))
-    const measureName = `packetize${packetizeCount++}:${buffer.length}`
-    measureStart(measureName)
-    const ret = client.transport.packetize_data(buffer)
-    measureStop(measureName)
-    return ret
-  })
+      const buffer = toBuffer(toByteArray(payload))
+      const measureName = `packetize${packetizeCount++}:${buffer.length}`
+      measureStart(measureName)
+      const ret = client.transport.packetize_data(buffer)
+      measureStop(measureName)
+      return ret
+    })
+  }
 
   RNEmitter.addListener(nativeBridge.metaEventName, (payload: string) => {
     switch (payload) {

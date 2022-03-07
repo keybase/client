@@ -43,7 +43,6 @@
 		DB190420275A898B00E85B2E /* keybase.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60B93983273F902C00A226FF /* keybase.xcframework */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
-		DB779E0227D2B49200CDB0F7 /* YeetJSIUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = DB779E0127D2B49200CDB0F7 /* YeetJSIUtils.mm */; };
 		DB779E0627D2B96600CDB0F7 /* GoJSIBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = DB779E0527D2B96600CDB0F7 /* GoJSIBridge.mm */; };
 		DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6121D9C4A8100312652 /* AppDelegate.m */; };
 		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
@@ -153,8 +152,6 @@
 		DB27DE561D747A6C003DE8BC /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
 		DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		DB779DFC27D2AD0B00CDB0F7 /* GoJSIBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GoJSIBridge.h; sourceTree = "<group>"; };
-		DB779E0027D2B44400CDB0F7 /* YeetJSIUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YeetJSIUtils.h; sourceTree = "<group>"; };
-		DB779E0127D2B49200CDB0F7 /* YeetJSIUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = YeetJSIUtils.mm; sourceTree = "<group>"; };
 		DB779E0527D2B96600CDB0F7 /* GoJSIBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GoJSIBridge.mm; sourceTree = "<group>"; };
 		DBBCC6111D9C4A8100312652 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DBBCC6121D9C4A8100312652 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -366,8 +363,6 @@
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
 				DB07050422E21B8B002F273D /* KeepThisFile.swift */,
-				DB779E0027D2B44400CDB0F7 /* YeetJSIUtils.h */,
-				DB779E0127D2B49200CDB0F7 /* YeetJSIUtils.mm */,
 				DBCE36231B90F14800ECADDE /* Engine.h */,
 				DBCE36241B90F14800ECADDE /* Engine.m */,
 				DBBCC6171D9C5C6A00312652 /* main.m */,
@@ -675,7 +670,6 @@
 				DB27DE571D747A6C003DE8BC /* Utils.m in Sources */,
 				DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */,
 				DBEE30861FE8511F0020EBA5 /* DDFileLogger.m in Sources */,
-				DB779E0227D2B49200CDB0F7 /* YeetJSIUtils.mm in Sources */,
 				DBEE30871FE8511F0020EBA5 /* DDASLLogCapture.m in Sources */,
 				DBEE30801FE8511F0020EBA5 /* DDTTYLogger.m in Sources */,
 				DBEE30841FE8511F0020EBA5 /* DDAbstractDatabaseLogger.m in Sources */,

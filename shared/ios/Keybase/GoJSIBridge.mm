@@ -3,10 +3,11 @@
 #import <React/RCTUtils.h>
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
-#import "YeetJSIUtils.h"
+#import <cstring>
 #import <React/RCTBridge+Private.h>
 
 using namespace facebook::jsi;
+using namespace facebook;
 using namespace std;
 
 static Engine * _engine = nil;
@@ -19,7 +20,6 @@ static Engine * _engine = nil;
 RCT_EXPORT_MODULE()
 
 + (BOOL)requiresMainQueueSetup {
-    
     return YES;
 }
 
@@ -37,56 +37,36 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
         return @false;
     }
 
-    auto jsiRuntime = (jsi::Runtime*) cxxBridge.runtime;
+    auto jsiRuntime = (Runtime*)cxxBridge.runtime;
     if (jsiRuntime == nil) {
         return @false;
     }
 
-    install(*(facebook::jsi::Runtime *)jsiRuntime, self);
+    install(*(Runtime *)jsiRuntime, self);
     return @true;
 }
 
+static Runtime *g_jsiRuntime = nullptr;
 
-- (NSString *) getModel {
-    struct utsname systemInfo;
-    uname(&systemInfo);
-    return [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding];
++ (void)sendToJS:(NSData*)data {
+  Runtime & runtime = *g_jsiRuntime;
+  Function rpcOnJs = runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
+  Function arrayBufferCtor = runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
+  int kSize = (int)[data length];
+  Value v = arrayBufferCtor.callAsConstructor(runtime, kSize);
+  Object o = v.getObject(runtime);
+  ArrayBuffer buf = o.getArrayBuffer(runtime);
+  std::memcpy(buf.data(runtime), [data bytes], kSize);
+  rpcOnJs.call(runtime, move(v), 1);
 }
 
-- (void) setItem:(NSString * )key :(NSString *)value {
-    NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
-    [standardUserDefaults setObject:value forKey:key];
-    [standardUserDefaults synchronize];
-}
-
-- (NSString *)getItem:(NSString *)key {
-    NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
-    return [standardUserDefaults stringForKey:key];
-}
-
-NSArray *convertJSIArrayToNSData(
-                                   jsi::Runtime &runtime,
-                                   const jsi::Array &value)
- {
-     size_t size = value.size(runtime);
-     NSMutableArray *result = [NSMutableArray new];
-     for (size_t i = 0; i < size; i++) {
-         // Insert kCFNull when it's `undefined` value to preserve the indices.
-         [result
-          addObject:convertJSIValueToObjCObject(runtime, value.getValueAtIndex(runtime, i)) ?: (id)kCFNull];
-     }
-     return [result copy];
- }
-
-static void install(jsi::Runtime &jsiRuntime, GoJSIBridge *goJSIBridge) {
+static void install(Runtime &jsiRuntime, GoJSIBridge *goJSIBridge) {
+  g_jsiRuntime = &jsiRuntime;
   auto rpcOnGo = Function::createFromHostFunction(jsiRuntime,
     PropNameID::forAscii(jsiRuntime, "rpcOnGo"),
     1,
-    [goJSIBridge](Runtime &runtime,
-                  const Value &thisValue,
-                  const Value *arguments,
-                  size_t count) -> Value {
-    auto obj =arguments[0].asObject(runtime);
+    [goJSIBridge](Runtime &runtime, const Value &thisValue, const Value *arguments, size_t count) -> Value {
+    auto obj = arguments[0].asObject(runtime);
     auto buffer = obj.getArrayBuffer(runtime);
     auto ptr = buffer.data(runtime);
     auto size = buffer.size(runtime);
@@ -95,55 +75,6 @@ static void install(jsi::Runtime &jsiRuntime, GoJSIBridge *goJSIBridge) {
     return Value(true);
   });
   jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", move(rpcOnGo));
-  
-   /* auto getDeviceName = Function::createFromHostFunction(jsiRuntime,
-                                                          PropNameID::forAscii(jsiRuntime,
-                                                                               "getDeviceName"),
-                                                          0,
-                                                          [goJSIBridge](Runtime &runtime,
-                                                                   const Value &thisValue,
-                                                                   const Value *arguments,
-                                                                   size_t count) -> Value {
-        jsi::String deviceName = convertNSStringToJSIString(runtime, [goJSIBridge getModel]);
-        return Value(runtime, deviceName);
-    });
-    
-    jsiRuntime.global().setProperty(jsiRuntime, "getDeviceName", move(getDeviceName));
-    
-    auto setItem = Function::createFromHostFunction(jsiRuntime,
-                                                    PropNameID::forAscii(jsiRuntime,
-                                                                         "setItem"),
-                                                    2,
-                                                    [goJSIBridge](Runtime &runtime,
-                                                             const Value &thisValue,
-                                                             const Value *arguments,
-                                                             size_t count) -> Value {
-        
-        NSString *key = convertJSIStringToNSString(runtime, arguments[0].getString(runtime));
-        NSString *value = convertJSIStringToNSString(runtime, arguments[1].getString(runtime));
-        [goJSIBridge setItem:key :value];
-        return Value(true);
-    });
-    
-    jsiRuntime.global().setProperty(jsiRuntime, "setItem", move(setItem));
-    
-    
-    auto getItem = Function::createFromHostFunction(jsiRuntime,
-                                                    PropNameID::forAscii(jsiRuntime,
-                                                                         "getItem"),
-                                                    0,
-                                                    [goJSIBridge](Runtime &runtime,
-                                                             const Value &thisValue,
-                                                             const Value *arguments,
-                                                             size_t count) -> Value {
-        
-        NSString *key = convertJSIStringToNSString(runtime, arguments[0].getString(runtime));
-        NSString *value = [goJSIBridge getItem:key];
-        return Value(runtime, convertNSStringToJSIString(runtime, value));
-    });
-    
-    jsiRuntime.global().setProperty(jsiRuntime, "getItem", move(getItem));
-    */
 }
 
 @end
