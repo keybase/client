@@ -5,6 +5,7 @@
 #import <sys/utsname.h>
 #import <cstring>
 #import <React/RCTBridge+Private.h>
+#import "AppDelegate.h"
 
 using namespace facebook::jsi;
 using namespace facebook;
@@ -27,6 +28,10 @@ RCT_EXPORT_MODULE()
   _engine = engine;
 }
 
+
+static Runtime *g_jsiRuntime = nullptr;
+static RCTCxxBridge * g_cxxBridge = nullptr;
+
 // Installing JSI Bindings as done by
 // https://github.com/mrousavy/react-native-mmkv
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
@@ -42,26 +47,31 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
         return @false;
     }
 
+    g_jsiRuntime = jsiRuntime;
+    g_cxxBridge = cxxBridge;
     install(*(Runtime *)jsiRuntime, self);
     return @true;
 }
 
-static Runtime *g_jsiRuntime = nullptr;
-
 + (void)sendToJS:(NSData*)data {
-  Runtime & runtime = *g_jsiRuntime;
-  Function rpcOnJs = runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
-  Function arrayBufferCtor = runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
   int kSize = (int)[data length];
-  Value v = arrayBufferCtor.callAsConstructor(runtime, kSize);
-  Object o = v.getObject(runtime);
-  ArrayBuffer buf = o.getArrayBuffer(runtime);
-  std::memcpy(buf.data(runtime), [data bytes], kSize);
-  rpcOnJs.call(runtime, move(v), 1);
+  std::shared_ptr<uint8_t> sData(new uint8_t[kSize], std::default_delete<uint8_t[]>());
+  memcpy(sData.get(), [data bytes], [data length]);
+  
+  auto invoker = [g_cxxBridge jsCallInvoker];
+  invoker->invokeAsync([sData, kSize]() {
+    Runtime & runtime = *g_jsiRuntime;
+    Function rpcOnJs = runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
+    Function arrayBufferCtor = runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
+    Value v = arrayBufferCtor.callAsConstructor(runtime, kSize);
+    Object o = v.getObject(runtime);
+    ArrayBuffer buf = o.getArrayBuffer(runtime);
+    std::memcpy(buf.data(runtime), sData.get(), kSize);
+    rpcOnJs.call(runtime, move(v), 1);
+  });
 }
 
 static void install(Runtime &jsiRuntime, GoJSIBridge *goJSIBridge) {
-  g_jsiRuntime = &jsiRuntime;
   auto rpcOnGo = Function::createFromHostFunction(jsiRuntime,
     PropNameID::forAscii(jsiRuntime, "rpcOnGo"),
     1,

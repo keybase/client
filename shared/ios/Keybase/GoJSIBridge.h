@@ -5,5 +5,5 @@
 
 @property (nonatomic, assign) BOOL setBridgeOnMainQueue;
   + (void)setEngine:(Engine *)engine;
-+ (void)sendToJS:(NSData*)data;
+  + (void)sendToJS:(NSData*)data;
 @end
