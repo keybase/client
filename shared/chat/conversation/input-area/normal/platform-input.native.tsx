@@ -1,22 +1,25 @@
-import * as ImagePicker from 'expo-image-picker'
-import * as React from 'react'
-import * as Kb from '../../../../common-adapters/mobile.native'
-import * as Styles from '../../../../styles'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as ConfigGen from '../../../../actions/config-gen'
 import * as Container from '../../../../util/container'
-import {isLargeScreen} from '../../../../constants/platform'
-import {LayoutEvent} from '../../../../common-adapters/box'
+import * as Kb from '../../../../common-adapters'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as Styles from '../../../../styles'
+import AudioRecorder from '../../../audio/audio-recorder.native'
+import FilePickerPopup from '../filepicker-popup'
+import HWKeyboardEvent from 'react-native-hw-keyboard-event'
+import MoreMenuPopup from './moremenu-popup'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import Typing from './typing/container'
-import FilePickerPopup from '../filepicker-popup'
-import MoreMenuPopup from './moremenu-popup'
-import {PlatformInputPropsInternal} from './platform-input'
-import AddSuggestors, {standardTransformer} from '../suggestors'
-import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
+import type * as ImagePicker from 'expo-image-picker'
+import type * as Types from '../../../../constants/types/chat2'
+import type {LayoutEvent} from '../../../../common-adapters/box'
+import type {Props} from './platform-input'
+import {NativeKeyboard, ReAnimated} from '../../../../common-adapters/mobile.native'
 import {formatDurationShort} from '../../../../util/timestamp'
-import {indefiniteArticle} from '../../../../util/string'
 import {isOpen} from '../../../../util/keyboard'
-import AudioRecorder from '../../../audio/audio-recorder.native'
+import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
+import {standardTransformer} from '../suggestors/common'
+import {useSuggestors} from '../suggestors'
 import {
   AnimatedBox2,
   AnimatedIcon,
@@ -24,333 +27,37 @@ import {
   runToggle,
   runRotateToggle,
 } from './platform-input-animation.native'
-import HWKeyboardEvent from 'react-native-hw-keyboard-event'
 
-type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
-
-type State = {
-  animating: boolean // delayed due to setstate, updates after
-  afterAnimatingExtraStepWorkaround: boolean // used to twiddle height
-  expanded: boolean
-  hasText: boolean
-}
-
+type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 const defaultMaxHeight = 145
-const {block, Value, Clock, add, concat} = Kb.ReAnimated
-
-class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, State> {
-  private input: null | Kb.PlainInput = null
-  private lastText?: string
-  private whichMenu?: menuType
-  private clock = new Clock()
-  private animateState = new Value<AnimationState>(AnimationState.none)
-  private animateHeight = new Value<number>(defaultMaxHeight)
-  // if we should update lastHeight when onLayout happens
-  private watchSizeChanges = true
-  private lastHeight: undefined | number
-  private rotate = new Value<number>(0)
-  private rotateClock = new Clock()
-
-  state = {
-    afterAnimatingExtraStepWorkaround: false,
-    animating: false,
-    expanded: false, // updates immediately, used for the icon etc
-    hasText: false,
-  }
-
-  private inputSetRef = (ref: null | Kb.PlainInput) => {
-    this.input = ref
-    this.props.inputSetRef(ref)
-    // @ts-ignore this is probably wrong: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
-    this.props.inputRef.current = ref
-  }
-
-  private openFilePicker = () => {
-    this.toggleShowingMenu('filepickerpopup')
-  }
-  private openMoreMenu = () => {
-    this.toggleShowingMenu('moremenu')
-  }
-
-  private launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
-    const handleSelection = (result: ImagePicker.ImagePickerResult) => {
-      if (result.cancelled || !this.props.conversationIDKey) {
-        return
-      }
-      const filename = parseUri(result)
-      if (filename) {
-        this.props.onAttach([filename])
-      }
-    }
-
-    switch (location) {
-      case 'camera':
-        launchCameraAsync(mediaType)
-          .then(handleSelection)
-          .catch(error => this.props.onFilePickerError(new Error(error)))
-        break
-      case 'library':
-        launchImageLibraryAsync(mediaType)
-          .then(handleSelection)
-          .catch(error => this.props.onFilePickerError(new Error(error)))
-        break
-    }
-  }
-
-  // Enter should send a message like on desktop, when a hardware keyboard's
-  // attached.  On Android we get "hardware" keypresses from soft keyboards,
-  // so check whether a soft keyboard's up.
-  private handleHardwareEnterPress = (hwKeyEvent: {pressedKey: string}) => {
-    switch (hwKeyEvent.pressedKey) {
-      case 'enter':
-        Styles.isIOS || !isOpen() ? this.onSubmit() : this.insertText('\n')
-        break
-      case 'shift-enter':
-        this.insertText('\n')
-    }
-  }
-
-  componentDidMount() {
-    // @ts-ignore supplied type seems incorrect, has the onHWKeyPressed param as an object
-    HWKeyboardEvent.onHWKeyPressed(this.handleHardwareEnterPress)
-  }
-
-  componentWillUnmount() {
-    HWKeyboardEvent.removeOnHWKeyPressed()
-  }
-
-  private getText = () => {
-    return this.lastText || ''
-  }
-
-  private onChangeText = (text: string) => {
-    this.setState({hasText: !!text})
-    this.lastText = text
-    this.props.onChangeText(text)
-    this.watchSizeChanges = true
-  }
-
-  private onSubmit = () => {
-    const text = this.getText()
-    if (text) {
-      this.props.onSubmit(text)
-      if (this.state.expanded) {
-        this.toggleExpandInput()
-      }
-    }
-  }
-
-  private toggleShowingMenu = (menu: menuType) => {
-    // Hide the keyboard on mobile when showing the menu.
-    Kb.NativeKeyboard.dismiss()
-    this.whichMenu = menu
-    this.props.toggleShowingMenu()
-  }
-
-  private onLayout = (p: LayoutEvent) => {
-    const {nativeEvent} = p
-    const {layout} = nativeEvent
-    const {height} = layout
-    if (this.watchSizeChanges) {
-      this.lastHeight = height
-      this.animateHeight.setValue(height)
-    }
-    this.props.setHeight(height)
-  }
-
-  private insertText = (toInsert: string) => {
-    if (this.input) {
-      const input = this.input
-      input.focus()
-      input.transformText(
-        ({selection: {end, start}, text}) =>
-          standardTransformer(toInsert, {position: {end, start}, text}, true),
-        true
-      )
-    }
-  }
-
-  private insertMentionMarker = () => {
-    this.insertText('@')
-  }
-
-  private getHintText = () => {
-    if (this.props.isExploding) {
-      return isLargeScreen ? `Write an exploding message` : 'Exploding message'
-    } else if (this.props.isEditing) {
-      return 'Edit your message'
-    } else if (this.props.cannotWrite) {
-      return `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
-        this.props.minWriterRole
-      } to post.`
-    }
-    return this.props.inputHintText || 'Write a message'
-  }
-
-  private getMenu = () => {
-    return this.props.showingMenu && this.whichMenu === 'filepickerpopup' ? (
-      <FilePickerPopup
-        attachTo={this.props.getAttachmentRef}
-        visible={this.props.showingMenu}
-        onHidden={this.props.toggleShowingMenu}
-        onSelect={this.launchNativeImagePicker}
-      />
-    ) : this.whichMenu === 'moremenu' ? (
-      <MoreMenuPopup
-        conversationIDKey={this.props.conversationIDKey}
-        onHidden={this.props.toggleShowingMenu}
-        visible={this.props.showingMenu}
-      />
-    ) : (
-      <SetExplodingMessagePicker
-        attachTo={this.props.getAttachmentRef}
-        conversationIDKey={this.props.conversationIDKey}
-        onHidden={this.props.toggleShowingMenu}
-        visible={this.props.showingMenu}
-      />
-    )
-  }
-
-  private onDone = () => {
-    this.setState({animating: false}, () => {
-      this.setState({afterAnimatingExtraStepWorkaround: false})
-    })
-  }
-
-  private toggleExpandInput = () => {
-    this.watchSizeChanges = false
-    // eslint-disable-next-line react/no-access-state-in-setstate
-    const nextState = !this.state.expanded
-    this.setState({afterAnimatingExtraStepWorkaround: true, expanded: nextState}, () =>
-      this.props.onExpanded(nextState)
-    )
-    this.setState({animating: true}, () => {
-      this.animateState.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
-    })
-  }
-
-  render() {
-    const {suggestionsVisible, onCancelEditing, isEditing} = this.props
-    const {conversationIDKey, cannotWrite, onBlur, onFocus, onSelectionChange, maxInputArea} = this.props
-    const {isExploding, explodingModeSeconds, showTypingStatus} = this.props
-
-    return (
-      <AnimatedBox2
-        direction="vertical"
-        onLayout={this.onLayout}
-        fullWidth={true}
-        style={[
-          {
-            flexShrink: 1,
-            minHeight: 0,
-          },
-          this.state.expanded || this.state.animating
-            ? {height: this.animateHeight, maxHeight: 9999}
-            : // workaround auto height not working?
-            this.state.afterAnimatingExtraStepWorkaround
-            ? {
-                height: this.lastHeight,
-                maxHeight: defaultMaxHeight,
-              }
-            : {height: undefined, maxHeight: defaultMaxHeight},
-        ]}
-      >
-        <Kb.ReAnimated.Code>
-          {() => block([runRotateToggle(this.rotateClock, this.animateState, this.rotate)])}
-        </Kb.ReAnimated.Code>
-        <Kb.ReAnimated.Code key={this.lastHeight}>
-          {() =>
-            block([
-              runToggle(
-                this.clock,
-                this.animateState,
-                this.animateHeight,
-                this.lastHeight,
-                maxInputArea ?? Styles.dimensionHeight,
-                this.onDone
-              ),
-            ])
-          }
-        </Kb.ReAnimated.Code>
-        {this.getMenu()}
-        {showTypingStatus && !suggestionsVisible && <Typing conversationIDKey={conversationIDKey} />}
-        <Kb.Box2
-          direction="vertical"
-          style={Styles.collapseStyles([
-            styles.container,
-            isExploding && styles.explodingContainer,
-            (this.state.expanded || this.state.animating) && {height: '100%', minHeight: 0},
-          ])}
-          fullWidth={true}
-        >
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
-            <Kb.PlainInput
-              autoCorrect={true}
-              autoCapitalize="sentences"
-              disabled={cannotWrite ?? false}
-              placeholder={this.getHintText()}
-              multiline={true}
-              onBlur={onBlur}
-              onFocus={onFocus}
-              // TODO: Call onCancelQuoting on text change or selection
-              // change to match desktop.
-              onChangeText={this.onChangeText}
-              onSelectionChange={onSelectionChange}
-              ref={this.inputSetRef}
-              style={styles.input}
-              textType="Body"
-              rowsMin={1}
-            />
-            <AnimatedExpand expandInput={this.toggleExpandInput} rotate={this.rotate} />
-          </Kb.Box2>
-          <Buttons
-            conversationIDKey={conversationIDKey}
-            insertEmoji={this.insertText}
-            insertMentionMarker={this.insertMentionMarker}
-            openFilePicker={this.openFilePicker}
-            openMoreMenu={this.openMoreMenu}
-            onSelectionChange={onSelectionChange}
-            onSubmit={this.onSubmit}
-            hasText={this.state.hasText}
-            isEditing={isEditing}
-            isExploding={isExploding}
-            explodingModeSeconds={explodingModeSeconds}
-            cannotWrite={cannotWrite}
-            toggleShowingMenu={() => this.toggleShowingMenu('exploding')}
-            onCancelEditing={onCancelEditing}
-          />
-        </Kb.Box2>
-      </AnimatedBox2>
-    )
-  }
-}
+const {block, Value, Clock, add, concat} = ReAnimated
 
 type ButtonsProps = Pick<
-  PlatformInputPropsInternal,
+  Props,
   'conversationIDKey' | 'onSelectionChange' | 'explodingModeSeconds' | 'isExploding' | 'cannotWrite'
 > & {
   hasText: boolean
   isEditing: boolean
-  openMoreMenu: () => void
-  toggleShowingMenu: () => void
-  insertEmoji: (emoji: string) => void
-  insertMentionMarker: () => void
-  openFilePicker: () => void
-  onSubmit: () => void
   onCancelEditing: () => void
+  toggleShowingMenu: () => void
+  insertText: (s: string) => void
+  onSubmit: () => void
+  ourShowMenu: (m: MenuType) => void
 }
 
 const Buttons = (p: ButtonsProps) => {
-  const {
-    conversationIDKey,
-    insertEmoji,
-    insertMentionMarker,
-    openFilePicker,
-    openMoreMenu,
-    onSubmit,
-    onCancelEditing,
-  } = p
+  const {conversationIDKey, insertText, ourShowMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
+  const openFilePicker = React.useCallback(() => {
+    ourShowMenu('filepickerpopup')
+  }, [ourShowMenu])
+  const openMoreMenu = React.useCallback(() => {
+    ourShowMenu('moremenu')
+  }, [ourShowMenu])
+
+  const insertMentionMarker = React.useCallback(() => {
+    insertText('@')
+  }, [insertText])
 
   const dispatch = Container.useDispatch()
   const openEmojiPicker = () =>
@@ -358,7 +65,7 @@ const Buttons = (p: ButtonsProps) => {
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey, onPickAction: insertEmoji},
+            props: {conversationIDKey, onPickAction: insertText},
             selected: 'chatChooseEmoji',
           },
         ],
@@ -416,7 +123,7 @@ const Buttons = (p: ButtonsProps) => {
   )
 }
 
-const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value<number>}) => {
+const AnimatedExpand = (p: {expandInput: () => void; rotate: ReAnimated.Value<number>}) => {
   const {expandInput, rotate} = p
   return (
     <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
@@ -452,7 +159,319 @@ const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value
   )
 }
 
-const PlatformInput = AddSuggestors(_PlatformInput)
+type ChatFilePickerProps = {
+  attachTo: () => React.Component | null
+  showingPopup: boolean
+  toggleShowingPopup: () => void
+  conversationIDKey: Types.ConversationIDKey
+}
+const ChatFilePicker = (p: ChatFilePickerProps) => {
+  const {attachTo, showingPopup, toggleShowingPopup, conversationIDKey} = p
+  const dispatch = Container.useDispatch()
+  const launchNativeImagePicker = React.useCallback(
+    (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
+      const handleSelection = (result: ImagePicker.ImagePickerResult) => {
+        if (result.cancelled || !conversationIDKey) {
+          return
+        }
+        const filename = parseUri(result)
+        if (filename) {
+          const props = {
+            conversationIDKey,
+            pathAndOutboxIDs: [{outboxID: null, path: filename}],
+          }
+          dispatch(
+            RouteTreeGen.createNavigateAppend({
+              path: [{props, selected: 'chatAttachmentGetTitles'}],
+            })
+          )
+        }
+      }
+
+      const onFilePickerError = (error: Error) => {
+        dispatch(ConfigGen.createFilePickerError({error}))
+      }
+      switch (location) {
+        case 'camera':
+          launchCameraAsync(mediaType)
+            .then(handleSelection)
+            .catch(error => onFilePickerError(new Error(error)))
+          break
+        case 'library':
+          launchImageLibraryAsync(mediaType)
+            .then(handleSelection)
+            .catch(error => onFilePickerError(new Error(error)))
+          break
+      }
+    },
+    [dispatch, conversationIDKey]
+  )
+
+  return (
+    <FilePickerPopup
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      onSelect={launchNativeImagePicker}
+    />
+  )
+}
+
+const PlatformInput = (p: Props) => {
+  const [height, setHeight] = React.useState(0)
+  const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
+  const inputRef = React.useRef<Kb.PlainInput | null>(null)
+  const {popup, onChangeText, onBlur, onSelectionChange, onFocus} = useSuggestors({
+    conversationIDKey: p.conversationIDKey,
+    expanded,
+    inputRef,
+    onBlur: p.onBlur,
+    onChangeText: p.onChangeText,
+    onFocus: p.onFocus,
+    onKeyDown: p.onKeyDown,
+    onSelectionChange: p.onSelectionChange,
+    suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
+    suggestionListStyle: Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}]),
+    suggestionOverlayStyle: p.suggestionOverlayStyle,
+    suggestionSpinnerStyle: Styles.collapseStyles([
+      styles.suggestionSpinnerStyle,
+      !!height && {marginBottom: height},
+    ]),
+  })
+  const {cannotWrite, conversationIDKey, isEditing, isExploding, onCancelEditing} = p
+  const {onSubmit, explodingModeSeconds, hintText} = p
+  const {inputSetRef, maxInputArea, showTypingStatus} = p
+
+  const lastText = React.useRef('')
+  const whichMenu = React.useRef<MenuType | undefined>()
+  const clock = React.useRef(new Clock())
+  const animateState = React.useRef(new Value<AnimationState>(AnimationState.none))
+  const animateHeight = React.useRef(new Value<number>(defaultMaxHeight))
+  const lastHeight = React.useRef<undefined | number>()
+  const rotate = React.useRef(new Value<number>(0))
+  const rotateClock = React.useRef(new Clock())
+
+  // if we should update lastHeight when onLayout happens
+  const watchSizeChanges = React.useRef(true)
+
+  const [afterAnimatingExtraStepWorkaround, setAfterAnimatingExtraStepWorkaround] = React.useState(false)
+  const [animating, setAnimating] = React.useState(false)
+  const [hasText, setHasText] = React.useState(false)
+
+  const toggleExpandInput = React.useCallback(() => {
+    watchSizeChanges.current = false
+    const nextState = !expanded
+    setAfterAnimatingExtraStepWorkaround(true)
+    setExpanded(nextState)
+    setAnimating(true)
+    animateState.current.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
+  }, [
+    watchSizeChanges,
+    expanded,
+    setAfterAnimatingExtraStepWorkaround,
+    setExpanded,
+    setAnimating,
+    animateState,
+  ])
+
+  const onSubmit2 = React.useCallback(() => {
+    const text = lastText.current
+    if (text) {
+      onSubmit(text)
+      if (expanded) {
+        toggleExpandInput()
+      }
+    }
+  }, [lastText, onSubmit, expanded, toggleExpandInput])
+
+  const insertText = React.useCallback(
+    (toInsert: string) => {
+      const i = inputRef.current
+      i?.focus()
+      i?.transformText(
+        ({selection: {end, start}, text}) =>
+          standardTransformer(toInsert, {position: {end, start}, text}, true),
+        true
+      )
+      // TODO likely don't need this with nav 6
+      setTimeout(() => {
+        i?.focus()
+      }, 200)
+    },
+    [inputRef]
+  )
+
+  React.useEffect(() => {
+    // Enter should send a message like on desktop, when a hardware keyboard's
+    // attached.  On Android we get "hardware" keypresses from soft keyboards,
+    // so check whether a soft keyboard's up.
+    // @ts-ignore
+    HWKeyboardEvent.onHWKeyPressed((hwKeyEvent: any) => {
+      switch (hwKeyEvent.pressedKey) {
+        case 'enter':
+          Styles.isIOS || !isOpen() ? onSubmit2() : insertText('\n')
+          break
+        case 'shift-enter':
+          insertText('\n')
+      }
+    })
+    return () => {
+      HWKeyboardEvent.removeOnHWKeyPressed()
+    }
+  }, [onSubmit2, insertText])
+
+  const {
+    popup: menu,
+    showingPopup,
+    toggleShowingPopup,
+  } = Kb.usePopup(
+    attachTo => {
+      switch (whichMenu.current) {
+        case 'filepickerpopup':
+          return (
+            <ChatFilePicker
+              attachTo={attachTo}
+              showingPopup={showingPopup}
+              toggleShowingPopup={toggleShowingPopup}
+              conversationIDKey={conversationIDKey}
+            />
+          )
+        case 'moremenu':
+          return (
+            <MoreMenuPopup
+              conversationIDKey={conversationIDKey}
+              onHidden={toggleShowingPopup}
+              visible={showingPopup}
+            />
+          )
+        default:
+          return (
+            <SetExplodingMessagePicker
+              attachTo={attachTo}
+              conversationIDKey={conversationIDKey}
+              onHidden={toggleShowingPopup}
+              visible={showingPopup}
+            />
+          )
+      }
+    },
+    [conversationIDKey]
+  )
+
+  const ourShowMenu = React.useCallback(
+    (menu: MenuType) => {
+      // Hide the keyboard on mobile when showing the menu.
+      NativeKeyboard.dismiss()
+      whichMenu.current = menu
+      toggleShowingPopup()
+    },
+    [whichMenu, toggleShowingPopup]
+  )
+
+  return (
+    <AnimatedBox2
+      direction="vertical"
+      onLayout={(p: LayoutEvent) => {
+        const {nativeEvent} = p
+        const {layout} = nativeEvent
+        const {height} = layout
+        if (watchSizeChanges.current) {
+          lastHeight.current = height
+          animateHeight.current.setValue(height)
+        }
+        setHeight(height)
+      }}
+      fullWidth={true}
+      style={[
+        {
+          flexShrink: 1,
+          minHeight: 0,
+        },
+        expanded || animating
+          ? {height: animateHeight.current, maxHeight: 9999}
+          : // workaround auto height not working?
+          afterAnimatingExtraStepWorkaround
+          ? {height: lastHeight.current, maxHeight: defaultMaxHeight}
+          : {height: undefined, maxHeight: defaultMaxHeight},
+      ]}
+    >
+      {popup}
+      <ReAnimated.Code>
+        {() => block([runRotateToggle(rotateClock.current, animateState.current, rotate.current)])}
+      </ReAnimated.Code>
+      <ReAnimated.Code key={lastHeight.current}>
+        {() =>
+          block([
+            runToggle(
+              clock.current,
+              animateState.current,
+              animateHeight.current,
+              lastHeight.current,
+              maxInputArea ?? Styles.dimensionHeight,
+              () => {
+                setAnimating(false)
+              }
+            ),
+          ])
+        }
+      </ReAnimated.Code>
+      {menu}
+      {showTypingStatus && !popup && <Typing conversationIDKey={conversationIDKey} />}
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([
+          styles.container,
+          isExploding && styles.explodingContainer,
+          (expanded || animating) && {height: '100%', minHeight: 0},
+        ])}
+        fullWidth={true}
+      >
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
+          <Kb.PlainInput
+            autoCorrect={true}
+            autoCapitalize="sentences"
+            disabled={cannotWrite ?? false}
+            placeholder={hintText}
+            multiline={true}
+            onBlur={onBlur}
+            onFocus={onFocus}
+            // TODO: Call onCancelQuoting on text change or selection
+            // change to match desktop.
+            onChangeText={(text: string) => {
+              setHasText(!!text)
+              lastText.current = text
+              onChangeText(text)
+              watchSizeChanges.current = true
+            }}
+            onSelectionChange={onSelectionChange}
+            ref={(ref: null | Kb.PlainInput) => {
+              inputSetRef(ref)
+              inputRef.current = ref
+            }}
+            style={styles.input}
+            textType="Body"
+            rowsMin={1}
+          />
+          <AnimatedExpand expandInput={toggleExpandInput} rotate={rotate.current} />
+        </Kb.Box2>
+        <Buttons
+          conversationIDKey={conversationIDKey}
+          insertText={insertText}
+          ourShowMenu={ourShowMenu}
+          onSelectionChange={onSelectionChange}
+          onSubmit={onSubmit2}
+          hasText={hasText}
+          isEditing={isEditing}
+          isExploding={isExploding}
+          explodingModeSeconds={explodingModeSeconds}
+          cannotWrite={cannotWrite}
+          toggleShowingMenu={() => ourShowMenu('exploding')}
+          onCancelEditing={onCancelEditing}
+        />
+      </Kb.Box2>
+    </AnimatedBox2>
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -461,9 +480,7 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         minHeight: 32,
       },
-      audioRecorderIconStyle: {
-        padding: Styles.globalMargins.tiny,
-      },
+      audioRecorderIconStyle: {padding: Styles.globalMargins.tiny},
       container: {
         alignItems: 'center',
         backgroundColor: Styles.globalColors.fastBlank,
@@ -496,16 +513,12 @@ const styles = Styles.styleSheetCreate(
         margin: Styles.globalMargins.xtiny,
         width: 28,
       },
-      explodingContainer: {
-        borderTopColor: Styles.globalColors.black,
-      },
+      explodingContainer: {borderTopColor: Styles.globalColors.black},
       explodingSendBtn: {
         backgroundColor: Styles.globalColors.black,
         marginRight: Styles.globalMargins.tiny,
       },
-      explodingSendBtnLabel: {
-        color: Styles.globalColors.white,
-      },
+      explodingSendBtnLabel: {color: Styles.globalColors.white},
       explodingText: {
         fontSize: 11,
         lineHeight: 16,
@@ -550,10 +563,25 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
       },
-      sendBtn: {
-        marginRight: Styles.globalMargins.tiny,
-      },
+      sendBtn: {marginRight: Styles.globalMargins.tiny},
+      suggestionList: Styles.platformStyles({
+        isMobile: {
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_10,
+          borderStyle: 'solid',
+          borderTopWidth: 3,
+          maxHeight: '50%',
+          overflow: 'hidden',
+        },
+      }),
+      suggestionSpinnerStyle: Styles.platformStyles({
+        isMobile: {
+          bottom: Styles.globalMargins.small,
+          position: 'absolute',
+          right: Styles.globalMargins.small,
+        },
+      }),
     } as const)
 )
 
-export default Kb.OverlayParentHOC(PlatformInput)
+export default PlatformInput
