@@ -354,7 +354,7 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, tr
 	return string(logSendID), err
 }
 
-// WriteB64 sends a base64 encoded msgpack rpc payload
+// WriteB64 sends a base64 encoded msgpack rpc payload, android only
 func WriteB64(str string) (err error) {
 	defer func() { err = flattenError(err) }()
 	if conn == nil {
@@ -374,6 +374,24 @@ func WriteB64(str string) (err error) {
 	return nil
 }
 
+// WriteArr sends raw bytes encoded msgpack rpc payload, ios only
+func WriteArr(b []byte) (err error) {
+	bytes := make([]byte, len(b))
+	copy(bytes, b)
+	defer func() { err = flattenError(err) }()
+	if conn == nil {
+		return errors.New("connection not initialized")
+	}
+	n, err := conn.Write(bytes)
+	if err != nil {
+		return fmt.Errorf("Write error: %s", err)
+	}
+	if n != len(bytes) {
+		return errors.New("Did not write all the data")
+	}
+	return nil
+}
+
 const targetBufferSize = 300 * 1024
 
 // bufferSize must be divisible by 3 to ensure that we don't split
@@ -384,8 +402,31 @@ const bufferSize = targetBufferSize - (targetBufferSize % 3)
 // buffer for the conn.Read
 var buffer = make([]byte, bufferSize)
 
+// ReadArr is a blocking read for msgpack rpc data.
+// It is called serially by the ios run loops.
+func ReadArr() (data []byte, err error) {
+	defer func() { err = flattenError(err) }()
+	if conn == nil {
+		return nil, errors.New("connection not initialized")
+	}
+	n, err := conn.Read(buffer)
+	if n > 0 && err == nil {
+		return buffer[0:n], nil
+	}
+
+	if err != nil {
+		// Attempt to fix the connection
+		if ierr := Reset(); ierr != nil {
+			fmt.Printf("failed to Reset: %v\n", ierr)
+		}
+		return nil, fmt.Errorf("Read error: %s", err)
+	}
+
+	return nil, nil
+}
+
 // ReadB64 is a blocking read for base64 encoded msgpack rpc data.
-// It is called serially by the mobile run loops.
+// It is called serially by the android run loops.
 func ReadB64() (res string, err error) {
 	defer func() { err = flattenError(err) }()
 	if conn == nil {
