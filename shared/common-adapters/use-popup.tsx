@@ -13,6 +13,10 @@ export const usePopup = <T extends React.Component<any>>(
   const prevExtraData = usePrevious(extraData)
   const dataChanged = prevExtraData ? extraData?.some((d, index) => d !== prevExtraData[index]) : false
 
+  const toggleShowingPopup = React.useCallback(() => {
+    setShowingPopup(s => !s)
+  }, [setShowingPopup])
+
   React.useEffect(() => {
     if (showingPopup === !popup || dataChanged) {
       setPopup(showingPopup ? makePopup(() => popupAnchor.current) : null)
@@ -24,6 +28,6 @@ export const usePopup = <T extends React.Component<any>>(
     popupAnchor,
     setShowingPopup,
     showingPopup,
-    toggleShowingPopup: () => setShowingPopup(!showingPopup),
+    toggleShowingPopup,
   }
 }

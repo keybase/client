@@ -2,16 +2,18 @@ import * as Electron from 'electron'
 import {showDevTools} from '../../local-debug.desktop'
 import flags from '../../util/feature-flags'
 
-function setupDevToolsExtensions() {
-  if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
-    process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
-      try {
-        Electron.BrowserWindow.addDevToolsExtension(p)
-      } catch (e) {
-        console.error('Dev tool loading crash', p, e)
-      }
-    })
-  }
+export function setupDevToolsExtensions() {
+  const exts = process.env.KEYBASE_DEV_TOOL_EXTENSIONS
+  exts?.split(',').forEach(p => {
+    Electron.session.defaultSession
+      .loadExtension(p, {allowFileAccess: true})
+      .then(() => {
+        console.log('loaded devtool', p)
+      })
+      .catch(() => {
+        console.log('failed devtool', p)
+      })
+  })
 }
 
 function setupOpenDevtools() {
@@ -33,14 +35,12 @@ function cleanupOpenDevtools() {
   }
 }
 
-export default function() {
+export default function () {
   if (Electron.app.isReady()) {
     setupOpenDevtools()
-    setupDevToolsExtensions()
   } else {
     Electron.app.on('ready', () => {
       setupOpenDevtools()
-      setupDevToolsExtensions()
     })
   }
 

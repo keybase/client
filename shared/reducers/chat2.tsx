@@ -1255,8 +1255,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     results.emojis.emojis?.forEach(group => {
       group.emojis?.forEach(e => newEmojis.push(e))
     })
-    draftState.userEmojisForAutocomplete = newEmojis
-    draftState.userEmojis = results.emojis?.emojis ?? []
+    if (!isEqual(newEmojis, draftState.userEmojisForAutocomplete)) {
+      draftState.userEmojisForAutocomplete = newEmojis
+    }
+    const userEmojis = results.emojis?.emojis ?? []
+    if (!isEqual(userEmojis, draftState.userEmojis)) {
+      draftState.userEmojis = userEmojis
+    }
   },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {
