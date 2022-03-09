@@ -20,6 +20,22 @@ const hideTabBarStyle = {display: 'none'}
 // so instead we keep a count and only bring back the tab if we're entirely gone
 let focusRefCount = 0
 
+let showDeferId: any = 0
+const deferChangeTabOptions = (tabNav, tabBarStyle, defer) => {
+  if (showDeferId) {
+    clearTimeout(showDeferId)
+  }
+  if (tabNav) {
+    if (defer) {
+      showDeferId = setTimeout(() => {
+        tabNav.setOptions({tabBarStyle})
+      }, 1)
+    } else {
+      tabNav.setOptions({tabBarStyle})
+    }
+  }
+}
+
 const Conversation = (p: SwitchProps) => {
   const navigation = useNavigation()
   let tabNav: any = navigation.getParent()
@@ -30,11 +46,11 @@ const Conversation = (p: SwitchProps) => {
   useFocusEffect(
     React.useCallback(() => {
       ++focusRefCount
-      tabNav && tabNav.setOptions({tabBarStyle: hideTabBarStyle})
+      deferChangeTabOptions(tabNav, hideTabBarStyle, false)
       return () => {
         --focusRefCount
         if (focusRefCount === 0) {
-          tabNav && tabNav.setOptions({tabBarStyle})
+          deferChangeTabOptions(tabNav, tabBarStyle, true)
         }
       }
     }, [tabNav])
