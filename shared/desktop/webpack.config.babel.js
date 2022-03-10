@@ -121,7 +121,7 @@ const config = (_, {mode}) => {
       ],
       resolve: {
         alias,
-        extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json'],
+        extensions: ['.desktop.js', '.desktop.tsx', '.web.js', '.js', '.jsx', '.tsx', '.ts', '.json'],
       },
       ...(isDev
         ? {}

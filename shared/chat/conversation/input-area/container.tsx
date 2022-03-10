@@ -24,32 +24,30 @@ type Props = {
   showThreadSearch: boolean
 } & OwnProps
 
-class InputArea extends React.PureComponent<Props> {
-  render() {
-    if (this.props.noInput) {
-      return null
-    }
-    if (this.props.isPreview) {
-      return <Preview conversationIDKey={this.props.conversationIDKey} />
-    }
-    if (this.props.showThreadSearch && Container.isMobile) {
-      return <ThreadSearch conversationIDKey={this.props.conversationIDKey} />
-    }
-    if (this.props.showAudioSend) {
-      return <AudioSend conversationIDKey={this.props.conversationIDKey} />
-    }
-    return (
-      <Normal
-        focusInputCounter={this.props.focusInputCounter}
-        jumpToRecent={this.props.jumpToRecent}
-        onRequestScrollDown={this.props.onRequestScrollDown}
-        onRequestScrollToBottom={this.props.onRequestScrollToBottom}
-        onRequestScrollUp={this.props.onRequestScrollUp}
-        conversationIDKey={this.props.conversationIDKey}
-        maxInputArea={this.props.maxInputArea}
-      />
-    )
+const InputArea = (p: Props) => {
+  if (p.noInput) {
+    return null
   }
+  if (p.isPreview) {
+    return <Preview conversationIDKey={p.conversationIDKey} />
+  }
+  if (p.showThreadSearch && Container.isMobile) {
+    return <ThreadSearch conversationIDKey={p.conversationIDKey} />
+  }
+  if (p.showAudioSend) {
+    return <AudioSend conversationIDKey={p.conversationIDKey} />
+  }
+  return (
+    <Normal
+      focusInputCounter={p.focusInputCounter}
+      jumpToRecent={p.jumpToRecent}
+      onRequestScrollDown={p.onRequestScrollDown}
+      onRequestScrollToBottom={p.onRequestScrollToBottom}
+      onRequestScrollUp={p.onRequestScrollUp}
+      conversationIDKey={p.conversationIDKey}
+      maxInputArea={p.maxInputArea}
+    />
+  )
 }
 
 export default Container.connect(

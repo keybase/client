@@ -58,10 +58,10 @@ class GiphySearch extends React.Component<Props, State> {
           {this.state.width &&
             (this.props.previews ? (
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-                {(this.props.previews || []).map((p, index) => {
+                {this.props.previews?.map((p, index) => {
                   const margin = -margins[index] / 2 - 1
-                  return (
-                    <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
+                  return p.targetUrl ? (
+                    <Kb.Box2 key={String(index)} direction="horizontal" style={styles.imageContainer}>
                       <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
                         <UnfurlImage
                           autoplayVideo={true}
@@ -74,7 +74,7 @@ class GiphySearch extends React.Component<Props, State> {
                         />
                       </Kb.Box>
                     </Kb.Box2>
-                  )
+                  ) : null
                 })}
               </Kb.Box2>
             ) : (

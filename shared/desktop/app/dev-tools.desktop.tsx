@@ -2,7 +2,7 @@ import * as Electron from 'electron'
 import {showDevTools} from '../../local-debug.desktop'
 import flags from '../../util/feature-flags'
 
-function setupDevToolsExtensions() {
+export function setupDevToolsExtensions() {
   if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
     process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
       Electron.app
@@ -39,11 +39,9 @@ function cleanupOpenDevtools() {
 export default function () {
   if (Electron.app.isReady()) {
     setupOpenDevtools()
-    setupDevToolsExtensions()
   } else {
     Electron.app.on('ready', () => {
       setupOpenDevtools()
-      setupDevToolsExtensions()
     })
   }
 

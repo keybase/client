@@ -535,35 +535,6 @@ export const getParticipantInfo = (
   return participantInfo ? participantInfo : noParticipantInfo
 }
 
-const _getParticipantSuggestionsMemoized = memoize(
-  (
-    teamMembers: Map<string, TeamTypes.MemberInfo> | undefined,
-    participantInfo: Types.ParticipantInfo,
-    infoMap: Map<string, UserTypes.UserInfo>,
-    teamType: Types.TeamType
-  ) => {
-    const usernames = teamMembers
-      ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
-      : participantInfo.all
-    const suggestions = usernames.map(username => ({
-      fullName: infoMap.get(username)?.fullname || '',
-      username,
-    }))
-    if (teamType !== 'adhoc') {
-      const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
-      suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
-    }
-    return suggestions
-  }
-)
-
-export const getParticipantSuggestions = (state: TypedState, id: Types.ConversationIDKey) => {
-  const {teamID, teamType} = getMeta(state, id)
-  const teamMembers = state.teams.teamIDToMembers.get(teamID)
-  const participantInfo = getParticipantInfo(state, id)
-  return _getParticipantSuggestionsMemoized(teamMembers, participantInfo, state.users.infoMap, teamType)
-}
-
 export const messageAuthorIsBot = (
   state: TypedState,
   meta: Types.ConversationMeta,

@@ -1,3 +1,4 @@
+// TODO deprecate
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
@@ -5,7 +6,7 @@ import {PlainInput} from '../../../../common-adapters'
 
 type CommonProps = {
   botRestrictMap?: Map<string, boolean>
-  cannotWrite: boolean | null
+  cannotWrite: boolean
   clearInboxFilter: () => void
   conversationIDKey: Types.ConversationIDKey
   editText: string
@@ -28,8 +29,6 @@ type CommonProps = {
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
   onSubmit: (text: string) => void
-  onChannelSuggestionsTriggered: () => void
-  onFetchEmoji: () => void
   prependText: string | null
   quoteCounter: number
   quoteText: string
