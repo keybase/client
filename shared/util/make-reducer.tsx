@@ -22,9 +22,7 @@ function makeReducer<A, S>(
     if (!actionReducer) {
       return state
     }
-    return produce(state, (draft: Draft<S>) => {
-      return actionReducer(draft, action)
-    })
+    return produce(state, (draft: Draft<S>) => actionReducer(draft, action))
   }
 }
 

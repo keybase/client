@@ -2614,12 +2614,19 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   }
 }
 
-const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
-  const {teamID} = meta
-  return meta.teamname ? TeamsGen.createGetMembers({teamID}) : false
-}
+const maybeLoadTeamFromMeta = async (meta: Types.ConversationMeta) =>
+  new Promise(resolve => {
+    const {teamID} = meta
+    if (meta.teamname) {
+      setTimeout(() => {
+        resolve(TeamsGen.createGetMembers({teamID}))
+      }, 1000)
+    } else {
+      resolve(false)
+    }
+  })
 
-const ensureSelectedTeamLoaded = (
+const ensureSelectedTeamLoaded = async (
   state: Container.TypedState,
   action: Chat2Gen.SelectedConversationPayload | Chat2Gen.MetasReceivedPayload
 ) => {
@@ -2627,7 +2634,7 @@ const ensureSelectedTeamLoaded = (
   const meta = state.chat2.metaMap.get(selectedConversation)
   return meta
     ? action.type === Chat2Gen.selectedConversation || !state.teams.teamIDToMembers.get(meta.teamID)
-      ? maybeLoadTeamFromMeta(meta)
+      ? await maybeLoadTeamFromMeta(meta)
       : false
     : false
 }
@@ -3826,7 +3833,7 @@ function* chat2Saga() {
   // Actually try and unbox conversations
   yield* Saga.chainAction2([Chat2Gen.metaRequestTrusted, Chat2Gen.selectedConversation], unboxRows)
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxConversation, onGetInboxConvsUnboxed)
-  yield* Saga.chainAction(EngineGen.chat1ChatUiChatInboxUnverified, onGetInboxUnverifiedConvs)
+  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxUnverified, onGetInboxUnverifiedConvs)
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxFailed, onGetInboxConvFailed)
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxLayout, maybeChangeSelectedConv)
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxLayout, ensureWidgetMetas)

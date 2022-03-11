@@ -103,7 +103,7 @@ export type TypedActions = _TypedActions
 export type TypedState = _TypedState
 export const compose = flowRight
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
-export {produce, castDraft, castImmutable} from 'immer'
+export {produce, castDraft, castImmutable, current} from 'immer'
 export type Draft<T> = _Draft<T>
 export {default as HiddenString} from './hidden-string'
 export {default as makeReducer} from './make-reducer'
