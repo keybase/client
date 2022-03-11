@@ -187,7 +187,7 @@ type UseHandleKeyEventsProps = {
   checkTrigger: () => void
   filter: string
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.MutableRefObject<(() => void) | undefined>
+  onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
 }
 const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
   const {onKeyDownProps, active, checkTrigger, filter, onMoveRef, onSubmitRef} = p
@@ -217,8 +217,7 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
         shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
-        onSubmitRef.current?.()
-        shouldCallParentCallback = false
+        shouldCallParentCallback = !onSubmitRef.current?.()
       } else if (evt.key === 'Tab') {
         evt.preventDefault()
         if (filter.length) {
@@ -260,8 +259,8 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 
   // tell list to move the selection
   const onMoveRef = React.useRef<(up: boolean) => void>()
-  // tell list we want to submit the selection
-  const onSubmitRef = React.useRef<() => void>()
+  // tell list we want to submit the selection, true if it selected anything
+  const onSubmitRef = React.useRef<() => boolean>()
 
   const {onKeyDown} = useHandleKeyEvents({
     active,
