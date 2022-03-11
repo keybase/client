@@ -15,6 +15,7 @@ import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import {mapGetEnsureValue, mapEqual} from '../util/map'
+import isEqual from 'lodash/isEqual'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload

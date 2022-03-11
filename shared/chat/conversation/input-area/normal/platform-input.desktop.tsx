@@ -205,18 +205,15 @@ type UseKeyboardProps = Pick<
   htmlInputRef: HtmlInputRefType
   onKeyDown?: (evt: React.KeyboardEvent) => void
   onEditLastMessage: () => void
+  onCancelEditing: () => void
 }
 const useKeyboard = (p: UseKeyboardProps) => {
-  const {htmlInputRef, focusInput, isEditing, onKeyDown, conversationIDKey} = p
+  const {htmlInputRef, focusInput, isEditing, onKeyDown, conversationIDKey, onCancelEditing} = p
   const {onChangeText, onEditLastMessage, onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const lastText = React.useRef('')
   const dispatch = Container.useDispatch()
   const onCancelReply = React.useCallback(() => {
     dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
-
-  const onCancelEditing = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
   }, [dispatch, conversationIDKey])
 
   // Key-handling code shared by both the input key handler
@@ -336,7 +333,7 @@ const SideButtons = (p: SideButtonsProps) => {
 
 const PlatformInput = (p: Props) => {
   const {cannotWrite, conversationIDKey, explodingModeSeconds} = p
-  const {showWalletsIcon, onCancelEditing, hintText, inputSetRef, isEditing} = p
+  const {showWalletsIcon, hintText, inputSetRef, isEditing} = p
   const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
@@ -374,6 +371,10 @@ const PlatformInput = (p: Props) => {
       })
     )
   }, [dispatch, conversationIDKey, you])
+
+  const onCancelEditing = React.useCallback(() => {
+    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+  }, [dispatch, conversationIDKey])
 
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
     conversationIDKey,

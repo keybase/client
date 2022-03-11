@@ -44,7 +44,10 @@ const onConnect = async () => {
   }
 }
 
-const onGetInboxUnverifiedConvs = (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
+const onGetInboxUnverifiedConvs = (
+  _s: Container.TypedState,
+  action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload
+) => {
   const {inbox} = action.payload.params
   const result = JSON.parse(inbox) as RPCChatTypes.UnverifiedInboxUIItems
   const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items ?? []
@@ -2614,7 +2617,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   }
 }
 
-const maybeLoadTeamFromMeta = async (meta: Types.ConversationMeta) =>
+const maybeLoadTeamFromMeta = async (meta: Types.ConversationMeta): Promise<Container.TypedActions | false> =>
   new Promise(resolve => {
     const {teamID} = meta
     if (meta.teamname) {
@@ -2629,12 +2632,12 @@ const maybeLoadTeamFromMeta = async (meta: Types.ConversationMeta) =>
 const ensureSelectedTeamLoaded = async (
   state: Container.TypedState,
   action: Chat2Gen.SelectedConversationPayload | Chat2Gen.MetasReceivedPayload
-) => {
+): Promise<Container.TypedActions | false> => {
   const selectedConversation = Constants.getSelectedConversation()
   const meta = state.chat2.metaMap.get(selectedConversation)
   return meta
     ? action.type === Chat2Gen.selectedConversation || !state.teams.teamIDToMembers.get(meta.teamID)
-      ? await maybeLoadTeamFromMeta(meta)
+      ? maybeLoadTeamFromMeta(meta)
       : false
     : false
 }
