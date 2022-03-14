@@ -1,15 +1,24 @@
 import * as React from 'react'
-import {Draft as _Draft} from 'immer'
-import {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
-import {ActionHandler as _ActionHandler} from './make-reducer'
-import {TypedState as _TypedState} from '../constants/reducer'
-import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
+import {type Draft as _Draft, setAutoFreeze} from 'immer'
+import type {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
+import type {ActionHandler as _ActionHandler} from './make-reducer'
+import type {TypedState as _TypedState} from '../constants/reducer'
+import type {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
-import {useSelector as RRuseSelector, useDispatch as RRuseDispatch, TypedUseSelectorHook} from 'react-redux'
-import {Dispatch as RRDispatch} from 'redux'
+import {
+  useSelector as RRuseSelector,
+  useDispatch as RRuseDispatch,
+  type TypedUseSelectorHook,
+} from 'react-redux'
+import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
 import typedConnect from './typed-connect'
+
+// don't pay for this in prod builds
+if (!__DEV__) {
+  setAutoFreeze(false)
+}
 
 // to keep fallback objects static for react
 export const emptyArray: Array<any> = []

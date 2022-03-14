@@ -89,6 +89,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         public void run() {
           do {
               try {
+                  Thread.currentThread().setName("ReadFromKBLib");
                   final String data = readB64();
 
                   if (!reactContext.hasActiveCatalystInstance()) {

@@ -113,8 +113,9 @@ public class MainActivity extends ReactActivity {
     }
     String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
     boolean isIPad = false;
+    boolean isIOS = false;
     initOnce(context.getFilesDir().getPath(), "", context.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-      new DNSNSFetcher(), new VideoHelper(), mobileOsVersion, isIPad, new KBInstallReferrerListener(context));
+      new DNSNSFetcher(), new VideoHelper(), mobileOsVersion, isIPad, new KBInstallReferrerListener(context), isIOS);
 
   }
 
