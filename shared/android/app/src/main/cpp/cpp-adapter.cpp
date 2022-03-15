@@ -82,16 +82,19 @@ static jstring string2jstring(JNIEnv *env, const string &str) {
 }
 
 void install(facebook::jsi::Runtime &jsiRuntime) {
-    auto getDeviceName = Function::createFromHostFunction(jsiRuntime, PropNameID::forAscii(jsiRuntime, "getDeviceName"), 0,
+    auto rpcOnGo = Function::createFromHostFunction(jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1,
       [](Runtime &runtime, const Value &thisValue, const Value *arguments, size_t count) -> Value {
+          string b64 = arguments[0].getString(runtime).utf8(runtime);
           JNIEnv *jniEnv = GetJniEnv();
           java_class = jniEnv->GetObjectClass(java_object);
-          jmethodID getModel = jniEnv->GetMethodID(java_class, "getModel", "()Ljava/lang/String;");
-          jobject result = jniEnv->CallObjectMethod(java_object, getModel);
-          const char *str = jniEnv->GetStringUTFChars((jstring) result, NULL);
-          return Value(runtime, String::createFromUtf8(runtime, str));
+          jmethodID rpcOnGo = jniEnv->GetMethodID(java_class, "rpcOnGo", "(Ljava/lang/String;)V");
+          jstring jstr1 = string2jstring(jniEnv, b64);
+          jvalue params[1];
+          params[0].l = jstr1;
+          jniEnv->CallVoidMethodA(java_object, rpcOnGo, params);
+          return Value(true);
       });
-    jsiRuntime.global().setProperty(jsiRuntime, "getDeviceName", move(getDeviceName));
+    jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", move(rpcOnGo));
 }
 
 extern "C"

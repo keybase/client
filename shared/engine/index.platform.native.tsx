@@ -60,16 +60,18 @@ class NativeTransport extends TransportShared {
       }
       global.rpcOnGo(buf.buffer)
     } else {
-      if (typeof global.getModel !== 'function') {
+      if (typeof global.rpcOnGo !== 'function') {
         NativeModules.GoJSIBridge.install()
-        console.log('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\naaaa ' + global.getDeviceName?.())
       }
-
+      // TODO msgpack
       const b64 = fromByteArray(buf)
-      if (printRPCBytes) {
-        logger.debug('[RPC] Writing', b64.length, 'chars:', b64)
-      }
-      nativeBridge.runWithData(b64)
+      global.rpcOnGo(b64)
+      // global.rpcOnGo(buf.buffer)
+      // const b64 = fromByteArray(buf)
+      // if (printRPCBytes) {
+      //   logger.debug('[RPC] Writing', b64.length, 'chars:', b64)
+      // }
+      // nativeBridge.runWithData(b64)
     }
     return true
   }

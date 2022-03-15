@@ -40,7 +40,6 @@ import me.leolin.shortcutbadger.ShortcutBadger;
 import static io.keybase.ossifrage.MainActivity.isTestDevice;
 import static keybase.Keybase.readB64;
 import static keybase.Keybase.version;
-import static keybase.Keybase.writeB64;
 
 @ReactModule(name = "KeybaseEngine")
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
@@ -199,14 +198,14 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         return constants;
     }
 
-    @ReactMethod
-    public void runWithData(String data) {
-      try {
-          writeB64(data);
-      } catch (Exception e) {
-          NativeLogger.error("Exception in KeybaseEngine.runWithData", e);
-      }
-    }
+//    @ReactMethod
+//    public void runWithData(String data) {
+//      try {
+//          writeB64(data);
+//      } catch (Exception e) {
+//          NativeLogger.error("Exception in KeybaseEngine.runWithData", e);
+//      }
+//    }
 
     @ReactMethod
     public void reset() {
