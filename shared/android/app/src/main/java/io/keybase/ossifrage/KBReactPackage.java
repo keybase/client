@@ -6,10 +6,10 @@ import com.facebook.react.uimanager.ViewManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import io.keybase.ossifrage.modules.GoJSIBridge;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
 import io.keybase.ossifrage.modules.LogSend;
@@ -32,6 +32,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         }
 
         final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext);
+        final GoJSIBridge kbJSI = new GoJSIBridge(reactApplicationContext);
         final LogSend logSend = new LogSend(reactApplicationContext);
         final ScreenProtector screenProtector = new ScreenProtector(reactApplicationContext);
         final NativeSettings nativeSettings = new NativeSettings(reactApplicationContext);
@@ -43,6 +44,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
 
         List<NativeModule> modules = new ArrayList<>();
         modules.add(kbEngine);
+        modules.add(kbJSI);
         modules.add(logSend);
         modules.add(screenProtector);
         modules.add(nativeSettings);

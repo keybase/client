@@ -55,11 +55,16 @@ class NativeTransport extends TransportShared {
     // Pass data over to the native side to be handled
     if (isIOS) {
       // JSI!
-      if (isIOS && typeof global.rpcOnGo !== 'function') {
+      if (typeof global.rpcOnGo !== 'function') {
         NativeModules.GoJSIBridge.install()
       }
       global.rpcOnGo(buf.buffer)
     } else {
+      if (typeof global.getModel !== 'function') {
+        NativeModules.GoJSIBridge.install()
+        console.log('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\naaaa ' + global.getDeviceName?.())
+      }
+
       const b64 = fromByteArray(buf)
       if (printRPCBytes) {
         logger.debug('[RPC] Writing', b64.length, 'chars:', b64)

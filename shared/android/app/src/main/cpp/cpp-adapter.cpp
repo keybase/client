@@ -1,54 +1,106 @@
+// from https://github.com/ammarahm-ed/react-native-jsi-template/blob/master/android/cpp-adapter.cpp
 #include <jni.h>
+#include <sys/types.h>
+#include "pthread.h"
 #include <jsi/jsi.h>
 
-using namespace facebook;
+using namespace facebook::jsi;
+using namespace std;
 
-std::string getPropertyAsStringOrEmptyFromObject(jsi::Object& object, const std::string& propertyName, jsi::Runtime& runtime) {
-    jsi::Value value = object.getProperty(runtime, propertyName.c_str());
-    return value.isString() ? value.asString(runtime).utf8(runtime) : "";
+JavaVM *java_vm;
+jclass java_class;
+jobject java_object;
+
+/**
+ * A simple callback function that allows us to detach current JNI Environment
+ * when the thread
+ * See https://stackoverflow.com/a/30026231 for detailed explanation
+ */
+
+void DeferThreadDetach(JNIEnv *env) {
+    static pthread_key_t thread_key;
+
+    // Set up a Thread Specific Data key, and a callback that
+    // will be executed when a thread is destroyed.
+    // This is only done once, across all threads, and the value
+    // associated with the key for any given thread will initially
+    // be NULL.
+    static auto run_once = [] {
+        const auto err = pthread_key_create(&thread_key, [](void *ts_env) {
+            if (ts_env) {
+                java_vm->DetachCurrentThread();
+            }
+        });
+        if (err) {
+            // Failed to create TSD key. Throw an exception if you want to.
+        }
+        return 0;
+    }();
+
+    // For the callback to actually be executed when a thread exits
+    // we need to associate a non-NULL value with the key on that thread.
+    // We can use the JNIEnv* as that value.
+    const auto ts_env = pthread_getspecific(thread_key);
+    if (!ts_env) {
+        if (pthread_setspecific(thread_key, env)) {
+            // Failed to set thread-specific value for key. Throw an exception if you want to.
+        }
+    }
 }
 
-void install(jsi::Runtime& jsiRuntime) {
-    // MMKV.createNewInstance()
-    // auto mmkvCreateNewInstance = jsi::Function::createFromHostFunction(jsiRuntime,
-    //                                                                    jsi::PropNameID::forAscii(jsiRuntime, "temp"),
-    //                                                                    1,
-    //                                                                    [](jsi::Runtime& runtime,
-    //                                                                       const jsi::Value& thisValue,
-    //                                                                       const jsi::Value* arguments,
-    //                                                                       size_t count) -> jsi::Value {
-    //                                                                      jsi::Object config = arguments[0].asObject(runtime);
-    //                                                                      return jsi::Object::createFromHostObject(runtime, instance);
-    //                                                                    });
-    // jsiRuntime.global().setProperty(jsiRuntime, "mmkvCreateNewInstance", std::move(mmkvCreateNewInstance));
+/**
+ * Get a JNIEnv* valid for this thread, regardless of whether
+ * we're on a native thread or a Java thread.
+ * If the calling thread is not currently attached to the JVM
+ * it will be attached, and then automatically detached when the
+ * thread is destroyed.
+ *
+ * See https://stackoverflow.com/a/30026231 for detailed explanation
+ */
+JNIEnv *GetJniEnv() {
+    JNIEnv *env = nullptr;
+    // We still call GetEnv first to detect if the thread already
+    // is attached. This is done to avoid setting up a DetachCurrentThread
+    // call on a Java thread.
+
+    // g_vm is a global.
+    auto get_env_result = java_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+    if (get_env_result == JNI_EDETACHED) {
+        if (java_vm->AttachCurrentThread(&env, NULL) == JNI_OK) {
+            DeferThreadDetach(env);
+        } else {
+            // Failed to attach thread. Throw an exception if you want to.
+        }
+    } else if (get_env_result == JNI_EVERSION) {
+        // Unsupported JNI version. Throw an exception if you want to.
+    }
+    return env;
 }
 
-// std::string jstringToStdString(JNIEnv *env, jstring jStr) {
-//     if (!jStr) return "";
+static jstring string2jstring(JNIEnv *env, const string &str) {
+    return (*env).NewStringUTF(str.c_str());
+}
 
-//     const auto stringClass = env->GetObjectClass(jStr);
-//     const auto getBytes = env->GetMethodID(stringClass, "getBytes", "(Ljava/lang/String;)[B");
-//     const auto stringJbytes = (jbyteArray) env->CallObjectMethod(jStr, getBytes, env->NewStringUTF("UTF-8"));
+void install(facebook::jsi::Runtime &jsiRuntime) {
+    auto getDeviceName = Function::createFromHostFunction(jsiRuntime, PropNameID::forAscii(jsiRuntime, "getDeviceName"), 0,
+      [](Runtime &runtime, const Value &thisValue, const Value *arguments, size_t count) -> Value {
+          JNIEnv *jniEnv = GetJniEnv();
+          java_class = jniEnv->GetObjectClass(java_object);
+          jmethodID getModel = jniEnv->GetMethodID(java_class, "getModel", "()Ljava/lang/String;");
+          jobject result = jniEnv->CallObjectMethod(java_object, getModel);
+          const char *str = jniEnv->GetStringUTFChars((jstring) result, NULL);
+          return Value(runtime, String::createFromUtf8(runtime, str));
+      });
+    jsiRuntime.global().setProperty(jsiRuntime, "getDeviceName", move(getDeviceName));
+}
 
-//     auto length = (size_t) env->GetArrayLength(stringJbytes);
-//     auto pBytes = env->GetByteArrayElements(stringJbytes, nullptr);
-
-//     std::string ret = std::string((char *)pBytes, length);
-//     env->ReleaseByteArrayElements(stringJbytes, pBytes, JNI_ABORT);
-
-//     env->DeleteLocalRef(stringJbytes);
-//     env->DeleteLocalRef(stringClass);
-//     return ret;
-// }
-
-// extern "C"
-// JNIEXPORT void JNICALL
-// Java_com_reactnativemmkv_MmkvModule_nativeInstall(JNIEnv *env, jobject clazz, jlong jsiPtr, jstring path) {
-//     MMKV::initializeMMKV(jstringToStdString(env, path));
-
-//     auto runtime = reinterpret_cast<jsi::Runtime*>(jsiPtr);
-//     if (runtime) {
-//         install(*runtime);
-//     }
-//     // if runtime was nullptr, MMKV will not be installed. This should only happen while Remote Debugging (Chrome), but will be weird either way.
-// }
+extern "C"
+JNIEXPORT void JNICALL
+Java_io_keybase_ossifrage_modules_GoJSIBridge_nativeInstall(JNIEnv *env, jobject thiz, jlong jsi) {
+    auto runtime = reinterpret_cast<facebook::jsi::Runtime *>(jsi);
+    if (runtime) {
+        install(*runtime);
+    }
+    env->GetJavaVM(&java_vm);
+    java_object = env->NewGlobalRef(thiz);
+}
