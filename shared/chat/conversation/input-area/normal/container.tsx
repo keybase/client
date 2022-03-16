@@ -107,6 +107,7 @@ export default Container.connect(
       quoteText: quoteInfo ? quoteInfo.text : '',
       showCommandMarkdown,
       showCommandStatus,
+      showGiphySearch,
       showTypingStatus:
         Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
       showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
@@ -238,6 +239,7 @@ export default Container.connect(
       },
       showCommandMarkdown: stateProps.showCommandMarkdown,
       showCommandStatus: stateProps.showCommandStatus,
+      showGiphySearch: stateProps.showGiphySearch,
       showReplyPreview: !!stateProps._replyTo,
       showTypingStatus: stateProps.showTypingStatus,
       showWalletsIcon: stateProps.showWalletsIcon,
