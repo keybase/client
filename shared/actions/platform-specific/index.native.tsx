@@ -573,7 +573,6 @@ const manageContactsCache = async (
 
   const mapped = SettingsConstants.nativeContactsToContacts(contacts, defaultCountryCode)
   logger.info(`Importing ${mapped.length} contacts.`)
-  console.log('aaa sending contacts', mapped)
   const actions: Array<Container.TypedActions> = []
   try {
     const {newlyResolved, resolved} = await RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
