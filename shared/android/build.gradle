@@ -55,6 +55,7 @@ allprojects {
                 includeModule("com.google.android.exoplayer", "exoplayer-core") // for expo-av
                 includeModule("com.google.android.exoplayer", "exoplayer-dash") // for expo-av
                 includeModule("com.google.android.exoplayer", "exoplayer-hls") // for expo-av
+                // includeModule("com.facebook.fbjni", "fnjni") // for fbjni
             }
         }
     }

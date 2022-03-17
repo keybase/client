@@ -7,6 +7,14 @@ include_directories(
         "${NODE_MODULES_DIR}/react-native/React"
         "${NODE_MODULES_DIR}/react-native/React/Base"
         "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
+        "${NODE_MODULES_DIR}/react-native/React"
+        "${NODE_MODULES_DIR}/react-native/React/Base"
+        "${NODE_MODULES_DIR}/react-native/ReactCommon"
+        "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
+        "${NODE_MODULES_DIR}/react-native/ReactCommon/callinvoker"
+        "${NODE_MODULES_DIR}/react-native/ReactAndroid/src/main/java/com/facebook/react/turbomodule/core/jni"
+        "${NODE_MODULES_DIR}/react-native/ReactCommon/turbomodule/core"
+        "${NODE_MODULES_DIR}/react-native/ReactCommon/turbomodule"
 )
 
 # if(${REACT_NATIVE_VERSION} LESS 66)
@@ -17,20 +25,24 @@ include_directories(
 #         )
 # endif()
 
-add_library(gojsi  # <-- Library name
+add_library(${PACKAGE_NAME} 
         SHARED
         src/main/cpp/cpp-adapter.cpp
         # ${INCLUDE_JSI_CPP} # only on older RN versions
 )
 
 set_target_properties(
-        gojsi PROPERTIES
+        ${PACKAGE_NAME} PROPERTIES
         CXX_STANDARD 17
         CXX_EXTENSIONS OFF
         POSITION_INDEPENDENT_CODE ON
 )
 
 file (GLOB LIBRN_DIR "${PREBUILT_DIR}/${ANDROID_ABI}")
+# file(GLOB libfbjni_link_DIRS "${build_DIR}/fbjni*.aar/jni/${ANDROID_ABI}")
+# file(GLOB libfbjni_include_DIRS "${build_DIR}/fbjni-*-headers.jar/")
+# find_library(FBJNI_LIBRARY fbjni PATHS ${libfbjni_link_DIRS} NO_CMAKE_FIND_ROOT_PATH)
+# message(info "aaa ${libfbjni_link_DIRS} ${libfbjni_include_DIRS} ${FBJNI_LIBRARY}")
 
 find_library(
         log-lib
@@ -55,8 +67,16 @@ find_library(
         )
 # endif()
 
+# target_include_directories(${PACKAGE_NAME} PRIVATE
+#   // Additional header directories here
+#   ${libfbjni_include_DIRS}
+# )
+find_package(fbjni REQUIRED CONFIG)
+
 target_link_libraries(
-        gojsi
+        ${PACKAGE_NAME}
+        fbjni::fbjni
+        # ${FBJNI_LIBRARY}
         ${log-lib}
         ${JSI_LIB}
         ${REACT_NATIVE_JNI_LIB}

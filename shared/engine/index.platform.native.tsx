@@ -6,8 +6,8 @@ import {encode} from '@msgpack/msgpack'
 import toBuffer from 'typedarray-to-buffer'
 import {printRPCBytes} from '../local-debug'
 import {measureStart, measureStop} from '../util/user-timings'
-import {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import {isIOS} from '../constants/platform'
+import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 const nativeBridge: NativeEventEmitter & {
   runWithData: (arg0: string) => void
@@ -86,29 +86,36 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  nativeBridge.start()
-
   if (isIOS) {
     global.rpcOnJs = buf => {
       const buffer = toBuffer(buf)
       client.transport.packetize_data(buffer)
     }
   } else {
-    let packetizeCount = 0
-    // This is how the RN side writes back to us
-    RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
-      if (printRPCBytes) {
-        logger.debug('[RPC] Read', payload.length, 'chars:', payload)
-      }
+    global.rpcOnJs = b64 => {
+      console.log('aaa got android rpconJs', b64?.length)
+      // const buffer = toBuffer(buf)
+      // TODO msgpack
+      const buffer = toBuffer(toByteArray(b64))
+      client.transport.packetize_data(buffer)
+    }
+    // let packetizeCount = 0
+    // // This is how the RN side writes back to us
+    // RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
+    //   if (printRPCBytes) {
+    //     logger.debug('[RPC] Read', payload.length, 'chars:', payload)
+    //   }
 
-      const buffer = toBuffer(toByteArray(payload))
-      const measureName = `packetize${packetizeCount++}:${buffer.length}`
-      measureStart(measureName)
-      const ret = client.transport.packetize_data(buffer)
-      measureStop(measureName)
-      return ret
-    })
+    //   const buffer = toBuffer(toByteArray(payload))
+    //   const measureName = `packetize${packetizeCount++}:${buffer.length}`
+    //   measureStart(measureName)
+    //   const ret = client.transport.packetize_data(buffer)
+    //   measureStop(measureName)
+    //   return ret
+    // })
   }
+
+  nativeBridge.start()
 
   RNEmitter.addListener(nativeBridge.metaEventName, (payload: string) => {
     switch (payload) {

@@ -54,7 +54,7 @@ import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
 
-public class MainActivity extends ReactActivity {
+public class MainActivity extends ReactActivity /*implements ReactInstanceManager.ReactInstanceEventListener */ {
   private static final String TAG = MainActivity.class.getName();
   private PermissionListener listener;
   private boolean isUsingHardwareKeyboard = false;
@@ -64,6 +64,11 @@ public class MainActivity extends ReactActivity {
   public void invokeDefaultOnBackPressed() {
     moveTaskToBack(true);
   }
+
+//  @Override
+//  public void onReactContextInitialized(ReactContext context) {
+//    new KBGoJSIHybrid().doIt(context);
+//  }
 
   private static void createDummyFile(Context context) {
     final File dummyFile = new File(context.getFilesDir(), "dummy.txt");
@@ -199,6 +204,7 @@ public class MainActivity extends ReactActivity {
   protected void onPause() {
     NativeLogger.info("Activity onPause");
     super.onPause();
+//    getReactInstanceManager().removeReactInstanceEventListener(this);
     if (Keybase.appDidEnterBackground()) {
       Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(this, new Bundle()));
     } else {
@@ -384,6 +390,7 @@ public class MainActivity extends ReactActivity {
     NativeLogger.info("Activity onPause");
     super.onResume();
     Keybase.setAppStateForeground();
+//    getReactInstanceManager().addReactInstanceEventListener(this);
 
     // Emit the intent data to JS
     Intent intent = getIntent();

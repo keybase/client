@@ -142,6 +142,12 @@ def defaultDir = file("$nodeModules/react-native/android")
 def androidSourcesDir = defaultDir.parentFile.toString()
 def prebuiltDir = "$buildDir/react-native-0*/jni"
 
+// repositories {
+//   maven {
+//     mavenCentral()
+//   }
+// }
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -157,6 +163,8 @@ android {
         configurations.all {
             // force flipper dep to be compat w/ android 30
             resolutionStrategy { force 'androidx.sqlite:sqlite-framework:2.1.0' }
+            exclude module: 'fbjni-java-only'
+
         }
         externalNativeBuild {
             cmake {
@@ -223,11 +231,16 @@ android {
         }
     }
 
+    buildFeatures {
+        prefab true
+    }
     packagingOptions {
+        // exclude "**/libfbjni.so"
         exclude "**/libjsc.so"
     }
 
     configurations {
+        // extractHeaders
         extractJNI
     }
 
@@ -246,6 +259,12 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
+    implementation 'com.facebook.fbjni:fbjni:0.2.2'
+    // implementation 'com.facebook.fbjni:fbjni:0.0.1'
+    // // If headers are required.
+    // extractHeaders 'com.facebook.fbjni:fbjni:0.0.1:headers'
+    // // If the `.so` files are required for linking.
+    // extractJNI 'com.facebook.fbjni:fbjni:0.0.1'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni'
@@ -290,6 +309,19 @@ task copyDownloadableDepsToLibs(type: Copy) {
     into 'libs'
 }
 
+// task extractAARHeaders {
+//     doLast {
+//         configurations.extractHeaders.files.each {
+//             def file = it.absoluteFile
+//             copy {
+//                 from zipTree(file)
+//                 into "$buildDir/$file.name"
+//                 include "**/*.h"
+//             }
+//         }
+//     }
+// }
+
 def extracted = false;
 task extractJNIFiles {
   if (extracted) return
@@ -309,6 +341,7 @@ task extractJNIFiles {
 
 // Extract JNI files as soon as first task is added
 tasks.whenTaskAdded { task ->
+  // task.dependsOn(extractAARHeaders);
   task.dependsOn(extractJNIFiles);
 }
 apply from: new File(["node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json')"].execute(null, rootDir).text.trim(), "../native_modules.gradle")
