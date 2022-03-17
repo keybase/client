@@ -8,7 +8,6 @@ buildscript {
         compileSdkVersion = 30
         targetSdkVersion = 30
         ndkVersion = "23.1.7779620"
-        // ndkVersion = "21.4.7075529"
      }
 
     repositories {
@@ -55,7 +54,6 @@ allprojects {
                 includeModule("com.google.android.exoplayer", "exoplayer-core") // for expo-av
                 includeModule("com.google.android.exoplayer", "exoplayer-dash") // for expo-av
                 includeModule("com.google.android.exoplayer", "exoplayer-hls") // for expo-av
-                // includeModule("com.facebook.fbjni", "fnjni") // for fbjni
             }
         }
     }

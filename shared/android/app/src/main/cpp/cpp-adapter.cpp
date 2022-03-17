@@ -135,16 +135,10 @@ extern "C" JNIEXPORT void JNICALL Java_io_keybase_ossifrage_modules_GoJSIBridge_
     java_object = env->NewGlobalRef(thiz);
 }
 
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
-    return facebook::jni::initialize(vm, [] {
-    });
-}
-
 extern "C" JNIEXPORT void JNICALL Java_io_keybase_ossifrage_modules_GoJSIBridge_nativeEmit(JNIEnv* env, jclass clazz, jlong jsi,
     jobject boxedCallInvokerHolder, jstring b64temp) {
     auto rPtr = reinterpret_cast<facebook::jsi::Runtime *>(jsi);
     auto & runtime = *rPtr;
-    // auto jsCallInvoker = jsCallInvokerHolder->cthis()->getCallInvoker();
     auto boxedCallInvokerRef = jni::make_local(boxedCallInvokerHolder);
     auto callInvokerHolder = jni::dynamic_ref_cast<react::CallInvokerHolder::javaobject>(boxedCallInvokerRef);
     auto callInvoker = callInvokerHolder->cthis()->getCallInvoker();
@@ -153,15 +147,10 @@ extern "C" JNIEXPORT void JNICALL Java_io_keybase_ossifrage_modules_GoJSIBridge_
     auto s = std::make_shared<std::string>(str);
     env->ReleaseStringUTFChars(b64temp, str);
 
-// auto len = env->GetStringLength(b64temp);
-//         __android_log_print(ANDROID_LOG_VERBOSE, "AAA in nativeemit len", "%d", len);
-//         const char *str = env->GetStringUTFChars(b64temp, nullptr);
-//         __android_log_print(ANDROID_LOG_VERBOSE, "AAA in nativeemit", "%s", str);
-//         return;
       //int kSize = (int)[data length];
       //std::shared_ptr<uint8_t> sData(new uint8_t[kSize], std::default_delete<uint8_t[]>());
       //memcpy(sData.get(), [data bytes], [data length]);
-jni::ThreadScope scope;
+        // jni::ThreadScope scope;
       callInvoker->invokeAsync([/*sData, kSize*/&runtime, s]() {
         Function rpcOnJs = runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
         //Function arrayBufferCtor = runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
@@ -179,64 +168,3 @@ jni::ThreadScope scope;
         rpcOnJs.call(runtime, move(v), 1);
       });
 }
-/*
-class Logger {
-public:
-  static void log(const std::string str) {
-    __android_log_print(ANDROID_LOG_VERBOSE, "RNFBJNI", "%s", str.c_str());
-  };
-};
-
-class TrimNativeModule : public facebook::react::SchemaCxxSpecJSI {
-public:
-  jsi::String nativeTrim(jsi::Runtime &rt, const jsi::String &text) override{
-   std::string str = text.utf8(rt);
-      if (str.length() > 10) {
-          str = str.substr(0, 7) + "...";
-      }
-      Logger::log("Logger test");
-      return jsi::String::createFromUtf8(rt, str);
-  }
-  TrimNativeModule(std::shared_ptr<facebook::react::CallInvoker> jsInvoker) :
-        facebook::react::SchemaCxxSpecJSI(jsInvoker) {};
-};
-
-class MyHybrid : public jni::HybridClass<MyHybrid> {
- public:
-  static auto constexpr kJavaDescriptor =
-      "Lio/keybase/ossifrage/MyHybrid;";
-
-   static void initHybrid(
-        jni::alias_ref<jhybridobject> jThis,
-        jlong jsContext,
-        jni::alias_ref<facebook::react::CallInvokerHolder::javaobject> jsCallInvokerHolder)
-    {
-      jsi::Runtime *runtime = (jsi::Runtime *)jsContext;
-      auto jsCallInvoker = jsCallInvokerHolder->cthis()->getCallInvoker();
-        std::shared_ptr<my_namespace::TrimNativeModule> nativeModule =
-            std::make_shared<my_namespace::TrimNativeModule>(jsCallInvoker);
-
-
-        runtime->global().setProperty(
-             *runtime,
-             jsi::PropNameID::forAscii(*runtime, "trimModule"),
-             jsi::Object::createFromHostObject(*runtime, nativeModule));
-    }
-
-  static void registerNatives() {
-    javaClassStatic()->registerNatives({
-        makeNativeMethod("initHybrid", MyHybrid::initHybrid),
-    });
-  }
-
- private:
-  friend HybridBase;
-
-};
-
-JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void*) {
-    return facebook::jni::initialize(vm, [] {
-        MyHybrid::registerNatives();
-    });
-}
-*/

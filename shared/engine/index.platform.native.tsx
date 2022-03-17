@@ -1,17 +1,12 @@
 import {NativeModules, NativeEventEmitter} from 'react-native'
-import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {toByteArray, fromByteArray} from 'base64-js'
 import {encode} from '@msgpack/msgpack'
 import toBuffer from 'typedarray-to-buffer'
-import {printRPCBytes} from '../local-debug'
-import {measureStart, measureStop} from '../util/user-timings'
 import {isIOS} from '../constants/platform'
 import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 const nativeBridge: NativeEventEmitter & {
-  runWithData: (arg0: string) => void
-  eventName: string
   metaEventName: string
   metaEventEngineReset: string
   start: () => void
@@ -66,12 +61,6 @@ class NativeTransport extends TransportShared {
       // TODO msgpack
       const b64 = fromByteArray(buf)
       global.rpcOnGo(b64)
-      // global.rpcOnGo(buf.buffer)
-      // const b64 = fromByteArray(buf)
-      // if (printRPCBytes) {
-      //   logger.debug('[RPC] Writing', b64.length, 'chars:', b64)
-      // }
-      // nativeBridge.runWithData(b64)
     }
     return true
   }
@@ -93,26 +82,11 @@ function createClient(
     }
   } else {
     global.rpcOnJs = b64 => {
-      // console.log('aaa got android rpconJs', b64?.length)
       // const buffer = toBuffer(buf)
       // TODO msgpack
       const buffer = toBuffer(toByteArray(b64))
       client.transport.packetize_data(buffer)
     }
-    // let packetizeCount = 0
-    // // This is how the RN side writes back to us
-    // RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
-    //   if (printRPCBytes) {
-    //     logger.debug('[RPC] Read', payload.length, 'chars:', payload)
-    //   }
-
-    //   const buffer = toBuffer(toByteArray(payload))
-    //   const measureName = `packetize${packetizeCount++}:${buffer.length}`
-    //   measureStart(measureName)
-    //   const ret = client.transport.packetize_data(buffer)
-    //   measureStop(measureName)
-    //   return ret
-    // })
   }
 
   nativeBridge.start()
