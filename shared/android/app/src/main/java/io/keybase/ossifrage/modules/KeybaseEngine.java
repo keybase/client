@@ -110,7 +110,6 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         }
 
         final Map<String, Object> constants = new HashMap<>();
-       // constants.put("eventName", RPC_EVENT_NAME);
         constants.put("metaEventName", RPC_META_EVENT_NAME);
         constants.put("metaEventEngineReset", RPC_META_EVENT_ENGINE_RESET);
         constants.put("appVersionName", versionName);

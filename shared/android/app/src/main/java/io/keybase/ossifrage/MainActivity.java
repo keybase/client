@@ -54,7 +54,7 @@ import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
 
-public class MainActivity extends ReactActivity /*implements ReactInstanceManager.ReactInstanceEventListener */ {
+public class MainActivity extends ReactActivity {
   private static final String TAG = MainActivity.class.getName();
   private PermissionListener listener;
   private boolean isUsingHardwareKeyboard = false;
@@ -64,11 +64,6 @@ public class MainActivity extends ReactActivity /*implements ReactInstanceManage
   public void invokeDefaultOnBackPressed() {
     moveTaskToBack(true);
   }
-
-//  @Override
-//  public void onReactContextInitialized(ReactContext context) {
-//    new KBGoJSIHybrid().doIt(context);
-//  }
 
   private static void createDummyFile(Context context) {
     final File dummyFile = new File(context.getFilesDir(), "dummy.txt");
@@ -153,7 +148,6 @@ public class MainActivity extends ReactActivity /*implements ReactInstanceManage
     setupKBRuntime(this, true);
     super.onCreate(null);
 
-
     new android.os.Handler().postDelayed(new Runnable() {
       public void run() {
         try {
@@ -163,7 +157,6 @@ public class MainActivity extends ReactActivity /*implements ReactInstanceManage
     }, 300);
 
     KeybasePushNotificationListenerService.createNotificationChannel(this);
-
     updateIsUsingHardwareKeyboard();
   }
 
@@ -204,7 +197,6 @@ public class MainActivity extends ReactActivity /*implements ReactInstanceManage
   protected void onPause() {
     NativeLogger.info("Activity onPause");
     super.onPause();
-//    getReactInstanceManager().removeReactInstanceEventListener(this);
     if (Keybase.appDidEnterBackground()) {
       Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(this, new Bundle()));
     } else {
@@ -269,7 +261,6 @@ public class MainActivity extends ReactActivity /*implements ReactInstanceManage
     private IntentEmitter(Intent intent) {
       this.intent = intent;
     }
-
 
     public void emit() {
       // Here we are just reading from the notification bundle.
@@ -390,8 +381,6 @@ public class MainActivity extends ReactActivity /*implements ReactInstanceManage
     NativeLogger.info("Activity onPause");
     super.onResume();
     Keybase.setAppStateForeground();
-//    getReactInstanceManager().addReactInstanceEventListener(this);
-
     // Emit the intent data to JS
     Intent intent = getIntent();
     if (intent != null) {
