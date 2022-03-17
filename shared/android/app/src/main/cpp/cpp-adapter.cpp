@@ -113,13 +113,17 @@ static jstring string2jstring(JNIEnv *env, const string &str) {
 void install(facebook::jsi::Runtime &jsiRuntime) {
     auto rpcOnGo = Function::createFromHostFunction(jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1,
       [](Runtime &runtime, const Value &thisValue, const Value *arguments, size_t count) -> Value {
-          string b64 = arguments[0].getString(runtime).utf8(runtime);
+        auto obj = arguments[0].asObject(runtime);
+        auto buffer = obj.getArrayBuffer(runtime);
+        auto ptr = buffer.data(runtime);
+        auto size = buffer.size(runtime);
           JNIEnv *jniEnv = GetJniEnv();
           java_class = jniEnv->GetObjectClass(java_object);
-          jmethodID rpcOnGo = jniEnv->GetMethodID(java_class, "rpcOnGo", "(Ljava/lang/String;)V");
-          jstring jstr1 = string2jstring(jniEnv, b64);
+          jmethodID rpcOnGo = jniEnv->GetMethodID(java_class, "rpcOnGo", "([B)V");
+          jbyteArray jba  = jniEnv->NewByteArray(size);
+          jniEnv->SetByteArrayRegion (jba, 0, size, (jbyte*)ptr);
           jvalue params[1];
-          params[0].l = jstr1;
+          params[0].l = jba;
           jniEnv->CallVoidMethodA(java_object, rpcOnGo, params);
           return Value(true);
       });

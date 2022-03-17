@@ -7,23 +7,19 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.turbomodule.core.CallInvokerHolderImpl;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import keybase.Keybase;
-
 import static keybase.Keybase.readB64;
-import static keybase.Keybase.writeB64;
+import static keybase.Keybase.writeArr;
 
 @ReactModule(name = GoJSIBridge.NAME)
 public class GoJSIBridge extends ReactContextBaseJavaModule {
     public static final String NAME = "GoJSIBridge";
     private native void nativeInstall(long jsiPtr);
-    //private native void nativeInstall(long jsiPtr, String docDir);
     private native void nativeEmit(long jsiPtr, CallInvokerHolderImpl jsInvoker, String b64temp);
     private ExecutorService executor;
     private ReactApplicationContext reactContext;
@@ -73,10 +69,6 @@ public class GoJSIBridge extends ReactContextBaseJavaModule {
 
                     CallInvokerHolderImpl callInvoker = (CallInvokerHolderImpl) reactContext.getCatalystInstance().getJSCallInvokerHolder();
                     nativeEmit(reactContext.getJavaScriptContextHolder().get(), callInvoker, data);
-
-//                    reactContext
-//                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-//                            .emit(KeybaseEngine.RPC_EVENT_NAME, data);
                 } catch (Exception e) {
                     if (e.getMessage().equals("Read error: EOF")) {
                         NativeLogger.info("Got EOF from read. Likely because of reset.");
@@ -119,11 +111,7 @@ public class GoJSIBridge extends ReactContextBaseJavaModule {
 
             ReactApplicationContext context = getReactApplicationContext();
             CallInvokerHolderImpl callInvokerHolder = (CallInvokerHolderImpl) context.getCatalystInstance().getJSCallInvokerHolder();
-            this.nativeInstall(
-                    context.getJavaScriptContextHolder().get()//,
-                    //callInvokerHolder
-                    //context.getFilesDir().getAbsolutePath()
-            );
+            this.nativeInstall(context.getJavaScriptContextHolder().get());
 
             if (executor == null) {
                 executor = Executors.newSingleThreadExecutor();
@@ -135,9 +123,9 @@ public class GoJSIBridge extends ReactContextBaseJavaModule {
         }
     }
 
-    public void rpcOnGo(String data) {
+    public void rpcOnGo(byte[] arr) {
         try {
-            writeB64(data);
+            writeArr(arr);
         } catch (Exception e) {
             NativeLogger.error("Exception in GoJSIBridge.rpcOnGo", e);
         }

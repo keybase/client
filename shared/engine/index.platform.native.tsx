@@ -47,21 +47,11 @@ class NativeTransport extends TransportShared {
     const buf = new Uint8Array(len.length + packed.length)
     buf.set(len, 0)
     buf.set(packed, len.length)
-    // Pass data over to the native side to be handled
-    if (isIOS) {
-      // JSI!
-      if (typeof global.rpcOnGo !== 'function') {
-        NativeModules.GoJSIBridge.install()
-      }
-      global.rpcOnGo(buf.buffer)
-    } else {
-      if (typeof global.rpcOnGo !== 'function') {
-        NativeModules.GoJSIBridge.install()
-      }
-      // TODO msgpack
-      const b64 = fromByteArray(buf)
-      global.rpcOnGo(b64)
+    // Pass data over to the native side to be handled, with JSI!
+    if (typeof global.rpcOnGo !== 'function') {
+      NativeModules.GoJSIBridge.install()
     }
+    global.rpcOnGo(buf.buffer)
     return true
   }
 }
