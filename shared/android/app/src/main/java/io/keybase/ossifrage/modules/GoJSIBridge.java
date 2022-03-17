@@ -14,7 +14,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static keybase.Keybase.readArr;
-import static keybase.Keybase.readB64;
 import static keybase.Keybase.writeArr;
 
 @ReactModule(name = GoJSIBridge.NAME)
