@@ -93,7 +93,7 @@ function createClient(
     }
   } else {
     global.rpcOnJs = b64 => {
-      console.log('aaa got android rpconJs', b64?.length)
+      // console.log('aaa got android rpconJs', b64?.length)
       // const buffer = toBuffer(buf)
       // TODO msgpack
       const buffer = toBuffer(toByteArray(b64))

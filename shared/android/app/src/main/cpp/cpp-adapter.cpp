@@ -150,7 +150,8 @@ extern "C" JNIEXPORT void JNICALL Java_io_keybase_ossifrage_modules_GoJSIBridge_
     auto callInvoker = callInvokerHolder->cthis()->getCallInvoker();
 
     const char *str = env->GetStringUTFChars(b64temp, NULL);
-    std::string s(str);
+    auto s = std::make_shared<std::string>(str);
+    env->ReleaseStringUTFChars(b64temp, str);
 
 // auto len = env->GetStringLength(b64temp);
 //         __android_log_print(ANDROID_LOG_VERBOSE, "AAA in nativeemit len", "%d", len);
@@ -174,7 +175,7 @@ jni::ThreadScope scope;
         // __android_log_print(ANDROID_LOG_VERBOSE, "AAA", "%s", str);
         // Value v(runtime, String::createFromUtf8(runtime, str));
 
-    Value v(runtime, String::createFromUtf8(runtime, s.c_str()));
+    Value v(runtime, String::createFromUtf8(runtime, s->c_str()));
         rpcOnJs.call(runtime, move(v), 1);
       });
 }
