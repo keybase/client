@@ -65,18 +65,9 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  if (isIOS) {
-    global.rpcOnJs = buf => {
-      const buffer = toBuffer(buf)
-      client.transport.packetize_data(buffer)
-    }
-  } else {
-    global.rpcOnJs = b64 => {
-      // const buffer = toBuffer(buf)
-      // TODO msgpack
-      const buffer = toBuffer(toByteArray(b64))
-      client.transport.packetize_data(buffer)
-    }
+  global.rpcOnJs = buf => {
+    const buffer = toBuffer(buf)
+    client.transport.packetize_data(buffer)
   }
 
   nativeBridge.start()

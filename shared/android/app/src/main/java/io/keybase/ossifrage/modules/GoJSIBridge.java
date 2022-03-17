@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static keybase.Keybase.readArr;
 import static keybase.Keybase.readB64;
 import static keybase.Keybase.writeArr;
 
@@ -20,7 +21,7 @@ import static keybase.Keybase.writeArr;
 public class GoJSIBridge extends ReactContextBaseJavaModule {
     public static final String NAME = "GoJSIBridge";
     private native void nativeInstall(long jsiPtr);
-    private native void nativeEmit(long jsiPtr, CallInvokerHolderImpl jsInvoker, String b64temp);
+    private native void nativeEmit(long jsiPtr, CallInvokerHolderImpl jsInvoker, byte[] data);
     private ExecutorService executor;
     private ReactApplicationContext reactContext;
     private Boolean installed = false;
@@ -61,7 +62,7 @@ public class GoJSIBridge extends ReactContextBaseJavaModule {
             do {
                 try {
                     Thread.currentThread().setName("ReadFromKBLib");
-                    final String data = readB64(); // TEMP other msgpack call
+                    final byte[] data = readArr();
 
                     if (!reactContext.hasActiveCatalystInstance()) {
                         NativeLogger.info(NAME + ": JS Bridge is dead, dropping engine message: " + data);
