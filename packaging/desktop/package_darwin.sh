@@ -27,7 +27,7 @@ echo "Cleaning up packaging dir from previous runs"
 rm -rf "$dir/node_modules"
 
 # Ensure we have packaging tools
-yarn install --pure-lockfile
+yarn install --pure-lockfile --ignore-engines   
 node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
@@ -185,7 +185,7 @@ package_electron() {(
   echo "Cleaning up main node_modules from previous runs"
   rm -rf "$shared_dir/node_modules"
 
-  yarn install --pure-lockfile
+  yarn install --pure-lockfile --ignore-engines
   yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --saltpackIcon="$saltpack_icon"  --outDir="$build_dir"
 
   # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/go-updater/pull/4
