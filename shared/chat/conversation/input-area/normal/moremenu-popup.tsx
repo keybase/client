@@ -1,11 +1,11 @@
 import * as React from 'react'
-import type * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import type * as Types from '../../../../constants/types/chat2'
 import HiddenString from '../../../../util/hidden-string'
 
 type Props = {
@@ -16,30 +16,17 @@ type Props = {
 
 const MoreMenuPopup = (props: Props) => {
   const {conversationIDKey, onHidden, visible} = props
-  // state
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
   const wallet = Container.useSelector(state => Constants.shouldShowWalletsIcon(state, conversationIDKey))
   const you = Container.useSelector(state => state.config.username)
-  // dispatch
   const dispatch = Container.useDispatch()
   const onLumens = (to: string, isRequest: boolean) => {
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        isRequest,
-        recipientType: 'keybaseUser',
-        to,
-      })
-    )
+    dispatch(WalletsGen.createOpenSendRequestForm({isRequest, recipientType: 'keybaseUser', to}))
   }
   const onSlashPrefill = (text: string) => {
-    dispatch(
-      Chat2Gen.createSetUnsentText({
-        conversationIDKey,
-        text: new HiddenString(text),
-      })
-    )
+    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString(text)}))
   }
   const onLocationShare = () => {
     dispatch(
@@ -56,7 +43,7 @@ const MoreMenuPopup = (props: Props) => {
   // merge
   let to = ''
   if (wallet) {
-    const otherParticipants = participantInfo.all.filter(u => u !== you)
+    const otherParticipants = participantInfo.name.filter(u => u !== you)
     to = otherParticipants[0] || ''
   }
   const onSendLumens = wallet ? () => onLumens(to, false) : undefined
