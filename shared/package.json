@@ -225,7 +225,7 @@
     },
     "resolutions": {
         "**/purepack": "git://github.com/keybase/nullModule",
-        "react-devtools-core": "4.23.0",
+        "react-devtools-core": "4.21.0",
         "**/@types/react-native": "0.66.16",
         "**/expo-file-system": "13.1.4"
     },

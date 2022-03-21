@@ -62,20 +62,17 @@ class GlobalError extends React.Component<Props, State> {
   }
 
   render() {
-    if (this.state.size === 'Closed') {
+    const {onDismiss, onFeedback, error} = this.props
+    const {size, cachedDetails} = this.state
+
+    if (size === 'Closed') {
       return null
     }
-
-    const {onDismiss} = this.props
-    const details = this.state.cachedDetails
 
     return (
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([
-          styles.container,
-          this.state.size === 'Big' && Styles.globalStyles.fillAbsolute,
-        ])}
+        style={Styles.collapseStyles([styles.container, size === 'Big' && Styles.globalStyles.fillAbsolute])}
       >
         <Kb.SafeAreaViewTop style={styles.safeAreaView} />
         <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
@@ -86,7 +83,7 @@ class GlobalError extends React.Component<Props, State> {
               style={styles.errorText}
               onClick={this.onExpandClick}
             >
-              {this.state.size !== 'Big' && (
+              {size !== 'Big' && (
                 <Kb.Icon type="iconfont-caret-right" color={Styles.globalColors.white_75} sizeType="Tiny" />
               )}
               {'  '}
@@ -100,21 +97,15 @@ class GlobalError extends React.Component<Props, State> {
             />
           </Kb.Box>
           <Kb.Box style={styles.summaryRow}>
-            <Kb.Button
-              fullWidth={true}
-              label="Please tell us"
-              onClick={this.props.onFeedback}
-              small={true}
-              type="Dim"
-            />
+            <Kb.Button fullWidth={true} label="Please tell us" onClick={onFeedback} small={true} type="Dim" />
           </Kb.Box>
         </Kb.Box>
-        {this.state.size === 'Big' && (
+        {size === 'Big' && (
           <Kb.NativeScrollView>
             <Kb.Text type="BodySmall" selectable={true} style={styles.details}>
-              {this.props.error?.message}
+              {error?.message}
               {'\n\n'}
-              {details}
+              {cachedDetails}
             </Kb.Text>
           </Kb.NativeScrollView>
         )}
