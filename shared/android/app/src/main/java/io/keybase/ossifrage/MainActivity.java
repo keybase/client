@@ -148,7 +148,6 @@ public class MainActivity extends ReactActivity {
     setupKBRuntime(this, true);
     super.onCreate(null);
 
-
     new android.os.Handler().postDelayed(new Runnable() {
       public void run() {
         try {
@@ -158,7 +157,6 @@ public class MainActivity extends ReactActivity {
     }, 300);
 
     KeybasePushNotificationListenerService.createNotificationChannel(this);
-
     updateIsUsingHardwareKeyboard();
   }
 
@@ -263,7 +261,6 @@ public class MainActivity extends ReactActivity {
     private IntentEmitter(Intent intent) {
       this.intent = intent;
     }
-
 
     public void emit() {
       // Here we are just reading from the notification bundle.
@@ -384,7 +381,6 @@ public class MainActivity extends ReactActivity {
     NativeLogger.info("Activity onPause");
     super.onResume();
     Keybase.setAppStateForeground();
-
     // Emit the intent data to JS
     Intent intent = getIntent();
     if (intent != null) {

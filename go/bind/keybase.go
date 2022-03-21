@@ -4,7 +4,6 @@
 package keybase
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net"
@@ -367,26 +366,6 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, tr
 	return string(logSendID), err
 }
 
-// WriteB64 sends a base64 encoded msgpack rpc payload, android only
-func WriteB64(str string) (err error) {
-	defer func() { err = flattenError(err) }()
-	if conn == nil {
-		return errors.New("connection not initialized")
-	}
-	data, err := base64.StdEncoding.DecodeString(str)
-	if err != nil {
-		return fmt.Errorf("Base64 decode error: %s; %s", err, str)
-	}
-	n, err := conn.Write(data)
-	if err != nil {
-		return fmt.Errorf("Write error: %s", err)
-	}
-	if n != len(data) {
-		return errors.New("Did not write all the data")
-	}
-	return nil
-}
-
 // WriteArr sends raw bytes encoded msgpack rpc payload, ios only
 func WriteArr(b []byte) (err error) {
 	bytes := make([]byte, len(b))
@@ -405,18 +384,13 @@ func WriteArr(b []byte) (err error) {
 	return nil
 }
 
-const targetBufferSize = 300 * 1024
-
-// bufferSize must be divisible by 3 to ensure that we don't split
-// our b64 encode across a payload boundary if we go over our buffer
-// size.
-const bufferSize = targetBufferSize - (targetBufferSize % 3)
+const bufferSize = 300 * 1024
 
 // buffer for the conn.Read
 var buffer = make([]byte, bufferSize)
 
 // ReadArr is a blocking read for msgpack rpc data.
-// It is called serially by the ios run loops.
+// It is called serially by the mobile run loops.
 func ReadArr() (data []byte, err error) {
 	defer func() { err = flattenError(err) }()
 	if conn == nil {
@@ -436,30 +410,6 @@ func ReadArr() (data []byte, err error) {
 	}
 
 	return nil, nil
-}
-
-// ReadB64 is a blocking read for base64 encoded msgpack rpc data.
-// It is called serially by the android run loops.
-func ReadB64() (res string, err error) {
-	defer func() { err = flattenError(err) }()
-	if conn == nil {
-		return "", errors.New("connection not initialized")
-	}
-	n, err := conn.Read(buffer)
-	if n > 0 && err == nil {
-		str := base64.StdEncoding.EncodeToString(buffer[0:n])
-		return str, nil
-	}
-
-	if err != nil {
-		// Attempt to fix the connection
-		if ierr := Reset(); ierr != nil {
-			fmt.Printf("failed to Reset: %v\n", ierr)
-		}
-		return "", fmt.Errorf("Read error: %s", err)
-	}
-
-	return "", nil
 }
 
 // Reset resets the socket connection

@@ -54,19 +54,19 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
 }
 
 + (void)sendToJS:(NSData*)data {
-  int kSize = (int)[data length];
-  std::shared_ptr<uint8_t> sData(new uint8_t[kSize], std::default_delete<uint8_t[]>());
+  int size = (int)[data length];
+  std::shared_ptr<uint8_t> sData(new uint8_t[size], std::default_delete<uint8_t[]>());
   memcpy(sData.get(), [data bytes], [data length]);
   
   auto invoker = [g_cxxBridge jsCallInvoker];
-  invoker->invokeAsync([sData, kSize]() {
+  invoker->invokeAsync([sData, size]() {
     Runtime & runtime = *g_jsiRuntime;
     Function rpcOnJs = runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
     Function arrayBufferCtor = runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
-    Value v = arrayBufferCtor.callAsConstructor(runtime, kSize);
+    Value v = arrayBufferCtor.callAsConstructor(runtime, size);
     Object o = v.getObject(runtime);
     ArrayBuffer buf = o.getArrayBuffer(runtime);
-    std::memcpy(buf.data(runtime), sData.get(), kSize);
+    std::memcpy(buf.data(runtime), sData.get(), size);
     rpcOnJs.call(runtime, move(v), 1);
   });
 }
