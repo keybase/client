@@ -1062,7 +1062,7 @@ function* loadMoreMessages(
     case Chat2Gen.markConversationsStale:
       key = Constants.getSelectedConversation()
       // not mentioned?
-      if (action.payload.conversationIDKeys.includes(key)) {
+      if (!action.payload.conversationIDKeys.includes(key)) {
         return
       }
       reason = 'got stale'
