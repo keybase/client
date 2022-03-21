@@ -1066,7 +1066,7 @@ function* loadMoreMessages(
     case Chat2Gen.markConversationsStale:
       key = Constants.getSelectedConversation()
       // not mentioned?
-      if (action.payload.conversationIDKeys.includes(key)) {
+      if (!action.payload.conversationIDKeys.includes(key)) {
         return
       }
       reason = 'got stale'
@@ -2600,7 +2600,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     // immediately switch stack to an inbox | thread stack
     if (reason === 'push' || reason === 'savedLastState') {
       Router2Constants.navToThread(conversationIDKey)
-      return []
+      return false
     } else {
       // replace if looking at the pending / waiting screen
       const replace =
