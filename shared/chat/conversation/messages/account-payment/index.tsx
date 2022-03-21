@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import {AllowedColors} from '../../../../common-adapters/text'
 import * as Styles from '../../../../styles'
+import type {AllowedColors} from '../../../../common-adapters/text'
 import {MarkdownMemo} from '../../../../wallets/common'
 
 export type Props = {
@@ -44,23 +44,11 @@ const AccountPayment = (props: Props) => {
       gap={Styles.isMobile ? 'tiny' : 'small'}
     >
       {!!props.balanceChange && (
-        <Kb.Text
-          type="BodyExtrabold"
-          selectable={true}
-          style={{
-            backgroundColor: Styles.globalColors.fastBlank,
-            color: props.balanceChangeColor,
-          }}
-        >
+        <Kb.Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
           {props.balanceChange}
         </Kb.Text>
       )}
-      {props.showCoinsIcon && (
-        <Kb.Icon
-          type="icon-stellar-coins-stacked-16"
-          style={{backgroundColor: Styles.globalColors.fastBlank}}
-        />
-      )}
+      {props.showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
     </Kb.Box2>
   )
   const contents = props.loading ? (
@@ -163,36 +151,23 @@ const AccountPayment = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      alignItemsCenter: {
-        alignItems: 'center',
-      },
+      alignItemsCenter: {alignItems: 'center'},
       amountContainer: Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
           marginLeft: 'auto',
         },
-        isMobile: {
-          justifyContent: 'space-between',
-        },
+        isMobile: {justifyContent: 'space-between'},
       }),
       button: {
         alignSelf: 'flex-start',
         marginTop: Styles.globalMargins.xtiny,
       },
-      buttonText: {
-        color: Styles.globalColors.white,
-      },
-      flexWrap: {
-        flexWrap: 'wrap',
-      },
-      lineThrough: {
-        textDecorationLine: 'line-through',
-      },
+      buttonText: {color: Styles.globalColors.white},
+      flexWrap: {flexWrap: 'wrap'},
+      lineThrough: {textDecorationLine: 'line-through'},
       memo: Styles.platformStyles({
-        isMobile: {
-          backgroundColor: Styles.globalColors.fastBlank,
-          paddingRight: Styles.globalMargins.small,
-        },
+        isMobile: {paddingRight: Styles.globalMargins.small},
       }),
       progressIndicator: Styles.platformStyles({
         // Match height of a line of text
@@ -205,10 +180,7 @@ const styles = Styles.styleSheetCreate(
           width: 22,
         },
       }),
-      purple: {
-        backgroundColor: Styles.globalColors.fastBlank,
-        color: Styles.globalColors.purpleDark,
-      },
+      purple: {color: Styles.globalColors.purpleDark},
       purpleOrWhite: {color: Styles.globalColors.purpleDarkOrWhite},
       tooltipText: Styles.platformStyles({
         isElectron: {wordBreak: 'normal'},
