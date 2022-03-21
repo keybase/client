@@ -60,7 +60,7 @@ static NSString *const metaEventEngineReset = @"engine-reset";
   NSString* systemVer = [[UIDevice currentDevice] systemVersion];
   BOOL isIPad = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad;
   BOOL isIOS = YES;
-  KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, systemVer, isIPad, NULL, error, isIOS);
+  KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, systemVer, isIPad, NULL, isIOS, error);
 }
 
 - (void)setupQueues {
