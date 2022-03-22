@@ -3,6 +3,7 @@ import * as Shared from './shim.shared'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
+import {EscapeHandler} from '../util/key-event-handler.desktop'
 
 export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
   Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
@@ -63,32 +64,34 @@ const ModalWrapper = ({navigationOptions, navigation, children}) => {
 
   if (modal2) {
     return (
-      <Kb.Box2
-        key="background"
-        direction="horizontal"
-        ref={backgroundRef}
-        style={Styles.collapseStyles([styles.modal2Container, modal2ClearCover && styles.modal2ClearCover])}
-        onMouseDown={onMouseDown as any}
-        onMouseUp={onMouseUp as any}
-      >
-        {modal2AvoidTabs && (
-          <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
-        )}
-        <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.modal2Style, modal2Style])}>
-          <Kb.Box2 direction="vertical" style={modalModeToStyle.get(modal2Type ?? 'Default')}>
-            {children}
-            {!modal2ClearCover && !modal2NoClose && (
-              <Kb.Icon
-                type="iconfont-close"
-                onClick={() => navigation.pop()}
-                color={Styles.globalColors.whiteOrWhite_75}
-                hoverColor={Styles.globalColors.white_40OrWhite_40}
-                style={styles.modal2CloseIcon}
-              />
-            )}
+      <EscapeHandler onESC={navigation.pop}>
+        <Kb.Box2
+          key="background"
+          direction="horizontal"
+          ref={backgroundRef}
+          style={Styles.collapseStyles([styles.modal2Container, modal2ClearCover && styles.modal2ClearCover])}
+          onMouseDown={onMouseDown as any}
+          onMouseUp={onMouseUp as any}
+        >
+          {modal2AvoidTabs && (
+            <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
+          )}
+          <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.modal2Style, modal2Style])}>
+            <Kb.Box2 direction="vertical" style={modalModeToStyle.get(modal2Type ?? 'Default')}>
+              {children}
+              {!modal2ClearCover && !modal2NoClose && (
+                <Kb.Icon
+                  type="iconfont-close"
+                  onClick={() => navigation.pop()}
+                  color={Styles.globalColors.whiteOrWhite_75}
+                  hoverColor={Styles.globalColors.white_40OrWhite_40}
+                  style={styles.modal2CloseIcon}
+                />
+              )}
+            </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
+      </EscapeHandler>
     )
   } else {
     return (
