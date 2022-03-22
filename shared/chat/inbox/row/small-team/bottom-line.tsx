@@ -1,8 +1,8 @@
 import React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {AllowedColors} from '../../../../common-adapters/text'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type {AllowedColors} from '../../../../common-adapters/text'
 
 type Props = {
   backgroundColor?: string
@@ -48,6 +48,7 @@ const BottomLineInner = (props: Props) => {
     content = (
       <Kb.Text
         type="BodySmallSemibold"
+        fixOverdraw={Styles.isPhone}
         negative={true}
         style={Styles.collapseStyles([
           styles.youAreResetText,
@@ -186,14 +187,10 @@ const styles = Styles.styleSheetCreate(
           alignSelf: 'center',
           marginRight: 6,
         },
-        isMobile: {
-          marginTop: 2,
-        },
+        isMobile: {marginTop: 2},
       }),
       bottomLine: Styles.platformStyles({
-        isAndroid: {
-          lineHeight: undefined,
-        },
+        isAndroid: {lineHeight: undefined},
         isElectron: {
           color: Styles.globalColors.black_50,
           display: 'block',
@@ -205,7 +202,6 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
         isMobile: {
-          backgroundColor: Styles.globalColors.fastBlank,
           color: Styles.globalColors.black_50,
           flex: 1,
           fontSize: 15,
@@ -219,9 +215,7 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         width: '100%',
       },
-      draftLabel: {
-        color: Styles.globalColors.orange,
-      },
+      draftLabel: {color: Styles.globalColors.orange},
       innerBox: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxRow,
@@ -230,17 +224,12 @@ const styles = Styles.styleSheetCreate(
           height: 17,
           position: 'relative',
         },
-        isMobile: {
-          height: 21,
-        },
+        isMobile: {height: 21},
       }),
       outerBox: {
         ...Styles.globalStyles.flexBoxRow,
       },
-      snippetDecoration: {
-        alignSelf: 'flex-start',
-        backgroundColor: Styles.globalColors.fastBlank,
-      },
+      snippetDecoration: {alignSelf: 'flex-start'},
       typingSnippet: {},
       youAreResetText: Styles.platformStyles({
         isElectron: {

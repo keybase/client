@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
-import * as Types from '../../constants/types/chat2'
 import * as Container from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
@@ -10,6 +9,7 @@ import Rekey from './rekey/container'
 import {headerNavigationOptions} from './header-area/container'
 import {useFocusEffect, useNavigation} from '@react-navigation/core'
 import {tabBarStyle} from '../../router-v2/common'
+import type * as Types from '../../constants/types/chat2'
 
 type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 
@@ -45,6 +45,9 @@ const Conversation = (p: SwitchProps) => {
 
   useFocusEffect(
     React.useCallback(() => {
+      if (!Container.isPhone) {
+        return
+      }
       ++focusRefCount
       deferChangeTabOptions(tabNav, hideTabBarStyle, false)
       return () => {

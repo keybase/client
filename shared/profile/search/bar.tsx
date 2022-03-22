@@ -35,7 +35,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   filterMobile: {
     height: 40,
-    width: Styles.dimensionWidth - 2 * 70,
     paddingLeft: 0,
     paddingRight: 0,
   },
