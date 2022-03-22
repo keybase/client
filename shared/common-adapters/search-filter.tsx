@@ -288,7 +288,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
       >
         <Kb.Box2
           direction="horizontal"
-          style={{alignItems: 'center'}}
+          style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
           pointerEvents={Styles.isMobile && this.props.onClick ? 'none' : undefined}
         >
           {this.keyHandler()}
