@@ -70,6 +70,10 @@ function createClient(
     client.transport.packetize_data(buffer)
   }
 
+  global.rpcOnJs2 = objs => {
+    console.log('aaa got rpcOnJS2', objs)
+  }
+
   nativeBridge.start()
 
   RNEmitter.addListener(nativeBridge.metaEventName, (payload: string) => {
