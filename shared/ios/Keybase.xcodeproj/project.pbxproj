@@ -42,6 +42,7 @@
 		DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB07050422E21B8B002F273D /* KeepThisFile.swift */; };
 		DB190420275A898B00E85B2E /* keybase.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60B93983273F902C00A226FF /* keybase.xcframework */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
+		DB3B470D27EB8BCB0002139E /* rpc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB3B470C27EB8BCB0002139E /* rpc.cpp */; };
 		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
 		DB779E0627D2B96600CDB0F7 /* GoJSIBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = DB779E0527D2B96600CDB0F7 /* GoJSIBridge.mm */; };
 		DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6121D9C4A8100312652 /* AppDelegate.m */; };
@@ -150,6 +151,7 @@
 		DB190422275A8B4B00E85B2E /* keybase.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = keybase.xcframework; sourceTree = "<group>"; };
 		DB27DE551D747A6B003DE8BC /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
 		DB27DE561D747A6C003DE8BC /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
+		DB3B470C27EB8BCB0002139E /* rpc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rpc.cpp; path = ../../android/app/src/main/cpp/rpc.cpp; sourceTree = "<group>"; };
 		DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		DB779DFC27D2AD0B00CDB0F7 /* GoJSIBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GoJSIBridge.h; sourceTree = "<group>"; };
 		DB779E0527D2B96600CDB0F7 /* GoJSIBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GoJSIBridge.mm; sourceTree = "<group>"; };
@@ -371,6 +373,7 @@
 				A969A4161CF65CB200F273F2 /* LogSend.h */,
 				DB779DFC27D2AD0B00CDB0F7 /* GoJSIBridge.h */,
 				DB779E0527D2B96600CDB0F7 /* GoJSIBridge.mm */,
+				DB3B470C27EB8BCB0002139E /* rpc.cpp */,
 				A969A4091CF65C9C00F273F2 /* LogSend.m */,
 				375CA6901FFD418D00210B11 /* Storybook.h */,
 				375CA6641FFD40D300210B11 /* Storybook.m */,
@@ -678,6 +681,7 @@
 				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
 				DBEE30821FE8511F0020EBA5 /* DDASLLogger.m in Sources */,
 				DBEE30831FE8511F0020EBA5 /* DDLog.m in Sources */,
+				DB3B470D27EB8BCB0002139E /* rpc.cpp in Sources */,
 				DBEE30811FE8511F0020EBA5 /* DDOSLogger.m in Sources */,
 				27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */,
 				DB779E0627D2B96600CDB0F7 /* GoJSIBridge.mm in Sources */,
