@@ -20,6 +20,7 @@ include_directories(
 add_library(${PACKAGE_NAME} 
         SHARED
         src/main/cpp/cpp-adapter.cpp
+        src/main/cpp/rpc.cpp
 )
 
 set_target_properties(

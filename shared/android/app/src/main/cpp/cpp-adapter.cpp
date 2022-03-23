@@ -1,6 +1,7 @@
 // from
 // https://github.com/ammarahm-ed/react-native-jsi-template/blob/master/android/cpp-adapter.cpp
 #include "pthread.h"
+#include "rpc.h"
 #include <ReactCommon/CallInvoker.h>
 #include <ReactCommon/CallInvokerHolder.h>
 #include <fbjni/fbjni.h>
@@ -93,19 +94,18 @@ void install(facebook::jsi::Runtime &jsiRuntime) {
       jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1,
       [](Runtime &runtime, const Value &thisValue, const Value *arguments,
          size_t count) -> Value {
-        auto obj = arguments[0].asObject(runtime);
-        auto buffer = obj.getArrayBuffer(runtime);
-        auto ptr = buffer.data(runtime);
-        auto size = buffer.size(runtime);
-        JNIEnv *jniEnv = GetJniEnv();
-        java_class = jniEnv->GetObjectClass(java_object);
-        jmethodID rpcOnGo = jniEnv->GetMethodID(java_class, "rpcOnGo", "([B)V");
-        jbyteArray jba = jniEnv->NewByteArray(size);
-        jniEnv->SetByteArrayRegion(jba, 0, size, (jbyte *)ptr);
-        jvalue params[1];
-        params[0].l = jba;
-        jniEnv->CallVoidMethodA(java_object, rpcOnGo, params);
-        return Value(true);
+        return RpcOnGo(
+            runtime, thisValue, arguments, count, [](void *ptr, size_t size) {
+              JNIEnv *jniEnv = GetJniEnv();
+              java_class = jniEnv->GetObjectClass(java_object);
+              jmethodID rpcOnGo =
+                  jniEnv->GetMethodID(java_class, "rpcOnGo", "([B)V");
+              jbyteArray jba = jniEnv->NewByteArray(size);
+              jniEnv->SetByteArrayRegion(jba, 0, size, (jbyte *)ptr);
+              jvalue params[1];
+              params[0].l = jba;
+              jniEnv->CallVoidMethodA(java_object, rpcOnGo, params);
+            });
       });
   jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", move(rpcOnGo));
 }
@@ -134,20 +134,12 @@ Java_io_keybase_ossifrage_modules_GoJSIBridge_nativeEmit(
           boxedCallInvokerRef);
   auto callInvoker = callInvokerHolder->cthis()->getCallInvoker();
 
-  auto size = env->GetArrayLength(data);
+  auto size = static_cast<int>(env->GetArrayLength(data));
   auto payloadBytes = env->GetByteArrayElements(data, nullptr);
-  std::shared_ptr<uint8_t> sData(new uint8_t[size],
-                                 std::default_delete<uint8_t[]>());
-  memcpy(sData.get(), payloadBytes, size);
-  callInvoker->invokeAsync([sData, size, &runtime]() {
-    Function rpcOnJs =
-        runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
-    Function arrayBufferCtor =
-        runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
-    Value v = arrayBufferCtor.callAsConstructor(runtime, size);
-    Object o = v.getObject(runtime);
-    ArrayBuffer buf = o.getArrayBuffer(runtime);
-    std::memcpy(buf.data(runtime), sData.get(), size);
-    rpcOnJs.call(runtime, move(v), 1);
-  });
+
+  std::shared_ptr<uint8_t> dptr(new uint8_t[size],
+                                std::default_delete<uint8_t[]>());
+  memcpy(dptr.get(), payloadBytes, size);
+  callInvoker->invokeAsync(
+      [dptr, size, &runtime]() { RpcOnJS(runtime, dptr, size); });
 }
