@@ -112,7 +112,7 @@ const warnFail = err => err && console.warn(`Error cleaning tscache ${err}, tsc 
 const getMsgPack = () => {
   const ver = '4.1.1'
   const file = `msgpack-cxx-${ver}.tar.gz`
-  const url = `https://keybase.pub/kbelectron/misc/${file}`
+  const url = `https://kbelectron.keybase.pub/misc/${file}`
   const prefix = path.resolve(__dirname, '..', '..', 'node_modules')
   if (!fs.existsSync(path.resolve(prefix, file))) {
     console.log('Missing msgpack-cpp, downloading')
