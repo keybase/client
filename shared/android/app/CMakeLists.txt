@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.9.0)
 
 set (PACKAGE_NAME "gojsi")
 set (BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
+set (CMAKE_CXX_FLAGS "-fexceptions -fno-omit-frame-pointer -frtti -Wno-sign-compare")
+
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
 include_directories(
         "${NODE_MODULES_DIR}/react-native/React"
