@@ -65,67 +65,8 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  global.rpcOnJs = buf => {
-    // const buffer = toBuffer(buf)
-    // client.transport.packetize_data(buffer)
-  }
-
-  global.rpcOnJs2 = objs => {
-    console.log('aaa got rpcOnJS2', objs)
+  global.rpcOnJs = objs => {
     client.transport._dispatch(objs)
-    /*
-    const [type, ...rest] = objs
-    const INVOKE = 0
-    const RESPONSE = 1
-    const NOTIFY = 2
-    const INVOKE_COMPRESSED = 4
-    switch (type) {
-      case INVOKE:
-        {
-          const [seqid, method, param] = rest
-          //             response = new Response(this, seqid);
-          //             return this._serve({
-          //               method: method,
-          //               param: param,
-          //               response: response
-          //             });
-        }
-        break
-      case NOTIFY:
-        {
-          const [method, param] = rest
-          //             return this._serve({
-          //               method: method,
-          //               param: param
-          //             });
-        }
-        break
-      case RESPONSE:
-        {
-          const [seqid, error, result] = rest
-          //             return this._dispatch_handle_response({
-          //               seqid: seqid,
-          //               error: error,
-          //               result: result
-          //             });
-        }
-        break
-      case INVOKE_COMPRESSED:
-        {
-          console.log('aaa UNCOMPRESS TODO', objs)
-        }
-        break
-      //             seqid = msg[0], ctype = msg[1], method = msg[2], param = msg[3];
-      //             param = uncompress(ctype, param);
-      //             response = new Response(this, seqid, ctype);
-      //             return this._serve({
-      //               method: method,
-      //               param: param,
-      //               response: response
-      //             });
-      //           default:
-    }
-    */
   }
 
   nativeBridge.start()

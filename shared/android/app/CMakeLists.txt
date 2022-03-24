@@ -15,6 +15,7 @@ include_directories(
         "${NODE_MODULES_DIR}/react-native/ReactAndroid/src/main/java/com/facebook/react/turbomodule/core/jni"
         "${NODE_MODULES_DIR}/react-native/ReactCommon/turbomodule/core"
         "${NODE_MODULES_DIR}/react-native/ReactCommon/turbomodule"
+        "${NODE_MODULES_DIR}/msgpack-cxx-4.1.1/include"
 )
 
 add_library(${PACKAGE_NAME} 
@@ -46,6 +47,8 @@ find_library(
 )
 
 find_package(fbjni REQUIRED CONFIG)
+
+add_definitions(-DMSGPACK_NO_BOOST)
 
 target_link_libraries(
         ${PACKAGE_NAME}
