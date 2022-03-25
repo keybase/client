@@ -97,69 +97,27 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
 
 enum class ReadState { needSize, needContent };
 ReadState g_state = ReadState::needSize;
-// holds leftover data
-std::vector<uint8_t> g_buffer;
-int g_payloadSize = -1;
+msgpack::unpacker unp;
 
 void RpcOnJS(Runtime &runtime, std::shared_ptr<uint8_t> data, int size) {
   try {
-    printf("aaa rpconjs, \nsize %d\ngsize: %d\npayloadsize: %d\n", size,
-           g_buffer.size(), g_payloadSize);
-    auto dataPtr = data.get();
-    size_t offset = 0;
-    Function rpcOnJs2 =
-        runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
-
-    // use g_buffer if there's something in it already
-    if (!g_buffer.empty()) {
-      printf("aaa rpconjs using bguffer\n");
-      std::copy(data.get(), data.get() + size, back_inserter(g_buffer));
-      dataPtr = &g_buffer[0];
-      size = g_buffer.size() + size;
-    }
-
-    // keep consuming until the buffer is empty
-    while (offset < size) {
-      printf("aaa rpconjs looping off: %d size: %d\n", offset, size);
-      // get the next payload size
+    unp.reserve_buffer(size);
+    std::copy(data.get(), data.get() + size, unp.buffer());
+    unp.buffer_consumed(size);
+    msgpack::object_handle result;
+    while (unp.next(result)) {
       if (g_state == ReadState::needSize) {
-        try {
-          msgpack::object_handle oh =
-              msgpack::unpack((const char *)dataPtr, size, offset);
-          msgpack::object obj = oh.get();
-          g_payloadSize = obj.as<int>();
-        } catch (...) {
-          // TEMP logging
-          printf("aaa bail on reading size, should be ok\n");
-          break;
-        }
+        // ignore
+        msgpack::object obj(result.get());
         g_state = ReadState::needContent;
-      }
-
-      // have enough data?
-      if ((size - offset) >= g_payloadSize) {
-        printf("aaa rpconjs consuming payload\n");
-        msgpack::object_handle oh2 =
-            msgpack::unpack((const char *)dataPtr, size, offset);
-        g_state = ReadState::needSize;
-        g_payloadSize = -1;
-        auto obj2 = oh2.get();
-        Value v = convertMPToJSI(runtime, obj2);
-        rpcOnJs2.call(runtime, move(v), 1);
       } else {
-        printf("aaa rpconjs not enough data break\n");
-        break;
+        Function rpcOnJs =
+            runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
+        msgpack::object obj(result.get());
+        Value v = convertMPToJSI(runtime, obj);
+        rpcOnJs.call(runtime, move(v), 1);
+        g_state = ReadState::needSize;
       }
-    }
-
-    // leftover data?
-    if (offset < size) {
-      printf("aaa rpconjs leftovers off: %d size: %d\n", offset, size);
-      // handle if dataPtr = g_buffer
-      g_buffer.clear();
-      std::copy(&dataPtr[offset], &dataPtr[size], back_inserter(g_buffer));
-    } else {
-      // TODO handle this
     }
   } catch (const std::exception &e) {
     throw new std::runtime_error("Error in RpcOnJS: " + string(e.what()));
