@@ -78,7 +78,7 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
     Value v = arrayBufferCtor.callAsConstructor(runtime, size);
     Object o = v.getObject(runtime);
     ArrayBuffer buf = o.getArrayBuffer(runtime);
-    std::memcpy(buf.data(runtime), ptr, size);
+    std::copy(ptr, ptr + size, buf.data(runtime));
     return v;
   }
   case msgpack::type::ARRAY: {
@@ -105,15 +105,13 @@ void RpcOnJS(Runtime &runtime, std::shared_ptr<uint8_t> data, int size) {
     std::copy(data.get(), data.get() + size, unp.buffer());
     unp.buffer_consumed(size);
     msgpack::object_handle result;
+    Function rpcOnJs =
+        runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
     while (unp.next(result)) {
+      msgpack::object obj(result.get());
       if (g_state == ReadState::needSize) {
-        // ignore
-        msgpack::object obj(result.get());
         g_state = ReadState::needContent;
       } else {
-        Function rpcOnJs =
-            runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
-        msgpack::object obj(result.get());
         Value v = convertMPToJSI(runtime, obj);
         rpcOnJs.call(runtime, move(v), 1);
         g_state = ReadState::needSize;
