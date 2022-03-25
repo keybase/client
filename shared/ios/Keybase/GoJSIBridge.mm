@@ -56,11 +56,10 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
 
 + (void)sendToJS:(NSData*)data {
   int size = (int)[data length];
-  std::shared_ptr<uint8_t> sData(new uint8_t[size], std::default_delete<uint8_t[]>());
-  memcpy(sData.get(), [data bytes], [data length]);
+  auto values = PrepRpcOnJS(*g_jsiRuntime, (uint8_t*)[data bytes], size);
   auto invoker = [g_cxxBridge jsCallInvoker];
-  invoker->invokeAsync([sData, size]() {
-    RpcOnJS(*g_jsiRuntime, sData, size);
+  invoker->invokeAsync([values]() {
+    RpcOnJS(*g_jsiRuntime, values);
   });
 }
 

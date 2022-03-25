@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <jsi/jsi.h>
 #include <memory>
+#include <msgpack/v2/unpack_decl.hpp>
 
 facebook::jsi::Value RpcOnGo(facebook::jsi::Runtime &runtime,
                              const facebook::jsi::Value &thisValue,
@@ -10,5 +11,7 @@ facebook::jsi::Value RpcOnGo(facebook::jsi::Runtime &runtime,
                              size_t count,
                              void (*callback)(void *ptr, size_t size));
 
-void RpcOnJS(facebook::jsi::Runtime &runtime, std::shared_ptr<uint8_t> data,
-             int size);
+typedef std::shared_ptr<std::vector<msgpack::object_handle>> ShareValues;
+ShareValues PrepRpcOnJS(facebook::jsi::Runtime &runtime, uint8_t *data,
+                        int size);
+void RpcOnJS(facebook::jsi::Runtime &runtime, ShareValues values);

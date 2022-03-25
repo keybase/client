@@ -1,6 +1,5 @@
 #include "rpc.h"
 #include <chrono>
-#include <jsi/jsi.h>
 #include <msgpack.hpp>
 #include <string>
 
@@ -99,23 +98,45 @@ enum class ReadState { needSize, needContent };
 ReadState g_state = ReadState::needSize;
 msgpack::unpacker unp;
 
-void RpcOnJS(Runtime &runtime, std::shared_ptr<uint8_t> data, int size) {
+ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
   try {
+    auto values = make_shared<std::vector<msgpack::object_handle>>();
     unp.reserve_buffer(size);
-    std::copy(data.get(), data.get() + size, unp.buffer());
+    std::copy(data, data + size, unp.buffer());
     unp.buffer_consumed(size);
-    msgpack::object_handle result;
+    while (true) {
+      msgpack::object_handle result;
+      if (unp.next(result)) {
+        if (g_state == ReadState::needSize) {
+          // msgpack::object obj(result.get());
+          g_state = ReadState::needContent;
+        } else {
+          // msgpack::object obj(result.get());
+          // Value v = convertMPToJSI(runtime, obj);
+          // values->push_back(move(v));
+          values->push_back(move(result));
+          g_state = ReadState::needSize;
+        }
+      } else {
+        break;
+      }
+    }
+    return values;
+  } catch (const std::exception &e) {
+    throw new std::runtime_error("Error in PrepRpcOnJS: " + string(e.what()));
+  } catch (...) {
+    throw new std::runtime_error("Unknown error in PrepRpcOnJS");
+  }
+}
+
+void RpcOnJS(Runtime &runtime, ShareValues values) {
+  try {
     Function rpcOnJs =
         runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
-    while (unp.next(result)) {
+    for (auto &result : *values) {
       msgpack::object obj(result.get());
-      if (g_state == ReadState::needSize) {
-        g_state = ReadState::needContent;
-      } else {
-        Value v = convertMPToJSI(runtime, obj);
-        rpcOnJs.call(runtime, move(v), 1);
-        g_state = ReadState::needSize;
-      }
+      Value value = convertMPToJSI(runtime, obj);
+      rpcOnJs.call(runtime, move(value), 1);
     }
   } catch (const std::exception &e) {
     throw new std::runtime_error("Error in RpcOnJS: " + string(e.what()));

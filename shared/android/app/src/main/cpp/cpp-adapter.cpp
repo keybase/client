@@ -135,11 +135,13 @@ Java_io_keybase_ossifrage_modules_GoJSIBridge_nativeEmit(
   auto callInvoker = callInvokerHolder->cthis()->getCallInvoker();
 
   auto size = static_cast<int>(env->GetArrayLength(data));
-  auto payloadBytes = env->GetByteArrayElements(data, nullptr);
-
-  std::shared_ptr<uint8_t> dptr(new uint8_t[size],
-                                std::default_delete<uint8_t[]>());
-  memcpy(dptr.get(), payloadBytes, size);
-  callInvoker->invokeAsync(
-      [dptr, size, &runtime]() { RpcOnJS(runtime, dptr, size); });
+  auto payloadBytes =
+      reinterpret_cast<uint8_t *>(env->GetByteArrayElements(data, nullptr));
+  auto values = PrepRpcOnJS(runtime, payloadBytes, size);
+  // printf("aaa after pref %d", values->size());
+  callInvoker->invokeAsync([values, &runtime]() {
+    // printf("aaa in invokeasyc %d", values);
+    // printf("aaa in invokeasyc %d", values->size());
+    RpcOnJS(runtime, values);
+  });
 }
