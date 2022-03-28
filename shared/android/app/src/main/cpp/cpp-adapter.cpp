@@ -138,10 +138,5 @@ Java_io_keybase_ossifrage_modules_GoJSIBridge_nativeEmit(
   auto payloadBytes =
       reinterpret_cast<uint8_t *>(env->GetByteArrayElements(data, nullptr));
   auto values = PrepRpcOnJS(runtime, payloadBytes, size);
-  // printf("aaa after pref %d", values->size());
-  callInvoker->invokeAsync([values, &runtime]() {
-    // printf("aaa in invokeasyc %d", values);
-    // printf("aaa in invokeasyc %d", values->size());
-    RpcOnJS(runtime, values);
-  });
+  callInvoker->invokeAsync([values, &runtime]() { RpcOnJS(runtime, values); });
 }

@@ -108,12 +108,8 @@ ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
       msgpack::object_handle result;
       if (unp.next(result)) {
         if (g_state == ReadState::needSize) {
-          // msgpack::object obj(result.get());
           g_state = ReadState::needContent;
         } else {
-          // msgpack::object obj(result.get());
-          // Value v = convertMPToJSI(runtime, obj);
-          // values->push_back(move(v));
           values->push_back(move(result));
           g_state = ReadState::needSize;
         }
