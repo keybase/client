@@ -17,17 +17,11 @@ jobs:
       # Install JS dependencies.
       - run:
           working_directory: shared
-          command: yarn install --pure-lockfile --ignore-engines --network-concurrency 1
-      - run:
-          working_directory: shared
-          command: yarn global add --ignore-engines react-native-cli npm
+          command: yarn modules
       - run:
           working_directory: shared
           no_output_timeout: 30m
           command: yarn run rn-gobuild-android
-      - run:
-          working_directory: shared
-          command: yarn jetify
 
       - run: ls -la shared/android/keybaselib/keybaselib.aar
 
