@@ -170,18 +170,6 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	}()
 
 	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
-	if isIOS {
-		// buffer of bytes
-		buffer = make([]byte, 300*1024)
-	} else {
-		const targetBufferSize = 300 * 1024
-		// bufferSize must be divisible by 3 to ensure that we don't split
-		// our b64 encode across a payload boundary if we go over our buffer
-		// size.
-		const bufferSize = targetBufferSize - (targetBufferSize % 3)
-		// buffer for the conn.Read
-		buffer = make([]byte, bufferSize)
-	}
 
 	var perfLogFile, ekLogFile, guiLogFile string
 	if logFile != "" {
