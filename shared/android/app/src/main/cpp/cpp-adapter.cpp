@@ -1,4 +1,4 @@
-// from
+// based on
 // https://github.com/ammarahm-ed/react-native-jsi-template/blob/master/android/cpp-adapter.cpp
 #include "pthread.h"
 #include "rpc.h"
