@@ -1,14 +1,16 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
-import * as React from 'react'
-import * as Kb from '../common-adapters'
-import Inbox from './inbox/container'
-import InboxSearch from './inbox-search/container'
-import Conversation from './conversation/container'
-import Header from './header'
-import InfoPanel from './conversation/info-panel/container'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
+import * as React from 'react'
+import * as Common from '../router-v2/common'
+import Header from './header'
+import Conversation from './conversation/container'
+import Inbox from './inbox/container'
+import InboxSearch from './inbox-search/container'
+import InfoPanel from './conversation/info-panel/container'
 
 type Props = {
   navigation?: any
@@ -59,7 +61,21 @@ const InboxAndConversation = (props: Props) => {
 
 InboxAndConversation.navigationOptions = ({navigation, route}) => ({
   headerTitle: () => <Header navigation={navigation} route={route} />,
-  headerTitleContainerStyle: {left: 0, right: 0},
+  ...(Styles.isTablet
+    ? {
+        headerLeft: null,
+        headerLeftContainerStyle: {maxWidth: 0},
+        headerRight: null,
+        headerRightContainerStyle: {maxWidth: 0},
+        headerTitleContainerStyle: {
+          ...Common.defaultNavigationOptions.headerTitleContainerStyle,
+          alignSelf: 'stretch',
+          marginHorizontal: 0,
+          marginRight: 8,
+          maxWidth: 9999,
+        },
+      }
+    : {}),
 })
 
 const Memoed = React.memo(InboxAndConversation)

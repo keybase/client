@@ -6,7 +6,7 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RowSizes from './sizes'
 import * as Styles from '../../../styles'
-import * as Types from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/chat2'
 
 type Props = {
   channelname: string
@@ -75,11 +75,13 @@ const BigTeamChannel = (props: Props) => {
           <Kb.Text
             lineClamp={1}
             type="Body"
+            fixOverdraw={Styles.isPhone}
             style={Styles.collapseStyles([styles.channelHash, isSelected && styles.channelHashSelected])}
           >
             #{' '}
             <Kb.Text
               type={isSelected ? 'BodySemibold' : 'Body'}
+              fixOverdraw={Styles.isPhone}
               style={Styles.collapseStyles([
                 styles.channelText,
                 isError
@@ -99,6 +101,7 @@ const BigTeamChannel = (props: Props) => {
           {isMuted && (
             <Kb.WithTooltip tooltip="Muted conversation">
               <Kb.Icon
+                fixOverdraw={Styles.isPhone}
                 color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
                 style={styles.muted}
                 type={
@@ -155,7 +158,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   channelHash: {
-    backgroundColor: Styles.globalColors.fastBlank,
     color: Styles.globalColors.black_20,
   },
   channelHashSelected: {color: Styles.globalColors.white_60},
@@ -171,7 +173,7 @@ const styles = Styles.styleSheetCreate(() => ({
     flex: 1,
     justifyContent: 'flex-end',
   },
-  muted: {backgroundColor: Styles.globalColors.fastBlank, marginLeft: Styles.globalMargins.xtiny},
+  muted: {marginLeft: Styles.globalMargins.xtiny},
   rowContainer: Styles.platformStyles({
     common: {
       alignItems: 'stretch',

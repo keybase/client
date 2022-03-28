@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Types from '../constants/types/chat2'
 import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
 import * as Platforms from '../constants/platform'
 import * as Chat2Gen from '../actions/chat2-gen'
-import {appendNewChatBuilder} from '../actions/typed-routes'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/header/container'
+import {appendNewChatBuilder} from '../actions/typed-routes'
+import type * as Types from '../constants/types/chat2'
 
 type OwnProps = {
   navigation: any
