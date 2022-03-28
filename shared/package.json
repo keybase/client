@@ -203,7 +203,7 @@
         "html-webpack-plugin": "5.5.0",
         "json5": "2.2.0",
         "klaw-sync": "6.0.0",
-        "metro-react-native-babel-preset": "0.68.0",
+        "metro-react-native-babel-preset": "0.69.1",
         "minimist": "1.2.5",
         "msgpack": "git://github.com/keybase/nullModule",
         "net": "git://github.com/keybase/nullModule",
