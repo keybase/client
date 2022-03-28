@@ -31,6 +31,7 @@ const commands = {
       fixModules()
       checkFSEvents()
       clearTSCache()
+      getMsgPack()
       patcher()
     },
     help: '',
@@ -107,6 +108,19 @@ const decorateInfo = info => {
 }
 
 const warnFail = err => err && console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
+
+const getMsgPack = () => {
+  const ver = '4.1.1'
+  const file = `msgpack-cxx-${ver}.tar.gz`
+  const url = `https://kbelectron.keybase.pub/misc/${file}`
+  const prefix = path.resolve(__dirname, '..', '..', 'node_modules')
+  if (!fs.existsSync(path.resolve(prefix, file))) {
+    console.log('Missing msgpack-cpp, downloading')
+    exec(`curl -L -o ${prefix}/${file} ${url}`)
+    exec(`cd node_modules ; tar -xvf ${file}`)
+  }
+}
+
 const clearTSCache = () => {
   const glob = path.resolve(__dirname, '..', '..', '.tsOuts', '.tsOut*')
   rimraf(glob, {}, warnFail)

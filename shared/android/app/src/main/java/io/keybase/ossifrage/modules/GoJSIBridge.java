@@ -70,7 +70,7 @@ public class GoJSIBridge extends ReactContextBaseJavaModule {
                     CallInvokerHolderImpl callInvoker = (CallInvokerHolderImpl) reactContext.getCatalystInstance().getJSCallInvokerHolder();
                     nativeEmit(reactContext.getJavaScriptContextHolder().get(), callInvoker, data);
                 } catch (Exception e) {
-                    if (e.getMessage().equals("Read error: EOF")) {
+                    if (e.getMessage() != null && e.getMessage().equals("Read error: EOF")) {
                         NativeLogger.info("Got EOF from read. Likely because of reset.");
                     } else {
                         NativeLogger.error("Exception in ReadFromKBLib.run", e);
@@ -108,11 +108,8 @@ public class GoJSIBridge extends ReactContextBaseJavaModule {
         installed = true;
         try {
             System.loadLibrary("gojsi");
-
             ReactApplicationContext context = getReactApplicationContext();
-            CallInvokerHolderImpl callInvokerHolder = (CallInvokerHolderImpl) context.getCatalystInstance().getJSCallInvokerHolder();
             this.nativeInstall(context.getJavaScriptContextHolder().get());
-
             if (executor == null) {
                 executor = Executors.newSingleThreadExecutor();
                 executor.execute(new ReadFromKBLib(this.reactContext));

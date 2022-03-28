@@ -384,7 +384,7 @@ func WriteArr(b []byte) (err error) {
 	return nil
 }
 
-const bufferSize = 300 * 1024
+const bufferSize = 1024 * 1024
 
 // buffer for the conn.Read
 var buffer = make([]byte, bufferSize)

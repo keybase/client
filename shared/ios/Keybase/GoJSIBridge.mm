@@ -6,6 +6,7 @@
 #import <cstring>
 #import <React/RCTBridge+Private.h>
 #import "AppDelegate.h"
+#import "../../android/app/src/main/cpp/rpc.h"
 
 using namespace facebook::jsi;
 using namespace facebook;
@@ -55,19 +56,10 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
 
 + (void)sendToJS:(NSData*)data {
   int size = (int)[data length];
-  std::shared_ptr<uint8_t> sData(new uint8_t[size], std::default_delete<uint8_t[]>());
-  memcpy(sData.get(), [data bytes], [data length]);
-  
+  auto values = PrepRpcOnJS(*g_jsiRuntime, (uint8_t*)[data bytes], size);
   auto invoker = [g_cxxBridge jsCallInvoker];
-  invoker->invokeAsync([sData, size]() {
-    Runtime & runtime = *g_jsiRuntime;
-    Function rpcOnJs = runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
-    Function arrayBufferCtor = runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
-    Value v = arrayBufferCtor.callAsConstructor(runtime, size);
-    Object o = v.getObject(runtime);
-    ArrayBuffer buf = o.getArrayBuffer(runtime);
-    std::memcpy(buf.data(runtime), sData.get(), size);
-    rpcOnJs.call(runtime, move(v), 1);
+  invoker->invokeAsync([values]() {
+    RpcOnJS(*g_jsiRuntime, values);
   });
 }
 
@@ -76,13 +68,10 @@ static void install(Runtime &jsiRuntime, GoJSIBridge *goJSIBridge) {
     PropNameID::forAscii(jsiRuntime, "rpcOnGo"),
     1,
     [goJSIBridge](Runtime &runtime, const Value &thisValue, const Value *arguments, size_t count) -> Value {
-    auto obj = arguments[0].asObject(runtime);
-    auto buffer = obj.getArrayBuffer(runtime);
-    auto ptr = buffer.data(runtime);
-    auto size = buffer.size(runtime);
-    NSData * result = [NSData dataWithBytesNoCopy:ptr length:size freeWhenDone:NO];
-    [_engine rpcToGo: result];
-    return Value(true);
+    return RpcOnGo(runtime, thisValue, arguments, count, [](void* ptr, size_t size) {
+      NSData * result = [NSData dataWithBytesNoCopy:ptr length:size freeWhenDone:NO];
+      [_engine rpcToGo: result];
+    });
   });
   jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", move(rpcOnGo));
 }

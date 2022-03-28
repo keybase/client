@@ -65,9 +65,8 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  global.rpcOnJs = buf => {
-    const buffer = toBuffer(buf)
-    client.transport.packetize_data(buffer)
+  global.rpcOnJs = objs => {
+    client.transport._dispatch(objs)
   }
 
   nativeBridge.start()
