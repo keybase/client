@@ -2622,6 +2622,7 @@ const maybeLoadTeamFromMeta = async (meta: Types.ConversationMeta): Promise<Cont
     const {teamID} = meta
     if (meta.teamname) {
       setTimeout(() => {
+        // give a little breathing room when loading up a conversation
         resolve(TeamsGen.createGetMembers({teamID}))
       }, 1000)
     } else {
@@ -3386,7 +3387,9 @@ const gregorPushState = (
           const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
           const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
           current.push({conversationIDKey, seconds})
-        } catch {}
+        } catch {
+          logger.error(`gregorPushState : invalid exploding modes`)
+        }
         return current
       },
       []
@@ -3409,7 +3412,9 @@ const gregorPushState = (
             const body: {adder: string} = GregorConstants.bodyToJSON(i.item.body)
             const adder = body.adder
             actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
-          } catch {}
+          } catch {
+            logger.error(`gregorPushState : invalid block buttons`)
+          }
         } else {
           shouldKeepExistingBlockButtons.set(teamID, true)
         }
