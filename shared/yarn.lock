@@ -6653,9 +6653,9 @@ lottie-react-native@5.0.1:
     prop-types "^15.5.10"
     react-native-safe-modules "^1.0.3"
 
-"lottie-react-web@git://github.com/keybase/lottie-react-web#nojima/keybase-fixes-off-214":
+lottie-react-web@keybase/lottie-react-web#nojima/keybase-fixes-off-214:
   version "2.1.4"
-  resolved "git://github.com/keybase/lottie-react-web#46f2d088906cf1088dfc174582a63c734cc5d626"
+  resolved "https://codeload.github.com/keybase/lottie-react-web/tar.gz/46f2d088906cf1088dfc174582a63c734cc5d626"
   dependencies:
     babel-runtime "^6.26.0"
     lottie-api bodymovin/lottie-api#master
@@ -7277,9 +7277,9 @@ ms@2.1.3, ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
-"msgpack@git://github.com/keybase/nullModule", "net@git://github.com/keybase/nullModule", purepack@>=1, "purepack@git://github.com/keybase/nullModule", "tls@git://github.com/keybase/nullModule":
+msgpack@keybase/nullModule, net@keybase/nullModule, purepack@>=1, purepack@keybase/nullModule, tls@keybase/nullModule:
   version "0.0.0"
-  resolved "git://github.com/keybase/nullModule#e0d7d7874eb4d1fd82056f92f146589186fe94f0"
+  resolved "https://codeload.github.com/keybase/nullModule/tar.gz/e0d7d7874eb4d1fd82056f92f146589186fe94f0"
 
 multicast-dns-service-types@^1.1.0:
   version "1.1.0"
@@ -7943,9 +7943,9 @@ pkg-up@^3.1.0:
     find-up "^3.0.0"
 
 plist@^3.0.0, plist@^3.0.1, plist@^3.0.2, plist@^3.0.4:
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/plist/-/plist-3.0.4.tgz#a62df837e3aed2bb3b735899d510c4f186019cbe"
-  integrity sha512-ksrr8y9+nXOxQB2osVNqrgvX/XQPOXaU4BQMKjYq8PvaY1U18mo+fKgBSwzK+luSyinOuPae956lSVcBwxlAMg==
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/plist/-/plist-3.0.5.tgz#2cbeb52d10e3cdccccf0c11a63a85d830970a987"
+  integrity sha512-83vX4eYdQp3vP9SxuYgEM/G/pJQqLUz/V/xzPrzruLs7fz7jxGQ1msZ/mg1nwZxUSuOp4sb+/bEIbRrbzZRxDA==
   dependencies:
     base64-js "^1.5.1"
     xmlbuilder "^9.0.7"
@@ -8119,9 +8119,9 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
-"qrcode-generator@git://github.com/keybase/qrcode-generator#keybase-changes-off-140":
+qrcode-generator@keybase/qrcode-generator#keybase-changes-off-140:
   version "1.4.0"
-  resolved "git://github.com/keybase/qrcode-generator#d4d21333442b678f28ab605dfe7792690ee7b210"
+  resolved "https://codeload.github.com/keybase/qrcode-generator/tar.gz/d4d21333442b678f28ab605dfe7792690ee7b210"
 
 qs@6.9.7:
   version "6.9.7"
