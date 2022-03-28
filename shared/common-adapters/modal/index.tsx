@@ -1,9 +1,8 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import {LayoutChangeEvent} from 'react-native'
 import PopupDialog from '../popup-dialog'
 import ScrollView from '../scroll-view'
-import {Box2, Box} from '../box'
+import {Box2, Box, LayoutEvent} from '../box'
 import BoxGrow from '../box-grow'
 import Text from '../text'
 import {useTimeout} from '../use-timers'
@@ -61,7 +60,7 @@ const ModalInner = (props: Props) => (
     {!!props.header && <Header {...props.header} />}
     {!!props.banners && props.banners}
     {props.noScrollView ? (
-      props.children
+      <Kb.BoxGrow>{props.children}</Kb.BoxGrow>
     ) : (
       <Kb.ScrollView
         ref={props.scrollViewRef}
@@ -84,9 +83,11 @@ const ModalInner = (props: Props) => (
 /** TODO being deprecated. if you change this change modal2 and talk to #frontend **/
 const Modal = (props: Props) =>
   Styles.isMobile || props.fullscreen ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
-      <ModalInner {...props} />
-    </Kb.Box2>
+    <Kb.BoxGrow>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
+        <ModalInner {...props} />
+      </Kb.Box2>
+    </Kb.BoxGrow>
   ) : (
     <PopupDialog
       onClose={props.onClose}
@@ -113,7 +114,7 @@ const Header = (props: HeaderProps) => {
   const setMeasuredLater = Kb.useTimeout(() => setMeasured(true), 100)
   const [widerWidth, setWiderWidth] = React.useState(-1)
   const onLayoutSide = React.useCallback(
-    (evt: LayoutChangeEvent) => {
+    (evt: LayoutEvent) => {
       if (measured) {
         return
       }
@@ -128,7 +129,7 @@ const Header = (props: HeaderProps) => {
   const sideWidth = widerWidth + headerSidePadding * 2
   // end mobile only
 
-  let subTitle
+  let subTitle: React.ReactNode
   if (props.subTitle) {
     subTitle =
       typeof props.subTitle === 'string' ? (
@@ -225,7 +226,7 @@ const Footer = (props: FooterProps & {fullscreen: boolean; wide: boolean}) => (
       props.fullscreen && styles.footerFullscreen,
       !props.hideBorder && styles.footerBorder,
       props.style,
-    ])}
+    ] as const)}
   >
     {props.content}
   </Kb.Box2>

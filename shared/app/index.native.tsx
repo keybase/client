@@ -1,27 +1,61 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
-import Main from './main.native'
 import * as React from 'react'
+import Main from './main.native'
 import configureStore from '../store/configure-store'
-import {AppRegistry, AppState, Linking} from 'react-native'
-import {GatewayProvider} from '@chardskarth/react-gateway'
-import {Provider} from 'react-redux'
-import {makeEngine} from '../engine'
+import {AppRegistry, AppState, Appearance, Linking} from 'react-native'
+import {PortalProvider} from '@gorhom/portal'
+import {Provider, useDispatch} from 'react-redux'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
+import {makeEngine} from '../engine'
+import {StyleContext} from '../styles'
+import debounce from 'lodash/debounce'
+
+let store: ReturnType<typeof configureStore>['store']
 
 module.hot &&
   module.hot.accept(() => {
     console.log('accepted update in shared/index.native')
+    store = global.DEBUGStore
   })
 
-let store: ReturnType<typeof configureStore>['store']
+const NativeEventsToRedux = () => {
+  const dispatch = useDispatch()
 
-type Props = {}
+  React.useEffect(() => {
+    const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
+      store &&
+        nextAppState !== 'unknown' &&
+        nextAppState !== 'extension' &&
+        dispatch(ConfigGen.createMobileAppState({nextAppState}))
+    })
 
-class Keybase extends React.Component<Props> {
-  constructor(props: Props) {
-    super(props)
+    // must be debounced due to ios calling this multiple times for snapshots
+    const darkSub = Appearance.addChangeListener(
+      debounce(() => {
+        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
+      }, 100)
+    )
 
+    const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
+      dispatch(DeeplinksGen.createLink({link: url}))
+    })
+
+    return () => {
+      appStateChangeSub?.remove()
+      darkSub?.remove()
+      linkingSub?.remove()
+    }
+  }, [dispatch])
+
+  return null
+}
+
+const Keybase = () => {
+  const madeStoreRef = React.useRef(false)
+
+  if (!madeStoreRef.current) {
+    madeStoreRef.current = true
     if (!global.DEBUGLoaded) {
       global.DEBUGLoaded = true
       const temp = configureStore()
@@ -36,39 +70,20 @@ class Keybase extends React.Component<Props> {
       // On mobile there is no installer
       temp.store.dispatch(ConfigGen.createInstallerRan())
     }
-
-    AppState.addEventListener('change', this._handleAppStateChange)
   }
 
-  componentDidMount() {
-    Linking.addEventListener('url', this._handleOpenURL)
-    Linking.getInitialURL().then(url => url && this._handleOpenURL({url}))
-  }
-
-  componentWillUnmount() {
-    AppState.removeEventListener('change', this._handleAppStateChange)
-    Linking.removeEventListener('url', this._handleOpenURL)
-  }
-
-  _handleOpenURL(event: {url: string}) {
-    store && store.dispatch(DeeplinksGen.createLink({link: event.url}))
-  }
-
-  _handleAppStateChange = (nextAppState: 'active' | 'background' | 'inactive') => {
-    store && store.dispatch(ConfigGen.createMobileAppState({nextAppState}))
-  }
-
-  render() {
-    return (
-      <Provider store={store}>
-        <GatewayProvider>
-          <SafeAreaProvider>
+  return (
+    <Provider store={store}>
+      <PortalProvider>
+        <SafeAreaProvider>
+          <StyleContext.Provider value={{canFixOverdraw: true}}>
             <Main />
-          </SafeAreaProvider>
-        </GatewayProvider>
-      </Provider>
-    )
-  }
+          </StyleContext.Provider>
+        </SafeAreaProvider>
+      </PortalProvider>
+      <NativeEventsToRedux />
+    </Provider>
+  )
 }
 
 function load() {

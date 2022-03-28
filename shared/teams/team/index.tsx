@@ -6,6 +6,7 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
+import {useFocusEffect} from '@react-navigation/core'
 import {memoize} from '../../util/memoize'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import {SelectionPopup, useActivityLevels} from '../common'
@@ -92,8 +93,12 @@ const Team = (props: Props) => {
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const dispatch = Container.useDispatch()
-  const onBlur = React.useCallback(() => dispatch(TeamsGen.createTeamSeen({teamID})), [dispatch, teamID])
-  Container.useFocusBlur(undefined, onBlur)
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => dispatch(TeamsGen.createTeamSeen({teamID}))
+    }, [dispatch, teamID])
+  )
 
   useTeamsSubscribe()
   useTeamDetailsSubscribe(teamID)
@@ -167,11 +172,9 @@ const Team = (props: Props) => {
     []
   )
 
-  const body = (
-    <>
-      <Kb.SafeAreaViewTop />
+  return (
+    <Styles.StyleContext.Provider value={{canFixOverdraw: false}}>
       <Kb.Box style={styles.container}>
-        {Styles.isMobile && <MobileHeader teamID={teamID} offset={offset.current} />}
         <SectionList
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={Styles.isMobile}
@@ -187,50 +190,14 @@ const Team = (props: Props) => {
           teamID={teamID}
         />
       </Kb.Box>
-    </>
+    </Styles.StyleContext.Provider>
   )
-
-  return body
 }
 
+// {Styles.isMobile && <MobileHeader teamID={teamID} offset={offset.current} />}
 Team.navigationOptions = {
   headerHideBorder: true,
-  underNotch: true,
-}
-
-const startAnimationOffset = 40
-const AnimatedBox2 = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2) : undefined
-const MobileHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: any}) => {
-  const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const top = Kb.ReAnimated.interpolate(offset, {
-    inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
-    outputRange: [40, 40, 0, 0],
-  })
-  const opacity = Kb.ReAnimated.interpolate(offset, {
-    inputRange: [-9999, 0, 1, 9999],
-    outputRange: [0, 0, 1, 1],
-  })
-  return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.header}>
-      <AnimatedBox2
-        style={[styles.smallHeader, {opacity, top}]}
-        gap="tiny"
-        direction="horizontal"
-        centerChildren={true}
-        fullWidth={true}
-        fullHeight={true}
-      >
-        <Kb.Avatar size={16} teamname={meta.teamname} />
-        <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
-          {meta.teamname}
-        </Kb.Text>
-      </AnimatedBox2>
-      <Kb.BackButton onClick={onBack} style={styles.backButton} />
-    </Kb.Box2>
-  )
+  headerTitle: '',
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -263,7 +230,6 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
     },
-    isMobile: {marginTop: 40},
   }),
   listContentContainer: Styles.platformStyles({
     isMobile: {

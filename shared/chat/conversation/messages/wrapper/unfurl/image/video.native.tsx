@@ -47,7 +47,6 @@ export class Video extends React.Component<Props, State> {
           paused={!this.state.playingVideo}
           muted={true}
           ignoreSilentSwitch="obey"
-          // @ts-ignore
           mixWithOthers="mix"
         />
         <Kb.Box

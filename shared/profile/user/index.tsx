@@ -16,6 +16,7 @@ import shallowEqual from 'shallowequal'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
 import {SiteIcon} from '../generic/shared'
+import {HeaderLeftArrow} from '../../common-adapters/header-hoc'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -314,12 +315,6 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   }
 }
 
-const Header = () => (
-  <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <ProfileSearch whiteText={true} style={styles.profileSearch} />
-  </Kb.Box2>
-)
-
 type State = {
   selectedTab: string
   width: number
@@ -329,24 +324,13 @@ type Tab = 'followers' | 'following'
 
 class User extends React.Component<Props, State> {
   static navigationOptions = () => ({
-    header: undefined,
-    headerBackIconColor: Styles.globalColors.white,
-    headerHideBorder: false,
-    headerStyle: {
-      backgroundColor: Styles.globalColors.transparent,
-      borderBottomColor: Styles.globalColors.transparent,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-    },
-    headerTintColor: Styles.globalColors.white,
-    headerTitle: Header,
-    headerTitleContainerStyle: {
-      left: 60,
-      right: 20,
-    },
+    headerLeft: ({canGoBack, onPress, tintColor}) => (
+      <Styles.StyleContext.Provider value={{canFixOverdraw: false}}>
+        <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
+      </Styles.StyleContext.Provider>
+    ),
+    headerTitle: () => <ProfileSearch />,
     headerTransparent: true,
-    underNotch: true,
-    whatsNewIconColor: Styles.globalColors.white,
   })
 
   constructor(props: Props) {
@@ -575,11 +559,21 @@ export const styles = Styles.styleSheetCreate(() => ({
       alignSelf: 'stretch',
       borderBottomStyle: 'solid',
     },
-    isMobile: {width: '100%'},
+    isMobile: {
+      width: '100%',
+    },
   }),
-  followTabSelected: {borderBottomColor: Styles.globalColors.blue},
-  followTabText: {color: Styles.globalColors.black_50},
-  followTabTextSelected: {color: Styles.globalColors.black},
+  followTabSelected: {
+    borderBottomColor: Styles.globalColors.blue,
+  },
+  followTabText: Styles.platformStyles({
+    common: {color: Styles.globalColors.black_50},
+    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+  }),
+  followTabTextSelected: Styles.platformStyles({
+    common: {color: Styles.globalColors.black},
+    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+  }),
   friendRow: Styles.platformStyles({
     common: {
       maxWidth: '100%',

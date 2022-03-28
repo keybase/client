@@ -1,5 +1,4 @@
 // Inside tracker we use an embedded Avatar which is connected.
-import * as Electron from 'electron'
 import * as React from 'react'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
@@ -7,6 +6,7 @@ import * as Constants from '../constants/tracker2'
 import * as Container from '../util/container'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as Types from '../constants/types/tracker2'
+import * as remote from '@electron/remote'
 import Tracker from './index.desktop'
 import {DeserializeProps} from './remote-serializer.desktop'
 
@@ -47,7 +47,7 @@ const RemoteContainer = () => {
       onClose={() => {
         dispatch(Tracker2Gen.createCloseTracker({guiID}))
         // close immediately
-        const w = Electron.remote.getCurrentWindow()
+        const w = remote.getCurrentWindow()
         w && w.close()
       }}
       onFollow={() => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID}))}

@@ -31,4 +31,3 @@ export declare const serverConfigFileName: string
 export declare const shortcutSymbol: string
 export declare const realDeviceName: string
 export declare const uses24HourClock: boolean
-export const appColorSchemeChanged: (pref: DarkModePreference) => void

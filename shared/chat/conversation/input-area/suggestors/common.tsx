@@ -55,7 +55,7 @@ export type ListProps<T> = {
   loading: boolean
   onSelected: (item: T, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.MutableRefObject<(() => void) | undefined>
+  onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
   ItemRenderer: (p: ItemRendererProps<T>) => JSX.Element
   conversationIDKey: Types.ConversationIDKey
 }
@@ -93,6 +93,7 @@ export function List<T>(p: ListProps<T>) {
   onSubmitRef.current = React.useCallback(() => {
     const sel = items[selectedIndex]
     sel && onSelected(sel, true)
+    return !!sel
   }, [selectedIndex, onSelected, items])
 
   return (

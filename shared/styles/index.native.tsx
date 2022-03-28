@@ -42,9 +42,9 @@ const util = {
     backgroundColor: globalColors.greyLight,
     height: 16,
   },
-  mediumSubNavWidth: isTablet ? '25%' : '100%',
+  mediumSubNavWidth: isTablet ? 270 : '100%',
   mediumWidth: isTablet ? 460 : '100%',
-  shortSubNavWidth: isTablet ? '15%' : '100%',
+  shortSubNavWidth: isTablet ? 162 : '100%',
 }
 
 export const desktopStyles = {
@@ -80,7 +80,28 @@ export {isDarkMode}
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
 ): ReadonlyArray<Object | null | false> => {
-  return styles.filter(Boolean) as any
+  // if we have no / singular values we pass those on in the hopes they're consts
+  const nonNull = styles.filter(s => {
+    if (!s) {
+      return false
+    }
+    // has a value?
+    for (const _ in s) {
+      return true
+    }
+    return false
+  })
+  if (!nonNull.length) {
+    return undefined as any
+  }
+  if (nonNull.length === 1) {
+    const s = nonNull[0]
+    if (typeof s === 'object') {
+      return s as any
+    }
+  }
+  // rn allows falsy values so let memoized values through
+  return styles as any
 }
 export const transition = () => ({})
 export const backgroundURL = () => ({})
@@ -94,8 +115,7 @@ export {
   platformStyles,
   padding,
 } from './shared'
-export {default as glamorous} from '@emotion/native'
-export {default as styled, css as styledCss} from '@emotion/native'
+export {default as styled} from '@emotion/native'
 export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'
 export const borderRadius = 6

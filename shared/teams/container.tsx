@@ -123,7 +123,6 @@ const filterStyles = Styles.styleSheetCreate(() => ({
 }))
 
 Reloadable.navigationOptions = {
-  header: undefined,
   headerRightActions: !Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
   title: 'Teams',
 }

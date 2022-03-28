@@ -280,8 +280,8 @@ export default () => {
     show: false,
     webPreferences: {
       backgroundThrottling: false,
+      contextIsolation: false,
       devTools: showDevTools,
-      enableRemoteModule: true,
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
       preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
@@ -292,11 +292,11 @@ export default () => {
     y: windowState.y,
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
-
   if (__DEV__) {
     setupDevToolsExtensions()
   }
 
+  require('@electron/remote/main').enable(win.webContents)
   win
     .loadURL(htmlFile)
     .then(() => {})

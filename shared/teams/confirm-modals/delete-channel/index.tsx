@@ -8,6 +8,7 @@ import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 import {pluralize} from '../../../util/string'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 type Props = Container.RouteProps<{
   teamID: Types.TeamID
@@ -81,12 +82,17 @@ const DeleteChannel = (props: Props) => {
     )
   }
 
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+
   return (
     <Kb.ConfirmModal
       confirmText={`Delete ${pluralize('channel', channelnames.length)}`}
       description="This cannot be undone. All messages in the channel will be lost."
       header={<Header />}
       onConfirm={onDelete}
+      onCancel={onCancel}
       prompt={
         <Kb.Text type="Header" center={true} style={styles.prompt}>
           Delete {deleteMsg}?

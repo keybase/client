@@ -71,7 +71,6 @@ export const TeamMemberRow = (props: Props) => {
 
   const roleLabel = !!active && !!props.roleType && typeToLabel[props.roleType]
   const isYou = props.you === props.username
-
   const teamID = props.teamID
 
   const dispatch = Container.useDispatch()
@@ -96,7 +95,6 @@ export const TeamMemberRow = (props: Props) => {
   const body = (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Avatar username={props.username} size={32} />
-
       <Kb.Box2 direction="vertical" style={styles.nameContainer}>
         <Kb.Box style={Styles.globalStyles.flexBoxRow}>
           <Kb.ConnectedUsernames type="BodyBold" usernames={props.username} colorFollowing={true} />
@@ -231,6 +229,7 @@ export const TeamMemberRow = (props: Props) => {
       body={body}
       firstItem={props.firstItem}
       style={selected ? styles.selected : styles.unselected}
+      innerStyle={selected ? styles.selected : styles.unselected}
       onClick={anySelected ? () => onSelect(!selected) : canEnterMemberPage ? props.onClick : undefined}
     />
   )

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Types from '../../constants/types/chat2'
 import * as Styles from '../../styles'
-import {Gateway} from '@chardskarth/react-gateway'
+import {Portal} from '@gorhom/portal'
 
 type AudioStarterProps = {
   dragY: Kb.NativeAnimated.Value
@@ -86,9 +86,9 @@ const AudioStarter = (props: AudioStarterProps) => {
   }
   return (
     <>
-      <Gateway into="convOverlay">
+      <Portal hostName="convOverlay">
         <Tooltip shouldBeVisible={showToolTip} />
-      </Gateway>
+      </Portal>
       <Kb.TapGestureHandler
         shouldCancelWhenOutside={false}
         onHandlerStateChange={({nativeEvent}) => {

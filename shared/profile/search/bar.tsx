@@ -34,6 +34,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.xsmall,
   },
   filterMobile: {
+    height: 40,
     paddingLeft: 0,
     paddingRight: 0,
   },

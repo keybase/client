@@ -54,7 +54,6 @@ const styles = Styles.styleSheetCreate(
       }),
       tooltipContainer: Styles.platformStyles({
         isElectron: {
-          display: 'flex',
           justifyContent: 'center',
         },
       }),

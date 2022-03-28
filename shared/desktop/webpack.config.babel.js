@@ -23,7 +23,7 @@ const config = (_, {mode}) => {
         ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
         plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
         presets: [
-          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '10.1.1'}}],
+          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '17.0.1'}}],
           '@babel/preset-typescript',
         ],
       },
@@ -91,7 +91,7 @@ const config = (_, {mode}) => {
     console.warn('Injecting defines: ', defines)
 
     const alias = {
-      // 'react-native$': 'react-native-web',
+      'react-native$': 'react-native-web',
     }
     if (isHot) {
       // hot loader
@@ -117,11 +117,11 @@ const config = (_, {mode}) => {
       plugins: [
         new webpack.DefinePlugin(defines), // Inject some defines
         new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}), // Skip a bunch of crap moment pulls in
-        new webpack.IgnorePlugin({resourceRegExp: /^lodash$/}), // Disallow entire lodash
+        ...(isDev ? [] : [new webpack.IgnorePlugin({resourceRegExp: /^lodash$/})]), // Disallow entire lodash
       ],
       resolve: {
         alias,
-        extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json'],
+        extensions: ['.desktop.js', '.desktop.tsx', '.web.js', '.js', '.jsx', '.tsx', '.ts', '.json'],
       },
       ...(isDev
         ? {}

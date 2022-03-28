@@ -2,23 +2,23 @@ import * as React from 'react'
 import {Provider} from 'react-redux'
 import {GlobalKeyEventHandler} from '../../util/key-event-handler.desktop'
 import {GatewayProvider} from '@chardskarth/react-gateway'
+import {StyleContext} from '../../styles'
 import './style.css'
 
-// if we want to remove stricemode
-const disableStrict = __DEV__ && false
-const MaybeStrict = !disableStrict ? React.Fragment : React.StrictMode
 // if we want to load the read profiler before the app is loaded
 const deferLoadingApp = __DEV__ && false
 
 const Root = ({store, children}: any) => {
   return (
-    <MaybeStrict>
+    <React.StrictMode>
       <GlobalKeyEventHandler>
         <GatewayProvider>
-          <Provider store={store}>{children}</Provider>
+          <StyleContext.Provider value={{canFixOverdraw: true}}>
+            <Provider store={store}>{children}</Provider>
+          </StyleContext.Provider>
         </GatewayProvider>
       </GlobalKeyEventHandler>
-    </MaybeStrict>
+    </React.StrictMode>
   )
 }
 

@@ -1,21 +1,64 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
-import * as Types from '../../constants/types/chat2'
 import * as Container from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
-import HeaderArea from './header-area/container'
-// @ts-ignore
-import {withNavigationFocus} from '@react-navigation/core'
+import {headerNavigationOptions} from './header-area/container'
+import {useFocusEffect, useNavigation} from '@react-navigation/core'
+import {tabBarStyle} from '../../router-v2/common'
+import type * as Types from '../../constants/types/chat2'
 
 type ConvoType = 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 
 type SwitchProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
+const hideTabBarStyle = {display: 'none'}
 
-let Conversation = (p: SwitchProps) => {
+// due to timing issues if we go between convos we can 'lose track' of focus in / out
+// so instead we keep a count and only bring back the tab if we're entirely gone
+let focusRefCount = 0
+
+let showDeferId: any = 0
+const deferChangeTabOptions = (tabNav, tabBarStyle, defer) => {
+  if (showDeferId) {
+    clearTimeout(showDeferId)
+  }
+  if (tabNav) {
+    if (defer) {
+      showDeferId = setTimeout(() => {
+        tabNav.setOptions({tabBarStyle})
+      }, 1)
+    } else {
+      tabNav.setOptions({tabBarStyle})
+    }
+  }
+}
+
+const Conversation = (p: SwitchProps) => {
+  const navigation = useNavigation()
+  let tabNav: any = navigation.getParent()
+  if (tabNav?.getState()?.type !== 'tab') {
+    tabNav = undefined
+  }
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!Container.isPhone) {
+        return
+      }
+      ++focusRefCount
+      deferChangeTabOptions(tabNav, hideTabBarStyle, false)
+      return () => {
+        --focusRefCount
+        if (focusRefCount === 0) {
+          deferChangeTabOptions(tabNav, tabBarStyle, true)
+        }
+      }
+    }, [tabNav])
+  )
+
   const conversationIDKey = Container.getRouteProps(p, 'conversationIDKey', Constants.noConversationIDKey)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
 
@@ -62,16 +105,11 @@ let Conversation = (p: SwitchProps) => {
   }
 }
 
-if (Container.isMobile) {
-  Conversation = withNavigationFocus(Conversation)
-}
-
 // @ts-ignore
-Conversation.navigationOptions = {
-  header: undefined,
-  headerLeft: null,
-  headerTitle: () => <HeaderArea />,
-}
+Conversation.navigationOptions = ({route}) => ({
+  ...headerNavigationOptions(route),
+  needsSafe: true,
+})
 
 const ConversationMemoed = React.memo(Conversation)
 Container.hoistNonReactStatic(ConversationMemoed, Conversation)

@@ -1,5 +1,5 @@
 import {Dimensions, Platform, NativeModules} from 'react-native'
-import RNFB from 'rn-fetch-blob'
+import RNFB from 'react-native-blob-util'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import Constants from 'expo-constants'
 
@@ -67,10 +67,3 @@ export const pprofDir = _dir
 export const serverConfigFileName = `${_dir}/keybase.app.serverConfig`
 
 export const downloadFolder = ''
-
-// Noop on iOS.
-// If we want to implement this on iOS it may be better to have iOS and android
-// subscribe to changes from Go directly. Instead of having to rely on JS as the
-// middle person.
-export const appColorSchemeChanged =
-  NativeModules.KeybaseEngine && isAndroid ? NativeModules.KeybaseEngine.appColorSchemeChanged : () => {}

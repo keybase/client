@@ -201,11 +201,7 @@ const IncomingShare = (props: IncomingShareProps) => {
     {sendPaths: [] as Array<string>, text: undefined as string | undefined}
   )
   return (
-    <Kb.Modal
-      noScrollView={true}
-      header={useHeader(props.incomingShareItems)}
-      footer={useFooter(props.incomingShareItems)}
-    >
+    <Kb.Modal noScrollView={true} header={useHeader(props.incomingShareItems)} footer={useFooter(props.incomingShareItems)}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
           <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />

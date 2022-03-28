@@ -523,7 +523,6 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.padding(Styles.globalMargins.xlarge, 0),
     alignItems: 'center',
-    minWidth: undefined,
   },
   createdBanner: {
     backgroundColor: Styles.globalColors.green,

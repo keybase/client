@@ -80,6 +80,7 @@ const TeamRow = (props: Props) => {
           </Kb.Box2>
         }
         style={styles.white}
+        innerStyle={styles.white}
         height={Styles.isPhone ? 72 : undefined}
         body={
           <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
@@ -91,7 +92,7 @@ const TeamRow = (props: Props) => {
                 style={styles.bodyLeftText}
               >
                 <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
-                  <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
+                  <Kb.Text fixOverdraw={true} type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
                     {teamMeta.teamname}
                   </Kb.Text>
                   {teamMeta.isOpen && (
@@ -110,7 +111,7 @@ const TeamRow = (props: Props) => {
                       style={styles.alignSelfCenter}
                     />
                   )}
-                  <Kb.Text type="BodySmall">
+                  <Kb.Text fixOverdraw={true} type="BodySmall">
                     {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
                   </Kb.Text>
                 </Kb.Box2>

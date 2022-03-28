@@ -21,7 +21,6 @@ import {RPCError} from '../util/errors'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import type {TypedActions, TypedState} from '../util/container'
-import type {Action} from 'redux'
 
 const stateToBuildRequestParams = (state: TypedState) => ({
   amount: state.wallets.building.amount,
@@ -878,11 +877,8 @@ const navigateToAccount = (action: WalletsGen.SelectAccountPayload) => {
 
   return [
     RouteTreeGen.createClearModals(),
-    RouteTreeGen.createResetStack({
-      actions: isMobile ? [RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]})] : [],
-      index: isMobile ? 1 : 0,
-      tab: Constants.rootWalletTab,
-    }),
+    RouteTreeGen.createSwitchTab({tab: Constants.rootWalletTab}),
+    ...(isMobile ? [RouteTreeGen.createNavUpToScreen({routeName: SettingsConstants.walletsTab})] : []),
   ]
 }
 
@@ -974,7 +970,7 @@ const maybeNavigateAwayFromSendForm = () => {
   const actions: Array<TypedActions> = []
   // pop off any routes that are part of the popup
   path.reverse().some(p => {
-    if (Constants.sendRequestFormRoutes.includes(p.routeName)) {
+    if (Constants.sendRequestFormRoutes.includes(p.name)) {
       actions.push(RouteTreeGen.createNavigateUp())
       return false
     }
@@ -1081,7 +1077,7 @@ const acceptDisclaimer = async () =>
 const checkDisclaimer = async (_: WalletsGen.CheckDisclaimerPayload, logger: Saga.SagaLogger) => {
   try {
     const accepted = await RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
-    const actions: Array<Action> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
+    const actions: Array<TypedActions> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
     if (!accepted) {
       return actions
     }

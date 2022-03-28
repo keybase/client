@@ -10,6 +10,7 @@ android/**/*.iml
 android/**/.classpath
 android/**/.project
 android/**/.settings/**
+android/app/.cxx
 
 # iOS
 !default.mode1v3

@@ -126,7 +126,6 @@ const Waiting = (props: Props) => {
 }
 
 Waiting.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }

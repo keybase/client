@@ -12,6 +12,7 @@
 #import <React/RCTEventDispatcher.h>
 #import "AppDelegate.h"
 #import "Utils.h"
+#import "GoJSIBridge.h"
 
 // singleton so the exported react component can get it
 static Engine * sharedEngine = nil;
@@ -19,14 +20,12 @@ static Engine * sharedEngine = nil;
 @interface Engine ()
 
 @property dispatch_queue_t readQueue;
-@property dispatch_queue_t writeQueue;
 @property (strong) KeybaseEngine * keybaseEngine;
 @property (strong) NSString * sharedHome;
 
 - (void)start:(KeybaseEngine*)emitter;
 - (void)startReadLoop;
 - (void)setupQueues;
-- (void)runWithData:(NSString *)data;
 - (void)reset;
 - (void)onRNReload;
 
@@ -43,6 +42,7 @@ static NSString *const metaEventEngineReset = @"engine-reset";
   if ((self = [super init])) {
     sharedEngine = self;
     self.sharedHome = settings[@"sharedHome"];
+    [GoJSIBridge setEngine:self];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onRNReload) name:RCTJavaScriptWillStartLoadingNotification object:nil];
     [self setupQueues];
     [self setupKeybaseWithSettings:settings error:error];
@@ -59,20 +59,19 @@ static NSString *const metaEventEngineReset = @"engine-reset";
 - (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
   NSString* systemVer = [[UIDevice currentDevice] systemVersion];
   BOOL isIPad = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad;
-  KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, systemVer, isIPad, NULL, error);
+  BOOL isIOS = YES;
+  KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, systemVer, isIPad, NULL, isIOS, error);
 }
 
 - (void)setupQueues {
   self.readQueue = dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
-  self.writeQueue = dispatch_queue_create("go_bridge_queue_write", DISPATCH_QUEUE_SERIAL);
 }
 
 - (void)startReadLoop {
   dispatch_async(self.readQueue, ^{
     while (true) {
       NSError *error = nil;
-      NSString * data = KeybaseReadB64(&error);
-
+      NSData *data = KeybaseReadArr(&error);
       if (error) {
         NSLog(@"Error reading data: %@", error);
       }
@@ -80,12 +79,7 @@ static NSString *const metaEventEngineReset = @"engine-reset";
         if (!self.keybaseEngine) {
           NSLog(@"NO ENGINE");
         }
-        if (self.keybaseEngine.bridge) {
-          [self.keybaseEngine sendEventWithName:eventName body:data];
-        } else {
-          // dead
-          break;
-        }
+        [GoJSIBridge sendToJS: data];
       }
     }
   });
@@ -96,14 +90,12 @@ static NSString *const metaEventEngineReset = @"engine-reset";
   [self startReadLoop];
 }
 
-- (void)runWithData:(NSString *)data {
-  dispatch_async(self.writeQueue, ^{
-    NSError *error = nil;
-    KeybaseWriteB64(data, &error);
-    if (error) {
-      NSLog(@"Error writing data: %@", error);
-    }
-  });
+- (void)rpcToGo:(NSData *)data {
+  NSError *error = nil;
+  KeybaseWriteArr(data, &error);
+  if (error) {
+    NSLog(@"Error writing data: %@", error);
+  }
 }
 
 - (void)reset {
@@ -136,10 +128,6 @@ RCT_EXPORT_MODULE();
 - (NSArray<NSString *> *)supportedEvents
 {
   return @[eventName, metaEventName];
-}
-
-RCT_EXPORT_METHOD(runWithData:(NSString *)data) {
-  [sharedEngine runWithData: data];
 }
 
 RCT_EXPORT_METHOD(reset) {
@@ -187,6 +175,11 @@ RCT_EXPORT_METHOD(start) {
 #else
   NSString * simulatorVal = @"";
 #endif
+  
+  NSString * darkModeSupported = @"0";
+  if (@available(iOS 13.0, *)) {
+    darkModeSupported = @"1";
+  };
 
   NSString * appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
   NSString * appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
@@ -197,6 +190,7 @@ RCT_EXPORT_METHOD(start) {
             @"metaEventEngineReset": metaEventEngineReset,
             @"appVersionName": appVersionString,
             @"appVersionCode": appBuildString,
+            @"darkModeSupported": darkModeSupported,
             @"usingSimulator": simulatorVal,
             @"serverConfig": self.serverConfig ? self.serverConfig : @"",
             @"guiConfig": self.guiConfig ? self.guiConfig : @"",

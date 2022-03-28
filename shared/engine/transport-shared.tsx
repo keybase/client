@@ -175,9 +175,10 @@ class TransportShared extends RobustTransport {
 
   // Override RobustTransport.invoke.
   invoke(arg: InvokeArgs, cb: any) {
-    if (arg.ctype == undefined) {
-      arg.ctype = rpc.dispatch.COMPRESSION_TYPE_GZIP // default to gzip compression
-    }
+    // don't actually compress
+    // if (arg.ctype == undefined) {
+    //   arg.ctype = rpc.dispatch.COMPRESSION_TYPE_GZIP // default to gzip compression
+    // }
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,
       extra: arg.args[0],

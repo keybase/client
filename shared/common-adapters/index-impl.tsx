@@ -121,6 +121,12 @@ module.exports = {
   get HeaderHocWrapper() {
     return require('./header-hoc').HeaderHocWrapper
   },
+  get HeaderLeftBlank() {
+    return require('./header-hoc').HeaderLeftBlank
+  },
+  get HeaderLeftCancel() {
+    return require('./header-hoc').HeaderLeftCancel
+  },
   get HotKey() {
     return require('./hot-key').HotKey
   },
@@ -189,9 +195,6 @@ module.exports = {
   },
   get NameWithIcon() {
     return require('./name-with-icon').default
-  },
-  get NavigationEvents() {
-    return require('@react-navigation/core').NavigationEvents
   },
   get NewInput() {
     return require('./new-input').default
@@ -346,8 +349,8 @@ module.exports = {
   get usePopup() {
     return require('./use-popup').usePopup
   },
-  get useSafeArea() {
-    return require('./safe-area-view').useSafeArea
+  get useSafeAreaInsets() {
+    return require('./safe-area-view').useSafeAreaInsets
   },
   get useTimeout() {
     return require('./use-timers').useTimeout

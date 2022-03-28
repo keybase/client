@@ -167,12 +167,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
           sizeType={this.iconSizeType()}
           color={this.iconColor()}
           boxStyle={styles.icon}
-          style={{
-            marginRight:
-              !Styles.isMobile && this.props.size === 'small'
-                ? Styles.globalMargins.xtiny
-                : Styles.globalMargins.tiny,
-          }}
+          style={!Styles.isMobile && this.props.size === 'small' ? styles.leftIconXTiny : styles.leftIconTiny}
         />
       )
     )
@@ -291,32 +286,39 @@ class SearchFilter extends React.PureComponent<Props, State> {
         underlayColor={Styles.globalColors.transparent}
         hoverColor={Styles.globalColors.transparent}
       >
-        {this.keyHandler()}
-        {this.leftIcon()}
-        {this.input()}
-        {this.waiting()}
-        {this.rightCancelIcon()}
+        <Kb.Box2
+          direction="horizontal"
+          style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
+          pointerEvents={Styles.isMobile && this.props.onClick ? 'none' : undefined}
+        >
+          {this.keyHandler()}
+          {this.leftIcon()}
+          {this.input()}
+          {this.waiting()}
+          {this.rightCancelIcon()}
+        </Kb.Box2>
       </Kb.ClickableBox>
     )
     return Styles.isMobile ? (
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        style={Styles.collapseStyles([styles.containerMobile, this.props.style])}
-        alignItems="center"
-        gap="xsmall"
-      >
-        {!!this.props.mobileCancelButton && this.typing() && (
-          <Kb.Text
-            type={this.props.negative ? 'BodyBig' : 'BodyBigLink'}
-            onClick={this.cancel}
-            negative={!!this.props.negative}
-          >
-            Cancel
-          </Kb.Text>
-        )}
-        {content}
-      </Kb.Box2>
+      <Kb.Box style={{alignSelf: 'stretch'}}>
+        <Kb.Box2
+          direction="horizontal"
+          style={Styles.collapseStyles([styles.containerMobile, this.props.style])}
+          alignItems="center"
+          gap="xsmall"
+        >
+          {!!this.props.mobileCancelButton && this.typing() && (
+            <Kb.Text
+              type={this.props.negative ? 'BodyBig' : 'BodyBigLink'}
+              onClick={this.cancel}
+              negative={!!this.props.negative}
+            >
+              Cancel
+            </Kb.Text>
+          )}
+          {content}
+        </Kb.Box2>
+      </Kb.Box>
     ) : (
       content
     )
@@ -339,9 +341,7 @@ const styles = Styles.styleSheetCreate(() => ({
       cursor: 'text',
     },
   }),
-  containerCenter: {
-    justifyContent: 'center',
-  },
+  containerCenter: {justifyContent: 'center'},
   containerMobile: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.tiny,
@@ -366,20 +366,12 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.tiny,
   },
-  dark: {
-    backgroundColor: Styles.globalColors.black_10,
-  },
-  darkNegative: {
-    backgroundColor: Styles.globalColors.black_20,
-  },
+  dark: {backgroundColor: Styles.globalColors.black_10},
+  darkNegative: {backgroundColor: Styles.globalColors.black_20},
   icon: Styles.platformStyles({
-    isElectron: {
-      marginTop: 2,
-    },
+    isElectron: {marginTop: 2},
   }),
-  input: {
-    backgroundColor: Styles.globalColors.transparent,
-  },
+  input: {backgroundColor: Styles.globalColors.transparent},
   inputContainer: {
     ...Styles.globalStyles.flexGrow,
     backgroundColor: Styles.globalColors.transparent,
@@ -387,35 +379,23 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingLeft: 0,
     paddingRight: 0,
   },
-  inputNoGrow: {
-    flexGrow: 0,
-  },
-  light: {
-    backgroundColor: Styles.globalColors.black_05,
-  },
-  lightNegative: {
-    backgroundColor: Styles.globalColors.black_10,
-  },
-  removeIconFullWidth: {
-    marginLeft: Styles.globalMargins.xsmall,
-  },
-  removeIconNonFullWidth: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
+  inputNoGrow: {flexGrow: 0},
+  leftIconTiny: {marginRight: Styles.globalMargins.tiny},
+  leftIconXTiny: {marginRight: Styles.globalMargins.xtiny},
+  light: {backgroundColor: Styles.globalColors.black_05},
+  lightNegative: {backgroundColor: Styles.globalColors.black_10},
+  removeIconFullWidth: {marginLeft: Styles.globalMargins.xsmall},
+  removeIconNonFullWidth: {marginLeft: Styles.globalMargins.tiny},
   spinnerFullWidth: {
     height: 20,
     marginLeft: Styles.globalMargins.xsmall,
     width: 20,
   },
-  spinnerMobile: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
+  spinnerMobile: {marginLeft: Styles.globalMargins.tiny},
   spinnerSmall: {
     height: 16,
     marginLeft: Styles.globalMargins.tiny,
     width: 16,
   },
-  textNegative: {
-    color: Styles.globalColors.white,
-  },
+  textNegative: {color: Styles.globalColors.white},
 }))

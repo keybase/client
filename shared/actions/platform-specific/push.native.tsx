@@ -5,8 +5,7 @@ import * as Types from '../../constants/types/push'
 import * as NotificationsGen from '../notifications-gen'
 import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
-// @ts-ignore strict
-import * as PushNotifications from 'react-native-push-notification'
+import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
@@ -16,15 +15,23 @@ import * as Tabs from '../../constants/tabs'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS, isAndroid} from '../../constants/platform'
-import * as Container from '../../util/container'
+import type * as Container from '../../util/container'
+
+const setApplicationIconBadgeNumber = (n: number) => {
+  if (isIOS) {
+    PushNotificationIOS.setApplicationIconBadgeNumber(n)
+  } else {
+    NativeModules.KeybaseEngine.setApplicationIconBadgeNumber(n)
+  }
+}
 
 let lastCount = -1
 const updateAppBadge = (action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const count = action.payload.badgeState.bigTeamBadgeCount + action.payload.badgeState.smallTeamBadgeCount
-  PushNotifications.setApplicationIconBadgeNumber(count)
+  setApplicationIconBadgeNumber(count)
   // Only do this native call if the count actually changed, not over and over if its zero
-  if (count === 0 && lastCount !== 0) {
-    PushNotifications.cancelAllLocalNotifications()
+  if (isIOS && count === 0 && lastCount !== 0) {
+    PushNotificationIOS.removeAllPendingNotificationRequests()
   }
   lastCount = count
 }
@@ -73,9 +80,9 @@ const listenForNativeAndroidIntentNotifications = async (
 }
 
 const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActions) => void) => {
-  const onRegister = (token: {token: string}) => {
+  const onRegister = (token: string) => {
     logger.debug('[PushToken] received new token: ', token)
-    emitter(PushGen.createUpdatePushToken({token: token.token}))
+    emitter(PushGen.createUpdatePushToken({token}))
   }
 
   const onNotification = (n: Object) => {
@@ -87,19 +94,9 @@ const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActio
     emitter(PushGen.createNotification({notification}))
   }
 
-  const onError = (error: Error) => {
-    logger.error('push error:', error)
-  }
-
-  PushNotifications.configure({
-    onError,
-    onNotification,
-    onRegister,
-    popInitialNotification: false,
-    // Don't request permissions for ios, we'll ask later, after showing UI
-    requestPermissions: !isIOS,
-    senderID: Constants.androidSenderID,
-  })
+  isIOS && PushNotificationIOS.addEventListener('notification', onNotification)
+  isIOS && PushNotificationIOS.addEventListener('localNotification', onNotification)
+  isIOS && PushNotificationIOS.addEventListener('register', onRegister)
 }
 
 function* setupPushEventLoop() {
@@ -161,7 +158,7 @@ function* handlePush(state: Container.TypedState, action: PushGen.NotificationPa
       case 'chat.readmessage':
         logger.info('[Push] read message')
         if (notification.badges === 0) {
-          PushNotifications.cancelAllLocalNotifications()
+          isIOS && PushNotificationIOS.removeAllPendingNotificationRequests()
         }
         break
       case 'chat.newmessageSilent_2':
@@ -262,10 +259,11 @@ function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutH
 }
 
 const requestPermissionsFromNative = () =>
-  isIOS ? PushNotifications.requestPermissions() : Promise.resolve()
+  isIOS ? PushNotificationIOS.requestPermissions() : Promise.resolve()
 const askNativeIfSystemPushPromptHasBeenShown = () =>
   isIOS ? NativeModules.PushPrompt.getHasShownPushPrompt() : Promise.resolve(false)
-const checkPermissionsFromNative = () => new Promise(resolve => PushNotifications.checkPermissions(resolve))
+const checkPermissionsFromNative = () =>
+  new Promise(resolve => isIOS && PushNotificationIOS.checkPermissions(resolve))
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
 const neverShowMonsterAgain = async (
@@ -419,14 +417,16 @@ const getInitialPushAndroid = async () => {
 }
 
 const getInitialPushiOS = () =>
-  new Promise(resolve =>
-    PushNotifications.popInitialNotification((n: any) => {
-      const notification = Constants.normalizePush(n)
-      if (notification) {
-        resolve(PushGen.createNotification({notification}))
-      }
-      resolve(null)
-    })
+  new Promise(
+    resolve =>
+      isIOS &&
+      PushNotificationIOS.getInitialNotification().then((n: any) => {
+        const notification = Constants.normalizePush(n)
+        if (notification) {
+          resolve(PushGen.createNotification({notification}))
+        }
+        resolve(null)
+      })
   )
 
 function* pushSaga() {

@@ -1,6 +1,5 @@
 import {isIOS} from '../constants/platform'
 import * as ImagePicker from 'expo-image-picker'
-import * as Permissions from 'expo-permissions'
 
 export const parseUri = (result: {uri: string}, withPrefix: boolean = false): string => {
   if (withPrefix) {
@@ -11,18 +10,30 @@ export const parseUri = (result: {uri: string}, withPrefix: boolean = false): st
 
 const retyAfterAskingPerm =
   (
-    perms: Array<Permissions.PermissionType>,
+    wantCamera: boolean,
+    wantCameraRoll: boolean,
     retryFn: null | (() => Promise<ImagePicker.ImagePickerResult>)
   ) =>
-  async (error: any): Promise<ImagePicker.ImagePickerResult> => {
+  (error: any): Promise<ImagePicker.ImagePickerResult> => {
     if (error.code === 'E_MISSING_PERMISSION' && retryFn) {
-      return Permissions.askAsync(...perms).then(retryFn)
+      const checks = [
+        ...(wantCamera ? [ImagePicker.getCameraPermissionsAsync()] : []),
+        ...(wantCameraRoll ? [ImagePicker.getMediaLibraryPermissionsAsync()] : []),
+      ]
+
+      return Promise.all(checks).then(retryFn)
     } else {
       throw error
     }
   }
 
-const quality = 0.4
+const defaultOptions = {
+  exif: false,
+  videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
+  quality: 0.4,
+  // even though this is marked as deprecated if its not set it will IGNORE ALL OTHER SETTINGS we pass here
+  // videoExportPreset: ImagePicker.VideoExportPreset.HighestQuality,
+} as const
 
 const mediaTypeToImagePickerMediaType = (
   mediaType: 'photo' | 'video' | 'mixed'
@@ -38,14 +49,10 @@ export const launchCameraAsync = async (
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
   return ImagePicker.launchCameraAsync({
-    exif: false,
+    ...defaultOptions,
     mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
-    quality,
   }).catch(
-    retyAfterAskingPerm(
-      [Permissions.CAMERA, Permissions.CAMERA_ROLL],
-      askPermAndRetry ? async () => launchCameraAsync(mediaType, false) : null
-    )
+    retyAfterAskingPerm(true, true, askPermAndRetry ? () => launchCameraAsync(mediaType, false) : null)
   )
 }
 
@@ -54,14 +61,10 @@ export const launchImageLibraryAsync = async (
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
   return ImagePicker.launchImageLibraryAsync({
-    exif: false,
+    ...defaultOptions,
     mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
-    quality,
   }).catch(
-    retyAfterAskingPerm(
-      [Permissions.CAMERA_ROLL],
-      askPermAndRetry ? async () => launchImageLibraryAsync(mediaType, false) : null
-    )
+    retyAfterAskingPerm(false, true, askPermAndRetry ? () => launchImageLibraryAsync(mediaType, false) : null)
   )
 }
 export type ImagePickerResult = ImagePicker.ImagePickerResult

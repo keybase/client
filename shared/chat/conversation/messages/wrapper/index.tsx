@@ -1,8 +1,8 @@
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
+import type * as Types from '../../../../constants/types/chat2'
 import SystemCreateTeam from '../system-create-team/container'
 import SystemAddedToTeam from '../system-added-to-team/container'
 import SystemChangeRetention from '../system-change-retention/container'
@@ -149,6 +149,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     (this.props.message.type === 'text' || this.props.message.type === 'attachment') &&
     this.props.message.exploding
 
+  private canFixOverdraw = () => !this.props.isPendingPayment && !this.showCenteredHighlight()
+
   private authorAndContent = (children: React.ReactNode) => {
     let result
     const username = (
@@ -157,7 +159,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         colorFollowing={true}
         colorYou={true}
         onUsernameClicked={this.onAuthorClick}
-        fixOverdraw={!this.showCenteredHighlight()}
+        fixOverdraw={this.canFixOverdraw()}
         style={
           this.showCenteredHighlight() && this.props.youAreAuthor ? styles.usernameHighlighted : undefined
         }
@@ -211,7 +213,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               )}
               <Kb.Text
                 type="BodyTiny"
-                fixOverdraw={!this.showCenteredHighlight()}
+                fixOverdraw={this.canFixOverdraw()}
                 style={Styles.collapseStyles([this.showCenteredHighlight() && styles.timestampHighlighted])}
               >
                 {formatTimeForChat(this.props.message.timestamp)}
@@ -231,6 +233,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     } else {
       result = children
     }
+
     return this.props.isPendingPayment ? (
       <PendingPaymentBackground key="pendingBackground">{result}</PendingPaymentBackground>
     ) : (
@@ -677,7 +680,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return null
     }
     return (
-      <>
+      <Styles.StyleContext.Provider value={{canFixOverdraw: this.canFixOverdraw()}}>
         <LongPressable
           {...this.containerProps()}
           children={[
@@ -698,7 +701,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           ]}
         />
         {this.popup()}
-      </>
+      </Styles.StyleContext.Provider>
     )
   }
 }

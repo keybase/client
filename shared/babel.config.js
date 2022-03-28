@@ -1,9 +1,10 @@
 // Cache in the module. This can get called from multiple places and env vars can get lost
+const skipAnimation = require('./common-adapters/skip-animations')
 let isElectron = null
 let isReactNative = null
 let isTest = null
 
-module.exports = function(api /*: any */) {
+module.exports = function (api /*: any */) {
   const apiEnv = api.env()
 
   if (apiEnv === 'test') {
@@ -14,7 +15,7 @@ module.exports = function(api /*: any */) {
     isReactNative = true
   } else {
     api.caller(c => {
-      console.error('KB: Babel config detected caller: ', c, c && c.name, api.env())
+      // console.error('KB: Babel config detected caller: ', c, c && c.name, api.env())
       if (!c || c.name === 'metro') {
         isReactNative = true
       } else {
@@ -33,15 +34,15 @@ module.exports = function(api /*: any */) {
   }
 
   if (isElectron) {
-    console.error('KB babel.config.js for Electron')
+    // console.error('KB babel.config.js for Electron')
     return {
       plugins: [
         '@babel/plugin-proposal-optional-catch-binding',
         '@babel/plugin-proposal-nullish-coalescing-operator',
         '@babel/plugin-proposal-optional-chaining',
         '@babel/plugin-proposal-object-rest-spread',
-        '@babel/transform-flow-strip-types',
         '@babel/plugin-proposal-class-properties',
+        'react-native-web',
       ],
       presets: [
         isTest ? ['@babel/preset-env', {targets: {node: 'current'}}] : '@babel/preset-env',
@@ -50,8 +51,9 @@ module.exports = function(api /*: any */) {
       ],
     }
   } else if (isReactNative) {
-    console.error('KB babel.config.js for ReactNative')
+    // console.error('KB babel.config.js for ReactNative')
     return {
+      plugins: [...(skipAnimation ? [] : ['react-native-reanimated/plugin'])],
       presets: ['module:metro-react-native-babel-preset'],
     }
   }

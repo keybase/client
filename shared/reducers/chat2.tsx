@@ -1,20 +1,21 @@
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as BotsGen from '../actions/bots-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
-import * as TeamTypes from '../constants/types/teams'
+import type * as TeamTypes from '../constants/types/teams'
+import type * as TeamBuildingGen from '../actions/team-building-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 import {editTeambuildingDraft} from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
-import isEqual from 'lodash/isEqual'
+import shallowEqual from 'shallowequal'
 import {mapGetEnsureValue, mapEqual} from '../util/map'
+import isEqual from 'lodash/isEqual'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -956,7 +957,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.containsLatestMessageMap = containsLatestMessageMap
     // only if different
-    if (!isEqual(draftState.messageOrdinals, messageOrdinals)) {
+    if (!shallowEqual([...draftState.messageOrdinals], [...messageOrdinals])) {
       draftState.messageOrdinals = messageOrdinals
     }
     draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
@@ -1252,7 +1253,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.loadedUserEmoji]: (draftState, action) => {
     const {results} = action.payload
     const newEmojis: Array<RPCChatTypes.Emoji> = []
-    results.emojis.emojis?.forEach(group => {
+    results.emojis.emojis?.map(group => {
       group.emojis?.forEach(e => newEmojis.push(e))
     })
     if (!isEqual(newEmojis, draftState.userEmojisForAutocomplete)) {
@@ -1265,9 +1266,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {
-      if (!isEqual(draftState.participantMap.get(part.conversationIDKey), part.participants)) {
-        draftState.participantMap.set(part.conversationIDKey, part.participants)
-      }
+      draftState.participantMap.set(part.conversationIDKey, part.participants)
     })
   },
   [EngineGen.chat1NotifyChatChatParticipantsInfo]: (draftState, action) => {
@@ -1276,10 +1275,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const participants = participantMap[convIDStr]
       const conversationIDKey = Types.stringToConversationIDKey(convIDStr)
       if (participants) {
-        const newInfo = Constants.uiParticipantsToParticipantInfo(participants)
-        if (!isEqual(draftState.participantMap.get(conversationIDKey), newInfo)) {
-          draftState.participantMap.set(conversationIDKey, newInfo)
-        }
+        draftState.participantMap.set(
+          conversationIDKey,
+          Constants.uiParticipantsToParticipantInfo(participants)
+        )
       }
     })
   },
@@ -1423,15 +1422,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           trustedState: 'error' as const,
         })
-
-        const newInfo = {
+        draftState.participantMap.set(conversationIDKey, {
           all: participants,
           contactName: Constants.noParticipantInfo.contactName,
           name: participants,
-        }
-        if (!isEqual(draftState.participantMap.get(conversationIDKey), newInfo)) {
-          draftState.participantMap.set(conversationIDKey, newInfo)
-        }
+        })
       } else {
         const old = draftState.metaMap.get(conversationIDKey)
         if (old) {

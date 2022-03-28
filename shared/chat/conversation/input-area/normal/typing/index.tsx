@@ -1,12 +1,15 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
+import * as Constants from '../../../../../constants/chat2'
+import * as Types from '../../../../../constants/types/chat2'
+import * as Container from '../../../../../util/container'
 
 type Props = {
-  names: Set<string>
+  conversationIDKey: Types.ConversationIDKey
 }
 
-const Names = (props: Props) => {
+const Names = (props: {names: Set<string>}) => {
   const textType = 'BodyTinySemibold'
   const names = [...props.names]
 
@@ -45,20 +48,24 @@ const Names = (props: Props) => {
   }
 }
 
-export const Typing = (props: Props) => (
-  <Kb.Box style={styles.isTypingContainer}>
-    {props.names.size > 0 && (
-      <Kb.Box style={styles.typingIconContainer}>
-        <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
-      </Kb.Box>
-    )}
-    {props.names.size > 0 && (
-      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
-        <Names {...props} />
-      </Kb.Text>
-    )}
-  </Kb.Box>
-)
+const Typing = (props: Props) => {
+  const {conversationIDKey} = props
+  const names = Container.useSelector(state => Constants.getTyping(state, conversationIDKey))
+  return (
+    <Kb.Box style={styles.isTypingContainer}>
+      {names.size > 0 && (
+        <Kb.Box style={styles.typingIconContainer}>
+          <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
+        </Kb.Box>
+      )}
+      {names.size > 0 && (
+        <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
+          <Names names={names} />
+        </Kb.Text>
+      )}
+    </Kb.Box>
+  )
+}
 
 export const mobileTypingContainerHeight = 18
 const styles = Styles.styleSheetCreate(
@@ -124,3 +131,4 @@ const styles = Styles.styleSheetCreate(
       }),
     } as const)
 )
+export default Typing

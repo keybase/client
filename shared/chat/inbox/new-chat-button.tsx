@@ -99,6 +99,7 @@ const styles = Styles.styleSheetCreate(
       rainbowButtonContainer: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
+          height: 36,
           marginLeft: Styles.globalMargins.small,
           marginRight: Styles.globalMargins.small,
           position: 'relative',

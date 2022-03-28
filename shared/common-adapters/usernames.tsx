@@ -13,6 +13,7 @@ import Text, {
   TextTypeBold,
 } from './text'
 import {backgroundModeIsNegative} from './text.shared'
+import shallowEqual from 'shallowequal'
 
 export type User = {
   username: string
@@ -96,7 +97,7 @@ const UsernameText = (
           userStyle,
           props.style,
           props.type.startsWith('Body') && styles.kerning,
-        ])
+        ] as const)
 
         // Make sure onClick is undefined when _onUsernameClicked is, so
         // as to not override any existing onClick handler from containers
@@ -170,7 +171,10 @@ UsernameText.defaultProps = {
 const inlineProps = Styles.isMobile ? {lineClamp: 1 as const} : {}
 
 const _Usernames = (props: Props) => {
-  const containerStyle = props.inline ? styles.inlineStyle : styles.nonInlineStyle
+  const styleContext = React.useContext(Styles.StyleContext)
+  const containerStyle: Styles.StylesCrossPlatform = props.inline
+    ? (styles.inlineStyle as any)
+    : (styles.nonInlineStyle as any)
   const bgMode = props.backgroundMode || null
   const isNegative = backgroundModeIsNegative(bgMode)
 
@@ -180,16 +184,23 @@ const _Usernames = (props: Props) => {
   const onOpenTracker = (username: string) =>
     dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
   const you = Container.useSelector(state => state.config.username)
-  const following = Container.useSelector(state => state.config.following)
-  const infoMap = Container.useSelector(state => state.users.infoMap)
 
   const usernamesArray = typeof props.usernames === 'string' ? [props.usernames] : props.usernames
-  const users = usernamesArray.reduce<Array<User>>((arr, username) => {
+  const followingArray = Container.useSelector(state => {
+    const {following} = state.config
+    return usernamesArray.map(user => following.has(user))
+  }, shallowEqual)
+  const brokenArray = Container.useSelector(state => {
+    const {infoMap} = state.users
+    return usernamesArray.map(user => UsersConstants.getIsBroken(infoMap, user) || false)
+  }, shallowEqual)
+
+  const users = usernamesArray.reduce<Array<User>>((arr, username, idx) => {
     const isYou = you === username
     if (!props.skipSelf || !isYou) {
       arr.push({
-        broken: UsersConstants.getIsBroken(infoMap, username) || false,
-        following: following.has(username),
+        broken: brokenArray[idx],
+        following: followingArray[idx],
         username,
         you: isYou,
       })
@@ -218,6 +229,7 @@ const _Usernames = (props: Props) => {
     <Text
       type={props.type}
       negative={isNegative}
+      fixOverdraw={props.fixOverdraw === 'auto' ? styleContext.canFixOverdraw : props.fixOverdraw ?? false}
       style={Styles.collapseStyles([containerStyle, props.containerStyle])}
       title={props.title}
       ellipsizeMode="tail"
@@ -281,24 +293,18 @@ const styles = Styles.styleSheetCreate(() => ({
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
     },
-  }),
+  } as const),
   joinerStyle: Styles.platformStyles({
-    isElectron: {
-      textDecoration: 'none',
-    },
-  }),
-  kerning: {
-    letterSpacing: 0.2,
-  },
+    isElectron: {textDecoration: 'none'},
+  } as const),
+  kerning: {letterSpacing: 0.2},
   nonInlineStyle: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
       flexWrap: 'wrap',
     },
-    isElectron: {
-      textDecoration: 'inherit',
-    },
-  }),
+    isElectron: {textDecoration: 'inherit'},
+  } as const),
 }))
 
 export {UsernameText}

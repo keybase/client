@@ -1,5 +1,5 @@
 /// TODO the relationships here are often inverted. we want to clear actions when a bunch of actions happen
-// not have every handler clear it themselves. this reduces the nubmer of actionChains
+// not have every handler clear it themselves. this reduces the number of actionChains
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsGen from './teams-gen'
@@ -17,6 +17,7 @@ import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
+import * as GregorConstants from '../constants/gregor'
 import * as Router2Constants from '../constants/router2'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
@@ -903,7 +904,7 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
 
     // Dismiss the create channel dialog.
     const visibleScreen = Router2Constants.getVisibleScreen()
-    if (visibleScreen && visibleScreen.routeName === 'chatCreateChannel') {
+    if (visibleScreen && visibleScreen.name === 'chatCreateChannel') {
       yield Saga.put(RouteTreeGen.createClearModals())
     }
     // Reload on team page
@@ -1127,12 +1128,8 @@ const refreshTeamRoleMap = async (
   }
 }
 
-const teamDeletedOrExit = (
-  action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
-) => {
-  const {teamID} = action.payload.params
-  const selectedTeams = Constants.getSelectedTeams()
-  if (selectedTeams.includes(teamID)) {
+const teamDeletedOrExit = () => {
+  if (Router2Constants.getCurrentTab() == Tabs.teamsTab) {
     return RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
   }
   return false
@@ -1194,7 +1191,7 @@ function* addTeamWithChosenChannels(
   if (item?.item?.body) {
     const body = item.item.body
     msgID = item.md?.msgID
-    teams = JSON.parse(body.toString())
+    teams = GregorConstants.bodyToJSON(body)
   } else {
     logger.info(
       `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
@@ -1347,9 +1344,9 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
       chosenChannels = i
     }
     if (i.item.category.startsWith(Constants.newRequestsGregorPrefix)) {
-      const body = i.item.body.toString()
+      const body = GregorConstants.bodyToJSON(i.item.body)
       if (body) {
-        const request: {id: Types.TeamID; username: string} = JSON.parse(body)
+        const request: {id: Types.TeamID; username: string} = body
         const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
         requests.add(request.username)
       }
@@ -1366,10 +1363,10 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
 
   actions.push(TeamsGen.createSetNewTeamRequests({newTeamRequests}))
 
-  const teamsWithChosenChannelsStr: string | undefined = chosenChannels?.item.body.toString()
-  const teamsWithChosenChannels = teamsWithChosenChannelsStr
-    ? new Set<Types.Teamname>(JSON.parse(teamsWithChosenChannelsStr))
-    : new Set<Types.Teamname>()
+  const teamsWithChosenChannels = new Set<Types.Teamname>(
+    GregorConstants.bodyToJSON(chosenChannels?.item.body)
+  )
+
   actions.push(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
 
   return actions
@@ -1518,10 +1515,9 @@ const loadTeamTreeActivity = async (
 }
 
 const launchNewTeamWizardOrModal = (action: TeamsGen.LaunchNewTeamWizardOrModalPayload) => {
-  if (action.payload.subteamOf) {
-    return RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
-  }
-  return TeamsGen.createStartNewTeamWizard()
+  return action.payload.subteamOf
+    ? RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard2TeamInfo'}]})
+    : TeamsGen.createStartNewTeamWizard()
 }
 const startNewTeamWizard = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard1TeamPurpose'}]})
@@ -1565,7 +1561,8 @@ const setTeamWizardTeamSize = (action: TeamsGen.SetTeamWizardTeamSizePayload) =>
 const setTeamWizardChannels = () =>
   RouteTreeGen.createNavigateAppend({path: [{selected: 'teamWizard6Subteams'}]})
 const setTeamWizardSubteams = () => TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
-const startAddMembersWizard = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamFromWhere']})
+const startAddMembersWizard = (/*action: TeamsGen.StartAddMembersWizardPayload*/) =>
+  RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamFromWhere']})
 const finishNewTeamWizard = async (state: TypedState) => {
   const {name, description, open, openTeamJoinRole, profileShowcase, addYourself} = state.teams.newTeamWizard
   const {avatarFilename, avatarCrop, channels, subteams} = state.teams.newTeamWizard

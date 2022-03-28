@@ -8,10 +8,8 @@ import * as Styles from '../../../styles'
 import {Props} from '.'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
-import {GatewayDest} from '@chardskarth/react-gateway'
+import {PortalHost} from '@gorhom/portal'
 import InvitationToBlock from '../../blocking/invitation-to-block'
-import {useSafeArea} from '../../../common-adapters/safe-area-view.native'
-import {View} from 'react-native'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -25,19 +23,6 @@ const Conversation = React.memo((props: Props) => {
     setMaxInputArea(e.nativeEvent.layout.height)
   }, [])
 
-  const [keyboardShowing, setKeyboardShowing] = React.useState(false)
-  React.useEffect(() => {
-    const willShow = () => setKeyboardShowing(true)
-    const willHide = () => setKeyboardShowing(false)
-    Kb.NativeKeyboard.addListener('keyboardWillShow', willShow)
-    Kb.NativeKeyboard.addListener('keyboardWillHide', willHide)
-    return () => {
-      Kb.NativeKeyboard.removeListener('keyboardWillShow', willShow)
-      Kb.NativeKeyboard.removeListener('keyboardWillHide', willHide)
-    }
-  }, [])
-
-  const insets = useSafeArea()
   const innerComponent = (
     <Kb.BoxGrow onLayout={onLayout}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
@@ -66,22 +51,15 @@ const Conversation = React.memo((props: Props) => {
     </Kb.BoxGrow>
   )
   return (
-    <Kb.Box
-      style={Styles.collapseStyles([
-        styles.innerContainer,
-        !keyboardShowing && {paddingBottom: insets.bottom},
-      ])}
-    >
+    <Kb.Box style={styles.innerContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {props.threadLoadedOffline && <Offline />}
         {innerComponent}
       </Kb.Box2>
-      <GatewayDest name="convOverlay" component={ViewForGatewayDest} />
+      <PortalHost name="convOverlay" />
     </Kb.Box>
   )
 })
-
-const ViewForGatewayDest = (props: any) => <View {...props} />
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -90,9 +68,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         position: 'relative',
       },
-      offline: {
-        padding: Styles.globalMargins.xxtiny,
-      },
+      offline: {padding: Styles.globalMargins.xxtiny},
       outerContainer: Styles.platformStyles({
         isTablet: {
           flex: 1,

@@ -3,6 +3,7 @@
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send an action to the main window which then sends us 'props'
 import * as Electron from 'electron'
+import * as remote from '@electron/remote'
 import {mainWindowDispatch} from './util.desktop'
 import {createStore, applyMiddleware, Store} from 'redux'
 import {TypedActions} from '../../actions/typed-actions-gen'
@@ -41,7 +42,7 @@ class RemoteStore {
   }
 
   _registerForRemoteUpdate = () => {
-    this._window = Electron.remote.getCurrentWindow()
+    this._window = remote.getCurrentWindow()
     // @ts-ignore custom event
     this._window.on('KBprops', this._onPropsUpdated)
   }
@@ -85,18 +86,19 @@ class RemoteStore {
   }
 }
 
-const sendToRemoteMiddleware = () => (next: (action: TypedActions | UpdateStoreAction) => void) => (
-  action: TypedActions | UpdateStoreAction
-) => {
-  if (action.constructor === Function) {
-    throw new Error('pure actions only allowed in remote store2')
-  } else if (action.type === updateStore) {
-    // Don't forward our internal updateStore call
+const sendToRemoteMiddleware =
+  () =>
+  (next: (action: TypedActions | UpdateStoreAction) => void) =>
+  (action: TypedActions | UpdateStoreAction) => {
+    if (action.constructor === Function) {
+      throw new Error('pure actions only allowed in remote store2')
+    } else if (action.type === updateStore) {
+      // Don't forward our internal updateStore call
+      return next(action)
+    } else {
+      mainWindowDispatch(action)
+    }
     return next(action)
-  } else {
-    mainWindowDispatch(action)
   }
-  return next(action)
-}
 
 export default RemoteStore

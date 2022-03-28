@@ -124,7 +124,6 @@ export declare function padding(
   paddingLeft: number
 }
 
-export declare const styledCss: any
 export declare const styledKeyframes: any
 export declare const isAndroid: boolean
 export declare const isIOS: boolean

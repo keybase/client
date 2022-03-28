@@ -244,10 +244,9 @@ class Input extends React.Component<InputProps, InputState> {
           {...platformInputProps}
           hintText={hintText}
           maxInputArea={this.props.maxInputArea}
-          suggestionOverlayStyle={Styles.collapseStyles([
-            styles.suggestionOverlay,
-            infoPanelShowing && styles.suggestionOverlayWithInfoPanel,
-          ])}
+          suggestionOverlayStyle={
+            infoPanelShowing ? styles.suggestionOverlayInfoShowing : styles.suggestionOverlay
+          }
           suggestBotCommandsUpdateStatus={this.props.suggestBotCommandsUpdateStatus}
           onKeyDown={this._onKeyDown}
           onSubmit={this._onSubmit}
@@ -269,8 +268,9 @@ const styles = Styles.styleSheetCreate(
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
         isTablet: {marginLeft: '30%', marginRight: 0},
       }),
-      suggestionOverlayWithInfoPanel: Styles.platformStyles({
-        isTablet: {marginRight: infoPanelWidthTablet},
+      suggestionOverlayInfoShowing: Styles.platformStyles({
+        isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
+        isTablet: {marginLeft: '30%', marginRight: infoPanelWidthTablet},
       }),
     } as const)
 )

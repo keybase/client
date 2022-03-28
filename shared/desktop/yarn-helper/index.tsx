@@ -31,6 +31,7 @@ const commands = {
       fixModules()
       checkFSEvents()
       clearTSCache()
+      getMsgPack()
       patcher()
     },
     help: '',
@@ -60,30 +61,7 @@ const checkFSEvents = () => {
   }
 }
 
-// TODO use patch
-const fixUnimodules = () => {
-  const root = path.resolve(
-    __dirname,
-    '..',
-    '..',
-    'node_modules',
-    '@unimodules',
-    'react-native-adapter',
-    'android'
-  )
-  try {
-    const buildGradle = fs.readFileSync(path.resolve(__dirname, 'unimodules-build-gradle'), {
-      encoding: 'utf8',
-    })
-    fs.writeFileSync(path.join(root, 'build.gradle'), buildGradle)
-  } catch (_) {}
-}
-
 function fixModules() {
-  if (process.platform !== 'win32') {
-    fixUnimodules()
-  }
-
   // storybook uses react-docgen which really cr*ps itself with flow
   // I couldn't find a good way to override this effectively (yarn resolutions didn't work) so we're just killing it with fire
   const root = path.resolve(__dirname, '..', '..', 'node_modules', 'babel-plugin-react-docgen')
@@ -130,6 +108,19 @@ const decorateInfo = info => {
 }
 
 const warnFail = err => err && console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
+
+const getMsgPack = () => {
+  const ver = '4.1.1'
+  const file = `msgpack-cxx-${ver}.tar.gz`
+  const url = `https://kbelectron.keybase.pub/misc/${file}`
+  const prefix = path.resolve(__dirname, '..', '..', 'node_modules')
+  if (!fs.existsSync(path.resolve(prefix, file))) {
+    console.log('Missing msgpack-cpp, downloading')
+    exec(`curl -L -o ${prefix}/${file} ${url}`)
+    exec(`cd node_modules ; tar -xvf ${file}`)
+  }
+}
+
 const clearTSCache = () => {
   const glob = path.resolve(__dirname, '..', '..', '.tsOuts', '.tsOut*')
   rimraf(glob, {}, warnFail)

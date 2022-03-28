@@ -1,4 +1,5 @@
 import * as ConfigGen from '../config-gen'
+import * as remote from '@electron/remote'
 import * as ConfigConstants from '../../constants/config'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -96,7 +97,7 @@ function* initializeInputMonitor(): Iterable<any> {
 
 export const dumpLogs = async (action?: ConfigGen.DumpLogsPayload) => {
   const fromRender = await logger.dump()
-  const globalLogger: typeof logger = Electron.remote.getGlobal('globalLogger')
+  const globalLogger: typeof logger = remote.getGlobal('globalLogger')
   const fromMain = await globalLogger.dump()
   await writeLogLinesToFile([...fromRender, ...fromMain])
   // quit as soon as possible
@@ -117,8 +118,8 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
     const binPath = localAppData ? resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
     const args = ['pipeowner', socketPath]
     yield Saga.callUntyped(
-      async () =>
-        new Promise((resolve, reject) => {
+      () =>
+        new Promise<void>((resolve, reject) => {
           execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
             if (error) {
               logger.info(`pipeowner check result: ${stdout.toString()}`)
@@ -178,7 +179,7 @@ function* setupReachabilityWatcher() {
 
 const onExit = () => {
   console.log('App exit requested')
-  Electron.remote.app.exit(0)
+  remote.app.exit(0)
 }
 
 const onFSActivity = (state: Container.TypedState, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
@@ -195,7 +196,7 @@ const onShutdown = (action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
   if (isWindows && code !== RPCTypes.ExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
     // Quit just the app, not the service
-    Electron.remote.app.quit()
+    remote.app.quit()
   }
 }
 
@@ -290,13 +291,13 @@ const updateNow = async () => {
 
 // don't leak these handlers on hot load
 module?.hot?.dispose(() => {
-  const pm = Electron.remote.powerMonitor
+  const pm = remote.powerMonitor
   pm.removeAllListeners()
 })
 
 function* startPowerMonitor() {
   const channel = Saga.eventChannel(emitter => {
-    const pm = Electron.remote.powerMonitor
+    const pm = remote.powerMonitor
     pm.on('suspend', () => emitter('suspend'))
     pm.on('resume', () => emitter('resume'))
     pm.on('shutdown', () => emitter('shutdown'))
@@ -408,9 +409,9 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
       (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
     if (enabled !== openAtLogin) await setOnLoginStartup(openAtLogin)
   } else {
-    if (Electron.remote.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
+    if (remote.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
       logger.info(`Login item settings changed! now ${openAtLogin}`)
-      Electron.remote.app.setLoginItemSettings({openAtLogin})
+      remote.app.setLoginItemSettings({openAtLogin})
     }
   }
 }

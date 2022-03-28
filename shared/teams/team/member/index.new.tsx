@@ -168,7 +168,7 @@ const TeamMember = (props: OwnProps) => {
 
   const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
 
-  const makeTitle = label => {
+  const makeTitle = (label: string) => {
     return (
       <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
         <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
@@ -222,68 +222,64 @@ const TeamMember = (props: OwnProps) => {
     ...(nodesNotIn.length > 0 ? [nodesNotInSection] : []),
   ]
   return (
-    <>
-      <Kb.SafeAreaViewTop />
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-        {errors.length > 0 && (
-          <Kb.Banner color="red">
-            {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
-            <Kb.BannerParagraph
-              key="teamTreeErrorHeader"
-              bannerColor="red"
-              content={[
-                'The following teams could not be loaded. ',
-                {
-                  onClick: () => dispatch(TeamsGen.createLoadTeamTree({teamID, username})),
-                  text: 'Click to reload.',
-                },
-              ]}
-            />
-            <>
-              {errors.map((error, idx) => {
-                if (RPCTypes.TeamTreeMembershipStatus.error != error.result.s) {
-                  return <></>
-                }
+    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+      {errors.length > 0 && (
+        <Kb.Banner color="red">
+          {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
+          <Kb.BannerParagraph
+            key="teamTreeErrorHeader"
+            bannerColor="red"
+            content={[
+              'The following teams could not be loaded. ',
+              {
+                onClick: () => dispatch(TeamsGen.createLoadTeamTree({teamID, username})),
+                text: 'Click to reload.',
+              },
+            ]}
+          />
+          <>
+            {errors.map((error, idx) => {
+              if (RPCTypes.TeamTreeMembershipStatus.error != error.result.s) {
+                return <></>
+              }
 
-                const failedAt = [error.teamName]
-                if (error.result.error.willSkipSubtree) {
-                  failedAt.push('its subteams')
-                }
-                if (error.result.error.willSkipAncestors) {
-                  failedAt.push('its parent teams')
-                }
-                var failedAtStr = ''
-                if (failedAt.length > 1) {
-                  const last = failedAt.pop()
-                  failedAtStr = failedAt.join(', ') + ', and ' + last
-                } else {
-                  failedAtStr = failedAt[0]
-                }
-                return (
-                  <Kb.BannerParagraph
-                    key={'teamTreeErrorRow' + idx.toString()}
-                    bannerColor="red"
-                    content={'• ' + failedAtStr}
-                  />
-                )
-              })}
-            </>
-          </Kb.Banner>
-        )}
-        {Styles.isMobile && <MobileHeader username={username} offset={offset.current} />}
-        <SectionList<Section>
-          stickySectionHeadersEnabled={false}
-          renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
-          sections={sections}
-          ListHeaderComponent={
-            Styles.isMobile ? <TeamMemberHeader teamID={teamID} username={username} /> : undefined
-          }
-          keyExtractor={item => `member:${username}:${item.teamname}`}
-          onScroll={onScroll.current}
-          style={styles.list}
-        />
-      </Kb.Box2>
-    </>
+              const failedAt = [error.teamName]
+              if (error.result.error.willSkipSubtree) {
+                failedAt.push('its subteams')
+              }
+              if (error.result.error.willSkipAncestors) {
+                failedAt.push('its parent teams')
+              }
+              var failedAtStr = ''
+              if (failedAt.length > 1) {
+                const last = failedAt.pop()
+                failedAtStr = failedAt.join(', ') + ', and ' + last
+              } else {
+                failedAtStr = failedAt[0]
+              }
+              return (
+                <Kb.BannerParagraph
+                  key={'teamTreeErrorRow' + idx.toString()}
+                  bannerColor="red"
+                  content={'• ' + failedAtStr}
+                />
+              )
+            })}
+          </>
+        </Kb.Banner>
+      )}
+      {Styles.isMobile && <MobileHeader username={username} offset={offset.current} />}
+      <SectionList<Section>
+        stickySectionHeadersEnabled={false}
+        renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
+        sections={sections}
+        ListHeaderComponent={
+          Styles.isMobile ? <TeamMemberHeader teamID={teamID} username={username} /> : undefined
+        }
+        keyExtractor={item => `member:${username}:${item.teamname}`}
+        onScroll={onScroll.current}
+      />
+    </Kb.Box2>
   )
 }
 
@@ -293,11 +289,11 @@ const MobileHeader = ({username, offset}: {username: string; offset: any}) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const top = Kb.ReAnimated.interpolate(offset, {
+  const top = Kb.ReAnimated.interpolateNode(offset, {
     inputRange: [-9999, startAnimationOffset, startAnimationOffset + 40, 99999999],
     outputRange: [40, 40, 0, 0],
   })
-  const opacity = Kb.ReAnimated.interpolate(offset, {
+  const opacity = Kb.ReAnimated.interpolateNode(offset, {
     inputRange: [-9999, 0, 1, 9999],
     outputRange: [0, 0, 1, 1],
   })
@@ -322,15 +318,15 @@ const MobileHeader = ({username, offset}: {username: string; offset: any}) => {
 
 TeamMember.navigationOptions = (ownProps: OwnProps) => ({
   headerExpandable: !Container.isMobile,
+  headerHideBorder: true,
   headerTitle: Container.isMobile
-    ? undefined
+    ? ''
     : () => (
         <TeamMemberHeader
           teamID={Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)}
           username={Container.getRouteProps(ownProps, 'username', '')}
         />
       ),
-  underNotch: true,
 })
 
 type NodeNotInRowProps = {
@@ -387,7 +383,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
             Styles.globalStyles.flexGrow,
             styles.inviteTeamInfo,
             styles.contentCollapsedFixedHeight,
-          ])}
+          ] as const)}
         >
           <Kb.Avatar teamname={props.node.teamname} size={32} />
           <Kb.Box2
@@ -571,7 +567,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                 Styles.globalStyles.flexGrow,
                 !expanded && styles.contentCollapsedFixedHeight,
                 expanded && styles.membershipExpanded,
-              ])}
+              ] as const)}
             >
               <Kb.Box2
                 direction="vertical"
@@ -588,7 +584,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   style={Styles.collapseStyles([
                     !expanded && styles.contentCollapsedFixedHeight,
                     expanded && styles.membershipContentExpanded,
-                  ])}
+                  ] as const)}
                 >
                   <Kb.Avatar teamname={props.node.teamname} size={32} />
                   <Kb.Box2
@@ -598,7 +594,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                       styles.membershipTeamText,
                       expanded && styles.membershipTeamTextExpanded,
                       !expanded && styles.contentCollapsedFixedHeight,
-                    ])}
+                    ] as const)}
                   >
                     <Kb.Text type="BodySemiboldLink" onClick={openTeam} style={styles.teamNameLink}>
                       {props.node.teamname}
@@ -820,12 +816,8 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   contentCollapsedFixedHeight: Styles.platformStyles({
-    common: {
-      height: 48,
-    },
-    isPhone: {
-      height: 64,
-    },
+    common: {height: 48},
+    isPhone: {height: 64},
   }),
   expandIcon: Styles.platformStyles({
     common: {
@@ -855,39 +847,22 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.white,
       paddingBottom: Styles.globalMargins.small,
     },
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-    },
-    isPhone: {
-      paddingTop: Styles.globalMargins.small,
-    },
-    isTablet: {
-      paddingTop: Styles.globalMargins.small,
-    },
+    isElectron: {...Styles.desktopStyles.windowDraggingClickable},
+    isPhone: {paddingTop: Styles.globalMargins.small},
+    isTablet: {paddingTop: Styles.globalMargins.small},
   }),
-  headerContent: {
-    ...Styles.padding(0, Styles.globalMargins.small),
-  },
+  headerContent: {...Styles.padding(0, Styles.globalMargins.small)},
   headerText: Styles.platformStyles({
-    common: {
-      width: 127,
-    },
-    isPhone: {
-      flex: 1,
-    },
+    common: {width: 127},
+    isPhone: {flex: 1},
   }),
   headerTextContainer: Styles.platformStyles({
     isPhone: {paddingBottom: Styles.globalMargins.tiny},
   }),
-  inviteButton: {
-    minWidth: 56,
-  },
+  inviteButton: {minWidth: 56},
   inviteTeamInfo: Styles.platformStyles({
-    common: {
-      paddingLeft: Styles.globalMargins.small,
-    },
+    common: {paddingLeft: Styles.globalMargins.small},
   }),
-  list: Styles.platformStyles({isMobile: {marginTop: 40}}),
   membershipContentExpanded: Styles.platformStyles({
     common: {
       height: 40,
@@ -899,24 +874,16 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   membershipExpanded: Styles.platformStyles({
-    isElectron: {
-      paddingBottom: Styles.globalMargins.tiny,
-    },
-    isTablet: {
-      paddingBottom: Styles.globalMargins.tiny,
-    },
+    isElectron: {paddingBottom: Styles.globalMargins.tiny},
+    isTablet: {paddingBottom: Styles.globalMargins.tiny},
   }),
   membershipIcon: {
     flexShrink: 0,
     paddingTop: Styles.globalMargins.xtiny,
   },
-  membershipTeamText: {
-    justifyContent: 'center',
-  },
+  membershipTeamText: {justifyContent: 'center'},
   membershipTeamTextExpanded: Styles.platformStyles({
-    isMobile: {
-      paddingTop: Styles.globalMargins.tiny,
-    },
+    isMobile: {paddingTop: Styles.globalMargins.tiny},
   }),
   mobileHeader: {
     backgroundColor: Styles.globalColors.white,
@@ -926,17 +893,13 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 0,
   },
   paddingBottomMobile: Styles.platformStyles({
-    isPhone: {
-      paddingBottom: Styles.globalMargins.small,
-    },
+    isPhone: {paddingBottom: Styles.globalMargins.small},
   }),
   reloadButton: {
     marginTop: Styles.globalMargins.tiny,
     minWidth: 56,
   },
-  roleButton: {
-    paddingRight: 0,
-  },
+  roleButton: {paddingRight: 0},
   roleButtonExpanded: Styles.platformStyles({
     isElectron: {
       marginTop: 10, // does not exist as an official size
@@ -947,20 +910,14 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   row: {paddingRight: Styles.globalMargins.small},
   rowCollapsedFixedHeight: Styles.platformStyles({
-    common: {
-      height: 49,
-    },
+    common: {height: 49},
     isPhone: {
       flexShrink: 0,
       height: 65,
     },
   }),
-  smallHeader: {
-    ...Styles.padding(0, Styles.globalMargins.xlarge),
-  },
-  teamNameLink: {
-    color: Styles.globalColors.black,
-  },
+  smallHeader: {...Styles.padding(0, Styles.globalMargins.xlarge)},
+  teamNameLink: {color: Styles.globalColors.black},
 }))
 
 export default TeamMember

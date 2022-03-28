@@ -25,9 +25,11 @@ const UserResult = React.memo((props: ResultProps) => {
             inTeam={props.inTeam}
             onAdd={(e: React.BaseSyntheticEvent) => {
               e.stopPropagation()
-              props?.onAdd()
+              props?.onAdd(props.userId)
             }}
-            onRemove={props.onRemove}
+            onRemove={() => {
+              props.onRemove(props.userId)
+            }}
           />
         )
       }

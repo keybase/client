@@ -10,7 +10,6 @@ import {useTeamLinkPopup} from './common'
 import {pluralize} from '../util/string'
 import {memoize} from '../util/memoize'
 import capitalize from 'lodash/capitalize'
-import {headerDefaultStyle} from '../router-v2/router'
 
 type Props = Container.RouteProps<{teamname: string}>
 
@@ -72,7 +71,6 @@ ExternalTeam.navigationOptions = {
   header: undefined,
   headerBottomStyle: {height: undefined},
   headerHideBorder: true,
-  headerStyle: {...headerDefaultStyle, borderBottomWidth: 0},
   title: ' ', // hack: trick router shim so it doesn't add a safe area around us
 }
 

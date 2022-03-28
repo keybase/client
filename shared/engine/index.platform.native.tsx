@@ -1,16 +1,12 @@
 import {NativeModules, NativeEventEmitter} from 'react-native'
-import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {toByteArray, fromByteArray} from 'base64-js'
 import {encode} from '@msgpack/msgpack'
 import toBuffer from 'typedarray-to-buffer'
-import {printRPCBytes} from '../local-debug'
-import {measureStart, measureStop} from '../util/user-timings'
-import {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import {isIOS} from '../constants/platform'
+import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 const nativeBridge: NativeEventEmitter & {
-  runWithData: (arg0: string) => void
-  eventName: string
   metaEventName: string
   metaEventEngineReset: string
   start: () => void
@@ -51,12 +47,11 @@ class NativeTransport extends TransportShared {
     const buf = new Uint8Array(len.length + packed.length)
     buf.set(len, 0)
     buf.set(packed, len.length)
-    const b64 = fromByteArray(buf)
-    if (printRPCBytes) {
-      logger.debug('[RPC] Writing', b64.length, 'chars:', b64)
+    // Pass data over to the native side to be handled, with JSI!
+    if (typeof global.rpcOnGo !== 'function') {
+      NativeModules.GoJSIBridge.install()
     }
-    // Pass data over to the native side to be handled
-    nativeBridge.runWithData(b64)
+    global.rpcOnGo(buf.buffer)
     return true
   }
 }
@@ -70,22 +65,11 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
+  global.rpcOnJs = objs => {
+    client.transport._dispatch(objs)
+  }
+
   nativeBridge.start()
-
-  let packetizeCount = 0
-  // This is how the RN side writes back to us
-  RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
-    if (printRPCBytes) {
-      logger.debug('[RPC] Read', payload.length, 'chars:', payload)
-    }
-
-    const buffer = toBuffer(toByteArray(payload))
-    const measureName = `packetize${packetizeCount++}:${buffer.length}`
-    measureStart(measureName)
-    const ret = client.transport.packetize_data(buffer)
-    measureStop(measureName)
-    return ret
-  })
 
   RNEmitter.addListener(nativeBridge.metaEventName, (payload: string) => {
     switch (payload) {

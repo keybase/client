@@ -14,9 +14,9 @@ const WebLinks = (props: Props) => {
     </Kb.Box2>
   )
 }
-WebLinks.navigationOptions = ({navigation}) => ({
+WebLinks.navigationOptions = ({route}) => ({
   header: undefined,
-  title: navigation.state.params.title,
+  title: route.params.title,
 })
 
 export default WebLinks

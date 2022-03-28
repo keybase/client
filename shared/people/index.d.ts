@@ -6,7 +6,7 @@ export type Props = {
   newItems: Array<Types.PeopleScreenItem>
   wotUpdates: Map<string, Types.WotUpdate>
   followSuggestions: Array<Types.FollowSuggestion>
-  getData: (markViewed?: boolean) => void
+  getData: (markViewed?: boolean, force?: boolean) => void
   onClickUser: (username: string) => void
   onOpenAccountSwitcher?: () => void
   signupEmail: string

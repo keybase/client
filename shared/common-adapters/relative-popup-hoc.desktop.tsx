@@ -271,16 +271,10 @@ function ModalPositionRelative<PP>(
   WrappedComponent: React.ComponentType<PP>
 ): React.ComponentType<ModalPositionRelativeProps<PP>> {
   // $FlowIssue TODO modernize
-  class ModalPositionRelativeClass extends React.Component<
-    ModalPositionRelativeProps<PP>,
-    {
-      style: {}
-    }
-  > {
+  class ModalPositionRelativeClass extends React.Component<ModalPositionRelativeProps<PP>, {style: {}}> {
     popupNode: HTMLElement | null = null
-    state: {
-      style: {}
-    }
+    down: undefined | {x: number; y: number}
+    state: {style: {}}
     constructor(props) {
       super(props)
       this.state = {style: {}}
@@ -336,6 +330,23 @@ function ModalPositionRelative<PP>(
       }
     }
 
+    _handleDown = (e: MouseEvent) => {
+      this.down = {x: e.clientX, y: e.clientY}
+    }
+
+    _handleUp = (e: MouseEvent) => {
+      if (!this.down) {
+        return
+      }
+
+      const {x, y} = this.down
+      this.down = undefined
+      const {clientX, clientY} = e
+      if (Math.abs(x - clientX) < 5 && Math.abs(y - clientY) < 5) {
+        this._handleClick(e)
+      }
+    }
+
     _handleClick = (e: MouseEvent) => {
       if (this.popupNode && e.target instanceof HTMLElement && !this.popupNode.contains(e.target)) {
         !this.props.propagateOutsideClicks && e.stopPropagation()
@@ -355,14 +366,16 @@ function ModalPositionRelative<PP>(
     componentDidMount() {
       const node = document.body
       if (!__STORYBOOK__ && node) {
-        node.addEventListener('click', this._handleClick, false)
+        node.addEventListener('mousedown', this._handleDown, false)
+        node.addEventListener('mouseup', this._handleUp, false)
       }
     }
 
     componentWillUnmount() {
       const node = document.body
       if (!__STORYBOOK__ && node) {
-        node.removeEventListener('click', this._handleClick, false)
+        node.removeEventListener('mousedown', this._handleDown, false)
+        node.removeEventListener('mouseup', this._handleUp, false)
       }
     }
 

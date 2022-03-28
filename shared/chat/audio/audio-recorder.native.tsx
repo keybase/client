@@ -9,7 +9,7 @@ import {formatAudioRecordDuration} from '../../util/timestamp'
 import {isIOS} from '../../constants/platform'
 import {AmpTracker} from './amptracker'
 import AudioStarter from './audio-starter.native'
-import {Gateway} from '@chardskarth/react-gateway'
+import {Portal} from '@gorhom/portal'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -72,9 +72,10 @@ const AudioRecorder = (props: Props) => {
     [dispatch, ampTracker, conversationIDKey]
   )
   const sendRecording = React.useCallback(() => stopRecording(Types.AudioStopType.SEND), [stopRecording])
-  const stageRecording = React.useCallback(() => stopRecording(Types.AudioStopType.STOPBUTTON), [
-    stopRecording,
-  ])
+  const stageRecording = React.useCallback(
+    () => stopRecording(Types.AudioStopType.STOPBUTTON),
+    [stopRecording]
+  )
 
   // render
   const noShow = !Constants.showAudioRecording(audioRecording)
@@ -104,7 +105,7 @@ const AudioRecorder = (props: Props) => {
         iconStyle={props.iconStyle}
       />
       {!visible ? null : (
-        <Gateway into="convOverlay">
+        <Portal hostName="convOverlay">
           <Kb.Box2
             direction="vertical"
             fullHeight={true}
@@ -129,7 +130,7 @@ const AudioRecorder = (props: Props) => {
             />
             <AudioCounter closeDown={closingDown} slideTranslate={slideTranslate} />
           </Kb.Box2>
-        </Gateway>
+        </Portal>
       )}
     </>
   )
@@ -237,11 +238,7 @@ const AudioButton = (props: ButtonProps) => {
           opacity: 0.9,
           position: 'absolute',
           right: 30,
-          transform: [
-            {
-              scale: outerScale,
-            },
-          ],
+          transform: [{scale: outerScale}],
           width: outerSize,
         }}
       />

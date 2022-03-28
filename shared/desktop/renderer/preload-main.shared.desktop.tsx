@@ -4,15 +4,17 @@ import * as Electron from 'electron'
 // @ts-ignore strict
 import fse from 'fs-extra'
 
-const isRenderer = typeof process !== 'undefined' && process.type === 'renderer'
+const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
 const {argv, platform, env, type} = process
 const isDarwin = platform === 'darwin'
 const isWindows = platform === 'win32'
 const isLinux = platform === 'linux'
 
+const remote = require(isRenderer ? '@electron/remote' : '@electron/remote/main')
+
 // @ts-ignore strict
-const pid = isRenderer ? Electron.remote.process.pid : process.pid
+const pid = isRenderer ? remote.process.pid : process.pid
 
 const kbProcess = {
   argv,
@@ -114,10 +116,7 @@ const showOpenDialog = async (opts: KBElectronOpenDialogOptions) => {
       properties: allowedProperties,
       title,
     }
-    const result = await Electron.remote.dialog.showOpenDialog(
-      Electron.remote.getCurrentWindow(),
-      allowedOptions
-    )
+    const result = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), allowedOptions)
     if (!result) return
     if (result.canceled) return
     return result.filePaths
@@ -141,10 +140,7 @@ const showSaveDialog = async (opts: KBElectronSaveDialogOptions) => {
       properties: allowedProperties,
       title,
     }
-    const result = await Electron.remote.dialog.showSaveDialog(
-      Electron.remote.getCurrentWindow(),
-      allowedOptions
-    )
+    const result = await remote.dialog.showSaveDialog(remote.getCurrentWindow(), allowedOptions)
     if (!result) return
     if (result.canceled) return
     return result.filePath
@@ -159,13 +155,14 @@ target.KB = {
   debugConsoleLog,
   electron: {
     app: {
-      appPath: __STORYSHOT__ ? '' : isRenderer ? Electron.remote.app.getAppPath() : Electron.app.getAppPath(),
+      appPath: __STORYSHOT__ ? '' : isRenderer ? remote.app.getAppPath() : Electron.app.getAppPath(),
     },
     dialog: {
       showOpenDialog,
       showSaveDialog,
     },
   },
+  isRenderer,
   kb: {
     darwinCopyToChatTempUploadFile,
     darwinCopyToKBFSTempUploadFile,

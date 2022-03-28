@@ -30,7 +30,6 @@ const _RootLogin = (p: Props) => {
 }
 
 _RootLogin.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }

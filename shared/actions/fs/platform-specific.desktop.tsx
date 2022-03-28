@@ -4,8 +4,8 @@ import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as Electron from 'electron'
 import * as Tabs from '../../constants/tabs'
+import * as remote from '@electron/remote'
 import fs from 'fs'
 import type {TypedState, TypedActions} from '../../util/container'
 import {fileUIName, isWindows, isLinux} from '../../constants/platform'
@@ -51,7 +51,7 @@ const openInDefaultDirectory = async (openPath: string): Promise<void> => {
       const url = pathToURL(resolvedPath)
       logger.info('Open URL (directory):', url)
 
-      Electron.remote.shell
+      remote.shell
         .openExternal(url, {activate: true})
         .then(() => {
           logger.info('Opened directory:', openPath)
@@ -90,21 +90,17 @@ const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: b
   new Promise((resolve, reject) => {
     if (isFolder) {
       if (isWindows) {
-        Electron.remote.shell
+        remote.shell
           .openPath(openPath)
-          .then(error => {
-            if (error) {
-              reject(new Error('unable to open item'))
-            } else {
-              resolve()
-            }
+          .then(() => resolve())
+          .catch(() => {
+            reject(new Error('unable to open item'))
           })
-          .catch(() => reject(new Error('unable to open item')))
       } else {
         openInDefaultDirectory(openPath).then(resolve, reject)
       }
     } else {
-      Electron.remote.shell.showItemInFolder(openPath)
+      remote.shell.showItemInFolder(openPath)
       resolve()
     }
   })
@@ -245,8 +241,8 @@ const driverEnableFuse = async (action: FsGen.DriverEnablePayload) => {
 }
 
 const uninstallKBFSConfirm = async () => {
-  const action = await new Promise<TypedActions | false>(resolve => {
-    Electron.remote.dialog
+  const action = await new Promise<TypedActions | false>(resolve =>
+    remote.dialog
       .showMessageBox({
         buttons: ['Remove & Restart', 'Cancel'],
         detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
@@ -256,25 +252,24 @@ const uninstallKBFSConfirm = async () => {
       // resp is the index of the button that's clicked
       .then(({response}) => (response === 0 ? resolve(FsGen.createDriverDisabling()) : resolve(false)))
       .catch(() => resolve(false))
-  })
+  )
   return action
 }
 
 const uninstallKBFS = async () =>
   RPCTypes.installUninstallKBFSRpcPromise().then(() => {
     // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-    Electron.remote.app.relaunch()
-    Electron.remote.app.exit(0)
+    remote.app.relaunch()
+    remote.app.exit(0)
   })
 
-// @ts-ignore
-const uninstallDokanConfirm = async (state: TypedState) => {
+const uninstallDokanConfirm = async (state: TypedState): Promise<TypedActions | false> => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
     return false
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
     const action = await new Promise<TypedActions>(resolve => {
-      Electron.remote.dialog
+      remote.dialog
         .showMessageBox({
           buttons: ['Got it'],
           detail:
@@ -305,7 +300,7 @@ const uninstallDokan = (state: TypedState) => {
 }
 
 const openSecurityPreferences = () => {
-  Electron.remote.shell
+  remote.shell
     .openExternal('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
     .then(() => {
       logger.info('Opened Security Preferences')
@@ -316,8 +311,8 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = async () =>
-  new Promise((resolve, reject) => {
+const installCachedDokan = () =>
+  new Promise<void>((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
     execFile(dokanPath, [], err => {
@@ -346,9 +341,9 @@ const installCachedDokan = async () =>
     .then(() => FsGen.createRefreshDriverStatus())
     .catch(e => errorToActionOrThrow(e))
 
-const openAndUploadToPromise = async (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
-  Electron.remote.dialog
-    .showOpenDialog(Electron.remote.getCurrentWindow(), {
+const openAndUploadToPromise = (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
+  remote.dialog
+    .showOpenDialog(remote.getCurrentWindow(), {
       properties: [
         'multiSelections' as const,
         ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),

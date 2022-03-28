@@ -56,7 +56,6 @@ const TeamTabs = (props: TeamTabsProps) => {
         ) : (
           tabContent
         )}
-        {!Styles.isMobile && props.loading && <Kb.ProgressIndicator style={styles.inlineProgressIndicator} />}
       </Kb.Box>
       {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
     </Kb.Box2>
@@ -66,7 +65,9 @@ const TeamTabs = (props: TeamTabsProps) => {
 const styles = Styles.styleSheetCreate(() => ({
   clickableBox: Styles.platformStyles({
     isElectron: {flex: 1},
-    isMobile: {flexGrow: 1},
+    isMobile: {
+      flexGrow: 1,
+    },
   }),
   container: {backgroundColor: Styles.globalColors.white},
   inlineProgressIndicator: {

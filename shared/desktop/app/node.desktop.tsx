@@ -24,6 +24,8 @@ import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 const {join} = KB.path
 const {env} = KB.process
 
+require('@electron/remote/main').initialize()
+
 let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
 let startupURL: string | null = null
@@ -368,7 +370,7 @@ const plumbEvents = () => {
           show: false, // Start hidden and show when we actually get props
           titleBarStyle: 'customButtonsOnHover' as const,
           webPreferences: {
-            enableRemoteModule: true,
+            contextIsolation: false,
             nodeIntegration: true,
             nodeIntegrationInWorker: false,
             preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
@@ -377,6 +379,8 @@ const plumbEvents = () => {
         }
 
         const remoteWindow = new Electron.BrowserWindow(opts)
+
+        require('@electron/remote/main').enable(remoteWindow.webContents)
 
         if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {
           const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize

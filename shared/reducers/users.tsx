@@ -4,8 +4,9 @@ import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as TeamsGen from '../actions/teams-gen'
-import * as Types from '../constants/types/users'
 import * as UsersGen from '../actions/users-gen'
+import type * as Types from '../constants/types/users'
+import type {WritableDraft} from 'immer'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -17,18 +18,18 @@ type Actions =
   | TeamBuildingGen.SearchResultsLoadedPayload
   | TeamsGen.SetMembersPayload
 
-const updateInfo = (map: Map<string, Types.UserInfo>, username: string, info: Partial<Types.UserInfo>) => {
-  const nextValue = Container.produce(map.get(username) ?? {}, draft => {
+const updateInfo = (
+  map: Map<string, WritableDraft<Types.UserInfo>>,
+  username: string,
+  info: Partial<Types.UserInfo>
+) => {
+  const next = map.get(username)
+  if (next) {
     Object.keys(info).forEach(key => {
-      draft[key] = info[key]
+      next[key] = info[key]
     })
-  })
-
-  // anything?
-  if (nextValue.fullname || nextValue.broken || nextValue.bio) {
-    map.set(username, nextValue)
   } else {
-    map.delete(username)
+    map.set(username, info)
   }
 }
 

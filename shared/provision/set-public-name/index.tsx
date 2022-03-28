@@ -5,7 +5,6 @@ import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
 import {defaultDevicename} from '../../constants/signup'
 import debounce from 'lodash/debounce'
-
 import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
@@ -133,7 +132,6 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 SetPublicName.navigationOptions = {
-  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }

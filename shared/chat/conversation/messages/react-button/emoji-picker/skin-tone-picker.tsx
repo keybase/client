@@ -79,7 +79,10 @@ const SkinTonePicker = (props: Props) => {
       {expanded ? (
         <Kb.Animated to={{height: 126}} from={{height: 26}} config={reactSprintConfig}>
           {({height}) => (
-            <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.popupContainer, {height}])}>
+            <Kb.Box2
+              direction="vertical"
+              style={Styles.collapseStyles([styles.popupContainer, {height: height as any}])}
+            >
               {optionSkinTones}
             </Kb.Box2>
           )}

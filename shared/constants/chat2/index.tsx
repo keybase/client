@@ -1,10 +1,9 @@
 import * as Types from '../types/chat2'
-import * as UserTypes from '../types/users'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as TeamBuildingConstants from '../team-building'
 import clamp from 'lodash/clamp'
-import {TypedState} from '../reducer'
+import type {TypedState} from '../reducer'
 import {isMobile, isTablet} from '../platform'
 import {
   noConversationIDKey,
@@ -17,9 +16,7 @@ import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
-import {memoize} from '../../util/memoize'
 import * as TeamConstants from '../teams'
-import * as TeamTypes from '../types/teams'
 
 export const defaultTopReacjis = [
   {name: ':+1:'},
@@ -243,7 +240,7 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   (state.chat2.unreadMap.get(id) || 0) > 0
 export const getSelectedConversation = (): Types.ConversationIDKey => {
   const maybeVisibleScreen = Router2.getVisibleScreen()
-  if (maybeVisibleScreen?.routeName === threadRouteName) {
+  if (maybeVisibleScreen?.name === threadRouteName) {
     return maybeVisibleScreen.params?.conversationIDKey ?? noConversationIDKey
   }
   return noConversationIDKey
@@ -311,7 +308,7 @@ export const isUserActivelyLookingAtThisThread = (
     chatThreadSelected =
       (maybeVisibleScreen === null || maybeVisibleScreen === undefined
         ? undefined
-        : maybeVisibleScreen.routeName) === threadRouteName
+        : maybeVisibleScreen.name) === threadRouteName
   }
 
   return (

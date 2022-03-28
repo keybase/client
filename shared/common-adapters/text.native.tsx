@@ -21,7 +21,10 @@ const styles = Styles.styleSheetCreate(() =>
       })
       return map
     },
-    {center: {textAlign: 'center'}}
+    {
+      center: {textAlign: 'center'},
+      fixOverdraw: {backgroundColor: Styles.globalColors.fastBlank},
+    }
   )
 )
 
@@ -89,8 +92,13 @@ class Text extends Component<Props> {
     let style
     if (!Object.keys(dynamicStyle).length) {
       style =
-        this.props.style || this.props.center
-          ? [baseStyle, this.props.center && styles.center, this.props.style]
+        this.props.style || this.props.center || this.props.fixOverdraw
+          ? [
+              baseStyle,
+              this.props.center && styles.center,
+              this.props.fixOverdraw && styles.fixOverdraw,
+              this.props.style,
+            ]
           : baseStyle
     } else {
       style = [baseStyle, dynamicStyle, this.props.center && styles.center, this.props.style]

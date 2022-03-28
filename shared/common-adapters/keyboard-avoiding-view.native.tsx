@@ -1,6 +1,8 @@
 // @ts-nocheck
 /* eslint-disable */
 import * as React from 'react'
+import {KeyboardAvoidingView} from 'react-native'
+/*
 import {
   StatusBarIOS,
   NativeModules,
@@ -203,3 +205,6 @@ const StatusbarAwareKeyboardAvoidingView = (p: KeyboardAvoidingViewProps) => {
 }
 
 export default StatusbarAwareKeyboardAvoidingView
+*/
+
+export default KeyboardAvoidingView

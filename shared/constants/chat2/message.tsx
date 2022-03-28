@@ -17,7 +17,7 @@ import logger from '../../logger'
 import {ServiceId} from 'util/platforms'
 import {assertNever} from '../../util/container'
 import invert from 'lodash/invert'
-import isEqual from 'lodash/isEqual'
+import shallowEqual from 'shallowequal'
 
 export const getMessageStateExtras = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const getLastOrdinal = () =>
@@ -741,14 +741,8 @@ const uiMessageToSystemMessage = (
       })
     }
     case RPCChatTypes.MessageSystemType.gitpush: {
-      const {
-        team = '???',
-        pushType = 0,
-        pusher = '???',
-        repoName: repo = '???',
-        repoID = '???',
-        refs = [],
-      } = body.gitpush || {}
+      const {team = '???', pushType = 0, pusher = '???', repoName: repo = '???', repoID = '???', refs = []} =
+        body.gitpush || {}
       return makeMessageSystemGitPush({
         ...minimum,
         pushType,
@@ -1394,27 +1388,41 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
     return m
   }
 
-  let toRet: any = {...m}
+  const toRet: any = {...m}
 
-  let unmatched = 0
-  // keep deep equal props
   Object.keys(old).forEach(key => {
-    if (isEqual(old[key], m[key])) {
-      toRet[key] = old[key]
-    } else {
-      // special case
-      if (toRet[key] instanceof HiddenString && m[key]?.stringValue?.() === old[key]?.stringValue?.()) {
-        toRet[key] = old[key]
-      } else {
-        unmatched++
-      }
+    switch (key) {
+      case 'mentionsAt':
+        if (
+          m.type === 'text' &&
+          old.type === 'text' &&
+          shallowEqual([...old.mentionsAt], [...m.mentionsAt])
+        ) {
+          toRet.mentionsAt = old.mentionsAt
+        }
+        break
+      case 'mentionsChannelName':
+        if (
+          m.type === 'text' &&
+          old.type === 'text' &&
+          shallowEqual([...old.mentionsChannelName.entries()], [...m.mentionsChannelName].entries())
+        ) {
+          toRet.mentionsChannelName = old.mentionsChannelName
+        }
+        break
+      case 'text':
+        if (m.type === 'text' && old.type === 'text' && old.text.stringValue() === m.text.stringValue()) {
+          toRet.text = old.text
+        }
+        break
+      default:
+        // @ts-ignore strict: key is just a string here so TS doesn't like it
+        if (old[key] === m[key]) {
+          // @ts-ignore strict
+          toRet[key] = old[key]
+        }
     }
   })
-
-  // entirely the same?
-  if (!unmatched) {
-    toRet = old
-  }
 
   return toRet
 }

@@ -45,12 +45,8 @@ const ReloadableDevices = (props: Props) => {
 }
 
 ReloadableDevices.navigationOptions = Container.isMobile
-  ? {
-      header: undefined,
-      title: 'Devices',
-    }
+  ? {title: 'Devices'}
   : {
-      header: undefined,
       headerRightActions: HeaderRightActions,
       headerTitle: HeaderTitle,
       title: 'Devices',

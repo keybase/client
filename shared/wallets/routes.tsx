@@ -16,7 +16,6 @@ import type WhatIsStellarModal from './what-is-stellar-modal'
 import type Settings from './wallet/settings/container'
 import type TransactionDetails from './transaction-details/container'
 import type TeamBuilder from '../team-building/container'
-import type Partners from './partners/container'
 
 export const sharedRoutes = {
   // TODO connect broken
@@ -30,11 +29,9 @@ export const sharedRoutes = {
 export const newRoutes = {
   walletsRoot: isPhone
     ? {getScreen: () => require('./wallet/container').default}
-    : // MUST use screen and not getScreen for subnavs!
-      {
-        get screen() {
-          return require('./wallets-sub-nav').default
-        },
+    : {
+        getScreen: () => require('./wallets-sub-nav').default,
+        skipShim: true,
       },
   ...sharedRoutes, // these are valid inside AND outside the subnav
 }
@@ -46,7 +43,6 @@ export const newModalRoutes = {
   },
   keybaseLinkError: {getScreen: (): typeof KeybaseLinkError => require('../deeplinks/error').default},
   linkExisting: {getScreen: (): typeof LinkExisting => require('./link-existing/container').default},
-  partners: {getScreen: (): typeof Partners => require('./partners/container').default},
   reallyRemoveAccount: {
     getScreen: (): typeof ReallyRemoveAccountPopup =>
       require('./wallet/settings/popups').ReallyRemoveAccountPopup,

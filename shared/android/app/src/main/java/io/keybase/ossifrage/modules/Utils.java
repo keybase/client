@@ -1,7 +1,6 @@
 package io.keybase.ossifrage.modules;
 
 import android.content.Context;
-import android.os.Build;
 import android.telephony.TelephonyManager;
 
 import androidx.annotation.NonNull;
@@ -28,31 +27,33 @@ public class Utils extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void getRegistrationToken(Promise promise) {
-      boolean firebaseInitialized = FirebaseApp.getApps(getReactApplicationContext()).size() == 1;
-      if (!firebaseInitialized) {
-        FirebaseApp.initializeApp(getReactApplicationContext(),
-          new FirebaseOptions.Builder()
-            .setApplicationId(BuildConfig.APPLICATION_ID)
-            .setGcmSenderId("9603251415").build()
-        );
-      }
-      FirebaseInstanceId.getInstance().getInstanceId()
-        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-            @Override
-            public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                if (!task.isSuccessful()) {
-                    NativeLogger.warn("getInstanceId failed", task.getException());
-                    promise.reject(task.getException());
-                    return;
-                }
+        boolean firebaseInitialized = FirebaseApp.getApps(getReactApplicationContext()).size() == 1;
+        if (!firebaseInitialized) {
+            FirebaseApp.initializeApp(getReactApplicationContext(),
+                    new FirebaseOptions.Builder()
+                            .setApplicationId(BuildConfig.LIBRARY_PACKAGE_NAME)
+                            .setProjectId("keybase-c30fb")
+                            .setGcmSenderId("9603251415")
+                            .build()
+            );
+        }
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+                            NativeLogger.warn("getInstanceId failed", task.getException());
+                            promise.reject(task.getException());
+                            return;
+                        }
 
 
-                // Get new Instance ID token
-                String token = task.getResult().getToken();
-                NativeLogger.info("Got token: " + token);
-                promise.resolve(token);
-            }
-        });
+                        // Get new Instance ID token
+                        String token = task.getResult().getToken();
+                        NativeLogger.info("Got token: " + token);
+                        promise.resolve(token);
+                    }
+                });
     }
 
 

@@ -263,15 +263,13 @@ const FilteredServiceTabBar = (
 const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
 
 class TeamBuilding extends React.PureComponent<Props> {
-  static navigationOptions = ({navigation}) => {
-    const namespace = navigation.state.params.namespace
+  static navigationOptions = ({route}) => {
+    const namespace = route.params.namespace
     const common = {
       modal2: true,
       modal2AvoidTabs: false,
       modal2ClearCover: false,
-      modal2Style: {
-        alignSelf: 'center',
-      },
+      modal2Style: {alignSelf: 'center'},
       modal2Type: 'DefaultFullHeight',
     }
 
@@ -539,8 +537,9 @@ class TeamBuilding extends React.PureComponent<Props> {
                       highlightDetails.section === section &&
                       highlightDetails.index === index
                     }
-                    onAdd={() => this.props.onAdd(result.userId)}
-                    onRemove={() => this.props.onRemove(result.userId)}
+                    userId={result.userId}
+                    onAdd={this.props.onAdd}
+                    onRemove={this.props.onRemove}
                   />
                 )
               }
@@ -585,8 +584,9 @@ class TeamBuilding extends React.PureComponent<Props> {
                 isYou={result.isYou}
                 followingState={result.followingState}
                 highlight={!Styles.isMobile && index === this.props.highlightedIndex}
-                onAdd={() => this.props.onAdd(result.userId)}
-                onRemove={() => this.props.onRemove(result.userId)}
+                userId={result.userId}
+                onAdd={this.props.onAdd}
+                onRemove={this.props.onRemove}
               />
             )}
           />
@@ -612,9 +612,7 @@ class TeamBuilding extends React.PureComponent<Props> {
       <Kb.Text type="BodyBigLink" onClick={this.props.onClose}>
         Cancel
       </Kb.Text>
-    ) : (
-      undefined
-    )
+    ) : undefined
     switch (this.props.namespace) {
       case 'people': {
         return Styles.isMobile
@@ -636,9 +634,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             >
               Done
             </Kb.Text>
-          ) : (
-            undefined
-          ),
+          ) : undefined,
           title: <TeamsModalTitle teamID={this.props.teamID ?? noTeamID} title="Search people" />,
         }
       }
@@ -651,9 +647,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             type="Success"
             style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
           />
-        ) : (
-          undefined
-        )
+        ) : undefined
         return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
       }
       case 'crypto': {
@@ -665,9 +659,7 @@ class TeamBuilding extends React.PureComponent<Props> {
             type="Success"
             style={!this.props.teamSoFar.length && styles.hide} // Need to hide this so modal can measure correctly
           />
-        ) : (
-          undefined
-        )
+        ) : undefined
         return {hideBorder: true, leftButton: mobileCancel, rightButton, title: this.props.title}
       }
       default: {
@@ -821,9 +813,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
       },
       container: Styles.platformStyles({
-        common: {
-          position: 'relative',
-        },
+        common: {position: 'relative'},
       }),
       emptyContainer: Styles.platformStyles({
         common: {flex: 1},
@@ -862,9 +852,7 @@ const styles = Styles.styleSheetCreate(
         common: {paddingBottom: Styles.globalMargins.small},
       }),
       listContainer: Styles.platformStyles({
-        common: {
-          position: 'relative',
-        },
+        common: {position: 'relative'},
         isElectron: {flex: 1, height: '100%', overflow: 'hidden'},
         isMobile: {
           flexGrow: 1,
@@ -892,9 +880,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {flex: 1},
       }),
       newChatHeader: Styles.platformStyles({
-        isElectron: {
-          margin: Styles.globalMargins.xsmall,
-        },
+        isElectron: {margin: Styles.globalMargins.xsmall},
       }),
       noResults: {
         flex: 1,

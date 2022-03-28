@@ -2,8 +2,11 @@ import * as Kb from '../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as RowSizes from './row/sizes'
 import * as Styles from '../../styles'
-import * as T from './index.d'
-import * as Types from '../../constants/types/chat2'
+import type * as T from './index.d'
+import type * as Types from '../../constants/types/chat2'
+import {anyWaiting} from '../../constants/waiting'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/chat2'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import ChatInboxHeader from './header/container'
@@ -260,21 +263,17 @@ class Inbox extends React.PureComponent<T.Props, State> {
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-    const HeadComponent = <ChatInboxHeader context="inbox-header" />
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
-          {!!this.props.isLoading && (
-            <Kb.Box style={styles.loadingContainer}>
-              <Kb.LoadingLine />
-            </Kb.Box>
-          )}
+          <LoadingLine />
           {this.props.isSearching ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <InboxSearch header={HeadComponent} />
             </Kb.Box2>
           ) : (
             <Kb.NativeFlatList
+              overScrollMode="never"
               ListHeaderComponent={HeadComponent}
               data={this.props.rows}
               keyExtractor={this.keyExtractor}
@@ -289,9 +288,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
           )}
           {noChats}
           {floatingDivider ||
-            (this.props.rows.length === 0 && !this.props.isLoading && !this.props.neverLoaded && (
-              <BuildTeam />
-            ))}
+            (this.props.rows.length === 0 && !this.props.neverLoaded && <NoRowsBuildTeam />)}
           {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
             <UnreadShortcut onClick={this.scrollToUnread} unreadCount={this.state.unreadCount} />
           )}
@@ -300,6 +297,23 @@ class Inbox extends React.PureComponent<T.Props, State> {
     )
   }
 }
+
+const NoRowsBuildTeam = () => {
+  const isLoading = Container.useSelector(state => Constants.anyChatWaitingKeys(state))
+  return isLoading ? null : <BuildTeam />
+}
+
+const LoadingLine = () => {
+  const isLoading = Container.useSelector(state =>
+    anyWaiting(state, Constants.waitingKeyInboxRefresh, Constants.waitingKeyInboxSyncStarted)
+  )
+  return isLoading ? (
+    <Kb.Box style={styles.loadingContainer}>
+      <Kb.LoadingLine />
+    </Kb.Box>
+  ) : null
+}
+const HeadComponent = <ChatInboxHeader context="inbox-header" />
 
 const styles = Styles.styleSheetCreate(
   () =>

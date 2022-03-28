@@ -45,6 +45,7 @@ export type LeftActionProps = {
   theme?: 'light' | 'dark' // defaults to 'light',
   onLeftAction: (() => void) | null
   customIconColor?: string
+  style?: StylesCrossPlatform
 }
 
 type HeaderHocProps = Props
@@ -69,4 +70,5 @@ export default HeaderHoc
 
 // used in navigationOptions
 export declare class HeaderLeftArrow extends React.Component<any> {}
+export declare class HeaderLeftBlank extends React.Component<any> {}
 export declare class HeaderLeftCancel extends React.Component<any> {}
