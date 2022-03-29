@@ -115,7 +115,6 @@ export {
   platformStyles,
   padding,
 } from './shared'
-// @ts-ignore
 export {default as styled} from '@emotion/native'
 export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'

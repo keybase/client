@@ -307,7 +307,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 }
 
-const StyledTextArea = Styles.styled.textarea<'textarea'>(
+const StyledTextArea = Styles.styled.textarea(
   // @ts-ignore
   (props: {placeholderColor: any; placeholderTextType: any}) => {
     const placeholderStyle = props.placeholderTextType ? getTextStyle(props.placeholderTextType) : {}
@@ -322,7 +322,7 @@ const StyledTextArea = Styles.styled.textarea<'textarea'>(
   }
 )
 
-const StyledInput = Styles.styled.input<'input'>(
+const StyledInput = Styles.styled.input(
   // @ts-ignore
   (props: {placeholderColor: any; placeholderTextType: any}) => {
     const placeholderStyle = props.placeholderTextType ? getTextStyle(props.placeholderTextType) : {}
