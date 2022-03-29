@@ -197,7 +197,7 @@ const AppTabsInner = () => {
           })}
         />
       )),
-    []
+    [dispatch]
   )
 
   return (

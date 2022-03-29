@@ -3,7 +3,7 @@ import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import * as Styles from '../styles'
 import {Props} from './switch-toggle'
 
-class SwitchToggle extends React.PureComponent<Props, {}> {
+class SwitchToggle extends React.PureComponent<Props> {
   _offset = new NativeAnimated.Value(this._getOffset())
   _animation: any = null
 

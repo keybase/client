@@ -197,6 +197,7 @@ function startPack() {
   })
 }
 
+// eslint-disable-next-line
 function pack(plat: string, arch: string): Promise<any> {
   // there is no darwin ia32 electron
   if (plat === 'darwin' && arch === 'ia32') return Promise.resolve()

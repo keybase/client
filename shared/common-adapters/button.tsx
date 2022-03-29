@@ -1,14 +1,14 @@
 /* eslint-disable sort-keys */
-import Badge from './badge'
-import {Box, Box2} from './box'
-import ClickableBox from './clickable-box'
-import Icon, {SizeType} from './icon'
-import WithTooltip from './with-tooltip'
-import * as React from 'react'
-import Text, {StylesTextCrossPlatform} from './text'
-import * as Styles from '../styles'
 import './button.css'
-import {IconType} from './icon.constants-gen'
+import * as React from 'react'
+import * as Styles from '../styles'
+import Badge from './badge'
+import ClickableBox from './clickable-box'
+import Icon, {type SizeType} from './icon'
+import Text, {type StylesTextCrossPlatform} from './text'
+import WithTooltip from './with-tooltip'
+import type {IconType} from './icon.constants-gen'
+import {Box, Box2} from './box'
 
 const Kb = {
   Badge,
@@ -89,7 +89,7 @@ const ButtonInner = (props: Props, ref: React.Ref<ClickableBox>) => {
     ? backgroundColorContainerStyles[mode as any]
     : containerStyles[(mode + type) as any]
   let labelStyle: StylesTextCrossPlatform = props.backgroundColor
-    ? (backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)] as any)
+    ? backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)]
     : labelStyles[mode + type]
 
   if (props.fullWidth) {

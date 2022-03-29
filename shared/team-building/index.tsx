@@ -354,8 +354,7 @@ class TeamBuilding extends React.PureComponent<Props> {
     let numData = 0
     let length = dataRowHeight
     let currSectionHeaderIdx = 0
-    for (let i = 0; i < sections.length; i++) {
-      const s = sections[i]
+    for (const s of sections) {
       if (indexInList === currSectionHeaderIdx) {
         // we are the section header
         length = Kb.SectionDivider.height

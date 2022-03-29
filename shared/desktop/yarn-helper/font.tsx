@@ -199,7 +199,7 @@ const generateWebCSS = result => {
 
   // hash and write
   const types = ['ttf', 'woff', 'svg'].map(type => {
-    var hash = crypto.createHash('md5')
+    let hash = crypto.createHash('md5')
     hash.update(result[type])
     try {
       fs.writeFileSync(path.join(paths.webFonts, `kb.${type}`), result[type])
@@ -347,9 +347,7 @@ function updateIconConstants() {
     // They are included later in srcSet generation by icon.*.tsx
     //
     // On macOS (10.12+) Finder.app will no longer display .DS_Store files. Make sure they are not included here.
-    const iconFiles = fs
-      .readdirSync(assetDirPath)
-      .filter(i => i.indexOf('@') === -1 && i.indexOf('DS_Store') === -1)
+    const iconFiles = fs.readdirSync(assetDirPath).filter(i => !i.includes('@') && !i.includes('DS_Store'))
     const newIcons = insertFn(iconFiles)
     return {
       ...prevIcons,

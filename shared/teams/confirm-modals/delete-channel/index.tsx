@@ -42,7 +42,7 @@ const DeleteChannel = (props: Props) => {
   }
 
   const {channelMetas} = useAllChannelMetas(teamID)
-  var channelnames: string[] = []
+  let channelnames: string[] = []
 
   channelIDs.forEach(channelID => {
     const conversationMeta = channelMetas?.get(channelID)
@@ -50,7 +50,7 @@ const DeleteChannel = (props: Props) => {
     channelnames.push(channelname)
   })
 
-  var deleteMsg: string
+  let deleteMsg: string
   if (channelnames.length == 1) {
     deleteMsg = `#${channelnames[0]}`
   } else if (channelnames.length == 2) {

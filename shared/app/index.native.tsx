@@ -63,6 +63,7 @@ const Keybase = () => {
       if (__DEV__) {
         global.DEBUGStore = temp.store
       }
+      // eslint-disable-next-line
       const eng = makeEngine(temp.store.dispatch, temp.store.getState)
       temp.runSagas()
       eng.sagasAreReady()

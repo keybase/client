@@ -5,9 +5,9 @@ import {ParticipantsRow} from '../../common'
 import {isLargeScreen} from '../../../constants/platform'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import Search from './search'
-import {Account} from '.'
 import debounce from 'lodash/debounce'
 import defer from 'lodash/defer'
+import type {Account} from '.'
 
 export type ToKeybaseUserProps = {
   isRequest: boolean
@@ -83,6 +83,7 @@ export type ToStellarPublicKeyProps = {
 
 const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => {
   const [recipientPublicKey, setRecipentPublicKey] = React.useState(props.recipientPublicKey)
+  // eslint-disable-next-line
   const debouncedOnChangeRecip = React.useCallback(debounce(props.onChangeRecipient, 1e3), [
     props.onChangeRecipient,
   ])

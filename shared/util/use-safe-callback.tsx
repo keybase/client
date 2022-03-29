@@ -15,7 +15,7 @@ function useSafeCallback<C extends (...args: Array<any>) => void>(cb: C, options
   }, [])
 
   const safe = React.useRef<C>(((...a: Array<any>) => {
-    if (isMounted.current && (!options?.onlyOnce || calledThisMount.current === false)) {
+    if (isMounted.current && (!options?.onlyOnce || !calledThisMount.current)) {
       cb(...a)
     }
     calledThisMount.current = true

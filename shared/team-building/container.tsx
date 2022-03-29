@@ -699,11 +699,9 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         showServiceResultCount={false}
         focusInputCounter={this.state.focusInputCounter}
         incFocusInputCounter={this._incFocusInputCounter}
-        title={Container.getRouteProps(this.props as any, 'title', '') as any}
-        goButtonLabel={Container.getRouteProps(this.props as any, 'goButtonLabel', 'Start') as any}
-        recommendedHideYourself={
-          Container.getRouteProps(this.props as any, 'recommendedHideYourself', false) as any
-        }
+        title={Container.getRouteProps(this.props as any, 'title', '')}
+        goButtonLabel={Container.getRouteProps(this.props as any, 'goButtonLabel', 'Start')}
+        recommendedHideYourself={Container.getRouteProps(this.props as any, 'recommendedHideYourself', false)}
       />
     )
   }

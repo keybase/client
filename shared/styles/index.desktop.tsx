@@ -128,11 +128,11 @@ export const backgroundURL = (...to: Array<string>) => {
 
 const fixScrollbars = () => {
   // https://www.filamentgroup.com/lab/scrollbars/
-  var parent = document.createElement('div')
+  const parent = document.createElement('div')
   parent.setAttribute('style', 'width:30px;height:30px;')
   parent.classList.add('scrollbar-test')
 
-  var child = document.createElement('div')
+  const child = document.createElement('div')
   child.setAttribute('style', 'width:100%;height:40px')
   parent.appendChild(child)
   document.body.appendChild(parent)
@@ -140,7 +140,7 @@ const fixScrollbars = () => {
   // Measure the child element, if it is not
   // 30px wide the scrollbars are obtrusive.
   // @ts-ignore
-  var scrollbarWidth = 30 - parent.firstChild.clientWidth
+  const scrollbarWidth = 30 - parent.firstChild.clientWidth
   if (scrollbarWidth) {
     document.body.classList.add('layout-scrollbar-obtrusive')
   }

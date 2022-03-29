@@ -27,13 +27,13 @@ const DEBUGCOLORS = __DEV__ && false
 export const defaultNavigationOptions: any = {
   headerBackTitle: '',
   headerBackVisible: false,
-  headerLeft: ({canGoBack, onPress, tintColor}) => (
-    <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
-  ),
   headerBackgroundContainerStyle: {
     flexShrink: 0,
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
+  headerLeft: ({canGoBack, onPress, tintColor}) => (
+    <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
+  ),
   headerLeftContainerStyle: {
     paddingLeft: 8,
     width: actionWidth,
@@ -53,8 +53,8 @@ export const defaultNavigationOptions: any = {
   headerTitleContainerStyle: {
     alignItems: 'stretch',
     flexGrow: 1,
-    minHeight: 44,
     flexShrink: 0,
+    minHeight: 44,
     ...(DEBUGCOLORS ? {backgroundColor: 'cyan'} : {}),
   },
 }

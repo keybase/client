@@ -48,9 +48,8 @@ if (!skipAnimations) {
       return this._v
     }
   }
-  class Clock {
-    constructor() {}
-  }
+  // eslint-disable-next-line
+  class Clock {}
   ReAnimated = {
     Clock: Clock,
     Code: (_: any) => null,

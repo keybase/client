@@ -1253,7 +1253,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.loadedUserEmoji]: (draftState, action) => {
     const {results} = action.payload
     const newEmojis: Array<RPCChatTypes.Emoji> = []
-    results.emojis.emojis?.map(group => {
+    results.emojis.emojis?.forEach(group => {
       group.emojis?.forEach(e => newEmojis.push(e))
     })
     if (!isEqual(newEmojis, draftState.userEmojisForAutocomplete)) {

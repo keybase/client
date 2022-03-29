@@ -26,7 +26,7 @@ export function serviceIdToPrettyName(serviceId: Types.ServiceId): string {
 
 function isKeybaseUserId(userId: string) {
   // Only keybase user id's do not have
-  return userId.indexOf('@') < 0
+  return !userId.includes('@')
 }
 
 export function followStateHelperWithId(

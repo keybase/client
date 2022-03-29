@@ -4,14 +4,14 @@ import * as Styles from '../../styles'
 import Banner from '../banner'
 import Header from './header'
 import NoteAndMemo from './note-and-memo'
-import {Banner as BannerType} from '../../constants/types/wallets'
+import type {Banner as BannerType} from '../../constants/types/wallets'
 
 type ConfirmSendProps = {
   onClose: () => void
   onSendClick: () => void
   onBack: () => void
   encryptedNote?: string
-  participantsComp: React.ComponentType<{}>
+  participantsComp: React.ComponentType
   publicMemo?: string
   banners?: Array<BannerType>
   sendFailed: boolean

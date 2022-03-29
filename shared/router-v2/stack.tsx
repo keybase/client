@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {
   createNavigatorFactory,
   DefaultNavigatorOptions,

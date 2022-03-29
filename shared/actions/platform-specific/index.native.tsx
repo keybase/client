@@ -253,7 +253,7 @@ function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRo
   if (_lastPersist === s) {
     return
   }
-  yield Saga.spawn(() =>
+  yield Saga.spawn(async () =>
     RPCTypes.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
       value: {isNull: false, s},
@@ -317,6 +317,7 @@ function* loadStartupDetails() {
       return undefined
     }
   })
+  // eslint-disable-next-line
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
   const initialShare = yield Saga._fork(getStartupDetailsFromInitialShare)
@@ -423,7 +424,7 @@ const handleFilePickerError = (action: ConfigGen.FilePickerErrorPayload) => {
 const editAvatar = async () => {
   try {
     const result = await launchImageLibraryAsync('photo')
-    return result.cancelled === true
+    return result.cancelled
       ? null
       : RouteTreeGen.createNavigateAppend({
           path: [{props: {image: result}, selected: 'profileEditAvatar'}],
@@ -434,7 +435,7 @@ const editAvatar = async () => {
   }
 }
 
-const openAppStore = () =>
+const openAppStore = async () =>
   Linking.openURL(
     isAndroid
       ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
@@ -497,7 +498,7 @@ const askForContactPermissionsIOS = async () => {
   return expoPermissionStatusMap()[status]
 }
 
-const askForContactPermissions = () => {
+const askForContactPermissions = async () => {
   return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
@@ -639,8 +640,8 @@ const onChatWatchPosition = async (
   try {
     await requestLocationPermission(action.payload.params.perm)
   } catch (error_) {
-    const error = error_ as RPCError
-    logger.info('failed to get location perms: ' + error)
+    const error = error_ as Error
+    logger.info('failed to get location perms: ' + error.message)
     return setPermissionDeniedCommandStatus(
       Types.conversationIDToKey(action.payload.params.convID),
       `Failed to access location. ${error.message}`
@@ -712,7 +713,7 @@ export const watchPositionForMap = async (errFn: () => void): Promise<number> =>
   return watchID
 }
 
-const configureFileAttachmentDownloadForAndroid = () =>
+const configureFileAttachmentDownloadForAndroid = async () =>
   RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
@@ -779,7 +780,7 @@ const onAttemptAudioRecording = async (
     chargeForward = await requestAudioPermission()
   } catch (error_) {
     const error = error_ as RPCError
-    logger.info('failed to get audio perms: ' + error)
+    logger.info('failed to get audio perms: ' + error.message)
     return setPermissionDeniedCommandStatus(
       action.payload.conversationIDKey,
       `Failed to access audio. ${error.message}`

@@ -10,8 +10,8 @@ const _log: RealNativeLog = __STORYBOOK__ || isAndroid ? () => {} : NativeModule
 const actuallyLog = debounce(() => {
   if (isAndroid) {
     // Using console.log on android is ~3x faster.
-    for (let i = 0; i < toSend.length; i++) {
-      const [tagPrefix, toLog] = toSend[i]
+    for (const ts of toSend) {
+      const [tagPrefix, toLog] = ts
       const formatted = `${tagPrefix}KBNativeLogger: ${toLog}`
       switch (tagPrefix) {
         case 'w':
@@ -44,7 +44,8 @@ const dump: NativeLogDump = __STORYBOOK__
       const p: Promise<Array<string>> = Promise.resolve([])
       return p
     }
-  : async (...args) => {
+  : // eslint-disable-next-line
+    async (...args) => {
       actuallyLog.flush()
       return NativeModules.KBNativeLogger.dump(...args)
     }

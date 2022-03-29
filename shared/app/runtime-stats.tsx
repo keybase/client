@@ -306,7 +306,7 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
 }
 
 const compactionActive = (dbStats: Props['stats']['dbStats'], typs: Array<RPCTypes.DbType>) =>
-  dbStats?.some(stat => typs.indexOf(stat.type) >= 0 && (stat.memCompActive || stat.tableCompActive))
+  dbStats?.some(stat => typs.includes(stat.type) && (stat.memCompActive || stat.tableCompActive))
 
 const chatDbs = [RPCTypes.DbType.chat, RPCTypes.DbType.main]
 const kbfsDbs = [

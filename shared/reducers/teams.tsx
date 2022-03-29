@@ -272,10 +272,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       const flc = filter.toLowerCase()
       draftState.subteamsFiltered = new Set(
         [...(draftState.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
-          draftState.teamMeta
-            .get(sID)
-            ?.teamname.toLowerCase()
-            .includes(flc)
+          draftState.teamMeta.get(sID)?.teamname.toLowerCase().includes(flc)
         )
       )
     } else {
@@ -490,7 +487,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       new Map()
     )
 
-    var memberships = usernameMemberships.get(targetUsername)
+    let memberships = usernameMemberships.get(targetUsername)
     if (memberships && guid < memberships.guid) {
       // noop
       return
@@ -527,7 +524,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       new Map()
     )
 
-    var memberships = usernameMemberships.get(targetUsername)
+    let memberships = usernameMemberships.get(targetUsername)
     if (memberships && guid < memberships.guid) {
       // noop
       return

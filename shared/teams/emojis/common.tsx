@@ -14,7 +14,7 @@ type AliasInputProps = {
   small: boolean
 }
 
-export class AliasInput extends React.PureComponent<AliasInputProps, {}> {
+export class AliasInput extends React.PureComponent<AliasInputProps> {
   focus() {
     this.inputRef.current?.focus()
     this.onFocus()

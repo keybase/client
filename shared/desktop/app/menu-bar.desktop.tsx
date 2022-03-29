@@ -60,7 +60,10 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     // @ts-ignore its private but we need to call it
     mb.createWindow()
     require('@electron/remote/main').enable(mb?.window?.webContents)
-    mb?.window?.loadURL(htmlFile)
+    mb?.window
+      ?.loadURL(htmlFile)
+      .then(() => {})
+      .catch(() => {})
   })
 
   const updateIcon = () => {

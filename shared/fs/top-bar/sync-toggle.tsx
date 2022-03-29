@@ -11,7 +11,7 @@ export type Props = {
   waiting: boolean
 } & Kb.OverlayParentProps
 
-class HideFloatingMenuWhenDone extends React.PureComponent<Props, {}> {
+class HideFloatingMenuWhenDone extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
     prevProps.waiting && !this.props.waiting && this.props.showingMenu && this.props.toggleShowingMenu()
   }

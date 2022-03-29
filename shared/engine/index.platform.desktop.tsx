@@ -53,10 +53,10 @@ function windowsHack() {
   }
 
   // @ts-ignore codemode issue
-  var fake = net.connect({})
+  let fake = net.connect({})
   // net.connect({}) throws; we don't need to see the error, but we
   // do need it not to raise up to the main thread.
-  fake.on('error', function() {})
+  fake.on('error', function () {})
 }
 
 function createClient(

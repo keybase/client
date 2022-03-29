@@ -10,10 +10,10 @@ import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
 import Icon from './icon'
-import {RPCError} from '../util/errors'
 import {settingsTab} from '../constants/tabs'
 import {feedbackTab} from '../constants/settings'
 import {useFocusEffect} from '@react-navigation/core'
+import type {RPCError} from '../util/errors'
 
 const Kb = {
   Box2,
@@ -88,6 +88,7 @@ const Reloadable = (props: Props) => {
       reloadOnMount && onReload()
       return () => {}
       // TODO should have onReload but too many flakey containers use this
+      // eslint-disable-next-line
     }, [reloadOnMount])
   )
   if (!props.needsReload) {

@@ -1,5 +1,5 @@
 import * as Styles from '../styles'
-import {IconType, SizeType} from './icon'
+import type {IconType, SizeType} from './icon'
 import {iconMeta} from './icon.constants-gen'
 import './icon.css'
 
@@ -148,14 +148,14 @@ export function castPlatformStyles(styles: any) {
 
 function makePaddingStyles(): PaddingStyles {
   type Keys = keyof typeof Styles.globalMargins
-  const keys = (Object.keys(Styles.globalMargins) as any) as Array<Keys>
-  return keys.reduce<PaddingStyles>(
+  const keys = Object.keys(Styles.globalMargins) as any as Array<Keys>
+  return keys.reduce<any>(
     (styles, paddingName) => ({
       ...styles,
       [paddingName]: {padding: Styles.globalMargins[paddingName]},
     }),
-    {} as any
-  )
+    {}
+  ) as PaddingStyles
 }
 
 type PaddingStyles = {
