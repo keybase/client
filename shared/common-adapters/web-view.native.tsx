@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import {WebView as NativeWebView} from 'react-native-webview'
-import {WebViewInjections, WebViewProps} from './web-view'
-import {View as NativeView} from 'react-native'
+import LoadingStateView from './loading-state-view'
 import memoize from 'lodash/memoize'
 import openURL from '../util/open-url'
-import LoadingStateView from './loading-state-view'
+import type {WebViewInjections, WebViewProps} from './web-view'
+import {View as NativeView} from 'react-native'
+import {WebView as NativeWebView} from 'react-native-webview'
 import {useSpring, animated} from './animated'
 
 const escape = (str?: string): string => (str ? str.replace(/\\/g, '\\\\').replace(/`/g, '\\`') : '')
@@ -79,12 +79,14 @@ const KBWebViewBase = (props: WebViewProps) => {
           onLoadStart={() => isMounted.current && setLoading(true)}
           onLoadEnd={() => isMounted.current && setLoading(false)}
           onLoadProgress={({nativeEvent}) => isMounted.current && setProgress(nativeEvent.progress)}
-          onError={onError && (syntheticEvent => onError(syntheticEvent.nativeEvent.description))}
+          onError={
+            onError ? (syntheticEvent: any) => onError(syntheticEvent.nativeEvent.description) : undefined
+          }
           startInLoadingState={!!renderLoading}
           renderLoading={renderLoading}
           onShouldStartLoadWithRequest={
             props.pinnedURLMode
-              ? request => {
+              ? (request: {url: string; navigationType: string}) => {
                   if (request.url === url) {
                     return true
                   }

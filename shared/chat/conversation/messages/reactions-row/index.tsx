@@ -60,7 +60,7 @@ class ReactionsRow extends React.PureComponent<Props, State> {
             key={emoji}
           >
             <ReactButton
-              ref={ref => (this._attachmentRefs[emoji] = ref)}
+              ref={(ref: React.Component<any>) => (this._attachmentRefs[emoji] = ref)}
               className={this.props.btnClassName}
               conversationIDKey={this.props.conversationIDKey}
               emoji={emoji}

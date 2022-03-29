@@ -253,4 +253,4 @@ export default Container.connect(
       },
     }
   }
-)(Input)
+)(Input) as any

@@ -133,6 +133,7 @@ const AudioStarter = (props: AudioStarterProps) => {
       >
         <Kb.PanGestureHandler
           shouldCancelWhenOutside={false}
+          // @ts-ignore
           minDeltaX={0}
           minDeltaY={0}
           onGestureEvent={({nativeEvent}) => {

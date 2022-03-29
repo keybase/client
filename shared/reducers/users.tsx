@@ -6,7 +6,11 @@ import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import * as UsersGen from '../actions/users-gen'
 import type * as Types from '../constants/types/users'
-import type {WritableDraft} from 'immer'
+import type {Draft} from 'immer'
+
+type WritableDraft<T> = {
+  -readonly [K in keyof T]: Draft<T[K]>
+}
 
 const initialState: Types.State = Constants.makeState()
 

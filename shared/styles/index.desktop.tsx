@@ -1,10 +1,10 @@
 import * as React from 'react'
-import {themed, colors, darkColors} from './colors'
-import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import * as Shared from './shared'
-import {isDarkMode} from './dark-mode'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import type * as CSS from './css'
+import {isDarkMode} from './dark-mode'
+import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
+import {themed, colors, darkColors} from './colors'
 const {extname, basename} = KB.path
 
 type _Elem = Object | null | false | void
@@ -222,7 +222,9 @@ export {
   padding,
 } from './shared'
 
+// @ts-ignore
 export {keyframes as styledKeyframes} from '@emotion/react'
+// @ts-ignore
 export {default as styled} from '@emotion/styled'
 export {themed as globalColors} from './colors'
 export const statusBarHeight = 0

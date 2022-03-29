@@ -1,11 +1,11 @@
 import * as React from 'react'
-import {StyleSheet, Dimensions} from 'react-native'
+import * as Shared from './shared'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
-import {isIOS, isTablet} from '../constants/platform'
 import globalColors, {darkColors} from './colors'
 import styleSheetCreateProxy from './style-sheet-proxy'
+import {StyleSheet, Dimensions} from 'react-native'
 import {isDarkMode} from './dark-mode'
-import * as Shared from './shared'
+import {isIOS, isTablet} from '../constants/platform'
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
@@ -115,6 +115,7 @@ export {
   platformStyles,
   padding,
 } from './shared'
+// @ts-ignore
 export {default as styled} from '@emotion/native'
 export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'

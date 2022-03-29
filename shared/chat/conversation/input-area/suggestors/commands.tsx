@@ -139,7 +139,7 @@ type ListProps = Pick<
   filter: string
   onSelected: (item: CommandType, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.MutableRefObject<(() => void) | undefined>
+  onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
 } & {
   inputRef: React.MutableRefObject<Kb.PlainInput | null>
   lastTextRef: React.MutableRefObject<string>

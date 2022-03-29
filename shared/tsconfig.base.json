@@ -16,7 +16,11 @@
       "@electron/remote": ["override-d.ts/@electron-remote/index.d.ts"],
       "react-native-reanimated": ["override-d.ts/react-native-reanimated/react-native-reanimated.d.ts"],
       "@react-native-picker/picker": ["override-d.ts/@react-native-picker/index.d.ts"],
-      "react-native-blob-util": ["override-d.ts/react-native-blob-util/index.d.ts"]
+      "react-native-blob-util": ["override-d.ts/react-native-blob-util/index.d.ts"],
+      "@emotion/native": ["override-d.ts/none"],
+      "@emotion/react": ["override-d.ts/none"],
+      "@emotion/styled": ["override-d.ts/none"],
+      "@emotion": ["override-d.ts/none"]
     },
     "noErrorTruncation": true,
     "noFallthroughCasesInSwitch": true,
@@ -40,6 +44,8 @@
     "node_modules/@types/node",
     "node_modules/react-native-reanimated/react-native-reanimated.d.ts",
     "./react-native",
+    "./ios",
+    "./android",
     "./desktop/dist",
     "./desktop/build"
   ]

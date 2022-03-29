@@ -1,9 +1,6 @@
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
-import {toByteArray, fromByteArray} from 'base64-js'
 import {encode} from '@msgpack/msgpack'
-import toBuffer from 'typedarray-to-buffer'
-import {isIOS} from '../constants/platform'
 import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 const nativeBridge: NativeEventEmitter & {
@@ -66,6 +63,7 @@ function createClient(
   )
 
   global.rpcOnJs = objs => {
+    // @ts-ignore this does exist
     client.transport._dispatch(objs)
   }
 

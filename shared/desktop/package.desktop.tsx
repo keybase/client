@@ -216,6 +216,7 @@ function pack(plat: string, arch: string): Promise<any> {
   if (plat === 'win32') {
     opts = {
       ...opts,
+      // @ts-ignore does exist on win32
       'version-string': {
         CompanyName: companyName,
         FileDescription: appName,
