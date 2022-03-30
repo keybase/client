@@ -11,7 +11,7 @@ import {runMode} from '../../constants/platform.desktop'
 // parent process is killed.
 // Callback is optional and accepts (error, boolean), where boolean is if we
 // attempted to execute.
-export default function(
+export default function (
   path: string | null,
   args: any,
   platformOnly: any,
@@ -37,7 +37,7 @@ export default function(
   }
 
   // @ts-ignore codemode issue
-  fs.access(path, fs.X_OK, function(err) {
+  fs.access(path, fs.X_OK, function (err) {
     if (err) {
       console.log('Exec path not found (or accessible as executable):', path)
       if (callback) callback(null, false, '', '')
@@ -45,9 +45,9 @@ export default function(
     }
 
     args.unshift(`'${path}'`) // protect against spaces in path
-    var cmd = args.join(' ')
+    let cmd = args.join(' ')
     console.log('Executing:', cmd)
-    var procExec = exec(cmd, function(execErr, stdout, stderr) {
+    let procExec = exec(cmd, function (execErr, stdout, stderr) {
       if (stdout) {
         console.log('Exec (stdout):', stdout)
       }
@@ -62,7 +62,7 @@ export default function(
 
     if (killOnExit && procExec) {
       // Kill the process if parent process exits
-      process.on('exit', function() {
+      process.on('exit', function () {
         procExec.kill()
       })
     }

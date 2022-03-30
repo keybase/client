@@ -25,7 +25,7 @@ const getOtherResetText = (names: Array<string>): string => {
 }
 
 const newMetaMaybe = (props: Props) =>
-  props.mode === 'row' && props.isNew === true ? (
+  props.mode === 'row' && props.isNew ? (
     <Kb.Meta
       title="new"
       backgroundColor={Styles.globalColors.orange}

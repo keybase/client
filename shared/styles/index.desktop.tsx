@@ -1,10 +1,10 @@
 import * as React from 'react'
-import {themed, colors, darkColors} from './colors'
-import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import * as Shared from './shared'
-import {isDarkMode} from './dark-mode'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import type * as CSS from './css'
+import {isDarkMode} from './dark-mode'
+import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
+import {themed, colors, darkColors} from './colors'
 const {extname, basename} = KB.path
 
 type _Elem = Object | null | false | void
@@ -128,11 +128,11 @@ export const backgroundURL = (...to: Array<string>) => {
 
 const fixScrollbars = () => {
   // https://www.filamentgroup.com/lab/scrollbars/
-  var parent = document.createElement('div')
+  const parent = document.createElement('div')
   parent.setAttribute('style', 'width:30px;height:30px;')
   parent.classList.add('scrollbar-test')
 
-  var child = document.createElement('div')
+  const child = document.createElement('div')
   child.setAttribute('style', 'width:100%;height:40px')
   parent.appendChild(child)
   document.body.appendChild(parent)
@@ -140,7 +140,7 @@ const fixScrollbars = () => {
   // Measure the child element, if it is not
   // 30px wide the scrollbars are obtrusive.
   // @ts-ignore
-  var scrollbarWidth = 30 - parent.firstChild.clientWidth
+  const scrollbarWidth = 30 - parent.firstChild.clientWidth
   if (scrollbarWidth) {
     document.body.classList.add('layout-scrollbar-obtrusive')
   }
@@ -222,7 +222,9 @@ export {
   padding,
 } from './shared'
 
+// @ts-ignore
 export {keyframes as styledKeyframes} from '@emotion/react'
+// @ts-ignore
 export {default as styled} from '@emotion/styled'
 export {themed as globalColors} from './colors'
 export const statusBarHeight = 0

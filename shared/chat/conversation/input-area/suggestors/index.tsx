@@ -32,7 +32,7 @@ const transformers = {
 
 const suggestorToMarker = {
   channels: '#',
-  commands: /(!|\/)/,
+  commands: /^(!|\/)/,
   emoji: /^(\+?):/,
   // 'users' is for @user, @team, and @team#channel
   users: /((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send

@@ -52,10 +52,7 @@ export const uploadsToUploadCountdownHOCProps = (pathItems: Types.PathItems, upl
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
     endEstimate: enableDebugUploadBanner ? (uploads.endEstimate || 0) + 32000 : uploads.endEstimate || 0,
-    fileName:
-      filePaths.length === 1
-        ? Types.getPathName((filePaths[1] as Types.Path) || Types.stringToPath(''))
-        : null,
+    fileName: filePaths.length === 1 ? Types.getPathName(filePaths[1] || Types.stringToPath('')) : null,
     files: filePaths.length,
     totalSyncingBytes: uploads.totalSyncingBytes,
   }

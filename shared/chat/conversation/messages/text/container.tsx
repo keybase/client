@@ -4,7 +4,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import * as WalletConstants from '../../../../constants/wallets'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import TextMessage, {Props, ReplyProps} from '.'
+import TextMessage, {ReplyProps} from '.'
 
 type OwnProps = {
   isHighlighted?: boolean
@@ -75,8 +75,6 @@ const getClaimProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {amount, label}
 }
 
-type MsgType = Props['type']
-
 export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
@@ -103,10 +101,10 @@ export default Container.connect(
     text: ownProps.message.decoratedText
       ? ownProps.message.decoratedText.stringValue()
       : ownProps.message.text.stringValue(),
-    type: (ownProps.message.errorReason
-      ? 'error'
-      : ownProps.message.submitState === null
-      ? 'sent'
-      : 'pending') as MsgType,
+    type: ownProps.message.errorReason
+      ? ('error' as const)
+      : !ownProps.message.submitState
+      ? ('sent' as const)
+      : ('pending' as const),
   })
 )(TextMessage)

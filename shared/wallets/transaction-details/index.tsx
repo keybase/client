@@ -3,13 +3,13 @@ import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
+import type * as RPCTypes from '../../constants/types/rpc-stellar-gen'
 import capitalize from 'lodash/capitalize'
 import {Transaction, TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
 import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
-import PaymentPath, {Asset} from './payment-path'
-import {AllowedColors} from 'common-adapters/text'
+import PaymentPath, {type Asset} from './payment-path'
+import type {AllowedColors} from 'common-adapters/text'
 
 export type NotLoadingProps = {
   amountUser: string
@@ -145,7 +145,7 @@ const Counterparty = (props: CounterpartyProps) => {
     case 'otherAccount':
       return <PartyAccount accountID={props.accountID} accountName={props.counterparty} />
     default:
-      throw new Error(`unknown counterpartyType: ${props}`)
+      throw new Error(`unknown counterpartyType: ${props.counterpartyType}`)
   }
 }
 

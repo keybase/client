@@ -1,19 +1,19 @@
 import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
-import Text, {LineClampType} from '../text'
+import Text, {type LineClampType} from '../text'
 import Box from '../box'
 import Markdown from '../markdown'
-import Emoji, {Props as EmojiProps} from '../emoji'
+import Emoji, {type Props as EmojiProps} from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
 import ServiceDecoration from './service-decoration'
 
-const wrapStyle = Styles.platformStyles({
+const wrapStyle: any = Styles.platformStyles({
   isElectron: {
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
   } as const,
-}) as any
+})
 
 const markdownStyles = Styles.styleSheetCreate(
   () =>
@@ -35,7 +35,7 @@ const markdownStyles = Styles.styleSheetCreate(
         common: {
           ...Styles.globalStyles.fontBold,
         },
-        isElectron: {color: 'inherit', ...wrapStyle} as any,
+        isElectron: {color: 'inherit', ...wrapStyle},
         isMobile: {color: undefined},
       }),
       get codeSnippetBlockStyle() {
@@ -51,7 +51,7 @@ const markdownStyles = Styles.styleSheetCreate(
             paddingTop: Styles.globalMargins.xtiny,
           },
           isElectron: {
-            ...(wrapStyle as any),
+            ...wrapStyle,
             color: Styles.globalColors.black,
             display: 'block',
           },
@@ -171,15 +171,15 @@ const reactComponentsForMarkdownType = {
       output: SimpleMarkdown.Output<any>,
       state: SimpleMarkdown.State
     ) => {
-      var oldKey = state.key
-      var result: Array<SimpleMarkdown.ReactElements> = []
+      let oldKey = state.key
+      let result: Array<SimpleMarkdown.ReactElements> = []
 
       // map nestedOutput over the ast, except group any text
       // nodes together into a single string output.
-      var lastResult: string | null = null
-      for (var i = 0; i < arr.length; i++) {
+      let lastResult: string | null = null
+      for (let i = 0; i < arr.length; i++) {
         state.key = '' + i
-        var nodeOut = output(arr[i], state)
+        let nodeOut = output(arr[i], state)
         if (typeof nodeOut === 'string' && typeof lastResult === 'string') {
           lastResult = lastResult + nodeOut
           result[result.length - 1] = lastResult

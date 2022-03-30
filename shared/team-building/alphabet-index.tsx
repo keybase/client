@@ -34,6 +34,7 @@ const AlphabetIndex = (props: Props) => {
       )
     }
   }, 200)
+  // eslint-disable-next-line
   React.useEffect(storeMeasure, [props.measureKey])
 
   const {labels, onScroll, showNumSection} = props

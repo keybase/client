@@ -258,11 +258,11 @@ function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutH
   }
 }
 
-const requestPermissionsFromNative = () =>
+const requestPermissionsFromNative = async () =>
   isIOS ? PushNotificationIOS.requestPermissions() : Promise.resolve()
 const askNativeIfSystemPushPromptHasBeenShown = () =>
   isIOS ? NativeModules.PushPrompt.getHasShownPushPrompt() : Promise.resolve(false)
-const checkPermissionsFromNative = () =>
+const checkPermissionsFromNative = async () =>
   new Promise(resolve => isIOS && PushNotificationIOS.checkPermissions(resolve))
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
@@ -416,10 +416,9 @@ const getInitialPushAndroid = async () => {
   return notification && PushGen.createNotification({notification})
 }
 
-const getInitialPushiOS = () =>
-  new Promise(
-    resolve =>
-      isIOS &&
+const getInitialPushiOS = async () =>
+  new Promise<Container.TypedActions | null | false>(resolve => {
+    isIOS &&
       PushNotificationIOS.getInitialNotification().then((n: any) => {
         const notification = Constants.normalizePush(n)
         if (notification) {
@@ -427,7 +426,7 @@ const getInitialPushiOS = () =>
         }
         resolve(null)
       })
-  )
+  })
 
 function* pushSaga() {
   // Permissions

@@ -22,14 +22,14 @@ export const tabLongPress = 'route-tree:tabLongPress'
 type _ClearModalsPayload = undefined
 type _NavUpToScreenPayload = {readonly routeName: string}
 type _NavigateAppendPayload = {readonly fromKey?: string; readonly path: any; readonly replace?: boolean}
-type _NavigateUpNoopPayload = void
+type _NavigateUpNoopPayload = undefined
 type _NavigateUpPayload = {readonly fromKey?: string}
 type _OnNavChangedPayload = {
   readonly prev: Array<Types.NavState>
   readonly next: Array<Types.NavState>
   readonly navAction: any
 }
-type _PopStackPayload = void
+type _PopStackPayload = undefined
 type _SetParamsPayload = {readonly params: Object; readonly key: string}
 type _SwitchLoggedInPayload = {readonly loggedIn: boolean}
 type _SwitchTabPayload = {readonly tab: Tabs.AppTab}
@@ -39,7 +39,7 @@ type _TabLongPressPayload = {readonly tab: string}
 /**
  * Nav up but no longer focused, for logging only
  */
-export const createNavigateUpNoop = (payload: _NavigateUpNoopPayload): NavigateUpNoopPayload => ({
+export const createNavigateUpNoop = (payload?: _NavigateUpNoopPayload): NavigateUpNoopPayload => ({
   payload,
   type: navigateUpNoop,
 })
@@ -71,7 +71,7 @@ export const createClearModals = (payload?: _ClearModalsPayload): ClearModalsPay
 /**
  * Reset a stack
  */
-export const createPopStack = (payload: _PopStackPayload): PopStackPayload => ({payload, type: popStack})
+export const createPopStack = (payload?: _PopStackPayload): PopStackPayload => ({payload, type: popStack})
 /**
  * a tab was pressed
  */

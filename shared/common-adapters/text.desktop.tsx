@@ -55,7 +55,7 @@ class Text extends React.Component<Props> {
     })
   }
 
-  _urlClick = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+  _urlClick = (e: React.MouseEvent<HTMLSpanElement>) => {
     if (!this.props.onClickURL) {
       return
     }

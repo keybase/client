@@ -35,7 +35,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >
     <StyledRadio disabled={disabled} selected={selected}>
-      <div style={styles.radio as any} />
+      <div style={styles.radio} />
     </StyledRadio>
     <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
       {label}

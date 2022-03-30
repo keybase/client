@@ -197,6 +197,7 @@ function startPack() {
   })
 }
 
+// eslint-disable-next-line
 function pack(plat: string, arch: string): Promise<any> {
   // there is no darwin ia32 electron
   if (plat === 'darwin' && arch === 'ia32') return Promise.resolve()
@@ -216,6 +217,7 @@ function pack(plat: string, arch: string): Promise<any> {
   if (plat === 'win32') {
     opts = {
       ...opts,
+      // @ts-ignore does exist on win32
       'version-string': {
         CompanyName: companyName,
         FileDescription: appName,

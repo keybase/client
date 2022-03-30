@@ -366,7 +366,7 @@ const makeMessageSystemAddedToTeam = (
   ...makeMessageCommonNoDeleteNoEdit,
   addee: '',
   adder: '',
-  bulkAdds: Array(),
+  bulkAdds: [],
   reactions: new Map(),
   role: 'none',
   team: '',
@@ -741,8 +741,14 @@ const uiMessageToSystemMessage = (
       })
     }
     case RPCChatTypes.MessageSystemType.gitpush: {
-      const {team = '???', pushType = 0, pusher = '???', repoName: repo = '???', repoID = '???', refs = []} =
-        body.gitpush || {}
+      const {
+        team = '???',
+        pushType = 0,
+        pusher = '???',
+        repoName: repo = '???',
+        repoID = '???',
+        refs = [],
+      } = body.gitpush || {}
       return makeMessageSystemGitPush({
         ...minimum,
         pushType,

@@ -85,7 +85,7 @@ const ReactButtonInner = (props: Props, ref) => {
       >
         <Box2 direction="horizontal" style={styles.emojiWrapper}>
           <Box2 direction="vertical" style={styles.emojiWrapper2}>
-            <Markdown styleOverride={markdownOverride} lineClamp={1} smallStandaloneEmoji={true}>
+            <Markdown styleOverride={markdownOverride as any} lineClamp={1} smallStandaloneEmoji={true}>
               {text}
             </Markdown>
           </Box2>

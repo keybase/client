@@ -1,5 +1,5 @@
 import * as React from 'react'
-import PlainInput, {PropsWithInput} from './plain-input'
+import PlainInput, {type PropsWithInput} from './plain-input'
 import {Box2} from './box'
 import Text, {getStyle as getTextStyle} from './text'
 import * as Styles from '../styles'
@@ -172,7 +172,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {
           textAlignVertical: 'top',
         } as const,
-      }) as any, // not sure why this fails
+      }), // not sure why this fails
       inputSmall: {
         paddingTop: 0,
       },

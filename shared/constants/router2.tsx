@@ -224,7 +224,7 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
     console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
     return
   }
-  const nextState: any = Container.produce(rs as any, draft => {
+  const nextState: any = Container.produce(rs, draft => {
     // select tabs
     draft.index = 0
     // remove modals

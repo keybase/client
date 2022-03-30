@@ -12,7 +12,7 @@ export type TaskButton =
       mode?: ButtonProps['mode']
       waiting?: ButtonProps['waiting']
     }
-  | React.ReactElement<any>
+  | React.ReactElement
 
 export type Props = {
   badged: boolean

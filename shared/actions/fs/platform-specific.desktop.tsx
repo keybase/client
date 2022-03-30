@@ -311,7 +311,7 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = () =>
+const installCachedDokan = async () =>
   new Promise<void>((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
@@ -341,17 +341,17 @@ const installCachedDokan = () =>
     .then(() => FsGen.createRefreshDriverStatus())
     .catch(e => errorToActionOrThrow(e))
 
-const openAndUploadToPromise = (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
-  remote.dialog
-    .showOpenDialog(remote.getCurrentWindow(), {
-      properties: [
-        'multiSelections' as const,
-        ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),
-        ...(['directory', 'both'].includes(action.payload.type) ? (['openDirectory'] as const) : []),
-      ],
-      title: 'Select a file or folder to upload',
-    })
-    .then(res => res.filePaths)
+const openAndUploadToPromise = async (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> => {
+  const res = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
+    properties: [
+      'multiSelections' as const,
+      ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),
+      ...(['directory', 'both'].includes(action.payload.type) ? (['openDirectory'] as const) : []),
+    ],
+    title: 'Select a file or folder to upload',
+  })
+  return res.filePaths
+}
 
 const openAndUpload = async (action: FsGen.OpenAndUploadPayload) => {
   const localPaths = await openAndUploadToPromise(action)

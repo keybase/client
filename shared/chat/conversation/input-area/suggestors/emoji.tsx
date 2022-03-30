@@ -87,7 +87,7 @@ type ListProps = Pick<
   filter: string
   onSelected: (item: EmojiData, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.MutableRefObject<(() => void) | undefined>
+  onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
 }
 export const List = (p: ListProps) => {
   const {filter, ...rest} = p

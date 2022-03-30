@@ -51,7 +51,7 @@ type StrokedIconProps = IconProps & {
   isHovered: boolean
   isSelected: boolean
 }
-const StrokedIcon = Styles.styled(Kb.Icon)<StrokedIconProps>(props => ({
+const StrokedIcon = Styles.styled(Kb.Icon)((props: StrokedIconProps) => ({
   '&.stroke': {
     WebkitTextStroke: `3px ${
       props.isHovered && !props.isSelected

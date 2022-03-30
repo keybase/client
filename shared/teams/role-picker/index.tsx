@@ -363,6 +363,10 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.small,
       },
       header: {padding: Styles.globalMargins.xsmall},
+      innerScroll: {
+        flexGrow: 1,
+        width: '100%',
+      },
       opaqueContainer: Styles.platformStyles({
         isMobile: {
           backgroundColor: Styles.globalColors.white,
@@ -401,10 +405,6 @@ const styles = Styles.styleSheetCreate(
       }),
       rowSelected: {
         position: 'relative',
-      },
-      innerScroll: {
-        flexGrow: 1,
-        width: '100%',
       },
       scroll: {
         backgroundColor: Styles.globalColors.white,

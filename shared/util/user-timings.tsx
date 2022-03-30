@@ -153,8 +153,7 @@ const reducerTimer = allowTiming
       return function combination(state = {}, action) {
         let hasChanged = false
         const nextState = {}
-        for (let i = 0; i < finalReducerKeys.length; i++) {
-          const key = finalReducerKeys[i]
+        for (const key of finalReducerKeys) {
           const reducer = finalReducers[key]
           const previousStateForKey = state[key]
           const name = `reducer:${key}`

@@ -699,7 +699,7 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
     if (parsedPath.writers.length + (parsedPath.readers ? parsedPath.readers.length : 0) === 2) {
       const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
       if (notMe.length === 1) {
-        return notMe[0] as string
+        return notMe[0]
       }
     }
     return 'group conversation'

@@ -208,7 +208,7 @@ type ListProps = Pick<
   filter: string
   onSelected: (item: ListItem, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.MutableRefObject<(() => void) | undefined>
+  onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
 }
 
 const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {

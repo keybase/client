@@ -20,6 +20,7 @@ const ClickableBoxInner = (props, ref) => {
         <Kb.NativeTouchableOpacity
           // @ts-ignore
           ref={ref}
+          // @ts-ignore
           pointerEvents={pointerEvents}
           disabled={!onClick}
           onPress={onClick}
@@ -37,6 +38,7 @@ const ClickableBoxInner = (props, ref) => {
         <Kb.NativeTouchableWithoutFeedback
           // @ts-ignore
           ref={ref}
+          // @ts-ignore
           pointerEvents={pointerEvents}
           onPressIn={onPressIn}
           onPressOut={onPressOut}

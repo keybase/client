@@ -118,7 +118,7 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
     const binPath = localAppData ? resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
     const args = ['pipeowner', socketPath]
     yield Saga.callUntyped(
-      () =>
+      async () =>
         new Promise<void>((resolve, reject) => {
           execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
             if (error) {

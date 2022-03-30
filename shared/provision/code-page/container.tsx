@@ -6,7 +6,7 @@ import HiddenString from '../../util/hidden-string'
 import * as DevicesConstants from '../../constants/devices'
 import * as Constants from '../../constants/provision'
 
-type OwnProps = Container.RouteProps<{}>
+type OwnProps = Container.RouteProps
 
 const prov = Container.connect(
   (state: Container.TypedState) => {
