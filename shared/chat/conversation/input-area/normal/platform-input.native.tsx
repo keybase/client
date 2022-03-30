@@ -29,13 +29,9 @@ import {
   withTiming,
 } from '../../../../common-adapters/reanimated'
 
-// to simplify the animation we just go to a fixed size. We could bring back the old behavior later
 const singleLineHeight = 36
 const threeLineHeight = 78
-const keyboardHeight = 320 // an overestimate
-const headerHeight = 88
 const inputAreaHeight = 91
-const expandedHeight = Styles.dimensionHeight - keyboardHeight - headerHeight - inputAreaHeight
 
 type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -151,14 +147,14 @@ const AnimatedExpand = (() => {
       const offset = useSharedValue(expanded ? 1 : 0)
       const topStyle: any = useAnimatedStyle(() => ({
         // @ts-ignore
-        transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.7}],
+        transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.6}],
       }))
       const bottomStyle: any = useAnimatedStyle(() => ({
         transform: [
           // @ts-ignore
           {rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)},
-          {scaleX: -0.7},
-          {scaleY: -0.7},
+          {scaleX: -0.6},
+          {scaleY: -0.6},
         ],
       }))
       React.useEffect(() => {
@@ -272,7 +268,7 @@ const PlatformInput = (p: Props) => {
   })
   const {cannotWrite, conversationIDKey, isEditing, isExploding} = p
   const {onSubmit, explodingModeSeconds, hintText} = p
-  const {inputSetRef, showTypingStatus} = p
+  const {inputSetRef, showTypingStatus, maxInputArea} = p
 
   const lastText = React.useRef('')
   const whichMenu = React.useRef<MenuType | undefined>()
@@ -402,6 +398,7 @@ const PlatformInput = (p: Props) => {
             autoCapitalize="sentences"
             disabled={cannotWrite ?? false}
             placeholder={hintText}
+            maxInputArea={maxInputArea}
             multiline={true}
             onBlur={onBlur}
             onFocus={onFocus}
@@ -451,11 +448,12 @@ const AnimatedInput = (() => {
     })
   } else {
     return React.forwardRef<any, any>((p: any, ref) => {
-      const {expanded, ...rest} = p
+      const {maxInputArea, expanded, ...rest} = p
       const offset = useSharedValue(expanded ? 1 : 0)
+      const maxHeight = maxInputArea - inputAreaHeight - 15
       const as = useAnimatedStyle(() => ({
-        maxHeight: withTiming(offset.value ? 9999 : threeLineHeight),
-        minHeight: withTiming(offset.value ? expandedHeight : singleLineHeight),
+        maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
+        minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
       }))
       React.useEffect(() => {
         offset.value = expanded ? 1 : 0
