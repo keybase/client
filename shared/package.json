@@ -146,8 +146,8 @@
         "util": "0.12.4"
     },
     "devDependencies": {
-        "@typescript-eslint/parser": "5.13.0",
-        "@typescript-eslint/eslint-plugin": "5.13.0",
+        "@typescript-eslint/parser": "5.17.0",
+        "@typescript-eslint/eslint-plugin": "5.17.0",
         "@babel/cli": "7.17.6",
         "@babel/core": "7.17.5",
         "@babel/generator": "7.17.3",
