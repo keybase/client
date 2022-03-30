@@ -168,6 +168,7 @@ function startPack() {
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
 
     rimraf.sync(desktopPath('release'))
+    let packPromises: Array<Promise<any>> = []
     if (shouldBuildAll) {
       // build for all platforms
       const aps = [
@@ -178,7 +179,7 @@ function startPack() {
         ['x64', 'win32'],
       ]
       aps.forEach(([arch, plat]) => {
-        pack(plat, arch).then(postPack(plat, arch)).catch(postPackError)
+        packPromises.push(pack(plat, arch).then(postPack(plat, arch)).catch(postPackError))
       })
     } else {
       // build both on macos
@@ -188,11 +189,19 @@ function startPack() {
           ['arm64', 'darwin'],
         ]
         aps.forEach(([arch, plat]) => {
-          pack(plat, arch).then(postPack(plat, arch)).catch(postPackError)
+          packPromises.push(pack(plat, arch).then(postPack(plat, arch)).catch(postPackError))
         })
       } else {
-        pack(platform, arch).then(postPack(platform, arch)).catch(postPackError)
+        packPromises.push(pack(platform, arch).then(postPack(platform, arch)).catch(postPackError))
       }
+    }
+
+    if (platform === 'darwin') {
+      Promise.all(packPromises)
+        .then((paths: Array<string>) => {
+          console.log('after all paths: ', paths)
+        })
+        .catch(() => {})
     }
   })
 }
@@ -262,6 +271,7 @@ function postPack(plat, arch) {
       }
     })
     console.log(`${plat}-${arch} finished!`)
+    return appPaths[0]
   }
 }
 
