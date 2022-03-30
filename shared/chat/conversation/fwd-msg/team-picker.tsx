@@ -108,7 +108,7 @@ const TeamPicker = (props: Props) => {
   }
   return (
     <Kb.Modal
-      noScrollView={true}
+      noScrollView={Styles.isMobile}
       onClose={onClose}
       header={{
         leftButton: Styles.isMobile ? (
