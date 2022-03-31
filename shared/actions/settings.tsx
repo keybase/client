@@ -114,7 +114,7 @@ const toggleNotifications = async (state: Container.TypedState) => {
   )
 
   if (!result || !result.body || JSON.parse(result.body)?.status?.code !== 0) {
-    throw new Error(`Invalid response ${result.body || '(no result)'}`)
+    throw new Error(`Invalid response ${result?.body || '(no result)'}`)
   }
 
   return SettingsGen.createNotificationsSaved()
