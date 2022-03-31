@@ -40,7 +40,6 @@ allprojects {
             }
         }
         google()
-        maven { url 'https://www.jitpack.io' }
         mavenLocal()
         jcenter() {
             content {
@@ -56,5 +55,6 @@ allprojects {
                 includeModule("com.google.android.exoplayer", "exoplayer-hls") // for expo-av
             }
         }
+        maven { url 'https://www.jitpack.io' }
     }
 }
