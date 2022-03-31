@@ -1,10 +1,10 @@
 import captialize from 'lodash/capitalize'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as Types from '../../../../../constants/types/chat2'
-import * as CryptoTypes from '../../../../../constants/types/crypto'
 import * as Constants from '../../../../../constants/chat2'
 import * as Styles from '../../../../../styles'
+import type * as Types from '../../../../../constants/types/chat2'
+import type * as CryptoTypes from '../../../../../constants/types/crypto'
 import {getEditStyle, ShowToastAfterSaving} from '../shared'
 import {useMemo} from '../../../../../util/memoize'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned, Operations} from '../../../../../constants/crypto'
@@ -99,14 +99,14 @@ const FileAttachment = React.memo((props: Props) => {
             <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={props.arrowColor} />
           </Kb.Box>
         )}
-        {!!progressLabel && (
-          <Kb.Box style={styles.progressContainerStyle}>
+        {
+          /*!!progressLabel && */ <Kb.Box style={styles.progressContainerStyle}>
             <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
               {progressLabel}
             </Kb.Text>
-            {props.hasProgress && <Kb.ProgressBar ratio={props.progress} />}
+            {/*props.hasProgress  && */ <Kb.ProgressBar ratio={0.5 /*props.progress*/} />}
           </Kb.Box>
-        )}
+        }
         {!!props.errorMsg && (
           <Kb.Box style={styles.progressContainerStyle}>
             <Kb.Text type="BodySmall" style={styles.error}>

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Box from './box'
-import Animated from './animated'
-import {globalColors, isMobile} from '../styles'
+import {useSpring, animated} from './animated'
+import * as Styles from '../styles'
 
 type Props = {
   ratio: number
@@ -9,37 +9,34 @@ type Props = {
   fillStyle?: any
 }
 
-const ProgressBar = ({ratio, style, fillStyle}: Props) => (
-  <Animated to={{ratio}}>
-    {({ratio}) => (
-      <Box style={{...outer, ...style}}>
-        <Box
-          style={
-            // @ts-ignore
-            {...inner, ...fillStyle, width: `${Math.max(0, Math.min(1, ratio)) * 100}%`}
-          }
-        />
-      </Box>
-    )}
-  </Animated>
-)
+const AnimatedBox = animated(Box)
 
-const outer = {
-  backgroundColor: globalColors.greyLight,
-  borderRadius: 3,
-  height: 4,
-  width: 64,
-  ...(isMobile
-    ? {}
-    : {
-        boxShadow: `inset 0 1px 0 0 ${globalColors.black_05}`,
-      }),
+const ProgressBar = ({ratio, style, fillStyle}: Props) => {
+  const animatedStyles = useSpring({to: {width: `${Math.max(0, Math.min(1, ratio)) * 100}%`}})
+  return (
+    <Box style={Styles.collapseStyles([styles.outer, style])}>
+      <AnimatedBox style={Styles.collapseStyles([styles.inner, fillStyle, animatedStyles as any])} />
+    </Box>
+  )
 }
 
-const inner = {
-  backgroundColor: globalColors.blue,
-  borderRadius: 3,
-  height: '100%',
-}
+const styles = Styles.styleSheetCreate(() => ({
+  inner: {
+    backgroundColor: Styles.globalColors.blue,
+    borderRadius: 3,
+    height: '100%',
+  },
+  outer: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.greyLight,
+      borderRadius: 3,
+      height: 4,
+      width: 64,
+    },
+    isElectron: {
+      boxShadow: `inset 0 1px 0 0 ${Styles.globalColors.black_05}`,
+    },
+  }),
+}))
 
 export default ProgressBar
