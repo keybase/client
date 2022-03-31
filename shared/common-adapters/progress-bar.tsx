@@ -12,10 +12,13 @@ type Props = {
 const AnimatedBox = animated(Box)
 
 const ProgressBar = ({ratio, style, fillStyle}: Props) => {
-  const animatedStyles = useSpring({to: {width: `${Math.max(0, Math.min(1, ratio)) * 100}%`}})
+  const animatedStyles = useSpring({
+    from: {...styles.inner, ...fillStyle},
+    to: {width: `${Math.max(0, Math.min(1, ratio)) * 100}%`},
+  })
   return (
     <Box style={Styles.collapseStyles([styles.outer, style])}>
-      <AnimatedBox style={Styles.collapseStyles([styles.inner, fillStyle, animatedStyles as any])} />
+      <AnimatedBox style={animatedStyles} />
     </Box>
   )
 }
@@ -24,7 +27,7 @@ const styles = Styles.styleSheetCreate(() => ({
   inner: {
     backgroundColor: Styles.globalColors.blue,
     borderRadius: 3,
-    height: '100%',
+    height: 4,
   },
   outer: Styles.platformStyles({
     common: {
