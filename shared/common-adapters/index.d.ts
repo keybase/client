@@ -8,7 +8,6 @@ export {AnimationType} from './animation'
 
 export {LayoutAnimation} from 'react-native' // exported from index.native
 
-export {default as Animated, Transition, animated} from './animated'
 export {default as Animation} from './animation'
 export {default as Avatar} from './avatar'
 export {default as AvatarLine} from './avatar-line'
