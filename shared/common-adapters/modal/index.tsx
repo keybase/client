@@ -60,7 +60,11 @@ const ModalInner = (props: Props) => (
     {!!props.header && <Header {...props.header} />}
     {!!props.banners && props.banners}
     {props.noScrollView ? (
-      <Kb.BoxGrow>{props.children}</Kb.BoxGrow>
+      Styles.isMobile ? (
+        <Kb.BoxGrow>{props.children}</Kb.BoxGrow>
+      ) : (
+        props.children
+      )
     ) : (
       <Kb.ScrollView
         ref={props.scrollViewRef}
