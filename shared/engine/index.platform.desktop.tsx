@@ -2,8 +2,8 @@ import net from 'net'
 import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
-import {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import {printRPCBytes} from '../local-debug'
+import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 const {process} = KB
 
 class NativeTransport extends TransportShared {
@@ -14,8 +14,7 @@ class NativeTransport extends TransportShared {
   }
 
   _connect_critical_section(cb: any) {
-    // eslint-disable-line camelcase
-    // @ts-ignore codemode issue
+    // @ts-ignore using private api
     super._connect_critical_section(cb)
     windowsHack()
   }
@@ -27,7 +26,7 @@ class NativeTransport extends TransportShared {
       const b = Buffer.from(msg, encoding)
       logger.debug('[RPC] Writing', b.length, 'bytes:', b.toString('hex'))
     }
-    // @ts-ignore codemode issue
+    // @ts-ignore using private api
     super._raw_write(msg, encoding)
   }
 
@@ -52,8 +51,7 @@ function windowsHack() {
     return
   }
 
-  // @ts-ignore codemode issue
-  let fake = net.connect({})
+  const fake = net.connect({port: 9999})
   // net.connect({}) throws; we don't need to see the error, but we
   // do need it not to raise up to the main thread.
   fake.on('error', function () {})
