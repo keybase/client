@@ -19,8 +19,8 @@ import {
   useInvitesSections,
   useSubteamsSections,
   useChannelsSections,
-  Section,
   useEmojiSections,
+  type Section,
 } from './rows'
 import isEqual from 'lodash/isEqual'
 

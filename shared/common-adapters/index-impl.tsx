@@ -1,7 +1,4 @@
 module.exports = {
-  get Animated() {
-    return require('./animated').default
-  },
   get Animation() {
     return require('./animation').default
   },
@@ -301,9 +298,6 @@ module.exports = {
   get Toast() {
     return require('./toast').default
   },
-  get Transition() {
-    return require('./animated').Transition
-  },
   get Video() {
     return require('./video').default
   },
@@ -318,9 +312,6 @@ module.exports = {
   },
   get WithTooltip() {
     return require('./with-tooltip').default
-  },
-  get animated() {
-    return require('./animated').animated
   },
   get isValidIconType() {
     return require('./icon.shared').isValidIconType

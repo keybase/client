@@ -273,9 +273,7 @@ const TeamMember = (props: OwnProps) => {
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
         sections={sections}
-        ListHeaderComponent={
-          Styles.isMobile ? <TeamMemberHeader teamID={teamID} username={username} /> : undefined
-        }
+        ListHeaderComponent={<TeamMemberHeader teamID={teamID} username={username} />}
         keyExtractor={item => `member:${username}:${item.teamname}`}
         onScroll={onScroll.current}
       />
@@ -316,17 +314,9 @@ const MobileHeader = ({username, offset}: {username: string; offset: any}) => {
   )
 }
 
-TeamMember.navigationOptions = (ownProps: OwnProps) => ({
-  headerExpandable: !Container.isMobile,
+TeamMember.navigationOptions = () => ({
   headerHideBorder: true,
-  headerTitle: Container.isMobile
-    ? ''
-    : () => (
-        <TeamMemberHeader
-          teamID={Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)}
-          username={Container.getRouteProps(ownProps, 'username', '')}
-        />
-      ),
+  headerTitle: '',
 })
 
 type NodeNotInRowProps = {

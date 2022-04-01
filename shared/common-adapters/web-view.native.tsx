@@ -6,7 +6,7 @@ import openURL from '../util/open-url'
 import type {WebViewInjections, WebViewProps} from './web-view'
 import {View as NativeView} from 'react-native'
 import {WebView as NativeWebView} from 'react-native-webview'
-import {useSpring, animated} from './animated'
+import {useSpring, animated} from 'react-spring'
 
 const escape = (str?: string): string => (str ? str.replace(/\\/g, '\\\\').replace(/`/g, '\\`') : '')
 
