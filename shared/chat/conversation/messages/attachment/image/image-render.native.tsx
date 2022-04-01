@@ -38,8 +38,6 @@ export class ImageRender extends React.Component<Props, State> {
 
   render() {
     if (this.props.inlineVideoPlayable && this.props.videoSrc.length > 0) {
-      // poster not working correctly so we need this box
-      // https://github.com/react-native-community/react-native-video/issues/1509
       const source = this.getSource(this.props.videoSrc)
 
       const {height, width} = this.props
