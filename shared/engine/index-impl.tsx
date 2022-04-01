@@ -1,18 +1,18 @@
 // Handles sending requests to the daemon
 import logger from '../logger'
-import Session, {CancelHandlerType} from './session'
+import Session, {type CancelHandlerType} from './session'
 import {initEngine, initEngineSaga} from './require'
-import {RPCError, convertToError} from '../util/errors'
+import {type RPCError, convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
-import {resetClient, createClient, rpcLog, createClientType} from './index.platform'
+import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
 import throttle from 'lodash/throttle'
-import {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
-import {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
-import {TypedState, TypedDispatch} from '../util/container'
+import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
+import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
+import type {TypedState, TypedDispatch} from '../util/container'
 
 const {env} = KB.process
 
