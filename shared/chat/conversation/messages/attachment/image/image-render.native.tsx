@@ -3,19 +3,15 @@ import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import {memoize} from '../../../../../util/memoize'
 import logger from '../../../../../logger'
-import {Props} from './image-render.types'
-import Video from 'react-native-video'
+import {Video} from 'expo-av'
+import type {Props} from './image-render.types'
 
 type State = {
-  paused: boolean
   showVideo: boolean
 }
 
 export class ImageRender extends React.Component<Props, State> {
-  state = {
-    paused: false,
-    showVideo: false,
-  }
+  state = {showVideo: false}
 
   onVideoClick = () => {
     this.setState({showVideo: true})
@@ -38,7 +34,6 @@ export class ImageRender extends React.Component<Props, State> {
   }
 
   private getSizeStyle = memoize((s, height, width) => Styles.collapseStyles([s, {height, width}]))
-
   private getFISource = memoize(uri => ({uri}))
 
   render() {
@@ -53,13 +48,12 @@ export class ImageRender extends React.Component<Props, State> {
           {this.state.showVideo ? (
             <Video
               source={source}
-              controls={!this.state.paused}
-              paused={this.state.paused}
+              useNativeControls={true}
               onLoad={this._allLoads}
               onError={this.onErrorVid}
+              shouldPlay={true}
               style={this.getSizeStyle(styles.video, height, width)}
               resizeMode="contain"
-              ignoreSilentSwitch="ignore"
             />
           ) : (
             <Kb.NativeFastImage

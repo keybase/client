@@ -1,6 +1,6 @@
 import * as React from 'react'
-import type {Props} from './audio-video'
 import * as Container from '../../util/container'
+import type {Props} from './audio-video'
 
 const AudioVideo = (props: Props) => {
   const {url, seekRef, paused} = props
@@ -16,8 +16,10 @@ const AudioVideo = (props: Props) => {
     },
     [vidRef, paused]
   )
+  React.useEffect(() => {
+    seekRef.current = seek
+  }, [seekRef, seek])
 
-  seekRef.current = seek
   const lastPaused = Container.usePrevious(paused)
   React.useEffect(() => {
     if (!vidRef.current || paused === lastPaused) {
