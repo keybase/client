@@ -1,35 +1,40 @@
 import * as React from 'react'
-import {Props} from './audio-video'
+import type {Props} from './audio-video'
+import * as Container from '../../util/container'
 
-class AudioVideo extends React.Component<Props> {
-  private vidRef = React.createRef<HTMLVideoElement>()
-
-  seek = (seconds: number) => {
-    if (this.vidRef.current) {
-      this.vidRef.current.currentTime = seconds
-      if (this.props.paused) {
-        this.vidRef.current.pause()
+const AudioVideo = (props: Props) => {
+  const {url, seekRef, paused} = props
+  const vidRef = React.useRef<HTMLVideoElement | null>(null)
+  const seek = React.useCallback(
+    (seconds: number) => {
+      if (vidRef.current) {
+        vidRef.current.currentTime = seconds
       }
-    }
-  }
+      if (paused) {
+        vidRef.current?.pause()
+      }
+    },
+    [vidRef, paused]
+  )
 
-  componentDidUpdate(prevProps: Props) {
-    if (!this.vidRef.current) {
+  seekRef.current = seek
+  const lastPaused = Container.usePrevious(paused)
+  React.useEffect(() => {
+    if (!vidRef.current || paused === lastPaused) {
       return
     }
-    if (this.props.paused && !prevProps.paused) {
-      this.vidRef.current.pause()
-    } else if (!this.props.paused && prevProps.paused) {
-      this.vidRef.current
+
+    if (paused) {
+      vidRef.current.pause()
+    } else {
+      vidRef.current
         .play()
         .then(() => {})
         .catch(() => {})
     }
-  }
+  }, [paused, lastPaused, vidRef])
 
-  render() {
-    return <video ref={this.vidRef} src={this.props.url} style={{height: 0, width: 0}} />
-  }
+  return <video ref={vidRef} src={url} style={{height: 0, width: 0}} />
 }
 
 export default AudioVideo

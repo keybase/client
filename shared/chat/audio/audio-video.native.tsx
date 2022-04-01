@@ -1,32 +1,36 @@
 import * as React from 'react'
-import RNVideo from 'react-native-video'
-import {Props} from './audio-video'
+import {Audio} from 'expo-av'
+import type {Props} from './audio-video'
 
-class AudioVideo extends React.Component<Props> {
-  private vidRef = React.createRef<RNVideo>()
-  seek = (seconds: number) => {
-    if (this.vidRef.current) {
-      this.vidRef.current.seek(seconds)
+const AudioVideo = (props: Props) => {
+  const {url, seekRef} = props
+  const soundRef = React.useRef<Audio.Sound | null>(null)
+  const seek = React.useCallback(
+    (seconds: number) => {
+      soundRef.current
+        ?.playFromPositionAsync(seconds * 1000)
+        .then(() => {})
+        .catch(() => {})
+    },
+    [soundRef]
+  )
+
+  seekRef.current = seek
+
+  React.useEffect(() => {
+    if (!url) {
+      return
     }
-  }
-  render() {
-    if (this.props.url.length === 0 || !this.props.url.match(/^(file|https?):/)) {
-      // try not to crash out on iOS
-      return null
+    const play = async () => {
+      const {sound} = await Audio.Sound.createAsync({uri: url})
+      soundRef.current = sound
+      await sound.playAsync()
     }
-    return (
-      <RNVideo
-        ref={this.vidRef}
-        source={{uri: this.props.url}}
-        style={{height: 0, width: 0}}
-        paused={this.props.paused}
-        // RNVideo can't mix multiple components that change these flags so
-        // we have to mix else giphys will pause background audio
-        ignoreSilentSwitch="obey"
-        mixWithOthers="mix"
-      />
-    )
-  }
+    play()
+      .then(() => {})
+      .catch(() => {})
+  }, [soundRef, url])
+  return null
 }
 
 export default AudioVideo
