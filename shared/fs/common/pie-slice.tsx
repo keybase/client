@@ -1,6 +1,7 @@
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles/index'
+import {useSpring, animated} from 'react-spring'
 
 type Props = {
   degrees: number
@@ -9,7 +10,7 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-const PieSliceDefault = (props: Props) => {
+const Slice = (props: Props) => {
   const styleFilled = props.negative ? styles.filledNegative : styles.filledPositive
   const styleUnfilled = props.negative ? styles.unfilledNegative : styles.unfilledPositive
   const styleRotate = Styles.isMobile
@@ -30,15 +31,18 @@ const PieSliceDefault = (props: Props) => {
   )
 }
 
+const AnimatedSlice = animated(Slice)
+const AnimatedPieSlice = (props: Props) => {
+  const {degrees} = props
+  const ad = useSpring({to: {degrees}})
+  return <AnimatedSlice degrees={ad.degrees} style={props.style as any} negative={props.negative} />
+}
+
 const PieSlice = (props: Props) => {
   return props.animated ? (
-    <Kb.Animated to={{degrees: props.degrees}}>
-      {({degrees}) => (
-        <PieSliceDefault degrees={degrees as any} style={props.style} negative={props.negative} />
-      )}
-    </Kb.Animated>
+    <AnimatedPieSlice {...props} />
   ) : (
-    <PieSliceDefault degrees={props.degrees} style={props.style} negative={props.negative} />
+    <Slice degrees={props.degrees} style={props.style} negative={props.negative} />
   )
 }
 const pieSize = Styles.isMobile ? 16 : 12

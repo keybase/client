@@ -1,11 +1,11 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import type * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/config'
-import * as Tabs from '../constants/tabs'
-import * as ChatTypes from '../constants/types/chat2'
-import * as FsTypes from '../constants/types/fs'
-import HiddenString from '../util/hidden-string'
-import {RPCError} from '../util/errors'
+import type * as Types from '../constants/types/config'
+import type * as Tabs from '../constants/tabs'
+import type * as ChatTypes from '../constants/types/chat2'
+import type * as FsTypes from '../constants/types/fs'
+import type HiddenString from '../util/hidden-string'
+import type {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this

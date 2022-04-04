@@ -1,8 +1,8 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import * as chat1Types from '../constants/types/rpc-chat-gen'
-import * as keybase1Types from '../constants/types/rpc-gen'
-import * as stellar1Types from '../constants/types/rpc-stellar-gen'
+import type * as chat1Types from '../constants/types/rpc-chat-gen'
+import type * as keybase1Types from '../constants/types/rpc-gen'
+import type * as stellar1Types from '../constants/types/rpc-stellar-gen'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of engine-gen but is handled by every reducer. NEVER dispatch this

@@ -1,34 +1,28 @@
-import {NavState} from './types/route-tree'
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
-import shallowEqual from 'shallowequal'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import logger from '../logger'
-import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Tabs from '../constants/tabs'
 import isEqual from 'lodash/isEqual'
-import {ConversationIDKey} from './types/chat2/common'
+import logger from '../logger'
+import shallowEqual from 'shallowequal'
+import type {NavState, Route} from './types/route-tree'
+import type {ConversationIDKey} from './types/chat2/common'
 
 export const navigationRef_ = createNavigationContainerRef()
 export const _getNavigator = () => {
   return navigationRef_.isReady() ? navigationRef_ : undefined
 }
 
-export const findVisibleRoute = (arr: Array<NavState>, s: NavState): Array<NavState> => {
-  if (!s) {
+export const findVisibleRoute = (arr: Array<Route>, s: NavState): Array<Route> => {
+  if (!s || !s.routes || s.index === undefined) {
     return arr
   }
-  // @ts-ignore TODO this next line seems incorrect
-  if (!s.routes) {
-    return s
-  }
-  const route = s.routes[s.index]
+  const route: Route = s.routes[s.index] as Route
   if (!route) {
     return arr
   }
-  if (route.state?.routes) {
-    return findVisibleRoute([...arr, route], route.state)
-  }
-  return [...arr, route]
+  const nextArr = [...arr, route]
+  return route.state?.routes ? findVisibleRoute(nextArr, route.state) : nextArr
 }
 
 const _isLoggedIn = (s: NavState) => {
@@ -47,7 +41,7 @@ const findModalRoute = (s: NavState) => {
     return []
   }
 
-  return s.routes.slice(1) ?? []
+  return s.routes?.slice(1) ?? []
 }
 
 export const _getVisiblePathForNavigator = (navState: NavState) => {
@@ -147,11 +141,11 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
     case RouteTreeGen.navUpToScreen: {
-      const {routeName} = action.payload
+      const {name} = action.payload
       // find with matching params
       const path = _getVisiblePathForNavigator(navigationState)
-      const p = path.find(p => p.name === routeName)
-      return [CommonActions.navigate(routeName, p?.params)]
+      const p = path.find(p => p.name === name)
+      return [CommonActions.navigate(name, p?.params)]
     }
     case RouteTreeGen.popStack: {
       return [StackActions.popToTop()]

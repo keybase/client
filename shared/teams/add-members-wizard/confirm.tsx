@@ -52,7 +52,7 @@ const AddMembersConfirm = () => {
   const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
 
   const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
-  const onBack = () => dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'teamAddToTeamFromWhere'}))
+  const onBack = () => dispatch(RouteTreeGen.createNavUpToScreen({name: 'teamAddToTeamFromWhere'}))
 
   const [_waiting, setWaiting] = React.useState(false)
   const [_error, setError] = React.useState('')
@@ -339,7 +339,7 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
   const onRemove = () => {
     dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
     if (props.lastMember) {
-      dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'teamAddToTeamFromWhere'}))
+      dispatch(RouteTreeGen.createNavUpToScreen({name: 'teamAddToTeamFromWhere'}))
     }
   }
   const role = Container.useSelector(s => s.teams.addMembersWizard.role)

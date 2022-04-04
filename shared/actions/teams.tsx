@@ -213,7 +213,7 @@ const leaveTeam = async (action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLog
   }
 }
 
-const leftTeam = () => RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
+const leftTeam = () => RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
 
 const loadWelcomeMessage = async (action: TeamsGen.LoadWelcomeMessagePayload, logger: Saga.SagaLogger) => {
   const {teamID} = action.payload
@@ -1130,7 +1130,7 @@ const refreshTeamRoleMap = async (
 
 const teamDeletedOrExit = () => {
   if (Router2Constants.getCurrentTab() == Tabs.teamsTab) {
-    return RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
+    return RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
   }
   return false
 }
@@ -1647,7 +1647,7 @@ const teamSeen = async (action: TeamsGen.TeamSeenPayload, logger: Saga.SagaLogge
 
 const maybeClearBadges = (action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  if (prev[2]?.routeName === Tabs.teamsTab && next[2]?.routeName !== Tabs.teamsTab) {
+  if (prev[2]?.name === Tabs.teamsTab && next[2]?.name !== Tabs.teamsTab) {
     return TeamsGen.createClearNavBadges()
   }
   return false

@@ -9,10 +9,10 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as TeamBuildingGen from './team-building-gen'
-import * as Types from '../constants/types/people'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import logger from '../logger'
-import {RPCError} from '../util/errors'
+import type * as Types from '../constants/types/people'
+import type {RPCError} from '../util/errors'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false
@@ -216,7 +216,7 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
 
 const maybeMarkViewed = (action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  if (prev[2]?.routeName === Tabs.peopleTab && next[2]?.routeName !== Tabs.peopleTab) {
+  if (prev[2]?.name === Tabs.peopleTab && next[2]?.name !== Tabs.peopleTab) {
     return PeopleGen.createMarkViewed()
   }
   return false

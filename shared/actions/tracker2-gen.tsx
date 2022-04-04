@@ -1,6 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import * as Types from '../constants/types/tracker2'
+import type * as Types from '../constants/types/tracker2'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of tracker2 but is handled by every reducer. NEVER dispatch this

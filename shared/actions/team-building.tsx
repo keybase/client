@@ -163,7 +163,7 @@ const maybeCancelTeamBuilding =
   (namespace: TeamBuildingTypes.AllowedNamespace) => (action: RouteTreeGen.OnNavChangedPayload) => {
     const {prev, next} = action.payload
 
-    const wasTeamBuilding = namespaceToRoute.get(namespace) === prev[prev.length - 1]?.routeName
+    const wasTeamBuilding = namespaceToRoute.get(namespace) === prev[prev.length - 1]?.name
     if (wasTeamBuilding) {
       // team building or modal on top of that still
       const isTeamBuilding = next[prev.length - 1] === prev[prev.length - 1]

@@ -1,8 +1,8 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import * as Types from '../constants/types/provision'
-import HiddenString from '../util/hidden-string'
-import {RPCError} from '../util/errors'
+import type * as Types from '../constants/types/provision'
+import type HiddenString from '../util/hidden-string'
+import type {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of provision but is handled by every reducer. NEVER dispatch this

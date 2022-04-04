@@ -1,5 +1,5 @@
 {
-  "prelude": ["import * as Types from '../constants/types/chat2'"],
+  "prelude": ["import type * as Types from '../constants/types/chat2'"],
   "actions": {
     "getFeaturedBots": {
       "_description": "Gets featured bots",
