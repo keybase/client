@@ -72,7 +72,7 @@ function promptReset(
       if (action.payload.action === RPCGen.ResetPromptResponse.confirmReset) {
         yield Saga.put(AutoresetGen.createFinishedReset())
       } else {
-        yield Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'login'}))
+        yield Saga.put(RouteTreeGen.createNavUpToScreen({name: 'login'}))
       }
     } else {
       logger.info('Starting account reset process')

@@ -1,9 +1,9 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import type * as RPCTypes from '../constants/types/rpc-gen'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import * as ChatTypes from '../constants/types/chat2'
-import * as Types from '../constants/types/teams'
-import {RetentionPolicy} from '../constants/types/retention-policy'
+import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import type * as ChatTypes from '../constants/types/chat2'
+import type * as Types from '../constants/types/teams'
+import type {RetentionPolicy} from '../constants/types/retention-policy'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this

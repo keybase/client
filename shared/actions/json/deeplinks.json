@@ -1,5 +1,5 @@
 {
-  "prelude": ["import HiddenString from '../util/hidden-string'"],
+  "prelude": ["import type HiddenString from '../util/hidden-string'"],
   "actions": {
     "handleKeybaseLink": {"link": "string"},
     "link": {"link": "string"},

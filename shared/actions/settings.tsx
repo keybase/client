@@ -1,21 +1,22 @@
-import logger from '../logger'
-import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
-import * as Saga from '../util/saga'
-import type * as Types from '../constants/types/settings'
-import * as Constants from '../constants/settings'
 import * as ConfigGen from './config-gen'
+import * as Constants from '../constants/settings'
 import * as EngineGen from './engine-gen-gen'
-import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RouteTreeGen from './route-tree-gen'
+import * as Router2Constants from '../constants/router2'
+import * as Saga from '../util/saga'
 import * as SettingsGen from './settings-gen'
+import * as Tabs from '../constants/tabs'
 import * as WaitingGen from './waiting-gen'
+import logger from '../logger'
+import openURL from '../util/open-url'
 import trim from 'lodash/trim'
+import type * as Container from '../util/container'
+import type * as Types from '../constants/types/settings'
+import type {RPCError} from '../util/errors'
 import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
-import type {RPCError} from '../util/errors'
-import type * as Container from '../util/container'
-import openURL from '../util/open-url'
 
 const onUpdatePGPSettings = async () => {
   try {
@@ -835,8 +836,8 @@ const maybeClearAddedEmail = (state: Container.TypedState, action: RouteTreeGen.
   // Clear "check your inbox" in settings when you leave the settings tab
   if (
     state.settings.email.addedEmail &&
-    prev[2]?.routeName === Tabs.settingsTab &&
-    next[2]?.routeName !== Tabs.settingsTab
+    Router2Constants.getRouteTab(prev) === Tabs.settingsTab &&
+    Router2Constants.getRouteTab(next) !== Tabs.settingsTab
   ) {
     return SettingsGen.createClearAddedEmail()
   }

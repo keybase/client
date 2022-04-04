@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/fs'
+import * as Router2Constants from '../../constants/router2'
 import * as EngineGen from '../engine-gen-gen'
 import * as FsGen from '../fs-gen'
 import * as ConfigGen from '../config-gen'
@@ -1095,7 +1096,11 @@ const subscribeAndLoadSettings = (state: Container.TypedState) => {
 const maybeClearCriticalUpdate = (state: Container.TypedState, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
   // Clear critical update when we nav away from tab
-  if (state.fs.criticalUpdate && prev[2]?.routeName === Tabs.fsTab && next[2]?.routeName !== Tabs.fsTab) {
+  if (
+    state.fs.criticalUpdate &&
+    Router2Constants.getRouteTab(prev) === Tabs.fsTab &&
+    Router2Constants.getRouteTab(next) !== Tabs.fsTab
+  ) {
     return FsGen.createSetCriticalUpdate({val: false})
   }
   return false
@@ -1104,8 +1109,8 @@ const maybeClearCriticalUpdate = (state: Container.TypedState, action: RouteTree
 const fsRrouteNames = ['fsRoot', 'barePreview']
 const maybeOnFSTab = (action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  const wasScreen = fsRrouteNames.includes(prev[prev.length - 1]?.routeName)
-  const isScreen = fsRrouteNames.includes(next[next.length - 1]?.routeName)
+  const wasScreen = fsRrouteNames.includes(prev[prev.length - 1]?.name)
+  const isScreen = fsRrouteNames.includes(next[next.length - 1]?.name)
 
   if (wasScreen === isScreen) {
     return false

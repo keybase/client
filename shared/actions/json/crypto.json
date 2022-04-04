@@ -1,7 +1,7 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/crypto'",
-    "import HiddenString from '../util/hidden-string'"
+    "import type * as Types from '../constants/types/crypto'",
+    "import type HiddenString from '../util/hidden-string'"
   ],
   "actions": {
     "clearRecipients": {

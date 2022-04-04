@@ -1,6 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import type * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/people'
+import type * as Types from '../constants/types/people'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of people but is handled by every reducer. NEVER dispatch this

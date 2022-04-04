@@ -1,6 +1,5 @@
 import * as Kbfs from '../fs/common'
 import * as FsConstants from '../constants/fs'
-import Loading from '../login/loading'
 import * as Styles from '../styles'
 import * as ConfigConstants from '../constants/config'
 import * as ConfigGen from '../actions/config-gen'
@@ -9,7 +8,8 @@ import * as Constants from '../constants/router2'
 import * as Container from '../util/container'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import {Theme} from '@react-navigation/native'
+import Loading from '../login/loading'
+import type {Theme} from '@react-navigation/native'
 
 export enum AppState {
   UNINIT, // haven't rendered the nav yet

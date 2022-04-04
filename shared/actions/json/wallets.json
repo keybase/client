@@ -1,9 +1,9 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/wallets'",
-    "import * as ChatTypes from '../constants/types/chat2'",
-    "import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'",
-    "import HiddenString from '../util/hidden-string'"
+    "import type * as Types from '../constants/types/wallets'",
+    "import type * as ChatTypes from '../constants/types/chat2'",
+    "import type * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'",
+    "import type HiddenString from '../util/hidden-string'"
   ],
   "actions": {
     "abandonPayment": {
