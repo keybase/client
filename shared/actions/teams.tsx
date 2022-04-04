@@ -1385,7 +1385,6 @@ const renameTeam = async (action: TeamsGen.RenameTeamPayload) => {
 
 const clearNavBadges = async () => {
   try {
-    console.log('aaa clearNavBadges')
     await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.newly_added_to_team'})
     await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'})
   } catch (err) {
