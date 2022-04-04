@@ -184,7 +184,7 @@ function* handlePush(state: Container.TypedState, action: PushGen.NotificationPa
       case 'settings.contacts':
         if (state.config.loggedIn) {
           yield Saga.put(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
-          yield Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'peopleRoot'}))
+          yield Saga.put(RouteTreeGen.createNavUpToScreen({name: 'peopleRoot'}))
         }
         break
     }

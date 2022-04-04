@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import HiddenString from '../util/hidden-string'
-import {RPCError} from '../util/errors'
+import type HiddenString from '../util/hidden-string'
+import type {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of signup but is handled by every reducer. NEVER dispatch this

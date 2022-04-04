@@ -2563,7 +2563,7 @@ const navigateToInbox = (
   }
   return [
     RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-    RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'}),
+    RouteTreeGen.createNavUpToScreen({name: 'chatRoot'}),
   ]
 }
 
@@ -2574,6 +2574,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     return
   }
   const visible = Router2Constants.getVisibleScreen()
+  // @ts-ignore TODO better param typing
   const visibleConvo = visible?.params?.conversationIDKey
   const visibleRouteName = visible?.name
 
@@ -2594,7 +2595,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
       ...tabSwitchAction,
       ...modalClearAction,
       RouteTreeGen.createSetParams({key: Router2Constants.chatRootKey(), params: {conversationIDKey}}),
-      RouteTreeGen.createNavUpToScreen({routeName: Constants.threadRouteName}),
+      RouteTreeGen.createNavUpToScreen({name: Constants.threadRouteName}),
     ]
   } else {
     // immediately switch stack to an inbox | thread stack
@@ -3735,8 +3736,8 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
   const p = prev[prev.length - 1]
   const n = next[next.length - 1]
 
-  const wasModal = prev.length && prev[0]?.name !== 'loggedIn'
-  const isModal = next[0]?.name !== 'loggedIn'
+  const wasModal = prev.length && !Router2Constants.getRouteLoggedIn(prev)
+  const isModal = !Router2Constants.getRouteLoggedIn(next)
 
   // ignore if changes involve a modal
   if (wasModal || isModal) {
@@ -3751,7 +3752,9 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
     return false
   }
 
+  // @ts-ignore TODO better param typing
   const wasID = p?.params?.conversationIDKey
+  // @ts-ignore TODO better param typing
   const isID = n?.params?.conversationIDKey
 
   logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
@@ -3794,7 +3797,10 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
 
 const maybeChatTabSelected = (action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  if (prev[2]?.routeName !== Tabs.chatTab && next[2]?.routeName === Tabs.chatTab) {
+  if (
+    Router2Constants.getRouteTab(prev) !== Tabs.chatTab &&
+    Router2Constants.getRouteTab(next) === Tabs.chatTab
+  ) {
     return Chat2Gen.createTabSelected()
   }
   return false

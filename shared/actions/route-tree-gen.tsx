@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import * as Tabs from '../constants/tabs'
-import * as Types from '../constants/types/route-tree'
+import type * as Tabs from '../constants/tabs'
+import type * as Types from '../constants/types/route-tree'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of route-tree but is handled by every reducer. NEVER dispatch this
@@ -20,13 +20,13 @@ export const tabLongPress = 'route-tree:tabLongPress'
 
 // Payload Types
 type _ClearModalsPayload = undefined
-type _NavUpToScreenPayload = {readonly routeName: string}
+type _NavUpToScreenPayload = {readonly name: string}
 type _NavigateAppendPayload = {readonly fromKey?: string; readonly path: any; readonly replace?: boolean}
 type _NavigateUpNoopPayload = undefined
 type _NavigateUpPayload = {readonly fromKey?: string}
 type _OnNavChangedPayload = {
-  readonly prev: Array<Types.NavState>
-  readonly next: Array<Types.NavState>
+  readonly prev: Array<Types.Route>
+  readonly next: Array<Types.Route>
   readonly navAction: any
 }
 type _PopStackPayload = undefined

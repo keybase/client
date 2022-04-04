@@ -10,13 +10,12 @@ import {memoize} from '../../util/memoize'
 
 type Props = Container.RouteProps<{members: string[]; teamID: Types.TeamID}>
 
-const getSubteamNames = memoize((state: Container.TypedState, teamID: Types.TeamID): [
-  string[],
-  Types.TeamID[]
-] => {
-  const subteamIDs = [...Constants.getTeamDetails(state, teamID).subteams]
-  return [subteamIDs.map(id => Constants.getTeamMeta(state, id).teamname), subteamIDs]
-})
+const getSubteamNames = memoize(
+  (state: Container.TypedState, teamID: Types.TeamID): [string[], Types.TeamID[]] => {
+    const subteamIDs = [...Constants.getTeamDetails(state, teamID).subteams]
+    return [subteamIDs.map(id => Constants.getTeamMeta(state, id).teamname), subteamIDs]
+  }
+)
 
 const ConfirmKickOut = (props: Props) => {
   const members = Container.getRouteProps(props, 'members', [])
@@ -66,7 +65,7 @@ const ConfirmKickOut = (props: Props) => {
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
-      dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'team'}))
+      dispatch(RouteTreeGen.createNavUpToScreen({name: 'team'}))
     }
   }, [waiting, wasWaiting, dispatch])
 

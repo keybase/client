@@ -241,6 +241,7 @@ function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRo
     const ap = RouterConstants.getAppPath()
     ap.some(r => {
       if (r.name == 'chatConversation') {
+        // @ts-ignore TODO better param typing
         param = {selectedConversationIDKey: r.params?.conversationIDKey}
         return true
       }

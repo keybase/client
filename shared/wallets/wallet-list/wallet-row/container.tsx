@@ -35,7 +35,7 @@ const mapStateToProps = (
 const mapDispatchToProps = dispatch => ({
   _onSelectAccount: (accountID: AccountID) => {
     if (!Container.isPhone) {
-      dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'wallet'}))
+      dispatch(RouteTreeGen.createNavUpToScreen({name: 'wallet'}))
     }
     dispatch(WalletsGen.createSelectAccount({accountID, reason: 'user-selected', show: true}))
   },

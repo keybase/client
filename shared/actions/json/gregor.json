@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'"
+    "import type * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'"
   ],
   "actions": {
     "pushState": {

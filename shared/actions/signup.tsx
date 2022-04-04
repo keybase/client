@@ -1,16 +1,17 @@
 import logger from '../logger'
+import * as Router2Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import * as Constants from '../constants/signup'
 import * as ConfigConstants from '../constants/config'
 import * as SignupGen from './signup-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {isMobile} from '../constants/platform'
 import * as RouteTreeGen from './route-tree-gen'
-import {RPCError} from '../util/errors'
-import * as Container from '../util/container'
 import * as SettingsGen from './settings-gen'
 import * as PushGen from './push-gen'
+import {isMobile} from '../constants/platform'
+import type {RPCError} from '../util/errors'
+import type * as Container from '../util/container'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
@@ -226,8 +227,8 @@ const maybeClearJustSignedUpEmail = (
   // Clear "just signed up email" when you leave the people tab after signup
   if (
     state.signup.justSignedUpEmail &&
-    prev[2]?.routeName === Tabs.peopleTab &&
-    next[2]?.routeName !== Tabs.peopleTab
+    Router2Constants.getRouteTab(prev) === Tabs.peopleTab &&
+    Router2Constants.getRouteTab(next) !== Tabs.peopleTab
   ) {
     return SignupGen.createClearJustSignedUpEmail()
   }

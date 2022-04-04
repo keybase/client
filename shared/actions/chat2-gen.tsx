@@ -1,11 +1,11 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import type * as RPCTypes from '../constants/types/rpc-gen'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import * as Types from '../constants/types/chat2'
-import * as TeamsTypes from '../constants/types/teams'
-import HiddenString from '../util/hidden-string'
-import {RetentionPolicy} from '../constants/types/retention-policy'
-import {AmpTracker} from '../chat/audio/amptracker'
+import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import type * as Types from '../constants/types/chat2'
+import type * as TeamsTypes from '../constants/types/teams'
+import type HiddenString from '../util/hidden-string'
+import type {RetentionPolicy} from '../constants/types/retention-policy'
+import type {AmpTracker} from '../chat/audio/amptracker'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this

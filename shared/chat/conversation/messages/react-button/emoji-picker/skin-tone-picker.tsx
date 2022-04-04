@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import * as Types from '../../../../../constants/types/chat2'
+import {useSpring, animated} from 'react-spring'
 
 const skinTones: Array<undefined | Types.EmojiSkinTone> = [
   undefined,
@@ -38,6 +39,8 @@ const reorderedSkinTones = (props: Props): Array<undefined | Types.EmojiSkinTone
     ? skinTones
     : [props.currentSkinTone, ...skinTones.filter(st => st !== props.currentSkinTone)]
 
+const AnimatedBox2 = animated(Kb.Box2)
+
 const SkinTonePicker = (props: Props) => {
   const [expanded, _setExpanded] = React.useState(false)
   const setExpanded = (toSet: boolean) => {
@@ -56,6 +59,13 @@ const SkinTonePicker = (props: Props) => {
       {circle(skinTone, true, Styles.isMobile && skinTone === props.currentSkinTone)}
     </Kb.ClickableBox>
   ))
+
+  const animStyle = useSpring({
+    config: reactSprintConfig,
+    from: {height: 26, ...styles.popupContainer},
+    to: {height: 126},
+  })
+
   return Styles.isMobile ? (
     expanded ? (
       <Kb.Box2
@@ -77,16 +87,9 @@ const SkinTonePicker = (props: Props) => {
   ) : (
     <Kb.Box style={styles.relative}>
       {expanded ? (
-        <Kb.Animated to={{height: 126}} from={{height: 26}} config={reactSprintConfig}>
-          {({height}) => (
-            <Kb.Box2
-              direction="vertical"
-              style={Styles.collapseStyles([styles.popupContainer, {height: height as any}])}
-            >
-              {optionSkinTones}
-            </Kb.Box2>
-          )}
-        </Kb.Animated>
+        <AnimatedBox2 direction="vertical" style={animStyle}>
+          {optionSkinTones}
+        </AnimatedBox2>
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
           <Kb.ClickableBox style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>

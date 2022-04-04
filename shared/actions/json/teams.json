@@ -1,9 +1,9 @@
 {
   "prelude": [
-    "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
-    "import * as ChatTypes from '../constants/types/chat2'",
-    "import * as Types from '../constants/types/teams'",
-    "import {RetentionPolicy} from '../constants/types/retention-policy'"
+    "import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
+    "import type * as ChatTypes from '../constants/types/chat2'",
+    "import type * as Types from '../constants/types/teams'",
+    "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
     "addUserToTeams": {

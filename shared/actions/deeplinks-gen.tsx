@@ -1,6 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import HiddenString from '../util/hidden-string'
+import type HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of deeplinks but is handled by every reducer. NEVER dispatch this
