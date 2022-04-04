@@ -1,4 +1,5 @@
 import logger from '../logger'
+import * as Router2Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import * as Constants from '../constants/signup'
 import * as ConfigConstants from '../constants/config'
@@ -226,8 +227,8 @@ const maybeClearJustSignedUpEmail = (
   // Clear "just signed up email" when you leave the people tab after signup
   if (
     state.signup.justSignedUpEmail &&
-    prev[2]?.name === Tabs.peopleTab &&
-    next[2]?.name !== Tabs.peopleTab
+    Router2Constants.getRouteTab(prev) === Tabs.peopleTab &&
+    Router2Constants.getRouteTab(next) !== Tabs.peopleTab
   ) {
     return SignupGen.createClearJustSignedUpEmail()
   }

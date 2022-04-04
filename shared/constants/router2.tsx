@@ -262,3 +262,11 @@ export const chatRootKey = () => {
   const chatTabIdx = rs.routes[0]?.state.routes.findIndex(r => r.name === Tabs.chatTab)
   return rs.routes[0].state.routes[chatTabIdx].state.routes[0].key
 }
+
+export const getRouteTab = (route: Array<Route>) => {
+  return route[1]?.name
+}
+
+export const getRouteLoggedIn = (route: Array<Route>) => {
+  return route[0]?.name === 'loggedIn'
+}

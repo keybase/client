@@ -1,4 +1,5 @@
 import * as Constants from '../constants/people'
+import * as Router2Constants from '../constants/router2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as NotificationsGen from './notifications-gen'
@@ -216,7 +217,10 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
 
 const maybeMarkViewed = (action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  if (prev[2]?.name === Tabs.peopleTab && next[2]?.name !== Tabs.peopleTab) {
+  if (
+    Router2Constants.getRouteTab(prev) === Tabs.peopleTab &&
+    Router2Constants.getRouteTab(next) !== Tabs.peopleTab
+  ) {
     return PeopleGen.createMarkViewed()
   }
   return false

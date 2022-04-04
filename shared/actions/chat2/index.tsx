@@ -3736,8 +3736,8 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
   const p = prev[prev.length - 1]
   const n = next[next.length - 1]
 
-  const wasModal = prev.length && prev[0]?.name !== 'loggedIn'
-  const isModal = next[0]?.name !== 'loggedIn'
+  const wasModal = prev.length && !Router2Constants.getRouteLoggedIn(prev)
+  const isModal = !Router2Constants.getRouteLoggedIn(next)
 
   // ignore if changes involve a modal
   if (wasModal || isModal) {
@@ -3797,7 +3797,10 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
 
 const maybeChatTabSelected = (action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
-  if (prev[2]?.name !== Tabs.chatTab && next[2]?.name === Tabs.chatTab) {
+  if (
+    Router2Constants.getRouteTab(prev) !== Tabs.chatTab &&
+    Router2Constants.getRouteTab(next) === Tabs.chatTab
+  ) {
     return Chat2Gen.createTabSelected()
   }
   return false
