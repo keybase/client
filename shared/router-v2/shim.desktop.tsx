@@ -4,6 +4,7 @@ import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import {EscapeHandler} from '../util/key-event-handler.desktop'
+import {useFocusEffect} from '@react-navigation/native'
 
 export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
   Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
@@ -62,14 +63,29 @@ const ModalWrapper = ({navigationOptions, navigation, children}) => {
     ['Wide', styles.modalModeWide],
   ] as const)
 
+  const [topMostModal, setTopMostModal] = React.useState(true)
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setTopMostModal(true)
+      return () => {
+        setTopMostModal(false)
+      }
+    }, [])
+  )
+
   if (modal2) {
     return (
-      <EscapeHandler onESC={navigation.pop}>
+      <EscapeHandler onESC={topMostModal ? navigation.pop : undefined}>
         <Kb.Box2
           key="background"
           direction="horizontal"
           ref={backgroundRef}
-          style={Styles.collapseStyles([styles.modal2Container, modal2ClearCover && styles.modal2ClearCover])}
+          style={Styles.collapseStyles([
+            styles.modal2Container,
+            modal2ClearCover && styles.modal2ClearCover,
+            !topMostModal && styles.hidden,
+          ])}
           onMouseDown={onMouseDown as any}
           onMouseUp={onMouseUp as any}
         >
@@ -95,7 +111,11 @@ const ModalWrapper = ({navigationOptions, navigation, children}) => {
     )
   } else {
     return (
-      <Kb.Box2 key="background" direction="vertical" style={styles.modalContainer}>
+      <Kb.Box2
+        key="background"
+        direction="vertical"
+        style={Styles.collapseStyles([styles.modalContainer, !topMostModal && styles.hidden])}
+      >
         {children}
       </Kb.Box2>
     )
@@ -127,6 +147,9 @@ const styles = Styles.styleSheetCreate(() => {
         position: 'relative',
       },
     }),
+    hidden: {
+      display: 'none',
+    },
     modal2AvoidTabs: Styles.platformStyles({
       isElectron: {
         backgroundColor: undefined,
