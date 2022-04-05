@@ -132,14 +132,14 @@ ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
   }
 }
 
-void RpcOnJS(Runtime &runtime, ShareValues values) {
+void RpcOnJS(Runtime &runtime, ShareValues values, const std::string & TEMP) {
   try {
     Function rpcOnJs =
         runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
     for (auto &result : *values) {
       msgpack::object obj(result.get());
       Value value = convertMPToJSI(runtime, obj);
-      rpcOnJs.call(runtime, move(value), 1);
+      rpcOnJs.call(runtime, move(value), jsi::String::createFromUtf8(runtime, TEMP));
     }
   } catch (const std::exception &e) {
     throw new std::runtime_error("Error in RpcOnJS: " + string(e.what()));

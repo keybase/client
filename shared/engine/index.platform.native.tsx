@@ -1,6 +1,6 @@
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
-import {encode} from '@msgpack/msgpack'
+import {encode, decodeMulti} from '@msgpack/msgpack'
 import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 const nativeBridge: NativeEventEmitter & {
@@ -53,6 +53,18 @@ class NativeTransport extends TransportShared {
   }
 }
 
+const TEMPY = o => {
+  Object.keys(o).forEach(k => {
+    const v = o[k]
+    if (v instanceof Uint8Array && !(v instanceof Buffer)) {
+      o[k] = Buffer.from(v)
+    }
+    if (v instanceof Object) {
+      TEMPY(v)
+    }
+  })
+}
+
 function createClient(
   incomingRPCCallback: incomingRPCCallbackType,
   connectCallback: connectDisconnectCB,
@@ -62,7 +74,25 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  global.rpcOnJs = objs => {
+  global.rpcOnJs = (objs, b64temp) => {
+    try {
+      var buftemp = Buffer.from(b64temp, 'base64')
+      const temps = []
+      for (const o of decodeMulti(buftemp)) {
+        temps.push(o)
+      }
+      const temp = temps[1]
+      // wrap uint8array as buf to make it compare correctly
+      TEMPY(temp)
+      const s1 = JSON.stringify(objs)
+      const s2 = JSON.stringify(temp)
+      if (s1 !== s2) {
+        debugger
+        console.log('aaa ', {s1, s2})
+      }
+    } catch (e) {
+      console.log('aaa err', e)
+    }
     // @ts-ignore this does exist
     client.transport._dispatch(objs)
   }
