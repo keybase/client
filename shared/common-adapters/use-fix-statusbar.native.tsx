@@ -2,8 +2,8 @@
 // import * as Styles from '../styles'
 // import {StatusBar} from 'react-native'
 
-export const getBarStyle = () =>
-  Styles.isAndroid ? 'default' : Styles.isDarkMode() ? 'light-content' : 'dark-content'
+// export const getBarStyle = () =>
+//   Styles.isAndroid ? 'default' : Styles.isDarkMode() ? 'light-content' : 'dark-content'
 
 /** status bar can get messed up when showing full screen things. call this to unhide it on unmount */
 // likely not needed anymore, disabling to see
