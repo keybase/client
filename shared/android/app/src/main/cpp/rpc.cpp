@@ -28,7 +28,7 @@ std::string mpToString(msgpack::object &o) {
   case msgpack::type::STR:
     return o.as<std::string>();
   case msgpack::type::POSITIVE_INTEGER:
-    return std::to_string(o.as<double>());
+    return std::to_string(o.as<unsigned int>());
   case msgpack::type::NEGATIVE_INTEGER:
     return std::to_string(o.as<int>());
   case msgpack::type::FLOAT32:
