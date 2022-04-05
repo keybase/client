@@ -56,10 +56,11 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
 
 + (void)sendToJS:(NSData*)data {
   int size = (int)[data length];
+  std::string b64temp = [[data base64EncodedStringWithOptions:0] UTF8String];
   auto values = PrepRpcOnJS(*g_jsiRuntime, (uint8_t*)[data bytes], size);
   auto invoker = [g_cxxBridge jsCallInvoker];
-  invoker->invokeAsync([values]() {
-    RpcOnJS(*g_jsiRuntime, values);
+  invoker->invokeAsync([values, b64temp]() {
+    RpcOnJS(*g_jsiRuntime, values, b64temp);
   });
 }
 
