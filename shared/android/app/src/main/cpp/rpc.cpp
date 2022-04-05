@@ -72,16 +72,19 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
   case msgpack::type::BIN: {
     auto ptr = o.via.bin.ptr;
     int size = o.via.bin.size;
+    // make ArrayBuffer and copy in data
     Function arrayBufferCtor =
         runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
     Value ab = arrayBufferCtor.callAsConstructor(runtime, size);
     Object abo = ab.getObject(runtime);
     ArrayBuffer abbuf = abo.getArrayBuffer(runtime);
     std::copy(ptr, ptr + size, abbuf.data(runtime));
+
+    // Wrap in Buffer like framed-msg-pack
     Object bufObj =
         runtime.global().getPropertyAsObject(runtime, "Buffer");
     Function bufFrom = bufObj.getPropertyAsFunction(runtime, "from");
-    Value buf = bufFrom.callWithThis(runtime, bufObj, std::move(ab));
+    Value buf = bufFrom.callWithThis(runtime, bufObj, std::move(ab)); // Buffer shares the memory and just wraps
     return buf;
   }
   case msgpack::type::ARRAY: {
