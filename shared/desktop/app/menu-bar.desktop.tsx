@@ -57,10 +57,8 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
   })
 
   Electron.app.on('ready', () => {
-    // @ts-ignore its private but we need to call it
-    mb.createWindow()
-    require('@electron/remote/main').enable(mb?.window?.webContents)
-    mb?.window
+    require('@electron/remote/main').enable(mb.window?.webContents)
+    mb.window
       ?.loadURL(htmlFile)
       .then(() => {})
       .catch(() => {})
@@ -95,7 +93,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         iconPathIsBadged = action.payload.desktopAppBadgeCount > 0
         updateIcon()
         const dock = Electron.app.dock
-        if (dock && dock.isVisible()) {
+        if (dock.isVisible()) {
           Electron.app.badgeCount = action.payload.desktopAppBadgeCount
         }
 
@@ -105,8 +103,8 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
           const mw = getMainWindow()
           const overlay =
             action.payload.desktopAppBadgeCount > 0 ? resolveImage('icons', 'icon-windows-badge.png') : null
-          // @ts-ignore setOverlayIcon docs say null overlay's fine, TS disagrees
-          mw && mw.setOverlayIcon(overlay, 'new activity')
+          // @ts-ignore overlay can be a string but TS is wrong
+          mw?.setOverlayIcon(overlay, 'new activity')
         }
 
         break
@@ -128,7 +126,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     mb.window && menubarWindowIDCallback(mb.window.id)
 
     if (showDevTools && !skipSecondaryDevtools) {
-      mb.window && mb.window.webContents.openDevTools({mode: 'detach'})
+      mb.window?.webContents.openDevTools({mode: 'detach'})
     }
 
     // Hack: open widget when left/right/double clicked
@@ -137,20 +135,19 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       e?.preventDefault()
       setTimeout(() => mb.tray.emit('click', {...e}, {...bounds}), 0)
     })
-    mb.tray.on('double-click', (e: Electron.KeyboardEvent) =>
+    mb.tray.on('double-click', (e: Electron.KeyboardEvent) => {
       // @ts-ignore
       e?.preventDefault()
-    )
+    })
 
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
 
-    mb.window && mb.window.removeAllListeners('close')
-    mb.window &&
-      mb.window.on('close', event => {
-        event.preventDefault()
-        mb.hideWindow()
-      })
+    mb.window?.removeAllListeners('close')
+    mb.window?.on('close', event => {
+      event.preventDefault()
+      mb.hideWindow()
+    })
 
     if (isLinux) {
       mb.tray.setToolTip('Show Keybase')
@@ -158,14 +155,14 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
 
     const adjustForWindows = () => {
       // Account for different taskbar positions on Windows
-      if (!isWindows || !mb.window || !mb.tray) {
+      if (!isWindows || !mb.window) {
         return
       }
       const cursorPoint = Electron.screen.getCursorScreenPoint()
       const screenSize = Electron.screen.getDisplayNearestPoint(cursorPoint).workArea
       const menuBounds = mb.window.getBounds()
       logger.info('Showing menu:', cursorPoint, screenSize)
-      let iconBounds = mb.tray.getBounds()
+      const iconBounds = mb.tray.getBounds()
       let x = iconBounds.x
       let y = iconBounds.y - iconBounds.height - menuBounds.height
 
@@ -202,7 +199,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     })
     mb.on('hide', () => {})
     mb.on('after-show', () => {
-      logger.info('Showing menubar at', mb.window && mb.window.getBounds())
+      logger.info('Showing menubar at', mb.window?.getBounds())
     })
     mb.tray.on('click', (_, bounds: Bounds) => {
       logger.info('Clicked tray icon:', bounds)
@@ -213,7 +210,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
   // without removing your status bar icon.
   if (isDarwin) {
     mb.app.on('before-quit', () => {
-      mb.tray && mb.tray.destroy()
+      mb.tray.destroy()
     })
   }
 }

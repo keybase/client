@@ -217,7 +217,7 @@ module.exports = {
     '@typescript-eslint/prefer-ts-expect-error': 'off',
     '@typescript-eslint/promise-function-async': 'error',
     '@typescript-eslint/require-array-sort-compare': 'off',
-    '@typescript-eslint/restrict-plus-operands': 'warn',
+    '@typescript-eslint/restrict-plus-operands': 'off',
     '@typescript-eslint/restrict-template-expressions': 'warn',
     '@typescript-eslint/sort-type-union-intersection-members': 'off',
     '@typescript-eslint/strict-boolean-expressions': 'off',
