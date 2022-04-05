@@ -146,7 +146,6 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
         fullHeight={true}
       >
         {spinner}
-        <Kb.NativeStatusBar hidden={true} />
         <ShowToastAfterSaving transferState={this.props.message.transferState} />
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerWrapper}>
           <Kb.Text type="Body" onClick={this.props.onClose} style={styles.close}>

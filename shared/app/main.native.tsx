@@ -7,16 +7,10 @@ import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors/container'
 import OutOfDate from './out-of-date'
 import RuntimeStats from './runtime-stats'
-import {getBarStyle} from '../common-adapters/use-fix-statusbar.native'
-import {useColorScheme} from 'react-native'
 
 const Main = () => {
-  // just used to trigger statusbar
-  const isDarkMode = useColorScheme() === 'dark'
-
   return (
     <>
-      <Kb.NativeStatusBar key={isDarkMode ? 'dark' : 'light'} barStyle={getBarStyle()} />
       <Router />
       <PortalHost
         name="popup-root"
