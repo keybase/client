@@ -11,7 +11,6 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import * as Shim from './shim.desktop'
 import * as Common from './common.desktop'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
-import type {Route} from '../constants/types/route-tree'
 
 export const headerDefaultStyle = Common.headerDefaultStyle
 const Tab = createLeftTabNavigator()
