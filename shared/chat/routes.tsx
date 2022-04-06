@@ -28,17 +28,14 @@ import * as ChatConstants from '../constants/chat2'
 
 export const newRoutes = {
   chatConversation: {Screen: React.lazy(async () => import('./conversation/container'))},
-  chatEnterPaperkey: {
-    getScreen: (): typeof ChatEnterPaperkey => require('./conversation/rekey/enter-paper-key').default,
-  },
+  chatEnterPaperkey: {Screen: React.lazy(async () => import('./conversation/rekey/enter-paper-key'))},
   chatRoot: {
-    getScreen: (): typeof ChatRoot =>
-      ChatConstants.isSplit
-        ? require('./inbox-and-conversation-2').default
-        : require('./inbox/defer-loading').default,
+    Screen: ChatConstants.isSplit
+      ? React.lazy(async () => import('./inbox-and-conversation-2'))
+      : React.lazy(async () => import('./inbox/defer-loading')),
   },
 }
-
+// React.lazy(async () => import())
 export const newModalRoutes = {
   chatAddToChannel: {
     getScreen: (): typeof ChatAddToChannelNew =>

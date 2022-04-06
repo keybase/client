@@ -227,7 +227,7 @@ const shimNewRoute = (Original: any, isModal: boolean, _isLoggedOut: boolean) =>
       )
     }
 
-    return body
+    return <React.Suspense fallback={null}>{body}</React.Suspense>
   })
   Container.hoistNonReactStatic(ShimmedNew, Original)
   return ShimmedNew
