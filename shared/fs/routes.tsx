@@ -4,21 +4,20 @@ import type ConfirmDelete from './common/path-item-action/confirm-delete/contain
 import type KextPermission from './banner/system-file-manager-integration-banner/kext-permission-popup-container'
 import type DestinationPicker from './browser/destination-picker/container'
 
-const fsRoot = {getScreen: (): typeof FsRoot => require('./container').default}
-
-export const newRoutes = {fsRoot}
+export const newRoutes = {fsRoot: {getScreen: () => require('./container').default as typeof FsRoot}}
 
 export const newModalRoutes = {
-  barePreview: {getScreen: (): typeof BarePreview => require('./filepreview').BarePreview},
+  barePreview: {getScreen: () => require('./filepreview').BarePreview as typeof BarePreview},
   confirmDelete: {
-    getScreen: (): typeof ConfirmDelete =>
-      require('./common/path-item-action/confirm-delete/container').default,
+    getScreen: () =>
+      require('./common/path-item-action/confirm-delete/container').default as typeof ConfirmDelete,
   },
   destinationPicker: {
-    getScreen: (): typeof DestinationPicker => require('./browser/destination-picker/container').default,
+    getScreen: () => require('./browser/destination-picker/container').default as typeof DestinationPicker,
   },
   kextPermission: {
-    getScreen: (): typeof KextPermission =>
-      require('./banner/system-file-manager-integration-banner/kext-permission-popup-container').default,
+    getScreen: () =>
+      require('./banner/system-file-manager-integration-banner/kext-permission-popup-container')
+        .default as typeof KextPermission,
   },
 }
