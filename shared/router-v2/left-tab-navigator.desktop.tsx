@@ -4,21 +4,22 @@ import * as Kb from '../common-adapters'
 import TabBar from './tab-bar.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 
-type Props = Parameters<typeof useNavigationBuilder>[1]
+type BackBehavior = Parameters<typeof TabRouter>[0]['backBehavior']
+type Props = Parameters<typeof useNavigationBuilder>[1] & {backBehavior: BackBehavior}
 
-const LeftTabNavigator = React.memo(({initialRouteName, children, screenOptions}: Props) => {
+const LeftTabNavigator = React.memo(({backBehavior, initialRouteName, children, screenOptions}: Props) => {
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
+    backBehavior,
     children,
     initialRouteName,
     screenOptions,
   })
 
-  const renderedRef = React.useRef({})
+  const renderedRef = React.useRef<{[key: string]: boolean}>({})
   // render if its been rendered before
   const shouldRender = React.useCallback(
     (key: string, selected: boolean) => {
-      let should = renderedRef.current[key]
-      if (should) {
+      if (renderedRef.current[key]) {
         return true
       }
       if (selected) {
