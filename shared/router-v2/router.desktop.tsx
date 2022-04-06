@@ -11,6 +11,7 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import * as Shim from './shim.desktop'
 import * as Common from './common.desktop'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
+import type {Route} from '../constants/types/route-tree'
 
 export const headerDefaultStyle = Common.headerDefaultStyle
 const Tab = createLeftTabNavigator()
@@ -105,6 +106,12 @@ const LoggedOut = React.memo(() => (
 
 const RootStack = createNoDupeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
+const documentTitle = {
+  formatter: () => {
+    const tabLabel = Tabs.desktopTabMeta[Constants.getCurrentTab() ?? '']?.label ?? ''
+    return `Keybase: ${tabLabel}`
+  },
+}
 const ElectronApp = () => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
   Shared.useSharedAfter(appState)
@@ -116,6 +123,7 @@ const ElectronApp = () => {
       theme={Shared.theme}
       initialState={initialState}
       onStateChange={onStateChange}
+      documentTitle={documentTitle}
     >
       <RootStack.Navigator
         key="root"
