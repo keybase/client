@@ -30,18 +30,6 @@ export type Props = {
   state: any
 }
 
-const data = {
-  [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
-  [Tabs.cryptoTab]: {icon: 'iconfont-nav-2-crypto', label: 'Crypto'},
-  [Tabs.devicesTab]: {icon: 'iconfont-nav-2-devices', label: 'Devices'},
-  [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
-  [Tabs.gitTab]: {icon: 'iconfont-nav-2-git', label: 'Git'},
-  [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
-  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
-  [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
-  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
-} as const
-
 const FilesTabBadge = () => {
   const uploadIcon = FsConstants.getUploadIconForFilesTab(Container.useSelector(state => state.fs.badge))
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.badgeIconUpload} /> : null
@@ -214,7 +202,7 @@ type TabProps = {
 
 const Tab = React.memo((props: TabProps) => {
   const {tab, index, isSelected, onTabClick, badge} = props
-  const {label} = data[tab]
+  const {label} = Tabs.desktopTabMeta[tab]
 
   const dispatch = Container.useDispatch()
 
@@ -290,7 +278,7 @@ const Tab = React.memo((props: TabProps) => {
         >
           <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
           <Kb.Box2 style={styles.iconBox} direction="horizontal">
-            <Kb.Icon className="tab-icon" type={data[tab].icon} sizeType="Big" />
+            <Kb.Icon className="tab-icon" type={Tabs.desktopTabMeta[tab].icon} sizeType="Big" />
             {tab === Tabs.fsTab && <FilesTabBadge />}
           </Kb.Box2>
           <Kb.Text className="tab-label" type="BodySmallSemibold">

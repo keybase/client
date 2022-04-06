@@ -55,6 +55,18 @@ export const tabletTabs = [peopleTab, chatTab, fsTab, teamsTab, walletsTab, sett
 export const settingsTabChildrenPhone = [gitTab, devicesTab, walletsTab, settingsTab] as const
 export const settingsTabChildrenTablet = [gitTab, devicesTab, settingsTab] as const
 
+export const desktopTabMeta = {
+  [chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
+  [cryptoTab]: {icon: 'iconfont-nav-2-crypto', label: 'Crypto'},
+  [devicesTab]: {icon: 'iconfont-nav-2-devices', label: 'Devices'},
+  [fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
+  [gitTab]: {icon: 'iconfont-nav-2-git', label: 'Git'},
+  [peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
+  [settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
+  [teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
+  [walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
+} as const
+
 export function isValidInitialTab(tab: Tab | null) {
   return isValidInitialTabString(tab)
 }
