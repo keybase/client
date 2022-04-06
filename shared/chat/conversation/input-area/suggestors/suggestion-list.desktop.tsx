@@ -1,13 +1,14 @@
 import * as React from 'react'
-import ReactList from 'react-list'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import {Props} from './suggestion-list'
+import type {Props} from './suggestion-list'
+import SafeReactList from '../../../../common-adapters/safe-react-list'
+import type RL from 'react-list'
 import {BotCommandUpdateStatus} from '../normal/shared'
 
 class SuggestionList extends React.Component<Props> {
-  private listRef = React.createRef<ReactList>()
+  private listRef = React.createRef<RL>()
 
   componentDidMount() {
     // hack to get `ReactList` to render more than one item on initial mount
@@ -31,7 +32,7 @@ class SuggestionList extends React.Component<Props> {
         style={Styles.collapseStyles([styles.listContainer, this.props.style])}
       >
         <Kb.ScrollView style={styles.fullHeight}>
-          <ReactList
+          <SafeReactList
             ref={this.listRef}
             itemRenderer={this.itemRenderer}
             length={this.props.items.length}
