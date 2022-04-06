@@ -11,14 +11,18 @@ export const shim = (routes: any, platformWrapper: any, isModal: boolean, isLogg
     map[route] = {
       ...routes[route],
       // only wrap if it uses getScreen originally, else let screen be special (sub navs in desktop)
-      ...(routes[route].getScreen && !routes[route].skipShim
+      ...((routes[route].Screen || routes[route].getScreen) && !routes[route].skipShim
         ? {
             getScreen: () => {
               if (_cached) {
                 return _cached
               }
 
-              _cached = platformWrapper(routes[route].getScreen(), isModal, isLoggedOut)
+              _cached = platformWrapper(
+                routes[route].Screen || routes[route].getScreen(),
+                isModal,
+                isLoggedOut
+              )
               return _cached
             },
           }

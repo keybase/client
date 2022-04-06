@@ -53,7 +53,7 @@ const makeNavScreens = (rs, Screen, _isModal: boolean) => {
         name={name}
         getComponent={rs[name].getScreen}
         options={({route, navigation}) => {
-          const no = rs[name].getScreen().navigationOptions
+          const no = (rs[name].Screen || rs[name].getScreen()).navigationOptions
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}

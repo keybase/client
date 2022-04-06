@@ -1,4 +1,4 @@
-import type ChatConversation from './conversation/container'
+import * as React from 'react'
 import type ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
 import type ChatRoot from './inbox/container'
 import type ChatAddToChannelNew from './conversation/info-panel/add-to-channel/index.new'
@@ -27,7 +27,7 @@ import type ChatPDF from './pdf'
 import * as ChatConstants from '../constants/chat2'
 
 export const newRoutes = {
-  chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
+  chatConversation: {Screen: React.lazy(async () => import('./conversation/container'))},
   chatEnterPaperkey: {
     getScreen: (): typeof ChatEnterPaperkey => require('./conversation/rekey/enter-paper-key').default,
   },

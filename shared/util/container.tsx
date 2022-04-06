@@ -88,10 +88,7 @@ export function useDepChangeEffect(f: () => void, deps: Array<unknown>) {
   }, deps)
 }
 
-export type Route = {
-  getScreen: () => React.ComponentType<any>
-  screen?: React.ComponentType
-}
+export type Route = {getScreen: () => React.ComponentType<any>} | {Screen: React.ExoticComponent}
 export type RouteMap = {[K in string]: Route}
 
 export const assertNever = (_: never) => undefined
