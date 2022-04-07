@@ -1,4 +1,5 @@
 import * as ConfigGen from '../actions/config-gen'
+import * as Styles from '../styles'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as React from 'react'
 import Main from './main.native'
@@ -8,24 +9,22 @@ import {PortalProvider} from '@gorhom/portal'
 import {Provider, useDispatch} from 'react-redux'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
-import {StyleContext} from '../styles'
+import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import debounce from 'lodash/debounce'
 
-let store: ReturnType<typeof configureStore>['store']
+type ConfigureStore = ReturnType<typeof configureStore>
+let _hotCS: ConfigureStore | undefined
 
-module.hot &&
-  module.hot.accept(() => {
-    console.log('accepted update in shared/index.native')
-    store = global.DEBUGStore
-  })
+module.hot?.accept(() => {
+  console.log('accepted update in shared/index.native')
+})
 
 const NativeEventsToRedux = () => {
   const dispatch = useDispatch()
 
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
-      store &&
-        nextAppState !== 'unknown' &&
+      nextAppState !== 'unknown' &&
         nextAppState !== 'extension' &&
         dispatch(ConfigGen.createMobileAppState({nextAppState}))
     })
@@ -42,9 +41,9 @@ const NativeEventsToRedux = () => {
     })
 
     return () => {
-      appStateChangeSub?.remove()
-      darkSub?.remove()
-      linkingSub?.remove()
+      appStateChangeSub.remove()
+      darkSub.remove()
+      linkingSub.remove()
     }
   }, [dispatch])
 
@@ -52,40 +51,54 @@ const NativeEventsToRedux = () => {
 }
 
 const Keybase = () => {
-  const madeStoreRef = React.useRef(false)
+  const storeRef = React.useRef<ConfigureStore>()
 
-  if (!madeStoreRef.current) {
-    madeStoreRef.current = true
-    if (!global.DEBUGLoaded) {
-      global.DEBUGLoaded = true
-      const temp = configureStore()
-      store = temp.store
-      if (__DEV__) {
-        global.DEBUGStore = temp.store
-      }
-      // eslint-disable-next-line
-      const eng = makeEngine(temp.store.dispatch, temp.store.getState)
-      temp.runSagas()
-      eng.sagasAreReady()
-
-      // On mobile there is no installer
-      temp.store.dispatch(ConfigGen.createInstallerRan())
+  const makeStore = () => {
+    if (storeRef.current) {
+      return
     }
+    // we're reloading
+    if (__DEV__ && _hotCS) {
+      storeRef.current = _hotCS
+      return
+    }
+
+    const cs = configureStore()
+    storeRef.current = cs
+    if (__DEV__) {
+      global.DEBUGStore = storeRef.current
+    }
+
+    const eng = makeEngine(cs.store.dispatch, () => cs.store.getState())
+    cs.runSagas()
+    eng.sagasAreReady()
+
+    // On mobile there is no installer
+    cs.store.dispatch(ConfigGen.createInstallerRan())
   }
+  makeStore()
+
+  if (!storeRef.current) return null // never happens
 
   return (
-    <Provider store={store}>
-      <PortalProvider>
-        <SafeAreaProvider>
-          <StyleContext.Provider value={{canFixOverdraw: true}}>
-            <Main />
-          </StyleContext.Provider>
-        </SafeAreaProvider>
-      </PortalProvider>
-      <NativeEventsToRedux />
-    </Provider>
+    <GestureHandlerRootView style={styles.gesture}>
+      <Provider store={storeRef.current.store}>
+        <PortalProvider>
+          <SafeAreaProvider>
+            <Styles.StyleContext.Provider value={{canFixOverdraw: true}}>
+              <Main />
+            </Styles.StyleContext.Provider>
+          </SafeAreaProvider>
+        </PortalProvider>
+        <NativeEventsToRedux />
+      </Provider>
+    </GestureHandlerRootView>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  gesture: {flexGrow: 1},
+}))
 
 function load() {
   AppRegistry.registerComponent('Keybase', () => Keybase)

@@ -91,6 +91,7 @@ const AudioStarter = (props: AudioStarterProps) => {
       </Portal>
       <Kb.TapGestureHandler
         shouldCancelWhenOutside={false}
+        maxDurationMs={Number.MAX_SAFE_INTEGER}
         onHandlerStateChange={({nativeEvent}) => {
           if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
             tapLive.current = true

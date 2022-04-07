@@ -1,4 +1,5 @@
 // React-native tooling assumes this file is here, so we just require our real entry point
+/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access */
 import 'react-native-gesture-handler' // MUST BE FIRST https://github.com/software-mansion/react-native-gesture-handler/issues/320
 import './why-did-you-render'
 import './app/globals.native'
@@ -14,15 +15,13 @@ const NativeEngine = NativeModules.KeybaseEngine
 _setSystemSupported(NativeEngine.darkModeSupported === '1')
 try {
   const obj = JSON.parse(NativeEngine.guiConfig)
-  if (obj && obj.ui) {
-    const dm = obj.ui.darkMode
-    switch (dm) {
-      case 'system': // fallthrough
-      case 'alwaysDark': // fallthrough
-      case 'alwaysLight':
-        _setDarkModePreference(dm)
-        break
-    }
+  const dm = obj?.ui?.darkMode
+  switch (dm) {
+    case 'system': // fallthrough
+    case 'alwaysDark': // fallthrough
+    case 'alwaysLight':
+      _setDarkModePreference(dm)
+      break
   }
 } catch (_) {}
 
