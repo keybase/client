@@ -1,53 +1,44 @@
 import * as React from 'react'
 import LottieView from 'lottie-react-native'
-import ReAnimated, {useSharedValue, useAnimatedProps, withTiming, withRepeat} from 'react-native-reanimated'
 import Box from './box'
-import type {Props} from './animation'
 import {useDepChangeEffect} from '../util/container'
-
-const AnimatedLottieView = ReAnimated.createAnimatedComponent(LottieView)
-
-const getDuration = (o: {ip: number; op: number; fr: number}) => {
-  const {ip, op, fr} = o
-  const duration = ((op - ip) / fr) * 1000
-  return duration
+import type {Props} from './animation'
+type AnimationObject = {
+  v: string
+  fr: number
+  ip: number
+  op: number
+  w: number
+  h: number
+  nm: string
+  ddd: number
+  assets: any[]
+  layers: any[]
 }
+type AOM = {[key: string]: AnimationObject}
 
-const AnimationNew = React.memo((props: Props) => {
+const Animation = React.memo((props: Props) => {
   const {animationType} = props
-  const dataRef = React.useRef<any>()
+  const dataRef = React.useRef<AOM>()
   if (!dataRef.current) {
-    dataRef.current = require('./animation-data.json')
+    dataRef.current = require('./animation-data.json') as AOM
   }
 
-  const source = React.useRef(dataRef.current?.[animationType])
-  const duration = React.useRef(getDuration(source.current))
+  const source = React.useRef<AnimationObject>(dataRef.current[animationType])
   useDepChangeEffect(() => {
     const data = dataRef.current?.[animationType]
+    // never happens
+    if (!data) {
+      return
+    }
     source.current = data
-    duration.current = getDuration(source.current)
   }, [animationType])
-
-  const progress = useSharedValue(0)
-  const animatedProps = useAnimatedProps(() => {
-    return {progress: progress.value}
-  })
-
-  React.useEffect(() => {
-    progress.value = withRepeat(withTiming(1, {duration: duration.current}), -1)
-  }, [progress])
 
   return (
     <Box style={props.containerStyle}>
-      <AnimatedLottieView
-        autoPlay={true}
-        loop={true}
-        source={source.current}
-        animatedProps={animatedProps}
-        style={props.style}
-      />
+      <LottieView autoPlay={true} loop={true} source={source.current} style={props.style} />
     </Box>
   )
 })
 
-export default AnimationNew
+export default Animation
