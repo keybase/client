@@ -498,7 +498,7 @@ func (s *HybridConversationSource) maybeNuke(ctx context.Context, convID chat1.C
 			SendLocalAdminNotification: true,
 			Reason:                     "Got unexpected conversation deleted error. Cleared conv and inbox cache",
 		}); ierr != nil {
-			s.Debug(ctx, "unable to Clear conv: %v", err)
+			s.Debug(ctx, "unable to Clear conv: %v", ierr)
 		}
 		if ierr := s.G().InboxSource.Clear(ctx, uid, nil); ierr != nil {
 			s.Debug(ctx, "unable to Clear inbox: %v", ierr)

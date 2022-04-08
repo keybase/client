@@ -555,9 +555,8 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 	readTopicName := s.topicName(nil)
 	ibox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
-			TopicType:    &topicType,
-			MemberStatus: chat1.AllConversationMemberStatuses(),
-			TopicName:    &readTopicName,
+			TopicType: &topicType,
+			TopicName: &readTopicName,
 		})
 	if err != nil {
 		return res, aliasLookup, err
