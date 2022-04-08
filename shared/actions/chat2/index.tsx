@@ -6,6 +6,7 @@ import * as EngineGen from '../engine-gen-gen'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
+import * as GregorConstants from '../../constants/gregor'
 import * as FsConstants from '../../constants/fs'
 import * as Flow from '../../util/flow'
 import * as NotificationsGen from '../notifications-gen'
@@ -181,7 +182,7 @@ const onGetInboxConvsUnboxed = (
   const {infoMap} = state.users
   const actions: Array<Container.TypedActions> = []
   const {convs} = action.payload.params
-  const inboxUIItems: Array<RPCChatTypes.InboxUIItem> = JSON.parse(convs)
+  const inboxUIItems = JSON.parse(convs) as Array<RPCChatTypes.InboxUIItem>
   const metas: Array<Types.ConversationMeta> = []
   let added = false
   const usernameToFullname: {[username: string]: string} = {}
@@ -2562,6 +2563,10 @@ const navigateToInbox = (
 
 const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   const {conversationIDKey, reason} = action.payload
+  // don't nav if its caused by a nav
+  if (reason === 'navChanged') {
+    return
+  }
   const visible = Router2Constants.getVisibleScreen()
   // @ts-ignore TODO better types
   const visibleConvo = visible?.params?.conversationIDKey
@@ -3365,7 +3370,7 @@ const gregorPushState = (
       (current, i) => {
         try {
           const {category, body} = i.item
-          const secondsString = body.toString()
+          const secondsString = Buffer.from(body).toString()
           const seconds = parseInt(secondsString, 10)
           if (isNaN(seconds)) {
             logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
@@ -3396,7 +3401,7 @@ const gregorPushState = (
         try {
           const teamID = i.item.category.substr(Constants.blockButtonsGregorPrefix.length)
           if (!state.chat2.blockButtonsMap.get(teamID)) {
-            const body: {adder: string} = JSON.parse(i.item.body.toString())
+            const body = GregorConstants.bodyToJSON(i.item.body) as {adder: string}
             const adder = body.adder
             actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
           } else {
