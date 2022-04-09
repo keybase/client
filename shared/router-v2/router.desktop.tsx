@@ -8,6 +8,7 @@ import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import createNoDupeStackNavigator from './stack'
 import {NavigationContainer} from '@react-navigation/native'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
+import type {RouteMap} from '../util/container'
 import * as Shim from './shim.desktop'
 import * as Common from './common.desktop'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
@@ -15,14 +16,26 @@ import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 export const headerDefaultStyle = Common.headerDefaultStyle
 const Tab = createLeftTabNavigator()
 
+const tabRootsVals = Object.values(tabRoots)
+// we don't want the other roots in other stacks
+const routesMinusRoots = (tab: keyof typeof Tabs.desktopTabs) => {
+  const keepVal = tabRoots[tab]
+  return Object.keys(routes).reduce<RouteMap>((m, k) => {
+    if (k === keepVal || !tabRootsVals.includes(k)) {
+      m[k] = routes[k]
+    }
+    return m
+  }, {})
+}
+
 // we must ensure we don't keep remaking these components
 const tabScreensCache = new Map()
-const makeTabStack = (tab: string) => {
+const makeTabStack = (tab: keyof typeof Tabs.desktopTabs) => {
   const S = createNoDupeStackNavigator()
 
   let tabScreens = tabScreensCache.get(tab)
   if (!tabScreens) {
-    tabScreens = makeNavScreens(Shim.shim(routes, false, false), S.Screen, false)
+    tabScreens = makeNavScreens(Shim.shim(routesMinusRoots(tab), false, false), S.Screen, false)
     tabScreensCache.set(tab, tabScreens)
   }
 

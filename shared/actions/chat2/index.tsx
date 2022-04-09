@@ -2585,11 +2585,8 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
 
   // we select the chat tab and change the params
   if (Constants.isSplit) {
-    return [
-      ...tabSwitchAction,
-      ...modalClearAction,
-      RouteTreeGen.createNavUpToScreen({name: Constants.threadRouteName, params: {conversationIDKey}}),
-    ]
+    Router2Constants.navToThread(conversationIDKey)
+    return false
   } else {
     // immediately switch stack to an inbox | thread stack
     if (reason === 'push' || reason === 'savedLastState') {

@@ -2,6 +2,7 @@ import {createNavigationContainerRef, StackActions, CommonActions} from '@react-
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Tabs from '../constants/tabs'
+import * as ChatConstants from '../constants/chat2'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import shallowEqual from 'shallowequal'
@@ -234,25 +235,39 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
     loggedInRoute.state.index = chatTabIdx
 
     const chatStack = loggedInTabs[chatTabIdx]
-    // set inbox + convo
-    chatStack.state = chatStack.state ?? {}
-    chatStack.state.index = 1
-    // key is required or you'll run into issues w/ the nav
-    let convoRoute: any = {
-      key: `chatConversation-${conversationIDKey}`,
-      name: 'chatConversation',
-      params: {conversationIDKey},
-    }
-    // reuse visible route if it's the same
-    const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]
-    if (visible) {
-      if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
-        convoRoute = visible
-      }
-    }
 
-    const chatRoot = chatStack.state.routes?.[0]
-    chatStack.state.routes = [chatRoot, convoRoute]
+    if (ChatConstants.isSplit) {
+      // set inbox + convo
+      chatStack.state = chatStack.state ?? {}
+      chatStack.state.index = 0
+      // key is required or you'll run into issues w/ the nav
+      let chatRoot: any = {
+        key: `chatRoot-${conversationIDKey}`,
+        name: 'chatRoot',
+        params: {conversationIDKey},
+      }
+      chatStack.state.routes = [chatRoot]
+    } else {
+      // set inbox + convo
+      chatStack.state = chatStack.state ?? {}
+      chatStack.state.index = 1
+      // key is required or you'll run into issues w/ the nav
+      let convoRoute: any = {
+        key: `chatConversation-${conversationIDKey}`,
+        name: 'chatConversation',
+        params: {conversationIDKey},
+      }
+      // reuse visible route if it's the same
+      const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]
+      if (visible) {
+        if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
+          convoRoute = visible
+        }
+      }
+
+      const chatRoot = chatStack.state.routes?.[0]
+      chatStack.state.routes = [chatRoot, convoRoute]
+    }
   })
 
   if (!isEqual(rs, nextState)) {
