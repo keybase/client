@@ -2588,8 +2588,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
     return [
       ...tabSwitchAction,
       ...modalClearAction,
-      RouteTreeGen.createSetParams({key: Router2Constants.chatRootKey(), params: {conversationIDKey}}),
-      RouteTreeGen.createNavUpToScreen({name: Constants.threadRouteName}),
+      RouteTreeGen.createNavUpToScreen({name: Constants.threadRouteName, params: {conversationIDKey}}),
     ]
   } else {
     // immediately switch stack to an inbox | thread stack
@@ -3780,11 +3779,7 @@ const maybeChangeChatSelection = (action: RouteTreeGen.OnNavChangedPayload, logg
 
   // going into a chat
   if (isChat && Constants.isValidConversationIDKey(isID)) {
-    return [
-      ...deselectAction,
-      Chat2Gen.createSelectedConversation({conversationIDKey: isID}),
-      Chat2Gen.createNavigateToThread({conversationIDKey: isID, reason: 'navChanged'}),
-    ]
+    return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
   }
   return false
 }

@@ -125,7 +125,10 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
     }
     case RouteTreeGen.switchTab: {
       return [
-        {...CommonActions.navigate({name: action.payload.tab}), target: navigationState.routes[0].state.key},
+        {
+          ...CommonActions.navigate({name: action.payload.tab, params: action.payload.params}),
+          target: navigationState.routes[0].state.key,
+        },
       ]
     }
     case RouteTreeGen.switchLoggedIn: {
@@ -141,11 +144,11 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
     case RouteTreeGen.navUpToScreen: {
-      const {name} = action.payload
+      const {name, params} = action.payload
       // find with matching params
       const path = _getVisiblePathForNavigator(navigationState)
       const p = path.find(p => p.name === name)
-      return [CommonActions.navigate(name, p?.params)]
+      return [CommonActions.navigate(name, params ?? p?.params)]
     }
     case RouteTreeGen.popStack: {
       return [StackActions.popToTop()]
@@ -258,9 +261,11 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
 }
 
 export const chatRootKey = () => {
-  const rs: any = _getNavigator()?.getRootState() ?? {}
-  const chatTabIdx = rs.routes[0]?.state.routes.findIndex(r => r.name === Tabs.chatTab)
-  return rs.routes[0].state.routes[chatTabIdx].state.routes[0].key
+  const rs = _getNavigator()?.getRootState()
+  if (!rs) return
+  const chatTabIdx = rs.routes[0]?.state?.routes.findIndex(r => r.name === Tabs.chatTab)
+  if (!chatTabIdx) return
+  return rs.routes[0]?.state?.routes?.[chatTabIdx]?.state?.routes?.[0]?.key
 }
 
 export const getRouteTab = (route: Array<Route>) => {
