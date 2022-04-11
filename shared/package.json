@@ -183,7 +183,6 @@
         "@types/react-window": "1.8.5",
         "@types/semver": "7.3.9",
         "@types/shallowequal": "1.1.1",
-        "@types/tlds": "1.207.0",
         "@types/unidecode": "0.1.1",
         "@types/url-parse": "1.4.8",
         "@types/webpack-env": "1.16.3",
