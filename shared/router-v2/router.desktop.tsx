@@ -16,9 +16,11 @@ import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 export const headerDefaultStyle = Common.headerDefaultStyle
 const Tab = createLeftTabNavigator()
 
+type DesktopTabs = typeof Tabs.desktopTabs[number]
+
 const tabRootsVals = Object.values(tabRoots)
 // we don't want the other roots in other stacks
-const routesMinusRoots = (tab: keyof typeof Tabs.desktopTabs) => {
+const routesMinusRoots = (tab: DesktopTabs) => {
   const keepVal = tabRoots[tab]
   return Object.keys(routes).reduce<RouteMap>((m, k) => {
     if (k === keepVal || !tabRootsVals.includes(k)) {
@@ -30,7 +32,7 @@ const routesMinusRoots = (tab: keyof typeof Tabs.desktopTabs) => {
 
 // we must ensure we don't keep remaking these components
 const tabScreensCache = new Map()
-const makeTabStack = (tab: keyof typeof Tabs.desktopTabs) => {
+const makeTabStack = (tab: DesktopTabs) => {
   const S = createNoDupeStackNavigator()
 
   let tabScreens = tabScreensCache.get(tab)

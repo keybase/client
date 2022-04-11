@@ -1,38 +1,38 @@
 import * as BotsGen from '../bots-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
+import * as Constants from '../../constants/chat2'
+import * as Container from '../../util/container'
 import * as DeeplinksGen from '../deeplinks-gen'
 import * as EngineGen from '../engine-gen-gen'
-import * as TeamBuildingGen from '../team-building-gen'
-import * as Constants from '../../constants/chat2'
-import * as GregorGen from '../gregor-gen'
-import * as GregorConstants from '../../constants/gregor'
-import * as FsConstants from '../../constants/fs'
 import * as Flow from '../../util/flow'
+import * as FsConstants from '../../constants/fs'
+import * as FsTypes from '../../constants/types/fs'
+import * as GregorConstants from '../../constants/gregor'
+import * as GregorGen from '../gregor-gen'
 import * as NotificationsGen from '../notifications-gen'
+import * as Platform from '../../constants/platform'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
-import * as WalletsGen from '../wallets-gen'
+import * as Router2Constants from '../../constants/router2'
 import * as Saga from '../../util/saga'
-import * as TeamsGen from '../teams-gen'
-import * as Types from '../../constants/types/chat2'
-import * as FsTypes from '../../constants/types/fs'
-import * as TeamsTypes from '../../constants/types/teams'
-import * as WalletTypes from '../../constants/types/wallets'
 import * as Tabs from '../../constants/tabs'
+import * as TeamBuildingGen from '../team-building-gen'
+import * as TeamsConstants from '../../constants/teams'
+import * as TeamsGen from '../teams-gen'
+import * as TeamsTypes from '../../constants/types/teams'
+import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
-import * as Router2Constants from '../../constants/router2'
-import * as Platform from '../../constants/platform'
+import * as WalletTypes from '../../constants/types/wallets'
+import * as WalletsGen from '../wallets-gen'
 import commonTeamBuildingSaga, {filterForNs} from '../team-building'
-import * as TeamsConstants from '../../constants/teams'
+import type {RPCError} from '../../util/errors'
 import {NotifyPopup} from '../../native/notifications'
-import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
-import {privateFolderWithUsers, teamFolder} from '../../constants/config'
-import {RPCError} from '../../util/errors'
-import * as Container from '../../util/container'
 import {isIOS} from '../../constants/platform'
+import {privateFolderWithUsers, teamFolder} from '../../constants/config'
+import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 
 const onConnect = async () => {
   try {
@@ -2578,10 +2578,7 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload) => {
   }
 
   const modalPath = Router2Constants.getModalStack()
-  const curTab = Router2Constants.getCurrentTab()
-
   const modalClearAction = modalPath.length > 0 ? [RouteTreeGen.createClearModals()] : []
-  const tabSwitchAction = curTab !== Tabs.chatTab ? [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})] : []
 
   // we select the chat tab and change the params
   if (Constants.isSplit) {
