@@ -20,7 +20,8 @@
         },
         "navUpToScreen": {
             "_description": "ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.",
-            "name": "string"
+            "name": "string",
+            "params?": "Object"
         },
         "switchLoggedIn": {
             "_description": "ONLY used by the new nav. Switch login stacks",
@@ -28,7 +29,8 @@
         },
         "switchTab": {
             "_description": "ONLY used by the new nav. Switch to a different tab.",
-            "tab": "Tabs.AppTab"
+            "tab": "Tabs.AppTab",
+            "params?": "Object"
         },
         "popStack": {
             "_description": "Reset a stack"

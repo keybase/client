@@ -1,13 +1,13 @@
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as BotsGen from '../actions/bots-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
-import type * as TeamTypes from '../constants/types/teams'
-import type * as TeamBuildingGen from '../actions/team-building-gen'
-import type * as RPCTypes from '../constants/types/rpc-gen'
+import * as TeamTypes from '../constants/types/teams'
 import {editTeambuildingDraft} from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import logger from '../logger'
@@ -15,7 +15,6 @@ import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import {mapGetEnsureValue, mapEqual} from '../util/map'
-import isEqual from 'lodash/isEqual'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -1253,16 +1252,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.loadedUserEmoji]: (draftState, action) => {
     const {results} = action.payload
     const newEmojis: Array<RPCChatTypes.Emoji> = []
-    results.emojis.emojis?.forEach(group => {
+    results.emojis.emojis?.map(group => {
       group.emojis?.forEach(e => newEmojis.push(e))
     })
-    if (!isEqual(newEmojis, draftState.userEmojisForAutocomplete)) {
-      draftState.userEmojisForAutocomplete = newEmojis
-    }
-    const userEmojis = results.emojis?.emojis ?? []
-    if (!isEqual(userEmojis, draftState.userEmojis)) {
-      draftState.userEmojis = userEmojis
-    }
+    draftState.userEmojisForAutocomplete = newEmojis
+    draftState.userEmojis = results.emojis?.emojis ?? []
   },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {

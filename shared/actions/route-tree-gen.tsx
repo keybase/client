@@ -20,7 +20,7 @@ export const tabLongPress = 'route-tree:tabLongPress'
 
 // Payload Types
 type _ClearModalsPayload = undefined
-type _NavUpToScreenPayload = {readonly name: string}
+type _NavUpToScreenPayload = {readonly name: string; readonly params?: Object}
 type _NavigateAppendPayload = {readonly fromKey?: string; readonly path: any; readonly replace?: boolean}
 type _NavigateUpNoopPayload = undefined
 type _NavigateUpPayload = {readonly fromKey?: string}
@@ -32,7 +32,7 @@ type _OnNavChangedPayload = {
 type _PopStackPayload = undefined
 type _SetParamsPayload = {readonly params: Object; readonly key: string}
 type _SwitchLoggedInPayload = {readonly loggedIn: boolean}
-type _SwitchTabPayload = {readonly tab: Tabs.AppTab}
+type _SwitchTabPayload = {readonly tab: Tabs.AppTab; readonly params?: Object}
 type _TabLongPressPayload = {readonly tab: string}
 
 // Action Creators

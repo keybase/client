@@ -1,9 +1,10 @@
 import * as Types from '../types/chat2'
+import * as UserTypes from '../types/users'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as TeamBuildingConstants from '../team-building'
 import clamp from 'lodash/clamp'
-import type {TypedState} from '../reducer'
+import {TypedState} from '../reducer'
 import {isMobile, isTablet} from '../platform'
 import {
   noConversationIDKey,
@@ -16,7 +17,9 @@ import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
+import {memoize} from '../../util/memoize'
 import * as TeamConstants from '../teams'
+import * as TeamTypes from '../types/teams'
 
 export const defaultTopReacjis = [
   {name: ':+1:'},
@@ -241,7 +244,7 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getSelectedConversation = (): Types.ConversationIDKey => {
   const maybeVisibleScreen = Router2.getVisibleScreen()
   if (maybeVisibleScreen?.name === threadRouteName) {
-    // @ts-ignore TODO better types of route params
+    // @ts-ignore TODO better types
     return maybeVisibleScreen.params?.conversationIDKey ?? noConversationIDKey
   }
   return noConversationIDKey
@@ -531,6 +534,35 @@ export const getParticipantInfo = (
 ): Types.ParticipantInfo => {
   const participantInfo = state.chat2.participantMap.get(conversationIDKey)
   return participantInfo ? participantInfo : noParticipantInfo
+}
+
+const _getParticipantSuggestionsMemoized = memoize(
+  (
+    teamMembers: Map<string, TeamTypes.MemberInfo> | undefined,
+    participantInfo: Types.ParticipantInfo,
+    infoMap: Map<string, UserTypes.UserInfo>,
+    teamType: Types.TeamType
+  ) => {
+    const usernames = teamMembers
+      ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
+      : participantInfo.all
+    const suggestions = usernames.map(username => ({
+      fullName: infoMap.get(username)?.fullname || '',
+      username,
+    }))
+    if (teamType !== 'adhoc') {
+      const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
+      suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
+    }
+    return suggestions
+  }
+)
+
+export const getParticipantSuggestions = (state: TypedState, id: Types.ConversationIDKey) => {
+  const {teamID, teamType} = getMeta(state, id)
+  const teamMembers = state.teams.teamIDToMembers.get(teamID)
+  const participantInfo = getParticipantInfo(state, id)
+  return _getParticipantSuggestionsMemoized(teamMembers, participantInfo, state.users.infoMap, teamType)
 }
 
 export const messageAuthorIsBot = (

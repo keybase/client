@@ -2318,13 +2318,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/tlds@1.207.0":
-  version "1.207.0"
-  resolved "https://registry.yarnpkg.com/@types/tlds/-/tlds-1.207.0.tgz#e92d0b6e3d47446bfd454ebef67348441b468882"
-  integrity sha512-BJvPQBTpTxhma0+RmPTybZXQ/+Kgcxo9v7vuxXhxYt7PSl6AIP8ufk5leHOmk0SFoCKjoF4o1eSjezP7j2+Hzg==
-  dependencies:
-    tlds "*"
-
 "@types/unidecode@0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@types/unidecode/-/unidecode-0.1.1.tgz#e403b69809a5ac521294753170f0fa22cdf57b27"
@@ -9597,11 +9590,6 @@ thunky@^1.0.2:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/thunky/-/thunky-1.1.0.tgz#5abaf714a9405db0504732bbccd2cedd9ef9537d"
   integrity sha512-eHY7nBftgThBqOyHGVN+l8gF0BucP09fMo0oO/Lb0w1OF80dJv+lDVpXG60WMQvkcxAkNybKsrEIE3ZtKGmPrA==
-
-tlds@*:
-  version "1.230.0"
-  resolved "https://registry.yarnpkg.com/tlds/-/tlds-1.230.0.tgz#9c836528c4062e565b3b58bfaef83d99e09c113d"
-  integrity sha512-QFuY6JBWZt2bZXlapjqsojul5dv9xfo7Uc8wTUlctJOuF+BS/ICni2f4x7MFiT7muUVmcKC1LvGnU4GWhYO0PQ==
 
 tmpl@1.0.5:
   version "1.0.5"

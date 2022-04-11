@@ -2,6 +2,7 @@ import {createNavigationContainerRef, StackActions, CommonActions} from '@react-
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Tabs from '../constants/tabs'
+import * as ChatConstants from '../constants/chat2'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import shallowEqual from 'shallowequal'
@@ -125,7 +126,10 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
     }
     case RouteTreeGen.switchTab: {
       return [
-        {...CommonActions.navigate({name: action.payload.tab}), target: navigationState.routes[0].state.key},
+        {
+          ...CommonActions.navigate({name: action.payload.tab, params: action.payload.params}),
+          target: navigationState.routes[0].state.key,
+        },
       ]
     }
     case RouteTreeGen.switchLoggedIn: {
@@ -141,11 +145,11 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
     case RouteTreeGen.navUpToScreen: {
-      const {name} = action.payload
+      const {name, params} = action.payload
       // find with matching params
       const path = _getVisiblePathForNavigator(navigationState)
       const p = path.find(p => p.name === name)
-      return [CommonActions.navigate(name, p?.params)]
+      return [CommonActions.navigate(name, params ?? p?.params)]
     }
     case RouteTreeGen.popStack: {
       return [StackActions.popToTop()]
@@ -208,7 +212,7 @@ export const getAppPath = () => {
 }
 
 export const navToThread = (conversationIDKey: ConversationIDKey) => {
-  const rs: any = _getNavigator()?.getRootState()
+  const rs = _getNavigator()?.getRootState()
   // some kind of unknown race, just bail
   if (!rs) {
     console.log('Avoiding trying to nav to thread when missing nav state, bailing')
@@ -218,38 +222,66 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
     console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
     return
   }
-  const nextState: any = Container.produce(rs, draft => {
+
+  const nextState = Container.produce(rs, draft => {
+    const loggedInRoute = draft.routes[0]
+    const loggedInTabs = loggedInRoute?.state?.routes
+    if (!loggedInTabs) {
+      return
+    }
+    const chatTabIdx = loggedInTabs.findIndex(r => r.name === Tabs.chatTab)
+    const chatStack = loggedInTabs[chatTabIdx]
+
+    if (!chatStack) {
+      return
+    }
+
     // select tabs
     draft.index = 0
     // remove modals
     draft.routes.length = 1
 
-    const loggedInRoute = draft.routes[0]
-    const loggedInTabs = loggedInRoute?.state.routes
     // select chat tab
-    const chatTabIdx = loggedInTabs.findIndex(r => r.name === Tabs.chatTab)
-    loggedInRoute.state.index = chatTabIdx
-
-    const chatStack = loggedInTabs[chatTabIdx]
-    // set inbox + convo
-    chatStack.state = chatStack.state ?? {}
-    chatStack.state.index = 1
-    // key is required or you'll run into issues w/ the nav
-    let convoRoute: any = {
-      key: `chatConversation-${conversationIDKey}`,
-      name: 'chatConversation',
-      params: {conversationIDKey},
+    if (loggedInRoute.state) {
+      loggedInRoute.state.index = chatTabIdx
     }
-    // reuse visible route if it's the same
-    const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]
-    if (visible) {
-      if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
-        convoRoute = visible
+
+    if (ChatConstants.isSplit) {
+      // set inbox + convo
+      chatStack.state = chatStack.state ?? {index: 0, routes: []}
+      chatStack.state.index = 0
+
+      let chatRoot = chatStack.state?.routes?.[0]
+      // key is required or you'll run into issues w/ the nav
+      chatRoot = {
+        key: chatRoot?.key || `chatRoot-${conversationIDKey}`,
+        name: 'chatRoot',
+        params: {conversationIDKey},
       }
-    }
+      // @ts-ignore
+      chatStack.state.routes = [chatRoot]
+    } else {
+      // set inbox + convo
+      chatStack.state = chatStack.state ?? {index: 0, routes: []}
+      chatStack.state.index = 1
+      // key is required or you'll run into issues w/ the nav
+      let convoRoute: any = {
+        key: `chatConversation-${conversationIDKey}`,
+        name: 'chatConversation',
+        params: {conversationIDKey},
+      }
+      // reuse visible route if it's the same
+      const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]
+      if (visible) {
+        // @ts-ignore TODO better route types
+        if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
+          convoRoute = visible
+        }
+      }
 
-    const chatRoot = chatStack.state.routes?.[0]
-    chatStack.state.routes = [chatRoot, convoRoute]
+      const chatRoot = chatStack.state.routes?.[0]
+      chatStack.state.routes = [chatRoot, convoRoute]
+    }
   })
 
   if (!isEqual(rs, nextState)) {
@@ -258,9 +290,11 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
 }
 
 export const chatRootKey = () => {
-  const rs: any = _getNavigator()?.getRootState() ?? {}
-  const chatTabIdx = rs.routes[0]?.state.routes.findIndex(r => r.name === Tabs.chatTab)
-  return rs.routes[0].state.routes[chatTabIdx].state.routes[0].key
+  const rs = _getNavigator()?.getRootState()
+  if (!rs) return
+  const chatTabIdx = rs.routes[0]?.state?.routes.findIndex(r => r.name === Tabs.chatTab)
+  if (!chatTabIdx) return
+  return rs.routes[0]?.state?.routes?.[chatTabIdx]?.state?.routes?.[0]?.key
 }
 
 export const getRouteTab = (route: Array<Route>) => {

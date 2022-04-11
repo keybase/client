@@ -32,6 +32,7 @@ const InboxAndConversation = (props: Props) => {
   })
   const navKey = props.route.key
 
+  // only on initial mount, auto select a convo if nothing comes in, including pending
   React.useEffect(() => {
     if (needSelectConvoID) {
       // hack to select the convo after we render, TODO move this elsewhere maybe
@@ -44,7 +45,9 @@ const InboxAndConversation = (props: Props) => {
         )
       }, 1)
     }
-  }, [needSelectConvoID, dispatch])
+    // we only want to run this oncer per mount ever
+    // eslint-disable-next-line
+  }, [])
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
