@@ -212,7 +212,7 @@ export const getAppPath = () => {
 }
 
 export const navToThread = (conversationIDKey: ConversationIDKey) => {
-  const rs: any = _getNavigator()?.getRootState()
+  const rs = _getNavigator()?.getRootState()
   // some kind of unknown race, just bail
   if (!rs) {
     console.log('Avoiding trying to nav to thread when missing nav state, bailing')
@@ -222,34 +222,47 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
     console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
     return
   }
-  const nextState: any = Container.produce(rs, draft => {
+
+  const nextState = Container.produce(rs, draft => {
+    const loggedInRoute = draft.routes[0]
+    const loggedInTabs = loggedInRoute?.state?.routes
+    if (!loggedInTabs) {
+      return
+    }
+    const chatTabIdx = loggedInTabs.findIndex(r => r.name === Tabs.chatTab)
+    const chatStack = loggedInTabs[chatTabIdx]
+
+    if (!chatStack) {
+      return
+    }
+
     // select tabs
     draft.index = 0
     // remove modals
     draft.routes.length = 1
 
-    const loggedInRoute = draft.routes[0]
-    const loggedInTabs = loggedInRoute?.state.routes
     // select chat tab
-    const chatTabIdx = loggedInTabs.findIndex(r => r.name === Tabs.chatTab)
-    loggedInRoute.state.index = chatTabIdx
-
-    const chatStack = loggedInTabs[chatTabIdx]
+    if (loggedInRoute.state) {
+      loggedInRoute.state.index = chatTabIdx
+    }
 
     if (ChatConstants.isSplit) {
       // set inbox + convo
-      chatStack.state = chatStack.state ?? {}
+      chatStack.state = chatStack.state ?? {index: 0, routes: []}
       chatStack.state.index = 0
+
+      let chatRoot = chatStack.state?.routes?.[0]
       // key is required or you'll run into issues w/ the nav
-      let chatRoot: any = {
-        key: `chatRoot-${conversationIDKey}`,
+      chatRoot = {
+        key: chatRoot?.key || `chatRoot-${conversationIDKey}`,
         name: 'chatRoot',
         params: {conversationIDKey},
       }
+      // @ts-ignore
       chatStack.state.routes = [chatRoot]
     } else {
       // set inbox + convo
-      chatStack.state = chatStack.state ?? {}
+      chatStack.state = chatStack.state ?? {index: 0, routes: []}
       chatStack.state.index = 1
       // key is required or you'll run into issues w/ the nav
       let convoRoute: any = {
@@ -260,6 +273,7 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
       // reuse visible route if it's the same
       const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]
       if (visible) {
+        // @ts-ignore TODO better route types
         if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
           convoRoute = visible
         }
