@@ -5,9 +5,9 @@ import * as Constants from '../../../constants/teams'
 import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
 import * as Types from '../../../constants/types/teams'
-import * as ChatTypes from '../../../constants/types/chat2'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import type * as ChatTypes from '../../../constants/types/chat2'
 
 type Props = Container.RouteProps<{
   afterEdit?: () => void
@@ -28,7 +28,7 @@ const EditChannel = (props: Props) => {
   const onFinish = Container.getRouteProps(props, 'afterEdit', undefined)
 
   const [name, _setName] = React.useState(oldName)
-  const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
+  const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_-]/, ''))
 
   const [description, setDescription] = React.useState(oldDescription)
 
