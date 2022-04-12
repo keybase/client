@@ -8,9 +8,7 @@ import type SendToChat from './send-to-chat'
 import type {Routable as ChatChooseEmoji} from './conversation/messages/react-button/emoji-picker/container'
 import type ChatCreateChannel from './create-channel/container'
 import type ChatDeleteHistoryWarning from './delete-history-warning/container'
-import type ChatEditChannel from './manage-channels/edit-channel-container'
 import type ChatInfoPanel from './conversation/info-panel/container'
-import type ChatManageChannels from './manage-channels/container'
 import type ChatNewChat from '../team-building/container'
 import type ChatPaymentsConfirm from './payments/confirm/container'
 import type ChatShowNewTeamDialog from './new-team-dialog-container'
@@ -75,9 +73,6 @@ export const newModalRoutes = {
   chatDeleteHistoryWarning: {
     getScreen: (): typeof ChatDeleteHistoryWarning => require('./delete-history-warning/container').default,
   },
-  chatEditChannel: {
-    getScreen: (): typeof ChatEditChannel => require('./manage-channels/edit-channel-container').default,
-  },
   chatForwardMsgPick: {
     getScreen: (): typeof ChatForwardMsgPick => require('./conversation/fwd-msg/team-picker').default,
   },
@@ -93,9 +88,6 @@ export const newModalRoutes = {
   chatLocationPreview: {
     getScreen: (): typeof ChatLocationPopup =>
       require('./conversation/input-area/normal/location-popup').default,
-  },
-  chatManageChannels: {
-    getScreen: (): typeof ChatManageChannels => require('./manage-channels/container').default,
   },
   chatNewChat: {getScreen: (): typeof ChatNewChat => require('../team-building/container').default},
   chatPDF: {getScreen: (): typeof ChatPDF => require('./pdf').default},

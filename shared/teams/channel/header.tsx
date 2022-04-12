@@ -5,8 +5,8 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
-import {ConversationIDKey, keyToConversationID} from '../../constants/types/chat2'
-import {TeamID} from '../../constants/types/teams'
+import {type ConversationIDKey, keyToConversationID} from '../../constants/types/chat2'
+import type {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import {Activity, useChannelParticipants} from '../common'
 import * as TeamsGen from '../../actions/teams-gen'
@@ -73,7 +73,8 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   )
   const newMemberCount = useRecentJoins(conversationIDKey)
 
-  const callbacks = useHeaderCallbacks(teamID, conversationIDKey)
+  const onChat = () =>
+    dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'channelHeader'}))
 
   const topDescriptors = (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" style={styles.flexShrink}>
@@ -127,7 +128,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           <Activity level={activityLevel} />
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-          {yourOperations.chat && <Kb.Button label="View" onClick={callbacks.onChat} small={true} />}
+          {yourOperations.chat && <Kb.Button label="View" onClick={onChat} small={true} />}
           {yourOperations.editChannelDescription && (
             <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
           )}
@@ -202,22 +203,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   )
 }
 export default HeaderTitle
-
-const nyi = () => console.warn('not yet implemented')
-const useHeaderCallbacks = (_: TeamID, conversationIDKey: ConversationIDKey) => {
-  const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
-
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'channelHeader'}))
-  const onEdit = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({path: [{props: {conversationIDKey}, selected: 'chatEditChannel'}]})
-    )
-  const onAddMembers = nyi
-
-  return {onAddMembers, onChat, onEdit}
-}
 
 const styles = Styles.styleSheetCreate(
   () =>
