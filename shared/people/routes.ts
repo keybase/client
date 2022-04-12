@@ -3,7 +3,10 @@ import type TeamBuilder from '../team-building/container'
 import type AccountSwitcher from '../router-v2/account-switcher/container'
 
 export const newRoutes = {
-  peopleRoot: {getScreen: (): typeof PeopleRoot => require('./container').default},
+  peopleRoot: {
+    getOptions: () => require('./container').options,
+    getScreen: (): typeof PeopleRoot => require('./container').default,
+  },
 }
 
 export const newModalRoutes = {

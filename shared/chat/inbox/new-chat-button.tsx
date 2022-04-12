@@ -4,13 +4,18 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import {appendNewChatBuilder} from '../../actions/typed-routes'
 
-type OwnProps = {
-  hide: boolean
-  onNewChat: () => void
-}
+const HeaderNewChatButton = () => {
+  const hide = Container.useSelector(
+    state =>
+      state.chat2.inboxHasLoaded &&
+      !!state.chat2.inboxLayout &&
+      (state.chat2.inboxLayout.smallTeams || []).length === 0 &&
+      (state.chat2.inboxLayout.bigTeams || []).length === 0
+  )
 
-const _HeaderNewChatButton = (props: OwnProps) => {
-  if (props.hide) {
+  const dispatch = Container.useDispatch()
+  const onNewChat = React.useCallback(() => dispatch(appendNewChatBuilder()), [dispatch])
+  if (hide) {
     return null
   }
   return (
@@ -24,7 +29,7 @@ const _HeaderNewChatButton = (props: OwnProps) => {
       <Kb.Button
         label={'New chat'}
         mode="Primary"
-        onClick={props.onNewChat}
+        onClick={onNewChat}
         small={true}
         style={styles.rainbowButton}
         type="Default"
@@ -32,20 +37,6 @@ const _HeaderNewChatButton = (props: OwnProps) => {
     </Kb.Box>
   )
 }
-
-const HeaderNewChatButton = Container.connect(
-  state => ({
-    hide:
-      state.chat2.inboxHasLoaded &&
-      !!state.chat2.inboxLayout &&
-      (state.chat2.inboxLayout.smallTeams || []).length === 0 &&
-      (state.chat2.inboxLayout.bigTeams || []).length === 0,
-  }),
-  dispatch => ({
-    onNewChat: () => dispatch(appendNewChatBuilder()),
-  }),
-  (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
-)(_HeaderNewChatButton)
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -62,10 +53,6 @@ const styles = Styles.styleSheetCreate(
           borderBottomRightRadius: Styles.borderRadius,
           flex: 1,
         },
-        isAndroid: {
-          borderBottomLeftRadius: Styles.globalMargins.tiny,
-          borderBottomRightRadius: Styles.globalMargins.tiny,
-        },
       }),
       gradientOrange: {backgroundColor: '#FFAC3D', flex: 1},
       gradientRed: Styles.platformStyles({
@@ -74,10 +61,6 @@ const styles = Styles.styleSheetCreate(
           borderTopLeftRadius: Styles.borderRadius,
           borderTopRightRadius: Styles.borderRadius,
           flex: 1,
-        },
-        isAndroid: {
-          borderTopLeftRadius: Styles.globalMargins.tiny,
-          borderTopRightRadius: Styles.globalMargins.tiny,
         },
       }),
       gradientYellow: {backgroundColor: '#FFF75A', flex: 1},
@@ -104,9 +87,6 @@ const styles = Styles.styleSheetCreate(
           marginRight: Styles.globalMargins.small,
           position: 'relative',
           width: 100,
-        },
-        isAndroid: {
-          marginTop: 10,
         },
       }),
     } as const)

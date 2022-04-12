@@ -32,6 +32,10 @@ export const newRoutes = {
     getScreen: (): typeof ChatEnterPaperkey => require('./conversation/rekey/enter-paper-key').default,
   },
   chatRoot: {
+    getOptions: ({navigation, route}) =>
+      ChatConstants.isSplit
+        ? require('./inbox-and-conversation-2').getOptions({navigation, route})
+        : require('./inbox/defer-loading').getOptions({navigation, route}),
     getScreen: (): typeof ChatRoot =>
       ChatConstants.isSplit
         ? require('./inbox-and-conversation-2').default

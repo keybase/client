@@ -4,7 +4,6 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as PeopleGen from '../actions/people-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Types from '../constants/types/people'
 import * as WaitingConstants from '../constants/waiting'
 import {createShowUserProfile} from '../actions/profile-gen'
 import People from '.'
@@ -20,81 +19,61 @@ const HeaderAvatar = () => {
   return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
 }
 
-type Props = {
-  oldItems: Array<Types.PeopleScreenItem>
-  newItems: Array<Types.PeopleScreenItem>
-  wotUpdates: Map<string, Types.WotUpdate>
-  followSuggestions: Array<Types.FollowSuggestion>
-  getData: (markViewed?: boolean, force?: boolean) => void
-  onClickUser: (username: string) => void
-  signupEmail: string
-  myUsername: string
-  waiting: boolean
-}
-
-export class LoadOnMount extends React.PureComponent<Props> {
-  static navigationOptions = {
-    headerLeft: () => <Kb.HeaderLeftBlank />,
-    headerRight: () => <HeaderAvatar />,
-    headerTitle: () => <ProfileSearch />,
-  }
-  _onReload = () => this.props.getData(false, !this.props.followSuggestions.length)
-  _getData = (markViewed?: boolean, force?: boolean) => this.props.getData(markViewed, force)
-  _onClickUser = (username: string) => this.props.onClickUser(username)
-  render() {
-    return (
-      <Kb.Reloadable
-        onReload={this._onReload}
-        reloadOnMount={true}
-        waitingKeys={Constants.getPeopleDataWaitingKey}
-      >
-        <People
-          followSuggestions={this.props.followSuggestions}
-          getData={this._getData}
-          myUsername={this.props.myUsername}
-          newItems={this.props.newItems}
-          oldItems={this.props.oldItems}
-          onClickUser={this._onClickUser}
-          signupEmail={this.props.signupEmail}
-          waiting={this.props.waiting}
-          wotUpdates={this.props.wotUpdates}
-        />
-      </Kb.Reloadable>
-    )
-  }
+export const options = {
+  headerLeft: () => <Kb.HeaderLeftBlank />,
+  headerRight: () => <HeaderAvatar />,
+  headerTitle: () => <ProfileSearch />,
 }
 
 let lastRefresh: number = 0
 const waitToRefresh = 1000 * 60 * 5
 
-export default Container.connect(
-  state => ({
-    followSuggestions: state.people.followSuggestions,
-    myUsername: state.config.username,
-    newItems: state.people.newItems,
-    oldItems: state.people.oldItems,
-    signupEmail: state.signup.justSignedUpEmail,
-    waiting: WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey),
-    wotUpdates: state.people.wotUpdates,
-  }),
-  dispatch => ({
-    getData: (markViewed = true, force = false) => {
+const LoadOnMount = () => {
+  const followSuggestions = Container.useSelector(state => state.people.followSuggestions)
+  const username = Container.useSelector(state => state.config.username)
+  const newItems = Container.useSelector(state => state.people.newItems)
+  const oldItems = Container.useSelector(state => state.people.oldItems)
+  const signupEmail = Container.useSelector(state => state.signup.justSignedUpEmail)
+  const waiting = Container.useSelector(state =>
+    WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey)
+  )
+  const wotUpdates = Container.useSelector(state => state.people.wotUpdates)
+
+  const dispatch = Container.useDispatch()
+  const getData = React.useCallback(
+    (markViewed = true, force = false) => {
       const now = Date.now()
       if (force || !lastRefresh || lastRefresh + waitToRefresh < now) {
         lastRefresh = now
         dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10}))
       }
     },
-    onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
-  }),
-  (stateProps, dispatchProps) => ({
-    ...dispatchProps,
-    followSuggestions: stateProps.followSuggestions,
-    myUsername: stateProps.myUsername,
-    newItems: stateProps.newItems,
-    oldItems: stateProps.oldItems,
-    signupEmail: stateProps.signupEmail,
-    waiting: stateProps.waiting,
-    wotUpdates: stateProps.wotUpdates,
-  })
-)(LoadOnMount)
+    [dispatch]
+  )
+  const onClickUser = React.useCallback(
+    (username: string) => dispatch(createShowUserProfile({username})),
+    [dispatch]
+  )
+
+  const onReload = React.useCallback(
+    () => getData(false, !followSuggestions.length),
+    [getData, followSuggestions.length]
+  )
+
+  return (
+    <Kb.Reloadable onReload={onReload} reloadOnMount={true} waitingKeys={Constants.getPeopleDataWaitingKey}>
+      <People
+        followSuggestions={followSuggestions}
+        getData={getData}
+        myUsername={username}
+        newItems={newItems}
+        oldItems={oldItems}
+        onClickUser={onClickUser}
+        signupEmail={signupEmail}
+        waiting={waiting}
+        wotUpdates={wotUpdates}
+      />
+    </Kb.Reloadable>
+  )
+}
+export default LoadOnMount

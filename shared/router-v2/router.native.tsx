@@ -20,6 +20,12 @@ import {TransitionPresets} from '@react-navigation/stack'
 
 enableFreeze()
 
+if (module.hot) {
+  module.hot.accept('', () => {
+    tabScreensCache.clear()
+  })
+}
+
 const settingsTabChildren = Container.isPhone ? Tabs.settingsTabChildrenPhone : Tabs.settingsTabChildrenTablet
 const tabs = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 const tabToData = {
@@ -39,7 +45,7 @@ const makeNavScreens = (rs, Screen, isModal) => {
         name={name}
         getComponent={rs[name].getScreen}
         options={({route, navigation}) => {
-          const no = rs[name].getScreen().navigationOptions
+          const no = rs[name].getOptions ?? rs[name].getScreen().navigationOptions
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           const skipAnim =
             route.params?.animationEnabled === undefined
