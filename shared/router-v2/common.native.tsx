@@ -5,12 +5,14 @@ import {TabActions} from '@react-navigation/core'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
 import {initialWindowMetrics} from 'react-native-safe-area-context'
 
-const initialSafeHeight = Math.max(0, initialWindowMetrics?.insets?.top ?? 0)
+const initialSafeHeight = Styles.isIOS ? Math.max(0, initialWindowMetrics?.insets?.top ?? 0) : 0
 
 export const headerDefaultStyle = {
   get backgroundColor() {
     return Styles.globalColors.fastBlank
   },
+  borderBottomColor: Styles.globalColors.black_10,
+  borderBottomWidth: Styles.hairlineWidth,
   height: initialSafeHeight + 44,
 }
 
@@ -35,11 +37,17 @@ export const defaultNavigationOptions: any = {
     <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
   ),
   headerLeftContainerStyle: {
+    flexGrow: 0,
+    flexShrink: 0,
+    minWidth: actionWidth,
     paddingLeft: 8,
     width: actionWidth,
     ...(DEBUGCOLORS ? {backgroundColor: 'yellow'} : {}),
   },
   headerRightContainerStyle: {
+    flexGrow: 0,
+    flexShrink: 0,
+    minWidth: actionWidth,
     paddingRight: 8,
     width: actionWidth,
     ...(DEBUGCOLORS ? {backgroundColor: 'orange'} : {}),
@@ -54,6 +62,9 @@ export const defaultNavigationOptions: any = {
     alignItems: 'stretch',
     flexGrow: 1,
     flexShrink: 0,
+    // https://github.com/react-navigation/react-navigation/blob/main/packages/elements/src/Header/Header.tsx#L254
+    // doesn't take into account custom sizes
+    maxWidth: Styles.dimensionWidth - 16 * 2 - actionWidth * 2,
     minHeight: 44,
     ...(DEBUGCOLORS ? {backgroundColor: 'cyan'} : {}),
   },

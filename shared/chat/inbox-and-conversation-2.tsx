@@ -62,7 +62,7 @@ const InboxAndConversation = (props: Props) => {
   )
 }
 
-InboxAndConversation.navigationOptions = ({navigation, route}) => ({
+export const getOptions = ({navigation, route}) => ({
   headerTitle: () => <Header navigation={navigation} route={route} />,
   ...(Styles.isTablet
     ? {

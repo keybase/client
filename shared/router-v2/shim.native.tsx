@@ -10,7 +10,6 @@ export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
 
 const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
-  // Also light/dark aware
   const ShimmedNew = React.memo((props: any) => {
     const navigationOptions =
       typeof Original.navigationOptions === 'function'
@@ -45,10 +44,6 @@ const styles = Styles.styleSheetCreate(
         flexGrow: 1,
         maxHeight: '100%',
         position: 'relative',
-      },
-      perf: {
-        height: '100%',
-        width: '100%',
       },
     } as const)
 )

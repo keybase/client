@@ -14,6 +14,8 @@ import {
 import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
 import typedConnect from './typed-connect'
+import type {Route} from '../constants/types/route-tree'
+import type {NavigationContainerRef} from '@react-navigation/core'
 
 // don't pay for this in prod builds
 if (!__DEV__) {
@@ -88,11 +90,12 @@ export function useDepChangeEffect(f: () => void, deps: Array<unknown>) {
   }, deps)
 }
 
-export type Route = {
+export type RouteDef = {
   getScreen: () => React.ComponentType<any>
+  getOptions?: (p: {navigation: NavigationContainerRef<{}>; route: Route}) => Object
   screen?: React.ComponentType
 }
-export type RouteMap = {[K in string]: Route}
+export type RouteMap = {[K in string]: RouteDef}
 
 export const assertNever = (_: never) => undefined
 

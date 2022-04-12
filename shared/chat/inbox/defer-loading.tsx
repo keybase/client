@@ -12,7 +12,6 @@ const DeferedInner = () => {
 }
 
 const Deferred = React.memo(DeferedInner, () => true)
-// @ts-ignore TS doesn't understand hoisting
-Deferred.navigationOptions = Inbox.navigationOptions
 
 export default Deferred
+export {getOptions} from './container'
