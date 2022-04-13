@@ -7,7 +7,7 @@ import type backgroundrepeatboxType from './background-repeat-box'
 import type badgeType from './badge'
 import type {Banner as bannerType, BannerParagraph as bannerParagraphType} from './banner'
 import type boxgrowType from './box-grow'
-import type boxType from './box'
+import type {default as boxType, Box2 as box2Type} from './box'
 import type buttonbarType from './button-bar'
 import type buttonType from './button'
 import type checkcircleType from './check-circle'
@@ -22,7 +22,11 @@ import type delayedmountingType from './delayed-mounting'
 import type desktopstyleType from './desktop-style'
 import type dividerType from './divider'
 import type draganddropType from './drag-and-drop'
-import type dropdownType from './dropdown'
+import type {
+  default as dropdownType,
+  InlineDropdown as inlineDropdownType,
+  DropdownButton as dropdownButtonType,
+} from './dropdown'
 import type emojiType from './emoji'
 import type errorboundaryType from './error-boundary'
 import type floatingboxType from './floating-box'
@@ -38,8 +42,8 @@ import type {PopupWrapper as headerorpopupType} from './header-or-popup'
 import type {HotKey as hotkeyType, useHotKey as useHotKeyType} from './hot-key'
 import type hoverhocType from './hover-hoc'
 import type {isValidIconType as isValidIconTypeType} from './icon.shared'
-import type {urlsToImgSet as urlsToImgSetType} from './icon'
-import type imageType from './image'
+import type {default as iconType, urlsToImgSet as urlsToImgSetType} from './icon'
+import type {default as imageType, RequireImage as requireImageType} from './image'
 import type infonoteType from './info-note'
 import type inputType from './input'
 import type keyboardavoidingviewType from './keyboard-avoiding-view'
@@ -58,9 +62,12 @@ import type markdownType from './markdown'
 import type {MaybePopup as maybepopupType} from './maybe-popup'
 import type metaType from './meta'
 import type mobilepopupType from './mobile-popup'
-import type {useModalHeaderTitleAndCancel as useModalHeaderTitleAndCancelType} from './modal/index'
+import type {
+  default as modalType,
+  Header as modalHeaderType,
+  useModalHeaderTitleAndCancel as useModalHeaderTitleAndCancelType,
+} from './modal'
 import type modal2Type from './modal2'
-import type {Header as modalHeaderType} from './modal'
 import type multiavatarType from './multi-avatar'
 import type namewithiconcontainerType from './name-with-icon/container'
 import type namewithiconType from './name-with-icon'
@@ -139,7 +146,7 @@ module.exports = {
     return require('./box').default as boxType
   },
   get Box2() {
-    return require('./box').Box2
+    return require('./box').Box2 as box2Type
   },
   get BoxGrow() {
     return require('./box-grow').default as boxgrowType
@@ -204,7 +211,7 @@ module.exports = {
     return require('./dropdown').default as dropdownType<any>
   },
   get DropdownButton() {
-    return require('./dropdown').DropdownButton
+    return require('./dropdown').DropdownButton as typeof dropdownButtonType
   },
   get Emoji() {
     return require('./emoji').default as emojiType
@@ -252,7 +259,7 @@ module.exports = {
     return require('./info-note').default as typeof infonoteType
   },
   get InlineDropdown() {
-    return require('./dropdown').InlineDropdown
+    return require('./dropdown').InlineDropdown as typeof inlineDropdownType
   },
   get Input() {
     return require('./input').default as inputType
@@ -297,7 +304,7 @@ module.exports = {
     return require('./modal2').default as typeof modal2Type
   },
   get ModalHeader() {
-    return require('./modal').Header as modalHeaderType
+    return require('./modal').Header as typeof modalHeaderType
   },
   get MultiAvatar() {
     return require('./multi-avatar').default as multiavatarType
@@ -360,7 +367,7 @@ module.exports = {
     return require('./reload').default as typeof reloadType
   },
   get RequireImage() {
-    return require('./image').RequireImage
+    return require('./image').RequireImage as typeof requireImageType
   },
   get RichButton() {
     return require('./rich-button').default as typeof richbuttonType
