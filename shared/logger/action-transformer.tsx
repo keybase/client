@@ -1,6 +1,5 @@
 // File to map action type to loggable action.
 // We don't want to log every part of the action, just the useful bits.
-
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as PushGen from '../actions/push-gen'
@@ -8,15 +7,18 @@ import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as WaitingGen from '../actions/waiting-gen'
-import {TypedState} from '../constants/reducer'
+import type {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
 
 // If you use nullTransform it'll not be logged at all
 const nullTransform = () => null
+const defaultTransformer = ({type}: TypedActions) => ({type})
+const fullOutput = (a: TypedActions) => a
 
-const defaultTransformer = ({type}) => ({type})
-const fullOutput = a => a
+type ATM = {
+  [Property in keyof TypedActionsMap]?: (a: TypedActionsMap[Property]) => Object | null
+}
 
-const actionTransformMap = {
+const actionTransformMap: ATM = {
   [RouteTreeGen.switchTab]: fullOutput,
   [RouteTreeGen.switchLoggedIn]: fullOutput,
   [RouteTreeGen.navigateAppend]: action => ({
@@ -28,15 +30,14 @@ const actionTransformMap = {
     type: action.type,
   }),
 
-  _loadAvatarHelper: nullTransform,
   [ConfigGen.daemonHandshakeWait]: fullOutput,
   [GregorGen.pushOOBM]: nullTransform,
   [ConfigGen.changedFocus]: nullTransform,
   [EngineGen.chat1NotifyChatChatTypingUpdate]: nullTransform,
 
-  [PushGen.notification]: (a: PushGen.NotificationPayload) => {
+  [PushGen.notification]: a => {
     const {notification} = a.payload
-    // @ts-ignore
+    // @ts-ignore don't try and narrow, if it exists we want it
     const {conversationIDKey, type, userInteraction} = notification
     return {
       payload: {conversationIDKey, type, userInteraction},
@@ -67,7 +68,7 @@ const actionTransformMap = {
     type: a.type,
   }),
   [Chat2Gen.messagesAdd]: a => ({
-    payload: {context: a.context},
+    payload: {context: a.payload.context},
     type: a.type,
   }),
   [Chat2Gen.messagesWereDeleted]: a => ({
@@ -81,9 +82,12 @@ const actionTransformMap = {
   [WaitingGen.clearWaiting]: fullOutput,
 }
 
-const transformActionForLog = (action: any, state: TypedState) =>
-  actionTransformMap[action.type]
-    ? actionTransformMap[action.type](action, state)
-    : defaultTransformer(action)
+const transformActionForLog = (action: TypedActions) => {
+  const custom = actionTransformMap[action.type]
+  if (custom) {
+    return custom(action as any)
+  }
+  return defaultTransformer(action)
+}
 
 export default transformActionForLog

@@ -1,468 +1,351 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import type animationType from './animation'
-import type avatarlineType from './avatar-line'
-import type avatarType from './avatar'
-import type backbuttonType from './back-button'
-import type backgroundrepeatboxType from './background-repeat-box'
-import type badgeType from './badge'
-import type {Banner as bannerType, BannerParagraph as bannerParagraphType} from './banner'
-import type boxgrowType from './box-grow'
-import type {default as boxType, Box2 as box2Type} from './box'
-import type buttonbarType from './button-bar'
-import type buttonType from './button'
-import type checkcircleType from './check-circle'
-import type checkboxType from './checkbox'
-import type choicelistType from './choice-list'
-import type clickableboxType from './clickable-box'
-import type confirmmodalindexType from './confirm-modal/index'
-import type copytextType from './copy-text'
-import type copyabletextType from './copyable-text'
-import type customemojiType from './custom-emoji'
-import type delayedmountingType from './delayed-mounting'
-import type desktopstyleType from './desktop-style'
-import type dividerType from './divider'
-import type draganddropType from './drag-and-drop'
-import type {
-  default as dropdownType,
-  InlineDropdown as inlineDropdownType,
-  DropdownButton as dropdownButtonType,
-} from './dropdown'
-import type emojiType from './emoji'
-import type errorboundaryType from './error-boundary'
-import type floatingboxType from './floating-box'
-import type floatingmenuType from './floating-menu'
-import type floatingpickerType from './floating-picker'
-import type {
-  HeaderHocHeader as headerHocHeaderType,
-  HeaderHocWrapper as headerHocWrapperType,
-  HeaderLeftBlank as headerLeftBlankType,
-  HeaderLeftCancel as headerLeftCancelType,
-} from './header-hoc'
-import type {PopupWrapper as headerorpopupType} from './header-or-popup'
-import type {HotKey as hotkeyType, useHotKey as useHotKeyType} from './hot-key'
-import type hoverhocType from './hover-hoc'
-import type {isValidIconType as isValidIconTypeType} from './icon.shared'
-import type {default as iconType, urlsToImgSet as urlsToImgSetType} from './icon'
-import type {default as imageType, RequireImage as requireImageType} from './image'
-import type infonoteType from './info-note'
-import type inputType from './input'
-import type keyboardavoidingviewType from './keyboard-avoiding-view'
-import type labeledinputType from './labeled-input'
-import type {
-  largeHeight as largeHeightType,
-  smallHeight as smallHeightType,
-  default as listitem2Type,
-} from './list-item2'
-import type listitemType from './list-item'
-import type list2Type from './list2'
-import type listType from './list'
-import type loadinglineType from './loading-line'
-import type {EmojiIfExists as emojiIfExistsType} from './markdown/react'
-import type markdownType from './markdown'
-import type {MaybePopup as maybepopupType} from './maybe-popup'
-import type metaType from './meta'
-import type mobilepopupType from './mobile-popup'
-import type {
-  default as modalType,
-  Header as modalHeaderType,
-  useModalHeaderTitleAndCancel as useModalHeaderTitleAndCancelType,
-} from './modal'
-import type modal2Type from './modal2'
-import type multiavatarType from './multi-avatar'
-import type namewithiconcontainerType from './name-with-icon/container'
-import type namewithiconType from './name-with-icon'
-import type newinputType from './new-input'
-import type orientedimageType from './oriented-image'
-import type overlayparenthocType from './overlay/parent-hoc'
-import type overlayType from './overlay'
-import type phoneinputType from './phone-input'
-import type placeholderType from './placeholder'
-import type plaininputType from './plain-input'
-import type platformiconType from './platform-icon'
-import type popupdialoghocType from './popup-dialog-hoc'
-import type popupdialogType from './popup-dialog'
-import type popupheadertextType from './popup-header-text'
-import type profilecardType from './profile-card'
-import type progressbarType from './progress-bar'
-import type progressindicatorType from './progress-indicator'
-import type proofbrokenbannerType from './proof-broken-banner'
-import type radiobuttonType from './radio-button'
-import type reloadType from './reload'
-import type richbuttonType from './rich-button'
-import type roundedboxType from './rounded-box'
-import type {
-  default as safeareaviewType,
-  useSafeAreaInsets as useSafeAreaInsetsType,
-  SafeAreaViewTop as safeAreaViewTopType,
-} from './safe-area-view'
-import type saveindicatorType from './save-indicator'
-import type scrollviewType from './scroll-view'
-import type searchfilterType from './search-filter'
-import type sectiondividerType from './section-divider'
-import type sectionlistType from './section-list'
-import type simpletoastType from './simple-toast'
-import type switchType from './switch'
-import type tabsType from './tabs'
-import type teamwithpopupcontainerType from './team-with-popup/container'
-import type textType from './text'
-import type timelinemarkerType from './timeline-marker'
-import type toastType from './toast'
-import type usemountedType from './use-mounted'
-import type {usePopup as usepopupType} from './use-popup'
-import type {useTimeout as useTimeoutType, useInterval as useIntervalType} from './use-timers'
-import type usernamesType from './usernames'
-import type videoType from './video'
-import type waitingbuttonType from './waiting-button'
-import type wavebuttonType from './wave-button'
-import type webviewType from './web-view'
-import type withtooltipType from './with-tooltip'
-
+// @ts-ignore
+/* eslint-disable */
 module.exports = {
   get Animation() {
-    return require('./animation').default as animationType
+    return require('./animation').default
   },
   get Avatar() {
-    return require('./avatar').default as typeof avatarType
+    return require('./avatar').default
   },
   get AvatarLine() {
-    return require('./avatar-line').default as typeof avatarlineType
+    return require('./avatar-line').default
   },
   get BackButton() {
-    return require('./back-button').default as backbuttonType
+    return require('./back-button').default
   },
   get BackgroundRepeatBox() {
-    return require('./background-repeat-box').default as backgroundrepeatboxType
+    return require('./background-repeat-box').default
   },
   get Badge() {
-    return require('./badge').default as badgeType
+    return require('./badge').default
   },
   get Banner() {
-    return require('./banner').Banner as typeof bannerType
+    return require('./banner').Banner
   },
   get BannerParagraph() {
-    return require('./banner').BannerParagraph as typeof bannerParagraphType
+    return require('./banner').BannerParagraph
   },
   get Box() {
-    return require('./box').default as boxType
+    return require('./box').default
   },
   get Box2() {
-    return require('./box').Box2 as box2Type
+    return require('./box').Box2
   },
   get BoxGrow() {
-    return require('./box-grow').default as boxgrowType
+    return require('./box-grow').default
   },
   get Button() {
-    return require('./button').default as typeof buttonType
+    return require('./button').default
   },
   get ButtonBar() {
-    return require('./button-bar').default as buttonbarType
+    return require('./button-bar').default
   },
   get CheckCircle() {
-    return require('./check-circle').default as typeof checkcircleType
+    return require('./check-circle').default
   },
   get Checkbox() {
-    return require('./checkbox').default as checkboxType
+    return require('./checkbox').default
   },
   get ChoiceList() {
-    return require('./choice-list').default as choicelistType
+    return require('./choice-list').default
   },
   get ClickableBox() {
-    return require('./clickable-box').default as clickableboxType
+    return require('./clickable-box').default
   },
   get ConfirmModal() {
-    return require('./confirm-modal/index').default as typeof confirmmodalindexType
+    return require('./confirm-modal/index').default
   },
   get ConnectedNameWithIcon() {
     // explicitly require this to make popup work if it's not been imported
     // explicitly
-    require('./profile-card').default as typeof profilecardType
+    require('./profile-card').default
 
-    return require('./name-with-icon/container').default as typeof namewithiconcontainerType
+    return require('./name-with-icon/container').default
   },
   get ConnectedUsernames() {
     // explicitly require this to make popup work if it's not been imported
     // explicitly
-    require('./profile-card').default as typeof profilecardType
+    require('./profile-card').default
 
-    return require('./usernames').default as typeof usernamesType
+    return require('./usernames').default
   },
   get CopyText() {
-    return require('./copy-text').default as typeof copytextType
+    return require('./copy-text').default
   },
   get CopyableText() {
-    return require('./copyable-text').default as copyabletextType
+    return require('./copyable-text').default
   },
   get CustomEmoji() {
-    return require('./custom-emoji').default as customemojiType
+    return require('./custom-emoji').default
   },
   get DelayedMounting() {
-    return require('./delayed-mounting').default as typeof delayedmountingType
+    return require('./delayed-mounting').default
   },
   get DesktopStyle() {
-    return require('./desktop-style').default as typeof desktopstyleType
+    return require('./desktop-style').default
   },
   get Divider() {
-    return require('./divider').default as typeof dividerType
+    return require('./divider').default
   },
   get DragAndDrop() {
-    return require('./drag-and-drop').default as draganddropType
+    return require('./drag-and-drop').default
   },
   get Dropdown() {
-    return require('./dropdown').default as dropdownType<any>
+    return require('./dropdown').default
   },
   get DropdownButton() {
-    return require('./dropdown').DropdownButton as typeof dropdownButtonType
+    return require('./dropdown').DropdownButton
   },
   get Emoji() {
-    return require('./emoji').default as emojiType
+    return require('./emoji').default
   },
   get EmojiIfExists() {
-    return require('./markdown/react').EmojiIfExists as typeof emojiIfExistsType
+    return require('./markdown/react').EmojiIfExists
   },
   get ErrorBoundary() {
-    return require('./error-boundary').default as errorboundaryType
+    return require('./error-boundary').default
   },
   get FloatingBox() {
-    return require('./floating-box').default as floatingboxType
+    return require('./floating-box').default
   },
   get FloatingMenu() {
-    return require('./floating-menu').default as typeof floatingmenuType
+    return require('./floating-menu').default
   },
   get FloatingPicker() {
-    return require('./floating-picker').default as floatingpickerType<any>
+    return require('./floating-picker').default
   },
   get HeaderHocHeader() {
-    return require('./header-hoc').HeaderHocHeader as headerHocHeaderType
+    return require('./header-hoc').HeaderHocHeader
   },
   get HeaderHocWrapper() {
-    return require('./header-hoc').HeaderHocWrapper as headerHocWrapperType
+    return require('./header-hoc').HeaderHocWrapper
   },
   get HeaderLeftBlank() {
-    return require('./header-hoc').HeaderLeftBlank as headerLeftBlankType
+    return require('./header-hoc').HeaderLeftBlank
   },
   get HeaderLeftCancel() {
-    return require('./header-hoc').HeaderLeftCancel as headerLeftCancelType
+    return require('./header-hoc').HeaderLeftCancel
   },
   get HotKey() {
-    return require('./hot-key').HotKey as typeof hotkeyType
+    return require('./hot-key').HotKey
   },
   get HoverHoc() {
-    return require('./hover-hoc').default as typeof hoverhocType
+    return require('./hover-hoc').default
   },
   get Icon() {
-    return require('./icon').default as iconType
+    return require('./icon').default
   },
   get Image() {
-    return require('./image').default as imageType
+    return require('./image').default
   },
   get InfoNote() {
-    return require('./info-note').default as typeof infonoteType
+    return require('./info-note').default
   },
   get InlineDropdown() {
-    return require('./dropdown').InlineDropdown as typeof inlineDropdownType
+    return require('./dropdown').InlineDropdown
   },
   get Input() {
-    return require('./input').default as inputType
+    return require('./input').default
   },
   get KeyboardAvoidingView() {
-    return require('./keyboard-avoiding-view').default as keyboardavoidingviewType
+    return require('./keyboard-avoiding-view').default
   },
   get LabeledInput() {
-    return require('./labeled-input').default as typeof labeledinputType
+    return require('./labeled-input').default
   },
   get List() {
-    return require('./list').default as listType<any>
+    return require('./list').default
   },
   get List2() {
-    return require('./list2').default as list2Type<any>
+    return require('./list2').default
   },
   get ListItem() {
-    return require('./list-item').default as listitemType
+    return require('./list-item').default
   },
   get ListItem2() {
-    return require('./list-item2').default as typeof listitem2Type
+    return require('./list-item2').default
   },
   get LoadingLine() {
-    return require('./loading-line').default as loadinglineType
+    return require('./loading-line').default
   },
   get Markdown() {
-    return require('./markdown').default as markdownType
+    return require('./markdown').default
   },
   get MaybePopup() {
-    return require('./maybe-popup').MaybePopup as typeof maybepopupType
+    return require('./maybe-popup').MaybePopup
   },
   get Meta() {
-    return require('./meta').default as typeof metaType
+    return require('./meta').default
   },
   get MobilePopup() {
-    return require('./mobile-popup').default as typeof mobilepopupType
+    return require('./mobile-popup').default
   },
   get Modal() {
-    return require('./modal').default as typeof modalType
+    return require('./modal').default
   },
   get Modal2() {
-    return require('./modal2').default as typeof modal2Type
+    return require('./modal2').default
   },
   get ModalHeader() {
-    return require('./modal').Header as typeof modalHeaderType
+    return require('./modal').Header
   },
   get MultiAvatar() {
-    return require('./multi-avatar').default as multiavatarType
+    return require('./multi-avatar').default
   },
   get NameWithIcon() {
-    return require('./name-with-icon').default as typeof namewithiconType
+    return require('./name-with-icon').default
   },
   get NewInput() {
-    return require('./new-input').default as typeof newinputType
+    return require('./new-input').default
   },
   get OrientedImage() {
-    return require('./oriented-image').default as orientedimageType
+    return require('./oriented-image').default
   },
   get Overlay() {
-    return require('./overlay').default as overlayType
+    return require('./overlay').default
   },
   get OverlayParentHOC() {
-    return require('./overlay/parent-hoc').default as typeof overlayparenthocType
+    return require('./overlay/parent-hoc').default
   },
   get PhoneInput() {
-    return require('./phone-input').default as typeof phoneinputType
+    return require('./phone-input').default
   },
   get Placeholder() {
-    return require('./placeholder').default as typeof placeholderType
+    return require('./placeholder').default
   },
   get PlainInput() {
-    return require('./plain-input').default as plaininputType
+    return require('./plain-input').default
   },
   get PlatformIcon() {
-    return require('./platform-icon').default as typeof platformiconType
+    return require('./platform-icon').default
   },
   get PopupDialog() {
-    return require('./popup-dialog').default as popupdialogType
+    return require('./popup-dialog').default
   },
   get PopupDialogHoc() {
-    return require('./popup-dialog-hoc').default as typeof popupdialoghocType
+    return require('./popup-dialog-hoc').default
   },
   get PopupHeaderText() {
-    return require('./popup-header-text').default as typeof popupheadertextType
+    return require('./popup-header-text').default
   },
   get PopupWrapper() {
-    return require('./header-or-popup').PopupWrapper as typeof headerorpopupType
+    return require('./header-or-popup').PopupWrapper
   },
   get ProfileCard() {
-    return require('./profile-card').default as typeof profilecardType
+    return require('./profile-card').default
   },
   get ProgressBar() {
-    return require('./progress-bar').default as typeof progressbarType
+    return require('./progress-bar').default
   },
   get ProgressIndicator() {
-    return require('./progress-indicator').default as progressindicatorType
+    return require('./progress-indicator').default
   },
   get ProofBrokenBanner() {
-    return require('./proof-broken-banner').default as typeof proofbrokenbannerType
+    return require('./proof-broken-banner').default
   },
   get RadioButton() {
-    return require('./radio-button').default as radiobuttonType
+    return require('./radio-button').default
   },
   get Reloadable() {
-    return require('./reload').default as typeof reloadType
+    return require('./reload').default
   },
   get RequireImage() {
-    return require('./image').RequireImage as typeof requireImageType
+    return require('./image').RequireImage
   },
   get RichButton() {
-    return require('./rich-button').default as typeof richbuttonType
+    return require('./rich-button').default
   },
   get RoundedBox() {
-    return require('./rounded-box').default as typeof roundedboxType
+    return require('./rounded-box').default
   },
   get SafeAreaView() {
-    return require('./safe-area-view').default as safeareaviewType
+    return require('./safe-area-view').default
   },
   get SafeAreaViewTop() {
-    return require('./safe-area-view').SafeAreaViewTop as typeof safeAreaViewTopType
+    return require('./safe-area-view').SafeAreaViewTop
   },
   get SaveIndicator() {
-    return require('./save-indicator').default as saveindicatorType
+    return require('./save-indicator').default
   },
   get ScrollView() {
-    return require('./scroll-view').default as scrollviewType
+    return require('./scroll-view').default
   },
   get SearchFilter() {
-    return require('./search-filter').default as searchfilterType
+    return require('./search-filter').default
   },
   get SectionDivider() {
-    return require('./section-divider').default as typeof sectiondividerType
+    return require('./section-divider').default
   },
   get SectionList() {
-    return require('./section-list').default as typeof sectionlistType
+    return require('./section-list').default
   },
   get SimpleToast() {
-    return require('./simple-toast').default as typeof simpletoastType
+    return require('./simple-toast').default
   },
   get Switch() {
-    return require('./switch').default as typeof switchType
+    return require('./switch').default
   },
   get Tabs() {
-    return require('./tabs').default as typeof tabsType
+    return require('./tabs').default
   },
   get TeamWithPopup() {
-    return require('./team-with-popup/container').default as typeof teamwithpopupcontainerType
+    return require('./team-with-popup/container').default
   },
   get Text() {
-    return require('./text').default as textType
+    return require('./text').default
   },
   get TimelineMarker() {
-    return require('./timeline-marker').default as typeof timelinemarkerType
+    return require('./timeline-marker').default
   },
   get Toast() {
-    return require('./toast').default as toastType
+    return require('./toast').default
   },
   get Video() {
-    return require('./video').default as videoType
+    return require('./video').default
   },
   get WaitingButton() {
-    return require('./waiting-button').default as typeof waitingbuttonType
+    return require('./waiting-button').default
   },
   get WaveButton() {
-    return require('./wave-button').default as typeof wavebuttonType
+    return require('./wave-button').default
   },
   get WebView() {
-    return require('./web-view').default as typeof webviewType
+    return require('./web-view').default
   },
   get WithTooltip() {
-    return require('./with-tooltip').default as withtooltipType
+    return require('./with-tooltip').default
   },
   get isValidIconType() {
-    return require('./icon.shared').isValidIconType as typeof isValidIconTypeType
+    return require('./icon.shared').isValidIconType
   },
   get largeListItem2Height() {
-    return require('./list-item2').largeHeight as typeof largeHeightType
+    return require('./list-item2').largeHeight
   },
   get smallListItem2Height() {
-    return require('./list-item2').smallHeight as typeof smallHeightType
+    return require('./list-item2').smallHeight
   },
   get urlsToImgSet() {
-    return require('./icon').urlsToImgSet as typeof urlsToImgSetType
+    return require('./icon').urlsToImgSet
   },
   get useHotKey() {
-    return require('./hot-key').useHotKey as typeof useHotKeyType
+    return require('./hot-key').useHotKey
   },
   get useInterval() {
-    return require('./use-timers').useInterval as typeof useIntervalType
+    return require('./use-timers').useInterval
   },
   get useModalHeaderTitleAndCancel() {
-    return require('./modal/index').useModalHeaderTitleAndCancel as typeof useModalHeaderTitleAndCancelType
+    return require('./modal/index').useModalHeaderTitleAndCancel
   },
   get useMounted() {
-    return require('./use-mounted').default as typeof usemountedType
+    return require('./use-mounted').default
   },
   get usePopup() {
-    return require('./use-popup').usePopup as typeof usepopupType
+    return require('./use-popup').usePopup
   },
   get useSafeAreaInsets() {
-    return require('./safe-area-view').useSafeAreaInsets as typeof useSafeAreaInsetsType
+    return require('./safe-area-view').useSafeAreaInsets
   },
   get useTimeout() {
-    return require('./use-timers').useTimeout as typeof useTimeoutType
+    return require('./use-timers').useTimeout
   },
 }

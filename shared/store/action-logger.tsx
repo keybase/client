@@ -1,9 +1,10 @@
 import transformActionForLog from '../logger/action-transformer'
 import logger from '../logger'
+import type {TypedDispatch, TypedActions} from 'util/container'
 
-export const actionLogger = (store: any) => (next: any) => (action: any) => {
+export const actionLogger = () => (next: TypedDispatch) => (action: TypedActions) => {
   try {
-    const output = transformActionForLog(action, store.getState())
+    const output = transformActionForLog(action)
     if (output) {
       const log1 = [`type: ${action.type}: `, output]
       logger.action(...log1)
