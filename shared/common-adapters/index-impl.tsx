@@ -35,10 +35,10 @@ import type {
   HeaderLeftCancel as headerLeftCancelType,
 } from './header-hoc'
 import type {PopupWrapper as headerorpopupType} from './header-or-popup'
-import type {HotKey as hotkeyType} from './hot-key'
+import type {HotKey as hotkeyType, useHotKey as useHotKeyType} from './hot-key'
 import type hoverhocType from './hover-hoc'
 import type {isValidIconType as isValidIconTypeType} from './icon.shared'
-import type iconType from './icon'
+import type {urlsToImgSet as urlsToImgSetType} from './icon'
 import type imageType from './image'
 import type infonoteType from './info-note'
 import type inputType from './input'
@@ -58,7 +58,7 @@ import type markdownType from './markdown'
 import type {MaybePopup as maybepopupType} from './maybe-popup'
 import type metaType from './meta'
 import type mobilepopupType from './mobile-popup'
-import type modalindexType from './modal/index'
+import type {useModalHeaderTitleAndCancel as useModalHeaderTitleAndCancelType} from './modal/index'
 import type modal2Type from './modal2'
 import type {Header as modalHeaderType} from './modal'
 import type multiavatarType from './multi-avatar'
@@ -83,7 +83,11 @@ import type radiobuttonType from './radio-button'
 import type reloadType from './reload'
 import type richbuttonType from './rich-button'
 import type roundedboxType from './rounded-box'
-import type safeareaviewType from './safe-area-view'
+import type {
+  default as safeareaviewType,
+  useSafeAreaInsets as useSafeAreaInsetsType,
+  SafeAreaViewTop as safeAreaViewTopType,
+} from './safe-area-view'
 import type saveindicatorType from './save-indicator'
 import type scrollviewType from './scroll-view'
 import type searchfilterType from './search-filter'
@@ -98,7 +102,7 @@ import type timelinemarkerType from './timeline-marker'
 import type toastType from './toast'
 import type usemountedType from './use-mounted'
 import type {usePopup as usepopupType} from './use-popup'
-import type {useTimers as usetimersType} from './use-timers'
+import type {useTimeout as useTimeoutType, useInterval as useIntervalType} from './use-timers'
 import type usernamesType from './usernames'
 import type videoType from './video'
 import type waitingbuttonType from './waiting-button'
@@ -368,7 +372,7 @@ module.exports = {
     return require('./safe-area-view').default as safeareaviewType
   },
   get SafeAreaViewTop() {
-    return require('./safe-area-view').SafeAreaViewTop
+    return require('./safe-area-view').SafeAreaViewTop as typeof safeAreaViewTopType
   },
   get SaveIndicator() {
     return require('./save-indicator').default as saveindicatorType
@@ -431,27 +435,27 @@ module.exports = {
     return require('./list-item2').smallHeight as typeof smallHeightType
   },
   get urlsToImgSet() {
-    return require('./icon').urlsToImgSet
+    return require('./icon').urlsToImgSet as typeof urlsToImgSetType
   },
   get useHotKey() {
-    return require('./hot-key').useHotKey
+    return require('./hot-key').useHotKey as typeof useHotKeyType
   },
   get useInterval() {
-    return require('./use-timers').useInterval
+    return require('./use-timers').useInterval as typeof useIntervalType
   },
   get useModalHeaderTitleAndCancel() {
-    return require('./modal/index').useModalHeaderTitleAndCancel
+    return require('./modal/index').useModalHeaderTitleAndCancel as typeof useModalHeaderTitleAndCancelType
   },
   get useMounted() {
     return require('./use-mounted').default as typeof usemountedType
   },
   get usePopup() {
-    return require('./use-popup').usePopup
+    return require('./use-popup').usePopup as typeof usepopupType
   },
   get useSafeAreaInsets() {
-    return require('./safe-area-view').useSafeAreaInsets
+    return require('./safe-area-view').useSafeAreaInsets as typeof useSafeAreaInsetsType
   },
   get useTimeout() {
-    return require('./use-timers').useTimeout
+    return require('./use-timers').useTimeout as typeof useTimeoutType
   },
 }
