@@ -9,7 +9,10 @@ export type Props = {
   conversationIDKey: Types.ConversationIDKey
   copyToClipboard: (arg0: string) => void
   editingOrdinal?: Types.Ordinal
+  lastMessageID: number
   lastMessageIsOurs: boolean
+  lastUnreadMessageID: number
+  loadLastUnreadMessage: (ordinal?: Types.Ordinal | null) => void
   loadNewerMessages: (ordinal?: Types.Ordinal | null) => void
   loadOlderMessages: (ordinal?: Types.Ordinal | null) => void
   markInitiallyLoadedThreadAsRead: () => void
