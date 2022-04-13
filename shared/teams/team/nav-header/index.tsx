@@ -139,6 +139,8 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           ...Styles.desktopStyles.windowDraggingClickable,
           alignSelf: 'flex-end',
+          display: 'flex',
+          flexWrap: 'wrap',
           paddingRight: Styles.globalMargins.tiny,
         },
       }),
