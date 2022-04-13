@@ -1,9 +1,10 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import Header from './header/index.desktop'
 import * as Kb from '../common-adapters'
+import Header from './header/index.desktop'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
 import {TabActions} from '@react-navigation/core'
+import type {useSubnavTabAction as useSubnavTabActionType} from './common'
 
 export const headerDefaultStyle = {
   height: 80,
@@ -14,7 +15,7 @@ export const tabBarStyle = {
   },
 }
 const actionWidth = 64
-export const defaultNavigationOptions: any = {
+export const defaultNavigationOptions = {
   header: (p: any) => <Header {...p} />,
   headerBackTitle: 'temp',
   headerBackVisible: true,
@@ -25,7 +26,7 @@ export const defaultNavigationOptions: any = {
   },
   headerRightContainerStyle: {paddingRight: 8},
   headerStyle: headerDefaultStyle,
-  headerTitle: (hp: any) => (
+  headerTitle: (hp: {children: React.ReactNode}) => (
     <Kb.Text type="Header" style={styles.headerTitle} lineClamp={1} center={true}>
       {hp.children}
     </Kb.Text>
@@ -44,14 +45,16 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export const useSubnavTabAction = (navigation, state) =>
+export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, state) =>
   React.useCallback(
     (tab: string) => {
-      const route = state.routes.find(r => r.name === tab)
-      const event = route
+      // @ts-ignore
+      const route = state?.routes?.find(r => r.name === tab)
+      const event: any = route
         ? navigation.emit({
             canPreventDefault: true,
-            target: route.key,
+            target: route?.key,
+            // @ts-ignore
             type: 'tabPress',
           })
         : {}
@@ -59,7 +62,7 @@ export const useSubnavTabAction = (navigation, state) =>
       if (!event.defaultPrevented) {
         navigation.dispatch({
           ...TabActions.jumpTo(tab),
-          target: state.key,
+          target: state?.key,
         })
       }
     },

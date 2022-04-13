@@ -16,4 +16,7 @@ export const defaultNavigationOptions: {
   headerTitleContainerStyle?: Styles.StylesCrossPlatform
 }
 
-export function useSubnavTabAction(navigation: NavigationContainerRef<{}>, state: NavState): () => void
+export function useSubnavTabAction(
+  navigation: NavigationContainerRef<{}>,
+  state: NavState
+): (t: string) => void
