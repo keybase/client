@@ -1,3 +1,4 @@
+import type * as Styles from '../../../../../styles'
 export type Props = {
   onLoad: () => void
   onLoadedVideo: () => void
@@ -5,7 +6,7 @@ export type Props = {
   height: number
   width: number
   videoSrc: string
-  style: Object
+  style: Styles.StylesCrossPlatform
   loaded: boolean
   inlineVideoPlayable: boolean
 }

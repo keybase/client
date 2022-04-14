@@ -25,6 +25,7 @@ class Modal extends React.Component<{
 
   componentDidMount() {
     const modalRoot = getModalRoot()
+    // TODO defer this else it mutates the dom constantly
     modalRoot && modalRoot.appendChild(this.el)
     const firstChild = this.el.firstChild
     if (firstChild instanceof HTMLElement) {

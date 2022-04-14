@@ -1,3 +1,5 @@
+// @ts-ignore
+/* eslint-disable */
 module.exports = {
   get Animation() {
     return require('./animation').default
