@@ -81,10 +81,11 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
     std::copy(ptr, ptr + size, abbuf.data(runtime));
 
     // Wrap in Buffer like framed-msg-pack
-    Object bufObj =
-        runtime.global().getPropertyAsObject(runtime, "Buffer");
+    Object bufObj = runtime.global().getPropertyAsObject(runtime, "Buffer");
     Function bufFrom = bufObj.getPropertyAsFunction(runtime, "from");
-    Value buf = bufFrom.callWithThis(runtime, bufObj, std::move(ab)); // Buffer shares the memory and just wraps
+    Value buf = bufFrom.callWithThis(
+        runtime, bufObj,
+        std::move(ab)); // Buffer shares the memory and just wraps
     return buf;
   }
   case msgpack::type::ARRAY: {
@@ -132,7 +133,8 @@ ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
   }
 }
 
-void RpcOnJS(Runtime &runtime, ShareValues values) {
+void RpcOnJS(Runtime &runtime, ShareValues values,
+             void (*err_callback)(const std::string &err)) {
   try {
     Function rpcOnJs =
         runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
@@ -142,8 +144,10 @@ void RpcOnJS(Runtime &runtime, ShareValues values) {
       rpcOnJs.call(runtime, move(value), 1);
     }
   } catch (const std::exception &e) {
+    err_callback(e.what());
     throw new std::runtime_error("Error in RpcOnJS: " + string(e.what()));
   } catch (...) {
+    err_callback("unknown error");
     throw new std::runtime_error("Unknown error in RpcOnJS");
   }
 }

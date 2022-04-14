@@ -138,5 +138,16 @@ Java_io_keybase_ossifrage_modules_GoJSIBridge_nativeEmit(
   auto payloadBytes =
       reinterpret_cast<uint8_t *>(env->GetByteArrayElements(data, nullptr));
   auto values = PrepRpcOnJS(runtime, payloadBytes, size);
-  callInvoker->invokeAsync([values, &runtime]() { RpcOnJS(runtime, values); });
+  callInvoker->invokeAsync([values, &runtime]() {
+    RpcOnJS(runtime, values, [](const std::string &err) {
+      JNIEnv *jniEnv = GetJniEnv();
+      java_class = jniEnv->GetObjectClass(java_object);
+      jmethodID log =
+          jniEnv->GetMethodID(java_class, "log", "(Ljava/lang/String;)V");
+      auto s = string2jstring(jniEnv, err);
+      jvalue params[1];
+      params[0].l = s;
+      jniEnv->CallVoidMethodA(java_object, log, params);
+    });
+  });
 }

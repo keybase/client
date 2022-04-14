@@ -17,7 +17,6 @@
 #import <keybase/keybase.h>
 #import "Pusher.h"
 #import "Fs.h"
-// #import "Storybook.h"
 #import <React/RCTConvert.h>
 
 #ifdef FB_SONARKIT_ENABLED
@@ -40,6 +39,8 @@ static void InitializeFlipper(UIApplication *application) {
 #endif
 
 #import <RNHWKeyboardEvent.h>
+
+static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
 @interface AppDelegate ()
 @property UIBackgroundTaskIdentifier backgroundTask;
@@ -79,6 +80,10 @@ static void InitializeFlipper(UIApplication *application) {
   self.fileLogger.rollingFrequency = 60 * 60 * 24; // 24 hour rolling
   self.fileLogger.logFileManager.maximumNumberOfLogFiles = 3; // 3 days
   [DDLog addLogger:self.fileLogger];
+  
+  DDLogInfo(@"%@%@: [%@,\"%@\"]", @"d", @"KBNativeLogger",
+            [NSString stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
+            @"logger setup success");
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions

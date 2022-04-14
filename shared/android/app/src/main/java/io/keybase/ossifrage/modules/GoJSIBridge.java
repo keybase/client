@@ -127,4 +127,8 @@ public class GoJSIBridge extends ReactContextBaseJavaModule {
             NativeLogger.error("Exception in GoJSIBridge.rpcOnGo", e);
         }
     }
+
+    public void log(String s) {
+        NativeLogger.error("Error in GoJSIBridge: " + s);
+    }
 }

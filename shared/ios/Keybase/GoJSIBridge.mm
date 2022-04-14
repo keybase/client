@@ -7,12 +7,15 @@
 #import <React/RCTBridge+Private.h>
 #import "AppDelegate.h"
 #import "../../android/app/src/main/cpp/rpc.h"
+#import "CocoaLumberjack.h"
 
 using namespace facebook::jsi;
 using namespace facebook;
 using namespace std;
 
 static Engine * _engine = nil;
+static const DDLogLevel ddLogLevel = DDLogLevelDebug;
+static const NSString* tagName = @"KBNativeLogger";
 
 @implementation GoJSIBridge
 
@@ -50,6 +53,9 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
 
     g_jsiRuntime = jsiRuntime;
     g_cxxBridge = cxxBridge;
+    DDLogInfo(@"%@%@: [%@,\"%@\"]", @"d", @"KBNativeLogger",
+            [NSString stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
+            @"jsi install success");
     install(*(Runtime *)jsiRuntime, self);
     return @true;
 }
@@ -59,7 +65,11 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
   auto values = PrepRpcOnJS(*g_jsiRuntime, (uint8_t*)[data bytes], size);
   auto invoker = [g_cxxBridge jsCallInvoker];
   invoker->invokeAsync([values]() {
-    RpcOnJS(*g_jsiRuntime, values);
+    RpcOnJS(*g_jsiRuntime, values, [](const std::string & err) {
+      DDLogInfo(@"%@%@: [%@,\"jsi rpconjs error: %@\"]", @"d", @"KBNativeLogger",
+              [NSString stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 1000],
+              [NSString stringWithUTF8String:err.c_str()]);
+    });
   });
 }
 
