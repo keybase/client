@@ -42,7 +42,10 @@ export class ImageRender extends React.Component<Props, State> {
 
       const {height, width} = this.props
       return (
-        <Kb.Box2 direction="vertical" style={[styles.container, this.props.style, {height, width}]}>
+        <Kb.Box2
+          direction="vertical"
+          style={Styles.collapseStyles([styles.container, this.props.style, {height, width}])}
+        >
           {this.state.showVideo ? (
             <Video
               source={source}
