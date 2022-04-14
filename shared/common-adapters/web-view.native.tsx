@@ -7,6 +7,7 @@ import type {WebViewInjections, WebViewProps} from './web-view'
 import {View as NativeView} from 'react-native'
 import {WebView as NativeWebView} from 'react-native-webview'
 import {useSpring, animated} from 'react-spring'
+import {useFocusEffect} from '@react-navigation/core'
 
 const escape = (str?: string): string => (str ? str.replace(/\\/g, '\\\\').replace(/`/g, '\\`') : '')
 
@@ -53,6 +54,14 @@ const KBWebViewBase = (props: WebViewProps) => {
     [_setLoading, api]
   )
 
+  // on ios when we tab away and back pdfs won't rerender somehow
+  const [forceReload, setForceReload] = React.useState(1)
+  useFocusEffect(
+    React.useCallback(() => {
+      setForceReload(a => a + 1)
+    }, [])
+  )
+
   return (
     <>
       <AnimatedView
@@ -63,6 +72,7 @@ const KBWebViewBase = (props: WebViewProps) => {
         }}
       >
         <NativeWebView
+          key={String(forceReload)}
           allowUniversalAccessFromFileURLs={allowUniversalAccessFromFileURLs}
           originWhitelist={originWhitelist}
           allowFileAccess={allowFileAccess}

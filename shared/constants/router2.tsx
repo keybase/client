@@ -2,7 +2,6 @@ import {createNavigationContainerRef, StackActions, CommonActions} from '@react-
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Tabs from '../constants/tabs'
-import * as ChatConstants from '../constants/chat2'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import shallowEqual from 'shallowequal'
@@ -211,6 +210,8 @@ export const getAppPath = () => {
   return findVisibleRoute([rs.routes[0]], root?.state)
 }
 
+const isSplit = !Container.isMobile || Container.isTablet // Whether the inbox and conversation panels are visible side-by-side.
+
 export const navToThread = (conversationIDKey: ConversationIDKey) => {
   const rs = _getNavigator()?.getRootState()
   // some kind of unknown race, just bail
@@ -246,7 +247,7 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
       loggedInRoute.state.index = chatTabIdx
     }
 
-    if (ChatConstants.isSplit) {
+    if (isSplit) {
       // set inbox + convo
       chatStack.state = chatStack.state ?? {index: 0, routes: []}
       chatStack.state.index = 0
