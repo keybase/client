@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import PopupDialog from '../popup-dialog'
 import ScrollView from '../scroll-view'
-import {Box2, Box, LayoutEvent} from '../box'
+import {Box2, Box, type LayoutEvent} from '../box'
 import BoxGrow from '../box-grow'
 import Text from '../text'
 import {useTimeout} from '../use-timers'
@@ -52,7 +52,6 @@ type Props = {
   popupStyleClose?: Styles.StylesCrossPlatform
   popupStyleContainer?: Styles.StylesCrossPlatform
   popupStyleCover?: Styles.StylesCrossPlatform
-  popupTabBarShim?: boolean
 }
 
 const ModalInner = (props: Props) => (
@@ -102,7 +101,6 @@ const Modal = (props: Props) =>
       styleClose={props.popupStyleClose}
       styleContainer={props.popupStyleContainer}
       styleCover={props.popupStyleCover}
-      tabBarShim={props.popupTabBarShim}
     >
       <ModalInner {...props} />
     </PopupDialog>
