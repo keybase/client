@@ -9,8 +9,45 @@ import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
 import {isMobile} from '../constants/platform'
 import {hookMiddleware} from './hook-middleware'
+import type {TypedState} from '../constants/reducer'
 
 let theStore: Store<any, any>
+
+export const DEBUGDump = (conversationIDKey: string) => {
+  const s = theStore.getState() as TypedState
+  const c2 = s.chat2
+  const allOrdinals = c2.messageOrdinals.get(conversationIDKey)
+  const meta = c2.metaMap.get(conversationIDKey)
+  const badges = c2.badgeMap.get(conversationIDKey)
+  const drafts = c2.draftMap.get(conversationIDKey)
+  const unread = c2.unreadMap.get(conversationIDKey)
+  const editing = c2.editingMap.get(conversationIDKey)
+  const mm = c2.messageMap.get(conversationIDKey)
+  const msgs = [...(mm?.keys() ?? [])].map((mid: number) => {
+    const msg = mm?.get(mid)
+    if (!msg) return ''
+    // @ts-ignore reaching into not narrowed types
+    const {type, ordinal, outboxID, submitState, text} = msg
+    return {
+      ordinal,
+      outboxID,
+      submitState,
+      textLen: text?.stringValue().length ?? 0,
+      type,
+    }
+  })
+  const output = {
+    allOrdinals,
+    badges,
+    drafts,
+    editing,
+    meta,
+    msgs,
+    unread,
+  }
+
+  logger.error('chat debug dump: ', JSON.stringify(output))
+}
 
 const crashHandler = error => {
   if (__DEV__) {
@@ -84,8 +121,5 @@ export default function configureStore() {
     })
   }
 
-  return {
-    runSagas,
-    store,
-  }
+  return {runSagas, store}
 }

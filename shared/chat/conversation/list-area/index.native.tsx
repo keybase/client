@@ -98,6 +98,26 @@ const Sent = React.memo(Sent_)
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
 
+let lastProps: Props | undefined
+
+export const DEBUGDump = () => {
+  if (!lastProps) {
+    return
+  }
+
+  const {messageOrdinals, editingOrdinal, centeredOrdinal, containsLatestMessage, conversationIDKey} =
+    lastProps
+  const output = {
+    centeredOrdinal,
+    containsLatestMessage,
+    conversationIDKey,
+    editingOrdinal,
+    messageOrdinals,
+  }
+  logger.error('chat debug dump: ', JSON.stringify(output))
+  return conversationIDKey
+}
+
 class ConversationList extends React.PureComponent<Props> {
   private mounted = true
   componentWillUnmount() {
@@ -305,6 +325,8 @@ class ConversationList extends React.PureComponent<Props> {
   }
 
   render() {
+    lastProps = this.props // for debugging only
+
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
