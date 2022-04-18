@@ -3,11 +3,11 @@ import * as Constants from '../../../constants/wallets'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as Types from '../../../constants/types/wallets'
+import type * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
-import {IconType} from '../../../common-adapters/icon.constants-gen'
+import type {IconType} from '../../../common-adapters/icon.constants-gen'
 import WalletSettingTrustline from './trustline/container'
 import openUrl from '../../../util/open-url'
 import {useFocusEffect} from '@react-navigation/core'
@@ -83,7 +83,7 @@ const ConnectedHeader = () => {
   return <AccountPageHeader accountName={name} title="Settings" />
 }
 
-const AccountSettings = props => {
+const AccountSettings = (props: SettingsProps) => {
   const {onSecretKeySeen, accountID} = props
   const dispatch = Container.useDispatch()
 
@@ -142,7 +142,7 @@ const AccountSettings = props => {
                     containerStyle={styles.copyTextContainer}
                     multiline={true}
                     withReveal={true}
-                    loadText={() => props.onLoadSecretKey && props.onLoadSecretKey()}
+                    loadText={() => props.onLoadSecretKey?.()}
                     hideOnCopy={true}
                     onCopy={() => onSecretKeySeen?.()}
                     text={props.secretKey}
@@ -329,29 +329,21 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
       },
-      externalPartnersText: {
-        marginBottom: Styles.globalMargins.tiny,
-      },
+      externalPartnersText: {marginBottom: Styles.globalMargins.tiny},
       icon: {marginLeft: Styles.globalMargins.xtiny},
-      identity: {
-        paddingBottom: Styles.globalMargins.tiny,
-      },
+      identity: {paddingBottom: Styles.globalMargins.tiny},
       identityBox: {
         flexGrow: 1,
         flexShrink: 1,
       },
-      mobileOnlySpinner: {
-        backgroundColor: Styles.globalColors.white_90,
-      },
+      mobileOnlySpinner: {backgroundColor: Styles.globalColors.white_90},
       noShrink: {flexShrink: 0},
       openIcon: Styles.platformStyles({
         common: {
           left: Styles.globalMargins.xtiny,
           position: 'relative',
         },
-        isElectron: {
-          top: Styles.globalMargins.xtiny,
-        },
+        isElectron: {top: Styles.globalMargins.xtiny},
       }),
       partnerDivider: {
         marginBottom: Styles.globalMargins.tiny,
@@ -394,9 +386,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {marginTop: Styles.globalMargins.medium},
       }),
       removeContentContainer: {...Styles.padding(0, Styles.globalMargins.small)},
-      rightMargin: {
-        marginRight: Styles.globalMargins.tiny,
-      },
+      rightMargin: {marginRight: Styles.globalMargins.tiny},
       scrollView: {
         display: 'flex',
         flexGrow: 1,
@@ -417,9 +407,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
         marginBottom: Styles.globalMargins.tiny,
       },
-      setAsDefaultError: {
-        paddingTop: Styles.globalMargins.tiny,
-      },
+      setAsDefaultError: {paddingTop: Styles.globalMargins.tiny},
       settingsPage: {
         alignSelf: 'flex-start',
         backgroundColor: Styles.globalColors.white,
