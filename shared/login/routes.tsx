@@ -5,6 +5,9 @@ import type {ProxySettingsPopup} from '../settings/proxy'
 import type {KnowPassword, EnterPassword} from './reset/password'
 import type Waiting from './reset/waiting'
 import type Confirm from './reset/confirm'
+import type LoadingType from './loading/container'
+import type ReloginType from './relogin/container'
+import type JoinOrLoginType from './join-or-login/container'
 
 type OwnProps = {}
 type Props = {
@@ -17,15 +20,15 @@ const _RootLogin = (p: Props) => {
   // routing should switch us away so lets not draw anything to speed things up
   if (p.isLoggedIn) return null
   if (p.showLoading) {
-    const Loading = require('./loading/container').default
+    const Loading = require('./loading/container').default as typeof LoadingType
     return <Loading />
   }
   if (p.showRelogin) {
-    const Relogin = require('./relogin/container').default
+    const Relogin = require('./relogin/container').default as typeof ReloginType
     return <Relogin />
   }
 
-  const JoinOrLogin = require('./join-or-login/container').default
+  const JoinOrLogin = require('./join-or-login/container').default as typeof JoinOrLoginType
   return <JoinOrLogin />
 }
 
