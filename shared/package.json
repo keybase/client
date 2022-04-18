@@ -177,7 +177,6 @@
         "@types/react-list": "0.8.7",
         "@types/react-measure": "2.0.8",
         "@types/react-native": "0.66.16",
-        "@types/react-native-video": "5.0.12",
         "@types/react-transition-group": "4.4.4",
         "@types/react-virtualized-auto-sizer": "1.0.1",
         "@types/react-window": "1.8.5",
