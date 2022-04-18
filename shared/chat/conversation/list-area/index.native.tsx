@@ -329,8 +329,9 @@ class ConversationList extends React.PureComponent<Props> {
   }
 
   render() {
-    lastProps = this.props // for debugging only
-
+    if (DEBUG_CHAT_DUMP) {
+      lastProps = this.props // for debugging only
+    }
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
