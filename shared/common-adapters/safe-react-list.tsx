@@ -31,11 +31,21 @@ type ReactListProps = {
 
 const SafeReactList = React.forwardRef<ReactList, ReactListProps>((p, ref) => {
   const [force, setForce] = React.useState(0)
+  const mountedRef = React.useRef(true)
+
+  React.useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [mountedRef])
 
   useFocusEffect(
     React.useCallback(() => {
       setTimeout(() => {
-        setForce(i => i + 1)
+        if (mountedRef.current) {
+          setForce(i => i + 1)
+        }
       }, 1)
     }, [])
   )
