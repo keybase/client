@@ -11,6 +11,7 @@ import logger from '../../../logger'
 import {Animated, type ListRenderItemInfo} from 'react-native'
 import type {Props, ItemType} from '.'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
+import {DEBUG_CHAT_DUMP} from '../../../constants/chat2'
 
 const debugEnabled = false
 
@@ -97,6 +98,29 @@ const Sent = React.memo(Sent_)
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
+
+let lastProps: Props | undefined
+
+export const DEBUGDump = () => {
+  if (!DEBUG_CHAT_DUMP) {
+    return
+  }
+  if (!lastProps) {
+    return
+  }
+
+  const {messageOrdinals, editingOrdinal, centeredOrdinal, containsLatestMessage, conversationIDKey} =
+    lastProps
+  const output = {
+    centeredOrdinal,
+    containsLatestMessage,
+    conversationIDKey,
+    editingOrdinal,
+    messageOrdinals,
+  }
+  logger.error('chat debug dump: ', JSON.stringify(output))
+  return conversationIDKey
+}
 
 class ConversationList extends React.PureComponent<Props> {
   private mounted = true
@@ -305,6 +329,8 @@ class ConversationList extends React.PureComponent<Props> {
   }
 
   render() {
+    lastProps = this.props // for debugging only
+
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
