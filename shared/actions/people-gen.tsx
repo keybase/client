@@ -96,4 +96,4 @@ export type Actions =
   | PeopleDataProcessedPayload
   | SetResentEmailPayload
   | SkipTodoPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

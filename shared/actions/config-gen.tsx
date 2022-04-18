@@ -667,4 +667,4 @@ export type Actions =
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
   | UpdateWindowStatePayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

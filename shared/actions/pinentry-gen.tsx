@@ -45,4 +45,4 @@ export type Actions =
   | NewPinentryPayload
   | OnCancelPayload
   | OnSubmitPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

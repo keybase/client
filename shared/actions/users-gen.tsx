@@ -134,4 +134,4 @@ export type Actions =
   | UpdateBrokenStatePayload
   | UpdateFullnamesPayload
   | WotReactPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

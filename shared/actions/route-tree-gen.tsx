@@ -135,4 +135,4 @@ export type Actions =
   | SwitchLoggedInPayload
   | SwitchTabPayload
   | TabLongPressPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

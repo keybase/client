@@ -290,4 +290,4 @@ export type Actions =
   | SubmitTextCodePayload
   | SubmitUsernamePayload
   | SwitchToGPGSignOnlyPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

@@ -141,4 +141,4 @@ export type Actions =
   | RepoDeletedPayload
   | SetErrorPayload
   | SetTeamRepoSettingsPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

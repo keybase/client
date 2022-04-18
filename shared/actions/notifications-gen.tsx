@@ -63,4 +63,4 @@ export type Actions =
   | ListenForNotificationsPayload
   | ReceivedBadgeStatePayload
   | SetBadgeCountsPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

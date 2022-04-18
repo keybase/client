@@ -60,4 +60,4 @@ export type Actions =
   | LinkPayload
   | SaltpackFileOpenPayload
   | SetKeybaseLinkErrorPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

@@ -138,4 +138,4 @@ export type Actions =
   | StartAccountResetPayload
   | SubmittedResetPayload
   | UpdateAutoresetStatePayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

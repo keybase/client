@@ -198,4 +198,4 @@ export type Actions =
   | SubmitPasswordPayload
   | SubmitResetPasswordPayload
   | SubmitResetPromptPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

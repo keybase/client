@@ -337,4 +337,4 @@ export type Actions =
   | SetInputPayload
   | SetInputThrottledPayload
   | SetRecipientsPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

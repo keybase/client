@@ -167,4 +167,4 @@ export type Actions =
   | SelectRolePayload
   | SetErrorPayload
   | TbResetStorePayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

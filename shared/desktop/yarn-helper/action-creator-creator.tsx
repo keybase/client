@@ -57,7 +57,7 @@ ${compileActions(ns, actions, compileActionCreator)}
 ${compileActions(ns, actions, compileActionPayloads)}
 
 // All Actions
-${compileAllActionsType(actions)}  | {type: 'common:resetStore', payload: {}}
+${compileAllActionsType(actions)}  | {readonly type: 'common:resetStore', readonly payload: undefined}
 `
 }
 
@@ -148,7 +148,7 @@ function makeTypedActions(created) {
   export type TypedActions = ${created.map(c => `${cleanName(c)}.Actions`).join(' | ')}
 
   export type TypedActionsMap = {${typeMap.join(',\n')},
-    'common:resetStore': {type: 'common:resetStore', payload: {}}
+    'common:resetStore': {readonly type: 'common:resetStore', readonly payload: undefined}
   }
 `
 }
