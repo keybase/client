@@ -1,22 +1,27 @@
-import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
+import * as ConfigGen from '../actions/config-gen'
+import * as DevGen from '../actions/dev-gen'
 import logger from '../logger'
 import rootReducer from '../reducers'
+import type {TypedState} from '../constants/reducer'
+import {DEBUG_CHAT_DUMP} from '../constants/chat2'
 import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
 import {createStore, applyMiddleware, type Store} from 'redux'
 import {enableStoreLogging, enableActionLogging} from '../local-debug'
-import * as DevGen from '../actions/dev-gen'
-import * as ConfigGen from '../actions/config-gen'
-import {isMobile} from '../constants/platform'
 import {hookMiddleware} from './hook-middleware'
-import type {TypedState} from '../constants/reducer'
+import {isMobile} from '../constants/platform'
+import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
 
 let theStore: Store<any, any>
 
 export const DEBUGDump = (conversationIDKey: string) => {
-  const s = theStore.getState() as TypedState
+  if (!DEBUG_CHAT_DUMP) {
+    return
+  }
+  const s = theStore?.getState() as TypedState
+  if (!s) return
   const c2 = s.chat2
-  const allOrdinals = c2.messageOrdinals.get(conversationIDKey)
+  const allOrdinals = [...(c2.messageOrdinals.get(conversationIDKey) ?? [])]
   const meta = c2.metaMap.get(conversationIDKey)
   const badges = c2.badgeMap.get(conversationIDKey)
   const drafts = c2.draftMap.get(conversationIDKey)
@@ -27,8 +32,9 @@ export const DEBUGDump = (conversationIDKey: string) => {
     const msg = mm?.get(mid)
     if (!msg) return ''
     // @ts-ignore reaching into not narrowed types
-    const {type, ordinal, outboxID, submitState, text} = msg
+    const {id, type, ordinal, outboxID, submitState, text} = msg
     return {
+      id,
       ordinal,
       outboxID,
       submitState,

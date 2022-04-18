@@ -11,6 +11,7 @@ import logger from '../../../logger'
 import {Animated, type ListRenderItemInfo} from 'react-native'
 import type {Props, ItemType} from '.'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
+import {DEBUG_CHAT_DUMP} from '../../../constants/chat2'
 
 const debugEnabled = false
 
@@ -101,6 +102,9 @@ let markedInitiallyLoaded = false
 let lastProps: Props | undefined
 
 export const DEBUGDump = () => {
+  if (!DEBUG_CHAT_DUMP) {
+    return
+  }
   if (!lastProps) {
     return
   }

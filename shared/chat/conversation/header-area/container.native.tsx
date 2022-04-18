@@ -3,6 +3,7 @@ import type * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader, type Props} from './index.native'
 import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
 import * as Container from '../../../util/container'
@@ -37,7 +38,10 @@ const HeaderBranch = (props: Props & {progress: any}) => {
   }
 }
 
-const DEBUGCHATMAYBE = () => {
+const DEBUGCHATMAYBE = (gotoNav: () => void) => {
+  if (!Constants.DEBUG_CHAT_DUMP) {
+    return
+  }
   Alert.alert(
     'Send chat debug info?',
     'This is temporary tool to do a log send for chats. This will log extra info to the server, is this ok? After this you MUST log send',
@@ -45,7 +49,8 @@ const DEBUGCHATMAYBE = () => {
       {
         onPress: () => {
           const conversationIDKey = DEBUGDumpView()
-          DEBUGDumpStore(conversationIDKey)
+          DEBUGDumpStore(conversationIDKey ?? '')
+          gotoNav()
         },
         text: 'Ok',
       },
@@ -70,9 +75,15 @@ export const HeaderAreaRight = (props: OwnProps) => {
     () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
     [dispatch, conversationIDKey]
   )
+  const onLongPress = React.useCallback(() => {
+    if (!Constants.DEBUG_CHAT_DUMP) {
+      return
+    }
+    DEBUGCHATMAYBE(() => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsTabs.feedbackTab']})))
+  }, [dispatch])
   return pendingWaiting ? null : (
     <Kb.Box2 direction="horizontal" gap="small">
-      <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} onLongPress={DEBUGCHATMAYBE} />
+      <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} onLongPress={onLongPress} />
       <Kb.Icon type="iconfont-info" onClick={onShowInfoPanel} />
     </Kb.Box2>
   )

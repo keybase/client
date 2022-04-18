@@ -1,10 +1,10 @@
-import * as Types from '../types/chat2'
-import * as UserTypes from '../types/users'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as TeamBuildingConstants from '../team-building'
+import * as Types from '../types/chat2'
+import * as Router2 from '../router2'
+import * as TeamConstants from '../teams'
 import clamp from 'lodash/clamp'
-import {TypedState} from '../reducer'
 import {isMobile, isTablet} from '../platform'
 import {
   noConversationIDKey,
@@ -13,13 +13,13 @@ import {
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import {getEffectiveRetentionPolicy, getMeta} from './meta'
-import {formatTextForQuoting} from '../../util/chat'
-import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
+import {formatTextForQuoting} from '../../util/chat'
+import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {memoize} from '../../util/memoize'
-import * as TeamConstants from '../teams'
-import * as TeamTypes from '../types/teams'
+import type * as TeamTypes from '../types/teams'
+import type * as UserTypes from '../types/users'
+import type {TypedState} from '../reducer'
 
 export const defaultTopReacjis = [
   {name: ':+1:'},
@@ -33,6 +33,9 @@ export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaul
 const emptyArray: Array<unknown> = []
 const emptySet = new Set()
 export const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
+
+// while we're debugging chat issues
+export const DEBUG_CHAT_DUMP = true
 
 // in split mode the root is the 'inbox'
 export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
