@@ -35,12 +35,12 @@ function makeDefaultButtons(
   onDismiss?: () => void,
   dismissLabel?: string
 ) {
-  const result = [
+  const result: Array<TaskButton> = [
     {
       label: confirmLabel,
       onClick: onConfirm,
     },
-  ] as Array<TaskButton>
+  ]
   if (onDismiss) {
     result.push({
       label: dismissLabel || 'Skip',
@@ -177,7 +177,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam}, selected: 'gitNewRepo'}]}))
   }
   const onDismiss = onSkipTodo('gitRepo', dispatch)
-  const buttons = [
+  const buttons: Array<TaskButton> = [
     {
       label: 'Create a personal repo',
       onClick: () => onConfirm(false),
@@ -191,7 +191,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
       mode: 'Secondary',
       onClick: onDismiss,
     },
-  ] as Array<TaskButton>
+  ]
   return <Task {...props} buttons={buttons} />
 }
 
@@ -221,14 +221,14 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
   const hasRecentVerifyEmail =
     meta?.lastVerifyEmailDate && Date.now() / 1000 - meta.lastVerifyEmailDate < 30 * 60
 
-  const buttons = [
+  const buttons: Array<TaskButton> = [
     ...(meta
       ? [
           {
             label: hasRecentVerifyEmail ? `Verify again` : 'Verify',
             onClick: () => onConfirm(meta.email),
-            type: 'Success',
-            waiting: addingEmail && addingEmail === meta.email,
+            type: 'Success' as const,
+            waiting: addingEmail ? addingEmail === meta.email : false,
           },
         ]
       : []),
@@ -237,7 +237,7 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
       mode: 'Secondary',
       onClick: onManage,
     },
-  ] as Array<TaskButton>
+  ]
   return <Task {...props} buttons={buttons} />
 }
 
@@ -251,7 +251,7 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
   }
-  const buttons = [
+  const buttons: Array<TaskButton> = [
     ...(props.metadata
       ? [
           {
@@ -260,7 +260,7 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
               const meta = props.metadata
               meta && meta.type === 'phone' && onConfirm(meta.phone)
             },
-            type: 'Success',
+            type: 'Success' as const,
           },
         ]
       : []),
@@ -269,7 +269,7 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
       mode: 'Secondary',
       onClick: onManage,
     },
-  ] as Array<TaskButton>
+  ]
   return <Task {...props} buttons={buttons} />
 }
 
@@ -281,7 +281,7 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
     dispatch(SettingsGen.createEditEmail({email, makeSearchable: true}))
   }
   const onDismiss = onSkipTodo('legacyEmailVisibility', dispatch)
-  const buttons = [
+  const buttons: Array<TaskButton> = [
     ...(props.metadata
       ? [
           {
@@ -290,7 +290,7 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
               const meta = props.metadata
               meta && meta.type === 'email' && onConfirm(meta.email)
             },
-            type: 'Success',
+            type: 'Success' as const,
           },
         ]
       : []),
@@ -299,7 +299,7 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
       mode: 'Secondary',
       onClick: onDismiss,
     },
-  ] as Array<TaskButton>
+  ]
   const subText = 'Your email will never appear on your public profile.'
   return <Task {...props} buttons={buttons} subText={subText} />
 }
