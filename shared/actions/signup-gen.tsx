@@ -193,4 +193,4 @@ export type Actions =
   | RestartSignupPayload
   | SetJustSignedUpEmailPayload
   | SignedupPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

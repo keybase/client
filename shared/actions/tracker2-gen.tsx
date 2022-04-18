@@ -176,4 +176,4 @@ export type Actions =
   | UpdateResultPayload
   | UpdateWotEntriesPayload
   | UpdatedDetailsPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

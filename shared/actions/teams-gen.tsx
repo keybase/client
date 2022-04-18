@@ -1437,4 +1437,4 @@ export type Actions =
   | UpdateInviteLinkDetailsPayload
   | UpdateTopicPayload
   | UploadTeamAvatarPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

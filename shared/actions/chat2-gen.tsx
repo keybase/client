@@ -2685,4 +2685,4 @@ export type Actions =
   | UpdateTeamRetentionPolicyPayload
   | UpdateUnreadlinePayload
   | UpdateUserReacjisPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

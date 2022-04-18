@@ -410,4 +410,4 @@ export type Actions =
   | UploadAvatarPayload
   | WotVouchPayload
   | WotVouchSetErrorPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

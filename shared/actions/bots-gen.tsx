@@ -99,4 +99,4 @@ export type Actions =
   | SetLoadedAllBotsPayload
   | SetSearchFeaturedAndUsersResultsPayload
   | UpdateFeaturedBotsPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

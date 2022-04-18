@@ -1039,4 +1039,4 @@ export type Actions =
   | UserInPayload
   | UserOutPayload
   | WaitForKbfsDaemonPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

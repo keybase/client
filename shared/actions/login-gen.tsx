@@ -48,4 +48,4 @@ export type Actions =
   | LoadedIsOnlinePayload
   | LoginErrorPayload
   | LoginPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}

@@ -1606,4 +1606,4 @@ export type Actions =
   | ValidatedAccountNamePayload
   | ValidatedSecretKeyPayload
   | WalletDisclaimerReceivedPayload
-  | {type: 'common:resetStore', payload: {}}
+  | {readonly type: 'common:resetStore', readonly payload: undefined}
