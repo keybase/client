@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-nocheck
 /* eslint-disable */
 module.exports = {
   get Animation() {
