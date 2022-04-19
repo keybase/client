@@ -1,10 +1,10 @@
 // Any additions to this file should also be added to ./index-impl.tsx
 
-export {OverlayParentProps, PropsWithOverlay} from './overlay/parent-hoc'
-export {MenuItem, MenuItems} from './floating-menu/menu-layout'
-export {IconType} from './icon.constants-gen'
-export {WebViewProps, WebViewInjections} from './web-view'
-export {AnimationType} from './animation'
+export type {OverlayParentProps, PropsWithOverlay} from './overlay/parent-hoc'
+export type {MenuItem, MenuItems} from './floating-menu/menu-layout'
+export type {IconType} from './icon.constants-gen'
+export type {WebViewProps, WebViewInjections} from './web-view'
+export type {AnimationType} from './animation'
 
 export {LayoutAnimation} from 'react-native' // exported from index.native
 
@@ -43,7 +43,7 @@ export {HeaderHocHeader, HeaderHocWrapper, HeaderLeftBlank, HeaderLeftCancel} fr
 export {PopupWrapper} from './header-or-popup'
 export {HotKey, useHotKey} from './hot-key'
 export {default as HoverHoc} from './hover-hoc'
-export {default as Icon, urlsToImgSet, IconStyle} from './icon'
+export {default as Icon, urlsToImgSet, type IconStyle} from './icon'
 export {default as Image, RequireImage} from './image'
 export {default as InfoNote} from './info-note'
 export {default as Input} from './input'

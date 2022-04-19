@@ -1,9 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters/index'
-import * as Styles from '../styles'
-import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLabel} from './shared'
-import * as Constants from '../constants/team-building'
-import {ServiceIdWithContact, AllowedNamespace} from '../constants/types/team-building'
+import type {ServiceIdWithContact} from '../constants/types/team-building'
 
 export type Props = {
   services: Array<ServiceIdWithContact>
@@ -13,7 +9,7 @@ export type Props = {
   showServiceResultCount: boolean
   servicesShown?: number
   minimalBorder?: boolean
-  offset?: any
+  offset: number
 }
 
 export type IconProps = {
@@ -24,7 +20,7 @@ export type IconProps = {
   showCount: boolean
   isActive: boolean
   minimalBorder?: boolean
-  offset?: any
+  offset: number
 }
 
 export class ServiceTabBar extends React.Component<Props> {}

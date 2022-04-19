@@ -109,6 +109,14 @@ export type Props<SectionT extends Section<any, any>> = {
    */
   keyboardShouldPersistTaps?: boolean | 'always' | 'never' | 'handled'
 
+  keyboardDismissMode?: 'on-drag'
+  scrollEventThrottle?: number
+
+  getItemLayout?: (
+    sections: Array<SectionT>,
+    indexInList: number
+  ) => {index: number; length: number; offset: number}
+
   /**
    * How many items to render in the initial batch
    */
@@ -133,4 +141,10 @@ export type Props<SectionT extends Section<any, any>> = {
   onSectionChange?: (section: SectionT) => void
 }
 
-export default class<T extends Section<any, any>> extends React.Component<Props<T>> {}
+export default class<T extends Section<any, any>> extends React.Component<Props<T>> {
+  getNode: () =>
+    | {
+        scrollToLocation: (o: {animated: boolean; itemIndex: number; sectionIndex: number}) => void
+      }
+    | undefined
+}

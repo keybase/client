@@ -7,8 +7,8 @@ import * as TeamConstants from '../constants/teams'
 import TeamBox from './team-box'
 import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
-import {Props as OriginalRolePickerProps} from '../teams/role-picker'
-import {TeamRoleType, TeamID, noTeamID} from '../constants/types/teams'
+import type {Props as OriginalRolePickerProps} from '../teams/role-picker'
+import {type TeamRoleType, type TeamID, noTeamID} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import throttle from 'lodash/throttle'
 import PhoneSearch from './phone-search'
@@ -23,7 +23,7 @@ import {
   serviceIdToLabel,
   serviceIdToSearchPlaceholder,
 } from './shared'
-import {
+import type {
   AllowedNamespace,
   FollowingState,
   GoButtonLabel,
@@ -32,6 +32,7 @@ import {
   ServiceIdWithContact,
 } from '../constants/types/team-building'
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
+import type {Section} from '../common-adapters/section-list'
 
 export const numSectionLabel = '0-9'
 
@@ -260,11 +261,13 @@ const FilteredServiceTabBar = (
 // TODO: the type of this is any
 // If we fix this type, we'll need to add a bunch more mobile-only props to Kb.SectionList since this code uses
 // a bunch of the native props.
-const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
+const SectionList: typeof Kb.SectionList = Styles.isMobile
+  ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList)
+  : Kb.SectionList
 
 class TeamBuilding extends React.PureComponent<Props> {
   static navigationOptions = ({route}) => {
-    const namespace = route.params.namespace
+    const namespace: unknown = route.params.namespace
     const common = {
       modal2: true,
       modal2AvoidTabs: false,
@@ -290,7 +293,7 @@ class TeamBuilding extends React.PureComponent<Props> {
   }
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
 
-  sectionListRef = React.createRef<Kb.SectionList<any>>()
+  sectionListRef = React.createRef<Kb.SectionList<Section<ResultData>>>()
   componentDidMount() {
     this.props.fetchUserRecs()
   }
@@ -322,7 +325,7 @@ class TeamBuilding extends React.PureComponent<Props> {
   }
 
   _onScrollToSection = (label: string) => {
-    if (this.sectionListRef && this.sectionListRef.current) {
+    if (this.sectionListRef.current) {
       const ref = this.sectionListRef.current
       const sectionIndex =
         (this.props.recommendations &&
@@ -331,14 +334,12 @@ class TeamBuilding extends React.PureComponent<Props> {
             : this.props.recommendations.findIndex(section => section.label === label))) ||
         -1
       if (sectionIndex >= 0 && Styles.isMobile) {
-        // @ts-ignore RN type not plumbed. see section-list.d.ts
         const node = ref.getNode()
-        node &&
-          node.scrollToLocation({
-            animated: false,
-            itemIndex: 0,
-            sectionIndex,
-          })
+        node?.scrollToLocation({
+          animated: false,
+          itemIndex: 0,
+          sectionIndex,
+        })
       }
     }
   }
@@ -602,7 +603,7 @@ class TeamBuilding extends React.PureComponent<Props> {
     this.props.onSearchForMore()
   }, 500)
 
-  onScroll = Styles.isMobile
+  onScroll: undefined | (() => void) = Styles.isMobile
     ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: this.offset}}}], {useNativeDriver: true})
     : undefined
 
