@@ -1,4 +1,4 @@
-import * as ChatTypes from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -7,18 +7,17 @@ import * as RowSizes from './sizes'
 import * as Styles from '../../../styles'
 import * as TabsContants from '../../../constants/tabs'
 import * as TeamConstants from '../../../constants/teams'
-import * as TeamTypes from '../../../constants/types/teams'
+import type * as TeamTypes from '../../../constants/types/teams'
 import TeamMenu from '../../conversation/info-panel/menu/container'
 
 type Props = {
-  conversationIDKey: ChatTypes.ConversationIDKey
   navKey: string
   teamname: string
   teamID: TeamTypes.TeamID
 }
 
 const BigTeamHeader = React.memo((props: Props) => {
-  const {navKey, teamID, teamname, conversationIDKey} = props
+  const {navKey, teamID, teamname} = props
   const dispatch = Container.useDispatch()
 
   const badgeSubscribe = Container.useSelector(
@@ -38,7 +37,7 @@ const BigTeamHeader = React.memo((props: Props) => {
       attachTo={attachTo}
       visible={showingPopup}
       onHidden={() => setShowingPopup(false)}
-      conversationIDKey={conversationIDKey}
+      conversationIDKey={Constants.noConversationIDKey}
       teamID={teamID}
       hasHeader={true}
       isSmallTeam={false}
