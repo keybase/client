@@ -1,3 +1,4 @@
+// @ts-nocheck
 module.hot &&
   module.hot.accept(() => {
     console.log('accepted update in common-adapters/mobile.native')

@@ -227,19 +227,17 @@ const Connected = Container.connect(
     let unreadTotal: number = 0
     for (let i = rows.length - 1; i >= 0; i--) {
       const row = rows[i]
-      if (!['big', 'bigHeader', 'teamBuilder'].includes(row.type)) {
-        // only check big teams for large inbox perf
-        break
-      }
-      if (
-        row.conversationIDKey &&
-        stateProps._badgeMap.get(row.conversationIDKey) &&
-        row.conversationIDKey !== stateProps._selectedConversationIDKey
-      ) {
-        // on mobile include all convos, on desktop only not currently selected convo
-        const unreadCount = stateProps._badgeMap.get(row.conversationIDKey) || 0
-        unreadIndices.set(i, unreadCount)
-        unreadTotal += unreadCount
+      if (row.type === 'big') {
+        if (
+          row.conversationIDKey &&
+          stateProps._badgeMap.get(row.conversationIDKey) &&
+          row.conversationIDKey !== stateProps._selectedConversationIDKey
+        ) {
+          // on mobile include all convos, on desktop only not currently selected convo
+          const unreadCount = stateProps._badgeMap.get(row.conversationIDKey) || 0
+          unreadIndices.set(i, unreadCount)
+          unreadTotal += unreadCount
+        }
       }
     }
 

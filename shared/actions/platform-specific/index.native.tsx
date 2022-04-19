@@ -17,12 +17,13 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as LoginGen from '../login-gen'
 import * as Saga from '../../util/saga'
 import * as Types from '../../constants/types/chat2'
+import type * as FsTypes from '../../constants/types/fs'
 import {getEngine} from '../../engine/require'
 // this CANNOT be an import *, totally screws up the packager
 import {Alert, Linking, NativeModules, ActionSheetIOS, PermissionsAndroid, Vibration} from 'react-native'
 import Clipboard from '@react-native-clipboard/clipboard'
 import CameraRoll from '@react-native-community/cameraroll'
-import NetInfo from '@react-native-community/netinfo'
+import NetInfo, {type NetInfoStateType} from '@react-native-community/netinfo'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare} from './push.native'
@@ -36,6 +37,7 @@ import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
 import type {RPCError} from '../../util/errors'
 import type PermissionsType from 'expo-permissions'
+import type BlobType from 'react-native-blob-util'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -59,7 +61,7 @@ const requestPermissionsToWrite = async () => {
 export const requestAudioPermission = async () => {
   let chargeForward = true
   // TODO use expo-av etc and unify around that
-  const Permissions: typeof PermissionsType = require('expo-permissions')
+  const Permissions = require('expo-permissions') as typeof PermissionsType
   let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
   if (status === Permissions.PermissionStatus.UNDETERMINED) {
     if (isIOS) {
@@ -83,7 +85,7 @@ export const requestAudioPermission = async () => {
 
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
   if (isIOS) {
-    const Permissions: typeof PermissionsType = require('expo-permissions')
+    const Permissions = require('expo-permissions') as typeof PermissionsType
     const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
     switch (mode) {
       case RPCChatTypes.UIWatchPositionPerm.base:
@@ -139,7 +141,8 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     throw e
   } finally {
     try {
-      require('react-native-blob-util').default.fs.unlink(filePath)
+      const blob = require('react-native-blob-util').default as BlobType
+      blob.fs.unlink(filePath)
     } catch (_) {
       logger.warn('failed to unlink')
     }
@@ -152,8 +155,8 @@ const onShareAction = async (action: ConfigGen.ShowShareActionSheetPayload) => {
 }
 
 export const showShareActionSheet = async (options: {
-  filePath?: any | null
-  message?: any | null
+  filePath?: string
+  message?: string
   mimeType: string
 }) => {
   if (isIOS) {
@@ -241,8 +244,10 @@ function* persistRoute(_state: Container.TypedState, action: ConfigGen.PersistRo
     const ap = RouterConstants.getAppPath()
     ap.some(r => {
       if (r.name == 'chatConversation') {
-        // @ts-ignore TODO better param typing
-        param = {selectedConversationIDKey: r.params?.conversationIDKey}
+        param = {
+          // @ts-ignore TODO better param typing
+          selectedConversationIDKey: r.params?.conversationIDKey as Types.ConversationIDKey | undefined,
+        }
         return true
       }
       return false
@@ -294,7 +299,7 @@ function* setupNetInfoWatcher() {
   }, Saga.buffers.sliding(1))
 
   while (true) {
-    const status = yield Saga.take(channel)
+    const status: NetInfoStateType = yield Saga.take(channel)
     yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status !== 'none', type: status}))
   }
 }
@@ -302,13 +307,13 @@ function* setupNetInfoWatcher() {
 // TODO rewrite this, v slow
 function* loadStartupDetails() {
   let startupWasFromPush = false
-  let startupConversation = undefined
-  let startupPushPayload = undefined
-  let startupFollowUser = ''
-  let startupLink = ''
-  let startupTab = undefined
-  let startupSharePath = undefined
-  let startupShareText = undefined
+  let startupConversation: Types.ConversationIDKey | undefined = undefined
+  let startupPushPayload: string | undefined = undefined
+  let startupFollowUser: string = ''
+  let startupLink: string = ''
+  let startupTab: Tabs.Tab | 'blank' | undefined = undefined
+  let startupSharePath: FsTypes.LocalPath | undefined = undefined
+  let startupShareText: string | undefined = undefined
 
   const routeStateTask = yield Saga._fork(async () => {
     try {
@@ -320,14 +325,11 @@ function* loadStartupDetails() {
   })
   // eslint-disable-next-line
   const linkTask = yield Saga._fork(Linking.getInitialURL)
+  // const linkTask: Promise<string | null> = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
   const initialShare = yield Saga._fork(getStartupDetailsFromInitialShare)
-  const [routeState, link, push, share] = yield Saga.join([
-    routeStateTask,
-    linkTask,
-    initialPush,
-    initialShare,
-  ])
+  const joined = yield Saga.join([routeStateTask, linkTask, initialPush, initialShare])
+  const [routeState, link, push, share] = joined
 
   logger.info('routeState load', routeState)
 
@@ -718,8 +720,8 @@ const configureFileAttachmentDownloadForAndroid = async () =>
   RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: require('react-native-blob-util').default.fs.dirs.CacheDir,
-    downloadDirOverride: require('react-native-blob-util').default.fs.dirs.DownloadDir,
+    cacheDirOverride: (require('react-native-blob-util').default as BlobType).fs.dirs.CacheDir,
+    downloadDirOverride: (require('react-native-blob-util').default as BlobType).fs.dirs.DownloadDir,
   })
 
 const stopAudioRecording = async (

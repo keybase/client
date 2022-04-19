@@ -16,6 +16,7 @@ import UnreadShortcut from './unread-shortcut'
 import debounce from 'lodash/debounce'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
+import type {ViewToken, ListRenderItemInfo} from 'react-native'
 import shallowEqual from 'shallowequal'
 import noop from 'lodash/noop'
 
@@ -53,7 +54,7 @@ type State = {
 }
 
 class Inbox extends React.PureComponent<T.Props, State> {
-  private list: any
+  private listRef = React.createRef<Kb.NativeFlatList<RowItem>>()
   // Help us calculate row heights and offsets quickly
   private dividerIndex: number = -1
   // 2 different sizes
@@ -77,7 +78,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
-  private renderItem = ({item}: any) => {
+  private renderItem = ({item}: ListRenderItemInfo<RowItem>): React.ReactElement | null => {
     const row = item
     let element: React.ReactElement | null
     if (row.type === 'divider') {
@@ -93,19 +94,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     } else if (row.type === 'teamBuilder') {
       element = <BuildTeam />
     } else {
-      element = makeRow({
-        channelname: row.channelname,
-        conversationIDKey: row.conversationIDKey,
-        isTeam: row.isTeam,
-        navKey: this.props.navKey,
-        selected: row.type === 'big' || row.type === 'small' ? row.selected : false,
-        snippet: row.snippet,
-        snippetDecoration: row.snippetDecoration,
-        teamID: (row.type === 'bigHeader' && row.teamID) || '',
-        teamname: row.teamname,
-        time: row.time || undefined,
-        type: row.type,
-      })
+      element = makeRow(row, this.props.navKey)
     }
 
     if (virtualListMarks) {
@@ -115,7 +104,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return element
   }
 
-  private keyExtractor = (item: any) => {
+  private keyExtractor = (item: RowItem) => {
     const row = item
 
     if (row.type === 'divider' || row.type === 'bigTeamsLabel' || row.type === 'teamBuilder') {
@@ -140,7 +129,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     this.props.onUntrustedInboxVisible(toUnbox)
   }
 
-  private onViewChanged = (data: any) => {
+  private onViewChanged = (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
     if (!data) {
       return
     }
@@ -178,10 +167,10 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   private scrollToUnread = () => {
-    if (this.firstOffscreenIdx <= 0 || !this.list) {
+    if (this.firstOffscreenIdx <= 0) {
       return
     }
-    this.list.scrollToIndex({
+    this.listRef.current?.scrollToIndex({
       animated: true,
       index: this.firstOffscreenIdx,
       viewPosition: 0.5,
@@ -207,17 +196,13 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
-  private onScrollUnbox = debounce((data: {viewableItems: Array<{item: RowItem}>}) => {
+  private onScrollUnbox = debounce((data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
     const {viewableItems} = data
     const item = viewableItems?.[0]
     if (item && Object.prototype.hasOwnProperty.call(item, 'index')) {
       this.askForUnboxing(viewableItems.map(i => i.item))
     }
   }, 1000)
-
-  private setRef = (r: Kb.NativeFlatList<RowItem> | null) => {
-    this.list = r
-  }
 
   private getItemLayout = (data: null | Array<RowItem> | undefined, index: number) => {
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
@@ -278,7 +263,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
               data={this.props.rows}
               keyExtractor={this.keyExtractor}
               renderItem={this.renderItem}
-              ref={this.setRef}
+              ref={this.listRef}
               onViewableItemsChanged={this.onViewChanged}
               windowSize={5}
               keyboardShouldPersistTaps="handled"
