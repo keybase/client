@@ -202,6 +202,7 @@ class ConversationList extends React.PureComponent<Props> {
     return -1
   }
 
+  // the component can pass null here sometimes
   private getItemCount = (messageOrdinals: Array<Types.Ordinal> | null) => {
     if (this.mounted) {
       return (messageOrdinals?.length ?? 0) + 2
