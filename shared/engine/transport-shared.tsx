@@ -4,7 +4,6 @@ import {printRPC, printRPCWaitingSession} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
 import * as LocalConsole from '../util/local-console'
 import * as Stats from './stats'
-import {isRemoteDebuggerAttached, isMobile} from '../constants/platform'
 
 const RobustTransport = rpc.transport.RobustTransport
 const RpcClient = rpc.client.Client
@@ -66,9 +65,7 @@ function rpcLog(info: {method: string; reason: string; extra?: Object; type: str
   requestIdleCallback(
     () => {
       const params = [info.reason, info.method, info.extra].filter(Boolean)
-      if (!isMobile || isRemoteDebuggerAttached) {
-        LocalConsole.green(prefix, info.method, info.reason, ...params)
-      }
+      LocalConsole.green(prefix, info.method, info.reason, ...params)
     },
     {timeout: 1e3}
   )
