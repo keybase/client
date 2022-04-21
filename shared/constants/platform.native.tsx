@@ -29,8 +29,6 @@ export const isDeviceSecureAndroid: boolean =
     ? nativeBridge.isDeviceSecure
     : nativeBridge.isDeviceSecure === 'true' || false
 
-// @ts-ignore
-export const isRemoteDebuggerAttached: boolean = typeof DedicatedWorkerGlobalScope !== 'undefined'
 export const runMode = 'prod'
 
 export const isIOS = Platform.OS === 'ios'

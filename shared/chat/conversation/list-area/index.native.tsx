@@ -202,9 +202,9 @@ class ConversationList extends React.PureComponent<Props> {
     return -1
   }
 
-  private getItemCount = (messageOrdinals: Array<Types.Ordinal>) => {
+  private getItemCount = (messageOrdinals: Array<Types.Ordinal> | null) => {
     if (this.mounted) {
-      return messageOrdinals.length + 2
+      return (messageOrdinals?.length ?? 0) + 2
     } else {
       // needed else VirtualizedList will yellowbox
       return 0

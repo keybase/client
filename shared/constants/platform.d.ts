@@ -21,7 +21,6 @@ export const isDebuggingInChrome: boolean // only useful in RN
 export const isAndroidNewerThanN: boolean
 export const defaultUseNativeFrame: boolean
 export const isTestDevice: boolean
-export const isRemoteDebuggerAttached: boolean
 
 export declare const downloadFolder: string
 export declare const fileUIName: string
