@@ -218,7 +218,8 @@ class InboxSearch extends React.Component<Props, State> {
   private getBotsResults = () => {
     return this.state.botsAll ? this.props.botsResults : this.props.botsResults.slice(0, 3)
   }
-  private renderBotsHeader = (section: any) => {
+
+  private renderBotsHeader = (section: Section<RPCTypes.FeaturedBot>) => {
     const showMore = this.props.botsResults.length > 3 && !this.state.botsCollapsed
     const label = (
       <Kb.Box2 direction="horizontal" gap="xtiny">
@@ -246,7 +247,7 @@ class InboxSearch extends React.Component<Props, State> {
     )
   }
 
-  private renderTextHeader = (section: any) => {
+  private renderTextHeader = (section: Section<TextResult>) => {
     const ratio = this.props.indexPercent / 100.0
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textHeader}>
@@ -281,7 +282,16 @@ class InboxSearch extends React.Component<Props, State> {
       </Kb.Box2>
     )
   }
-  private renderSectionHeader = ({section}: any) => {
+  private renderSectionHeader = ({
+    section,
+  }: {
+    section:
+      | Section<NameResult>
+      | Section<Types.InboxSearchOpenTeamHit>
+      | Section<RPCTypes.FeaturedBot>
+      | Section<TextResult>
+  }): React.ReactNode => {
+    // @ts-ignore
     return section.renderHeader(section)
   }
   private keyExtractor = (
@@ -357,14 +367,10 @@ class InboxSearch extends React.Component<Props, State> {
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
         <Rover />
-        <Kb.SectionList<
-          | Section<NameResult>
-          | Section<Types.InboxSearchOpenTeamHit>
-          | Section<RPCTypes.FeaturedBot>
-          | Section<TextResult>
-        >
+        <Kb.SectionList
           ListHeaderComponent={this.props.header}
           stickySectionHeadersEnabled={true}
+          // @ts-ignore
           renderSectionHeader={this.renderSectionHeader}
           keyExtractor={this.keyExtractor}
           keyboardShouldPersistTaps="handled"
