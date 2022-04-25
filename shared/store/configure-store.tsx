@@ -22,7 +22,16 @@ export const DEBUGDump = (conversationIDKey: string) => {
   if (!s) return
   const c2 = s.chat2
   const allOrdinals = [...(c2.messageOrdinals.get(conversationIDKey) ?? [])]
-  const meta = c2.metaMap.get(conversationIDKey)
+  let meta: any = c2.metaMap.get(conversationIDKey)
+  if (meta) {
+    meta = {...meta}
+    meta.snippet = 'x'
+    meta.snippetDecorated = 'x'
+    meta.teamname = 'tn'
+    meta.pinnedMsg = 'pn'
+  }
+  const pendingOutboxToOrdinal = [...(c2.pendingOutboxToOrdinal.get(conversationIDKey)?.entries() ?? [])]
+
   const badges = c2.badgeMap.get(conversationIDKey)
   const drafts = c2.draftMap.get(conversationIDKey)
   const unread = c2.unreadMap.get(conversationIDKey)
@@ -32,11 +41,23 @@ export const DEBUGDump = (conversationIDKey: string) => {
     const msg = mm?.get(mid)
     if (!msg) return ''
     // @ts-ignore reaching into not narrowed types
-    const {id, type, ordinal, outboxID, submitState, text} = msg
+    const {id, type, ordinal, outboxID, submitState, text, reactions} = msg
+
+    const reactionInfo = [...(reactions?.entries() ?? [])].map(([k, v]) => {
+      return {
+        keyLen: k.length,
+        val: {
+          userLen: [...v.users].length,
+        },
+      }
+    })
+
     return {
       id,
       ordinal,
       outboxID,
+      pendingOutboxToOrdinal,
+      reactionInfo,
       submitState,
       textLen: text?.stringValue().length ?? 0,
       type,

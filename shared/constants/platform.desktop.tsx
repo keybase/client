@@ -117,8 +117,6 @@ export const pprofDir = ''
 export const version = 'TODO'
 export {runMode}
 
-export const isRemoteDebuggerAttached = false
-
 const getTimeLocale = () => {
   if (!isLinux) {
     return Intl.DateTimeFormat().resolvedOptions().locale

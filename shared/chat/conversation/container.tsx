@@ -81,7 +81,7 @@ const Conversation = (p: SwitchProps) => {
 
   switch (type) {
     case 'error':
-      return <Error conversationIDKey={conversationIDKey} />
+      return <Error key={conversationIDKey} conversationIDKey={conversationIDKey} />
     case 'noConvo':
       // When navigating back to the inbox on mobile, we deselect
       // conversationIDKey by called mobileChangeSelection. This results in
@@ -95,11 +95,12 @@ const Conversation = (p: SwitchProps) => {
       // To solve this we render a blank screen on mobile conversation views with "noConvo"
       return Container.isPhone ? null : <NoConversation />
     case 'normal':
-      return <Normal conversationIDKey={conversationIDKey} />
+      // the id as key is so we entirely force a top down redraw to ensure nothing is possibly from another convo
+      return <Normal key={conversationIDKey} conversationIDKey={conversationIDKey} />
     case 'youAreReset':
       return <YouAreReset />
     case 'rekey':
-      return <Rekey conversationIDKey={conversationIDKey} />
+      return <Rekey key={conversationIDKey} conversationIDKey={conversationIDKey} />
     default:
       return <NoConversation />
   }
