@@ -6,7 +6,7 @@ export type SectionListRenderItem<ItemT, ExtraT> = (info: {
   index: number
   item: ItemT
   section: Section<ItemT, ExtraT>
-}) => React.ReactNode | null
+}) => React.ReactNode
 
 /**
  * Section is the type for a section in a sectionlist. ItemT is the type of the

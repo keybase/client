@@ -48,13 +48,17 @@ export type SearchResult = {
   isPreExistingTeamMember: boolean
   isYou: boolean
   followingState: FollowingState
+  isImportButton?: false
+  isSearchHint?: false
 }
 
 export type ImportContactsEntry = {
   isImportButton: true
+  isSearchHint?: false
 }
 
 export type SearchHintEntry = {
+  isImportButton?: false
   isSearchHint: true
 }
 
@@ -67,9 +71,9 @@ export type SearchRecSection = {
 }
 
 const isImportContactsEntry = (x: ResultData): x is ImportContactsEntry =>
-  'isImportButton' in x && x.isImportButton
+  'isImportButton' in x && !!x.isImportButton
 
-const isSearchHintEntry = (x: ResultData): x is SearchHintEntry => 'isSearchHint' in x && x.isSearchHint
+const isSearchHintEntry = (x: ResultData): x is SearchHintEntry => 'isSearchHint' in x && !!x.isSearchHint
 
 export type RolePickerProps = {
   onSelectRole: (role: TeamRoleType) => void
@@ -293,7 +297,7 @@ class TeamBuilding extends React.PureComponent<Props> {
   }
   private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
 
-  sectionListRef = React.createRef<Kb.SectionList<Section<ResultData>>>()
+  sectionListRef = React.createRef<Kb.SectionList<Section<ResultData, SearchRecSection>>>()
   componentDidMount() {
     this.props.fetchUserRecs()
   }
@@ -512,7 +516,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                   : item.userId
               }}
               getItemLayout={this._getRecLayout}
-              renderItem={({index, item: result, section}: any) =>
+              renderItem={({index, item: result, section}) =>
                 result.isImportButton ? (
                   <ContactsImportButton {...this.props} />
                 ) : result.isSearchHint ? (
