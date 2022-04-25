@@ -84,7 +84,7 @@ class InboxSearch extends React.Component<Props, State> {
 
   private renderOpenTeams = (h: {
     item: Types.InboxSearchOpenTeamHit
-    section: {indexOffset: number; onSelect: any}
+    section: {indexOffset: number}
     index: number
   }) => {
     const {item, index, section} = h
@@ -101,18 +101,17 @@ class InboxSearch extends React.Component<Props, State> {
     )
   }
 
-  private renderBots = (h: {
-    item: RPCTypes.FeaturedBot
-    section: {indexOffset: number; onSelect: any}
-    index: number
-  }) => {
+  private renderBots = (h: {item: RPCTypes.FeaturedBot; section: {indexOffset: number}; index: number}) => {
     const {item, index} = h
     return <Bot {...item} onClick={this.props.onInstallBot} firstItem={index === 0} hideHover={true} />
   }
 
   private renderHit = (h: {
     item: TextResult | NameResult
-    section: {indexOffset: number; onSelect: (item: any, index: number) => void}
+    section: {
+      indexOffset: number
+      onSelect: (item: NameResult | TextResult, index: number) => void
+    }
     index: number
   }) => {
     if (h.item === emptyUnreadPlaceholder) {
@@ -174,7 +173,7 @@ class InboxSearch extends React.Component<Props, State> {
   private selectBot = (item: RPCTypes.FeaturedBot) => {
     this.props.onInstallBot(item.botUsername)
   }
-  private renderNameHeader = (section: any) => {
+  private renderNameHeader = (section: Section<NameResult>) => {
     return (
       <Kb.SectionDivider
         collapsed={section.isCollapsed}
@@ -343,6 +342,7 @@ class InboxSearch extends React.Component<Props, State> {
       onCollapse: this.toggleCollapseText,
       onSelect: this.selectText,
       renderHeader: this.renderTextHeader,
+      // @ts-ignore better typing
       renderItem: this.renderHit,
       status: this.props.textStatus,
       title: 'Messages',
