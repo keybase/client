@@ -3,6 +3,11 @@ import os from 'os'
 import * as Electron from 'electron'
 // @ts-ignore strict
 import fse from 'fs-extra'
+import type {Engine, WaitingKey} from '../../engine'
+import type {RPCError} from '../../util/errors'
+import type {MessageTypes as FsMessageTypes} from '../../constants/types/rpc-gen'
+import type {MessageTypes as ChatMessageTypes} from '../../constants/types/rpc-chat-gen'
+import type {dialog, BrowserWindow, app} from 'electron'
 
 const isRenderer = process.type === 'renderer'
 const target = isRenderer ? window : global
@@ -11,10 +16,15 @@ const isDarwin = platform === 'darwin'
 const isWindows = platform === 'win32'
 const isLinux = platform === 'linux'
 
-const remote = require(isRenderer ? '@electron/remote' : '@electron/remote/main')
+const remote: {
+  process: {pid: number}
+  dialog: typeof dialog
+  app: typeof app
+  getCurrentWindow: () => BrowserWindow
+} = require(isRenderer ? '@electron/remote' : '@electron/remote/main')
 
 // @ts-ignore strict
-const pid = isRenderer ? remote.process.pid : process.pid
+const pid: number = isRenderer ? remote.process.pid : process.pid
 
 const kbProcess = {
   argv,
@@ -27,15 +37,17 @@ const kbProcess = {
 const darwinCopyToKBFSTempUploadFile = isDarwin
   ? async (originalFilePath: string) => {
       const simpleFSSimpleFSMakeTempDirForUploadRpcPromise = async () =>
-        new Promise<any>((resolve, reject) => {
-          if (!engine) {
-            throw new Error('Preload missing engine')
+        new Promise<FsMessageTypes['keybase.1.SimpleFS.simpleFSMakeTempDirForUpload']['outParam']>(
+          (resolve, reject) => {
+            if (!engine) {
+              throw new Error('Preload missing engine')
+            }
+            engine._rpcOutgoing({
+              callback: (error: RPCError | null, result: string) => (error ? reject(error) : resolve(result)),
+              method: 'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload',
+            })
           }
-          engine._rpcOutgoing({
-            callback: (error, result) => (error ? reject(error) : resolve(result)),
-            method: 'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload',
-          })
-        })
+        )
       const dir = await simpleFSSimpleFSMakeTempDirForUploadRpcPromise()
       const dst = path.join(dir, path.basename(originalFilePath))
       await fse.copy(originalFilePath, dst)
@@ -48,8 +60,8 @@ const darwinCopyToKBFSTempUploadFile = isDarwin
 const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
 
 // filled in
-let engine: any = null
-const setEngine = (e: any) => {
+let engine: Engine | null = null
+const setEngine = (e: Engine) => {
   if (engine) {
     throw new Error('only one engine')
   }
@@ -59,18 +71,26 @@ const setEngine = (e: any) => {
 const darwinCopyToChatTempUploadFile = isDarwin
   ? async (originalFilePath: string): Promise<{outboxID: Buffer; path: string}> => {
       const outboxID = generateOutboxID()
-      const localGetUploadTempFileRpcPromise = async (params: any, waitingKey?: any) => {
-        return new Promise<any>((resolve, reject) => {
-          if (!engine) {
-            throw new Error('Preload missing engine')
+      const localGetUploadTempFileRpcPromise = async (
+        params: ChatMessageTypes['chat.1.local.getUploadTempFile']['inParam'],
+        waitingKey?: WaitingKey
+      ) => {
+        return new Promise<ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']>(
+          (resolve, reject) => {
+            if (!engine) {
+              throw new Error('Preload missing engine')
+            }
+            engine._rpcOutgoing({
+              callback: (
+                error: RPCError | null,
+                result: ChatMessageTypes['chat.1.local.getUploadTempFile']['outParam']
+              ) => (error ? reject(error) : resolve(result)),
+              method: 'chat.1.local.getUploadTempFile',
+              params,
+              waitingKey,
+            })
           }
-          engine._rpcOutgoing({
-            callback: (error, result) => (error ? reject(error) : resolve(result)),
-            method: 'chat.1.local.getUploadTempFile',
-            params,
-            waitingKey,
-          })
-        })
+        )
       }
 
       const dst = await localGetUploadTempFileRpcPromise({
