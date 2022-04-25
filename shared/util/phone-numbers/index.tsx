@@ -26,11 +26,17 @@ const load = () => {
   if (_countryDataLoaded) return
   _countryDataLoaded = true
 
-  const countries = require('./country-data/countries.json')
+  const countries: Array<{
+    alpha2: string
+    status: string
+    emoji: string
+    name: string
+    countryCallingCodes: Array<string>
+  }> = require('./country-data/countries.json')
   const {emojiIndexByChar} = require('../../common-adapters/markdown/emoji-gen')
   const supportedCodes: {[key: string]: boolean} = require('./sms-support/data.json')
 
-  countries.forEach((curr: any) => {
+  countries.forEach(curr => {
     if (
       curr.alpha2 &&
       (curr.status === 'assigned' || curr.status === 'user assigned') &&

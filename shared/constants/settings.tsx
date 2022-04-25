@@ -1,13 +1,19 @@
-import * as Types from './types/settings'
-import HiddenString from '../util/hidden-string'
-import {TypedState} from './reducer'
-import * as WaitingConstants from './waiting'
 import * as ChatConstants from './chat2'
-import {getMeta} from './chat2/meta'
-import * as RPCTypes from './types/rpc-gen'
-import {RPCError} from '../util/errors'
-import {ContactResponse} from 'expo-contacts'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import * as RPCTypes from './types/rpc-gen'
+import * as WaitingConstants from './waiting'
+import HiddenString from '../util/hidden-string'
+import type * as Types from './types/settings'
+import type {ContactResponse} from 'expo-contacts'
+import type {RPCError} from '../util/errors'
+import type {TypedState} from './reducer'
+import {getMeta} from './chat2/meta'
+import type {
+  e164ToDisplay as e164ToDisplayType,
+  phoneUtil as phoneUtilType,
+  ValidationResult as ValidationResultType,
+  PhoneNumberFormat as PhoneNumberFormatType,
+} from '../util/phone-numbers'
 
 export const makeEmailRow = (): Types.EmailRow => ({
   email: '',
@@ -26,7 +32,7 @@ export const makePhoneRow = (): Types.PhoneRow => ({
 })
 
 export const toPhoneRow = (p: RPCTypes.UserPhoneNumber) => {
-  const {e164ToDisplay} = require('../util/phone-numbers')
+  const {e164ToDisplay} = require('../util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
   return {
     ...makePhoneRow(),
     displayNumber: e164ToDisplay(p.phoneNumber),
@@ -90,7 +96,7 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
     return {
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
-      messageMap: [...(chat.messageMap.get(c) || new Map()).values()].map(m => ({
+      messageMap: [...(chat.messageMap.get(c)?.values() ?? [])].map(m => ({
         a: m.author,
         i: m.id,
         o: m.ordinal,
@@ -111,8 +117,8 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
         notificationsMobile: metaMap.notificationsMobile,
         offline: metaMap.offline,
         participants: 'x',
-        rekeyers: metaMap.rekeyers && metaMap.rekeyers.size,
-        resetParticipants: metaMap.resetParticipants && metaMap.resetParticipants.size,
+        rekeyers: metaMap.rekeyers?.size,
+        resetParticipants: metaMap.resetParticipants?.size,
         retentionPolicy: metaMap.retentionPolicy,
         snippet: 'x',
         snippetDecoration: RPCChatTypes.SnippetDecoration.none,
@@ -153,14 +159,18 @@ export const makePhoneError = (e: RPCError) => {
 
 // Get phone number in e.164, or null if we can't parse it.
 export const getE164 = (phoneNumber: string, countryCode?: string) => {
-  const {phoneUtil, ValidationResult, PhoneNumberFormat} = require('../util/phone-numbers')
+  const {phoneUtil, ValidationResult, PhoneNumberFormat} = require('../util/phone-numbers') as {
+    phoneUtil: typeof phoneUtilType
+    ValidationResult: typeof ValidationResultType
+    PhoneNumberFormat: typeof PhoneNumberFormatType
+  }
   try {
     const parsed = countryCode ? phoneUtil.parse(phoneNumber, countryCode) : phoneUtil.parse(phoneNumber)
     const reason = phoneUtil.isPossibleNumberWithReason(parsed)
     if (reason !== ValidationResult.IS_POSSIBLE) {
       return null
     }
-    return phoneUtil.format(parsed, PhoneNumberFormat.E164) as string
+    return phoneUtil.format(parsed, PhoneNumberFormat.E164)
   } catch (e) {
     return null
   }

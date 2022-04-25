@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as Flow from '../../../util/flow'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
-import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
+import type * as Types from '../../../constants/types/fs'
 import Placeholder from './placeholder'
 import TlfType from './tlf-type-container'
 import Tlf from './tlf-container'
@@ -84,18 +84,18 @@ class Rows extends React.PureComponent<Props> {
         )
     }
   }
-  _getVariableRowLayout = (items, index) => ({
+  _getVariableRowLayout = (items: Array<RowTypes.RowItem>, index: number) => ({
     index,
     length: getRowHeight(items[index] || _unknownEmptyRowItem),
     offset: items.slice(0, index).reduce((offset, row) => offset + getRowHeight(row), 0),
   })
-  _getTopVariableRowCountAndTotalHeight = memoize(items => {
+  _getTopVariableRowCountAndTotalHeight = memoize((items: Array<RowTypes.RowItem>) => {
     const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
     return index === -1
       ? {count: items.length, totalHeight: -1}
       : {count: index, totalHeight: this._getVariableRowLayout(items, index).offset}
   })
-  _getItemLayout = index => {
+  _getItemLayout = (index: number) => {
     const top = this._getTopVariableRowCountAndTotalHeight(this.props.items)
     if (index < top.count) {
       return this._getVariableRowLayout(this.props.items, index)
@@ -110,7 +110,7 @@ class Rows extends React.PureComponent<Props> {
   // trigger a re-render when layout changes. Also encode items length into
   // this, otherwise we'd get taller-than content rows when going into a
   // smaller folder from a larger one.
-  _getListKey = memoize(items => {
+  _getListKey = memoize((items: Array<RowTypes.RowItem>) => {
     const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
     return (
       items

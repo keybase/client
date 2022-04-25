@@ -14,12 +14,25 @@ import * as ReactIs from 'react-is'
 // Fix this as we figure out what this needs to be
 type Props = {
   loggedIn: boolean
-  options: any
-  back?: any
+  options: {
+    headerMode?: string
+    title?: React.ReactNode
+    headerTitle?: React.ReactNode
+    headerLeft?: React.ReactNode
+    headerRightActions?: React.JSXElementConstructor<{}>
+    subHeader?: React.JSXElementConstructor<{}>
+    headerTransparent?: boolean
+    headerHideBorder?: boolean
+    headerBottomStyle: Styles.StylesCrossPlatform
+    headerStyle: Styles.StylesCrossPlatform
+  }
+  back?: boolean
   style?: any
   useNativeFrame: boolean
-  params?: any
-  navigation: any
+  params?: unknown
+  navigation: {
+    pop: () => void
+  }
 }
 
 const PlainTitle = ({title}) => (
@@ -154,13 +167,11 @@ class DesktopHeader extends React.PureComponent<Props> {
       !this.props.back && styles.iconContainerInactive,
       !this.props.loggedIn && Platform.isDarwin && styles.iconContainerDarwin,
     ] as const)
-    const iconColor =
-      opt.headerBackIconColor ||
-      (this.props.back
-        ? Styles.globalColors.black_50
-        : this.props.loggedIn
-        ? Styles.globalColors.black_10
-        : Styles.globalColors.transparent)
+    const iconColor = this.props.back
+      ? Styles.globalColors.black_50
+      : this.props.loggedIn
+      ? Styles.globalColors.black_10
+      : Styles.globalColors.transparent
 
     const whatsNewAttachToRef = React.createRef<Kb.Box2>()
 
@@ -205,19 +216,11 @@ class DesktopHeader extends React.PureComponent<Props> {
             <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
               <SyncingFolders
                 negative={
-                  this.props.style &&
-                  this.props.style.backgroundColor &&
-                  this.props.style.backgroundColor !== Styles.globalColors.transparent &&
-                  this.props.style.backgroundColor !== Styles.globalColors.white
+                  this.props.style?.backgroundColor !== Styles.globalColors.transparent &&
+                  this.props.style?.backgroundColor !== Styles.globalColors.white
                 }
               />
-              {this.props.loggedIn && (
-                <WhatsNewIconWithPopup
-                  color={opt.whatsNewIconColor}
-                  badgeColor={opt.whatsNewIconColor}
-                  attachToRef={whatsNewAttachToRef}
-                />
-              )}
+              {this.props.loggedIn && <WhatsNewIconWithPopup attachToRef={whatsNewAttachToRef} />}
               {!title && rightActions}
               {windowDecorationsAreNeeded && <SystemButtons />}
             </Kb.Box2>
@@ -226,10 +229,7 @@ class DesktopHeader extends React.PureComponent<Props> {
             key="bottomBar"
             direction="horizontal"
             fullWidth={true}
-            style={Styles.collapseStyles([
-              opt.headerExpandable ? styles.bottomExpandable : styles.bottom,
-              opt.headerBottomStyle,
-            ])}
+            style={Styles.collapseStyles([styles.bottom, opt.headerBottomStyle])}
           >
             <Kb.Box2 direction="horizontal" style={styles.bottomTitle}>
               {title}
@@ -266,9 +266,7 @@ const styles = Styles.styleSheetCreate(
       bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
       bottomExpandable: {minHeight: 40 - 1},
       bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
-      flexOne: {
-        flex: 1,
-      },
+      flexOne: {flex: 1},
       headerBack: Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
@@ -319,9 +317,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       iconContainerInactive: Styles.platformStyles({
-        isElectron: {
-          cursor: 'default',
-        },
+        isElectron: {cursor: 'default'},
       }),
       plainContainer: {
         ...Styles.globalStyles.flexGrow,
@@ -334,7 +330,7 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-type HeaderProps = any // TODO
+type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame'>
 
 export default (p: HeaderProps) => {
   const useNativeFrame = Container.useSelector(state => state.config.useNativeFrame)
