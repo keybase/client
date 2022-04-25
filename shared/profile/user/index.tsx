@@ -2,7 +2,6 @@ import * as React from 'react'
 import ProfileSearch from '../search/bar'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/tracker2'
-import * as Types from '../../constants/types/tracker2'
 import * as Styles from '../../styles'
 import chunk from 'lodash/chunk'
 import upperFirst from 'lodash/upperFirst'
@@ -15,8 +14,10 @@ import Teams from './teams/container'
 import shallowEqual from 'shallowequal'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
+import type * as Types from '../../constants/types/tracker2'
 import {SiteIcon} from '../generic/shared'
 import {HeaderLeftArrow} from '../../common-adapters/header-hoc'
+import type {RPCError} from '../../util/errors'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -104,7 +105,7 @@ const BioLayout = (p: BioTeamProofsProps) => (
   </Kb.Box2>
 )
 
-const ProveIt = p => {
+const ProveIt = (p: BioTeamProofsProps) => {
   let doWhat: string
   switch (p.service) {
     case 'phone':
@@ -133,7 +134,7 @@ const ProveIt = p => {
   )
 }
 
-const Proofs = p => {
+const Proofs = (p: BioTeamProofsProps) => {
   let assertions: React.ReactNode
   if (p.assertionKeys) {
     assertions = [
@@ -201,7 +202,7 @@ class Tabs extends React.Component<TabsProps> {
   }
 }
 
-const widthToDimensions = width => {
+const widthToDimensions = (width: number) => {
   const singleItemWidth = Styles.isMobile ? 130 : 120
   const itemsInARow = Math.floor(Math.max(1, width / singleItemWidth))
   const itemWidth = Math.floor(width / itemsInARow)
@@ -322,9 +323,23 @@ type State = {
 
 type Tab = 'followers' | 'following'
 
+type ChunkType = Array<
+  | Array<string>
+  | {type: 'IKnowThem'; text: string}
+  | {type: 'noFriends'; text: string}
+  | {type: 'loading'; text: string}
+>
 class User extends React.Component<Props, State> {
   static navigationOptions = () => ({
-    headerLeft: ({canGoBack, onPress, tintColor}) => (
+    headerLeft: ({
+      canGoBack,
+      onPress,
+      tintColor,
+    }: {
+      canGoBack: boolean
+      onPress: () => void
+      tintColor: string
+    }) => (
       <Styles.StyleContext.Provider value={{canFixOverdraw: false}}>
         <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
       </Styles.StyleContext.Provider>
@@ -372,7 +387,15 @@ class User extends React.Component<Props, State> {
     )
   }
 
-  _renderOtherUsers = ({item, section, index}) =>
+  _renderOtherUsers = ({
+    item,
+    section,
+    index,
+  }: {
+    item: any /* ChunkType TODO better typing here */
+    section: {itemWidth: number}
+    index: number
+  }) =>
     this.props.notAUser ? null : item.type === 'noFriends' || item.type === 'loading' ? (
       <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
         <Kb.Text type="BodySmall">{item.text}</Kb.Text>
@@ -403,8 +426,8 @@ class User extends React.Component<Props, State> {
     ),
   }
 
-  _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
-  _keyExtractor = (_, index) => index
+  _onMeasured = (width: number) => this.setState(p => (p.width !== width ? {width} : null))
+  _keyExtractor = (_: unknown, index: number) => index
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.username !== prevProps.username) {
@@ -412,7 +435,7 @@ class User extends React.Component<Props, State> {
     }
   }
 
-  _errorFilter = e => e.code !== RPCTypes.StatusCode.scresolutionfailed
+  _errorFilter = (e: RPCError) => e.code !== RPCTypes.StatusCode.scresolutionfailed
 
   render() {
     const friends =
@@ -422,14 +445,6 @@ class User extends React.Component<Props, State> {
         ? this.props.followers
         : null
     const {itemsInARow, itemWidth} = widthToDimensions(this.state.width)
-    // TODO memoize?
-    type ChunkType = Array<
-      | Types.WebOfTrustEntry
-      | Array<string>
-      | {type: 'IKnowThem'; text: string}
-      | {type: 'noFriends'; text: string}
-      | {type: 'loading'; text: string}
-    >
     let chunks: ChunkType = this.state.width ? chunk(friends, itemsInARow) : []
     if (chunks.length === 0) {
       if (this.props.following && this.props.followers) {
