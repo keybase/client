@@ -6,7 +6,7 @@ import FloatingMenu from '../floating-menu'
 import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
-import {Action, Props, LeftActionProps} from '.'
+import type {Action, Props, LeftActionProps} from '.'
 import {hoistNonReactStatic} from '../../util/container'
 
 const MAX_RIGHT_ACTIONS = 3
@@ -150,43 +150,46 @@ export const LeftAction = ({
   </Box>
 )
 
-const RightActions = ({
-  floatingMenuVisible,
-  hasTextTitle,
-  hideFloatingMenu,
-  rightActions,
-  showFloatingMenu,
-}): React.ReactElement => (
-  <Box style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
-    <Box style={styles.rightActionsWrapper}>
-      {rightActions &&
-        rightActions
-          .slice(
-            0,
-            rightActions && rightActions.length <= MAX_RIGHT_ACTIONS
-              ? MAX_RIGHT_ACTIONS
-              : MAX_RIGHT_ACTIONS - 1
-          )
-          .map((action, index) => renderAction(action, index))}
-      <RightActionsOverflow
-        floatingMenuVisible={floatingMenuVisible}
-        hideFloatingMenu={hideFloatingMenu}
-        rightActions={rightActions}
-        showFloatingMenu={showFloatingMenu}
-      />
+const RightActions = (p: {
+  floatingMenuVisible: boolean
+  hasTextTitle: boolean
+  hideFloatingMenu: () => void
+  rightActions: Props['rightActions']
+  showFloatingMenu: () => void
+}) => {
+  const {floatingMenuVisible, hasTextTitle, hideFloatingMenu, rightActions, showFloatingMenu} = p
+  return (
+    <Box style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
+      <Box style={styles.rightActionsWrapper}>
+        {rightActions
+          ?.slice(0, rightActions.length <= MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : MAX_RIGHT_ACTIONS - 1)
+          .map((action, index) => (action ? renderAction(action, index) : null))}
+        <RightActionsOverflow
+          floatingMenuVisible={floatingMenuVisible}
+          hideFloatingMenu={hideFloatingMenu}
+          rightActions={rightActions}
+          showFloatingMenu={showFloatingMenu}
+        />
+      </Box>
     </Box>
-  </Box>
-)
+  )
+}
 
-const RightActionsOverflow = ({floatingMenuVisible, hideFloatingMenu, rightActions, showFloatingMenu}) =>
-  rightActions && rightActions.length > MAX_RIGHT_ACTIONS ? (
+const RightActionsOverflow = (p: {
+  floatingMenuVisible: boolean
+  hideFloatingMenu: () => void
+  rightActions: Props['rightActions']
+  showFloatingMenu: () => void
+}) => {
+  const {floatingMenuVisible, hideFloatingMenu, rightActions, showFloatingMenu} = p
+  return rightActions && rightActions.length > MAX_RIGHT_ACTIONS ? (
     <>
       <Icon onClick={showFloatingMenu} style={styles.action} type="iconfont-ellipsis" />
       <FloatingMenu
         visible={floatingMenuVisible}
         items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map(action => ({
-          onClick: action.onPress,
-          title: action.label || 'You need to specify a label', // TODO: remove this after updates are fully integrated
+          onClick: action?.onPress,
+          title: action?.label || 'You need to specify a label', // TODO: remove this after updates are fully integrated
         }))}
         onHidden={hideFloatingMenu}
         position="bottom left"
@@ -194,6 +197,7 @@ const RightActionsOverflow = ({floatingMenuVisible, hideFloatingMenu, rightActio
       />
     </>
   ) : null
+}
 
 const renderAction = (action: Action, index: number): React.ReactNode =>
   action.custom ? (
@@ -348,7 +352,12 @@ const HeaderLeftBlank_ = () => (
 )
 export const HeaderLeftBlank = React.memo(HeaderLeftBlank_, () => true)
 
-const HeaderLeftArrow_ = (hp: any) =>
+const HeaderLeftArrow_ = (hp: {
+  canGoBack?: boolean
+  badgeNumber?: number
+  onPress: () => void
+  tintColor: string
+}) =>
   hp.canGoBack ?? true ? (
     <LeftAction
       badgeNumber={hp.badgeNumber ?? 0}
@@ -360,7 +369,12 @@ const HeaderLeftArrow_ = (hp: any) =>
 
 export const HeaderLeftArrow = React.memo(HeaderLeftArrow_)
 
-const HeaderLeftCancel_ = (hp: any) =>
+const HeaderLeftCancel_ = (hp: {
+  canGoBack?: boolean
+  badgeNumber?: number
+  onPress: () => void
+  tintColor: string
+}) =>
   hp.canGoBack ?? true ? (
     <LeftAction
       badgeNumber={0}
