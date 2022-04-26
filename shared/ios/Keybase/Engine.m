@@ -33,9 +33,9 @@ static Engine * sharedEngine = nil;
 
 @implementation Engine
 
-static NSString *const eventName = @"objc-engine-event";
-static NSString *const metaEventName = @"objc-meta-engine-event";
-static NSString *const metaEventEngineReset = @"engine-reset";
+static NSString *const eventName = @"kb-engine-event";
+static NSString *const metaEventName = @"kb-meta-engine-event";
+static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error {
@@ -170,12 +170,7 @@ RCT_EXPORT_METHOD(start) {
 - (NSDictionary *)constantsToExport {
   [self setupServerConfig];
   [self setupGuiConfig];
-#if TARGET_IPHONE_SIMULATOR
-  NSString * simulatorVal = @"1";
-#else
-  NSString * simulatorVal = @"";
-#endif
-  
+
   NSString * darkModeSupported = @"0";
   if (@available(iOS 13.0, *)) {
     darkModeSupported = @"1";
@@ -184,18 +179,22 @@ RCT_EXPORT_METHOD(start) {
   NSString * appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
   NSString * appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
   NSLocale *currentLocale = [NSLocale currentLocale];
+  NSString * cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
+  NSString * downloadDir = [NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
   
-  return @{ @"eventName": eventName,
-            @"metaEventName": metaEventName,
-            @"metaEventEngineReset": metaEventEngineReset,
+  return @{
             @"appVersionName": appVersionString,
             @"appVersionCode": appBuildString,
             @"darkModeSupported": darkModeSupported,
-            @"usingSimulator": simulatorVal,
             @"serverConfig": self.serverConfig ? self.serverConfig : @"",
             @"guiConfig": self.guiConfig ? self.guiConfig : @"",
             @"uses24HourClock": @([self uses24HourClockForLocale:currentLocale]),
-            @"version": KeybaseVersion()};
+            @"version": KeybaseVersion(),
+            @"fsCacheDir": cacheDir,
+            @"fsDownloadDir": downloadDir,
+            @"androidIsDeviceSecure": @"0",
+            @"androidIsTestDevice": @"0"
+  };
 }
 
 @end

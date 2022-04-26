@@ -6,7 +6,8 @@ import logSend from '../../native/log-send'
 import * as Container from '../../util/container'
 import {isAndroid, version, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
-import {Platform, NativeModules} from 'react-native'
+import {Platform} from 'react-native'
+import {NativeModules} from '../../util/native-modules.native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
 
 type OwnProps = Container.RouteProps<{heading: string; feedback: string}>
@@ -23,9 +24,8 @@ export type Props = {
   status: Object
 }
 
-const nativeBridge = NativeModules.KeybaseEngine
-const appVersionName = nativeBridge.appVersionName || ''
-const appVersionCode = nativeBridge.appVersionCode || ''
+const appVersionName = NativeModules.KeybaseEngine.appVersionName
+const appVersionCode = NativeModules.KeybaseEngine.appVersionCode
 const mobileOsVersion = Platform.Version
 
 class FeedbackContainer extends React.Component<Props, State> {

@@ -26,7 +26,7 @@ public class Utils extends ReactContextBaseJavaModule {
     public String getName() { return NAME; }
 
     @ReactMethod
-    public void getRegistrationToken(Promise promise) {
+    public void androidGetRegistrationToken(Promise promise) {
         boolean firebaseInitialized = FirebaseApp.getApps(getReactApplicationContext()).size() == 1;
         if (!firebaseInitialized) {
             FirebaseApp.initializeApp(getReactApplicationContext(),

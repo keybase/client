@@ -15,7 +15,7 @@ import trim from 'lodash/trim'
 import type * as Container from '../util/container'
 import type * as Types from '../constants/types/settings'
 import type {RPCError} from '../util/errors'
-import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
+import {isAndroidNewerThanN, androidIsTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 
 const onUpdatePGPSettings = async () => {

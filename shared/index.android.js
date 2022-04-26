@@ -2,7 +2,8 @@
 import 'react-native-gesture-handler' // MUST BE FIRST https://github.com/software-mansion/react-native-gesture-handler/issues/320
 import './why-did-you-render'
 import './app/globals.native'
-import {Appearance, NativeModules} from 'react-native'
+import {Appearance} from 'react-native'
+import {NativeModules} from './util/native-modules.native'
 import {_setSystemIsDarkMode, _setSystemSupported, _setDarkModePreference} from './styles/dark-mode'
 import {enableES5, enableMapSet} from 'immer'
 enableES5()

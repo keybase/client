@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
 import {e164ToDisplay} from '../../util/phone-numbers'
-import {NativeModules} from 'react-native'
+import {NativeModules} from '../../util/native-modules.native'
 import logger from '../../logger'
 
 // Contact info coming from the native contacts library.
