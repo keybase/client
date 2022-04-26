@@ -28,6 +28,14 @@ type NativeModulesType = {
     getDefaultCountryCode: () => Promise<string>
     // android only
     androidGetRegistrationToken?: () => Promise<string>
+    // android only
+    androidAddCompleteDownload?: (o: {
+      description: string
+      mime: string
+      path: string
+      showNotification: boolean
+      title: string
+    }) => Promise<void>
   }
   LogSend: {
     logSend: (

@@ -48,7 +48,7 @@ const finishedRegularDownload = async (state: TypedState, action: FsGen.Finished
     return null
   }
   try {
-    await require('react-native-blob-util').default.android.addCompleteDownload({
+    await NativeModules.Utils.androidAddCompleteDownload?.({
       description: `Keybase downloaded ${downloadInfo.filename}`,
       mime: mimeType,
       path: downloadState.localPath,
