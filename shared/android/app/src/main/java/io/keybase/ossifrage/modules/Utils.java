@@ -5,6 +5,7 @@ import android.app.DownloadManager;
 import android.content.Context;
 import android.telephony.TelephonyManager;
 import java.io.File;
+import java.io.IOException;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
@@ -156,6 +157,33 @@ public class Utils extends ReactContextBaseJavaModule {
         } catch (Exception ex) {
             promise.reject("EUNSPECIFIED", ex.getLocalizedMessage());
         }
+    }
 
+    private void deleteRecursive(File fileOrDirectory) throws IOException {
+        if (fileOrDirectory.isDirectory()) {
+            File[] files = fileOrDirectory.listFiles();
+            if (files == null) {
+                throw new NullPointerException("Received null trying to list files of directory '" + fileOrDirectory + "'");
+            } else {
+                for (File child : files) {
+                    deleteRecursive(child);
+                }
+            }
+        }
+        boolean result = fileOrDirectory.delete();
+        if (!result) {
+            throw new IOException("Failed to delete '" + fileOrDirectory + "'");
+        }
+    }
+
+    @ReactMethod
+    public void androidUnlink(String path, Promise promise) {
+        try {
+            String normalizedPath = this.normalizePath(path);
+            this.deleteRecursive(new File(normalizedPath));
+            promise.resolve(true);
+        } catch (Exception err) {
+            promise.reject("EUNSPECIFIED", err.getLocalizedMessage());
+        }
     }
 }

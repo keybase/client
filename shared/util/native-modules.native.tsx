@@ -36,6 +36,8 @@ type NativeModulesType = {
       showNotification: boolean
       title: string
     }) => Promise<void>
+    // android only
+    androidUnlink?: (path: string) => Promise<void>
   }
   LogSend: {
     logSend: (

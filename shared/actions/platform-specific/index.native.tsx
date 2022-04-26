@@ -38,7 +38,6 @@ import * as Haptics from 'expo-haptics'
 import {_getNavigator} from '../../constants/router2'
 import type {RPCError} from '../../util/errors'
 import type PermissionsType from 'expo-permissions'
-import type BlobType from 'react-native-blob-util'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -142,8 +141,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     throw e
   } finally {
     try {
-      const blob = require('react-native-blob-util').default as BlobType
-      blob.fs.unlink(filePath)
+      await NativeModules.Utils.androidUnlink?.(filePath)
     } catch (_) {
       logger.warn('failed to unlink')
     }
