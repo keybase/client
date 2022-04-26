@@ -44,16 +44,10 @@ const log = (tagPrefix: string, toLog: string) => {
   actuallyLog()
 }
 
-const dump: NativeLogDump = __STORYBOOK__
-  ? async () => {
-      const p: Promise<Array<string>> = Promise.resolve([])
-      return p
-    }
-  : // eslint-disable-next-line
-    async (...args) => {
-      actuallyLog.flush()
-      return NativeModules.KBNativeLogger?.dump(...args)
-    }
+const dump: NativeLogDump = async (prefix: string) => {
+  actuallyLog.flush()
+  return NativeModules.KBNativeLogger?.dump(prefix) ?? Promise.resolve([])
+}
 
 const flush = actuallyLog.flush
 

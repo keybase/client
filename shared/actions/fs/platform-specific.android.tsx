@@ -6,6 +6,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import {TypedState} from '../../util/container'
 import {PermissionsAndroid} from 'react-native'
 import nativeSaga from './common.native'
+import {NativeModules} from '../../util/native-modules.native'
 
 export const ensureDownloadPermissionPromise = async () => {
   const permissionStatus = await PermissionsAndroid.request(

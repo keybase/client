@@ -527,7 +527,7 @@ const setLockdownMode = async (
 
 const sendFeedback = async (state: Container.TypedState, action: SettingsGen.SendFeedbackPayload) => {
   // We don't want test devices (pre-launch reports) to send us log sends.
-  if (isTestDevice) {
+  if (androidIsTestDevice) {
     return
   }
   const {feedback, sendLogs, sendMaxBytes} = action.payload

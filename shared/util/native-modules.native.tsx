@@ -29,9 +29,6 @@ type NativeModulesType = {
     // android only
     androidGetRegistrationToken?: () => Promise<string>
   }
-  Storybook: {
-    isStorybook: boolean
-  }
   LogSend: {
     logSend: (
       status: string,

@@ -15,7 +15,9 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.io.File;
 import android.os.Bundle;
+import android.os.Environment;
 
 import io.keybase.ossifrage.BuildConfig;
 import io.keybase.ossifrage.DarkModePrefHelper;
@@ -109,15 +111,35 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             NativeLogger.warn(NAME + ": Error reading server config", e);
         }
 
+
+        String cacheDir = "";
+        {
+            File dir = this.reactContext.getCacheDir();
+            if (dir != null) {
+                cacheDir = dir.getAbsolutePath();
+            } 
+        }
+
+        String downloadDir = "";
+        {
+            File dir = this.reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+            if (dir != null) {
+                downloadDir = dir.getAbsolutePath();
+            }
+        }
+
         final Map<String, Object> constants = new HashMap<>();
-        constants.put("appVersionName", versionName);
-        constants.put("appVersionCode", versionCode);
-        constants.put("guiConfig", readGuiConfig());
-        constants.put("version", version());
         constants.put("androidIsDeviceSecure", isDeviceSecure);
         constants.put("androidIsTestDevice", misTestDevice);
+        constants.put("appVersionCode", versionCode);
+        constants.put("appVersionName", versionName);
+        constants.put("darkModeSupported", "0");
+        constants.put("fsCacheDir", cacheDir);
+        constants.put("fsDownloadDir", downloadDir);
+        constants.put("guiConfig", readGuiConfig());
         constants.put("serverConfig", serverConfig);
         constants.put("uses24HourClock", DateFormat.is24HourFormat(this.reactContext));
+        constants.put("version", version());
         return constants;
     }
 

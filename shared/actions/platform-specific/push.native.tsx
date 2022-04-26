@@ -59,7 +59,7 @@ const updateAppBadge = (action: NotificationsGen.ReceivedBadgeStatePayload) => {
 const listenForNativeAndroidIntentNotifications = async (
   emitter: (action: Container.TypedActions) => void
 ) => {
-  const pushToken = (await NativeModules.Utils?.getRegistrationToken()) ?? ''
+  const pushToken = (await NativeModules.Utils.androidGetRegistrationToken?.()) ?? ''
   logger.debug('[PushToken] received new token: ', pushToken)
   emitter(PushGen.createUpdatePushToken({token: pushToken}))
 

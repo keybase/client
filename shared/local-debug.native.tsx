@@ -34,7 +34,7 @@ let config = {
   ignoreDisconnectOverlay: false,
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
-  isTesting: NativeModules.Storybook.isStorybook, // Is running a unit test
+  isTesting: false, // NativeModules.Storybook.isStorybook, // Is running a unit test
   partyMode: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
