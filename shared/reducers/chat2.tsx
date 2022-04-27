@@ -850,7 +850,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         if (lookupID) {
           const map = oldMessageMap.get(conversationIDKey)
           const oldMsg = map?.get(Types.numberToOrdinal(lookupID))
-          if (oldMsg?.type === 'placeholder') {
+          if (
+            oldMsg?.type === 'placeholder' &&
+            // don't delete the placeholder if we're just about to replace it ourselves
+            oldMsg.ordinal !== message.ordinal
+          ) {
             logger.info(`messagesAdd: removing old placeholder: ${oldMsg.ordinal}`)
             removedOrdinals.push(oldMsg.ordinal)
           }
