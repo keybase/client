@@ -109,20 +109,22 @@ msgpack::unpacker unp;
 ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
   try {
     auto values = make_shared<std::vector<msgpack::object_handle>>();
-    unp.reserve_buffer(size);
-    std::copy(data, data + size, unp.buffer());
-    unp.buffer_consumed(size);
-    while (true) {
-      msgpack::object_handle result;
-      if (unp.next(result)) {
-        if (g_state == ReadState::needSize) {
-          g_state = ReadState::needContent;
+    if (size > 0) {
+      unp.reserve_buffer(size);
+      std::copy(data, data + size, unp.buffer());
+      unp.buffer_consumed(size);
+      while (true) {
+        msgpack::object_handle result;
+        if (unp.next(result)) {
+          if (g_state == ReadState::needSize) {
+            g_state = ReadState::needContent;
+          } else {
+            values->push_back(move(result));
+            g_state = ReadState::needSize;
+          }
         } else {
-          values->push_back(move(result));
-          g_state = ReadState::needSize;
+          break;
         }
-      } else {
-        break;
       }
     }
     return values;
