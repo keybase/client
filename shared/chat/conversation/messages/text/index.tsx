@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import type * as Types from '../../../../constants/types/chat2'
 import {useMemo} from '../../../../util/memoize'
 import {sharedStyles} from '../shared-styles'
 
