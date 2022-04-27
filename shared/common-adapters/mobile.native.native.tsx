@@ -299,9 +299,6 @@ module.exports = {
   get NewInput() {
     return Index.NewInput
   },
-  get OrientedImage() {
-    return Index.OrientedImage
-  },
   get Overlay() {
     return Index.Overlay
   },

@@ -116,7 +116,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
                   key={this.props.path}
                 >
                   {!this.props.isVideo ? (
-                    <Kb.OrientedImage
+                    <Kb.Image
                       src={this.props.path}
                       style={
                         this.state.isZoomed

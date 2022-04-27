@@ -198,9 +198,6 @@ module.exports = {
   get NewInput() {
     return require('./new-input').default
   },
-  get OrientedImage() {
-    return require('./oriented-image').default
-  },
   get Overlay() {
     return require('./overlay').default
   },

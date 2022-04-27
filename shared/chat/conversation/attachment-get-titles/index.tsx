@@ -93,7 +93,7 @@ class GetTitles extends React.Component<Props, State> {
             >
               <Kb.Box2 alignItems="center" direction="vertical" style={styles.imageContainer}>
                 {info.type === 'image' ? (
-                  <Kb.OrientedImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
+                  <Kb.Image src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
                 ) : (
                   <Kb.Icon type="icon-file-uploading-48" />
                 )}

@@ -37,7 +37,7 @@ type State = {
 
 class EditAvatar extends React.Component<Props, State> {
   private file: HTMLInputElement | null = null
-  private image = React.createRef()
+  private imageRef = React.createRef<Kb.Image>()
   private timerID?: ReturnType<typeof setTimeout>
 
   constructor(props: Props) {
@@ -159,7 +159,7 @@ class EditAvatar extends React.Component<Props, State> {
     this.setState({error: true, hasPreview: false, loading: false})
   }
 
-  private onImageLoad = (e: React.SyntheticEvent<any>) => {
+  private onImageLoad = (e: React.BaseSyntheticEvent) => {
     // TODO: Make RPC to check file size and warn them before they try submitting.
 
     let height = AVATAR_SIZE
@@ -222,12 +222,12 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   private onMouseDown = (e: React.MouseEvent) => {
-    if (!this.state.hasPreview || !this.image) return
+    if (!this.state.hasPreview || !this.imageRef) return
 
     // Grab the values now. The event object will be nullified by the time setState is called.
     const {pageX, pageY} = e
 
-    const img = this.image.current
+    const img = this.imageRef.current
 
     this.setState(s => ({
       dragStartX: pageX,
@@ -241,9 +241,9 @@ class EditAvatar extends React.Component<Props, State> {
   }
 
   private onMouseUp = () => {
-    if (!this.state.hasPreview || !this.image) return
+    if (!this.state.hasPreview || !this.imageRef) return
 
-    const img = this.image.current
+    const img = this.imageRef.current
 
     this.setState(s => ({
       // @ts-ignore codemode issue
@@ -416,8 +416,8 @@ class EditAvatar extends React.Component<Props, State> {
                 <Kb.ProgressIndicator type="Large" style={styles.spinner} />
               </Kb.Box2>
             )}
-            <Kb.OrientedImage
-              forwardedRef={this.image}
+            <Kb.Image
+              ref={this.imageRef}
               src={this.state.imageSource}
               style={Styles.platformStyles({
                 isElectron: {
