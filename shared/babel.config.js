@@ -26,6 +26,8 @@ module.exports = function (api /*: any */) {
 
   api.cache(true)
 
+  // console.error('KB babel.config.js ', {isElectron, isReactNative})
+
   if (!isElectron && !isReactNative) {
     throw new Error('MUST have env var BABEL_PLATFORM to all babel')
   }
