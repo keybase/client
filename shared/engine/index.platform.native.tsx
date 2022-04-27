@@ -62,8 +62,8 @@ function createClient(
   )
 
   global.rpcOnJs = objs => {
-    // @ts-ignore this does exist
     try {
+      // @ts-ignore this does exist
       client.transport._dispatch(objs)
     } catch (e) {
       logger.error('>>>> rpcOnJs JS thrown!', e)
